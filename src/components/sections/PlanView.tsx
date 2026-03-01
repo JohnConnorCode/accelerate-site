@@ -25,7 +25,7 @@ function SolutionCard({ solution }: { solution: SolutionRecommendation }) {
   return (
     <div
       className={cn(
-        "glass rounded-xl overflow-hidden transition-colors duration-300",
+        "glass rounded-xl overflow-clip transition-colors duration-300",
         isOpen ? "border-[rgba(212,175,55,0.2)]" : ""
       )}
     >

@@ -22,6 +22,7 @@ import {
   Briefcase,
   Building2,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import {
@@ -31,7 +32,7 @@ import {
 import { fadeUp } from "@/lib/animations";
 import type { Vertical } from "@/lib/types";
 
-const iconMap: Record<string, React.ElementType> = {
+const iconMap: Record<string, LucideIcon> = {
   PhoneMissed,
   Clock,
   UserX,
@@ -62,8 +63,9 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
       {/* Hero */}
       <section className="relative py-24 sm:py-32 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="orb-gold top-[-10%] right-[-5%]" />
-          <div className="orb-white bottom-[-15%] left-[-10%]" />
+          <div className="absolute inset-0 gradient-mesh opacity-40" />
+          <div className="absolute inset-0 grid-overlay opacity-20" />
+          <div className="hero-glow-orb hero-glow-orb-gold absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2" />
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
@@ -72,11 +74,7 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
               {vertical.name}
             </p>
             <h1
-              className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-6"
-              style={{
-                fontFamily:
-                  "var(--font-space-grotesk), var(--font-inter), sans-serif",
-              }}
+              className="page-heading leading-[1.1] mb-6"
             >
               {vertical.heroHeadlineWhite}{" "}
               <span className="text-gold-gradient">
@@ -103,11 +101,7 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll className="text-center mb-16">
             <h2
-              className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4"
-              style={{
-                fontFamily:
-                  "var(--font-space-grotesk), var(--font-inter), sans-serif",
-              }}
+              className="section-heading mb-4"
             >
               Sound <span className="text-gold-gradient">Familiar?</span>
             </h2>
@@ -145,11 +139,7 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll className="text-center mb-16">
             <h2
-              className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4"
-              style={{
-                fontFamily:
-                  "var(--font-space-grotesk), var(--font-inter), sans-serif",
-              }}
+              className="section-heading mb-4"
             >
               How We <span className="text-gold-gradient">Fix It</span>
             </h2>
@@ -198,11 +188,7 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
                 Case Study
               </p>
               <h3
-                className="text-2xl sm:text-3xl font-bold text-white mb-4"
-                style={{
-                  fontFamily:
-                    "var(--font-space-grotesk), var(--font-inter), sans-serif",
-                }}
+                className="font-display text-2xl sm:text-3xl font-bold text-white mb-4"
               >
                 {vertical.caseStudy.title}
               </h3>
@@ -216,11 +202,7 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
                     className="glass rounded-lg p-4 text-center"
                   >
                     <p
-                      className="text-2xl font-bold text-gold-gradient mb-1"
-                      style={{
-                        fontFamily:
-                          "var(--font-space-grotesk), var(--font-inter), sans-serif",
-                      }}
+                      className="font-display text-2xl font-bold text-gold-gradient mb-1"
                     >
                       {metric.value}
                     </p>
@@ -246,11 +228,7 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
             <GlassCard variant="gold" padding="none" className="text-center">
               <div className="p-10 sm:p-14">
                 <h2
-                  className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4"
-                  style={{
-                    fontFamily:
-                      "var(--font-space-grotesk), var(--font-inter), sans-serif",
-                  }}
+                  className="section-heading mb-4"
                 >
                   Get Your Free{" "}
                   <span className="text-gold-gradient">{vertical.name}</span>{" "}

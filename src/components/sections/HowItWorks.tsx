@@ -1,76 +1,104 @@
 "use client";
 
 import { MessageSquare, Hammer, Rocket } from "lucide-react";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { AnimateOnScroll, StaggerContainer } from "@/components/ui/AnimateOnScroll";
-import { fadeUp } from "@/lib/animations";
+import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
+import { slideFromLeft, slideFromRight } from "@/lib/animations";
 
 const steps = [
   {
     number: "01",
     icon: MessageSquare,
-    title: "Free Consultation",
+    title: "We Learn Your Business",
     description:
-      "We learn your business, your bottlenecks, and your goals. 15 minutes, no commitment. You will walk away with a clear picture of what is possible.",
+      "A free strategy session where we audit your operations and build a prioritized roadmap.",
   },
   {
     number: "02",
     icon: Hammer,
-    title: "Custom Build",
+    title: "We Build Your Systems",
     description:
-      "We design and build your AI-powered solution in 2 to 4 weeks. You review and approve everything along the way. No surprises.",
+      "Your dedicated team designs, builds, and tests every integration before it goes live.",
   },
   {
     number: "03",
     icon: Rocket,
-    title: "Launch & Grow",
+    title: "We Run It With You",
     description:
-      "Your new system goes live and starts capturing leads while you focus on what you do best. We monitor performance and optimize continuously.",
+      "We don't hand off and disappear. We operate, monitor, and optimize alongside you — every month.",
   },
 ];
 
 export function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-24 bg-[var(--bg-elevated)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <AnimateOnScroll className="text-center mb-16">
-          <h2
-            className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4"
-            style={{ fontFamily: "var(--font-space-grotesk), var(--font-inter), sans-serif" }}
-          >
-            Three Steps to{" "}
-            <span className="text-gold-gradient">More Leads, Less Work</span>
+    <section id="how-it-works" className="py-32 bg-[var(--bg-section-deep)]">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <AnimateOnScroll className="text-center mb-20">
+          <h2 className="section-heading">
+            Live in weeks.{" "}
+            <span className="text-gold-gradient">Improving every month.</span>
           </h2>
         </AnimateOnScroll>
 
-        <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-          {/* Connector line (desktop only) */}
-          <div className="hidden md:block absolute top-1/2 left-[16%] right-[16%] h-px bg-gradient-to-r from-transparent via-[rgba(212,175,55,0.2)] to-transparent -translate-y-1/2 z-0" />
+        <div className="relative space-y-20">
+          {/* Vertical connector line (desktop) */}
+          <div
+            className="hidden lg:block absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2"
+            style={{
+              background:
+                "linear-gradient(to bottom, transparent, rgba(212,175,55,0.15) 20%, rgba(212,175,55,0.15) 80%, transparent)",
+            }}
+          />
 
-          {steps.map((step) => (
-            <AnimateOnScroll key={step.number} variants={fadeUp}>
-              <GlassCard
-                hover="glow"
-                padding="lg"
-                className="relative z-10 text-center h-full"
+          {steps.map((step, i) => {
+            const isEven = i % 2 === 0;
+            return (
+              <div
+                key={step.number}
+                className="relative grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-8 lg:gap-12 items-center"
               >
-                <span
-                  className="text-5xl font-bold text-gold-gradient block mb-5"
-                  style={{ fontFamily: "var(--font-space-grotesk), var(--font-inter), sans-serif" }}
+                {/* Content — alternates sides */}
+                <AnimateOnScroll
+                  variants={isEven ? slideFromLeft : slideFromRight}
+                  className={`${isEven ? "lg:order-1" : "lg:order-3 lg:text-left"}`}
                 >
-                  {step.number}
-                </span>
-                <step.icon className="w-8 h-8 text-[var(--gold-base)] mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-white mb-3">
-                  {step.title}
-                </h3>
-                <p className="text-white/60 leading-relaxed">
-                  {step.description}
-                </p>
-              </GlassCard>
-            </AnimateOnScroll>
-          ))}
-        </StaggerContainer>
+                  <div className={isEven ? "lg:text-right" : ""}>
+                    <step.icon className="w-6 h-6 text-[var(--gold-base)] mb-3 lg:hidden" />
+                    <h3 className="text-xl font-semibold text-white mb-2">
+                      {step.title}
+                    </h3>
+                    <p className="text-lg text-[var(--white-muted)] leading-relaxed max-w-md">
+                      {step.description}
+                    </p>
+                  </div>
+                </AnimateOnScroll>
+
+                {/* Center number node */}
+                <div className="hidden lg:flex order-2 flex-col items-center">
+                  <div
+                    className="relative w-[136px] h-[136px] rounded-full flex items-center justify-center"
+                    style={{
+                      background:
+                        "radial-gradient(circle, rgba(212,175,55,0.08) 0%, transparent 70%)",
+                    }}
+                  >
+                    <div className="absolute inset-0 rounded-full border border-white/[0.06]" />
+                    <span className="font-display text-4xl font-bold text-gold-gradient">
+                      {step.number}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Empty space for alternation */}
+                <div
+                  className={`hidden lg:flex ${isEven ? "order-3" : "order-1"} items-center ${isEven ? "justify-start" : "justify-end"}`}
+                >
+                  <step.icon className="w-10 h-10 text-[var(--gold-base)] opacity-40" />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
       </div>
     </section>
   );

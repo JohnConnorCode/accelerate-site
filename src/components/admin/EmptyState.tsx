@@ -1,9 +1,10 @@
 import { Inbox } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 interface EmptyStateProps {
   message?: string;
-  icon?: React.ElementType;
+  icon?: LucideIcon;
   actionLabel?: string;
   onAction?: () => void;
 }

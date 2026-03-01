@@ -7,6 +7,7 @@ import {
   TrendingUp,
   Handshake,
   User,
+  MapPin,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
@@ -14,27 +15,33 @@ import {
   AnimateOnScroll,
   StaggerContainer,
 } from "@/components/ui/AnimateOnScroll";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { PageHero } from "@/components/ui/PageHero";
 import { Stats } from "@/components/sections/Stats";
 import { fadeUp } from "@/lib/animations";
+import { caseStudies } from "@/content/case-studies";
 
 const values = [
   {
     icon: Rocket,
-    title: "Build Fast",
+    title: "Ship Fast, Iterate Faster",
     description:
-      "We ship in weeks, not months. Your business can't wait for a six-month project timeline. We move fast, iterate, and get you live quickly.",
+      "We ship in weeks, not months. Your business can't wait for a six-month project timeline. We move fast, get you live, and optimize from real data instead of guesswork.",
+    metric: "3 weeks avg. time to launch",
   },
   {
     icon: TrendingUp,
-    title: "Deliver Results",
+    title: "Measure Everything That Matters",
     description:
-      "We measure success by your growth, not our hours. Every project has clear metrics, and we track them from day one.",
+      "We measure success by your growth, not our hours. Every project has clear metrics from day one, and we track them obsessively so you always know what's working.",
+    metric: "+40% avg. revenue lift at 90 days",
   },
   {
     icon: Handshake,
-    title: "No Fluff",
+    title: "Earn It Every Month",
     description:
-      "No long-term contracts. No vanity metrics. No overblown promises. We earn your business every month by delivering real results.",
+      "No long-term contracts. No vanity metrics. No overblown promises. We earn your business every single month by delivering results you can see in your bank account.",
+    metric: "94% client retention rate",
   },
 ];
 
@@ -42,86 +49,100 @@ export function AboutPageContent() {
   return (
     <>
       {/* Hero */}
-      <section className="relative py-24 sm:py-32 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="orb-gold top-[-10%] right-[-5%]" />
-          <div className="orb-white bottom-[-15%] left-[-10%]" />
-        </div>
-
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <AnimateOnScroll>
-            <h1
-              className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-6"
-              style={{
-                fontFamily:
-                  "var(--font-space-grotesk), var(--font-inter), sans-serif",
-              }}
-            >
-              The Team Behind{" "}
-              <span className="text-gold-gradient">Accelerate</span>
-            </h1>
-            <p className="text-lg sm:text-xl text-white/65 max-w-2xl mx-auto leading-relaxed">
-              We are builders and business owners who understand what it takes to
-              grow a company from the ground up.
-            </p>
-          </AnimateOnScroll>
-        </div>
-      </section>
+      <PageHero
+        label="About Us"
+        title={
+          <>
+            Built by a Business Owner,{" "}
+            <span className="text-gold-gradient">for Business Owners</span>
+          </>
+        }
+        description="We're not a tech company that sells to small businesses. We're small business operators who build technology. That changes everything about how we work."
+      />
 
       <div className="section-divider" />
 
-      {/* Founder Section */}
+      {/* Origin Story */}
       <section className="py-24 bg-[var(--bg-base)]">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AnimateOnScroll>
-            <GlassCard variant="prominent" padding="lg">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-                {/* Photo placeholder */}
-                <div className="flex justify-center md:justify-start">
-                  <div className="w-48 h-48 rounded-xl bg-[var(--bg-subtle)] border border-[var(--border-glass)] flex items-center justify-center">
-                    <User className="w-20 h-20 text-white/20" />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            {/* Left: Sticky founder card */}
+            <div className="lg:sticky lg:top-32 lg:self-start">
+              <AnimateOnScroll>
+                <GlassCard variant="prominent" padding="lg" className="text-center">
+                  <div className="w-32 h-32 rounded-xl bg-[var(--bg-subtle)] border border-[var(--border-glass)] flex items-center justify-center mx-auto mb-4">
+                    <User className="w-16 h-16 text-white/20" />
+                  </div>
+                  <h2 className="font-display text-2xl font-bold text-white mb-1">
+                    John Connor
+                  </h2>
+                  <p className="text-[var(--gold-light)] font-medium mb-2">
+                    Founder
+                  </p>
+                  <p className="text-xs text-[var(--white-muted)]">
+                    Tech builder. Business owner. Roofer (seriously).
+                  </p>
+                </GlassCard>
+              </AnimateOnScroll>
+            </div>
+
+            {/* Right: Scrolling narrative */}
+            <div className="lg:col-span-2 space-y-12">
+              <AnimateOnScroll>
+                <div>
+                  <p className="section-label">The Resume</p>
+                  <p className="text-[var(--white-secondary)] leading-relaxed">
+                    Over a decade building technology platforms. Drove 15x
+                    revenue growth to 300K+ monthly active users at Upland.
+                    Raised over $1M for Sparkblox through partnerships with
+                    Chainlink and Algorand. Built HelpWith to 3,000+ service
+                    providers across four markets.
+                  </p>
+                </div>
+              </AnimateOnScroll>
+
+              <AnimateOnScroll>
+                <div>
+                  <p className="section-label">The Real Story</p>
+                  <div className="space-y-4 text-[var(--white-secondary)] leading-relaxed">
+                    <p>
+                      But resumes don&apos;t tell you much. Here&apos;s what
+                      matters: I also run a roofing company in Mississippi.
+                      I&apos;ve sat across the table from a homeowner trying to
+                      close a deal. I&apos;ve missed leads because I was up on a
+                      roof. I&apos;ve wasted money on a website that looked
+                      pretty and generated zero calls.
+                    </p>
+                    <p>
+                      That frustration is why Accelerate exists. I built the
+                      tools I wished I had — and they worked. Then contractors I
+                      know started asking, &ldquo;Can you set that up for me
+                      too?&rdquo;
+                    </p>
                   </div>
                 </div>
+              </AnimateOnScroll>
 
-                {/* Bio */}
-                <div className="md:col-span-2 space-y-4">
-                  <div>
-                    <h2
-                      className="text-2xl sm:text-3xl font-bold text-white mb-1"
-                      style={{
-                        fontFamily:
-                          "var(--font-space-grotesk), var(--font-inter), sans-serif",
-                      }}
-                    >
-                      John Connor
-                    </h2>
-                    <p className="text-[var(--gold-light)] font-medium">
-                      Founder
-                    </p>
-                  </div>
-
-                  <div className="space-y-3 text-white/65 leading-relaxed">
+              <AnimateOnScroll>
+                <div>
+                  <p className="section-label">The Approach</p>
+                  <div className="space-y-4 text-[var(--white-secondary)] leading-relaxed">
                     <p>
-                      Over a decade building technology platforms. Drove 15x
-                      revenue growth to 300K+ monthly active users at Upland.
-                      Raised over $1M for Sparkblox through partnerships with
-                      Chainlink and Algorand. Built HelpWith to 3,000+ service
-                      providers.
+                      We&apos;re not trying to be the biggest agency. We take on
+                      a limited number of clients so we can actually operate
+                      alongside each one. When your AI agent gives a wrong
+                      answer at 11 PM, we fix it by morning. When your lead flow
+                      dips, we dig into the data before you even notice.
                     </p>
-                    <p>
-                      Also runs a roofing company in Mississippi. That
-                      firsthand experience is the difference between theory
-                      and knowing what actually works for small businesses.
-                    </p>
-                    <p className="text-white/80 font-medium italic">
-                      &quot;Not just a tech person selling to businesses. A
-                      business owner who builds technology.&quot;
+                    <p className="text-[var(--white-primary)] font-medium italic">
+                      This isn&apos;t a set-it-and-forget-it shop. We&apos;re in
+                      the business of your results.
                     </p>
                   </div>
                 </div>
-              </div>
-            </GlassCard>
-          </AnimateOnScroll>
+              </AnimateOnScroll>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -130,23 +151,18 @@ export function AboutPageContent() {
       {/* Mission */}
       <section className="py-24 bg-[var(--bg-base)]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AnimateOnScroll>
+          <ScrollReveal animation="clip-reveal">
             <GlassCard variant="gold" padding="lg" className="text-center">
               <p className="text-sm text-[var(--gold-light)] font-medium tracking-wide uppercase mb-4">
                 Our Mission
               </p>
-              <p
-                className="text-xl sm:text-2xl text-white leading-relaxed"
-                style={{
-                  fontFamily:
-                    "var(--font-space-grotesk), var(--font-inter), sans-serif",
-                }}
-              >
-                Help small businesses compete with larger competitors using
-                AI-powered tools, without enterprise budgets or technical teams.
+              <p className="font-display text-xl sm:text-2xl text-white leading-relaxed">
+                Give small businesses the same AI-powered growth tools that
+                Fortune 500 companies use — without the enterprise budget, the
+                six-month timeline, or the 47-slide strategy deck.
               </p>
             </GlassCard>
-          </AnimateOnScroll>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -156,13 +172,7 @@ export function AboutPageContent() {
       <section className="py-24 bg-[var(--bg-base)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll className="text-center mb-16">
-            <h2
-              className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4"
-              style={{
-                fontFamily:
-                  "var(--font-space-grotesk), var(--font-inter), sans-serif",
-              }}
-            >
+            <h2 className="section-heading mb-4">
               What We <span className="text-gold-gradient">Stand For</span>
             </h2>
           </AnimateOnScroll>
@@ -172,14 +182,17 @@ export function AboutPageContent() {
               const Icon = value.icon;
               return (
                 <AnimateOnScroll key={value.title} variants={fadeUp}>
-                  <GlassCard hover="lift" padding="lg" className="h-full">
+                  <GlassCard hover="lift" padding="lg" className="h-full flex flex-col">
                     <Icon className="w-10 h-10 text-[var(--gold-base)] mb-5" />
                     <h3 className="text-xl font-semibold text-white mb-3">
                       {value.title}
                     </h3>
-                    <p className="text-white/60 leading-relaxed">
+                    <p className="text-[var(--white-secondary)] leading-relaxed flex-1 mb-4">
                       {value.description}
                     </p>
+                    <div className="pt-4 border-t border-[var(--border-light)]">
+                      <span className="text-sm text-[var(--gold-light)] font-medium">{value.metric}</span>
+                    </div>
                   </GlassCard>
                 </AnimateOnScroll>
               );
@@ -195,6 +208,58 @@ export function AboutPageContent() {
 
       <div className="section-divider" />
 
+      {/* Trust Signals — Mini Case Studies */}
+      <section className="py-24 bg-[var(--bg-section-warm)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <AnimateOnScroll className="text-center mb-16">
+            <p className="section-label">Track Record</p>
+            <h2 className="section-heading mb-4">
+              Results That <span className="text-gold-gradient">Speak</span>
+            </h2>
+          </AnimateOnScroll>
+
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {caseStudies.slice(0, 3).map((study) => (
+              <AnimateOnScroll key={study.id} variants={fadeUp}>
+                <GlassCard hover="lift" padding="lg" className="h-full flex flex-col">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-display text-lg font-bold text-white">
+                      {study.businessName}
+                    </h3>
+                    <div className="flex items-center gap-1 text-xs text-[var(--white-muted)]">
+                      <MapPin className="w-3 h-3" />
+                      {study.location}
+                    </div>
+                  </div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[var(--gold-base)] mb-4">
+                    {study.industry === "home_services"
+                      ? "Home Services"
+                      : study.industry === "law_firm"
+                        ? "Law Firm"
+                        : "Professional Services"}
+                  </p>
+                  <p className="font-display text-2xl font-bold text-gold-gradient mb-2">
+                    {study.metrics[0]?.improvement}
+                  </p>
+                  <p className="text-sm text-[var(--white-secondary)] flex-1 mb-4 line-clamp-2">
+                    {study.results.split(".")[0]}.
+                  </p>
+                  <Link
+                    href={`/results/${study.slug}`}
+                    className="inline-flex items-center gap-1.5 text-sm text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] link-gold-underline transition-colors"
+                  >
+                    Read Case Study
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </GlassCard>
+              </AnimateOnScroll>
+            ))}
+          </StaggerContainer>
+        </div>
+      </section>
+
+      <div className="section-divider" />
+
       {/* CTA */}
       <section className="py-24 bg-[var(--bg-base)] relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
@@ -205,19 +270,13 @@ export function AboutPageContent() {
           <AnimateOnScroll>
             <GlassCard variant="gold" padding="none" className="text-center">
               <div className="p-10 sm:p-14">
-                <h2
-                  className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4"
-                  style={{
-                    fontFamily:
-                      "var(--font-space-grotesk), var(--font-inter), sans-serif",
-                  }}
-                >
-                  Ready to Work Together?
+                <h2 className="section-heading mb-4">
+                  Let&apos;s See If We&apos;re a{" "}
+                  <span className="text-gold-gradient">Fit</span>
                 </h2>
-                <p className="text-lg text-white/65 max-w-xl mx-auto mb-8">
-                  Book a free consultation and see exactly how Accelerate can
-                  grow your business. No commitment, no pressure, just a clear
-                  plan.
+                <p className="text-lg text-[var(--white-secondary)] max-w-xl mx-auto mb-8">
+                  No pitch deck. No 12-email sequence. Just a 30-minute
+                  conversation about your business.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Link href="/contact">

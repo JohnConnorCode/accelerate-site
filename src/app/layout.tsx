@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Inter, Jost } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { CookieConsent } from "@/components/layout/CookieConsent";
+import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { TrackingScripts } from "@/components/layout/TrackingScripts";
 import { ChatWidget } from "@/components/chat/ChatWidget";
 import "./globals.css";
@@ -13,9 +13,10 @@ const inter = Inter({
   display: "swap",
 });
 
-const spaceGrotesk = Space_Grotesk({
+const jost = Jost({
   variable: "--font-space-grotesk",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -54,7 +55,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
+    <html lang="en" className={`${inter.variable} ${jost.variable}`} suppressHydrationWarning>
       <head>
         <script
           defer
@@ -63,18 +64,19 @@ export default function RootLayout({
         />
       </head>
       <body className="noise-overlay min-h-screen flex flex-col">
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-gold-gradient focus:text-black focus:font-semibold focus:text-sm"
-        >
-          Skip to main content
-        </a>
-        <TrackingScripts />
-        <Header />
-        <main id="main-content" className="flex-1">{children}</main>
-        <Footer />
-        <CookieConsent />
-        <ChatWidget />
+        <ThemeProvider>
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-gold-gradient focus:text-black focus:font-semibold focus:text-sm"
+          >
+            Skip to main content
+          </a>
+          <TrackingScripts />
+          <Header />
+          <main id="main-content" className="flex-1">{children}</main>
+          <Footer />
+          <ChatWidget />
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -21,6 +21,10 @@ interface MobileNavProps {
 export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const glassSurface = {
+    backdropFilter: "blur(30px) saturate(160%)",
+    WebkitBackdropFilter: "blur(30px) saturate(160%)",
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -47,11 +51,11 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[60] lg:hidden"
+          className="fixed inset-0 z-[100] lg:hidden"
         >
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/80"
+            className="absolute inset-0 bg-[var(--bg-overlay)]"
             onClick={onClose}
           />
 
@@ -62,16 +66,20 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
             exit={{ y: "-100%" }}
             transition={{ duration: 0.3, ease: "easeOut" }}
             className="relative glass-prominent min-h-screen pt-6 pb-12 px-6"
+            style={{
+              ...glassSurface,
+              backgroundColor: "var(--mobile-nav-bg)",
+            }}
           >
             {/* Close + Logo Row */}
             <div className="flex items-center justify-between mb-12">
-              <span className="text-2xl font-bold text-gold-gradient tracking-tight">
-                Accelerate
+              <span className="text-xl font-bold text-gold-gradient tracking-[0.15em] uppercase font-display">
+                ACCELERATE
               </span>
               <button
                 ref={closeButtonRef}
                 onClick={onClose}
-                className="text-white/70 hover:text-white p-2 cursor-pointer"
+                className="text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] p-2 cursor-pointer"
                 aria-label="Close navigation menu"
               >
                 <X className="w-6 h-6" />
@@ -90,7 +98,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                         )
                       }
                       aria-expanded={expandedItem === link.label}
-                      className="w-full flex items-center justify-between py-3 text-xl text-white/80 hover:text-white transition-colors cursor-pointer"
+                      className="w-full flex items-center justify-between py-3 text-xl text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] transition-colors cursor-pointer"
                     >
                       {link.label}
                       <ChevronDown
@@ -113,7 +121,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                               key={child.href}
                               href={child.href}
                               onClick={onClose}
-                              className="block py-2.5 text-lg text-white/60 hover:text-white transition-colors"
+                              className="block py-2.5 text-lg text-[var(--white-muted)] hover:text-[var(--text-nav-hover)] transition-colors"
                             >
                               {child.label}
                             </Link>
@@ -127,7 +135,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                     key={link.href}
                     href={link.href}
                     onClick={onClose}
-                    className="block py-3 text-xl text-white/80 hover:text-white transition-colors"
+                    className="block py-3 text-xl text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -137,7 +145,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
 
             {/* CTA */}
             <div className="mt-10">
-              <Link href="/#solution-generator" onClick={onClose}>
+              <Link href="/plan-builder" onClick={onClose}>
                 <Button variant="primary" size="lg" className="w-full">
                   Get Your Growth Plan
                 </Button>

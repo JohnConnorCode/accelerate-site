@@ -59,7 +59,7 @@ export function LoadingSkeleton({ variant = "table", rows: rowsProp, count }: Lo
 
   // Table variant
   return (
-    <div className="glass rounded-xl overflow-hidden">
+    <div className="glass rounded-xl overflow-clip">
       <div className="px-4 py-3 border-b border-border-glass">
         <div className="flex gap-8">
           {Array.from({ length: 5 }).map((_, i) => (

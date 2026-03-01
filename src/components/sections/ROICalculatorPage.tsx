@@ -11,6 +11,7 @@ import {
   ArrowRight,
   BarChart3,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -58,9 +59,6 @@ const HOURLY_VALUE = 50;
 const ONE_TIME_INVESTMENT = 5000;
 const MONTHLY_INVESTMENT = 300;
 
-const fontDisplay = {
-  fontFamily: "var(--font-space-grotesk), var(--font-inter), sans-serif",
-};
 
 // ========================================
 // ROI CALCULATION
@@ -173,7 +171,7 @@ function StatCard({
   sublabel,
   highlight,
 }: {
-  icon: React.ElementType;
+  icon: LucideIcon;
   label: string;
   value: string;
   sublabel?: string;
@@ -207,10 +205,9 @@ function StatCard({
           </p>
           <p
             className={cn(
-              "text-xl sm:text-2xl font-bold truncate",
+              "font-display text-xl sm:text-2xl font-bold truncate",
               highlight ? "text-gold-gradient" : "text-white"
             )}
-            style={fontDisplay}
           >
             {value}
           </p>
@@ -262,8 +259,9 @@ export function ROICalculatorPage() {
       {/* ======== HERO ======== */}
       <section className="relative py-24 sm:py-32 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="orb-gold top-[-10%] right-[-5%]" />
-          <div className="orb-white bottom-[-15%] left-[-10%]" />
+          <div className="absolute inset-0 gradient-mesh opacity-40" />
+          <div className="absolute inset-0 grid-overlay opacity-20" />
+          <div className="hero-glow-orb hero-glow-orb-gold absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2" />
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
@@ -275,8 +273,7 @@ export function ROICalculatorPage() {
               </span>
             </div>
             <h1
-              className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-6"
-              style={fontDisplay}
+              className="page-heading leading-[1.1] mb-6"
             >
               Calculate Your{" "}
               <span className="text-gold-gradient">ROI</span>
@@ -304,8 +301,7 @@ export function ROICalculatorPage() {
                     <Calculator className="w-5 h-5 text-[var(--gold-base)]" />
                   </div>
                   <h2
-                    className="text-xl sm:text-2xl font-bold text-white"
-                    style={fontDisplay}
+                    className="font-display text-xl sm:text-2xl font-bold text-white"
                   >
                     Your Business Numbers
                   </h2>
@@ -467,8 +463,7 @@ export function ROICalculatorPage() {
                       Projected ROI
                     </p>
                     <p
-                      className="text-5xl sm:text-6xl md:text-7xl font-bold text-gold-gradient leading-none"
-                      style={fontDisplay}
+                      className="font-display text-5xl sm:text-6xl md:text-7xl font-bold text-gold-gradient leading-none"
                     >
                       {result.roiPercentage >= 0
                         ? `${Math.round(result.roiPercentage).toLocaleString()}%`
@@ -484,7 +479,7 @@ export function ROICalculatorPage() {
                 <GlassCard variant="prominent" padding="lg" hover="glow">
                   <div className="flex items-center gap-2 mb-5">
                     <BarChart3 className="w-5 h-5 text-[var(--gold-base)]" />
-                    <h3 className="text-base font-semibold text-white" style={fontDisplay}>
+                    <h3 className="font-display text-base font-semibold text-white">
                       Revenue Comparison
                     </h3>
                   </div>
@@ -530,8 +525,7 @@ export function ROICalculatorPage() {
                 {/* Investment Breakdown */}
                 <GlassCard variant="default" padding="md" hover="none">
                   <h3
-                    className="text-sm font-semibold text-white-secondary mb-3"
-                    style={fontDisplay}
+                    className="font-display text-sm font-semibold text-white-secondary mb-3"
                   >
                     Investment Estimate
                   </h3>
@@ -594,8 +588,7 @@ export function ROICalculatorPage() {
             <GlassCard variant="gold" padding="none" className="text-center">
               <div className="p-10 sm:p-14">
                 <h2
-                  className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4"
-                  style={fontDisplay}
+                  className="section-heading mb-4"
                 >
                   Ready to See Your{" "}
                   <span className="text-gold-gradient">Custom Plan</span>?

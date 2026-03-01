@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Menu } from "lucide-react";
+import { Menu, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "./MobileNav";
 
@@ -50,6 +51,12 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const headerRef = useRef<HTMLElement>(null);
+  const borderRef = useRef<HTMLDivElement>(null);
+  const glassSurface = {
+    backdropFilter: "blur(22px) saturate(165%)",
+    WebkitBackdropFilter: "blur(22px) saturate(165%)",
+  };
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -71,18 +78,21 @@ export function Header() {
   return (
     <>
       <header
+        ref={headerRef}
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-          scrolled
-            ? "glass-prominent border-b border-white/5 py-3"
-            : "bg-transparent py-5"
+          "fixed top-0 left-0 right-0 z-[90] transition-all duration-500",
+          scrolled ? "py-3 shadow-[0_20px_70px_rgba(0,0,0,0.45)]" : "py-5"
         )}
+        style={{
+          ...glassSurface,
+          backgroundColor: scrolled ? "var(--header-bg-scrolled)" : "var(--header-bg)",
+        }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-1 group">
-            <span className="text-2xl font-bold text-gold-gradient tracking-tight">
-              Accelerate
+            <span className="text-xl font-bold text-gold-gradient tracking-[0.15em] uppercase font-display">
+              ACCELERATE
             </span>
           </Link>
 
@@ -102,7 +112,7 @@ export function Header() {
                   }}
                 >
                   <button
-                    className="text-sm text-white/70 hover:text-white transition-colors cursor-pointer"
+                    className="text-sm text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] transition-colors cursor-pointer"
                     aria-expanded={openDropdown === link.label}
                     aria-haspopup="true"
                     onFocus={() => setOpenDropdown(link.label)}
@@ -118,12 +128,18 @@ export function Header() {
                         transition={{ duration: 0.2 }}
                         className="absolute top-full left-1/2 -translate-x-1/2 pt-2"
                       >
-                        <div className="glass-prominent rounded-xl py-2 min-w-[220px]">
+                        <div
+                          className="glass-prominent rounded-xl py-2 min-w-[220px] border border-[var(--border-light)]"
+                          style={{
+                            ...glassSurface,
+                            backgroundColor: "var(--dropdown-bg)",
+                          }}
+                        >
                           {link.children.map((child) => (
                             <Link
                               key={child.href}
                               href={child.href}
-                              className="block px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-colors"
+                              className="block px-4 py-2.5 text-sm text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] hover:bg-[var(--bg-hover-subtle)] transition-colors"
                             >
                               {child.label}
                             </Link>
@@ -137,7 +153,7 @@ export function Header() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="text-sm text-white/70 hover:text-white transition-colors"
+                  className="text-sm text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] transition-colors"
                 >
                   {link.label}
                 </Link>
@@ -145,11 +161,13 @@ export function Header() {
             )}
           </nav>
 
-          {/* Desktop CTA */}
-          <div className="hidden lg:block">
-            <Link href="/#solution-generator">
-              <Button variant="primary" size="sm">
+          {/* Desktop CTA + Theme Toggle */}
+          <div className="hidden lg:flex items-center gap-3">
+            <ThemeToggle />
+            <Link href="/plan-builder">
+              <Button variant="primary" size="sm" className="group/cta">
                 Get Your Growth Plan
+                <ArrowRight className="w-4 h-4 ml-1.5 transition-transform duration-200 group-hover/cta:translate-x-0.5" />
               </Button>
             </Link>
           </div>
@@ -163,6 +181,14 @@ export function Header() {
             <Menu className="w-6 h-6" />
           </button>
         </div>
+        {/* Animated gold gradient bottom border */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-px transition-opacity duration-500"
+          style={{
+            opacity: scrolled ? 1 : 0,
+            background: "linear-gradient(90deg, transparent, rgba(212,175,55,0.4), rgba(245,208,96,0.3), rgba(212,175,55,0.4), transparent)",
+          }}
+        />
       </header>
 
       {/* Mobile Nav Overlay */}

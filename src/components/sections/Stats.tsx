@@ -1,35 +1,74 @@
 "use client";
 
+import { useRef } from "react";
+import { useGSAP } from "@gsap/react";
+import { gsap } from "@/lib/gsap-init";
 import { CountUp } from "@/components/ui/CountUp";
-import { AnimateOnScroll, StaggerContainer } from "@/components/ui/AnimateOnScroll";
-import { fadeUp } from "@/lib/animations";
 import { stats } from "@/content/stats";
 
 export function Stats() {
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useGSAP(() => {
+    if (!sectionRef.current) return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mq.matches) return;
+
+    const items = sectionRef.current.querySelectorAll("[data-stat]");
+    items.forEach((item, i) => {
+      gsap.fromTo(
+        item,
+        { opacity: 0, scale: 0.9, y: 30 },
+        {
+          opacity: 1,
+          scale: 1,
+          y: 0,
+          duration: 0.7,
+          delay: i * 0.1,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: item,
+            start: "top 88%",
+            toggleActions: "play none none none",
+          },
+        }
+      );
+    });
+  }, { scope: sectionRef });
+
   return (
-    <section className="py-20 bg-[var(--bg-base)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <StaggerContainer className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-4">
+    <section ref={sectionRef} className="py-20 bg-[var(--bg-base)] relative">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Stats grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-12 md:gap-16">
           {stats.map((stat) => (
-            <AnimateOnScroll
+            <div
               key={stat.label}
-              variants={fadeUp}
-              className="text-center"
+              data-stat
+              className="text-center relative"
             >
+              {/* Top rule */}
+              <div className="h-px w-full bg-[rgba(212,175,55,0.15)] mb-8" />
+
               <p
-                className="text-3xl sm:text-4xl md:text-5xl font-bold text-gold-gradient mb-2"
-                style={{ fontFamily: "var(--font-space-grotesk), var(--font-inter), sans-serif" }}
+                className="font-display text-5xl sm:text-6xl md:text-7xl font-bold text-gold-gradient mb-3"
               >
-                {stat.value.startsWith("$") ? "$" : ""}
                 <CountUp
                   end={stat.numericValue}
                   suffix={stat.suffix}
                 />
               </p>
-              <p className="text-sm text-white/50">{stat.label}</p>
-            </AnimateOnScroll>
+              <p className="text-xs uppercase tracking-[0.2em] text-[var(--white-muted)] font-medium mb-2">
+                {stat.label}
+              </p>
+              {stat.detail && (
+                <p className="text-xs text-[var(--white-muted)]">
+                  {stat.detail}
+                </p>
+              )}
+            </div>
           ))}
-        </StaggerContainer>
+        </div>
       </div>
     </section>
   );

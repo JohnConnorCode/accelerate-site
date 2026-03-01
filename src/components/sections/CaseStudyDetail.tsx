@@ -14,7 +14,8 @@ import {
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
+
+
 import {
   AnimateOnScroll,
   StaggerContainer,
@@ -47,8 +48,9 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
       {/* Hero */}
       <section className="relative py-24 sm:py-32 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="orb-gold top-[-10%] right-[-5%]" />
-          <div className="orb-white bottom-[-15%] left-[-10%]" />
+          <div className="absolute inset-0 gradient-mesh opacity-40" />
+          <div className="absolute inset-0 grid-overlay opacity-20" />
+          <div className="hero-glow-orb hero-glow-orb-gold absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2" />
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6">
@@ -64,9 +66,9 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
 
             {/* Meta Badges */}
             <div className="flex flex-wrap items-center gap-3 mb-6">
-              <Badge variant="gold">
+              <span className="text-xs font-semibold uppercase tracking-wide text-[var(--gold-base)]">
                 {industryLabels[study.industry]}
-              </Badge>
+              </span>
               <div className="flex items-center gap-1.5 text-sm text-white/50">
                 <MapPin className="w-3.5 h-3.5" />
                 {study.location}
@@ -79,11 +81,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
 
             {/* Business Name */}
             <h1
-              className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-6"
-              style={{
-                fontFamily:
-                  "var(--font-space-grotesk), var(--font-inter), sans-serif",
-              }}
+              className="page-heading leading-[1.1] mb-6"
             >
               {study.businessName}
             </h1>
@@ -96,11 +94,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
                   className="glass rounded-lg p-4 text-center"
                 >
                   <p
-                    className="text-xl sm:text-2xl font-bold text-gold-gradient"
-                    style={{
-                      fontFamily:
-                        "var(--font-space-grotesk), var(--font-inter), sans-serif",
-                    }}
+                    className="font-display text-xl sm:text-2xl font-bold text-gold-gradient"
                   >
                     {metric.improvement}
                   </p>
@@ -124,11 +118,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
                   <Target className="w-5 h-5 text-[#F43F5E]" />
                 </div>
                 <h2
-                  className="text-2xl sm:text-3xl font-bold text-white"
-                  style={{
-                    fontFamily:
-                      "var(--font-space-grotesk), var(--font-inter), sans-serif",
-                  }}
+                  className="font-display text-2xl sm:text-3xl font-bold text-white"
                 >
                   The Challenge
                 </h2>
@@ -153,11 +143,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
                   <Lightbulb className="w-5 h-5 text-[var(--gold-base)]" />
                 </div>
                 <h2
-                  className="text-2xl sm:text-3xl font-bold text-white"
-                  style={{
-                    fontFamily:
-                      "var(--font-space-grotesk), var(--font-inter), sans-serif",
-                  }}
+                  className="font-display text-2xl sm:text-3xl font-bold text-white"
                 >
                   Our Solution
                 </h2>
@@ -176,9 +162,12 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {study.services.map((service) => (
-                    <Badge key={service} variant="gold">
+                    <span
+                      key={service}
+                      className="text-xs font-medium text-[var(--gold-light)] bg-[rgba(212,175,55,0.08)] border border-[rgba(212,175,55,0.15)] rounded-md px-2.5 py-1"
+                    >
                       {service}
-                    </Badge>
+                    </span>
                   ))}
                 </div>
               </div>
@@ -198,11 +187,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
               <span className="text-sm text-white/65">Measurable Impact</span>
             </div>
             <h2
-              className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4"
-              style={{
-                fontFamily:
-                  "var(--font-space-grotesk), var(--font-inter), sans-serif",
-              }}
+              className="section-heading mb-4"
             >
               The <span className="text-gold-gradient">Results</span>
             </h2>
@@ -224,11 +209,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
                     <div className="flex-1">
                       <p className="text-xs text-white/40 mb-1">Before</p>
                       <p
-                        className="text-xl font-bold text-white/60"
-                        style={{
-                          fontFamily:
-                            "var(--font-space-grotesk), var(--font-inter), sans-serif",
-                        }}
+                        className="font-display text-xl font-bold text-white/60"
                       >
                         {metric.before}
                       </p>
@@ -245,11 +226,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
                         After
                       </p>
                       <p
-                        className="text-xl font-bold text-gold-gradient"
-                        style={{
-                          fontFamily:
-                            "var(--font-space-grotesk), var(--font-inter), sans-serif",
-                        }}
+                        className="font-display text-xl font-bold text-gold-gradient"
                       >
                         {metric.after}
                       </p>
@@ -282,11 +259,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
                   <div className="text-center">
                     <Quote className="w-10 h-10 text-[var(--gold-base)] mx-auto mb-6 opacity-50" />
                     <blockquote
-                      className="text-xl sm:text-2xl font-medium text-white leading-relaxed mb-8"
-                      style={{
-                        fontFamily:
-                          "var(--font-space-grotesk), var(--font-inter), sans-serif",
-                      }}
+                      className="font-display text-xl sm:text-2xl font-medium text-white leading-relaxed mb-8"
                     >
                       &ldquo;{study.testimonialQuote}&rdquo;
                     </blockquote>
@@ -341,11 +314,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
             <GlassCard variant="gold" padding="none" className="text-center">
               <div className="p-10 sm:p-14">
                 <h2
-                  className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4"
-                  style={{
-                    fontFamily:
-                      "var(--font-space-grotesk), var(--font-inter), sans-serif",
-                  }}
+                  className="section-heading mb-4"
                 >
                   Want{" "}
                   <span className="text-gold-gradient">Similar Results?</span>

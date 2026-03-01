@@ -19,7 +19,7 @@ export function CodeBlock({ children, language, title }: CodeBlockProps) {
   };
 
   return (
-    <div className="my-6 rounded-lg glass overflow-hidden">
+    <div className="my-6 rounded-lg glass overflow-clip">
       {(title || language) && (
         <div className="flex items-center justify-between border-b border-border-glass px-4 py-2">
           <span className="text-xs text-white-muted font-mono">

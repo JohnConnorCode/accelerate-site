@@ -88,7 +88,7 @@ export default function WebsiteGradesPage() {
     >
       <PageHeader title="Website Grades" subtitle={`${total} total`} />
 
-      <GlassCard padding="none" hover="none" className="overflow-hidden">
+      <GlassCard padding="none" hover="none" className="overflow-clip">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border-glass">

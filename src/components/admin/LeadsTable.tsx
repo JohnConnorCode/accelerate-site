@@ -109,28 +109,6 @@ export function LeadsTable({
     window.open("/api/admin/leads/export", "_blank");
   };
 
-  const SortHeader = ({ field, children }: { field: string; children: React.ReactNode }) => (
-    <th
-      className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase cursor-pointer hover:text-white-secondary select-none"
-      onClick={() => onSort(field)}
-    >
-      <span className="flex items-center gap-1">
-        {children}
-        <ArrowUpDown
-          className={cn(
-            "h-3 w-3",
-            sortField === field ? "text-white-primary" : "text-white-muted/50"
-          )}
-        />
-        {sortField === field && (
-          <span className="text-[10px] text-white-muted">
-            {sortOrder === "asc" ? "asc" : "desc"}
-          </span>
-        )}
-      </span>
-    </th>
-  );
-
   return (
     <div>
       {/* Controls */}
@@ -187,7 +165,7 @@ export function LeadsTable({
       </AnimatePresence>
 
       {/* Table */}
-      <GlassCard padding="none" hover="none" className="overflow-hidden">
+      <GlassCard padding="none" hover="none" className="overflow-clip">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border-glass">
@@ -199,11 +177,46 @@ export function LeadsTable({
                   className="rounded cursor-pointer"
                 />
               </th>
-              <SortHeader field="contact_name">Name</SortHeader>
-              <SortHeader field="business_name">Business</SortHeader>
-              <SortHeader field="industry">Industry</SortHeader>
-              <SortHeader field="lead_status">Status</SortHeader>
-              <SortHeader field="created_at">Date</SortHeader>
+              <SortHeader
+                field="contact_name"
+                onSort={onSort}
+                sortField={sortField}
+                sortOrder={sortOrder}
+              >
+                Name
+              </SortHeader>
+              <SortHeader
+                field="business_name"
+                onSort={onSort}
+                sortField={sortField}
+                sortOrder={sortOrder}
+              >
+                Business
+              </SortHeader>
+              <SortHeader
+                field="industry"
+                onSort={onSort}
+                sortField={sortField}
+                sortOrder={sortOrder}
+              >
+                Industry
+              </SortHeader>
+              <SortHeader
+                field="lead_status"
+                onSort={onSort}
+                sortField={sortField}
+                sortOrder={sortOrder}
+              >
+                Status
+              </SortHeader>
+              <SortHeader
+                field="created_at"
+                onSort={onSort}
+                sortField={sortField}
+                sortOrder={sortOrder}
+              >
+                Date
+              </SortHeader>
               <th className="px-4 py-3 w-10"></th>
             </tr>
           </thead>
@@ -287,5 +300,41 @@ export function LeadsTable({
         onPageChange={onPageChange}
       />
     </div>
+  );
+}
+
+interface SortHeaderProps {
+  field: string;
+  children: React.ReactNode;
+  onSort: (field: string) => void;
+  sortField: string;
+  sortOrder: string;
+}
+
+function SortHeader({
+  field,
+  children,
+  onSort,
+  sortField,
+  sortOrder,
+}: SortHeaderProps) {
+  const active = sortField === field;
+  return (
+    <th
+      className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase cursor-pointer hover:text-white-secondary select-none"
+      onClick={() => onSort(field)}
+    >
+      <span className="flex items-center gap-1">
+        {children}
+        <ArrowUpDown
+          className={cn("h-3 w-3", active ? "text-white-primary" : "text-white-muted/50")}
+        />
+        {active && (
+          <span className="text-[10px] text-white-muted">
+            {sortOrder === "asc" ? "asc" : "desc"}
+          </span>
+        )}
+      </span>
+    </th>
   );
 }

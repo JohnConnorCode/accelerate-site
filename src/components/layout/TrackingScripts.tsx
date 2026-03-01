@@ -4,19 +4,20 @@ import Script from "next/script";
 import { useEffect, useState } from "react";
 import { getCookiePreferences } from "@/lib/tracking";
 
+const readConsent = () => {
+  const prefs = getCookiePreferences();
+  return {
+    analytics: prefs?.analytics ?? false,
+    marketing: prefs?.marketing ?? false,
+  };
+};
+
 export function TrackingScripts() {
-  const [consent, setConsent] = useState<{ analytics: boolean; marketing: boolean }>({
-    analytics: false,
-    marketing: false,
-  });
+  const [consent, setConsent] = useState<{ analytics: boolean; marketing: boolean }>(() =>
+    readConsent()
+  );
 
   useEffect(() => {
-    const prefs = getCookiePreferences();
-    if (prefs) {
-      setConsent({ analytics: prefs.analytics, marketing: prefs.marketing });
-    }
-
-    // Re-check when localStorage changes (consent update)
     const handleStorage = () => {
       const updated = getCookiePreferences();
       if (updated) {

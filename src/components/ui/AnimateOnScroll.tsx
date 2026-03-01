@@ -4,12 +4,24 @@ import { motion, type Variants } from "framer-motion";
 import { fadeUp } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 
+const animateComponents = {
+  div: motion.div,
+  section: motion.section,
+  article: motion.article,
+} as const;
+
+const staggerComponents = {
+  div: motion.div,
+  section: motion.section,
+  ul: motion.ul,
+} as const;
+
 interface AnimateOnScrollProps {
   children: React.ReactNode;
   variants?: Variants;
   className?: string;
   delay?: number;
-  as?: "div" | "section" | "article";
+  as?: keyof typeof animateComponents;
 }
 
 export function AnimateOnScroll({
@@ -19,7 +31,7 @@ export function AnimateOnScroll({
   delay = 0,
   as = "div",
 }: AnimateOnScrollProps) {
-  const Component = motion.create(as);
+  const Component = animateComponents[as] ?? animateComponents.div;
 
   return (
     <Component
@@ -38,7 +50,7 @@ export function AnimateOnScroll({
 interface StaggerContainerProps {
   children: React.ReactNode;
   className?: string;
-  as?: "div" | "section" | "ul";
+  as?: keyof typeof staggerComponents;
   staggerDelay?: number;
 }
 
@@ -48,7 +60,7 @@ export function StaggerContainer({
   as = "div",
   staggerDelay = 0.12,
 }: StaggerContainerProps) {
-  const Component = motion.create(as);
+  const Component = staggerComponents[as] ?? staggerComponents.div;
 
   return (
     <Component

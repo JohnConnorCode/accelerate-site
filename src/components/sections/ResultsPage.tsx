@@ -6,16 +6,17 @@ import {
   ArrowRight,
   MapPin,
   TrendingUp,
-  BarChart3,
   Filter,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
+import { CountUp } from "@/components/ui/CountUp";
 import {
   AnimateOnScroll,
   StaggerContainer,
 } from "@/components/ui/AnimateOnScroll";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { PageHero } from "@/components/ui/PageHero";
 import { fadeUp, scaleUp } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 import { caseStudies } from "@/content/case-studies";
@@ -47,9 +48,9 @@ function CaseStudyCard({ study }: { study: CaseStudyFull }) {
       <div className="p-6 sm:p-8 flex flex-col flex-1">
         {/* Header */}
         <div className="flex items-start justify-between gap-4 mb-4">
-          <div>
-            <Badge variant="gold">{industryLabels[study.industry]}</Badge>
-          </div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--gold-base)]">
+            {industryLabels[study.industry]}
+          </p>
           <div className="flex items-center gap-1.5 text-xs text-white/40 shrink-0">
             <MapPin className="w-3 h-3" />
             {study.location}
@@ -57,13 +58,7 @@ function CaseStudyCard({ study }: { study: CaseStudyFull }) {
         </div>
 
         {/* Business Name */}
-        <h3
-          className="text-xl sm:text-2xl font-bold text-white mb-3"
-          style={{
-            fontFamily:
-              "var(--font-space-grotesk), var(--font-inter), sans-serif",
-          }}
-        >
+        <h3 className="font-display text-xl sm:text-2xl font-bold text-white mb-3">
           {study.businessName}
         </h3>
 
@@ -79,13 +74,7 @@ function CaseStudyCard({ study }: { study: CaseStudyFull }) {
               key={metric.label}
               className="glass rounded-lg p-3 text-center"
             >
-              <p
-                className="text-sm font-bold text-gold-gradient"
-                style={{
-                  fontFamily:
-                    "var(--font-space-grotesk), var(--font-inter), sans-serif",
-                }}
-              >
+              <p className="font-display text-sm font-bold text-gold-gradient">
                 {metric.improvement}
               </p>
               <p className="text-[10px] text-white/45 mt-1 leading-tight">
@@ -112,6 +101,7 @@ function CaseStudyCard({ study }: { study: CaseStudyFull }) {
 
 export function ResultsPageContent() {
   const [activeFilter, setActiveFilter] = useState<FilterOption>("all");
+  const featuredStudy = caseStudies.find((s) => s.featured);
 
   const filteredStudies =
     activeFilter === "all"
@@ -121,39 +111,99 @@ export function ResultsPageContent() {
   return (
     <>
       {/* Hero */}
-      <section className="relative py-24 sm:py-32 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="orb-gold top-[-10%] right-[-5%]" />
-          <div className="orb-white bottom-[-15%] left-[-10%]" />
-        </div>
+      <PageHero
+        label="Client Results"
+        title={
+          <>
+            Proof Over Promises.{" "}
+            <span className="text-gold-gradient">Real Numbers.</span>
+          </>
+        }
+        description="Every metric below came from a real client engagement. No inflated projections. No 'up to' disclaimers. Just what happened."
+      />
 
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <AnimateOnScroll>
-            <div className="inline-flex items-center gap-2 glass rounded-full px-4 py-2 mb-8">
-              <BarChart3 className="w-4 h-4 text-[var(--gold-base)]" />
-              <span className="text-sm text-white/65">
-                Proven Results from Real Clients
-              </span>
-            </div>
-            <h1
-              className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-6"
-              style={{
-                fontFamily:
-                  "var(--font-space-grotesk), var(--font-inter), sans-serif",
-              }}
-            >
-              Real Results for{" "}
-              <span className="text-gold-gradient">Real Businesses</span>
-            </h1>
-            <p className="text-lg sm:text-xl text-white/65 max-w-2xl mx-auto leading-relaxed">
-              See how we have helped small businesses capture more leads, save
-              time, and grow revenue with AI-powered solutions.
-            </p>
-          </AnimateOnScroll>
+      <div className="section-divider" />
+
+      {/* Aggregate Metrics */}
+      <section className="py-16 bg-[var(--bg-section-warm)] relative">
+        <div className="absolute inset-0 grid-overlay opacity-10 pointer-events-none" />
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <StaggerContainer className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { end: 340, prefix: "+", suffix: "%", label: "Avg. lead increase" },
+              { end: 98, prefix: "-", suffix: "%", label: "Response time reduction" },
+              { end: 76, prefix: "+", suffix: "%", label: "Avg. revenue lift" },
+              { end: 94, suffix: "%", label: "Client retention" },
+            ].map((metric) => (
+              <AnimateOnScroll key={metric.label} variants={fadeUp}>
+                <GlassCard padding="sm" hover="none" className="text-center">
+                  <p className="font-display text-2xl sm:text-3xl font-bold text-gold-gradient">
+                    <CountUp
+                      end={metric.end}
+                      prefix={metric.prefix}
+                      suffix={metric.suffix}
+                    />
+                  </p>
+                  <p className="text-xs text-white/50 mt-1">{metric.label}</p>
+                </GlassCard>
+              </AnimateOnScroll>
+            ))}
+          </StaggerContainer>
         </div>
       </section>
 
       <div className="section-divider" />
+
+      {/* Featured Case Study */}
+      {featuredStudy && (
+        <>
+          <section className="py-24 bg-[var(--bg-base)]">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+              <ScrollReveal animation="clip-reveal">
+                <GlassCard variant="gold" padding="lg">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+                    {/* Left: Testimonial */}
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-[var(--gold-base)] mb-4">Featured</p>
+                      <blockquote className="font-display text-xl text-white leading-relaxed italic mb-6">
+                        &ldquo;{featuredStudy.testimonialQuote}&rdquo;
+                      </blockquote>
+                      <p className="text-[var(--gold-light)] font-medium">
+                        {featuredStudy.testimonialAuthor}
+                      </p>
+                      <p className="text-sm text-white/50">
+                        {featuredStudy.testimonialTitle}
+                      </p>
+                    </div>
+
+                    {/* Right: Metrics 2x2 */}
+                    <div className="grid grid-cols-2 gap-4">
+                      {featuredStudy.metrics.map((metric) => (
+                        <div
+                          key={metric.label}
+                          className="glass rounded-lg p-4 text-center"
+                        >
+                          <p className="font-display text-xl font-bold text-gold-gradient">
+                            {metric.improvement}
+                          </p>
+                          <p className="text-xs text-white/50 mt-1">
+                            {metric.label}
+                          </p>
+                          <p className="text-[10px] text-white/30 mt-0.5">
+                            {metric.before} → {metric.after}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </GlassCard>
+              </ScrollReveal>
+            </div>
+          </section>
+
+          <div className="section-divider" />
+        </>
+      )}
 
       {/* Filter + Grid */}
       <section className="py-24 bg-[var(--bg-base)]">
@@ -216,20 +266,13 @@ export function ResultsPageContent() {
           <AnimateOnScroll>
             <GlassCard variant="gold" padding="none" className="text-center">
               <div className="p-10 sm:p-14">
-                <h2
-                  className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4"
-                  style={{
-                    fontFamily:
-                      "var(--font-space-grotesk), var(--font-inter), sans-serif",
-                  }}
-                >
-                  Ready for{" "}
-                  <span className="text-gold-gradient">Similar Results?</span>
+                <h2 className="section-heading mb-4">
+                  Want Results{" "}
+                  <span className="text-gold-gradient">Like These?</span>
                 </h2>
                 <p className="text-lg text-white/65 max-w-xl mx-auto mb-8">
-                  Get a free, personalized growth plan tailored to your business.
-                  See exactly what we would build, what it costs, and the ROI
-                  you can expect.
+                  Every number on this page came from the same playbook
+                  we&apos;ll build for your business.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Link href="/#solution-generator">

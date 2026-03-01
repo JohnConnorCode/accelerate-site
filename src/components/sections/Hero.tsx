@@ -1,81 +1,153 @@
 "use client";
 
+import { Suspense, useRef } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { useGSAP } from "@gsap/react";
+import { gsap } from "@/lib/gsap-init";
 import { Button } from "@/components/ui/Button";
-import { heroStagger, heroItem } from "@/lib/animations";
+import { heroReveal, heroStaggerDramatic } from "@/lib/animations";
+
+const HeroCanvas = dynamic(
+  () => import("@/components/three/HeroCanvas"),
+  { ssr: false }
+);
 
 export function Hero() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    if (!sectionRef.current || !contentRef.current) return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mq.matches) return;
+
+    gsap.to(contentRef.current, {
+      opacity: 0,
+      y: -80,
+      scale: 0.97,
+      ease: "none",
+      scrollTrigger: {
+        trigger: sectionRef.current,
+        start: "top top",
+        end: "50% top",
+        scrub: 0.5,
+      },
+    });
+
+    const bgEl = sectionRef.current.querySelector("[data-hero-bg]");
+    if (bgEl) {
+      gsap.to(bgEl, {
+        opacity: 0,
+        y: 80,
+        ease: "none",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top top",
+          end: "bottom top",
+          scrub: 0.5,
+        },
+      });
+    }
+  }, { scope: sectionRef });
+
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background Orbs */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="orb-gold top-[-10%] right-[-5%]" />
-        <div className="orb-white bottom-[-15%] left-[-10%]" />
-      </div>
-
-      {/* Content */}
-      <motion.div
-        variants={heroStagger}
-        initial="hidden"
-        animate="visible"
-        className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center pt-24"
+    <section
+      ref={sectionRef}
+      className="relative isolate overflow-hidden min-h-screen flex items-center justify-center pt-28 pb-28"
+    >
+      <Suspense
+        fallback={
+          <div className="absolute inset-0 -z-10" style={{ background: "var(--bg-base)" }} />
+        }
       >
-        <motion.p
-          variants={heroItem}
-          className="text-sm sm:text-base text-[var(--gold-light)] font-medium tracking-wide uppercase mb-6"
-        >
-          AI Automation Agency
-        </motion.p>
+        <HeroCanvas />
+      </Suspense>
 
-        <motion.h1
-          variants={heroItem}
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6"
-          style={{ fontFamily: "var(--font-space-grotesk), var(--font-inter), sans-serif" }}
-        >
-          Stop Losing Leads.{" "}
-          <span className="text-gold-gradient">Start Growing.</span>
-        </motion.h1>
-
-        <motion.p
-          variants={heroItem}
-          className="text-lg sm:text-xl text-white/65 max-w-2xl mx-auto mb-10 leading-relaxed"
-        >
-          We build AI-powered websites, automations, and intelligent agents that
-          help small businesses capture more leads and save hours every week.
-        </motion.p>
-
+      <div
+        ref={contentRef}
+        className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center pointer-events-none"
+      >
         <motion.div
-          variants={heroItem}
-          className="flex flex-col sm:flex-row gap-4 justify-center"
+          variants={heroStaggerDramatic}
+          initial="hidden"
+          animate="visible"
         >
-          <Link href="/#solution-generator">
-            <Button variant="primary" size="lg" className="w-full sm:w-auto">
-              Get Your Growth Plan
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </Link>
-          <Link href="/#how-it-works">
-            <Button variant="secondary" size="lg" className="w-full sm:w-auto">
-              See How It Works
-            </Button>
-          </Link>
-        </motion.div>
-
-        {/* Scroll indicator */}
-        <motion.div
-          variants={heroItem}
-          className="mt-20 flex justify-center"
-        >
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          {/* Industry qualifier */}
+          <motion.p
+            variants={heroReveal}
+            className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--gold-base)] mb-8"
           >
-            <ChevronDown className="w-6 h-6 text-white/20" />
+            The growth team for service businesses
+          </motion.p>
+
+          <motion.h1
+            variants={heroReveal}
+            className="font-display text-5xl sm:text-6xl md:text-7xl font-bold leading-[1.05] tracking-[-0.03em] mb-6"
+            style={{ textWrap: "balance" } as React.CSSProperties}
+          >
+            <span className="text-[var(--heading-color)]">Book more jobs. Answer every call.</span>
+            <br />
+            <span className="text-[var(--heading-color)]">
+              Never miss a <span className="text-gold-gradient">follow-up again.</span>
+            </span>
+          </motion.h1>
+
+          <motion.p
+            variants={heroReveal}
+            className="text-lg sm:text-xl text-[var(--white-muted)] max-w-2xl mx-auto leading-relaxed mb-10"
+          >
+            We build your website, AI agents, and automations — then run them
+            alongside you. Every call answered. Every follow-up sent. Every
+            opportunity won.
+          </motion.p>
+
+          <motion.div
+            variants={heroReveal}
+            className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
+          >
+            <Link href="/contact" className="pointer-events-auto">
+              <Button variant="primary" size="lg" className="w-full sm:w-auto">
+                Book a free strategy call
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+            <Link href="/results" className="pointer-events-auto">
+              <Button
+                variant="secondary"
+                size="lg"
+                className="w-full sm:w-auto border-gradient-animated"
+              >
+                See client results
+              </Button>
+            </Link>
+          </motion.div>
+
+          {/* Trust bar — industries served */}
+          <motion.div
+            variants={heroReveal}
+            className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs uppercase tracking-[0.2em] text-[var(--white-muted)] pointer-events-auto"
+          >
+            <span>Home Services</span>
+            <span className="hidden sm:inline text-[var(--white-muted)]">|</span>
+            <span>Law Firms</span>
+            <span className="hidden sm:inline text-[var(--white-muted)]">|</span>
+            <span>Professional Services</span>
+            <span className="hidden sm:inline text-[var(--white-muted)]">|</span>
+            <span>Real Estate</span>
           </motion.div>
         </motion.div>
-      </motion.div>
+      </div>
+
+      {/* Bottom fade */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-20"
+        style={{
+          background: "linear-gradient(to bottom, transparent, var(--bg-section-warm))",
+        }}
+      />
     </section>
   );
 }

@@ -21,6 +21,10 @@ export interface Service {
   pricingMonthly?: string;
   pricingDisplay: string;
   href: string;
+  problemStatement: string;
+  keyMetrics: { value: string; label: string }[];
+  illustration: string;
+  process: { step: string; description: string }[];
 }
 
 // Industry Verticals
@@ -66,6 +70,7 @@ export interface Testimonial {
   title: string;
   businessType: string;
   rating: number;
+  avatarUrl?: string;
 }
 
 // Stats
@@ -74,6 +79,7 @@ export interface Stat {
   numericValue: number;
   suffix: string;
   label: string;
+  detail?: string;
 }
 
 // FAQ
@@ -412,6 +418,7 @@ export interface ServicePackage {
   highlighted: boolean;
   ctaText: string;
   ctaLink: string;
+  idealFor: string;
 }
 
 export interface PackageFeature {
@@ -564,3 +571,41 @@ export interface AdminSetting {
   description?: string;
   updated_at: string;
 }
+
+// ========================================
+// PLAN BUILDER CONVERSATION TYPES
+// ========================================
+
+export type ConversationInputType =
+  | "option-cards"
+  | "chip-select"
+  | "bubble-buttons"
+  | "text-input"
+  | "contact-panel";
+
+export interface QuestionDef {
+  id: string;
+  field: keyof IntakeFormData | string;
+  message: string;
+  inputType: ConversationInputType;
+  options?: IntakeOption[];
+  skipIf?: (formData: Partial<IntakeFormData>) => boolean;
+  maxSelections?: number;
+  placeholder?: string;
+  required?: boolean;
+  optional?: boolean;
+}
+
+export interface ConversationMessage {
+  id: string;
+  role: "assistant" | "user";
+  content: string;
+  questionId?: string;
+  inputType?: ConversationInputType;
+  options?: IntakeOption[];
+  maxSelections?: number;
+  placeholder?: string;
+  isOptional?: boolean;
+}
+
+export type ConversationPhase = "chat" | "generating" | "results";

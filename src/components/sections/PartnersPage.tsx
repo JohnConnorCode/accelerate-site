@@ -17,7 +17,8 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
+
+
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { partnerTiers } from "@/content/partners";
@@ -79,12 +80,11 @@ export function PartnersPage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-16"
         >
-          <Badge variant="gold" className="mb-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--gold-base)] mb-4">
             Partner Program
-          </Badge>
+          </p>
           <h1
-            className="text-3xl md:text-5xl font-bold text-white-primary mb-4"
-            style={{ fontFamily: "var(--font-space-grotesk), var(--font-inter), sans-serif" }}
+            className="font-display text-3xl md:text-5xl font-bold text-white-primary mb-4"
           >
             Grow Together.{" "}
             <span className="text-gold-gradient">Earn Together.</span>
@@ -115,8 +115,7 @@ export function PartnersPage() {
                   <item.icon className="w-6 h-6 text-black" />
                 </div>
                 <h3
-                  className="text-lg font-bold text-white-primary mb-2"
-                  style={{ fontFamily: "var(--font-space-grotesk), var(--font-inter), sans-serif" }}
+                  className="font-display text-lg font-bold text-white-primary mb-2"
                 >
                   {item.title}
                 </h3>
@@ -134,8 +133,7 @@ export function PartnersPage() {
           className="mb-20"
         >
           <h2
-            className="text-2xl md:text-3xl font-bold text-white-primary text-center mb-10"
-            style={{ fontFamily: "var(--font-space-grotesk), var(--font-inter), sans-serif" }}
+            className="font-display text-2xl md:text-3xl font-bold text-white-primary text-center mb-10"
           >
             Partner Tiers
           </h2>
@@ -159,8 +157,7 @@ export function PartnersPage() {
                     <div className="flex items-center gap-3 mb-4">
                       <Icon className="w-5 h-5 text-[var(--gold-base)]" />
                       <h3
-                        className="text-lg font-bold text-white-primary"
-                        style={{ fontFamily: "var(--font-space-grotesk), var(--font-inter), sans-serif" }}
+                        className="font-display text-lg font-bold text-white-primary"
                       >
                         {tier.name}
                       </h3>
@@ -213,8 +210,7 @@ export function PartnersPage() {
                   <Check className="w-8 h-8 text-black" />
                 </div>
                 <h2
-                  className="text-2xl font-bold text-white-primary mb-2"
-                  style={{ fontFamily: "var(--font-space-grotesk), var(--font-inter), sans-serif" }}
+                  className="font-display text-2xl font-bold text-white-primary mb-2"
                 >
                   Application Received
                 </h2>
@@ -226,13 +222,12 @@ export function PartnersPage() {
             ) : (
               <>
                 <h2
-                  className="text-2xl font-bold text-white-primary mb-2 text-center"
-                  style={{ fontFamily: "var(--font-space-grotesk), var(--font-inter), sans-serif" }}
+                  className="font-display text-2xl font-bold text-white-primary mb-2 text-center"
                 >
                   Apply to Partner
                 </h2>
                 <p className="text-white-secondary text-center mb-8">
-                  Tell us about yourself and how you'd like to work together.
+                  Tell us about yourself and how you&rsquo;d like to work together.
                 </p>
 
                 <form onSubmit={handleSubmit} className="space-y-4">

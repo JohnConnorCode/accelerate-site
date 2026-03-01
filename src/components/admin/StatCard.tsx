@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { TrendingUp, TrendingDown } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/GlassCard";
 
@@ -10,7 +11,7 @@ interface StatCardProps {
   value: string | number;
   change?: string;
   trend?: "up" | "down" | "neutral";
-  icon: React.ElementType;
+  icon: LucideIcon;
   index?: number;
 }
 

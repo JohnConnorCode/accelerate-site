@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -115,73 +115,12 @@ export default function AdminLayout({
       )
     : allLinks;
 
-  const SidebarContent = () => (
-    <>
-      <Link href="/admin" className="mb-6 px-3 pt-2" onClick={() => setMobileOpen(false)}>
-        <span className="font-display text-xl font-bold text-gold-gradient">
-          Accelerate
-        </span>
-        <span className="block text-xs text-white-muted mt-0.5">
-          Admin Panel
-        </span>
-      </Link>
-
-      <nav className="flex-1 space-y-5 overflow-y-auto">
-        {sidebarSections.map((section) => (
-          <div key={section.label}>
-            <p className="px-3 mb-1.5 text-[10px] font-semibold text-white-muted uppercase tracking-wider">
-              {section.label}
-            </p>
-            <div className="space-y-0.5">
-              {section.links.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all relative",
-                    isActive(link.href)
-                      ? "bg-gold-gradient text-black font-semibold"
-                      : "text-white-secondary hover:text-white-primary hover:bg-white/5"
-                  )}
-                >
-                  {isActive(link.href) && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[var(--gold-base)] rounded-r" />
-                  )}
-                  <link.icon className="h-4 w-4" />
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-          </div>
-        ))}
-      </nav>
-
-      <div className="border-t border-border-glass pt-4 mt-4">
-        <Link
-          href="/"
-          className="block text-xs text-white-muted hover:text-white-secondary transition-colors mb-3 px-3"
-          onClick={() => setMobileOpen(false)}
-        >
-          View Site
-        </Link>
-        <button
-          onClick={handleSignOut}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white-muted hover:text-white-primary hover:bg-white/5 transition-all cursor-pointer"
-        >
-          <LogOut className="h-4 w-4" />
-          Sign Out
-        </button>
-      </div>
-    </>
-  );
-
   return (
     <div className="flex min-h-screen">
       {/* Desktop Sidebar */}
       <aside className="hidden lg:block w-60 shrink-0 glass-prominent border-r border-border-glass">
         <div className="sticky top-0 flex h-screen flex-col p-4">
-          <SidebarContent />
+          <SidebarContent isActive={isActive} onSignOut={handleSignOut} />
         </div>
       </aside>
 
@@ -224,7 +163,11 @@ export default function AdminLayout({
               transition={{ duration: 0.25, ease: "easeOut" }}
               className="absolute left-0 top-0 h-full w-64 glass-prominent border-r border-border-glass p-4 flex flex-col"
             >
-              <SidebarContent />
+              <SidebarContent
+                isActive={isActive}
+                onSignOut={handleSignOut}
+                onNavigate={() => setMobileOpen(false)}
+              />
             </motion.aside>
           </div>
         )}
@@ -268,6 +211,91 @@ export default function AdminLayout({
   );
 }
 
+interface SidebarContentProps {
+  isActive: (href: string) => boolean;
+  onSignOut: () => Promise<void> | void;
+  onNavigate?: () => void;
+}
+
+function SidebarContent({
+  isActive,
+  onSignOut,
+  onNavigate,
+}: SidebarContentProps) {
+  const handleNavigate = () => {
+    onNavigate?.();
+  };
+
+  const handleSignOutClick = async () => {
+    onNavigate?.();
+    await onSignOut();
+  };
+
+  return (
+    <>
+      <Link href="/admin" className="mb-6 px-3 pt-2" onClick={handleNavigate}>
+        <span className="font-display text-xl font-bold text-gold-gradient">
+          Accelerate
+        </span>
+        <span className="block text-xs text-white-muted mt-0.5">
+          Admin Panel
+        </span>
+      </Link>
+
+      <nav className="flex-1 space-y-5 overflow-y-auto">
+        {sidebarSections.map((section) => (
+          <div key={section.label}>
+            <p className="px-3 mb-1.5 text-[10px] font-semibold text-white-muted uppercase tracking-wider">
+              {section.label}
+            </p>
+            <div className="space-y-0.5">
+              {section.links.map((link) => {
+                const active = isActive(link.href);
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={handleNavigate}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all relative",
+                      active
+                        ? "bg-gold-gradient text-black font-semibold"
+                        : "text-white-secondary hover:text-white-primary hover:bg-white/5"
+                    )}
+                  >
+                    {active && (
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[var(--gold-base)] rounded-r" />
+                    )}
+                    <link.icon className="h-4 w-4" />
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </nav>
+
+      <div className="border-t border-border-glass pt-4 mt-4">
+        <Link
+          href="/"
+          className="block text-xs text-white-muted hover:text-white-secondary transition-colors mb-3 px-3"
+          onClick={handleNavigate}
+        >
+          View Site
+        </Link>
+        <button
+          onClick={handleSignOutClick}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white-muted hover:text-white-primary hover:bg-white/5 transition-all cursor-pointer"
+        >
+          <LogOut className="h-4 w-4" />
+          Sign Out
+        </button>
+      </div>
+    </>
+  );
+}
+
 // Cmd+K Search Overlay Component
 function CmdKSearch({
   open,
@@ -294,9 +322,10 @@ function CmdKSearch({
     }
   }, [open, inputRef]);
 
-  useEffect(() => {
+  const handleQueryInput = (value: string) => {
     setSelectedIdx(0);
-  }, [query]);
+    onQueryChange(value);
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
@@ -328,7 +357,7 @@ function CmdKSearch({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
             transition={{ duration: 0.15 }}
-            className="relative w-full max-w-md mx-4 glass-prominent rounded-xl overflow-hidden shadow-2xl"
+            className="relative w-full max-w-md mx-4 glass-prominent rounded-xl overflow-clip shadow-2xl"
           >
             <div className="flex items-center gap-3 px-4 py-3 border-b border-border-glass">
               <Search className="h-4 w-4 text-white-muted shrink-0" />
@@ -336,7 +365,7 @@ function CmdKSearch({
                 ref={inputRef}
                 type="text"
                 value={query}
-                onChange={(e) => onQueryChange(e.target.value)}
+                onChange={(e) => handleQueryInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Search pages..."
                 className="flex-1 bg-transparent text-sm text-white-primary placeholder:text-white-muted focus:outline-none"

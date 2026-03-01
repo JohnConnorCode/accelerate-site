@@ -11,6 +11,7 @@ import {
   Globe,
   Mail,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
@@ -24,7 +25,7 @@ interface ActivityItem {
   timestamp: string;
 }
 
-const typeConfig: Record<string, { icon: React.ElementType; color: string }> = {
+const typeConfig: Record<string, { icon: LucideIcon; color: string }> = {
   lead: { icon: Users, color: "text-blue-400 bg-blue-500/10" },
   contact: { icon: Inbox, color: "text-emerald-400 bg-emerald-500/10" },
   subscriber: { icon: AtSign, color: "text-purple-400 bg-purple-500/10" },

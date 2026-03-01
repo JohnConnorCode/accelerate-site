@@ -6,7 +6,7 @@ import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import Link from "next/link";
-import { ChevronRight, Clock, Calendar } from "lucide-react";
+import { ChevronRight, Clock, Calendar, ArrowRight, User } from "lucide-react";
 import {
   getAllArticles,
   getArticleBySlug,
@@ -17,6 +17,13 @@ import {
   generateArticleJsonLd,
   generateBreadcrumbJsonLd,
 } from "@/lib/seo";
+import { Button } from "@/components/ui/Button";
+import { GlassCard } from "@/components/ui/GlassCard";
+import {
+  AnimateOnScroll,
+  StaggerContainer,
+} from "@/components/ui/AnimateOnScroll";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { TableOfContents } from "@/components/mdx/TableOfContents";
 import { RelatedArticles } from "@/components/mdx/RelatedArticles";
 import { CTACard } from "@/components/mdx/CTACard";
@@ -132,104 +139,225 @@ export default async function ArticlePage({
         }}
       />
 
-      <article className="relative pt-28 pb-20">
-        <div className="mx-auto max-w-6xl px-6">
-          {/* Breadcrumbs */}
-          <nav className="mb-8 flex items-center gap-1.5 text-sm text-white-muted">
-            <Link
-              href="/learn"
-              className="hover:text-white-secondary transition-colors"
-            >
-              Learn
-            </Link>
-            <ChevronRight className="h-3 w-3" />
-            <Link
-              href={`/learn/category/${frontmatter.category}`}
-              className="hover:text-white-secondary transition-colors"
-            >
-              {CATEGORY_LABELS[frontmatter.category]}
-            </Link>
-            <ChevronRight className="h-3 w-3" />
-            <span className="text-white-secondary truncate max-w-[200px]">
-              {frontmatter.title}
-            </span>
-          </nav>
+      {/* ------------------------------------------------------------------ */}
+      {/* Article Hero Header                                                 */}
+      {/* ------------------------------------------------------------------ */}
+      <section className="relative pt-28 pb-16 bg-[var(--bg-section-warm)] overflow-hidden">
+        {/* Atmospheric glow */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full bg-radial from-[rgba(212,175,55,0.05)] to-transparent" />
+        </div>
 
-          <div className="flex gap-10">
+        <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          {/* Breadcrumbs */}
+          <AnimateOnScroll>
+            <nav className="mb-8 flex items-center gap-1.5 text-sm text-[var(--white-muted)]">
+              <Link
+                href="/learn"
+                className="hover:text-[var(--white-secondary)] transition-colors"
+              >
+                Learn
+              </Link>
+              <ChevronRight className="h-3 w-3" />
+              <Link
+                href={`/learn/category/${frontmatter.category}`}
+                className="hover:text-[var(--white-secondary)] transition-colors"
+              >
+                {CATEGORY_LABELS[frontmatter.category]}
+              </Link>
+              <ChevronRight className="h-3 w-3" />
+              <span className="text-[var(--white-secondary)] truncate max-w-[200px]">
+                {frontmatter.title}
+              </span>
+            </nav>
+          </AnimateOnScroll>
+
+          {/* Article Header — staggered entrance */}
+          <StaggerContainer className="max-w-3xl">
+            <AnimateOnScroll>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--gold-base)] mb-5">
+                {CATEGORY_LABELS[frontmatter.category]}
+              </p>
+            </AnimateOnScroll>
+
+            <AnimateOnScroll>
+              <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--heading-color)] leading-[1.1] tracking-[-0.02em]">
+                {frontmatter.title}
+              </h1>
+            </AnimateOnScroll>
+
+            <AnimateOnScroll>
+              <p className="mt-5 text-lg sm:text-xl text-[var(--white-secondary)] leading-relaxed max-w-2xl">
+                {frontmatter.excerpt}
+              </p>
+            </AnimateOnScroll>
+
+            {/* Author & Meta */}
+            <AnimateOnScroll>
+              <div className="mt-8 flex flex-wrap items-center gap-5 text-sm text-[var(--white-muted)]">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-full bg-[rgba(212,175,55,0.15)] border border-[rgba(212,175,55,0.3)] flex items-center justify-center">
+                    <User className="w-4 h-4 text-[var(--gold-light)]" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-[var(--white-primary)] leading-tight">
+                      {frontmatter.author}
+                    </p>
+                    {frontmatter.authorRole && (
+                      <p className="text-xs text-[var(--white-muted)] leading-tight">
+                        {frontmatter.authorRole}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <span className="hidden sm:block w-px h-4 bg-[var(--border-glass)]" />
+                <span className="flex items-center gap-1.5">
+                  <Calendar className="h-4 w-4" />
+                  {new Date(frontmatter.date).toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Clock className="h-4 w-4" />
+                  {readingTime}
+                </span>
+              </div>
+            </AnimateOnScroll>
+
+            {/* Tags */}
+            <AnimateOnScroll>
+              <div className="mt-5 flex flex-wrap gap-2">
+                {frontmatter.tags.map((tag) => (
+                  <Link
+                    key={tag}
+                    href={`/learn/tag/${encodeURIComponent(tag)}`}
+                    className="rounded-full glass px-3 py-1 text-xs text-[var(--white-muted)] hover:text-[var(--white-secondary)] hover:border-[var(--border-gold)] transition-colors"
+                  >
+                    {tag}
+                  </Link>
+                ))}
+              </div>
+            </AnimateOnScroll>
+          </StaggerContainer>
+        </div>
+
+        {/* Bottom fade */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none"
+          style={{
+            background: "linear-gradient(to bottom, transparent, var(--bg-base))",
+          }}
+        />
+      </section>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Article Content + Sidebar                                           */}
+      {/* ------------------------------------------------------------------ */}
+      <article className="relative pb-8 bg-[var(--bg-base)]">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="flex gap-12">
             {/* Main Content */}
             <div className="flex-1 min-w-0 max-w-[720px]">
-              {/* Header */}
-              <header className="mb-10">
-                <div className="flex items-center gap-3 mb-4">
-                  <Link
-                    href={`/learn/category/${frontmatter.category}`}
-                    className="text-xs font-semibold uppercase tracking-wider text-gold-light hover:text-gold-champagne transition-colors"
-                  >
-                    {CATEGORY_LABELS[frontmatter.category]}
-                  </Link>
-                </div>
-                <h1 className="font-display text-3xl font-bold text-white-primary md:text-4xl leading-tight">
-                  {frontmatter.title}
-                </h1>
-                <p className="mt-4 text-lg text-white-secondary">
-                  {frontmatter.excerpt}
-                </p>
-                <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-white-muted">
-                  <span className="flex items-center gap-1.5">
-                    <Calendar className="h-4 w-4" />
-                    {new Date(frontmatter.date).toLocaleDateString("en-US", {
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="h-4 w-4" />
-                    {readingTime}
-                  </span>
-                  <span>By {frontmatter.author}</span>
-                </div>
-                {/* Tags */}
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {frontmatter.tags.map((tag) => (
-                    <Link
-                      key={tag}
-                      href={`/learn/tag/${encodeURIComponent(tag)}`}
-                      className="rounded-full glass px-3 py-1 text-xs text-white-muted hover:text-white-secondary transition-colors"
-                    >
-                      {tag}
-                    </Link>
-                  ))}
-                </div>
-              </header>
+              {/* Gold accent line */}
+              <AnimateOnScroll>
+                <div className="h-px w-16 bg-[var(--gold-base)] mb-10" />
+              </AnimateOnScroll>
 
-              {/* Article Content */}
-              <div
-                data-article-content
-                className="prose-dark"
-              >
-                {mdxContent}
-              </div>
-
-              {/* Bottom CTA */}
-              <CTACard
-                title="Ready to accelerate your business?"
-                description="Get a personalized AI growth plan based on your specific industry and goals."
-              />
-
-              {/* Related Articles */}
-              <RelatedArticles articles={relatedArticles} />
+              <AnimateOnScroll>
+                <div
+                  data-article-content
+                  className="prose-dark"
+                >
+                  {mdxContent}
+                </div>
+              </AnimateOnScroll>
             </div>
 
             {/* Sidebar */}
             <aside className="hidden lg:block w-64 shrink-0">
-              <div className="sticky top-28">
-                <TableOfContents />
-              </div>
+              <AnimateOnScroll delay={0.2}>
+                <div className="sticky top-28 space-y-6">
+                  <TableOfContents />
+
+                  {/* Sidebar CTA */}
+                  <div className="glass-gold rounded-xl p-5 text-center">
+                    <p className="text-sm font-medium text-[var(--white-primary)] mb-2">
+                      Need help implementing this?
+                    </p>
+                    <p className="text-xs text-[var(--white-muted)] mb-4">
+                      We build these systems for small businesses every day.
+                    </p>
+                    <Link href="/contact">
+                      <Button variant="primary" size="sm" className="w-full">
+                        Talk to Us
+                        <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </AnimateOnScroll>
             </aside>
           </div>
         </div>
       </article>
+
+      <div className="section-divider" />
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Bottom CTA                                                          */}
+      {/* ------------------------------------------------------------------ */}
+      <section className="py-20 bg-[var(--bg-section-warm)] relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] rounded-full bg-radial from-[rgba(212,175,55,0.06)] to-transparent" />
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+          <ScrollReveal animation="clip-reveal">
+            <GlassCard variant="gold" padding="none" className="text-center">
+              <div className="p-8 sm:p-12">
+                <h2 className="font-display text-2xl sm:text-3xl font-bold text-white mb-3">
+                  Ready to Accelerate{" "}
+                  <span className="text-gold-gradient">Your Growth?</span>
+                </h2>
+                <p className="text-[var(--white-secondary)] max-w-md mx-auto mb-8">
+                  Get a personalized AI growth plan based on your specific
+                  industry and goals. Takes under 5 minutes.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Link href="/#solution-generator">
+                    <Button variant="primary" size="lg" className="w-full sm:w-auto">
+                      Get Your Free Growth Plan
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </Link>
+                  <Link href="/contact">
+                    <Button variant="secondary" size="lg" className="w-full sm:w-auto">
+                      Book a Strategy Call
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </GlassCard>
+          </ScrollReveal>
+        </div>
+      </section>
+
+      <div className="section-divider" />
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Related Articles                                                    */}
+      {/* ------------------------------------------------------------------ */}
+      {relatedArticles.length > 0 && (
+        <section className="py-20 bg-[var(--bg-base)]">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <AnimateOnScroll>
+              <RelatedArticles articles={relatedArticles} />
+            </AnimateOnScroll>
+          </div>
+        </section>
+      )}
     </>
   );
 }

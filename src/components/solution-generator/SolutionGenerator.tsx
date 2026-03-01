@@ -231,7 +231,7 @@ export function SolutionGenerator({ className }: SolutionGeneratorProps) {
       variant="prominent"
       padding="none"
       hover="none"
-      className={cn("gold-top-border overflow-hidden", className)}
+      className={cn("gold-top-border overflow-clip", className)}
       role="region"
       aria-label={`Solution generator: step ${currentStepIndex + 1} of ${STEP_ORDER.length}`}
     >

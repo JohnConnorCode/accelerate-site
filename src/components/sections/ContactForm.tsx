@@ -80,7 +80,7 @@ export function ContactForm() {
           >
             Message Sent
           </h3>
-          <p className="text-white/65 max-w-md mx-auto">
+          <p className="text-[var(--white-secondary)] max-w-md mx-auto">
             Thanks for reaching out. We will get back to you within one business
             day.
           </p>

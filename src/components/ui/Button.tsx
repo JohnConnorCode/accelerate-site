@@ -15,11 +15,11 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    "bg-gold-gradient text-black font-semibold hover:border-gold-glow-strong hover:brightness-110 transition-all duration-300",
+    "bg-gold-gradient text-black font-semibold hover:border-gold-glow-strong hover:brightness-110 hover:shadow-[0_0_20px_rgba(212,175,55,0.15)] active:scale-[0.98] transition-all duration-300",
   secondary:
-    "glass border border-white/10 text-white hover:border-[rgba(212,175,55,0.3)] hover:border-gold-glow transition-all duration-300",
+    "glass border border-[var(--border-light)] text-[var(--white-primary)] hover:border-[rgba(212,175,55,0.3)] hover:border-gold-glow hover:shadow-[0_0_20px_rgba(212,175,55,0.15)] active:scale-[0.98] transition-all duration-300",
   ghost:
-    "text-white-secondary hover:text-white transition-colors duration-200",
+    "text-white-secondary hover:text-[var(--text-nav-hover)] transition-colors duration-200",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

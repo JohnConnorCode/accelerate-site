@@ -11,33 +11,41 @@ export function RelatedArticles({ articles }: RelatedArticlesProps) {
   if (articles.length === 0) return null;
 
   return (
-    <section className="mt-16">
-      <h3 className="font-display text-xl font-semibold text-white-primary mb-6">
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--gold-base)] mb-3">
+        Keep Reading
+      </p>
+      <h3 className="font-display text-2xl font-bold text-white mb-8">
         Related Articles
       </h3>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-3">
         {articles.map((article) => (
           <Link
             key={article.slug}
             href={`/learn/${article.slug}`}
-            className="group glass rounded-lg p-5 transition-all hover:border-border-gold"
+            className="group glass rounded-xl p-6 transition-all hover:border-[var(--border-gold)] hover:-translate-y-0.5 flex flex-col h-full"
           >
-            <span className="text-xs text-gold-light">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[rgba(212,175,55,0.1)] text-[var(--gold-light)] border border-[rgba(212,175,55,0.2)] self-start mb-3">
               {CATEGORY_LABELS[article.frontmatter.category]}
             </span>
-            <h4 className="mt-2 mb-2 font-display text-sm font-semibold text-white-primary group-hover:text-gold-gradient transition-colors line-clamp-2">
+            <h4 className="font-display text-sm font-semibold text-[var(--white-primary)] group-hover:text-gold-gradient transition-colors line-clamp-2 mb-2 flex-1">
               {article.frontmatter.title}
             </h4>
-            <div className="flex items-center gap-2 text-xs text-white-muted">
-              <Clock className="h-3 w-3" />
-              {article.readingTime}
+            <p className="text-xs text-[var(--white-muted)] line-clamp-2 mb-4">
+              {article.frontmatter.excerpt}
+            </p>
+            <div className="flex items-center justify-between text-xs text-[var(--white-muted)] mt-auto pt-3 border-t border-[var(--border-subtle)]">
+              <span className="flex items-center gap-1.5">
+                <Clock className="h-3 w-3" />
+                {article.readingTime}
+              </span>
+              <span className="inline-flex items-center gap-1 group-hover:text-[var(--gold-light)] transition-colors">
+                Read <ArrowRight className="h-3 w-3" />
+              </span>
             </div>
-            <span className="mt-3 inline-flex items-center gap-1 text-xs text-white-muted group-hover:text-gold-light transition-colors">
-              Read more <ArrowRight className="h-3 w-3" />
-            </span>
           </Link>
         ))}
       </div>
-    </section>
+    </div>
   );
 }

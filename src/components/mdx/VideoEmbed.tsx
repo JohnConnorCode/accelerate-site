@@ -5,7 +5,7 @@ interface VideoEmbedProps {
 
 export function VideoEmbed({ src, title = "Video" }: VideoEmbedProps) {
   return (
-    <div className="my-8 overflow-hidden rounded-lg glass p-1">
+    <div className="my-8 overflow-clip rounded-lg glass p-1">
       <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
         <iframe
           src={src}

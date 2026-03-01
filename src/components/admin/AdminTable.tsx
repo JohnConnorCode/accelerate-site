@@ -3,6 +3,7 @@
 import { Fragment, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowUpDown } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "./EmptyState";
@@ -26,7 +27,7 @@ interface AdminTableProps<T> {
   expandedId?: string | null;
   renderExpanded?: (item: T) => ReactNode;
   emptyMessage?: string;
-  emptyIcon?: React.ElementType;
+  emptyIcon?: LucideIcon;
 }
 
 export function AdminTable<T>({
@@ -43,7 +44,7 @@ export function AdminTable<T>({
   emptyIcon,
 }: AdminTableProps<T>) {
   return (
-    <GlassCard padding="none" hover="none" className="overflow-hidden">
+    <GlassCard padding="none" hover="none" className="overflow-clip">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border-glass">

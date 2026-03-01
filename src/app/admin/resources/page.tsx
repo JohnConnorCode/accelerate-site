@@ -68,7 +68,7 @@ export default function ResourcesPage() {
         <StatCard label="Unique Users" value={stats.uniqueUsers} icon={Users} index={1} />
       </div>
 
-      <GlassCard padding="none" hover="none" className="overflow-hidden">
+      <GlassCard padding="none" hover="none" className="overflow-clip">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border-glass">

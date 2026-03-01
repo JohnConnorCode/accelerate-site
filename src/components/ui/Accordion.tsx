@@ -21,7 +21,7 @@ export function AccordionItem({
   return (
     <AccordionPrimitive.Item
       className={cn(
-        "glass rounded-xl mb-3 overflow-hidden",
+        "glass rounded-xl mb-3 overflow-clip",
         "data-[state=open]:border-[rgba(212,175,55,0.2)]",
         "transition-colors duration-300",
         className

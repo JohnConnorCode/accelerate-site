@@ -15,16 +15,26 @@ export function SolutionGeneratorSection() {
   return (
     <section
       id="solution-generator"
-      className="py-24 bg-[var(--bg-base)] dot-grid"
+      className="py-32 bg-[var(--bg-base)] relative overflow-hidden"
     >
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 grid-overlay-fine opacity-20" />
+        <div
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] rounded-full"
+          style={{
+            background: "radial-gradient(ellipse, rgba(212,175,55,0.08) 0%, transparent 70%)",
+          }}
+        />
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <AnimateOnScroll className="text-center mb-12">
+          <p className="section-label">
+            AI-Powered Strategy
+          </p>
           <h2
-            className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4"
-            style={{
-              fontFamily:
-                "var(--font-space-grotesk), var(--font-inter), sans-serif",
-            }}
+            className="section-heading mb-4"
           >
             Get Your Custom{" "}
             <span className="text-gold-gradient">Growth Plan</span> in 5

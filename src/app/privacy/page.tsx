@@ -1,4 +1,5 @@
 import { seoMetadata } from "@/lib/og";
+import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 
 export const metadata = seoMetadata({
   title: "Privacy Policy",
@@ -9,14 +10,8 @@ export const metadata = seoMetadata({
 export default function PrivacyPage() {
   return (
     <div className="py-20 md:py-28">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6">
-        <h1
-          className="text-3xl md:text-4xl font-bold text-[var(--white-primary)] mb-8"
-          style={{
-            fontFamily:
-              "var(--font-space-grotesk), var(--font-inter), sans-serif",
-          }}
-        >
+      <AnimateOnScroll className="max-w-3xl mx-auto px-4 sm:px-6">
+        <h1 className="font-display text-3xl md:text-4xl font-bold text-[var(--white-primary)] mb-8">
           Privacy Policy
         </h1>
 
@@ -122,7 +117,7 @@ export default function PrivacyPage() {
             </p>
           </section>
         </div>
-      </div>
+      </AnimateOnScroll>
     </div>
   );
 }

@@ -21,7 +21,8 @@ import {
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Badge } from "@/components/ui/Badge";
+
+
 import { AnimateOnScroll, StaggerContainer } from "@/components/ui/AnimateOnScroll";
 import { fadeUp, heroStagger, heroItem } from "@/lib/animations";
 import { cn } from "@/lib/utils";
@@ -152,10 +153,9 @@ function ScoreGauge({ score, size = 180 }: { score: number; size?: number }) {
       {/* Center text */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <motion.span
-          className="text-5xl font-bold"
+          className="font-display text-5xl font-bold"
           style={{
             color,
-            fontFamily: "var(--font-space-grotesk), var(--font-inter), sans-serif",
           }}
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -208,11 +208,7 @@ function CategoryCard({
           </div>
           <div>
             <h3
-              className="font-semibold text-white"
-              style={{
-                fontFamily:
-                  "var(--font-space-grotesk), var(--font-inter), sans-serif",
-              }}
+              className="font-display font-semibold text-white"
             >
               {config.label}
             </h3>
@@ -220,11 +216,9 @@ function CategoryCard({
           </div>
         </div>
         <div
-          className="text-2xl font-bold"
+          className="font-display text-2xl font-bold"
           style={{
             color,
-            fontFamily:
-              "var(--font-space-grotesk), var(--font-inter), sans-serif",
           }}
         >
           {category.score}
@@ -285,11 +279,7 @@ function LoadingAnalysis({ stepIndex }: { stepIndex: number }) {
 
           <div>
             <h2
-              className="text-2xl font-bold text-white mb-2"
-              style={{
-                fontFamily:
-                  "var(--font-space-grotesk), var(--font-inter), sans-serif",
-              }}
+              className="font-display text-2xl font-bold text-white mb-2"
             >
               Analyzing Your Website
             </h2>
@@ -384,15 +374,11 @@ function ResultsSection({
       <section className="py-16 sm:py-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <AnimateOnScroll className="text-center">
-            <Badge variant="gold" className="mb-6">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--gold-base)] mb-6">
               Report for {new URL(result.url).hostname}
-            </Badge>
+            </p>
             <h2
-              className="text-3xl sm:text-4xl font-bold tracking-tight mb-8"
-              style={{
-                fontFamily:
-                  "var(--font-space-grotesk), var(--font-inter), sans-serif",
-              }}
+              className="font-display text-3xl sm:text-4xl font-bold tracking-tight mb-8"
             >
               Your Website Score
             </h2>
@@ -427,11 +413,7 @@ function ResultsSection({
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll className="text-center mb-12">
             <h2
-              className="text-2xl sm:text-3xl font-bold tracking-tight mb-3"
-              style={{
-                fontFamily:
-                  "var(--font-space-grotesk), var(--font-inter), sans-serif",
-              }}
+              className="font-display text-2xl sm:text-3xl font-bold tracking-tight mb-3"
             >
               Detailed{" "}
               <span className="text-gold-gradient">Breakdown</span>
@@ -464,11 +446,7 @@ function ResultsSection({
               </span>
             </div>
             <h2
-              className="text-2xl sm:text-3xl font-bold tracking-tight mb-3"
-              style={{
-                fontFamily:
-                  "var(--font-space-grotesk), var(--font-inter), sans-serif",
-              }}
+              className="font-display text-2xl sm:text-3xl font-bold tracking-tight mb-3"
             >
               Recommendations
             </h2>
@@ -509,11 +487,7 @@ function ResultsSection({
                 <div className="flex flex-col items-center gap-3">
                   <CheckCircle2 className="w-10 h-10 text-[var(--success)]" />
                   <h3
-                    className="text-xl font-bold text-white"
-                    style={{
-                      fontFamily:
-                        "var(--font-space-grotesk), var(--font-inter), sans-serif",
-                    }}
+                    className="font-display text-xl font-bold text-white"
                   >
                     Report Saved
                   </h3>
@@ -526,11 +500,7 @@ function ResultsSection({
                   <div className="flex items-center justify-center gap-2 mb-3">
                     <Mail className="w-5 h-5 text-[var(--gold-base)]" />
                     <h3
-                      className="text-xl font-bold text-white"
-                      style={{
-                        fontFamily:
-                          "var(--font-space-grotesk), var(--font-inter), sans-serif",
-                      }}
+                      className="font-display text-xl font-bold text-white"
                     >
                       Email Me This Report
                     </h3>
@@ -581,11 +551,7 @@ function ResultsSection({
         <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
           <AnimateOnScroll>
             <h2
-              className="text-3xl sm:text-4xl font-bold tracking-tight mb-4"
-              style={{
-                fontFamily:
-                  "var(--font-space-grotesk), var(--font-inter), sans-serif",
-              }}
+              className="font-display text-3xl sm:text-4xl font-bold tracking-tight mb-4"
             >
               Want Us to{" "}
               <span className="text-gold-gradient">Fix These Issues?</span>
@@ -721,8 +687,9 @@ export function WebsiteGraderPage() {
       {/* Hero */}
       <section className="relative py-24 sm:py-32 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="orb-gold top-[-10%] right-[-5%]" />
-          <div className="orb-white bottom-[-15%] left-[-10%]" />
+          <div className="absolute inset-0 gradient-mesh opacity-40" />
+          <div className="absolute inset-0 grid-overlay opacity-20" />
+          <div className="hero-glow-orb hero-glow-orb-gold absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2" />
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
@@ -732,19 +699,15 @@ export function WebsiteGraderPage() {
             animate="visible"
           >
             <motion.div variants={heroItem}>
-              <Badge variant="gold" className="mb-6">
-                <Globe className="w-3.5 h-3.5 mr-1.5" />
+              <div className="flex items-center justify-center gap-1.5 mb-6 text-sm font-semibold text-[var(--gold-light)]">
+                <Globe className="w-4 h-4" />
                 Free Website Analysis
-              </Badge>
+              </div>
             </motion.div>
 
             <motion.h1
               variants={heroItem}
-              className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-6"
-              style={{
-                fontFamily:
-                  "var(--font-space-grotesk), var(--font-inter), sans-serif",
-              }}
+              className="page-heading leading-[1.1] mb-6"
             >
               How Does Your Website{" "}
               <span className="text-gold-gradient">Stack Up?</span>
@@ -855,11 +818,7 @@ export function WebsiteGraderPage() {
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
               <AnimateOnScroll className="text-center mb-12">
                 <h2
-                  className="text-2xl sm:text-3xl font-bold tracking-tight mb-3"
-                  style={{
-                    fontFamily:
-                      "var(--font-space-grotesk), var(--font-inter), sans-serif",
-                  }}
+                  className="font-display text-2xl sm:text-3xl font-bold tracking-tight mb-3"
                 >
                   What We{" "}
                   <span className="text-gold-gradient">Analyze</span>
@@ -885,11 +844,7 @@ export function WebsiteGraderPage() {
                           <Icon className="w-6 h-6 text-[var(--gold-base)]" />
                         </div>
                         <h3
-                          className="text-lg font-semibold text-white mb-2"
-                          style={{
-                            fontFamily:
-                              "var(--font-space-grotesk), var(--font-inter), sans-serif",
-                          }}
+                          className="font-display text-lg font-semibold text-white mb-2"
                         >
                           {config.label}
                         </h3>
@@ -911,11 +866,7 @@ export function WebsiteGraderPage() {
             <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
               <AnimateOnScroll>
                 <h2
-                  className="text-2xl sm:text-3xl font-bold tracking-tight mb-4"
-                  style={{
-                    fontFamily:
-                      "var(--font-space-grotesk), var(--font-inter), sans-serif",
-                  }}
+                  className="font-display text-2xl sm:text-3xl font-bold tracking-tight mb-4"
                 >
                   Why Your Website Score{" "}
                   <span className="text-gold-gradient">Matters</span>
@@ -945,11 +896,7 @@ export function WebsiteGraderPage() {
                   <motion.div key={i} variants={fadeUp}>
                     <GlassCard variant="gold" padding="md" hover="none">
                       <p
-                        className="text-3xl font-bold text-gold-gradient mb-2"
-                        style={{
-                          fontFamily:
-                            "var(--font-space-grotesk), var(--font-inter), sans-serif",
-                        }}
+                        className="font-display text-3xl font-bold text-gold-gradient mb-2"
                       >
                         {item.stat}
                       </p>

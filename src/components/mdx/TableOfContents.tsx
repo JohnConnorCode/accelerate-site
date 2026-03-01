@@ -9,21 +9,33 @@ interface TocItem {
   level: number;
 }
 
+const readHeadings = (): TocItem[] => {
+  if (typeof document === "undefined") return [];
+  const article = document.querySelector("[data-article-content]");
+  if (!article) return [];
+  const elements = article.querySelectorAll("h2, h3");
+  return Array.from(elements).map((el) => ({
+    id: el.id,
+    text: el.textContent || "",
+    level: parseInt(el.tagName[1] ?? "2"),
+  }));
+};
+
 export function TableOfContents() {
-  const [headings, setHeadings] = useState<TocItem[]>([]);
+  const [headings, setHeadings] = useState<TocItem[]>(() => readHeadings());
   const [activeId, setActiveId] = useState<string>("");
 
   useEffect(() => {
+    if (typeof document === "undefined") return;
     const article = document.querySelector("[data-article-content]");
     if (!article) return;
 
-    const elements = article.querySelectorAll("h2, h3");
-    const items: TocItem[] = Array.from(elements).map((el) => ({
-      id: el.id,
-      text: el.textContent || "",
-      level: parseInt(el.tagName[1] ?? "2"),
-    }));
-    setHeadings(items);
+    const observer = new MutationObserver(() => {
+      setHeadings(readHeadings());
+    });
+
+    observer.observe(article, { childList: true, subtree: true });
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -51,21 +63,24 @@ export function TableOfContents() {
   if (headings.length === 0) return null;
 
   return (
-    <nav className="glass rounded-lg p-5">
-      <h4 className="mb-3 font-display text-sm font-semibold text-white-primary">
-        On this page
-      </h4>
-      <ul className="space-y-1.5">
+    <nav className="glass rounded-xl p-5">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="w-1 h-4 rounded-full bg-[var(--gold-base)]" />
+        <h4 className="font-display text-sm font-semibold text-[var(--white-primary)]">
+          On this page
+        </h4>
+      </div>
+      <ul className="space-y-1 border-l border-[var(--border-glass)] ml-0.5">
         {headings.map((heading) => (
           <li key={heading.id}>
             <a
               href={`#${heading.id}`}
               className={cn(
-                "block text-sm transition-colors duration-200",
-                heading.level === 3 && "pl-4",
+                "block text-sm transition-all duration-200 py-1.5 -ml-px border-l-2",
+                heading.level === 3 ? "pl-6" : "pl-4",
                 activeId === heading.id
-                  ? "text-gold-gradient font-medium"
-                  : "text-white-muted hover:text-white-secondary"
+                  ? "text-[var(--gold-light)] font-medium border-l-[var(--gold-base)]"
+                  : "text-[var(--white-muted)] hover:text-[var(--white-secondary)] border-l-transparent"
               )}
             >
               {heading.text}

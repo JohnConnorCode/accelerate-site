@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Check, X, ArrowRight, Sparkles } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
 import {
   Accordion,
   AccordionItem,
@@ -15,6 +14,7 @@ import {
   AnimateOnScroll,
   StaggerContainer,
 } from "@/components/ui/AnimateOnScroll";
+import { PageHero } from "@/components/ui/PageHero";
 import { fadeUp } from "@/lib/animations";
 import { cn, formatCurrency } from "@/lib/utils";
 import { packages, packageFaqs } from "@/content/packages";
@@ -54,13 +54,11 @@ function PricingCard({ pkg }: { pkg: ServicePackage }) {
         isHighlighted && "lg:-mt-4 lg:mb-4 z-10"
       )}
     >
-      {/* "Most Popular" badge floating above card */}
+      {/* "Most Popular" label floating above card */}
       {isHighlighted && (
-        <div className="flex justify-center mb-3">
-          <Badge variant="gold" className="gap-1.5">
-            <Sparkles className="w-3 h-3" />
-            Most Popular
-          </Badge>
+        <div className="flex items-center justify-center gap-1.5 mb-3 text-sm font-semibold text-[var(--gold-light)]">
+          <Sparkles className="w-3.5 h-3.5" />
+          Most Popular
         </div>
       )}
 
@@ -77,15 +75,12 @@ function PricingCard({ pkg }: { pkg: ServicePackage }) {
           {/* Header */}
           <div className="mb-6">
             <h3
-              className="text-2xl font-bold text-white mb-1"
-              style={{
-                fontFamily:
-                  "var(--font-space-grotesk), var(--font-inter), sans-serif",
-              }}
+              className="font-display text-2xl font-bold text-white mb-1"
             >
               {pkg.name}
             </h3>
-            <p className="text-sm text-white/50">{pkg.tagline}</p>
+            <p className="text-sm text-[var(--white-muted)]">{pkg.tagline}</p>
+            <p className="text-xs text-[var(--white-muted)] italic mt-1">Best for: {pkg.idealFor}</p>
           </div>
 
           {/* Price */}
@@ -93,27 +88,23 @@ function PricingCard({ pkg }: { pkg: ServicePackage }) {
             <div className="flex items-baseline gap-1">
               <span
                 className={cn(
-                  "text-4xl font-bold tracking-tight",
+                  "font-display text-4xl font-bold tracking-tight",
                   isHighlighted ? "text-gold-gradient" : "text-white"
                 )}
-                style={{
-                  fontFamily:
-                    "var(--font-space-grotesk), var(--font-inter), sans-serif",
-                }}
               >
                 {formatCurrency(pkg.priceOneTime)}
               </span>
-              <span className="text-white/40 text-sm ml-1">one-time</span>
+              <span className="text-[var(--white-muted)] text-sm ml-1">one-time</span>
             </div>
             {pkg.priceMonthly > 0 && (
-              <p className="text-sm text-white/50 mt-1">
+              <p className="text-sm text-[var(--white-muted)] mt-1">
                 + {formatCurrency(pkg.priceMonthly)}/mo for ongoing services
               </p>
             )}
           </div>
 
           {/* Divider */}
-          <div className="border-t border-white/10 mb-6" />
+          <div className="border-t border-[var(--border-light)] mb-6" />
 
           {/* Feature list */}
           <ul className="space-y-3 mb-8 flex-1" role="list">
@@ -133,12 +124,12 @@ function PricingCard({ pkg }: { pkg: ServicePackage }) {
                 <span
                   className={cn(
                     "text-sm leading-relaxed",
-                    feature.included ? "text-white/70" : "text-white/30"
+                    feature.included ? "text-[var(--text-nav)]" : "text-[var(--white-muted)]"
                   )}
                 >
                   {feature.name}
                   {feature.included && feature.detail && (
-                    <span className="text-white/40 ml-1">
+                    <span className="text-[var(--white-muted)] ml-1">
                       &mdash; {feature.detail}
                     </span>
                   )}
@@ -174,7 +165,7 @@ function ComparisonTable() {
         <thead>
           <tr>
             <th
-              className="text-left text-sm font-medium text-white/50 pb-4 pr-4 pl-4 sm:pl-0"
+              className="text-left text-sm font-medium text-[var(--white-muted)] pb-4 pr-4 pl-4 sm:pl-0"
               scope="col"
             >
               Feature
@@ -198,11 +189,11 @@ function ComparisonTable() {
             <tr
               key={featureName}
               className={cn(
-                "border-t border-white/5",
+                "border-t border-[var(--border-subtle)]",
                 idx % 2 === 0 && "bg-white/[0.02]"
               )}
             >
-              <td className="py-3 pr-4 pl-4 sm:pl-0 text-sm text-white/60">
+              <td className="py-3 pr-4 pl-4 sm:pl-0 text-sm text-[var(--white-secondary)]">
                 {featureName}
               </td>
               {packages.map((pkg) => {
@@ -244,32 +235,11 @@ export function PackagesPageContent() {
       {/* ------------------------------------------------------------------ */}
       {/* Hero Section                                                        */}
       {/* ------------------------------------------------------------------ */}
-      <section className="relative py-24 sm:py-32 overflow-hidden">
-        {/* Background orbs */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="orb-gold top-[-10%] right-[-5%]" />
-          <div className="orb-white bottom-[-15%] left-[-10%]" />
-        </div>
-
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <AnimateOnScroll>
-            <h1
-              className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-6"
-              style={{
-                fontFamily:
-                  "var(--font-space-grotesk), var(--font-inter), sans-serif",
-              }}
-            >
-              Transparent Pricing,{" "}
-              <span className="text-gold-gradient">Real Results</span>
-            </h1>
-            <p className="text-lg sm:text-xl text-white/65 max-w-2xl mx-auto leading-relaxed">
-              No hidden fees, no long-term contracts. Pick the package that
-              matches where you are today and upgrade whenever you are ready.
-            </p>
-          </AnimateOnScroll>
-        </div>
-      </section>
+      <PageHero
+        label="Packages"
+        title={<>Transparent Pricing,{" "}<span className="text-gold-gradient">Real Results</span></>}
+        description="No hidden fees, no long-term contracts. Pick the package that matches where you are today and upgrade whenever you are ready."
+      />
 
       <div className="section-divider" />
 
@@ -287,10 +257,27 @@ export function PackagesPageContent() {
           </StaggerContainer>
 
           <AnimateOnScroll>
-            <p className="text-center text-sm text-white/40 mt-10">
+            <p className="text-center text-sm text-[var(--white-muted)] mt-10">
               All prices in USD. Payment plans available for Grow and Accelerate
               packages.
             </p>
+          </AnimateOnScroll>
+        </div>
+      </section>
+
+      <div className="section-divider" />
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Social Proof                                                        */}
+      {/* ------------------------------------------------------------------ */}
+      <section className="py-12 bg-[var(--bg-base)]">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <AnimateOnScroll>
+            <GlassCard variant="prominent" padding="md" className="text-center">
+              <p className="text-[var(--white-secondary)] font-medium">
+                Trusted by 50+ small businesses across 4 industries
+              </p>
+            </GlassCard>
           </AnimateOnScroll>
         </div>
       </section>
@@ -303,17 +290,11 @@ export function PackagesPageContent() {
       <section className="py-24 bg-[var(--bg-base)]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll>
-            <h2
-              className="text-3xl sm:text-4xl font-bold tracking-tight text-center mb-4"
-              style={{
-                fontFamily:
-                  "var(--font-space-grotesk), var(--font-inter), sans-serif",
-              }}
-            >
+            <h2 className="section-heading text-center mb-4">
               Compare{" "}
               <span className="text-gold-gradient">Every Feature</span>
             </h2>
-            <p className="text-center text-white/50 mb-12 max-w-xl mx-auto">
+            <p className="text-center text-[var(--white-muted)] mb-12 max-w-xl mx-auto">
               See exactly what is included in each package so you can choose
               with confidence.
             </p>
@@ -335,17 +316,11 @@ export function PackagesPageContent() {
       <section className="py-24 bg-[var(--bg-base)]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll>
-            <h2
-              className="text-3xl sm:text-4xl font-bold tracking-tight text-center mb-4"
-              style={{
-                fontFamily:
-                  "var(--font-space-grotesk), var(--font-inter), sans-serif",
-              }}
-            >
+            <h2 className="section-heading text-center mb-4">
               Frequently Asked{" "}
               <span className="text-gold-gradient">Questions</span>
             </h2>
-            <p className="text-center text-white/50 mb-12 max-w-xl mx-auto">
+            <p className="text-center text-[var(--white-muted)] mb-12 max-w-xl mx-auto">
               Everything you need to know about our packages and pricing.
             </p>
           </AnimateOnScroll>
@@ -359,6 +334,18 @@ export function PackagesPageContent() {
                 </AccordionItem>
               ))}
             </Accordion>
+          </AnimateOnScroll>
+
+          <AnimateOnScroll>
+            <p className="text-center text-sm text-[var(--white-muted)] mt-8">
+              Can&apos;t find your question? Email us at{" "}
+              <a
+                href="mailto:hello@acceleratewith.us"
+                className="text-[var(--gold-light)] hover:text-[var(--text-nav-hover)] transition-colors"
+              >
+                hello@acceleratewith.us
+              </a>
+            </p>
           </AnimateOnScroll>
         </div>
       </section>
@@ -378,15 +365,11 @@ export function PackagesPageContent() {
             <GlassCard variant="gold" padding="none" className="text-center">
               <div className="p-10 sm:p-14">
                 <h2
-                  className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4"
-                  style={{
-                    fontFamily:
-                      "var(--font-space-grotesk), var(--font-inter), sans-serif",
-                  }}
+                  className="section-heading mb-4"
                 >
                   Not sure which package is right?
                 </h2>
-                <p className="text-lg text-white/65 max-w-xl mx-auto mb-8">
+                <p className="text-lg text-[var(--white-secondary)] max-w-xl mx-auto mb-8">
                   Take 2 minutes to answer a few questions and get a
                   personalized recommendation with projected ROI for your
                   business.

@@ -1,87 +1,161 @@
 "use client";
 
+import { useState } from "react";
 import { PhoneOff, Clock, Cog, EyeOff } from "lucide-react";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { AnimateOnScroll, StaggerContainer } from "@/components/ui/AnimateOnScroll";
-import { fadeUp } from "@/lib/animations";
+import { motion } from "framer-motion";
+import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
+import { slideFromLeft, slideFromRight } from "@/lib/animations";
 
 const problems = [
   {
     icon: PhoneOff,
-    title: "Missed Calls",
+    title: "The Phone Rang. You Were on a Job.",
     description:
-      "You are on a job and the phone rings. By the time you call back, they hired someone else. Every missed call is money walking away.",
+      "By the time you called back, they'd already hired someone else.",
   },
   {
     icon: Clock,
-    title: "Slow Follow-Up",
+    title: "You Worked 10 Hours. Only 4 Were Billable.",
     description:
-      "Leads come in but nobody follows up for days. 80% of deals go to whoever responds first. If that is not you, you lose.",
+      "Scheduling, follow-ups, invoicing — eating the hours you should be spending on clients.",
   },
   {
     icon: Cog,
-    title: "Manual Everything",
+    title: "Your CRM Doesn't Talk to Your Calendar",
     description:
-      "Copying data between apps. Sending emails one at a time. Doing repetitive work that a machine should handle while you focus on clients.",
+      "And neither talks to your inbox, your phone system, or your follow-up process.",
   },
   {
     icon: EyeOff,
-    title: "Invisible Online",
+    title: "Your Competitor Answers Calls at Midnight",
     description:
-      "Your website was built years ago. Nobody can find you on Google. Meanwhile, your competitors are showing up everywhere.",
+      "They're automating intake, follow-up, and booking. You're still doing it manually.",
   },
 ];
 
+const impactMetrics = [
+  { label: "Response time", value: "< 60s", detail: "Down from 4+ hours" },
+  { label: "Revenue lift", value: "+40%", detail: "Average after 90 days" },
+  { label: "Hours saved", value: "10+/wk", detail: "On admin and follow-up" },
+];
+
+const solutionPoints = [
+  "Websites that convert visitors into booked consultations",
+  "Automations connecting your CRM, calendar, email, and SMS",
+  "AI agents answering calls, qualifying inquiries, and booking 24/7",
+  "Knowledge bases, dashboards, and tools — all managed for you",
+];
+
 export function ProblemSolution() {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
   return (
-    <section className="py-24 bg-[var(--bg-elevated)]">
+    <section className="relative py-32 bg-[var(--bg-section-warm)] overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 grid-overlay-fine pointer-events-none" />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <AnimateOnScroll className="text-center mb-16">
-          <h2
-            className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4"
-            style={{ fontFamily: "var(--font-space-grotesk), var(--font-inter), sans-serif" }}
-          >
-            <span className="text-gold-gradient">The Problems</span>{" "}
-            Costing You Money
-          </h2>
-          <p className="text-lg text-white/60 max-w-2xl mx-auto">
-            These are the gaps in your business where leads, revenue, and time
-            fall through every single day.
+        {/* Left-aligned heading */}
+        <AnimateOnScroll variants={slideFromLeft} className="mb-16">
+          <p className="section-label">
+            Sound Familiar?
           </p>
+          <h2 className="section-heading">
+            The gaps between you and the revenue you should be earning.
+          </h2>
         </AnimateOnScroll>
 
-        <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
-          {problems.map((problem) => (
-            <AnimateOnScroll key={problem.title} variants={fadeUp}>
-              <GlassCard hover="lift" padding="lg" className="h-full">
-                <problem.icon className="w-10 h-10 text-[var(--gold-base)] mb-4" />
-                <h3 className="text-xl font-semibold text-white mb-2">
-                  {problem.title}
-                </h3>
-                <p className="text-white/60 leading-relaxed">
-                  {problem.description}
-                </p>
-              </GlassCard>
-            </AnimateOnScroll>
-          ))}
-        </StaggerContainer>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
+          {/* Left: Numbered vertical list */}
+          <AnimateOnScroll variants={slideFromLeft}>
+            <div className="space-y-0">
+              {problems.map((problem, i) => (
+                <motion.div
+                  key={problem.title}
+                  className="group flex items-start gap-5 py-6 border-b border-white/[0.06] cursor-default"
+                  onMouseEnter={() => setHoveredIndex(i)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                >
+                  <span
+                    className={`font-display text-3xl font-bold tabular-nums transition-colors duration-300 ${
+                      hoveredIndex === i
+                        ? "text-[var(--gold-base)]"
+                        : "text-white/15"
+                    }`}
+                  >
+                    0{i + 1}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-1.5">
+                      <problem.icon
+                        className={`w-5 h-5 transition-colors duration-300 ${
+                          hoveredIndex === i
+                            ? "text-[var(--gold-base)]"
+                            : "text-[var(--white-muted)]"
+                        }`}
+                      />
+                      <h3 className="text-lg font-semibold text-white">
+                        {problem.title}
+                      </h3>
+                    </div>
+                    <p className="text-[var(--white-muted)] leading-relaxed text-sm">
+                      {problem.description}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </AnimateOnScroll>
 
-        <AnimateOnScroll className="text-center">
-          <GlassCard variant="gold" padding="lg" className="max-w-3xl mx-auto">
-            <h3
-              className="text-2xl sm:text-3xl font-bold mb-3"
-              style={{ fontFamily: "var(--font-space-grotesk), var(--font-inter), sans-serif" }}
-            >
-              We Fix All of This.
-            </h3>
-            <p className="text-white/65 leading-relaxed max-w-xl mx-auto">
-              Accelerate builds AI-powered tools that answer your phone, follow up
-              with leads instantly, automate your repetitive tasks, and put you at
-              the top of Google. You focus on your work. We handle the rest.
-            </p>
-          </GlassCard>
-        </AnimateOnScroll>
+          {/* Right: Sticky solution panel */}
+          <AnimateOnScroll variants={slideFromRight}>
+            <SolutionPanel />
+          </AnimateOnScroll>
+        </div>
       </div>
     </section>
+  );
+}
+
+function SolutionPanel() {
+  return (
+    <div className="lg:sticky lg:top-32">
+      <div className="glass-gold border border-[var(--border-light)] rounded-2xl p-8 sm:p-10 space-y-6">
+        <div className="space-y-3">
+          <p className="section-label">
+            How we fix it
+          </p>
+          <h3 className="font-display text-2xl sm:text-3xl font-bold">
+            One team running your entire digital operation.
+          </h3>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {impactMetrics.map((metric) => (
+            <div key={metric.label} className="rounded-xl border border-[var(--border-light)] bg-black/20 p-4">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-[var(--white-muted)]">
+                {metric.label}
+              </p>
+              <p className="text-2xl font-semibold text-white">
+                {metric.value}
+              </p>
+              <p className="text-xs text-[var(--white-muted)]">{metric.detail}</p>
+            </div>
+          ))}
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-[0.3em] text-[var(--white-muted)] mb-3">
+            What we implement
+          </p>
+          <ul className="space-y-2 text-sm text-[var(--white-secondary)]">
+            {solutionPoints.map((item) => (
+              <li key={item} className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[var(--gold-base)]" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
   );
 }

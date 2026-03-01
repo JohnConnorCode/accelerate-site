@@ -27,6 +27,7 @@ export const packages: ServicePackage[] = [
     highlighted: false,
     ctaText: "Get Started",
     ctaLink: "/contact?package=launch",
+    idealFor: "Starting fresh",
   },
   {
     id: "grow",
@@ -54,6 +55,7 @@ export const packages: ServicePackage[] = [
     highlighted: true,
     ctaText: "Most Popular",
     ctaLink: "/contact?package=grow",
+    idealFor: "Ready to scale",
   },
   {
     id: "accelerate",
@@ -81,6 +83,7 @@ export const packages: ServicePackage[] = [
     highlighted: false,
     ctaText: "Go All In",
     ctaLink: "/contact?package=accelerate",
+    idealFor: "Full-service growth",
   },
 ];
 

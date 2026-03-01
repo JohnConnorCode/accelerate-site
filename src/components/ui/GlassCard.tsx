@@ -5,7 +5,7 @@ import { motion, type HTMLMotionProps } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 type GlassVariant = "default" | "prominent" | "gold";
-type HoverBehavior = "glow" | "lift" | "none";
+type HoverBehavior = "glow" | "lift" | "shine" | "none";
 
 interface GlassCardProps extends Omit<HTMLMotionProps<"div">, "children"> {
   variant?: GlassVariant;
@@ -44,7 +44,9 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
         ? "hover:border-gold-glow transition-all duration-300"
         : hover === "lift"
           ? "hover:-translate-y-1 hover:border-gold-glow transition-all duration-300"
-          : "transition-all duration-300";
+          : hover === "shine"
+            ? "card-hover-shine hover:border-gold-glow transition-all duration-300"
+            : "transition-all duration-300";
 
     return (
       <motion.div
