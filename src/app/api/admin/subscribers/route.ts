@@ -1,0 +1,50 @@
+import { NextRequest, NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/admin/auth";
+import { createServiceRoleClient } from "@/lib/supabase/server";
+
+export async function GET(request: NextRequest) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+
+  const supabase = createServiceRoleClient();
+  const url = new URL(request.url);
+  const page = parseInt(url.searchParams.get("page") || "1");
+  const pageSize = 25;
+  const offset = (page - 1) * pageSize;
+
+  const { count: totalCount } = await supabase
+    .from("subscribers")
+    .select("*", { count: "exact", head: true });
+
+  const { count: activeCount } = await supabase
+    .from("subscribers")
+    .select("*", { count: "exact", head: true })
+    .is("unsubscribed_at", null);
+
+  const { count: unsubCount } = await supabase
+    .from("subscribers")
+    .select("*", { count: "exact", head: true })
+    .not("unsubscribed_at", "is", null);
+
+  const { data, error } = await supabase
+    .from("subscribers")
+    .select("*")
+    .order("subscribed_at", { ascending: false })
+    .range(offset, offset + pageSize - 1);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({
+    subscribers: data || [],
+    total: totalCount || 0,
+    totalPages: Math.ceil((totalCount || 0) / pageSize),
+    page,
+    stats: {
+      total: totalCount || 0,
+      active: activeCount || 0,
+      unsubscribed: unsubCount || 0,
+    },
+  });
+}

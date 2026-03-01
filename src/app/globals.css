@@ -1,0 +1,464 @@
+@import "tailwindcss";
+
+/* ========================================
+   ACCELERATE DESIGN SYSTEM
+   Black / White / Gold Glassmorphism
+   ======================================== */
+
+:root {
+  /* Backgrounds */
+  --bg-base: #050505;
+  --bg-elevated: #0a0a0a;
+  --bg-subtle: #111111;
+
+  /* Gold */
+  --gold-base: #D4AF37;
+  --gold-light: #F5D060;
+  --gold-champagne: #E8D5A3;
+
+  /* White variants (WCAG 2.1 AA compliant on #050505) */
+  --white-primary: rgba(255, 255, 255, 0.93);
+  --white-secondary: rgba(255, 255, 255, 0.74);
+  --white-muted: rgba(255, 255, 255, 0.50);
+
+  /* Borders */
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --border-glass-hover: rgba(255, 255, 255, 0.12);
+  --border-gold: rgba(212, 175, 55, 0.25);
+  --border-gold-hover: rgba(212, 175, 55, 0.4);
+
+  /* Status */
+  --success: #10B981;
+  --error: #F43F5E;
+
+  /* Glass */
+  --glass-default-bg: rgba(255, 255, 255, 0.03);
+  --glass-prominent-bg: rgba(255, 255, 255, 0.06);
+  --glass-gold-bg: rgba(212, 175, 55, 0.04);
+  --glass-default-hover: rgba(255, 255, 255, 0.05);
+  --glass-prominent-hover: rgba(255, 255, 255, 0.08);
+  --glass-gold-hover: rgba(212, 175, 55, 0.07);
+}
+
+@theme inline {
+  --color-bg-base: var(--bg-base);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-subtle: var(--bg-subtle);
+  --color-gold: var(--gold-base);
+  --color-gold-light: var(--gold-light);
+  --color-gold-champagne: var(--gold-champagne);
+  --color-white-primary: var(--white-primary);
+  --color-white-secondary: var(--white-secondary);
+  --color-white-muted: var(--white-muted);
+  --color-border-glass: var(--border-glass);
+  --color-border-gold: var(--border-gold);
+  --color-success: var(--success);
+  --color-error: var(--error);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-space-grotesk);
+}
+
+/* ========================================
+   BASE STYLES
+   ======================================== */
+
+body {
+  background: var(--bg-base);
+  color: var(--white-primary);
+  font-family: var(--font-inter, 'Inter', system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========================================
+   GOLD GRADIENT UTILITIES
+   ======================================== */
+
+.text-gold-gradient {
+  background: linear-gradient(135deg, #D4AF37 0%, #F5D060 45%, #E8D5A3 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.bg-gold-gradient {
+  background: linear-gradient(135deg, #D4AF37 0%, #F5D060 45%, #E8D5A3 100%);
+}
+
+.border-gold-glow {
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.15), 0 0 40px rgba(212, 175, 55, 0.05);
+}
+
+.border-gold-glow-strong {
+  box-shadow: 0 0 25px rgba(212, 175, 55, 0.25), 0 0 50px rgba(212, 175, 55, 0.1);
+}
+
+/* ========================================
+   GLASSMORPHISM UTILITIES
+   ======================================== */
+
+.glass {
+  background: var(--glass-default-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-glass);
+}
+
+.glass-prominent {
+  background: var(--glass-prominent-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.glass-gold {
+  background: var(--glass-gold-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-gold);
+}
+
+/* ========================================
+   NOISE OVERLAY
+   ======================================== */
+
+.noise-overlay::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* ========================================
+   BACKGROUND GRADIENT ORBS
+   ======================================== */
+
+@keyframes drift-1 {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(20px, -15px); }
+  50% { transform: translate(-10px, 20px); }
+  75% { transform: translate(15px, 10px); }
+}
+
+@keyframes drift-2 {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-15px, 20px); }
+  50% { transform: translate(25px, -10px); }
+  75% { transform: translate(-20px, -15px); }
+}
+
+@keyframes float-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+.orb-gold {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.09) 0%, transparent 70%);
+  animation: drift-1 28s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.orb-white {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.04) 0%, transparent 70%);
+  animation: drift-2 25s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ========================================
+   SECTION DIVIDER
+   ======================================== */
+
+.section-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(212, 175, 55, 0.15) 30%,
+    rgba(212, 175, 55, 0.25) 50%,
+    rgba(212, 175, 55, 0.15) 70%,
+    transparent 100%
+  );
+}
+
+/* ========================================
+   GOLD UNDERLINE HOVER FOR LINKS
+   ======================================== */
+
+.link-gold-underline {
+  position: relative;
+  display: inline-block;
+}
+
+.link-gold-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(135deg, #D4AF37, #F5D060, #E8D5A3);
+  transition: width 0.3s ease;
+}
+
+.link-gold-underline:hover::after {
+  width: 100%;
+}
+
+/* ========================================
+   PROGRESS BAR GRADIENT FILL
+   ======================================== */
+
+.progress-gold {
+  background: linear-gradient(90deg, #D4AF37 0%, #F5D060 50%, #E8D5A3 100%);
+}
+
+/* ========================================
+   SCROLLBAR STYLING
+   ======================================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ========================================
+   FORM INPUT GLOBAL STYLES
+   ======================================== */
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--white-primary);
+  -webkit-box-shadow: 0 0 0px 1000px var(--bg-subtle) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* ========================================
+   REDUCED MOTION
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .orb-gold,
+  .orb-white {
+    animation: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ========================================
+   DOT GRID PATTERN
+   ======================================== */
+
+.dot-grid {
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.035) 1px,
+    transparent 1px
+  );
+  background-size: 24px 24px;
+}
+
+/* ========================================
+   GOLD TOP BORDER (for Solution Generator)
+   ======================================== */
+
+.gold-top-border {
+  border-top: 3px solid transparent;
+  border-image: linear-gradient(90deg, #D4AF37, #F5D060, #E8D5A3) 1;
+}
+
+/* ========================================
+   PULSE ANIMATION (for CTA buttons)
+   ======================================== */
+
+@keyframes subtle-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.3); }
+  50% { box-shadow: 0 0 0 8px rgba(212, 175, 55, 0); }
+}
+
+.pulse-gold {
+  animation: subtle-pulse 2.5s ease-in-out infinite;
+}
+
+/* ========================================
+   MDX PROSE STYLES
+   ======================================== */
+
+.prose-dark h1 {
+  font-family: var(--font-space-grotesk, 'Space Grotesk', sans-serif);
+  font-weight: 700;
+  font-size: 2rem;
+  line-height: 1.2;
+  color: var(--white-primary);
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.prose-dark h2 {
+  font-family: var(--font-space-grotesk, 'Space Grotesk', sans-serif);
+  font-weight: 600;
+  font-size: 1.5rem;
+  line-height: 1.3;
+  color: var(--white-primary);
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose-dark h3 {
+  font-family: var(--font-space-grotesk, 'Space Grotesk', sans-serif);
+  font-weight: 600;
+  font-size: 1.25rem;
+  line-height: 1.4;
+  color: var(--white-primary);
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.prose-dark h4,
+.prose-dark h5,
+.prose-dark h6 {
+  font-family: var(--font-space-grotesk, 'Space Grotesk', sans-serif);
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--white-primary);
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.prose-dark p {
+  color: var(--white-secondary);
+  line-height: 1.75;
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+}
+
+.prose-dark ul,
+.prose-dark ol {
+  color: var(--white-secondary);
+  line-height: 1.75;
+  margin-bottom: 1.25rem;
+  padding-left: 1.5rem;
+}
+
+.prose-dark ul {
+  list-style: disc;
+}
+
+.prose-dark ol {
+  list-style: decimal;
+}
+
+.prose-dark li {
+  margin-bottom: 0.5rem;
+}
+
+.prose-dark blockquote {
+  border-left: 3px solid var(--gold-base);
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  color: var(--white-secondary);
+  font-style: italic;
+}
+
+.prose-dark code {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.875em;
+  color: var(--gold-champagne);
+}
+
+.prose-dark pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+.prose-dark table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+
+.prose-dark th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-family: var(--font-space-grotesk, 'Space Grotesk', sans-serif);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-gold);
+  color: var(--gold-base);
+}
+
+.prose-dark td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-glass);
+  color: var(--white-secondary);
+}
+
+.prose-dark a {
+  color: var(--gold-light);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.2s;
+}
+
+.prose-dark a:hover {
+  color: var(--gold-champagne);
+}
+
+.prose-dark strong {
+  color: var(--white-primary);
+  font-weight: 600;
+}
+
+.prose-dark hr {
+  border: none;
+  height: 1px;
+  background: var(--border-glass);
+  margin: 2rem 0;
+}
+
+.prose-dark img {
+  border-radius: 0.75rem;
+  margin: 1.5rem 0;
+}
