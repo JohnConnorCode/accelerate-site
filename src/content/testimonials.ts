@@ -13,7 +13,7 @@ export const testimonials: Testimonial[] = [
   {
     id: "testimonial-2",
     quote:
-      "Leads used to sit in our inbox for hours. Accelerate built an AI intake system that qualifies cases and responds in minutes. We signed 35% more clients our first quarter working with them.",
+      "Potential clients used to wait hours for a callback. Accelerate built an AI intake system that qualifies cases and responds in minutes. We signed 35% more clients our first quarter working with them.",
     name: "Sarah Chen",
     title: "Managing Partner",
     businessType: "Chen & Associates, Personal Injury Law",

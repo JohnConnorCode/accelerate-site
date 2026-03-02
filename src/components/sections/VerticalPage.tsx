@@ -81,10 +81,10 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
                 {vertical.heroHeadlineGold}
               </span>
             </h1>
-            <p className="text-lg sm:text-xl text-white/65 max-w-2xl mx-auto mb-10 leading-relaxed">
+            <p className="text-lg sm:text-xl text-[var(--white-secondary)] max-w-2xl mx-auto mb-10 leading-relaxed">
               {vertical.heroSubheadline}
             </p>
-            <Link href={`/#solution-generator?industry=${preSelectedIndustry}`}>
+            <Link href={`/plan-builder?industry=${preSelectedIndustry}`}>
               <Button variant="primary" size="lg" pulse>
                 {vertical.ctaText}
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -105,7 +105,7 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
             >
               Sound <span className="text-gold-gradient">Familiar?</span>
             </h2>
-            <p className="text-lg text-white/60 max-w-2xl mx-auto">
+            <p className="text-lg text-[var(--white-secondary)] max-w-2xl mx-auto">
               These are the problems we hear from {vertical.name.toLowerCase()}{" "}
               businesses every week.
             </p>
@@ -118,10 +118,10 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
                 <AnimateOnScroll key={painPoint.title} variants={fadeUp}>
                   <GlassCard hover="glow" padding="lg" className="h-full">
                     <Icon className="w-10 h-10 text-[var(--gold-base)] mb-4" />
-                    <h3 className="text-lg font-semibold text-white mb-2">
+                    <h3 className="text-lg font-semibold text-[var(--heading-color)] mb-2">
                       {painPoint.title}
                     </h3>
-                    <p className="text-white/60 leading-relaxed">
+                    <p className="text-[var(--white-secondary)] leading-relaxed">
                       {painPoint.description}
                     </p>
                   </GlassCard>
@@ -143,7 +143,7 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
             >
               How We <span className="text-gold-gradient">Fix It</span>
             </h2>
-            <p className="text-lg text-white/60 max-w-2xl mx-auto">
+            <p className="text-lg text-[var(--white-secondary)] max-w-2xl mx-auto">
               Purpose-built solutions for {vertical.name.toLowerCase()}{" "}
               businesses that deliver real results.
             </p>
@@ -153,17 +153,17 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
             {vertical.solutions.map((solution) => (
               <AnimateOnScroll key={solution.title} variants={fadeUp}>
                 <GlassCard hover="glow" padding="lg" className="h-full">
-                  <h3 className="text-xl font-semibold text-white mb-3">
+                  <h3 className="text-xl font-semibold text-[var(--heading-color)] mb-3">
                     {solution.title}
                   </h3>
-                  <p className="text-white/60 leading-relaxed mb-5">
+                  <p className="text-[var(--white-secondary)] leading-relaxed mb-5">
                     {solution.description}
                   </p>
                   <ul className="space-y-2">
                     {solution.features.map((feature) => (
                       <li
                         key={feature}
-                        className="flex items-start gap-2 text-sm text-white/70"
+                        className="flex items-start gap-2 text-sm text-[var(--white-secondary)]"
                       >
                         <Check className="w-4 h-4 text-[var(--gold-base)] shrink-0 mt-0.5" />
                         {feature}
@@ -188,14 +188,14 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
                 Case Study
               </p>
               <h3
-                className="font-display text-2xl sm:text-3xl font-bold text-white mb-4"
+                className="font-display text-2xl sm:text-3xl font-bold text-[var(--heading-color)] mb-4"
               >
                 {vertical.caseStudy.title}
               </h3>
-              <p className="text-white/65 leading-relaxed mb-8">
+              <p className="text-[var(--white-secondary)] leading-relaxed mb-8">
                 {vertical.caseStudy.description}
               </p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
                 {vertical.caseStudy.metrics.map((metric) => (
                   <div
                     key={metric.label}
@@ -206,7 +206,7 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
                     >
                       {metric.value}
                     </p>
-                    <p className="text-xs text-white/50">{metric.label}</p>
+                    <p className="text-xs text-[var(--white-muted)]">{metric.label}</p>
                   </div>
                 ))}
               </div>
@@ -234,13 +234,13 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
                   <span className="text-gold-gradient">{vertical.name}</span>{" "}
                   Growth Plan
                 </h2>
-                <p className="text-lg text-white/65 max-w-xl mx-auto mb-8">
+                <p className="text-lg text-[var(--white-secondary)] max-w-xl mx-auto mb-8">
                   Answer a few questions about your business and get a
                   personalized plan with specific recommendations, pricing, and
                   projected ROI.
                 </p>
                 <Link
-                  href={`/#solution-generator?industry=${preSelectedIndustry}`}
+                  href={`/plan-builder?industry=${preSelectedIndustry}`}
                 >
                   <Button variant="primary" size="lg" pulse>
                     Build My Plan

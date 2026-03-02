@@ -65,7 +65,7 @@ export function ChangelogPage() {
         <div className="mt-6">
           <Link
             href="/changelog/rss.xml"
-            className="inline-flex items-center gap-2 text-sm text-[var(--gold-light)] hover:text-white transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-[var(--gold-light)] hover:text-[var(--white-primary)] transition-colors"
           >
             <Rss className="w-4 h-4" />
             RSS Feed

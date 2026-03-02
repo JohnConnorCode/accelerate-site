@@ -2,11 +2,11 @@ import { seoMetadata } from "@/lib/og";
 import { AboutPageContent } from "@/components/sections/AboutPage";
 
 export const metadata = seoMetadata({
-  title: "About",
+  title: "About Us — Built by a Business Owner",
   description:
-    "Meet the team behind Accelerate. Over a decade of building technology platforms, now helping small businesses grow with AI-powered tools.",
+    "Built by a business owner who ran into the same problems you have. Accelerate delivers AI strategy and systems for small businesses.",
   ogTitle: "About Accelerate",
-  ogSubtitle: "Over a decade of building technology platforms for small businesses",
+  ogSubtitle: "Built by a business owner, for business owners",
 });
 
 const organizationJsonLd = {
@@ -15,7 +15,7 @@ const organizationJsonLd = {
   name: "Accelerate",
   url: "https://acceleratewith.us",
   description:
-    "AI-powered websites, automations, and intelligent agents that help small businesses capture more leads and save time.",
+    "AI strategy and systems for small businesses. We figure out where AI fits, then build and manage the systems that make it happen.",
   founder: {
     "@type": "Person",
     name: "John Connor",

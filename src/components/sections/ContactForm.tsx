@@ -11,7 +11,6 @@ import { Textarea } from "@/components/ui/Textarea";
 interface FormData {
   name: string;
   email: string;
-  phone: string;
   businessType: string;
   message: string;
 }
@@ -20,7 +19,6 @@ export function ContactForm() {
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
-    phone: "",
     businessType: "",
     message: "",
   });
@@ -72,10 +70,10 @@ export function ContactForm() {
             <Send className="w-8 h-8 text-black" />
           </div>
           <h3
-            className="text-2xl font-bold text-white"
+            className="text-2xl font-bold text-[var(--heading-color)]"
             style={{
               fontFamily:
-                "var(--font-space-grotesk), var(--font-inter), sans-serif",
+                "var(--font-jost), var(--font-inter), sans-serif",
             }}
           >
             Message Sent
@@ -119,20 +117,6 @@ export function ContactForm() {
             value={formData.email}
             onChange={handleChange}
             placeholder="you@company.com"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-[var(--white-secondary)] mb-1.5">
-            Phone
-          </label>
-          <Input
-            type="tel"
-            id="phone"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            placeholder="(555) 123-4567"
           />
         </div>
 

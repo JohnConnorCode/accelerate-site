@@ -105,7 +105,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
           id: `error-${Date.now()}`,
           role: "assistant",
           content:
-            "Sorry, I had trouble responding. Please try again or contact us directly at hello@acceleratewith.us.",
+            "Sorry, I had trouble responding. Please try again or contact us directly at john@acceleratewith.us.",
           timestamp: Date.now(),
         },
       ]);
@@ -145,7 +145,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
   };
 
   return (
-    <div className="flex flex-col h-[500px] w-[380px] glass-prominent rounded-2xl overflow-clip border border-border-glass">
+    <div className="flex flex-col h-[500px] w-[calc(100vw-2rem)] sm:w-[380px] max-w-[380px] glass-prominent rounded-2xl overflow-clip border border-border-glass">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border-glass">
         <div>

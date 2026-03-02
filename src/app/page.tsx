@@ -3,18 +3,20 @@ import { Hero } from "@/components/sections/Hero";
 import { ProblemSolution } from "@/components/sections/ProblemSolution";
 import { ServicesOverview } from "@/components/sections/ServicesOverview";
 import { HowItWorks } from "@/components/sections/HowItWorks";
-import { Industries } from "@/components/sections/Industries";
-import { PlanBuilderCTA } from "@/components/sections/PlanBuilderCTA";
+import { WhyAccelerate } from "@/components/sections/WhyAccelerate";
+import { WhoThisIsFor } from "@/components/sections/WhoThisIsFor";
+import { Integrations } from "@/components/sections/Integrations";
 import { SocialProof } from "@/components/sections/SocialProof";
-import { Stats } from "@/components/sections/Stats";
+import { LeadMagnet } from "@/components/sections/LeadMagnet";
+import { HomeFAQ } from "@/components/sections/HomeFAQ";
 import { FinalCTA } from "@/components/sections/FinalCTA";
 
 export const metadata = seoMetadata({
-  title: "Accelerate | AI Solutions for Small Business",
+  title: "Accelerate | AI Strategy & Systems for Small Businesses",
   description:
-    "We implement AI-powered websites, automations, and intelligent agents for service businesses. Close more clients, save 10+ hours per week, and grow faster with one accountable partner.",
-  ogTitle: "AI Solutions for Small Business",
-  ogSubtitle: "Close more clients. Save 10+ hours per week. Grow faster.",
+    "We help small businesses figure out where AI fits, then build and manage the systems that make it happen. Free discovery call.",
+  ogTitle: "AI Strategy & Systems for Small Businesses",
+  ogSubtitle: "Operate like you're ten times your size.",
 });
 
 const jsonLd = {
@@ -22,18 +24,21 @@ const jsonLd = {
   "@type": "ProfessionalService",
   name: "Accelerate",
   description:
-    "We implement AI-powered websites, automations, and intelligent agents for service businesses — and operate the systems with you to drive real results.",
+    "We help small businesses figure out where AI fits, then build and manage the systems that make it happen.",
   url: "https://acceleratewith.us",
-  email: "hello@acceleratewith.us",
+  email: "john@acceleratewith.us",
   areaServed: "US",
   serviceType: [
-    "AI-Powered Websites",
-    "Business Automation",
-    "AI Chat Agents",
+    "AI Strategy & Roadmap",
+    "Workflow Automation",
+    "Sales & Marketing Automation",
+    "Customer Engagement",
+    "Content Creation",
+    "Data & Reporting",
   ],
   offers: {
     "@type": "AggregateOffer",
-    lowPrice: "2500",
+    lowPrice: "1500",
     highPrice: "7500",
     priceCurrency: "USD",
   },
@@ -50,10 +55,12 @@ export default function HomePage() {
       <ProblemSolution />
       <ServicesOverview />
       <HowItWorks />
-      <Industries />
-      <PlanBuilderCTA />
+      <WhyAccelerate />
+      <WhoThisIsFor />
+      <Integrations />
       <SocialProof />
-      <Stats />
+      <LeadMagnet />
+      <HomeFAQ />
       <FinalCTA />
     </>
   );

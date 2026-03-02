@@ -35,7 +35,7 @@ export function PageHero({
           <p className="section-label">{label}</p>
           <h1 className="page-heading leading-[1.1] mb-6">{title}</h1>
           {description && (
-            <p className="text-lg sm:text-xl text-white/65 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg sm:text-xl text-[var(--white-secondary)] max-w-2xl mx-auto leading-relaxed">
               {description}
             </p>
           )}

@@ -23,7 +23,7 @@ export interface Service {
   href: string;
   problemStatement: string;
   keyMetrics: { value: string; label: string }[];
-  illustration: string;
+  illustration?: string;
   process: { step: string; description: string }[];
 }
 
@@ -87,6 +87,45 @@ export interface FAQ {
   question: string;
   answer: string;
   category?: string;
+}
+
+// Home page section data types
+export interface ServiceOverviewItem {
+  icon: string;
+  name: string;
+  description: string;
+}
+
+export interface HowItWorksStep {
+  number: string;
+  icon: string;
+  title: string;
+  description: string;
+}
+
+export interface Differentiator {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+export interface AudienceItem {
+  icon: string;
+  name: string;
+  examples: string;
+}
+
+export interface IntegrationTool {
+  name: string;
+  icon: string;
+  logo?: string;
+}
+
+export interface IndustryItem {
+  name: string;
+  icon: string;
+  description: string;
+  href: string;
 }
 
 // Blog

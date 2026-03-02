@@ -73,18 +73,18 @@ export function generateLocalBusinessJsonLd() {
     "@type": "ProfessionalService",
     name: "Accelerate",
     description:
-      "AI-powered websites, automations, and intelligent agents that help small businesses capture more leads and save time.",
+      "AI strategy and systems for small businesses. We figure out where AI fits, then build and manage the systems that make it happen.",
     url: BASE_URL,
-    email: "hello@acceleratewith.us",
+    email: "john@acceleratewith.us",
     areaServed: {
       "@type": "Country",
       name: "United States",
     },
     priceRange: "$$",
     serviceType: [
-      "AI Website Development",
-      "Business Automation",
-      "AI Agent Development",
+      "AI Strategy & Roadmap",
+      "Workflow Automation",
+      "Sales & Marketing Automation",
     ],
     sameAs: [],
   };
@@ -121,7 +121,7 @@ export function generateVerticalJsonLd(
   const jsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Service",
-    name: `${vertical.name} AI Solutions`,
+    name: `${vertical.name} AI Systems`,
     description: vertical.shortDescription,
     provider: {
       "@type": "Organization",
@@ -144,7 +144,7 @@ export function generateVerticalJsonLd(
           "@type": "Offer",
           itemOffered: {
             "@type": "Service",
-            name: `${vertical.name} AI Solutions`,
+            name: `${vertical.name} AI Systems`,
             url: `${BASE_URL}/results/${caseStudySlug}`,
           },
         },

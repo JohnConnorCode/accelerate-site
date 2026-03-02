@@ -66,6 +66,14 @@ export async function POST(request: NextRequest) {
           contact_phone: formData.contactPhone || null,
           intake_data: formData,
         });
+
+        // Create admin notification (fire and forget)
+        Promise.resolve(supabase.from("admin_notifications").insert({
+          type: "new_lead",
+          title: `New lead: ${formData.contactName}`,
+          description: `${formData.industry?.replace(/_/g, " ")} — ${formData.businessName || "No business name"}`,
+          link: "/admin/leads",
+        })).catch(() => {});
       } catch (e) {
         console.warn("Supabase insert failed:", e);
       }
@@ -180,16 +188,16 @@ function generateFallbackPlan(data: IntakeFormData): DigitalGrowthPlan {
 
   const websiteRec = {
     name: "AI-Powered Website Redesign",
-    description: `A fast, SEO-optimized website built to convert visitors into leads for your ${formatIndustry(industry)} business. Mobile-first design with built-in lead capture forms and local SEO.`,
+    description: `A fast, SEO-optimized website built to convert visitors into clients for your ${formatIndustry(industry)} business. Mobile-first design with built-in inquiry capture forms and local SEO.`,
     whyItMatters: "Your website is the foundation of your digital presence. Without a site that ranks and converts, every other investment works harder than it should.",
     features: [
       "Mobile-responsive, fast-loading design",
       "SEO-optimized for local search terms",
-      "Built-in lead capture forms and CTAs",
+      "Built-in inquiry capture forms and CTAs",
       "Google Analytics and conversion tracking",
       isHomeServices ? "Service area pages for each location you serve" : "Professional service pages showcasing your expertise",
     ],
-    estimatedImpact: "Expect 25-40% increase in organic lead generation within 90 days.",
+    estimatedImpact: "Expect 25-40% increase in organic client acquisition within 90 days.",
     timeline: "2-3 weeks",
     pricingOneTime: 3500,
     pricingMonthly: undefined as number | undefined,
@@ -198,21 +206,21 @@ function generateFallbackPlan(data: IntakeFormData): DigitalGrowthPlan {
   };
 
   const automationRec = {
-    name: isLawFirm ? "AI Client Intake System" : "Automated Lead Follow-Up",
+    name: isLawFirm ? "AI Client Intake System" : "Automated Prospect Follow-Up",
     description: isLawFirm
       ? "An AI-powered intake system that qualifies potential clients 24/7, asks the right questions, and books consultations automatically."
-      : "Automated email and SMS sequences that follow up with every lead within minutes, not days. Keeps prospects engaged until they are ready to buy.",
+      : "Automated email and SMS sequences that follow up with every inquiry within minutes, not days. Keeps prospects engaged until they are ready to buy.",
     whyItMatters: isLawFirm
-      ? "35% of law firm calls go unanswered. Every missed call could be a case worth thousands. This system ensures no lead falls through the cracks."
+      ? "35% of law firm calls go unanswered. Every missed call could be a case worth thousands. This system ensures no inquiry falls through the cracks."
       : "80% of deals go to whoever responds first. Automated follow-up ensures you are always first, even when you are on a job site.",
     features: [
       "Instant response to new inquiries (under 2 minutes)",
       "Multi-step nurture sequences via email and SMS",
-      "CRM integration for lead tracking",
-      isHomeServices ? "Automated appointment scheduling for estimates" : "Smart qualification to prioritize high-value leads",
+      "CRM integration for inquiry tracking",
+      isHomeServices ? "Automated appointment scheduling for estimates" : "Smart qualification to prioritize high-value prospects",
       "Performance dashboard with conversion metrics",
     ],
-    estimatedImpact: "Response time drops from hours to minutes. Expect 20-30% improvement in lead-to-customer conversion.",
+    estimatedImpact: "Response time drops from hours to minutes. Expect 20-30% improvement in inquiry-to-customer conversion.",
     timeline: "1-2 weeks",
     pricingOneTime: 1500,
     pricingMonthly: 400,

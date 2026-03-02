@@ -58,7 +58,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
             {/* Back Link */}
             <Link
               href="/results"
-              className="inline-flex items-center gap-2 text-sm text-white/50 hover:text-white/80 transition-colors mb-8"
+              className="inline-flex items-center gap-2 text-sm text-[var(--white-muted)] hover:text-[var(--white-primary)] transition-colors mb-8"
             >
               <ArrowLeft className="w-4 h-4" />
               All Case Studies
@@ -69,11 +69,11 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
               <span className="text-xs font-semibold uppercase tracking-wide text-[var(--gold-base)]">
                 {industryLabels[study.industry]}
               </span>
-              <div className="flex items-center gap-1.5 text-sm text-white/50">
+              <div className="flex items-center gap-1.5 text-sm text-[var(--white-muted)]">
                 <MapPin className="w-3.5 h-3.5" />
                 {study.location}
               </div>
-              <div className="flex items-center gap-1.5 text-sm text-white/50">
+              <div className="flex items-center gap-1.5 text-sm text-[var(--white-muted)]">
                 <Clock className="w-3.5 h-3.5" />
                 {study.timeline}
               </div>
@@ -98,7 +98,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
                   >
                     {metric.improvement}
                   </p>
-                  <p className="text-xs text-white/50 mt-1">{metric.label}</p>
+                  <p className="text-xs text-[var(--white-muted)] mt-1">{metric.label}</p>
                 </div>
               ))}
             </div>
@@ -118,12 +118,12 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
                   <Target className="w-5 h-5 text-[#F43F5E]" />
                 </div>
                 <h2
-                  className="font-display text-2xl sm:text-3xl font-bold text-white"
+                  className="font-display text-2xl sm:text-3xl font-bold text-[var(--heading-color)]"
                 >
                   The Challenge
                 </h2>
               </div>
-              <p className="text-white/65 leading-relaxed text-lg">
+              <p className="text-[var(--white-secondary)] leading-relaxed text-lg">
                 {study.challenge}
               </p>
             </GlassCard>
@@ -143,20 +143,20 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
                   <Lightbulb className="w-5 h-5 text-[var(--gold-base)]" />
                 </div>
                 <h2
-                  className="font-display text-2xl sm:text-3xl font-bold text-white"
+                  className="font-display text-2xl sm:text-3xl font-bold text-[var(--heading-color)]"
                 >
                   Our Solution
                 </h2>
               </div>
-              <p className="text-white/65 leading-relaxed text-lg mb-8">
+              <p className="text-[var(--white-secondary)] leading-relaxed text-lg mb-8">
                 {study.solution}
               </p>
 
               {/* Services Used */}
               <div className="pt-6 border-t border-[var(--border-glass)]">
                 <div className="flex items-center gap-2 mb-4">
-                  <Wrench className="w-4 h-4 text-white/40" />
-                  <span className="text-sm text-white/40 font-medium">
+                  <Wrench className="w-4 h-4 text-[var(--white-muted)]" />
+                  <span className="text-sm text-[var(--white-muted)] font-medium">
                     Services Deployed
                   </span>
                 </div>
@@ -184,14 +184,14 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
           <AnimateOnScroll className="text-center mb-16">
             <div className="inline-flex items-center gap-2 glass rounded-full px-4 py-2 mb-6">
               <TrendingUp className="w-4 h-4 text-[var(--gold-base)]" />
-              <span className="text-sm text-white/65">Measurable Impact</span>
+              <span className="text-sm text-[var(--white-secondary)]">Measurable Impact</span>
             </div>
             <h2
               className="section-heading mb-4"
             >
               The <span className="text-gold-gradient">Results</span>
             </h2>
-            <p className="text-lg text-white/60 max-w-2xl mx-auto">
+            <p className="text-lg text-[var(--white-secondary)] max-w-2xl mx-auto">
               {study.results}
             </p>
           </AnimateOnScroll>
@@ -200,16 +200,16 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
             {study.metrics.map((metric) => (
               <AnimateOnScroll key={metric.label} variants={fadeUp}>
                 <GlassCard variant="prominent" padding="lg" className="h-full">
-                  <p className="text-sm text-white/50 font-medium mb-4 uppercase tracking-wide">
+                  <p className="text-sm text-[var(--white-muted)] font-medium mb-4 uppercase tracking-wide">
                     {metric.label}
                   </p>
 
                   <div className="flex items-center gap-4 mb-4">
                     {/* Before */}
                     <div className="flex-1">
-                      <p className="text-xs text-white/40 mb-1">Before</p>
+                      <p className="text-xs text-[var(--white-muted)] mb-1">Before</p>
                       <p
-                        className="font-display text-xl font-bold text-white/60"
+                        className="font-display text-xl font-bold text-[var(--white-secondary)]"
                       >
                         {metric.before}
                       </p>
@@ -259,17 +259,17 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
                   <div className="text-center">
                     <Quote className="w-10 h-10 text-[var(--gold-base)] mx-auto mb-6 opacity-50" />
                     <blockquote
-                      className="font-display text-xl sm:text-2xl font-medium text-white leading-relaxed mb-8"
+                      className="font-display text-xl sm:text-2xl font-medium text-[var(--white-primary)] leading-relaxed mb-8"
                     >
                       &ldquo;{study.testimonialQuote}&rdquo;
                     </blockquote>
                     {study.testimonialAuthor && (
                       <div>
-                        <p className="text-white font-semibold">
+                        <p className="text-[var(--heading-color)] font-semibold">
                           {study.testimonialAuthor}
                         </p>
                         {study.testimonialTitle && (
-                          <p className="text-sm text-white/50 mt-1">
+                          <p className="text-sm text-[var(--white-muted)] mt-1">
                             {study.testimonialTitle}
                           </p>
                         )}
@@ -319,12 +319,12 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
                   Want{" "}
                   <span className="text-gold-gradient">Similar Results?</span>
                 </h2>
-                <p className="text-lg text-white/65 max-w-xl mx-auto mb-8">
+                <p className="text-lg text-[var(--white-secondary)] max-w-xl mx-auto mb-8">
                   Get a free, personalized growth plan and see exactly how we can
                   help your business achieve the same kind of transformation.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link href="/#solution-generator">
+                  <Link href="/plan-builder">
                     <Button
                       variant="primary"
                       size="lg"
@@ -341,7 +341,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
                       size="lg"
                       className="w-full sm:w-auto"
                     >
-                      Book a Consultation
+                      Book a Free Discovery Call
                     </Button>
                   </Link>
                 </div>

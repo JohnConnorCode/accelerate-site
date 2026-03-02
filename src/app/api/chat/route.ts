@@ -17,7 +17,7 @@ Rules:
 - Keep responses under 150 words
 - Do not make up specific claims about Accelerate's past work
 - If asked about pricing, provide the ranges above and suggest getting a custom plan
-- If a question is outside your scope, suggest contacting hello@acceleratewith.us
+- If a question is outside your scope, suggest contacting john@acceleratewith.us
 - Be warm and professional, not salesy
 - Focus on being genuinely helpful`;
 
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
 
     if (!process.env.ANTHROPIC_API_KEY) {
       return new Response(
-        "I am currently in demo mode. For live assistance, please email hello@acceleratewith.us or try our Solution Generator for a free growth plan!",
+        "I am currently in demo mode. For live assistance, please email john@acceleratewith.us or try our Solution Generator for a free growth plan!",
         { headers: { "Content-Type": "text/plain" } }
       );
     }

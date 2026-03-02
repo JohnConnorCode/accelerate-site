@@ -3,11 +3,11 @@ import { PackagesPageContent } from "@/components/sections/PackagesPage";
 import { packages } from "@/content/packages";
 
 export const metadata = seoMetadata({
-  title: "Packages",
+  title: "AI Packages & Pricing",
   description:
-    "Transparent pricing for AI-powered websites, automations, and intelligent agents. Choose from Launch, Grow, or Accelerate packages to fit your business goals and budget.",
+    "Transparent pricing for AI strategy, automation, and ongoing management. Choose from Launch, Grow, or Accelerate packages to fit your business goals and budget.",
   ogTitle: "Packages & Pricing",
-  ogSubtitle: "Transparent pricing for AI-powered business solutions",
+  ogSubtitle: "Transparent pricing for AI strategy and systems",
 });
 
 const jsonLd = {
@@ -15,7 +15,7 @@ const jsonLd = {
   "@type": "ItemList",
   name: "Accelerate Service Packages",
   description:
-    "AI-powered website and automation packages for small businesses.",
+    "AI strategy and automation packages for small businesses.",
   url: "https://acceleratewith.us/packages",
   numberOfItems: packages.length,
   itemListElement: packages.map((pkg, index) => ({

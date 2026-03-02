@@ -15,7 +15,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "launch-roi-calculator",
     title: "ROI Calculator",
     description:
-      "New interactive ROI calculator that estimates the revenue impact of AI-powered automation based on your industry, current lead volume, and deal size. See projected 90-day and 12-month returns.",
+      "New interactive ROI calculator that estimates the revenue impact of AI-powered automation based on your industry, current inquiry volume, and deal size. See projected 90-day and 12-month returns.",
     category: "feature",
     publishedAt: "2026-02-28",
   },
@@ -33,7 +33,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "case-study-farrell-roofing",
     title: "Case Study: Farrell Roofing",
     description:
-      "Published our first detailed case study showing how Farrell Roofing increased online leads by 340% and added $47,000 in monthly revenue using our AI-powered website and automation system.",
+      "Published our first detailed case study showing how Farrell Roofing increased inbound inquiries by 340% and added $47,000 in monthly revenue using our AI-powered website and automation system.",
     category: "announcement",
     publishedAt: "2026-02-25",
   },

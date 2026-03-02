@@ -2,7 +2,8 @@
 
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
-import { gsap, ScrollTrigger } from "@/lib/gsap-init";
+import { gsap } from "@/lib/gsap-init";
+import { prefersReducedMotion } from "@/lib/utils";
 
 type AnimationType = "fade-up" | "slide-left" | "slide-right" | "scale" | "clip-reveal";
 
@@ -49,8 +50,7 @@ export function ScrollReveal({
     if (!containerRef.current) return;
 
     // Respect prefers-reduced-motion
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (mq.matches) return;
+    if (prefersReducedMotion()) return;
 
     const from = animationConfigs[animation];
     const to = {

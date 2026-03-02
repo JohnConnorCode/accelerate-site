@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const { to, subject, body, leadId } = await request.json();
+  const { to, subject, body, leadId, recipientName, template } = await request.json();
 
   if (!to || !subject || !body) {
     return NextResponse.json({ error: "Missing to, subject, or body" }, { status: 400 });
@@ -22,9 +22,20 @@ export async function POST(request: NextRequest) {
       text: body,
     });
 
-    // Log to lead notes if leadId provided
+    // Log to sent_emails table
+    const supabase = createServiceRoleClient();
+    await supabase.from("sent_emails").insert({
+      to_email: to,
+      to_name: recipientName || null,
+      subject,
+      body,
+      related_type: leadId ? "lead" : null,
+      related_id: leadId || null,
+      template_used: template || null,
+    });
+
+    // Also log to lead notes if leadId provided (backwards compat)
     if (leadId) {
-      const supabase = createServiceRoleClient();
       const { data: lead } = await supabase
         .from("solution_requests")
         .select("notes")

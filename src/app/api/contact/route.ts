@@ -55,6 +55,14 @@ export async function POST(request: NextRequest) {
         business_type: businessType || null,
         message,
       });
+
+      // Create admin notification (fire and forget)
+      Promise.resolve(supabase.from("admin_notifications").insert({
+        type: "new_contact",
+        title: `New contact from ${name}`,
+        description: message.substring(0, 100),
+        link: "/admin/contacts",
+      })).catch(() => {});
     }
 
     return NextResponse.json({ success: true });

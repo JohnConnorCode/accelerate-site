@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap-init";
+import { prefersReducedMotion } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { heroReveal, heroStaggerDramatic } from "@/lib/animations";
 
@@ -21,8 +22,7 @@ export function Hero() {
 
   useGSAP(() => {
     if (!sectionRef.current || !contentRef.current) return;
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (mq.matches) return;
+    if (prefersReducedMotion()) return;
 
     gsap.to(contentRef.current, {
       opacity: 0,
@@ -56,7 +56,7 @@ export function Hero() {
   return (
     <section
       ref={sectionRef}
-      className="relative isolate overflow-hidden min-h-screen flex items-center justify-center pt-28 pb-28"
+      className="relative isolate overflow-hidden min-h-screen flex items-center justify-center pt-24 pb-20 sm:pt-28 sm:pb-28"
     >
       <Suspense
         fallback={
@@ -75,68 +75,59 @@ export function Hero() {
           initial="hidden"
           animate="visible"
         >
-          {/* Industry qualifier */}
-          <motion.p
-            variants={heroReveal}
-            className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--gold-base)] mb-8"
-          >
-            The growth team for service businesses
-          </motion.p>
-
           <motion.h1
             variants={heroReveal}
-            className="font-display text-5xl sm:text-6xl md:text-7xl font-bold leading-[1.05] tracking-[-0.03em] mb-6"
+            className="font-display text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-[-0.03em] mb-6"
             style={{ textWrap: "balance" } as React.CSSProperties}
           >
-            <span className="text-[var(--heading-color)]">Book more jobs. Answer every call.</span>
+            <span className="text-[var(--heading-color)]">Grow your company</span>
             <br />
-            <span className="text-[var(--heading-color)]">
-              Never miss a <span className="text-gold-gradient">follow-up again.</span>
-            </span>
+            <span className="text-[var(--heading-color)]">and revenue </span>
+            <span className="text-gold-gradient">on autopilot.</span>
           </motion.h1>
 
           <motion.p
             variants={heroReveal}
             className="text-lg sm:text-xl text-[var(--white-muted)] max-w-2xl mx-auto leading-relaxed mb-10"
           >
-            We build your website, AI agents, and automations — then run them
-            alongside you. Every call answered. Every follow-up sent. Every
-            opportunity won.
+            We build and manage the AI agents, automations, and websites that
+            help small businesses book more clients, respond in minutes, and
+            reclaim 20+ hours a week.
           </motion.p>
 
           <motion.div
             variants={heroReveal}
-            className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
+            className="flex flex-col sm:flex-row gap-4 justify-center mb-14"
           >
             <Link href="/contact" className="pointer-events-auto">
               <Button variant="primary" size="lg" className="w-full sm:w-auto">
-                Book a free strategy call
+                Book a Free Discovery Call
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
-            <Link href="/results" className="pointer-events-auto">
+            <Link href="/resources" className="pointer-events-auto">
               <Button
                 variant="secondary"
                 size="lg"
                 className="w-full sm:w-auto border-gradient-animated"
               >
-                See client results
+                Get the AI Playbook
               </Button>
             </Link>
           </motion.div>
 
-          {/* Trust bar — industries served */}
+          {/* Trust bar */}
           <motion.div
             variants={heroReveal}
-            className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs uppercase tracking-[0.2em] text-[var(--white-muted)] pointer-events-auto"
+            className="flex flex-wrap items-center justify-center gap-x-3 sm:gap-x-6 gap-y-2 text-xs uppercase tracking-[0.15em] sm:tracking-[0.2em] text-[var(--white-muted)] pointer-events-auto"
           >
-            <span>Home Services</span>
+            <span>AI strategy &amp; delivery</span>
             <span className="hidden sm:inline text-[var(--white-muted)]">|</span>
-            <span>Law Firms</span>
+            <span>Live in 1–2 weeks</span>
             <span className="hidden sm:inline text-[var(--white-muted)]">|</span>
-            <span>Professional Services</span>
+            <span>Transparent pricing</span>
             <span className="hidden sm:inline text-[var(--white-muted)]">|</span>
-            <span>Real Estate</span>
+            <span>Free discovery call</span>
           </motion.div>
         </motion.div>
       </div>

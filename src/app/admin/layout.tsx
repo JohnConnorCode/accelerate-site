@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,9 +21,15 @@ import {
   Download,
   Activity,
   Search,
+  BarChart3,
+  User,
+  Building2,
+  FileCheck,
+  DollarSign,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import { NotificationBell } from "@/components/admin/NotificationBell";
 
 const sidebarSections = [
   {
@@ -32,6 +38,10 @@ const sidebarSections = [
       { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
       { label: "Activity", href: "/admin/activity", icon: Activity },
       { label: "Leads", href: "/admin/leads", icon: Users },
+      { label: "Clients", href: "/admin/clients", icon: Building2 },
+      { label: "Proposals", href: "/admin/proposals", icon: FileCheck },
+      { label: "Revenue", href: "/admin/revenue", icon: DollarSign },
+      { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
       { label: "Content", href: "/admin/content", icon: FileText },
     ],
   },
@@ -65,7 +75,18 @@ function getBreadcrumbs(pathname: string): { label: string; href: string }[] {
   if (active) {
     crumbs.push({ label: active.label, href: active.href });
   }
+  // Handle contact timeline pages
+  if (pathname.startsWith("/admin/contacts/") && pathname !== "/admin/contacts") {
+    crumbs.push({ label: "Contacts", href: "/admin/contacts" });
+    crumbs.push({ label: "Timeline", href: pathname });
+  }
   return crumbs;
+}
+
+interface SearchPerson {
+  name: string;
+  email: string;
+  type: string;
 }
 
 export default function AdminLayout({
@@ -78,7 +99,10 @@ export default function AdminLayout({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchPeople, setSearchPeople] = useState<SearchPerson[]>([]);
+  const [searchingPeople, setSearchingPeople] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const debounceRef = useRef<NodeJS.Timeout>(undefined);
 
   // Cmd+K shortcut to toggle search
   useEffect(() => {
@@ -87,11 +111,36 @@ export default function AdminLayout({
         e.preventDefault();
         setSearchOpen((prev) => !prev);
         setSearchQuery("");
+        setSearchPeople([]);
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, []);
+
+  // Debounced people search
+  const searchForPeople = useCallback(async (query: string) => {
+    if (query.length < 3) {
+      setSearchPeople([]);
+      return;
+    }
+    setSearchingPeople(true);
+    try {
+      const res = await fetch(`/api/admin/search?q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      setSearchPeople(data.results || []);
+    } catch {
+      setSearchPeople([]);
+    } finally {
+      setSearchingPeople(false);
+    }
+  }, []);
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => searchForPeople(value), 300);
+  };
 
   // Don't show sidebar on login page
   if (pathname === "/admin/login") {
@@ -130,6 +179,7 @@ export default function AdminLayout({
           Accelerate
         </Link>
         <div className="flex items-center gap-2">
+          <NotificationBell />
           <button
             onClick={() => setSearchOpen(true)}
             className="text-white-muted p-1 cursor-pointer hover:text-white-primary"
@@ -176,11 +226,14 @@ export default function AdminLayout({
       {/* Cmd+K Search Overlay */}
       <CmdKSearch
         open={searchOpen}
-        onClose={() => { setSearchOpen(false); setSearchQuery(""); }}
+        onClose={() => { setSearchOpen(false); setSearchQuery(""); setSearchPeople([]); }}
         query={searchQuery}
-        onQueryChange={setSearchQuery}
-        results={filteredLinks}
-        onSelect={(href) => { router.push(href); setSearchOpen(false); setSearchQuery(""); }}
+        onQueryChange={handleSearchChange}
+        pageResults={filteredLinks}
+        peopleResults={searchPeople}
+        searchingPeople={searchingPeople}
+        onSelectPage={(href) => { router.push(href); setSearchOpen(false); setSearchQuery(""); setSearchPeople([]); }}
+        onSelectPerson={(email) => { router.push(`/admin/contacts/${encodeURIComponent(email)}`); setSearchOpen(false); setSearchQuery(""); setSearchPeople([]); }}
         inputRef={searchInputRef}
       />
 
@@ -233,14 +286,17 @@ function SidebarContent({
 
   return (
     <>
-      <Link href="/admin" className="mb-6 px-3 pt-2" onClick={handleNavigate}>
-        <span className="font-display text-xl font-bold text-gold-gradient">
-          Accelerate
-        </span>
-        <span className="block text-xs text-white-muted mt-0.5">
-          Admin Panel
-        </span>
-      </Link>
+      <div className="flex items-center justify-between mb-6 px-3 pt-2">
+        <Link href="/admin" onClick={handleNavigate}>
+          <span className="font-display text-xl font-bold text-gold-gradient">
+            Accelerate
+          </span>
+          <span className="block text-xs text-white-muted mt-0.5">
+            Admin Panel
+          </span>
+        </Link>
+        <NotificationBell />
+      </div>
 
       <nav className="flex-1 space-y-5 overflow-y-auto">
         {sidebarSections.map((section) => (
@@ -296,22 +352,28 @@ function SidebarContent({
   );
 }
 
-// Cmd+K Search Overlay Component
+// Enhanced Cmd+K Search with People
 function CmdKSearch({
   open,
   onClose,
   query,
   onQueryChange,
-  results,
-  onSelect,
+  pageResults,
+  peopleResults,
+  searchingPeople,
+  onSelectPage,
+  onSelectPerson,
   inputRef,
 }: {
   open: boolean;
   onClose: () => void;
   query: string;
   onQueryChange: (q: string) => void;
-  results: typeof allLinks;
-  onSelect: (href: string) => void;
+  pageResults: typeof allLinks;
+  peopleResults: SearchPerson[];
+  searchingPeople: boolean;
+  onSelectPage: (href: string) => void;
+  onSelectPerson: (email: string) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
 }) {
   const [selectedIdx, setSelectedIdx] = useState(0);
@@ -322,6 +384,8 @@ function CmdKSearch({
     }
   }, [open, inputRef]);
 
+  const totalItems = pageResults.length + peopleResults.length;
+
   const handleQueryInput = (value: string) => {
     setSelectedIdx(0);
     onQueryChange(value);
@@ -330,12 +394,18 @@ function CmdKSearch({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setSelectedIdx((i) => Math.min(i + 1, results.length - 1));
+      setSelectedIdx((i) => Math.min(i + 1, totalItems - 1));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setSelectedIdx((i) => Math.max(i - 1, 0));
-    } else if (e.key === "Enter" && results[selectedIdx]) {
-      onSelect(results[selectedIdx].href);
+    } else if (e.key === "Enter") {
+      if (selectedIdx < pageResults.length) {
+        const page = pageResults[selectedIdx];
+        if (page) onSelectPage(page.href);
+      } else {
+        const person = peopleResults[selectedIdx - pageResults.length];
+        if (person) onSelectPerson(person.email);
+      }
     } else if (e.key === "Escape") {
       onClose();
     }
@@ -367,32 +437,72 @@ function CmdKSearch({
                 value={query}
                 onChange={(e) => handleQueryInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Search pages..."
+                placeholder="Search pages and people..."
                 className="flex-1 bg-transparent text-sm text-white-primary placeholder:text-white-muted focus:outline-none"
               />
               <kbd className="hidden sm:inline-flex px-1.5 py-0.5 text-[10px] text-white-muted border border-border-glass rounded">
                 ESC
               </kbd>
             </div>
-            <div className="max-h-64 overflow-y-auto py-1">
-              {results.map((link, i) => (
-                <button
-                  key={link.href}
-                  onClick={() => onSelect(link.href)}
-                  className={cn(
-                    "flex items-center gap-3 w-full px-4 py-2.5 text-sm transition-colors cursor-pointer",
-                    i === selectedIdx
-                      ? "bg-white/10 text-white-primary"
-                      : "text-white-secondary hover:bg-white/5"
-                  )}
-                >
-                  <link.icon className="h-4 w-4 shrink-0" />
-                  {link.label}
-                </button>
-              ))}
-              {results.length === 0 && (
+            <div className="max-h-80 overflow-y-auto py-1">
+              {/* Pages section */}
+              {pageResults.length > 0 && (
+                <>
+                  <p className="px-4 py-1.5 text-[10px] uppercase font-semibold text-white-muted">Pages</p>
+                  {pageResults.map((link, i) => (
+                    <button
+                      key={link.href}
+                      onClick={() => onSelectPage(link.href)}
+                      className={cn(
+                        "flex items-center gap-3 w-full px-4 py-2.5 text-sm transition-colors cursor-pointer",
+                        i === selectedIdx
+                          ? "bg-white/10 text-white-primary"
+                          : "text-white-secondary hover:bg-white/5"
+                      )}
+                    >
+                      <link.icon className="h-4 w-4 shrink-0" />
+                      {link.label}
+                    </button>
+                  ))}
+                </>
+              )}
+
+              {/* People section */}
+              {peopleResults.length > 0 && (
+                <>
+                  <p className="px-4 py-1.5 text-[10px] uppercase font-semibold text-white-muted mt-1">People</p>
+                  {peopleResults.map((person, i) => {
+                    const idx = pageResults.length + i;
+                    return (
+                      <button
+                        key={person.email}
+                        onClick={() => onSelectPerson(person.email)}
+                        className={cn(
+                          "flex items-center gap-3 w-full px-4 py-2.5 text-sm transition-colors cursor-pointer",
+                          idx === selectedIdx
+                            ? "bg-white/10 text-white-primary"
+                            : "text-white-secondary hover:bg-white/5"
+                        )}
+                      >
+                        <User className="h-4 w-4 shrink-0" />
+                        <div className="flex-1 text-left min-w-0">
+                          <p className="truncate">{person.name}</p>
+                          <p className="text-xs text-white-muted truncate">{person.email}</p>
+                        </div>
+                        <span className="text-[10px] text-white-muted shrink-0">{person.type}</span>
+                      </button>
+                    );
+                  })}
+                </>
+              )}
+
+              {searchingPeople && (
+                <p className="px-4 py-3 text-sm text-white-muted text-center">Searching...</p>
+              )}
+
+              {pageResults.length === 0 && peopleResults.length === 0 && !searchingPeople && query && (
                 <p className="px-4 py-6 text-sm text-white-muted text-center">
-                  No pages found
+                  No results found
                 </p>
               )}
             </div>

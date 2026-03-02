@@ -4,9 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
-import { contactMethodOptions } from "@/content/intake-questions";
 
 interface ContactPanelProps {
   onSubmit: (data: {
@@ -23,8 +21,6 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export function ContactPanel({ onSubmit }: ContactPanelProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [method, setMethod] = useState("email");
   const [consent, setConsent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -45,16 +41,10 @@ export function ContactPanel({ onSubmit }: ContactPanelProps) {
     onSubmit({
       contactName: name.trim(),
       contactEmail: email.trim(),
-      contactPhone: phone.trim() || undefined,
-      contactMethod: method,
+      contactMethod: "email",
       consentGiven: consent,
     });
   };
-
-  const methodOpts = contactMethodOptions.map((o) => ({
-    value: o.value,
-    label: o.label,
-  }));
 
   return (
     <motion.div
@@ -79,19 +69,6 @@ export function ContactPanel({ onSubmit }: ContactPanelProps) {
           error={errors.email}
           placeholder="john@yourbusiness.com"
           required
-        />
-        <Input
-          label="Phone (optional)"
-          type="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="(555) 123-4567"
-        />
-        <Select
-          label="Preferred Contact Method"
-          options={methodOpts}
-          value={method}
-          onChange={(e) => setMethod(e.target.value)}
         />
 
         <label className="flex items-start gap-3 cursor-pointer group">

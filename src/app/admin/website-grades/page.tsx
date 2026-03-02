@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useState, useCallback, Fragment } from "react";
+import { useEffect, useState, useCallback, useMemo, Fragment } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, ChevronUp, Globe } from "lucide-react";
+import Link from "next/link";
+import { ChevronDown, ChevronUp, Globe, Search, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { Pagination } from "@/components/admin/Pagination";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
@@ -52,6 +55,8 @@ export default function WebsiteGradesPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [scoreFilter, setScoreFilter] = useState("all");
 
   const fetchData = useCallback(async () => {
     try {
@@ -71,6 +76,23 @@ export default function WebsiteGradesPage() {
     fetchData();
   }, [fetchData]);
 
+  const filtered = useMemo(() => {
+    return grades.filter((g) => {
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        if (!g.url.toLowerCase().includes(q) && !g.email.toLowerCase().includes(q)) return false;
+      }
+      if (scoreFilter === "high" && g.overall_score < 80) return false;
+      if (scoreFilter === "medium" && (g.overall_score < 60 || g.overall_score >= 80)) return false;
+      if (scoreFilter === "low" && g.overall_score >= 60) return false;
+      return true;
+    });
+  }, [grades, searchQuery, scoreFilter]);
+
+  const handleExport = () => {
+    window.open("/api/admin/website-grades/export", "_blank");
+  };
+
   if (loading) {
     return (
       <div>
@@ -88,6 +110,34 @@ export default function WebsiteGradesPage() {
     >
       <PageHeader title="Website Grades" subtitle={`${total} total`} />
 
+      {/* Search & Filters */}
+      <div className="flex flex-wrap gap-3 mb-4">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white-muted" />
+          <Input
+            type="text"
+            placeholder="Search by URL or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <select
+          value={scoreFilter}
+          onChange={(e) => setScoreFilter(e.target.value)}
+          className="rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-glass)] px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-[var(--gold-base)] transition-all"
+        >
+          <option value="all">All Scores</option>
+          <option value="high">High (80+)</option>
+          <option value="medium">Medium (60-79)</option>
+          <option value="low">Low (&lt;60)</option>
+        </select>
+        <Button variant="secondary" size="sm" onClick={handleExport}>
+          <Download className="h-4 w-4 mr-2" />
+          Export
+        </Button>
+      </div>
+
       <GlassCard padding="none" hover="none" className="overflow-clip">
         <table className="w-full text-sm">
           <thead>
@@ -100,7 +150,7 @@ export default function WebsiteGradesPage() {
             </tr>
           </thead>
           <tbody>
-            {grades.map((grade, index) => (
+            {filtered.map((grade, index) => (
               <Fragment key={grade.id}>
                 <motion.tr
                   initial={{ opacity: 0 }}
@@ -112,7 +162,15 @@ export default function WebsiteGradesPage() {
                   <td className="px-4 py-3 text-white-primary font-medium truncate max-w-[200px]">
                     {grade.url}
                   </td>
-                  <td className="px-4 py-3 text-white-secondary">{grade.email}</td>
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/admin/contacts/${encodeURIComponent(grade.email)}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-white-secondary hover:text-[var(--gold-light)] transition-colors"
+                    >
+                      {grade.email}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3">
                     <Badge className={getScoreBadgeClass(grade.overall_score)}>
                       {grade.overall_score}/100
@@ -139,7 +197,6 @@ export default function WebsiteGradesPage() {
                     >
                       <td colSpan={5} className="px-4 py-4 bg-bg-elevated">
                         <div className="space-y-4">
-                          {/* Category breakdown */}
                           {grade.categories && (
                             <div>
                               <p className="text-xs text-white-muted mb-2 uppercase">Category Scores</p>
@@ -165,7 +222,6 @@ export default function WebsiteGradesPage() {
                             </div>
                           )}
 
-                          {/* AI Recommendations */}
                           {grade.ai_recommendations && grade.ai_recommendations.length > 0 && (
                             <div>
                               <p className="text-xs text-white-muted mb-2 uppercase">AI Recommendations</p>
@@ -188,8 +244,8 @@ export default function WebsiteGradesPage() {
             ))}
           </tbody>
         </table>
-        {grades.length === 0 && (
-          <EmptyState message="No website grades yet" icon={Globe} />
+        {filtered.length === 0 && (
+          <EmptyState message="No website grades found" icon={Globe} />
         )}
       </GlassCard>
 

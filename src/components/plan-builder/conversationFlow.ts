@@ -58,7 +58,7 @@ export function buildQuestionFlow(): QuestionDef[] {
     {
       id: "industry",
       field: "industry",
-      message: "Welcome! I'm going to build you a custom growth plan. First — what type of business do you run?",
+      message: "Let's build your custom growth plan. What kind of business do you run?",
       inputType: "option-cards",
       options: industryOptions,
     },
@@ -66,7 +66,7 @@ export function buildQuestionFlow(): QuestionDef[] {
     {
       id: "industryOther",
       field: "industryOther",
-      message: "What's your industry?",
+      message: "Got it — what's your industry?",
       inputType: "text-input",
       placeholder: "e.g. Dental practice, Fitness studio...",
       skipIf: (fd) => fd.industry !== "other",
@@ -75,7 +75,7 @@ export function buildQuestionFlow(): QuestionDef[] {
     {
       id: "businessName",
       field: "businessName",
-      message: "Great choice. What's the name of your business?",
+      message: "Great. What's the name of your business?",
       inputType: "text-input",
       placeholder: "Your business name",
     },
@@ -83,7 +83,7 @@ export function buildQuestionFlow(): QuestionDef[] {
     {
       id: "businessAge",
       field: "businessAge",
-      message: "How long have you been operating?",
+      message: "How long have you been in business?",
       inputType: "bubble-buttons",
       options: businessAgeOptions,
     },
@@ -91,7 +91,7 @@ export function buildQuestionFlow(): QuestionDef[] {
     {
       id: "teamSize",
       field: "teamSize",
-      message: "How many people are on your team?",
+      message: "How big is your team?",
       inputType: "bubble-buttons",
       options: teamSizeOptions,
     },
@@ -99,7 +99,7 @@ export function buildQuestionFlow(): QuestionDef[] {
     {
       id: "revenueRange",
       field: "revenueRange",
-      message: "What's your current annual revenue range?",
+      message: "Roughly where is your annual revenue today?",
       inputType: "bubble-buttons",
       options: revenueRangeOptions,
     },
@@ -107,7 +107,7 @@ export function buildQuestionFlow(): QuestionDef[] {
     {
       id: "websiteStatus",
       field: "websiteStatus",
-      message: "Tell me about your current website situation.",
+      message: "How's your current website situation?",
       inputType: "option-cards",
       options: websiteStatusOptions,
     },
@@ -115,7 +115,7 @@ export function buildQuestionFlow(): QuestionDef[] {
     {
       id: "currentTools",
       field: "currentTools",
-      message: "Which digital tools does your team currently use?",
+      message: "Which tools does your team already use? Select all that apply.",
       inputType: "chip-select",
       options: digitalToolOptions,
     },
@@ -125,7 +125,7 @@ export function buildQuestionFlow(): QuestionDef[] {
     {
       id: "painPoints",
       field: "painPoints",
-      message: "What's costing you the most right now? Pick all that apply.",
+      message: "What's hurting your business the most right now? Pick all that apply.",
       inputType: "chip-select",
       options: [...basePainPoints],
       // Options are dynamically extended with industry pain points in the hook
@@ -134,7 +134,7 @@ export function buildQuestionFlow(): QuestionDef[] {
     {
       id: "painPointsOther",
       field: "painPointsOther",
-      message: "Anything else causing you pain that I didn't mention?",
+      message: "Anything else costing you time or money that I didn't list?",
       inputType: "text-input",
       placeholder: "Optional — type anything or skip",
       optional: true,
@@ -143,7 +143,7 @@ export function buildQuestionFlow(): QuestionDef[] {
     {
       id: "topGoals",
       field: "topGoals",
-      message: "What are your top priorities? Pick up to 3.",
+      message: "Now the fun part — what are your top priorities? Pick up to 3.",
       inputType: "chip-select",
       options: goalOptions,
       maxSelections: 3,
@@ -152,7 +152,7 @@ export function buildQuestionFlow(): QuestionDef[] {
     {
       id: "websiteUrl",
       field: "websiteUrl",
-      message: "What's your website URL?",
+      message: "Drop your website URL and I'll factor it into the plan.",
       inputType: "text-input",
       placeholder: "https://yourbusiness.com",
       skipIf: (fd) => fd.websiteStatus === "no_website",
@@ -162,7 +162,7 @@ export function buildQuestionFlow(): QuestionDef[] {
     {
       id: "timeline",
       field: "timeline",
-      message: "When are you looking to get started?",
+      message: "When are you looking to get moving?",
       inputType: "bubble-buttons",
       options: timelineOptions,
     },
@@ -170,7 +170,7 @@ export function buildQuestionFlow(): QuestionDef[] {
     {
       id: "budgetRange",
       field: "budgetRange",
-      message: "What investment range are you comfortable with?",
+      message: "Last one — what investment range feels right for you?",
       inputType: "bubble-buttons",
       options: budgetOptions,
     },
@@ -178,7 +178,7 @@ export function buildQuestionFlow(): QuestionDef[] {
     {
       id: "contact",
       field: "contact",
-      message: "Almost done! Where should I send your custom growth plan?",
+      message: "Your plan is ready to build. Where should I send it?",
       inputType: "contact-panel",
     },
   ];

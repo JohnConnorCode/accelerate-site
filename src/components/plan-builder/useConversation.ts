@@ -124,7 +124,7 @@ export function useConversation() {
     const q = questions[firstIdx];
     if (!q) return;
 
-    // Show typing then first question
+    // Show typing then first question (fast initial load)
     dispatch({ type: "SET_TYPING", value: true });
     setTimeout(() => {
       dispatch({ type: "SET_TYPING", value: false });
@@ -142,7 +142,7 @@ export function useConversation() {
           isOptional: q.optional,
         },
       });
-    }, 600);
+    }, 300);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

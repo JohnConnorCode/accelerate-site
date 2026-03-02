@@ -5,7 +5,7 @@ export const blogPosts: BlogPostMeta[] = [
     slug: "ai-chat-widgets-for-small-business",
     title: "Why Every Service Business Needs an AI Chat Widget in 2026",
     excerpt:
-      "Your website visitors have questions at 10 PM on a Tuesday. If nobody is there to answer, they move on. Here's how AI chat widgets are helping small businesses capture leads around the clock without hiring night staff.",
+      "Your website visitors have questions at 10 PM on a Tuesday. If nobody is there to answer, they move on. Here's how AI chat widgets are helping small businesses capture clients around the clock without hiring night staff.",
     date: "2026-02-15",
     category: "AI & Automation",
     readTime: "6 min read",

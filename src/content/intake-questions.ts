@@ -44,7 +44,7 @@ export const industrySpecificQuestions: IntakeQuestion[] = [
   },
   {
     id: "hs_lead_sources",
-    question: "Where do most of your leads come from today?",
+    question: "Where do most of your inquiries come from today?",
     type: "multi",
     options: [
       { value: "word_of_mouth", label: "Word of mouth / referrals" },
@@ -184,7 +184,7 @@ export const industrySpecificQuestions: IntakeQuestion[] = [
   },
   {
     id: "re_lead_sources",
-    question: "Where do most of your leads come from?",
+    question: "Where do most of your inquiries come from?",
     type: "multi",
     options: [
       { value: "zillow", label: "Zillow / Realtor.com" },
@@ -193,7 +193,7 @@ export const industrySpecificQuestions: IntakeQuestion[] = [
       { value: "google_ads", label: "Google Ads" },
       { value: "open_houses", label: "Open houses" },
       { value: "farming", label: "Geographic farming / direct mail" },
-      { value: "brokerage_leads", label: "Brokerage-provided leads" },
+      { value: "brokerage_leads", label: "Brokerage-provided referrals" },
       { value: "other_re_leads", label: "Other" },
     ],
     required: true,
@@ -236,14 +236,14 @@ export const industrySpecificQuestions: IntakeQuestion[] = [
 export const basePainPoints: IntakeOption[] = [
   {
     value: "not_enough_leads",
-    label: "Not enough leads coming in",
+    label: "Not enough inquiries coming in",
     description: "Your pipeline is inconsistent and you need more inbound opportunities.",
     icon: "TrendingDown",
   },
   {
     value: "slow_response",
-    label: "Slow lead response time",
-    description: "Leads sit for hours or days before someone follows up.",
+    label: "Slow response time to new inquiries",
+    description: "Inquiries sit for hours or days before someone follows up.",
     icon: "Clock",
   },
   {
@@ -255,13 +255,13 @@ export const basePainPoints: IntakeOption[] = [
   {
     value: "no_follow_up",
     label: "No consistent follow-up system",
-    description: "Leads and past clients fall through the cracks because follow-up is ad hoc.",
+    description: "Prospects and past clients fall through the cracks because follow-up is ad hoc.",
     icon: "UserX",
   },
   {
     value: "website_not_working",
     label: "Website doesn't generate business",
-    description: "Your site exists but doesn't bring in leads, calls, or bookings.",
+    description: "Your site exists but doesn't bring in inquiries, calls, or bookings.",
     icon: "Monitor",
   },
   {
@@ -314,7 +314,7 @@ export const industryPainPoints: Record<Industry, IntakeOption[]> = {
     },
     {
       value: "after_hours_leads",
-      label: "Losing after-hours leads",
+      label: "Losing after-hours inquiries",
       description: "Cases happen at all hours, but your office closes at 5.",
       icon: "Moon",
     },
@@ -348,14 +348,14 @@ export const industryPainPoints: Record<Industry, IntakeOption[]> = {
   real_estate: [
     {
       value: "cold_leads",
-      label: "Leads go cold before follow-up",
+      label: "Prospects go cold before follow-up",
       description: "By the time you reach out, they're already working with another agent.",
       icon: "Thermometer",
     },
     {
       value: "low_conversion",
-      label: "Low lead-to-closing conversion",
-      description: "Spending money on leads but not converting enough to closings.",
+      label: "Low inquiry-to-closing conversion",
+      description: "Spending money on marketing but not converting enough inquiries to closings.",
       icon: "Target",
     },
     {
@@ -375,13 +375,13 @@ export const industryPainPoints: Record<Industry, IntakeOption[]> = {
 export const goalOptions: IntakeOption[] = [
   {
     value: "more_leads",
-    label: "Generate more leads",
-    description: "Increase the volume of inbound inquiries and opportunities.",
+    label: "Generate more inquiries",
+    description: "Increase the volume of inbound opportunities and calls.",
     icon: "TrendingUp",
   },
   {
     value: "faster_response",
-    label: "Respond to leads faster",
+    label: "Respond to inquiries faster",
     description: "Get back to prospects in minutes, not hours or days.",
     icon: "Zap",
   },
@@ -400,7 +400,7 @@ export const goalOptions: IntakeOption[] = [
   {
     value: "better_follow_up",
     label: "Build a consistent follow-up system",
-    description: "Stay in touch with leads and clients without doing it all manually.",
+    description: "Stay in touch with prospects and clients without doing it all manually.",
     icon: "RefreshCw",
   },
   {
@@ -499,7 +499,7 @@ export const websiteStatusOptions: IntakeOption[] = [
   {
     value: "works_well",
     label: "I have a website and it works well",
-    description: "My site is modern, fast, and brings in some leads.",
+    description: "My site is modern, fast, and brings in some business.",
     icon: "CheckCircle",
   },
   {
@@ -510,7 +510,7 @@ export const websiteStatusOptions: IntakeOption[] = [
   },
   {
     value: "no_leads",
-    label: "I have a website but it doesn't generate leads",
+    label: "I have a website but it doesn't generate business",
     description: "It looks decent but nobody fills out forms or calls from it.",
     icon: "XCircle",
   },
@@ -600,6 +600,5 @@ export const revenueRangeOptions: IntakeOption[] = [
 
 export const contactMethodOptions: IntakeOption[] = [
   { value: "email", label: "Email", icon: "Mail" },
-  { value: "phone", label: "Phone call", icon: "Phone" },
   { value: "text", label: "Text message", icon: "MessageSquare" },
 ];

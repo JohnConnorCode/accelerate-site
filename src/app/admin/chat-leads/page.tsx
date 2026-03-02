@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback, Fragment } from "react";
+import { useEffect, useState, useCallback, useMemo, Fragment } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, ChevronUp, MessageCircle } from "lucide-react";
+import Link from "next/link";
+import { ChevronDown, ChevronUp, MessageCircle, Search } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { Input } from "@/components/ui/Input";
 import { Pagination } from "@/components/admin/Pagination";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { EmptyState } from "@/components/admin/EmptyState";
@@ -29,6 +31,7 @@ export default function ChatLeadsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchData = useCallback(async () => {
     try {
@@ -48,6 +51,14 @@ export default function ChatLeadsPage() {
     fetchData();
   }, [fetchData]);
 
+  const filtered = useMemo(() => {
+    if (!searchQuery) return leads;
+    const q = searchQuery.toLowerCase();
+    return leads.filter(
+      (l) => l.name.toLowerCase().includes(q) || l.email.toLowerCase().includes(q)
+    );
+  }, [leads, searchQuery]);
+
   if (loading) {
     return (
       <div>
@@ -65,6 +76,20 @@ export default function ChatLeadsPage() {
     >
       <PageHeader title="Chat Leads" subtitle={`${total} total`} />
 
+      {/* Search */}
+      <div className="flex flex-wrap gap-3 mb-4">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white-muted" />
+          <Input
+            type="text"
+            placeholder="Search by name or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+      </div>
+
       <GlassCard padding="none" hover="none" className="overflow-clip">
         <table className="w-full text-sm">
           <thead>
@@ -77,7 +102,7 @@ export default function ChatLeadsPage() {
             </tr>
           </thead>
           <tbody>
-            {leads.map((lead, index) => (
+            {filtered.map((lead, index) => (
               <Fragment key={lead.id}>
                 <motion.tr
                   initial={{ opacity: 0 }}
@@ -87,7 +112,15 @@ export default function ChatLeadsPage() {
                   onClick={() => setExpandedId(expandedId === lead.id ? null : lead.id)}
                 >
                   <td className="px-4 py-3 text-white-primary font-medium">{lead.name}</td>
-                  <td className="px-4 py-3 text-white-secondary">{lead.email}</td>
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/admin/contacts/${encodeURIComponent(lead.email)}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-white-secondary hover:text-[var(--gold-light)] transition-colors"
+                    >
+                      {lead.email}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3 text-white-secondary">
                     {lead.conversation?.length || 0}
                   </td>
@@ -145,8 +178,8 @@ export default function ChatLeadsPage() {
             ))}
           </tbody>
         </table>
-        {leads.length === 0 && (
-          <EmptyState message="No chat leads yet" icon={MessageCircle} />
+        {filtered.length === 0 && (
+          <EmptyState message="No chat leads found" icon={MessageCircle} />
         )}
       </GlassCard>
 

@@ -208,7 +208,7 @@ function CategoryCard({
           </div>
           <div>
             <h3
-              className="font-display font-semibold text-white"
+              className="font-display font-semibold text-[var(--heading-color)]"
             >
               {config.label}
             </h3>
@@ -279,7 +279,7 @@ function LoadingAnalysis({ stepIndex }: { stepIndex: number }) {
 
           <div>
             <h2
-              className="font-display text-2xl font-bold text-white mb-2"
+              className="font-display text-2xl font-bold text-[var(--heading-color)] mb-2"
             >
               Analyzing Your Website
             </h2>
@@ -487,7 +487,7 @@ function ResultsSection({
                 <div className="flex flex-col items-center gap-3">
                   <CheckCircle2 className="w-10 h-10 text-[var(--success)]" />
                   <h3
-                    className="font-display text-xl font-bold text-white"
+                    className="font-display text-xl font-bold text-[var(--heading-color)]"
                   >
                     Report Saved
                   </h3>
@@ -500,7 +500,7 @@ function ResultsSection({
                   <div className="flex items-center justify-center gap-2 mb-3">
                     <Mail className="w-5 h-5 text-[var(--gold-base)]" />
                     <h3
-                      className="font-display text-xl font-bold text-white"
+                      className="font-display text-xl font-bold text-[var(--heading-color)]"
                     >
                       Email Me This Report
                     </h3>
@@ -715,7 +715,7 @@ export function WebsiteGraderPage() {
 
             <motion.p
               variants={heroItem}
-              className="text-lg sm:text-xl text-white/65 max-w-2xl mx-auto mb-10 leading-relaxed"
+              className="text-lg sm:text-xl text-[var(--white-secondary)] max-w-2xl mx-auto mb-10 leading-relaxed"
             >
               Get a free, instant analysis of your website across performance,
               SEO, mobile, security, and accessibility, with specific
@@ -844,7 +844,7 @@ export function WebsiteGraderPage() {
                           <Icon className="w-6 h-6 text-[var(--gold-base)]" />
                         </div>
                         <h3
-                          className="font-display text-lg font-semibold text-white mb-2"
+                          className="font-display text-lg font-semibold text-[var(--heading-color)] mb-2"
                         >
                           {config.label}
                         </h3>
@@ -874,7 +874,7 @@ export function WebsiteGraderPage() {
                 <p className="text-white-secondary leading-relaxed mb-8 max-w-xl mx-auto">
                   Your website is the first impression most customers have of
                   your business. A slow, insecure, or hard-to-find site is
-                  costing you leads and revenue every day.
+                  costing you clients and revenue every day.
                 </p>
               </AnimateOnScroll>
 

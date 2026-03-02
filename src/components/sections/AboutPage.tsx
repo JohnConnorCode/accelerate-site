@@ -16,6 +16,7 @@ import {
   StaggerContainer,
 } from "@/components/ui/AnimateOnScroll";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 import { PageHero } from "@/components/ui/PageHero";
 import { Stats } from "@/components/sections/Stats";
 import { fadeUp } from "@/lib/animations";
@@ -27,7 +28,7 @@ const values = [
     title: "Ship Fast, Iterate Faster",
     description:
       "We ship in weeks, not months. Your business can't wait for a six-month project timeline. We move fast, get you live, and optimize from real data instead of guesswork.",
-    metric: "3 weeks avg. time to launch",
+    metric: "1–2 weeks avg. time to launch",
   },
   {
     icon: TrendingUp,
@@ -40,7 +41,7 @@ const values = [
     icon: Handshake,
     title: "Earn It Every Month",
     description:
-      "No long-term contracts. No vanity metrics. No overblown promises. We earn your business every single month by delivering results you can see in your bank account.",
+      "No vanity metrics. No overblown promises. We earn your business every single month by delivering results you can see in your bank account.",
     metric: "94% client retention rate",
   },
 ];
@@ -71,9 +72,9 @@ export function AboutPageContent() {
               <AnimateOnScroll>
                 <GlassCard variant="prominent" padding="lg" className="text-center">
                   <div className="w-32 h-32 rounded-xl bg-[var(--bg-subtle)] border border-[var(--border-glass)] flex items-center justify-center mx-auto mb-4">
-                    <User className="w-16 h-16 text-white/20" />
+                    <User className="w-16 h-16 text-[var(--white-muted)] opacity-50" />
                   </div>
-                  <h2 className="font-display text-2xl font-bold text-white mb-1">
+                  <h2 className="font-display text-2xl font-bold text-[var(--heading-color)] mb-1">
                     John Connor
                   </h2>
                   <p className="text-[var(--gold-light)] font-medium mb-2">
@@ -109,7 +110,7 @@ export function AboutPageContent() {
                       But resumes don&apos;t tell you much. Here&apos;s what
                       matters: I also run a roofing company in Mississippi.
                       I&apos;ve sat across the table from a homeowner trying to
-                      close a deal. I&apos;ve missed leads because I was up on a
+                      close a deal. I&apos;ve missed calls because I was up on a
                       roof. I&apos;ve wasted money on a website that looked
                       pretty and generated zero calls.
                     </p>
@@ -131,7 +132,7 @@ export function AboutPageContent() {
                       We&apos;re not trying to be the biggest agency. We take on
                       a limited number of clients so we can actually operate
                       alongside each one. When your AI agent gives a wrong
-                      answer at 11 PM, we fix it by morning. When your lead flow
+                      answer at 11 PM, we fix it by morning. When your pipeline
                       dips, we dig into the data before you even notice.
                     </p>
                     <p className="text-[var(--white-primary)] font-medium italic">
@@ -156,7 +157,7 @@ export function AboutPageContent() {
               <p className="text-sm text-[var(--gold-light)] font-medium tracking-wide uppercase mb-4">
                 Our Mission
               </p>
-              <p className="font-display text-xl sm:text-2xl text-white leading-relaxed">
+              <p className="font-display text-xl sm:text-2xl text-[var(--white-primary)] leading-relaxed">
                 Give small businesses the same AI-powered growth tools that
                 Fortune 500 companies use — without the enterprise budget, the
                 six-month timeline, or the 47-slide strategy deck.
@@ -171,20 +172,24 @@ export function AboutPageContent() {
       {/* Values */}
       <section className="py-24 bg-[var(--bg-base)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AnimateOnScroll className="text-center mb-16">
-            <h2 className="section-heading mb-4">
-              What We <span className="text-gold-gradient">Stand For</span>
-            </h2>
+          <AnimateOnScroll className="mb-16">
+            <SectionHeader
+              heading={
+                <>
+                  What We <span className="text-gold-gradient">Stand For</span>
+                </>
+              }
+            />
           </AnimateOnScroll>
 
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {values.map((value) => {
               const Icon = value.icon;
               return (
                 <AnimateOnScroll key={value.title} variants={fadeUp}>
                   <GlassCard hover="lift" padding="lg" className="h-full flex flex-col">
                     <Icon className="w-10 h-10 text-[var(--gold-base)] mb-5" />
-                    <h3 className="text-xl font-semibold text-white mb-3">
+                    <h3 className="text-xl font-semibold text-[var(--heading-color)] mb-3">
                       {value.title}
                     </h3>
                     <p className="text-[var(--white-secondary)] leading-relaxed flex-1 mb-4">
@@ -211,19 +216,23 @@ export function AboutPageContent() {
       {/* Trust Signals — Mini Case Studies */}
       <section className="py-24 bg-[var(--bg-section-warm)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AnimateOnScroll className="text-center mb-16">
-            <p className="section-label">Track Record</p>
-            <h2 className="section-heading mb-4">
-              Results That <span className="text-gold-gradient">Speak</span>
-            </h2>
+          <AnimateOnScroll className="mb-16">
+            <SectionHeader
+              label="Track Record"
+              heading={
+                <>
+                  Results That <span className="text-gold-gradient">Speak</span>
+                </>
+              }
+            />
           </AnimateOnScroll>
 
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {caseStudies.slice(0, 3).map((study) => (
               <AnimateOnScroll key={study.id} variants={fadeUp}>
                 <GlassCard hover="lift" padding="lg" className="h-full flex flex-col">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-display text-lg font-bold text-white">
+                    <h3 className="font-display text-lg font-bold text-[var(--heading-color)]">
                       {study.businessName}
                     </h3>
                     <div className="flex items-center gap-1 text-xs text-[var(--white-muted)]">
@@ -285,11 +294,11 @@ export function AboutPageContent() {
                       size="lg"
                       className="w-full sm:w-auto"
                     >
-                      Book Your Free Consultation
+                      Book a Free Discovery Call
                       <ArrowRight className="w-5 h-5 ml-2" />
                     </Button>
                   </Link>
-                  <Link href="/#solution-generator">
+                  <Link href="/plan-builder">
                     <Button
                       variant="secondary"
                       size="lg"

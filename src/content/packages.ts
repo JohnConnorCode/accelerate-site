@@ -5,9 +5,9 @@ export const packages: ServicePackage[] = [
     id: "launch",
     name: "Launch",
     slug: "launch",
-    tagline: "Get found, get leads",
+    tagline: "Get found, get clients",
     description:
-      "Everything you need to establish a professional digital presence that actually generates leads. Perfect for businesses starting from scratch or replacing an outdated website.",
+      "Everything you need to establish a professional digital presence that actually generates business. Perfect for businesses starting from scratch or replacing an outdated website.",
     priceOneTime: 2500,
     priceMonthly: 0,
     features: [
@@ -35,7 +35,7 @@ export const packages: ServicePackage[] = [
     slug: "grow",
     tagline: "Automate and convert",
     description:
-      "Your website plus the automation backbone to never miss a lead. Instant follow-ups, AI chat, and CRM integration that turns your site into a lead machine.",
+      "Your website plus the automation backbone to never miss an inquiry. Instant follow-ups, AI chat, and CRM integration that turns your site into a booking machine.",
     priceOneTime: 4500,
     priceMonthly: 300,
     features: [
@@ -53,7 +53,7 @@ export const packages: ServicePackage[] = [
       { name: "Monthly reporting", included: true },
     ],
     highlighted: true,
-    ctaText: "Most Popular",
+    ctaText: "Get Started",
     ctaLink: "/contact?package=grow",
     idealFor: "Ready to scale",
   },
@@ -101,9 +101,9 @@ export const packageFaqs: FAQ[] = [
     category: "packages",
   },
   {
-    question: "Is there a contract or commitment?",
+    question: "How does billing work?",
     answer:
-      "The one-time setup fee is paid upfront (we offer payment plans for larger packages). Monthly services are billed month-to-month with no long-term contract. You can pause or cancel monthly services anytime with 30 days notice.",
+      "The one-time setup fee is paid upfront (we offer payment plans for larger packages). Monthly services are billed on a simple recurring basis. Every package includes clear deliverables and monthly reporting so you always know what you're paying for.",
     category: "packages",
   },
   {

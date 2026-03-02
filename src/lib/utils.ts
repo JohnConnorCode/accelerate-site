@@ -14,6 +14,11 @@ export function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
+export function prefersReducedMotion(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
 export function formatNumber(num: number): string {
   if (num >= 1000000) {
     return `${(num / 1000000).toFixed(1)}M`;

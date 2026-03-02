@@ -59,6 +59,14 @@ export async function POST(request: NextRequest) {
           message,
           status: "pending",
         });
+
+        // Create admin notification (fire and forget)
+        Promise.resolve(supabase.from("admin_notifications").insert({
+          type: "new_partner",
+          title: `New partner application: ${name}`,
+          description: `${company} — ${partnerType}`,
+          link: "/admin/partners",
+        })).catch(() => {});
       } catch (e) {
         console.warn("Supabase insert failed:", e);
       }

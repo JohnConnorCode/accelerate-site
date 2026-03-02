@@ -202,7 +202,7 @@ function generatePlanHTML(
 <body>
   <div class="header">
     <div class="logo">Accelerate</div>
-    <div class="subtitle">AI Solutions for Small Business</div>
+    <div class="subtitle">AI Strategy & Systems for Small Business</div>
   </div>
 
   <div class="plan-for">
@@ -260,13 +260,13 @@ function generatePlanHTML(
     <div class="roi-grid">
       <div class="roi-col">
         <h4>90-Day Outlook</h4>
-        <p>Lead Increase: ${escapeHtml(plan.roiProjection.ninetyDay.estimatedLeadIncrease)}</p>
+        <p>Inquiry Increase: ${escapeHtml(plan.roiProjection.ninetyDay.estimatedLeadIncrease)}</p>
         <p>Time Saved: ${escapeHtml(plan.roiProjection.ninetyDay.estimatedTimeSaved)}</p>
         <p>Revenue Impact: ${escapeHtml(plan.roiProjection.ninetyDay.estimatedRevenueImpact)}</p>
       </div>
       <div class="roi-col">
         <h4>12-Month Outlook</h4>
-        <p>Lead Increase: ${escapeHtml(plan.roiProjection.twelveMonth.estimatedLeadIncrease)}</p>
+        <p>Inquiry Increase: ${escapeHtml(plan.roiProjection.twelveMonth.estimatedLeadIncrease)}</p>
         <p>Time Saved: ${escapeHtml(plan.roiProjection.twelveMonth.estimatedTimeSaved)}</p>
         <p>Revenue Impact: ${escapeHtml(plan.roiProjection.twelveMonth.estimatedRevenueImpact)}</p>
       </div>
@@ -306,8 +306,8 @@ function generatePlanHTML(
   </div>
 
   <div class="footer">
-    <p><strong>Accelerate</strong> | AI Solutions for Small Business</p>
-    <p><a href="https://acceleratewith.us">acceleratewith.us</a> | hello@acceleratewith.us</p>
+    <p><strong>Accelerate</strong> | AI Strategy & Systems for Small Business</p>
+    <p><a href="https://acceleratewith.us">acceleratewith.us</a> | john@acceleratewith.us</p>
     <p style="margin-top: 8px; font-size: 11px; color: #999;">This plan was generated based on information you provided and is intended as a starting point for discussion. Final pricing and timelines are confirmed during consultation.</p>
   </div>
 </body>

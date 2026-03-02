@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useConversation } from "./useConversation";
 import { ChatMessage } from "./ChatMessage";
@@ -26,8 +26,7 @@ export function ConversationalChat() {
     submitPlan,
   } = useConversation();
 
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLDivElement>(null);
   const hasInteracted = useRef(false);
 
   // Start conversation on mount
@@ -35,24 +34,31 @@ export function ConversationalChat() {
     startConversation();
   }, [startConversation]);
 
-  // Track user interaction — only auto-scroll after user has answered something
+  // Track user interaction
   useEffect(() => {
     if (messages.some((m) => m.role === "user")) {
       hasInteracted.current = true;
     }
   }, [messages]);
 
-  // Auto-scroll to bottom only after user has interacted
-  useEffect(() => {
+  // Smart scroll: keep the input panel visible without jumping past content
+  const scrollToInput = useCallback(() => {
     if (!hasInteracted.current) return;
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isTyping, phase]);
+    // Small delay to let the DOM update after new messages render
+    requestAnimationFrame(() => {
+      inputRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+  }, []);
+
+  useEffect(() => {
+    scrollToInput();
+  }, [messages, isTyping, scrollToInput]);
 
   // Generating / Results phases
   if (phase === "generating") {
     const noop = () => {};
     return (
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-3xl mx-auto">
         <GeneratingStep
           formData={formData}
           onUpdate={noop}
@@ -67,7 +73,7 @@ export function ConversationalChat() {
   if (phase === "results") {
     const noop = () => {};
     return (
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-3xl mx-auto">
         <ResultsStep
           formData={formData}
           onUpdate={noop}
@@ -84,12 +90,9 @@ export function ConversationalChat() {
   const showInput = lastAssistantMessage && !isLastAnswered && !isTyping;
 
   return (
-    <div className="max-w-2xl mx-auto flex flex-col">
+    <div className="max-w-3xl mx-auto flex flex-col">
       {/* Messages */}
-      <div
-        ref={scrollRef}
-        className="flex flex-col gap-4 pb-4"
-      >
+      <div className="flex flex-col gap-4 pb-4">
         <AnimatePresence mode="popLayout">
           {messages.map((msg) => (
             <ChatMessage key={msg.id} message={msg} />
@@ -97,22 +100,22 @@ export function ConversationalChat() {
         </AnimatePresence>
 
         {isTyping && <TypingIndicator />}
-
-        <div ref={bottomRef} />
       </div>
 
       {/* Input panel */}
-      {showInput && lastAssistantMessage && (
-        <div className="pt-2 pb-4">
-          <InputPanel
-            message={lastAssistantMessage}
-            formData={formData}
-            smartDefaults={smartDefaults}
-            onAnswer={answerQuestion}
-            onSubmit={submitPlan}
-          />
-        </div>
-      )}
+      <div ref={inputRef}>
+        {showInput && lastAssistantMessage && (
+          <div className="pt-2 pb-4">
+            <InputPanel
+              message={lastAssistantMessage}
+              formData={formData}
+              smartDefaults={smartDefaults}
+              onAnswer={answerQuestion}
+              onSubmit={submitPlan}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

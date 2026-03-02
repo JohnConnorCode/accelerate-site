@@ -10,6 +10,6 @@ export function getResend(): Resend {
 }
 
 export const FROM_EMAIL =
-  process.env.RESEND_FROM_EMAIL || "Accelerate <hello@acceleratewith.us>";
+  process.env.RESEND_FROM_EMAIL || "Accelerate <john@acceleratewith.us>";
 export const ADMIN_EMAIL =
-  process.env.ADMIN_EMAIL || "hello@acceleratewith.us";
+  process.env.ADMIN_EMAIL || "john@acceleratewith.us";

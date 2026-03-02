@@ -1,0 +1,33 @@
+"use client";
+
+import { Calendar } from "lucide-react";
+
+interface DateRangeFilterProps {
+  dateFrom: string;
+  dateTo: string;
+  onDateFromChange: (value: string) => void;
+  onDateToChange: (value: string) => void;
+}
+
+export function DateRangeFilter({ dateFrom, dateTo, onDateFromChange, onDateToChange }: DateRangeFilterProps) {
+  return (
+    <div className="flex items-center gap-2">
+      <Calendar className="h-4 w-4 text-white-muted shrink-0" />
+      <input
+        type="date"
+        value={dateFrom}
+        onChange={(e) => onDateFromChange(e.target.value)}
+        className="rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-glass)] px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-[var(--gold-base)] transition-all [color-scheme:dark]"
+        placeholder="From"
+      />
+      <span className="text-xs text-white-muted">to</span>
+      <input
+        type="date"
+        value={dateTo}
+        onChange={(e) => onDateToChange(e.target.value)}
+        className="rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-glass)] px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-[var(--gold-base)] transition-all [color-scheme:dark]"
+        placeholder="To"
+      />
+    </div>
+  );
+}

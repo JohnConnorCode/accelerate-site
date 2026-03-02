@@ -17,6 +17,7 @@ import {
 import { PageHero } from "@/components/ui/PageHero";
 import { fadeUp } from "@/lib/animations";
 import { cn, formatCurrency } from "@/lib/utils";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 import { packages, packageFaqs } from "@/content/packages";
 import type { ServicePackage } from "@/lib/types";
 
@@ -75,7 +76,7 @@ function PricingCard({ pkg }: { pkg: ServicePackage }) {
           {/* Header */}
           <div className="mb-6">
             <h3
-              className="font-display text-2xl font-bold text-white mb-1"
+              className="font-display text-2xl font-bold text-[var(--heading-color)] mb-1"
             >
               {pkg.name}
             </h3>
@@ -89,7 +90,7 @@ function PricingCard({ pkg }: { pkg: ServicePackage }) {
               <span
                 className={cn(
                   "font-display text-4xl font-bold tracking-tight",
-                  isHighlighted ? "text-gold-gradient" : "text-white"
+                  isHighlighted ? "text-gold-gradient" : "text-[var(--heading-color)]"
                 )}
               >
                 {formatCurrency(pkg.priceOneTime)}
@@ -117,7 +118,7 @@ function PricingCard({ pkg }: { pkg: ServicePackage }) {
                   />
                 ) : (
                   <X
-                    className="w-4 h-4 text-white/20 shrink-0 mt-0.5"
+                    className="w-4 h-4 text-[var(--white-muted)] opacity-50 shrink-0 mt-0.5"
                     aria-hidden="true"
                   />
                 )}
@@ -175,7 +176,7 @@ function ComparisonTable() {
                 key={pkg.id}
                 className={cn(
                   "text-center text-sm font-semibold pb-4 px-4",
-                  pkg.highlighted ? "text-[var(--gold-base)]" : "text-white"
+                  pkg.highlighted ? "text-[var(--gold-base)]" : "text-[var(--heading-color)]"
                 )}
                 scope="col"
               >
@@ -238,7 +239,7 @@ export function PackagesPageContent() {
       <PageHero
         label="Packages"
         title={<>Transparent Pricing,{" "}<span className="text-gold-gradient">Real Results</span></>}
-        description="No hidden fees, no long-term contracts. Pick the package that matches where you are today and upgrade whenever you are ready."
+        description="Transparent pricing, clear deliverables. Pick the package that matches where you are today and upgrade whenever you're ready."
       />
 
       <div className="section-divider" />
@@ -290,14 +291,16 @@ export function PackagesPageContent() {
       <section className="py-24 bg-[var(--bg-base)]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll>
-            <h2 className="section-heading text-center mb-4">
-              Compare{" "}
-              <span className="text-gold-gradient">Every Feature</span>
-            </h2>
-            <p className="text-center text-[var(--white-muted)] mb-12 max-w-xl mx-auto">
-              See exactly what is included in each package so you can choose
-              with confidence.
-            </p>
+            <SectionHeader
+              heading={
+                <>
+                  Compare{" "}
+                  <span className="text-gold-gradient">Every Feature</span>
+                </>
+              }
+              description="See exactly what is included in each package so you can choose with confidence."
+              className="mb-12"
+            />
           </AnimateOnScroll>
 
           <AnimateOnScroll delay={0.15}>
@@ -316,13 +319,16 @@ export function PackagesPageContent() {
       <section className="py-24 bg-[var(--bg-base)]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll>
-            <h2 className="section-heading text-center mb-4">
-              Frequently Asked{" "}
-              <span className="text-gold-gradient">Questions</span>
-            </h2>
-            <p className="text-center text-[var(--white-muted)] mb-12 max-w-xl mx-auto">
-              Everything you need to know about our packages and pricing.
-            </p>
+            <SectionHeader
+              heading={
+                <>
+                  Frequently Asked{" "}
+                  <span className="text-gold-gradient">Questions</span>
+                </>
+              }
+              description="Everything you need to know about our packages and pricing."
+              className="mb-12"
+            />
           </AnimateOnScroll>
 
           <AnimateOnScroll delay={0.1}>
@@ -340,10 +346,10 @@ export function PackagesPageContent() {
             <p className="text-center text-sm text-[var(--white-muted)] mt-8">
               Can&apos;t find your question? Email us at{" "}
               <a
-                href="mailto:hello@acceleratewith.us"
+                href="mailto:john@acceleratewith.us"
                 className="text-[var(--gold-light)] hover:text-[var(--text-nav-hover)] transition-colors"
               >
-                hello@acceleratewith.us
+                john@acceleratewith.us
               </a>
             </p>
           </AnimateOnScroll>
@@ -375,14 +381,14 @@ export function PackagesPageContent() {
                   business.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link href="/#solution-generator">
+                  <Link href="/plan-builder">
                     <Button
                       variant="primary"
                       size="lg"
                       pulse
                       className="w-full sm:w-auto"
                     >
-                      Build My Custom Plan
+                      Get Your Growth Plan
                       <ArrowRight className="w-5 h-5 ml-2" />
                     </Button>
                   </Link>

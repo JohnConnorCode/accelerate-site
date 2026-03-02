@@ -38,6 +38,26 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
+
+      // Focus trap: keep Tab within the mobile nav
+      if (e.key === "Tab") {
+        const nav = closeButtonRef.current?.closest("nav");
+        if (!nav) return;
+        const focusable = nav.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0] as HTMLElement | undefined;
+        const last = focusable[focusable.length - 1] as HTMLElement | undefined;
+        if (!first || !last) return;
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
@@ -79,7 +99,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
               <button
                 ref={closeButtonRef}
                 onClick={onClose}
-                className="text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] p-2 cursor-pointer"
+                className="text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] p-2.5 -mr-2.5 cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
                 aria-label="Close navigation menu"
               >
                 <X className="w-6 h-6" />
@@ -98,7 +118,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                         )
                       }
                       aria-expanded={expandedItem === link.label}
-                      className="w-full flex items-center justify-between py-3 text-xl text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] transition-colors cursor-pointer"
+                      className="w-full flex items-center justify-between py-3 text-xl text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] transition-colors cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
                     >
                       {link.label}
                       <ChevronDown
@@ -121,7 +141,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                               key={child.href}
                               href={child.href}
                               onClick={onClose}
-                              className="block py-2.5 text-lg text-[var(--white-muted)] hover:text-[var(--text-nav-hover)] transition-colors"
+                              className="block py-2.5 text-lg text-[var(--white-muted)] hover:text-[var(--text-nav-hover)] transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
                             >
                               {child.label}
                             </Link>
@@ -135,7 +155,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                     key={link.href}
                     href={link.href}
                     onClick={onClose}
-                    className="block py-3 text-xl text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] transition-colors"
+                    className="block py-3 text-xl text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
                   >
                     {link.label}
                   </Link>

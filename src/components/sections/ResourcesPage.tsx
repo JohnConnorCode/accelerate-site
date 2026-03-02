@@ -50,7 +50,7 @@ export function ResourcesPage() {
       {/* Resource Cards */}
       <section className="py-24 bg-[var(--bg-base)]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {leadMagnets.map((resource, index) => {
               const Icon = iconMap[resource.icon] || Download;
               return (
@@ -74,13 +74,13 @@ export function ResourcesPage() {
                         </span>
                       )}
                     </div>
-                    <h2 className="font-display text-xl font-bold text-white mb-1">
+                    <h2 className="font-display text-xl font-bold text-[var(--heading-color)] mb-1">
                       {resource.title}
                     </h2>
                     <p className="text-sm text-[var(--gold-light)] mb-3">
                       {resource.subtitle}
                     </p>
-                    <p className="text-sm text-white/60 flex-1 mb-6">
+                    <p className="text-sm text-[var(--white-secondary)] flex-1 mb-6">
                       {resource.description}
                     </p>
                     <Button
@@ -105,12 +105,12 @@ export function ResourcesPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal animation="clip-reveal">
             <GlassCard variant="prominent" padding="lg" className="text-center">
-              <blockquote className="font-display text-lg sm:text-xl text-white leading-relaxed italic mb-4">
+              <blockquote className="font-display text-lg sm:text-xl text-[var(--white-primary)] leading-relaxed italic mb-4">
                 &ldquo;The AI Readiness Checklist helped us realize we were
                 leaving $50K on the table with slow follow-ups. We fixed it in
                 two weeks.&rdquo;
               </blockquote>
-              <p className="text-sm text-white/50">
+              <p className="text-sm text-[var(--white-muted)]">
                 Small business owner, Home Services
               </p>
             </GlassCard>
@@ -125,10 +125,10 @@ export function ResourcesPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll>
             <GlassCard variant="gold" padding="lg" className="text-center">
-              <h2 className="font-display text-2xl md:text-3xl font-bold text-white mb-3">
+              <h2 className="font-display text-2xl md:text-3xl font-bold text-[var(--heading-color)] mb-3">
                 Want Personalized Insights?
               </h2>
-              <p className="text-white/60 max-w-xl mx-auto mb-6">
+              <p className="text-[var(--white-secondary)] max-w-xl mx-auto mb-6">
                 Our free interactive tools give you instant, data-driven
                 recommendations specific to your business.
               </p>
@@ -157,15 +157,15 @@ export function ResourcesPage() {
       <section className="py-24 bg-[var(--bg-base)]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll className="text-center">
-            <h2 className="font-display text-2xl md:text-3xl font-bold text-white mb-3">
+            <h2 className="font-display text-2xl md:text-3xl font-bold text-[var(--heading-color)] mb-3">
               Ready for a Custom Growth Plan?
             </h2>
-            <p className="text-white/60 mb-6 max-w-lg mx-auto">
+            <p className="text-[var(--white-secondary)] mb-6 max-w-lg mx-auto">
               Our Solution Generator analyzes your business and builds a
               prioritized roadmap with exact pricing and projected ROI. Takes
               under 5 minutes.
             </p>
-            <Link href="/#solution-generator">
+            <Link href="/plan-builder">
               <Button variant="primary" size="lg" pulse>
                 Get Your Growth Plan
                 <ArrowRight className="w-4 h-4 ml-2" />

@@ -276,7 +276,7 @@ export function ResultsStep({ plan, shareToken }: StepProps) {
             </h4>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-white-secondary">Lead increase</span>
+                <span className="text-sm text-white-secondary">Inquiry increase</span>
                 <span className="text-sm font-medium text-white-primary">
                   {plan.roiProjection.ninetyDay.estimatedLeadIncrease}
                 </span>
@@ -303,7 +303,7 @@ export function ResultsStep({ plan, shareToken }: StepProps) {
             </h4>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-white-secondary">Lead increase</span>
+                <span className="text-sm text-white-secondary">Inquiry increase</span>
                 <span className="text-sm font-medium text-white-primary">
                   {plan.roiProjection.twelveMonth.estimatedLeadIncrease}
                 </span>
@@ -431,7 +431,7 @@ export function ResultsStep({ plan, shareToken }: StepProps) {
           }}
         >
           <CalendarCheck className="w-5 h-5" />
-          Book Your Free Consultation
+          Book a Free Discovery Call
         </Button>
         <Button
           variant="secondary"

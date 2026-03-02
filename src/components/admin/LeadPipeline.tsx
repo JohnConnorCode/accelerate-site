@@ -13,9 +13,10 @@ const stages = [
 
 interface LeadPipelineProps {
   pipeline: Record<string, number>;
+  pipelineValues?: Record<string, number>;
 }
 
-export function LeadPipeline({ pipeline }: LeadPipelineProps) {
+export function LeadPipeline({ pipeline, pipelineValues }: LeadPipelineProps) {
   const maxCount = Math.max(...stages.map((s) => pipeline[s.key] || 0), 1);
 
   return (
@@ -27,6 +28,7 @@ export function LeadPipeline({ pipeline }: LeadPipelineProps) {
         <div className="space-y-3">
           {stages.map((stage, i) => {
             const count = pipeline[stage.key] || 0;
+            const value = pipelineValues?.[stage.key] || 0;
             const width = (count / maxCount) * 100;
 
             return (
@@ -50,6 +52,11 @@ export function LeadPipeline({ pipeline }: LeadPipelineProps) {
                   />
                   <span className="absolute inset-0 flex items-center px-3 text-xs font-medium text-white-primary">
                     {count}
+                    {value > 0 && (
+                      <span className="ml-1.5 text-white-muted">
+                        · ${value.toLocaleString()}
+                      </span>
+                    )}
                   </span>
                 </div>
               </motion.div>

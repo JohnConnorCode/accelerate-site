@@ -19,7 +19,7 @@ export const leadMagnets: LeadMagnet[] = [
     title: "7 AI Automations Every Small Business Needs",
     subtitle: "The automations that pay for themselves",
     description:
-      "A practical guide covering the seven highest-ROI automations for small businesses: lead follow-up, appointment scheduling, review management, invoice reminders, client onboarding, reporting, and after-hours response. Each includes setup cost, time to implement, and expected ROI.",
+      "A practical guide covering the seven highest-ROI automations for small businesses: prospect follow-up, appointment scheduling, review management, invoice reminders, client onboarding, reporting, and after-hours response. Each includes setup cost, time to implement, and expected ROI.",
     icon: "Zap",
     fileUrl: "/resources/7-ai-automations.pdf",
     category: "guide",

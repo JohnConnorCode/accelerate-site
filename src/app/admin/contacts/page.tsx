@@ -1,15 +1,18 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Inbox, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import Link from "next/link";
+import { Inbox, Trash2, ChevronDown, ChevronUp, Search, Download } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { Pagination } from "@/components/admin/Pagination";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { Toast } from "@/components/ui/Toast";
+import { DateRangeFilter } from "@/components/admin/DateRangeFilter";
 
 interface Contact {
   id: string;
@@ -29,6 +32,9 @@ export default function ContactsPage() {
   const [total, setTotal] = useState(0);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const fetchData = useCallback(async () => {
     try {
@@ -48,6 +54,22 @@ export default function ContactsPage() {
     fetchData();
   }, [fetchData]);
 
+  const filtered = useMemo(() => {
+    return contacts.filter((c) => {
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        if (!c.name.toLowerCase().includes(q) && !c.email.toLowerCase().includes(q)) return false;
+      }
+      if (dateFrom && new Date(c.created_at) < new Date(dateFrom)) return false;
+      if (dateTo) {
+        const end = new Date(dateTo);
+        end.setDate(end.getDate() + 1);
+        if (new Date(c.created_at) >= end) return false;
+      }
+      return true;
+    });
+  }, [contacts, searchQuery, dateFrom, dateTo]);
+
   const handleDelete = async (id: string) => {
     try {
       const res = await fetch("/api/admin/contacts", {
@@ -61,6 +83,10 @@ export default function ContactsPage() {
     } catch {
       setToast({ message: "Failed to delete contact", type: "error" });
     }
+  };
+
+  const handleExport = () => {
+    window.open("/api/admin/contacts/export", "_blank");
   };
 
   if (loading) {
@@ -83,6 +109,30 @@ export default function ContactsPage() {
         subtitle={`${total} total submissions`}
       />
 
+      {/* Search & Filters */}
+      <div className="flex flex-wrap gap-3 mb-4">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white-muted" />
+          <Input
+            type="text"
+            placeholder="Search by name or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <DateRangeFilter
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onDateFromChange={setDateFrom}
+          onDateToChange={setDateTo}
+        />
+        <Button variant="secondary" size="sm" onClick={handleExport}>
+          <Download className="h-4 w-4 mr-2" />
+          Export
+        </Button>
+      </div>
+
       <GlassCard padding="none" hover="none" className="overflow-clip">
         <table className="w-full text-sm">
           <thead>
@@ -96,7 +146,7 @@ export default function ContactsPage() {
             </tr>
           </thead>
           <tbody>
-            {contacts.map((contact, index) => (
+            {filtered.map((contact, index) => (
               <motion.tr
                 key={contact.id}
                 initial={{ opacity: 0 }}
@@ -106,7 +156,15 @@ export default function ContactsPage() {
                 onClick={() => setExpandedId(expandedId === contact.id ? null : contact.id)}
               >
                 <td className="px-4 py-3 text-white-primary font-medium">{contact.name}</td>
-                <td className="px-4 py-3 text-white-secondary">{contact.email}</td>
+                <td className="px-4 py-3">
+                  <Link
+                    href={`/admin/contacts/${encodeURIComponent(contact.email)}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-white-secondary hover:text-[var(--gold-light)] transition-colors"
+                  >
+                    {contact.email}
+                  </Link>
+                </td>
                 <td className="px-4 py-3 text-white-secondary hidden sm:table-cell">{contact.business_type || "-"}</td>
                 <td className="px-4 py-3 text-white-muted truncate max-w-[200px]">
                   {contact.message}
@@ -152,8 +210,8 @@ export default function ContactsPage() {
             ) : null
           )}
         </AnimatePresence>
-        {contacts.length === 0 && (
-          <EmptyState message="No contact submissions yet" icon={Inbox} />
+        {filtered.length === 0 && (
+          <EmptyState message="No contact submissions found" icon={Inbox} />
         )}
       </GlassCard>
 

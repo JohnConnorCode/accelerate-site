@@ -326,7 +326,7 @@ export default async function ArticlePage({
                   industry and goals. Takes under 5 minutes.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Link href="/#solution-generator">
+                  <Link href="/plan-builder">
                     <Button variant="primary" size="lg" className="w-full sm:w-auto">
                       Get Your Free Growth Plan
                       <ArrowRight className="w-4 h-4 ml-2" />

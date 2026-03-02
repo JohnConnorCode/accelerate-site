@@ -44,14 +44,14 @@
   --success: #10B981;
   --error: #F43F5E;
 
-  /* Glass — more translucent, wider blur */
-  --glass-default-bg: rgba(255, 255, 255, 0.04);
-  --glass-prominent-bg: rgba(255, 255, 255, 0.06);
-  --glass-gold-bg: rgba(212, 175, 55, 0.05);
-  --glass-default-hover: rgba(255, 255, 255, 0.06);
-  --glass-prominent-hover: rgba(255, 255, 255, 0.08);
+  /* Glass — translucent cards with visible backdrop blur */
+  --glass-default-bg: rgba(255, 255, 255, 0.05);
+  --glass-prominent-bg: rgba(255, 255, 255, 0.08);
+  --glass-gold-bg: rgba(212, 175, 55, 0.04);
+  --glass-default-hover: rgba(255, 255, 255, 0.08);
+  --glass-prominent-hover: rgba(255, 255, 255, 0.10);
   --glass-gold-hover: rgba(212, 175, 55, 0.07);
-  --glass-blur: 32px;
+  --glass-blur: 40px;
   --glass-saturation: 180%;
 
   /* Heading color (semantic, for hardcoded heading styles) */
@@ -215,8 +215,8 @@
 
 [data-theme="light"] .grid-overlay-fine {
   background-image:
-    linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+    linear-gradient(rgba(0, 0, 0, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.025) 1px, transparent 1px);
 }
 
 [data-theme="light"] .dot-grid {
@@ -226,7 +226,30 @@
   );
 }
 
+[data-theme="light"] .grid-perspective::before {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+}
+
+[data-theme="light"] .grid-diamond {
+  background-image:
+    linear-gradient(45deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(-45deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+}
+
+[data-theme="light"] .grid-dots-glow {
+  background-image: radial-gradient(
+    rgba(154, 123, 16, 0.04) 1.5px,
+    transparent 1.5px
+  );
+}
+
 /* Light mode scrollbar */
+[data-theme="light"] * {
+  scrollbar-color: rgba(0, 0, 0, 0.12) var(--bg-base);
+}
+
 [data-theme="light"] ::-webkit-scrollbar-track {
   background: var(--bg-base);
 }
@@ -277,14 +300,6 @@
   );
 }
 
-/* Light mode section fades */
-[data-theme="light"] .section-fade-to-dark::after {
-  background: linear-gradient(to bottom, transparent, var(--bg-base));
-}
-
-[data-theme="light"] .section-fade-from-dark::before {
-  background: linear-gradient(to top, transparent, var(--bg-base));
-}
 
 /* Light mode border-gradient-animated */
 [data-theme="light"] .border-gradient-animated {
@@ -308,12 +323,17 @@
   --color-success: var(--success);
   --color-error: var(--error);
   --font-sans: var(--font-inter);
-  --font-display: var(--font-space-grotesk);
+  --font-display: var(--font-jost);
 }
 
 /* ========================================
    BASE STYLES
    ======================================== */
+
+html,
+body {
+  overflow-x: hidden;
+}
 
 body {
   background: var(--bg-base);
@@ -339,11 +359,13 @@ body {
   background: linear-gradient(135deg, #D4AF37 0%, #F5D060 45%, #E8D5A3 100%);
 }
 
-.border-gold-glow {
+.border-gold-glow,
+.hover\:border-gold-glow:hover {
   box-shadow: 0 0 20px rgba(212, 175, 55, 0.15), 0 0 40px rgba(212, 175, 55, 0.05);
 }
 
-.border-gold-glow-strong {
+.border-gold-glow-strong,
+.hover\:border-gold-glow-strong:hover {
   box-shadow: 0 0 25px rgba(212, 175, 55, 0.25), 0 0 50px rgba(212, 175, 55, 0.1);
 }
 
@@ -384,6 +406,14 @@ body {
     0 8px 32px rgba(0, 0, 0, 0.08);
 }
 
+/* Glass focus-visible for keyboard navigation */
+.glass:focus-visible,
+.glass-prominent:focus-visible,
+.glass-gold:focus-visible {
+  outline: 2px solid var(--gold-base);
+  outline-offset: 2px;
+}
+
 /* ========================================
    TYPOGRAPHY UTILITIES
    ======================================== */
@@ -393,20 +423,26 @@ body {
 }
 
 .section-heading {
-  @apply text-3xl sm:text-4xl md:text-5xl font-bold;
-  font-family: var(--font-space-grotesk), var(--font-inter), sans-serif;
+  font-size: clamp(1.875rem, 1.2rem + 2.4vw, 3rem);
+  font-weight: 700;
+  font-family: var(--font-jost), var(--font-inter), sans-serif;
   letter-spacing: -0.03em;
   line-height: 1.08;
   color: var(--heading-color);
 }
 
 .section-description {
-  @apply text-lg text-white-secondary max-w-2xl mx-auto;
+  font-size: clamp(1rem, 0.9rem + 0.4vw, 1.125rem);
+  color: var(--white-secondary);
+  max-width: 42rem;
+  margin-inline: auto;
+  line-height: 1.7;
 }
 
 .page-heading {
-  @apply text-4xl sm:text-5xl md:text-6xl font-bold;
-  font-family: var(--font-space-grotesk), var(--font-inter), sans-serif;
+  font-size: clamp(2.25rem, 1.2rem + 3.8vw, 3.75rem);
+  font-weight: 700;
+  font-family: var(--font-jost), var(--font-inter), sans-serif;
   letter-spacing: -0.04em;
   line-height: 1.05;
   color: var(--heading-color);
@@ -541,6 +577,13 @@ body {
    SCROLLBAR STYLING
    ======================================== */
 
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) var(--bg-base);
+}
+
+/* Webkit scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -598,8 +641,8 @@ select:-webkit-autofill:focus {
 }
 
 @keyframes grid-pulse {
-  0%, 100% { opacity: 0.03; }
-  50% { opacity: 0.07; }
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
 }
 
 @keyframes text-shimmer {
@@ -619,17 +662,29 @@ select:-webkit-autofill:focus {
 
 @keyframes marquee {
   0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  100% { transform: translateX(calc(-100% / 3)); }
 }
 
 @keyframes marquee-reverse {
-  0% { transform: translateX(-50%); }
+  0% { transform: translateX(calc(-100% / 3)); }
   100% { transform: translateX(0); }
 }
 
 @keyframes card-shine {
   0% { transform: translateX(-100%) skewX(-15deg); }
   100% { transform: translateX(200%) skewX(-15deg); }
+}
+
+@keyframes tron-grid-scroll {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 60px; }
+}
+
+@keyframes orb-drift-slow {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(10px, -8px); }
+  50% { transform: translate(-6px, 12px); }
+  75% { transform: translate(8px, 5px); }
 }
 
 /* ========================================
@@ -657,18 +712,20 @@ select:-webkit-autofill:focus {
 
 .grid-overlay {
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
   background-size: 60px 60px;
-  animation: grid-pulse 6s ease-in-out infinite;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 20%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 20%, transparent 80%);
 }
 
 .grid-overlay-fine {
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
   background-size: 32px 32px;
-  animation: grid-pulse 6s ease-in-out infinite;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 20%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 20%, transparent 80%);
 }
 
 .border-gradient-animated {
@@ -698,17 +755,9 @@ select:-webkit-autofill:focus {
   animation: text-shimmer 6s linear infinite;
 }
 
-.glow-dot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--gold-base);
-  box-shadow: 0 0 8px var(--glow-medium), 0 0 20px var(--glow-soft);
-}
-
 .marquee-track {
   display: flex;
-  gap: 1.5rem;
+  gap: 1rem;
   animation: marquee 30s linear infinite;
 }
 
@@ -716,38 +765,12 @@ select:-webkit-autofill:focus {
   animation-play-state: paused;
 }
 
-.marquee-track-reverse {
-  display: flex;
-  gap: 1.5rem;
-  animation: marquee-reverse 30s linear infinite;
+@media (min-width: 640px) {
+  .marquee-track {
+    gap: 1.5rem;
+  }
 }
 
-.marquee-track-reverse:hover {
-  animation-play-state: paused;
-}
-
-.section-fade-to-dark::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 120px;
-  background: linear-gradient(to bottom, transparent, var(--bg-base));
-  pointer-events: none;
-}
-
-.section-fade-from-dark::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 120px;
-  background: linear-gradient(to top, transparent, var(--bg-base));
-  pointer-events: none;
-  z-index: 1;
-}
 
 .section-divider-glow {
   height: 1px;
@@ -803,26 +826,6 @@ select:-webkit-autofill:focus {
   animation: card-shine 0.8s ease-out;
 }
 
-.section-fade-top {
-  position: relative;
-}
-
-.section-fade-top::before {
-  content: '';
-  position: absolute;
-  top: -48px;
-  left: 0;
-  right: 0;
-  height: 48px;
-  background: linear-gradient(to bottom, transparent, var(--_section-bg, var(--bg-base)));
-  pointer-events: none;
-}
-
-.bento-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1px;
-}
 
 /* ========================================
    REDUCED MOTION
@@ -837,17 +840,39 @@ select:-webkit-autofill:focus {
   .gradient-mesh,
   .grid-overlay,
   .grid-overlay-fine,
+  .grid-perspective::before,
+  .grid-diamond,
+  .grid-dots-glow,
   .border-gradient-animated,
   .text-shimmer,
   .marquee-track,
-  .marquee-track-reverse,
   .card-hover-shine::after {
     animation: none !important;
   }
 
-  .marquee-track,
-  .marquee-track-reverse {
+  .marquee-track {
     overflow-x: auto;
+  }
+
+  .scroll-progress-bar {
+    animation: none !important;
+    transform: scaleX(1);
+    opacity: 0.3;
+  }
+
+  .scroll-animate-in {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+
+  .card-tilt {
+    /* JS tilt disabled via prefersReducedMotion() check */
+  }
+
+  .magnetic-btn {
+    transform: none !important;
+    transition: none !important;
   }
 
   *,
@@ -860,15 +885,181 @@ select:-webkit-autofill:focus {
 }
 
 /* ========================================
+   SCROLL-DRIVEN ANIMATIONS (2025+ CSS)
+   ======================================== */
+
+@keyframes scroll-progress-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.scroll-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #D4AF37, #F5D060, #E8D5A3);
+  transform-origin: left;
+  z-index: 9999;
+  animation: scroll-progress-fill linear;
+  animation-timeline: scroll();
+}
+
+@keyframes scroll-fade-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.scroll-animate-in {
+  animation: scroll-fade-in linear both;
+  animation-timeline: view();
+  animation-range: entry 0% entry 30%;
+}
+
+/* ========================================
+   CONTAINER QUERIES
+   ======================================== */
+
+.card-container {
+  container-type: inline-size;
+}
+
+@container (max-width: 280px) {
+  .card-container .card-content {
+    padding: 1rem;
+  }
+  .card-container .card-title {
+    font-size: 1rem;
+  }
+  .card-container .card-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+
+@container (min-width: 281px) and (max-width: 400px) {
+  .card-container .card-content {
+    padding: 1.5rem;
+  }
+}
+
+/* ========================================
+   MICROINTERACTIONS — CARD TILT
+   ======================================== */
+
+.card-tilt {
+  /* Tilt transform is applied via JS on hover only.
+     No resting transform here — Framer Motion controls initial animations. */
+  will-change: transform;
+}
+
+/* Glow spot that follows cursor on card hover */
+.card-glow-spot {
+  --glow-x: 50%;
+  --glow-y: 50%;
+  position: relative;
+}
+
+.card-glow-spot::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    400px circle at var(--glow-x) var(--glow-y),
+    rgba(212, 175, 55, 0.06),
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.card-glow-spot:hover::before {
+  opacity: 1;
+}
+
+/* ========================================
+   MICROINTERACTIONS — MAGNETIC BUTTON
+   ======================================== */
+
+.magnetic-btn {
+  --mag-x: 0px;
+  --mag-y: 0px;
+  transform: translate(var(--mag-x), var(--mag-y));
+  transition: transform 0.2s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+/* ========================================
    DOT GRID PATTERN
    ======================================== */
 
 .dot-grid {
   background-image: radial-gradient(
-    rgba(255, 255, 255, 0.035) 1px,
+    rgba(255, 255, 255, 0.04) 1px,
     transparent 1px
   );
   background-size: 24px 24px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 20%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 20%, transparent 80%);
+}
+
+/* ========================================
+   PERSPECTIVE GRID (subtle Tron-like)
+   ======================================== */
+
+.grid-perspective {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.grid-perspective::before {
+  content: '';
+  position: absolute;
+  left: -25%;
+  bottom: 0;
+  width: 150%;
+  height: 200%;
+  background-image:
+    linear-gradient(rgba(212, 175, 55, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212, 175, 55, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  transform: perspective(500px) rotateX(35deg);
+  transform-origin: 50% 100%;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 80%, black 0%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 80%, black 0%, transparent 70%);
+  animation: tron-grid-scroll 10s linear infinite;
+}
+
+/* ========================================
+   DIAMOND GRID (45-degree rotated)
+   ======================================== */
+
+.grid-diamond {
+  background-image:
+    linear-gradient(45deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(-45deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 20%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 20%, transparent 80%);
+}
+
+/* ========================================
+   GLOWING DOT GRID (premium dots)
+   ======================================== */
+
+.grid-dots-glow {
+  background-image: radial-gradient(
+    rgba(212, 175, 55, 0.05) 1.5px,
+    transparent 1.5px
+  );
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 20%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 20%, transparent 80%);
 }
 
 /* ========================================
@@ -898,7 +1089,7 @@ select:-webkit-autofill:focus {
    ======================================== */
 
 .prose-dark h1 {
-  font-family: var(--font-space-grotesk, 'Jost', sans-serif);
+  font-family: var(--font-jost, 'Jost', sans-serif);
   font-weight: 700;
   font-size: 2rem;
   line-height: 1.2;
@@ -908,7 +1099,7 @@ select:-webkit-autofill:focus {
 }
 
 .prose-dark h2 {
-  font-family: var(--font-space-grotesk, 'Jost', sans-serif);
+  font-family: var(--font-jost, 'Jost', sans-serif);
   font-weight: 600;
   font-size: 1.5rem;
   line-height: 1.3;
@@ -918,7 +1109,7 @@ select:-webkit-autofill:focus {
 }
 
 .prose-dark h3 {
-  font-family: var(--font-space-grotesk, 'Jost', sans-serif);
+  font-family: var(--font-jost, 'Jost', sans-serif);
   font-weight: 600;
   font-size: 1.25rem;
   line-height: 1.4;
@@ -930,7 +1121,7 @@ select:-webkit-autofill:focus {
 .prose-dark h4,
 .prose-dark h5,
 .prose-dark h6 {
-  font-family: var(--font-space-grotesk, 'Jost', sans-serif);
+  font-family: var(--font-jost, 'Jost', sans-serif);
   font-weight: 600;
   font-size: 1.1rem;
   color: var(--white-primary);
@@ -996,7 +1187,7 @@ select:-webkit-autofill:focus {
 .prose-dark th {
   text-align: left;
   padding: 0.75rem 1rem;
-  font-family: var(--font-space-grotesk, 'Jost', sans-serif);
+  font-family: var(--font-jost, 'Jost', sans-serif);
   font-weight: 600;
   border-bottom: 1px solid var(--border-gold);
   color: var(--gold-base);

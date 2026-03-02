@@ -15,7 +15,7 @@ export async function GET() {
       <description><![CDATA[${article.frontmatter.excerpt}]]></description>
       <pubDate>${new Date(article.frontmatter.date).toUTCString()}</pubDate>
       <category>${CATEGORY_LABELS[article.frontmatter.category]}</category>
-      <author>hello@acceleratewith.us (${article.frontmatter.author})</author>
+      <author>john@acceleratewith.us (${article.frontmatter.author})</author>
     </item>`
     )
     .join("");
@@ -25,7 +25,7 @@ export async function GET() {
   <channel>
     <title>Accelerate Learning Hub</title>
     <link>${BASE_URL}/learn</link>
-    <description>Practical guides on AI, automation, and lead generation for small businesses.</description>
+    <description>Practical guides on AI, automation, and client acquisition for small businesses.</description>
     <language>en-us</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     <atom:link href="${BASE_URL}/learn/feed.xml" rel="self" type="application/rss+xml" />

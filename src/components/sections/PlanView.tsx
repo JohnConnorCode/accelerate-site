@@ -147,7 +147,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
             className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3"
             style={{
               fontFamily:
-                "var(--font-space-grotesk), var(--font-inter), sans-serif",
+                "var(--font-jost), var(--font-inter), sans-serif",
             }}
           >
             Your <span className="text-gold-gradient">Digital Growth Plan</span>
@@ -165,7 +165,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
             className="text-lg font-bold text-gold-gradient mb-3"
             style={{
               fontFamily:
-                "var(--font-space-grotesk), var(--font-inter), sans-serif",
+                "var(--font-jost), var(--font-inter), sans-serif",
             }}
           >
             Executive Summary
@@ -187,7 +187,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
           className="text-xl font-bold text-[var(--white-primary)]"
           style={{
             fontFamily:
-              "var(--font-space-grotesk), var(--font-inter), sans-serif",
+              "var(--font-jost), var(--font-inter), sans-serif",
           }}
         >
           Recommended Solutions
@@ -205,7 +205,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
           className="text-xl font-bold text-[var(--white-primary)]"
           style={{
             fontFamily:
-              "var(--font-space-grotesk), var(--font-inter), sans-serif",
+              "var(--font-jost), var(--font-inter), sans-serif",
           }}
         >
           Implementation Roadmap
@@ -262,7 +262,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
           className="text-xl font-bold text-[var(--white-primary)]"
           style={{
             fontFamily:
-              "var(--font-space-grotesk), var(--font-inter), sans-serif",
+              "var(--font-jost), var(--font-inter), sans-serif",
           }}
         >
           ROI Projection
@@ -275,7 +275,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-[var(--white-secondary)]">
-                  Lead increase
+                  Inquiry increase
                 </span>
                 <span className="text-sm font-medium text-[var(--white-primary)]">
                   {plan.roiProjection.ninetyDay.estimatedLeadIncrease}
@@ -307,7 +307,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-[var(--white-secondary)]">
-                  Lead increase
+                  Inquiry increase
                 </span>
                 <span className="text-sm font-medium text-[var(--white-primary)]">
                   {plan.roiProjection.twelveMonth.estimatedLeadIncrease}
@@ -343,7 +343,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
           className="text-xl font-bold text-[var(--white-primary)]"
           style={{
             fontFamily:
-              "var(--font-space-grotesk), var(--font-inter), sans-serif",
+              "var(--font-jost), var(--font-inter), sans-serif",
           }}
         >
           Investment Summary
@@ -423,7 +423,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
           className="text-xl font-bold text-[var(--white-primary)]"
           style={{
             fontFamily:
-              "var(--font-space-grotesk), var(--font-inter), sans-serif",
+              "var(--font-jost), var(--font-inter), sans-serif",
           }}
         >
           Next Steps
@@ -454,7 +454,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
             className="w-full gap-2"
           >
             <CalendarCheck className="w-5 h-5" />
-            Book Your Free Consultation
+            Book a Free Discovery Call
           </Button>
         </Link>
         <Button
@@ -480,8 +480,8 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
       {/* Back to generator */}
       <div className="text-center pt-4">
         <Link
-          href="/#solution-generator"
-          className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white link-gold-underline transition-colors"
+          href="/plan-builder"
+          className="inline-flex items-center gap-1.5 text-sm text-[var(--white-muted)] hover:text-[var(--white-primary)] link-gold-underline transition-colors"
         >
           Build a new plan
           <ArrowRight className="w-3.5 h-3.5" />

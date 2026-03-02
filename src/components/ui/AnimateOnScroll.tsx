@@ -4,15 +4,10 @@ import { motion, type Variants } from "framer-motion";
 import { fadeUp } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 
-const animateComponents = {
+const motionElements = {
   div: motion.div,
   section: motion.section,
   article: motion.article,
-} as const;
-
-const staggerComponents = {
-  div: motion.div,
-  section: motion.section,
   ul: motion.ul,
 } as const;
 
@@ -21,25 +16,43 @@ interface AnimateOnScrollProps {
   variants?: Variants;
   className?: string;
   delay?: number;
-  as?: keyof typeof animateComponents;
+  as?: keyof typeof motionElements;
+  /** Enable stagger mode — wraps children with staggerChildren transition */
+  stagger?: boolean;
+  staggerDelay?: number;
 }
 
 export function AnimateOnScroll({
   children,
-  variants = fadeUp,
+  variants,
   className,
   delay = 0,
   as = "div",
+  stagger = false,
+  staggerDelay = 0.12,
 }: AnimateOnScrollProps) {
-  const Component = animateComponents[as] ?? animateComponents.div;
+  const Component = motionElements[as] ?? motionElements.div;
+
+  const resolvedVariants: Variants = stagger
+    ? {
+        hidden: { opacity: 0 },
+        visible: {
+          opacity: 1,
+          transition: {
+            staggerChildren: staggerDelay,
+            delayChildren: delay || 0.1,
+          },
+        },
+      }
+    : variants ?? fadeUp;
 
   return (
     <Component
-      variants={variants}
+      variants={resolvedVariants}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: "-50px" }}
-      transition={delay ? { delay } : undefined}
+      transition={!stagger && delay ? { delay } : undefined}
       className={cn(className)}
     >
       {children}
@@ -47,39 +60,23 @@ export function AnimateOnScroll({
   );
 }
 
-interface StaggerContainerProps {
-  children: React.ReactNode;
-  className?: string;
-  as?: keyof typeof staggerComponents;
-  staggerDelay?: number;
-}
-
+/**
+ * Convenience wrapper around AnimateOnScroll with stagger enabled.
+ */
 export function StaggerContainer({
   children,
   className,
   as = "div",
   staggerDelay = 0.12,
-}: StaggerContainerProps) {
-  const Component = staggerComponents[as] ?? staggerComponents.div;
-
+}: {
+  children: React.ReactNode;
+  className?: string;
+  as?: keyof typeof motionElements;
+  staggerDelay?: number;
+}) {
   return (
-    <Component
-      variants={{
-        hidden: { opacity: 0 },
-        visible: {
-          opacity: 1,
-          transition: {
-            staggerChildren: staggerDelay,
-            delayChildren: 0.1,
-          },
-        },
-      }}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-50px" }}
-      className={cn(className)}
-    >
+    <AnimateOnScroll stagger staggerDelay={staggerDelay} as={as} className={className}>
       {children}
-    </Component>
+    </AnimateOnScroll>
   );
 }

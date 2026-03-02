@@ -31,10 +31,10 @@ export function ChatMessage({ message }: ChatMessageProps) {
       {/* Bubble */}
       <div
         className={cn(
-          "px-4 py-3 text-sm leading-relaxed",
+          "px-4 py-3 text-sm leading-relaxed rounded-2xl",
           isAssistant
-            ? "glass-prominent rounded-2xl rounded-tl-sm text-white-primary"
-            : "glass-gold rounded-2xl rounded-tr-sm text-white-primary"
+            ? "glass-prominent rounded-tl-sm text-white-primary"
+            : "bg-gold-gradient rounded-tr-sm text-black font-medium"
         )}
       >
         {message.content}

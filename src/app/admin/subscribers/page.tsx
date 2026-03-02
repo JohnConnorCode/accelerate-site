@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
-import { AtSign, Users, UserX } from "lucide-react";
+import Link from "next/link";
+import { AtSign, Users, UserX, Search, Download } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { StatCard } from "@/components/admin/StatCard";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Pagination } from "@/components/admin/Pagination";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
@@ -32,6 +35,8 @@ export default function SubscribersPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const fetchData = useCallback(async () => {
     try {
@@ -51,6 +56,19 @@ export default function SubscribersPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const filtered = useMemo(() => {
+    return subscribers.filter((sub) => {
+      if (searchQuery && !sub.email.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      if (statusFilter === "active" && sub.unsubscribed_at) return false;
+      if (statusFilter === "unsubscribed" && !sub.unsubscribed_at) return false;
+      return true;
+    });
+  }, [subscribers, searchQuery, statusFilter]);
+
+  const handleExport = () => {
+    window.open("/api/admin/subscribers/export", "_blank");
+  };
 
   if (loading) {
     return (
@@ -75,6 +93,33 @@ export default function SubscribersPage() {
         <StatCard label="Unsubscribed" value={stats.unsubscribed} icon={UserX} index={2} />
       </div>
 
+      {/* Search & Filters */}
+      <div className="flex flex-wrap gap-3 mb-4">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white-muted" />
+          <Input
+            type="text"
+            placeholder="Search by email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-glass)] px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-[var(--gold-base)] transition-all"
+        >
+          <option value="all">All Status</option>
+          <option value="active">Active</option>
+          <option value="unsubscribed">Unsubscribed</option>
+        </select>
+        <Button variant="secondary" size="sm" onClick={handleExport}>
+          <Download className="h-4 w-4 mr-2" />
+          Export
+        </Button>
+      </div>
+
       <GlassCard padding="none" hover="none" className="overflow-clip">
         <table className="w-full text-sm">
           <thead>
@@ -86,7 +131,7 @@ export default function SubscribersPage() {
             </tr>
           </thead>
           <tbody>
-            {subscribers.map((sub, index) => (
+            {filtered.map((sub, index) => (
               <motion.tr
                 key={sub.id}
                 initial={{ opacity: 0 }}
@@ -94,7 +139,14 @@ export default function SubscribersPage() {
                 transition={{ delay: index * 0.03 }}
                 className="border-b border-border-glass hover:bg-white/[0.02] transition-colors"
               >
-                <td className="px-4 py-3 text-white-primary">{sub.email}</td>
+                <td className="px-4 py-3">
+                  <Link
+                    href={`/admin/contacts/${encodeURIComponent(sub.email)}`}
+                    className="text-white-primary hover:text-[var(--gold-light)] transition-colors"
+                  >
+                    {sub.email}
+                  </Link>
+                </td>
                 <td className="px-4 py-3 text-white-secondary capitalize">{sub.source || "website"}</td>
                 <td className="px-4 py-3">
                   <StatusBadge status={sub.unsubscribed_at ? "unsubscribed" : "active"} />
@@ -106,8 +158,8 @@ export default function SubscribersPage() {
             ))}
           </tbody>
         </table>
-        {subscribers.length === 0 && (
-          <EmptyState message="No subscribers yet" icon={AtSign} />
+        {filtered.length === 0 && (
+          <EmptyState message="No subscribers found" icon={AtSign} />
         )}
       </GlassCard>
 

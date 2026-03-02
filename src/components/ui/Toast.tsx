@@ -65,7 +65,7 @@ export function Toast({
             </p>
             <button
               onClick={onClose}
-              className="shrink-0 text-[var(--white-muted)] hover:text-white transition-colors cursor-pointer"
+              className="shrink-0 text-[var(--white-muted)] hover:text-[var(--white-primary)] transition-colors cursor-pointer"
               aria-label="Close notification"
             >
               <X className="w-4 h-4" />

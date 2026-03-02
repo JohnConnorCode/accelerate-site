@@ -3,57 +3,57 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Clock, Shield, Sparkles } from "lucide-react";
-import { heroReveal } from "@/lib/animations";
+import { fadeUp } from "@/lib/animations";
 import { ConversationalChat } from "./ConversationalChat";
 
 export function PlanBuilderPage() {
-  // Ensure page starts at the top
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
   return (
-    <main className="min-h-screen pt-32 pb-20 px-4 sm:px-6 relative">
+    <main className="min-h-screen pt-28 sm:pt-36 pb-24 px-4 sm:px-6 relative">
       {/* Background effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.08),transparent_70%)]" />
+        <div className="absolute inset-0 gradient-mesh opacity-40" />
+        <div className="absolute inset-0 grid-overlay opacity-20" />
+        <div className="hero-glow-orb hero-glow-orb-gold absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2" />
       </div>
 
       <div className="relative z-10">
-        {/* Hero */}
         <motion.div
-          variants={heroReveal}
+          variants={fadeUp}
           initial="hidden"
           animate="visible"
-          className="text-center mb-12 max-w-2xl mx-auto"
+          className="text-center mb-12 max-w-3xl mx-auto"
         >
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-[var(--heading-color)] mb-4 leading-tight">
-            Build Your Custom{" "}
+          <p className="section-label">Growth Plan</p>
+          <h1 className="page-heading leading-[1.1] mb-5">
+            Your Custom{" "}
             <span className="text-gold-gradient">Growth Plan</span>
+            {" "}in 5 Minutes
           </h1>
-          <p className="text-[var(--white-secondary)] text-base sm:text-lg max-w-xl mx-auto mb-6">
-            Answer a few questions about your business and get a
-            personalized roadmap with pricing, timelines, and ROI projections.
+          <p className="text-lg sm:text-xl text-[var(--white-secondary)] max-w-2xl mx-auto leading-relaxed mb-6">
+            Answer a few quick questions. Our AI builds a personalized
+            strategy with recommendations, timelines, and pricing.
           </p>
 
-          {/* Trust signals — inline text, not pills */}
-          <div className="flex items-center justify-center gap-5 flex-wrap text-xs text-[var(--white-muted)]">
-            <span className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-[var(--gold-base)]" />
+          <div className="flex items-center justify-center gap-6 flex-wrap text-sm text-[var(--white-muted)]">
+            <span className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-[var(--gold-base)]" />
               5 minutes
             </span>
-            <span className="flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[var(--gold-base)]" />
+            <span className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[var(--gold-base)]" />
               Personalized by AI
             </span>
-            <span className="flex items-center gap-1.5">
-              <Shield className="w-3.5 h-3.5 text-[var(--gold-base)]" />
-              Free &amp; private
+            <span className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-[var(--gold-base)]" />
+              Free & private
             </span>
           </div>
         </motion.div>
 
-        {/* Chat */}
         <ConversationalChat />
       </div>
     </main>

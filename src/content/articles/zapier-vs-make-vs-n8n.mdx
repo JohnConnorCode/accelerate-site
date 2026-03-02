@@ -47,15 +47,15 @@ Pricing is where these platforms diverge the most, and it is often the deciding 
 
 ### What the Pricing Really Means
 
-The pricing difference becomes dramatic at scale. Consider a simple workflow: new form submission triggers adding a contact to your CRM, sending a welcome email, and alerting you via Slack. That is 3 actions per lead.
+The pricing difference becomes dramatic at scale. Consider a simple workflow: new form submission triggers adding a contact to your CRM, sending a welcome email, and alerting you via Slack. That is 3 actions per inquiry.
 
-If you get 200 leads per month, here is what it costs on each platform:
+If you get 200 inquiries per month, here is what it costs on each platform:
 
-- **Zapier:** 200 leads x 3 tasks = 600 tasks/month. You need the $19.99/mo plan (750 tasks). Go over, and you jump to $49/mo.
-- **Make.com:** 200 leads x 3 operations = 600 ops/month. Well within the free tier (1,000 ops). You pay nothing.
+- **Zapier:** 200 inquiries x 3 tasks = 600 tasks/month. You need the $19.99/mo plan (750 tasks). Go over, and you jump to $49/mo.
+- **Make.com:** 200 inquiries x 3 operations = 600 ops/month. Well within the free tier (1,000 ops). You pay nothing.
 - **n8n (self-hosted):** 200 executions per month. Free forever.
 
-At 1,000 leads per month, Zapier costs $49 to $69/month while Make.com stays under $16/month and n8n remains free if self-hosted.
+At 1,000 inquiries per month, Zapier costs $49 to $69/month while Make.com stays under $16/month and n8n remains free if self-hosted.
 
 <Callout type="tip" title="Watch for Hidden Costs on Zapier">
 Zapier counts every step in a multi-step workflow as a separate task. A 5-step Zap that runs 100 times uses 500 tasks, not 100. Make.com counts similarly with operations, but their generous free tier absorbs much more. n8n counts per execution regardless of how many steps are inside.
@@ -175,7 +175,7 @@ A new form submission triggers a Slack message and adds a row to Google Sheets.
 
 ### Scenario 2: Multi-Channel Follow-Up Sequence
 
-A new lead triggers an instant email, adds them to a CRM, waits 24 hours, checks if they replied, then sends a follow-up SMS or marks them as engaged.
+A new inquiry triggers an instant email, adds them to a CRM, waits 24 hours, checks if they replied, then sends a follow-up SMS or marks them as engaged.
 
 - **Zapier:** Possible but requires Paths and multi-step Zaps on paid plans. Uses 5+ tasks per run. Setup: 30 minutes.
 - **Make.com:** Natural fit. The visual builder handles branching, delays, and conditional logic cleanly. Uses 5 operations per run. Setup: 20 minutes.
@@ -236,7 +236,7 @@ All three platforms are excellent. The differences come down to your technical c
 
 If simplicity is your top priority and cost is secondary, go with Zapier. If you want the best balance of price and power, go with Make.com. If you are technical and want unlimited automations at zero marginal cost, go with n8n.
 
-The worst choice is not choosing at all. Every day you spend manually copying data between apps, sending reminder emails by hand, or forgetting to follow up with leads is a day your competitors are automating past you.
+The worst choice is not choosing at all. Every day you spend manually copying data between apps, sending reminder emails by hand, or forgetting to follow up with prospects is a day your competitors are automating past you.
 
 <CTACard
   title="Not sure which platform fits your business?"

@@ -5,15 +5,16 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap-init";
+import { prefersReducedMotion } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
+import { MagneticButton } from "@/components/ui/MagneticButton";
 
 export function FinalCTA() {
   const sectionRef = useRef<HTMLElement>(null);
 
   useGSAP(() => {
     if (!sectionRef.current) return;
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (mq.matches) return;
+    if (prefersReducedMotion()) return;
 
     // Parallax: background layers move at different speeds
     const meshBg = sectionRef.current.querySelector("[data-parallax-mesh]");
@@ -88,22 +89,16 @@ export function FinalCTA() {
   return (
     <section
       ref={sectionRef}
-      className="py-36 relative overflow-hidden"
+      className="py-24 sm:py-32 md:py-40 relative overflow-hidden"
       style={{ backgroundColor: "var(--bg-base)" }}
     >
-      {/* Top fade from Stats bg */}
-      <div
-        className="absolute top-0 left-0 right-0 h-24 pointer-events-none z-[1]"
-        style={{ background: "linear-gradient(to bottom, var(--bg-base), transparent)" }}
-      />
-
       {/* Atmospheric background layers */}
       <div className="absolute inset-0 pointer-events-none">
         <div data-parallax-mesh className="absolute inset-0 gradient-mesh opacity-25" />
         <div data-parallax-grid className="absolute inset-0 grid-overlay opacity-15" />
         <div
           data-parallax-glow
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] rounded-full"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(700px,95vw)] h-[400px] rounded-full"
           style={{
             background: "radial-gradient(ellipse, rgba(212,175,55,0.08) 0%, transparent 70%)",
           }}
@@ -113,23 +108,26 @@ export function FinalCTA() {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
         <h2
           data-cta-heading
-          className="font-display text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-6"
+          className="page-heading mb-6"
         >
-          Ready to stop doing<br className="hidden sm:inline" /> it all yourself?
+          Let&apos;s talk about{" "}
+          <span className="text-gold-gradient">your business.</span>
         </h2>
         <p data-cta-desc className="text-lg sm:text-xl text-[var(--white-muted)] max-w-xl mx-auto mb-10">
-          30-minute strategy call. We&apos;ll show you exactly which systems would have the biggest impact on your revenue — and what they&apos;d cost.
+          Free discovery call. 30 minutes. You walk away with a clear plan — whether you work with us or not.
         </p>
-        <div data-cta-buttons className="flex flex-col sm:flex-row gap-5 justify-center">
-          <Link href="/contact">
-            <Button variant="primary" size="lg" className="w-full sm:w-auto">
-              Book Your Free Consultation
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </Link>
-          <Link href="/plan-builder">
+        <div data-cta-buttons className="flex flex-col sm:flex-row gap-3 sm:gap-5 justify-center">
+          <MagneticButton>
+            <Link href="/contact">
+              <Button variant="primary" size="lg" pulse className="w-full sm:w-auto">
+                Book a Free Discovery Call
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+          </MagneticButton>
+          <Link href="/resources">
             <Button variant="secondary" size="lg" className="w-full sm:w-auto border-gradient-animated">
-              Get Your Growth Plan
+              Get the AI Playbook
             </Button>
           </Link>
         </div>

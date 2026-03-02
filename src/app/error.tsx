@@ -14,12 +14,12 @@ export default function Error({
       <div className="text-center max-w-md">
         <p
           className="text-6xl font-bold text-gold-gradient mb-4"
-          style={{ fontFamily: "var(--font-space-grotesk), var(--font-inter), sans-serif" }}
+          style={{ fontFamily: "var(--font-jost), var(--font-inter), sans-serif" }}
         >
           Oops
         </p>
-        <h1 className="text-2xl font-bold text-white mb-3">Something Went Wrong</h1>
-        <p className="text-white/60 mb-8">
+        <h1 className="text-2xl font-bold text-[var(--heading-color)] mb-3">Something Went Wrong</h1>
+        <p className="text-[var(--white-muted)] mb-8">
           An unexpected error occurred. Please try again or return to the home page.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">

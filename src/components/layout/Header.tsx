@@ -52,12 +52,6 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const headerRef = useRef<HTMLElement>(null);
-  const borderRef = useRef<HTMLDivElement>(null);
-  const glassSurface = {
-    backdropFilter: "blur(22px) saturate(165%)",
-    WebkitBackdropFilter: "blur(22px) saturate(165%)",
-  };
-
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -81,11 +75,14 @@ export function Header() {
         ref={headerRef}
         className={cn(
           "fixed top-0 left-0 right-0 z-[90] transition-all duration-500",
-          scrolled ? "py-3 shadow-[0_20px_70px_rgba(0,0,0,0.45)]" : "py-5"
+          scrolled
+            ? "py-3 shadow-[0_20px_70px_rgba(0,0,0,0.45)]"
+            : "py-5"
         )}
         style={{
-          ...glassSurface,
-          backgroundColor: scrolled ? "var(--header-bg-scrolled)" : "var(--header-bg)",
+          backgroundColor: scrolled ? "var(--header-bg-scrolled)" : "transparent",
+          backdropFilter: scrolled ? "blur(24px) saturate(180%)" : "none",
+          WebkitBackdropFilter: scrolled ? "blur(24px) saturate(180%)" : "none",
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
@@ -112,7 +109,7 @@ export function Header() {
                   }}
                 >
                   <button
-                    className="text-sm text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] transition-colors cursor-pointer"
+                    className="text-sm text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] transition-colors cursor-pointer rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
                     aria-expanded={openDropdown === link.label}
                     aria-haspopup="true"
                     onFocus={() => setOpenDropdown(link.label)}
@@ -129,17 +126,21 @@ export function Header() {
                         className="absolute top-full left-1/2 -translate-x-1/2 pt-2"
                       >
                         <div
-                          className="glass-prominent rounded-xl py-2 min-w-[220px] border border-[var(--border-light)]"
+                          role="menu"
+                          aria-label={`${link.label} submenu`}
+                          className="rounded-xl py-2 min-w-[220px] border border-[var(--border-light)]"
                           style={{
-                            ...glassSurface,
                             backgroundColor: "var(--dropdown-bg)",
+                            backdropFilter: "blur(24px) saturate(180%)",
+                            WebkitBackdropFilter: "blur(24px) saturate(180%)",
                           }}
                         >
                           {link.children.map((child) => (
                             <Link
                               key={child.href}
                               href={child.href}
-                              className="block px-4 py-2.5 text-sm text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] hover:bg-[var(--bg-hover-subtle)] transition-colors"
+                              role="menuitem"
+                              className="block px-4 py-2.5 text-sm text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] hover:bg-[var(--bg-hover-subtle)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--gold-base)]"
                             >
                               {child.label}
                             </Link>
@@ -153,7 +154,7 @@ export function Header() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="text-sm text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] transition-colors"
+                  className="text-sm text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] transition-colors rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
                 >
                   {link.label}
                 </Link>
@@ -174,7 +175,7 @@ export function Header() {
 
           {/* Mobile Hamburger */}
           <button
-            className="lg:hidden text-[var(--gold-base)] p-2 cursor-pointer"
+            className="lg:hidden text-[var(--gold-base)] p-2.5 -mr-2.5 cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
             onClick={() => setMobileOpen(true)}
             aria-label="Open navigation menu"
           >

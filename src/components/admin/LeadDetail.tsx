@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, X } from "lucide-react";
+import { Mail, X, DollarSign, FileCheck, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { calculateLeadScore, getScoreColor, getScoreLabel } from "@/lib/admin/lead-scoring";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Toast } from "@/components/ui/Toast";
+import { TaskQuickAdd } from "./TaskQuickAdd";
 
 interface Lead {
   id: string;
@@ -23,11 +24,12 @@ interface Lead {
   ai_plan?: Record<string, unknown>;
   notes?: string;
   view_count?: number;
+  estimated_value?: number;
 }
 
 interface LeadDetailProps {
   lead: Lead;
-  onUpdate: (id: string, data: { lead_status?: string; notes?: string }) => void;
+  onUpdate: (id: string, data: { lead_status?: string; notes?: string; estimated_value?: number }) => void;
 }
 
 const statusOptions = ["new", "contacted", "qualified", "proposal", "won", "lost"];
@@ -35,12 +37,14 @@ const statusOptions = ["new", "contacted", "qualified", "proposal", "won", "lost
 export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
   const [notes, setNotes] = useState(lead.notes || "");
   const [status, setStatus] = useState(lead.lead_status);
+  const [dealValue, setDealValue] = useState(lead.estimated_value?.toString() || "");
   const [saving, setSaving] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [emailSubject, setEmailSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
   const [sendingEmail, setSendingEmail] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [generatingProposal, setGeneratingProposal] = useState(false);
 
   const score = calculateLeadScore(lead);
   const scoreColor = getScoreColor(score);
@@ -48,7 +52,17 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
 
   const handleSave = async () => {
     setSaving(true);
-    await onUpdate(lead.id, { lead_status: status, notes });
+    const updateData: { lead_status?: string; notes?: string; estimated_value?: number } = {
+      lead_status: status,
+      notes,
+    };
+    const parsedValue = parseFloat(dealValue);
+    if (!isNaN(parsedValue) && parsedValue >= 0) {
+      updateData.estimated_value = parsedValue;
+    } else if (dealValue === "") {
+      updateData.estimated_value = 0;
+    }
+    await onUpdate(lead.id, updateData);
     setSaving(false);
   };
 
@@ -98,6 +112,52 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
           <Mail className="h-3.5 w-3.5 mr-1.5" />
           Send Email
         </Button>
+        {(status === "proposal" || status === "qualified") && (
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={generatingProposal}
+            onClick={async () => {
+              setGeneratingProposal(true);
+              try {
+                const genRes = await fetch("/api/admin/proposals/generate", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ lead_id: lead.id }),
+                });
+                const genData = await genRes.json();
+                if (!genRes.ok) throw new Error(genData.error);
+
+                const createRes = await fetch("/api/admin/proposals", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    lead_id: lead.id,
+                    client_name: genData.clientName || lead.contact_name,
+                    title: `Proposal for ${genData.businessName || lead.business_name || lead.contact_name}`,
+                    content: genData.content,
+                    total_monthly: genData.totalMonthly,
+                    total_one_time: genData.totalOneTime,
+                  }),
+                });
+                if (!createRes.ok) throw new Error("Failed to create proposal");
+
+                setToast({ message: "Proposal generated! View in Proposals.", type: "success" });
+              } catch (err) {
+                setToast({ message: err instanceof Error ? err.message : "Failed to generate", type: "error" });
+              } finally {
+                setGeneratingProposal(false);
+              }
+            }}
+          >
+            {generatingProposal ? (
+              <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+            ) : (
+              <FileCheck className="h-3.5 w-3.5 mr-1.5" />
+            )}
+            {generatingProposal ? "Generating..." : "Create Proposal"}
+          </Button>
+        )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -117,6 +177,25 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
           </select>
         </div>
 
+        {/* Deal Value */}
+        <div>
+          <label className="block text-xs text-white-muted mb-1">Deal Value</label>
+          <div className="relative">
+            <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white-muted" />
+            <input
+              type="number"
+              min="0"
+              step="100"
+              value={dealValue}
+              onChange={(e) => setDealValue(e.target.value)}
+              placeholder="0"
+              className="w-full rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-glass)] pl-9 pr-3 py-2 text-sm text-white-primary focus:outline-none focus:border-[var(--gold-base)] focus:ring-1 focus:ring-[var(--gold-base)]/30 transition-all duration-200"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
         {/* Intake summary */}
         <div>
           <label className="block text-xs text-white-muted mb-1">
@@ -140,6 +219,16 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
             ) : (
               <span className="text-white-muted text-xs">No intake data</span>
             )}
+          </div>
+        </div>
+
+        {/* Contact info */}
+        <div>
+          <label className="block text-xs text-white-muted mb-1">Contact</label>
+          <div className="text-xs text-white-secondary space-y-0.5">
+            <p>{lead.contact_email}</p>
+            {lead.contact_phone && <p>{lead.contact_phone}</p>}
+            {lead.business_name && <p>{lead.business_name}</p>}
           </div>
         </div>
       </div>
@@ -169,6 +258,13 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
       <Button variant="primary" size="sm" onClick={handleSave} disabled={saving}>
         {saving ? "Saving..." : "Save Changes"}
       </Button>
+
+      {/* Follow-up Task */}
+      <TaskQuickAdd
+        relatedType="lead"
+        relatedId={lead.id}
+        relatedName={lead.contact_name}
+      />
 
       {/* Email Modal */}
       <AnimatePresence>

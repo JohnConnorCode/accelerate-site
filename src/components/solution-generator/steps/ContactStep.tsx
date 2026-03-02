@@ -3,9 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
-import { contactMethodOptions } from "@/content/intake-questions";
 import { fadeUp, staggerContainer } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 import type { IntakeFormData } from "@/lib/types";
@@ -98,32 +96,6 @@ export function ContactStep({ formData, onUpdate, onSubmit }: StepProps) {
                 setErrors((prev) => ({ ...prev, contactEmail: "" }));
               }
             }}
-          />
-        </motion.div>
-
-        <motion.div variants={fadeUp}>
-          <Input
-            id="contact-phone"
-            label="Phone number (optional)"
-            type="tel"
-            placeholder="(555) 123-4567"
-            value={formData.contactPhone || ""}
-            onChange={(e) => onUpdate({ contactPhone: e.target.value })}
-          />
-        </motion.div>
-
-        <motion.div variants={fadeUp}>
-          <Select
-            id="contact-method"
-            label="Preferred contact method"
-            options={contactMethodOptions}
-            placeholder="Select..."
-            value={formData.contactMethod || ""}
-            onChange={(e) =>
-              onUpdate({
-                contactMethod: e.target.value as IntakeFormData["contactMethod"],
-              })
-            }
           />
         </motion.div>
 

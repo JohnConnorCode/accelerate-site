@@ -19,7 +19,7 @@ function emailWrapper(content: string): string {
         <!-- Footer -->
         <tr><td style="padding:30px 0 0 0;text-align:center;">
           <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.38);">
-            Accelerate | AI Solutions for Small Business<br>
+            Accelerate | AI Strategy &amp; Systems for Small Business<br>
             <a href="${BASE_URL}" style="color:rgba(255,255,255,0.38);">acceleratewith.us</a>
           </p>
         </td></tr>
@@ -92,7 +92,7 @@ export function contactConfirmationEmail(name: string): string {
     <p style="margin:0 0 16px 0;font-size:15px;color:rgba(255,255,255,0.65);line-height:1.6;">
       In the meantime, you can get a free AI-powered growth plan for your business:
     </p>
-    ${goldButton("Get Your Free Growth Plan", `${BASE_URL}/#solution-generator`)}
+    ${goldButton("Get Your Free Growth Plan", `${BASE_URL}/plan-builder`)}
   `);
 }
 

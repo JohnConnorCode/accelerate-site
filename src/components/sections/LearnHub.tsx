@@ -72,7 +72,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
             <span className="text-gold-gradient">Smarter Growth</span>
           </>
         }
-        description="No fluff, no filler. AI, automation, and lead generation strategies you can implement today — written by people who actually run small businesses."
+        description="No fluff, no filler. AI, automation, and growth strategies you can implement today — written by people who actually run small businesses."
       >
         <div className="flex items-center justify-center gap-6 flex-wrap mt-8 text-sm text-[var(--white-muted)]">
           <span className="flex items-center gap-2">
@@ -112,7 +112,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                     <p className="text-xs font-semibold uppercase tracking-wide text-[var(--gold-base)] mb-4">
                       {CATEGORY_LABELS[featuredArticle.frontmatter.category]}
                     </p>
-                    <h2 className="font-display text-2xl sm:text-3xl font-bold text-white group-hover:text-gold-gradient transition-colors leading-tight">
+                    <h2 className="font-display text-2xl sm:text-3xl font-bold text-[var(--heading-color)] group-hover:text-gold-gradient transition-colors leading-tight">
                       {featuredArticle.frontmatter.title}
                     </h2>
                     <p className="mt-4 max-w-3xl text-[var(--white-secondary)] leading-relaxed line-clamp-2">
@@ -303,9 +303,9 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
       <div className="section-divider" />
 
       {/* Newsletter CTA */}
-      <section className="py-20 bg-[var(--bg-section-warm)] relative overflow-hidden">
+      <section className="py-24 bg-[var(--bg-section-warm)] relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] rounded-full bg-radial from-[rgba(212,175,55,0.05)] to-transparent" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(700px,90vw)] h-[350px] rounded-full bg-radial from-[rgba(212,175,55,0.05)] to-transparent" />
         </div>
 
         <div className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
@@ -315,7 +315,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                 <div className="w-12 h-12 rounded-full bg-[rgba(212,175,55,0.15)] border border-[rgba(212,175,55,0.3)] flex items-center justify-center mx-auto mb-5">
                   <Mail className="w-6 h-6 text-[var(--gold-light)]" />
                 </div>
-                <h2 className="font-display text-2xl font-bold text-white mb-2">
+                <h2 className="font-display text-2xl font-bold text-[var(--heading-color)] mb-2">
                   Get New Guides in Your Inbox
                 </h2>
                 <p className="text-sm text-[var(--white-muted)] max-w-md mx-auto mb-8">
@@ -326,7 +326,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                   <input
                     type="email"
                     placeholder="you@company.com"
-                    className="flex-1 rounded-lg glass py-3 px-4 text-sm text-white placeholder:text-[var(--white-muted)] focus:outline-none focus:border-[var(--border-gold)]"
+                    className="flex-1 rounded-lg glass py-3 px-4 text-sm text-[var(--white-primary)] placeholder:text-[var(--white-muted)] focus:outline-none focus:border-[var(--border-gold)]"
                     readOnly
                   />
                   <Button variant="primary" size="md">
@@ -343,11 +343,11 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
       <div className="section-divider" />
 
       {/* Resources Cross-Promo */}
-      <section className="py-20 bg-[var(--bg-base)]">
+      <section className="py-24 bg-[var(--bg-base)]">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll>
             <GlassCard variant="prominent" padding="lg" className="text-center">
-              <h2 className="font-display text-xl font-bold text-white mb-3">
+              <h2 className="font-display text-xl font-bold text-[var(--heading-color)] mb-3">
                 Want something you can use right now?
               </h2>
               <p className="text-sm text-[var(--white-muted)] max-w-md mx-auto mb-6">

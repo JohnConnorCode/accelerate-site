@@ -72,7 +72,7 @@ export function PartnersPage() {
   };
 
   return (
-    <div className="py-20 md:py-28">
+    <div className="py-24 md:py-32">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Hero */}
         <motion.div
@@ -138,7 +138,7 @@ export function PartnersPage() {
             Partner Tiers
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {partnerTiers.map((tier, i) => {
               const Icon = tierIcons[tier.name] || Users;
               return (
@@ -269,7 +269,7 @@ export function PartnersPage() {
                     <label className="block text-sm font-medium text-white-secondary mb-2">
                       Partner Type *
                     </label>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       {[
                         { value: "referral" as const, label: "Referral", icon: Users },
                         { value: "agency" as const, label: "Agency", icon: Building2 },
@@ -305,7 +305,7 @@ export function PartnersPage() {
                     required
                   />
 
-                  {error && <p className="text-red-400 text-sm">{error}</p>}
+                  {error && <p role="alert" className="text-[var(--error)] text-sm">{error}</p>}
 
                   <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
                     {isSubmitting ? (

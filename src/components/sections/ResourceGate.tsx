@@ -138,7 +138,7 @@ export function ResourceGate({ resourceId, onClose }: ResourceGateProps) {
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-4 right-4 text-white-muted hover:text-white-primary transition-colors"
+            className="absolute top-4 right-4 text-[var(--white-muted)] hover:text-[var(--white-primary)] transition-colors"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -150,12 +150,12 @@ export function ResourceGate({ resourceId, onClose }: ResourceGateProps) {
             </div>
             <h2
               id={headingId}
-              className="text-xl font-bold text-white-primary mb-1"
-              style={{ fontFamily: "var(--font-space-grotesk), var(--font-inter), sans-serif" }}
+              className="text-xl font-bold text-[var(--white-primary)] mb-1"
+              style={{ fontFamily: "var(--font-jost), var(--font-inter), sans-serif" }}
             >
               Get Your Free Download
             </h2>
-            <p className="text-sm text-white-secondary">
+            <p className="text-sm text-[var(--white-secondary)]">
               Enter your details to download{" "}
               <span className="text-[var(--gold-light)]">{resource.title}</span>
             </p>
@@ -179,7 +179,7 @@ export function ResourceGate({ resourceId, onClose }: ResourceGateProps) {
             />
 
             {error && (
-              <p className="text-red-400 text-sm">{error}</p>
+              <p role="alert" className="text-[var(--error)] text-sm">{error}</p>
             )}
 
             <Button
@@ -201,7 +201,7 @@ export function ResourceGate({ resourceId, onClose }: ResourceGateProps) {
               )}
             </Button>
 
-            <p className="text-xs text-white-muted text-center">
+            <p className="text-xs text-[var(--white-muted)] text-center">
               We will send you occasional updates. Unsubscribe anytime.
             </p>
           </form>

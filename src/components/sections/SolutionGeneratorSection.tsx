@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 
 const SolutionGenerator = dynamic(
   () =>
@@ -30,21 +31,17 @@ export function SolutionGeneratorSection() {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <AnimateOnScroll className="text-center mb-12">
-          <p className="section-label">
-            AI-Powered Strategy
-          </p>
-          <h2
-            className="section-heading mb-4"
-          >
-            Get Your Custom{" "}
-            <span className="text-gold-gradient">Growth Plan</span> in 5
-            Minutes
-          </h2>
-          <p className="text-lg text-white/60 max-w-2xl mx-auto">
-            Answer a few questions about your business and our AI will build a
-            personalized strategy with specific recommendations, timelines, and
-            pricing.
-          </p>
+          <SectionHeader
+            label="AI-Powered Strategy"
+            heading={
+              <>
+                Get Your Custom{" "}
+                <span className="text-gold-gradient">Growth Plan</span> in 5
+                Minutes
+              </>
+            }
+            description="Answer a few questions about your business and our AI will build a personalized strategy with specific recommendations, timelines, and pricing."
+          />
         </AnimateOnScroll>
 
         <SolutionGenerator />

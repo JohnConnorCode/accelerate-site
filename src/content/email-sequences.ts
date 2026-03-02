@@ -31,7 +31,7 @@ No pressure, no pitch. Just a conversation about what would actually move the ne
 
 After analyzing hundreds of {{industry}} businesses, there's one pattern we see over and over:
 
-The businesses that grow fastest aren't the ones with the biggest ad budget. They're the ones that respond to leads first.
+The businesses that grow fastest aren't the ones with the biggest ad budget. They're the ones that respond to inquiries first.
 
 80% of deals go to whoever responds first. If your average response time is measured in hours (or days), you're leaving money on the table.
 
@@ -46,16 +46,16 @@ https://acceleratewith.us/contact
     },
     {
       stepNumber: 3,
-      subject: "How Farrell Roofing went from 12 to 53 leads/month",
+      subject: "How Farrell Roofing went from 12 to 53 jobs/month",
       delayDays: 5,
       bodyTemplate: `Hi {{name}},
 
 Quick case study that might resonate with you:
 
-Farrell Roofing in Denver was running a solid business but losing leads to slow follow-up and an outdated website. Sound familiar?
+Farrell Roofing in Denver was running a solid business but losing customers to slow follow-up and an outdated website. Sound familiar?
 
 After implementing an AI-powered website and automated follow-up system, they saw:
-- 340% increase in online leads
+- 340% increase in inbound inquiries
 - Response time dropped from 4 hours to under 2 minutes
 - $47,000 in additional monthly revenue within 90 days
 
@@ -78,7 +78,7 @@ I wanted to follow up one last time about your growth plan.
 If any of these apply to you, a quick conversation could save you months of trial and error:
 
 - You know you need to improve your digital presence but aren't sure where to start
-- You're losing leads to competitors who respond faster
+- You're losing customers to competitors who respond faster
 - You're spending too much time on tasks that could be automated
 - You want to grow but don't have the bandwidth
 
@@ -106,7 +106,7 @@ Thanks for downloading {{resourceTitle}}. Here's your link:
 
 While you're diving into that, here's a bonus: our free AI Solution Generator creates a custom growth plan for your business in under 5 minutes. It's specific to your industry, your current setup, and your goals.
 
-Try it here: https://acceleratewith.us/#solution-generator
+Try it here: https://acceleratewith.us/plan-builder
 
 Enjoy the resource. If you have any questions, just reply to this email.
 
@@ -138,8 +138,8 @@ Both are free and take less than a minute.
 
 I'm curious — what's the biggest bottleneck in your business right now?
 
-A) Not enough leads coming in
-B) Leads coming in but not converting
+A) Not enough inquiries coming in
+B) Inquiries coming in but not converting
 C) Too much manual work eating up your time
 D) All of the above
 
@@ -167,11 +167,11 @@ Overall Score: {{score}}/100
 Top issues we found:
 {{topIssues}}
 
-The good news: most of these issues are fixable, and fixing them can have an immediate impact on your lead generation.
+The good news: most of these issues are fixable, and fixing them can have an immediate impact on your client acquisition.
 
 Want to see what a top-performing website in your industry looks like? Our AI Solution Generator will create a custom plan based on your specific situation:
 
-https://acceleratewith.us/#solution-generator
+https://acceleratewith.us/plan-builder
 
 Or if you'd rather have an expert walk you through it:
 https://acceleratewith.us/contact
@@ -188,7 +188,7 @@ Based on your website grade of {{score}}/100, here are three things you can fix 
 
 1. **Page speed** — Compress your images and enable browser caching. Every second of load time costs you 7% in conversions.
 
-2. **Mobile optimization** — Over 60% of your traffic is on mobile. If your site isn't fast and easy to use on a phone, you're losing more than half your potential leads.
+2. **Mobile optimization** — Over 60% of your traffic is on mobile. If your site isn't fast and easy to use on a phone, you're losing more than half your potential customers.
 
 3. **Clear CTAs** — Every page should have one clear next step for the visitor. "Call now," "Book a consultation," "Get a free quote." Make it obvious and make it easy.
 

@@ -42,9 +42,9 @@ export function AccordionTrigger({
     <AccordionPrimitive.Header className="flex">
       <AccordionPrimitive.Trigger
         className={cn(
-          "flex flex-1 items-center justify-between px-6 py-4 text-left",
+          "flex flex-1 items-center justify-between px-4 py-3 sm:px-6 sm:py-4 text-left",
           "text-[var(--white-primary)] font-medium",
-          "hover:text-white transition-colors cursor-pointer",
+          "hover:text-[var(--white-primary)] transition-colors cursor-pointer",
           "group",
           className
         )}
@@ -72,7 +72,7 @@ export function AccordionContent({
       )}
       {...props}
     >
-      <div className="px-6 pb-4 text-[var(--white-secondary)] leading-relaxed">
+      <div className="px-4 sm:px-6 pb-4 text-[var(--white-secondary)] leading-relaxed text-sm sm:text-base">
         {children}
       </div>
     </AccordionPrimitive.Content>

@@ -35,6 +35,9 @@ Always refer to these when writing or reviewing site copy:
 
 See detailed analysis: `.claude/projects/.../memory/competitor-references.md`
 
+## Visual QA Rule
+After making visual/layout changes to components, always take a screenshot and review it before considering the work done. Check for empty space, broken layouts, alignment issues, and overall visual balance. Iterate until it looks right — don't ship blind.
+
 ## Pre-Commit Requirements
 1. `npx tsc --noEmit` — zero errors
 2. `npm run build` — production build succeeds

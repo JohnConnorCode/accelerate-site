@@ -206,7 +206,7 @@ function StatCard({
           <p
             className={cn(
               "font-display text-xl sm:text-2xl font-bold truncate",
-              highlight ? "text-gold-gradient" : "text-white"
+              highlight ? "text-gold-gradient" : "text-[var(--heading-color)]"
             )}
           >
             {value}
@@ -278,7 +278,7 @@ export function ROICalculatorPage() {
               Calculate Your{" "}
               <span className="text-gold-gradient">ROI</span>
             </h1>
-            <p className="text-lg sm:text-xl text-white/65 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg sm:text-xl text-[var(--white-secondary)] max-w-2xl mx-auto leading-relaxed">
               Enter your current numbers and see the projected impact of
               AI-powered automation on your revenue, time savings, and overall
               return on investment.
@@ -301,7 +301,7 @@ export function ROICalculatorPage() {
                     <Calculator className="w-5 h-5 text-[var(--gold-base)]" />
                   </div>
                   <h2
-                    className="font-display text-xl sm:text-2xl font-bold text-white"
+                    className="font-display text-xl sm:text-2xl font-bold text-[var(--heading-color)]"
                   >
                     Your Business Numbers
                   </h2>
@@ -319,10 +319,10 @@ export function ROICalculatorPage() {
                     }
                   />
 
-                  {/* Monthly Leads */}
+                  {/* Monthly Inquiries */}
                   <Input
                     id="monthlyLeads"
-                    label="Monthly Leads"
+                    label="Monthly Inquiries"
                     type="number"
                     min={0}
                     value={inputs.monthlyLeads}
@@ -479,7 +479,7 @@ export function ROICalculatorPage() {
                 <GlassCard variant="prominent" padding="lg" hover="glow">
                   <div className="flex items-center gap-2 mb-5">
                     <BarChart3 className="w-5 h-5 text-[var(--gold-base)]" />
-                    <h3 className="font-display text-base font-semibold text-white">
+                    <h3 className="font-display text-base font-semibold text-[var(--heading-color)]">
                       Revenue Comparison
                     </h3>
                   </div>
@@ -593,12 +593,12 @@ export function ROICalculatorPage() {
                   Ready to See Your{" "}
                   <span className="text-gold-gradient">Custom Plan</span>?
                 </h2>
-                <p className="text-lg text-white/65 max-w-xl mx-auto mb-8">
+                <p className="text-lg text-[var(--white-secondary)] max-w-xl mx-auto mb-8">
                   Take 2 minutes to answer a few questions about your business
                   and get a personalized growth strategy with detailed pricing
                   and projected ROI.
                 </p>
-                <Link href="/#solution-generator">
+                <Link href="/plan-builder">
                   <Button variant="primary" size="lg" pulse>
                     Get Your Custom Growth Plan
                     <ArrowRight className="w-5 h-5 ml-2" />

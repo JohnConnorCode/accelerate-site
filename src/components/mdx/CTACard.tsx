@@ -11,7 +11,7 @@ interface CTACardProps {
 export function CTACard({
   title,
   description,
-  href = "/#solution-generator",
+  href = "/plan-builder",
   buttonText = "Get Your Free Growth Plan",
 }: CTACardProps) {
   return (

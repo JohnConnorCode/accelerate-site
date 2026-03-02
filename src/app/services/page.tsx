@@ -5,11 +5,11 @@ import { faqs } from "@/content/faqs";
 import { generateServiceListJsonLd, generateFaqJsonLd } from "@/lib/seo";
 
 export const metadata = seoMetadata({
-  title: "Services",
+  title: "AI Strategy & Automation Services",
   description:
-    "AI-powered websites, automations, and intelligent agents built to help small businesses capture more leads, save time, and grow faster.",
+    "AI strategy, workflow automation, sales systems, and ongoing management for small businesses. We build it and run it alongside you.",
   ogTitle: "Our Services",
-  ogSubtitle: "AI-powered websites, automations, and intelligent agents",
+  ogSubtitle: "AI strategy, automation, and ongoing management",
 });
 
 export default function ServicesPage() {

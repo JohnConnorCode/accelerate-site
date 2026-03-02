@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Key, Mail, Globe, Building2, Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Key, Mail, Globe, Building2, Loader2, CheckCircle, XCircle, Bell } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
@@ -41,6 +41,15 @@ const settingSections = [
   },
 ];
 
+const notificationSettings = [
+  { key: "NOTIFY_NEW_LEADS", label: "New lead submitted", description: "Get notified when someone completes the plan builder" },
+  { key: "NOTIFY_NEW_CONTACTS", label: "New contact form", description: "Get notified on new contact form submissions" },
+  { key: "NOTIFY_HOT_LEADS", label: "Hot leads", description: "Alert when a lead scores 70+ (hot)" },
+  { key: "NOTIFY_PROPOSAL_VIEWED", label: "Proposal viewed", description: "Alert when a prospect views a shared proposal" },
+  { key: "NOTIFY_TASK_OVERDUE", label: "Task overdue", description: "Alert when a follow-up task passes its due date" },
+  { key: "NOTIFY_CONTRACT_EXPIRING", label: "Contract expiring", description: "Alert when a client contract is expiring within 30 days" },
+];
+
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Setting[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,12 +59,22 @@ export default function SettingsPage() {
   const [testing, setTesting] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<Record<string, "success" | "error">>({});
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [notifyPrefs, setNotifyPrefs] = useState<Record<string, boolean>>({});
 
   const fetchSettings = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/settings");
       const data = await res.json();
       setSettings(data.settings || []);
+
+      // Extract notification preferences
+      const prefs: Record<string, boolean> = {};
+      (data.settings || []).forEach((s: Setting) => {
+        if (s.key.startsWith("NOTIFY_")) {
+          prefs[s.key] = s.value === "true";
+        }
+      });
+      setNotifyPrefs(prefs);
     } catch {
       setToast({ message: "Failed to load settings", type: "error" });
     } finally {
@@ -123,6 +142,23 @@ export default function SettingsPage() {
     }
   };
 
+  const handleNotifyToggle = async (key: string) => {
+    const newValue = !notifyPrefs[key];
+    setNotifyPrefs((prev) => ({ ...prev, [key]: newValue }));
+
+    try {
+      await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key, value: String(newValue) }),
+      });
+    } catch {
+      // Revert on failure
+      setNotifyPrefs((prev) => ({ ...prev, [key]: !newValue }));
+      setToast({ message: "Failed to update preference", type: "error" });
+    }
+  };
+
   const getSetting = (key: string): Setting | undefined => {
     return settings.find((s) => s.key === key);
   };
@@ -145,12 +181,53 @@ export default function SettingsPage() {
       <PageHeader title="Settings" subtitle="Manage API keys and configuration" />
 
       <div className="space-y-6">
+        {/* Notification Preferences */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <GlassCard hover="none">
+            <div className="flex items-center gap-3 mb-5">
+              <Bell className="h-5 w-5 text-[var(--gold-light)]" />
+              <h2 className="font-display text-lg font-semibold text-white-primary">
+                Notifications
+              </h2>
+            </div>
+
+            <div className="space-y-4">
+              {notificationSettings.map((pref) => (
+                <div
+                  key={pref.key}
+                  className="flex items-center justify-between border border-border-glass rounded-lg p-4"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-white-primary">{pref.label}</p>
+                    <p className="text-xs text-white-muted mt-0.5">{pref.description}</p>
+                  </div>
+                  <button
+                    onClick={() => handleNotifyToggle(pref.key)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
+                      notifyPrefs[pref.key] ? "bg-[var(--gold-base)]" : "bg-white/20"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        notifyPrefs[pref.key] ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </GlassCard>
+        </motion.div>
+
         {settingSections.map((section, sectionIdx) => (
           <motion.div
             key={section.title}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: sectionIdx * 0.1 }}
+            transition={{ delay: (sectionIdx + 1) * 0.1 }}
           >
             <GlassCard hover="none">
               <div className="flex items-center gap-3 mb-5">

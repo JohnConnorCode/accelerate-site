@@ -65,17 +65,6 @@ export const scaleUp: Variants = {
   },
 };
 
-export const goldGlow: Variants = {
-  rest: {
-    boxShadow: "0 0 0 rgba(212, 175, 55, 0)",
-  },
-  hover: {
-    boxShadow:
-      "0 0 20px rgba(212, 175, 55, 0.15), 0 0 40px rgba(212, 175, 55, 0.05)",
-    transition: { duration: 0.3 },
-  },
-};
-
 // Hero stagger sequence
 export const heroStagger: Variants = {
   hidden: { opacity: 0 },
@@ -197,12 +186,3 @@ export const bentoItem: Variants = {
   },
 };
 
-export const counterReveal: Variants = {
-  hidden: { opacity: 0, scale: 0.9, y: 30 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: "easeOut" },
-  },
-};

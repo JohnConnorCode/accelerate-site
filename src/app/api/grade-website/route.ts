@@ -365,7 +365,7 @@ function generateTemplateRecommendations(
 
   if (mobileScore < 60) {
     recs.push(
-      "Redesign your site with a mobile-first approach. Over 60% of small business web traffic comes from phones. If your site is hard to use on mobile, you are losing leads every day."
+      "Redesign your site with a mobile-first approach. Over 60% of small business web traffic comes from phones. If your site is hard to use on mobile, you are losing customers every day."
     );
   }
 

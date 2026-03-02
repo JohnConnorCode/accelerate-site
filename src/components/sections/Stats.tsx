@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap-init";
+import { prefersReducedMotion } from "@/lib/utils";
 import { CountUp } from "@/components/ui/CountUp";
 import { stats } from "@/content/stats";
 
@@ -11,17 +12,15 @@ export function Stats() {
 
   useGSAP(() => {
     if (!sectionRef.current) return;
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (mq.matches) return;
+    if (prefersReducedMotion()) return;
 
     const items = sectionRef.current.querySelectorAll("[data-stat]");
     items.forEach((item, i) => {
       gsap.fromTo(
         item,
-        { opacity: 0, scale: 0.9, y: 30 },
+        { opacity: 0, y: 24 },
         {
           opacity: 1,
-          scale: 1,
           y: 0,
           duration: 0.7,
           delay: i * 0.1,
@@ -37,10 +36,10 @@ export function Stats() {
   }, { scope: sectionRef });
 
   return (
-    <section ref={sectionRef} className="py-20 bg-[var(--bg-base)] relative">
+    <section ref={sectionRef} className="py-24 bg-[var(--bg-base)] relative">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Stats grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-12 md:gap-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12 md:gap-16">
           {stats.map((stat) => (
             <div
               key={stat.label}

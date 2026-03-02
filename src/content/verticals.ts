@@ -11,7 +11,7 @@ export const verticals: Vertical[] = [
     heroHeadlineWhite: "Stop Losing Jobs to the Contractor Who",
     heroHeadlineGold: "Answers the Phone First",
     heroSubheadline:
-      "Most home service businesses lose 40% of their leads before anyone even picks up. We build AI systems that answer every call, send instant estimates, and follow up automatically so you close more jobs without hiring more office staff.",
+      "Most home service businesses lose 40% of their potential customers before anyone even picks up. We build AI systems that answer every call, send instant estimates, and follow up automatically so you close more jobs without hiring more office staff.",
     painPoints: [
       {
         icon: "PhoneMissed",
@@ -33,9 +33,9 @@ export const verticals: Vertical[] = [
       },
       {
         icon: "Monitor",
-        title: "Your website doesn't bring in leads",
+        title: "Your website doesn't bring in business",
         description:
-          "Your site looks like it was built in 2015 because it was. It doesn't rank on Google, it's slow on mobile, and it has no way to capture leads after hours. Meanwhile, your competitor's site is booking jobs at midnight.",
+          "Your site looks like it was built in 2015 because it was. It doesn't rank on Google, it's slow on mobile, and it has no way to capture customers after hours. Meanwhile, your competitor's site is booking jobs at midnight.",
       },
     ],
     solutions: [
@@ -47,20 +47,20 @@ export const verticals: Vertical[] = [
           "24/7 call answering and SMS response",
           "Automatic job detail capture",
           "Calendar integration for estimate scheduling",
-          "Lead qualification before it hits your inbox",
+          "Inquiry qualification before it hits your inbox",
           "Call recording and transcription",
         ],
       },
       {
         title: "Online Estimate Tool",
         description:
-          "Let homeowners get a ballpark estimate right on your website. They answer a few questions, upload photos, and get a range in minutes. You get a pre-qualified lead with all the details.",
+          "Let homeowners get a ballpark estimate right on your website. They answer a few questions, upload photos, and get a range in minutes. You get a pre-qualified customer with all the details.",
         features: [
           "Photo upload and job description intake",
           "Instant ballpark pricing based on your rates",
           "Automatic follow-up with detailed quote",
           "Integration with your estimating software",
-          "Lead scoring based on job size and urgency",
+          "Inquiry scoring based on job size and urgency",
         ],
       },
       {
@@ -89,18 +89,18 @@ export const verticals: Vertical[] = [
       },
     ],
     caseStudy: {
-      title: "Mississippi Roofing Company Grows Lead Volume by 40%",
+      title: "Mississippi Roofing Company Grows Inquiry Volume by 40%",
       description:
-        "A family-owned roofing company in Mississippi was losing leads to competitors with faster response times. We implemented an AI receptionist, rebuilt their website with local SEO, and set up automated follow-up sequences. Within 90 days, their inbound lead volume increased by 40% and their average response time dropped from 4 hours to under 2 minutes.",
+        "A family-owned roofing company in Mississippi was losing customers to competitors with faster response times. We implemented an AI receptionist, rebuilt their website with local SEO, and set up automated follow-up sequences. Within 90 days, their inbound inquiry volume increased by 40% and their average response time dropped from 4 hours to under 2 minutes.",
       metrics: [
-        { label: "Increase in leads", value: "40%" },
+        { label: "Increase in inquiries", value: "40%" },
         { label: "Response time", value: "Under 2 min" },
         { label: "Jobs booked after hours", value: "28%" },
         { label: "Review volume increase", value: "3x" },
       ],
     },
     ctaText: "Get your free growth plan",
-    ctaLink: "/solution-generator?industry=home_services",
+    ctaLink: "/plan-builder?industry=home_services",
   },
   {
     id: "law_firm",
@@ -128,7 +128,7 @@ export const verticals: Vertical[] = [
       },
       {
         icon: "FileText",
-        title: "Manual follow-up drops leads",
+        title: "Manual follow-up drops prospects",
         description:
           "Your paralegals are juggling case work and intake calls. Follow-up emails go unsent. Consultation reminders don't go out. Potential clients ghost because nobody stayed in touch.",
       },
@@ -167,11 +167,11 @@ export const verticals: Vertical[] = [
       {
         title: "Follow-Up Engine",
         description:
-          "Automated sequences that nurture leads who aren't ready to retain yet. Consultation reminders, check-ins after free consults, and re-engagement for stale leads that might convert down the road.",
+          "Automated sequences that nurture prospects who aren't ready to retain yet. Consultation reminders, check-ins after free consults, and re-engagement for stale prospects that might convert down the road.",
         features: [
           "Consultation reminder sequences (email, text, call)",
           "Post-consultation follow-up automation",
-          "Stale lead re-engagement campaigns",
+          "Stale prospect re-engagement campaigns",
           "Review and referral request automation",
           "Nurture sequences for undecided prospects",
         ],
@@ -196,12 +196,12 @@ export const verticals: Vertical[] = [
       metrics: [
         { label: "Intake time reduction", value: "60%" },
         { label: "More cases signed", value: "35%" },
-        { label: "After-hours leads captured", value: "42%" },
+        { label: "After-hours inquiries captured", value: "42%" },
         { label: "Client satisfaction score", value: "4.9/5" },
       ],
     },
     ctaText: "Get your free growth plan",
-    ctaLink: "/solution-generator?industry=law_firm",
+    ctaLink: "/plan-builder?industry=law_firm",
   },
   {
     id: "professional_services",
@@ -213,13 +213,13 @@ export const verticals: Vertical[] = [
     heroHeadlineWhite: "Your Expertise Deserves a Digital Presence",
     heroHeadlineGold: "That Works as Hard as You Do",
     heroSubheadline:
-      "You've built your practice on referrals and reputation. That's a strong foundation, but it's also a ceiling. We build digital systems that turn your expertise into a lead generation engine, so growth doesn't depend on who happens to mention your name.",
+      "You've built your practice on referrals and reputation. That's a strong foundation, but it's also a ceiling. We build digital systems that turn your expertise into a client acquisition engine, so growth doesn't depend on who happens to mention your name.",
     painPoints: [
       {
         icon: "Users",
         title: "Referrals are unpredictable",
         description:
-          "Referrals are great until they dry up. One slow quarter and you're scrambling. A real growth strategy means having a steady pipeline of inbound leads, not just waiting for the phone to ring.",
+          "Referrals are great until they dry up. One slow quarter and you're scrambling. A real growth strategy means having a steady pipeline of inbound inquiries, not just waiting for the phone to ring.",
       },
       {
         icon: "CalendarX",
@@ -235,7 +235,7 @@ export const verticals: Vertical[] = [
       },
       {
         icon: "SearchX",
-        title: "No digital lead generation",
+        title: "No digital client acquisition",
         description:
           "Your competitors are running Google Ads, publishing content, and ranking for searches like 'CPA near me' or 'financial advisor [city].' If you're not showing up online, you're not in the consideration set.",
       },
@@ -250,7 +250,7 @@ export const verticals: Vertical[] = [
           "Thought leadership blog with SEO strategy",
           "Team credential and certification showcases",
           "Online scheduling with calendar integration",
-          "Lead magnets (guides, checklists, assessments)",
+          "Downloadable resources (guides, checklists, assessments)",
         ],
       },
       {
@@ -278,31 +278,31 @@ export const verticals: Vertical[] = [
         ],
       },
       {
-        title: "Digital Lead Pipeline",
+        title: "Digital Client Pipeline",
         description:
           "A complete inbound marketing system. Content strategy, Google Ads management, email nurture sequences, and conversion tracking that turns online visitors into qualified consultations.",
         features: [
           "Google Ads setup and management",
           "Content marketing strategy and execution",
-          "Email nurture sequences for warm leads",
+          "Email nurture sequences for warm prospects",
           "Conversion tracking and ROI reporting",
           "Monthly pipeline analytics and optimization",
         ],
       },
     ],
     caseStudy: {
-      title: "Accounting Firm Doubles Online Leads in 6 Months",
+      title: "Accounting Firm Doubles Online Inquiries in 6 Months",
       description:
-        "A mid-size accounting firm relied entirely on referrals and hadn't updated their website in five years. We rebuilt their digital presence with service-specific landing pages, launched a Google Ads campaign, and automated their consultation booking. Within six months, online leads accounted for 45% of new clients.",
+        "A mid-size accounting firm relied entirely on referrals and hadn't updated their website in five years. We rebuilt their digital presence with service-specific landing pages, launched a Google Ads campaign, and automated their consultation booking. Within six months, online inquiries accounted for 45% of new clients.",
       metrics: [
-        { label: "Online leads increase", value: "2x" },
+        { label: "Online inquiries increase", value: "2x" },
         { label: "New clients from digital", value: "45%" },
         { label: "Scheduling time saved", value: "8 hrs/week" },
-        { label: "Cost per lead", value: "$32" },
+        { label: "Cost per inquiry", value: "$32" },
       ],
     },
     ctaText: "Get your free growth plan",
-    ctaLink: "/solution-generator?industry=professional_services",
+    ctaLink: "/plan-builder?industry=professional_services",
   },
   {
     id: "real_estate",
@@ -310,17 +310,17 @@ export const verticals: Vertical[] = [
     name: "Real Estate",
     icon: "Building2",
     shortDescription:
-      "Lead capture, nurture, and conversion systems for real estate agents and brokerages who are tired of paying for leads that never convert.",
-    heroHeadlineWhite: "Every Missed Lead Is a",
+      "Client capture, nurture, and conversion systems for real estate agents and brokerages who are tired of paying for inquiries that never convert.",
+    heroHeadlineWhite: "Every Missed Call Is a",
     heroHeadlineGold: "Lost Commission",
     heroSubheadline:
-      "You're spending thousands on Zillow, Realtor.com, and Facebook ads. But if your follow-up is slow and your nurture is nonexistent, you're paying for leads that someone else closes. We build systems that capture, qualify, and convert leads before they go cold.",
+      "You're spending thousands on Zillow, Realtor.com, and Facebook ads. But if your follow-up is slow and your nurture is nonexistent, you're paying for inquiries that someone else closes. We build systems that capture, qualify, and convert prospects before they go cold.",
     painPoints: [
       {
         icon: "Thermometer",
-        title: "Leads go cold in hours",
+        title: "Prospects go cold in hours",
         description:
-          "A new lead from Zillow has a 5-minute window before they move on. If your response is a generic email that arrives 3 hours later, that lead is already talking to another agent.",
+          "A new inquiry from Zillow has a 5-minute window before they move on. If your response is a generic email that arrives 3 hours later, that prospect is already talking to another agent.",
       },
       {
         icon: "DollarSign",
@@ -338,32 +338,32 @@ export const verticals: Vertical[] = [
         icon: "Database",
         title: "Your database is a mess",
         description:
-          "Leads in your phone, some in a spreadsheet, a few in your CRM. Past clients who should be sending you referrals haven't heard from you in two years. Your database should be your biggest asset, not your biggest liability.",
+          "Contacts in your phone, some in a spreadsheet, a few in your CRM. Past clients who should be sending you referrals haven't heard from you in two years. Your database should be your biggest asset, not your biggest liability.",
       },
     ],
     solutions: [
       {
-        title: "Instant Lead Response",
+        title: "Instant Response System",
         description:
-          "AI-powered response that reaches new leads within 60 seconds via text and email. Pre-qualifying questions, property matches, and appointment booking happen automatically before you even see the notification.",
+          "AI-powered response that reaches new prospects within 60 seconds via text and email. Pre-qualifying questions, property matches, and appointment booking happen automatically before you even see the notification.",
         features: [
           "Sub-60-second text and email response",
           "AI pre-qualification conversation",
           "Automatic property matching from MLS",
           "Appointment scheduling integration",
-          "Lead source tracking and attribution",
+          "Source tracking and attribution",
         ],
       },
       {
         title: "Long-Term Nurture Sequences",
         description:
-          "12-month email and text campaigns that keep you in front of leads until they're ready to move. Market updates, property alerts, and value-added content that positions you as their agent.",
+          "12-month email and text campaigns that keep you in front of prospects until they're ready to move. Market updates, property alerts, and value-added content that positions you as their agent.",
         features: [
           "Buyer journey drip campaigns (12+ months)",
           "Automated market update emails",
           "Property alert integration",
           "Anniversary and home-iversary touchpoints",
-          "Re-engagement sequences for stale leads",
+          "Re-engagement sequences for stale prospects",
         ],
       },
       {
@@ -381,7 +381,7 @@ export const verticals: Vertical[] = [
       {
         title: "Agent Website with IDX",
         description:
-          "A modern agent website with IDX property search, neighborhood guides, and lead capture that turns visitors into registered contacts. Designed to rank for hyperlocal searches in your market.",
+          "A modern agent website with IDX property search, neighborhood guides, and client capture that turns visitors into registered contacts. Designed to rank for hyperlocal searches in your market.",
         features: [
           "IDX property search integration",
           "Neighborhood and community guide pages",
@@ -392,17 +392,17 @@ export const verticals: Vertical[] = [
       },
     ],
     caseStudy: {
-      title: "Solo Agent Increases Closings by 25% with Lead Automation",
+      title: "Solo Agent Increases Closings by 25% with AI Automation",
       description:
-        "A solo agent in a competitive metro market was spending $3,000/month on leads but only converting 2%. We implemented instant lead response, a 12-month nurture sequence, and end-to-end ROI tracking. Within a year, their conversion rate hit 5% and they closed 25% more deals with the same ad spend.",
+        "A solo agent in a competitive metro market was spending $3,000/month on ads but only converting 2%. We implemented instant response, a 12-month nurture sequence, and end-to-end ROI tracking. Within a year, their conversion rate hit 5% and they closed 25% more deals with the same ad spend.",
       metrics: [
         { label: "More closings", value: "25%" },
-        { label: "Lead conversion rate", value: "5% (was 2%)" },
+        { label: "Inquiry conversion rate", value: "5% (was 2%)" },
         { label: "Average response time", value: "45 seconds" },
         { label: "ROI on ad spend", value: "4.2x" },
       ],
     },
     ctaText: "Get your free growth plan",
-    ctaLink: "/solution-generator?industry=real_estate",
+    ctaLink: "/plan-builder?industry=real_estate",
   },
 ];

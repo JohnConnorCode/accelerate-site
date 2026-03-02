@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
         "{{name}}": metadata.name || "there",
         "{{email}}": seq.email,
         "{{industry}}": metadata.industry || "your",
-        "{{planLink}}": metadata.planLink || "https://acceleratewith.us/#solution-generator",
+        "{{planLink}}": metadata.planLink || "https://acceleratewith.us/plan-builder",
         "{{planSummary}}": metadata.planSummary || "Your personalized recommendations are ready.",
         "{{resourceTitle}}": metadata.resourceTitle || "your resource",
         "{{downloadLink}}": metadata.downloadLink || "#",
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
 
       // Send via Resend
       const resendApiKey = await getSetting("RESEND_API_KEY");
-      const fromEmail = (await getSetting("RESEND_FROM_EMAIL")) || "Accelerate <hello@acceleratewith.us>";
+      const fromEmail = (await getSetting("RESEND_FROM_EMAIL")) || "Accelerate <john@acceleratewith.us>";
       if (resendApiKey) {
         try {
           const { Resend } = await import("resend");

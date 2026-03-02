@@ -22,7 +22,7 @@ export const faqs: FAQ[] = [
   {
     question: "How does the AI chat actually work?",
     answer:
-      "We train a custom AI model on your specific business, including your services, pricing, FAQs, processes, and policies. When a visitor asks a question, the AI provides accurate answers based on your actual information, not generic responses. It can also book appointments, qualify leads, and hand off to a real person when the conversation requires it.",
+      "We train a custom AI model on your specific business, including your services, pricing, FAQs, processes, and policies. When a visitor asks a question, the AI provides accurate answers based on your actual information, not generic responses. It can also book appointments, qualify inquiries, and hand off to a real person when the conversation requires it.",
     category: "technology",
   },
   {
@@ -46,7 +46,7 @@ export const faqs: FAQ[] = [
   {
     question: "How do you measure results?",
     answer:
-      "We set up tracking from day one. Every form submission, phone call, chat conversation, and booking is tracked back to its source. You get a monthly report showing leads generated, response times, conversion rates, and ROI. No vanity metrics. Just the numbers that affect your revenue.",
+      "We set up tracking from day one. Every form submission, phone call, chat conversation, and booking is tracked back to its source. You get a monthly report showing inquiries generated, response times, conversion rates, and ROI. No vanity metrics. Just the numbers that affect your revenue.",
     category: "general",
   },
   {

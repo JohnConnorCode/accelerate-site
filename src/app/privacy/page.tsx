@@ -91,10 +91,10 @@ export default function PrivacyPage() {
               You have the right to access, correct, or delete your personal
               information. To exercise these rights, contact us at{" "}
               <a
-                href="mailto:hello@acceleratewith.us"
+                href="mailto:john@acceleratewith.us"
                 className="text-[var(--gold-light)] hover:underline"
               >
-                hello@acceleratewith.us
+                john@acceleratewith.us
               </a>
               .
             </p>
@@ -108,10 +108,10 @@ export default function PrivacyPage() {
               If you have questions about this privacy policy, please contact us
               at{" "}
               <a
-                href="mailto:hello@acceleratewith.us"
+                href="mailto:john@acceleratewith.us"
                 className="text-[var(--gold-light)] hover:underline"
               >
-                hello@acceleratewith.us
+                john@acceleratewith.us
               </a>
               .
             </p>

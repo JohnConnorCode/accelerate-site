@@ -5,6 +5,7 @@ import { Footer } from "@/components/layout/Footer";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { TrackingScripts } from "@/components/layout/TrackingScripts";
 import { ChatWidget } from "@/components/chat/ChatWidget";
+import { ScrollProgressBar } from "@/components/ui/ScrollProgressBar";
 import "./globals.css";
 
 const inter = Inter({
@@ -14,7 +15,7 @@ const inter = Inter({
 });
 
 const jost = Jost({
-  variable: "--font-space-grotesk",
+  variable: "--font-jost",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
@@ -23,25 +24,25 @@ const jost = Jost({
 export const metadata: Metadata = {
   metadataBase: new URL("https://acceleratewith.us"),
   title: {
-    default: "Accelerate | AI Solutions for Small Business",
+    default: "Accelerate | AI Strategy & Systems for Small Business",
     template: "%s | Accelerate",
   },
   description:
-    "AI-powered websites, automations, and intelligent agents that help small businesses capture more leads and save time.",
+    "We help small businesses figure out where AI fits, then build and manage the systems that make it happen. Strategy, automation, and ongoing management.",
   openGraph: {
     type: "website",
     locale: "en_US",
     url: "https://acceleratewith.us",
     siteName: "Accelerate",
-    title: "Accelerate | AI Solutions for Small Business",
+    title: "Accelerate | AI Strategy & Systems for Small Business",
     description:
-      "AI-powered websites, automations, and intelligent agents that help small businesses capture more leads and save time.",
+      "We help small businesses figure out where AI fits, then build and manage the systems that make it happen. Strategy, automation, and ongoing management.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Accelerate | AI Solutions for Small Business",
+    title: "Accelerate | AI Strategy & Systems for Small Business",
     description:
-      "AI-powered websites, automations, and intelligent agents that help small businesses capture more leads and save time.",
+      "We help small businesses figure out where AI fits, then build and manage the systems that make it happen. Strategy, automation, and ongoing management.",
   },
   robots: {
     index: true,
@@ -72,6 +73,7 @@ export default function RootLayout({
             Skip to main content
           </a>
           <TrackingScripts />
+          <ScrollProgressBar />
           <Header />
           <main id="main-content" className="flex-1">{children}</main>
           <Footer />

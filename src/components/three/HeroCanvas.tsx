@@ -1,171 +1,163 @@
 "use client";
 
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 import { useTheme } from "next-themes";
+import { prefersReducedMotion } from "@/lib/utils";
 
-// Value noise for organic perturbation
-function hash(x: number, y: number): number {
-  let h = x * 374761393 + y * 668265263;
-  h = (h ^ (h >> 13)) * 1274126177;
-  return ((h ^ (h >> 16)) & 0x7fffffff) / 0x7fffffff;
-}
-
-function smoothstep(t: number): number {
-  return t * t * (3 - 2 * t);
-}
-
-function noise2d(x: number, y: number): number {
-  const ix = Math.floor(x);
-  const iy = Math.floor(y);
-  const fx = smoothstep(x - ix);
-  const fy = smoothstep(y - iy);
-  const a = hash(ix, iy);
-  const b = hash(ix + 1, iy);
-  const c = hash(ix, iy + 1);
-  const d = hash(ix + 1, iy + 1);
-  return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
-}
-
-interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  homeAngle: number;
-  homeRadius: number;
-  orbitSpeed: number;
+interface Star {
+  x: number;        // 0-1 normalized
+  y: number;        // 0-1 normalized (within sky area)
   size: number;
+  baseOpacity: number;
+  twinkleSpeed: number;
+  twinklePhase: number;
+  depth: number;    // parallax layer (0 = far, 1 = near)
   r: number;
   g: number;
   b: number;
-  opacity: number;
-  depth: number;
+  // Click effect state
+  targetX: number;
+  targetY: number;
+  sizeBoost: number;  // multiplicative, decays back to 1
 }
 
-const PALETTE: [number, number, number][] = [
+const STAR_COUNT = 280;
+const PARALLAX_STRENGTH = 18;
+const CLICK_RADIUS = 0.12;      // normalized radius of click influence
+const CLICK_SIZE_BOOST = 2.2;   // how much stars grow on click
+const CLICK_DECAY = 0.97;       // how fast sizeBoost decays back to 1
+
+const STAR_COLORS: [number, number, number][] = [
+  [255, 255, 255],
+  [255, 248, 230],
+  [240, 220, 180],
   [212, 175, 55],
-  [235, 200, 80],
   [245, 215, 110],
-  [200, 160, 45],
-  [180, 145, 35],
-  [255, 225, 130],
+  [255, 240, 200],
 ];
 
-function pickColor(): [number, number, number] {
-  return PALETTE[Math.floor(Math.random() * PALETTE.length)] ?? PALETTE[0]!;
+function pickStarColor(): [number, number, number] {
+  const roll = Math.random();
+  if (roll < 0.35) return STAR_COLORS[0]!;
+  if (roll < 0.6) return STAR_COLORS[1]!;
+  if (roll < 0.75) return STAR_COLORS[5]!;
+  return STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)]!;
 }
-
-// Swarm orb parameters
-const COUNT = 500;
-const SPRING = 0.007;
-const DAMPING = 0.96;
-const NOISE_SCALE = 0.003;
-const NOISE_SPEED = 0.0015;
-const NOISE_FORCE = 0.8;
-const MOUSE_INFLUENCE = 0.2;
-const REPEL_RADIUS_FACTOR = 0.35;
-const REPEL_FORCE = 3.5;
-const BURST_DURATION = 40;
-const BURST_FORCE = 18;
-const BURST_RADIUS_FACTOR = 0.8;
-const RING_DURATION = 30;
 
 export default function HeroCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animId = useRef(0);
   const time = useRef(0);
-  const mouse = useRef({ x: -9999, y: -9999, active: false });
-  const particles = useRef<Particle[]>([]);
-  const orbCenter = useRef({ x: 0, y: 0 });
-  const orbRadius = useRef(250);
-  const smoothMouse = useRef({ x: 0, y: 0 });
-  const clickBurst = useRef<{ x: number; y: number; frame: number } | null>(null);
+  const mouse = useRef({ x: 0.5, y: 0.5 });
+  const smoothMouse = useRef({ x: 0.5, y: 0.5 });
+  const stars = useRef<Star[]>([]);
+  const horizonFrac = useRef(0.55);
   const dpr = useRef(1);
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme !== "light";
+
+  // Track grid height as state so JSX updates when horizon changes
+  const [gridHeight, setGridHeight] = useState("42%");
 
   const onMove = useCallback((e: MouseEvent) => {
     const el = canvasRef.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
-    const d = dpr.current;
-    mouse.current.x = (e.clientX - r.left) * d;
-    mouse.current.y = (e.clientY - r.top) * d;
-    mouse.current.active = true;
+    mouse.current.x = (e.clientX - r.left) / r.width;
+    mouse.current.y = (e.clientY - r.top) / r.height;
   }, []);
 
   const onLeave = useCallback(() => {
-    mouse.current.active = false;
+    mouse.current.x = 0.5;
+    mouse.current.y = 0.5;
   }, []);
 
   const onClick = useCallback((e: MouseEvent) => {
     const el = canvasRef.current;
     if (!el) return;
-    const r = el.getBoundingClientRect();
-    const d = dpr.current;
-    clickBurst.current = {
-      x: (e.clientX - r.left) * d,
-      y: (e.clientY - r.top) * d,
-      frame: time.current,
-    };
+    const rect = el.getBoundingClientRect();
+    const clickX = (e.clientX - rect.left) / rect.width;
+    const clickY = (e.clientY - rect.top) / rect.height;
+    const horizon = horizonFrac.current;
+
+    // Normalize click Y to sky area (0 to horizon)
+    const clickYNorm = clickY / horizon;
+    if (clickYNorm > 1) return; // clicked below horizon, ignore for stars
+
+    const pts = stars.current;
+    for (let i = 0; i < pts.length; i++) {
+      const s = pts[i]!;
+      const dx = s.x - clickX;
+      const dy = s.y - clickYNorm;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < CLICK_RADIUS) {
+        const influence = 1 - dist / CLICK_RADIUS;
+        // Shift to a new nearby position
+        const angle = Math.random() * Math.PI * 2;
+        const shift = 0.02 + Math.random() * 0.04 * influence;
+        s.targetX = Math.max(0.01, Math.min(0.99, s.x + Math.cos(angle) * shift));
+        s.targetY = Math.max(0.01, Math.min(0.99, s.y + Math.sin(angle) * shift));
+        // Boost size proportional to proximity
+        s.sizeBoost = 1 + (CLICK_SIZE_BOOST - 1) * influence;
+      }
+    }
   }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (mq.matches) return;
+    if (prefersReducedMotion()) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     dpr.current = Math.min(window.devicePixelRatio || 1, 2);
 
+    function initStars() {
+      const pts: Star[] = [];
+      for (let i = 0; i < STAR_COUNT; i++) {
+        const [r, g, b] = pickStarColor();
+        const depth = Math.random();
+        const x = Math.random();
+        const y = Math.random();
+        pts.push({
+          x,
+          y,
+          size: 0.4 + Math.random() * 1.1 + depth * 0.3,
+          baseOpacity: 0.12 + Math.random() * 0.65 + depth * 0.15,
+          twinkleSpeed: 0.4 + Math.random() * 2.0,
+          twinklePhase: Math.random() * Math.PI * 2,
+          depth,
+          r, g, b,
+          targetX: x,
+          targetY: y,
+          sizeBoost: 1,
+        });
+      }
+      stars.current = pts;
+    }
+
     function resize() {
-      if (!canvas || !ctx) return;
+      if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
       const d = dpr.current;
       canvas.width = rect.width * d;
       canvas.height = rect.height * d;
 
-      orbCenter.current.x = canvas.width * 0.5;
-      orbCenter.current.y = canvas.height * 0.44;
-      orbRadius.current = Math.min(canvas.width, canvas.height) * 0.32;
-      smoothMouse.current.x = orbCenter.current.x;
-      smoothMouse.current.y = orbCenter.current.y;
-
-      const oX = orbCenter.current.x;
-      const oY = orbCenter.current.y;
-      const oR = orbRadius.current;
-      const pts: Particle[] = [];
-
-      for (let i = 0; i < COUNT; i++) {
-        const [r, g, b] = pickColor();
-        const angle = Math.random() * Math.PI * 2;
-        const radius = Math.pow(Math.random(), 0.6) * oR;
-        const depth = Math.random();
-        pts.push({
-          x: oX + Math.cos(angle) * radius,
-          y: oY + Math.sin(angle) * radius,
-          vx: 0,
-          vy: 0,
-          homeAngle: angle,
-          homeRadius: radius,
-          orbitSpeed:
-            (0.0004 + Math.random() * 0.0018) *
-            (Math.random() > 0.5 ? 1 : -1) *
-            (0.5 + depth * 0.5),
-          size: (0.6 + Math.random() * 2.2) * (0.6 + depth * 0.4),
-          r, g, b,
-          opacity: (0.3 + Math.random() * 0.7) * (0.5 + depth * 0.5),
-          depth,
-        });
+      const aspect = canvas.width / canvas.height;
+      if (aspect > 1.2) {
+        horizonFrac.current = 0.58;
+        setGridHeight("42%"); // 100% - 58% = 42%
+      } else if (aspect > 0.8) {
+        horizonFrac.current = 0.50;
+        setGridHeight("50%"); // 100% - 50% = 50%
+      } else {
+        horizonFrac.current = 0.45;
+        setGridHeight("55%"); // 100% - 45% = 55%
       }
-      particles.current = pts;
-      const bgFill = isDark ? "rgba(10,8,6,1)" : "rgba(250,250,248,1)";
-      ctx.fillStyle = bgFill;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
+    initStars();
     resize();
     window.addEventListener("resize", resize);
     canvas.addEventListener("mousemove", onMove);
@@ -177,182 +169,146 @@ export default function HeroCanvas() {
       const w = canvas.width;
       const h = canvas.height;
       const d = dpr.current;
-      const pts = particles.current;
-      const m = mouse.current;
-      const orb = orbCenter.current;
-      const oR = orbRadius.current;
-      const sm = smoothMouse.current;
       time.current += 1;
       const t = time.current;
+      const seconds = t / 60;
+      const horizon = horizonFrac.current;
+      const horizonY = h * horizon;
 
-      // Smooth mouse tracking
-      const tgtX = m.active ? m.x : orb.x;
-      const tgtY = m.active ? m.y : orb.y;
-      sm.x += (tgtX - sm.x) * 0.04;
-      sm.y += (tgtY - sm.y) * 0.04;
+      // Smooth mouse
+      const sm = smoothMouse.current;
+      sm.x += (mouse.current.x - sm.x) * 0.03;
+      sm.y += (mouse.current.y - sm.y) * 0.03;
+      const mx = (sm.x - 0.5) * 2;
+      const my = (sm.y - 0.5) * 2;
 
-      // Swarm center shifts toward mouse
-      const swarmX = orb.x + (sm.x - orb.x) * MOUSE_INFLUENCE;
-      const swarmY = orb.y + (sm.y - orb.y) * MOUSE_INFLUENCE;
-
-      // Clear canvas fully — no trails, crisp particles
-      ctx.clearRect(0, 0, w, h);
+      // Background
       const bgFill = isDark ? "rgba(10,8,6,1)" : "rgba(250,250,248,1)";
       ctx.fillStyle = bgFill;
       ctx.fillRect(0, 0, w, h);
 
-      // Breathing pulse for organic feel
-      const breathe = 0.9 + Math.sin(t * 0.015) * 0.1;
-
-      // Ambient glow at swarm center — ties particles into a unified orb
-      const glowGrad = ctx.createRadialGradient(
-        swarmX, swarmY, 0,
-        swarmX, swarmY, oR * 1.8,
-      );
+      // Subtle sky gradient — slightly warmer near horizon
       if (isDark) {
-        glowGrad.addColorStop(0, `rgba(212,175,55,${0.12 * breathe})`);
-        glowGrad.addColorStop(0.3, `rgba(212,175,55,${0.06 * breathe})`);
-        glowGrad.addColorStop(0.6, `rgba(200,160,45,${0.02 * breathe})`);
-        glowGrad.addColorStop(1, "rgba(212,175,55,0)");
-      } else {
-        glowGrad.addColorStop(0, `rgba(184,148,31,${0.14 * breathe})`);
-        glowGrad.addColorStop(0.3, `rgba(184,148,31,${0.08 * breathe})`);
-        glowGrad.addColorStop(0.6, `rgba(154,123,16,${0.03 * breathe})`);
-        glowGrad.addColorStop(1, "rgba(154,123,16,0)");
-      }
-      ctx.fillStyle = glowGrad;
-      ctx.fillRect(0, 0, w, h);
-
-      // Click burst — explosive scatter + expanding ring
-      const burst = clickBurst.current;
-      if (burst) {
-        const age = t - burst.frame;
-        if (age < BURST_DURATION) {
-          const burstRadius = oR * BURST_RADIUS_FACTOR;
-          const decay = Math.max(0, 1 - age / BURST_DURATION);
-          const force = decay * decay * BURST_FORCE;
-          for (let i = 0; i < pts.length; i++) {
-            const p = pts[i]!;
-            const dx = p.x - burst.x;
-            const dy = p.y - burst.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < burstRadius && dist > 1) {
-              const f = ((1 - dist / burstRadius) ** 1.5) * force * d;
-              p.vx += (dx / dist) * f;
-              p.vy += (dy / dist) * f;
-            }
-          }
-        }
-        // Expanding ring visual
-        if (age < RING_DURATION) {
-          const progress = age / RING_DURATION;
-          const ringRadius = 10 * d + progress * oR * 0.6;
-          const ringAlpha = (1 - progress) * (isDark ? 0.35 : 0.25);
-          ctx.beginPath();
-          ctx.arc(burst.x, burst.y, ringRadius, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(212,175,55,${ringAlpha})`;
-          ctx.lineWidth = (2.5 - progress * 2) * d;
-          ctx.stroke();
-          // Inner flash
-          if (age < 8) {
-            const flashAlpha = (1 - age / 8) * (isDark ? 0.15 : 0.1);
-            const flashGrad = ctx.createRadialGradient(
-              burst.x, burst.y, 0,
-              burst.x, burst.y, 40 * d,
-            );
-            flashGrad.addColorStop(0, `rgba(255,235,160,${flashAlpha})`);
-            flashGrad.addColorStop(1, "rgba(255,235,160,0)");
-            ctx.fillStyle = flashGrad;
-            ctx.fill();
-          }
-        } else if (age >= BURST_DURATION) {
-          clickBurst.current = null;
-        }
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
+        skyGrad.addColorStop(0, "rgba(10,8,6,1)");
+        skyGrad.addColorStop(0.8, "rgba(14,11,7,1)");
+        skyGrad.addColorStop(1, "rgba(20,16,8,1)");
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, w, horizonY + 2);
       }
 
-      const repelR = oR * REPEL_RADIUS_FACTOR;
-
+      // --- Stars ---
+      const pts = stars.current;
       for (let i = 0; i < pts.length; i++) {
-        const p = pts[i]!;
+        const s = pts[i]!;
 
-        // Orbit slowly
-        p.homeAngle += p.orbitSpeed;
+        // Animate position toward target (click drift)
+        s.x += (s.targetX - s.x) * 0.04;
+        s.y += (s.targetY - s.y) * 0.04;
 
-        // Home position relative to swarm center
-        const homeX = swarmX + Math.cos(p.homeAngle) * p.homeRadius;
-        const homeY = swarmY + Math.sin(p.homeAngle) * p.homeRadius;
-
-        // Organic noise perturbation
-        const noiseT = t * NOISE_SPEED;
-        const nx =
-          (noise2d(p.x * NOISE_SCALE + noiseT, p.y * NOISE_SCALE + i * 0.1) *
-            2 -
-            1) *
-          NOISE_FORCE;
-        const ny =
-          (noise2d(p.x * NOISE_SCALE + i * 0.1, p.y * NOISE_SCALE + noiseT) *
-            2 -
-            1) *
-          NOISE_FORCE;
-
-        // Spring toward home + noise
-        p.vx += (homeX - p.x) * SPRING + nx;
-        p.vy += (homeY - p.y) * SPRING + ny;
-
-        // Mouse repulsion — scatter on close approach
-        if (m.active) {
-          const dx = p.x - m.x;
-          const dy = p.y - m.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < repelR && dist > 1) {
-            const force = ((1 - dist / repelR) ** 2) * REPEL_FORCE * d;
-            p.vx += (dx / dist) * force;
-            p.vy += (dy / dist) * force;
-          }
+        // Decay size boost back to 1
+        if (s.sizeBoost > 1.005) {
+          s.sizeBoost = 1 + (s.sizeBoost - 1) * CLICK_DECAY;
+        } else {
+          s.sizeBoost = 1;
         }
 
-        // Damping
-        p.vx *= DAMPING;
-        p.vy *= DAMPING;
+        const twinkle = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(seconds * s.twinkleSpeed + s.twinklePhase));
+        const alpha = s.baseOpacity * twinkle;
+        if (alpha < 0.02) continue;
 
-        p.x += p.vx;
-        p.y += p.vy;
+        // Stars positioned in sky area (0 to horizon)
+        const parallax = (0.15 + s.depth * 0.85) * PARALLAX_STRENGTH * d;
+        const px = s.x * w + mx * parallax;
+        const py = s.y * horizonY + my * parallax * 0.4;
 
-        // Edge fade — particles dim as they drift from the swarm
-        const distFromCenter = Math.sqrt(
-          (p.x - swarmX) ** 2 + (p.y - swarmY) ** 2,
-        );
-        const edgeFade = Math.max(
-          0,
-          1 - Math.pow(distFromCenter / (oR * 1.8), 2),
-        );
-        const alpha = p.opacity * edgeFade;
+        // Don't render below horizon
+        if (py > horizonY) continue;
 
-        if (alpha < 0.01) continue;
+        const sz = s.size * s.sizeBoost * d;
 
-        const sz = p.size * d;
-
-        // Soft halo — glass blur will expand this into a natural glow
-        if (sz > 0.8) {
+        // Faint halo on brighter/boosted stars
+        if ((s.baseOpacity > 0.5 && sz > 1) || s.sizeBoost > 1.1) {
           ctx.beginPath();
-          ctx.arc(p.x, p.y, sz * 2.5, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${p.r},${p.g},${p.b},${alpha * 0.06})`;
+          ctx.arc(px, py, sz * 2.5, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${s.r},${s.g},${s.b},${alpha * 0.04 * Math.max(1, s.sizeBoost * 0.5)})`;
           ctx.fill();
         }
 
-        // Main particle body
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, sz, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${p.r},${p.g},${p.b},${alpha})`;
-        ctx.fill();
-
-        // Bright core on larger particles
-        if (p.size > 1.3) {
+        // Star dot
+        if (sz < 1.2) {
+          ctx.fillStyle = `rgba(${s.r},${s.g},${s.b},${alpha})`;
+          ctx.fillRect(px - sz * 0.5, py - sz * 0.5, sz, sz);
+        } else {
           ctx.beginPath();
-          ctx.arc(p.x, p.y, sz * 0.35, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(255,245,210,${alpha * 0.6})`;
+          ctx.arc(px, py, sz * 0.5, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${s.r},${s.g},${s.b},${alpha})`;
           ctx.fill();
         }
+      }
+
+      // --- Horizon glow ---
+      const breathe = 0.93 + Math.sin(seconds * 0.4) * 0.07;
+
+      if (isDark) {
+        // Soft diffused glow centered on horizon — single clean gradient
+        const glow = ctx.createRadialGradient(
+          w * 0.5, horizonY, 0,
+          w * 0.5, horizonY, w * 0.45,
+        );
+        glow.addColorStop(0, `rgba(212,175,55,${0.09 * breathe})`);
+        glow.addColorStop(0.25, `rgba(212,175,55,${0.04 * breathe})`);
+        glow.addColorStop(0.6, `rgba(200,160,45,${0.01 * breathe})`);
+        glow.addColorStop(1, "rgba(200,160,45,0)");
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, horizonY - h * 0.2, w, h * 0.3);
+
+        // Horizon line — soft atmospheric glow, no hard edges
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+
+        // Core line — very gentle fade from edges, long transparent tails
+        const lineGrad = ctx.createLinearGradient(0, 0, w, 0);
+        lineGrad.addColorStop(0, "rgba(212,175,55,0)");
+        lineGrad.addColorStop(0.25, `rgba(212,175,55,${0.10 * breathe})`);
+        lineGrad.addColorStop(0.5, `rgba(245,220,120,${0.20 * breathe})`);
+        lineGrad.addColorStop(0.75, `rgba(212,175,55,${0.10 * breathe})`);
+        lineGrad.addColorStop(1, "rgba(212,175,55,0)");
+        ctx.fillStyle = lineGrad;
+        ctx.fillRect(0, horizonY - 0.5 * d, w, 1 * d);
+
+        // Feathered bloom — full-width, soft vertical spread
+        const bloomH = 16 * d;
+        const bloom = ctx.createLinearGradient(0, horizonY - bloomH, 0, horizonY + bloomH);
+        bloom.addColorStop(0, "rgba(212,175,55,0)");
+        bloom.addColorStop(0.3, `rgba(212,175,55,${0.015 * breathe})`);
+        bloom.addColorStop(0.5, `rgba(235,200,80,${0.04 * breathe})`);
+        bloom.addColorStop(0.7, `rgba(212,175,55,${0.015 * breathe})`);
+        bloom.addColorStop(1, "rgba(212,175,55,0)");
+        ctx.fillStyle = bloom;
+        ctx.fillRect(0, horizonY - bloomH, w, bloomH * 2);
+
+        ctx.restore();
+      } else {
+        // Light mode — subtle warm line
+        const glow = ctx.createRadialGradient(
+          w * 0.5, horizonY, 0,
+          w * 0.5, horizonY, w * 0.35,
+        );
+        glow.addColorStop(0, `rgba(154,123,16,${0.06 * breathe})`);
+        glow.addColorStop(0.3, `rgba(154,123,16,${0.02 * breathe})`);
+        glow.addColorStop(1, "rgba(154,123,16,0)");
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, horizonY - h * 0.15, w, h * 0.2);
+
+        const lineGrad = ctx.createLinearGradient(0, 0, w, 0);
+        lineGrad.addColorStop(0, "rgba(154,123,16,0)");
+        lineGrad.addColorStop(0.2, `rgba(154,123,16,${0.12 * breathe})`);
+        lineGrad.addColorStop(0.5, `rgba(184,148,31,${0.20 * breathe})`);
+        lineGrad.addColorStop(0.8, `rgba(154,123,16,${0.12 * breathe})`);
+        lineGrad.addColorStop(1, "rgba(154,123,16,0)");
+        ctx.fillStyle = lineGrad;
+        ctx.fillRect(0, horizonY - 0.5 * d, w, 1 * d);
       }
 
       animId.current = requestAnimationFrame(draw);
@@ -374,57 +330,56 @@ export default function HeroCanvas() {
       data-hero-bg
       className="absolute inset-0 -z-10 overflow-hidden pointer-events-none"
     >
-      {/* Swarm orb canvas */}
+      {/* Stars + horizon glow canvas */}
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full pointer-events-auto"
-        style={{ opacity: 1 }}
       />
 
-      {/* Subtle glass — light frosting, preserves particle clarity */}
+      {/* Tron perspective grid floor — dynamically aligned with canvas horizon */}
       <div
-        className="absolute inset-0 z-[1] pointer-events-none"
+        className="absolute bottom-0 left-0 right-0 pointer-events-none z-[2]"
         style={{
-          backdropFilter: "blur(2px) saturate(120%)",
-          WebkitBackdropFilter: "blur(2px) saturate(120%)",
-          background: isDark
-            ? "radial-gradient(ellipse 55% 45% at 50% 44%, rgba(10,8,6,0.15) 0%, rgba(10,8,6,0.05) 70%, transparent 100%)"
-            : "radial-gradient(ellipse 55% 45% at 50% 44%, rgba(250,250,248,0.2) 0%, rgba(250,250,248,0.08) 70%, transparent 100%)",
+          height: gridHeight,
+          overflow: "hidden",
+          maskImage: "linear-gradient(to bottom, transparent 0%, black 3%, black 80%, transparent 100%)",
+          WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 3%, black 80%, transparent 100%)",
         }}
-      />
-
-      {/* Grid — futuristic tech overlay, sits above glass */}
-      <div
-        className="absolute inset-0 pointer-events-none z-[2]"
-        style={{
-          backgroundImage: isDark
-            ? "linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)"
-            : "linear-gradient(rgba(0,0,0,0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.055) 1px, transparent 1px)",
-          backgroundSize: "48px 48px",
-          maskImage:
-            "radial-gradient(ellipse 90% 80% at 50% 45%, black 0%, transparent 75%)",
-          WebkitMaskImage:
-            "radial-gradient(ellipse 90% 80% at 50% 45%, black 0%, transparent 75%)",
-        }}
-      />
+      >
+        <div
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: "-20%",
+            width: "140%",
+            height: "100%",
+            perspective: "500px",
+            perspectiveOrigin: "50% 0%",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage: isDark
+                ? "linear-gradient(rgba(212,175,55,0.10) 1px, transparent 1px), linear-gradient(90deg, rgba(212,175,55,0.10) 1px, transparent 1px)"
+                : "linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)",
+              backgroundSize: "50px 50px",
+              transform: "rotateX(72deg)",
+              transformOrigin: "50% 0%",
+              animation: "tron-grid-scroll 8s linear infinite",
+            }}
+          />
+        </div>
+      </div>
 
       {/* Bottom fade for section transition */}
       <div
-        className="absolute inset-x-0 bottom-0 h-48 pointer-events-none z-[3]"
+        className="absolute inset-x-0 bottom-0 h-32 pointer-events-none z-[3]"
         style={{
           background: isDark
             ? "linear-gradient(180deg, transparent, rgba(12,10,7,1))"
             : "linear-gradient(180deg, transparent, var(--bg-section-warm))",
-        }}
-      />
-
-      {/* Top vignette */}
-      <div
-        className="absolute inset-x-0 top-0 h-32 pointer-events-none z-[3]"
-        style={{
-          background: isDark
-            ? "linear-gradient(0deg, transparent, rgba(10,8,6,0.4))"
-            : "linear-gradient(0deg, transparent, rgba(250,250,248,0.4))",
         }}
       />
     </div>

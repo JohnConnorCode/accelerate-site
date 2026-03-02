@@ -1,17 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
-import { Mail, Phone, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
+import { Mail, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
+import { useGSAP } from "@gsap/react";
+import { gsap } from "@/lib/gsap-init";
+import { prefersReducedMotion } from "@/lib/utils";
 import { isValidEmail } from "@/lib/validation";
 
 const footerColumns = [
   {
     title: "Services",
     links: [
-      { label: "AI-Powered Websites", href: "/services#websites" },
-      { label: "Automations & Workflows", href: "/services#automations" },
-      { label: "AI Agents", href: "/services#agents" },
+      { label: "AI Strategy & Roadmap", href: "/services#strategy" },
+      { label: "Workflow Automation", href: "/services#automation" },
+      { label: "Customer Engagement", href: "/services#engagement" },
       { label: "Packages & Pricing", href: "/packages" },
     ],
   },
@@ -46,9 +49,33 @@ const footerColumns = [
 ];
 
 export function Footer() {
+  const footerRef = useRef<HTMLElement>(null);
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+
+  useGSAP(() => {
+    if (!footerRef.current) return;
+    if (prefersReducedMotion()) return;
+
+    const sections = footerRef.current.querySelectorAll("[data-footer-section]");
+
+    gsap.fromTo(sections,
+      { opacity: 0, y: 20 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.5,
+        stagger: 0.1,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: footerRef.current,
+          start: "top 90%",
+          toggleActions: "play none none none",
+        },
+      }
+    );
+  }, { scope: footerRef });
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,44 +111,37 @@ export function Footer() {
   };
 
   return (
-    <footer className="relative bg-[var(--bg-base)]">
+    <footer ref={footerRef} className="relative bg-[var(--bg-base)]">
       {/* Gold top line */}
       <div className="section-divider" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-10 lg:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-10 lg:gap-8">
           {/* Brand Column */}
-          <div className="lg:col-span-2">
+          <div data-footer-section className="lg:col-span-2">
             <Link href="/" className="inline-block mb-4">
               <span className="text-xl font-bold text-gold-gradient tracking-[0.15em] uppercase font-display">
                 ACCELERATE
               </span>
             </Link>
             <p className="text-[var(--white-secondary)] text-sm leading-relaxed mb-6 max-w-sm">
-              AI-powered websites, automations, and intelligent agents that help
-              small businesses capture more leads and save time.
+              AI strategy and systems for small businesses. We figure out where
+              AI fits, then build and manage the systems that make it happen.
             </p>
             <div className="flex flex-col gap-2 text-sm text-[var(--white-muted)]">
               <a
-                href="mailto:hello@acceleratewith.us"
+                href="mailto:john@acceleratewith.us"
                 className="flex items-center gap-2 hover:text-[var(--white-primary)] transition-colors"
               >
                 <Mail className="w-4 h-4" />
-                hello@acceleratewith.us
-              </a>
-              <a
-                href="tel:+16015551234"
-                className="flex items-center gap-2 hover:text-[var(--white-primary)] transition-colors"
-              >
-                <Phone className="w-4 h-4" />
-                (601) 555-1234
+                john@acceleratewith.us
               </a>
             </div>
           </div>
 
           {/* Link Columns */}
           {footerColumns.map((col) => (
-            <div key={col.title}>
+            <div key={col.title} data-footer-section>
               <h4 className="text-sm font-semibold text-[var(--white-primary)] mb-4">
                 {col.title}
               </h4>
@@ -142,7 +162,7 @@ export function Footer() {
         </div>
 
         {/* Email Signup */}
-        <div className="mt-14 pt-8 border-t border-[var(--border-subtle)]">
+        <div data-footer-section className="mt-14 pt-8 border-t border-[var(--border-subtle)]">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
             <div>
               <h4 className="text-sm font-semibold text-[var(--white-primary)] mb-1">
@@ -166,6 +186,8 @@ export function Footer() {
                   <input
                     id="footer-email"
                     type="email"
+                    inputMode="email"
+                    autoComplete="email"
                     placeholder="your@email.com"
                     required
                     value={email}
@@ -175,12 +197,12 @@ export function Footer() {
                     }}
                     disabled={status === "loading"}
                     aria-label="Email address"
-                    className="flex-1 sm:w-64 px-4 py-2.5 rounded-lg text-sm bg-[var(--bg-subtle)] border border-[var(--border-glass)] text-[var(--white-primary)] placeholder:text-[var(--white-muted)] focus:outline-none focus:border-[var(--gold-base)] transition-colors disabled:opacity-50"
+                    className="flex-1 sm:w-64 px-4 py-2.5 rounded-lg text-sm bg-[var(--bg-subtle)] border border-[var(--border-glass)] text-[var(--white-primary)] placeholder:text-[var(--white-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--gold-base)] focus:border-[var(--gold-base)] transition-colors disabled:opacity-50"
                   />
                   <button
                     type="submit"
                     disabled={status === "loading"}
-                    className="bg-gold-gradient text-black px-4 py-2.5 rounded-lg text-sm font-semibold hover:brightness-110 transition-all inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    className="bg-gold-gradient text-black px-4 py-2.5 rounded-lg text-sm font-semibold hover:brightness-110 transition-all inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-base)]"
                   >
                     {status === "loading" ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -201,7 +223,7 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-10 pt-6 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[var(--white-muted)]">
+        <div data-footer-section className="mt-10 pt-6 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[var(--white-muted)]">
           <p>&copy; {new Date().getFullYear()} Accelerate. All rights reserved.</p>
           <div className="flex gap-6">
             <Link href="/privacy" className="hover:text-[var(--white-secondary)] transition-colors">
