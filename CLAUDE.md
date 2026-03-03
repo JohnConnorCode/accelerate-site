@@ -38,6 +38,44 @@ See detailed analysis: `.claude/projects/.../memory/competitor-references.md`
 ## Visual QA Rule
 After making visual/layout changes to components, always take a screenshot and review it before considering the work done. Check for empty space, broken layouts, alignment issues, and overall visual balance. Iterate until it looks right — don't ship blind.
 
+## Infrastructure
+
+### Supabase
+- **Project:** Accelerate Agency (`skjypuwkceoiunyhhqlm`)
+- **URL:** `https://skjypuwkceoiunyhhqlm.supabase.co`
+- **Region:** East US (North Virginia) / `us-east-1`
+
+### Environment Variables
+| Variable | Purpose |
+|----------|---------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL (public) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase publishable key (public) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server-only, secret) |
+| `ADMIN_EMAIL` | Admin notification recipient |
+| `NEXT_PUBLIC_SITE_URL` | Canonical site URL |
+| `RESEND_FROM_EMAIL` | Outbound email sender |
+| `RESEND_API_KEY` | Resend API key (secret) |
+| `ANTHROPIC_API_KEY` | Claude API key for proposal generation (secret) |
+| `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` | Plausible analytics domain |
+
+Local values: `.env.local` (gitignored). Production values: Vercel dashboard.
+
+### Database Migrations (run order)
+1. `supabase/migration.sql` — Base schema (solution_requests, plan_views)
+2. `supabase/migration-prompt2.sql` — Lead management, content_calendar, chat_leads
+3. `supabase/migration-prompt2b.sql` — Case studies, website_grades, resource_downloads, email_sequences, partner_applications
+4. `supabase/migration-prompt3.sql` — Admin settings table + seed data
+5. `supabase/migration-prompt4.sql` — Contact submissions, subscribers, constraint fixes
+6. `supabase/migration-prompt5.sql` — Admin notifications table
+7. `migrations/business-operating-system.sql` — Tasks, clients, sent_emails, proposals, notification priority column
+
+All migrations are idempotent (`CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`).
+
+### Auth Flow
+- Supabase Auth (email/password) → middleware (`src/middleware.ts`) checks session → `requireAdmin()` (`src/lib/admin/auth.ts`) verifies authenticated user
+- Admin email: `john@acceleratewith.us`
+- Any authenticated Supabase user can access `/admin` (no role-based check)
+
 ## Pre-Commit Requirements
 1. `npx tsc --noEmit` — zero errors
 2. `npm run build` — production build succeeds

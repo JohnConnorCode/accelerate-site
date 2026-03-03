@@ -83,8 +83,8 @@ export function Industries() {
           <SectionHeader
             heading={
               <>
-                Built for how{" "}
-                <span className="text-gold-gradient">your industry</span> actually works.
+                Built for How{" "}
+                <span className="text-gold-gradient">Your Industry</span> Actually Works
               </>
             }
             description="Generic tools waste your money. We build systems around the way your customers find, choose, and hire you."
@@ -109,7 +109,7 @@ export function Industries() {
                 <Link href={industry.href} className="block h-full group">
                   <div className="relative glass rounded-xl p-8 h-full flex flex-col items-start card-hover-shine hover:border-gold-glow transition-all duration-300 overflow-hidden">
                     <div className="absolute top-0 left-0 right-0 h-px bg-gold-gradient scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
-                    <div className="w-12 h-12 rounded-lg bg-[rgba(212,175,55,0.08)] flex items-center justify-center mb-5">
+                    <div className="w-12 h-12 rounded-lg bg-[rgba(var(--accent-rgb),0.08)] flex items-center justify-center mb-5">
                       <Icon className="w-6 h-6 text-[var(--gold-base)]" />
                     </div>
                     <h3 className="text-lg font-semibold text-[var(--heading-color)] mb-2">

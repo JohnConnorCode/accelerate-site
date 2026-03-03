@@ -840,7 +840,7 @@ export function WebsiteGraderPage() {
                         hover="lift"
                         className="text-center h-full"
                       >
-                        <div className="w-12 h-12 rounded-xl bg-[rgba(212,175,55,0.1)] border border-[rgba(212,175,55,0.2)] flex items-center justify-center mx-auto mb-4">
+                        <div className="w-12 h-12 rounded-xl bg-[rgba(var(--accent-rgb),0.1)] border border-[rgba(var(--accent-rgb),0.2)] flex items-center justify-center mx-auto mb-4">
                           <Icon className="w-6 h-6 text-[var(--gold-base)]" />
                         </div>
                         <h3

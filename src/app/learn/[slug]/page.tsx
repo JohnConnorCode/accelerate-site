@@ -145,7 +145,7 @@ export default async function ArticlePage({
       <section className="relative pt-28 pb-16 bg-[var(--bg-section-warm)] overflow-hidden">
         {/* Atmospheric glow */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full bg-radial from-[rgba(212,175,55,0.05)] to-transparent" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full bg-radial from-[rgba(var(--accent-rgb),0.05)] to-transparent" />
         </div>
 
         <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -196,7 +196,7 @@ export default async function ArticlePage({
             <AnimateOnScroll>
               <div className="mt-8 flex flex-wrap items-center gap-5 text-sm text-[var(--white-muted)]">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-full bg-[rgba(212,175,55,0.15)] border border-[rgba(212,175,55,0.3)] flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-full bg-[rgba(var(--accent-rgb),0.15)] border border-[rgba(var(--accent-rgb),0.3)] flex items-center justify-center">
                     <User className="w-4 h-4 text-[var(--gold-light)]" />
                   </div>
                   <div>
@@ -310,7 +310,7 @@ export default async function ArticlePage({
       {/* ------------------------------------------------------------------ */}
       <section className="py-20 bg-[var(--bg-section-warm)] relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] rounded-full bg-radial from-[rgba(212,175,55,0.06)] to-transparent" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] rounded-full bg-radial from-[rgba(var(--accent-rgb),0.06)] to-transparent" />
         </div>
 
         <div className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">

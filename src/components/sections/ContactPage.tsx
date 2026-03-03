@@ -40,7 +40,7 @@ export function ContactPageContent() {
                     Email Us Directly
                   </h3>
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-[rgba(212,175,55,0.1)] border border-[rgba(212,175,55,0.2)] flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-[rgba(var(--accent-rgb),0.1)] border border-[rgba(var(--accent-rgb),0.2)] flex items-center justify-center shrink-0">
                       <Mail className="w-5 h-5 text-[var(--gold-base)]" />
                     </div>
                     <a

@@ -21,7 +21,7 @@ export function HomeFAQ() {
             heading={
               <>
                 Common{" "}
-                <span className="text-gold-gradient">questions.</span>
+                <span className="text-gold-gradient">Questions</span>
               </>
             }
             className="mb-12"

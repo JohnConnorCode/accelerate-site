@@ -305,14 +305,14 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
       {/* Newsletter CTA */}
       <section className="py-24 bg-[var(--bg-section-warm)] relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(700px,90vw)] h-[350px] rounded-full bg-radial from-[rgba(212,175,55,0.05)] to-transparent" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(700px,90vw)] h-[350px] rounded-full bg-radial from-[rgba(var(--accent-rgb),0.05)] to-transparent" />
         </div>
 
         <div className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll>
             <GlassCard variant="gold" padding="none" className="text-center">
               <div className="p-8 sm:p-12">
-                <div className="w-12 h-12 rounded-full bg-[rgba(212,175,55,0.15)] border border-[rgba(212,175,55,0.3)] flex items-center justify-center mx-auto mb-5">
+                <div className="w-12 h-12 rounded-full bg-[rgba(var(--accent-rgb),0.15)] border border-[rgba(var(--accent-rgb),0.3)] flex items-center justify-center mx-auto mb-5">
                   <Mail className="w-6 h-6 text-[var(--gold-light)]" />
                 </div>
                 <h2 className="font-display text-2xl font-bold text-[var(--heading-color)] mb-2">

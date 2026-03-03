@@ -188,7 +188,7 @@ function StatCard({
           className={cn(
             "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
             highlight
-              ? "bg-[rgba(212,175,55,0.15)] border border-[rgba(212,175,55,0.3)]"
+              ? "bg-[rgba(var(--accent-rgb),0.15)] border border-[rgba(var(--accent-rgb),0.3)]"
               : "bg-white/5 border border-[var(--border-glass)]"
           )}
         >
@@ -297,7 +297,7 @@ export function ROICalculatorPage() {
             <AnimateOnScroll>
               <GlassCard variant="prominent" padding="lg">
                 <div className="flex items-center gap-3 mb-8">
-                  <div className="w-10 h-10 rounded-lg bg-[rgba(212,175,55,0.1)] border border-[rgba(212,175,55,0.2)] flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-lg bg-[rgba(var(--accent-rgb),0.1)] border border-[rgba(var(--accent-rgb),0.2)] flex items-center justify-center">
                     <Calculator className="w-5 h-5 text-[var(--gold-base)]" />
                   </div>
                   <h2
@@ -568,7 +568,7 @@ export function ROICalculatorPage() {
       {/* ======== DISCLAIMER + CTA ======== */}
       <section className="py-16 sm:py-24 bg-[var(--bg-base)] relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-radial from-[rgba(212,175,55,0.06)] to-transparent" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-radial from-[rgba(var(--accent-rgb),0.06)] to-transparent" />
         </div>
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">

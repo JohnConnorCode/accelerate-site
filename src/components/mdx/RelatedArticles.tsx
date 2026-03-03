@@ -25,7 +25,7 @@ export function RelatedArticles({ articles }: RelatedArticlesProps) {
             href={`/learn/${article.slug}`}
             className="group glass rounded-xl p-6 transition-all hover:border-[var(--border-gold)] hover:-translate-y-0.5 flex flex-col h-full"
           >
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[rgba(212,175,55,0.1)] text-[var(--gold-light)] border border-[rgba(212,175,55,0.2)] self-start mb-3">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[rgba(var(--accent-rgb),0.1)] text-[var(--gold-light)] border border-[rgba(var(--accent-rgb),0.2)] self-start mb-3">
               {CATEGORY_LABELS[article.frontmatter.category]}
             </span>
             <h4 className="font-display text-sm font-semibold text-[var(--white-primary)] group-hover:text-gold-gradient transition-colors line-clamp-2 mb-2 flex-1">

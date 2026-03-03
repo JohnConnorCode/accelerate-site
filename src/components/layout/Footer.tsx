@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
-import { Mail, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
+import { Mail, ArrowRight, Loader2, CheckCircle2, Linkedin } from "lucide-react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap-init";
 import { prefersReducedMotion } from "@/lib/utils";
@@ -135,6 +135,15 @@ export function Footer() {
               >
                 <Mail className="w-4 h-4" />
                 john@acceleratewith.us
+              </a>
+              <a
+                href="https://www.linkedin.com/company/acceleratewith/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 hover:text-[var(--white-primary)] transition-colors"
+              >
+                <Linkedin className="w-4 h-4" />
+                LinkedIn
               </a>
             </div>
           </div>

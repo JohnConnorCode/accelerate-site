@@ -16,7 +16,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
       id: "welcome",
       role: "assistant",
       content:
-        "Hi! I am the Accelerate AI assistant. I can help you learn about our AI solutions for small businesses. What can I help you with?",
+        "Hi! I'm the Accelerate AI assistant. I can help you learn about our AI solutions for small businesses. What can I help you with?",
       timestamp: Date.now(),
     },
   ]);
@@ -118,7 +118,6 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
     setLeadCaptured(true);
     setShowLeadCapture(false);
 
-    // Save lead
     try {
       await fetch("/api/chat", {
         method: "PUT",
@@ -138,25 +137,25 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
       {
         id: `system-${Date.now()}`,
         role: "assistant",
-        content: `Thanks, ${name}! We will follow up at ${email} with personalized recommendations. In the meantime, feel free to keep asking questions.`,
+        content: `Thanks, ${name}! We'll follow up at ${email} with personalized recommendations. Feel free to keep asking questions.`,
         timestamp: Date.now(),
       },
     ]);
   };
 
   return (
-    <div className="flex flex-col h-[500px] w-[calc(100vw-2rem)] sm:w-[380px] max-w-[380px] glass-prominent rounded-2xl overflow-clip border border-border-glass">
+    <div className="flex flex-col h-[500px] w-[calc(100vw-2rem)] sm:w-[380px] max-w-[380px] rounded-2xl overflow-clip border border-[var(--border-glass)] bg-[var(--bg-elevated)] shadow-2xl">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border-glass">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-glass)] bg-[var(--bg-subtle)]">
         <div>
-          <h3 className="text-sm font-display font-semibold text-white-primary">
+          <h3 className="text-sm font-display font-semibold text-[var(--white-primary)]">
             Accelerate AI
           </h3>
-          <p className="text-xs text-white-muted">Ask us anything</p>
+          <p className="text-xs text-[var(--white-muted)]">Ask us anything</p>
         </div>
         <button
           onClick={onClose}
-          className="text-white-muted hover:text-white-primary transition-colors cursor-pointer"
+          className="text-[var(--white-muted)] hover:text-[var(--white-primary)] transition-colors cursor-pointer"
           aria-label="Close chat"
         >
           <X className="h-4 w-4" />
@@ -170,8 +169,8 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
         ))}
         {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
           <div className="flex justify-start">
-            <div className="glass rounded-2xl rounded-bl-md px-4 py-2.5">
-              <Loader2 className="h-4 w-4 animate-spin text-white-muted" />
+            <div className="rounded-2xl rounded-bl-md px-4 py-2.5 bg-[var(--bg-subtle)] border border-[var(--border-glass)]">
+              <Loader2 className="h-4 w-4 animate-spin text-[var(--white-muted)]" />
             </div>
           </div>
         )}
@@ -184,7 +183,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
       )}
 
       {/* Input */}
-      <div className="border-t border-border-glass p-3">
+      <div className="border-t border-[var(--border-glass)] p-3 bg-[var(--bg-subtle)]">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -198,7 +197,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type a message..."
             aria-label="Chat message"
-            className="flex-1 rounded-lg bg-bg-subtle border border-border-glass px-3 py-2 text-sm text-white-primary placeholder:text-white-muted focus:outline-none focus:border-gold"
+            className="flex-1 rounded-lg bg-[var(--bg-base)] border border-[var(--border-glass)] px-3 py-2 text-sm text-[var(--white-primary)] placeholder:text-[var(--white-muted)] focus:outline-none focus:border-[var(--gold-base)] transition-colors"
             disabled={isLoading}
           />
           <button

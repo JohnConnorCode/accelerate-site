@@ -64,7 +64,7 @@ export function ChatTextInput({
         className={cn(
           "w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0",
           value.trim()
-            ? "bg-gold-gradient text-black shadow-[0_0_16px_rgba(212,175,55,0.3)]"
+            ? "bg-gold-gradient text-black shadow-[0_0_16px_rgba(var(--accent-rgb),0.3)]"
             : "glass border border-[var(--border-glass)] text-white-muted"
         )}
         aria-label="Send"

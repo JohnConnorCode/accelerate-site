@@ -24,7 +24,7 @@ export function SolutionGeneratorSection() {
         <div
           className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] rounded-full"
           style={{
-            background: "radial-gradient(ellipse, rgba(212,175,55,0.08) 0%, transparent 70%)",
+            background: "radial-gradient(ellipse, rgba(var(--accent-rgb),0.08) 0%, transparent 70%)",
           }}
         />
       </div>

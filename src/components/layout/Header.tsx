@@ -187,7 +187,7 @@ export function Header() {
           className="absolute bottom-0 left-0 right-0 h-px transition-opacity duration-500"
           style={{
             opacity: scrolled ? 1 : 0,
-            background: "linear-gradient(90deg, transparent, rgba(212,175,55,0.4), rgba(245,208,96,0.3), rgba(212,175,55,0.4), transparent)",
+            background: "linear-gradient(90deg, transparent, rgba(var(--accent-rgb),0.4), rgba(var(--accent-rgb),0.3), rgba(var(--accent-rgb),0.4), transparent)",
           }}
         />
       </header>

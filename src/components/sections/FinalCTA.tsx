@@ -89,8 +89,7 @@ export function FinalCTA() {
   return (
     <section
       ref={sectionRef}
-      className="py-24 sm:py-32 md:py-40 relative overflow-hidden"
-      style={{ backgroundColor: "var(--bg-base)" }}
+      className="py-24 sm:py-32 md:py-40 relative overflow-hidden bg-[var(--bg-base)]"
     >
       {/* Atmospheric background layers */}
       <div className="absolute inset-0 pointer-events-none">
@@ -100,7 +99,7 @@ export function FinalCTA() {
           data-parallax-glow
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(700px,95vw)] h-[400px] rounded-full"
           style={{
-            background: "radial-gradient(ellipse, rgba(212,175,55,0.08) 0%, transparent 70%)",
+            background: "radial-gradient(ellipse, rgba(var(--accent-rgb),0.08) 0%, transparent 70%)",
           }}
         />
       </div>
@@ -110,8 +109,8 @@ export function FinalCTA() {
           data-cta-heading
           className="page-heading mb-6"
         >
-          Let&apos;s talk about{" "}
-          <span className="text-gold-gradient">your business.</span>
+          Let&apos;s Talk About{" "}
+          <span className="text-gold-gradient">Your Business</span>
         </h2>
         <p data-cta-desc className="text-lg sm:text-xl text-[var(--white-muted)] max-w-xl mx-auto mb-10">
           Free discovery call. 30 minutes. You walk away with a clear plan — whether you work with us or not.

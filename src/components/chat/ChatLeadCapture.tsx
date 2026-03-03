@@ -19,9 +19,9 @@ export function ChatLeadCapture({ onSubmit }: ChatLeadCaptureProps) {
   };
 
   return (
-    <div className="glass rounded-lg p-3 mx-2 mb-2">
-      <p className="text-xs text-white-secondary mb-2">
-        Want personalized recommendations? Share your info and we will follow up:
+    <div className="rounded-lg p-3 mx-2 mb-2 bg-[var(--bg-subtle)] border border-[var(--border-glass)]">
+      <p className="text-xs text-[var(--white-secondary)] mb-2">
+        Want personalized recommendations? Share your info and we&rsquo;ll follow up:
       </p>
       <form onSubmit={handleSubmit} className="space-y-2">
         <input
@@ -31,7 +31,7 @@ export function ChatLeadCapture({ onSubmit }: ChatLeadCaptureProps) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
-          className="w-full rounded-md bg-bg-subtle border border-border-glass px-3 py-1.5 text-xs text-white-primary placeholder:text-white-muted focus:outline-none focus:border-gold"
+          className="w-full rounded-md bg-[var(--bg-base)] border border-[var(--border-glass)] px-3 py-1.5 text-xs text-[var(--white-primary)] placeholder:text-[var(--white-muted)] focus:outline-none focus:border-[var(--gold-base)] transition-colors"
         />
         <input
           type="email"
@@ -40,7 +40,7 @@ export function ChatLeadCapture({ onSubmit }: ChatLeadCaptureProps) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="w-full rounded-md bg-bg-subtle border border-border-glass px-3 py-1.5 text-xs text-white-primary placeholder:text-white-muted focus:outline-none focus:border-gold"
+          className="w-full rounded-md bg-[var(--bg-base)] border border-[var(--border-glass)] px-3 py-1.5 text-xs text-[var(--white-primary)] placeholder:text-[var(--white-muted)] focus:outline-none focus:border-[var(--gold-base)] transition-colors"
         />
         <button
           type="submit"

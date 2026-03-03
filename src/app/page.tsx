@@ -52,15 +52,24 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <Hero />
-      <ProblemSolution />
       <ServicesOverview />
-      <HowItWorks />
-      <WhyAccelerate />
+      <div className="section-divider" />
       <WhoThisIsFor />
-      <Integrations />
+      <div className="section-divider" />
+      <ProblemSolution />
+      <div className="section-divider" />
       <SocialProof />
+      <div className="section-divider" />
+      <HowItWorks />
+      <div className="section-divider" />
+      <WhyAccelerate />
+      <div className="section-divider" />
+      <Integrations />
+      <div className="section-divider" />
       <LeadMagnet />
+      <div className="section-divider" />
       <HomeFAQ />
+      <div className="section-divider" />
       <FinalCTA />
     </>
   );

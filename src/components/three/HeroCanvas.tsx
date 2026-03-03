@@ -21,11 +21,27 @@ interface Star {
   sizeBoost: number;  // multiplicative, decays back to 1
 }
 
+interface ShootingStar {
+  x: number;       // current pixel position
+  y: number;
+  vx: number;      // velocity in pixels/frame
+  vy: number;
+  life: number;    // frames remaining
+  maxLife: number;
+  size: number;
+  tailLen: number; // trail length in pixels
+}
+
 const STAR_COUNT = 280;
 const PARALLAX_STRENGTH = 18;
-const CLICK_RADIUS = 0.12;      // normalized radius of click influence
-const CLICK_SIZE_BOOST = 2.2;   // how much stars grow on click
-const CLICK_DECAY = 0.97;       // how fast sizeBoost decays back to 1
+const CLICK_RADIUS = 0.12;
+const CLICK_SIZE_BOOST = 2.2;
+const CLICK_DECAY = 0.97;
+
+// Shooting star config
+const SHOOT_CHANCE = 0.003;    // chance per frame (~1 every 5-6 seconds at 60fps)
+const SHOOT_MIN_LIFE = 40;
+const SHOOT_MAX_LIFE = 80;
 
 const STAR_COLORS: [number, number, number][] = [
   [255, 255, 255],
@@ -36,12 +52,25 @@ const STAR_COLORS: [number, number, number][] = [
   [255, 240, 200],
 ];
 
+const LIGHT_STAR_COLORS: [number, number, number][] = [
+  [11, 122, 122],
+  [20, 149, 154],
+  [6, 95, 115],
+  [15, 135, 140],
+  [8, 108, 125],
+  [22, 145, 150],
+];
+
 function pickStarColor(): [number, number, number] {
   const roll = Math.random();
   if (roll < 0.35) return STAR_COLORS[0]!;
   if (roll < 0.6) return STAR_COLORS[1]!;
   if (roll < 0.75) return STAR_COLORS[5]!;
   return STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)]!;
+}
+
+function pickLightStarColor(): [number, number, number] {
+  return LIGHT_STAR_COLORS[Math.floor(Math.random() * LIGHT_STAR_COLORS.length)]!;
 }
 
 export default function HeroCanvas() {
@@ -51,6 +80,7 @@ export default function HeroCanvas() {
   const mouse = useRef({ x: 0.5, y: 0.5 });
   const smoothMouse = useRef({ x: 0.5, y: 0.5 });
   const stars = useRef<Star[]>([]);
+  const shootingStars = useRef<ShootingStar[]>([]);
   const horizonFrac = useRef(0.55);
   const dpr = useRef(1);
   const { resolvedTheme } = useTheme();
@@ -80,9 +110,8 @@ export default function HeroCanvas() {
     const clickY = (e.clientY - rect.top) / rect.height;
     const horizon = horizonFrac.current;
 
-    // Normalize click Y to sky area (0 to horizon)
     const clickYNorm = clickY / horizon;
-    if (clickYNorm > 1) return; // clicked below horizon, ignore for stars
+    if (clickYNorm > 1) return;
 
     const pts = stars.current;
     for (let i = 0; i < pts.length; i++) {
@@ -93,12 +122,10 @@ export default function HeroCanvas() {
 
       if (dist < CLICK_RADIUS) {
         const influence = 1 - dist / CLICK_RADIUS;
-        // Shift to a new nearby position
         const angle = Math.random() * Math.PI * 2;
         const shift = 0.02 + Math.random() * 0.04 * influence;
         s.targetX = Math.max(0.01, Math.min(0.99, s.x + Math.cos(angle) * shift));
         s.targetY = Math.max(0.01, Math.min(0.99, s.y + Math.sin(angle) * shift));
-        // Boost size proportional to proximity
         s.sizeBoost = 1 + (CLICK_SIZE_BOOST - 1) * influence;
       }
     }
@@ -137,6 +164,27 @@ export default function HeroCanvas() {
       stars.current = pts;
     }
 
+    function spawnShootingStar(w: number, h: number, horizon: number) {
+      const horizonY = h * horizon;
+      // Start from random position in sky, moving diagonally downward
+      const startX = Math.random() * w * 0.8 + w * 0.1;
+      const startY = Math.random() * horizonY * 0.6;
+      const angle = Math.PI * 0.15 + Math.random() * Math.PI * 0.2; // 27-63 degrees downward
+      const speed = 4 + Math.random() * 6;
+      const life = SHOOT_MIN_LIFE + Math.floor(Math.random() * (SHOOT_MAX_LIFE - SHOOT_MIN_LIFE));
+
+      shootingStars.current.push({
+        x: startX,
+        y: startY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life,
+        maxLife: life,
+        size: 1 + Math.random() * 1.5,
+        tailLen: 60 + Math.random() * 80,
+      });
+    }
+
     function resize() {
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
@@ -147,13 +195,13 @@ export default function HeroCanvas() {
       const aspect = canvas.width / canvas.height;
       if (aspect > 1.2) {
         horizonFrac.current = 0.58;
-        setGridHeight("42%"); // 100% - 58% = 42%
+        setGridHeight("42%");
       } else if (aspect > 0.8) {
         horizonFrac.current = 0.50;
-        setGridHeight("50%"); // 100% - 50% = 50%
+        setGridHeight("50%");
       } else {
         horizonFrac.current = 0.45;
-        setGridHeight("55%"); // 100% - 45% = 55%
+        setGridHeight("55%");
       }
     }
 
@@ -187,7 +235,7 @@ export default function HeroCanvas() {
       ctx.fillStyle = bgFill;
       ctx.fillRect(0, 0, w, h);
 
-      // Subtle sky gradient — slightly warmer near horizon
+      // Sky gradient
       if (isDark) {
         const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
         skyGrad.addColorStop(0, "rgba(10,8,6,1)");
@@ -195,6 +243,25 @@ export default function HeroCanvas() {
         skyGrad.addColorStop(1, "rgba(20,16,8,1)");
         ctx.fillStyle = skyGrad;
         ctx.fillRect(0, 0, w, horizonY + 2);
+      } else {
+        // Light mode sky: subtle cool white to soft teal
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
+        skyGrad.addColorStop(0, "rgb(248,250,252)");
+        skyGrad.addColorStop(0.4, "rgb(244,249,251)");
+        skyGrad.addColorStop(0.7, "rgb(234,246,250)");
+        skyGrad.addColorStop(0.85, "rgb(218,240,246)");
+        skyGrad.addColorStop(1, "rgb(200,232,240)");
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, w, horizonY + 2);
+
+        // Below horizon: soft teal fading to base
+        const groundGrad = ctx.createLinearGradient(0, horizonY, 0, h);
+        groundGrad.addColorStop(0, "rgb(200,232,240)");
+        groundGrad.addColorStop(0.2, "rgb(220,240,245)");
+        groundGrad.addColorStop(0.5, "rgb(240,248,250)");
+        groundGrad.addColorStop(1, "rgb(250,250,248)");
+        ctx.fillStyle = groundGrad;
+        ctx.fillRect(0, horizonY, w, h - horizonY);
       }
 
       // --- Stars ---
@@ -214,8 +281,17 @@ export default function HeroCanvas() {
         }
 
         const twinkle = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(seconds * s.twinkleSpeed + s.twinklePhase));
-        const alpha = s.baseOpacity * twinkle;
+        let alpha = s.baseOpacity * twinkle;
         if (alpha < 0.02) continue;
+
+        // Light mode: use teal colors, same star rendering (no blobs)
+        let sr = s.r, sg = s.g, sb = s.b;
+        if (!isDark) {
+          const lc = LIGHT_STAR_COLORS[i % LIGHT_STAR_COLORS.length]!;
+          sr = lc[0]; sg = lc[1]; sb = lc[2];
+          // Scale opacity for visibility on light bg — still crisp, not blobby
+          alpha *= 0.5 + s.depth * 0.5;
+        }
 
         // Stars positioned in sky area (0 to horizon)
         const parallax = (0.15 + s.depth * 0.85) * PARALLAX_STRENGTH * d;
@@ -227,31 +303,102 @@ export default function HeroCanvas() {
 
         const sz = s.size * s.sizeBoost * d;
 
-        // Faint halo on brighter/boosted stars
+        // Subtle glow on brighter/near stars only (both modes)
         if ((s.baseOpacity > 0.5 && sz > 1) || s.sizeBoost > 1.1) {
+          const glowAlpha = isDark
+            ? alpha * 0.04 * Math.max(1, s.sizeBoost * 0.5)
+            : alpha * 0.08 * Math.max(1, s.sizeBoost * 0.5);
           ctx.beginPath();
           ctx.arc(px, py, sz * 2.5, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${s.r},${s.g},${s.b},${alpha * 0.04 * Math.max(1, s.sizeBoost * 0.5)})`;
+          ctx.fillStyle = `rgba(${sr},${sg},${sb},${glowAlpha})`;
           ctx.fill();
         }
 
-        // Star dot
+        // Star dot — small and crisp
         if (sz < 1.2) {
-          ctx.fillStyle = `rgba(${s.r},${s.g},${s.b},${alpha})`;
+          ctx.fillStyle = `rgba(${sr},${sg},${sb},${alpha})`;
           ctx.fillRect(px - sz * 0.5, py - sz * 0.5, sz, sz);
         } else {
           ctx.beginPath();
           ctx.arc(px, py, sz * 0.5, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${s.r},${s.g},${s.b},${alpha})`;
+          ctx.fillStyle = `rgba(${sr},${sg},${sb},${alpha})`;
           ctx.fill();
         }
+      }
+
+      // --- Shooting stars ---
+      // Maybe spawn a new one
+      if (Math.random() < SHOOT_CHANCE) {
+        spawnShootingStar(w, h, horizon);
+      }
+
+      // Update and draw active shooting stars
+      const shoots = shootingStars.current;
+      for (let i = shoots.length - 1; i >= 0; i--) {
+        const ss = shoots[i]!;
+        ss.x += ss.vx * d;
+        ss.y += ss.vy * d;
+        ss.life--;
+
+        if (ss.life <= 0 || ss.x > w + 100 || ss.y > horizonY) {
+          shoots.splice(i, 1);
+          continue;
+        }
+
+        const progress = 1 - ss.life / ss.maxLife; // 0 at start, 1 at end
+        // Fade in quickly, fade out gradually
+        const fadeIn = Math.min(1, progress * 5);
+        const fadeOut = Math.min(1, ss.life / (ss.maxLife * 0.3));
+        const ssAlpha = fadeIn * fadeOut;
+
+        // Trail: line from current position back along velocity
+        const tailX = ss.x - (ss.vx * d * ss.tailLen) / (Math.abs(ss.vx * d) + Math.abs(ss.vy * d)) * (ss.size + 0.5);
+        const tailY = ss.y - (ss.vy * d * ss.tailLen) / (Math.abs(ss.vx * d) + Math.abs(ss.vy * d)) * (ss.size + 0.5);
+
+        const trailGrad = ctx.createLinearGradient(tailX, tailY, ss.x, ss.y);
+        if (isDark) {
+          trailGrad.addColorStop(0, "rgba(255,255,255,0)");
+          trailGrad.addColorStop(0.6, `rgba(255,248,230,${0.15 * ssAlpha})`);
+          trailGrad.addColorStop(1, `rgba(255,255,255,${0.7 * ssAlpha})`);
+        } else {
+          trailGrad.addColorStop(0, "rgba(11,122,122,0)");
+          trailGrad.addColorStop(0.6, `rgba(20,149,154,${0.2 * ssAlpha})`);
+          trailGrad.addColorStop(1, `rgba(20,149,154,${0.6 * ssAlpha})`);
+        }
+
+        ctx.save();
+        ctx.strokeStyle = trailGrad;
+        ctx.lineWidth = ss.size * d;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(tailX, tailY);
+        ctx.lineTo(ss.x, ss.y);
+        ctx.stroke();
+
+        // Bright head
+        ctx.beginPath();
+        ctx.arc(ss.x, ss.y, ss.size * d * 0.8, 0, Math.PI * 2);
+        ctx.fillStyle = isDark
+          ? `rgba(255,255,255,${0.9 * ssAlpha})`
+          : `rgba(20,149,154,${0.8 * ssAlpha})`;
+        ctx.fill();
+
+        // Head glow
+        ctx.beginPath();
+        ctx.arc(ss.x, ss.y, ss.size * d * 3, 0, Math.PI * 2);
+        ctx.fillStyle = isDark
+          ? `rgba(212,175,55,${0.12 * ssAlpha})`
+          : `rgba(11,122,122,${0.15 * ssAlpha})`;
+        ctx.fill();
+
+        ctx.restore();
       }
 
       // --- Horizon glow ---
       const breathe = 0.93 + Math.sin(seconds * 0.4) * 0.07;
 
       if (isDark) {
-        // Soft diffused glow centered on horizon — single clean gradient
+        // Soft diffused glow centered on horizon
         const glow = ctx.createRadialGradient(
           w * 0.5, horizonY, 0,
           w * 0.5, horizonY, w * 0.45,
@@ -263,11 +410,10 @@ export default function HeroCanvas() {
         ctx.fillStyle = glow;
         ctx.fillRect(0, horizonY - h * 0.2, w, h * 0.3);
 
-        // Horizon line — soft atmospheric glow, no hard edges
+        // Horizon line — soft atmospheric glow
         ctx.save();
         ctx.globalCompositeOperation = "lighter";
 
-        // Core line — very gentle fade from edges, long transparent tails
         const lineGrad = ctx.createLinearGradient(0, 0, w, 0);
         lineGrad.addColorStop(0, "rgba(212,175,55,0)");
         lineGrad.addColorStop(0.25, `rgba(212,175,55,${0.10 * breathe})`);
@@ -277,7 +423,6 @@ export default function HeroCanvas() {
         ctx.fillStyle = lineGrad;
         ctx.fillRect(0, horizonY - 0.5 * d, w, 1 * d);
 
-        // Feathered bloom — full-width, soft vertical spread
         const bloomH = 16 * d;
         const bloom = ctx.createLinearGradient(0, horizonY - bloomH, 0, horizonY + bloomH);
         bloom.addColorStop(0, "rgba(212,175,55,0)");
@@ -290,25 +435,63 @@ export default function HeroCanvas() {
 
         ctx.restore();
       } else {
-        // Light mode — subtle warm line
+        // Light mode — atmospheric teal horizon glow
+
+        // Radial glow centered at horizon
         const glow = ctx.createRadialGradient(
           w * 0.5, horizonY, 0,
-          w * 0.5, horizonY, w * 0.35,
+          w * 0.5, horizonY, w * 0.55,
         );
-        glow.addColorStop(0, `rgba(154,123,16,${0.06 * breathe})`);
-        glow.addColorStop(0.3, `rgba(154,123,16,${0.02 * breathe})`);
-        glow.addColorStop(1, "rgba(154,123,16,0)");
+        glow.addColorStop(0, `rgba(11,122,122,${0.18 * breathe})`);
+        glow.addColorStop(0.15, `rgba(11,122,122,${0.12 * breathe})`);
+        glow.addColorStop(0.35, `rgba(15,135,140,${0.06 * breathe})`);
+        glow.addColorStop(0.6, `rgba(6,90,110,${0.02 * breathe})`);
+        glow.addColorStop(1, "rgba(6,90,110,0)");
         ctx.fillStyle = glow;
-        ctx.fillRect(0, horizonY - h * 0.15, w, h * 0.2);
+        ctx.fillRect(0, 0, w, h);
 
-        const lineGrad = ctx.createLinearGradient(0, 0, w, 0);
-        lineGrad.addColorStop(0, "rgba(154,123,16,0)");
-        lineGrad.addColorStop(0.2, `rgba(154,123,16,${0.12 * breathe})`);
-        lineGrad.addColorStop(0.5, `rgba(184,148,31,${0.20 * breathe})`);
-        lineGrad.addColorStop(0.8, `rgba(154,123,16,${0.12 * breathe})`);
-        lineGrad.addColorStop(1, "rgba(154,123,16,0)");
-        ctx.fillStyle = lineGrad;
-        ctx.fillRect(0, horizonY - 0.5 * d, w, 1 * d);
+        // Vertical bloom
+        const bloomH = h * 0.12;
+        const bloom = ctx.createLinearGradient(0, horizonY - bloomH, 0, horizonY + bloomH * 0.5);
+        bloom.addColorStop(0, "rgba(11,122,122,0)");
+        bloom.addColorStop(0.35, `rgba(15,130,135,${0.04 * breathe})`);
+        bloom.addColorStop(0.6, `rgba(15,130,135,${0.08 * breathe})`);
+        bloom.addColorStop(0.85, `rgba(15,130,135,${0.03 * breathe})`);
+        bloom.addColorStop(1, "rgba(11,122,122,0)");
+        ctx.fillStyle = bloom;
+        ctx.fillRect(0, horizonY - bloomH, w, bloomH * 1.5);
+
+        // Horizon band
+        const bandH = 6 * d;
+        const band = ctx.createLinearGradient(0, horizonY - bandH, 0, horizonY + bandH);
+        band.addColorStop(0, "rgba(20,149,154,0)");
+        band.addColorStop(0.3, `rgba(20,149,154,${0.08 * breathe})`);
+        band.addColorStop(0.5, `rgba(20,149,154,${0.14 * breathe})`);
+        band.addColorStop(0.7, `rgba(20,149,154,${0.08 * breathe})`);
+        band.addColorStop(1, "rgba(20,149,154,0)");
+        ctx.fillStyle = band;
+        ctx.fillRect(0, horizonY - bandH, w, bandH * 2);
+      }
+
+      // --- Grid hover glow (below horizon, follows mouse) ---
+      const gridMouseX = sm.x * w;
+      const gridMouseY = sm.y * h;
+      if (gridMouseY > horizonY) {
+        const glowRadius = w * 0.18;
+        const gAlpha = isDark ? 0.07 : 0.16;
+        const gridGlow = ctx.createRadialGradient(
+          gridMouseX, gridMouseY, 0,
+          gridMouseX, gridMouseY, glowRadius,
+        );
+        gridGlow.addColorStop(0, isDark
+          ? `rgba(212,175,55,${gAlpha * breathe})`
+          : `rgba(11,122,122,${gAlpha * breathe})`);
+        gridGlow.addColorStop(0.5, isDark
+          ? `rgba(212,175,55,${gAlpha * 0.3 * breathe})`
+          : `rgba(11,122,122,${gAlpha * 0.3 * breathe})`);
+        gridGlow.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = gridGlow;
+        ctx.fillRect(gridMouseX - glowRadius, gridMouseY - glowRadius, glowRadius * 2, glowRadius * 2);
       }
 
       animId.current = requestAnimationFrame(draw);
@@ -363,7 +546,7 @@ export default function HeroCanvas() {
               inset: 0,
               backgroundImage: isDark
                 ? "linear-gradient(rgba(212,175,55,0.10) 1px, transparent 1px), linear-gradient(90deg, rgba(212,175,55,0.10) 1px, transparent 1px)"
-                : "linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)",
+                : "linear-gradient(rgba(11,122,122,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(11,122,122,0.15) 1px, transparent 1px)",
               backgroundSize: "50px 50px",
               transform: "rotateX(72deg)",
               transformOrigin: "50% 0%",
@@ -379,7 +562,7 @@ export default function HeroCanvas() {
         style={{
           background: isDark
             ? "linear-gradient(180deg, transparent, rgba(12,10,7,1))"
-            : "linear-gradient(180deg, transparent, var(--bg-section-warm))",
+            : "linear-gradient(180deg, transparent, var(--bg-base))",
         }}
       />
     </div>

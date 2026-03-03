@@ -86,8 +86,8 @@ export function PartnersPage() {
           <h1
             className="font-display text-3xl md:text-5xl font-bold text-white-primary mb-4"
           >
-            Grow Together.{" "}
-            <span className="text-gold-gradient">Earn Together.</span>
+            Grow Together,{" "}
+            <span className="text-gold-gradient">Earn Together</span>
           </h1>
           <p className="text-lg text-white-secondary max-w-2xl mx-auto">
             Whether you are a consultant, agency, or technology company, partner

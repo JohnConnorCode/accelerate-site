@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       .eq("email", email),
     supabase
       .from("email_sequences")
-      .select("id, sequence_name, status, created_at")
+      .select("id, sequence_type, status, created_at")
       .eq("email", email),
     supabase
       .from("website_grades")
@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
   (emailSeqRes.data || []).forEach((r: any) => {
     timeline.push({
       type: "email",
-      title: `Email sequence: ${r.sequence_name || "Unknown"}`,
+      title: `Email sequence: ${r.sequence_type || "Unknown"}`,
       description: `Status: ${r.status || "unknown"}`,
       timestamp: r.created_at,
       sourceId: r.id,

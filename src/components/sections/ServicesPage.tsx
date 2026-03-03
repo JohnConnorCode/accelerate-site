@@ -51,7 +51,7 @@ function ServiceSection({
         <ScrollReveal animation="fade-up">
           <div className="mb-10">
             {Icon && (
-              <div className="w-12 h-12 rounded-lg bg-[rgba(212,175,55,0.08)] flex items-center justify-center mb-4">
+              <div className="w-12 h-12 rounded-lg bg-[rgba(var(--accent-rgb),0.08)] flex items-center justify-center mb-4">
                 <Icon className="w-6 h-6 text-[var(--gold-base)]" />
               </div>
             )}
@@ -172,7 +172,7 @@ export function ServicesPageContent() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative">
             {/* Gold connecting line (desktop) */}
-            <div className="hidden lg:block absolute top-1/2 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-[rgba(212,175,55,0.3)] via-[rgba(212,175,55,0.5)] to-[rgba(212,175,55,0.3)]" />
+            <div className="hidden lg:block absolute top-1/2 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-[rgba(var(--accent-rgb),0.3)] via-[rgba(var(--accent-rgb),0.5)] to-[rgba(var(--accent-rgb),0.3)]" />
 
             {[
               { num: "01", title: "Discovery Call", desc: "Free. 30 minutes. We learn how your business runs and where AI creates the most value." },
@@ -182,7 +182,7 @@ export function ServicesPageContent() {
             ].map((step, i) => (
               <ScrollReveal key={step.num} animation="fade-up" delay={i * 0.1}>
                 <GlassCard padding="lg" className="relative text-center h-full">
-                  <div className="w-10 h-10 rounded-full bg-[rgba(212,175,55,0.15)] border border-[rgba(212,175,55,0.3)] flex items-center justify-center mx-auto mb-4">
+                  <div className="w-10 h-10 rounded-full bg-[rgba(var(--accent-rgb),0.15)] border border-[rgba(var(--accent-rgb),0.3)] flex items-center justify-center mx-auto mb-4">
                     <span className="font-display text-sm font-bold text-[var(--gold-light)]">
                       {step.num}
                     </span>
@@ -230,7 +230,7 @@ export function ServicesPageContent() {
       {/* Bottom CTA */}
       <section className="py-24 bg-[var(--bg-base)] relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-radial from-[rgba(212,175,55,0.06)] to-transparent" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-radial from-[rgba(var(--accent-rgb),0.06)] to-transparent" />
         </div>
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">

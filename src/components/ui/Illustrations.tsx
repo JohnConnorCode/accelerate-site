@@ -9,8 +9,8 @@ export function GridPattern({ className }: { className?: string }) {
     <svg viewBox="0 0 400 400" fill="none" className={className} aria-hidden="true">
       <defs>
         <radialGradient id="grid-dot">
-          <stop offset="0%" stopColor="#D4AF37" stopOpacity="0.4" />
-          <stop offset="100%" stopColor="#D4AF37" stopOpacity="0" />
+          <stop offset="0%" stopColor="var(--gold-base)" stopOpacity="0.4" />
+          <stop offset="100%" stopColor="var(--gold-base)" stopOpacity="0" />
         </radialGradient>
       </defs>
 
@@ -29,7 +29,7 @@ export function GridPattern({ className }: { className?: string }) {
       ].map(([cx, cy], i) => (
         <g key={`dot${i}`}>
           <circle cx={cx} cy={cy} r="12" fill="url(#grid-dot)" />
-          <circle cx={cx} cy={cy} r="2" fill="#D4AF37" opacity="0.5" />
+          <circle cx={cx} cy={cy} r="2" fill="var(--gold-base)" opacity="0.5" />
         </g>
       ))}
 
@@ -38,7 +38,7 @@ export function GridPattern({ className }: { className?: string }) {
         [100, 100, 200, 200], [200, 200, 300, 100], [200, 200, 300, 300],
         [200, 200, 100, 300], [150, 150, 250, 250],
       ].map(([x1, y1, x2, y2], i) => (
-        <line key={`conn${i}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(212,175,55,0.08)" strokeWidth="1" />
+        <line key={`conn${i}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(var(--accent-rgb),0.08)" strokeWidth="1" />
       ))}
     </svg>
   );

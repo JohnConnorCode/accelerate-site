@@ -61,7 +61,7 @@ export function LeadMagnet() {
       <div className="absolute inset-0 pointer-events-none">
         <div
           data-magnet-glow
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(600px,90vw)] h-[400px] bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.06),transparent_70%)]"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(600px,90vw)] h-[400px] bg-[radial-gradient(ellipse_at_center,rgba(var(--accent-rgb),0.06),transparent_70%)]"
         />
       </div>
 
@@ -75,7 +75,7 @@ export function LeadMagnet() {
         </div>
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-[var(--white-primary)] mb-4">
           The AI Tools{" "}
-          <span className="text-gold-gradient">Playbook.</span>
+          <span className="text-gold-gradient">Playbook</span>
         </h2>
         <p className="text-[var(--white-secondary)] mb-4 max-w-lg mx-auto">
           30+ tools. Real pricing. 4 stacks by business type. A 90-day roadmap

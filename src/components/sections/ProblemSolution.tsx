@@ -14,32 +14,32 @@ import { fadeUp } from "@/lib/animations";
 
 const comparisons = [
   {
-    label: "Response Time",
-    before: "Inquiries sit for hours. They move on.",
-    after: "Every inquiry answered in minutes. Qualified, routed, followed up.",
-    metric: "< 2 min",
-    metricLabel: "avg response",
+    label: "Your Time",
+    before: "You're the bottleneck. Every decision, every follow-up, every fire runs through you.",
+    after: "AI handles the repetitive work — you focus on the decisions only you can make.",
+    metric: "20+",
+    metricLabel: "hours back per week",
   },
   {
-    label: "Content",
-    before: "A post here, an email there. No rhythm.",
-    after: "Blog, social, email — every week, in your voice, on schedule.",
-    metric: "4x",
-    metricLabel: "output volume",
+    label: "Your Revenue",
+    before: "Inquiries slip through the cracks. Follow-ups get missed. You're losing jobs every week.",
+    after: "Every inquiry answered in minutes. Every follow-up automatic. Revenue captured, not lost.",
+    metric: "38%",
+    metricLabel: "more jobs booked",
   },
   {
-    label: "Visibility",
-    before: "Five tools. Half the data is stale.",
-    after: "One weekly digest. Pipeline, revenue, reviews — all in one place.",
-    metric: "1",
-    metricLabel: "dashboard",
+    label: "Your Team",
+    before: "You need a marketer, a receptionist, and an ops manager — but can't justify three salaries.",
+    after: "AI agents handle intake, follow-ups, content, and scheduling. A full team without the payroll.",
+    metric: "3",
+    metricLabel: "roles, one system",
   },
   {
-    label: "Onboarding",
-    before: "Days of back-and-forth emails.",
-    after: "Client signs → welcome → intake → appointment. Automatic.",
-    metric: "90%",
-    metricLabel: "less manual work",
+    label: "Your Growth",
+    before: "More clients means more chaos. Revenue goes up, your life gets worse.",
+    after: "Systems that scale with you. Twice the volume without twice the work.",
+    metric: "1–2 wks",
+    metricLabel: "to go live",
   },
 ];
 
@@ -73,18 +73,18 @@ export function ProblemSolution() {
   }, { scope: gridRef });
 
   return (
-    <section className="relative py-32 bg-[var(--bg-section-warm)] overflow-hidden">
+    <section className="relative py-32 bg-[var(--bg-base)] overflow-hidden">
       <div className="absolute inset-0 grid-overlay-fine pointer-events-none" />
       <div className="orb-gold -top-32 -right-32 opacity-60" />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimateOnScroll className="mb-16">
           <SectionHeader
-            label="What Changes"
+            label="Before & After"
             heading={
               <>
-                Real results.{" "}
-                <span className="text-gold-gradient">Not recommendations.</span>
+                Your Business Today vs.{" "}
+                <span className="text-gold-gradient">With Accelerate</span>
               </>
             }
           />
@@ -137,7 +137,7 @@ export function ProblemSolution() {
                 </div>
 
                 {/* Metric */}
-                <div className="w-[100px] flex flex-col items-center justify-center border-l border-[var(--border-glass)] bg-[rgba(212,175,55,0.03)]">
+                <div className="w-[100px] flex flex-col items-center justify-center border-l border-[var(--border-glass)] bg-[var(--glass-gold-bg)]">
                   <span className="text-xl font-bold text-[var(--gold-light)] leading-none">
                     {item.metric}
                   </span>
@@ -165,7 +165,7 @@ export function ProblemSolution() {
                 <p className="text-sm text-[var(--white-muted)] line-through decoration-[var(--error)]/30 mb-2">
                   {item.before}
                 </p>
-                <div className="h-px w-full bg-gradient-to-r from-transparent via-[rgba(212,175,55,0.2)] to-transparent mb-2" />
+                <div className="h-px w-full bg-gradient-to-r from-transparent via-[var(--border-gold)] to-transparent mb-2" />
                 <p className="text-sm text-[var(--white-primary)] leading-relaxed font-medium">
                   {item.after}
                 </p>

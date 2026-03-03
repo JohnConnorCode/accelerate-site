@@ -18,7 +18,7 @@ export default function LawFirmsPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(generateVerticalJsonLd(vertical, "mitchell-law-group")),
+          __html: JSON.stringify(generateVerticalJsonLd(vertical, "sparkblox")),
         }}
       />
       <VerticalPage vertical={vertical} preSelectedIndustry="law_firm" />

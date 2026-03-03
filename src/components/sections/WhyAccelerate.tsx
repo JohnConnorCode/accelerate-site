@@ -66,8 +66,8 @@ export function WhyAccelerate() {
             label="Why Us"
             heading={
               <>
-                Strategy, systems, and management.{" "}
-                <span className="text-gold-gradient">One team.</span>
+                Strategy, Systems, and Management —{" "}
+                <span className="text-gold-gradient">One Team</span>
               </>
             }
             description="We build and run AI systems for your business. Strategy, implementation, and ongoing management — all from one team that actually understands your operations."
@@ -91,8 +91,8 @@ export function WhyAccelerate() {
                 >
                   <div className="p-6 sm:p-8 md:p-10 flex flex-col h-full min-h-[160px] sm:min-h-[200px]">
                     <div className="flex items-center gap-4 mb-5">
-                      <div className="w-14 h-14 rounded-xl bg-[rgba(212,175,55,0.08)] flex items-center justify-center shrink-0">
-                        <Icon className="w-7 h-7 text-[var(--gold-base)]" />
+                      <div className="w-14 h-14 rounded-xl bg-[var(--glow-soft)] flex items-center justify-center shrink-0">
+                        <Icon className="w-7 h-7 text-[var(--gold-base)]" aria-hidden="true" />
                       </div>
                       <h3 className="text-xl font-semibold text-[var(--heading-color)]">
                         {item.title}
@@ -120,7 +120,7 @@ export function WhyAccelerate() {
                   padding="lg"
                   className="overflow-hidden"
                 >
-                  <Icon className="w-6 h-6 text-[var(--gold-base)] mb-4" />
+                  <Icon className="w-6 h-6 text-[var(--gold-base)] mb-4" aria-hidden="true" />
                   <h3 className="text-base font-semibold text-[var(--heading-color)] mb-2">
                     {item.title}
                   </h3>

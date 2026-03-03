@@ -139,7 +139,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
           <AnimateOnScroll>
             <GlassCard padding="lg">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-lg bg-[rgba(212,175,55,0.1)] flex items-center justify-center">
+                <div className="w-10 h-10 rounded-lg bg-[rgba(var(--accent-rgb),0.1)] flex items-center justify-center">
                   <Lightbulb className="w-5 h-5 text-[var(--gold-base)]" />
                 </div>
                 <h2
@@ -164,7 +164,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
                   {study.services.map((service) => (
                     <span
                       key={service}
-                      className="text-xs font-medium text-[var(--gold-light)] bg-[rgba(212,175,55,0.08)] border border-[rgba(212,175,55,0.15)] rounded-md px-2.5 py-1"
+                      className="text-xs font-medium text-[var(--gold-light)] bg-[rgba(var(--accent-rgb),0.08)] border border-[rgba(var(--accent-rgb),0.15)] rounded-md px-2.5 py-1"
                     >
                       {service}
                     </span>
@@ -235,7 +235,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
 
                   {/* Improvement Badge */}
                   <div className="pt-3 border-t border-[var(--border-glass)]">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[rgba(212,175,55,0.1)] text-[var(--gold-light)] text-sm font-semibold border border-[rgba(212,175,55,0.2)]">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[rgba(var(--accent-rgb),0.1)] text-[var(--gold-light)] text-sm font-semibold border border-[rgba(var(--accent-rgb),0.2)]">
                       <TrendingUp className="w-3.5 h-3.5" />
                       {metric.improvement}
                     </span>
@@ -306,7 +306,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
       {/* CTA Section */}
       <section className="py-24 bg-[var(--bg-base)] relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-radial from-[rgba(212,175,55,0.06)] to-transparent" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-radial from-[rgba(var(--accent-rgb),0.06)] to-transparent" />
         </div>
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">

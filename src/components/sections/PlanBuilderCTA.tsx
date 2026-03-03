@@ -11,7 +11,7 @@ export function PlanBuilderCTA() {
     <section className="py-24 px-4 sm:px-6 relative overflow-hidden">
       {/* Background glow */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(600px,90vw)] h-[400px] bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.06),transparent_70%)]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(600px,90vw)] h-[400px] bg-[radial-gradient(ellipse_at_center,rgba(var(--accent-rgb),0.06),transparent_70%)]" />
       </div>
 
       <motion.div
@@ -26,8 +26,8 @@ export function PlanBuilderCTA() {
           Free Custom Roadmap
         </div>
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-[var(--heading-color)] mb-4">
-          See exactly what we&apos;d build for you —{" "}
-          <span className="text-gold-gradient">in 5 minutes.</span>
+          See Exactly What We&apos;d Build for You —{" "}
+          <span className="text-gold-gradient">in 5 Minutes</span>
         </h2>
         <p className="text-[var(--white-secondary)] mb-8 max-w-lg mx-auto">
           Answer a few questions about your business. Our AI builds a personalized

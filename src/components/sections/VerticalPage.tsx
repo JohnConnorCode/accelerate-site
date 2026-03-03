@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -23,13 +24,14 @@ import {
   Building2,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useGSAP } from "@gsap/react";
+import { gsap } from "@/lib/gsap-init";
+import { prefersReducedMotion } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
-import {
-  AnimateOnScroll,
-  StaggerContainer,
-} from "@/components/ui/AnimateOnScroll";
-import { fadeUp } from "@/lib/animations";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { SectionHeader } from "@/components/ui/SectionHeader";
+import { MagneticButton } from "@/components/ui/MagneticButton";
 import type { Vertical } from "@/lib/types";
 
 const iconMap: Record<string, LucideIcon> = {
@@ -58,6 +60,53 @@ interface VerticalPageProps {
 }
 
 export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProps) {
+  const painRef = useRef<HTMLDivElement>(null);
+  const solutionsRef = useRef<HTMLDivElement>(null);
+  const metricsRef = useRef<HTMLDivElement>(null);
+
+  // GSAP stagger for pain point cards
+  useGSAP(() => {
+    if (!painRef.current || prefersReducedMotion()) return;
+    const cards = painRef.current.querySelectorAll("[data-pain-card]");
+    gsap.fromTo(cards,
+      { opacity: 0, y: 24 },
+      {
+        opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: "power2.out",
+        scrollTrigger: { trigger: painRef.current, start: "top 80%", toggleActions: "play none none none" },
+      }
+    );
+  }, { scope: painRef });
+
+  // GSAP stagger for solution cards
+  useGSAP(() => {
+    if (!solutionsRef.current || prefersReducedMotion()) return;
+    const cards = solutionsRef.current.querySelectorAll("[data-solution-card]");
+    gsap.fromTo(cards,
+      { opacity: 0, y: 24 },
+      {
+        opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: "power2.out",
+        scrollTrigger: { trigger: solutionsRef.current, start: "top 80%", toggleActions: "play none none none" },
+      }
+    );
+  }, { scope: solutionsRef });
+
+  // GSAP stagger for metric boxes
+  useGSAP(() => {
+    if (!metricsRef.current || prefersReducedMotion()) return;
+    const items = metricsRef.current.querySelectorAll("[data-metric]");
+    gsap.fromTo(items,
+      { opacity: 0, scale: 0.9 },
+      {
+        opacity: 1, scale: 1, duration: 0.4, stagger: 0.08, ease: "power2.out",
+        scrollTrigger: { trigger: metricsRef.current, start: "top 85%", toggleActions: "play none none none" },
+      }
+    );
+  }, { scope: metricsRef });
+
+  // Split solutions: first 2 hero, rest compact
+  const heroSolutions = vertical.solutions.slice(0, 2);
+  const restSolutions = vertical.solutions.slice(2);
+
   return (
     <>
       {/* Hero */}
@@ -69,13 +118,9 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <AnimateOnScroll>
-            <p className="text-sm sm:text-base text-[var(--gold-light)] font-medium tracking-wide uppercase mb-6">
-              {vertical.name}
-            </p>
-            <h1
-              className="page-heading leading-[1.1] mb-6"
-            >
+          <ScrollReveal animation="fade-up">
+            <p className="section-label">{vertical.name}</p>
+            <h1 className="page-heading leading-[1.1] mb-6">
               {vertical.heroHeadlineWhite}{" "}
               <span className="text-gold-gradient">
                 {vertical.heroHeadlineGold}
@@ -84,152 +129,222 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
             <p className="text-lg sm:text-xl text-[var(--white-secondary)] max-w-2xl mx-auto mb-10 leading-relaxed">
               {vertical.heroSubheadline}
             </p>
-            <Link href={`/plan-builder?industry=${preSelectedIndustry}`}>
-              <Button variant="primary" size="lg" pulse>
-                {vertical.ctaText}
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
-          </AnimateOnScroll>
+            <MagneticButton>
+              <Link href={`/plan-builder?industry=${preSelectedIndustry}`}>
+                <Button variant="primary" size="lg" pulse>
+                  {vertical.ctaText}
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </Link>
+            </MagneticButton>
+          </ScrollReveal>
         </div>
       </section>
 
       <div className="section-divider" />
 
       {/* Pain Points */}
-      <section className="py-24 bg-[var(--bg-base)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AnimateOnScroll className="text-center mb-16">
-            <h2
-              className="section-heading mb-4"
-            >
-              Sound <span className="text-gold-gradient">Familiar?</span>
-            </h2>
-            <p className="text-lg text-[var(--white-secondary)] max-w-2xl mx-auto">
-              These are the problems we hear from {vertical.name.toLowerCase()}{" "}
-              businesses every week.
-            </p>
-          </AnimateOnScroll>
+      <section className="relative py-32 bg-[var(--bg-section-warm)] overflow-hidden">
+        <div className="absolute inset-0 grid-overlay-fine pointer-events-none" />
+        <div className="orb-gold -top-32 -right-32 opacity-60" />
 
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal animation="fade-up">
+            <SectionHeader
+              label="Sound Familiar?"
+              heading={
+                <>
+                  The problems costing you{" "}
+                  <span className="text-gold-gradient">real money.</span>
+                </>
+              }
+              description={`These are the issues we hear from ${vertical.name.toLowerCase()} businesses every week.`}
+              className="mb-16"
+            />
+          </ScrollReveal>
+
+          <div ref={painRef} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {vertical.painPoints.map((painPoint) => {
               const Icon = iconMap[painPoint.icon] || Monitor;
               return (
-                <AnimateOnScroll key={painPoint.title} variants={fadeUp}>
-                  <GlassCard hover="glow" padding="lg" className="h-full">
-                    <Icon className="w-10 h-10 text-[var(--gold-base)] mb-4" />
-                    <h3 className="text-lg font-semibold text-[var(--heading-color)] mb-2">
-                      {painPoint.title}
-                    </h3>
-                    <p className="text-[var(--white-secondary)] leading-relaxed">
-                      {painPoint.description}
-                    </p>
-                  </GlassCard>
-                </AnimateOnScroll>
+                <GlassCard
+                  key={painPoint.title}
+                  data-pain-card
+                  hover="lift"
+                  padding="none"
+                  className="overflow-hidden"
+                >
+                  <div className="p-6 sm:p-8 flex gap-5">
+                    <div className="w-12 h-12 rounded-xl bg-[rgba(var(--accent-rgb),0.08)] flex items-center justify-center shrink-0">
+                      <Icon className="w-6 h-6 text-[var(--gold-base)]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-semibold text-[var(--heading-color)] mb-2">
+                        {painPoint.title}
+                      </h3>
+                      <p className="text-sm text-[var(--white-muted)] leading-relaxed">
+                        {painPoint.description}
+                      </p>
+                    </div>
+                  </div>
+                </GlassCard>
               );
             })}
-          </StaggerContainer>
+          </div>
         </div>
       </section>
 
       <div className="section-divider" />
 
-      {/* Solutions */}
-      <section className="py-24 bg-[var(--bg-base)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AnimateOnScroll className="text-center mb-16">
-            <h2
-              className="section-heading mb-4"
-            >
-              How We <span className="text-gold-gradient">Fix It</span>
-            </h2>
-            <p className="text-lg text-[var(--white-secondary)] max-w-2xl mx-auto">
-              Purpose-built solutions for {vertical.name.toLowerCase()}{" "}
-              businesses that deliver real results.
-            </p>
-          </AnimateOnScroll>
+      {/* Solutions — bento layout */}
+      <section className="relative py-32 bg-[var(--bg-section-deep)] overflow-hidden">
+        <div className="absolute inset-0 grid-diamond pointer-events-none" />
+        <div className="orb-gold -bottom-48 -left-48 opacity-60" />
 
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {vertical.solutions.map((solution) => (
-              <AnimateOnScroll key={solution.title} variants={fadeUp}>
-                <GlassCard hover="glow" padding="lg" className="h-full">
-                  <h3 className="text-xl font-semibold text-[var(--heading-color)] mb-3">
-                    {solution.title}
-                  </h3>
-                  <p className="text-[var(--white-secondary)] leading-relaxed mb-5">
-                    {solution.description}
-                  </p>
-                  <ul className="space-y-2">
-                    {solution.features.map((feature) => (
-                      <li
-                        key={feature}
-                        className="flex items-start gap-2 text-sm text-[var(--white-secondary)]"
-                      >
-                        <Check className="w-4 h-4 text-[var(--gold-base)] shrink-0 mt-0.5" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal animation="fade-up">
+            <SectionHeader
+              label="What We Build"
+              heading={
+                <>
+                  Purpose-built systems.{" "}
+                  <span className="text-gold-gradient">Real results.</span>
+                </>
+              }
+              description={`Every solution is scoped to ${vertical.name.toLowerCase()} operations — your tools, your workflow, your goals.`}
+              className="mb-16"
+            />
+          </ScrollReveal>
+
+          <div ref={solutionsRef} className="space-y-4">
+            {/* Hero solutions — 2 large cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {heroSolutions.map((solution) => (
+                <GlassCard
+                  key={solution.title}
+                  data-solution-card
+                  hover="shine"
+                  padding="none"
+                  className="overflow-hidden"
+                >
+                  <div className="p-6 sm:p-8 md:p-10 flex flex-col h-full">
+                    <h3 className="text-xl font-semibold text-[var(--heading-color)] mb-3">
+                      {solution.title}
+                    </h3>
+                    <p className="text-[var(--white-secondary)] leading-relaxed mb-5">
+                      {solution.description}
+                    </p>
+                    <ul className="space-y-2 mt-auto">
+                      {solution.features.map((feature) => (
+                        <li
+                          key={feature}
+                          className="flex items-start gap-2 text-sm text-[var(--white-secondary)]"
+                        >
+                          <Check className="w-4 h-4 text-[var(--gold-base)] shrink-0 mt-0.5" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </GlassCard>
-              </AnimateOnScroll>
-            ))}
-          </StaggerContainer>
+              ))}
+            </div>
+
+            {/* Remaining solutions — compact row */}
+            {restSolutions.length > 0 && (
+              <div className={`grid grid-cols-1 sm:grid-cols-2 ${restSolutions.length >= 3 ? "lg:grid-cols-3" : ""} gap-4`}>
+                {restSolutions.map((solution) => (
+                  <GlassCard
+                    key={solution.title}
+                    data-solution-card
+                    hover="shine"
+                    padding="lg"
+                    className="overflow-hidden"
+                  >
+                    <h3 className="text-base font-semibold text-[var(--heading-color)] mb-2">
+                      {solution.title}
+                    </h3>
+                    <p className="text-sm text-[var(--white-muted)] leading-relaxed mb-4">
+                      {solution.description}
+                    </p>
+                    <ul className="space-y-1.5">
+                      {solution.features.slice(0, 3).map((feature) => (
+                        <li
+                          key={feature}
+                          className="flex items-start gap-2 text-xs text-[var(--white-muted)]"
+                        >
+                          <Check className="w-3.5 h-3.5 text-[var(--gold-base)] shrink-0 mt-0.5" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                  </GlassCard>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
       <div className="section-divider" />
 
       {/* Case Study */}
-      <section className="py-24 bg-[var(--bg-base)]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AnimateOnScroll>
-            <GlassCard variant="gold" padding="lg">
-              <p className="text-sm text-[var(--gold-light)] font-medium tracking-wide uppercase mb-4">
-                Case Study
-              </p>
-              <h3
-                className="font-display text-2xl sm:text-3xl font-bold text-[var(--heading-color)] mb-4"
-              >
-                {vertical.caseStudy.title}
-              </h3>
-              <p className="text-[var(--white-secondary)] leading-relaxed mb-8">
-                {vertical.caseStudy.description}
-              </p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-                {vertical.caseStudy.metrics.map((metric) => (
-                  <div
-                    key={metric.label}
-                    className="glass rounded-lg p-4 text-center"
-                  >
-                    <p
-                      className="font-display text-2xl font-bold text-gold-gradient mb-1"
+      <section className="relative py-32 bg-[var(--bg-base)] overflow-hidden">
+        <div className="absolute inset-0 dot-grid pointer-events-none" />
+
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal animation="fade-up">
+            <SectionHeader
+              label="Case Study"
+              heading={
+                <>{vertical.caseStudy.title}</>
+              }
+              className="mb-12"
+            />
+          </ScrollReveal>
+
+          <ScrollReveal animation="fade-up" delay={0.15}>
+            <GlassCard variant="gold" padding="none" className="overflow-hidden">
+              <div className="p-8 sm:p-10 md:p-12">
+                <p className="text-[var(--white-secondary)] leading-relaxed text-lg mb-10 max-w-3xl">
+                  {vertical.caseStudy.description}
+                </p>
+                <div ref={metricsRef} className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                  {vertical.caseStudy.metrics.map((metric) => (
+                    <div
+                      key={metric.label}
+                      data-metric
+                      className="glass rounded-xl p-5 text-center"
                     >
-                      {metric.value}
-                    </p>
-                    <p className="text-xs text-[var(--white-muted)]">{metric.label}</p>
-                  </div>
-                ))}
+                      <p className="font-display text-3xl font-bold text-gold-gradient mb-1">
+                        {metric.value}
+                      </p>
+                      <p className="text-xs text-[var(--white-muted)] uppercase tracking-wider">
+                        {metric.label}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </GlassCard>
-          </AnimateOnScroll>
+          </ScrollReveal>
         </div>
       </section>
 
       <div className="section-divider" />
 
       {/* Final CTA */}
-      <section className="py-24 bg-[var(--bg-base)] relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-radial from-[rgba(212,175,55,0.06)] to-transparent" />
-        </div>
+      <section className="relative py-32 bg-[var(--bg-section-warm)] overflow-hidden">
+        <div className="absolute inset-0 grid-overlay-fine pointer-events-none" />
+        <div className="orb-gold -bottom-32 -left-32 opacity-60" />
+        <div className="orb-gold -top-32 -right-32 opacity-40" />
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <AnimateOnScroll>
-            <GlassCard variant="gold" padding="none" className="text-center">
+          <ScrollReveal animation="fade-up">
+            <GlassCard variant="gold" padding="none" className="text-center overflow-hidden">
               <div className="p-10 sm:p-14">
-                <h2
-                  className="section-heading mb-4"
-                >
+                <p className="section-label mb-4">Ready?</p>
+                <h2 className="section-heading mb-4">
                   Get Your Free{" "}
                   <span className="text-gold-gradient">{vertical.name}</span>{" "}
                   Growth Plan
@@ -239,17 +354,17 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
                   personalized plan with specific recommendations, pricing, and
                   projected ROI.
                 </p>
-                <Link
-                  href={`/plan-builder?industry=${preSelectedIndustry}`}
-                >
-                  <Button variant="primary" size="lg" pulse>
-                    Build My Plan
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </Link>
+                <MagneticButton>
+                  <Link href={`/plan-builder?industry=${preSelectedIndustry}`}>
+                    <Button variant="primary" size="lg" pulse>
+                      Build My Plan
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </Button>
+                  </Link>
+                </MagneticButton>
               </div>
             </GlassCard>
-          </AnimateOnScroll>
+          </ScrollReveal>
         </div>
       </section>
     </>

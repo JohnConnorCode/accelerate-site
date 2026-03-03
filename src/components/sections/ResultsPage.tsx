@@ -115,8 +115,8 @@ export function ResultsPageContent() {
         label="Client Results"
         title={
           <>
-            Proof Over Promises.{" "}
-            <span className="text-gold-gradient">Real Numbers.</span>
+            Proof Over Promises,{" "}
+            <span className="text-gold-gradient">Real Numbers</span>
           </>
         }
         description="Every metric below came from a real client engagement. No inflated projections. No 'up to' disclaimers. Just what happened."
@@ -222,7 +222,7 @@ export function ResultsPageContent() {
                   className={cn(
                     "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 cursor-pointer",
                     activeFilter === option.value
-                      ? "bg-[rgba(212,175,55,0.15)] text-[var(--gold-light)] border border-[var(--border-gold)]"
+                      ? "bg-[rgba(var(--accent-rgb),0.15)] text-[var(--gold-light)] border border-[var(--border-gold)]"
                       : "glass text-[var(--white-secondary)] hover:text-[var(--white-primary)] hover:border-[var(--border-glass-hover)]"
                   )}
                 >
@@ -259,7 +259,7 @@ export function ResultsPageContent() {
       {/* CTA Section */}
       <section className="py-24 bg-[var(--bg-base)] relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-radial from-[rgba(212,175,55,0.06)] to-transparent" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-radial from-[rgba(var(--accent-rgb),0.06)] to-transparent" />
         </div>
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">

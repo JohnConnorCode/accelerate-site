@@ -66,6 +66,15 @@ export function Hero() {
         <HeroCanvas />
       </Suspense>
 
+      {/* Atmospheric glow */}
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(800px,100vw)] h-[500px] pointer-events-none z-[5]"
+        style={{
+          background:
+            "radial-gradient(ellipse, var(--glow-soft) 0%, transparent 70%)",
+        }}
+      />
+
       <div
         ref={contentRef}
         className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center pointer-events-none"
@@ -75,15 +84,22 @@ export function Hero() {
           initial="hidden"
           animate="visible"
         >
+          <motion.p
+            variants={heroReveal}
+            className="text-sm font-medium text-[var(--gold-light)] tracking-wide uppercase mb-4"
+          >
+            AI-Powered Growth for Small Business
+          </motion.p>
+
           <motion.h1
             variants={heroReveal}
-            className="font-display text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-[-0.03em] mb-6"
+            className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-[-0.03em] mb-6"
             style={{ textWrap: "balance" } as React.CSSProperties}
           >
-            <span className="text-[var(--heading-color)]">Grow your company</span>
+            <span className="text-[var(--heading-color)]">Grow Your Company</span>
             <br />
-            <span className="text-[var(--heading-color)]">and revenue </span>
-            <span className="text-gold-gradient">on autopilot.</span>
+            <span className="text-[var(--heading-color)]">and Revenue </span>
+            <span className="text-gold-gradient">on Autopilot</span>
           </motion.h1>
 
           <motion.p
@@ -122,11 +138,11 @@ export function Hero() {
             className="flex flex-wrap items-center justify-center gap-x-3 sm:gap-x-6 gap-y-2 text-xs uppercase tracking-[0.15em] sm:tracking-[0.2em] text-[var(--white-muted)] pointer-events-auto"
           >
             <span>AI strategy &amp; delivery</span>
-            <span className="hidden sm:inline text-[var(--white-muted)]">|</span>
+            <span className="hidden sm:inline text-[var(--white-muted)]" aria-hidden="true">|</span>
             <span>Live in 1–2 weeks</span>
-            <span className="hidden sm:inline text-[var(--white-muted)]">|</span>
+            <span className="hidden sm:inline text-[var(--white-muted)]" aria-hidden="true">|</span>
             <span>Transparent pricing</span>
-            <span className="hidden sm:inline text-[var(--white-muted)]">|</span>
+            <span className="hidden sm:inline text-[var(--white-muted)]" aria-hidden="true">|</span>
             <span>Free discovery call</span>
           </motion.div>
         </motion.div>
@@ -136,7 +152,7 @@ export function Hero() {
       <div
         className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-20"
         style={{
-          background: "linear-gradient(to bottom, transparent, var(--bg-section-warm))",
+          background: "linear-gradient(to bottom, transparent, var(--bg-base))",
         }}
       />
     </section>

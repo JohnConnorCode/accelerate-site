@@ -47,7 +47,7 @@ export function Stats() {
               className="text-center relative"
             >
               {/* Top rule */}
-              <div className="h-px w-full bg-[rgba(212,175,55,0.15)] mb-8" />
+              <div className="h-px w-full bg-[rgba(var(--accent-rgb),0.15)] mb-8" />
 
               <p
                 className="font-display text-5xl sm:text-6xl md:text-7xl font-bold text-gold-gradient mb-3"

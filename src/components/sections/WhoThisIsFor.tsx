@@ -62,7 +62,7 @@ export function WhoThisIsFor() {
             label="Who This Is For"
             heading={
               <>
-                Built for businesses doing{" "}
+                Built for Businesses Doing{" "}
                 <span className="text-gold-gradient">$200K to $10M</span>
               </>
             }
@@ -84,7 +84,7 @@ export function WhoThisIsFor() {
                 data-audience-card
                 className="group flex items-center gap-4 glass rounded-xl px-5 py-4 hover:border-gold-glow transition-all duration-300"
               >
-                <div className="w-10 h-10 rounded-lg bg-[rgba(212,175,55,0.08)] flex items-center justify-center shrink-0 group-hover:bg-[rgba(212,175,55,0.15)] transition-colors">
+                <div className="w-10 h-10 rounded-lg bg-[var(--glow-soft)] flex items-center justify-center shrink-0 group-hover:bg-[var(--glow-medium)] transition-colors">
                   <Icon className="w-5 h-5 text-[var(--gold-base)]" aria-hidden="true" />
                 </div>
                 <div className="min-w-0">

@@ -1,12 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
   Rocket,
   TrendingUp,
   Handshake,
-  User,
   MapPin,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -46,6 +47,31 @@ const values = [
   },
 ];
 
+function FounderPhoto() {
+  const [imgError, setImgError] = useState(false);
+
+  if (imgError) {
+    return (
+      <div className="w-32 h-32 rounded-xl bg-[var(--bg-subtle)] border border-[var(--border-glass)] flex items-center justify-center mx-auto mb-4">
+        <span className="text-3xl font-bold text-[var(--gold-light)]">JC</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-32 h-32 rounded-xl overflow-hidden mx-auto mb-4">
+      <Image
+        src="/images/john.jpg"
+        alt="John Connor — Founder of Accelerate"
+        width={128}
+        height={128}
+        className="rounded-xl object-cover w-full h-full"
+        onError={() => setImgError(true)}
+      />
+    </div>
+  );
+}
+
 export function AboutPageContent() {
   return (
     <>
@@ -71,9 +97,7 @@ export function AboutPageContent() {
             <div className="lg:sticky lg:top-32 lg:self-start">
               <AnimateOnScroll>
                 <GlassCard variant="prominent" padding="lg" className="text-center">
-                  <div className="w-32 h-32 rounded-xl bg-[var(--bg-subtle)] border border-[var(--border-glass)] flex items-center justify-center mx-auto mb-4">
-                    <User className="w-16 h-16 text-[var(--white-muted)] opacity-50" />
-                  </div>
+                  <FounderPhoto />
                   <h2 className="font-display text-2xl font-bold text-[var(--heading-color)] mb-1">
                     John Connor
                   </h2>
@@ -272,7 +296,7 @@ export function AboutPageContent() {
       {/* CTA */}
       <section className="py-24 bg-[var(--bg-base)] relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-radial from-[rgba(212,175,55,0.06)] to-transparent" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-radial from-[rgba(var(--accent-rgb),0.06)] to-transparent" />
         </div>
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">

@@ -66,8 +66,8 @@ export function ServicesOverview() {
             label="What We Do"
             heading={
               <>
-                AI that actually{" "}
-                <span className="text-gold-gradient">moves the needle.</span>
+                AI That Actually{" "}
+                <span className="text-gold-gradient">Moves the Needle</span>
               </>
             }
             description="We find the highest-impact opportunities in your business, then build the systems that capture them. Every solution is scoped to your operations, your tools, and your goals."
@@ -89,7 +89,7 @@ export function ServicesOverview() {
                 padding="lg"
                 className="h-full overflow-hidden flex flex-col"
               >
-                <div className="w-12 h-12 rounded-lg bg-[rgba(212,175,55,0.08)] flex items-center justify-center mb-5">
+                <div className="w-12 h-12 rounded-lg bg-[var(--glow-soft)] flex items-center justify-center mb-5">
                   <Icon className="w-6 h-6 text-[var(--gold-base)]" aria-hidden="true" />
                 </div>
                 <h3 className="text-lg font-semibold text-[var(--heading-color)] mb-3">

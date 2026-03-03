@@ -71,8 +71,8 @@ export function HowItWorks() {
             label="How It Works"
             heading={
               <>
-                Live in weeks.{" "}
-                <span className="text-gold-gradient">Improving every month.</span>
+                Live in Weeks,{" "}
+                <span className="text-gold-gradient">Improving Every Month</span>
               </>
             }
             className="mb-20"
@@ -85,7 +85,7 @@ export function HowItWorks() {
             data-step-connector
             className="hidden md:block absolute top-[44px] left-[5%] right-[5%] h-px origin-left"
             style={{
-              background: "linear-gradient(90deg, transparent, rgba(212,175,55,0.25) 15%, rgba(212,175,55,0.25) 85%, transparent)",
+              background: `linear-gradient(90deg, transparent, var(--glow-strong) 15%, var(--glow-strong) 85%, transparent)`,
             }}
           />
 
@@ -102,7 +102,7 @@ export function HowItWorks() {
                         {step.number}
                       </span>
                     </div>
-                    <div className="md:hidden h-px flex-1 bg-gradient-to-r from-[rgba(212,175,55,0.2)] to-transparent" />
+                    <div className="md:hidden h-px flex-1 bg-gradient-to-r from-[var(--border-gold)] to-transparent" />
                   </div>
 
                   {/* Content */}

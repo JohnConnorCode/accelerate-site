@@ -75,8 +75,8 @@ export function Integrations() {
             label="Integrations"
             heading={
               <>
-                Works with the tools{" "}
-                <span className="text-gold-gradient">you already use.</span>
+                Works with the Tools{" "}
+                <span className="text-gold-gradient">You Already Use</span>
               </>
             }
             description="We&apos;re tool-agnostic. We connect to your existing stack and recommend what actually fits — not what pays us a commission."
@@ -99,7 +99,7 @@ export function Integrations() {
                 padding="sm"
                 className="flex flex-col items-center gap-3 cursor-default group"
               >
-                <div className="w-10 h-10 rounded-xl bg-[rgba(212,175,55,0.08)] border border-[rgba(212,175,55,0.15)] flex items-center justify-center group-hover:bg-[rgba(212,175,55,0.15)] transition-colors">
+                <div className="w-10 h-10 rounded-xl bg-[var(--glow-soft)] border border-[var(--border-gold)] flex items-center justify-center group-hover:bg-[var(--glow-medium)] transition-colors">
                   {tool.logo ? (
                     <Image
                       src={tool.logo}
