@@ -12,6 +12,10 @@ import { testimonials } from "@/content/testimonials";
 
 const CARD_GAP = 24;
 
+function getInitials(name: string): string {
+  return name.split(" ").map((n) => n[0]).join("");
+}
+
 function getCardWidth() {
   if (typeof window === "undefined") return 360;
   if (window.innerWidth < 640) return 280;
@@ -39,11 +43,6 @@ function TestimonialCard({
   businessType: string;
   rating: number;
 }) {
-  const initials = name
-    .split(" ")
-    .map((n) => n[0])
-    .join("");
-
   return (
     <div className="glass rounded-xl p-6 w-[280px] sm:w-[300px] lg:w-[360px] shrink-0 flex flex-col min-h-[240px] select-none">
       {/* Stars */}
@@ -65,7 +64,7 @@ function TestimonialCard({
       {/* Attribution */}
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-full bg-[rgba(var(--accent-rgb),0.1)] border border-[rgba(var(--accent-rgb),0.2)] flex items-center justify-center text-xs font-semibold text-[var(--gold-light)]">
-          {initials}
+          {getInitials(name)}
         </div>
         <div>
           <p className="text-sm font-semibold text-[var(--white-primary)]">{name}</p>
@@ -99,6 +98,7 @@ export function SocialProof() {
 
   const snapTo = useCallback(
     (index: number) => {
+      setHasInteracted(true);
       const step = getCardWidth() + CARD_GAP;
       const visible = getVisibleCount();
       const limit = Math.max(0, testimonials.length - visible);
@@ -118,8 +118,6 @@ export function SocialProof() {
       const step = getCardWidth() + CARD_GAP;
       const offset = info.offset.x;
       const velocity = info.velocity.x;
-
-      setHasInteracted(true);
 
       let newIndex = activeIndex;
       if (offset < -step / 4 || velocity < -500) newIndex++;
@@ -187,10 +185,7 @@ export function SocialProof() {
               </blockquote>
               <div className="relative z-10 flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-[rgba(var(--accent-rgb),0.1)] border border-[rgba(var(--accent-rgb),0.2)] flex items-center justify-center text-sm font-semibold text-[var(--gold-light)]">
-                  {featured.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
+                  {getInitials(featured.name)}
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-[var(--white-primary)]">
@@ -248,7 +243,7 @@ export function SocialProof() {
 
         {/* Mobile swipe hint */}
         {!hasInteracted && (
-          <div className="flex md:hidden items-center justify-center gap-2 mt-4 text-xs text-[var(--white-muted)] animate-pulse">
+          <div className="flex md:hidden items-center justify-center gap-2 mt-4 text-xs text-[var(--white-muted)] motion-safe:animate-pulse">
             <span>Swipe for more</span>
             <MoveRight className="w-3.5 h-3.5" />
           </div>
@@ -269,7 +264,7 @@ export function SocialProof() {
             {Array.from({ length: pageCount }).map((_, i) => (
               <button
                 key={i}
-                onClick={() => { setHasInteracted(true); snapTo(i); }}
+                onClick={() => snapTo(i)}
                 className={`w-2.5 h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
                   i === activeIndex
                     ? "bg-[var(--gold-base)] scale-110"

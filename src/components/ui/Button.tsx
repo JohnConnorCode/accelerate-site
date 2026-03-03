@@ -18,7 +18,7 @@ const variantClasses: Record<ButtonVariant, string> = {
   secondary:
     "glass border border-[var(--border-light)] text-[var(--white-primary)] hover:border-[rgba(var(--accent-rgb),0.3)] hover:border-gold-glow hover:shadow-[0_0_20px_rgba(var(--accent-rgb),0.15)] active:scale-[0.97] active:brightness-95 transition-all duration-300",
   ghost:
-    "text-[var(--white-secondary)] hover:text-[var(--text-nav-hover)] active:scale-[0.97] transition-colors duration-200",
+    "text-[var(--white-secondary)] hover:text-[var(--text-nav-hover)] active:scale-[0.97] transition-[color,transform] duration-200",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

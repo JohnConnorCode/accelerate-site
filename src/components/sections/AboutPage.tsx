@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -48,25 +47,17 @@ const values = [
 ];
 
 function FounderPhoto() {
-  const [imgError, setImgError] = useState(false);
-
-  if (imgError) {
-    return (
-      <div className="w-32 h-32 rounded-xl bg-[var(--bg-subtle)] border border-[var(--border-glass)] flex items-center justify-center mx-auto mb-4">
-        <span className="text-3xl font-bold text-[var(--gold-light)]">JC</span>
-      </div>
-    );
-  }
-
   return (
-    <div className="w-32 h-32 rounded-xl overflow-hidden mx-auto mb-4">
+    <div className="w-32 h-32 rounded-xl bg-[var(--bg-subtle)] border border-[var(--border-glass)] overflow-hidden mx-auto mb-4 relative">
+      <span className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-[var(--gold-light)]" aria-hidden="true">
+        JC
+      </span>
       <Image
         src="/images/john.jpg"
         alt="John Connor — Founder of Accelerate"
         width={128}
         height={128}
-        className="rounded-xl object-cover w-full h-full"
-        onError={() => setImgError(true)}
+        className="relative z-10 object-cover w-full h-full"
       />
     </div>
   );
