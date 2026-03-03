@@ -4,6 +4,7 @@ import { Sparkles, Wrench, Bug, Megaphone, Rss } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { PageHero } from "@/components/ui/PageHero";
+import { SectionDivider } from "@/components/ui/SectionDivider";
 import {
   AnimateOnScroll,
   StaggerContainer,
@@ -73,7 +74,7 @@ export function ChangelogPage() {
         </div>
       </PageHero>
 
-      <div className="section-divider" />
+      <SectionDivider variant="fade" />
 
       {/* Timeline */}
       <section className="py-24 bg-[var(--bg-base)]">
@@ -88,7 +89,7 @@ export function ChangelogPage() {
 
             return (
               <div key={monthKey}>
-                {monthIndex > 0 && <div className="section-divider" />}
+                {monthIndex > 0 && <SectionDivider variant="line" />}
                 <AnimateOnScroll className="mb-4">
                   <h2 className="font-display text-lg font-bold text-[var(--gold-base)]">
                     {monthLabel}

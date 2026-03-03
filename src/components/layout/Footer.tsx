@@ -7,6 +7,7 @@ import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap-init";
 import { prefersReducedMotion } from "@/lib/utils";
 import { isValidEmail } from "@/lib/validation";
+import { SectionDivider } from "@/components/ui/SectionDivider";
 
 const footerColumns = [
   {
@@ -14,7 +15,10 @@ const footerColumns = [
     links: [
       { label: "AI Strategy & Roadmap", href: "/services#strategy" },
       { label: "Workflow Automation", href: "/services#automation" },
+      { label: "Sales & Marketing", href: "/services#sales" },
       { label: "Customer Engagement", href: "/services#engagement" },
+      { label: "Content Creation", href: "/services#content" },
+      { label: "Data & Reporting", href: "/services#reporting" },
       { label: "Packages & Pricing", href: "/packages" },
     ],
   },
@@ -113,7 +117,7 @@ export function Footer() {
   return (
     <footer ref={footerRef} className="relative bg-[var(--bg-base)]">
       {/* Gold top line */}
-      <div className="section-divider" />
+      <SectionDivider variant="glow" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-10 lg:gap-8">

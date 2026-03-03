@@ -5,7 +5,7 @@ import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap-init";
 import { prefersReducedMotion } from "@/lib/utils";
 
-type AnimationType = "fade-up" | "slide-left" | "slide-right" | "scale" | "clip-reveal";
+type AnimationType = "fade-up" | "slide-left" | "slide-right" | "scale" | "clip-reveal" | "blur-up" | "clip-left";
 
 interface ScrollRevealProps {
   children: React.ReactNode;
@@ -24,6 +24,8 @@ const animationConfigs: Record<AnimationType, gsap.TweenVars> = {
   "slide-right": { opacity: 0, x: 80 },
   "scale": { opacity: 0, scale: 0.85 },
   "clip-reveal": { opacity: 0, clipPath: "inset(100% 0 0 0)" },
+  "blur-up": { opacity: 0, y: 40, filter: "blur(10px)" },
+  "clip-left": { opacity: 0, clipPath: "inset(0 100% 0 0)" },
 };
 
 const animationTargets: Record<AnimationType, gsap.TweenVars> = {
@@ -32,6 +34,8 @@ const animationTargets: Record<AnimationType, gsap.TweenVars> = {
   "slide-right": { opacity: 1, x: 0 },
   "scale": { opacity: 1, scale: 1 },
   "clip-reveal": { opacity: 1, clipPath: "inset(0% 0 0 0)" },
+  "blur-up": { opacity: 1, y: 0, filter: "blur(0px)" },
+  "clip-left": { opacity: 1, clipPath: "inset(0 0% 0 0)" },
 };
 
 export function ScrollReveal({

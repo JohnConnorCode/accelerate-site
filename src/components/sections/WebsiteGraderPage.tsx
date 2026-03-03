@@ -21,6 +21,7 @@ import {
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { SectionDivider } from "@/components/ui/SectionDivider";
 
 
 import { AnimateOnScroll, StaggerContainer } from "@/components/ui/AnimateOnScroll";
@@ -406,7 +407,7 @@ function ResultsSection({
         </div>
       </section>
 
-      <div className="section-divider" />
+      <SectionDivider variant="line" />
 
       {/* Category Cards */}
       <section className="py-16 sm:py-24">
@@ -433,7 +434,7 @@ function ResultsSection({
         </div>
       </section>
 
-      <div className="section-divider" />
+      <SectionDivider variant="line" />
 
       {/* AI Recommendations */}
       <section className="py-16 sm:py-24">
@@ -476,7 +477,7 @@ function ResultsSection({
         </div>
       </section>
 
-      <div className="section-divider" />
+      <SectionDivider variant="line" />
 
       {/* Email Capture */}
       <section className="py-16 sm:py-24">
@@ -544,7 +545,7 @@ function ResultsSection({
         </div>
       </section>
 
-      <div className="section-divider" />
+      <SectionDivider variant="fade" />
 
       {/* CTA */}
       <section className="py-16 sm:py-24">
@@ -799,7 +800,7 @@ export function WebsiteGraderPage() {
       {/* Results */}
       {result && (
         <div ref={resultsRef}>
-          <div className="section-divider" />
+          <SectionDivider variant="fade" />
           <ResultsSection
             result={result}
             onEmailSubmit={handleEmailSubmit}
@@ -812,7 +813,7 @@ export function WebsiteGraderPage() {
       {/* Pre-results: What We Analyze section (shown when no result yet) */}
       {!result && !isLoading && (
         <>
-          <div className="section-divider" />
+          <SectionDivider variant="glow" />
 
           <section className="py-16 sm:py-24">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -859,7 +860,7 @@ export function WebsiteGraderPage() {
             </div>
           </section>
 
-          <div className="section-divider" />
+          <SectionDivider variant="line" />
 
           {/* Why it matters */}
           <section className="py-16 sm:py-24">

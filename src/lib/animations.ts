@@ -186,3 +186,59 @@ export const bentoItem: Variants = {
   },
 };
 
+// Slower blur+fade for immersive hero headings
+export const dramaticReveal: Variants = {
+  hidden: { opacity: 0, y: 30, filter: "blur(16px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 1.0, ease: [0.25, 0.4, 0.25, 1] },
+  },
+};
+
+// Horizontal wipe from left via clipPath
+export const clipRevealLeft: Variants = {
+  hidden: { opacity: 0, clipPath: "inset(0 100% 0 0)" },
+  visible: {
+    opacity: 1,
+    clipPath: "inset(0 0% 0 0)",
+    transition: { duration: 0.7, ease: [0.25, 0.4, 0.25, 1] },
+  },
+};
+
+// Scale + slight rotation for cards with personality
+export const scaleRotate: Variants = {
+  hidden: { opacity: 0, scale: 0.9, rotate: -2 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    rotate: 0,
+    transition: { duration: 0.6, ease: [0.25, 0.4, 0.25, 1] },
+  },
+};
+
+// Fast stagger for snappy grids
+export const staggerFast: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.06,
+      delayChildren: 0.05,
+    },
+  },
+};
+
+// Dramatic stagger for hero sequences
+export const staggerDramatic: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+      delayChildren: 0.3,
+    },
+  },
+};
+

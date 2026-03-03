@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
+import { SectionDivider } from "@/components/ui/SectionDivider";
 
 
 import {
@@ -69,10 +70,12 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
               <span className="text-xs font-semibold uppercase tracking-wide text-[var(--gold-base)]">
                 {industryLabels[study.industry]}
               </span>
-              <div className="flex items-center gap-1.5 text-sm text-[var(--white-muted)]">
-                <MapPin className="w-3.5 h-3.5" />
-                {study.location}
-              </div>
+              {study.location && (
+                <div className="flex items-center gap-1.5 text-sm text-[var(--white-muted)]">
+                  <MapPin className="w-3.5 h-3.5" />
+                  {study.location}
+                </div>
+              )}
               <div className="flex items-center gap-1.5 text-sm text-[var(--white-muted)]">
                 <Clock className="w-3.5 h-3.5" />
                 {study.timeline}
@@ -106,7 +109,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
         </div>
       </section>
 
-      <div className="section-divider" />
+      <SectionDivider variant="fade" />
 
       {/* Challenge Section */}
       <section className="py-24 bg-[var(--bg-base)]">
@@ -131,7 +134,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
         </div>
       </section>
 
-      <div className="section-divider" />
+      <SectionDivider variant="line" />
 
       {/* Solution Section */}
       <section className="py-24 bg-[var(--bg-base)]">
@@ -176,7 +179,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
         </div>
       </section>
 
-      <div className="section-divider" />
+      <SectionDivider variant="line" />
 
       {/* Results Section - Before/After Metrics */}
       <section className="py-24 bg-[var(--bg-base)]">
@@ -250,7 +253,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
       {/* Testimonial */}
       {study.testimonialQuote && (
         <>
-          <div className="section-divider" />
+          <SectionDivider variant="line" />
 
           <section className="py-24 bg-[var(--bg-base)]">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -286,7 +289,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
       {/* Industry Cross-Link */}
       {industrySlugs[study.industry] && (
         <>
-          <div className="section-divider" />
+          <SectionDivider variant="line" />
           <section className="py-12 bg-[var(--bg-base)]">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
               <Link
@@ -301,7 +304,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
         </>
       )}
 
-      <div className="section-divider" />
+      <SectionDivider variant="fade" />
 
       {/* CTA Section */}
       <section className="py-24 bg-[var(--bg-base)] relative overflow-hidden">

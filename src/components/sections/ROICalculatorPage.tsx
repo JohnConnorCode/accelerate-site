@@ -15,6 +15,7 @@ import type { LucideIcon } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { SectionDivider } from "@/components/ui/SectionDivider";
 import { Select } from "@/components/ui/Select";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 import { fadeUp, scaleUp } from "@/lib/animations";
@@ -287,7 +288,7 @@ export function ROICalculatorPage() {
         </div>
       </section>
 
-      <div className="section-divider" />
+      <SectionDivider variant="fade" />
 
       {/* ======== CALCULATOR ======== */}
       <section className="py-16 sm:py-24 bg-[var(--bg-base)]">
@@ -563,7 +564,7 @@ export function ROICalculatorPage() {
         </div>
       </section>
 
-      <div className="section-divider" />
+      <SectionDivider variant="fade" />
 
       {/* ======== DISCLAIMER + CTA ======== */}
       <section className="py-16 sm:py-24 bg-[var(--bg-base)] relative overflow-hidden">

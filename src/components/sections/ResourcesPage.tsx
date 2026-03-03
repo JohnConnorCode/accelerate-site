@@ -3,15 +3,15 @@
 import { Download, ArrowRight, ClipboardCheck, Zap, BarChart3 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { PageHero } from "@/components/ui/PageHero";
-import {
-  AnimateOnScroll,
-  StaggerContainer,
-} from "@/components/ui/AnimateOnScroll";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
-import { fadeUp } from "@/lib/animations";
+import { SectionDivider } from "@/components/ui/SectionDivider";
+import { AmbientOrbs } from "@/components/ui/AmbientOrbs";
+import { FinalCTA } from "@/components/sections/FinalCTA";
+import { staggerBento, bentoItem, clipRevealLeft } from "@/lib/animations";
 import { leadMagnets } from "@/content/lead-magnets";
 import { ResourceGate } from "@/components/sections/ResourceGate";
 import { useState } from "react";
@@ -31,10 +31,15 @@ const categoryLabels: Record<string, string> = {
 export function ResourcesPage() {
   const [gatedResource, setGatedResource] = useState<string | null>(null);
 
+  // First resource featured, rest in grid
+  const featured = leadMagnets[0];
+  const rest = leadMagnets.slice(1);
+
   return (
     <>
-      {/* Hero */}
+      {/* Hero — editorial */}
       <PageHero
+        variant="editorial"
         label="Free Resources"
         title={
           <>
@@ -43,18 +48,76 @@ export function ResourcesPage() {
           </>
         }
         description="No fluff, no filler. Practical guides, checklists, and comparisons built for small business owners who want to make smarter decisions about AI and automation."
+        accentText="RESOURCES"
       />
 
-      <div className="section-divider" />
+      <SectionDivider variant="fade" />
 
-      {/* Resource Cards */}
-      <section className="py-24 bg-[var(--bg-base)]">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {leadMagnets.map((resource, index) => {
+      {/* Featured + Grid */}
+      <section className="py-24 bg-[var(--bg-base)] relative overflow-hidden">
+        <AmbientOrbs count={3} color="white" />
+
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          {/* Featured resource — full width with clipRevealLeft */}
+          {featured && (() => {
+            const FeaturedIcon = iconMap[featured.icon] || Download;
+            return (
+              <motion.div
+                variants={clipRevealLeft}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                className="mb-10"
+              >
+                <GlassCard
+                  variant="gold"
+                  padding="lg"
+                  hover="lift"
+                  className="flex flex-col sm:flex-row items-start gap-6"
+                >
+                  <div className="w-14 h-14 rounded-lg bg-gold-gradient flex items-center justify-center shrink-0">
+                    <FeaturedIcon className="w-7 h-7 text-black" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-xs font-semibold uppercase tracking-wide text-[var(--white-muted)]">
+                        {categoryLabels[featured.category]}
+                      </span>
+                      <span className="text-xs font-semibold uppercase tracking-wide text-[var(--gold-base)]">
+                        Most Downloaded
+                      </span>
+                    </div>
+                    <h2 className="font-display text-2xl font-bold text-[var(--heading-color)] mb-1">
+                      {featured.title}
+                    </h2>
+                    <p className="text-sm text-[var(--gold-light)] mb-3">
+                      {featured.subtitle}
+                    </p>
+                    <p className="text-sm text-[var(--white-secondary)] mb-6">
+                      {featured.description}
+                    </p>
+                    <Button onClick={() => setGatedResource(featured.id)}>
+                      <Download className="w-4 h-4 mr-2" />
+                      Download Free
+                    </Button>
+                  </div>
+                </GlassCard>
+              </motion.div>
+            );
+          })()}
+
+          {/* Rest in 2-col bento grid */}
+          <motion.div
+            variants={staggerBento}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-6"
+          >
+            {rest.map((resource) => {
               const Icon = iconMap[resource.icon] || Download;
               return (
-                <AnimateOnScroll key={resource.id} variants={fadeUp}>
+                <motion.div key={resource.id} variants={bentoItem}>
                   <GlassCard
                     variant="prominent"
                     padding="lg"
@@ -68,11 +131,6 @@ export function ResourcesPage() {
                       <span className="text-xs font-semibold uppercase tracking-wide text-[var(--white-muted)]">
                         {categoryLabels[resource.category]}
                       </span>
-                      {index === 0 && (
-                        <span className="text-xs font-semibold uppercase tracking-wide text-[var(--gold-base)]">
-                          Most Downloaded
-                        </span>
-                      )}
                     </div>
                     <h2 className="font-display text-xl font-bold text-[var(--heading-color)] mb-1">
                       {resource.title}
@@ -91,19 +149,19 @@ export function ResourcesPage() {
                       Download Free
                     </Button>
                   </GlassCard>
-                </AnimateOnScroll>
+                </motion.div>
               );
             })}
-          </StaggerContainer>
+          </motion.div>
         </div>
       </section>
 
-      <div className="section-divider" />
+      <SectionDivider variant="glow" />
 
       {/* Testimonial */}
       <section className="py-24 bg-[var(--bg-base)]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <ScrollReveal animation="clip-reveal">
+          <ScrollReveal animation="clip-left">
             <GlassCard variant="prominent" padding="lg" className="text-center">
               <blockquote className="font-display text-lg sm:text-xl text-[var(--white-primary)] leading-relaxed italic mb-4">
                 &ldquo;The AI Readiness Checklist helped us realize we were
@@ -118,62 +176,15 @@ export function ResourcesPage() {
         </div>
       </section>
 
-      <div className="section-divider" />
+      <SectionDivider variant="fade" />
 
-      {/* Tools CTA */}
-      <section className="py-24 bg-[var(--bg-base)]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AnimateOnScroll>
-            <GlassCard variant="gold" padding="lg" className="text-center">
-              <h2 className="font-display text-2xl md:text-3xl font-bold text-[var(--heading-color)] mb-3">
-                Want Personalized Insights?
-              </h2>
-              <p className="text-[var(--white-secondary)] max-w-xl mx-auto mb-6">
-                Our free interactive tools give you instant, data-driven
-                recommendations specific to your business.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link href="/tools/website-grader">
-                  <Button variant="primary">
-                    Grade My Website
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </Link>
-                <Link href="/tools/roi-calculator">
-                  <Button variant="secondary">
-                    Calculate My ROI
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </Link>
-              </div>
-            </GlassCard>
-          </AnimateOnScroll>
-        </div>
-      </section>
-
-      <div className="section-divider" />
-
-      {/* Solution Generator CTA */}
-      <section className="py-24 bg-[var(--bg-base)]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AnimateOnScroll className="text-center">
-            <h2 className="font-display text-2xl md:text-3xl font-bold text-[var(--heading-color)] mb-3">
-              Ready for a Custom Growth Plan?
-            </h2>
-            <p className="text-[var(--white-secondary)] mb-6 max-w-lg mx-auto">
-              Our Solution Generator analyzes your business and builds a
-              prioritized roadmap with exact pricing and projected ROI. Takes
-              under 5 minutes.
-            </p>
-            <Link href="/plan-builder">
-              <Button variant="primary" size="lg" pulse>
-                Get Your Growth Plan
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
-          </AnimateOnScroll>
-        </div>
-      </section>
+      {/* Single consolidated CTA */}
+      <FinalCTA
+        heading={<>Want Personalized Insights?</>}
+        description="Our free interactive tools give you instant, data-driven recommendations specific to your business."
+        primaryCTA={{ label: "Grade My Website", href: "/tools/website-grader" }}
+        secondaryCTA={{ label: "Calculate My ROI", href: "/tools/roi-calculator" }}
+      />
 
       {/* Resource Gate Modal */}
       {gatedResource && (

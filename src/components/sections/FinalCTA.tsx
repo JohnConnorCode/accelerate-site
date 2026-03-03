@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useRef } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -9,8 +10,38 @@ import { prefersReducedMotion } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 
-export function FinalCTA() {
+interface FinalCTAProps {
+  heading?: ReactNode;
+  description?: string;
+  primaryCTA?: { label: string; href: string };
+  secondaryCTA?: { label: string; href: string };
+}
+
+export function FinalCTA({
+  heading,
+  description,
+  primaryCTA,
+  secondaryCTA,
+}: FinalCTAProps = {}) {
   const sectionRef = useRef<HTMLElement>(null);
+
+  const resolvedHeading = heading ?? (
+    <>
+      Let&apos;s Talk About{" "}
+      <span className="text-gold-gradient">Your Business</span>
+    </>
+  );
+  const resolvedDescription =
+    description ??
+    "Free discovery call. 30 minutes. You walk away with a clear plan — whether you work with us or not.";
+  const resolvedPrimary = primaryCTA ?? {
+    label: "Book a Free Discovery Call",
+    href: "/contact",
+  };
+  const resolvedSecondary = secondaryCTA ?? {
+    label: "Get the AI Playbook",
+    href: "/resources",
+  };
 
   useGSAP(() => {
     if (!sectionRef.current) return;
@@ -109,24 +140,23 @@ export function FinalCTA() {
           data-cta-heading
           className="page-heading mb-6"
         >
-          Let&apos;s Talk About{" "}
-          <span className="text-gold-gradient">Your Business</span>
+          {resolvedHeading}
         </h2>
         <p data-cta-desc className="text-lg sm:text-xl text-[var(--white-muted)] max-w-xl mx-auto mb-10">
-          Free discovery call. 30 minutes. You walk away with a clear plan — whether you work with us or not.
+          {resolvedDescription}
         </p>
         <div data-cta-buttons className="flex flex-col sm:flex-row gap-3 sm:gap-5 justify-center">
           <MagneticButton>
-            <Link href="/contact">
+            <Link href={resolvedPrimary.href}>
               <Button variant="primary" size="lg" pulse className="w-full sm:w-auto">
-                Book a Free Discovery Call
+                {resolvedPrimary.label}
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
           </MagneticButton>
-          <Link href="/resources">
+          <Link href={resolvedSecondary.href}>
             <Button variant="secondary" size="lg" className="w-full sm:w-auto border-gradient-animated">
-              Get the AI Playbook
+              {resolvedSecondary.label}
             </Button>
           </Link>
         </div>

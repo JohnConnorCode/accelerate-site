@@ -19,6 +19,7 @@ import {
 } from "@/lib/seo";
 import { Button } from "@/components/ui/Button";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { SectionDivider } from "@/components/ui/SectionDivider";
 import {
   AnimateOnScroll,
   StaggerContainer,
@@ -303,7 +304,7 @@ export default async function ArticlePage({
         </div>
       </article>
 
-      <div className="section-divider" />
+      <SectionDivider variant="fade" />
 
       {/* ------------------------------------------------------------------ */}
       {/* Bottom CTA                                                          */}
@@ -344,7 +345,7 @@ export default async function ArticlePage({
         </div>
       </section>
 
-      <div className="section-divider" />
+      <SectionDivider variant="glow" />
 
       {/* ------------------------------------------------------------------ */}
       {/* Related Articles                                                    */}

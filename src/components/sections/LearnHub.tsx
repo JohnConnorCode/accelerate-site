@@ -5,12 +5,14 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { Clock, ArrowRight, Search, Mail, BookOpen, FileText, Sparkles, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { fadeUp } from "@/lib/animations";
+import { fadeUp, scaleIn } from "@/lib/animations";
 import {
   AnimateOnScroll,
   StaggerContainer,
 } from "@/components/ui/AnimateOnScroll";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { SectionDivider } from "@/components/ui/SectionDivider";
+import { AmbientOrbs } from "@/components/ui/AmbientOrbs";
 import { PageHero } from "@/components/ui/PageHero";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
@@ -63,7 +65,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
 
   return (
     <>
-      {/* Hero */}
+      {/* Hero — centered with trust bar (heroReveal via default variant upgrade) */}
       <PageHero
         label="Learning Hub"
         title={
@@ -90,7 +92,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
         </div>
       </PageHero>
 
-      <div className="section-divider" />
+      <SectionDivider variant="fade" />
 
       {/* Featured Article */}
       {featuredArticle && (
@@ -102,7 +104,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
               </p>
             </AnimateOnScroll>
 
-            <ScrollReveal animation="clip-reveal">
+            <ScrollReveal animation="clip-left">
               <Link
                 href={`/learn/${featuredArticle.slug}`}
                 className="group block"
@@ -144,12 +146,11 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
         </section>
       )}
 
-      <div className="section-divider" />
+      <SectionDivider variant="glow" />
 
       {/* Filters + Article Grid */}
       <section className="py-16 bg-[var(--bg-base)]">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          {/* Section heading */}
           <AnimateOnScroll className="text-center mb-12">
             <h2 className="section-heading mb-3">
               Browse All{" "}
@@ -160,7 +161,6 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
             </p>
           </AnimateOnScroll>
 
-          {/* Filters */}
           <AnimateOnScroll className="mb-10">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap gap-2">
@@ -212,7 +212,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
             </div>
           </AnimateOnScroll>
 
-          {/* Article Grid */}
+          {/* Article Grid — alternating animations */}
           <AnimatePresence mode="wait">
             {paginated.length === 0 ? (
               <motion.div
@@ -232,8 +232,8 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                 key={`${activeCategory}-${page}`}
                 className="grid gap-6 md:grid-cols-2"
               >
-                {paginated.map((article) => (
-                  <AnimateOnScroll key={article.slug} variants={fadeUp}>
+                {paginated.map((article, i) => (
+                  <AnimateOnScroll key={article.slug} variants={i % 2 === 0 ? fadeUp : scaleIn}>
                     <Link
                       href={`/learn/${article.slug}`}
                       className="group block h-full"
@@ -300,13 +300,11 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
         </div>
       </section>
 
-      <div className="section-divider" />
+      <SectionDivider variant="glow" />
 
-      {/* Newsletter CTA */}
+      {/* Newsletter CTA — with AmbientOrbs + text-shimmer */}
       <section className="py-24 bg-[var(--bg-section-warm)] relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(700px,90vw)] h-[350px] rounded-full bg-radial from-[rgba(var(--accent-rgb),0.05)] to-transparent" />
-        </div>
+        <AmbientOrbs count={3} color="gold" />
 
         <div className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll>
@@ -315,7 +313,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                 <div className="w-12 h-12 rounded-full bg-[rgba(var(--accent-rgb),0.15)] border border-[rgba(var(--accent-rgb),0.3)] flex items-center justify-center mx-auto mb-5">
                   <Mail className="w-6 h-6 text-[var(--gold-light)]" />
                 </div>
-                <h2 className="font-display text-2xl font-bold text-[var(--heading-color)] mb-2">
+                <h2 className="font-display text-2xl font-bold text-shimmer mb-2">
                   Get New Guides in Your Inbox
                 </h2>
                 <p className="text-sm text-[var(--white-muted)] max-w-md mx-auto mb-8">
@@ -340,7 +338,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
         </div>
       </section>
 
-      <div className="section-divider" />
+      <SectionDivider variant="fade" />
 
       {/* Resources Cross-Promo */}
       <section className="py-24 bg-[var(--bg-base)]">

@@ -10,6 +10,7 @@ import { SocialProof } from "@/components/sections/SocialProof";
 import { LeadMagnet } from "@/components/sections/LeadMagnet";
 import { HomeFAQ } from "@/components/sections/HomeFAQ";
 import { FinalCTA } from "@/components/sections/FinalCTA";
+import { SectionDivider } from "@/components/ui/SectionDivider";
 
 export const metadata = seoMetadata({
   title: "Accelerate | AI Strategy & Systems for Small Businesses",
@@ -17,17 +18,32 @@ export const metadata = seoMetadata({
     "We help small businesses figure out where AI fits, then build and manage the systems that make it happen. Free discovery call.",
   ogTitle: "AI Strategy & Systems for Small Businesses",
   ogSubtitle: "Operate like you're ten times your size.",
+  path: "/",
 });
 
-const jsonLd = {
+const websiteJsonLd = {
   "@context": "https://schema.org",
-  "@type": "ProfessionalService",
+  "@type": "WebSite",
+  "@id": "https://acceleratewith.us/#website",
   name: "Accelerate",
+  url: "https://acceleratewith.us",
+  description:
+    "AI strategy and systems for small businesses. We figure out where AI fits, then build and manage the systems that make it happen.",
+  publisher: {
+    "@id": "https://acceleratewith.us/#organization",
+  },
+};
+
+const serviceJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "@id": "https://acceleratewith.us/#service",
+  name: "AI Strategy & Systems for Small Business",
   description:
     "We help small businesses figure out where AI fits, then build and manage the systems that make it happen.",
-  url: "https://acceleratewith.us",
-  email: "john@acceleratewith.us",
-  areaServed: "US",
+  provider: {
+    "@id": "https://acceleratewith.us/#organization",
+  },
   serviceType: [
     "AI Strategy & Roadmap",
     "Workflow Automation",
@@ -36,6 +52,10 @@ const jsonLd = {
     "Content Creation",
     "Data & Reporting",
   ],
+  areaServed: {
+    "@type": "Country",
+    name: "United States",
+  },
   offers: {
     "@type": "AggregateOffer",
     lowPrice: "1500",
@@ -49,27 +69,31 @@ export default function HomePage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }}
       />
       <Hero />
       <ServicesOverview />
-      <div className="section-divider" />
+      <SectionDivider variant="fade" />
       <WhoThisIsFor />
-      <div className="section-divider" />
+      <SectionDivider variant="glow" />
       <ProblemSolution />
-      <div className="section-divider" />
+      <SectionDivider variant="glow" />
       <SocialProof />
-      <div className="section-divider" />
+      <SectionDivider variant="glow" />
       <HowItWorks />
-      <div className="section-divider" />
+      <SectionDivider variant="glow" />
       <WhyAccelerate />
-      <div className="section-divider" />
+      <SectionDivider variant="glow" />
       <Integrations />
-      <div className="section-divider" />
+      <SectionDivider variant="glow" />
       <LeadMagnet />
-      <div className="section-divider" />
+      <SectionDivider variant="glow" />
       <HomeFAQ />
-      <div className="section-divider" />
+      <SectionDivider variant="fade" />
       <FinalCTA />
     </>
   );

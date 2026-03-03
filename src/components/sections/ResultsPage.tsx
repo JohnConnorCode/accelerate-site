@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import {
   ArrowRight,
   MapPin,
@@ -11,13 +12,12 @@ import {
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { CountUp } from "@/components/ui/CountUp";
-import {
-  AnimateOnScroll,
-  StaggerContainer,
-} from "@/components/ui/AnimateOnScroll";
+import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { SectionDivider } from "@/components/ui/SectionDivider";
 import { PageHero } from "@/components/ui/PageHero";
-import { fadeUp, scaleUp } from "@/lib/animations";
+import { FinalCTA } from "@/components/sections/FinalCTA";
+import { heroReveal, heroStaggerDramatic, slideFromLeft, slideFromRight, scaleUp } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 import { caseStudies } from "@/content/case-studies";
 import type { Industry, CaseStudyFull } from "@/lib/types";
@@ -46,28 +46,26 @@ function CaseStudyCard({ study }: { study: CaseStudyFull }) {
   return (
     <GlassCard hover="lift" padding="none" className="h-full flex flex-col">
       <div className="p-6 sm:p-8 flex flex-col flex-1">
-        {/* Header */}
         <div className="flex items-start justify-between gap-4 mb-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-[var(--gold-base)]">
             {industryLabels[study.industry]}
           </p>
-          <div className="flex items-center gap-1.5 text-xs text-[var(--white-muted)] shrink-0">
-            <MapPin className="w-3 h-3" />
-            {study.location}
-          </div>
+          {study.location && (
+            <div className="flex items-center gap-1.5 text-xs text-[var(--white-muted)] shrink-0">
+              <MapPin className="w-3 h-3" />
+              {study.location}
+            </div>
+          )}
         </div>
 
-        {/* Business Name */}
         <h3 className="font-display text-xl sm:text-2xl font-bold text-[var(--heading-color)] mb-3">
           {study.businessName}
         </h3>
 
-        {/* Description */}
         <p className="text-sm text-[var(--white-secondary)] leading-relaxed mb-6 line-clamp-3 flex-1">
           {study.results}
         </p>
 
-        {/* Key Metrics */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
           {displayMetrics.map((metric) => (
             <div
@@ -84,7 +82,6 @@ function CaseStudyCard({ study }: { study: CaseStudyFull }) {
           ))}
         </div>
 
-        {/* CTA */}
         <div className="pt-4 border-t border-[var(--border-glass)] mt-auto">
           <Link
             href={`/results/${study.slug}`}
@@ -99,6 +96,13 @@ function CaseStudyCard({ study }: { study: CaseStudyFull }) {
   );
 }
 
+const heroMetrics = [
+  { end: 4, suffix: "x", label: "Avg. inquiry increase" },
+  { end: 95, suffix: "%+", label: "Response time reduction" },
+  { end: 75, prefix: "+", suffix: "%", label: "Avg. revenue lift" },
+  { end: 94, suffix: "%", label: "Client retention" },
+];
+
 export function ResultsPageContent() {
   const [activeFilter, setActiveFilter] = useState<FilterOption>("all");
   const featuredStudy = caseStudies.find((s) => s.featured);
@@ -110,8 +114,9 @@ export function ResultsPageContent() {
 
   return (
     <>
-      {/* Hero */}
+      {/* Hero — immersive with metrics folded in */}
       <PageHero
+        variant="immersive"
         label="Client Results"
         title={
           <>
@@ -120,49 +125,42 @@ export function ResultsPageContent() {
           </>
         }
         description="Every metric below came from a real client engagement. No inflated projections. No 'up to' disclaimers. Just what happened."
-      />
+      >
+        {/* Aggregate metrics in hero */}
+        <motion.div
+          variants={heroStaggerDramatic}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10 max-w-3xl mx-auto"
+        >
+          {heroMetrics.map((metric) => (
+            <motion.div key={metric.label} variants={heroReveal}>
+              <GlassCard padding="sm" hover="none" className="text-center">
+                <p className="font-display text-2xl sm:text-3xl font-bold text-gold-gradient">
+                  <CountUp
+                    end={metric.end}
+                    prefix={metric.prefix}
+                    suffix={metric.suffix}
+                  />
+                </p>
+                <p className="text-xs text-[var(--white-muted)] mt-1">{metric.label}</p>
+              </GlassCard>
+            </motion.div>
+          ))}
+        </motion.div>
+      </PageHero>
 
-      <div className="section-divider" />
-
-      {/* Aggregate Metrics */}
-      <section className="py-16 bg-[var(--bg-section-warm)] relative">
-        <div className="absolute inset-0 grid-overlay opacity-10 pointer-events-none" />
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { end: 340, prefix: "+", suffix: "%", label: "Avg. inquiry increase" },
-              { end: 98, prefix: "-", suffix: "%", label: "Response time reduction" },
-              { end: 76, prefix: "+", suffix: "%", label: "Avg. revenue lift" },
-              { end: 94, suffix: "%", label: "Client retention" },
-            ].map((metric) => (
-              <AnimateOnScroll key={metric.label} variants={fadeUp}>
-                <GlassCard padding="sm" hover="none" className="text-center">
-                  <p className="font-display text-2xl sm:text-3xl font-bold text-gold-gradient">
-                    <CountUp
-                      end={metric.end}
-                      prefix={metric.prefix}
-                      suffix={metric.suffix}
-                    />
-                  </p>
-                  <p className="text-xs text-[var(--white-muted)] mt-1">{metric.label}</p>
-                </GlassCard>
-              </AnimateOnScroll>
-            ))}
-          </StaggerContainer>
-        </div>
-      </section>
-
-      <div className="section-divider" />
+      <SectionDivider variant="fade" />
 
       {/* Featured Case Study */}
       {featuredStudy && (
         <>
           <section className="py-24 bg-[var(--bg-base)]">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-              <ScrollReveal animation="clip-reveal">
+              <ScrollReveal animation="clip-left">
                 <GlassCard variant="gold" padding="lg">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-                    {/* Left: Testimonial */}
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-wide text-[var(--gold-base)] mb-4">Featured</p>
                       <blockquote className="font-display text-xl text-[var(--white-primary)] leading-relaxed italic mb-6">
@@ -176,7 +174,6 @@ export function ResultsPageContent() {
                       </p>
                     </div>
 
-                    {/* Right: Metrics 2x2 */}
                     <div className="grid grid-cols-2 gap-4">
                       {featuredStudy.metrics.map((metric) => (
                         <div
@@ -201,13 +198,14 @@ export function ResultsPageContent() {
             </div>
           </section>
 
-          <div className="section-divider" />
+          <SectionDivider variant="glow" />
         </>
       )}
 
       {/* Filter + Grid */}
-      <section className="py-24 bg-[var(--bg-base)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-24 bg-[var(--bg-base)] relative overflow-hidden">
+        <div className="absolute inset-0 dot-grid pointer-events-none" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           {/* Filter Tabs */}
           <AnimateOnScroll className="mb-12">
             <div className="flex items-center gap-2 mb-2">
@@ -232,75 +230,54 @@ export function ResultsPageContent() {
             </div>
           </AnimateOnScroll>
 
-          {/* Results Grid */}
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredStudies.map((study) => (
-              <AnimateOnScroll key={study.id} variants={fadeUp}>
+          {/* Results Grid — alternating animations */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredStudies.map((study, i) => (
+              <motion.div
+                key={study.id}
+                variants={i % 2 === 0 ? slideFromLeft : slideFromRight}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                transition={{ delay: (i % 3) * 0.1 }}
+              >
                 <CaseStudyCard study={study} />
-              </AnimateOnScroll>
+              </motion.div>
             ))}
-          </StaggerContainer>
+          </div>
 
           {filteredStudies.length === 0 && (
-            <AnimateOnScroll variants={scaleUp}>
+            <motion.div
+              variants={scaleUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
               <div className="text-center py-16">
                 <TrendingUp className="w-12 h-12 text-[var(--white-muted)] mx-auto mb-4" />
                 <p className="text-lg text-[var(--white-muted)]">
                   No case studies in this industry yet. Check back soon.
                 </p>
               </div>
-            </AnimateOnScroll>
+            </motion.div>
           )}
         </div>
       </section>
 
-      <div className="section-divider" />
+      <SectionDivider variant="fade" />
 
       {/* CTA Section */}
-      <section className="py-24 bg-[var(--bg-base)] relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-radial from-[rgba(var(--accent-rgb),0.06)] to-transparent" />
-        </div>
-
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <AnimateOnScroll>
-            <GlassCard variant="gold" padding="none" className="text-center">
-              <div className="p-10 sm:p-14">
-                <h2 className="section-heading mb-4">
-                  Want Results{" "}
-                  <span className="text-gold-gradient">Like These?</span>
-                </h2>
-                <p className="text-lg text-[var(--white-secondary)] max-w-xl mx-auto mb-8">
-                  Every number on this page came from the same playbook
-                  we&apos;ll build for your business.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link href="/plan-builder">
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      pulse
-                      className="w-full sm:w-auto"
-                    >
-                      Get Your Growth Plan
-                      <ArrowRight className="w-5 h-5 ml-2" />
-                    </Button>
-                  </Link>
-                  <Link href="/contact">
-                    <Button
-                      variant="secondary"
-                      size="lg"
-                      className="w-full sm:w-auto"
-                    >
-                      Book a Free Discovery Call
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </GlassCard>
-          </AnimateOnScroll>
-        </div>
-      </section>
+      <FinalCTA
+        heading={
+          <>
+            Want Results{" "}
+            <span className="text-gold-gradient">Like These?</span>
+          </>
+        }
+        description="Every number on this page came from the same playbook we'll build for your business."
+        primaryCTA={{ label: "Get Your Growth Plan", href: "/plan-builder" }}
+        secondaryCTA={{ label: "Book a Free Discovery Call", href: "/contact" }}
+      />
     </>
   );
 }

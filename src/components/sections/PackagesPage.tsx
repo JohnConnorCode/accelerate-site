@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Check, X, ArrowRight, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import {
@@ -10,12 +11,12 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from "@/components/ui/Accordion";
-import {
-  AnimateOnScroll,
-  StaggerContainer,
-} from "@/components/ui/AnimateOnScroll";
+import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { PageHero } from "@/components/ui/PageHero";
-import { fadeUp } from "@/lib/animations";
+import { SectionDivider } from "@/components/ui/SectionDivider";
+import { FinalCTA } from "@/components/sections/FinalCTA";
+import { staggerBento, bentoItem, scaleIn } from "@/lib/animations";
 import { cn, formatCurrency } from "@/lib/utils";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { packages, packageFaqs } from "@/content/packages";
@@ -25,7 +26,6 @@ import type { ServicePackage } from "@/lib/types";
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Collect every unique feature name across all packages, preserving order. */
 function getAllFeatureNames(): string[] {
   const seen = new Set<string>();
   const names: string[] = [];
@@ -48,14 +48,14 @@ function PricingCard({ pkg }: { pkg: ServicePackage }) {
   const isHighlighted = pkg.highlighted;
 
   return (
-    <div
+    <motion.div
       id={pkg.slug}
+      variants={isHighlighted ? scaleIn : bentoItem}
       className={cn(
         "relative flex flex-col",
         isHighlighted && "lg:-mt-4 lg:mb-4 z-10"
       )}
     >
-      {/* "Most Popular" label floating above card */}
       {isHighlighted && (
         <div className="flex items-center justify-center gap-1.5 mb-3 text-sm font-semibold text-[var(--gold-light)]">
           <Sparkles className="w-3.5 h-3.5" />
@@ -73,7 +73,6 @@ function PricingCard({ pkg }: { pkg: ServicePackage }) {
         )}
       >
         <div className="p-6 sm:p-8 flex flex-col flex-1">
-          {/* Header */}
           <div className="mb-6">
             <h3
               className="font-display text-2xl font-bold text-[var(--heading-color)] mb-1"
@@ -84,7 +83,6 @@ function PricingCard({ pkg }: { pkg: ServicePackage }) {
             <p className="text-xs text-[var(--white-muted)] italic mt-1">Best for: {pkg.idealFor}</p>
           </div>
 
-          {/* Price */}
           <div className="mb-6">
             <div className="flex items-baseline gap-1">
               <span
@@ -104,10 +102,8 @@ function PricingCard({ pkg }: { pkg: ServicePackage }) {
             )}
           </div>
 
-          {/* Divider */}
           <div className="border-t border-[var(--border-light)] mb-6" />
 
-          {/* Feature list */}
           <ul className="space-y-3 mb-8 flex-1" role="list">
             {pkg.features.map((feature) => (
               <li key={feature.name} className="flex items-start gap-3">
@@ -139,7 +135,6 @@ function PricingCard({ pkg }: { pkg: ServicePackage }) {
             ))}
           </ul>
 
-          {/* CTA */}
           <Link href={pkg.ctaLink} className="mt-auto">
             <Button
               variant={isHighlighted ? "primary" : "secondary"}
@@ -153,7 +148,7 @@ function PricingCard({ pkg }: { pkg: ServicePackage }) {
           </Link>
         </div>
       </GlassCard>
-    </div>
+    </motion.div>
   );
 }
 
@@ -233,29 +228,29 @@ function ComparisonTable() {
 export function PackagesPageContent() {
   return (
     <>
-      {/* ------------------------------------------------------------------ */}
-      {/* Hero Section                                                        */}
-      {/* ------------------------------------------------------------------ */}
+      {/* Hero */}
       <PageHero
         label="Packages"
-        title={<>Transparent Pricing,{" "}<span className="text-gold-gradient">Real Results</span></>}
+        title={<>Transparent Pricing,{" "}<span className="text-gold-gradient text-shimmer">Real Results</span></>}
         description="Transparent pricing, clear deliverables. Pick the package that matches where you are today and upgrade whenever you're ready."
       />
 
-      <div className="section-divider" />
+      <SectionDivider variant="fade" />
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Pricing Cards                                                       */}
-      {/* ------------------------------------------------------------------ */}
+      {/* Pricing Cards */}
       <section className="py-24 bg-[var(--bg-base)]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-start">
+          <motion.div
+            variants={staggerBento}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-start"
+          >
             {packages.map((pkg) => (
-              <AnimateOnScroll key={pkg.id} variants={fadeUp}>
-                <PricingCard pkg={pkg} />
-              </AnimateOnScroll>
+              <PricingCard key={pkg.id} pkg={pkg} />
             ))}
-          </StaggerContainer>
+          </motion.div>
 
           <AnimateOnScroll>
             <p className="text-center text-sm text-[var(--white-muted)] mt-10">
@@ -266,11 +261,9 @@ export function PackagesPageContent() {
         </div>
       </section>
 
-      <div className="section-divider" />
+      <SectionDivider variant="glow" />
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Social Proof                                                        */}
-      {/* ------------------------------------------------------------------ */}
+      {/* Social Proof */}
       <section className="py-12 bg-[var(--bg-base)]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll>
@@ -283,14 +276,13 @@ export function PackagesPageContent() {
         </div>
       </section>
 
-      <div className="section-divider" />
+      <SectionDivider variant="glow" />
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Feature Comparison Table                                            */}
-      {/* ------------------------------------------------------------------ */}
-      <section className="py-24 bg-[var(--bg-base)]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AnimateOnScroll>
+      {/* Feature Comparison Table */}
+      <section className="py-24 bg-[var(--bg-section-deep)] relative overflow-hidden">
+        <div className="absolute inset-0 grid-diamond pointer-events-none" />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <ScrollReveal animation="blur-up">
             <SectionHeader
               heading={
                 <>
@@ -301,21 +293,19 @@ export function PackagesPageContent() {
               description="See exactly what is included in each package so you can choose with confidence."
               className="mb-12"
             />
-          </AnimateOnScroll>
+          </ScrollReveal>
 
-          <AnimateOnScroll delay={0.15}>
+          <ScrollReveal animation="clip-left" delay={0.15}>
             <GlassCard variant="prominent" padding="lg">
               <ComparisonTable />
             </GlassCard>
-          </AnimateOnScroll>
+          </ScrollReveal>
         </div>
       </section>
 
-      <div className="section-divider" />
+      <SectionDivider variant="glow" />
 
-      {/* ------------------------------------------------------------------ */}
-      {/* FAQ Section                                                         */}
-      {/* ------------------------------------------------------------------ */}
+      {/* FAQ Section */}
       <section className="py-24 bg-[var(--bg-base)]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll>
@@ -356,57 +346,15 @@ export function PackagesPageContent() {
         </div>
       </section>
 
-      <div className="section-divider" />
+      <SectionDivider variant="fade" />
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Bottom CTA                                                          */}
-      {/* ------------------------------------------------------------------ */}
-      <section className="py-24 bg-[var(--bg-base)] relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-radial from-[rgba(var(--accent-rgb),0.06)] to-transparent" />
-        </div>
-
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <AnimateOnScroll>
-            <GlassCard variant="gold" padding="none" className="text-center">
-              <div className="p-10 sm:p-14">
-                <h2
-                  className="section-heading mb-4"
-                >
-                  Not sure which package is right?
-                </h2>
-                <p className="text-lg text-[var(--white-secondary)] max-w-xl mx-auto mb-8">
-                  Take 2 minutes to answer a few questions and get a
-                  personalized recommendation with projected ROI for your
-                  business.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link href="/plan-builder">
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      pulse
-                      className="w-full sm:w-auto"
-                    >
-                      Get Your Growth Plan
-                      <ArrowRight className="w-5 h-5 ml-2" />
-                    </Button>
-                  </Link>
-                  <Link href="/contact">
-                    <Button
-                      variant="secondary"
-                      size="lg"
-                      className="w-full sm:w-auto"
-                    >
-                      Book a Free Consultation
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </GlassCard>
-          </AnimateOnScroll>
-        </div>
-      </section>
+      {/* Bottom CTA */}
+      <FinalCTA
+        heading={<>Not sure which package is right?</>}
+        description="Take 2 minutes to answer a few questions and get a personalized recommendation with projected ROI for your business."
+        primaryCTA={{ label: "Get Your Growth Plan", href: "/plan-builder" }}
+        secondaryCTA={{ label: "Book a Free Consultation", href: "/contact" }}
+      />
     </>
   );
 }
