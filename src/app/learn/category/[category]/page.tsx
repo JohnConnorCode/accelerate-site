@@ -1,3 +1,5 @@
+export const revalidate = 3600;
+
 import type { Metadata } from "next";
 import { seoMetadata } from "@/lib/og";
 import { notFound } from "next/navigation";
@@ -8,6 +10,7 @@ import {
   getAllCategories,
   CATEGORY_LABELS,
 } from "@/lib/mdx";
+import { generateBreadcrumbJsonLd } from "@/lib/seo";
 import type { ArticleCategory } from "@/lib/types";
 
 export function generateStaticParams() {
@@ -27,6 +30,9 @@ export async function generateMetadata({
     description: `Browse our ${label.toLowerCase()} articles with practical strategies for small businesses.`,
     ogTitle: `${label} Articles`,
     ogSubtitle: `Practical ${label.toLowerCase()} strategies for small businesses`,
+    alternates: {
+      canonical: `https://acceleratewith.us/learn/category/${category}`,
+    },
   });
 }
 
@@ -41,8 +47,19 @@ export default async function CategoryPage({
 
   const articles = getArticlesByCategory(category as ArticleCategory);
 
+  const breadcrumbJsonLd = generateBreadcrumbJsonLd([
+    { name: "Home", url: "/" },
+    { name: "Learning Hub", url: "/learn" },
+    { name: label, url: `/learn/category/${category}` },
+  ]);
+
   return (
-    <div className="pt-28 pb-20">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <div className="pt-28 pb-20">
       <div className="mx-auto max-w-6xl px-6">
         <nav className="mb-8 flex items-center gap-1.5 text-sm text-white-muted">
           <Link
@@ -97,5 +114,6 @@ export default async function CategoryPage({
         )}
       </div>
     </div>
+    </>
   );
 }

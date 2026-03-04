@@ -46,6 +46,7 @@ export function ServicesOverview() {
         opacity: 1,
         y: 0,
         duration: 0.5,
+        delay: 0.3,
         stagger: 0.1,
         ease: "power2.out",
         scrollTrigger: {
@@ -103,11 +104,16 @@ export function ServicesOverview() {
           })}
         </div>
 
-        <AnimateOnScroll variants={fadeUp} className="text-center mt-12">
+        <AnimateOnScroll variants={fadeUp} delay={0.2} className="flex items-center justify-center gap-4 flex-wrap mt-12">
           <Link href="/contact">
             <Button variant="primary" size="lg">
               Book a Free Discovery Call
               <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+          </Link>
+          <Link href="/services">
+            <Button variant="secondary" size="lg">
+              View All Services
             </Button>
           </Link>
         </AnimateOnScroll>

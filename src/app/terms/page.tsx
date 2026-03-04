@@ -5,6 +5,7 @@ export const metadata = seoMetadata({
   title: "Terms of Service",
   description:
     "Accelerate terms of service. Review the terms and conditions for using our AI-powered business solutions.",
+  path: "/terms",
 });
 
 export default function TermsPage() {

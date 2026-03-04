@@ -1,8 +1,11 @@
+export const revalidate = 3600;
+
 import type { Metadata } from "next";
 import { seoMetadata } from "@/lib/og";
+import { getArticlesByTag, getAllTags, CATEGORY_LABELS } from "@/lib/mdx";
+import { generateBreadcrumbJsonLd } from "@/lib/seo";
 import Link from "next/link";
 import { Clock, ArrowRight, ChevronRight } from "lucide-react";
-import { getArticlesByTag, getAllTags, CATEGORY_LABELS } from "@/lib/mdx";
 
 export function generateStaticParams() {
   return getAllTags().map(({ tag }) => ({ tag }));
@@ -15,12 +18,22 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { tag } = await params;
   const decoded = decodeURIComponent(tag);
-  return seoMetadata({
-    title: `Articles tagged "${decoded}" | Learning Hub`,
-    description: `Browse articles about ${decoded} with practical strategies for small businesses.`,
-    ogTitle: `${decoded} Articles`,
-    ogSubtitle: "Practical strategies for small businesses",
-  });
+  const articles = getArticlesByTag(decoded);
+  const isThin = articles.length < 2;
+  return {
+    ...seoMetadata({
+      title: `Articles tagged "${decoded}" | Learning Hub`,
+      description: `Browse articles about ${decoded} with practical strategies for small businesses.`,
+      ogTitle: `${decoded} Articles`,
+      ogSubtitle: "Practical strategies for small businesses",
+      alternates: {
+        canonical: `https://acceleratewith.us/learn/tag/${encodeURIComponent(tag)}`,
+      },
+    }),
+    ...(isThin && {
+      robots: { index: false, follow: true },
+    }),
+  };
 }
 
 export default async function TagPage({
@@ -32,8 +45,19 @@ export default async function TagPage({
   const decoded = decodeURIComponent(tag);
   const articles = getArticlesByTag(decoded);
 
+  const breadcrumbJsonLd = generateBreadcrumbJsonLd([
+    { name: "Home", url: "/" },
+    { name: "Learning Hub", url: "/learn" },
+    { name: `Tag: ${decoded}`, url: `/learn/tag/${encodeURIComponent(tag)}` },
+  ]);
+
   return (
-    <div className="pt-28 pb-20">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <div className="pt-28 pb-20">
       <div className="mx-auto max-w-6xl px-6">
         <nav className="mb-8 flex items-center gap-1.5 text-sm text-white-muted">
           <Link
@@ -91,5 +115,6 @@ export default async function TagPage({
         )}
       </div>
     </div>
+    </>
   );
 }

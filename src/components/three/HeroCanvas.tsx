@@ -32,7 +32,7 @@ interface ShootingStar {
   tailLen: number; // trail length in pixels
 }
 
-const STAR_COUNT = 280;
+const STAR_COUNT = 360;
 const PARALLAX_STRENGTH = 18;
 const CLICK_RADIUS = 0.12;
 const CLICK_SIZE_BOOST = 2.2;
@@ -150,8 +150,8 @@ export default function HeroCanvas() {
         pts.push({
           x,
           y,
-          size: 0.4 + Math.random() * 1.1 + depth * 0.3,
-          baseOpacity: 0.12 + Math.random() * 0.65 + depth * 0.15,
+          size: 0.5 + Math.random() * 1.2 + depth * 0.4,
+          baseOpacity: 0.25 + Math.random() * 0.55 + depth * 0.2,
           twinkleSpeed: 0.4 + Math.random() * 2.0,
           twinklePhase: Math.random() * Math.PI * 2,
           depth,
@@ -235,14 +235,29 @@ export default function HeroCanvas() {
       ctx.fillStyle = bgFill;
       ctx.fillRect(0, 0, w, h);
 
-      // Sky gradient
+      // Sky gradient — deep dark with subtle blue-indigo tones for richness
       if (isDark) {
         const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
-        skyGrad.addColorStop(0, "rgba(10,8,6,1)");
-        skyGrad.addColorStop(0.8, "rgba(14,11,7,1)");
-        skyGrad.addColorStop(1, "rgba(20,16,8,1)");
+        skyGrad.addColorStop(0, "rgba(8,8,14,1)");
+        skyGrad.addColorStop(0.3, "rgba(10,10,16,1)");
+        skyGrad.addColorStop(0.6, "rgba(12,11,14,1)");
+        skyGrad.addColorStop(0.85, "rgba(16,14,10,1)");
+        skyGrad.addColorStop(1, "rgba(22,18,10,1)");
         ctx.fillStyle = skyGrad;
         ctx.fillRect(0, 0, w, horizonY + 2);
+
+        // Subtle atmospheric nebula band — adds depth to mid-sky
+        const nebulaY = horizonY * 0.35;
+        const nebulaH = horizonY * 0.4;
+        const nebula = ctx.createRadialGradient(
+          w * 0.4, nebulaY, 0,
+          w * 0.4, nebulaY, w * 0.5,
+        );
+        nebula.addColorStop(0, "rgba(30,25,50,0.12)");
+        nebula.addColorStop(0.4, "rgba(25,20,45,0.06)");
+        nebula.addColorStop(1, "rgba(20,15,35,0)");
+        ctx.fillStyle = nebula;
+        ctx.fillRect(0, nebulaY - nebulaH * 0.5, w, nebulaH);
       } else {
         // Light mode sky: subtle cool white to soft teal
         const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
@@ -280,7 +295,7 @@ export default function HeroCanvas() {
           s.sizeBoost = 1;
         }
 
-        const twinkle = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(seconds * s.twinkleSpeed + s.twinklePhase));
+        const twinkle = 0.5 + 0.5 * (0.5 + 0.5 * Math.sin(seconds * s.twinkleSpeed + s.twinklePhase));
         let alpha = s.baseOpacity * twinkle;
         if (alpha < 0.02) continue;
 
@@ -304,12 +319,12 @@ export default function HeroCanvas() {
         const sz = s.size * s.sizeBoost * d;
 
         // Subtle glow on brighter/near stars only (both modes)
-        if ((s.baseOpacity > 0.5 && sz > 1) || s.sizeBoost > 1.1) {
+        if ((s.baseOpacity > 0.4 && sz > 0.8) || s.sizeBoost > 1.1) {
           const glowAlpha = isDark
-            ? alpha * 0.04 * Math.max(1, s.sizeBoost * 0.5)
+            ? alpha * 0.10 * Math.max(1, s.sizeBoost * 0.5)
             : alpha * 0.08 * Math.max(1, s.sizeBoost * 0.5);
           ctx.beginPath();
-          ctx.arc(px, py, sz * 2.5, 0, Math.PI * 2);
+          ctx.arc(px, py, sz * 3, 0, Math.PI * 2);
           ctx.fillStyle = `rgba(${sr},${sg},${sb},${glowAlpha})`;
           ctx.fill();
         }
@@ -398,17 +413,17 @@ export default function HeroCanvas() {
       const breathe = 0.93 + Math.sin(seconds * 0.4) * 0.07;
 
       if (isDark) {
-        // Soft diffused glow centered on horizon
+        // Soft diffused glow centered on horizon — stronger for visibility
         const glow = ctx.createRadialGradient(
           w * 0.5, horizonY, 0,
-          w * 0.5, horizonY, w * 0.45,
+          w * 0.5, horizonY, w * 0.5,
         );
-        glow.addColorStop(0, `rgba(212,175,55,${0.09 * breathe})`);
-        glow.addColorStop(0.25, `rgba(212,175,55,${0.04 * breathe})`);
-        glow.addColorStop(0.6, `rgba(200,160,45,${0.01 * breathe})`);
+        glow.addColorStop(0, `rgba(212,175,55,${0.14 * breathe})`);
+        glow.addColorStop(0.2, `rgba(212,175,55,${0.07 * breathe})`);
+        glow.addColorStop(0.5, `rgba(200,160,45,${0.025 * breathe})`);
         glow.addColorStop(1, "rgba(200,160,45,0)");
         ctx.fillStyle = glow;
-        ctx.fillRect(0, horizonY - h * 0.2, w, h * 0.3);
+        ctx.fillRect(0, horizonY - h * 0.25, w, h * 0.35);
 
         // Horizon line — soft atmospheric glow
         ctx.save();
@@ -416,19 +431,19 @@ export default function HeroCanvas() {
 
         const lineGrad = ctx.createLinearGradient(0, 0, w, 0);
         lineGrad.addColorStop(0, "rgba(212,175,55,0)");
-        lineGrad.addColorStop(0.25, `rgba(212,175,55,${0.10 * breathe})`);
-        lineGrad.addColorStop(0.5, `rgba(245,220,120,${0.20 * breathe})`);
-        lineGrad.addColorStop(0.75, `rgba(212,175,55,${0.10 * breathe})`);
+        lineGrad.addColorStop(0.2, `rgba(212,175,55,${0.12 * breathe})`);
+        lineGrad.addColorStop(0.5, `rgba(245,220,120,${0.25 * breathe})`);
+        lineGrad.addColorStop(0.8, `rgba(212,175,55,${0.12 * breathe})`);
         lineGrad.addColorStop(1, "rgba(212,175,55,0)");
         ctx.fillStyle = lineGrad;
-        ctx.fillRect(0, horizonY - 0.5 * d, w, 1 * d);
+        ctx.fillRect(0, horizonY - 1 * d, w, 2 * d);
 
-        const bloomH = 16 * d;
+        const bloomH = 24 * d;
         const bloom = ctx.createLinearGradient(0, horizonY - bloomH, 0, horizonY + bloomH);
         bloom.addColorStop(0, "rgba(212,175,55,0)");
-        bloom.addColorStop(0.3, `rgba(212,175,55,${0.015 * breathe})`);
-        bloom.addColorStop(0.5, `rgba(235,200,80,${0.04 * breathe})`);
-        bloom.addColorStop(0.7, `rgba(212,175,55,${0.015 * breathe})`);
+        bloom.addColorStop(0.25, `rgba(212,175,55,${0.025 * breathe})`);
+        bloom.addColorStop(0.5, `rgba(235,200,80,${0.06 * breathe})`);
+        bloom.addColorStop(0.75, `rgba(212,175,55,${0.025 * breathe})`);
         bloom.addColorStop(1, "rgba(212,175,55,0)");
         ctx.fillStyle = bloom;
         ctx.fillRect(0, horizonY - bloomH, w, bloomH * 2);
@@ -545,7 +560,7 @@ export default function HeroCanvas() {
               position: "absolute",
               inset: 0,
               backgroundImage: isDark
-                ? "linear-gradient(rgba(212,175,55,0.10) 1px, transparent 1px), linear-gradient(90deg, rgba(212,175,55,0.10) 1px, transparent 1px)"
+                ? "linear-gradient(rgba(212,175,55,0.13) 1px, transparent 1px), linear-gradient(90deg, rgba(212,175,55,0.13) 1px, transparent 1px)"
                 : "linear-gradient(rgba(11,122,122,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(11,122,122,0.15) 1px, transparent 1px)",
               backgroundSize: "50px 50px",
               transform: "rotateX(72deg)",

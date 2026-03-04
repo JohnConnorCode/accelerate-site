@@ -50,7 +50,7 @@ function TestimonialCard({
         {Array.from({ length: rating }).map((_, i) => (
           <Star
             key={i}
-            className="w-4 h-4 fill-[var(--gold-base)] text-[var(--gold-base)]"
+            className="w-[18px] h-[18px] fill-[var(--gold-base)] text-[var(--gold-base)] drop-shadow-[0_0_3px_rgba(212,175,55,0.4)]"
             aria-hidden="true"
           />
         ))}
@@ -77,8 +77,10 @@ function TestimonialCard({
   );
 }
 
+const featured = testimonials[0];
+const carouselItems = testimonials.slice(1);
+
 export function SocialProof() {
-  const featured = testimonials[0];
   const pullQuoteRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -89,7 +91,7 @@ export function SocialProof() {
   useEffect(() => {
     const update = () => {
       const visible = getVisibleCount();
-      setMaxSnap(Math.max(0, testimonials.length - visible));
+      setMaxSnap(Math.max(0, carouselItems.length - visible));
     };
     update();
     window.addEventListener("resize", update);
@@ -101,7 +103,7 @@ export function SocialProof() {
       setHasInteracted(true);
       const step = getCardWidth() + CARD_GAP;
       const visible = getVisibleCount();
-      const limit = Math.max(0, testimonials.length - visible);
+      const limit = Math.max(0, testimonials.length - 1 - visible);
       const clamped = Math.max(0, Math.min(index, limit));
       setActiveIndex(clamped);
       animate(x, -clamped * step, {
@@ -138,6 +140,7 @@ export function SocialProof() {
         {
           clipPath: "inset(0% 0 0 0)",
           opacity: 1,
+          delay: 0.2,
           duration: 0.8,
           ease: "power2.out",
           scrollTrigger: {
@@ -153,7 +156,7 @@ export function SocialProof() {
   const dragConstraintLeft = (() => {
     const step = getCardWidth() + CARD_GAP;
     const visible = getVisibleCount();
-    const limit = Math.max(0, testimonials.length - visible);
+    const limit = Math.max(0, carouselItems.length - visible);
     return -limit * step;
   })();
 
@@ -228,7 +231,7 @@ export function SocialProof() {
             dragElastic={0.1}
             onDragEnd={handleDragEnd}
           >
-            {testimonials.map((t) => (
+            {testimonials.slice(1).map((t) => (
               <TestimonialCard
                 key={t.id}
                 quote={t.quote}

@@ -6,21 +6,34 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/", "/admin/"],
+        disallow: ["/api/", "/admin/", "/plan/", "/proposal/"],
       },
       {
         userAgent: "GPTBot",
-        allow: ["/learn/", "/services", "/industries/"],
+        allow: ["/learn/", "/services", "/packages", "/industries/", "/about", "/results/"],
       },
       {
         userAgent: "Claude-Web",
-        allow: ["/learn/", "/services", "/industries/"],
+        allow: ["/learn/", "/services", "/packages", "/industries/", "/about", "/results/"],
       },
       {
         userAgent: "PerplexityBot",
-        allow: ["/learn/", "/services", "/industries/"],
+        allow: ["/learn/", "/services", "/packages", "/industries/", "/about", "/results/"],
+      },
+      {
+        userAgent: "GoogleOther",
+        allow: ["/learn/", "/services", "/packages", "/industries/", "/about", "/results/"],
+      },
+      {
+        userAgent: "Applebot-Extended",
+        allow: ["/learn/", "/services", "/packages", "/industries/", "/about", "/results/"],
+      },
+      {
+        userAgent: "ClaudeBot",
+        allow: ["/learn/", "/services", "/packages", "/industries/", "/about", "/results/"],
       },
     ],
     sitemap: "https://acceleratewith.us/sitemap.xml",
+    host: "https://acceleratewith.us",
   };
 }

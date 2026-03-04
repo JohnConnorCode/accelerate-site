@@ -72,7 +72,7 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
     gsap.fromTo(cards,
       { opacity: 0, y: 24 },
       {
-        opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: "power2.out",
+        opacity: 1, y: 0, duration: 0.5, delay: 0.25, stagger: 0.1, ease: "power2.out",
         scrollTrigger: { trigger: solutionsRef.current, start: "top 80%", toggleActions: "play none none none" },
       }
     );
@@ -85,7 +85,7 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
     gsap.fromTo(items,
       { opacity: 0, scale: 0.9 },
       {
-        opacity: 1, scale: 1, duration: 0.4, stagger: 0.08, ease: "power2.out",
+        opacity: 1, scale: 1, duration: 0.4, delay: 0.2, stagger: 0.08, ease: "power2.out",
         scrollTrigger: { trigger: metricsRef.current, start: "top 85%", toggleActions: "play none none none" },
       }
     );
@@ -160,7 +160,7 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
                 <ScrollReveal
                   key={painPoint.title}
                   animation={i % 2 === 0 ? "slide-left" : "slide-right"}
-                  delay={i * 0.08}
+                  delay={0.2 + i * 0.08}
                 >
                   <GlassCard
                     hover="lift"

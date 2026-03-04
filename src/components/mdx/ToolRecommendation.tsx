@@ -1,4 +1,8 @@
+"use client";
+
 import { ExternalLink } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { trackEvent } from "@/lib/analytics";
 
 interface ToolRecommendationProps {
   name: string;
@@ -15,6 +19,13 @@ export function ToolRecommendation({
   link,
   bestFor,
 }: ToolRecommendationProps) {
+  const pathname = usePathname();
+  const slug = pathname.startsWith("/learn/") ? pathname.replace("/learn/", "") : pathname;
+
+  const handleClick = () => {
+    trackEvent("Outbound Tool Click", { article: slug, tool: name, href: link || "" });
+  };
+
   return (
     <div className="my-6 glass rounded-lg p-5">
       <div className="flex items-start justify-between gap-4">
@@ -38,6 +49,7 @@ export function ToolRecommendation({
               href={link}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={handleClick}
               className="mt-2 flex items-center gap-1 text-xs text-white-muted hover:text-white-primary transition-colors"
             >
               Visit <ExternalLink className="h-3 w-3" />

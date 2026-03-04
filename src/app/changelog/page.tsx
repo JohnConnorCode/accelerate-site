@@ -6,7 +6,10 @@ export const metadata = seoMetadata({
   description:
     "See what's new at Accelerate. Product updates, new features, and improvements to our AI solutions for small businesses.",
   ogSubtitle: "Product updates, new features, and improvements",
-  alternates: { types: { "application/rss+xml": "/changelog/rss.xml" } },
+  alternates: {
+    canonical: "https://acceleratewith.us/changelog",
+    types: { "application/rss+xml": "/changelog/rss.xml" },
+  },
 });
 
 export default function Changelog() {

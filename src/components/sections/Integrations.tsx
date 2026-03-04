@@ -55,6 +55,7 @@ export function Integrations() {
         opacity: 1,
         y: 0,
         duration: 0.5,
+        delay: 0.2,
         stagger: 0.05,
         ease: "power2.out",
         scrollTrigger: {

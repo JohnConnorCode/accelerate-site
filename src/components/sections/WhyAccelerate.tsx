@@ -42,6 +42,7 @@ export function WhyAccelerate() {
         opacity: 1,
         y: 0,
         duration: 0.5,
+        delay: 0.25,
         stagger: 0.1,
         ease: "power2.out",
         scrollTrigger: {

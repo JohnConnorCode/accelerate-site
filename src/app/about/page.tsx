@@ -1,4 +1,5 @@
 import { seoMetadata } from "@/lib/og";
+import { generateBreadcrumbJsonLd } from "@/lib/seo";
 import { AboutPageContent } from "@/components/sections/AboutPage";
 
 export const metadata = seoMetadata({
@@ -7,19 +8,21 @@ export const metadata = seoMetadata({
     "Built by a business owner who ran into the same problems you have. Accelerate delivers AI strategy and systems for small businesses.",
   ogTitle: "About Accelerate",
   ogSubtitle: "Built by a business owner, for business owners",
+  path: "/about",
 });
 
-const organizationJsonLd = {
+const breadcrumbJsonLd = generateBreadcrumbJsonLd([
+  { name: "Home", url: "/" },
+  { name: "About", url: "/about" },
+]);
+
+const aboutJsonLd = {
   "@context": "https://schema.org",
-  "@type": "Organization",
-  name: "Accelerate",
-  url: "https://acceleratewith.us",
-  description:
-    "AI strategy and systems for small businesses. We figure out where AI fits, then build and manage the systems that make it happen.",
-  founder: {
-    "@type": "Person",
-    name: "John Connor",
+  "@type": "AboutPage",
+  mainEntity: {
+    "@id": "https://acceleratewith.us/#organization",
   },
+  url: "https://acceleratewith.us/about",
 };
 
 export default function AboutPage() {
@@ -27,8 +30,12 @@ export default function AboutPage() {
     <>
       <script
         type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(organizationJsonLd),
+          __html: JSON.stringify(aboutJsonLd),
         }}
       />
       <AboutPageContent />

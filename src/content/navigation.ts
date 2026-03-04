@@ -35,9 +35,12 @@ export const footerLinks: {
   {
     heading: "Services",
     links: [
-      { label: "AI-Powered Websites", href: "/services#websites" },
-      { label: "Automations & Workflows", href: "/services#automations" },
-      { label: "AI Agents", href: "/services#agents" },
+      { label: "AI Strategy & Roadmap", href: "/services#strategy" },
+      { label: "Workflow Automation", href: "/services#automation" },
+      { label: "Sales & Marketing", href: "/services#sales" },
+      { label: "Customer Engagement", href: "/services#engagement" },
+      { label: "Content Creation", href: "/services#content" },
+      { label: "Data & Reporting", href: "/services#reporting" },
       { label: "Packages & Pricing", href: "/packages" },
     ],
   },

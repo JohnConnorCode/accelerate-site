@@ -5,6 +5,7 @@ export const metadata = seoMetadata({
   title: "Privacy Policy",
   description:
     "Accelerate privacy policy. Learn how we collect, use, and protect your personal information.",
+  path: "/privacy",
 });
 
 export default function PrivacyPage() {

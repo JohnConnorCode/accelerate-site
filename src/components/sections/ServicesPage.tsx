@@ -34,6 +34,12 @@ const iconMap: Record<string, LucideIcon> = {
   BarChart3,
 };
 
+const serviceCaseStudies: Record<string, { label: string; href: string }> = {
+  automation: { label: "See how SparkBlox cut onboarding by 90%", href: "/results/sparkblox" },
+  engagement: { label: "See how Farrell Roofing grew inquiries 4x", href: "/results/farrell-roofing" },
+  sales: { label: "See how Montoya Capital boosted consultations 40%", href: "/results/montoya-capital" },
+};
+
 function ServiceSection({
   service,
   index,
@@ -72,7 +78,7 @@ function ServiceSection({
             {/* Metrics row */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 max-w-lg mb-10">
               {service.keyMetrics.map((metric, i) => (
-                <ScrollReveal key={metric.label} animation="fade-up" delay={i * 0.1}>
+                <ScrollReveal key={metric.label} animation="fade-up" delay={0.2 + i * 0.1}>
                   <GlassCard padding="sm" hover="none" className="text-center">
                     <p className="font-display text-xl sm:text-2xl font-bold text-gold-gradient">
                       {metric.value}
@@ -86,7 +92,7 @@ function ServiceSection({
 
           {/* Deliverables card — 2 cols */}
           <div className={`lg:col-span-2 ${isReversed ? "lg:order-1" : ""}`}>
-            <ScrollReveal animation={isReversed ? "slide-left" : "slide-right"} delay={0.15}>
+            <ScrollReveal animation={isReversed ? "slide-left" : "slide-right"} delay={0.3}>
               <GlassCard padding="lg">
                 <h3 className="text-lg font-semibold text-[var(--heading-color)] mb-5">
                   What you get
@@ -112,6 +118,21 @@ function ServiceSection({
                     </Button>
                   </Link>
                 </div>
+                {(() => {
+                  const caseStudy = serviceCaseStudies[service.id];
+                  if (!caseStudy) return null;
+                  return (
+                    <div className="mt-4 pt-4 border-t border-white/5">
+                      <Link
+                        href={caseStudy.href}
+                        className="inline-flex items-center gap-2 text-sm text-[var(--gold-light)] hover:text-[var(--gold-base)] transition-colors"
+                      >
+                        {caseStudy.label}
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  );
+                })()}
               </GlassCard>
             </ScrollReveal>
           </div>

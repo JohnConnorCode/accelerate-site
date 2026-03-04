@@ -1,0 +1,36 @@
+# Accelerate
+> AI strategy and systems for small businesses. We build and manage AI-powered automation for lead capture, customer engagement, content, and reporting.
+
+## Services
+- [AI Strategy & Roadmap](/services#strategy): Custom AI implementation plan with ROI projections and tool recommendations
+- [Workflow Automation](/services#automation): Automate follow-ups, scheduling, invoicing, and internal workflows
+- [Sales & Marketing Automation](/services#sales): Pipeline management, email campaigns, inquiry scoring, and follow-up sequences
+- [Customer Engagement](/services#engagement): AI-powered chat, automated booking, review management, and re-engagement campaigns
+- [Content Creation](/services#content): SEO blog posts, social media, email newsletters on a consistent schedule
+- [Data & Reporting](/services#reporting): Custom dashboards, weekly digests, pipeline tracking, and trend analysis
+
+## Industries
+- [Home Services](/industries/home-services): Roofing, HVAC, plumbing, electrical — AI receptionist, estimate tools, follow-up automation
+- [Law Firms](/industries/law-firms): Personal injury, family law, estate planning — AI intake, client onboarding, after-hours coverage
+- [Professional Services](/industries/professional-services): Accounting, consulting, financial advisors — authority websites, scheduling, client pipelines
+- [Real Estate](/industries/real-estate): Agents, brokerages, property management — instant response, long-term nurture, listing automation
+
+## Learning Hub
+- [AI Guides for Small Business](/learn): 15+ in-depth guides on AI, automation, and growth strategies
+
+## Free Tools
+- [Website Grader](/tools/website-grader): AI-powered site audit scoring performance, SEO, mobile, security, and accessibility
+- [ROI Calculator](/tools/roi-calculator): Calculate your projected return on investment from AI automation
+- [Growth Plan Builder](/plan-builder): Custom AI growth plan based on your industry and goals
+
+## Packages
+- [Launch](/packages#launch): AI strategy + website build starting at $2,500
+- [Grow](/packages#grow): Strategy + automation + ongoing management from $2,500 + $300/mo
+- [Accelerate](/packages#accelerate): Full-stack AI operations from $5,000 + $500/mo
+
+## About
+- Founded by John Connor, a tech builder who also runs a roofing company
+- We operate alongside our clients as an embedded AI operations team — not an agency, not a SaaS platform
+- 94% client retention rate
+- Based in the United States, serving small businesses nationwide
+- Contact: john@acceleratewith.us | https://acceleratewith.us/contact

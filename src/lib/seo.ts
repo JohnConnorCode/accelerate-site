@@ -1,6 +1,7 @@
 import type { ArticleFrontmatter } from "./types";
 
 const BASE_URL = "https://acceleratewith.us";
+const ORG_ID = `${BASE_URL}/#organization`;
 
 export function generateArticleJsonLd(
   frontmatter: ArticleFrontmatter,
@@ -15,15 +16,10 @@ export function generateArticleJsonLd(
     author: {
       "@type": "Person",
       name: frontmatter.author,
+      url: `${BASE_URL}/about`,
     },
     publisher: {
-      "@type": "Organization",
-      name: "Accelerate",
-      url: BASE_URL,
-      logo: {
-        "@type": "ImageObject",
-        url: `${BASE_URL}/logo.png`,
-      },
+      "@id": ORG_ID,
     },
     datePublished: frontmatter.date,
     dateModified: frontmatter.updatedDate || frontmatter.date,
@@ -32,6 +28,7 @@ export function generateArticleJsonLd(
     wordCount,
     timeRequired: `PT${parseInt(readingTime)}M`,
     keywords: frontmatter.targetKeywords.join(", "),
+    image: `${BASE_URL}/api/og?title=${encodeURIComponent(frontmatter.seoTitle || frontmatter.title)}`,
   };
 }
 
@@ -67,29 +64,6 @@ export function generateFaqJsonLd(
   };
 }
 
-export function generateLocalBusinessJsonLd() {
-  return {
-    "@context": "https://schema.org",
-    "@type": "ProfessionalService",
-    name: "Accelerate",
-    description:
-      "AI strategy and systems for small businesses. We figure out where AI fits, then build and manage the systems that make it happen.",
-    url: BASE_URL,
-    email: "john@acceleratewith.us",
-    areaServed: {
-      "@type": "Country",
-      name: "United States",
-    },
-    priceRange: "$$",
-    serviceType: [
-      "AI Strategy & Roadmap",
-      "Workflow Automation",
-      "Sales & Marketing Automation",
-    ],
-    sameAs: [],
-  };
-}
-
 export function generateServiceListJsonLd(
   services: { name: string; shortDescription: string; href: string }[]
 ) {
@@ -104,9 +78,7 @@ export function generateServiceListJsonLd(
         name: service.name,
         description: service.shortDescription,
         provider: {
-          "@type": "Organization",
-          name: "Accelerate",
-          url: BASE_URL,
+          "@id": ORG_ID,
         },
         url: `${BASE_URL}${service.href}`,
       },
@@ -124,9 +96,7 @@ export function generateVerticalJsonLd(
     name: `${vertical.name} AI Systems`,
     description: vertical.shortDescription,
     provider: {
-      "@type": "Organization",
-      name: "Accelerate",
-      url: BASE_URL,
+      "@id": ORG_ID,
     },
     url: `${BASE_URL}/industries/${vertical.slug}`,
     areaServed: {
@@ -153,4 +123,17 @@ export function generateVerticalJsonLd(
   }
 
   return jsonLd;
+}
+
+export function generateWebSiteJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${BASE_URL}/#website`,
+    name: "Accelerate",
+    url: BASE_URL,
+    publisher: {
+      "@id": ORG_ID,
+    },
+  };
 }

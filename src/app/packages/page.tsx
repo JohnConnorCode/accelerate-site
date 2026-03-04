@@ -1,6 +1,7 @@
 import { seoMetadata } from "@/lib/og";
 import { PackagesPageContent } from "@/components/sections/PackagesPage";
 import { packages } from "@/content/packages";
+import { generateBreadcrumbJsonLd } from "@/lib/seo";
 
 export const metadata = seoMetadata({
   title: "AI Packages & Pricing",
@@ -8,7 +9,13 @@ export const metadata = seoMetadata({
     "Transparent pricing for AI strategy, automation, and ongoing management. Choose from Launch, Grow, or Accelerate packages to fit your business goals and budget.",
   ogTitle: "Packages & Pricing",
   ogSubtitle: "Transparent pricing for AI strategy and systems",
+  path: "/packages",
 });
+
+const breadcrumbJsonLd = generateBreadcrumbJsonLd([
+  { name: "Home", url: "/" },
+  { name: "Packages", url: "/packages" },
+]);
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -71,9 +78,7 @@ const jsonLd = {
         ],
       },
       brand: {
-        "@type": "Organization",
-        name: "Accelerate",
-        url: "https://acceleratewith.us",
+        "@id": "https://acceleratewith.us/#organization",
       },
     },
   })),
@@ -82,6 +87,10 @@ const jsonLd = {
 export default function PackagesPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

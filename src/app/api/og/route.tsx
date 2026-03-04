@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
             width: "500px",
             height: "500px",
             borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(var(--accent-rgb),0.12) 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(212,175,55,0.12) 0%, transparent 70%)",
           }}
         />
 

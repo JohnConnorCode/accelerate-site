@@ -32,6 +32,7 @@ export function HowItWorks() {
         opacity: 1,
         y: 0,
         duration: 0.5,
+        delay: 0.3,
         stagger: 0.12,
         ease: "power2.out",
         scrollTrigger: {
@@ -49,6 +50,7 @@ export function HowItWorks() {
         { scaleX: 0 },
         {
           scaleX: 1,
+          delay: 0.15,
           duration: 1,
           ease: "power2.out",
           scrollTrigger: {

@@ -60,7 +60,7 @@ export function ProblemSolution() {
           opacity: 1,
           y: 0,
           duration: 0.5,
-          delay: i * 0.12,
+          delay: 0.25 + i * 0.12,
           ease: "power2.out",
           scrollTrigger: {
             trigger: gridRef.current,
@@ -104,7 +104,7 @@ export function ProblemSolution() {
               After Accelerate
             </span>
           </div>
-          <div className="w-[100px]" />
+          <div className="w-[130px]" />
         </div>
 
         <div ref={gridRef} className="space-y-3">
@@ -137,11 +137,11 @@ export function ProblemSolution() {
                 </div>
 
                 {/* Metric */}
-                <div className="w-[100px] flex flex-col items-center justify-center border-l border-[var(--border-glass)] bg-[var(--glass-gold-bg)]">
-                  <span className="text-xl font-bold text-[var(--gold-light)] leading-none">
+                <div className="w-[130px] flex flex-col items-center justify-center border-l border-[var(--border-glass)] bg-[var(--glass-gold-bg)]">
+                  <span className="text-2xl sm:text-3xl font-bold text-[var(--gold-light)] leading-none">
                     {item.metric}
                   </span>
-                  <span className="text-[10px] uppercase tracking-wider text-[var(--white-muted)] mt-1 text-center px-2">
+                  <span className="text-[10px] uppercase tracking-wider text-[var(--white-muted)] mt-1.5 text-center px-2 leading-tight">
                     {item.metricLabel}
                   </span>
                 </div>
@@ -174,7 +174,7 @@ export function ProblemSolution() {
           ))}
         </div>
 
-        <AnimateOnScroll variants={fadeUp} className="text-center mt-12">
+        <AnimateOnScroll variants={fadeUp} delay={0.2} className="text-center mt-12">
           <MagneticButton>
             <Link href="/plan-builder">
               <Button variant="primary" size="lg" className="group/cta">

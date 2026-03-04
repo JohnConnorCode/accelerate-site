@@ -6,6 +6,7 @@ export const metadata = seoMetadata({
   description:
     "Join the Accelerate Partner Program. Earn commissions, get white-label pricing, and grow your business alongside ours.",
   ogSubtitle: "Earn commissions and grow your business alongside ours",
+  path: "/partners",
 });
 
 export default function Partners() {

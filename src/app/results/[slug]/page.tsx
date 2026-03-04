@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { seoMetadata } from "@/lib/og";
+import { generateBreadcrumbJsonLd } from "@/lib/seo";
 import { notFound } from "next/navigation";
 import { caseStudies } from "@/content/case-studies";
 import { CaseStudyDetail } from "@/components/sections/CaseStudyDetail";
@@ -58,14 +59,10 @@ function buildJsonLd(study: (typeof caseStudies)[number]) {
     headline: `${study.businessName} Case Study`,
     description: study.results,
     author: {
-      "@type": "Organization",
-      name: "Accelerate",
-      url: "https://acceleratewith.us",
+      "@id": "https://acceleratewith.us/#organization",
     },
     publisher: {
-      "@type": "Organization",
-      name: "Accelerate",
-      url: "https://acceleratewith.us",
+      "@id": "https://acceleratewith.us/#organization",
     },
     datePublished: study.publishedAt,
     mainEntityOfPage: {
@@ -104,9 +101,18 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
   }
 
   const jsonLd = buildJsonLd(study);
+  const breadcrumbJsonLd = generateBreadcrumbJsonLd([
+    { name: "Home", url: "/" },
+    { name: "Results", url: "/results" },
+    { name: `${study.businessName} Case Study`, url: `/results/${study.slug}` },
+  ]);
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

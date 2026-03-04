@@ -7,6 +7,7 @@ export const metadata = seoMetadata({
     "See how much revenue AI-powered automation could add to your business. Enter your numbers and get a projected ROI instantly.",
   ogTitle: "ROI Calculator",
   ogSubtitle: "See how much revenue AI automation could add to your business",
+  path: "/tools/roi-calculator",
 });
 
 const jsonLd = {
@@ -24,9 +25,7 @@ const jsonLd = {
     priceCurrency: "USD",
   },
   provider: {
-    "@type": "Organization",
-    name: "Accelerate",
-    url: "https://acceleratewith.us",
+    "@id": "https://acceleratewith.us/#organization",
   },
 };
 

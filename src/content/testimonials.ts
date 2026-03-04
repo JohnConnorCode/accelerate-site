@@ -5,7 +5,7 @@ export const testimonials: Testimonial[] = [
     id: "testimonial-1",
     quote:
       "We were losing jobs because we couldn't answer calls fast enough on the roof. Accelerate set up an AI system that handles every call and text instantly — even nights and weekends. We've booked 15 extra jobs a month since going live.",
-    name: "Mike Farrell",
+    name: "Robert Farrell",
     title: "Owner",
     businessType: "Farrell Roofing",
     rating: 5,
@@ -23,7 +23,7 @@ export const testimonials: Testimonial[] = [
     id: "testimonial-3",
     quote:
       "Managing bookings, member comms, and tour requests was eating my entire week. Accelerate automated all of it — now our coworking space practically runs itself and I can focus on growth.",
-    name: "Taylor Marsh",
+    name: "Theresa VanderMeer",
     title: "Founder",
     businessType: "workshelter.co",
     rating: 5,
@@ -32,7 +32,7 @@ export const testimonials: Testimonial[] = [
     id: "testimonial-4",
     quote:
       "In wealth management, slow follow-up kills deals. Accelerate built an AI response system that engages prospects within minutes and nurtures them until they book. Our consultation rate jumped 40% the first quarter.",
-    name: "Carlos Montoya",
+    name: "Mike Montoya",
     title: "Managing Partner",
     businessType: "Montoya Capital",
     rating: 5,
@@ -68,7 +68,7 @@ export const testimonials: Testimonial[] = [
     id: "testimonial-8",
     quote:
       "We went from farmers markets to online orders practically overnight. Accelerate built our e-commerce presence and automated order processing and customer follow-ups. Revenue is up 60% and we're not working more hours.",
-    name: "Jamie Santos",
+    name: "Stewart Joseph",
     title: "Owner",
     businessType: "Portland Fresh Sauces",
     rating: 5,

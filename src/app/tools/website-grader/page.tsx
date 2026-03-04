@@ -7,6 +7,7 @@ export const metadata = seoMetadata({
     "Free instant website analysis. See how your site scores on performance, SEO, mobile, security, and accessibility with actionable tips.",
   ogTitle: "Free Website Grader",
   ogSubtitle: "Instant analysis of your site's performance, SEO, and more",
+  path: "/tools/website-grader",
 });
 
 export default function WebsiteGraderRoute() {
@@ -30,9 +31,7 @@ export default function WebsiteGraderRoute() {
               priceCurrency: "USD",
             },
             provider: {
-              "@type": "Organization",
-              name: "Accelerate",
-              url: "https://acceleratewith.us",
+              "@id": "https://acceleratewith.us/#organization",
             },
           }),
         }}

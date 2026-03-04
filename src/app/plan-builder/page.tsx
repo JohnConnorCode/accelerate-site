@@ -7,6 +7,7 @@ export const metadata = seoMetadata({
     "Answer a few questions and get a personalized digital growth plan with pricing, timelines, and ROI projections — powered by AI.",
   ogTitle: "Build Your Custom Growth Plan in 5 Minutes",
   ogSubtitle: "AI-powered strategy builder for service businesses.",
+  path: "/plan-builder",
 });
 
 export default function PlanBuilderRoute() {

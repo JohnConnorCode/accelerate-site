@@ -32,10 +32,17 @@ function parseArticle(filename: string): Article {
   };
 }
 
-export function getAllArticles(): Article[] {
+export function getAllArticles(options?: { includeScheduled?: boolean }): Article[] {
   const files = getArticleFiles();
+  const now = new Date();
+  now.setHours(23, 59, 59, 999);
+
   return files
     .map(parseArticle)
+    .filter((article) => {
+      if (options?.includeScheduled) return true;
+      return new Date(article.frontmatter.date) <= now;
+    })
     .sort(
       (a, b) =>
         new Date(b.frontmatter.date).getTime() -
@@ -47,7 +54,14 @@ export function getArticleBySlug(slug: string): Article | null {
   const filename = `${slug}.mdx`;
   const filePath = path.join(ARTICLES_DIR, filename);
   if (!fs.existsSync(filePath)) return null;
-  return parseArticle(filename);
+  const article = parseArticle(filename);
+
+  // Don't return articles scheduled for future dates
+  const now = new Date();
+  now.setHours(23, 59, 59, 999);
+  if (new Date(article.frontmatter.date) > now) return null;
+
+  return article;
 }
 
 export function getArticlesByCategory(category: ArticleCategory): Article[] {

@@ -60,6 +60,9 @@
   /* Heading color (semantic, for hardcoded heading styles) */
   --heading-color: #EDEDED;
 
+  /* Button text on accent gradient */
+  --btn-primary-text: #000000;
+
   /* Layout semantic vars (dark defaults) */
   --header-bg: rgba(5, 5, 5, 0.50);
   --header-bg-scrolled: rgba(5, 5, 5, 0.82);
@@ -146,6 +149,9 @@
   --border-light: rgba(0, 0, 0, 0.10);
   --bg-overlay: rgba(0, 0, 0, 0.30);
   --bg-hover-subtle: rgba(0, 0, 0, 0.04);
+
+  /* Button text on accent gradient (white on teal) */
+  --btn-primary-text: #FFFFFF;
 }
 
 /* Light mode glass overrides */
@@ -598,6 +604,15 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 /* ========================================

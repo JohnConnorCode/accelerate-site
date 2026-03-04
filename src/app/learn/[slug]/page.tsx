@@ -1,3 +1,5 @@
+export const revalidate = 3600;
+
 import type { Metadata } from "next";
 import { seoMetadata } from "@/lib/og";
 import { notFound } from "next/navigation";
@@ -6,7 +8,7 @@ import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import Link from "next/link";
-import { ChevronRight, Clock, Calendar, ArrowRight, User } from "lucide-react";
+import { ChevronRight, Clock, Calendar, User } from "lucide-react";
 import {
   getAllArticles,
   getArticleBySlug,
@@ -17,7 +19,6 @@ import {
   generateArticleJsonLd,
   generateBreadcrumbJsonLd,
 } from "@/lib/seo";
-import { Button } from "@/components/ui/Button";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { SectionDivider } from "@/components/ui/SectionDivider";
 import {
@@ -27,6 +28,8 @@ import {
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { TableOfContents } from "@/components/mdx/TableOfContents";
 import { RelatedArticles } from "@/components/mdx/RelatedArticles";
+import { ArticleTracker } from "@/components/ArticleTracker";
+import { ArticleCTA } from "@/components/ArticleCTA";
 import { CTACard } from "@/components/mdx/CTACard";
 import {
   Callout,
@@ -138,6 +141,12 @@ export default async function ArticlePage({
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(breadcrumbJsonLd),
         }}
+      />
+
+      <ArticleTracker
+        slug={slug}
+        category={frontmatter.category}
+        funnelStage={frontmatter.funnelStage}
       />
 
       {/* ------------------------------------------------------------------ */}
@@ -290,12 +299,9 @@ export default async function ArticlePage({
                     <p className="text-xs text-[var(--white-muted)] mb-4">
                       We build these systems for small businesses every day.
                     </p>
-                    <Link href="/contact">
-                      <Button variant="primary" size="sm" className="w-full">
-                        Talk to Us
-                        <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
-                      </Button>
-                    </Link>
+                    <ArticleCTA slug={slug} href="/contact" variant="primary" size="sm" className="w-full">
+                      Talk to Us
+                    </ArticleCTA>
                   </div>
                 </div>
               </AnimateOnScroll>
@@ -327,17 +333,12 @@ export default async function ArticlePage({
                   industry and goals. Takes under 5 minutes.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Link href="/plan-builder">
-                    <Button variant="primary" size="lg" className="w-full sm:w-auto">
-                      Get Your Free Growth Plan
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </Link>
-                  <Link href="/contact">
-                    <Button variant="secondary" size="lg" className="w-full sm:w-auto">
-                      Book a Strategy Call
-                    </Button>
-                  </Link>
+                  <ArticleCTA slug={slug} href="/plan-builder" variant="primary" size="lg" className="w-full sm:w-auto">
+                    Get Your Free Growth Plan
+                  </ArticleCTA>
+                  <ArticleCTA slug={slug} href="/contact" variant="secondary" size="lg" className="w-full sm:w-auto">
+                    Book a Strategy Call
+                  </ArticleCTA>
                 </div>
               </div>
             </GlassCard>

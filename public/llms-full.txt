@@ -1,0 +1,83 @@
+# Accelerate — Full Context for AI Models
+> AI strategy and systems for small businesses. We build and manage AI-powered automation for lead capture, customer engagement, content, and reporting. This is the extended version of llms.txt with detailed context about our services, case studies, and frequently asked questions.
+
+## Who We Are
+
+Accelerate is an embedded AI operations team for small businesses. We are not a traditional agency (we don't just hand you a strategy and walk away) and we are not a SaaS platform (we don't give you software and leave you to figure it out). We advise, build, and run AI systems alongside our clients. One team, full accountability.
+
+Founded by John Connor — a tech builder who also runs a roofing company. He built Accelerate because he experienced firsthand the problems small businesses face: missed calls, slow follow-up, manual processes, and marketing that doesn't convert. Every system we build comes from real operational experience.
+
+## Services in Detail
+
+### AI Strategy & Roadmap
+We audit how your business runs and show you exactly where AI creates the most value. You get a prioritized plan with tool recommendations, ROI projections, and a clear build sequence. Includes: full business process audit, AI opportunity assessment, tool and platform recommendations, ROI projections per initiative, prioritized implementation roadmap, and risk assessment. Starting at $1,500.
+
+### Workflow Automation
+Connect your tools and eliminate the manual handoffs slowing your team down. CRM updates, scheduling, invoicing, onboarding, internal approvals — every repetitive process handled automatically. Includes: workflow audit, CRM integration, automated follow-up sequences, appointment scheduling, invoice reminders, review requests, custom Zapier/Make integrations, and monthly reporting. Starting at $2,500 + $300/mo.
+
+### Sales & Marketing Automation
+Inquiries scored and routed the moment they come in. Follow-up sequences that run without you. Email campaigns, social scheduling, and pipeline management. Includes: pipeline automation, email campaign design, social media scheduling, inquiry scoring and routing, multi-step follow-up sequences, conversion tracking, A/B testing, and monthly reporting. Starting at $2,500 + $300/mo.
+
+### Customer Engagement
+Instant responses to inquiries via AI chat trained on your business. Automated appointment booking, review requests, and re-engagement campaigns. Multi-channel deployment across web, SMS, and email. Includes: custom AI agent, natural language handling, appointment booking integration, inquiry qualification, human handoff, review request automation, re-engagement campaigns, and conversation analytics. Starting at $1,500 + $300/mo.
+
+### Content Creation
+Systematic content in your voice across every channel. Blog posts, social media, email newsletters — consistent output on a real schedule, without a marketing hire. Includes: content strategy, editorial calendar, SEO-optimized blog posts, social media content, email newsletter automation, brand voice development, and performance tracking. Starting at $1,500/mo.
+
+### Data & Reporting
+One place to see what matters. Custom dashboards, weekly performance digests, pipeline tracking, and trend analysis. Clear answers without logging into six different tools. Includes: custom analytics dashboard, weekly digests, pipeline and revenue tracking, trend analysis, ROI reporting, and competitive benchmarking. Starting at $500/mo.
+
+## Industry Specializations
+
+### Home Services
+For contractors, plumbers, roofers, HVAC techs, and home service pros. Common problems: missed calls during jobs, slow estimates, no follow-up for repeat business, outdated websites. Our solutions: AI receptionist (24/7 call answering), online estimate tools, follow-up automation (review requests, seasonal reminders, referral programs), and SEO-optimized websites with local targeting.
+
+### Law Firms
+For personal injury, family law, criminal defense, and estate planning firms. Common problems: slow intake losing cases to faster competitors, no after-hours coverage, manual follow-up dropping prospects, generic websites that don't build trust. Our solutions: AI intake system (24/7 case qualification), client onboarding automation, follow-up engine (consultation reminders, nurture sequences), and professional legal websites with practice-area landing pages.
+
+### Professional Services
+For accountants, consultants, financial advisors, and professional service firms. Common problems: unpredictable referrals, manual scheduling, no client self-service, no digital acquisition strategy. Our solutions: authority websites with thought leadership, self-service scheduling, client communication automation, and digital client pipelines (Google Ads, content marketing, email nurture).
+
+### Real Estate
+For agents, brokerages, and property management. Common problems: prospects going cold in hours, ad spend with no ROI tracking, no long-term nurture, messy contact databases. Our solutions: instant response system (sub-60-second reply), 12-month nurture sequences, listing marketing automation, and agent websites with IDX integration.
+
+## Case Studies
+
+### Farrell Roofing (Home Services)
+Challenge: Missing calls during jobs, outdated website, manual estimate follow-up. Solution: Rebuilt website with local SEO, added AI chat agent for 24/7 booking, automated follow-up sequences. Results: Online inquiries went from ~10/month to 50+/month (+4x), response time dropped to under 2 minutes, monthly revenue increased 75%, and after-hours capture went from zero to 24/7.
+
+### SparkBlox (Professional Services)
+Challenge: Manual onboarding bottleneck capping growth. Solution: AI-driven intake flow, automated proposals, account provisioning, website rebuild with AI chat. Results: Onboarding time dropped from hours to under 10 minutes (-90%+), client base grew 70% in Q1, admin hours cut from 20+ to ~5 per week, response time under 3 minutes.
+
+### Montoya Capital (Professional Services / Wealth Management)
+Challenge: Losing prospects to faster competitors, no after-hours coverage, referral-only growth. Solution: AI-powered response system, personalized follow-up sequences, trust-building website redesign. Results: Consultation rate increased 40%, response time dropped from next business day to under 3 minutes, after-hours capture activated 24/7, new clients increased 2.5x in Q1.
+
+## Frequently Asked Questions
+
+**Do I need to understand AI to work with you?**
+Not at all. We handle the technical side. You just need to know your business — we figure out where AI fits and how to make it work for you.
+
+**What does it cost?**
+Strategy engagements start at $1,500. Automation setups typically range from $2,500 to $7,500 with ongoing management from $300 per month. We scope everything up front so there are no surprises.
+
+**How long until I see results?**
+Most clients see their first systems live within one to two weeks. Measurable results — time saved, faster response times, more bookings — usually follow within the first month.
+
+**Will this work with the tools I already use?**
+Almost certainly. We integrate with HubSpot, GoHighLevel, Google Workspace, QuickBooks, Calendly, Mailchimp, Slack, Stripe, and hundreds of other tools through Zapier and Make.
+
+**What makes you different from an agency or a SaaS platform?**
+Agencies give you a strategy and leave you to execute it. Platforms give you tools and leave you to figure them out. We do both — we advise, build, and run your AI systems alongside you. One team, full accountability.
+
+**Do I have to sign a long-term contract?**
+No. Website builds are one-time projects with optional ongoing support. Automations and AI agents are month-to-month after initial setup.
+
+**What industries do you work with?**
+We specialize in home services, law firms, professional services, and real estate. Our tools and strategies are built specifically for these industries.
+
+## Contact
+- Website: https://acceleratewith.us
+- Email: john@acceleratewith.us
+- Free consultation: https://acceleratewith.us/contact
+- Growth plan builder: https://acceleratewith.us/plan-builder
+- LinkedIn: https://www.linkedin.com/company/accelerate-ai-ops

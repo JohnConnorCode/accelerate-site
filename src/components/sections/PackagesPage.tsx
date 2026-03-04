@@ -332,7 +332,7 @@ export function PackagesPageContent() {
             </Accordion>
           </AnimateOnScroll>
 
-          <AnimateOnScroll>
+          <AnimateOnScroll delay={0.2}>
             <p className="text-center text-sm text-[var(--white-muted)] mt-8">
               Can&apos;t find your question? Email us at{" "}
               <a

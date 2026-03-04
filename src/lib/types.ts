@@ -23,7 +23,6 @@ export interface Service {
   href: string;
   problemStatement: string;
   keyMetrics: { value: string; label: string }[];
-  illustration?: string;
   process: { step: string; description: string }[];
 }
 

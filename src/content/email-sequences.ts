@@ -46,18 +46,18 @@ https://acceleratewith.us/contact
     },
     {
       stepNumber: 3,
-      subject: "How Farrell Roofing went from 12 to 53 jobs/month",
+      subject: "How one roofing company tripled their inbound inquiries",
       delayDays: 5,
       bodyTemplate: `Hi {{name}},
 
 Quick case study that might resonate with you:
 
-Farrell Roofing in Denver was running a solid business but losing customers to slow follow-up and an outdated website. Sound familiar?
+Farrell Roofing was running a solid business but losing customers to slow follow-up and an outdated website. Sound familiar?
 
 After implementing an AI-powered website and automated follow-up system, they saw:
-- 340% increase in inbound inquiries
-- Response time dropped from 4 hours to under 2 minutes
-- $47,000 in additional monthly revenue within 90 days
+- A dramatic increase in inbound inquiries
+- Response time dropped from hours to under two minutes
+- Significant additional monthly revenue within the first quarter
 
 Read the full case study: https://acceleratewith.us/results/farrell-roofing
 

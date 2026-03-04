@@ -33,7 +33,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "case-study-farrell-roofing",
     title: "Case Study: Farrell Roofing",
     description:
-      "Published our first detailed case study showing how Farrell Roofing increased inbound inquiries by 340% and added $47,000 in monthly revenue using our AI-powered website and automation system.",
+      "Published our first detailed case study showing how Farrell Roofing dramatically increased inbound inquiries and grew monthly revenue using our AI-powered website and automation system.",
     category: "announcement",
     publishedAt: "2026-02-25",
   },

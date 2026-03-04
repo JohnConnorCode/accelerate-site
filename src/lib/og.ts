@@ -9,12 +9,13 @@ function ogImageUrl(title: string, subtitle?: string): string {
 }
 
 /**
- * Build a complete Metadata object with OG image and Twitter card.
+ * Build a complete Metadata object with OG image, Twitter card, and canonical URL.
  *
  * - `title` uses the layout template (`%s | Accelerate`) automatically.
  * - `description` is inherited into og:description and twitter:description by Next.js.
  * - `twitter.card` is inherited from layout (`summary_large_image`).
  * - Pass `openGraph` extras for article-specific fields (type, publishedTime, etc).
+ * - Pass `path` to auto-generate a canonical URL (e.g. "/services").
  */
 export function seoMetadata({
   title,
@@ -23,6 +24,7 @@ export function seoMetadata({
   ogSubtitle,
   openGraph,
   alternates,
+  path,
 }: {
   title: string;
   description: string;
@@ -34,9 +36,14 @@ export function seoMetadata({
   openGraph?: Record<string, unknown>;
   /** Canonical / alternate links */
   alternates?: Metadata["alternates"];
+  /** Page path for auto-canonical (e.g. "/services", "/about") */
+  path?: string;
 }): Metadata {
   const imageTitle = ogTitle || title;
   const imageUrl = ogImageUrl(imageTitle, ogSubtitle);
+
+  // Build alternates with canonical
+  const resolvedAlternates = alternates || (path ? { canonical: `${SITE_URL}${path}` } : undefined);
 
   return {
     title,
@@ -46,8 +53,8 @@ export function seoMetadata({
       ...(openGraph as Metadata["openGraph"]),
     },
     twitter: {
-      images: [imageUrl],
+      images: [{ url: imageUrl, alt: imageTitle }],
     },
-    ...(alternates && { alternates }),
+    ...(resolvedAlternates && { alternates: resolvedAlternates }),
   };
 }

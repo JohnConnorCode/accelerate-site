@@ -39,6 +39,13 @@ const industrySlugs: Partial<Record<Industry, string>> = {
   real_estate: "real-estate",
 };
 
+const serviceLinks: Record<string, string> = {
+  "AI-Powered Website": "/services#strategy",
+  "AI Chat Agent": "/services#engagement",
+  "Automated Follow-Up": "/services#automation",
+  "Workflow Automation": "/services#automation",
+};
+
 interface CaseStudyDetailProps {
   study: CaseStudyFull;
 }
@@ -164,14 +171,23 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {study.services.map((service) => (
-                    <span
-                      key={service}
-                      className="text-xs font-medium text-[var(--gold-light)] bg-[rgba(var(--accent-rgb),0.08)] border border-[rgba(var(--accent-rgb),0.15)] rounded-md px-2.5 py-1"
-                    >
-                      {service}
-                    </span>
-                  ))}
+                  {study.services.map((service) => {
+                    const href = serviceLinks[service];
+                    const className = "text-xs font-medium text-[var(--gold-light)] bg-[rgba(var(--accent-rgb),0.08)] border border-[rgba(var(--accent-rgb),0.15)] rounded-md px-2.5 py-1";
+                    return href ? (
+                      <Link
+                        key={service}
+                        href={href}
+                        className={`${className} hover:bg-[rgba(var(--accent-rgb),0.15)] transition-colors`}
+                      >
+                        {service}
+                      </Link>
+                    ) : (
+                      <span key={service} className={className}>
+                        {service}
+                      </span>
+                    );
+                  })}
                 </div>
               </div>
             </GlassCard>

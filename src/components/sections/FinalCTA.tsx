@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useRef } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { useGSAP } from "@gsap/react";
@@ -142,9 +143,22 @@ export function FinalCTA({
         >
           {resolvedHeading}
         </h2>
-        <p data-cta-desc className="text-lg sm:text-xl text-[var(--white-muted)] max-w-xl mx-auto mb-10">
+        <p data-cta-desc className="text-lg sm:text-xl text-[var(--white-muted)] max-w-xl mx-auto mb-8">
           {resolvedDescription}
         </p>
+        <div data-cta-desc className="flex items-center justify-center gap-3 mb-10">
+          <Image
+            src="/images/john.jpg"
+            alt="John Connor, Founder of Accelerate"
+            width={48}
+            height={48}
+            className="w-12 h-12 rounded-full object-cover border-2 border-[rgba(var(--accent-rgb),0.3)]"
+          />
+          <div className="text-left">
+            <p className="text-sm font-semibold text-[var(--white-primary)]">John Connor</p>
+            <p className="text-xs text-[var(--white-muted)]">Founder, Accelerate</p>
+          </div>
+        </div>
         <div data-cta-buttons className="flex flex-col sm:flex-row gap-3 sm:gap-5 justify-center">
           <MagneticButton>
             <Link href={resolvedPrimary.href}>

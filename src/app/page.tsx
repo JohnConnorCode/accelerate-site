@@ -1,4 +1,6 @@
 import { seoMetadata } from "@/lib/og";
+import { generateFaqJsonLd } from "@/lib/seo";
+import { homeFaqs } from "@/content/home-faq";
 import { Hero } from "@/components/sections/Hero";
 import { ProblemSolution } from "@/components/sections/ProblemSolution";
 import { ServicesOverview } from "@/components/sections/ServicesOverview";
@@ -32,7 +34,14 @@ const websiteJsonLd = {
   publisher: {
     "@id": "https://acceleratewith.us/#organization",
   },
+  potentialAction: {
+    "@type": "SearchAction",
+    target: "https://acceleratewith.us/learn?q={search_term_string}",
+    "query-input": "required name=search_term_string",
+  },
 };
+
+const faqJsonLd = generateFaqJsonLd(homeFaqs);
 
 const serviceJsonLd = {
   "@context": "https://schema.org",
@@ -74,6 +83,10 @@ export default function HomePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
       <Hero />
       <ServicesOverview />
