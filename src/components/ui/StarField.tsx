@@ -19,8 +19,8 @@ interface Star {
   sizeBoost: number;
 }
 
-const STAR_COUNT_DESKTOP = 200;
-const STAR_COUNT_MOBILE = 80;
+const STAR_COUNT_DESKTOP = 280;
+const STAR_COUNT_MOBILE = 120;
 const PARALLAX_STRENGTH = 12;
 const CLICK_RADIUS = 0.15;
 const CLICK_SIZE_BOOST = 2.0;
@@ -110,8 +110,8 @@ export function StarField() {
         const y = Math.random();
         pts.push({
           x, y,
-          size: 0.4 + Math.random() * 1.0 + depth * 0.3,
-          baseOpacity: 0.15 + Math.random() * 0.45 + depth * 0.15,
+          size: 0.5 + Math.random() * 1.3 + depth * 0.4,
+          baseOpacity: 0.3 + Math.random() * 0.5 + depth * 0.2,
           twinkleSpeed: 0.4 + Math.random() * 2.0,
           twinklePhase: Math.random() * Math.PI * 2,
           depth, r, g, b,
@@ -183,7 +183,7 @@ export function StarField() {
         if ((s.baseOpacity > 0.35 && sz > 0.8) || s.sizeBoost > 1.1) {
           ctx.beginPath();
           ctx.arc(px, py, sz * 3, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${s.r},${s.g},${s.b},${alpha * 0.08 * Math.max(1, s.sizeBoost * 0.5)})`;
+          ctx.fillStyle = `rgba(${s.r},${s.g},${s.b},${alpha * 0.12 * Math.max(1, s.sizeBoost * 0.5)})`;
           ctx.fill();
         }
 
