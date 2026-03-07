@@ -1,40 +1,15 @@
 "use client";
 
 import Script from "next/script";
-import { useEffect, useState } from "react";
-import { getCookiePreferences } from "@/lib/analytics";
-
-const readConsent = () => {
-  const prefs = getCookiePreferences();
-  return {
-    analytics: prefs?.analytics ?? false,
-    marketing: prefs?.marketing ?? false,
-  };
-};
 
 export function TrackingScripts() {
-  const [consent, setConsent] = useState<{ analytics: boolean; marketing: boolean }>(() =>
-    readConsent()
-  );
-
-  useEffect(() => {
-    const handleStorage = () => {
-      const updated = getCookiePreferences();
-      if (updated) {
-        setConsent({ analytics: updated.analytics, marketing: updated.marketing });
-      }
-    };
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
-  }, []);
-
   const gtagId = process.env.NEXT_PUBLIC_GTAG_ID;
   const metaPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
   return (
     <>
       {/* Google Tag (gtag.js) */}
-      {consent.analytics && gtagId && (
+      {gtagId && (
         <>
           <Script
             src={`https://www.googletagmanager.com/gtag/js?id=${gtagId}`}
@@ -54,7 +29,7 @@ export function TrackingScripts() {
       )}
 
       {/* Meta Pixel */}
-      {consent.marketing && metaPixelId && (
+      {metaPixelId && (
         <Script id="meta-pixel" strategy="afterInteractive">
           {`
             !function(f,b,e,v,n,t,s)

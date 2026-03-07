@@ -115,16 +115,16 @@ export function trackConversion(
   // Plausible — always fires (first-party, no consent needed)
   trackEvent(name, allProps);
 
-  // Google Analytics — requires analytics consent
-  if (hasAnalyticsConsent() && typeof window.gtag === "function") {
+  // Google Analytics
+  if (typeof window.gtag === "function") {
     window.gtag("event", name, {
       event_category: "conversion",
       ...props,
     });
   }
 
-  // Meta Pixel — requires marketing consent
-  if (hasMarketingConsent() && typeof window.fbq === "function") {
+  // Meta Pixel
+  if (typeof window.fbq === "function") {
     const metaEvent = metaEventMap[name] || "Lead";
     window.fbq("track", metaEvent, props);
   }

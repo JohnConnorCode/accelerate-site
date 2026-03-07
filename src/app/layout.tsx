@@ -7,7 +7,6 @@ import { TrackingScripts } from "@/components/layout/TrackingScripts";
 import { UTMCapture } from "@/components/layout/UTMCapture";
 import { ChatWidget } from "@/components/chat/ChatWidget";
 import { ScrollProgressBar } from "@/components/ui/ScrollProgressBar";
-import { CookieConsent } from "@/components/layout/CookieConsent";
 import "./globals.css";
 
 const inter = Inter({
@@ -160,7 +159,6 @@ export default function RootLayout({
           <main id="main-content" className="flex-1">{children}</main>
           <Footer />
           <ChatWidget />
-          <CookieConsent />
         </ThemeProvider>
       </body>
     </html>
