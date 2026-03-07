@@ -28,6 +28,8 @@ import { AnimateOnScroll, StaggerContainer } from "@/components/ui/AnimateOnScro
 import { fadeUp, heroStagger, heroItem } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 import type { WebsiteGradeResult, GradeCategory } from "@/lib/types";
+import { trackConversion } from "@/lib/analytics";
+import { getUTMParams, clearUTMParams } from "@/lib/utm";
 
 // ========================================
 // CONSTANTS
@@ -633,7 +635,7 @@ export function WebsiteGraderPage() {
         const response = await fetch("/api/grade-website", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: url.trim() }),
+          body: JSON.stringify({ url: url.trim(), utm: getUTMParams() }),
         });
 
         const data = await response.json();
@@ -648,7 +650,15 @@ export function WebsiteGraderPage() {
         );
         await minDelay;
 
-        setResult(data as WebsiteGradeResult);
+        const gradeResult = data as WebsiteGradeResult;
+        setResult(gradeResult);
+
+        let urlDomain = "";
+        try { urlDomain = new URL(gradeResult.url).hostname; } catch { /* ignore */ }
+        trackConversion("Website Graded", {
+          score: gradeResult.overallScore,
+          url_domain: urlDomain,
+        });
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Something went wrong. Please try again."
@@ -670,11 +680,15 @@ export function WebsiteGraderPage() {
         const res = await fetch("/api/grade-website", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: result.url, email }),
+          body: JSON.stringify({ url: result.url, email, utm: getUTMParams() }),
         });
 
         if (!res.ok) throw new Error("Request failed");
 
+        let urlDomain = "";
+        try { urlDomain = new URL(result.url).hostname; } catch { /* ignore */ }
+        trackConversion("Website Grade Email Captured", { url_domain: urlDomain });
+        clearUTMParams();
         setEmailSent(true);
       } catch {
         setEmailError("Failed to save your report. Please try again.");

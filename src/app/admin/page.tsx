@@ -11,6 +11,7 @@ import { TodaysPriorities } from "@/components/admin/TodaysPriorities";
 import { QuickActions } from "@/components/admin/QuickActions";
 import { RevenueSnapshot } from "@/components/admin/RevenueSnapshot";
 import { TaskWidget } from "@/components/admin/TaskWidget";
+import { PlausibleWidget } from "@/components/admin/PlausibleWidget";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { StatusBadge } from "@/components/admin/StatusBadge";
@@ -148,6 +149,10 @@ export default function AdminDashboardPage() {
       {metrics && <DashboardMetrics metrics={metrics} emailStats={emailStats} trends={trends} />}
 
       <QuickActions onExportLeads={handleExportLeads} onScrollToAI={handleScrollToAI} />
+
+      <div className="mt-6">
+        <PlausibleWidget />
+      </div>
 
       <div ref={aiRef} className="mt-6">
         <AIInsights />

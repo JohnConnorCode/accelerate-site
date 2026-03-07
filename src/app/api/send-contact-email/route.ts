@@ -12,28 +12,61 @@ export async function POST(request: NextRequest) {
 
   try {
     const formData = await request.json();
+    const { name, email, message, businessType, utm } = formData;
 
-    if (!formData.name || !formData.email || !formData.message) {
+    if (!name || !email || !message) {
       return NextResponse.json(
         { error: "Name, email, and message are required" },
         { status: 400 }
       );
     }
 
-    if (!isValidEmail(formData.email)) {
+    if (!isValidEmail(email)) {
       return NextResponse.json(
         { error: "Please provide a valid email address." },
         { status: 400 }
       );
     }
 
-    await sendContactEmail(formData);
+    // Save to Supabase
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const { createClient } = await import("@supabase/supabase-js");
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.SUPABASE_SERVICE_ROLE_KEY
+      );
+
+      await supabase.from("contact_submissions").insert({
+        name,
+        email,
+        business_type: businessType || null,
+        message,
+        utm_source: utm?.utm_source || null,
+        utm_medium: utm?.utm_medium || null,
+        utm_campaign: utm?.utm_campaign || null,
+      });
+
+      // Create admin notification
+      supabase.from("admin_notifications").insert({
+        type: "new_contact",
+        title: `New contact from ${name}`,
+        description: message.substring(0, 100),
+        link: "/admin/contacts",
+      }).then(() => {}, () => {});
+    }
+
+    // Send email notifications (non-blocking — form succeeds even if email fails)
+    try {
+      await sendContactEmail(formData);
+    } catch (emailError) {
+      console.error("Email send failed (submission still saved):", emailError);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Failed to send contact email:", error);
+    console.error("Failed to process contact submission:", error);
     return NextResponse.json(
-      { error: "Failed to send email" },
+      { error: "Failed to send message" },
       { status: 500 }
     );
   }

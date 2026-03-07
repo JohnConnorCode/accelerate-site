@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { email } = await request.json();
+    const { email, utm } = await request.json();
 
     if (!isValidEmail(email)) {
       return NextResponse.json(
@@ -30,7 +30,12 @@ export async function POST(request: NextRequest) {
       );
 
       await supabase.from("subscribers").upsert(
-        { email: email.trim() },
+        {
+          email: email.trim(),
+          utm_source: utm?.utm_source || null,
+          utm_medium: utm?.utm_medium || null,
+          utm_campaign: utm?.utm_campaign || null,
+        },
         { onConflict: "email" }
       );
     }

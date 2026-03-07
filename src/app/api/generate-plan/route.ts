@@ -6,6 +6,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import type { IntakeFormData, DigitalGrowthPlan } from "@/lib/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendPlanEmail as sendPlanEmailNotification } from "@/lib/email/send";
+import { scheduleEmailSequence } from "@/lib/email/sequences";
 
 function validateIntakeData(data: Partial<IntakeFormData>): data is IntakeFormData {
   return !!(
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { formData } = body as { formData: Partial<IntakeFormData> };
+    const { formData, utm } = body as { formData: Partial<IntakeFormData>; utm?: { utm_source?: string; utm_medium?: string; utm_campaign?: string } };
 
     if (!validateIntakeData(formData)) {
       return NextResponse.json(
@@ -65,6 +66,9 @@ export async function POST(request: NextRequest) {
           contact_email: formData.contactEmail,
           contact_phone: formData.contactPhone || null,
           intake_data: formData,
+          utm_source: utm?.utm_source || null,
+          utm_medium: utm?.utm_medium || null,
+          utm_campaign: utm?.utm_campaign || null,
         });
 
         // Create admin notification (fire and forget)
@@ -118,13 +122,25 @@ export async function POST(request: NextRequest) {
 
     await savePlan(supabase, shareToken, plan, modelUsed);
 
-    // Send email notification (fire and forget)
+    // Send confirmation email (fire and forget)
     sendPlanEmailNotification(
       formData.contactName,
       formData.contactEmail,
       plan.executiveSummary,
       shareToken
     ).catch((e) => console.warn("Plan email failed:", e));
+
+    // Schedule plan_nurture drip sequence via Resend
+    scheduleEmailSequence({
+      email: formData.contactEmail,
+      sequenceType: "plan_nurture",
+      metadata: {
+        name: formData.contactName,
+        industry: formData.industry,
+        planLink: `https://acceleratewith.us/plan/${shareToken}`,
+        planSummary: plan.executiveSummary,
+      },
+    }).catch((e) => console.warn("Plan nurture sequence failed:", e));
 
     return NextResponse.json({ plan, shareToken });
   } catch (error) {

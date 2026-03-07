@@ -4,6 +4,7 @@ import {
   adminLeadNotificationEmail,
   contactConfirmationEmail,
   adminContactNotificationEmail,
+  roiReportEmail,
 } from "./templates";
 
 export async function sendPlanEmail(
@@ -55,6 +56,25 @@ export async function sendContactEmail(formData: {
       html: adminContactNotificationEmail(formData),
     }),
   ]);
+}
+
+export async function sendRoiReportEmail(
+  email: string,
+  data: {
+    name?: string;
+    roiPercentage: number;
+    additionalMonthlyRevenue: string;
+    annualRevenueImpact: string;
+    timeSavedPerWeek: string;
+    paybackPeriodMonths: string;
+  }
+) {
+  await getResend().emails.send({
+    from: FROM_EMAIL,
+    to: email,
+    subject: `Your ROI Analysis — ${Math.round(data.roiPercentage)}% Projected Return`,
+    html: roiReportEmail(data),
+  });
 }
 
 export async function sendAdminNotification(

@@ -115,7 +115,7 @@ export async function PUT(request: NextRequest) {
   }
 
   try {
-    const { name, email, conversation } = await request.json();
+    const { name, email, conversation, utm } = await request.json();
 
     // Validate inputs
     if (typeof name !== "string" || name.trim().length === 0 || name.length > 100) {
@@ -145,6 +145,9 @@ export async function PUT(request: NextRequest) {
       name: name.trim(),
       email: email.trim(),
       conversation,
+      utm_source: utm?.utm_source || null,
+      utm_medium: utm?.utm_medium || null,
+      utm_campaign: utm?.utm_campaign || null,
     });
 
     return NextResponse.json({ success: true });

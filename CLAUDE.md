@@ -57,6 +57,10 @@ After making visual/layout changes to components, always take a screenshot and r
 | `RESEND_API_KEY` | Resend API key (secret) |
 | `ANTHROPIC_API_KEY` | Claude API key for proposal generation (secret) |
 | `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` | Plausible analytics domain |
+| `PLAUSIBLE_API_KEY` | Plausible Stats API key (server-only, secret) |
+| `NEXT_PUBLIC_GTAG_ID` | Google Analytics 4 measurement ID (public) |
+| `NEXT_PUBLIC_META_PIXEL_ID` | Meta/Facebook Pixel ID (public) |
+| `NEXT_PUBLIC_GSC_VERIFICATION` | Google Search Console verification code (public) |
 
 Local values: `.env.local` (gitignored). Production values: Vercel dashboard.
 
@@ -68,6 +72,7 @@ Local values: `.env.local` (gitignored). Production values: Vercel dashboard.
 5. `supabase/migration-prompt4.sql` — Contact submissions, subscribers, constraint fixes
 6. `supabase/migration-prompt5.sql` — Admin notifications table
 7. `migrations/business-operating-system.sql` — Tasks, clients, sent_emails, proposals, notification priority column
+8. `migrations/utm-tracking.sql` — UTM attribution columns on all lead capture tables
 
 All migrations are idempotent (`CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`).
 

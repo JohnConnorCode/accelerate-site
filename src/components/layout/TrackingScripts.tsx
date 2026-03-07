@@ -2,7 +2,7 @@
 
 import Script from "next/script";
 import { useEffect, useState } from "react";
-import { getCookiePreferences } from "@/lib/tracking";
+import { getCookiePreferences } from "@/lib/analytics";
 
 const readConsent = () => {
   const prefs = getCookiePreferences();

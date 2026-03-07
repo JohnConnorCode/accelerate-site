@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { name, email, company, website, partnerType, message } = body;
+    const { name, email, company, website, partnerType, message, utm } = body;
 
     if (!name || !email || !company || !partnerType || !message) {
       return NextResponse.json(
@@ -58,6 +58,9 @@ export async function POST(request: NextRequest) {
           partner_type: partnerType,
           message,
           status: "pending",
+          utm_source: utm?.utm_source || null,
+          utm_medium: utm?.utm_medium || null,
+          utm_campaign: utm?.utm_campaign || null,
         });
 
         // Create admin notification (fire and forget)

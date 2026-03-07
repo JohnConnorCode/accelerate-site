@@ -16,6 +16,20 @@ const nextConfig: NextConfig = {
   // Server external packages that should not be bundled
   serverExternalPackages: ["@react-pdf/renderer"],
 
+  // Plausible analytics proxy (bypasses ad blockers)
+  async rewrites() {
+    return [
+      {
+        source: "/js/script.js",
+        destination: "https://plausible.io/js/script.tagged-events.js",
+      },
+      {
+        source: "/api/event",
+        destination: "https://plausible.io/api/event",
+      },
+    ];
+  },
+
   // Security headers
   async headers() {
     return [

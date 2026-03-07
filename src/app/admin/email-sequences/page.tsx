@@ -2,11 +2,10 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Mail, Play, Pause, CheckCircle, AlertCircle } from "lucide-react";
+import { Mail, Play, CheckCircle, AlertCircle, Send } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { StatCard } from "@/components/admin/StatCard";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Pagination } from "@/components/admin/Pagination";
@@ -20,7 +19,10 @@ interface EmailSequence {
   sequence_type: string;
   current_step: number;
   status: string;
-  next_send_at?: string;
+  metadata?: {
+    resend_email_ids?: string[];
+    [key: string]: unknown;
+  };
   created_at: string;
 }
 
@@ -63,21 +65,6 @@ export default function EmailSequencesPage() {
     fetchData();
   }, [fetchData]);
 
-  const handleStatusChange = async (id: string, status: string) => {
-    try {
-      const res = await fetch("/api/admin/email-sequences", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, status }),
-      });
-      if (!res.ok) throw new Error("Failed");
-      setToast({ message: `Sequence ${status}`, type: "success" });
-      await fetchData();
-    } catch {
-      setToast({ message: "Failed to update sequence", type: "error" });
-    }
-  };
-
   if (loading) {
     return (
       <div>
@@ -97,10 +84,10 @@ export default function EmailSequencesPage() {
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-4 mb-6">
-        <StatCard label="Active" value={stats.active} icon={Play} index={0} trend="up" change="sending" />
-        <StatCard label="Completed" value={stats.completed} icon={CheckCircle} index={1} />
-        <StatCard label="Paused" value={stats.paused} icon={Pause} index={2} />
-        <StatCard label="Total" value={stats.total} icon={Mail} index={3} />
+        <StatCard label="Scheduled" value={stats.completed} icon={Send} index={0} />
+        <StatCard label="Active (Legacy)" value={stats.active} icon={Play} index={1} />
+        <StatCard label="Total" value={stats.total} icon={Mail} index={2} />
+        <StatCard label="Completed" value={stats.completed} icon={CheckCircle} index={3} />
       </div>
 
       {/* Filters */}
@@ -121,8 +108,8 @@ export default function EmailSequencesPage() {
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
           options={[
             { value: "all", label: "All Statuses" },
-            { value: "active", label: "Active" },
-            { value: "completed", label: "Completed" },
+            { value: "completed", label: "Scheduled" },
+            { value: "active", label: "Active (Legacy)" },
             { value: "paused", label: "Paused" },
             { value: "unsubscribed", label: "Unsubscribed" },
           ]}
@@ -137,60 +124,40 @@ export default function EmailSequencesPage() {
             <tr className="border-b border-border-glass">
               <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Email</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Type</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Step</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Emails</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Status</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Next Send</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Actions</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Enrolled</th>
             </tr>
           </thead>
           <tbody>
-            {sequences.map((seq, index) => (
-              <motion.tr
-                key={seq.id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: index * 0.03 }}
-                className="border-b border-border-glass hover:bg-white/[0.02]"
-              >
-                <td className="px-4 py-3 text-white-primary">{seq.email}</td>
-                <td className="px-4 py-3 text-white-secondary capitalize">
-                  {seq.sequence_type?.replace(/_/g, " ")}
-                </td>
-                <td className="px-4 py-3 text-white-secondary">{seq.current_step}</td>
-                <td className="px-4 py-3">
-                  <StatusBadge status={seq.status} />
-                </td>
-                <td className="px-4 py-3 text-white-muted text-xs">
-                  {seq.next_send_at
-                    ? new Date(seq.next_send_at).toLocaleDateString()
-                    : "-"}
-                </td>
-                <td className="px-4 py-3">
-                  {seq.status === "active" && (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => handleStatusChange(seq.id, "paused")}
-                      className="text-yellow-300 text-xs px-2 py-1"
-                    >
-                      <Pause className="h-3 w-3 mr-1" />
-                      Pause
-                    </Button>
-                  )}
-                  {seq.status === "paused" && (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => handleStatusChange(seq.id, "active")}
-                      className="text-emerald-300 text-xs px-2 py-1"
-                    >
-                      <Play className="h-3 w-3 mr-1" />
-                      Resume
-                    </Button>
-                  )}
-                </td>
-              </motion.tr>
-            ))}
+            {sequences.map((seq, index) => {
+              const emailCount = seq.metadata?.resend_email_ids?.length ?? seq.current_step ?? 0;
+              return (
+                <motion.tr
+                  key={seq.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: index * 0.03 }}
+                  className="border-b border-border-glass hover:bg-white/[0.02]"
+                >
+                  <td className="px-4 py-3 text-white-primary">{seq.email}</td>
+                  <td className="px-4 py-3 text-white-secondary capitalize">
+                    {seq.sequence_type?.replace(/_/g, " ")}
+                  </td>
+                  <td className="px-4 py-3 text-white-secondary">
+                    {emailCount} scheduled
+                  </td>
+                  <td className="px-4 py-3">
+                    <StatusBadge status={seq.status === "completed" ? "scheduled" : seq.status} />
+                  </td>
+                  <td className="px-4 py-3 text-white-muted text-xs">
+                    {seq.created_at
+                      ? new Date(seq.created_at).toLocaleDateString()
+                      : "-"}
+                  </td>
+                </motion.tr>
+              );
+            })}
           </tbody>
         </table>
         {sequences.length === 0 && (

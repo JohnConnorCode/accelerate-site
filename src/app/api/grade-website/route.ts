@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
+import { scheduleEmailSequence } from "@/lib/email/sequences";
 import type { WebsiteGradeResult, GradeCategory } from "@/lib/types";
 
 function isValidUrl(str: string): boolean {
@@ -482,7 +483,8 @@ Return ONLY a JSON array of strings. No other text. Example: ["Recommendation 1"
 
 async function saveToSupabase(
   grade: WebsiteGradeResult,
-  email?: string
+  email?: string,
+  utm?: { utm_source?: string; utm_medium?: string; utm_campaign?: string }
 ): Promise<void> {
   if (
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
@@ -504,6 +506,9 @@ async function saveToSupabase(
       categories: grade.categories,
       ai_recommendations: grade.aiRecommendations,
       email: email || null,
+      utm_source: utm?.utm_source || null,
+      utm_medium: utm?.utm_medium || null,
+      utm_campaign: utm?.utm_campaign || null,
     });
   } catch {
     // Best-effort; do not block the response
@@ -519,7 +524,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { url: rawUrl, email } = body as { url: string; email?: string };
+    const { url: rawUrl, email, utm } = body as { url: string; email?: string; utm?: { utm_source?: string; utm_medium?: string; utm_campaign?: string } };
 
     if (!rawUrl || typeof rawUrl !== "string") {
       return NextResponse.json(
@@ -547,7 +552,25 @@ export async function POST(request: NextRequest) {
     grade.aiRecommendations = await getAiRecommendations(urlStr, grade);
 
     // Save to Supabase (best-effort, non-blocking)
-    saveToSupabase(grade, email).catch(() => {});
+    saveToSupabase(grade, email, utm).catch(() => {});
+
+    // Schedule grader_followup drip sequence if email provided
+    if (email) {
+      const topIssues = Object.entries(grade.categories)
+        .filter(([, c]) => c.score < 70)
+        .map(([key, c]) => `- ${key}: ${c.score}/100`)
+        .join("\n") || "- No major issues found";
+
+      scheduleEmailSequence({
+        email,
+        sequenceType: "grader_followup",
+        metadata: {
+          name: "there",
+          score: String(grade.overallScore),
+          topIssues,
+        },
+      }).catch((e) => console.warn("Grader followup sequence failed:", e));
+    }
 
     return NextResponse.json(grade);
   } catch (error) {

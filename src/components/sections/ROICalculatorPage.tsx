@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -10,6 +10,9 @@ import {
   DollarSign,
   ArrowRight,
   BarChart3,
+  Mail,
+  Loader2,
+  CheckCircle2,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -25,6 +28,9 @@ import type {
   ROICalculatorInputs,
   ROICalculatorResult,
 } from "@/lib/types";
+import { trackConversion } from "@/lib/analytics";
+import { getUTMParams, clearUTMParams } from "@/lib/utm";
+import { isValidEmail } from "@/lib/validation";
 
 // ========================================
 // CONSTANTS
@@ -226,6 +232,14 @@ function StatCard({
 // ========================================
 
 export function ROICalculatorPage() {
+  const hasTrackedROI = useRef(false);
+
+  const [roiEmail, setRoiEmail] = useState("");
+  const [roiName, setRoiName] = useState("");
+  const [roiEmailSent, setRoiEmailSent] = useState(false);
+  const [roiEmailLoading, setRoiEmailLoading] = useState(false);
+  const [roiEmailError, setRoiEmailError] = useState<string | null>(null);
+
   const [inputs, setInputs] = useState<ROICalculatorInputs>({
     industry: "home_services",
     monthlyLeads: 30,
@@ -254,6 +268,50 @@ export function ROICalculatorPage() {
   );
 
   const result = useMemo(() => calculateROI(inputs), [inputs]);
+
+  useEffect(() => {
+    if (result.roiPercentage > 0 && !hasTrackedROI.current) {
+      hasTrackedROI.current = true;
+      trackConversion("ROI Calculated", {
+        industry: inputs.industry,
+        monthly_revenue_impact: Math.round(result.additionalMonthlyRevenue),
+      });
+    }
+  }, [result.roiPercentage, result.additionalMonthlyRevenue, inputs.industry]);
+
+  const handleRoiEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isValidEmail(roiEmail.trim())) {
+      setRoiEmailError("Please enter a valid email address.");
+      return;
+    }
+    setRoiEmailLoading(true);
+    setRoiEmailError(null);
+    try {
+      const res = await fetch("/api/roi-report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: roiEmail.trim(),
+          name: roiName.trim() || null,
+          inputs,
+          result,
+          utm: getUTMParams(),
+        }),
+      });
+      if (!res.ok) throw new Error("Request failed");
+      trackConversion("ROI Email Captured", {
+        industry: inputs.industry,
+        roi_percentage: Math.round(result.roiPercentage),
+      });
+      clearUTMParams();
+      setRoiEmailSent(true);
+    } catch {
+      setRoiEmailError("Something went wrong. Please try again.");
+    } finally {
+      setRoiEmailLoading(false);
+    }
+  };
 
   return (
     <>
@@ -563,6 +621,93 @@ export function ROICalculatorPage() {
           </div>
         </div>
       </section>
+
+      {/* ======== EMAIL CAPTURE ======== */}
+      {result.roiPercentage > 0 && (
+        <section className="py-12 bg-[var(--bg-base)]">
+          <div className="max-w-2xl mx-auto px-4 sm:px-6">
+            <AnimateOnScroll>
+              <GlassCard variant="prominent" padding="lg">
+                {roiEmailSent ? (
+                  <div className="text-center py-4">
+                    <CheckCircle2 className="w-10 h-10 text-green-400 mx-auto mb-3" />
+                    <p className="text-lg font-semibold text-white-primary mb-1">
+                      Check your inbox
+                    </p>
+                    <p className="text-sm text-white-secondary">
+                      We sent your ROI analysis to {roiEmail}
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-lg bg-[rgba(var(--accent-rgb),0.1)] border border-[rgba(var(--accent-rgb),0.2)] flex items-center justify-center">
+                        <Mail className="w-5 h-5 text-[var(--gold-base)]" />
+                      </div>
+                      <div>
+                        <h3 className="font-display text-base font-semibold text-[var(--heading-color)]">
+                          Want a copy of this analysis?
+                        </h3>
+                        <p className="text-sm text-white-secondary">
+                          We&apos;ll email you a summary with your projected numbers.
+                        </p>
+                      </div>
+                    </div>
+                    <form onSubmit={handleRoiEmail} className="space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <input
+                          type="text"
+                          placeholder="Name (optional)"
+                          value={roiName}
+                          onChange={(e) => setRoiName(e.target.value)}
+                          className={cn(
+                            "w-full px-4 py-3 rounded-lg",
+                            "bg-[var(--bg-subtle)] border border-[var(--border-glass)]",
+                            "text-[var(--white-primary)] placeholder:text-[var(--white-muted)]",
+                            "focus:outline-none focus:border-[var(--gold-base)] focus:ring-1 focus:ring-[var(--gold-base)]/30",
+                            "transition-all duration-200"
+                          )}
+                        />
+                        <input
+                          type="email"
+                          placeholder="Email address"
+                          required
+                          value={roiEmail}
+                          onChange={(e) => setRoiEmail(e.target.value)}
+                          className={cn(
+                            "w-full px-4 py-3 rounded-lg",
+                            "bg-[var(--bg-subtle)] border border-[var(--border-glass)]",
+                            "text-[var(--white-primary)] placeholder:text-[var(--white-muted)]",
+                            "focus:outline-none focus:border-[var(--gold-base)] focus:ring-1 focus:ring-[var(--gold-base)]/30",
+                            "transition-all duration-200"
+                          )}
+                        />
+                      </div>
+                      {roiEmailError && (
+                        <p className="text-xs text-red-400">{roiEmailError}</p>
+                      )}
+                      <Button
+                        type="submit"
+                        variant="primary"
+                        size="sm"
+                        disabled={roiEmailLoading}
+                        className="w-full sm:w-auto"
+                      >
+                        {roiEmailLoading ? (
+                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        ) : (
+                          <Mail className="w-4 h-4 mr-2" />
+                        )}
+                        Send My ROI Report
+                      </Button>
+                    </form>
+                  </>
+                )}
+              </GlassCard>
+            </AnimateOnScroll>
+          </div>
+        </section>
+      )}
 
       <SectionDivider variant="fade" />
 

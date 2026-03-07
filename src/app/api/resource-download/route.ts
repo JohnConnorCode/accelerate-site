@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { isValidEmail } from "@/lib/validation";
+import { scheduleEmailSequence } from "@/lib/email/sequences";
 
 export async function POST(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
@@ -10,7 +11,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { resourceId, name, email } = await request.json();
+    const { resourceId, name, email, utm } = await request.json();
 
     if (!resourceId || !name || !email) {
       return NextResponse.json(
@@ -39,22 +40,21 @@ export async function POST(request: NextRequest) {
           resource_id: resourceId,
           name,
           email,
-        });
-
-        // Enroll in resource_welcome email sequence
-        const now = new Date();
-        await supabase.from("email_sequences").insert({
-          email,
-          sequence_type: "resource_welcome",
-          current_step: 0,
-          status: "active",
-          metadata: { name, resourceId },
-          next_send_at: now.toISOString(),
+          utm_source: utm?.utm_source || null,
+          utm_medium: utm?.utm_medium || null,
+          utm_campaign: utm?.utm_campaign || null,
         });
       } catch (e) {
         console.warn("Supabase save failed:", e);
       }
     }
+
+    // Schedule resource_welcome email sequence via Resend
+    scheduleEmailSequence({
+      email,
+      sequenceType: "resource_welcome",
+      metadata: { name, resourceId },
+    }).catch((e) => console.warn("Email sequence scheduling failed:", e));
 
     return NextResponse.json({ success: true });
   } catch (error) {
