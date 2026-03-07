@@ -124,7 +124,7 @@ export function HowItWorks() {
               const Icon = iconMap[step.icon];
               if (!Icon) return null;
               return (
-                <div key={step.number} data-timeline-step className="relative pl-16 sm:pl-20">
+                <div key={step.number} data-timeline-step className="relative pl-14 sm:pl-20">
                   {/* Dot node on the rail */}
                   <div
                     data-timeline-dot
@@ -135,7 +135,7 @@ export function HowItWorks() {
 
                   {/* Large faded step number */}
                   <span
-                    className="absolute left-16 sm:left-20 -top-4 text-gold-gradient font-display text-6xl sm:text-7xl font-bold leading-none opacity-[0.07] pointer-events-none select-none"
+                    className="absolute left-14 sm:left-20 -top-4 text-gold-gradient font-display text-5xl sm:text-7xl font-bold leading-none opacity-[0.07] pointer-events-none select-none"
                     aria-hidden="true"
                   >
                     {step.number}

@@ -32,7 +32,8 @@ interface ShootingStar {
   tailLen: number; // trail length in pixels
 }
 
-const STAR_COUNT = 360;
+const STAR_COUNT_DESKTOP = 360;
+const STAR_COUNT_MOBILE = 140;
 const PARALLAX_STRENGTH = 18;
 const CLICK_RADIUS = 0.12;
 const CLICK_SIZE_BOOST = 2.2;
@@ -141,8 +142,10 @@ export default function HeroCanvas() {
     dpr.current = Math.min(window.devicePixelRatio || 1, 2);
 
     function initStars() {
+      const isMobile = window.innerWidth < 640;
+      const count = isMobile ? STAR_COUNT_MOBILE : STAR_COUNT_DESKTOP;
       const pts: Star[] = [];
-      for (let i = 0; i < STAR_COUNT; i++) {
+      for (let i = 0; i < count; i++) {
         const [r, g, b] = pickStarColor();
         const depth = Math.random();
         const x = Math.random();

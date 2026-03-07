@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { Logo } from "@/components/ui/Logo";
 
 interface NavLink {
   label: string;
@@ -143,9 +144,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
 
             {/* Header */}
             <div className="flex items-center justify-between px-6 pt-6 pb-4">
-              <span className="text-lg font-bold text-gold-gradient tracking-[0.15em] uppercase font-display">
-                ACCELERATE
-              </span>
+              <Logo size="sm" />
               <button
                 ref={closeButtonRef}
                 onClick={onClose}

@@ -106,6 +106,7 @@ export function Hero() {
             <span className="text-[var(--heading-color)]">Grow Your Company</span>
             <br />
             <span className="text-[var(--heading-color)]">and Revenue </span>
+            <br className="sm:hidden" />
             <span className="text-gold-gradient font-editorial">on Autopilot</span>
           </motion.h1>
 

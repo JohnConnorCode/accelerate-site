@@ -123,7 +123,7 @@ export function FinalCTA({
   return (
     <section
       ref={sectionRef}
-      className="py-24 sm:py-32 md:py-40 relative overflow-hidden bg-[var(--bg-base)]"
+      className="py-16 sm:py-32 md:py-40 relative overflow-hidden bg-[var(--bg-base)]"
     >
       {/* Atmospheric background layers */}
       <div className="absolute inset-0 pointer-events-none">

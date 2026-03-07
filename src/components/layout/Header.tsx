@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "./MobileNav";
+import { Logo } from "@/components/ui/Logo";
 
 interface NavChild {
   label: string;
@@ -87,11 +88,7 @@ export function Header() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-1 group">
-            <span className="text-xl font-bold text-gold-gradient tracking-[0.15em] uppercase font-display">
-              ACCELERATE
-            </span>
-          </Link>
+          <Logo />
 
           {/* Desktop Nav */}
           <nav className="hidden lg:flex items-center gap-6">

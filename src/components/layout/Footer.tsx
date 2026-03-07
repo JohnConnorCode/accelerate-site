@@ -8,6 +8,7 @@ import { gsap } from "@/lib/gsap-init";
 import { prefersReducedMotion } from "@/lib/utils";
 import { isValidEmail } from "@/lib/validation";
 import { SectionDivider } from "@/components/ui/SectionDivider";
+import { Logo } from "@/components/ui/Logo";
 import { trackConversion } from "@/lib/analytics";
 import { getUTMParams, clearUTMParams } from "@/lib/utm";
 
@@ -127,11 +128,7 @@ export function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-10 lg:gap-8">
           {/* Brand Column */}
           <div data-footer-section className="lg:col-span-2">
-            <Link href="/" className="inline-block mb-4">
-              <span className="text-xl font-bold text-gold-gradient tracking-[0.15em] uppercase font-display">
-                ACCELERATE
-              </span>
-            </Link>
+            <Logo className="mb-4" />
             <p className="text-[var(--white-secondary)] text-sm leading-relaxed mb-6 max-w-sm">
               AI strategy and systems for small businesses. We figure out where
               AI fits, then build and manage the systems that make it happen.
