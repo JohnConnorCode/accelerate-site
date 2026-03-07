@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
+import { sanitizeCsv } from "@/lib/admin/csv";
 
 export async function GET() {
   const auth = await requireAdmin();
@@ -13,7 +14,8 @@ export async function GET() {
     .order("created_at", { ascending: false });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Database error:", error.message);
+    return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
 
   const headers = ["Name", "Email", "Phone", "Business Type", "Message", "Date"];
@@ -27,7 +29,7 @@ export async function GET() {
         String(r.message || "").replace(/"/g, '""').replace(/\n/g, " "),
         new Date(r.created_at as string).toLocaleDateString(),
       ]
-        .map((v) => `"${v}"`)
+        .map((v) => `"${sanitizeCsv(String(v))}"`)
         .join(",")
   );
 

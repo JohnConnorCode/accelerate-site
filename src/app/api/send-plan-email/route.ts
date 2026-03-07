@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
   try {
     const { name, email, summary, shareToken } = await request.json();
 
-    if (!name || !email || !shareToken) {
+    if (typeof name !== "string" || !name.trim() || typeof email !== "string" || typeof shareToken !== "string" || !shareToken.trim()) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }

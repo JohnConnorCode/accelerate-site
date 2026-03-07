@@ -8,8 +8,8 @@ export async function GET(request: NextRequest) {
 
   const supabase = createServiceRoleClient();
   const { searchParams } = new URL(request.url);
-  const page = parseInt(searchParams.get("page") || "1");
-  const limit = parseInt(searchParams.get("limit") || "25");
+  const page = Math.max(1, parseInt(searchParams.get("page") || "1") || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "25") || 25));
   const from = (page - 1) * limit;
 
   const { data, error, count } = await supabase
@@ -19,7 +19,8 @@ export async function GET(request: NextRequest) {
     .range(from, from + limit - 1);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Database error:", error.message);
+    return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
 
   return NextResponse.json({

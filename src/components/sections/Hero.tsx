@@ -158,13 +158,13 @@ export function Hero() {
             variants={heroReveal}
             className="flex flex-wrap items-center justify-center gap-x-3 sm:gap-x-6 gap-y-2 text-xs uppercase tracking-[0.15em] sm:tracking-[0.2em] text-[var(--white-muted)] pointer-events-auto"
           >
-            <span>AI strategy &amp; delivery</span>
+            <span className="hidden sm:inline">AI strategy &amp; delivery</span>
             <span className="hidden sm:inline text-[var(--white-muted)]" aria-hidden="true">|</span>
-            <span>Live in 1–2 weeks</span>
+            <span className="hidden sm:inline">Live in 1–2 weeks</span>
             <span className="hidden sm:inline text-[var(--white-muted)]" aria-hidden="true">|</span>
-            <span>Transparent pricing</span>
+            <span className="hidden sm:inline">Transparent pricing</span>
             <span className="hidden sm:inline text-[var(--white-muted)]" aria-hidden="true">|</span>
-            <span>Free discovery call</span>
+            <span className="hidden sm:inline">Free discovery call</span>
           </motion.div>
         </motion.div>
       </div>

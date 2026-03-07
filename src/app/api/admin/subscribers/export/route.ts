@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
+import { sanitizeCsv } from "@/lib/admin/csv";
 
 export async function GET() {
   const auth = await requireAdmin();
@@ -13,7 +14,8 @@ export async function GET() {
     .order("subscribed_at", { ascending: false });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Database error:", error.message);
+    return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
 
   const headers = ["Email", "Source", "Status", "Subscribed", "Unsubscribed"];
@@ -26,7 +28,7 @@ export async function GET() {
         new Date(r.subscribed_at as string).toLocaleDateString(),
         r.unsubscribed_at ? new Date(r.unsubscribed_at as string).toLocaleDateString() : "",
       ]
-        .map((v) => `"${v}"`)
+        .map((v) => `"${sanitizeCsv(String(v))}"`)
         .join(",")
   );
 

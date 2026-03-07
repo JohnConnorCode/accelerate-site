@@ -13,6 +13,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Missing to, subject, or body" }, { status: 400 });
   }
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(to)) {
+    return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
+  }
+
   try {
     const resend = getResend();
     await resend.emails.send({

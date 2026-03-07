@@ -36,5 +36,14 @@ export async function requireAdmin(): Promise<
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (!adminEmail) {
+    console.error("ADMIN_EMAIL environment variable is not configured");
+    return NextResponse.json({ error: "Admin access not configured" }, { status: 503 });
+  }
+  if (user.email !== adminEmail) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   return { user: { id: user.id, email: user.email } };
 }

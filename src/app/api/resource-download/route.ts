@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
   try {
     const { resourceId, name, email, utm } = await request.json();
 
-    if (!resourceId || !name || !email) {
+    if (typeof resourceId !== "string" || !resourceId.trim() || typeof name !== "string" || !name.trim() || typeof email !== "string") {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }

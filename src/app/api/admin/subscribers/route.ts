@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
 
   const supabase = createServiceRoleClient();
   const url = new URL(request.url);
-  const page = parseInt(url.searchParams.get("page") || "1");
+  const page = Math.max(1, parseInt(url.searchParams.get("page") || "1") || 1);
   const pageSize = 25;
   const offset = (page - 1) * pageSize;
 
@@ -33,7 +33,8 @@ export async function GET(request: NextRequest) {
     .range(offset, offset + pageSize - 1);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Database error:", error.message);
+    return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
 
   return NextResponse.json({

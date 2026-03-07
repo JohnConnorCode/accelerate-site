@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.json();
     const { name, email, message, businessType, utm } = formData;
 
-    if (!name || !email || !message) {
+    if (typeof name !== "string" || !name.trim() || typeof email !== "string" || typeof message !== "string" || !message.trim()) {
       return NextResponse.json(
         { error: "Name, email, and message are required" },
         { status: 400 }
