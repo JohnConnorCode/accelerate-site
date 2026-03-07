@@ -56,9 +56,14 @@ export function QuickActions({ onExportLeads, onScrollToAI }: QuickActionsProps)
         }
 
         return (
-          <div key={action.label} onClick={action.onClick}>
+          <button
+            key={action.label}
+            type="button"
+            onClick={action.onClick}
+            className="appearance-none bg-transparent border-none p-0 text-left w-full"
+          >
             {content}
-          </div>
+          </button>
         );
       })}
     </motion.div>

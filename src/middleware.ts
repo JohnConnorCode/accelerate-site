@@ -3,10 +3,11 @@ import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 export async function middleware(request: NextRequest) {
-  // Only protect /admin routes (except /admin/login)
+  // Only protect /admin routes (except login and password reset)
   if (
     !request.nextUrl.pathname.startsWith("/admin") ||
-    request.nextUrl.pathname === "/admin/login"
+    request.nextUrl.pathname === "/admin/login" ||
+    request.nextUrl.pathname === "/admin/update-password"
   ) {
     return NextResponse.next();
   }

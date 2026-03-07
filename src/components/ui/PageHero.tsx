@@ -45,7 +45,7 @@ export function PageHero({
     return (
       <section
         className={cn(
-          "relative py-20 sm:py-28 overflow-hidden",
+          "relative py-20 sm:py-28 min-h-[50vh] sm:min-h-[60vh] overflow-hidden",
           className
         )}
       >
@@ -108,7 +108,7 @@ export function PageHero({
     return (
       <section
         className={cn(
-          "relative flex items-center justify-center overflow-hidden",
+          "relative flex items-center justify-center min-h-[50vh] sm:min-h-[60vh] overflow-hidden",
           className
         )}
       >
@@ -159,7 +159,7 @@ export function PageHero({
     return (
       <section
         className={cn(
-          "relative py-20 sm:py-28 overflow-hidden",
+          "relative py-20 sm:py-28 min-h-[50vh] sm:min-h-[60vh] flex items-center overflow-hidden",
           className
         )}
       >
@@ -177,7 +177,7 @@ export function PageHero({
           </div>
         )}
 
-        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             variants={heroStaggerDramatic}
             initial="hidden"
@@ -213,7 +213,7 @@ export function PageHero({
   // Default: "centered" — upgraded with heroReveal animation
   return (
     <section
-      className={cn("relative py-20 sm:py-28 overflow-hidden", className)}
+      className={cn("relative py-20 sm:py-28 min-h-[50vh] sm:min-h-[60vh] flex items-center justify-center overflow-hidden", className)}
     >
       {/* Atmospheric background */}
       <div className="absolute inset-0 pointer-events-none">
@@ -222,7 +222,7 @@ export function PageHero({
         <div className="hero-glow-orb hero-glow-orb-gold absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2" />
       </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
+      <div className="relative z-10 w-full max-w-4xl mx-auto px-4 sm:px-6 text-center">
         <motion.div
           variants={heroStaggerDramatic}
           initial="hidden"

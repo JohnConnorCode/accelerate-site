@@ -7,6 +7,7 @@ import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap-init";
 import { prefersReducedMotion } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
+import { trackConversion } from "@/lib/analytics";
 
 export function LeadMagnet() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -84,7 +85,10 @@ export function LeadMagnet() {
         <p className="text-sm text-[var(--white-muted)] italic mb-8">
           No fluff. No gate. Just the guide we wish existed when we started.
         </p>
-        <Link href="/resources">
+        <Link
+          href="/resources"
+          onClick={() => trackConversion("CTA Click", { section: "Lead Magnet", cta_text: "Get the AI Playbook", href: "/resources" })}
+        >
           <Button variant="primary" size="lg" className="group/cta">
             Get the AI Playbook
             <ArrowRight className="w-5 h-5 ml-2 transition-transform duration-200 group-hover/cta:translate-x-0.5" />

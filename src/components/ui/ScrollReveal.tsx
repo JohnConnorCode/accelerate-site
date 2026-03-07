@@ -5,6 +5,27 @@ import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap-init";
 import { prefersReducedMotion } from "@/lib/utils";
 
+// Module-level: delays all ScrollTrigger registration on initial page load
+// so hero animations (Framer Motion) complete before below-fold content reveals.
+let pageReady = false;
+const readyCallbacks: (() => void)[] = [];
+
+if (typeof window !== "undefined") {
+  setTimeout(() => {
+    pageReady = true;
+    readyCallbacks.forEach((cb) => cb());
+    readyCallbacks.length = 0;
+  }, 1200);
+}
+
+function onPageReady(cb: () => void) {
+  if (pageReady) {
+    cb();
+    return;
+  }
+  readyCallbacks.push(cb);
+}
+
 type AnimationType = "fade-up" | "slide-left" | "slide-right" | "scale" | "clip-reveal" | "blur-up" | "clip-left";
 
 interface ScrollRevealProps {
@@ -52,26 +73,30 @@ export function ScrollReveal({
 
   useGSAP(() => {
     if (!containerRef.current) return;
-
-    // Respect prefers-reduced-motion
     if (prefersReducedMotion()) return;
 
-    const from = animationConfigs[animation];
-    const to = {
-      ...animationTargets[animation],
-      duration: scrub ? undefined : 0.8,
-      delay,
-      ease: scrub ? "none" : "power2.out",
-      scrollTrigger: {
-        trigger: containerRef.current,
-        start,
-        end,
-        scrub: scrub ? 1 : false,
-        toggleActions: scrub ? undefined : "play none none none",
-      },
-    };
+    const el = containerRef.current;
 
-    gsap.fromTo(containerRef.current, from, to);
+    onPageReady(() => {
+      if (!el) return;
+
+      const from = animationConfigs[animation];
+      const to = {
+        ...animationTargets[animation],
+        duration: scrub ? undefined : 0.8,
+        delay,
+        ease: scrub ? "none" : "power2.out",
+        scrollTrigger: {
+          trigger: el,
+          start,
+          end,
+          scrub: scrub ? 1 : false,
+          toggleActions: scrub ? undefined : "play none none none",
+        },
+      };
+
+      gsap.fromTo(el, from, to);
+    });
   }, { scope: containerRef });
 
   return (

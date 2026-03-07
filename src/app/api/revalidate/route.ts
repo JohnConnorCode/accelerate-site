@@ -5,7 +5,7 @@ export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   const token = authHeader?.replace("Bearer ", "");
 
-  if (token !== process.env.REVALIDATION_SECRET) {
+  if (!process.env.REVALIDATION_SECRET || token !== process.env.REVALIDATION_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

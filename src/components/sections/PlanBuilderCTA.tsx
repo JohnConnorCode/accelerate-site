@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { trackConversion } from "@/lib/analytics";
 import { fadeUp } from "@/lib/animations";
 
 export function PlanBuilderCTA() {
@@ -33,7 +34,10 @@ export function PlanBuilderCTA() {
           Answer a few questions about your business. Our AI builds a personalized
           plan with specific systems, pricing, timelines, and projected revenue impact.
         </p>
-        <Link href="/plan-builder">
+        <Link
+          href="/plan-builder"
+          onClick={() => trackConversion("CTA Click", { section: "Plan Builder CTA", cta_text: "Build My Plan", href: "/plan-builder" })}
+        >
           <Button variant="primary" size="lg" pulse className="group/cta">
             Build My Plan
             <ArrowRight className="w-5 h-5 ml-2 transition-transform duration-200 group-hover/cta:translate-x-0.5" />

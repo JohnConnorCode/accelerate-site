@@ -23,6 +23,7 @@ import { SectionDivider } from "@/components/ui/SectionDivider";
 import { PageHero } from "@/components/ui/PageHero";
 import { FinalCTA } from "@/components/sections/FinalCTA";
 import { heroSlideScale } from "@/lib/animations";
+import { trackConversion } from "@/lib/analytics";
 import { services } from "@/content/services";
 import { caseStudies } from "@/content/case-studies";
 
@@ -112,7 +113,10 @@ function ServiceSection({
                   <p className="text-lg font-display font-semibold text-[var(--heading-color)]">
                     {service.pricingDisplay}
                   </p>
-                  <Link href="/contact">
+                  <Link
+                    href="/contact"
+                    onClick={() => trackConversion("CTA Click", { section: `Service: ${service.name}`, cta_text: "Get Started", href: "/contact" })}
+                  >
                     <Button variant="primary" size="md">
                       Get Started
                       <ArrowRight className="w-4 h-4 ml-2" />

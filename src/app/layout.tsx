@@ -7,7 +7,7 @@ import { TrackingScripts } from "@/components/layout/TrackingScripts";
 import { UTMCapture } from "@/components/layout/UTMCapture";
 import { ChatWidget } from "@/components/chat/ChatWidget";
 import { ScrollProgressBar } from "@/components/ui/ScrollProgressBar";
-import { generateWebSiteJsonLd } from "@/lib/seo";
+import { CookieConsent } from "@/components/layout/CookieConsent";
 import "./globals.css";
 
 const inter = Inter({
@@ -67,7 +67,7 @@ export const metadata: Metadata = {
       "We help small businesses figure out where AI fits, then build and manage the systems that make it happen.",
   },
   verification: {
-    google: process.env.NEXT_PUBLIC_GSC_VERIFICATION || "",
+    google: process.env.NEXT_PUBLIC_GSC_VERIFICATION || undefined,
   },
   robots: {
     index: true,
@@ -122,7 +122,7 @@ const organizationJsonLd = {
     "Small Business Operations",
   ],
   sameAs: [
-    "https://www.linkedin.com/company/accelerate-ai-ops",
+    "https://www.linkedin.com/company/acceleratewith/",
   ],
 };
 
@@ -137,10 +137,6 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(generateWebSiteJsonLd()) }}
         />
         <script
           defer
@@ -164,6 +160,7 @@ export default function RootLayout({
           <main id="main-content" className="flex-1">{children}</main>
           <Footer />
           <ChatWidget />
+          <CookieConsent />
         </ThemeProvider>
       </body>
     </html>

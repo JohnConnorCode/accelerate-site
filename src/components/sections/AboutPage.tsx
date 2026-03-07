@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
-import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { SectionDivider } from "@/components/ui/SectionDivider";

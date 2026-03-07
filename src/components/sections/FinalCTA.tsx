@@ -98,9 +98,10 @@ export function FinalCTA({
     // Content reveal
     const heading = sectionRef.current.querySelector("[data-cta-heading]");
     const desc = sectionRef.current.querySelector("[data-cta-desc]");
+    const founder = sectionRef.current.querySelector("[data-cta-founder]");
     const buttons = sectionRef.current.querySelector("[data-cta-buttons]");
 
-    [heading, desc, buttons].forEach((el, i) => {
+    [heading, desc, founder, buttons].forEach((el, i) => {
       if (!el) return;
       gsap.fromTo(el,
         { opacity: 0, y: 40 },
@@ -151,7 +152,7 @@ export function FinalCTA({
         <p data-cta-desc className="text-lg sm:text-xl text-[var(--white-muted)] max-w-xl mx-auto mb-8">
           {resolvedDescription}
         </p>
-        <div data-cta-desc className="flex items-center justify-center gap-3 mb-10">
+        <div data-cta-founder className="flex items-center justify-center gap-3 mb-10">
           <Image
             src="/images/john.jpg"
             alt="John Connor, Founder of Accelerate"

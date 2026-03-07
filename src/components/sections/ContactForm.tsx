@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { trackConversion } from "@/lib/analytics";
+import { isValidEmail } from "@/lib/validation";
 import { getUTMParams, clearUTMParams } from "@/lib/utm";
 
 interface FormData {
@@ -30,6 +31,11 @@ export function ContactForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isValidEmail(formData.email.trim())) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
 

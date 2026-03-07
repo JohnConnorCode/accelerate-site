@@ -18,7 +18,7 @@ interface ProposalData {
 }
 
 async function fetchProposal(token: string): Promise<ProposalData | null> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "http://localhost:3000";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "https://acceleratewith.us";
   try {
     const res = await fetch(`${baseUrl}/api/proposal/${token}`, {
       cache: "no-store",
