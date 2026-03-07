@@ -1,15 +1,14 @@
 "use client";
 
-import { useRef, lazy, Suspense } from "react";
+import { useRef } from "react";
 import Link from "next/link";
 import { ArrowRight, BookOpen } from "lucide-react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap-init";
 import { prefersReducedMotion } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
+import { StarField } from "@/components/ui/StarField";
 import { trackConversion } from "@/lib/analytics";
-
-const HeroCanvas = lazy(() => import("@/components/three/HeroCanvas"));
 
 export function LeadMagnet() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -41,10 +40,15 @@ export function LeadMagnet() {
 
   return (
     <section ref={sectionRef} className="py-24 px-4 sm:px-6 relative overflow-hidden bg-[var(--bg-base)]">
-      {/* Interactive star field background — same as hero */}
-      <Suspense fallback={null}>
-        <HeroCanvas />
-      </Suspense>
+      {/* Interactive star field — twinkling, parallax, click-to-scatter */}
+      <div className="absolute inset-0 pointer-events-auto">
+        <StarField />
+      </div>
+
+      {/* Subtle center glow */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(600px,90vw)] h-[400px] bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.05),transparent_70%)]" />
+      </div>
 
       <div
         data-magnet-content
