@@ -1,3 +1,4 @@
+import { PageEngagementTracker } from "@/components/layout/PageEngagementTracker";
 import { seoMetadata } from "@/lib/og";
 import { PlanBuilderShell } from "@/components/plan-builder/PlanBuilderShell";
 
@@ -11,5 +12,10 @@ export const metadata = seoMetadata({
 });
 
 export default function PlanBuilderRoute() {
-  return <PlanBuilderShell />;
+  return (
+    <>
+      <PlanBuilderShell />
+      <PageEngagementTracker />
+    </>
+  );
 }

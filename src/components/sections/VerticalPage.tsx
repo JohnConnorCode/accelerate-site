@@ -97,8 +97,8 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
 
   return (
     <>
-      {/* Hero — enhanced with dramaticReveal via immersive variant approach */}
-      <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
+      {/* Hero */}
+      <section className="relative flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute inset-0 gradient-mesh opacity-40" />
           <div className="absolute inset-0 grid-overlay opacity-20" />
@@ -107,7 +107,7 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
 
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[var(--bg-base)] to-transparent pointer-events-none z-[5]" />
 
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center py-24 sm:py-32">
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center py-20 sm:py-28">
           <ScrollReveal animation="blur-up">
             <p className="section-label">{vertical.name}</p>
             <h1 className="page-heading leading-[1.1] mb-6">
@@ -134,7 +134,7 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
       <SectionDivider variant="fade" />
 
       {/* Pain Points — alternating slide animations */}
-      <section className="relative py-32 bg-[var(--bg-section-warm)] overflow-hidden">
+      <section className="relative pt-16 pb-24 bg-[var(--bg-section-warm)] overflow-hidden">
         <div className="absolute inset-0 grid-overlay-fine pointer-events-none" />
         <div className="orb-gold -top-32 -right-32 opacity-60" />
 
@@ -191,7 +191,7 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
       <SectionDivider variant="glow" />
 
       {/* Solutions — bento layout with grid-dots-glow background */}
-      <section className="relative py-32 bg-[var(--bg-section-deep)] overflow-hidden">
+      <section className="relative py-24 bg-[var(--bg-section-deep)] overflow-hidden">
         <div className="absolute inset-0 grid-dots-glow pointer-events-none" />
         <div className="orb-gold -bottom-48 -left-48 opacity-60" />
 
@@ -281,7 +281,7 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
       <SectionDivider variant="glow" />
 
       {/* Case Study */}
-      <section className="relative py-32 bg-[var(--bg-base)] overflow-hidden">
+      <section className="relative py-24 bg-[var(--bg-base)] overflow-hidden">
         <div className="absolute inset-0 dot-grid pointer-events-none" />
 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">

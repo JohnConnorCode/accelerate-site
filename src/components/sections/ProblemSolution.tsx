@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import Link from "next/link";
-import { ArrowRight, X, Check } from "lucide-react";
+import { ArrowRight, ArrowDown } from "lucide-react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap-init";
 import { prefersReducedMotion } from "@/lib/utils";
@@ -44,136 +44,145 @@ const comparisons = [
 ];
 
 export function ProblemSolution() {
-  const gridRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
 
   useGSAP(() => {
-    if (!gridRef.current) return;
+    if (!sectionRef.current) return;
     if (prefersReducedMotion()) return;
 
-    const rows = gridRef.current.querySelectorAll("[data-comparison-row]");
+    const leftPanel = sectionRef.current.querySelector("[data-panel-left]");
+    const rightPanel = sectionRef.current.querySelector("[data-panel-right]");
 
-    rows.forEach((row, i) => {
-      gsap.fromTo(
-        row,
-        { opacity: 0, y: 24 },
+    if (leftPanel) {
+      gsap.fromTo(leftPanel,
+        { opacity: 0, x: -60 },
         {
           opacity: 1,
-          y: 0,
-          duration: 0.5,
-          delay: 0.25 + i * 0.12,
-          ease: "power2.out",
+          x: 0,
+          duration: 0.8,
+          delay: 0.2,
+          ease: "power3.out",
           scrollTrigger: {
-            trigger: gridRef.current,
-            start: "top 80%",
+            trigger: sectionRef.current,
+            start: "top 75%",
             toggleActions: "play none none none",
           },
         }
       );
-    });
-  }, { scope: gridRef });
+    }
+
+    if (rightPanel) {
+      gsap.fromTo(rightPanel,
+        { opacity: 0, x: 60 },
+        {
+          opacity: 1,
+          x: 0,
+          duration: 0.8,
+          delay: 0.35,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top 75%",
+            toggleActions: "play none none none",
+          },
+        }
+      );
+    }
+  }, { scope: sectionRef });
 
   return (
-    <section className="relative py-32 bg-[var(--bg-base)] overflow-hidden">
-      <div className="absolute inset-0 grid-overlay-fine pointer-events-none" />
-      <div className="orb-gold -top-32 -right-32 opacity-60" />
-
+    <section ref={sectionRef} className="relative py-20 bg-[var(--bg-base)] overflow-hidden">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimateOnScroll className="mb-16">
           <SectionHeader
+            align="left"
             label="Before & After"
             heading={
               <>
-                Your Business Today vs.{" "}
-                <span className="text-gold-gradient">With Accelerate</span>
+                Stop Losing Revenue to{" "}
+                <span className="text-gold-gradient font-editorial">Broken Processes</span>
               </>
             }
           />
         </AnimateOnScroll>
+      </div>
 
-        {/* Table header — desktop only */}
-        <div className="hidden md:grid grid-cols-[1fr_1fr_auto] gap-0 mb-3 px-2">
-          <div className="flex items-center gap-2">
-            <X className="w-3.5 h-3.5 text-[var(--error)]" />
-            <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--white-muted)]">
-              Before
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Check className="w-3.5 h-3.5 text-[var(--gold-base)]" />
-            <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--white-muted)]">
-              After Accelerate
-            </span>
-          </div>
-          <div className="w-[130px]" />
-        </div>
-
-        <div ref={gridRef} className="space-y-3">
-          {comparisons.map((item, i) => (
-            <div
-              key={i}
-              data-comparison-row
-              className="glass rounded-2xl overflow-hidden hover:border-[var(--border-gold-hover)] transition-colors duration-300"
-            >
-              {/* Desktop layout */}
-              <div className="hidden md:grid grid-cols-[1fr_1fr_auto] gap-0 items-stretch">
-                {/* Before */}
-                <div className="p-6 border-r border-[var(--border-glass)] relative">
+      {/* Full-width split screen */}
+      <div className="grid grid-cols-1 md:grid-cols-2">
+        {/* Problem side — dark */}
+        <div
+          data-panel-left
+          className="bg-[var(--bg-section-deep)] py-12 sm:py-16 px-6 sm:px-10 lg:px-16"
+        >
+          <div className="max-w-lg ml-auto">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--error)] mb-8 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--error)]" />
+              The Problem
+            </p>
+            <div className="space-y-8">
+              {comparisons.map((item, i) => (
+                <div key={i}>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--white-muted)] mb-2">
                     {item.label}
                   </p>
-                  <p className="text-sm text-[var(--white-muted)] leading-relaxed line-through decoration-[var(--error)]/30">
+                  <p className="text-[var(--white-muted)] leading-relaxed text-sm sm:text-base">
                     {item.before}
                   </p>
                 </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
-                {/* After */}
-                <div className="p-6">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--gold-base)] mb-2">
-                    {item.label}
-                  </p>
-                  <p className="text-sm text-[var(--white-primary)] leading-relaxed font-medium">
+        {/* Solution side — slightly lighter + gold accent */}
+        <div
+          data-panel-right
+          className="relative bg-[var(--bg-elevated)] py-12 sm:py-16 px-6 sm:px-10 lg:px-16"
+        >
+          {/* Gold arrow divider — between panels on desktop */}
+          <div className="hidden md:flex absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[var(--bg-base)] border border-[var(--border-gold)] items-center justify-center z-10">
+            <ArrowRight className="w-4 h-4 text-[var(--gold-base)]" />
+          </div>
+
+          {/* Mobile arrow divider */}
+          <div className="md:hidden flex justify-center -mt-6 mb-6">
+            <div className="w-10 h-10 rounded-full bg-[var(--bg-base)] border border-[var(--border-gold)] flex items-center justify-center">
+              <ArrowDown className="w-4 h-4 text-[var(--gold-base)]" />
+            </div>
+          </div>
+
+          <div className="max-w-lg mr-auto">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--gold-base)] mb-8 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--gold-base)]" />
+              After Accelerate
+            </p>
+            <div className="space-y-8">
+              {comparisons.map((item, i) => (
+                <div key={i}>
+                  <div className="flex items-baseline justify-between gap-4 mb-2">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--white-muted)]">
+                      {item.label}
+                    </p>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-xl sm:text-2xl font-bold text-[var(--gold-light)] leading-none">
+                        {item.metric}
+                      </span>
+                      <span className="text-[10px] uppercase tracking-wider text-[var(--white-muted)]">
+                        {item.metricLabel}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-[var(--white-primary)] leading-relaxed font-medium text-sm sm:text-base">
                     {item.after}
                   </p>
                 </div>
-
-                {/* Metric */}
-                <div className="w-[130px] flex flex-col items-center justify-center border-l border-[var(--border-glass)] bg-[var(--glass-gold-bg)]">
-                  <span className="text-2xl sm:text-3xl font-bold text-[var(--gold-light)] leading-none">
-                    {item.metric}
-                  </span>
-                  <span className="text-[10px] uppercase tracking-wider text-[var(--white-muted)] mt-1.5 text-center px-2 leading-tight">
-                    {item.metricLabel}
-                  </span>
-                </div>
-              </div>
-
-              {/* Mobile layout */}
-              <div className="md:hidden p-5">
-                <div className="flex items-start justify-between mb-3">
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--gold-base)]">
-                    {item.label}
-                  </span>
-                  <div className="text-right">
-                    <span className="text-lg font-bold text-[var(--gold-light)] leading-none">
-                      {item.metric}
-                    </span>
-                    <p className="text-[10px] uppercase tracking-wider text-[var(--white-muted)] mt-0.5">
-                      {item.metricLabel}
-                    </p>
-                  </div>
-                </div>
-                <p className="text-sm text-[var(--white-muted)] line-through decoration-[var(--error)]/30 mb-2">
-                  {item.before}
-                </p>
-                <div className="h-px w-full bg-gradient-to-r from-transparent via-[var(--border-gold)] to-transparent mb-2" />
-                <p className="text-sm text-[var(--white-primary)] leading-relaxed font-medium">
-                  {item.after}
-                </p>
-              </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
+      </div>
 
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimateOnScroll variants={fadeUp} delay={0.2} className="text-center mt-12">
           <MagneticButton>
             <Link href="/plan-builder">

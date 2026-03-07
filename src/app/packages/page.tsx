@@ -1,3 +1,4 @@
+import { PageEngagementTracker } from "@/components/layout/PageEngagementTracker";
 import { seoMetadata } from "@/lib/og";
 import { PackagesPageContent } from "@/components/sections/PackagesPage";
 import { packages } from "@/content/packages";
@@ -96,6 +97,7 @@ export default function PackagesPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <PackagesPageContent />
+      <PageEngagementTracker />
     </>
   );
 }

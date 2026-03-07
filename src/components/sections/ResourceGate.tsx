@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { isValidEmail } from "@/lib/validation";
 import { leadMagnets } from "@/content/lead-magnets";
+import { trackConversion } from "@/lib/analytics";
+import { getUTMParams, clearUTMParams } from "@/lib/utm";
 
 interface ResourceGateProps {
   resourceId: string;
@@ -92,12 +94,19 @@ export function ResourceGate({ resourceId, onClose }: ResourceGateProps) {
           resourceId: resource.id,
           name: name.trim(),
           email: email.trim(),
+          utm: getUTMParams(),
         }),
       });
 
       if (!res.ok) {
         throw new Error("Request failed");
       }
+
+      trackConversion("Resource Downloaded", {
+        resource_id: resource.id,
+        resource_name: resource.title,
+      });
+      clearUTMParams();
 
       // Trigger download
       window.open(resource.fileUrl, "_blank");

@@ -1,3 +1,4 @@
+import { PageEngagementTracker } from "@/components/layout/PageEngagementTracker";
 import { seoMetadata } from "@/lib/og";
 import { ServicesPageContent } from "@/components/sections/ServicesPage";
 import { services } from "@/content/services";
@@ -38,6 +39,7 @@ export default function ServicesPage() {
         }}
       />
       <ServicesPageContent />
+      <PageEngagementTracker />
     </>
   );
 }

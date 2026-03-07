@@ -36,14 +36,14 @@ export function WhoThisIsFor() {
     const items = listRef.current.querySelectorAll("[data-audience-card]");
 
     gsap.fromTo(items,
-      { opacity: 0, y: 24 },
+      { opacity: 0, x: 40 },
       {
         opacity: 1,
-        y: 0,
+        x: 0,
         duration: 0.5,
         delay: 0.25,
-        stagger: 0.1,
-        ease: "power2.out",
+        stagger: 0.07,
+        ease: "power3.out",
         scrollTrigger: {
           trigger: listRef.current,
           start: "top 80%",
@@ -54,17 +54,17 @@ export function WhoThisIsFor() {
   }, { scope: listRef });
 
   return (
-    <section className="relative py-32 bg-[var(--bg-section-warm)] overflow-hidden">
+    <section className="relative py-24 bg-[var(--bg-section-warm)] overflow-hidden">
       <div className="absolute inset-0 grid-overlay-fine pointer-events-none" />
-      <div className="orb-gold top-1/2 -left-48 -translate-y-1/2 opacity-50" />
+      <div className="ambient-glow-left" />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <ScrollReveal animation="fade-up">
+        <ScrollReveal animation="slide-left">
           <SectionHeader
             label="Who This Is For"
             heading={
               <>
-                Built for Businesses Doing{" "}
-                <span className="text-gold-gradient">$200K to $10M</span>
+                You&apos;re Doing <span className="text-gold-gradient">$200K–$10M</span>.
+                Now What?
               </>
             }
             description="You have real revenue and real customers. You just don&apos;t have the time, team, or tech to run everything the way you know it should run."
@@ -83,9 +83,9 @@ export function WhoThisIsFor() {
               <div
                 key={audience.name}
                 data-audience-card
-                className="group flex items-center gap-4 glass rounded-xl px-5 py-4 hover:border-gold-glow transition-all duration-300"
+                className="group flex items-center gap-4 glass rounded-xl px-5 py-4 border-l-2 border-l-[rgba(var(--accent-rgb),0.2)] hover:border-l-[var(--gold-base)] hover:border-gold-glow transition-all duration-300"
               >
-                <div className="w-10 h-10 rounded-lg bg-[var(--glow-soft)] flex items-center justify-center shrink-0 group-hover:bg-[var(--glow-medium)] transition-colors">
+                <div className="w-10 h-10 rounded-lg bg-transparent border border-[var(--border-glass)] flex items-center justify-center shrink-0 group-hover:border-[var(--border-gold)] group-hover:bg-[var(--glow-soft)] transition-all">
                   <Icon className="w-5 h-5 text-[var(--gold-base)]" aria-hidden="true" />
                 </div>
                 <div className="min-w-0">

@@ -12,18 +12,13 @@ import { homeFaqs } from "@/content/home-faq";
 
 export function HomeFAQ() {
   return (
-    <section className="relative py-32 bg-[var(--bg-section-warm)] overflow-hidden">
+    <section className="relative py-24 bg-[var(--bg-section-warm)] overflow-hidden">
       <div className="orb-white -top-32 -right-48 opacity-40" />
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal animation="fade-up">
           <SectionHeader
-            label="FAQ"
-            heading={
-              <>
-                Common{" "}
-                <span className="text-gold-gradient">Questions</span>
-              </>
-            }
+            align="left"
+            heading="Common Questions"
             className="mb-12"
           />
         </ScrollReveal>

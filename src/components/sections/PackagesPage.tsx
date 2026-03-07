@@ -16,11 +16,12 @@ import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { PageHero } from "@/components/ui/PageHero";
 import { SectionDivider } from "@/components/ui/SectionDivider";
 import { FinalCTA } from "@/components/sections/FinalCTA";
-import { staggerBento, bentoItem, scaleIn } from "@/lib/animations";
+import { staggerBento, bentoItem, scaleIn, heroLineWipe } from "@/lib/animations";
 import { cn, formatCurrency } from "@/lib/utils";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { packages, packageFaqs } from "@/content/packages";
 import type { ServicePackage } from "@/lib/types";
+import { trackConversion } from "@/lib/analytics";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -135,7 +136,11 @@ function PricingCard({ pkg }: { pkg: ServicePackage }) {
             ))}
           </ul>
 
-          <Link href={pkg.ctaLink} className="mt-auto">
+          <Link
+            href={pkg.ctaLink}
+            className="mt-auto"
+            onClick={() => trackConversion("Package Selected", { package_name: pkg.name })}
+          >
             <Button
               variant={isHighlighted ? "primary" : "secondary"}
               size="lg"
@@ -233,12 +238,11 @@ export function PackagesPageContent() {
         label="Packages"
         title={<>Transparent Pricing,{" "}<span className="text-gold-gradient text-shimmer">Real Results</span></>}
         description="Transparent pricing, clear deliverables. Pick the package that matches where you are today and upgrade whenever you're ready."
+        itemAnimation={heroLineWipe}
       />
 
-      <SectionDivider variant="fade" />
-
       {/* Pricing Cards */}
-      <section className="py-24 bg-[var(--bg-base)]">
+      <section className="pt-12 pb-24 bg-[var(--bg-base)]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             variants={staggerBento}

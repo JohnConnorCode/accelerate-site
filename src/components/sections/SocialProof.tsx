@@ -165,10 +165,12 @@ export function SocialProof() {
   return (
     <section className="relative py-24 bg-[var(--bg-elevated)] overflow-hidden">
       <div className="absolute inset-0 grid-overlay-fine pointer-events-none opacity-50" />
+      <div className="ambient-glow-center" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <ScrollReveal animation="fade-up">
+        <ScrollReveal animation="blur-up">
           <SectionHeader
-            heading="Don&apos;t Take Our Word for It"
+            heading={<>Don&apos;t Take <span className="text-gold-gradient font-editorial">Our Word</span> for It</>}
+            size="large"
             className="mb-12"
           />
         </ScrollReveal>

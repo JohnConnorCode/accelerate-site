@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
   heroReveal,
-  dramaticReveal,
   heroStaggerDramatic,
 } from "@/lib/animations";
 
@@ -25,6 +24,8 @@ interface PageHeroProps {
   backgroundLayers?: ReactNode;
   /** Large accent watermark text for editorial variant */
   accentText?: string;
+  /** Custom animation variants for child stagger items */
+  itemAnimation?: import("framer-motion").Variants;
 }
 
 export function PageHero({
@@ -37,12 +38,14 @@ export function PageHero({
   visual,
   backgroundLayers,
   accentText,
+  itemAnimation,
 }: PageHeroProps) {
+  const itemVariant = itemAnimation || heroReveal;
   if (variant === "split") {
     return (
       <section
         className={cn(
-          "relative py-24 sm:py-32 overflow-hidden",
+          "relative py-20 sm:py-28 overflow-hidden",
           className
         )}
       >
@@ -62,25 +65,25 @@ export function PageHero({
               animate="visible"
               className="lg:col-span-3"
             >
-              <motion.p variants={heroReveal} className="section-label">
+              <motion.p variants={itemVariant} className="section-label">
                 {label}
               </motion.p>
               <motion.h1
-                variants={heroReveal}
+                variants={itemVariant}
                 className="page-heading leading-[1.1] mb-6 text-left"
               >
                 {title}
               </motion.h1>
               {description && (
                 <motion.p
-                  variants={heroReveal}
+                  variants={itemVariant}
                   className="text-lg sm:text-xl text-[var(--white-secondary)] max-w-xl leading-relaxed"
                 >
                   {description}
                 </motion.p>
               )}
               {children && (
-                <motion.div variants={heroReveal}>{children}</motion.div>
+                <motion.div variants={itemVariant}>{children}</motion.div>
               )}
             </motion.div>
 
@@ -105,7 +108,7 @@ export function PageHero({
     return (
       <section
         className={cn(
-          "relative min-h-[70vh] flex items-center justify-center overflow-hidden",
+          "relative flex items-center justify-center overflow-hidden",
           className
         )}
       >
@@ -120,31 +123,31 @@ export function PageHero({
         {/* Bottom gradient fade */}
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[var(--bg-base)] to-transparent pointer-events-none z-[5]" />
 
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center py-24 sm:py-32">
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center py-20 sm:py-28">
           <motion.div
             variants={heroStaggerDramatic}
             initial="hidden"
             animate="visible"
           >
-            <motion.p variants={dramaticReveal} className="section-label">
+            <motion.p variants={itemVariant} className="section-label">
               {label}
             </motion.p>
             <motion.h1
-              variants={dramaticReveal}
+              variants={itemVariant}
               className="page-heading leading-[1.1] mb-6"
             >
               {title}
             </motion.h1>
             {description && (
               <motion.p
-                variants={dramaticReveal}
+                variants={itemVariant}
                 className="text-lg sm:text-xl text-[var(--white-secondary)] max-w-2xl mx-auto leading-relaxed"
               >
                 {description}
               </motion.p>
             )}
             {children && (
-              <motion.div variants={dramaticReveal}>{children}</motion.div>
+              <motion.div variants={itemVariant}>{children}</motion.div>
             )}
           </motion.div>
         </div>
@@ -156,7 +159,7 @@ export function PageHero({
     return (
       <section
         className={cn(
-          "relative py-24 sm:py-32 overflow-hidden",
+          "relative py-20 sm:py-28 overflow-hidden",
           className
         )}
       >
@@ -180,11 +183,11 @@ export function PageHero({
             initial="hidden"
             animate="visible"
           >
-            <motion.p variants={heroReveal} className="section-label">
+            <motion.p variants={itemVariant} className="section-label">
               {label}
             </motion.p>
             <motion.h1
-              variants={heroReveal}
+              variants={itemVariant}
               className="page-heading leading-[1.05] mb-8 max-w-3xl"
               style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)" }}
             >
@@ -192,14 +195,14 @@ export function PageHero({
             </motion.h1>
             {description && (
               <motion.p
-                variants={heroReveal}
+                variants={itemVariant}
                 className="text-lg sm:text-xl text-[var(--white-secondary)] max-w-xl ml-auto leading-relaxed text-right"
               >
                 {description}
               </motion.p>
             )}
             {children && (
-              <motion.div variants={heroReveal}>{children}</motion.div>
+              <motion.div variants={itemVariant}>{children}</motion.div>
             )}
           </motion.div>
         </div>
@@ -210,7 +213,7 @@ export function PageHero({
   // Default: "centered" — upgraded with heroReveal animation
   return (
     <section
-      className={cn("relative py-24 sm:py-32 overflow-hidden", className)}
+      className={cn("relative py-20 sm:py-28 overflow-hidden", className)}
     >
       {/* Atmospheric background */}
       <div className="absolute inset-0 pointer-events-none">
@@ -225,25 +228,25 @@ export function PageHero({
           initial="hidden"
           animate="visible"
         >
-          <motion.p variants={heroReveal} className="section-label">
+          <motion.p variants={itemVariant} className="section-label">
             {label}
           </motion.p>
           <motion.h1
-            variants={heroReveal}
+            variants={itemVariant}
             className="page-heading leading-[1.1] mb-6"
           >
             {title}
           </motion.h1>
           {description && (
             <motion.p
-              variants={heroReveal}
+              variants={itemVariant}
               className="text-lg sm:text-xl text-[var(--white-secondary)] max-w-2xl mx-auto leading-relaxed"
             >
               {description}
             </motion.p>
           )}
           {children && (
-            <motion.div variants={heroReveal}>{children}</motion.div>
+            <motion.div variants={itemVariant}>{children}</motion.div>
           )}
         </motion.div>
       </div>

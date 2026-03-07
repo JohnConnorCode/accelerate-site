@@ -6,12 +6,12 @@
    ======================================== */
 
 :root {
-  /* Backgrounds */
+  /* Backgrounds — distinct per section for visual contrast */
   --bg-base: #0A0806;
-  --bg-elevated: #0E0C09;
-  --bg-subtle: #121212;
-  --bg-section-warm: #0F0C08;
-  --bg-section-deep: #030303;
+  --bg-elevated: #110E0A;
+  --bg-subtle: #141210;
+  --bg-section-warm: #0D0A06;
+  --bg-section-deep: #050403;
 
   /* Accent color (raw RGB channels for rgba() usage) */
   --accent-rgb: 212, 175, 55;
@@ -329,6 +329,7 @@
   --color-error: var(--error);
   --font-sans: var(--font-inter);
   --font-display: var(--font-jost);
+  --font-editorial: var(--font-editorial);
 }
 
 /* ========================================
@@ -385,8 +386,8 @@ body {
   border: 1px solid var(--border-glass);
   box-shadow:
     inset 0 0.5px 0 0 rgba(255, 255, 255, 0.06),
-    0 2px 8px rgba(0, 0, 0, 0.12),
-    0 8px 32px rgba(0, 0, 0, 0.08);
+    0 2px 8px rgba(0, 0, 0, 0.15),
+    0 8px 32px rgba(var(--accent-rgb), 0.03);
 }
 
 .glass-prominent {
@@ -396,8 +397,8 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.10);
   box-shadow:
     inset 0 0.5px 0 0 rgba(255, 255, 255, 0.08),
-    0 4px 16px rgba(0, 0, 0, 0.16),
-    0 16px 48px rgba(0, 0, 0, 0.1);
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    0 16px 48px rgba(var(--accent-rgb), 0.04);
 }
 
 .glass-gold {
@@ -406,9 +407,39 @@ body {
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
   border: 1px solid var(--border-gold);
   box-shadow:
-    inset 0 0.5px 0 0 rgba(var(--accent-rgb), 0.1),
-    0 2px 12px rgba(var(--accent-rgb), 0.04),
-    0 8px 32px rgba(0, 0, 0, 0.08);
+    inset 0 0.5px 0 0 rgba(var(--accent-rgb), 0.12),
+    0 2px 12px rgba(var(--accent-rgb), 0.06),
+    0 8px 32px rgba(var(--accent-rgb), 0.04);
+}
+
+/* Cursor-follow spotlight glow (Vercel/Linear style) */
+.card-spotlight {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-spotlight::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    500px circle at var(--glow-x, 50%) var(--glow-y, 50%),
+    rgba(var(--accent-rgb), 0.07),
+    transparent 40%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.card-spotlight:hover::before {
+  opacity: 1;
+}
+
+.card-spotlight > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* Glass focus-visible for keyboard navigation */
@@ -579,6 +610,89 @@ body {
 }
 
 /* ========================================
+   SELECTION COLOR
+   ======================================== */
+
+::selection {
+  background: rgba(var(--accent-rgb), 0.3);
+  color: var(--white-primary);
+}
+
+::-moz-selection {
+  background: rgba(var(--accent-rgb), 0.3);
+  color: var(--white-primary);
+}
+
+/* ========================================
+   CARD VARIANT: SOLID
+   ======================================== */
+
+.card-solid {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-glass);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.card-solid:hover {
+  border-color: var(--border-glass-hover);
+}
+
+/* ========================================
+   CARD VARIANT: OUTLINE
+   ======================================== */
+
+.card-outline {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+
+.card-outline:hover {
+  border-color: var(--border-gold);
+  background: rgba(var(--accent-rgb), 0.02);
+}
+
+/* ========================================
+   AMBIENT SECTION GLOWS
+   ======================================== */
+
+.ambient-glow-left {
+  position: absolute;
+  top: 50%;
+  left: -200px;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--accent-rgb), 0.04) 0%, transparent 70%);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.ambient-glow-right {
+  position: absolute;
+  top: 50%;
+  right: -200px;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--accent-rgb), 0.04) 0%, transparent 70%);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.ambient-glow-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 700px;
+  height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(var(--accent-rgb), 0.05) 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* ========================================
    SCROLLBAR STYLING
    ======================================== */
 
@@ -735,8 +849,8 @@ select:-webkit-autofill:focus {
 
 .grid-overlay-fine {
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
   background-size: 32px 32px;
   mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 20%, transparent 80%);
   -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 20%, transparent 80%);
@@ -1076,6 +1190,47 @@ select:-webkit-autofill:focus {
 
 .pulse-gold {
   animation: subtle-pulse 2.5s ease-in-out infinite;
+}
+
+/* ========================================
+   EDITORIAL SERIF ACCENT
+   ======================================== */
+
+.font-editorial {
+  font-family: var(--font-editorial), 'Georgia', serif;
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* ========================================
+   SIGNAL MARK ANIMATION
+   ======================================== */
+
+@keyframes signal-pulse {
+  0%, 100% { opacity: 0.15; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(1.08); }
+}
+
+/* ========================================
+   BACKGROUND TYPOGRAPHY WATERMARKS
+   ======================================== */
+
+.watermark-text {
+  position: absolute;
+  font-family: var(--font-jost), var(--font-inter), sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(var(--accent-rgb), 0.04);
+  pointer-events: none;
+  user-select: none;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+[data-theme="light"] .watermark-text {
+  -webkit-text-stroke: 1px rgba(var(--accent-rgb), 0.06);
 }
 
 /* ========================================

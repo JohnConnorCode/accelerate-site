@@ -10,6 +10,8 @@ import { gsap } from "@/lib/gsap-init";
 import { prefersReducedMotion } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { MagneticButton } from "@/components/ui/MagneticButton";
+import { SignalMark } from "@/components/ui/SignalMark";
+import { trackConversion } from "@/lib/analytics";
 
 interface FinalCTAProps {
   heading?: ReactNode;
@@ -29,7 +31,7 @@ export function FinalCTA({
   const resolvedHeading = heading ?? (
     <>
       Let&apos;s Talk About{" "}
-      <span className="text-gold-gradient">Your Business</span>
+      <span className="text-gold-gradient font-editorial">Your Business</span>
     </>
   );
   const resolvedDescription =
@@ -127,6 +129,9 @@ export function FinalCTA({
       <div className="absolute inset-0 pointer-events-none">
         <div data-parallax-mesh className="absolute inset-0 gradient-mesh opacity-25" />
         <div data-parallax-grid className="absolute inset-0 grid-overlay opacity-15" />
+        <div className="absolute top-1/2 right-[10%] -translate-y-1/2 opacity-30">
+          <SignalMark size="lg" />
+        </div>
         <div
           data-parallax-glow
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(700px,95vw)] h-[400px] rounded-full"
@@ -161,14 +166,20 @@ export function FinalCTA({
         </div>
         <div data-cta-buttons className="flex flex-col sm:flex-row gap-3 sm:gap-5 justify-center">
           <MagneticButton>
-            <Link href={resolvedPrimary.href}>
+            <Link
+              href={resolvedPrimary.href}
+              onClick={() => trackConversion("CTA Click", { section: "Final CTA", cta_text: resolvedPrimary.label, href: resolvedPrimary.href })}
+            >
               <Button variant="primary" size="lg" pulse className="w-full sm:w-auto">
                 {resolvedPrimary.label}
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
           </MagneticButton>
-          <Link href={resolvedSecondary.href}>
+          <Link
+            href={resolvedSecondary.href}
+            onClick={() => trackConversion("CTA Click", { section: "Final CTA", cta_text: resolvedSecondary.label, href: resolvedSecondary.href })}
+          >
             <Button variant="secondary" size="lg" className="w-full sm:w-auto border-gradient-animated">
               {resolvedSecondary.label}
             </Button>

@@ -22,6 +22,7 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 import { SectionDivider } from "@/components/ui/SectionDivider";
 import { PageHero } from "@/components/ui/PageHero";
 import { FinalCTA } from "@/components/sections/FinalCTA";
+import { heroSlideScale } from "@/lib/animations";
 import { services } from "@/content/services";
 import { caseStudies } from "@/content/case-studies";
 
@@ -199,6 +200,7 @@ export function ServicesPageContent() {
         }
         description="We don't sell software. We build and run AI systems tailored to your business — strategy, automation, engagement, content, and reporting."
         visual={heroVisual}
+        itemAnimation={heroSlideScale}
       >
         <div className="flex items-center gap-6 flex-wrap mt-8 text-sm text-[var(--white-muted)]">
           <span className="flex items-center gap-2">
@@ -215,8 +217,6 @@ export function ServicesPageContent() {
           </span>
         </div>
       </PageHero>
-
-      <SectionDivider variant="fade" />
 
       {/* Service Quick Nav */}
       <nav

@@ -14,7 +14,7 @@ import { generateBreadcrumbJsonLd } from "@/lib/seo";
 import type { ArticleCategory } from "@/lib/types";
 
 export function generateStaticParams() {
-  return getAllCategories().map(({ category }) => ({ category }));
+  return getAllCategories({ includeScheduled: true }).map(({ category }) => ({ category }));
 }
 
 export async function generateMetadata({

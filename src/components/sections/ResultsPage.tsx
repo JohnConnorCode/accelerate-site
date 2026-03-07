@@ -8,10 +8,11 @@ import {
   MapPin,
   TrendingUp,
   Filter,
+  ShieldCheck,
+  BarChart3,
+  FileText,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { Button } from "@/components/ui/Button";
-import { CountUp } from "@/components/ui/CountUp";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { SectionDivider } from "@/components/ui/SectionDivider";
@@ -96,11 +97,10 @@ function CaseStudyCard({ study }: { study: CaseStudyFull }) {
   );
 }
 
-const heroMetrics = [
-  { end: 4, suffix: "x", label: "Avg. inquiry increase" },
-  { end: 95, suffix: "%+", label: "Response time reduction" },
-  { end: 75, prefix: "+", suffix: "%", label: "Avg. revenue lift" },
-  { end: 94, suffix: "%", label: "Client retention" },
+const proofPoints = [
+  { icon: ShieldCheck, text: "Real client results" },
+  { icon: BarChart3, text: "No inflated projections" },
+  { icon: FileText, text: "Full case studies below" },
 ];
 
 export function ResultsPageContent() {
@@ -114,38 +114,30 @@ export function ResultsPageContent() {
 
   return (
     <>
-      {/* Hero — immersive with metrics folded in */}
+      {/* Hero — qualitative proof points instead of CountUp metrics */}
       <PageHero
-        variant="immersive"
+        variant="centered"
         label="Client Results"
         title={
           <>
-            Proof Over Promises,{" "}
-            <span className="text-gold-gradient">Real Numbers</span>
+            Real Stories,{" "}
+            <span className="text-gold-gradient">Real Outcomes</span>
           </>
         }
-        description="Every metric below came from a real client engagement. No inflated projections. No 'up to' disclaimers. Just what happened."
+        description="Every result below came from a real client engagement. No inflated projections. No 'up to' disclaimers. Just what happened when we embedded AI into their operations."
       >
-        {/* Aggregate metrics in hero */}
         <motion.div
           variants={heroStaggerDramatic}
           initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10 max-w-3xl mx-auto"
+          animate="visible"
+          className="flex flex-wrap items-center justify-center gap-3 mt-8"
         >
-          {heroMetrics.map((metric) => (
-            <motion.div key={metric.label} variants={heroReveal}>
-              <GlassCard padding="sm" hover="none" className="text-center">
-                <p className="font-display text-2xl sm:text-3xl font-bold text-gold-gradient">
-                  <CountUp
-                    end={metric.end}
-                    prefix={metric.prefix}
-                    suffix={metric.suffix}
-                  />
-                </p>
-                <p className="text-xs text-[var(--white-muted)] mt-1">{metric.label}</p>
-              </GlassCard>
+          {proofPoints.map((point) => (
+            <motion.div key={point.text} variants={heroReveal}>
+              <span className="inline-flex items-center gap-2 glass rounded-full px-4 py-2 text-sm text-[var(--white-secondary)]">
+                <point.icon className="w-4 h-4 text-[var(--gold-base)]" />
+                {point.text}
+              </span>
             </motion.div>
           ))}
         </motion.div>
@@ -156,7 +148,7 @@ export function ResultsPageContent() {
       {/* Featured Case Study */}
       {featuredStudy && (
         <>
-          <section className="py-24 bg-[var(--bg-base)]">
+          <section className="pt-12 pb-24 bg-[var(--bg-base)]">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
               <ScrollReveal animation="clip-left">
                 <GlassCard variant="gold" padding="lg">
@@ -180,14 +172,11 @@ export function ResultsPageContent() {
                           key={metric.label}
                           className="glass rounded-lg p-4 text-center"
                         >
-                          <p className="font-display text-xl font-bold text-gold-gradient">
+                          <p className="font-display text-base font-bold text-gold-gradient mb-1">
                             {metric.improvement}
                           </p>
-                          <p className="text-xs text-[var(--white-muted)] mt-1">
+                          <p className="text-xs text-[var(--white-muted)]">
                             {metric.label}
-                          </p>
-                          <p className="text-[10px] text-[var(--white-muted)] mt-0.5">
-                            {metric.before} → {metric.after}
                           </p>
                         </div>
                       ))}
@@ -274,7 +263,7 @@ export function ResultsPageContent() {
             <span className="text-gold-gradient">Like These?</span>
           </>
         }
-        description="Every number on this page came from the same playbook we'll build for your business."
+        description="Every result on this page came from the same playbook we'll build for your business."
         primaryCTA={{ label: "Get Your Growth Plan", href: "/plan-builder" }}
         secondaryCTA={{ label: "Book a Free Discovery Call", href: "/contact" }}
       />

@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Jost } from "next/font/google";
+import { Inter, Jost, DM_Serif_Display } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { TrackingScripts } from "@/components/layout/TrackingScripts";
+import { UTMCapture } from "@/components/layout/UTMCapture";
 import { ChatWidget } from "@/components/chat/ChatWidget";
 import { ScrollProgressBar } from "@/components/ui/ScrollProgressBar";
 import { generateWebSiteJsonLd } from "@/lib/seo";
@@ -19,6 +20,14 @@ const jost = Jost({
   variable: "--font-jost",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const dmSerif = DM_Serif_Display({
+  variable: "--font-editorial",
+  subsets: ["latin"],
+  weight: "400",
+  style: "italic",
   display: "swap",
 });
 
@@ -56,6 +65,9 @@ export const metadata: Metadata = {
     title: "Accelerate | AI Strategy & Systems for Small Business",
     description:
       "We help small businesses figure out where AI fits, then build and manage the systems that make it happen.",
+  },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GSC_VERIFICATION || "",
   },
   robots: {
     index: true,
@@ -120,7 +132,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${jost.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${jost.variable} ${dmSerif.variable}`} suppressHydrationWarning>
       <head>
         <script
           type="application/ld+json"
@@ -133,7 +145,8 @@ export default function RootLayout({
         <script
           defer
           data-domain={process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN || "acceleratewith.us"}
-          src="https://plausible.io/js/script.tagged-events.js"
+          data-api="/api/event"
+          src="/js/script.js"
         />
       </head>
       <body className="noise-overlay min-h-screen flex flex-col">
@@ -145,6 +158,7 @@ export default function RootLayout({
             Skip to main content
           </a>
           <TrackingScripts />
+          <UTMCapture />
           <ScrollProgressBar />
           <Header />
           <main id="main-content" className="flex-1">{children}</main>

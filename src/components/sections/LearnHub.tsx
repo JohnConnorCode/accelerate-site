@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { Clock, ArrowRight, Search, Mail, BookOpen, FileText, Sparkles, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { fadeUp, scaleIn } from "@/lib/animations";
+import { fadeUp, scaleIn, heroFloatUp } from "@/lib/animations";
 import {
   AnimateOnScroll,
   StaggerContainer,
@@ -65,7 +65,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
 
   return (
     <>
-      {/* Hero — centered with trust bar (heroReveal via default variant upgrade) */}
+      {/* Hero — centered with unique float animation */}
       <PageHero
         label="Learning Hub"
         title={
@@ -75,6 +75,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
           </>
         }
         description="No fluff, no filler. AI, automation, and growth strategies you can implement today — written by people who actually run small businesses."
+        itemAnimation={heroFloatUp}
       >
         <div className="flex items-center justify-center gap-6 flex-wrap mt-8 text-sm text-[var(--white-muted)]">
           <span className="flex items-center gap-2">
@@ -92,11 +93,9 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
         </div>
       </PageHero>
 
-      <SectionDivider variant="fade" />
-
       {/* Featured Article */}
       {featuredArticle && (
-        <section className="py-16 bg-[var(--bg-section-warm)]">
+        <section className="pt-8 pb-16 bg-[var(--bg-section-warm)]">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <AnimateOnScroll className="mb-8">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--gold-base)]">

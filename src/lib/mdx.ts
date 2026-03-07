@@ -32,16 +32,22 @@ function parseArticle(filename: string): Article {
   };
 }
 
+/** Today's date as YYYY-MM-DD, timezone-independent. */
+function todayDateStr(): string {
+  const now = new Date();
+  // Use UTC to match how JS parses date-only strings ("2026-03-07" → UTC midnight)
+  return now.toISOString().slice(0, 10);
+}
+
 export function getAllArticles(options?: { includeScheduled?: boolean }): Article[] {
   const files = getArticleFiles();
-  const now = new Date();
-  now.setHours(23, 59, 59, 999);
+  const today = todayDateStr();
 
   return files
     .map(parseArticle)
     .filter((article) => {
       if (options?.includeScheduled) return true;
-      return new Date(article.frontmatter.date) <= now;
+      return article.frontmatter.date <= today;
     })
     .sort(
       (a, b) =>
@@ -57,9 +63,7 @@ export function getArticleBySlug(slug: string): Article | null {
   const article = parseArticle(filename);
 
   // Don't return articles scheduled for future dates
-  const now = new Date();
-  now.setHours(23, 59, 59, 999);
-  if (new Date(article.frontmatter.date) > now) return null;
+  if (article.frontmatter.date > todayDateStr()) return null;
 
   return article;
 }
@@ -76,8 +80,8 @@ export function getArticlesByTag(tag: string): Article[] {
   );
 }
 
-export function getAllCategories(): { category: ArticleCategory; count: number }[] {
-  const articles = getAllArticles();
+export function getAllCategories(options?: { includeScheduled?: boolean }): { category: ArticleCategory; count: number }[] {
+  const articles = getAllArticles(options);
   const categoryCounts = new Map<ArticleCategory, number>();
   for (const article of articles) {
     const cat = article.frontmatter.category;
@@ -89,8 +93,8 @@ export function getAllCategories(): { category: ArticleCategory; count: number }
   }));
 }
 
-export function getAllTags(): { tag: string; count: number }[] {
-  const articles = getAllArticles();
+export function getAllTags(options?: { includeScheduled?: boolean }): { tag: string; count: number }[] {
+  const articles = getAllArticles(options);
   const tagCounts = new Map<string, number>();
   for (const article of articles) {
     for (const tag of article.frontmatter.tags) {

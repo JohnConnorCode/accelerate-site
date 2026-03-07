@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
+import { trackConversion } from "@/lib/analytics";
+import { getUTMParams, clearUTMParams } from "@/lib/utm";
 
 interface FormData {
   name: string;
@@ -35,13 +37,15 @@ export function ContactForm() {
       const res = await fetch("/api/send-contact-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, utm: getUTMParams() }),
       });
 
       if (!res.ok) {
         throw new Error("Failed to send message. Please try again.");
       }
 
+      trackConversion("Contact Form Submitted", { business_type: formData.businessType });
+      clearUTMParams();
       setSubmitted(true);
     } catch (err) {
       setError(

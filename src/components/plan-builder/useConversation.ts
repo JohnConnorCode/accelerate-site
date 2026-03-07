@@ -10,6 +10,8 @@ import type {
 } from "@/lib/types";
 import { buildQuestionFlow, getPainPointOptions } from "./conversationFlow";
 import { getSmartDefaults } from "./smartDefaults";
+import { trackConversion } from "@/lib/analytics";
+import { getUTMParams, clearUTMParams } from "@/lib/utm";
 
 // ========================================
 // State
@@ -118,6 +120,7 @@ export function useConversation() {
   const startConversation = useCallback(() => {
     if (hasStarted.current) return;
     hasStarted.current = true;
+    trackConversion("Plan Builder Started");
 
     const firstIdx = findNextQuestion(0);
     if (firstIdx === -1) return;
@@ -177,6 +180,13 @@ export function useConversation() {
         "ps_service_type", "ps_client_acquisition", "ps_avg_client_value",
         "re_role", "re_lead_sources", "re_transactions_per_year", "re_crm",
       ].includes(resolvedQ.id);
+
+      // Track step completion
+      const stepIdx = findNextQuestion(0);
+      trackConversion("Plan Builder Step", {
+        step_name: resolvedQ.id,
+        step_number: stepIdx === -1 ? 0 : currentActualIdx,
+      });
 
       if (isIndustrySpecific) {
         dispatch({
@@ -275,7 +285,7 @@ export function useConversation() {
         const res = await fetch("/api/generate-plan", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ formData: fullFormData }),
+          body: JSON.stringify({ formData: fullFormData, utm: getUTMParams() }),
         });
 
         if (!res.ok) {
@@ -297,6 +307,12 @@ export function useConversation() {
           plan: data.plan,
           shareToken: data.shareToken,
         });
+
+        trackConversion("Plan Generated", {
+          industry: String(state.formData.industry || ""),
+          business_name: String(state.formData.businessName || ""),
+        });
+        clearUTMParams();
       } catch (err) {
         const message =
           err instanceof Error

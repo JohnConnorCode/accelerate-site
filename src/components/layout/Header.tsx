@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Menu, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -175,11 +175,15 @@ export function Header() {
 
           {/* Mobile Hamburger */}
           <button
-            className="lg:hidden text-[var(--gold-base)] p-2.5 -mr-2.5 cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+            className="lg:hidden relative w-10 h-10 flex items-center justify-center -mr-2 cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
             onClick={() => setMobileOpen(true)}
             aria-label="Open navigation menu"
           >
-            <Menu className="w-6 h-6" />
+            <div className="flex flex-col items-end gap-[5px]">
+              <span className="block h-[2px] w-6 rounded-full bg-[var(--gold-base)] transition-all duration-300" />
+              <span className="block h-[2px] w-4 rounded-full bg-[var(--gold-base)] transition-all duration-300" />
+              <span className="block h-[2px] w-5 rounded-full bg-[var(--gold-base)] transition-all duration-300" />
+            </div>
           </button>
         </div>
         {/* Animated gold gradient bottom border */}

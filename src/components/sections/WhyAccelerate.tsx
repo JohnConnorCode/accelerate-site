@@ -37,10 +37,11 @@ export function WhyAccelerate() {
     const cards = gridRef.current.querySelectorAll("[data-why-card]");
 
     gsap.fromTo(cards,
-      { opacity: 0, y: 24 },
+      { opacity: 0, y: 20, rotateX: 8 },
       {
         opacity: 1,
         y: 0,
+        rotateX: 0,
         duration: 0.5,
         delay: 0.25,
         stagger: 0.1,
@@ -59,16 +60,26 @@ export function WhyAccelerate() {
   const restItems = differentiators.slice(2);
 
   return (
-    <section className="relative py-32 bg-[var(--bg-base)] overflow-hidden">
+    <section className="relative py-24 bg-[var(--bg-base)] overflow-hidden" style={{ perspective: "1200px" }}>
       <div className="absolute inset-0 dot-grid pointer-events-none" />
+      <div className="ambient-glow-right" />
+
+      {/* ACCELERATE watermark */}
+      <div
+        className="watermark-text top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[12vw]"
+        aria-hidden="true"
+      >
+        ACCELERATE
+      </div>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimateOnScroll className="mb-16">
           <SectionHeader
+            align="left"
             label="Why Us"
             heading={
               <>
-                Strategy, Systems, and Management —{" "}
-                <span className="text-gold-gradient">One Team</span>
+                Strategy + <span className="text-gold-gradient font-editorial">Systems</span> +
+                Management = Growth
               </>
             }
             description="We build and run AI systems for your business. Strategy, implementation, and ongoing management — all from one team that actually understands your operations."

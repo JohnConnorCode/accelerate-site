@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import {
   getCookiePreferences,
   setCookiePreferences,
-} from "@/lib/tracking";
+} from "@/lib/analytics";
 import type { CookiePreferences } from "@/lib/types";
 import { cn } from "@/lib/utils";
 

@@ -54,7 +54,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
   return (
     <>
       {/* Hero */}
-      <section className="relative py-24 sm:py-32 overflow-hidden">
+      <section className="relative py-20 sm:py-28 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute inset-0 gradient-mesh opacity-40" />
           <div className="absolute inset-0 grid-overlay opacity-20" />
@@ -104,11 +104,11 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
                   className="glass rounded-lg p-4 text-center"
                 >
                   <p
-                    className="font-display text-xl sm:text-2xl font-bold text-gold-gradient"
+                    className="font-display text-base font-bold text-gold-gradient mb-1"
                   >
                     {metric.improvement}
                   </p>
-                  <p className="text-xs text-[var(--white-muted)] mt-1">{metric.label}</p>
+                  <p className="text-xs text-[var(--white-muted)]">{metric.label}</p>
                 </div>
               ))}
             </div>
@@ -116,10 +116,8 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
         </div>
       </section>
 
-      <SectionDivider variant="fade" />
-
       {/* Challenge Section */}
-      <section className="py-24 bg-[var(--bg-base)]">
+      <section className="pt-12 pb-24 bg-[var(--bg-base)]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll>
             <GlassCard padding="lg">
@@ -203,7 +201,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
           <AnimateOnScroll className="text-center mb-16">
             <div className="inline-flex items-center gap-2 glass rounded-full px-4 py-2 mb-6">
               <TrendingUp className="w-4 h-4 text-[var(--gold-base)]" />
-              <span className="text-sm text-[var(--white-secondary)]">Measurable Impact</span>
+              <span className="text-sm text-[var(--white-secondary)]">The Transformation</span>
             </div>
             <h2
               className="section-heading mb-4"
@@ -219,45 +217,38 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
             {study.metrics.map((metric) => (
               <AnimateOnScroll key={metric.label} variants={fadeUp}>
                 <GlassCard variant="prominent" padding="lg" className="h-full">
-                  <p className="text-sm text-[var(--white-muted)] font-medium mb-4 uppercase tracking-wide">
-                    {metric.label}
-                  </p>
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-sm text-[var(--white-muted)] font-medium uppercase tracking-wide">
+                      {metric.label}
+                    </p>
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[rgba(var(--accent-rgb),0.1)] text-[var(--gold-light)] text-xs font-semibold border border-[rgba(var(--accent-rgb),0.2)]">
+                      {metric.improvement}
+                    </span>
+                  </div>
 
-                  <div className="flex items-center gap-4 mb-4">
+                  <div className="space-y-3">
                     {/* Before */}
-                    <div className="flex-1">
+                    <div>
                       <p className="text-xs text-[var(--white-muted)] mb-1">Before</p>
-                      <p
-                        className="font-display text-xl font-bold text-[var(--white-secondary)]"
-                      >
+                      <p className="text-sm text-[var(--white-secondary)] leading-relaxed">
                         {metric.before}
                       </p>
                     </div>
 
-                    {/* Arrow */}
-                    <div className="shrink-0">
-                      <ArrowRight className="w-5 h-5 text-[var(--gold-base)]" />
+                    {/* Divider arrow */}
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 h-px bg-[var(--border-glass)]" />
+                      <ArrowRight className="w-4 h-4 text-[var(--gold-base)] shrink-0" />
+                      <div className="flex-1 h-px bg-[var(--border-glass)]" />
                     </div>
 
                     {/* After */}
-                    <div className="flex-1 text-right">
-                      <p className="text-xs text-[var(--gold-light)] mb-1">
-                        After
-                      </p>
-                      <p
-                        className="font-display text-xl font-bold text-gold-gradient"
-                      >
+                    <div>
+                      <p className="text-xs text-[var(--gold-light)] mb-1">After</p>
+                      <p className="text-sm text-[var(--white-primary)] leading-relaxed font-medium">
                         {metric.after}
                       </p>
                     </div>
-                  </div>
-
-                  {/* Improvement Badge */}
-                  <div className="pt-3 border-t border-[var(--border-glass)]">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[rgba(var(--accent-rgb),0.1)] text-[var(--gold-light)] text-sm font-semibold border border-[rgba(var(--accent-rgb),0.2)]">
-                      <TrendingUp className="w-3.5 h-3.5" />
-                      {metric.improvement}
-                    </span>
                   </div>
                 </GlassCard>
               </AnimateOnScroll>

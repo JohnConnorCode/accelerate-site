@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronDown } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 interface NavLink {
   label: string;
@@ -18,18 +19,56 @@ interface MobileNavProps {
   navLinks: NavLink[];
 }
 
+const overlayVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.3 } },
+  exit: { opacity: 0, transition: { duration: 0.25, delay: 0.1 } },
+};
+
+const panelVariants = {
+  hidden: { x: "100%" },
+  visible: {
+    x: 0,
+    transition: { type: "spring" as const, damping: 30, stiffness: 300, mass: 0.8 },
+  },
+  exit: {
+    x: "100%",
+    transition: { type: "spring" as const, damping: 35, stiffness: 400, mass: 0.6 },
+  },
+};
+
+const linkVariants = {
+  hidden: { opacity: 0, x: 30 },
+  visible: (i: number) => ({
+    opacity: 1,
+    x: 0,
+    transition: {
+      type: "spring" as const,
+      damping: 20,
+      stiffness: 200,
+      delay: 0.15 + i * 0.06,
+    },
+  }),
+  exit: { opacity: 0, x: 20, transition: { duration: 0.15 } },
+};
+
+const ctaVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring" as const, damping: 20, stiffness: 200, delay: 0.55 },
+  },
+  exit: { opacity: 0, y: 10, transition: { duration: 0.15 } },
+};
+
 export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const glassSurface = {
-    backdropFilter: "blur(30px) saturate(160%)",
-    WebkitBackdropFilter: "blur(30px) saturate(160%)",
-  };
 
   useEffect(() => {
     if (isOpen) {
-      // Small delay to let the animation start before focusing
-      const timer = setTimeout(() => closeButtonRef.current?.focus(), 100);
+      const timer = setTimeout(() => closeButtonRef.current?.focus(), 200);
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
@@ -38,13 +77,11 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
-
-      // Focus trap: keep Tab within the mobile nav
       if (e.key === "Tab") {
         const nav = closeButtonRef.current?.closest("nav");
         if (!nav) return;
         const focusable = nav.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled]), input:not([disabled])'
+          "a[href], button:not([disabled]), input:not([disabled])"
         );
         if (focusable.length === 0) return;
         const first = focusable[0] as HTMLElement | undefined;
@@ -63,113 +100,218 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
+  let linkIndex = 0;
+
   return (
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          variants={overlayVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
           className="fixed inset-0 z-[100] lg:hidden"
         >
           {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-[var(--bg-overlay)]"
+          <motion.div
+            className="absolute inset-0 bg-black/60"
+            style={{ backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" }}
             onClick={onClose}
           />
 
-          {/* Nav Panel */}
+          {/* Panel */}
           <motion.nav
-            initial={{ y: "-100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "-100%" }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="relative glass-prominent min-h-screen pt-6 pb-12 px-6"
+            variants={panelVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="absolute right-0 top-0 bottom-0 w-[85vw] max-w-[400px] flex flex-col overflow-y-auto"
             style={{
-              ...glassSurface,
               backgroundColor: "var(--mobile-nav-bg)",
+              backdropFilter: "blur(40px) saturate(180%)",
+              WebkitBackdropFilter: "blur(40px) saturate(180%)",
             }}
           >
-            {/* Close + Logo Row */}
-            <div className="flex items-center justify-between mb-12">
-              <span className="text-xl font-bold text-gold-gradient tracking-[0.15em] uppercase font-display">
+            {/* Gold accent edge */}
+            <div
+              className="absolute left-0 top-0 bottom-0 w-px"
+              style={{
+                background:
+                  "linear-gradient(180deg, transparent 0%, rgba(var(--accent-rgb), 0.5) 20%, rgba(var(--accent-rgb), 0.3) 80%, transparent 100%)",
+              }}
+            />
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 pt-6 pb-4">
+              <span className="text-lg font-bold text-gold-gradient tracking-[0.15em] uppercase font-display">
                 ACCELERATE
               </span>
               <button
                 ref={closeButtonRef}
                 onClick={onClose}
-                className="text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] p-2.5 -mr-2.5 cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+                className="relative w-10 h-10 flex items-center justify-center rounded-full border border-[var(--border-light)] hover:border-[var(--border-gold)] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
                 aria-label="Close navigation menu"
               >
-                <X className="w-6 h-6" />
+                <span
+                  className="absolute w-5 h-px rotate-45"
+                  style={{ backgroundColor: "var(--text-nav)" }}
+                />
+                <span
+                  className="absolute w-5 h-px -rotate-45"
+                  style={{ backgroundColor: "var(--text-nav)" }}
+                />
               </button>
             </div>
 
+            {/* Divider */}
+            <div
+              className="mx-6 h-px"
+              style={{
+                background:
+                  "linear-gradient(90deg, rgba(var(--accent-rgb), 0.4), rgba(var(--accent-rgb), 0.1), transparent)",
+              }}
+            />
+
             {/* Nav Links */}
-            <div className="flex flex-col gap-2">
-              {navLinks.map((link) =>
-                link.children ? (
-                  <div key={link.label}>
-                    <button
-                      onClick={() =>
-                        setExpandedItem(
-                          expandedItem === link.label ? null : link.label
-                        )
-                      }
-                      aria-expanded={expandedItem === link.label}
-                      className="w-full flex items-center justify-between py-3 text-xl text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] transition-colors cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+            <div className="flex-1 px-6 pt-6 pb-4">
+              <div className="flex flex-col gap-1">
+                {navLinks.map((link) => {
+                  const currentIndex = linkIndex++;
+                  return link.children ? (
+                    <motion.div
+                      key={link.label}
+                      variants={linkVariants}
+                      custom={currentIndex}
                     >
-                      {link.label}
-                      <ChevronDown
-                        className={`w-5 h-5 transition-transform duration-200 ${
-                          expandedItem === link.label ? "rotate-180" : ""
-                        }`}
-                      />
-                    </button>
-                    <AnimatePresence>
-                      {expandedItem === link.label && (
+                      <button
+                        onClick={() =>
+                          setExpandedItem(
+                            expandedItem === link.label ? null : link.label
+                          )
+                        }
+                        aria-expanded={expandedItem === link.label}
+                        className="w-full flex items-center justify-between py-3.5 group cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+                      >
+                        <div className="flex items-center gap-4">
+                          <span
+                            className="text-xs font-mono tabular-nums"
+                            style={{ color: "rgba(var(--accent-rgb), 0.5)" }}
+                          >
+                            {String(currentIndex + 1).padStart(2, "0")}
+                          </span>
+                          <span className="text-lg font-medium text-[var(--text-nav)] group-hover:text-[var(--text-nav-hover)] transition-colors">
+                            {link.label}
+                          </span>
+                        </div>
                         <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
+                          animate={{ rotate: expandedItem === link.label ? 90 : 0 }}
                           transition={{ duration: 0.2 }}
-                          className="overflow-hidden pl-4"
                         >
-                          {link.children.map((child) => (
-                            <Link
-                              key={child.href}
-                              href={child.href}
-                              onClick={onClose}
-                              className="block py-2.5 text-lg text-[var(--white-muted)] hover:text-[var(--text-nav-hover)] transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
-                            >
-                              {child.label}
-                            </Link>
-                          ))}
+                          <ChevronRight
+                            className="w-4 h-4 text-[var(--text-nav)] group-hover:text-[var(--gold-base)] transition-colors"
+                          />
                         </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                ) : (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={onClose}
-                    className="block py-3 text-xl text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
-                  >
-                    {link.label}
-                  </Link>
-                )
-              )}
+                      </button>
+                      <AnimatePresence>
+                        {expandedItem === link.label && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+                            className="overflow-hidden"
+                          >
+                            <div
+                              className="ml-10 pl-4 mb-2 border-l"
+                              style={{
+                                borderColor: "rgba(var(--accent-rgb), 0.2)",
+                              }}
+                            >
+                              {link.children.map((child, ci) => (
+                                <motion.div
+                                  key={child.href}
+                                  initial={{ opacity: 0, x: 10 }}
+                                  animate={{
+                                    opacity: 1,
+                                    x: 0,
+                                    transition: { delay: ci * 0.05 },
+                                  }}
+                                >
+                                  <Link
+                                    href={child.href}
+                                    onClick={onClose}
+                                    className="block py-2.5 text-[15px] text-[var(--white-muted)] hover:text-[var(--text-nav-hover)] transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+                                  >
+                                    {child.label}
+                                  </Link>
+                                </motion.div>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key={link.href}
+                      variants={linkVariants}
+                      custom={currentIndex}
+                    >
+                      <Link
+                        href={link.href}
+                        onClick={onClose}
+                        className="flex items-center gap-4 py-3.5 group rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+                      >
+                        <span
+                          className="text-xs font-mono tabular-nums"
+                          style={{ color: "rgba(var(--accent-rgb), 0.5)" }}
+                        >
+                          {String(currentIndex + 1).padStart(2, "0")}
+                        </span>
+                        <span className="text-lg font-medium text-[var(--text-nav)] group-hover:text-[var(--text-nav-hover)] transition-colors">
+                          {link.label}
+                        </span>
+                      </Link>
+                    </motion.div>
+                  );
+                })}
+              </div>
             </div>
 
-            {/* CTA */}
-            <div className="mt-10">
-              <Link href="/plan-builder" onClick={onClose}>
-                <Button variant="primary" size="lg" className="w-full">
-                  Get Your Growth Plan
-                </Button>
-              </Link>
+            {/* Bottom section */}
+            <div className="mt-auto px-6 pb-8">
+              {/* Divider */}
+              <div
+                className="h-px mb-6"
+                style={{
+                  background:
+                    "linear-gradient(90deg, rgba(var(--accent-rgb), 0.3), rgba(var(--accent-rgb), 0.1), transparent)",
+                }}
+              />
+
+              {/* CTA */}
+              <motion.div variants={ctaVariants}>
+                <Link href="/plan-builder" onClick={onClose}>
+                  <Button variant="primary" size="lg" className="w-full group/cta">
+                    Get Your Growth Plan
+                    <ChevronRight className="w-4 h-4 ml-1.5 transition-transform duration-200 group-hover/cta:translate-x-0.5" />
+                  </Button>
+                </Link>
+              </motion.div>
+
+              {/* Theme toggle + copyright */}
+              <motion.div
+                variants={ctaVariants}
+                className="flex items-center justify-between mt-6"
+              >
+                <ThemeToggle />
+                <span
+                  className="text-xs"
+                  style={{ color: "rgba(var(--accent-rgb), 0.4)" }}
+                >
+                  Accelerate Agency
+                </span>
+              </motion.div>
             </div>
           </motion.nav>
         </motion.div>

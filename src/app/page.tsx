@@ -89,20 +89,26 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
       <Hero />
+      {/* Signature gold accent line */}
+      <div className="relative bg-[var(--bg-base)]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="h-px w-20 bg-gradient-to-r from-[var(--gold-base)] to-transparent" />
+        </div>
+      </div>
       <ServicesOverview />
       <SectionDivider variant="fade" />
       <WhoThisIsFor />
-      <SectionDivider variant="glow" />
+      <SectionDivider variant="line" />
       <ProblemSolution />
       <SectionDivider variant="glow" />
       <SocialProof />
-      <SectionDivider variant="glow" />
+      <SectionDivider variant="fade" />
       <HowItWorks />
       <SectionDivider variant="glow" />
       <WhyAccelerate />
-      <SectionDivider variant="glow" />
+      <SectionDivider variant="line" />
       <Integrations />
-      <SectionDivider variant="glow" />
+      <SectionDivider variant="fade" />
       <LeadMagnet />
       <SectionDivider variant="glow" />
       <HomeFAQ />

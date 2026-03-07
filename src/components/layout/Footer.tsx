@@ -8,6 +8,8 @@ import { gsap } from "@/lib/gsap-init";
 import { prefersReducedMotion } from "@/lib/utils";
 import { isValidEmail } from "@/lib/validation";
 import { SectionDivider } from "@/components/ui/SectionDivider";
+import { trackConversion } from "@/lib/analytics";
+import { getUTMParams, clearUTMParams } from "@/lib/utm";
 
 const footerColumns = [
   {
@@ -98,7 +100,7 @@ export function Footer() {
       const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: trimmed }),
+        body: JSON.stringify({ email: trimmed, utm: getUTMParams() }),
       });
 
       if (!res.ok) {
@@ -106,6 +108,8 @@ export function Footer() {
         throw new Error(data.error || "Something went wrong.");
       }
 
+      trackConversion("Newsletter Subscribed");
+      clearUTMParams();
       setStatus("success");
       setEmail("");
     } catch (err) {

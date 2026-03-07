@@ -57,7 +57,9 @@ const mdxComponents = {
 };
 
 export function generateStaticParams() {
-  return getAllArticles().map((article) => ({
+  // Include scheduled articles so pages are pre-built at deploy time.
+  // They return notFound() until their date arrives, then ISR revalidates to live content.
+  return getAllArticles({ includeScheduled: true }).map((article) => ({
     slug: article.slug,
   }));
 }
@@ -152,7 +154,7 @@ export default async function ArticlePage({
       {/* ------------------------------------------------------------------ */}
       {/* Article Hero Header                                                 */}
       {/* ------------------------------------------------------------------ */}
-      <section className="relative pt-28 pb-16 bg-[var(--bg-section-warm)] overflow-hidden">
+      <section className="relative pt-24 pb-12 bg-[var(--bg-section-warm)] overflow-hidden">
         {/* Atmospheric glow */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full bg-radial from-[rgba(var(--accent-rgb),0.05)] to-transparent" />

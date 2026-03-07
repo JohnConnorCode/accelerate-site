@@ -9,7 +9,9 @@ import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap-init";
 import { prefersReducedMotion } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
+import { SignalMark } from "@/components/ui/SignalMark";
 import { heroReveal, heroStaggerDramatic } from "@/lib/animations";
+import { trackConversion } from "@/lib/analytics";
 
 const HeroCanvas = dynamic(
   () => import("@/components/three/HeroCanvas"),
@@ -75,6 +77,11 @@ export function Hero() {
         }}
       />
 
+      {/* Background SignalMark */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[4] opacity-40">
+        <SignalMark size="lg" />
+      </div>
+
       <div
         ref={contentRef}
         className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center pointer-events-none"
@@ -99,7 +106,7 @@ export function Hero() {
             <span className="text-[var(--heading-color)]">Grow Your Company</span>
             <br />
             <span className="text-[var(--heading-color)]">and Revenue </span>
-            <span className="text-gold-gradient">on Autopilot</span>
+            <span className="text-gold-gradient font-editorial">on Autopilot</span>
           </motion.h1>
 
           <motion.p
@@ -115,13 +122,21 @@ export function Hero() {
             variants={heroReveal}
             className="flex flex-col sm:flex-row gap-4 justify-center mb-14"
           >
-            <Link href="/contact" className="pointer-events-auto">
+            <Link
+              href="/contact"
+              className="pointer-events-auto"
+              onClick={() => trackConversion("CTA Click", { section: "Hero", cta_text: "Book a Free Discovery Call", href: "/contact" })}
+            >
               <Button variant="primary" size="lg" className="w-full sm:w-auto">
                 Book a Free Discovery Call
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
-            <Link href="/resources" className="pointer-events-auto">
+            <Link
+              href="/resources"
+              className="pointer-events-auto"
+              onClick={() => trackConversion("CTA Click", { section: "Hero", cta_text: "Get the AI Playbook", href: "/resources" })}
+            >
               <Button
                 variant="secondary"
                 size="lg"

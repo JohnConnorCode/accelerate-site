@@ -5,6 +5,8 @@ import { X, Send, Loader2 } from "lucide-react";
 import { ChatMessage } from "./ChatMessage";
 import { ChatLeadCapture } from "./ChatLeadCapture";
 import type { ChatMessage as ChatMessageType } from "@/lib/types";
+import { trackConversion } from "@/lib/analytics";
+import { getUTMParams, clearUTMParams } from "@/lib/utm";
 
 interface ChatPanelProps {
   onClose: () => void;
@@ -115,6 +117,8 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
   };
 
   const handleLeadSubmit = async (name: string, email: string) => {
+    trackConversion("Chat Lead Captured");
+    clearUTMParams();
     setLeadCaptured(true);
     setShowLeadCapture(false);
 
@@ -126,6 +130,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
           name,
           email,
           conversation: messages,
+          utm: getUTMParams(),
         }),
       });
     } catch {

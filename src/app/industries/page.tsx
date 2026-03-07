@@ -37,7 +37,7 @@ export default function IndustriesPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
-      <section className="relative pt-28 pb-20 bg-[var(--bg-section-warm)] overflow-hidden">
+      <section className="relative pt-24 pb-16 bg-[var(--bg-section-warm)] overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full bg-radial from-[rgba(var(--accent-rgb),0.05)] to-transparent" />
         </div>

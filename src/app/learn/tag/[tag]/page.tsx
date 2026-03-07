@@ -8,7 +8,7 @@ import Link from "next/link";
 import { Clock, ArrowRight, ChevronRight } from "lucide-react";
 
 export function generateStaticParams() {
-  return getAllTags().map(({ tag }) => ({ tag }));
+  return getAllTags({ includeScheduled: true }).map(({ tag }) => ({ tag }));
 }
 
 export async function generateMetadata({

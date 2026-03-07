@@ -42,7 +42,6 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
   ) => {
     const internalRef = useRef<HTMLDivElement>(null);
 
-    // Merge refs
     const setRef = useCallback(
       (node: HTMLDivElement | null) => {
         (internalRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
@@ -54,19 +53,28 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
 
     const handleMouseMove = useCallback(
       (e: React.MouseEvent<HTMLDivElement>) => {
-        if (hover === "lift" && !prefersReducedMotion()) {
-          const el = internalRef.current;
-          if (el) {
-            const rect = el.getBoundingClientRect();
-            const x = (e.clientX - rect.left) / rect.width;
-            const y = (e.clientY - rect.top) / rect.height;
-            const tiltX = (0.5 - y) * 5;
-            const tiltY = (x - 0.5) * 5;
-            el.style.transform = `perspective(800px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) translateY(-4px)`;
-            el.style.setProperty("--glow-x", `${x * 100}%`);
-            el.style.setProperty("--glow-y", `${y * 100}%`);
-          }
+        if (hover === "none" || prefersReducedMotion()) {
+          if (externalMouseMove) externalMouseMove(e);
+          return;
         }
+        const el = internalRef.current;
+        if (!el) return;
+
+        const rect = el.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width;
+        const y = (e.clientY - rect.top) / rect.height;
+
+        // Cursor-follow spotlight on ALL interactive cards
+        el.style.setProperty("--glow-x", `${e.clientX - rect.left}px`);
+        el.style.setProperty("--glow-y", `${e.clientY - rect.top}px`);
+
+        // Extra 3D tilt for "lift" hover
+        if (hover === "lift") {
+          const tiltX = (0.5 - y) * 5;
+          const tiltY = (x - 0.5) * 5;
+          el.style.transform = `perspective(800px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) translateY(-4px)`;
+        }
+
         if (externalMouseMove) externalMouseMove(e);
       },
       [hover, externalMouseMove]
@@ -76,9 +84,7 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
       (e: React.MouseEvent<HTMLDivElement>) => {
         if (hover === "lift") {
           const el = internalRef.current;
-          if (el) {
-            el.style.transform = "";
-          }
+          if (el) el.style.transform = "";
         }
         if (externalMouseLeave) externalMouseLeave(e);
       },
@@ -87,11 +93,11 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
 
     const hoverClass =
       hover === "glow"
-        ? "hover:border-gold-glow transition-all duration-300"
+        ? "card-spotlight hover:border-gold-glow transition-all duration-300"
         : hover === "lift"
-          ? "card-tilt card-glow-spot hover:border-gold-glow transition-[border-color,box-shadow] duration-300"
+          ? "card-tilt card-spotlight hover:border-gold-glow transition-[border-color,box-shadow,transform] duration-300"
           : hover === "shine"
-            ? "card-hover-shine hover:border-gold-glow transition-all duration-300"
+            ? "card-spotlight card-hover-shine hover:border-gold-glow transition-all duration-300"
             : "transition-all duration-300";
 
     return (

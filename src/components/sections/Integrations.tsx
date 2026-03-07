@@ -22,7 +22,6 @@ import { gsap } from "@/lib/gsap-init";
 import { prefersReducedMotion } from "@/lib/utils";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { GlassCard } from "@/components/ui/GlassCard";
 import { integrationTools } from "@/content/integrations";
 
 const iconMap: Record<string, LucideIcon> = {
@@ -50,14 +49,14 @@ export function Integrations() {
     const cards = gridRef.current.querySelectorAll("[data-tool-card]");
 
     gsap.fromTo(cards,
-      { opacity: 0, y: 24 },
+      { opacity: 0, scale: 0.8 },
       {
         opacity: 1,
-        y: 0,
-        duration: 0.5,
+        scale: 1,
+        duration: 0.4,
         delay: 0.2,
-        stagger: 0.05,
-        ease: "power2.out",
+        stagger: 0.04,
+        ease: "back.out(1.5)",
         scrollTrigger: {
           trigger: gridRef.current,
           start: "top 85%",
@@ -68,16 +67,15 @@ export function Integrations() {
   }, { scope: gridRef });
 
   return (
-    <section className="relative py-32 bg-[var(--bg-section-deep)] overflow-hidden">
+    <section className="relative py-24 bg-[var(--bg-section-deep)] overflow-hidden">
       <div className="grid-perspective" />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <ScrollReveal animation="fade-up">
+        <ScrollReveal animation="clip-reveal">
           <SectionHeader
             label="Integrations"
             heading={
               <>
-                Works with the Tools{" "}
-                <span className="text-gold-gradient">You Already Use</span>
+                Your Stack. <span className="text-gold-gradient">Our Glue.</span>
               </>
             }
             description="We&apos;re tool-agnostic. We connect to your existing stack and recommend what actually fits — not what pays us a commission."
@@ -93,14 +91,12 @@ export function Integrations() {
             const Icon = iconMap[tool.icon];
             if (!Icon && !tool.logo) return null;
             return (
-              <GlassCard
+              <div
                 key={tool.name}
                 data-tool-card
-                hover="glow"
-                padding="sm"
-                className="flex flex-col items-center gap-3 cursor-default group"
+                className="card-outline rounded-xl p-3 sm:p-4 flex flex-col items-center gap-3 cursor-default group hover:border-[var(--border-gold)] transition-all duration-300"
               >
-                <div className="w-10 h-10 rounded-xl bg-[var(--glow-soft)] border border-[var(--border-gold)] flex items-center justify-center group-hover:bg-[var(--glow-medium)] transition-colors">
+                <div className="w-10 h-10 rounded-xl bg-transparent border border-[var(--border-glass)] flex items-center justify-center group-hover:border-[var(--border-gold)] group-hover:bg-[var(--glow-soft)] transition-all">
                   {tool.logo ? (
                     <Image
                       src={tool.logo}
@@ -116,7 +112,7 @@ export function Integrations() {
                 <span className="text-xs font-medium text-[var(--white-primary)] text-center leading-tight">
                   {tool.name}
                 </span>
-              </GlassCard>
+              </div>
             );
           })}
         </div>

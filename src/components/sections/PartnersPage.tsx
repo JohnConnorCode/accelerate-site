@@ -25,6 +25,8 @@ import { FinalCTA } from "@/components/sections/FinalCTA";
 import { partnerTiers } from "@/content/partners";
 import { staggerBento, bentoItem, scaleIn, fadeUp } from "@/lib/animations";
 import { cn } from "@/lib/utils";
+import { trackConversion } from "@/lib/analytics";
+import { getUTMParams, clearUTMParams } from "@/lib/utm";
 
 const tierIcons: Record<string, LucideIcon> = {
   "Referral Partner": Users,
@@ -60,10 +62,12 @@ export function PartnersPage() {
       const res = await fetch("/api/partner-apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, utm: getUTMParams() }),
       });
 
       if (!res.ok) throw new Error("Request failed");
+      trackConversion("Partner Applied", { partner_type: formData.partnerType });
+      clearUTMParams();
       setSubmitted(true);
     } catch {
       setError("Something went wrong. Please try again or email us at partners@acceleratewith.us.");

@@ -1,3 +1,4 @@
+import { PageEngagementTracker } from "@/components/layout/PageEngagementTracker";
 import { seoMetadata } from "@/lib/og";
 import { verticals } from "@/content/verticals";
 import { VerticalPage } from "@/components/sections/VerticalPage";
@@ -33,6 +34,7 @@ export default function RealEstatePage() {
         }}
       />
       <VerticalPage vertical={vertical} preSelectedIndustry="real_estate" />
+      <PageEngagementTracker />
     </>
   );
 }
