@@ -26,6 +26,7 @@ import {
   Building2,
   FileCheck,
   DollarSign,
+  Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -60,6 +61,7 @@ const sidebarSections = [
   {
     label: "System",
     links: [
+      { label: "Emails", href: "/admin/emails", icon: Eye },
       { label: "Settings", href: "/admin/settings", icon: Settings },
     ],
   },
