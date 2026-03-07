@@ -114,7 +114,28 @@ export const heroReveal: Variants = {
     opacity: 1,
     y: 0,
     filter: "blur(0px)",
+    transition: { duration: 0.9, ease: [0.25, 0.4, 0.25, 1] },
+  },
+};
+
+export const heroTagline: Variants = {
+  hidden: { opacity: 0, y: 16, letterSpacing: "0.3em" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    letterSpacing: "0.05em",
     transition: { duration: 0.8, ease: [0.25, 0.4, 0.25, 1] },
+  },
+};
+
+export const heroHeadline: Variants = {
+  hidden: { opacity: 0, y: 50, filter: "blur(12px)", scale: 0.97 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    scale: 1,
+    transition: { duration: 1.0, ease: [0.22, 1, 0.36, 1] },
   },
 };
 
@@ -123,8 +144,8 @@ export const heroStaggerDramatic: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.3,
+      staggerChildren: 0.18,
+      delayChildren: 0.5,
     },
   },
 };
@@ -239,6 +260,53 @@ export const staggerDramatic: Variants = {
       staggerChildren: 0.2,
       delayChildren: 0.3,
     },
+  },
+};
+
+// ========================================
+// HEADER ENTRANCE ANIMATIONS
+// ========================================
+
+export const headerEntrance: Variants = {
+  hidden: { opacity: 0, y: -20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: [0.25, 0.4, 0.25, 1],
+      staggerChildren: 0.06,
+      delayChildren: 0.15,
+    },
+  },
+};
+
+export const headerLogoReveal: Variants = {
+  hidden: { opacity: 0, x: -16, filter: "blur(6px)" },
+  visible: {
+    opacity: 1,
+    x: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.7, ease: [0.25, 0.4, 0.25, 1] },
+  },
+};
+
+export const headerNavItem: Variants = {
+  hidden: { opacity: 0, y: -10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: [0.25, 0.4, 0.25, 1] },
+  },
+};
+
+export const headerCtaReveal: Variants = {
+  hidden: { opacity: 0, x: 16, filter: "blur(6px)" },
+  visible: {
+    opacity: 1,
+    x: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.7, ease: [0.25, 0.4, 0.25, 1] },
   },
 };
 

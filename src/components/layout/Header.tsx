@@ -9,6 +9,12 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "./MobileNav";
 import { Logo } from "@/components/ui/Logo";
+import {
+  headerEntrance,
+  headerLogoReveal,
+  headerNavItem,
+  headerCtaReveal,
+} from "@/lib/animations";
 
 interface NavChild {
   label: string;
@@ -72,10 +78,13 @@ export function Header() {
 
   return (
     <>
-      <header
+      <motion.header
         ref={headerRef}
+        variants={headerEntrance}
+        initial="hidden"
+        animate="visible"
         className={cn(
-          "fixed top-0 left-0 right-0 z-[90] transition-all duration-500",
+          "fixed top-0 left-0 right-0 z-[90] transition-[background-color,backdrop-filter,padding,box-shadow] duration-500",
           scrolled
             ? "py-3 shadow-[0_20px_70px_rgba(0,0,0,0.45)]"
             : "py-5"
@@ -88,14 +97,17 @@ export function Header() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Logo */}
-          <Logo />
+          <motion.div variants={headerLogoReveal}>
+            <Logo />
+          </motion.div>
 
           {/* Desktop Nav */}
           <nav className="hidden lg:flex items-center gap-6">
             {navLinks.map((link) =>
               link.children ? (
-                <div
+                <motion.div
                   key={link.label}
+                  variants={headerNavItem}
                   className="relative"
                   onMouseEnter={() => setOpenDropdown(link.label)}
                   onMouseLeave={() => setOpenDropdown(null)}
@@ -146,21 +158,22 @@ export function Header() {
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </div>
+                </motion.div>
               ) : (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-sm text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] transition-colors rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
-                >
-                  {link.label}
-                </Link>
+                <motion.div key={link.href} variants={headerNavItem}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] transition-colors rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+                  >
+                    {link.label}
+                  </Link>
+                </motion.div>
               )
             )}
           </nav>
 
           {/* Desktop CTA + Theme Toggle */}
-          <div className="hidden lg:flex items-center gap-3">
+          <motion.div variants={headerCtaReveal} className="hidden lg:flex items-center gap-3">
             <ThemeToggle />
             <Link href="/plan-builder">
               <Button variant="primary" size="sm" className="group/cta">
@@ -168,10 +181,11 @@ export function Header() {
                 <ArrowRight className="w-4 h-4 ml-1.5 transition-transform duration-200 group-hover/cta:translate-x-0.5" />
               </Button>
             </Link>
-          </div>
+          </motion.div>
 
           {/* Mobile Hamburger */}
-          <button
+          <motion.button
+            variants={headerCtaReveal}
             className="lg:hidden relative w-10 h-10 flex items-center justify-center -mr-2 cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
             onClick={() => setMobileOpen(true)}
             aria-label="Open navigation menu"
@@ -181,7 +195,7 @@ export function Header() {
               <span className="block h-[2px] w-4 rounded-full bg-[var(--gold-base)] transition-all duration-300" />
               <span className="block h-[2px] w-5 rounded-full bg-[var(--gold-base)] transition-all duration-300" />
             </div>
-          </button>
+          </motion.button>
         </div>
         {/* Animated gold gradient bottom border */}
         <div
@@ -191,7 +205,7 @@ export function Header() {
             background: "linear-gradient(90deg, transparent, rgba(var(--accent-rgb),0.4), rgba(var(--accent-rgb),0.3), rgba(var(--accent-rgb),0.4), transparent)",
           }}
         />
-      </header>
+      </motion.header>
 
       {/* Mobile Nav Overlay */}
       <MobileNav

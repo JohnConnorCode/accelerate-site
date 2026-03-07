@@ -10,7 +10,12 @@ import { gsap } from "@/lib/gsap-init";
 import { prefersReducedMotion } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { SignalMark } from "@/components/ui/SignalMark";
-import { heroReveal, heroStaggerDramatic } from "@/lib/animations";
+import {
+  heroReveal,
+  heroTagline,
+  heroHeadline,
+  heroStaggerDramatic,
+} from "@/lib/animations";
 import { trackConversion } from "@/lib/analytics";
 
 const HeroCanvas = dynamic(
@@ -92,14 +97,14 @@ export function Hero() {
           animate="visible"
         >
           <motion.p
-            variants={heroReveal}
+            variants={heroTagline}
             className="text-sm font-medium text-[var(--gold-light)] tracking-wide uppercase mb-4"
           >
             AI-Powered Growth for Small Business
           </motion.p>
 
           <motion.h1
-            variants={heroReveal}
+            variants={heroHeadline}
             className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-[-0.03em] mb-6"
             style={{ textWrap: "balance" } as React.CSSProperties}
           >
