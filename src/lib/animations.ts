@@ -119,11 +119,11 @@ export const heroReveal: Variants = {
 };
 
 export const heroTagline: Variants = {
-  hidden: { opacity: 0, y: 16, letterSpacing: "0.3em" },
+  hidden: { opacity: 0, y: 20, filter: "blur(8px)" },
   visible: {
     opacity: 1,
     y: 0,
-    letterSpacing: "0.05em",
+    filter: "blur(0px)",
     transition: { duration: 0.8, ease: [0.25, 0.4, 0.25, 1] },
   },
 };

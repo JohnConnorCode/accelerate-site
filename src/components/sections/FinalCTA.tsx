@@ -52,25 +52,11 @@ export function FinalCTA({
 
     // Parallax: background layers move at different speeds
     const meshBg = sectionRef.current.querySelector("[data-parallax-mesh]");
-    const gridBg = sectionRef.current.querySelector("[data-parallax-grid]");
     const glowBg = sectionRef.current.querySelector("[data-parallax-glow]");
 
     if (meshBg) {
       gsap.fromTo(meshBg, { y: 60 }, {
         y: -60,
-        ease: "none",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top bottom",
-          end: "bottom top",
-          scrub: 1,
-        },
-      });
-    }
-
-    if (gridBg) {
-      gsap.fromTo(gridBg, { y: 30 }, {
-        y: -30,
         ease: "none",
         scrollTrigger: {
           trigger: sectionRef.current,
@@ -129,7 +115,6 @@ export function FinalCTA({
       {/* Atmospheric background layers */}
       <div className="absolute inset-0 pointer-events-none">
         <div data-parallax-mesh className="absolute inset-0 gradient-mesh opacity-25" />
-        <div data-parallax-grid className="absolute inset-0 grid-overlay opacity-15" />
         <div className="absolute top-1/2 right-[10%] -translate-y-1/2 opacity-30">
           <SignalMark size="lg" />
         </div>
@@ -141,6 +126,50 @@ export function FinalCTA({
           }}
         />
       </div>
+
+      {/* Tron perspective grid floor + horizon glow — matches hero */}
+      <div
+        className="absolute bottom-0 left-0 right-0 pointer-events-none z-[1]"
+        style={{
+          height: "45%",
+          overflow: "hidden",
+          maskImage: "linear-gradient(to bottom, transparent 0%, black 3%, black 80%, transparent 100%)",
+          WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 3%, black 80%, transparent 100%)",
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: "-20%",
+            width: "140%",
+            height: "100%",
+            perspective: "500px",
+            perspectiveOrigin: "50% 0%",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage: "linear-gradient(rgba(212,175,55,0.13) 1px, transparent 1px), linear-gradient(90deg, rgba(212,175,55,0.13) 1px, transparent 1px)",
+              backgroundSize: "50px 50px",
+              transform: "rotateX(72deg)",
+              transformOrigin: "50% 0%",
+              animation: "tron-grid-scroll 8s linear infinite",
+            }}
+          />
+        </div>
+      </div>
+      {/* Horizon glow line */}
+      <div
+        className="absolute left-0 right-0 pointer-events-none z-[2]"
+        style={{
+          bottom: "45%",
+          height: "48px",
+          background: "linear-gradient(to bottom, transparent, rgba(212,175,55,0.06) 40%, rgba(212,175,55,0.12) 50%, rgba(212,175,55,0.06) 60%, transparent)",
+        }}
+      />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
         <h2
