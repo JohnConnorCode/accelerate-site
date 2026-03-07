@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, lazy, Suspense } from "react";
 import Link from "next/link";
 import { ArrowRight, BookOpen } from "lucide-react";
 import { useGSAP } from "@gsap/react";
@@ -8,6 +8,8 @@ import { gsap } from "@/lib/gsap-init";
 import { prefersReducedMotion } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { trackConversion } from "@/lib/analytics";
+
+const HeroCanvas = lazy(() => import("@/components/three/HeroCanvas"));
 
 export function LeadMagnet() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -17,7 +19,6 @@ export function LeadMagnet() {
     if (prefersReducedMotion()) return;
 
     const content = sectionRef.current.querySelector("[data-magnet-content]");
-    const glow = sectionRef.current.querySelector("[data-magnet-glow]");
 
     if (content) {
       gsap.fromTo(content,
@@ -36,35 +37,14 @@ export function LeadMagnet() {
         }
       );
     }
-
-    if (glow) {
-      gsap.fromTo(glow,
-        { scale: 0.6, opacity: 0 },
-        {
-          scale: 1,
-          opacity: 1,
-          duration: 1.2,
-          ease: "power1.out",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 80%",
-            toggleActions: "play none none none",
-          },
-        }
-      );
-    }
   }, { scope: sectionRef });
 
   return (
     <section ref={sectionRef} className="py-24 px-4 sm:px-6 relative overflow-hidden bg-[var(--bg-base)]">
-      <div className="absolute inset-0 grid-dots-glow pointer-events-none" />
-      {/* Background glow */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div
-          data-magnet-glow
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(600px,90vw)] h-[400px] bg-[radial-gradient(ellipse_at_center,rgba(var(--accent-rgb),0.06),transparent_70%)]"
-        />
-      </div>
+      {/* Interactive star field background — same as hero */}
+      <Suspense fallback={null}>
+        <HeroCanvas />
+      </Suspense>
 
       <div
         data-magnet-content
