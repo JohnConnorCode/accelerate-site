@@ -7,8 +7,12 @@ import {
   heroReveal,
   heroStaggerDramatic,
 } from "@/lib/animations";
+import { StarField } from "@/components/ui/StarField";
+import { AmbientOrbs } from "@/components/ui/AmbientOrbs";
+import { BokehField } from "@/components/ui/BokehField";
 
 type HeroVariant = "centered" | "split" | "immersive" | "editorial";
+type HeroBackground = "starfield" | "orbs" | "none";
 
 interface PageHeroProps {
   label: string;
@@ -26,6 +30,33 @@ interface PageHeroProps {
   accentText?: string;
   /** Custom animation variants for child stagger items */
   itemAnimation?: import("framer-motion").Variants;
+  /** Background treatment. "starfield" = StarField + AmbientOrbs, "orbs" = AmbientOrbs only, "none" = gradient mesh (default) */
+  background?: HeroBackground;
+}
+
+function HeroBackground({ type }: { type: HeroBackground }) {
+  if (type === "starfield") {
+    return (
+      <>
+        <StarField />
+        <AmbientOrbs count={2} />
+      </>
+    );
+  }
+  if (type === "orbs") {
+    return <BokehField />;
+  }
+  return null;
+}
+
+function DefaultBackground() {
+  return (
+    <>
+      <div className="absolute inset-0 gradient-mesh opacity-40" />
+      <div className="absolute inset-0 grid-overlay opacity-20" />
+      <div className="hero-glow-orb hero-glow-orb-gold absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+    </>
+  );
 }
 
 export function PageHero({
@@ -39,8 +70,10 @@ export function PageHero({
   backgroundLayers,
   accentText,
   itemAnimation,
+  background = "none",
 }: PageHeroProps) {
   const itemVariant = itemAnimation || heroReveal;
+  const hasCustomBg = background !== "none";
   if (variant === "split") {
     return (
       <section
@@ -51,9 +84,15 @@ export function PageHero({
       >
         {/* Atmospheric background */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 gradient-mesh opacity-40" />
-          <div className="absolute inset-0 grid-overlay opacity-20" />
-          <div className="hero-glow-orb hero-glow-orb-gold absolute top-1/4 left-1/3 -translate-x-1/2 -translate-y-1/2" />
+          {hasCustomBg ? (
+            <HeroBackground type={background} />
+          ) : (
+            <>
+              <div className="absolute inset-0 gradient-mesh opacity-40" />
+              <div className="absolute inset-0 grid-overlay opacity-20" />
+              <div className="hero-glow-orb hero-glow-orb-gold absolute top-1/4 left-1/3 -translate-x-1/2 -translate-y-1/2" />
+            </>
+          )}
         </div>
 
         <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -114,9 +153,15 @@ export function PageHero({
       >
         {/* Background layers */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 gradient-mesh opacity-40" />
-          <div className="absolute inset-0 grid-overlay opacity-15" />
-          <div className="hero-glow-orb hero-glow-orb-gold absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+          {hasCustomBg ? (
+            <HeroBackground type={background} />
+          ) : (
+            <>
+              <div className="absolute inset-0 gradient-mesh opacity-40" />
+              <div className="absolute inset-0 grid-overlay opacity-15" />
+              <div className="hero-glow-orb hero-glow-orb-gold absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+            </>
+          )}
           {backgroundLayers}
         </div>
 
@@ -165,7 +210,11 @@ export function PageHero({
       >
         {/* Sparse background */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 gradient-mesh opacity-25" />
+          {hasCustomBg ? (
+            <HeroBackground type={background} />
+          ) : (
+            <div className="absolute inset-0 gradient-mesh opacity-25" />
+          )}
         </div>
 
         {/* Accent watermark */}
@@ -217,9 +266,11 @@ export function PageHero({
     >
       {/* Atmospheric background */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0 gradient-mesh opacity-40" />
-        <div className="absolute inset-0 grid-overlay opacity-20" />
-        <div className="hero-glow-orb hero-glow-orb-gold absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+        {hasCustomBg ? (
+          <HeroBackground type={background} />
+        ) : (
+          <DefaultBackground />
+        )}
       </div>
 
       <div className="relative z-10 w-full max-w-4xl mx-auto px-4 sm:px-6 text-center">

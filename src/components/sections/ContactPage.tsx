@@ -8,6 +8,7 @@ import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { SectionDivider } from "@/components/ui/SectionDivider";
 import { PageHero } from "@/components/ui/PageHero";
 import { ContactForm } from "@/components/sections/ContactForm";
+import { heroFloatUp } from "@/lib/animations";
 
 export function ContactPageContent() {
   const heroVisual = (
@@ -60,6 +61,8 @@ export function ContactPageContent() {
       {/* Hero — split with info cards */}
       <PageHero
         variant="split"
+        background="starfield"
+        itemAnimation={heroFloatUp}
         label="Contact"
         title={
           <>

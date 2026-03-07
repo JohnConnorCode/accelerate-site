@@ -55,6 +55,8 @@ export function ChangelogPage() {
       {/* Hero */}
       <PageHero
         label="Changelog"
+        background="orbs"
+        itemAnimation={fadeUp}
         title={
           <>
             What&apos;s New at{" "}

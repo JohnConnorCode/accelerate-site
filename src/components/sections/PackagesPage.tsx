@@ -16,7 +16,7 @@ import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { PageHero } from "@/components/ui/PageHero";
 import { SectionDivider } from "@/components/ui/SectionDivider";
 import { FinalCTA } from "@/components/sections/FinalCTA";
-import { staggerBento, bentoItem, scaleIn, heroLineWipe } from "@/lib/animations";
+import { staggerBento, bentoItem, scaleIn, clipReveal } from "@/lib/animations";
 import { cn, formatCurrency } from "@/lib/utils";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { packages, packageFaqs } from "@/content/packages";
@@ -236,9 +236,10 @@ export function PackagesPageContent() {
       {/* Hero */}
       <PageHero
         label="Packages"
+        background="starfield"
         title={<>Transparent Pricing,{" "}<span className="text-gold-gradient text-shimmer">Real Results</span></>}
         description="Transparent pricing, clear deliverables. Pick the package that matches where you are today and upgrade whenever you're ready."
-        itemAnimation={heroLineWipe}
+        itemAnimation={clipReveal}
       />
 
       {/* Pricing Cards */}

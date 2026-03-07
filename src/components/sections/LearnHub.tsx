@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { Clock, ArrowRight, Search, Mail, BookOpen, FileText, Sparkles, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { fadeUp, scaleIn, heroFloatUp } from "@/lib/animations";
+import { fadeUp, scaleIn, heroFloatUp, scaleRotate } from "@/lib/animations";
 import {
   AnimateOnScroll,
   StaggerContainer,
@@ -68,6 +68,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
       {/* Hero — centered with unique float animation */}
       <PageHero
         label="Learning Hub"
+        background="orbs"
         title={
           <>
             Practical Guides for{" "}
@@ -75,7 +76,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
           </>
         }
         description="No fluff, no filler. AI, automation, and growth strategies you can implement today — written by people who actually run small businesses."
-        itemAnimation={heroFloatUp}
+        itemAnimation={scaleRotate}
       >
         <div className="flex items-center justify-center gap-6 flex-wrap mt-8 text-sm text-[var(--white-muted)]">
           <span className="flex items-center gap-2">

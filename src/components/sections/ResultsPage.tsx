@@ -18,7 +18,7 @@ import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { SectionDivider } from "@/components/ui/SectionDivider";
 import { PageHero } from "@/components/ui/PageHero";
 import { FinalCTA } from "@/components/sections/FinalCTA";
-import { heroReveal, heroStaggerDramatic, slideFromLeft, slideFromRight, scaleUp } from "@/lib/animations";
+import { heroReveal, heroStaggerDramatic, scaleIn, slideFromLeft, slideFromRight, scaleUp } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 import { caseStudies } from "@/content/case-studies";
 import type { Industry, CaseStudyFull } from "@/lib/types";
@@ -117,7 +117,9 @@ export function ResultsPageContent() {
       {/* Hero — qualitative proof points instead of CountUp metrics */}
       <PageHero
         variant="centered"
+        background="starfield"
         label="Client Results"
+        itemAnimation={scaleIn}
         title={
           <>
             Real Stories,{" "}

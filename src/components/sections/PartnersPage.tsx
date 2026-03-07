@@ -23,7 +23,7 @@ import { SectionDivider } from "@/components/ui/SectionDivider";
 import { PageHero } from "@/components/ui/PageHero";
 import { FinalCTA } from "@/components/sections/FinalCTA";
 import { partnerTiers } from "@/content/partners";
-import { staggerBento, bentoItem, scaleIn, fadeUp } from "@/lib/animations";
+import { staggerBento, bentoItem, scaleIn, fadeUp, clipRevealLeft } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 import { trackConversion } from "@/lib/analytics";
 import { getUTMParams, clearUTMParams } from "@/lib/utm";
@@ -81,6 +81,8 @@ export function PartnersPage() {
       {/* Hero — editorial */}
       <PageHero
         variant="editorial"
+        background="orbs"
+        itemAnimation={clipRevealLeft}
         label="Partner Program"
         title={
           <>

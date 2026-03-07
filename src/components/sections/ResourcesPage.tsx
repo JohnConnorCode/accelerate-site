@@ -11,7 +11,7 @@ import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { SectionDivider } from "@/components/ui/SectionDivider";
 import { AmbientOrbs } from "@/components/ui/AmbientOrbs";
 import { FinalCTA } from "@/components/sections/FinalCTA";
-import { staggerBento, bentoItem, clipRevealLeft } from "@/lib/animations";
+import { staggerBento, bentoItem, clipRevealLeft, slideFromRight } from "@/lib/animations";
 import { leadMagnets } from "@/content/lead-magnets";
 import { ResourceGate } from "@/components/sections/ResourceGate";
 import { useState } from "react";
@@ -40,6 +40,8 @@ export function ResourcesPage() {
       {/* Hero — editorial */}
       <PageHero
         variant="editorial"
+        background="orbs"
+        itemAnimation={slideFromRight}
         label="Free Resources"
         title={
           <>

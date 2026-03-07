@@ -70,6 +70,7 @@ export function AboutPageContent() {
       {/* Hero — immersive */}
       <PageHero
         variant="immersive"
+        background="starfield"
         label="About Us"
         title={
           <>

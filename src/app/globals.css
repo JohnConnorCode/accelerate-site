@@ -507,6 +507,25 @@ body {
    BACKGROUND GRADIENT ORBS
    ======================================== */
 
+/* Bokeh field — 3 drift paths for warm out-of-focus particles */
+@keyframes bokeh-drift-0 {
+  0%, 100% { transform: translate(-50%, -50%) translate(0, 0) scale(1); }
+  25% { transform: translate(-50%, -50%) translate(12px, -18px) scale(1.05); }
+  50% { transform: translate(-50%, -50%) translate(-8px, 14px) scale(0.95); }
+  75% { transform: translate(-50%, -50%) translate(16px, 8px) scale(1.02); }
+}
+@keyframes bokeh-drift-1 {
+  0%, 100% { transform: translate(-50%, -50%) translate(0, 0) scale(1); }
+  25% { transform: translate(-50%, -50%) translate(-14px, 10px) scale(0.97); }
+  50% { transform: translate(-50%, -50%) translate(18px, -12px) scale(1.04); }
+  75% { transform: translate(-50%, -50%) translate(-6px, -16px) scale(1); }
+}
+@keyframes bokeh-drift-2 {
+  0%, 100% { transform: translate(-50%, -50%) translate(0, 0) scale(1); }
+  33% { transform: translate(-50%, -50%) translate(10px, 16px) scale(1.06); }
+  66% { transform: translate(-50%, -50%) translate(-16px, -8px) scale(0.96); }
+}
+
 @keyframes drift-1 {
   0%, 100% { transform: translate(0, 0); }
   25% { transform: translate(20px, -15px); }

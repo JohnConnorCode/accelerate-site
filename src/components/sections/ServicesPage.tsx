@@ -195,6 +195,7 @@ export function ServicesPageContent() {
       {/* Hero */}
       <PageHero
         variant="split"
+        background="starfield"
         label="Our Services"
         title={
           <>
