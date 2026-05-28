@@ -93,7 +93,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
       <div>
         <PageHeader title="Client Not Found" />
         <p className="text-white-muted">This client does not exist.</p>
-        <Link href="/admin/clients" className="text-[var(--gold-light)] text-sm mt-2 inline-block">
+        <Link href="/admin/clients" className="text-gold-light text-sm mt-2 inline-block">
           Back to Clients
         </Link>
       </div>

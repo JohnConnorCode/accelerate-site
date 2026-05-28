@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Link from "next/link";
 
 interface ProposalSection {
   title: string;
@@ -56,7 +57,7 @@ export default async function ProposalPage({
 
   if (!proposal) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--bg-base)]">
+      <div className="min-h-screen flex items-center justify-center bg-bg-base">
         <div className="text-center">
           <h1 className="text-2xl font-display font-bold text-white-primary mb-2">
             Proposal Not Found
@@ -72,11 +73,11 @@ export default async function ProposalPage({
   const sections = proposal.content?.sections || [];
 
   return (
-    <div className="min-h-screen bg-[var(--bg-base)]">
+    <div className="min-h-screen bg-bg-base">
       {/* Header */}
       <header className="border-b border-border-glass">
         <div className="max-w-4xl mx-auto px-6 py-8">
-          <p className="text-xs text-[var(--gold-light)] uppercase tracking-wider mb-2">
+          <p className="text-xs text-gold-light uppercase tracking-wider mb-2">
             Proposal for {proposal.client_name}
           </p>
           <h1 className="text-3xl font-display font-bold text-white-primary mb-2">
@@ -162,9 +163,9 @@ export default async function ProposalPage({
         <footer className="mt-16 pt-8 border-t border-border-glass text-center">
           <p className="text-sm text-white-muted">
             Powered by{" "}
-            <a href="/" className="text-[var(--gold-light)] hover:text-[var(--gold-base)] transition-colors">
+            <Link href="/" className="text-gold-light hover:text-gold transition-colors">
               Accelerate
-            </a>
+            </Link>
           </p>
         </footer>
       </main>

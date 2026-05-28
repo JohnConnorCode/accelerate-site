@@ -155,7 +155,7 @@ export default function AdminLeadsPage() {
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-glass)] px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-[var(--gold-base)] transition-all"
+          className="rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-gold transition-all"
         >
           {statusOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -164,7 +164,7 @@ export default function AdminLeadsPage() {
         <select
           value={industryFilter}
           onChange={(e) => { setIndustryFilter(e.target.value); setPage(1); }}
-          className="rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-glass)] px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-[var(--gold-base)] transition-all"
+          className="rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-gold transition-all"
         >
           {industryOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>

@@ -113,7 +113,7 @@ export function ContactStep({ formData, onUpdate, onSubmit }: StepProps) {
                   ? "bg-gold-gradient border-transparent"
                   : errors.consent
                     ? "border-[var(--error)]"
-                    : "border-[var(--border-glass)]"
+                    : "border-border-glass"
               )}
             >
               {consent && (

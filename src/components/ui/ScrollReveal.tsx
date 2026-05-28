@@ -77,6 +77,17 @@ export function ScrollReveal({
 
     const el = containerRef.current;
 
+    // If the element is already in view on mount, do NOT animate it — otherwise
+    // the SSR-visible content would flash to its hidden state before playing
+    // back. This was the "content shows then disappears" bug.
+    const rect = el.getBoundingClientRect();
+    const alreadyInView = rect.top < window.innerHeight * 0.85 && rect.bottom > 0;
+    if (alreadyInView) return;
+
+    // For off-screen elements: hide immediately so there's no flash later, then
+    // let the ScrollTrigger reveal them as the user scrolls down to them.
+    gsap.set(el, animationConfigs[animation]);
+
     onPageReady(() => {
       if (!el) return;
 

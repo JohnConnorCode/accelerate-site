@@ -28,7 +28,7 @@ export function MRRChart({ data }: MRRChartProps) {
     >
       <GlassCard hover="none">
         <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="h-4 w-4 text-[var(--gold-light)]" />
+          <TrendingUp className="h-4 w-4 text-gold-light" />
           <h3 className="font-display text-sm font-semibold text-white-primary">
             MRR Over Time
           </h3>

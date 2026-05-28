@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Jost, DM_Serif_Display } from "next/font/google";
+import { Bricolage_Grotesque, Hanken_Grotesk, Fraunces, JetBrains_Mono } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
@@ -9,24 +9,32 @@ import { ChatWidget } from "@/components/chat/ChatWidget";
 import { ScrollProgressBar } from "@/components/ui/ScrollProgressBar";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+// Distinctive type system (frontend-design skill: avoid Inter/generic).
+const sans = Hanken_Grotesk({
+  variable: "--font-inter", // keep var name; now points to a refined grotesque
   subsets: ["latin"],
   display: "swap",
 });
 
-const jost = Jost({
-  variable: "--font-jost",
+const display = Bricolage_Grotesque({
+  variable: "--font-jost", // keep var name; now a characterful display face
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
-const dmSerif = DM_Serif_Display({
+const editorial = Fraunces({
   variable: "--font-editorial",
   subsets: ["latin"],
-  weight: "400",
-  style: "italic",
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+  display: "swap",
+});
+
+const mono = JetBrains_Mono({
+  variable: "--font-mono-face",
+  subsets: ["latin"],
+  weight: ["400", "500"],
   display: "swap",
 });
 
@@ -131,7 +139,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${jost.variable} ${dmSerif.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${sans.variable} ${display.variable} ${editorial.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
         <script
           type="application/ld+json"

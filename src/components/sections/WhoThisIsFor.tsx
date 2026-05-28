@@ -57,7 +57,7 @@ export function WhoThisIsFor() {
     <section className="relative py-24 bg-[var(--bg-section-warm)] overflow-hidden">
       <div className="absolute inset-0 grid-overlay-fine pointer-events-none" />
       <div className="ambient-glow-left" />
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="page-shell">
         <ScrollReveal animation="slide-left">
           <SectionHeader
             label="Who This Is For"
@@ -85,14 +85,14 @@ export function WhoThisIsFor() {
                 data-audience-card
                 className="group flex items-center gap-4 glass rounded-xl px-5 py-4 border-l-2 border-l-[rgba(var(--accent-rgb),0.2)] hover:border-l-[var(--gold-base)] hover:border-gold-glow transition-all duration-300"
               >
-                <div className="w-10 h-10 rounded-lg bg-transparent border border-[var(--border-glass)] flex items-center justify-center shrink-0 group-hover:border-[var(--border-gold)] group-hover:bg-[var(--glow-soft)] transition-all">
-                  <Icon className="w-5 h-5 text-[var(--gold-base)]" aria-hidden="true" />
+                <div className="w-10 h-10 rounded-lg bg-transparent border border-border-glass flex items-center justify-center shrink-0 group-hover:border-border-gold group-hover:bg-[var(--glow-soft)] transition-all">
+                  <Icon className="w-5 h-5 text-gold" aria-hidden="true" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-[15px] font-semibold text-[var(--heading-color)] leading-tight">
+                  <h3 className="text-[15px] font-semibold text-heading leading-tight">
                     {audience.name}
                   </h3>
-                  <p className="text-xs text-[var(--white-muted)] leading-relaxed mt-0.5 line-clamp-2 sm:line-clamp-1">
+                  <p className="text-xs text-white-muted leading-relaxed mt-0.5 line-clamp-2 sm:line-clamp-1">
                     {audience.examples}
                   </p>
                 </div>

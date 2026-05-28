@@ -31,7 +31,7 @@ export function AIInsights() {
       <div className="p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-[var(--gold-light)]" />
+            <Sparkles className="h-4 w-4 text-gold-light" />
             <h3 className="font-display text-sm font-semibold text-white-primary">
               AI Insights
             </h3>

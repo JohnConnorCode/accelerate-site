@@ -290,7 +290,7 @@ export function LeadsTable({
                         <Link
                           href={`/admin/contacts/${encodeURIComponent(lead.contact_email)}`}
                           onClick={(e) => e.stopPropagation()}
-                          className="text-xs text-white-muted hover:text-[var(--gold-light)] transition-colors"
+                          className="text-xs text-white-muted hover:text-gold-light transition-colors"
                         >
                           {lead.contact_email}
                         </Link>

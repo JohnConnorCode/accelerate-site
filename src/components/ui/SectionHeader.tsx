@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { SignalMark } from "@/components/ui/SignalMark";
+import { Eyebrow } from "@/components/v2/studio/primitives";
 
 interface SectionHeaderProps {
   label?: string;
@@ -18,14 +18,16 @@ export function SectionHeader({
   align = "center",
   size = "default",
 }: SectionHeaderProps) {
+  const centered = align === "center";
   return (
-    <div className={cn(align === "center" && "text-center", className)}>
+    <div className={cn(centered && "text-center", className)}>
       {label && (
-        <p className="section-label flex items-center gap-2.5 justify-start" style={align === "center" ? { justifyContent: "center" } : undefined}>
-          <SignalMark size="sm" />
-          <span>{label}</span>
-          <SignalMark size="sm" />
-        </p>
+        // Wrapper handles alignment; Eyebrow is inline-flex internally.
+        // Renders "[ LABEL ]" via the v2 Eyebrow primitive so inner pages
+        // share the same eyebrow recipe as the homepage sections.
+        <div className={cn("mb-4", centered ? "flex justify-center" : "")}>
+          <Eyebrow>{label}</Eyebrow>
+        </div>
       )}
       <h2
         className={cn(
@@ -36,7 +38,7 @@ export function SectionHeader({
         {heading}
       </h2>
       {description && (
-        <p className={cn("section-description", align === "center" && "mx-auto")}>
+        <p className={cn("section-description", centered && "mx-auto")}>
           {description}
         </p>
       )}

@@ -24,7 +24,7 @@ const categoryConfig: Record<
   announcement: {
     label: "Announcement",
     icon: Megaphone,
-    color: "text-[var(--gold-base)]",
+    color: "text-gold",
   },
 };
 
@@ -68,7 +68,7 @@ export function ChangelogPage() {
         <div className="mt-6">
           <Link
             href="/changelog/rss.xml"
-            className="inline-flex items-center gap-2 text-sm text-[var(--gold-light)] hover:text-[var(--white-primary)] transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-gold-light hover:text-white-primary transition-colors"
           >
             <Rss className="w-4 h-4" />
             RSS Feed
@@ -79,7 +79,7 @@ export function ChangelogPage() {
       <SectionDivider variant="fade" />
 
       {/* Timeline */}
-      <section className="py-24 bg-[var(--bg-base)]">
+      <section className="py-24 bg-bg-base">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           {months.map((monthKey, monthIndex) => {
             const entries = grouped[monthKey] ?? [];
@@ -93,7 +93,7 @@ export function ChangelogPage() {
               <div key={monthKey}>
                 {monthIndex > 0 && <SectionDivider variant="line" />}
                 <AnimateOnScroll className="mb-4">
-                  <h2 className="font-display text-lg font-bold text-[var(--gold-base)]">
+                  <h2 className="font-display text-lg font-bold text-gold">
                     {monthLabel}
                   </h2>
                 </AnimateOnScroll>
@@ -105,7 +105,7 @@ export function ChangelogPage() {
 
                     return (
                       <AnimateOnScroll key={entry.id} variants={fadeUp}>
-                        <div className="glass rounded-xl p-5 border border-[var(--border-glass)] hover:border-[var(--border-glass-hover)] transition-colors">
+                        <div className="glass rounded-xl p-5 border border-border-glass hover:border-[var(--border-glass-hover)] transition-colors">
                           <div className="flex items-start gap-4">
                             <div
                               className={cn(
@@ -117,7 +117,7 @@ export function ChangelogPage() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-3 mb-1 flex-wrap">
-                                <h3 className="text-base font-semibold text-[var(--white-primary)]">
+                                <h3 className="text-base font-semibold text-white-primary">
                                   {entry.title}
                                 </h3>
                                 <span
@@ -129,10 +129,10 @@ export function ChangelogPage() {
                                   {config.label}
                                 </span>
                               </div>
-                              <p className="text-sm text-[var(--white-secondary)] mb-2">
+                              <p className="text-sm text-white-secondary mb-2">
                                 {entry.description}
                               </p>
-                              <p className="text-xs text-[var(--white-muted)]">
+                              <p className="text-xs text-white-muted">
                                 {formatDate(entry.publishedAt)}
                               </p>
                             </div>

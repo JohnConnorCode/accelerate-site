@@ -65,12 +65,12 @@ export function TableOfContents() {
   return (
     <nav className="glass rounded-xl p-5">
       <div className="flex items-center gap-2 mb-4">
-        <div className="w-1 h-4 rounded-full bg-[var(--gold-base)]" />
-        <h4 className="font-display text-sm font-semibold text-[var(--white-primary)]">
+        <div className="w-1 h-4 rounded-full bg-gold" />
+        <h4 className="font-display text-sm font-semibold text-white-primary">
           On this page
         </h4>
       </div>
-      <ul className="space-y-1 border-l border-[var(--border-glass)] ml-0.5">
+      <ul className="space-y-1 border-l border-border-glass ml-0.5">
         {headings.map((heading) => (
           <li key={heading.id}>
             <a
@@ -79,8 +79,8 @@ export function TableOfContents() {
                 "block text-sm transition-all duration-200 py-1.5 -ml-px border-l-2",
                 heading.level === 3 ? "pl-6" : "pl-4",
                 activeId === heading.id
-                  ? "text-[var(--gold-light)] font-medium border-l-[var(--gold-base)]"
-                  : "text-[var(--white-muted)] hover:text-[var(--white-secondary)] border-l-transparent"
+                  ? "text-gold-light font-medium border-l-[var(--gold-base)]"
+                  : "text-white-muted hover:text-white-secondary border-l-transparent"
               )}
             >
               {heading.text}

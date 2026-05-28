@@ -108,7 +108,7 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
           href={shareUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-xs text-white-muted hover:text-[var(--gold-light)] transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs text-white-muted hover:text-gold-light transition-colors"
         >
           <Eye className="h-3.5 w-3.5" />
           Preview
@@ -129,7 +129,7 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
           </code>
           <button
             onClick={() => { navigator.clipboard.writeText(shareUrl); setToast({ message: "Link copied!", type: "success" }); }}
-            className="text-xs text-[var(--gold-light)] hover:text-[var(--gold-base)] cursor-pointer shrink-0"
+            className="text-xs text-gold-light hover:text-gold cursor-pointer shrink-0"
           >
             Copy
           </button>
@@ -249,7 +249,7 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
 
       <button
         onClick={addSection}
-        className="flex items-center gap-2 text-sm text-white-muted hover:text-[var(--gold-light)] transition-colors cursor-pointer"
+        className="flex items-center gap-2 text-sm text-white-muted hover:text-gold-light transition-colors cursor-pointer"
       >
         <Plus className="h-4 w-4" />
         Add Section

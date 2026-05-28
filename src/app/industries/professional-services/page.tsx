@@ -33,10 +33,7 @@ export default function ProfessionalServicesPage() {
           __html: JSON.stringify(generateVerticalJsonLd(vertical, "montoya-capital")),
         }}
       />
-      <VerticalPage
-        vertical={vertical}
-        preSelectedIndustry="professional_services"
-      />
+      <VerticalPage vertical={vertical} />
       <PageEngagementTracker />
     </>
   );

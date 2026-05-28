@@ -128,7 +128,7 @@ export function HowItWorks() {
                   {/* Dot node on the rail */}
                   <div
                     data-timeline-dot
-                    className="absolute left-[14px] sm:left-[22px] top-2 w-6 h-6 rounded-full border-2 border-[var(--gold-base)] bg-[var(--bg-section-deep)] flex items-center justify-center"
+                    className="absolute left-[14px] sm:left-[22px] top-2 w-6 h-6 rounded-full border-2 border-gold bg-[var(--bg-section-deep)] flex items-center justify-center"
                   >
                     <div className="w-2 h-2 rounded-full bg-[var(--gold-light)]" />
                   </div>
@@ -144,12 +144,12 @@ export function HowItWorks() {
                   {/* Content */}
                   <div className="relative">
                     <div className="flex items-center gap-2.5 mb-2">
-                      <Icon className="w-4 h-4 text-[var(--gold-base)]" aria-hidden="true" />
-                      <h3 className="text-xl font-semibold text-[var(--heading-color)]">
+                      <Icon className="w-4 h-4 text-gold" aria-hidden="true" />
+                      <h3 className="text-xl font-semibold text-heading">
                         {step.title}
                       </h3>
                     </div>
-                    <p className="text-[var(--white-muted)] leading-relaxed max-w-lg">
+                    <p className="text-white-muted leading-relaxed max-w-lg">
                       {step.description}
                     </p>
                   </div>

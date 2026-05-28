@@ -108,7 +108,7 @@ export default function SubscribersPage() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-glass)] px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-[var(--gold-base)] transition-all"
+          className="rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-gold transition-all"
         >
           <option value="all">All Status</option>
           <option value="active">Active</option>
@@ -142,7 +142,7 @@ export default function SubscribersPage() {
                 <td className="px-4 py-3">
                   <Link
                     href={`/admin/contacts/${encodeURIComponent(sub.email)}`}
-                    className="text-white-primary hover:text-[var(--gold-light)] transition-colors"
+                    className="text-white-primary hover:text-gold-light transition-colors"
                   >
                     {sub.email}
                   </Link>

@@ -159,7 +159,7 @@ export default function ProposalsPage() {
           <div className="flex gap-2">
             <button
               onClick={handleCreateBlank}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-[var(--gold-base)] text-black hover:brightness-110 transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-gold text-black hover:brightness-110 transition-all cursor-pointer"
             >
               + New Proposal
             </button>
@@ -172,7 +172,7 @@ export default function ProposalsPage() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-glass)] px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-[var(--gold-base)] transition-all"
+          className="rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-gold transition-all"
         >
           {statusOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -183,7 +183,7 @@ export default function ProposalsPage() {
       {generating && (
         <GlassCard hover="none" padding="md" className="mb-4">
           <div className="flex items-center gap-3">
-            <Loader2 className="h-4 w-4 animate-spin text-[var(--gold-light)]" />
+            <Loader2 className="h-4 w-4 animate-spin text-gold-light" />
             <p className="text-sm text-white-secondary">Generating proposal with AI...</p>
           </div>
         </GlassCard>

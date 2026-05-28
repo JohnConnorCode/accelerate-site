@@ -80,7 +80,7 @@ export function ContactForm() {
             <Send className="w-8 h-8 text-black" />
           </div>
           <h3
-            className="text-2xl font-bold text-[var(--heading-color)]"
+            className="text-2xl font-bold text-heading"
             style={{
               fontFamily:
                 "var(--font-jost), var(--font-inter), sans-serif",
@@ -88,7 +88,7 @@ export function ContactForm() {
           >
             Message Sent
           </h3>
-          <p className="text-[var(--white-secondary)] max-w-md mx-auto">
+          <p className="text-white-secondary max-w-md mx-auto">
             Thanks for reaching out. We will get back to you within one business
             day.
           </p>
@@ -101,7 +101,7 @@ export function ContactForm() {
     <GlassCard variant="prominent" padding="lg">
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-[var(--white-secondary)] mb-1.5">
+          <label htmlFor="name" className="block text-sm font-medium text-white-secondary mb-1.5">
             Name
           </label>
           <Input
@@ -116,7 +116,7 @@ export function ContactForm() {
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-[var(--white-secondary)] mb-1.5">
+          <label htmlFor="email" className="block text-sm font-medium text-white-secondary mb-1.5">
             Email
           </label>
           <Input
@@ -131,7 +131,7 @@ export function ContactForm() {
         </div>
 
         <div>
-          <label htmlFor="businessType" className="block text-sm font-medium text-[var(--white-secondary)] mb-1.5">
+          <label htmlFor="businessType" className="block text-sm font-medium text-white-secondary mb-1.5">
             Business Type
           </label>
           <Select
@@ -152,7 +152,7 @@ export function ContactForm() {
         </div>
 
         <div>
-          <label htmlFor="message" className="block text-sm font-medium text-[var(--white-secondary)] mb-1.5">
+          <label htmlFor="message" className="block text-sm font-medium text-white-secondary mb-1.5">
             Message
           </label>
           <Textarea

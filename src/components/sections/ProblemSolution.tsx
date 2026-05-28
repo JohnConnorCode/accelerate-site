@@ -91,8 +91,8 @@ export function ProblemSolution() {
   }, { scope: sectionRef });
 
   return (
-    <section ref={sectionRef} className="relative py-20 bg-[var(--bg-base)] overflow-hidden">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section ref={sectionRef} className="relative py-20 bg-bg-base overflow-hidden">
+      <div className="page-shell">
         <AnimateOnScroll className="mb-16">
           <SectionHeader
             align="left"
@@ -122,10 +122,10 @@ export function ProblemSolution() {
             <div className="space-y-8">
               {comparisons.map((item, i) => (
                 <div key={i}>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--white-muted)] mb-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white-muted mb-2">
                     {item.label}
                   </p>
-                  <p className="text-[var(--white-muted)] leading-relaxed text-sm sm:text-base">
+                  <p className="text-white-muted leading-relaxed text-sm sm:text-base">
                     {item.before}
                   </p>
                 </div>
@@ -137,40 +137,40 @@ export function ProblemSolution() {
         {/* Solution side — slightly lighter + gold accent */}
         <div
           data-panel-right
-          className="relative bg-[var(--bg-elevated)] py-12 sm:py-16 px-6 sm:px-10 lg:px-16"
+          className="relative bg-bg-elevated py-12 sm:py-16 px-6 sm:px-10 lg:px-16"
         >
           {/* Gold arrow divider — between panels on desktop */}
-          <div className="hidden md:flex absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[var(--bg-base)] border border-[var(--border-gold)] items-center justify-center z-10">
-            <ArrowRight className="w-4 h-4 text-[var(--gold-base)]" />
+          <div className="hidden md:flex absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-bg-base border border-border-gold items-center justify-center z-10">
+            <ArrowRight className="w-4 h-4 text-gold" />
           </div>
 
           {/* Mobile arrow divider */}
           <div className="md:hidden flex justify-center -mt-6 mb-6">
-            <div className="w-10 h-10 rounded-full bg-[var(--bg-base)] border border-[var(--border-gold)] flex items-center justify-center">
-              <ArrowDown className="w-4 h-4 text-[var(--gold-base)]" />
+            <div className="w-10 h-10 rounded-full bg-bg-base border border-border-gold flex items-center justify-center">
+              <ArrowDown className="w-4 h-4 text-gold" />
             </div>
           </div>
 
           <div className="max-w-lg mr-auto">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--gold-base)] mb-8 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--gold-base)]" />
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold mb-8 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-gold" />
               After Accelerate
             </p>
             <div className="space-y-8">
               {comparisons.map((item, i) => (
                 <div key={i}>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--white-muted)] mb-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white-muted mb-2">
                     {item.label}
                   </p>
                   <div className="flex items-baseline gap-1.5 mb-2">
-                    <span className="text-xl sm:text-2xl font-bold text-[var(--gold-light)] leading-none">
+                    <span className="text-xl sm:text-2xl font-bold text-gold-light leading-none">
                       {item.metric}
                     </span>
-                    <span className="text-[10px] uppercase tracking-wider text-[var(--white-muted)]">
+                    <span className="text-[10px] uppercase tracking-wider text-white-muted">
                       {item.metricLabel}
                     </span>
                   </div>
-                  <p className="text-[var(--white-primary)] leading-relaxed font-medium text-sm sm:text-base">
+                  <p className="text-white-primary leading-relaxed font-medium text-sm sm:text-base">
                     {item.after}
                   </p>
                 </div>
@@ -180,17 +180,17 @@ export function ProblemSolution() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="page-shell">
         <AnimateOnScroll variants={fadeUp} delay={0.2} className="text-center mt-12">
           <MagneticButton>
-            <Link href="/plan-builder">
+            <Link href="/contact">
               <Button variant="primary" size="lg" className="group/cta">
                 Book a Free Discovery Call
                 <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover/cta:translate-x-0.5" />
               </Button>
             </Link>
           </MagneticButton>
-          <p className="text-sm text-[var(--white-muted)] mt-4 italic">
+          <p className="text-sm text-white-muted mt-4 italic">
             You built the business. Let us build the engine.
           </p>
         </AnimateOnScroll>

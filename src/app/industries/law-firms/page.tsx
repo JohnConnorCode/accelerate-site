@@ -33,7 +33,7 @@ export default function LawFirmsPage() {
           __html: JSON.stringify(generateVerticalJsonLd(vertical, "sparkblox")),
         }}
       />
-      <VerticalPage vertical={vertical} preSelectedIndustry="law_firm" />
+      <VerticalPage vertical={vertical} />
       <PageEngagementTracker />
     </>
   );

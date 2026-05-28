@@ -41,10 +41,7 @@ export function FinalCTA({
     label: "Book a Free Discovery Call",
     href: "/contact",
   };
-  const resolvedSecondary = secondaryCTA ?? {
-    label: "Get the AI Playbook",
-    href: "/resources",
-  };
+  const resolvedSecondary = secondaryCTA ?? null;
 
   useGSAP(() => {
     if (!sectionRef.current) return;
@@ -110,7 +107,7 @@ export function FinalCTA({
   return (
     <section
       ref={sectionRef}
-      className="py-16 sm:py-32 md:py-40 relative overflow-hidden bg-[var(--bg-base)]"
+      className="py-16 sm:py-32 md:py-40 relative overflow-hidden bg-bg-base"
     >
       {/* Atmospheric background layers */}
       <div className="absolute inset-0 pointer-events-none">
@@ -152,7 +149,7 @@ export function FinalCTA({
             style={{
               position: "absolute",
               inset: 0,
-              backgroundImage: "linear-gradient(rgba(212,175,55,0.13) 1px, transparent 1px), linear-gradient(90deg, rgba(212,175,55,0.13) 1px, transparent 1px)",
+              backgroundImage: "linear-gradient(rgba(var(--accent-rgb),0.14) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--accent-rgb),0.14) 1px, transparent 1px)",
               backgroundSize: "50px 50px",
               transform: "rotateX(72deg)",
               transformOrigin: "50% 0%",
@@ -167,7 +164,7 @@ export function FinalCTA({
         style={{
           bottom: "45%",
           height: "48px",
-          background: "linear-gradient(to bottom, transparent, rgba(212,175,55,0.06) 40%, rgba(212,175,55,0.12) 50%, rgba(212,175,55,0.06) 60%, transparent)",
+          background: "linear-gradient(to bottom, transparent, rgba(var(--accent-rgb),0.06) 40%, rgba(var(--accent-rgb),0.14) 50%, rgba(var(--accent-rgb),0.06) 60%, transparent)",
         }}
       />
 
@@ -178,7 +175,7 @@ export function FinalCTA({
         >
           {resolvedHeading}
         </h2>
-        <p data-cta-desc className="text-lg sm:text-xl text-[var(--white-muted)] max-w-xl mx-auto mb-8">
+        <p data-cta-desc className="text-lg sm:text-xl text-white-muted max-w-xl mx-auto mb-8">
           {resolvedDescription}
         </p>
         <div data-cta-founder className="flex items-center justify-center gap-3 mb-10">
@@ -190,8 +187,8 @@ export function FinalCTA({
             className="w-12 h-12 rounded-full object-cover border-2 border-[rgba(var(--accent-rgb),0.3)]"
           />
           <div className="text-left">
-            <p className="text-sm font-semibold text-[var(--white-primary)]">John Connor</p>
-            <p className="text-xs text-[var(--white-muted)]">Founder, Accelerate</p>
+            <p className="text-sm font-semibold text-white-primary">John Connor</p>
+            <p className="text-xs text-white-muted">Founder, Accelerate</p>
           </div>
         </div>
         <div data-cta-buttons className="flex flex-col sm:flex-row gap-3 sm:gap-5 justify-center">
@@ -206,14 +203,16 @@ export function FinalCTA({
               </Button>
             </Link>
           </MagneticButton>
-          <Link
-            href={resolvedSecondary.href}
-            onClick={() => trackConversion("CTA Click", { section: "Final CTA", cta_text: resolvedSecondary.label, href: resolvedSecondary.href })}
-          >
-            <Button variant="secondary" size="lg" className="w-full sm:w-auto border-gradient-animated">
-              {resolvedSecondary.label}
-            </Button>
-          </Link>
+          {resolvedSecondary && (
+            <Link
+              href={resolvedSecondary.href}
+              onClick={() => trackConversion("CTA Click", { section: "Final CTA", cta_text: resolvedSecondary.label, href: resolvedSecondary.href })}
+            >
+              <Button variant="secondary" size="lg" className="w-full sm:w-auto border-gradient-animated">
+                {resolvedSecondary.label}
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </section>

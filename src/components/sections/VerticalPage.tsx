@@ -58,10 +58,9 @@ const iconMap: Record<string, LucideIcon> = {
 
 interface VerticalPageProps {
   vertical: Vertical;
-  preSelectedIndustry: string;
 }
 
-export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProps) {
+export function VerticalPage({ vertical }: VerticalPageProps) {
   const solutionsRef = useRef<HTMLDivElement>(null);
   const metricsRef = useRef<HTMLDivElement>(null);
 
@@ -116,13 +115,13 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
                 {vertical.heroHeadlineGold}
               </span>
             </h1>
-            <p className="text-lg sm:text-xl text-[var(--white-secondary)] max-w-2xl mx-auto mb-10 leading-relaxed">
+            <p className="text-lg sm:text-xl text-white-secondary max-w-2xl mx-auto mb-10 leading-relaxed">
               {vertical.heroSubheadline}
             </p>
             <MagneticButton>
-              <Link href={`/plan-builder?industry=${preSelectedIndustry}`}>
+              <Link href="/contact">
                 <Button variant="primary" size="lg" pulse>
-                  {vertical.ctaText}
+                  Book a Free Discovery Call
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
@@ -138,7 +137,7 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
         <div className="absolute inset-0 grid-overlay-fine pointer-events-none" />
         <div className="orb-gold -top-32 -right-32 opacity-60" />
 
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="page-shell">
           <ScrollReveal animation="blur-up">
             <SectionHeader
               label="Sound Familiar?"
@@ -169,13 +168,13 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
                   >
                     <div className="p-6 sm:p-8 flex gap-5">
                       <div className="w-12 h-12 rounded-xl bg-[rgba(var(--accent-rgb),0.08)] flex items-center justify-center shrink-0">
-                        <Icon className="w-6 h-6 text-[var(--gold-base)]" />
+                        <Icon className="w-6 h-6 text-gold" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold text-[var(--heading-color)] mb-2">
+                        <h3 className="text-lg font-semibold text-heading mb-2">
                           {painPoint.title}
                         </h3>
-                        <p className="text-sm text-[var(--white-muted)] leading-relaxed">
+                        <p className="text-sm text-white-muted leading-relaxed">
                           {painPoint.description}
                         </p>
                       </div>
@@ -195,7 +194,7 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
         <div className="absolute inset-0 grid-dots-glow pointer-events-none" />
         <div className="orb-gold -bottom-48 -left-48 opacity-60" />
 
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="page-shell">
           <ScrollReveal animation="blur-up">
             <SectionHeader
               label="What We Build"
@@ -221,19 +220,19 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
                   className="overflow-hidden"
                 >
                   <div className="p-6 sm:p-8 md:p-10 flex flex-col h-full">
-                    <h3 className="text-xl font-semibold text-[var(--heading-color)] mb-3">
+                    <h3 className="text-xl font-semibold text-heading mb-3">
                       {solution.title}
                     </h3>
-                    <p className="text-[var(--white-secondary)] leading-relaxed mb-5">
+                    <p className="text-white-secondary leading-relaxed mb-5">
                       {solution.description}
                     </p>
                     <ul className="space-y-2 mt-auto">
                       {solution.features.map((feature) => (
                         <li
                           key={feature}
-                          className="flex items-start gap-2 text-sm text-[var(--white-secondary)]"
+                          className="flex items-start gap-2 text-sm text-white-secondary"
                         >
-                          <Check className="w-4 h-4 text-[var(--gold-base)] shrink-0 mt-0.5" />
+                          <Check className="w-4 h-4 text-gold shrink-0 mt-0.5" />
                           {feature}
                         </li>
                       ))}
@@ -253,19 +252,19 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
                     padding="lg"
                     className="overflow-hidden"
                   >
-                    <h3 className="text-base font-semibold text-[var(--heading-color)] mb-2">
+                    <h3 className="text-base font-semibold text-heading mb-2">
                       {solution.title}
                     </h3>
-                    <p className="text-sm text-[var(--white-muted)] leading-relaxed mb-4">
+                    <p className="text-sm text-white-muted leading-relaxed mb-4">
                       {solution.description}
                     </p>
                     <ul className="space-y-1.5">
                       {solution.features.slice(0, 3).map((feature) => (
                         <li
                           key={feature}
-                          className="flex items-start gap-2 text-xs text-[var(--white-muted)]"
+                          className="flex items-start gap-2 text-xs text-white-muted"
                         >
-                          <Check className="w-3.5 h-3.5 text-[var(--gold-base)] shrink-0 mt-0.5" />
+                          <Check className="w-3.5 h-3.5 text-gold shrink-0 mt-0.5" />
                           {feature}
                         </li>
                       ))}
@@ -281,7 +280,7 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
       <SectionDivider variant="glow" />
 
       {/* Case Study */}
-      <section className="relative py-24 bg-[var(--bg-base)] overflow-hidden">
+      <section className="relative py-24 bg-bg-base overflow-hidden">
         <div className="absolute inset-0 dot-grid pointer-events-none" />
 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -298,7 +297,7 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
           <ScrollReveal animation="clip-left" delay={0.15}>
             <GlassCard variant="gold" padding="none" className="overflow-hidden">
               <div className="p-8 sm:p-10 md:p-12">
-                <p className="text-[var(--white-secondary)] leading-relaxed text-lg mb-10 max-w-3xl">
+                <p className="text-white-secondary leading-relaxed text-lg mb-10 max-w-3xl">
                   {vertical.caseStudy.description}
                 </p>
                 <div ref={metricsRef} className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
@@ -311,7 +310,7 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
                       <p className="font-display text-3xl font-bold text-gold-gradient mb-1">
                         {metric.value}
                       </p>
-                      <p className="text-xs text-[var(--white-muted)] uppercase tracking-wider">
+                      <p className="text-xs text-white-muted uppercase tracking-wider">
                         {metric.label}
                       </p>
                     </div>
@@ -335,7 +334,7 @@ export function VerticalPage({ vertical, preSelectedIndustry }: VerticalPageProp
           </>
         }
         description="Answer a few questions about your business and get a personalized plan with specific recommendations, pricing, and projected ROI."
-        primaryCTA={{ label: "Build My Plan", href: `/plan-builder?industry=${preSelectedIndustry}` }}
+        primaryCTA={{ label: "Book a Free Discovery Call", href: "/contact" }}
         secondaryCTA={{ label: "Book a Free Discovery Call", href: "/contact" }}
       />
     </>

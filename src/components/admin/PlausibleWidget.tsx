@@ -70,7 +70,7 @@ export function PlausibleWidget() {
     <GlassCard hover="none">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <BarChart3 className="w-4 h-4 text-[var(--gold-base)]" />
+          <BarChart3 className="w-4 h-4 text-gold" />
           <h3 className="font-display text-sm font-semibold text-white-primary">Site Analytics</h3>
         </div>
         <div className="flex items-center gap-1.5">

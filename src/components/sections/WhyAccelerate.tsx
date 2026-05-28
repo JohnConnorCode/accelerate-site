@@ -60,7 +60,7 @@ export function WhyAccelerate() {
   const restItems = differentiators.slice(2);
 
   return (
-    <section className="relative py-24 bg-[var(--bg-base)] overflow-hidden" style={{ perspective: "1200px" }}>
+    <section className="relative py-24 bg-bg-base overflow-hidden" style={{ perspective: "1200px" }}>
       <div className="absolute inset-0 dot-grid pointer-events-none" />
       <div className="ambient-glow-right" />
 
@@ -71,7 +71,7 @@ export function WhyAccelerate() {
       >
         ACCELERATE
       </div>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="page-shell">
         <AnimateOnScroll className="mb-16">
           <SectionHeader
             align="left"
@@ -104,13 +104,13 @@ export function WhyAccelerate() {
                   <div className="p-6 sm:p-8 md:p-10 flex flex-col h-full min-h-[160px] sm:min-h-[200px]">
                     <div className="flex items-center gap-4 mb-5">
                       <div className="w-14 h-14 rounded-xl bg-[var(--glow-soft)] flex items-center justify-center shrink-0">
-                        <Icon className="w-7 h-7 text-[var(--gold-base)]" aria-hidden="true" />
+                        <Icon className="w-7 h-7 text-gold" aria-hidden="true" />
                       </div>
-                      <h3 className="text-xl font-semibold text-[var(--heading-color)]">
+                      <h3 className="text-xl font-semibold text-heading">
                         {item.title}
                       </h3>
                     </div>
-                    <p className="text-[var(--white-secondary)] leading-relaxed flex-1">
+                    <p className="text-white-secondary leading-relaxed flex-1">
                       {item.description}
                     </p>
                   </div>
@@ -132,11 +132,11 @@ export function WhyAccelerate() {
                   padding="lg"
                   className="overflow-hidden"
                 >
-                  <Icon className="w-6 h-6 text-[var(--gold-base)] mb-4" aria-hidden="true" />
-                  <h3 className="text-base font-semibold text-[var(--heading-color)] mb-2">
+                  <Icon className="w-6 h-6 text-gold mb-4" aria-hidden="true" />
+                  <h3 className="text-base font-semibold text-heading mb-2">
                     {item.title}
                   </h3>
-                  <p className="text-sm text-[var(--white-muted)] leading-relaxed">
+                  <p className="text-sm text-white-muted leading-relaxed">
                     {item.description}
                   </p>
                 </GlassCard>

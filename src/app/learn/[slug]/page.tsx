@@ -163,22 +163,22 @@ export default async function ArticlePage({
         <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           {/* Breadcrumbs */}
           <AnimateOnScroll>
-            <nav className="mb-8 flex items-center gap-1.5 text-sm text-[var(--white-muted)]">
+            <nav className="mb-8 flex items-center gap-1.5 text-sm text-white-muted">
               <Link
                 href="/learn"
-                className="hover:text-[var(--white-secondary)] transition-colors"
+                className="hover:text-white-secondary transition-colors"
               >
                 Learn
               </Link>
               <ChevronRight className="h-3 w-3" />
               <Link
                 href={`/learn/category/${frontmatter.category}`}
-                className="hover:text-[var(--white-secondary)] transition-colors"
+                className="hover:text-white-secondary transition-colors"
               >
                 {CATEGORY_LABELS[frontmatter.category]}
               </Link>
               <ChevronRight className="h-3 w-3" />
-              <span className="text-[var(--white-secondary)] truncate max-w-[200px]">
+              <span className="text-white-secondary truncate max-w-[200px]">
                 {frontmatter.title}
               </span>
             </nav>
@@ -187,36 +187,36 @@ export default async function ArticlePage({
           {/* Article Header — staggered entrance */}
           <StaggerContainer className="max-w-3xl">
             <AnimateOnScroll>
-              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--gold-base)] mb-5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-gold mb-5">
                 {CATEGORY_LABELS[frontmatter.category]}
               </p>
             </AnimateOnScroll>
 
             <AnimateOnScroll>
-              <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--heading-color)] leading-[1.1] tracking-[-0.02em]">
+              <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-heading leading-[1.1] tracking-[-0.02em]">
                 {frontmatter.title}
               </h1>
             </AnimateOnScroll>
 
             <AnimateOnScroll>
-              <p className="mt-5 text-lg sm:text-xl text-[var(--white-secondary)] leading-relaxed max-w-2xl">
+              <p className="mt-5 text-lg sm:text-xl text-white-secondary leading-relaxed max-w-2xl">
                 {frontmatter.excerpt}
               </p>
             </AnimateOnScroll>
 
             {/* Author & Meta */}
             <AnimateOnScroll>
-              <div className="mt-8 flex flex-wrap items-center gap-5 text-sm text-[var(--white-muted)]">
+              <div className="mt-8 flex flex-wrap items-center gap-5 text-sm text-white-muted">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-full bg-[rgba(var(--accent-rgb),0.15)] border border-[rgba(var(--accent-rgb),0.3)] flex items-center justify-center">
-                    <User className="w-4 h-4 text-[var(--gold-light)]" />
+                    <User className="w-4 h-4 text-gold-light" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-[var(--white-primary)] leading-tight">
+                    <p className="text-sm font-medium text-white-primary leading-tight">
                       {frontmatter.author}
                     </p>
                     {frontmatter.authorRole && (
-                      <p className="text-xs text-[var(--white-muted)] leading-tight">
+                      <p className="text-xs text-white-muted leading-tight">
                         {frontmatter.authorRole}
                       </p>
                     )}
@@ -245,7 +245,7 @@ export default async function ArticlePage({
                   <Link
                     key={tag}
                     href={`/learn/tag/${encodeURIComponent(tag)}`}
-                    className="rounded-full glass px-3 py-1 text-xs text-[var(--white-muted)] hover:text-[var(--white-secondary)] hover:border-[var(--border-gold)] transition-colors"
+                    className="rounded-full glass px-3 py-1 text-xs text-white-muted hover:text-white-secondary hover:border-border-gold transition-colors"
                   >
                     {tag}
                   </Link>
@@ -267,14 +267,14 @@ export default async function ArticlePage({
       {/* ------------------------------------------------------------------ */}
       {/* Article Content + Sidebar                                           */}
       {/* ------------------------------------------------------------------ */}
-      <article className="relative pb-8 bg-[var(--bg-base)]">
+      <article className="relative pb-8 bg-bg-base">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="flex gap-12">
             {/* Main Content */}
             <div className="flex-1 min-w-0 max-w-[720px]">
               {/* Gold accent line */}
               <AnimateOnScroll>
-                <div className="h-px w-16 bg-[var(--gold-base)] mb-10" />
+                <div className="h-px w-16 bg-gold mb-10" />
               </AnimateOnScroll>
 
               <AnimateOnScroll>
@@ -295,10 +295,10 @@ export default async function ArticlePage({
 
                   {/* Sidebar CTA */}
                   <div className="glass-gold rounded-xl p-5 text-center">
-                    <p className="text-sm font-medium text-[var(--white-primary)] mb-2">
+                    <p className="text-sm font-medium text-white-primary mb-2">
                       Need help implementing this?
                     </p>
-                    <p className="text-xs text-[var(--white-muted)] mb-4">
+                    <p className="text-xs text-white-muted mb-4">
                       We build these systems for small businesses every day.
                     </p>
                     <ArticleCTA slug={slug} href="/contact" variant="primary" size="sm" className="w-full">
@@ -330,13 +330,13 @@ export default async function ArticlePage({
                   Ready to Accelerate{" "}
                   <span className="text-gold-gradient">Your Growth?</span>
                 </h2>
-                <p className="text-[var(--white-secondary)] max-w-md mx-auto mb-8">
+                <p className="text-white-secondary max-w-md mx-auto mb-8">
                   Get a personalized AI growth plan based on your specific
                   industry and goals. Takes under 5 minutes.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <ArticleCTA slug={slug} href="/plan-builder" variant="primary" size="lg" className="w-full sm:w-auto">
-                    Get Your Free Growth Plan
+                  <ArticleCTA slug={slug} href="/contact" variant="primary" size="lg" className="w-full sm:w-auto">
+                    Book a Free Discovery Call
                   </ArticleCTA>
                   <ArticleCTA slug={slug} href="/contact" variant="secondary" size="lg" className="w-full sm:w-auto">
                     Book a Strategy Call
@@ -354,7 +354,7 @@ export default async function ArticlePage({
       {/* Related Articles                                                    */}
       {/* ------------------------------------------------------------------ */}
       {relatedArticles.length > 0 && (
-        <section className="py-20 bg-[var(--bg-base)]">
+        <section className="py-20 bg-bg-base">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <AnimateOnScroll>
               <RelatedArticles articles={relatedArticles} />

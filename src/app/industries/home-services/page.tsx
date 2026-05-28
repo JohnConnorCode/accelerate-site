@@ -33,7 +33,7 @@ export default function HomeServicesPage() {
           __html: JSON.stringify(generateVerticalJsonLd(vertical, "farrell-roofing")),
         }}
       />
-      <VerticalPage vertical={vertical} preSelectedIndustry="home_services" />
+      <VerticalPage vertical={vertical} />
       <PageEngagementTracker />
     </>
   );

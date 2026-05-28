@@ -46,7 +46,7 @@ export function ChatTextInput({
       transition={{ duration: 0.3 }}
       className="flex items-center gap-2"
     >
-      <div className="flex-1 glass rounded-xl border border-[var(--border-glass)] focus-within:border-[var(--gold-base)] transition-colors">
+      <div className="flex-1 glass rounded-xl border border-border-glass focus-within:border-gold transition-colors">
         <input
           ref={inputRef}
           type="text"
@@ -65,7 +65,7 @@ export function ChatTextInput({
           "w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0",
           value.trim()
             ? "bg-gold-gradient text-black shadow-[0_0_16px_rgba(var(--accent-rgb),0.3)]"
-            : "glass border border-[var(--border-glass)] text-white-muted"
+            : "glass border border-border-glass text-white-muted"
         )}
         aria-label="Send"
       >
@@ -75,7 +75,7 @@ export function ChatTextInput({
         <button
           type="button"
           onClick={onSkip}
-          className="w-11 h-11 rounded-xl flex items-center justify-center glass border border-[var(--border-glass)] text-white-muted hover:text-white-primary transition-colors cursor-pointer shrink-0"
+          className="w-11 h-11 rounded-xl flex items-center justify-center glass border border-border-glass text-white-muted hover:text-white-primary transition-colors cursor-pointer shrink-0"
           aria-label="Skip"
         >
           <SkipForward className="w-4 h-4" />

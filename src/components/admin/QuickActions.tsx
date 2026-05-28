@@ -41,7 +41,7 @@ export function QuickActions({ onExportLeads, onScrollToAI }: QuickActionsProps)
               transition={{ delay: 0.15 + i * 0.05 }}
               className="flex items-center gap-3"
             >
-              <action.icon className="h-4 w-4 text-[var(--gold-light)]" />
+              <action.icon className="h-4 w-4 text-gold-light" />
               <span className="text-sm font-medium text-white-primary">{action.label}</span>
             </motion.div>
           </GlassCard>

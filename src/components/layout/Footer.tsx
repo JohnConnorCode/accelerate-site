@@ -38,8 +38,6 @@ const footerColumns = [
     title: "Resources",
     links: [
       { label: "Case Studies", href: "/results" },
-      { label: "Website Grader", href: "/tools/website-grader" },
-      { label: "ROI Calculator", href: "/tools/roi-calculator" },
       { label: "Free Downloads", href: "/resources" },
       { label: "Learning Hub", href: "/learn" },
     ],
@@ -120,23 +118,23 @@ export function Footer() {
   };
 
   return (
-    <footer ref={footerRef} className="relative bg-[var(--bg-base)]">
+    <footer ref={footerRef} className="relative bg-bg-base">
       {/* Gold top line */}
       <SectionDivider variant="glow" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="page-shell py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-10 lg:gap-8">
           {/* Brand Column */}
           <div data-footer-section className="lg:col-span-2">
             <Logo className="mb-4" />
-            <p className="text-[var(--white-secondary)] text-sm leading-relaxed mb-6 max-w-sm">
+            <p className="text-white-secondary text-sm leading-relaxed mb-6 max-w-sm">
               AI strategy and systems for small businesses. We figure out where
               AI fits, then build and manage the systems that make it happen.
             </p>
-            <div className="flex flex-col gap-2 text-sm text-[var(--white-muted)]">
+            <div className="flex flex-col gap-2 text-sm text-white-muted">
               <a
                 href="mailto:john@acceleratewith.us"
-                className="flex items-center gap-2 hover:text-[var(--white-primary)] transition-colors"
+                className="flex items-center gap-2 hover:text-white-primary transition-colors"
               >
                 <Mail className="w-4 h-4" />
                 john@acceleratewith.us
@@ -145,7 +143,7 @@ export function Footer() {
                 href="https://www.linkedin.com/company/acceleratewith/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:text-[var(--white-primary)] transition-colors"
+                className="flex items-center gap-2 hover:text-white-primary transition-colors"
               >
                 <Linkedin className="w-4 h-4" />
                 LinkedIn
@@ -156,7 +154,7 @@ export function Footer() {
           {/* Link Columns */}
           {footerColumns.map((col) => (
             <div key={col.title} data-footer-section>
-              <h4 className="text-sm font-semibold text-[var(--white-primary)] mb-4">
+              <h4 className="text-sm font-semibold text-white-primary mb-4">
                 {col.title}
               </h4>
               <ul className="space-y-2.5">
@@ -164,7 +162,7 @@ export function Footer() {
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-sm text-[var(--white-muted)] hover:text-[var(--white-primary)] transition-colors"
+                      className="text-sm text-white-muted hover:text-white-primary transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -179,10 +177,10 @@ export function Footer() {
         <div data-footer-section className="mt-14 pt-8 border-t border-[var(--border-subtle)]">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
             <div>
-              <h4 className="text-sm font-semibold text-[var(--white-primary)] mb-1">
+              <h4 className="text-sm font-semibold text-white-primary mb-1">
                 Get growth tips in your inbox
               </h4>
-              <p className="text-sm text-[var(--white-muted)]">
+              <p className="text-sm text-white-muted">
                 No spam. Unsubscribe anytime.
               </p>
             </div>
@@ -211,7 +209,7 @@ export function Footer() {
                     }}
                     disabled={status === "loading"}
                     aria-label="Email address"
-                    className="flex-1 sm:w-64 px-4 py-2.5 rounded-lg text-sm bg-[var(--bg-subtle)] border border-[var(--border-glass)] text-[var(--white-primary)] placeholder:text-[var(--white-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--gold-base)] focus:border-[var(--gold-base)] transition-colors disabled:opacity-50"
+                    className="flex-1 sm:w-64 px-4 py-2.5 rounded-lg text-sm bg-bg-subtle border border-border-glass text-white-primary placeholder:text-white-muted focus:outline-none focus:ring-2 focus:ring-[var(--gold-base)] focus:border-gold transition-colors disabled:opacity-50"
                   />
                   <button
                     type="submit"
@@ -237,13 +235,13 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div data-footer-section className="mt-10 pt-6 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[var(--white-muted)]">
+        <div data-footer-section className="mt-10 pt-6 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white-muted">
           <p>&copy; {new Date().getFullYear()} Accelerate. All rights reserved.</p>
           <div className="flex gap-6">
-            <Link href="/privacy" className="hover:text-[var(--white-secondary)] transition-colors">
+            <Link href="/privacy" className="hover:text-white-secondary transition-colors">
               Privacy Policy
             </Link>
-            <Link href="/terms" className="hover:text-[var(--white-secondary)] transition-colors">
+            <Link href="/terms" className="hover:text-white-secondary transition-colors">
               Terms of Service
             </Link>
           </div>

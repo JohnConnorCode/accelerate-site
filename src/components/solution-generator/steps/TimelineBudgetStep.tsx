@@ -59,7 +59,7 @@ export function TimelineBudgetStep({ formData, onUpdate, onNext }: StepProps) {
                   "border",
                   isSelected
                     ? "bg-gold-gradient text-black border-transparent border-gold-glow"
-                    : "glass border-[var(--border-glass)] text-white-secondary hover:border-[var(--border-glass-hover)] hover:text-white-primary"
+                    : "glass border-border-glass text-white-secondary hover:border-[var(--border-glass-hover)] hover:text-white-primary"
                 )}
                 role="radio"
                 aria-checked={isSelected}
@@ -99,7 +99,7 @@ export function TimelineBudgetStep({ formData, onUpdate, onNext }: StepProps) {
                   "border",
                   isSelected
                     ? "bg-gold-gradient text-black border-transparent border-gold-glow"
-                    : "glass border-[var(--border-glass)] text-white-secondary hover:border-[var(--border-glass-hover)] hover:text-white-primary"
+                    : "glass border-border-glass text-white-secondary hover:border-[var(--border-glass-hover)] hover:text-white-primary"
                 )}
                 role="radio"
                 aria-checked={isSelected}

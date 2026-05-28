@@ -322,7 +322,7 @@ function SidebarContent({
                     )}
                   >
                     {active && (
-                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[var(--gold-base)] rounded-r" />
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-gold rounded-r" />
                     )}
                     <link.icon className="h-4 w-4" />
                     {link.label}

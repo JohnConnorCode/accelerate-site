@@ -10,6 +10,7 @@ import {
   PenTool,
   BarChart3,
   ArrowRight,
+  ArrowUpRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useGSAP } from "@gsap/react";
@@ -17,7 +18,8 @@ import { gsap } from "@/lib/gsap-init";
 import { prefersReducedMotion } from "@/lib/utils";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 import { Button } from "@/components/ui/Button";
-import { SectionHeader } from "@/components/ui/SectionHeader";
+import { SectionMarker } from "@/components/v2/SectionMarker";
+import { BlueprintGrid } from "@/components/v2/BlueprintGrid";
 import { fadeUp } from "@/lib/animations";
 import { serviceOverviewItems } from "@/content/services-overview";
 
@@ -30,105 +32,110 @@ const iconMap: Record<string, LucideIcon> = {
   BarChart3,
 };
 
+// Asymmetric bento spans (lg+, 6-col grid). Featured cards span wider.
+const bentoSpan = [
+  "lg:col-span-4",
+  "lg:col-span-2",
+  "lg:col-span-2",
+  "lg:col-span-4",
+  "lg:col-span-3",
+  "lg:col-span-3",
+];
+
 export function ServicesOverview() {
-  const listRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
-    if (!listRef.current) return;
+    if (!gridRef.current) return;
     if (prefersReducedMotion()) return;
 
-    const rows = listRef.current.querySelectorAll("[data-service-row]");
-
-    gsap.fromTo(rows,
-      { opacity: 0, x: -24 },
+    const cards = gridRef.current.querySelectorAll("[data-service-card]");
+    gsap.fromTo(
+      cards,
+      { opacity: 0, y: 28 },
       {
         opacity: 1,
-        x: 0,
-        duration: 0.5,
-        delay: 0.3,
-        stagger: 0.1,
-        ease: "power2.out",
+        y: 0,
+        duration: 0.55,
+        stagger: 0.08,
+        ease: "power3.out",
         scrollTrigger: {
-          trigger: listRef.current,
-          start: "top 80%",
+          trigger: gridRef.current,
+          start: "top 82%",
           toggleActions: "play none none none",
         },
       }
     );
-  }, { scope: listRef });
+  }, { scope: gridRef });
 
   return (
-    <section className="relative py-24 bg-[var(--bg-base)] overflow-hidden">
-      <div className="absolute inset-0 grid-diamond pointer-events-none" />
+    <section className="relative py-24 sm:py-28 bg-bg-base overflow-hidden">
+      <BlueprintGrid fade="top" />
       <div className="ambient-glow-right" />
 
-      {/* SYSTEMS watermark */}
-      <div
-        className="watermark-text top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[15vw]"
-        aria-hidden="true"
-      >
-        SYSTEMS
-      </div>
-
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-        <AnimateOnScroll className="mb-16">
-          <SectionHeader
-            label="What We Do"
-            heading={
-              <>
-                <span className="text-gold-gradient font-editorial">Six Systems</span> That
-                Run Your Business
-              </>
-            }
-            description="We find the highest-impact opportunities in your business, then build the systems that capture them. Every solution is scoped to your operations, your tools, and your goals."
-          />
+      <div className="page-shell relative">
+        {/* Left-aligned header — breaks the centered rhythm */}
+        <AnimateOnScroll className="mb-12 max-w-2xl">
+          <SectionMarker n="02" label="Services" className="mb-5" />
+          <h2 className="section-heading">
+            Six systems that run your business
+          </h2>
+          <p className="section-description">
+            We find the highest-impact opportunities in your operations, then
+            build the systems that capture them — scoped to your tools, your
+            team, and your goals.
+          </p>
         </AnimateOnScroll>
 
-        {/* Editorial numbered list */}
-        <div ref={listRef} className="divide-y divide-[var(--border-glass)]">
+        {/* Bento grid */}
+        <div
+          ref={gridRef}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 sm:gap-5"
+        >
           {serviceOverviewItems.map((service, idx) => {
             const Icon = iconMap[service.icon];
             if (!Icon) return null;
+            const featured = bentoSpan[idx]?.includes("col-span-4");
             return (
               <div
                 key={service.name}
-                data-service-row
-                className="group py-6 sm:py-8 flex items-start gap-5 sm:gap-8 transition-colors duration-300 hover:bg-[rgba(var(--accent-rgb),0.02)]"
+                data-service-card
+                className={`${bentoSpan[idx] ?? "lg:col-span-2"} group relative flex flex-col overflow-hidden rounded-2xl border border-border-glass bg-[var(--glass-default-bg)] p-7 sm:p-8 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-[var(--border-gold-hover)] hover:bg-[var(--glass-gold-bg)]`}
               >
-                {/* Large faded index number */}
-                <span className="text-gold-gradient font-display text-4xl sm:text-5xl font-bold leading-none opacity-25 group-hover:opacity-50 transition-opacity w-16 sm:w-20 shrink-0 text-right pt-1">
-                  0{idx + 1}
-                </span>
+                {/* top hairline that lights up on hover */}
+                <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--gold-base)] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-60" />
 
-                {/* Icon */}
-                <div className="w-10 h-10 rounded-lg border border-[var(--border-gold)] flex items-center justify-center shrink-0 mt-1 group-hover:bg-[var(--glow-soft)] transition-colors">
-                  <Icon className="w-5 h-5 text-[var(--gold-base)]" aria-hidden="true" />
+                <div className="mb-5 flex items-center justify-between">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-border-gold bg-[var(--glow-soft)] transition-colors group-hover:bg-[var(--glow-medium)]">
+                    <Icon className="h-6 w-6 text-gold" aria-hidden="true" />
+                  </div>
+                  <span className="font-display text-2xl font-bold leading-none text-gold opacity-15 transition-opacity group-hover:opacity-35">
+                    0{idx + 1}
+                  </span>
                 </div>
 
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-lg sm:text-xl font-semibold text-[var(--heading-color)] mb-1.5 group-hover:text-[var(--gold-light)] transition-colors">
-                    {service.name}
-                  </h3>
-                  <p className="text-sm sm:text-base text-[var(--white-muted)] leading-relaxed">
-                    {service.description}
-                  </p>
-                </div>
+                <h3
+                  className={`mb-2 font-semibold text-heading transition-colors group-hover:text-gold-light ${
+                    featured ? "text-xl sm:text-2xl" : "text-lg sm:text-xl"
+                  }`}
+                >
+                  {service.name}
+                </h3>
+                <p className="text-sm sm:text-[0.95rem] leading-relaxed text-white-muted max-w-prose">
+                  {service.description}
+                </p>
 
-                {/* Hover arrow */}
-                <div className="hidden sm:flex items-center justify-center w-10 h-10 mt-1 shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-[-8px] group-hover:translate-x-0">
-                  <ArrowRight className="w-5 h-5 text-[var(--gold-base)]" />
-                </div>
+                <ArrowUpRight className="mt-auto ml-auto h-5 w-5 translate-y-1 text-gold opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100" />
               </div>
             );
           })}
         </div>
 
-        <AnimateOnScroll variants={fadeUp} delay={0.2} className="flex items-center justify-center gap-4 flex-wrap mt-12">
+        <AnimateOnScroll variants={fadeUp} delay={0.15} className="mt-12 flex flex-wrap items-center gap-4">
           <Link href="/contact">
             <Button variant="primary" size="lg">
               Book a Free Discovery Call
-              <ArrowRight className="w-5 h-5 ml-2" />
+              <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
           <Link href="/services">

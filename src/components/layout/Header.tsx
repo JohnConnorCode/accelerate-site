@@ -41,15 +41,6 @@ const navLinks: NavLink[] = [
     ],
   },
   { label: "Results", href: "/results" },
-  {
-    label: "Tools",
-    href: "#",
-    children: [
-      { label: "Website Grader", href: "/tools/website-grader" },
-      { label: "ROI Calculator", href: "/tools/roi-calculator" },
-      { label: "Free Resources", href: "/resources" },
-    ],
-  },
   { label: "Learn", href: "/learn" },
   { label: "Contact", href: "/contact" },
 ];
@@ -95,7 +86,7 @@ export function Header() {
           WebkitBackdropFilter: scrolled ? "blur(24px) saturate(180%)" : "none",
         }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        <div className="page-shell flex items-center justify-between">
           {/* Logo */}
           <motion.div variants={headerLogoReveal}>
             <Logo />
@@ -175,9 +166,9 @@ export function Header() {
           {/* Desktop CTA + Theme Toggle */}
           <motion.div variants={headerCtaReveal} className="hidden lg:flex items-center gap-3">
             <ThemeToggle />
-            <Link href="/plan-builder">
+            <Link href="/contact">
               <Button variant="primary" size="sm" className="group/cta">
-                Get Your Growth Plan
+                Book a Free Discovery Call
                 <ArrowRight className="w-4 h-4 ml-1.5 transition-transform duration-200 group-hover/cta:translate-x-0.5" />
               </Button>
             </Link>
@@ -191,9 +182,9 @@ export function Header() {
             aria-label="Open navigation menu"
           >
             <div className="flex flex-col items-end gap-[5px]">
-              <span className="block h-[2px] w-6 rounded-full bg-[var(--gold-base)] transition-all duration-300" />
-              <span className="block h-[2px] w-4 rounded-full bg-[var(--gold-base)] transition-all duration-300" />
-              <span className="block h-[2px] w-5 rounded-full bg-[var(--gold-base)] transition-all duration-300" />
+              <span className="block h-[2px] w-6 rounded-full bg-gold transition-all duration-300" />
+              <span className="block h-[2px] w-4 rounded-full bg-gold transition-all duration-300" />
+              <span className="block h-[2px] w-5 rounded-full bg-gold transition-all duration-300" />
             </div>
           </motion.button>
         </div>

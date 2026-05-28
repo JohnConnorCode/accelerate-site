@@ -123,7 +123,7 @@ export function DigitalPresenceStep({
                       "border",
                       isSelected
                         ? "bg-gold-gradient text-black border-transparent"
-                        : "glass border-[var(--border-glass)] text-white-secondary hover:border-[var(--border-glass-hover)] hover:text-white-primary"
+                        : "glass border-border-glass text-white-secondary hover:border-[var(--border-glass-hover)] hover:text-white-primary"
                     )}
                   >
                     {opt.label}
@@ -152,8 +152,8 @@ export function DigitalPresenceStep({
                       "flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 min-h-[44px]",
                       "border",
                       isChecked
-                        ? "border-[var(--border-gold)] bg-[var(--glass-gold-bg)]"
-                        : "border-[var(--border-glass)] hover:border-[var(--border-glass-hover)]"
+                        ? "border-border-gold bg-[var(--glass-gold-bg)]"
+                        : "border-border-glass hover:border-[var(--border-glass-hover)]"
                     )}
                   >
                     <div
@@ -161,7 +161,7 @@ export function DigitalPresenceStep({
                         "w-5 h-5 rounded border flex items-center justify-center shrink-0 transition-all",
                         isChecked
                           ? "bg-gold-gradient border-transparent"
-                          : "border-[var(--border-glass)] bg-transparent"
+                          : "border-border-glass bg-transparent"
                       )}
                     >
                       {isChecked && (
@@ -254,7 +254,7 @@ export function DigitalPresenceStep({
                   <Icon
                     className={cn(
                       "w-5 h-5 shrink-0",
-                      isSelected ? "text-[var(--gold-base)]" : "text-white-muted"
+                      isSelected ? "text-gold" : "text-white-muted"
                     )}
                   />
                   <div>
@@ -291,8 +291,8 @@ export function DigitalPresenceStep({
                   "flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 min-h-[44px]",
                   "border",
                   isChecked
-                    ? "border-[var(--border-gold)] bg-[var(--glass-gold-bg)]"
-                    : "border-[var(--border-glass)] hover:border-[var(--border-glass-hover)]"
+                    ? "border-border-gold bg-[var(--glass-gold-bg)]"
+                    : "border-border-glass hover:border-[var(--border-glass-hover)]"
                 )}
               >
                 <div
@@ -300,7 +300,7 @@ export function DigitalPresenceStep({
                     "w-5 h-5 rounded border flex items-center justify-center shrink-0 transition-all",
                     isChecked
                       ? "bg-gold-gradient border-transparent"
-                      : "border-[var(--border-glass)] bg-transparent"
+                      : "border-border-glass bg-transparent"
                   )}
                 >
                   {isChecked && (
@@ -310,7 +310,7 @@ export function DigitalPresenceStep({
                 <Icon
                   className={cn(
                     "w-4 h-4 shrink-0",
-                    isChecked ? "text-[var(--gold-base)]" : "text-white-muted"
+                    isChecked ? "text-gold" : "text-white-muted"
                   )}
                 />
                 <span

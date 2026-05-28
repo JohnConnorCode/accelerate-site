@@ -120,7 +120,7 @@ export default async function PlanPage({ params }: PageProps) {
       <div className="min-h-[60vh] flex items-center justify-center px-4">
         <div className="glass-prominent rounded-xl p-8 max-w-md w-full text-center space-y-4">
           <h1
-            className="text-2xl font-bold text-[var(--heading-color)]"
+            className="text-2xl font-bold text-heading"
             style={{
               fontFamily:
                 "var(--font-jost), var(--font-inter), sans-serif",
@@ -128,13 +128,13 @@ export default async function PlanPage({ params }: PageProps) {
           >
             Plan Viewer Not Available
           </h1>
-          <p className="text-[var(--white-muted)] text-sm">
+          <p className="text-white-muted text-sm">
             The plan viewing system is not configured yet. Please use the
             solution generator to create a new plan.
           </p>
           <Link
             href="/plan-builder"
-            className="inline-flex items-center gap-2 text-sm text-[var(--gold-light)] hover:text-[var(--white-primary)] transition-colors mt-4"
+            className="inline-flex items-center gap-2 text-sm text-gold-light hover:text-white-primary transition-colors mt-4"
           >
             Go to Solution Generator
             <ArrowRight className="w-4 h-4" />
@@ -151,7 +151,7 @@ export default async function PlanPage({ params }: PageProps) {
       <div className="min-h-[60vh] flex items-center justify-center px-4">
         <div className="glass-prominent rounded-xl p-8 max-w-md w-full text-center space-y-4">
           <h1
-            className="text-2xl font-bold text-[var(--heading-color)]"
+            className="text-2xl font-bold text-heading"
             style={{
               fontFamily:
                 "var(--font-jost), var(--font-inter), sans-serif",
@@ -159,13 +159,13 @@ export default async function PlanPage({ params }: PageProps) {
           >
             Plan Not Found
           </h1>
-          <p className="text-[var(--white-muted)] text-sm">
+          <p className="text-white-muted text-sm">
             We could not find a plan with this link. It may have expired or the
             URL may be incorrect.
           </p>
           <Link
             href="/plan-builder"
-            className="inline-flex items-center gap-2 text-sm text-[var(--gold-light)] hover:text-[var(--white-primary)] transition-colors mt-4"
+            className="inline-flex items-center gap-2 text-sm text-gold-light hover:text-white-primary transition-colors mt-4"
           >
             Build a New Plan
             <ArrowRight className="w-4 h-4" />

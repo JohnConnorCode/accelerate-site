@@ -33,7 +33,7 @@ export default function RealEstatePage() {
           __html: JSON.stringify(generateVerticalJsonLd(vertical)),
         }}
       />
-      <VerticalPage vertical={vertical} preSelectedIndustry="real_estate" />
+      <VerticalPage vertical={vertical} />
       <PageEngagementTracker />
     </>
   );

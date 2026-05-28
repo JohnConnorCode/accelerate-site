@@ -33,22 +33,22 @@ export function PlanBuilderPage() {
             <span className="text-gold-gradient">Growth Plan</span>
             {" "}in 5 Minutes
           </h1>
-          <p className="text-lg sm:text-xl text-[var(--white-secondary)] max-w-2xl mx-auto leading-relaxed mb-6">
+          <p className="text-lg sm:text-xl text-white-secondary max-w-2xl mx-auto leading-relaxed mb-6">
             Answer a few quick questions. Our AI builds a personalized
             strategy with recommendations, timelines, and pricing.
           </p>
 
-          <div className="flex items-center justify-center gap-6 flex-wrap text-sm text-[var(--white-muted)]">
+          <div className="flex items-center justify-center gap-6 flex-wrap text-sm text-white-muted">
             <span className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[var(--gold-base)]" />
+              <Clock className="w-4 h-4 text-gold" />
               5 minutes
             </span>
             <span className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[var(--gold-base)]" />
+              <Sparkles className="w-4 h-4 text-gold" />
               Personalized by AI
             </span>
             <span className="flex items-center gap-2">
-              <Shield className="w-4 h-4 text-[var(--gold-base)]" />
+              <Shield className="w-4 h-4 text-gold" />
               Free & private
             </span>
           </div>

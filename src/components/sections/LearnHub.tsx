@@ -78,17 +78,17 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
         description="No fluff, no filler. AI, automation, and growth strategies you can implement today — written by people who actually run small businesses."
         itemAnimation={scaleRotate}
       >
-        <div className="flex items-center justify-center gap-6 flex-wrap mt-8 text-sm text-[var(--white-muted)]">
+        <div className="flex items-center justify-center gap-6 flex-wrap mt-8 text-sm text-white-muted">
           <span className="flex items-center gap-2">
-            <FileText className="w-4 h-4 text-[var(--gold-base)]" />
+            <FileText className="w-4 h-4 text-gold" />
             15+ In-Depth Guides
           </span>
           <span className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-[var(--gold-base)]" />
+            <Sparkles className="w-4 h-4 text-gold" />
             Actionable Strategies
           </span>
           <span className="flex items-center gap-2">
-            <RefreshCw className="w-4 h-4 text-[var(--gold-base)]" />
+            <RefreshCw className="w-4 h-4 text-gold" />
             Updated Weekly
           </span>
         </div>
@@ -99,7 +99,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
         <section className="pt-8 pb-16 bg-[var(--bg-section-warm)]">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <AnimateOnScroll className="mb-8">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--gold-base)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
                 Featured
               </p>
             </AnimateOnScroll>
@@ -111,16 +111,16 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
               >
                 <GlassCard variant="gold" hover="lift" padding="none">
                   <div className="p-8 sm:p-10">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-[var(--gold-base)] mb-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gold mb-4">
                       {CATEGORY_LABELS[featuredArticle.frontmatter.category]}
                     </p>
-                    <h2 className="font-display text-2xl sm:text-3xl font-bold text-[var(--heading-color)] group-hover:text-gold-gradient transition-colors leading-tight">
+                    <h2 className="font-display text-2xl sm:text-3xl font-bold text-heading group-hover:text-gold-gradient transition-colors leading-tight">
                       {featuredArticle.frontmatter.title}
                     </h2>
-                    <p className="mt-4 max-w-3xl text-[var(--white-secondary)] leading-relaxed line-clamp-2">
+                    <p className="mt-4 max-w-3xl text-white-secondary leading-relaxed line-clamp-2">
                       {featuredArticle.frontmatter.excerpt}
                     </p>
-                    <div className="mt-6 flex items-center gap-5 text-sm text-[var(--white-muted)]">
+                    <div className="mt-6 flex items-center gap-5 text-sm text-white-muted">
                       <span className="flex items-center gap-1.5">
                         <Clock className="h-4 w-4" />
                         {featuredArticle.readingTime}
@@ -134,7 +134,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                           year: "numeric",
                         })}
                       </span>
-                      <span className="ml-auto inline-flex items-center gap-1.5 text-[var(--gold-light)] group-hover:text-[var(--gold-champagne)] transition-colors font-medium">
+                      <span className="ml-auto inline-flex items-center gap-1.5 text-gold-light group-hover:text-gold-champagne transition-colors font-medium">
                         Read article <ArrowRight className="h-4 w-4" />
                       </span>
                     </div>
@@ -149,14 +149,14 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
       <SectionDivider variant="glow" />
 
       {/* Filters + Article Grid */}
-      <section className="py-16 bg-[var(--bg-base)]">
+      <section className="py-16 bg-bg-base">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll className="text-center mb-12">
             <h2 className="section-heading mb-3">
               Browse All{" "}
               <span className="text-gold-gradient">Guides</span>
             </h2>
-            <p className="text-[var(--white-muted)] max-w-lg mx-auto">
+            <p className="text-white-muted max-w-lg mx-auto">
               Filter by topic or search for exactly what you need.
             </p>
           </AnimateOnScroll>
@@ -173,7 +173,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                     "rounded-full px-4 py-1.5 text-sm transition-all cursor-pointer",
                     activeCategory === "all"
                       ? "bg-gold-gradient text-black font-semibold"
-                      : "glass text-[var(--white-secondary)] hover:text-[var(--white-primary)]"
+                      : "glass text-white-secondary hover:text-white-primary"
                   )}
                 >
                   All
@@ -189,7 +189,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                       "rounded-full px-4 py-1.5 text-sm transition-all cursor-pointer",
                       activeCategory === cat
                         ? "bg-gold-gradient text-black font-semibold"
-                        : "glass text-[var(--white-secondary)] hover:text-[var(--white-primary)]"
+                        : "glass text-white-secondary hover:text-white-primary"
                     )}
                   >
                     {CATEGORY_LABELS[cat]}
@@ -197,7 +197,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                 ))}
               </div>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--white-muted)]" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white-muted" />
                 <input
                   type="text"
                   placeholder="Search articles..."
@@ -206,7 +206,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                     setSearchQuery(e.target.value);
                     setPage(1);
                   }}
-                  className="w-full rounded-lg glass py-2 pl-10 pr-4 text-sm text-[var(--white-primary)] placeholder:text-[var(--white-muted)] focus:outline-none focus:border-[var(--border-gold)] sm:w-64"
+                  className="w-full rounded-lg glass py-2 pl-10 pr-4 text-sm text-white-primary placeholder:text-white-muted focus:outline-none focus:border-border-gold sm:w-64"
                 />
               </div>
             </div>
@@ -222,8 +222,8 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                 exit={{ opacity: 0 }}
                 className="text-center py-16"
               >
-                <BookOpen className="w-12 h-12 text-[var(--white-muted)] mx-auto mb-4 opacity-30" />
-                <p className="text-[var(--white-muted)]">
+                <BookOpen className="w-12 h-12 text-white-muted mx-auto mb-4 opacity-30" />
+                <p className="text-white-muted">
                   No articles found matching your criteria.
                 </p>
               </motion.div>
@@ -241,10 +241,10 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                       <GlassCard hover="lift" padding="none" className="h-full flex flex-col">
                         <div className="p-6 flex flex-col flex-1">
                           <div className="flex items-center gap-3 mb-3">
-                            <span className="text-xs font-semibold uppercase tracking-wide text-[var(--gold-base)]">
+                            <span className="text-xs font-semibold uppercase tracking-wide text-gold">
                               {CATEGORY_LABELS[article.frontmatter.category]}
                             </span>
-                            <span className="text-xs text-[var(--white-muted)]">
+                            <span className="text-xs text-white-muted">
                               {new Date(
                                 article.frontmatter.date
                               ).toLocaleDateString("en-US", {
@@ -254,18 +254,18 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                               })}
                             </span>
                           </div>
-                          <h3 className="font-display text-lg font-semibold text-[var(--white-primary)] group-hover:text-gold-gradient transition-colors line-clamp-2 mb-2">
+                          <h3 className="font-display text-lg font-semibold text-white-primary group-hover:text-gold-gradient transition-colors line-clamp-2 mb-2">
                             {article.frontmatter.title}
                           </h3>
-                          <p className="text-sm text-[var(--white-secondary)] line-clamp-2 flex-1 mb-4">
+                          <p className="text-sm text-white-secondary line-clamp-2 flex-1 mb-4">
                             {article.frontmatter.excerpt}
                           </p>
-                          <div className="flex items-center justify-between text-xs text-[var(--white-muted)] pt-4 border-t border-[var(--border-subtle)]">
+                          <div className="flex items-center justify-between text-xs text-white-muted pt-4 border-t border-[var(--border-subtle)]">
                             <span className="flex items-center gap-1.5">
                               <Clock className="h-3 w-3" />
                               {article.readingTime}
                             </span>
-                            <span className="inline-flex items-center gap-1 group-hover:text-[var(--gold-light)] transition-colors font-medium">
+                            <span className="inline-flex items-center gap-1 group-hover:text-gold-light transition-colors font-medium">
                               Read <ArrowRight className="h-3 w-3" />
                             </span>
                           </div>
@@ -289,7 +289,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                     "h-9 w-9 rounded-lg text-sm transition-all cursor-pointer",
                     page === i + 1
                       ? "bg-gold-gradient text-black font-semibold"
-                      : "glass text-[var(--white-secondary)] hover:text-[var(--white-primary)]"
+                      : "glass text-white-secondary hover:text-white-primary"
                   )}
                 >
                   {i + 1}
@@ -311,12 +311,12 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
             <GlassCard variant="gold" padding="none" className="text-center">
               <div className="p-8 sm:p-12">
                 <div className="w-12 h-12 rounded-full bg-[rgba(var(--accent-rgb),0.15)] border border-[rgba(var(--accent-rgb),0.3)] flex items-center justify-center mx-auto mb-5">
-                  <Mail className="w-6 h-6 text-[var(--gold-light)]" />
+                  <Mail className="w-6 h-6 text-gold-light" />
                 </div>
                 <h2 className="font-display text-2xl font-bold text-shimmer mb-2">
                   Get New Guides in Your Inbox
                 </h2>
-                <p className="text-sm text-[var(--white-muted)] max-w-md mx-auto mb-8">
+                <p className="text-sm text-white-muted max-w-md mx-auto mb-8">
                   One email per week. Actionable AI and automation insights. No
                   spam, unsubscribe anytime.
                 </p>
@@ -324,7 +324,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                   <input
                     type="email"
                     placeholder="you@company.com"
-                    className="flex-1 rounded-lg glass py-3 px-4 text-sm text-[var(--white-primary)] placeholder:text-[var(--white-muted)] focus:outline-none focus:border-[var(--border-gold)]"
+                    className="flex-1 rounded-lg glass py-3 px-4 text-sm text-white-primary placeholder:text-white-muted focus:outline-none focus:border-border-gold"
                     readOnly
                   />
                   <Button variant="primary" size="md">
@@ -341,14 +341,14 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
       <SectionDivider variant="fade" />
 
       {/* Resources Cross-Promo */}
-      <section className="py-24 bg-[var(--bg-base)]">
+      <section className="py-24 bg-bg-base">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll>
             <GlassCard variant="prominent" padding="lg" className="text-center">
-              <h2 className="font-display text-xl font-bold text-[var(--heading-color)] mb-3">
+              <h2 className="font-display text-xl font-bold text-heading mb-3">
                 Want something you can use right now?
               </h2>
-              <p className="text-sm text-[var(--white-muted)] max-w-md mx-auto mb-6">
+              <p className="text-sm text-white-muted max-w-md mx-auto mb-6">
                 Download free checklists, templates, and calculators built for
                 small businesses.
               </p>

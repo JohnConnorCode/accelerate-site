@@ -1,7 +1,6 @@
 "use client";
 
-import { Suspense, useRef } from "react";
-import dynamic from "next/dynamic";
+import { useRef } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
@@ -9,7 +8,7 @@ import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap-init";
 import { prefersReducedMotion } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
-import { SignalMark } from "@/components/ui/SignalMark";
+import { InteractiveGridField } from "@/components/v2/InteractiveGridField";
 import {
   heroReveal,
   heroTagline,
@@ -17,11 +16,6 @@ import {
   heroStaggerDramatic,
 } from "@/lib/animations";
 import { trackConversion } from "@/lib/analytics";
-
-const HeroCanvas = dynamic(
-  () => import("@/components/three/HeroCanvas"),
-  { ssr: false }
-);
 
 export function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -65,26 +59,30 @@ export function Hero() {
       ref={sectionRef}
       className="relative isolate overflow-hidden min-h-screen flex items-center justify-center pt-24 pb-20 sm:pt-28 sm:pb-28"
     >
-      <Suspense
-        fallback={
-          <div className="absolute inset-0 -z-10" style={{ background: "var(--bg-base)" }} />
-        }
-      >
-        <HeroCanvas />
-      </Suspense>
-
-      {/* Atmospheric glow */}
+      {/* Base */}
       <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(800px,100vw)] h-[500px] pointer-events-none z-[5]"
-        style={{
-          background:
-            "radial-gradient(ellipse, var(--glow-soft) 0%, transparent 70%)",
-        }}
+        className="absolute inset-0 -z-10 pointer-events-none"
+        style={{ background: "var(--bg-base)" }}
       />
-
-      {/* Background SignalMark */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[4] opacity-40">
-        <SignalMark size="lg" />
+      {/* Immersive interactive point-grid (parallax target) */}
+      <div data-hero-bg className="absolute inset-0 -z-10">
+        {/* ambient breathing glow — alive even before cursor moves */}
+        <div
+          className="hero-glow absolute left-1/2 top-[42%] h-[520px] w-[min(820px,100vw)]"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(var(--accent-rgb),0.18) 0%, transparent 70%)",
+          }}
+        />
+        <InteractiveGridField className="absolute inset-0 h-full w-full" />
+        {/* vignette to seat the type */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(circle at 50% 42%, transparent 52%, var(--bg-base) 92%)",
+          }}
+        />
       </div>
 
       <div
@@ -98,30 +96,29 @@ export function Hero() {
         >
           <motion.p
             variants={heroTagline}
-            className="text-sm font-medium text-[var(--gold-light)] tracking-wide uppercase mb-4"
+            className="font-mono text-xs sm:text-sm font-medium text-gold tracking-wide mb-5"
           >
-            AI-Powered Growth for Small Business
+            {"// ai · automation · cutting-edge strategy"}
           </motion.p>
 
           <motion.h1
             variants={heroHeadline}
-            className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-[-0.03em] mb-6"
+            className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-bold leading-[1.02] tracking-[-0.035em] mb-6"
             style={{ textWrap: "balance" } as React.CSSProperties}
           >
-            <span className="text-[var(--heading-color)]">Grow Your Company</span>
+            <span className="text-heading">Accelerate your business</span>
             <br />
-            <span className="text-[var(--heading-color)]">and Revenue </span>
-            <br className="sm:hidden" />
-            <span className="text-gold-gradient font-editorial">on Autopilot</span>
+            <span className="text-shimmer font-editorial">with AI.</span>
           </motion.h1>
 
           <motion.p
             variants={heroReveal}
-            className="text-lg sm:text-xl text-[var(--white-muted)] max-w-2xl mx-auto leading-relaxed mb-10"
+            className="text-lg sm:text-xl text-white-secondary max-w-2xl mx-auto leading-relaxed mb-10"
           >
-            We build and manage the AI agents, automations, and websites that
-            help small businesses book more clients, respond in minutes, and
-            reclaim 20+ hours a week.
+            We solve your technology problems, automate the busywork, and turn
+            more of your inquiries into booked revenue. The AI systems that{" "}
+            <span className="text-heading font-semibold">drive your business</span>{" "}
+            — and make you money.
           </motion.p>
 
           <motion.div
@@ -139,16 +136,16 @@ export function Hero() {
               </Button>
             </Link>
             <Link
-              href="/resources"
+              href="/results"
               className="pointer-events-auto"
-              onClick={() => trackConversion("CTA Click", { section: "Hero", cta_text: "Get the AI Playbook", href: "/resources" })}
+              onClick={() => trackConversion("CTA Click", { section: "Hero", cta_text: "See Client Results", href: "/results" })}
             >
               <Button
                 variant="secondary"
                 size="lg"
                 className="w-full sm:w-auto border-gradient-animated"
               >
-                Get the AI Playbook
+                See Client Results
               </Button>
             </Link>
           </motion.div>
@@ -156,14 +153,14 @@ export function Hero() {
           {/* Trust bar */}
           <motion.div
             variants={heroReveal}
-            className="flex flex-wrap items-center justify-center gap-x-3 sm:gap-x-6 gap-y-2 text-xs uppercase tracking-[0.15em] sm:tracking-[0.2em] text-[var(--white-muted)] pointer-events-auto"
+            className="flex flex-wrap items-center justify-center gap-x-3 sm:gap-x-6 gap-y-2 text-xs uppercase tracking-[0.15em] sm:tracking-[0.2em] text-white-muted pointer-events-auto"
           >
             <span className="hidden sm:inline">AI strategy &amp; delivery</span>
-            <span className="hidden sm:inline text-[var(--white-muted)]" aria-hidden="true">|</span>
+            <span className="hidden sm:inline text-white-muted" aria-hidden="true">|</span>
             <span className="hidden sm:inline">Live in 1–2 weeks</span>
-            <span className="hidden sm:inline text-[var(--white-muted)]" aria-hidden="true">|</span>
+            <span className="hidden sm:inline text-white-muted" aria-hidden="true">|</span>
             <span className="hidden sm:inline">Transparent pricing</span>
-            <span className="hidden sm:inline text-[var(--white-muted)]" aria-hidden="true">|</span>
+            <span className="hidden sm:inline text-white-muted" aria-hidden="true">|</span>
             <span className="hidden sm:inline">Free discovery call</span>
           </motion.div>
         </motion.div>

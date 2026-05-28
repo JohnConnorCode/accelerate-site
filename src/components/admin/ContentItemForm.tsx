@@ -210,7 +210,7 @@ export function ContentItemForm({ item, onSave, onDelete, onClose }: ContentItem
             size="sm"
             onClick={handleGenerateBrief}
             disabled={generatingBrief || !title}
-            className="w-full text-[var(--gold-light)]"
+            className="w-full text-gold-light"
           >
             {generatingBrief ? (
               <Loader2 className="h-4 w-4 animate-spin mr-2" />

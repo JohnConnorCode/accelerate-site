@@ -97,7 +97,7 @@ export function PartnersPage() {
       <SectionDivider variant="fade" />
 
       {/* Why Partner */}
-      <section className="py-24 bg-[var(--bg-base)]">
+      <section className="py-24 bg-bg-base">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <motion.div
             variants={staggerBento}
@@ -116,10 +116,10 @@ export function PartnersPage() {
                   <div className="w-12 h-12 rounded-lg bg-gold-gradient flex items-center justify-center mx-auto mb-4">
                     <item.icon className="w-6 h-6 text-black" />
                   </div>
-                  <h3 className="font-display text-lg font-bold text-[var(--heading-color)] mb-2">
+                  <h3 className="font-display text-lg font-bold text-heading mb-2">
                     {item.title}
                   </h3>
-                  <p className="text-sm text-[var(--white-secondary)]">{item.desc}</p>
+                  <p className="text-sm text-white-secondary">{item.desc}</p>
                 </GlassCard>
               </motion.div>
             ))}
@@ -130,14 +130,14 @@ export function PartnersPage() {
       <SectionDivider variant="glow" />
 
       {/* Partner Tiers */}
-      <section className="py-24 bg-[var(--bg-base)]">
+      <section className="py-24 bg-bg-base">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <motion.h2
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="font-display text-2xl md:text-3xl font-bold text-[var(--heading-color)] text-center mb-10"
+            className="font-display text-2xl md:text-3xl font-bold text-heading text-center mb-10"
           >
             Partner Tiers
           </motion.h2>
@@ -162,32 +162,32 @@ export function PartnersPage() {
                     className={cn("h-full flex flex-col", i === 1 && "border-gold-glow")}
                   >
                     <div className="flex items-center gap-3 mb-4">
-                      <Icon className="w-5 h-5 text-[var(--gold-base)]" />
-                      <h3 className="font-display text-lg font-bold text-[var(--heading-color)]">
+                      <Icon className="w-5 h-5 text-gold" />
+                      <h3 className="font-display text-lg font-bold text-heading">
                         {tier.name}
                       </h3>
                     </div>
-                    <p className="text-sm text-[var(--gold-light)] font-medium mb-4">
+                    <p className="text-sm text-gold-light font-medium mb-4">
                       {tier.commission}
                     </p>
 
                     <div className="mb-4">
-                      <p className="text-xs text-[var(--white-muted)] uppercase tracking-wider mb-2">Benefits</p>
+                      <p className="text-xs text-white-muted uppercase tracking-wider mb-2">Benefits</p>
                       <ul className="space-y-2">
                         {tier.benefits.map((b) => (
-                          <li key={b} className="flex items-start gap-2 text-sm text-[var(--white-secondary)]">
-                            <Check className="w-4 h-4 text-[var(--gold-base)] shrink-0 mt-0.5" />
+                          <li key={b} className="flex items-start gap-2 text-sm text-white-secondary">
+                            <Check className="w-4 h-4 text-gold shrink-0 mt-0.5" />
                             {b}
                           </li>
                         ))}
                       </ul>
                     </div>
 
-                    <div className="mt-auto pt-4 border-t border-[var(--border-glass)]">
-                      <p className="text-xs text-[var(--white-muted)] uppercase tracking-wider mb-2">Requirements</p>
+                    <div className="mt-auto pt-4 border-t border-border-glass">
+                      <p className="text-xs text-white-muted uppercase tracking-wider mb-2">Requirements</p>
                       <ul className="space-y-1">
                         {tier.requirements.map((r) => (
-                          <li key={r} className="text-xs text-[var(--white-muted)]">
+                          <li key={r} className="text-xs text-white-muted">
                             &bull; {r}
                           </li>
                         ))}
@@ -204,7 +204,7 @@ export function PartnersPage() {
       <SectionDivider variant="glow" />
 
       {/* Application Form */}
-      <section className="py-24 bg-[var(--bg-base)]">
+      <section className="py-24 bg-bg-base">
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -218,20 +218,20 @@ export function PartnersPage() {
                   <div className="w-16 h-16 rounded-full bg-gold-gradient flex items-center justify-center mx-auto mb-4">
                     <Check className="w-8 h-8 text-black" />
                   </div>
-                  <h2 className="font-display text-2xl font-bold text-[var(--heading-color)] mb-2">
+                  <h2 className="font-display text-2xl font-bold text-heading mb-2">
                     Application Received
                   </h2>
-                  <p className="text-[var(--white-secondary)]">
+                  <p className="text-white-secondary">
                     Thank you for your interest. We review applications within 2 business days
                     and will be in touch soon.
                   </p>
                 </div>
               ) : (
                 <>
-                  <h2 className="font-display text-2xl font-bold text-[var(--heading-color)] mb-2 text-center">
+                  <h2 className="font-display text-2xl font-bold text-heading mb-2 text-center">
                     Apply to Partner
                   </h2>
-                  <p className="text-[var(--white-secondary)] text-center mb-8">
+                  <p className="text-white-secondary text-center mb-8">
                     Tell us about yourself and how you&rsquo;d like to work together.
                   </p>
 
@@ -271,7 +271,7 @@ export function PartnersPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-[var(--white-secondary)] mb-2">
+                      <label className="block text-sm font-medium text-white-secondary mb-2">
                         Partner Type *
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -287,13 +287,13 @@ export function PartnersPage() {
                             className={cn(
                               "flex flex-col items-center gap-2 px-4 py-3 rounded-xl border transition-all text-sm",
                               formData.partnerType === opt.value
-                                ? "border-[var(--border-gold)] bg-[var(--glass-gold-bg)] text-[var(--white-primary)] border-gold-glow"
-                                : "glass border-[var(--border-glass)] text-[var(--white-secondary)] hover:border-[var(--border-glass-hover)]"
+                                ? "border-border-gold bg-[var(--glass-gold-bg)] text-white-primary border-gold-glow"
+                                : "glass border-border-glass text-white-secondary hover:border-[var(--border-glass-hover)]"
                             )}
                           >
                             <opt.icon className={cn(
                               "w-5 h-5",
-                              formData.partnerType === opt.value ? "text-[var(--gold-base)]" : "text-[var(--white-muted)]"
+                              formData.partnerType === opt.value ? "text-gold" : "text-white-muted"
                             )} />
                             {opt.label}
                           </button>

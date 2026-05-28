@@ -116,7 +116,7 @@ export function PageHero({
               {description && (
                 <motion.p
                   variants={itemVariant}
-                  className="text-lg sm:text-xl text-[var(--white-secondary)] max-w-xl leading-relaxed"
+                  className="text-lg sm:text-xl text-white-secondary max-w-xl leading-relaxed"
                 >
                   {description}
                 </motion.p>
@@ -186,7 +186,7 @@ export function PageHero({
             {description && (
               <motion.p
                 variants={itemVariant}
-                className="text-lg sm:text-xl text-[var(--white-secondary)] max-w-2xl mx-auto leading-relaxed"
+                className="text-lg sm:text-xl text-white-secondary max-w-2xl mx-auto leading-relaxed"
               >
                 {description}
               </motion.p>
@@ -245,7 +245,7 @@ export function PageHero({
             {description && (
               <motion.p
                 variants={itemVariant}
-                className="text-lg sm:text-xl text-[var(--white-secondary)] max-w-xl ml-auto leading-relaxed text-right"
+                className="text-lg sm:text-xl text-white-secondary max-w-xl ml-auto leading-relaxed text-right"
               >
                 {description}
               </motion.p>
@@ -291,7 +291,7 @@ export function PageHero({
           {description && (
             <motion.p
               variants={itemVariant}
-              className="text-lg sm:text-xl text-[var(--white-secondary)] max-w-2xl mx-auto leading-relaxed"
+              className="text-lg sm:text-xl text-white-secondary max-w-2xl mx-auto leading-relaxed"
             >
               {description}
             </motion.p>

@@ -170,7 +170,7 @@ export function EmailComposeModal({
                     <select
                       value={selectedTemplate}
                       onChange={(e) => applyTemplate(e.target.value)}
-                      className="w-full rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-glass)] px-3 py-2 text-sm text-white-primary focus:outline-none focus:border-[var(--gold-base)] transition-all"
+                      className="w-full rounded-lg bg-bg-subtle border border-border-glass px-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold transition-all"
                     >
                       {templates.map((t) => (
                         <option key={t.label} value={t.label}>{t.label}</option>

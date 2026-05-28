@@ -114,10 +114,10 @@ export function GeneratingStep({ error }: StepProps) {
                       animate={{ opacity: 1 }}
                       className="w-6 h-6 flex items-center justify-center shrink-0"
                     >
-                      <Loader2 className="w-5 h-5 text-[var(--gold-base)] animate-spin" aria-label="Loading" />
+                      <Loader2 className="w-5 h-5 text-gold animate-spin" aria-label="Loading" />
                     </motion.div>
                   ) : (
-                    <div className="w-6 h-6 rounded-full border border-[var(--border-glass)] shrink-0" />
+                    <div className="w-6 h-6 rounded-full border border-border-glass shrink-0" />
                   )}
                 </AnimatePresence>
                 <span

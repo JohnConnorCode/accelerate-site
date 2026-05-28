@@ -215,14 +215,14 @@ export default function AdminDashboardPage() {
                       className="border-b border-border-glass last:border-b-0 hover:bg-white/[0.02] transition-colors"
                     >
                       <td className="px-3 py-2.5">
-                        <Link href="/admin/leads" className="text-white-primary hover:text-[var(--gold-light)] transition-colors">
+                        <Link href="/admin/leads" className="text-white-primary hover:text-gold-light transition-colors">
                           {lead.contact_name}
                         </Link>
                       </td>
                       <td className="px-3 py-2.5">
                         <Link
                           href={`/admin/contacts/${encodeURIComponent(lead.contact_email)}`}
-                          className="text-white-secondary hover:text-[var(--gold-light)] transition-colors"
+                          className="text-white-secondary hover:text-gold-light transition-colors"
                         >
                           {lead.contact_email}
                         </Link>

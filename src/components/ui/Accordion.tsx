@@ -22,7 +22,7 @@ export function AccordionItem({
     <AccordionPrimitive.Item
       className={cn(
         "glass rounded-xl mb-3 overflow-clip",
-        "data-[state=open]:border-[var(--border-gold)]",
+        "data-[state=open]:border-border-gold",
         "transition-colors duration-300",
         className
       )}
@@ -43,15 +43,15 @@ export function AccordionTrigger({
       <AccordionPrimitive.Trigger
         className={cn(
           "flex flex-1 items-center justify-between px-4 py-3 sm:px-6 sm:py-4 text-left",
-          "text-[var(--white-primary)] font-medium",
-          "hover:text-[var(--white-primary)] transition-colors cursor-pointer",
+          "text-white-primary font-medium",
+          "hover:text-white-primary transition-colors cursor-pointer",
           "group",
           className
         )}
         {...props}
       >
         {children}
-        <ChevronDown className="w-5 h-5 text-[var(--white-muted)] shrink-0 ml-4 transition-transform duration-300 group-data-[state=open]:rotate-180" />
+        <ChevronDown className="w-5 h-5 text-white-muted shrink-0 ml-4 transition-transform duration-300 group-data-[state=open]:rotate-180" />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
   );
@@ -72,7 +72,7 @@ export function AccordionContent({
       )}
       {...props}
     >
-      <div className="px-4 sm:px-6 pb-4 text-[var(--white-secondary)] leading-relaxed text-sm sm:text-base">
+      <div className="px-4 sm:px-6 pb-4 text-white-secondary leading-relaxed text-sm sm:text-base">
         {children}
       </div>
     </AccordionPrimitive.Content>

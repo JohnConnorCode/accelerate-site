@@ -22,24 +22,24 @@ export function PlanBuilderCTA() {
         viewport={{ once: true, margin: "-100px" }}
         className="relative z-10 max-w-2xl mx-auto text-center"
       >
-        <div className="flex items-center justify-center gap-1.5 mb-4 text-sm font-semibold text-[var(--gold-light)]">
+        <div className="flex items-center justify-center gap-1.5 mb-4 text-sm font-semibold text-gold-light">
           <Sparkles className="w-3.5 h-3.5" />
           Free Custom Roadmap
         </div>
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-[var(--heading-color)] mb-4">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-heading mb-4">
           See Exactly What We&apos;d Build for You —{" "}
           <span className="text-gold-gradient">in 5 Minutes</span>
         </h2>
-        <p className="text-[var(--white-secondary)] mb-8 max-w-lg mx-auto">
+        <p className="text-white-secondary mb-8 max-w-lg mx-auto">
           Answer a few questions about your business. Our AI builds a personalized
           plan with specific systems, pricing, timelines, and projected revenue impact.
         </p>
         <Link
-          href="/plan-builder"
-          onClick={() => trackConversion("CTA Click", { section: "Plan Builder CTA", cta_text: "Build My Plan", href: "/plan-builder" })}
+          href="/contact"
+          onClick={() => trackConversion("CTA Click", { section: "Plan Builder CTA", cta_text: "Book a Free Discovery Call", href: "/contact" })}
         >
           <Button variant="primary" size="lg" pulse className="group/cta">
-            Build My Plan
+            Book a Free Discovery Call
             <ArrowRight className="w-5 h-5 ml-2 transition-transform duration-200 group-hover/cta:translate-x-0.5" />
           </Button>
         </Link>

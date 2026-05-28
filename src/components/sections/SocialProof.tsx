@@ -50,25 +50,25 @@ function TestimonialCard({
         {Array.from({ length: rating }).map((_, i) => (
           <Star
             key={i}
-            className="w-[18px] h-[18px] fill-[var(--gold-base)] text-[var(--gold-base)] drop-shadow-[0_0_3px_rgba(212,175,55,0.4)]"
+            className="w-[18px] h-[18px] fill-[var(--gold-base)] text-gold drop-shadow-[0_0_3px_rgba(212,175,55,0.4)]"
             aria-hidden="true"
           />
         ))}
       </div>
 
       {/* Quote */}
-      <blockquote className="text-[var(--white-secondary)] leading-relaxed mb-6 flex-1 text-sm">
+      <blockquote className="text-white-secondary leading-relaxed mb-6 flex-1 text-sm">
         &ldquo;{quote}&rdquo;
       </blockquote>
 
       {/* Attribution */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-[rgba(var(--accent-rgb),0.1)] border border-[rgba(var(--accent-rgb),0.2)] flex items-center justify-center text-xs font-semibold text-[var(--gold-light)]">
+        <div className="w-10 h-10 rounded-full bg-[rgba(var(--accent-rgb),0.1)] border border-[rgba(var(--accent-rgb),0.2)] flex items-center justify-center text-xs font-semibold text-gold-light">
           {getInitials(name)}
         </div>
         <div>
-          <p className="text-sm font-semibold text-[var(--white-primary)]">{name}</p>
-          <p className="text-xs text-[var(--white-muted)]">
+          <p className="text-sm font-semibold text-white-primary">{name}</p>
+          <p className="text-xs text-white-muted">
             {title}, {businessType}
           </p>
         </div>
@@ -163,10 +163,10 @@ export function SocialProof() {
   const pageCount = maxSnap + 1;
 
   return (
-    <section className="relative py-24 bg-[var(--bg-elevated)] overflow-hidden">
+    <section className="relative py-24 bg-bg-elevated overflow-hidden">
       <div className="absolute inset-0 grid-overlay-fine pointer-events-none opacity-50" />
       <div className="ambient-glow-center" />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="page-shell">
         <ScrollReveal animation="blur-up">
           <SectionHeader
             heading={<>Don&apos;t Take <span className="text-gold-gradient font-editorial">Our Word</span> for It</>}
@@ -185,18 +185,18 @@ export function SocialProof() {
               >
                 &ldquo;
               </span>
-              <blockquote className="relative z-10 font-display text-xl sm:text-2xl md:text-3xl font-light italic text-[var(--white-primary)] leading-snug mb-6 sm:mb-8">
+              <blockquote className="relative z-10 font-display text-xl sm:text-2xl md:text-3xl font-light italic text-white-primary leading-snug mb-6 sm:mb-8">
                 {featured.quote}
               </blockquote>
               <div className="relative z-10 flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-[rgba(var(--accent-rgb),0.1)] border border-[rgba(var(--accent-rgb),0.2)] flex items-center justify-center text-sm font-semibold text-[var(--gold-light)]">
+                <div className="w-12 h-12 rounded-full bg-[rgba(var(--accent-rgb),0.1)] border border-[rgba(var(--accent-rgb),0.2)] flex items-center justify-center text-sm font-semibold text-gold-light">
                   {getInitials(featured.name)}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-[var(--white-primary)]">
+                  <p className="text-sm font-semibold text-white-primary">
                     {featured.name}
                   </p>
-                  <p className="text-xs text-[var(--white-muted)]">
+                  <p className="text-xs text-white-muted">
                     {featured.title}, {featured.businessType}
                   </p>
                 </div>
@@ -219,7 +219,7 @@ export function SocialProof() {
       </div>
 
       {/* Swipeable carousel */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative page-shell">
         {/* Edge fades */}
         <div className="absolute left-0 top-0 bottom-0 w-8 sm:w-16 md:w-24 bg-gradient-to-r from-[var(--bg-elevated)] to-transparent z-10 pointer-events-none" />
         <div className="absolute right-0 top-0 bottom-0 w-8 sm:w-16 md:w-24 bg-gradient-to-l from-[var(--bg-elevated)] to-transparent z-10 pointer-events-none" />
@@ -248,7 +248,7 @@ export function SocialProof() {
 
         {/* Mobile swipe hint */}
         {!hasInteracted && (
-          <div className="flex md:hidden items-center justify-center gap-2 mt-4 text-xs text-[var(--white-muted)] motion-safe:animate-pulse">
+          <div className="flex md:hidden items-center justify-center gap-2 mt-4 text-xs text-white-muted motion-safe:animate-pulse">
             <span>Swipe for more</span>
             <MoveRight className="w-3.5 h-3.5" />
           </div>
@@ -259,7 +259,7 @@ export function SocialProof() {
           <button
             onClick={() => snapTo(activeIndex - 1)}
             disabled={activeIndex === 0}
-            className="hidden md:flex items-center justify-center w-9 h-9 rounded-full border border-[var(--border-glass)] bg-[var(--glass-default-bg)] text-[var(--white-muted)] hover:text-[var(--white-primary)] hover:border-[var(--border-glass-hover)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+            className="hidden md:flex items-center justify-center w-9 h-9 rounded-full border border-border-glass bg-[var(--glass-default-bg)] text-white-muted hover:text-white-primary hover:border-[var(--border-glass-hover)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
             aria-label="Previous testimonials"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -272,7 +272,7 @@ export function SocialProof() {
                 onClick={() => snapTo(i)}
                 className={`w-2.5 h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
                   i === activeIndex
-                    ? "bg-[var(--gold-base)] scale-110"
+                    ? "bg-gold scale-110"
                     : "bg-[var(--white-muted)] opacity-40 hover:opacity-70"
                 }`}
                 aria-label={`Go to testimonial group ${i + 1}`}
@@ -283,7 +283,7 @@ export function SocialProof() {
           <button
             onClick={() => snapTo(activeIndex + 1)}
             disabled={activeIndex >= maxSnap}
-            className="hidden md:flex items-center justify-center w-9 h-9 rounded-full border border-[var(--border-glass)] bg-[var(--glass-default-bg)] text-[var(--white-muted)] hover:text-[var(--white-primary)] hover:border-[var(--border-glass-hover)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+            className="hidden md:flex items-center justify-center w-9 h-9 rounded-full border border-border-glass bg-[var(--glass-default-bg)] text-white-muted hover:text-white-primary hover:border-[var(--border-glass-hover)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
             aria-label="Next testimonials"
           >
             <ChevronRight className="w-4 h-4" />

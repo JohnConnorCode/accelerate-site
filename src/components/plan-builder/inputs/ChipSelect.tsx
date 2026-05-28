@@ -22,8 +22,10 @@ export function ChipSelect({
 }: ChipSelectProps) {
   const [selected, setSelected] = useState<Set<string>>(new Set(preSelected));
 
+  // sync selected state when the parent re-supplies a different preSelected list
   useEffect(() => {
     if (preSelected.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelected(new Set(preSelected));
     }
   }, [preSelected]);
@@ -70,8 +72,8 @@ export function ChipSelect({
               className={cn(
                 "inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm transition-all duration-200 cursor-pointer min-h-[44px]",
                 isSelected
-                  ? "bg-[var(--glass-gold-bg)] border border-[var(--gold-base)] text-[var(--gold-base)]"
-                  : "glass border border-[var(--border-glass)] text-white-primary hover:border-[var(--gold-base)]/40",
+                  ? "bg-[var(--glass-gold-bg)] border border-gold text-gold"
+                  : "glass border border-border-glass text-white-primary hover:border-gold/40",
                 isDisabled && "opacity-40 cursor-not-allowed"
               )}
             >

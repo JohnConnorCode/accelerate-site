@@ -12,17 +12,17 @@ export default function PrivacyPage() {
   return (
     <div className="py-20 md:py-28">
       <AnimateOnScroll className="max-w-3xl mx-auto px-4 sm:px-6">
-        <h1 className="font-display text-3xl md:text-4xl font-bold text-[var(--white-primary)] mb-8">
+        <h1 className="font-display text-3xl md:text-4xl font-bold text-white-primary mb-8">
           Privacy Policy
         </h1>
 
-        <div className="prose-invert space-y-6 text-[var(--white-secondary)] text-sm leading-relaxed">
-          <p className="text-[var(--white-muted)] text-xs">
+        <div className="prose-invert space-y-6 text-white-secondary text-sm leading-relaxed">
+          <p className="text-white-muted text-xs">
             Last updated: February 28, 2026
           </p>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-[var(--white-primary)]">
+            <h2 className="text-lg font-semibold text-white-primary">
               1. Information We Collect
             </h2>
             <p>
@@ -34,7 +34,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-[var(--white-primary)]">
+            <h2 className="text-lg font-semibold text-white-primary">
               2. How We Use Your Information
             </h2>
             <p>We use your information to:</p>
@@ -48,7 +48,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-[var(--white-primary)]">
+            <h2 className="text-lg font-semibold text-white-primary">
               3. Data Sharing
             </h2>
             <p>
@@ -61,7 +61,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-[var(--white-primary)]">
+            <h2 className="text-lg font-semibold text-white-primary">
               4. Cookies
             </h2>
             <p>
@@ -73,7 +73,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-[var(--white-primary)]">
+            <h2 className="text-lg font-semibold text-white-primary">
               5. Data Security
             </h2>
             <p>
@@ -85,7 +85,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-[var(--white-primary)]">
+            <h2 className="text-lg font-semibold text-white-primary">
               6. Your Rights
             </h2>
             <p>
@@ -93,7 +93,7 @@ export default function PrivacyPage() {
               information. To exercise these rights, contact us at{" "}
               <a
                 href="mailto:john@acceleratewith.us"
-                className="text-[var(--gold-light)] hover:underline"
+                className="text-gold-light hover:underline"
               >
                 john@acceleratewith.us
               </a>
@@ -102,7 +102,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-[var(--white-primary)]">
+            <h2 className="text-lg font-semibold text-white-primary">
               7. Contact Us
             </h2>
             <p>
@@ -110,7 +110,7 @@ export default function PrivacyPage() {
               at{" "}
               <a
                 href="mailto:john@acceleratewith.us"
-                className="text-[var(--gold-light)] hover:underline"
+                className="text-gold-light hover:underline"
               >
                 john@acceleratewith.us
               </a>

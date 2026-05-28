@@ -18,8 +18,8 @@ export default function Error({
         >
           Oops
         </p>
-        <h1 className="text-2xl font-bold text-[var(--heading-color)] mb-3">Something Went Wrong</h1>
-        <p className="text-[var(--white-muted)] mb-8">
+        <h1 className="text-2xl font-bold text-heading mb-3">Something Went Wrong</h1>
+        <p className="text-white-muted mb-8">
           An unexpected error occurred. Please try again or return to the home page.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">

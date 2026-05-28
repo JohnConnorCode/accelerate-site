@@ -76,9 +76,9 @@ export function Industries() {
   }, { scope: gridRef });
 
   return (
-    <section className="relative py-32 bg-[var(--bg-base)] overflow-hidden">
+    <section className="relative py-32 bg-bg-base overflow-hidden">
       <GridPattern className="absolute inset-0 opacity-[0.08] pointer-events-none" />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="page-shell">
         <AnimateOnScroll className="mb-16">
           <SectionHeader
             heading={
@@ -110,15 +110,15 @@ export function Industries() {
                   <div className="relative glass rounded-xl p-8 h-full flex flex-col items-start card-hover-shine hover:border-gold-glow transition-all duration-300 overflow-hidden">
                     <div className="absolute top-0 left-0 right-0 h-px bg-gold-gradient scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
                     <div className="w-12 h-12 rounded-lg bg-[rgba(var(--accent-rgb),0.08)] flex items-center justify-center mb-5">
-                      <Icon className="w-6 h-6 text-[var(--gold-base)]" />
+                      <Icon className="w-6 h-6 text-gold" />
                     </div>
-                    <h3 className="text-lg font-semibold text-[var(--heading-color)] mb-2">
+                    <h3 className="text-lg font-semibold text-heading mb-2">
                       {industry.name}
                     </h3>
-                    <p className="text-sm text-[var(--white-muted)] leading-relaxed mb-4 flex-1">
+                    <p className="text-sm text-white-muted leading-relaxed mb-4 flex-1">
                       {industry.description}
                     </p>
-                    <span className="inline-flex items-center gap-1 text-sm text-[var(--white-muted)] group-hover:text-[var(--gold-light)] transition-colors">
+                    <span className="inline-flex items-center gap-1 text-sm text-white-muted group-hover:text-gold-light transition-colors">
                       Learn More
                       <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                     </span>

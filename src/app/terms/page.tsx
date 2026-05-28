@@ -12,17 +12,17 @@ export default function TermsPage() {
   return (
     <div className="py-20 md:py-28">
       <AnimateOnScroll className="max-w-3xl mx-auto px-4 sm:px-6">
-        <h1 className="font-display text-3xl md:text-4xl font-bold text-[var(--white-primary)] mb-8">
+        <h1 className="font-display text-3xl md:text-4xl font-bold text-white-primary mb-8">
           Terms of Service
         </h1>
 
-        <div className="prose-invert space-y-6 text-[var(--white-secondary)] text-sm leading-relaxed">
-          <p className="text-[var(--white-muted)] text-xs">
+        <div className="prose-invert space-y-6 text-white-secondary text-sm leading-relaxed">
+          <p className="text-white-muted text-xs">
             Last updated: February 28, 2026
           </p>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-[var(--white-primary)]">
+            <h2 className="text-lg font-semibold text-white-primary">
               1. Acceptance of Terms
             </h2>
             <p>
@@ -33,7 +33,7 @@ export default function TermsPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-[var(--white-primary)]">
+            <h2 className="text-lg font-semibold text-white-primary">
               2. Services
             </h2>
             <p>
@@ -45,7 +45,7 @@ export default function TermsPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-[var(--white-primary)]">
+            <h2 className="text-lg font-semibold text-white-primary">
               3. Free Tools
             </h2>
             <p>
@@ -57,7 +57,7 @@ export default function TermsPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-[var(--white-primary)]">
+            <h2 className="text-lg font-semibold text-white-primary">
               4. Intellectual Property
             </h2>
             <p>
@@ -69,7 +69,7 @@ export default function TermsPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-[var(--white-primary)]">
+            <h2 className="text-lg font-semibold text-white-primary">
               5. Payment Terms
             </h2>
             <p>
@@ -80,7 +80,7 @@ export default function TermsPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-[var(--white-primary)]">
+            <h2 className="text-lg font-semibold text-white-primary">
               6. Limitation of Liability
             </h2>
             <p>
@@ -92,7 +92,7 @@ export default function TermsPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-[var(--white-primary)]">
+            <h2 className="text-lg font-semibold text-white-primary">
               7. Modifications
             </h2>
             <p>
@@ -103,14 +103,14 @@ export default function TermsPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-[var(--white-primary)]">
+            <h2 className="text-lg font-semibold text-white-primary">
               8. Contact
             </h2>
             <p>
               Questions about these terms? Contact us at{" "}
               <a
                 href="mailto:john@acceleratewith.us"
-                className="text-[var(--gold-light)] hover:underline"
+                className="text-gold-light hover:underline"
               >
                 john@acceleratewith.us
               </a>

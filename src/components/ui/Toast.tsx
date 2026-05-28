@@ -57,15 +57,15 @@ export function Toast({
                 "w-5 h-5 shrink-0",
                 type === "success" && "text-[var(--success)]",
                 type === "error" && "text-[var(--error)]",
-                type === "info" && "text-[var(--gold-light)]"
+                type === "info" && "text-gold-light"
               )}
             />
-            <p className="text-sm text-[var(--white-primary)] flex-1">
+            <p className="text-sm text-white-primary flex-1">
               {message}
             </p>
             <button
               onClick={onClose}
-              className="shrink-0 text-[var(--white-muted)] hover:text-[var(--white-primary)] transition-colors cursor-pointer"
+              className="shrink-0 text-white-muted hover:text-white-primary transition-colors cursor-pointer"
               aria-label="Close notification"
             >
               <X className="w-4 h-4" />

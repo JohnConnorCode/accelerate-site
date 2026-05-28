@@ -63,7 +63,7 @@ export function OptionCards({ options, onSelect }: OptionCardsProps) {
               className={cn(
                 "cursor-pointer transition-all duration-200 min-h-[72px]",
                 isSelected
-                  ? "border-[var(--gold-base)] ring-1 ring-[var(--gold-base)]"
+                  ? "border-gold ring-1 ring-[var(--gold-base)]"
                   : "border-transparent"
               )}
               onClick={() => handleSelect(option)}
@@ -82,13 +82,13 @@ export function OptionCards({ options, onSelect }: OptionCardsProps) {
                     "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
                     isSelected ? "bg-gold-gradient" : "bg-white/5"
                   )}>
-                    <Icon className={cn("w-5 h-5", isSelected ? "text-black" : "text-[var(--gold-base)]")} />
+                    <Icon className={cn("w-5 h-5", isSelected ? "text-black" : "text-gold")} />
                   </div>
                 )}
                 <div className="min-w-0">
                   <p className={cn(
                     "font-medium text-sm",
-                    isSelected ? "text-[var(--gold-base)]" : "text-white-primary"
+                    isSelected ? "text-gold" : "text-white-primary"
                   )}>
                     {option.label}
                   </p>

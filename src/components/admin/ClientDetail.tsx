@@ -102,7 +102,7 @@ export function ClientDetail({ client, onUpdate }: ClientDetailProps) {
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-glass)] px-3 py-2 text-sm text-white-primary focus:outline-none focus:border-[var(--gold-base)] focus:ring-1 focus:ring-[var(--gold-base)]/30 transition-all duration-200"
+              className="w-full rounded-lg bg-bg-subtle border border-border-glass px-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold focus:ring-1 focus:ring-[var(--gold-base)]/30 transition-all duration-200"
             >
               {statusOptions.map((s) => (
                 <option key={s} value={s}>
@@ -129,7 +129,7 @@ export function ClientDetail({ client, onUpdate }: ClientDetailProps) {
                 step="100"
                 value={monthlyValue}
                 onChange={(e) => setMonthlyValue(e.target.value)}
-                className="w-full rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-glass)] pl-9 pr-3 py-2 text-sm text-white-primary focus:outline-none focus:border-[var(--gold-base)] focus:ring-1 focus:ring-[var(--gold-base)]/30 transition-all duration-200"
+                className="w-full rounded-lg bg-bg-subtle border border-border-glass pl-9 pr-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold focus:ring-1 focus:ring-[var(--gold-base)]/30 transition-all duration-200"
               />
             </div>
           </div>
@@ -144,7 +144,7 @@ export function ClientDetail({ client, onUpdate }: ClientDetailProps) {
                 step="100"
                 value={oneTimeValue}
                 onChange={(e) => setOneTimeValue(e.target.value)}
-                className="w-full rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-glass)] pl-9 pr-3 py-2 text-sm text-white-primary focus:outline-none focus:border-[var(--gold-base)] focus:ring-1 focus:ring-[var(--gold-base)]/30 transition-all duration-200"
+                className="w-full rounded-lg bg-bg-subtle border border-border-glass pl-9 pr-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold focus:ring-1 focus:ring-[var(--gold-base)]/30 transition-all duration-200"
               />
             </div>
           </div>
@@ -157,7 +157,7 @@ export function ClientDetail({ client, onUpdate }: ClientDetailProps) {
               type="date"
               value={contractStart}
               onChange={(e) => setContractStart(e.target.value)}
-              className="w-full rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-glass)] px-3 py-2 text-sm text-white-primary focus:outline-none focus:border-[var(--gold-base)] transition-all"
+              className="w-full rounded-lg bg-bg-subtle border border-border-glass px-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold transition-all"
             />
           </div>
 
@@ -169,7 +169,7 @@ export function ClientDetail({ client, onUpdate }: ClientDetailProps) {
               type="date"
               value={contractEnd}
               onChange={(e) => setContractEnd(e.target.value)}
-              className="w-full rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-glass)] px-3 py-2 text-sm text-white-primary focus:outline-none focus:border-[var(--gold-base)] transition-all"
+              className="w-full rounded-lg bg-bg-subtle border border-border-glass px-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold transition-all"
             />
           </div>
         </div>

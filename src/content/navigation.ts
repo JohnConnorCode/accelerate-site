@@ -15,14 +15,6 @@ export const navItems: NavItem[] = [
     ],
   },
   { label: "Results", href: "/results" },
-  {
-    label: "Tools",
-    href: "/tools",
-    children: [
-      { label: "Website Grader", href: "/tools/website-grader" },
-      { label: "ROI Calculator", href: "/tools/roi-calculator" },
-    ],
-  },
   { label: "Learn", href: "/learn" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
@@ -57,8 +49,6 @@ export const footerLinks: {
     heading: "Resources",
     links: [
       { label: "Case Studies", href: "/results" },
-      { label: "Website Grader", href: "/tools/website-grader" },
-      { label: "ROI Calculator", href: "/tools/roi-calculator" },
       { label: "Free Downloads", href: "/resources" },
       { label: "Learning Hub", href: "/learn" },
     ],

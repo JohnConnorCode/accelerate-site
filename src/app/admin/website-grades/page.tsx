@@ -125,7 +125,7 @@ export default function WebsiteGradesPage() {
         <select
           value={scoreFilter}
           onChange={(e) => setScoreFilter(e.target.value)}
-          className="rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-glass)] px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-[var(--gold-base)] transition-all"
+          className="rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-gold transition-all"
         >
           <option value="all">All Scores</option>
           <option value="high">High (80+)</option>
@@ -166,7 +166,7 @@ export default function WebsiteGradesPage() {
                     <Link
                       href={`/admin/contacts/${encodeURIComponent(grade.email)}`}
                       onClick={(e) => e.stopPropagation()}
-                      className="text-white-secondary hover:text-[var(--gold-light)] transition-colors"
+                      className="text-white-secondary hover:text-gold-light transition-colors"
                     >
                       {grade.email}
                     </Link>

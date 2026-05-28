@@ -93,7 +93,7 @@ export function TaskWidget() {
       >
         <GlassCard hover="none" padding="md">
           <div className="flex items-center gap-2 mb-3">
-            <CheckSquare className="h-4 w-4 text-[var(--gold-light)]" />
+            <CheckSquare className="h-4 w-4 text-gold-light" />
             <h3 className="font-display text-sm font-semibold text-white-primary">
               Today&apos;s Tasks
             </h3>
@@ -115,7 +115,7 @@ export function TaskWidget() {
       <GlassCard hover="none" padding="md">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <CheckSquare className="h-4 w-4 text-[var(--gold-light)]" />
+            <CheckSquare className="h-4 w-4 text-gold-light" />
             <h3 className="font-display text-sm font-semibold text-white-primary">
               Today&apos;s Tasks
             </h3>
@@ -170,7 +170,7 @@ export function TaskWidget() {
                             ? `/admin/clients/${task.related_id}`
                             : `/admin/contacts/${encodeURIComponent(task.related_name)}`
                         }
-                        className="text-[10px] text-white-muted hover:text-[var(--gold-light)] transition-colors truncate"
+                        className="text-[10px] text-white-muted hover:text-gold-light transition-colors truncate"
                       >
                         {task.related_name}
                       </Link>

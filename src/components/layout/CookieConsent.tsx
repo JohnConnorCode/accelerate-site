@@ -56,9 +56,9 @@ export function CookieConsent() {
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
           className="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:bottom-6 md:max-w-md z-50"
         >
-          <div className="glass-prominent rounded-xl p-5 border border-[var(--border-glass)]">
+          <div className="glass-prominent rounded-xl p-5 border border-border-glass">
             <div className="flex items-start gap-3 mb-4">
-              <Cookie className="w-5 h-5 text-[var(--gold-base)] shrink-0 mt-0.5" />
+              <Cookie className="w-5 h-5 text-gold shrink-0 mt-0.5" />
               <div className="flex-1">
                 <h3 className="text-sm font-semibold text-white-primary mb-1">
                   We value your privacy

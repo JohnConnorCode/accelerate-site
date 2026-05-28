@@ -66,7 +66,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
             {/* Back Link */}
             <Link
               href="/results"
-              className="inline-flex items-center gap-2 text-sm text-[var(--white-muted)] hover:text-[var(--white-primary)] transition-colors mb-8"
+              className="inline-flex items-center gap-2 text-sm text-white-muted hover:text-white-primary transition-colors mb-8"
             >
               <ArrowLeft className="w-4 h-4" />
               All Case Studies
@@ -74,16 +74,16 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
 
             {/* Meta Badges */}
             <div className="flex flex-wrap items-center gap-3 mb-6">
-              <span className="text-xs font-semibold uppercase tracking-wide text-[var(--gold-base)]">
+              <span className="text-xs font-semibold uppercase tracking-wide text-gold">
                 {industryLabels[study.industry]}
               </span>
               {study.location && (
-                <div className="flex items-center gap-1.5 text-sm text-[var(--white-muted)]">
+                <div className="flex items-center gap-1.5 text-sm text-white-muted">
                   <MapPin className="w-3.5 h-3.5" />
                   {study.location}
                 </div>
               )}
-              <div className="flex items-center gap-1.5 text-sm text-[var(--white-muted)]">
+              <div className="flex items-center gap-1.5 text-sm text-white-muted">
                 <Clock className="w-3.5 h-3.5" />
                 {study.timeline}
               </div>
@@ -108,7 +108,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
                   >
                     {metric.improvement}
                   </p>
-                  <p className="text-xs text-[var(--white-muted)]">{metric.label}</p>
+                  <p className="text-xs text-white-muted">{metric.label}</p>
                 </div>
               ))}
             </div>
@@ -117,7 +117,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
       </section>
 
       {/* Challenge Section */}
-      <section className="pt-12 pb-24 bg-[var(--bg-base)]">
+      <section className="pt-12 pb-24 bg-bg-base">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll>
             <GlassCard padding="lg">
@@ -126,12 +126,12 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
                   <Target className="w-5 h-5 text-[#F43F5E]" />
                 </div>
                 <h2
-                  className="font-display text-2xl sm:text-3xl font-bold text-[var(--heading-color)]"
+                  className="font-display text-2xl sm:text-3xl font-bold text-heading"
                 >
                   The Challenge
                 </h2>
               </div>
-              <p className="text-[var(--white-secondary)] leading-relaxed text-lg">
+              <p className="text-white-secondary leading-relaxed text-lg">
                 {study.challenge}
               </p>
             </GlassCard>
@@ -142,36 +142,36 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
       <SectionDivider variant="line" />
 
       {/* Solution Section */}
-      <section className="py-24 bg-[var(--bg-base)]">
+      <section className="py-24 bg-bg-base">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll>
             <GlassCard padding="lg">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 rounded-lg bg-[rgba(var(--accent-rgb),0.1)] flex items-center justify-center">
-                  <Lightbulb className="w-5 h-5 text-[var(--gold-base)]" />
+                  <Lightbulb className="w-5 h-5 text-gold" />
                 </div>
                 <h2
-                  className="font-display text-2xl sm:text-3xl font-bold text-[var(--heading-color)]"
+                  className="font-display text-2xl sm:text-3xl font-bold text-heading"
                 >
                   Our Solution
                 </h2>
               </div>
-              <p className="text-[var(--white-secondary)] leading-relaxed text-lg mb-8">
+              <p className="text-white-secondary leading-relaxed text-lg mb-8">
                 {study.solution}
               </p>
 
               {/* Services Used */}
-              <div className="pt-6 border-t border-[var(--border-glass)]">
+              <div className="pt-6 border-t border-border-glass">
                 <div className="flex items-center gap-2 mb-4">
-                  <Wrench className="w-4 h-4 text-[var(--white-muted)]" />
-                  <span className="text-sm text-[var(--white-muted)] font-medium">
+                  <Wrench className="w-4 h-4 text-white-muted" />
+                  <span className="text-sm text-white-muted font-medium">
                     Services Deployed
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {study.services.map((service) => {
                     const href = serviceLinks[service];
-                    const className = "text-xs font-medium text-[var(--gold-light)] bg-[rgba(var(--accent-rgb),0.08)] border border-[rgba(var(--accent-rgb),0.15)] rounded-md px-2.5 py-1";
+                    const className = "text-xs font-medium text-gold-light bg-[rgba(var(--accent-rgb),0.08)] border border-[rgba(var(--accent-rgb),0.15)] rounded-md px-2.5 py-1";
                     return href ? (
                       <Link
                         key={service}
@@ -196,19 +196,19 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
       <SectionDivider variant="line" />
 
       {/* Results Section - Before/After Metrics */}
-      <section className="py-24 bg-[var(--bg-base)]">
+      <section className="py-24 bg-bg-base">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll className="text-center mb-16">
             <div className="inline-flex items-center gap-2 glass rounded-full px-4 py-2 mb-6">
-              <TrendingUp className="w-4 h-4 text-[var(--gold-base)]" />
-              <span className="text-sm text-[var(--white-secondary)]">The Transformation</span>
+              <TrendingUp className="w-4 h-4 text-gold" />
+              <span className="text-sm text-white-secondary">The Transformation</span>
             </div>
             <h2
               className="section-heading mb-4"
             >
               The <span className="text-gold-gradient">Results</span>
             </h2>
-            <p className="text-lg text-[var(--white-secondary)] max-w-2xl mx-auto">
+            <p className="text-lg text-white-secondary max-w-2xl mx-auto">
               {study.results}
             </p>
           </AnimateOnScroll>
@@ -218,10 +218,10 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
               <AnimateOnScroll key={metric.label} variants={fadeUp}>
                 <GlassCard variant="prominent" padding="lg" className="h-full">
                   <div className="flex items-center justify-between mb-4">
-                    <p className="text-sm text-[var(--white-muted)] font-medium uppercase tracking-wide">
+                    <p className="text-sm text-white-muted font-medium uppercase tracking-wide">
                       {metric.label}
                     </p>
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[rgba(var(--accent-rgb),0.1)] text-[var(--gold-light)] text-xs font-semibold border border-[rgba(var(--accent-rgb),0.2)]">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[rgba(var(--accent-rgb),0.1)] text-gold-light text-xs font-semibold border border-[rgba(var(--accent-rgb),0.2)]">
                       {metric.improvement}
                     </span>
                   </div>
@@ -229,8 +229,8 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
                   <div className="space-y-3">
                     {/* Before */}
                     <div>
-                      <p className="text-xs text-[var(--white-muted)] mb-1">Before</p>
-                      <p className="text-sm text-[var(--white-secondary)] leading-relaxed">
+                      <p className="text-xs text-white-muted mb-1">Before</p>
+                      <p className="text-sm text-white-secondary leading-relaxed">
                         {metric.before}
                       </p>
                     </div>
@@ -238,14 +238,14 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
                     {/* Divider arrow */}
                     <div className="flex items-center gap-3">
                       <div className="flex-1 h-px bg-[var(--border-glass)]" />
-                      <ArrowRight className="w-4 h-4 text-[var(--gold-base)] shrink-0" />
+                      <ArrowRight className="w-4 h-4 text-gold shrink-0" />
                       <div className="flex-1 h-px bg-[var(--border-glass)]" />
                     </div>
 
                     {/* After */}
                     <div>
-                      <p className="text-xs text-[var(--gold-light)] mb-1">After</p>
-                      <p className="text-sm text-[var(--white-primary)] leading-relaxed font-medium">
+                      <p className="text-xs text-gold-light mb-1">After</p>
+                      <p className="text-sm text-white-primary leading-relaxed font-medium">
                         {metric.after}
                       </p>
                     </div>
@@ -262,24 +262,24 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
         <>
           <SectionDivider variant="line" />
 
-          <section className="py-24 bg-[var(--bg-base)]">
+          <section className="py-24 bg-bg-base">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
               <AnimateOnScroll variants={scaleUp}>
                 <GlassCard variant="gold" padding="lg">
                   <div className="text-center">
-                    <Quote className="w-10 h-10 text-[var(--gold-base)] mx-auto mb-6 opacity-50" />
+                    <Quote className="w-10 h-10 text-gold mx-auto mb-6 opacity-50" />
                     <blockquote
-                      className="font-display text-xl sm:text-2xl font-medium text-[var(--white-primary)] leading-relaxed mb-8"
+                      className="font-display text-xl sm:text-2xl font-medium text-white-primary leading-relaxed mb-8"
                     >
                       &ldquo;{study.testimonialQuote}&rdquo;
                     </blockquote>
                     {study.testimonialAuthor && (
                       <div>
-                        <p className="text-[var(--heading-color)] font-semibold">
+                        <p className="text-heading font-semibold">
                           {study.testimonialAuthor}
                         </p>
                         {study.testimonialTitle && (
-                          <p className="text-sm text-[var(--white-muted)] mt-1">
+                          <p className="text-sm text-white-muted mt-1">
                             {study.testimonialTitle}
                           </p>
                         )}
@@ -297,11 +297,11 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
       {industrySlugs[study.industry] && (
         <>
           <SectionDivider variant="line" />
-          <section className="py-12 bg-[var(--bg-base)]">
+          <section className="py-12 bg-bg-base">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
               <Link
                 href={`/industries/${industrySlugs[study.industry]}`}
-                className="inline-flex items-center gap-2 text-[var(--gold-light)] hover:text-[var(--gold-base)] transition-colors text-sm font-medium"
+                className="inline-flex items-center gap-2 text-gold-light hover:text-gold transition-colors text-sm font-medium"
               >
                 See more solutions for {industryLabels[study.industry]}
                 <ArrowRight className="w-4 h-4" />
@@ -314,7 +314,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
       <SectionDivider variant="fade" />
 
       {/* CTA Section */}
-      <section className="py-24 bg-[var(--bg-base)] relative overflow-hidden">
+      <section className="py-24 bg-bg-base relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-radial from-[rgba(var(--accent-rgb),0.06)] to-transparent" />
         </div>
@@ -329,19 +329,19 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
                   Want{" "}
                   <span className="text-gold-gradient">Similar Results?</span>
                 </h2>
-                <p className="text-lg text-[var(--white-secondary)] max-w-xl mx-auto mb-8">
+                <p className="text-lg text-white-secondary max-w-xl mx-auto mb-8">
                   Get a free, personalized growth plan and see exactly how we can
                   help your business achieve the same kind of transformation.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link href="/plan-builder">
+                  <Link href="/contact">
                     <Button
                       variant="primary"
                       size="lg"
                       pulse
                       className="w-full sm:w-auto"
                     >
-                      Get Your Growth Plan
+                      Book a Free Discovery Call
                       <ArrowRight className="w-5 h-5 ml-2" />
                     </Button>
                   </Link>

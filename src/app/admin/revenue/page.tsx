@@ -126,7 +126,7 @@ export default function RevenuePage() {
                     </div>
                     <div className="h-2 rounded bg-white/5 overflow-hidden">
                       <motion.div
-                        className="h-full rounded bg-[var(--gold-base)]"
+                        className="h-full rounded bg-gold"
                         initial={{ width: 0 }}
                         animate={{ width: `${pct}%` }}
                         transition={{ duration: 0.6 }}

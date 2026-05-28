@@ -160,7 +160,7 @@ export default function ContactsPage() {
                   <Link
                     href={`/admin/contacts/${encodeURIComponent(contact.email)}`}
                     onClick={(e) => e.stopPropagation()}
-                    className="text-white-secondary hover:text-[var(--gold-light)] transition-colors"
+                    className="text-white-secondary hover:text-gold-light transition-colors"
                   >
                     {contact.email}
                   </Link>

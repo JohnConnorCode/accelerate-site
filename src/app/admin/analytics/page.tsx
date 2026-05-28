@@ -152,7 +152,7 @@ export default function AnalyticsPage() {
                   </span>
                   <div className="flex-1 h-5 rounded bg-white/5 overflow-hidden relative">
                     <motion.div
-                      className="h-full bg-[var(--gold-base)] rounded"
+                      className="h-full bg-gold rounded"
                       initial={{ width: 0 }}
                       animate={{ width: `${Math.max(width, item.count > 0 ? 3 : 0)}%` }}
                       transition={{ duration: 0.6, delay: 0.1 + i * 0.04, ease: "easeOut" }}

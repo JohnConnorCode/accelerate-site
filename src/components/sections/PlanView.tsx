@@ -37,21 +37,21 @@ function SolutionCard({ solution }: { solution: SolutionRecommendation }) {
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3">
-            <h4 className="font-semibold text-[var(--white-primary)]">
+            <h4 className="font-semibold text-white-primary">
               {solution.name}
             </h4>
             <span className="text-xs px-2 py-0.5 rounded-full bg-gold-gradient text-black font-medium shrink-0">
               {solution.estimatedImpact}
             </span>
           </div>
-          <p className="text-sm text-[var(--white-secondary)] mt-1 line-clamp-1">
+          <p className="text-sm text-white-secondary mt-1 line-clamp-1">
             {solution.description}
           </p>
         </div>
         {isOpen ? (
-          <ChevronUp className="w-5 h-5 text-[var(--white-muted)] shrink-0 ml-4" />
+          <ChevronUp className="w-5 h-5 text-white-muted shrink-0 ml-4" />
         ) : (
-          <ChevronDown className="w-5 h-5 text-[var(--white-muted)] shrink-0 ml-4" />
+          <ChevronDown className="w-5 h-5 text-white-muted shrink-0 ml-4" />
         )}
       </button>
 
@@ -62,25 +62,25 @@ function SolutionCard({ solution }: { solution: SolutionRecommendation }) {
           className="px-6 pb-5 space-y-4"
         >
           <div>
-            <p className="text-sm font-medium text-[var(--gold-base)] mb-1">
+            <p className="text-sm font-medium text-gold mb-1">
               Why it matters
             </p>
-            <p className="text-sm text-[var(--white-secondary)]">
+            <p className="text-sm text-white-secondary">
               {solution.whyItMatters}
             </p>
           </div>
 
           <div>
-            <p className="text-sm font-medium text-[var(--white-primary)] mb-2">
+            <p className="text-sm font-medium text-white-primary mb-2">
               Features included
             </p>
             <ul className="space-y-1.5">
               {solution.features.map((feature, i) => (
                 <li
                   key={i}
-                  className="flex items-start gap-2 text-sm text-[var(--white-secondary)]"
+                  className="flex items-start gap-2 text-sm text-white-secondary"
                 >
-                  <span className="text-[var(--gold-base)] mt-0.5 shrink-0">
+                  <span className="text-gold mt-0.5 shrink-0">
                     -
                   </span>
                   {feature}
@@ -91,14 +91,14 @@ function SolutionCard({ solution }: { solution: SolutionRecommendation }) {
 
           <div className="flex flex-wrap gap-4 text-sm">
             <div>
-              <span className="text-[var(--white-muted)]">Timeline:</span>{" "}
-              <span className="text-[var(--white-primary)]">
+              <span className="text-white-muted">Timeline:</span>{" "}
+              <span className="text-white-primary">
                 {solution.timeline}
               </span>
             </div>
             <div>
-              <span className="text-[var(--white-muted)]">Investment:</span>{" "}
-              <span className="text-[var(--white-primary)]">
+              <span className="text-white-muted">Investment:</span>{" "}
+              <span className="text-white-primary">
                 {solution.pricingDisplay}
               </span>
             </div>
@@ -152,7 +152,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
           >
             Your <span className="text-gold-gradient">Digital Growth Plan</span>
           </h1>
-          <p className="text-lg text-[var(--white-secondary)]">
+          <p className="text-lg text-white-secondary">
             A personalized roadmap built for your business.
           </p>
         </motion.div>
@@ -170,7 +170,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
           >
             Executive Summary
           </h2>
-          <p className="text-[var(--white-primary)] leading-relaxed">
+          <p className="text-white-primary leading-relaxed">
             {plan.executiveSummary}
           </p>
         </GlassCard>
@@ -184,7 +184,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
         className="space-y-4"
       >
         <h2
-          className="text-xl font-bold text-[var(--white-primary)]"
+          className="text-xl font-bold text-white-primary"
           style={{
             fontFamily:
               "var(--font-jost), var(--font-inter), sans-serif",
@@ -202,7 +202,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
       {/* Implementation Roadmap */}
       <div className="space-y-6">
         <h2
-          className="text-xl font-bold text-[var(--white-primary)]"
+          className="text-xl font-bold text-white-primary"
           style={{
             fontFamily:
               "var(--font-jost), var(--font-inter), sans-serif",
@@ -229,21 +229,21 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
 
                 <GlassCard padding="md" hover="none">
                   <div className="flex items-start justify-between gap-4 mb-2">
-                    <h3 className="font-semibold text-[var(--white-primary)]">
+                    <h3 className="font-semibold text-white-primary">
                       {phase.name}
                     </h3>
-                    <span className="text-xs text-[var(--gold-base)] bg-[var(--glass-gold-bg)] px-2 py-1 rounded-full shrink-0">
+                    <span className="text-xs text-gold bg-[var(--glass-gold-bg)] px-2 py-1 rounded-full shrink-0">
                       {phase.duration}
                     </span>
                   </div>
-                  <p className="text-sm text-[var(--white-secondary)] mb-3">
+                  <p className="text-sm text-white-secondary mb-3">
                     {phase.description}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {phase.solutions.map((sol, i) => (
                       <span
                         key={i}
-                        className="text-xs px-2 py-1 rounded bg-white/5 text-[var(--white-muted)]"
+                        className="text-xs px-2 py-1 rounded bg-white/5 text-white-muted"
                       >
                         {sol}
                       </span>
@@ -259,7 +259,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
       {/* ROI Projection */}
       <div className="space-y-4">
         <h2
-          className="text-xl font-bold text-[var(--white-primary)]"
+          className="text-xl font-bold text-white-primary"
           style={{
             fontFamily:
               "var(--font-jost), var(--font-inter), sans-serif",
@@ -269,28 +269,28 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <GlassCard padding="md" hover="none">
-            <h3 className="text-sm font-semibold text-[var(--gold-base)] mb-4">
+            <h3 className="text-sm font-semibold text-gold mb-4">
               90-Day Projection
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-[var(--white-secondary)]">
+                <span className="text-sm text-white-secondary">
                   Inquiry increase
                 </span>
-                <span className="text-sm font-medium text-[var(--white-primary)]">
+                <span className="text-sm font-medium text-white-primary">
                   {plan.roiProjection.ninetyDay.estimatedLeadIncrease}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-[var(--white-secondary)]">
+                <span className="text-sm text-white-secondary">
                   Time saved
                 </span>
-                <span className="text-sm font-medium text-[var(--white-primary)]">
+                <span className="text-sm font-medium text-white-primary">
                   {plan.roiProjection.ninetyDay.estimatedTimeSaved}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-[var(--white-secondary)]">
+                <span className="text-sm text-white-secondary">
                   Revenue impact
                 </span>
                 <span className="text-sm font-medium text-gold-gradient">
@@ -301,28 +301,28 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
           </GlassCard>
 
           <GlassCard variant="gold" padding="md" hover="none">
-            <h3 className="text-sm font-semibold text-[var(--gold-base)] mb-4">
+            <h3 className="text-sm font-semibold text-gold mb-4">
               12-Month Projection
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-[var(--white-secondary)]">
+                <span className="text-sm text-white-secondary">
                   Inquiry increase
                 </span>
-                <span className="text-sm font-medium text-[var(--white-primary)]">
+                <span className="text-sm font-medium text-white-primary">
                   {plan.roiProjection.twelveMonth.estimatedLeadIncrease}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-[var(--white-secondary)]">
+                <span className="text-sm text-white-secondary">
                   Time saved
                 </span>
-                <span className="text-sm font-medium text-[var(--white-primary)]">
+                <span className="text-sm font-medium text-white-primary">
                   {plan.roiProjection.twelveMonth.estimatedTimeSaved}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-[var(--white-secondary)]">
+                <span className="text-sm text-white-secondary">
                   Revenue impact
                 </span>
                 <span className="text-sm font-medium text-gold-gradient">
@@ -332,7 +332,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
             </div>
           </GlassCard>
         </div>
-        <p className="text-xs text-[var(--white-muted)] italic">
+        <p className="text-xs text-white-muted italic">
           {plan.roiProjection.disclaimer}
         </p>
       </div>
@@ -340,7 +340,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
       {/* Investment Summary */}
       <div className="space-y-4">
         <h2
-          className="text-xl font-bold text-[var(--white-primary)]"
+          className="text-xl font-bold text-white-primary"
           style={{
             fontFamily:
               "var(--font-jost), var(--font-inter), sans-serif",
@@ -351,23 +351,23 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
         <GlassCard padding="md" hover="none">
           {plan.investmentSummary.oneTimeCosts.length > 0 && (
             <div className="mb-6">
-              <h3 className="text-sm font-semibold text-[var(--white-primary)] mb-3">
+              <h3 className="text-sm font-semibold text-white-primary mb-3">
                 One-time costs
               </h3>
               <div className="space-y-2">
                 {plan.investmentSummary.oneTimeCosts.map((cost, i) => (
                   <div key={i} className="flex justify-between items-center">
-                    <span className="text-sm text-[var(--white-secondary)]">
+                    <span className="text-sm text-white-secondary">
                       {cost.item}
                     </span>
-                    <span className="text-sm text-[var(--white-primary)] font-medium">
+                    <span className="text-sm text-white-primary font-medium">
                       {formatCurrency(cost.amount)}
                     </span>
                   </div>
                 ))}
-                <div className="border-t border-[var(--border-glass)] pt-2 mt-2">
+                <div className="border-t border-border-glass pt-2 mt-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-semibold text-[var(--white-primary)]">
+                    <span className="text-sm font-semibold text-white-primary">
                       Total one-time
                     </span>
                     <span className="text-sm font-bold text-gold-gradient">
@@ -381,23 +381,23 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
 
           {plan.investmentSummary.monthlyCosts.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-[var(--white-primary)] mb-3">
+              <h3 className="text-sm font-semibold text-white-primary mb-3">
                 Monthly costs
               </h3>
               <div className="space-y-2">
                 {plan.investmentSummary.monthlyCosts.map((cost, i) => (
                   <div key={i} className="flex justify-between items-center">
-                    <span className="text-sm text-[var(--white-secondary)]">
+                    <span className="text-sm text-white-secondary">
                       {cost.item}
                     </span>
-                    <span className="text-sm text-[var(--white-primary)] font-medium">
+                    <span className="text-sm text-white-primary font-medium">
                       {formatCurrency(cost.amount)}/mo
                     </span>
                   </div>
                 ))}
-                <div className="border-t border-[var(--border-glass)] pt-2 mt-2">
+                <div className="border-t border-border-glass pt-2 mt-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-semibold text-[var(--white-primary)]">
+                    <span className="text-sm font-semibold text-white-primary">
                       Total monthly
                     </span>
                     <span className="text-sm font-bold text-gold-gradient">
@@ -410,7 +410,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
           )}
 
           {plan.investmentSummary.budgetNotes && (
-            <p className="text-xs text-[var(--white-muted)] mt-4 italic">
+            <p className="text-xs text-white-muted mt-4 italic">
               {plan.investmentSummary.budgetNotes}
             </p>
           )}
@@ -420,7 +420,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
       {/* Next Steps */}
       <div className="space-y-4">
         <h2
-          className="text-xl font-bold text-[var(--white-primary)]"
+          className="text-xl font-bold text-white-primary"
           style={{
             fontFamily:
               "var(--font-jost), var(--font-inter), sans-serif",
@@ -435,7 +435,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
                 <span className="w-6 h-6 rounded-full bg-gold-gradient text-black text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
                   {i + 1}
                 </span>
-                <span className="text-sm text-[var(--white-secondary)]">
+                <span className="text-sm text-white-secondary">
                   {step}
                 </span>
               </li>
@@ -481,7 +481,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
       <div className="text-center pt-4">
         <Link
           href="/plan-builder"
-          className="inline-flex items-center gap-1.5 text-sm text-[var(--white-muted)] hover:text-[var(--white-primary)] link-gold-underline transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-white-muted hover:text-white-primary link-gold-underline transition-colors"
         >
           Build a new plan
           <ArrowRight className="w-3.5 h-3.5" />

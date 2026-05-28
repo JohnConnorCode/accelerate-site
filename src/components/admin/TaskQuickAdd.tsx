@@ -56,7 +56,7 @@ export function TaskQuickAdd({ relatedType, relatedId, relatedName, onTaskCreate
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className={`flex items-center gap-1.5 text-xs text-white-muted hover:text-[var(--gold-light)] transition-colors cursor-pointer ${compact ? "" : "mt-2"}`}
+        className={`flex items-center gap-1.5 text-xs text-white-muted hover:text-gold-light transition-colors cursor-pointer ${compact ? "" : "mt-2"}`}
       >
         <Plus className="h-3.5 w-3.5" />
         Add follow-up
@@ -85,7 +85,7 @@ export function TaskQuickAdd({ relatedType, relatedId, relatedName, onTaskCreate
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            className="bg-transparent text-xs text-white-secondary border border-border-glass rounded px-2 py-1 focus:outline-none focus:border-[var(--gold-base)]"
+            className="bg-transparent text-xs text-white-secondary border border-border-glass rounded px-2 py-1 focus:outline-none focus:border-gold"
           />
         </div>
         <div className="flex items-center gap-1.5">
@@ -93,7 +93,7 @@ export function TaskQuickAdd({ relatedType, relatedId, relatedName, onTaskCreate
           <select
             value={priority}
             onChange={(e) => setPriority(e.target.value)}
-            className="bg-transparent text-xs text-white-secondary border border-border-glass rounded px-2 py-1 focus:outline-none focus:border-[var(--gold-base)]"
+            className="bg-transparent text-xs text-white-secondary border border-border-glass rounded px-2 py-1 focus:outline-none focus:border-gold"
           >
             <option value="high">High</option>
             <option value="medium">Medium</option>

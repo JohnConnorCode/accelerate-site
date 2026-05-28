@@ -149,18 +149,18 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
   };
 
   return (
-    <div className="flex flex-col h-[500px] w-[calc(100vw-2rem)] sm:w-[380px] max-w-[380px] rounded-2xl overflow-clip border border-[var(--border-glass)] bg-[var(--bg-elevated)] shadow-2xl">
+    <div className="flex flex-col h-[500px] w-[calc(100vw-2rem)] sm:w-[380px] max-w-[380px] rounded-2xl overflow-clip border border-border-glass bg-bg-elevated shadow-2xl">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-glass)] bg-[var(--bg-subtle)]">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border-glass bg-bg-subtle">
         <div>
-          <h3 className="text-sm font-display font-semibold text-[var(--white-primary)]">
+          <h3 className="text-sm font-display font-semibold text-white-primary">
             Accelerate AI
           </h3>
-          <p className="text-xs text-[var(--white-muted)]">Ask us anything</p>
+          <p className="text-xs text-white-muted">Ask us anything</p>
         </div>
         <button
           onClick={onClose}
-          className="text-[var(--white-muted)] hover:text-[var(--white-primary)] transition-colors cursor-pointer"
+          className="text-white-muted hover:text-white-primary transition-colors cursor-pointer"
           aria-label="Close chat"
         >
           <X className="h-4 w-4" />
@@ -174,8 +174,8 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
         ))}
         {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
           <div className="flex justify-start">
-            <div className="rounded-2xl rounded-bl-md px-4 py-2.5 bg-[var(--bg-subtle)] border border-[var(--border-glass)]">
-              <Loader2 className="h-4 w-4 animate-spin text-[var(--white-muted)]" />
+            <div className="rounded-2xl rounded-bl-md px-4 py-2.5 bg-bg-subtle border border-border-glass">
+              <Loader2 className="h-4 w-4 animate-spin text-white-muted" />
             </div>
           </div>
         )}
@@ -188,7 +188,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
       )}
 
       {/* Input */}
-      <div className="border-t border-[var(--border-glass)] p-3 bg-[var(--bg-subtle)]">
+      <div className="border-t border-border-glass p-3 bg-bg-subtle">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -202,7 +202,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type a message..."
             aria-label="Chat message"
-            className="flex-1 rounded-lg bg-[var(--bg-base)] border border-[var(--border-glass)] px-3 py-2 text-sm text-[var(--white-primary)] placeholder:text-[var(--white-muted)] focus:outline-none focus:border-[var(--gold-base)] transition-colors"
+            className="flex-1 rounded-lg bg-bg-base border border-border-glass px-3 py-2 text-sm text-white-primary placeholder:text-white-muted focus:outline-none focus:border-gold transition-colors"
             disabled={isLoading}
           />
           <button

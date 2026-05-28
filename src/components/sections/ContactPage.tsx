@@ -1,131 +1,125 @@
 "use client";
 
-import Link from "next/link";
-import { Mail, ArrowRight, Clock, Zap } from "lucide-react";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { Button } from "@/components/ui/Button";
-import { ScrollReveal } from "@/components/ui/ScrollReveal";
-import { SectionDivider } from "@/components/ui/SectionDivider";
-import { PageHero } from "@/components/ui/PageHero";
+import { Mail, Clock, Zap, Check } from "lucide-react";
+import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
+import { Section, Eyebrow, Heading } from "@/components/v2/studio/primitives";
 import { ContactForm } from "@/components/sections/ContactForm";
-import { heroFloatUp } from "@/lib/animations";
+
+const INFO_CARDS = [
+  {
+    icon: Mail,
+    label: "Email",
+    value: "john@acceleratewith.us",
+    href: "mailto:john@acceleratewith.us",
+  },
+  {
+    icon: Clock,
+    label: "Response time",
+    value: "Within 1 business day",
+  },
+  {
+    icon: Zap,
+    label: "Discovery call",
+    value: "Free · 30 minutes",
+  },
+] as const;
+
+const RISK_REVERSAL = [
+  "A prioritized roadmap of your biggest wins",
+  "ROI projections mapped to your business",
+  "Yours to keep — even if we never work together",
+];
 
 export function ContactPageContent() {
-  const heroVisual = (
-    <div className="space-y-4">
-      <GlassCard padding="md" hover="lift">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg bg-[rgba(var(--accent-rgb),0.1)] border border-[rgba(var(--accent-rgb),0.2)] flex items-center justify-center shrink-0">
-            <Mail className="w-5 h-5 text-[var(--gold-base)]" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-[var(--heading-color)]">Email</p>
-            <a
-              href="mailto:john@acceleratewith.us"
-              className="text-sm text-[var(--white-secondary)] hover:text-[var(--gold-light)] transition-colors"
-            >
-              john@acceleratewith.us
-            </a>
-          </div>
-        </div>
-      </GlassCard>
-
-      <GlassCard padding="md" hover="lift">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg bg-[rgba(var(--accent-rgb),0.1)] border border-[rgba(var(--accent-rgb),0.2)] flex items-center justify-center shrink-0">
-            <Clock className="w-5 h-5 text-[var(--gold-base)]" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-[var(--heading-color)]">Response Time</p>
-            <p className="text-sm text-[var(--white-secondary)]">Within 1 business day</p>
-          </div>
-        </div>
-      </GlassCard>
-
-      <GlassCard padding="md" hover="lift">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg bg-[rgba(var(--accent-rgb),0.1)] border border-[rgba(var(--accent-rgb),0.2)] flex items-center justify-center shrink-0">
-            <Zap className="w-5 h-5 text-[var(--gold-base)]" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-[var(--heading-color)]">Discovery Call</p>
-            <p className="text-sm text-[var(--white-secondary)]">Free, 30 minutes</p>
-          </div>
-        </div>
-      </GlassCard>
-    </div>
-  );
-
   return (
     <>
-      {/* Hero — split with info cards */}
-      <PageHero
-        variant="split"
-        background="starfield"
-        itemAnimation={heroFloatUp}
-        label="Contact"
-        title={
-          <>
-            Let&rsquo;s Talk About{" "}
-            <span className="text-gold-gradient">Your Business</span>
-          </>
-        }
-        description="Tell us where you are and where you want to go. We'll respond within one business day."
-        visual={heroVisual}
-      />
+      {/* hero — eyebrow + display heading + info cards in dark-glass tiles */}
+      <Section width="wide" className="pt-32">
+        <div className="grid items-start gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
+          {/* left: statement */}
+          <div>
+            <Eyebrow className="mb-7">contact</Eyebrow>
+            <Heading size={1} as="h1" className="text-[clamp(2.4rem,4.6vw,4.75rem)] leading-[1.02]">
+              Let&apos;s <Heading.Italic>talk.</Heading.Italic>
+            </Heading>
+            <p className="mt-7 max-w-md text-base leading-relaxed text-white-secondary">
+              Tell us where you are and where you want to go. We&apos;ll respond
+              within one business day — and the discovery call is{" "}
+              <span className="font-semibold text-gold">free, with no obligation.</span>
+            </p>
 
-      <SectionDivider variant="fade" />
-
-      {/* Form Section */}
-      <section className="py-24 bg-[var(--bg-base)] relative overflow-hidden">
-        <div className="absolute inset-0 grid-overlay-fine pointer-events-none" />
-
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
-            {/* Left: Form */}
-            <ScrollReveal animation="blur-up" className="lg:col-span-3">
-              <ContactForm />
-            </ScrollReveal>
-
-            {/* Right: CTA */}
-            <ScrollReveal animation="slide-right" delay={0.15} className="lg:col-span-2">
-              <div className="space-y-6">
-                <GlassCard variant="gold" padding="lg">
-                  <h3 className="font-display text-xl font-bold text-[var(--heading-color)] mb-3">
-                    Want a custom AI plan?
-                  </h3>
-                  <p className="text-sm text-[var(--white-secondary)] mb-5 leading-relaxed">
-                    Answer a few questions and get a personalized growth plan
-                    with recommendations, timelines, and pricing — free.
-                  </p>
-                  <Link href="/plan-builder">
-                    <Button variant="primary" size="md">
-                      Get Your Growth Plan
-                      <ArrowRight className="w-4 h-4 ml-1.5" />
-                    </Button>
-                  </Link>
-                </GlassCard>
-              </div>
-            </ScrollReveal>
+            {/* info cards */}
+            <div className="mt-10 flex flex-col gap-3">
+              {INFO_CARDS.map((card, i) => {
+                const Icon = card.icon;
+                const href = "href" in card ? card.href : undefined;
+                const shell =
+                  "group flex items-center gap-4 rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_60%,transparent)] p-4 backdrop-blur-sm transition-colors hover:border-border-gold";
+                const inner = (
+                  <>
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)] text-gold">
+                      <Icon className="h-5 w-5" strokeWidth={1.75} />
+                    </span>
+                    <span className="flex flex-col">
+                      <span className="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-white-muted">
+                        {card.label}
+                      </span>
+                      <span className="text-sm font-medium text-heading">{card.value}</span>
+                    </span>
+                  </>
+                );
+                return (
+                  <AnimateOnScroll as="div" key={card.label} delay={i * 0.06}>
+                    {href ? (
+                      <a href={href} data-cursor="link" className={shell}>{inner}</a>
+                    ) : (
+                      <div className={shell}>{inner}</div>
+                    )}
+                  </AnimateOnScroll>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Trust badges below form */}
-          <div className="mt-12 flex items-center justify-center gap-6 flex-wrap text-sm text-[var(--white-muted)]">
-            <span className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[var(--gold-base)]" />
-              &lt; 24hr response
-            </span>
-            <span className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-[var(--gold-base)]" />
-              No obligation
-            </span>
-            <span className="flex items-center gap-2">
-              <Mail className="w-4 h-4 text-[var(--gold-base)]" />
-              Direct to founder
-            </span>
+          {/* right: the form, the actual point of this page */}
+          <AnimateOnScroll as="div" delay={0.15} className="lg:sticky lg:top-32">
+            <div className="rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_20px_60px_rgba(0,0,0,0.25)] backdrop-blur-md sm:p-8">
+              <p className="mb-1 font-mono text-[0.6rem] uppercase tracking-[0.22em] text-white-muted">
+                Start here
+              </p>
+              <h2 className="mb-5 font-display text-2xl font-bold tracking-[-0.02em] text-heading">
+                Tell us about your business
+              </h2>
+              <ContactForm />
+            </div>
+          </AnimateOnScroll>
+        </div>
+      </Section>
+
+      {/* risk reversal — what you walk away with, free */}
+      <Section width="wide" divide>
+        <div className="grid gap-12 lg:grid-cols-[1fr_1fr] lg:gap-16">
+          <div>
+            <Eyebrow className="mb-7">what you walk away with</Eyebrow>
+            <Heading size={2} as="h2" className="max-w-md">
+              A free plan, <Heading.Italic>yours to keep.</Heading.Italic>
+            </Heading>
+          </div>
+          <div className="flex flex-col gap-4 lg:mt-3">
+            {RISK_REVERSAL.map((item, i) => (
+              <AnimateOnScroll
+                as="div"
+                key={item}
+                delay={i * 0.06}
+                className="flex items-start gap-3 border-t border-border-glass pt-4 text-base text-white-secondary"
+              >
+                <Check className="mt-1 h-5 w-5 shrink-0 text-gold" strokeWidth={2.5} />
+                <span>{item}</span>
+              </AnimateOnScroll>
+            ))}
           </div>
         </div>
-      </section>
+      </Section>
     </>
   );
 }

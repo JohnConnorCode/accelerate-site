@@ -36,7 +36,7 @@ export function Stats() {
   }, { scope: sectionRef });
 
   return (
-    <section ref={sectionRef} className="py-24 bg-[var(--bg-base)] relative">
+    <section ref={sectionRef} className="py-24 bg-bg-base relative">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Stats grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12 md:gap-16">
@@ -57,11 +57,11 @@ export function Stats() {
                   suffix={stat.suffix}
                 />
               </p>
-              <p className="text-xs uppercase tracking-[0.2em] text-[var(--white-muted)] font-medium mb-2">
+              <p className="text-xs uppercase tracking-[0.2em] text-white-muted font-medium mb-2">
                 {stat.label}
               </p>
               {stat.detail && (
-                <p className="text-xs text-[var(--white-muted)]">
+                <p className="text-xs text-white-muted">
                   {stat.detail}
                 </p>
               )}

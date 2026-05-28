@@ -73,7 +73,7 @@ function SolutionCard({ solution }: { solution: SolutionRecommendation }) {
           className="px-6 pb-5 space-y-4"
         >
           <div>
-            <p className="text-sm font-medium text-[var(--gold-base)] mb-1">
+            <p className="text-sm font-medium text-gold mb-1">
               Why it matters
             </p>
             <p className="text-sm text-white-secondary">{solution.whyItMatters}</p>
@@ -86,7 +86,7 @@ function SolutionCard({ solution }: { solution: SolutionRecommendation }) {
             <ul className="space-y-1.5">
               {solution.features.map((feature, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-white-secondary">
-                  <span className="text-[var(--gold-base)] mt-0.5 shrink-0">-</span>
+                  <span className="text-gold mt-0.5 shrink-0">-</span>
                   {feature}
                 </li>
               ))}
@@ -239,7 +239,7 @@ export function ResultsStep({ plan, shareToken }: StepProps) {
                     <h4 className="font-semibold text-white-primary">
                       {phase.name}
                     </h4>
-                    <span className="text-xs text-[var(--gold-base)] bg-[var(--glass-gold-bg)] px-2 py-1 rounded-full shrink-0">
+                    <span className="text-xs text-gold bg-[var(--glass-gold-bg)] px-2 py-1 rounded-full shrink-0">
                       {phase.duration}
                     </span>
                   </div>
@@ -271,7 +271,7 @@ export function ResultsStep({ plan, shareToken }: StepProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* 90-Day */}
           <GlassCard padding="md" hover="none">
-            <h4 className="text-sm font-semibold text-[var(--gold-base)] mb-4">
+            <h4 className="text-sm font-semibold text-gold mb-4">
               90-Day Projection
             </h4>
             <div className="space-y-3">
@@ -298,7 +298,7 @@ export function ResultsStep({ plan, shareToken }: StepProps) {
 
           {/* 12-Month */}
           <GlassCard variant="gold" padding="md" hover="none">
-            <h4 className="text-sm font-semibold text-[var(--gold-base)] mb-4">
+            <h4 className="text-sm font-semibold text-gold mb-4">
               12-Month Projection
             </h4>
             <div className="space-y-3">
@@ -349,7 +349,7 @@ export function ResultsStep({ plan, shareToken }: StepProps) {
                     </span>
                   </div>
                 ))}
-                <div className="border-t border-[var(--border-glass)] pt-2 mt-2">
+                <div className="border-t border-border-glass pt-2 mt-2">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-semibold text-white-primary">
                       Total one-time
@@ -378,7 +378,7 @@ export function ResultsStep({ plan, shareToken }: StepProps) {
                     </span>
                   </div>
                 ))}
-                <div className="border-t border-[var(--border-glass)] pt-2 mt-2">
+                <div className="border-t border-border-glass pt-2 mt-2">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-semibold text-white-primary">
                       Total monthly

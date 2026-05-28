@@ -1,11 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 32" width="32" height="32">
+  <!-- Accelerate chevron mark — same geometry as components/ui/LogoMark.tsx so
+       the favicon and the in-page logo read as the same brand mark. -->
   <defs>
-    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#F5DC78"/>
-      <stop offset="50%" stop-color="#D4AF37"/>
-      <stop offset="100%" stop-color="#B8960C"/>
-    </linearGradient>
+    <path id="cv" d="M 0 0 L 14 0 L 22 16 L 14 32 L 0 32 L 8 16 Z" />
   </defs>
-  <rect width="32" height="32" rx="7" fill="#0A0A0F"/>
-  <path d="M16 5L7 27h4.2l1.8-4.5h6l1.8 4.5H25L16 5zm0 7.5l2.4 6h-4.8l2.4-6z" fill="url(#gold)"/>
+  <use href="#cv" transform="translate(0,0)"  fill="#C6FF3D" fill-opacity="0.30" />
+  <use href="#cv" transform="translate(18,0)" fill="#C6FF3D" fill-opacity="0.60" />
+  <use href="#cv" transform="translate(36,0)" fill="#C6FF3D" fill-opacity="1" />
 </svg>

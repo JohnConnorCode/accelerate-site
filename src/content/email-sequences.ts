@@ -120,13 +120,9 @@ Enjoy the resource. If you have any questions, just reply to this email.
 
 Just checking in — did you get a chance to go through {{resourceTitle}}?
 
-If you found it useful, here are two more resources you might like:
+If you found it useful and want to see how this applies to your specific business, the best next step is a free 30-minute discovery call. We'll map out exactly where AI and automation could help you book more clients and reclaim time — whether you work with us or not.
 
-1. Free Website Grader — Get an instant score on your website's performance, SEO, and mobile-friendliness: https://acceleratewith.us/tools/website-grader
-
-2. ROI Calculator — See how much additional revenue AI automation could generate for your business: https://acceleratewith.us/tools/roi-calculator
-
-Both are free and take less than a minute.
+Grab a time here: https://acceleratewith.us/contact
 
 — The Accelerate Team`,
     },

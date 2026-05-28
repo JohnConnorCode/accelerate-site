@@ -6,20 +6,56 @@
    ======================================== */
 
 :root {
-  /* Backgrounds — distinct per section for visual contrast */
-  --bg-base: #0A0806;
-  --bg-elevated: #110E0A;
-  --bg-subtle: #141210;
-  --bg-section-warm: #0D0A06;
-  --bg-section-deep: #050403;
+  /* ─────────── Layout tiers — single source of truth for section width ─────────── */
+  --content-max: 100rem;     /* 1600px — wide: editorial / full-bleed / list / nav / footer */
+  --content-narrow: 76rem;   /* 1216px — narrow: paired text + focal panel */
+  --content-text: 56rem;     /* 896px  — text: pure paragraph / manifesto / reading */
 
-  /* Accent color (raw RGB channels for rgba() usage) */
-  --accent-rgb: 212, 175, 55;
+  /* ─────────── Vertical rhythm ─────────── */
+  --section-pad-y: 7rem;     /* every section uses .section-y */
+  --block-gap: 3rem;         /* between heading group and section content */
+  --stack-tight: 0.75rem;
+  --stack-cozy: 1.5rem;
+  --stack-roomy: 2.5rem;
 
-  /* Gold */
-  --gold-base: #D4AF37;
-  --gold-light: #F5D060;
-  --gold-champagne: #E8D5A3;
+  /* ─────────── Motion timings + easings (single source of truth) ─────────── */
+  --motion-instant: 0.15s;
+  --motion-fast: 0.25s;
+  --motion-base: 0.4s;
+  --motion-slow: 0.7s;
+  --motion-hero: 1s;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);   /* canonical brand ease */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ─────────── Radii ─────────── */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.75rem;
+  --radius-pill: 9999px;
+
+  /* Backgrounds — cool near-black "Neon Terminal" palette */
+  --bg-base: #07080A;
+  --bg-elevated: #0E1014;
+  --bg-subtle: #111418;
+  --bg-section-warm: #090A0D;
+  --bg-section-deep: #050608;
+
+  /* Accent color (raw RGB channels for rgba() usage) — acid lime */
+  --accent-rgb: 198, 255, 61;
+
+  /* Accent ramp (lime) */
+  --gold-base: #C6FF3D;
+  --gold-light: #DCFF7E;
+  --gold-champagne: #A6E000;
+
+  /* Accent gradient stops (lime ramp) */
+  --aurora-violet: #A6E000;
+  --aurora-magenta: #C6FF3D;
+  --aurora-cyan: #E4FF95;
+
+  /* Interactive grid-field dim-dot color (cool grey on dark) */
+  --field-dot-rgb: 190, 200, 210;
 
   /* Gradient mesh colors */
   --mesh-1: rgba(var(--accent-rgb), 0.08);
@@ -58,10 +94,10 @@
   --glass-saturation: 180%;
 
   /* Heading color (semantic, for hardcoded heading styles) */
-  --heading-color: #EDEDED;
+  --heading-color: #EDEFF2;
 
-  /* Button text on accent gradient */
-  --btn-primary-text: #000000;
+  /* Button text on accent (black on lime) */
+  --btn-primary-text: #07080A;
 
   /* Layout semantic vars (dark defaults) */
   --header-bg: rgba(5, 5, 5, 0.50);
@@ -88,23 +124,29 @@
   --color-white: #1a1a1a;
   --color-black: #000000;
 
-  /* Semantic heading color (replaces hardcoded #EDEDED) */
-  --heading-color: #1A1A1A;
+  /* Semantic heading color (near-black, faint blue ink) */
+  --heading-color: #0B1020;
 
-  /* Backgrounds */
-  --bg-base: #FAFAF8;
-  --bg-elevated: #FFFFFF;
-  --bg-subtle: #F5F3EF;
-  --bg-section-warm: #F8F6F1;
-  --bg-section-deep: #F0EDE6;
+  /* Backgrounds — soft off-white with a cool blue cast (never pure white) */
+  --bg-base: #F2F5FB;
+  --bg-elevated: #FBFCFE;
+  --bg-subtle: #E9EEF8;
+  --bg-section-warm: #EEF2FB;
+  --bg-section-deep: #E3E9F5;
 
-  /* Accent color (teal RGB channels for light mode) */
-  --accent-rgb: 11, 122, 122;
+  /* Accent (crisp energetic blue — legible + lively on off-white) */
+  --accent-rgb: 45, 91, 255;
+  --gold-base: #2D5BFF;
+  --gold-light: #5B82FF;
+  --gold-champagne: #1E3FCC;
 
-  /* Accent (teal-to-navy for light mode) */
-  --gold-base: #0B7A7A;
-  --gold-light: #14959A;
-  --gold-champagne: #065A6E;
+  /* Blue gradient stops (button fills get white text via --btn-primary-text) */
+  --aurora-violet: #1E3FCC;
+  --aurora-magenta: #2D5BFF;
+  --aurora-cyan: #5B82FF;
+
+  /* Interactive grid-field dim-dot color (ink on light) */
+  --field-dot-rgb: 30, 36, 40;
 
   /* Gradient mesh (cool teal tint) */
   --mesh-1: rgba(var(--accent-rgb), 0.06);
@@ -150,7 +192,7 @@
   --bg-overlay: rgba(0, 0, 0, 0.30);
   --bg-hover-subtle: rgba(0, 0, 0, 0.04);
 
-  /* Button text on accent gradient (white on teal) */
+  /* Button text on accent gradient (dark on lime) */
   --btn-primary-text: #FFFFFF;
 }
 
@@ -181,9 +223,24 @@
     0 4px 16px rgba(0, 0, 0, 0.04);
 }
 
-/* Light mode button gradient (symmetric for even fill) */
+/* Light mode button gradient — crisp blue fill (white text rides on top) */
 [data-theme="light"] .bg-gold-gradient {
-  background: linear-gradient(135deg, var(--gold-base) 0%, var(--gold-light) 45%, var(--gold-base) 100%);
+  background: linear-gradient(135deg, #2D5BFF 0%, #1E3FCC 100%);
+}
+
+/* Light mode: gradient TEXT stays a crisp, legible blue on off-white */
+[data-theme="light"] .text-gold-gradient,
+[data-theme="light"] .text-shimmer {
+  background: linear-gradient(90deg, #1E3FCC 0%, #2D5BFF 50%, #5B82FF 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Light mode — subtle blue gradient wash over the off-white base */
+[data-theme="light"] body {
+  background-image: radial-gradient(125% 80% at 50% -10%, rgba(45, 91, 255, 0.1), transparent 58%);
+  background-attachment: fixed;
 }
 
 /* Light mode header — visible against light page bg */
@@ -323,6 +380,8 @@
   --color-white-primary: var(--white-primary);
   --color-white-secondary: var(--white-secondary);
   --color-white-muted: var(--white-muted);
+  --color-heading: var(--heading-color);
+  --color-btn-text: var(--btn-primary-text);
   --color-border-glass: var(--border-glass);
   --color-border-gold: var(--border-gold);
   --color-success: var(--success);
@@ -330,6 +389,7 @@
   --font-sans: var(--font-inter);
   --font-display: var(--font-jost);
   --font-editorial: var(--font-editorial);
+  --font-mono: var(--font-mono-face), ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
 
 /* ========================================
@@ -339,6 +399,21 @@
 html,
 body {
   overflow-x: hidden;
+}
+
+/* Lenis smooth-scroll (scoped to the /v2 experience) */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
 }
 
 body {
@@ -355,14 +430,14 @@ body {
    ======================================== */
 
 .text-gold-gradient {
-  background: linear-gradient(135deg, var(--gold-base) 0%, var(--gold-light) 45%, var(--gold-champagne) 100%);
+  background: linear-gradient(90deg, var(--aurora-violet) 0%, var(--aurora-magenta) 50%, var(--aurora-cyan) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .bg-gold-gradient {
-  background: linear-gradient(135deg, var(--gold-base) 0%, var(--gold-light) 45%, var(--gold-champagne) 100%);
+  background: linear-gradient(135deg, var(--aurora-violet) 0%, var(--aurora-magenta) 100%);
 }
 
 .border-gold-glow,
@@ -378,6 +453,132 @@ body {
 /* ========================================
    GLASSMORPHISM UTILITIES
    ======================================== */
+
+/* ─── Logo chevron mark ─── three stacked chevrons that cascade-shimmer to
+   suggest acceleration. Always-on subtle wave; on hover the wave accelerates
+   and all three peak. Reduced-motion safe. */
+.logo-mark__cv { transition: opacity var(--motion-fast, 0.25s) ease-out, transform var(--motion-fast, 0.25s) ease-out; }
+.logo-mark__cv--1 { opacity: 0.30; animation: lm-wave 2.4s ease-in-out infinite; animation-delay: 0s; }
+.logo-mark__cv--2 { opacity: 0.55; animation: lm-wave 2.4s ease-in-out infinite; animation-delay: 0.2s; }
+.logo-mark__cv--3 { opacity: 0.85; animation: lm-wave 2.4s ease-in-out infinite; animation-delay: 0.4s; }
+@keyframes lm-wave {
+  0%, 100% { opacity: var(--lm-base, 0.35); }
+  50%      { opacity: 1; }
+}
+.logo-mark__cv--1 { --lm-base: 0.30; }
+.logo-mark__cv--2 { --lm-base: 0.55; }
+.logo-mark__cv--3 { --lm-base: 0.85; }
+/* Hover: every chevron brightens, a small forward nudge to cement the "accelerate" feel */
+.logo-link:hover .logo-mark__cv,
+.logo-link:focus-visible .logo-mark__cv { opacity: 1; }
+.logo-link:hover .logo-mark__cv--1 { transform: translateX(2px); transition-delay: 0s; }
+.logo-link:hover .logo-mark__cv--2 { transform: translateX(1px); transition-delay: 0.06s; }
+.logo-link:hover .logo-mark__cv--3 { transform: translateX(0);   transition-delay: 0.12s; }
+@media (prefers-reduced-motion: reduce) {
+  .logo-mark__cv { animation: none !important; transition: none !important; }
+  .logo-mark__cv--1 { opacity: 0.35; }
+  .logo-mark__cv--2 { opacity: 0.65; }
+  .logo-mark__cv--3 { opacity: 1; }
+}
+
+/* Shared content frame — capped + centered + responsive gutters.
+   Single source of truth for nav, footer, and v2 section width/alignment. */
+.page-shell {
+  width: 100%;
+  max-width: var(--content-max);
+  margin-inline: auto;
+  padding-inline: 1.5rem; /* px-6 */
+}
+@media (min-width: 640px) {
+  .page-shell { padding-inline: 2.5rem; } /* sm: px-10 */
+}
+@media (min-width: 1024px) {
+  .page-shell { padding-inline: 4rem; } /* lg: px-16 */
+}
+
+/* Width tier modifiers — same gutters as .page-shell; only the cap differs. */
+.page-shell--narrow { max-width: var(--content-narrow); }
+.page-shell--text   { max-width: var(--content-text); } /* text-heavy sections */
+
+/* Vertical section rhythm — replaces inline py-24 everywhere. */
+.section-y { padding-block: var(--section-pad-y); }
+@media (max-width: 640px) {
+  :root { --section-pad-y: 4.5rem; --block-gap: 2rem; } /* tighter on mobile */
+}
+
+/* Section divider — gold gradient hairline that visually punctuates the
+   transition between sections. Subtle but on-brand and clearly intentional. */
+.section-divide { position: relative; }
+.section-divide::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(var(--accent-rgb), 0.1) 25%,
+    rgba(var(--accent-rgb), 0.28) 50%,
+    rgba(var(--accent-rgb), 0.1) 75%,
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* Section eyebrow — the "[ label ]" bracket marker. */
+.eyebrow {
+  font-family: var(--font-mono-face), ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.75rem;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--gold-base);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+/* Anchored variant: number · rule · label  — the pro "01 ──── [ label ]" pattern */
+.eyebrow-rule::before {
+  content: "";
+  display: inline-block;
+  width: 2rem;
+  height: 1px;
+  background: var(--gold-base);
+  opacity: 0.5;
+  margin-right: 0.75rem;
+  vertical-align: middle;
+}
+
+/* Display heading scale — replaces per-section inline clamp recipes. */
+.display-1 {
+  font-family: var(--font-jost), system-ui, sans-serif;
+  font-weight: 800;
+  line-height: 0.85;
+  letter-spacing: -0.05em;
+  font-size: clamp(3.5rem, 11vw, 10rem);
+  color: var(--heading-color);
+}
+.display-2 {
+  font-family: var(--font-jost), system-ui, sans-serif;
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  font-size: clamp(2rem, 5vw, 4.5rem);
+  color: var(--heading-color);
+}
+.display-3 {
+  font-family: var(--font-jost), system-ui, sans-serif;
+  font-weight: 800;
+  line-height: 1.0;
+  letter-spacing: -0.03em;
+  font-size: clamp(2.2rem, 4.5vw, 4rem);
+  color: var(--heading-color);
+}
+/* Gold italic accent within a display heading (e.g. "do the work."). */
+.display-italic {
+  font-family: var(--font-editorial), serif;
+  font-style: italic;
+  color: var(--gold-base);
+}
 
 .glass {
   background: var(--glass-default-bg);
@@ -475,12 +676,14 @@ body {
   line-height: 1.7;
 }
 
+/* `.page-heading` is the inner-page heading class; aligned with `.display-3` so
+   inner pages share the master type scale with the homepage. */
 .page-heading {
-  font-size: clamp(2.25rem, 1.2rem + 3.8vw, 3.75rem);
-  font-weight: 700;
-  font-family: var(--font-jost), var(--font-inter), sans-serif;
-  letter-spacing: -0.04em;
-  line-height: 1.05;
+  font-family: var(--font-jost), system-ui, sans-serif;
+  font-weight: 800;
+  line-height: 1.0;
+  letter-spacing: -0.03em;
+  font-size: clamp(2.2rem, 4.5vw, 4rem);
   color: var(--heading-color);
 }
 
@@ -889,11 +1092,11 @@ select:-webkit-autofill:focus {
 .text-shimmer {
   background: linear-gradient(
     90deg,
-    var(--gold-base) 0%,
-    var(--gold-light) 25%,
-    var(--gold-champagne) 50%,
-    var(--gold-light) 75%,
-    var(--gold-base) 100%
+    var(--aurora-violet) 0%,
+    var(--aurora-magenta) 25%,
+    var(--aurora-cyan) 50%,
+    var(--aurora-magenta) 75%,
+    var(--aurora-violet) 100%
   );
   background-size: 200% auto;
   -webkit-background-clip: text;
@@ -960,6 +1163,114 @@ select:-webkit-autofill:focus {
 
 
 /* ========================================
+   HERO — NEON TERMINAL MOTION
+   ======================================== */
+
+@keyframes hero-grid-drift {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 64px 64px, 64px 64px; }
+}
+.hero-grid { animation: hero-grid-drift 7s linear infinite; }
+
+@keyframes hero-glow-breathe {
+  0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.14); }
+}
+.hero-glow { animation: hero-glow-breathe 5.5s ease-in-out infinite; }
+
+@keyframes caret-blink {
+  0%, 48% { opacity: 1; }
+  49%, 100% { opacity: 0; }
+}
+.caret-blink { animation: caret-blink 1.1s step-end infinite; }
+
+/* Orchestrated page-load reveal (staggered via inline animation-delay) */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+.rise-in { animation: rise-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* Scroll-sequence step swap — starts visible (never blank), settles in */
+@keyframes step-in {
+  from { opacity: 0.35; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.step-in { animation: step-in 0.4s ease both; }
+
+/* Kinetic marquee bands */
+@keyframes marquee-l { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes marquee-r { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+.marquee-track { display: inline-flex; white-space: nowrap; will-change: transform; animation: marquee-l 34s linear infinite; }
+.marquee-track.rev { animation-name: marquee-r; }
+.marquee-wrap:hover .marquee-track { animation-play-state: paused; }
+
+/* Outlined display type (big editorial numerals / ghost words) */
+.text-stroke {
+  -webkit-text-stroke: 1.5px rgba(var(--accent-rgb), 0.55);
+  color: transparent;
+}
+
+/* Hover underline-sweep (premium link/phrase micro-interaction) */
+.ink-sweep {
+  background-image: linear-gradient(var(--gold-base), var(--gold-base));
+  background-size: 0% 0.1em;
+  background-position: 0 92%;
+  background-repeat: no-repeat;
+  transition: background-size 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.ink-sweep:hover,
+.group:hover .ink-sweep {
+  background-size: 100% 0.1em;
+}
+
+/* Living shapes — morphing fluid gradient blobs */
+@keyframes blob-morph {
+  0%, 100% { border-radius: 62% 38% 34% 66% / 58% 34% 66% 42%; }
+  33% { border-radius: 40% 60% 62% 38% / 48% 58% 42% 52%; }
+  66% { border-radius: 52% 48% 44% 56% / 40% 52% 56% 60%; }
+}
+@keyframes blob-float {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+  50% { transform: translate3d(4%, -5%, 0) rotate(12deg) scale(1.08); }
+}
+.living-blob {
+  filter: blur(96px);
+  border-radius: 62% 38% 34% 66% / 58% 34% 66% 42%;
+  animation: blob-morph 22s ease-in-out infinite, blob-float 28s ease-in-out infinite;
+  will-change: transform, border-radius;
+}
+.living-blob--alt {
+  animation: blob-morph 25s ease-in-out infinite reverse, blob-float 31s ease-in-out infinite reverse;
+}
+
+/* Fluid custom cursor — hide native cursor while active */
+.cursor-none,
+.cursor-none * {
+  cursor: none !important;
+}
+
+/* Ambient atmosphere — slow drifting glows */
+@keyframes atmo-a {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(6%, 5%, 0) scale(1.18); }
+}
+@keyframes atmo-b {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.12); }
+  50% { transform: translate3d(-7%, -6%, 0) scale(0.94); }
+}
+.atmo-a { animation: atmo-a 30s ease-in-out infinite; }
+.atmo-b { animation: atmo-b 38s ease-in-out infinite; }
+
+@keyframes scanline-sweep {
+  0% { transform: translateY(-100%); opacity: 0; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+.scanline { animation: scanline-sweep 7s linear infinite; }
+
+/* ========================================
    REDUCED MOTION
    ======================================== */
 
@@ -977,6 +1288,16 @@ select:-webkit-autofill:focus {
   .grid-dots-glow,
   .border-gradient-animated,
   .text-shimmer,
+  .hero-grid,
+  .hero-glow,
+  .caret-blink,
+  .scanline,
+  .rise-in,
+  .marquee-track,
+  .atmo-a,
+  .atmo-b,
+  .living-blob,
+  .living-blob--alt,
   .card-hover-shine::after {
     animation: none !important;
   }

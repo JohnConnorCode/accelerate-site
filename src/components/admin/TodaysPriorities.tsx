@@ -39,7 +39,7 @@ export function TodaysPriorities({ priorities, unreadContacts, pendingPartners, 
     >
       <GlassCard variant="gold" hover="none">
         <div className="flex items-center gap-2 mb-4">
-          <AlertTriangle className="h-4 w-4 text-[var(--gold-light)]" />
+          <AlertTriangle className="h-4 w-4 text-gold-light" />
           <h3 className="font-display text-sm font-semibold text-white-primary">
             Today&apos;s Priorities
           </h3>

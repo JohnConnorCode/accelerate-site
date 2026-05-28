@@ -148,7 +148,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
               <button
                 ref={closeButtonRef}
                 onClick={onClose}
-                className="relative w-10 h-10 flex items-center justify-center rounded-full border border-[var(--border-light)] hover:border-[var(--border-gold)] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+                className="relative w-10 h-10 flex items-center justify-center rounded-full border border-[var(--border-light)] hover:border-border-gold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
                 aria-label="Close navigation menu"
               >
                 <span
@@ -207,7 +207,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                           transition={{ duration: 0.2 }}
                         >
                           <ChevronRight
-                            className="w-4 h-4 text-[var(--text-nav)] group-hover:text-[var(--gold-base)] transition-colors"
+                            className="w-4 h-4 text-[var(--text-nav)] group-hover:text-gold transition-colors"
                           />
                         </motion.div>
                       </button>
@@ -239,7 +239,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                                   <Link
                                     href={child.href}
                                     onClick={onClose}
-                                    className="block py-2.5 text-[15px] text-[var(--white-muted)] hover:text-[var(--text-nav-hover)] transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+                                    className="block py-2.5 text-[15px] text-white-muted hover:text-[var(--text-nav-hover)] transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
                                   >
                                     {child.label}
                                   </Link>
@@ -290,9 +290,9 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
 
               {/* CTA */}
               <motion.div variants={ctaVariants}>
-                <Link href="/plan-builder" onClick={onClose}>
+                <Link href="/contact" onClick={onClose}>
                   <Button variant="primary" size="lg" className="w-full group/cta">
-                    Get Your Growth Plan
+                    Book a Free Discovery Call
                     <ChevronRight className="w-4 h-4 ml-1.5 transition-transform duration-200 group-hover/cta:translate-x-0.5" />
                   </Button>
                 </Link>

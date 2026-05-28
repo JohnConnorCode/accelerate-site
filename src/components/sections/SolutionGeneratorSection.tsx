@@ -16,7 +16,7 @@ export function SolutionGeneratorSection() {
   return (
     <section
       id="solution-generator"
-      className="py-32 bg-[var(--bg-base)] relative overflow-hidden"
+      className="py-32 bg-bg-base relative overflow-hidden"
     >
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none">

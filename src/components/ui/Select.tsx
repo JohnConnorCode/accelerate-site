@@ -34,9 +34,9 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
             id={id}
             className={cn(
               "w-full px-4 py-3 rounded-lg appearance-none",
-              "bg-[var(--bg-subtle)] border border-[var(--border-glass)]",
-              "text-[var(--white-primary)]",
-              "focus:outline-none focus:border-[var(--gold-base)] focus:ring-1 focus:ring-[var(--gold-base)]/30",
+              "bg-bg-subtle border border-border-glass",
+              "text-white-primary",
+              "focus:outline-none focus:border-gold focus:ring-1 focus:ring-[var(--gold-base)]/30",
               "transition-all duration-200",
               error && "border-[var(--error)]",
               className
@@ -44,7 +44,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
             {...props}
           >
             {placeholder && (
-              <option value="" className="bg-[var(--bg-subtle)]">
+              <option value="" className="bg-bg-subtle">
                 {placeholder}
               </option>
             )}
@@ -52,7 +52,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
               <option
                 key={opt.value}
                 value={opt.value}
-                className="bg-[var(--bg-subtle)]"
+                className="bg-bg-subtle"
               >
                 {opt.label}
               </option>

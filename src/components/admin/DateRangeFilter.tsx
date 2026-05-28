@@ -17,7 +17,7 @@ export function DateRangeFilter({ dateFrom, dateTo, onDateFromChange, onDateToCh
         type="date"
         value={dateFrom}
         onChange={(e) => onDateFromChange(e.target.value)}
-        className="rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-glass)] px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-[var(--gold-base)] transition-all [color-scheme:dark]"
+        className="rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-gold transition-all [color-scheme:dark]"
         placeholder="From"
       />
       <span className="text-xs text-white-muted">to</span>
@@ -25,7 +25,7 @@ export function DateRangeFilter({ dateFrom, dateTo, onDateFromChange, onDateToCh
         type="date"
         value={dateTo}
         onChange={(e) => onDateToChange(e.target.value)}
-        className="rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-glass)] px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-[var(--gold-base)] transition-all [color-scheme:dark]"
+        className="rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-gold transition-all [color-scheme:dark]"
         placeholder="To"
       />
     </div>

@@ -109,8 +109,8 @@ export function PainPointsStep({ formData, onUpdate, onNext }: StepProps) {
                 "flex items-start gap-3 px-4 py-4 rounded-xl cursor-pointer transition-all duration-200 min-h-[44px]",
                 "border",
                 isChecked
-                  ? "border-[var(--border-gold)] bg-[var(--glass-gold-bg)] border-gold-glow"
-                  : "glass border-[var(--border-glass)] hover:border-[var(--border-glass-hover)]"
+                  ? "border-border-gold bg-[var(--glass-gold-bg)] border-gold-glow"
+                  : "glass border-border-glass hover:border-[var(--border-glass-hover)]"
               )}
             >
               <div
@@ -118,7 +118,7 @@ export function PainPointsStep({ formData, onUpdate, onNext }: StepProps) {
                   "w-5 h-5 rounded border flex items-center justify-center shrink-0 mt-0.5 transition-all",
                   isChecked
                     ? "bg-gold-gradient border-transparent"
-                    : "border-[var(--border-glass)] bg-transparent"
+                    : "border-border-glass bg-transparent"
                 )}
               >
                 {isChecked && (
@@ -131,7 +131,7 @@ export function PainPointsStep({ formData, onUpdate, onNext }: StepProps) {
                     className={cn(
                       "w-4 h-4 shrink-0",
                       isChecked
-                        ? "text-[var(--gold-base)]"
+                        ? "text-gold"
                         : "text-white-muted"
                     )}
                   />

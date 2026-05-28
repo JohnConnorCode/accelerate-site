@@ -116,7 +116,7 @@ export default function ChatLeadsPage() {
                     <Link
                       href={`/admin/contacts/${encodeURIComponent(lead.email)}`}
                       onClick={(e) => e.stopPropagation()}
-                      className="text-white-secondary hover:text-[var(--gold-light)] transition-colors"
+                      className="text-white-secondary hover:text-gold-light transition-colors"
                     >
                       {lead.email}
                     </Link>

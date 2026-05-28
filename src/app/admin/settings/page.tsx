@@ -188,7 +188,7 @@ export default function SettingsPage() {
         >
           <GlassCard hover="none">
             <div className="flex items-center gap-3 mb-5">
-              <Bell className="h-5 w-5 text-[var(--gold-light)]" />
+              <Bell className="h-5 w-5 text-gold-light" />
               <h2 className="font-display text-lg font-semibold text-white-primary">
                 Notifications
               </h2>
@@ -207,7 +207,7 @@ export default function SettingsPage() {
                   <button
                     onClick={() => handleNotifyToggle(pref.key)}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
-                      notifyPrefs[pref.key] ? "bg-[var(--gold-base)]" : "bg-white/20"
+                      notifyPrefs[pref.key] ? "bg-gold" : "bg-white/20"
                     }`}
                   >
                     <span
@@ -231,7 +231,7 @@ export default function SettingsPage() {
           >
             <GlassCard hover="none">
               <div className="flex items-center gap-3 mb-5">
-                <section.icon className="h-5 w-5 text-[var(--gold-light)]" />
+                <section.icon className="h-5 w-5 text-gold-light" />
                 <h2 className="font-display text-lg font-semibold text-white-primary">
                   {section.title}
                 </h2>

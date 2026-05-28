@@ -8,6 +8,8 @@ export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
 
+  // SSR hydration guard for next-themes — must flip to mounted on client
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
   if (!mounted) {
@@ -19,13 +21,13 @@ export function ThemeToggle() {
   return (
     <button
       onClick={() => setTheme(isLight ? "dark" : "light")}
-      className="relative w-9 h-9 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg border border-[var(--border-glass)] hover:border-[var(--border-glass-hover)] bg-[var(--glass-default-bg)] hover:bg-[var(--glass-default-hover)] transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+      className="relative w-9 h-9 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg border border-border-glass hover:border-[var(--border-glass-hover)] bg-[var(--glass-default-bg)] hover:bg-[var(--glass-default-hover)] transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
       aria-label={`Switch to ${isLight ? "dark" : "light"} mode`}
     >
       {isLight ? (
-        <Moon className="w-4 h-4 text-[var(--white-primary)]" />
+        <Moon className="w-4 h-4 text-white-primary" />
       ) : (
-        <Sun className="w-4 h-4 text-[var(--gold-base)]" />
+        <Sun className="w-4 h-4 text-gold" />
       )}
     </button>
   );

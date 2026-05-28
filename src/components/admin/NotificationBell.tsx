@@ -103,6 +103,7 @@ export function NotificationBell() {
   };
 
   const timeAgo = (dateStr: string) => {
+    // eslint-disable-next-line react-hooks/purity -- relative-time formatting needs real "now"
     const diff = Date.now() - new Date(dateStr).getTime();
     const minutes = Math.floor(diff / 60000);
     if (minutes < 60) return `${minutes}m`;

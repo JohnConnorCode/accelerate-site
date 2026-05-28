@@ -39,7 +39,7 @@ export function LeadMagnet() {
   }, { scope: sectionRef });
 
   return (
-    <section ref={sectionRef} className="py-24 px-4 sm:px-6 relative overflow-hidden bg-[var(--bg-base)]">
+    <section ref={sectionRef} className="py-24 px-4 sm:px-6 relative overflow-hidden bg-bg-base">
       {/* Interactive star field — twinkling, parallax, click-to-scatter */}
       <div className="absolute inset-0 pointer-events-auto">
         <StarField />
@@ -54,19 +54,19 @@ export function LeadMagnet() {
         data-magnet-content
         className="relative z-10 max-w-2xl mx-auto text-center"
       >
-        <div className="flex items-center justify-center gap-2 mb-4 text-sm font-semibold text-[var(--gold-light)]">
+        <div className="flex items-center justify-center gap-2 mb-4 text-sm font-semibold text-gold-light">
           <BookOpen className="w-4 h-4" />
           Free Download
         </div>
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-[var(--white-primary)] mb-4">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-white-primary mb-4">
           The AI Tools{" "}
           <span className="text-gold-gradient">Playbook</span>
         </h2>
-        <p className="text-[var(--white-secondary)] mb-4 max-w-lg mx-auto">
+        <p className="text-white-secondary mb-4 max-w-lg mx-auto">
           30+ tools. Real pricing. 4 stacks by business type. A 90-day roadmap
           to get started — whether you hire us or not.
         </p>
-        <p className="text-sm text-[var(--white-muted)] italic mb-8">
+        <p className="text-sm text-white-muted italic mb-8">
           No fluff. No gate. Just the guide we wish existed when we started.
         </p>
         <Link

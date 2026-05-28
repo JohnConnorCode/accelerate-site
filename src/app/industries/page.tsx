@@ -44,7 +44,7 @@ export default function IndustriesPage() {
           <BokehField />
         </div>
 
-        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 page-shell">
           <ScrollReveal animation="fade-up">
             <SectionHeader
               label="Industries"
@@ -65,17 +65,17 @@ export default function IndustriesPage() {
                 <Link href={`/industries/${vertical.slug}`} className="block h-full">
                   <GlassCard hover="lift" padding="lg" className="h-full flex flex-col">
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-xl bg-[rgba(var(--accent-rgb),0.1)] border border-[rgba(var(--accent-rgb),0.2)] flex items-center justify-center text-[var(--gold-base)]">
+                      <div className="w-12 h-12 rounded-xl bg-[rgba(var(--accent-rgb),0.1)] border border-[rgba(var(--accent-rgb),0.2)] flex items-center justify-center text-gold">
                         {iconMap[vertical.icon]}
                       </div>
-                      <h2 className="font-display text-xl font-bold text-[var(--heading-color)]">
+                      <h2 className="font-display text-xl font-bold text-heading">
                         {vertical.name}
                       </h2>
                     </div>
-                    <p className="text-[var(--white-secondary)] text-sm leading-relaxed mb-6 flex-1">
+                    <p className="text-white-secondary text-sm leading-relaxed mb-6 flex-1">
                       {vertical.shortDescription}
                     </p>
-                    <div className="flex items-center gap-2 text-sm font-medium text-[var(--gold-base)]">
+                    <div className="flex items-center gap-2 text-sm font-medium text-gold">
                       Learn more <ArrowRight className="w-4 h-4" />
                     </div>
                   </GlassCard>
@@ -86,7 +86,7 @@ export default function IndustriesPage() {
 
           <ScrollReveal animation="fade-up" delay={0.3}>
             <div className="mt-16 text-center">
-              <p className="text-[var(--white-muted)] mb-6">
+              <p className="text-white-muted mb-6">
                 Don&apos;t see your industry? We work with any service-based business.
               </p>
               <Link href="/contact">

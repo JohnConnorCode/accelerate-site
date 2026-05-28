@@ -36,7 +36,7 @@ export function BubbleButtons({ options, onSelect }: BubbleButtonsProps) {
               "px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer min-h-[44px]",
               isSelected
                 ? "bg-gold-gradient text-black shadow-[0_0_16px_rgba(var(--accent-rgb),0.3)]"
-                : "glass border border-[var(--border-glass)] text-white-primary hover:border-[var(--gold-base)]/40"
+                : "glass border border-border-glass text-white-primary hover:border-gold/40"
             )}
           >
             {option.label}

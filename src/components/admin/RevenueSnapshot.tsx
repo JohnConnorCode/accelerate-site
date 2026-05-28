@@ -47,14 +47,14 @@ export function RevenueSnapshot({ pipeline, pipelineValues, clientMRR = 0, activ
       <GlassCard hover="none">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4 text-[var(--gold-light)]" />
+            <DollarSign className="h-4 w-4 text-gold-light" />
             <h3 className="font-display text-sm font-semibold text-white-primary">
               Revenue Snapshot
             </h3>
           </div>
           <Link
             href="/admin/revenue"
-            className="flex items-center gap-1 text-xs text-white-muted hover:text-[var(--gold-light)] transition-colors"
+            className="flex items-center gap-1 text-xs text-white-muted hover:text-gold-light transition-colors"
           >
             View details <ArrowRight className="h-3 w-3" />
           </Link>
