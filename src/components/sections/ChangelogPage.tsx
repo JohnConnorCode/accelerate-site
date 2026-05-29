@@ -1,152 +1,110 @@
 "use client";
 
+import Link from "next/link";
 import { Sparkles, Wrench, Bug, Megaphone, Rss } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import Link from "next/link";
-import { PageHero } from "@/components/ui/PageHero";
-import { SectionDivider } from "@/components/ui/SectionDivider";
-import {
-  AnimateOnScroll,
-  StaggerContainer,
-} from "@/components/ui/AnimateOnScroll";
-import { fadeUp } from "@/lib/animations";
-import { changelogEntries } from "@/content/changelog";
+import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
+import { Section, Eyebrow, Heading } from "@/components/v2/studio/primitives";
 import { cn } from "@/lib/utils";
+import { changelogEntries } from "@/content/changelog";
 import type { ChangelogEntry } from "@/lib/types";
 
 const categoryConfig: Record<
   ChangelogEntry["category"],
-  { label: string; icon: LucideIcon; color: string }
+  { label: string; icon: LucideIcon; accent: string }
 > = {
-  feature: { label: "New Feature", icon: Sparkles, color: "text-emerald-400" },
-  improvement: { label: "Improvement", icon: Wrench, color: "text-blue-400" },
-  fix: { label: "Bug Fix", icon: Bug, color: "text-orange-400" },
-  announcement: {
-    label: "Announcement",
-    icon: Megaphone,
-    color: "text-gold",
-  },
+  feature:      { label: "new feature",  icon: Sparkles,  accent: "text-emerald-400" },
+  improvement:  { label: "improvement",  icon: Wrench,    accent: "text-sky-400" },
+  fix:          { label: "fix",          icon: Bug,       accent: "text-amber-400" },
+  announcement: { label: "announcement", icon: Megaphone, accent: "text-gold" },
 };
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
+const fmtDate = (s: string) =>
+  new Date(s).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
 export function ChangelogPage() {
-  // Group entries by month
-  const grouped = changelogEntries.reduce<
-    Record<string, typeof changelogEntries>
-  >((acc, entry) => {
-    const date = new Date(entry.publishedAt);
-    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+  const grouped = changelogEntries.reduce<Record<string, ChangelogEntry[]>>((acc, entry) => {
+    const d = new Date(entry.publishedAt);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     if (!acc[key]) acc[key] = [];
     acc[key].push(entry);
     return acc;
   }, {});
-
   const months = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
   return (
-    <>
-      {/* Hero */}
-      <PageHero
-        label="Changelog"
-        background="orbs"
-        itemAnimation={fadeUp}
-        title={
-          <>
-            What&apos;s New at{" "}
-            <span className="text-gold-gradient">Accelerate</span>
-          </>
-        }
-        description="Product updates, new features, and improvements. We ship fast and share everything."
-      >
-        <div className="mt-6">
+    <Section width="wide" className="pt-32">
+      <div className="grid gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:gap-16">
+        {/* sticky left rail — the page identity travels with you */}
+        <div className="lg:sticky lg:top-32 lg:self-start">
+          <Eyebrow className="mb-7">changelog</Eyebrow>
+          <Heading size={2} as="h1" className="leading-[1.04]">
+            What&apos;s new at <span className="display-italic">Accelerate.</span>
+          </Heading>
+          <p className="mt-6 max-w-sm text-lg leading-relaxed text-white-secondary">
+            Product updates, new features, and improvements. We ship fast and
+            share everything.
+          </p>
           <Link
             href="/changelog/rss.xml"
-            className="inline-flex items-center gap-2 text-sm text-gold-light hover:text-white-primary transition-colors"
+            data-cursor="link"
+            className="mt-8 inline-flex items-center gap-2 rounded-full border border-border-glass px-4 py-2 text-sm font-medium text-heading transition-colors hover:border-border-gold hover:text-gold"
           >
-            <Rss className="w-4 h-4" />
-            RSS Feed
+            <Rss className="h-4 w-4 text-gold" />
+            RSS feed
           </Link>
         </div>
-      </PageHero>
 
-      <SectionDivider variant="fade" />
-
-      {/* Timeline */}
-      <section className="py-24 bg-bg-base">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          {months.map((monthKey, monthIndex) => {
+        {/* timeline — vertical connector with month markers */}
+        <div className="relative flex flex-col gap-12 border-l border-border-glass pl-8 sm:pl-10">
+          {months.map((monthKey) => {
             const entries = grouped[monthKey] ?? [];
-            const date = new Date(monthKey + "-01");
-            const monthLabel = date.toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-            });
-
+            const monthLabel = new Date(monthKey + "-01")
+              .toLocaleDateString("en-US", { year: "numeric", month: "long" });
             return (
-              <div key={monthKey}>
-                {monthIndex > 0 && <SectionDivider variant="line" />}
-                <AnimateOnScroll className="mb-4">
-                  <h2 className="font-display text-lg font-bold text-gold">
-                    {monthLabel}
-                  </h2>
-                </AnimateOnScroll>
-
-                <StaggerContainer className="space-y-4 mb-12">
-                  {entries.map((entry) => {
+              <div key={monthKey} className="relative">
+                {/* month node on the rail */}
+                <span aria-hidden className="absolute -left-[2.45rem] top-1 h-2.5 w-2.5 rounded-full bg-gold ring-4 ring-[var(--bg-base)] sm:-left-[2.95rem]" />
+                <p className="mb-5 font-mono text-[0.66rem] uppercase tracking-[0.22em] text-gold">
+                  {monthLabel}
+                </p>
+                <div className="flex flex-col gap-4">
+                  {entries.map((entry, i) => {
                     const config = categoryConfig[entry.category];
                     const Icon = config.icon;
-
                     return (
-                      <AnimateOnScroll key={entry.id} variants={fadeUp}>
-                        <div className="glass rounded-xl p-5 border border-border-glass hover:border-[var(--border-glass-hover)] transition-colors">
-                          <div className="flex items-start gap-4">
-                            <div
-                              className={cn(
-                                "mt-0.5 shrink-0",
-                                config.color
-                              )}
-                            >
-                              <Icon className="w-5 h-5" />
+                      <AnimateOnScroll
+                        key={entry.id}
+                        as="div"
+                        delay={i * 0.04}
+                        className="rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_80%,transparent)] p-6 backdrop-blur-md transition-colors hover:border-[var(--border-glass-hover)]"
+                      >
+                        <div className="flex items-start gap-4">
+                          <span className={cn("mt-0.5 shrink-0", config.accent)}>
+                            <Icon className="h-5 w-5" strokeWidth={1.75} />
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <div className="mb-1.5 flex flex-wrap items-center gap-3">
+                              <h3 className="font-display text-base font-semibold tracking-[-0.01em] text-heading">
+                                {entry.title}
+                              </h3>
+                              <span className={cn("font-mono text-[0.6rem] uppercase tracking-[0.18em]", config.accent)}>
+                                {config.label}
+                              </span>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-3 mb-1 flex-wrap">
-                                <h3 className="text-base font-semibold text-white-primary">
-                                  {entry.title}
-                                </h3>
-                                <span
-                                  className={cn(
-                                    "text-xs font-medium",
-                                    config.color
-                                  )}
-                                >
-                                  {config.label}
-                                </span>
-                              </div>
-                              <p className="text-sm text-white-secondary mb-2">
-                                {entry.description}
-                              </p>
-                              <p className="text-xs text-white-muted">
-                                {formatDate(entry.publishedAt)}
-                              </p>
-                            </div>
+                            <p className="mb-2 text-sm leading-relaxed text-white-secondary">{entry.description}</p>
+                            <p className="text-xs text-white-muted">{fmtDate(entry.publishedAt)}</p>
                           </div>
                         </div>
                       </AnimateOnScroll>
                     );
                   })}
-                </StaggerContainer>
+                </div>
               </div>
             );
           })}
         </div>
-      </section>
-    </>
+      </div>
+    </Section>
   );
 }

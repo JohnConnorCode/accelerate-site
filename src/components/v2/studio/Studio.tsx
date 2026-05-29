@@ -1,8 +1,6 @@
 "use client";
 
-import { LenisProvider } from "../living/LenisProvider";
 import { FluidCursor } from "./FluidCursor";
-import { ScrollProgress } from "./ScrollProgress";
 import { Hero } from "./Hero";
 import { ScrollSequence } from "./ScrollSequence";
 import { Manifesto } from "./Manifesto";
@@ -19,9 +17,7 @@ import { ClosingCTA } from "./ClosingCTA";
 export function Studio() {
   return (
     <>
-      <LenisProvider />
       <FluidCursor />
-      <ScrollProgress />
       <Hero />
       <ScrollSequence />
       <Manifesto />

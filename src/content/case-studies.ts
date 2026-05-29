@@ -26,7 +26,7 @@ export const caseStudies: CaseStudyFull[] = [
       },
       {
         label: "Response Time",
-        before: "Hours — often next day",
+        before: "Hours, often next day",
         after: "Under 2 minutes, 24/7",
         improvement: "Near-instant",
       },
@@ -38,7 +38,7 @@ export const caseStudies: CaseStudyFull[] = [
       },
       {
         label: "After-Hours Capture",
-        before: "Zero — all inquiries lost",
+        before: "Zero, all inquiries lost",
         after: "Every inquiry handled automatically",
         improvement: "Always on",
       },
@@ -59,7 +59,7 @@ export const caseStudies: CaseStudyFull[] = [
     solution:
       "We rebuilt their entire client onboarding pipeline with AI-driven automation. Prospects now go through a guided intake flow that collects requirements, generates custom proposals, and triggers account provisioning automatically. Automated follow-up sequences handle check-ins and feedback collection. Their website was rebuilt to convert visitors into qualified inquiries with clear CTAs and an AI chat agent.",
     results:
-      "Onboarding time dropped dramatically — from hours per client to just minutes. The team scaled their client base significantly within the first quarter without adding headcount. Revenue grew while the founders redirected substantial hours every week from admin back into product and strategy.",
+      "Onboarding time dropped dramatically, from hours per client to just minutes. The team scaled their client base significantly within the first quarter without adding headcount. Revenue grew while the founders redirected substantial hours every week from admin back into product and strategy.",
     testimonialQuote:
       "Accelerate rebuilt our site and automated our entire client onboarding pipeline. What used to take our team two hours per client now happens in minutes. We scaled without adding headcount.",
     testimonialAuthor: "Jordan Ellis",
@@ -68,7 +68,7 @@ export const caseStudies: CaseStudyFull[] = [
       {
         label: "Onboarding Time",
         before: "Hours of manual work per client",
-        after: "Minutes — fully automated",
+        after: "Minutes, fully automated",
         improvement: "Dramatically faster",
       },
       {
@@ -104,7 +104,7 @@ export const caseStudies: CaseStudyFull[] = [
     challenge:
       "Montoya Capital was losing prospective clients to competitors who responded faster. In wealth management, a delayed follow-up often means a lost deal. Their team was manually fielding inquiries during business hours only, and prospects who reached out in the evening or on weekends never heard back until Monday. They had no digital acquisition strategy beyond referrals.",
     solution:
-      "Built an AI-powered response system that engages prospects within minutes of any inquiry — web form, email, or chat — and nurtures them with personalized follow-up sequences until they book a consultation. Redesigned their website with trust-building content, clear service breakdowns, and an AI chat agent trained on their services and fee structures. Automated meeting scheduling, reminders, and post-consultation follow-ups.",
+      "Built an AI-powered response system that engages prospects within minutes of any inquiry (web form, email, or chat) and nurtures them with personalized follow-up sequences until they book a consultation. Redesigned their website with trust-building content, clear service breakdowns, and an AI chat agent trained on their services and fee structures. Automated meeting scheduling, reminders, and post-consultation follow-ups.",
     results:
       "Consultation bookings jumped significantly in the first quarter. The AI response system captures every after-hours inquiry, adding new qualified prospects each month that were previously lost. The firm signed multiple new clients in Q1 representing meaningful new assets under management, with zero additional marketing spend.",
     testimonialQuote:
@@ -126,7 +126,7 @@ export const caseStudies: CaseStudyFull[] = [
       },
       {
         label: "After-Hours Capture",
-        before: "Zero — prospects went to competitors",
+        before: "Zero, prospects went to competitors",
         after: "Every inquiry engaged automatically",
         improvement: "Always on",
       },

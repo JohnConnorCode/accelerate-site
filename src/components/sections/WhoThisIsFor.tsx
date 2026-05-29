@@ -63,7 +63,7 @@ export function WhoThisIsFor() {
             label="Who This Is For"
             heading={
               <>
-                You&apos;re Doing <span className="text-gold-gradient">$200K–$10M</span>.
+                You&apos;re Doing <span className="text-gold-gradient">$200K to $10M</span>.
                 Now What?
               </>
             }

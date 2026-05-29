@@ -4,7 +4,7 @@ export const homeFaqs: FAQ[] = [
   {
     question: "Do I need to understand AI to work with you?",
     answer:
-      "Not at all. We handle the technical side. You just need to know your business — we figure out where AI fits and how to make it work for you.",
+      "Not at all. We handle the technical side. You just need to know your business, and we figure out where AI fits and how to make it work for you.",
   },
   {
     question: "What does it cost?",
@@ -14,7 +14,7 @@ export const homeFaqs: FAQ[] = [
   {
     question: "How long until I see results?",
     answer:
-      "Most clients see their first systems live within one to two weeks. Measurable results — time saved, faster response times, more bookings — usually follow within the first month.",
+      "Most clients see their first systems live within one to two weeks. Measurable results like time saved, faster response times, and more bookings usually follow within the first month.",
   },
   {
     question: "Will this work with the tools I already use?",
@@ -29,11 +29,11 @@ export const homeFaqs: FAQ[] = [
   {
     question: "What makes you different from an agency or a SaaS platform?",
     answer:
-      "Agencies give you a strategy and leave you to execute it. Platforms give you tools and leave you to figure them out. We do both — we advise, build, and run your AI systems alongside you. One team, full accountability.",
+      "Agencies give you a strategy and leave you to execute it. Platforms give you tools and leave you to figure them out. We do both. We advise, build, and run your AI systems alongside you. One team, full accountability.",
   },
   {
     question: "What if I'm not sure where to start?",
     answer:
-      "That is exactly what the discovery call is for. It is free, 30 minutes, and you walk away with a clear picture of where AI can help your business — whether you work with us or not.",
+      "That is exactly what the discovery call is for. It is free, 30 minutes, and you walk away with a clear picture of where AI can help your business, whether you work with us or not.",
   },
 ];

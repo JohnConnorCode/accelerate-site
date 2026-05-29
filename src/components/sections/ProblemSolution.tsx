@@ -16,7 +16,7 @@ const comparisons = [
   {
     label: "Your Time",
     before: "You're the bottleneck. Every decision, every follow-up, every fire runs through you.",
-    after: "AI handles the repetitive work — you focus on the decisions only you can make.",
+    after: "AI handles the repetitive work, so you focus on the decisions only you can make.",
     metric: "20+",
     metricLabel: "hours back per week",
   },
@@ -29,7 +29,7 @@ const comparisons = [
   },
   {
     label: "Your Team",
-    before: "You need a marketer, a receptionist, and an ops manager — but can't justify three salaries.",
+    before: "You need a marketer, a receptionist, and an ops manager, but can't justify three salaries.",
     after: "AI agents handle intake, follow-ups, content, and scheduling. A full team without the payroll.",
     metric: "3",
     metricLabel: "roles, one system",
@@ -38,7 +38,7 @@ const comparisons = [
     label: "Your Growth",
     before: "More clients means more chaos. Revenue goes up, your life gets worse.",
     after: "Systems that scale with you. Twice the volume without twice the work.",
-    metric: "1–2 wks",
+    metric: "1-2 wks",
     metricLabel: "to go live",
   },
 ];

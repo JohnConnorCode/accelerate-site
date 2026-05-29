@@ -212,7 +212,7 @@ export function SocialProof() {
         <ul>
           {testimonials.map((t) => (
             <li key={t.id}>
-              &ldquo;{t.quote}&rdquo; — {t.name}, {t.title} at {t.businessType}
+              &ldquo;{t.quote}&rdquo; {t.name}. {t.title} at {t.businessType}.
             </li>
           ))}
         </ul>

@@ -78,7 +78,7 @@ export function Integrations() {
                 Your Stack. <span className="text-gold-gradient">Our Glue.</span>
               </>
             }
-            description="We&apos;re tool-agnostic. We connect to your existing stack and recommend what actually fits — not what pays us a commission."
+            description="We&apos;re tool-agnostic. We connect to your existing stack and recommend what actually fits, not what pays us a commission."
             className="mb-12"
           />
         </ScrollReveal>

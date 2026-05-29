@@ -6,7 +6,9 @@ import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { TrackingScripts } from "@/components/layout/TrackingScripts";
 import { UTMCapture } from "@/components/layout/UTMCapture";
 import { ChatWidget } from "@/components/chat/ChatWidget";
-import { ScrollProgressBar } from "@/components/ui/ScrollProgressBar";
+import { MobileCTABar } from "@/components/layout/MobileCTABar";
+import { ScrollProgress } from "@/components/v2/studio/ScrollProgress";
+import { LenisProvider } from "@/components/v2/living/LenisProvider";
 import "./globals.css";
 
 // Distinctive type system (frontend-design skill: avoid Inter/generic).
@@ -141,6 +143,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${sans.variable} ${display.variable} ${editorial.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
+        {/* progressive-enhancement flag — section-reveal CSS only hides content
+            when JS is actually available, so no-JS users still see everything. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "document.documentElement.dataset.js='on';",
+          }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
@@ -162,11 +171,15 @@ export default function RootLayout({
           </a>
           <TrackingScripts />
           <UTMCapture />
-          <ScrollProgressBar />
+          {/* site-wide smooth scroll (desktop, non-reduced-motion) so every
+              page feels as smooth as the homepage — not just `/` */}
+          <LenisProvider />
+          <ScrollProgress />
           <Header />
           <main id="main-content" className="flex-1">{children}</main>
           <Footer />
           <ChatWidget />
+          <MobileCTABar />
         </ThemeProvider>
       </body>
     </html>

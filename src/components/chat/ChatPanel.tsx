@@ -12,22 +12,83 @@ interface ChatPanelProps {
   onClose: () => void;
 }
 
+const STORAGE_KEY = "accelerate-chat-v1";
+const STORAGE_CAP = 50;
+
+const WELCOME_MESSAGE: ChatMessageType = {
+  id: "welcome",
+  role: "assistant",
+  content:
+    "Hey, this is John's team at Accelerate. We build and run custom AI systems for small businesses: every call answered, every follow-up sent, more jobs booked. What are you trying to grow?",
+  timestamp: Date.now(),
+};
+
+interface StoredChatState {
+  messages: ChatMessageType[];
+  messageCount: number;
+  leadCaptured: boolean;
+}
+
+function loadStoredState(): StoredChatState | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !Array.isArray(parsed.messages)) return null;
+    return {
+      messages: parsed.messages.slice(-STORAGE_CAP),
+      messageCount: typeof parsed.messageCount === "number" ? parsed.messageCount : 0,
+      leadCaptured: !!parsed.leadCaptured,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function persistState(state: StoredChatState) {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        messages: state.messages.slice(-STORAGE_CAP),
+        messageCount: state.messageCount,
+        leadCaptured: state.leadCaptured,
+      }),
+    );
+  } catch {
+    // Storage full / disabled — non-critical.
+  }
+}
+
 export function ChatPanel({ onClose }: ChatPanelProps) {
-  const [messages, setMessages] = useState<ChatMessageType[]>([
-    {
-      id: "welcome",
-      role: "assistant",
-      content:
-        "Hi! I'm the Accelerate AI assistant. I can help you learn about our AI solutions for small businesses. What can I help you with?",
-      timestamp: Date.now(),
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessageType[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showLeadCapture, setShowLeadCapture] = useState(false);
   const [leadCaptured, setLeadCaptured] = useState(false);
   const [messageCount, setMessageCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const hydratedRef = useRef(false);
+
+  // Hydrate from sessionStorage on mount (client-only).
+  useEffect(() => {
+    if (hydratedRef.current) return;
+    hydratedRef.current = true;
+    const stored = loadStoredState();
+    if (stored && stored.messages.length > 0) {
+      setMessages(stored.messages);
+      setMessageCount(stored.messageCount);
+      setLeadCaptured(stored.leadCaptured);
+    }
+  }, []);
+
+  // Persist on every change (after hydration).
+  useEffect(() => {
+    if (!hydratedRef.current) return;
+    persistState({ messages, messageCount, leadCaptured });
+  }, [messages, messageCount, leadCaptured]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -49,7 +110,6 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
     const newCount = messageCount + 1;
     setMessageCount(newCount);
 
-    // Show lead capture after 3 user messages
     if (newCount >= 3 && !leadCaptured) {
       setShowLeadCapture(true);
     }
@@ -65,7 +125,21 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
         body: JSON.stringify({ messages: context }),
       });
 
-      if (!res.ok) throw new Error("Chat request failed");
+      if (res.status === 429) {
+        const body = await res.text();
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `rate-${Date.now()}`,
+            role: "assistant",
+            content: body || "You're sending messages too fast. Give it a few seconds.",
+            timestamp: Date.now(),
+          },
+        ]);
+        return;
+      }
+
+      if (!res.ok) throw new Error(`Chat request failed (${res.status})`);
 
       const reader = res.body?.getReader();
       if (!reader) throw new Error("No response stream");
@@ -96,18 +170,19 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
           prev.map((m) =>
             m.id === assistantId
               ? { ...m, content: assistantContent }
-              : m
-          )
+              : m,
+          ),
         );
       }
-    } catch {
+    } catch (err) {
+      console.error("[chat-panel] send error:", err);
       setMessages((prev) => [
         ...prev,
         {
           id: `error-${Date.now()}`,
           role: "assistant",
           content:
-            "Sorry, I had trouble responding. Please try again or contact us directly at john@acceleratewith.us.",
+            "Sorry, I had trouble responding. Try again, or email john@acceleratewith.us.",
           timestamp: Date.now(),
         },
       ]);
@@ -122,8 +197,9 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
     setLeadCaptured(true);
     setShowLeadCapture(false);
 
+    let saved = true;
     try {
-      await fetch("/api/chat", {
+      const res = await fetch("/api/chat", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -133,16 +209,22 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
           utm: getUTMParams(),
         }),
       });
-    } catch {
-      // Non-critical
+      if (!res.ok) saved = false;
+    } catch (err) {
+      console.error("[chat-panel] lead save error:", err);
+      saved = false;
     }
+
+    const ackContent = saved
+      ? `Thanks, ${name}! I sent your note over to John, and he'll reply at ${email} within a business day. Keep asking questions if you'd like.`
+      : `Thanks, ${name}! I had trouble saving that on my end, but feel free to email John directly at john@acceleratewith.us so we don't lose track of you.`;
 
     setMessages((prev) => [
       ...prev,
       {
         id: `system-${Date.now()}`,
         role: "assistant",
-        content: `Thanks, ${name}! We'll follow up at ${email} with personalized recommendations. Feel free to keep asking questions.`,
+        content: ackContent,
         timestamp: Date.now(),
       },
     ]);

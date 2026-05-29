@@ -35,15 +35,15 @@ const MOTION = [
   { token: "--motion-base",    value: "0.4s",  use: "Reveal, crossfade, card hover" },
   { token: "--motion-slow",    value: "0.7s",  use: "Heading reveal, sequence step" },
   { token: "--motion-hero",    value: "1s",    use: "Hero entrance" },
-  { token: "--ease-out",       value: "cubic-bezier(0.22, 1, 0.36, 1)", use: "Brand ease — use everywhere" },
+  { token: "--ease-out",       value: "cubic-bezier(0.22, 1, 0.36, 1)", use: "Brand ease, use everywhere" },
   { token: "--ease-spring",    value: "cubic-bezier(0.34, 1.56, 0.64, 1)", use: "Springy reveals" },
 ];
 
 const PRIMITIVES = [
   { name: "<Container width>",         note: "page-shell with width tier (wide | narrow | text)" },
   { name: "<Section>",                 note: "section-y + Container; pass `bleed` to opt out for full-bleed bands" },
-  { name: "<Eyebrow>",                 note: "the '[ label ]' bracket marker — single style across the site" },
-  { name: "<Heading size=1|2|3>",      note: "display-1/2/3 scale; Heading.Italic for gold accent span" },
+  { name: "<Eyebrow>",                 note: "the '[ label ]' bracket marker, single style across the site" },
+  { name: "<Heading size=1|2|3>",      note: "display-1/2/3 scale; nest `<span className='display-italic'>…</span>` for the gold accent" },
   { name: "<BookCallButton variant>",  note: "the standard primary CTA; variant='inverse' for lime backgrounds" },
   { name: "<Stack gap>",               note: "vertical rhythm; tight | cozy | roomy" },
 ];
@@ -76,11 +76,11 @@ export default function StyleGuide() {
         <Stack gap="roomy">
           <Eyebrow>style guide</Eyebrow>
           <Heading size={2}>
-            The system, <Heading.Italic>made visible.</Heading.Italic>
+            The system, <span className="display-italic">made visible.</span>
           </Heading>
           <p className="max-w-xl text-lg leading-relaxed text-white-muted">
             Tokens, primitives, and patterns that the /v2 surface runs on. One source of truth for
-            width, type, color, motion, and rhythm. Anything you build here should compose these —
+            width, type, color, motion, and rhythm. Anything you build here should compose these,
             not inline values.
           </p>
         </Stack>
@@ -115,11 +115,11 @@ export default function StyleGuide() {
             <div className="flex flex-col gap-8">
               <div>
                 <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-white-muted">display-1 · clamp(3.5rem, 11vw, 10rem)</p>
-                <Heading size={1} className="mt-2">Let&apos;s <Heading.Italic>talk.</Heading.Italic></Heading>
+                <Heading size={1} className="mt-2">Let&apos;s <span className="display-italic">talk.</span></Heading>
               </div>
               <div>
                 <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-white-muted">display-2 · clamp(2rem, 5vw, 4.5rem)</p>
-                <Heading size={2} className="mt-2">The systems that <Heading.Italic>do the work.</Heading.Italic></Heading>
+                <Heading size={2} className="mt-2">The systems that <span className="display-italic">do the work.</span></Heading>
               </div>
               <div>
                 <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-white-muted">display-3 · clamp(2.2rem, 4.5vw, 4rem)</p>
@@ -134,7 +134,7 @@ export default function StyleGuide() {
               <div>
                 <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-white-muted">body</p>
                 <p className="mt-2 max-w-xl text-lg leading-relaxed text-white-muted">
-                  Custom business solutions, powered by AI — built and run for you to solve real
+                  Custom business solutions, powered by AI, built and run for you to solve real
                   problems, save time, and grow revenue.
                 </p>
               </div>
@@ -147,7 +147,7 @@ export default function StyleGuide() {
           <Stack gap="cozy">
             <p className="text-sm text-white-muted">
               Same gutters (<code className="font-mono">px-6 / sm:px-10 / lg:px-16</code>), three caps. Nav/footer = <b>wide</b>.
-              Narrow sections are intentionally inset for content density. Don&apos;t unify — vary on purpose.
+              Narrow sections are intentionally inset for content density. Don&apos;t unify; vary on purpose.
             </p>
             <div className="flex flex-col gap-4">
               {TIERS.map(t => (

@@ -40,7 +40,7 @@ export async function generateMetadata({
   const { token } = await params;
   const proposal = await fetchProposal(token);
   return {
-    title: proposal ? `${proposal.title} — Accelerate` : "Proposal — Accelerate",
+    title: proposal ? `${proposal.title} | Accelerate` : "Proposal | Accelerate",
     description: proposal
       ? `Proposal for ${proposal.client_name}`
       : "View your custom AI operations proposal",

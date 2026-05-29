@@ -8,17 +8,17 @@ import { prefersReducedMotion } from "@/lib/utils";
 import { Phone, MessageSquare, Mail, Globe, Check, Star, FileText, ArrowRight, Repeat } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { EASE } from "@/lib/animations";
-import { Eyebrow } from "./primitives";
+import { Eyebrow, useReveal } from "./primitives";
 
 type StepUI = "intake" | "triage" | "handled" | "sequence" | "compound";
 interface Step { n: string; title: string; sub: string; ui: StepUI; status: string }
 
 const STEPS: Step[] = [
-  { n: "01", title: "Capture every inquiry.",    sub: "Call, text, email, web form — the moment it arrives.",                ui: "intake",   status: "Captured · any channel, instantly" },
-  { n: "02", title: "Decode the intent.",        sub: "Read, ranked, routed to the right place in seconds.",                  ui: "triage",   status: "Decoded · intent · priority · route" },
-  { n: "03", title: "Take the right action.",    sub: "Replied, quoted, booked — automatically.",                             ui: "handled",  status: "Action · taken automatically" },
-  { n: "04", title: "Never drop a follow-up.",   sub: "Persistent, on-brand, multi-channel — until it converts.",             ui: "sequence", status: "Sequence · multi-touch · until converted" },
-  { n: "05", title: "Compound the win.",         sub: "Reviews, repeat work, and insight — building while you sleep.",        ui: "compound", status: "Compounding · reviews + repeat work" },
+  { n: "01", title: "Capture every inquiry.",    sub: "Call, text, email, or web form, caught the moment it arrives.",        ui: "intake",   status: "Captured · any channel, instantly" },
+  { n: "02", title: "Decode the intent.",        sub: "Read, ranked, and routed to the right place in seconds.",              ui: "triage",   status: "Decoded · intent · priority · route" },
+  { n: "03", title: "Take the right action.",    sub: "Replied to, quoted, and booked, all on its own.",                      ui: "handled",  status: "Action · taken automatically" },
+  { n: "04", title: "Never drop a follow-up.",   sub: "Persistent, on-brand, and multi-channel until it converts.",           ui: "sequence", status: "Sequence · multi-touch · until converted" },
+  { n: "05", title: "Compound the win.",         sub: "Reviews, repeat work, and insight that build while you sleep.",        ui: "compound", status: "Compounding · reviews + repeat work" },
 ];
 
 const stepFx = {
@@ -66,7 +66,7 @@ function IntakeCard() {
           <span className="text-white-muted">New inquiry · web form</span>
           <span className="flex items-center gap-1 text-gold"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-gold" /> just now</span>
         </div>
-        <p className="mt-2 text-sm leading-relaxed text-white-secondary">“Need a quote for a kitchen remodel — when can someone come out?”</p>
+        <p className="mt-2 text-sm leading-relaxed text-white-secondary">“Need a quote for a kitchen remodel. When can someone come out?”</p>
       </motion.div>
       <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="flex items-center gap-1.5 self-center font-mono text-[0.65rem] uppercase tracking-[0.14em] text-gold">
         <Check className="h-3.5 w-3.5" /> Captured
@@ -101,7 +101,7 @@ function HandledCard() {
   const acts: { icon: LucideIcon; label: string }[] = [
     { icon: MessageSquare, label: "Replied in 30 seconds" },
     { icon: FileText, label: "Quote drafted & sent" },
-    { icon: Check, label: "Site visit booked — Thu 2:00" },
+    { icon: Check, label: "Site visit booked for Thu 2:00" },
   ];
   return (
     <div className="flex w-full max-w-[320px] flex-col gap-2">
@@ -223,6 +223,29 @@ function Console({ active }: { active: number }) {
   );
 }
 
+/* ---------- mobile-step block — each step gets its own elegant entrance with
+   the actual Console for that step, not a dumbed-down placeholder. */
+function MobileStep({ step, index }: { step: Step; index: number }) {
+  const ref = useReveal<HTMLDivElement>();
+  const bg = index % 2 === 0 ? "bg-bg-base" : "bg-[var(--bg-section-warm)]";
+  return (
+    <div ref={ref} className={`section-reveal py-12 ${bg}`}>
+      <div className="page-shell page-shell--narrow flex flex-col gap-7">
+        <div className="flex items-baseline gap-5">
+          <span className="font-mono text-base font-bold text-gold opacity-80">{step.n}</span>
+          <div className="min-w-0 flex-1">
+            <h3 className="display-3">{step.title}</h3>
+            <p className="mt-3 max-w-md text-base leading-relaxed text-white-muted">{step.sub}</p>
+          </div>
+        </div>
+        <div className="self-center">
+          <Console active={index} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ---------- desktop pin detection (lint-clean, no setState-in-effect) ---------- */
 
 function useDesktopPinned() {
@@ -267,20 +290,25 @@ export function ScrollSequence() {
     { dependencies: [pinned], scope: sectionRef },
   );
 
-  // Stacked fallback (SSR / mobile / reduced-motion) — every step visible.
+  // Mobile / reduced-motion / SSR fallback — proper experience: each step
+  // shows its own Console + heading + description, revealed as you scroll past.
+  // No "watch the desktop version" excuse — it's its own elegant flow.
   if (!pinned || reduced) {
     return (
       <section className="section-y">
-        <div className="page-shell page-shell--narrow mb-10"><Eyebrow>watch it work</Eyebrow></div>
-        <div className="page-shell page-shell--narrow border-t border-border-glass">
-          {STEPS.map((s) => (
-            <div key={s.n} className="flex items-baseline gap-5 border-b border-border-glass py-7">
-              <span className="font-mono text-sm text-gold opacity-60">{s.n}</span>
-              <div>
-                <h3 className="font-display text-2xl font-bold text-heading sm:text-3xl">{s.title}</h3>
-                <p className="mt-1 text-white-muted">{s.sub}</p>
-              </div>
-            </div>
+        <div className="page-shell page-shell--narrow">
+          <Eyebrow>watch it work</Eyebrow>
+          <h2 className="display-3 mt-6">
+            An inquiry comes in. <span className="display-italic">We handle it.</span>
+          </h2>
+          <p className="mt-4 max-w-md text-base leading-relaxed text-white-muted">
+            The same lifecycle, every time: captured, understood, handled, followed up,
+            and compounding into the next one.
+          </p>
+        </div>
+        <div className="mt-12 flex flex-col">
+          {STEPS.map((s, i) => (
+            <MobileStep key={s.n} step={s} index={i} />
           ))}
         </div>
       </section>

@@ -66,7 +66,7 @@ export function buildQuestionFlow(): QuestionDef[] {
     {
       id: "industryOther",
       field: "industryOther",
-      message: "Got it — what's your industry?",
+      message: "Got it. What's your industry?",
       inputType: "text-input",
       placeholder: "e.g. Dental practice, Fitness studio...",
       skipIf: (fd) => fd.industry !== "other",
@@ -136,14 +136,14 @@ export function buildQuestionFlow(): QuestionDef[] {
       field: "painPointsOther",
       message: "Anything else costing you time or money that I didn't list?",
       inputType: "text-input",
-      placeholder: "Optional — type anything or skip",
+      placeholder: "Optional: type anything or skip",
       optional: true,
     },
     // 11. Top goals
     {
       id: "topGoals",
       field: "topGoals",
-      message: "Now the fun part — what are your top priorities? Pick up to 3.",
+      message: "Now the fun part. What are your top priorities? Pick up to 3.",
       inputType: "chip-select",
       options: goalOptions,
       maxSelections: 3,
@@ -170,7 +170,7 @@ export function buildQuestionFlow(): QuestionDef[] {
     {
       id: "budgetRange",
       field: "budgetRange",
-      message: "Last one — what investment range feels right for you?",
+      message: "Last one. What investment range feels right for you?",
       inputType: "bubble-buttons",
       options: budgetOptions,
     },

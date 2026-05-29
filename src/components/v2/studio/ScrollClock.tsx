@@ -26,7 +26,7 @@ export function ScrollClock({ className }: { className?: string }) {
 
   return (
     <div ref={ref} className={className}>
-      <svg viewBox="0 0 240 240" className="h-full w-full" role="img" aria-label="A clock whose time advances as you scroll — reclaim your time.">
+      <svg viewBox="0 0 240 240" className="h-full w-full" role="img" aria-label="A clock whose time advances as you scroll, so you reclaim your time.">
         {/* tick marks */}
         {Array.from({ length: 60 }).map((_, i) => {
           const a = (i / 60) * Math.PI * 2 - Math.PI / 2;

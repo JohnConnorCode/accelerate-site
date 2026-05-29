@@ -11,10 +11,10 @@ import { EASE } from "@/lib/animations";
 // We measure outcomes, learn from the data, tune the systems, compound the gains —
 // then run it again.
 const STAGES = [
-  { n: "01", t: "Measure", d: "Every outcome tracked — what converts, what stalls." },
+  { n: "01", t: "Measure", d: "Every outcome tracked: what converts, what stalls." },
   { n: "02", t: "Learn", d: "We surface the patterns hiding in your data." },
   { n: "03", t: "Optimize", d: "We tune the systems to do more of what works." },
-  { n: "04", t: "Improve", d: "Sharper results — then the loop runs again." },
+  { n: "04", t: "Improve", d: "Sharper results, then the loop runs again." },
 ] as const;
 
 const SECTOR = 90;

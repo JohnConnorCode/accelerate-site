@@ -130,7 +130,7 @@ export const services: Service[] = [
     pricingDisplay: "from $1,500 + $300/mo",
     href: "/services#engagement",
     problemStatement:
-      "Customers call at 9 PM. They text on weekends. You can't be everywhere — but you're losing business every hour you're not available.",
+      "Customers call at 9 PM. They text on weekends. You can't be everywhere, and you're losing business every hour you're not available.",
     keyMetrics: [
       { value: "60%", label: "Inquiries handled by AI" },
       { value: "185%", label: "More bookings" },
@@ -148,7 +148,7 @@ export const services: Service[] = [
     description:
       "Systematic content in your voice across every channel. Blog posts, social media, email newsletters. Consistent output on a real schedule, without a marketing hire.",
     shortDescription:
-      "Blog posts, social media, email newsletters — created in your voice on a consistent schedule.",
+      "Blog posts, social media, and email newsletters, created in your voice on a consistent schedule.",
     icon: "PenTool",
     deliverables: [
       "Content strategy and editorial calendar",

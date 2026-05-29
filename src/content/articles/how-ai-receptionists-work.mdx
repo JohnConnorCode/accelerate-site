@@ -142,9 +142,9 @@ Always make 5 to 10 test calls before going live. Try different scenarios: simpl
 
 Most AI receptionist setups fail not because the technology is bad, but because nobody configures them properly. Here is what we have seen go wrong.
 
-**Training on thin content.** If your AI receptionist is trained on a website with three pages and no FAQ, it will flounder on the fourth question. We learned this the hard way when we set up an AI agent for [Farrell Roofing](/results/farrell-roofing). The original training data was missing financing information, and 15% of callers were asking about it. We added a detailed FAQ document covering 40+ common questions — response accuracy jumped from about 80% to over 95%.
+**Training on thin content.** If your AI receptionist is trained on a website with three pages and no FAQ, it will flounder on the fourth question. We learned this the hard way when we set up an AI agent for [Farrell Roofing](/results/farrell-roofing). The original training data was missing financing information, and 15% of callers were asking about it. We added a detailed FAQ document covering 40+ common questions, and response accuracy jumped from about 80% to over 95%.
 
-**No escalation path.** The worst thing an AI receptionist can do is loop a frustrated caller. Every setup needs a clear "let me connect you with [name]" trigger for complex situations. We configure a sentiment detection threshold — if the caller sounds confused or upset twice in a row, the call transfers to a human immediately.
+**No escalation path.** The worst thing an AI receptionist can do is loop a frustrated caller. Every setup needs a clear "let me connect you with [name]" trigger for complex situations. We configure a sentiment detection threshold: if the caller sounds confused or upset twice in a row, the call transfers to a human immediately.
 
 **Ignoring the data.** Your AI receptionist generates call transcripts and analytics. If nobody reviews them, you miss patterns: the question that comes up 20 times a week, the objection the AI handles poorly, the call flow that drops callers. We review call data weekly for every client and make adjustments based on real patterns, not guesses.
 

@@ -17,7 +17,7 @@ export const differentiators: Differentiator[] = [
     icon: "Wrench",
     title: "Tool-agnostic",
     description:
-      "We recommend the best tools for your situation, not the ones that pay us a referral fee. HubSpot, GoHighLevel, custom — whatever fits.",
+      "We recommend the best tools for your situation, not the ones that pay us a referral fee. HubSpot, GoHighLevel, or custom, whatever fits.",
   },
   {
     icon: "Zap",

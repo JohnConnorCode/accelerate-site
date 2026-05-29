@@ -72,7 +72,15 @@ export function OpsFeed({ className }: { className?: string }) {
   // eslint-disable-next-line react-hooks/purity
   const clock = useRef(Date.now());
   const paused = useRef(false);
+  // visible paused state — driven by touch taps (mobile has no hover) so the
+  // feed is interactive on phones, with a clear "Paused" affordance.
+  const [showPaused, setShowPaused] = useState(false);
   const reduced = useReducedMotion();
+
+  const setPaused = (v: boolean) => {
+    paused.current = v;
+    setShowPaused(v);
+  };
 
   useEffect(() => {
     const seedKinds: (Kind | undefined)[] = [undefined, "paid", undefined, undefined, "won", undefined, undefined];
@@ -122,7 +130,17 @@ export function OpsFeed({ className }: { className?: string }) {
           </span>
           live · operations
         </span>
-        <span className="font-mono text-[0.68rem] tracking-wide text-[var(--white-muted)]">built for you</span>
+        {showPaused ? (
+          <span className="flex items-center gap-1.5 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-[var(--gold-base)]">
+            <span className="grid grid-cols-2 gap-[2px]">
+              <span className="h-2 w-[3px] rounded-[1px] bg-[var(--gold-base)]" />
+              <span className="h-2 w-[3px] rounded-[1px] bg-[var(--gold-base)]" />
+            </span>
+            paused
+          </span>
+        ) : (
+          <span className="font-mono text-[0.68rem] tracking-wide text-[var(--white-muted)]">built for you</span>
+        )}
       </div>
 
       {/* processing strip — a scanning line + a live tally make it feel alive */}
@@ -145,12 +163,18 @@ export function OpsFeed({ className }: { className?: string }) {
         </span>
       </div>
 
-      {/* feed — hover to pause & read; each row is its own channel/color.
-          Mobile gets tighter padding/text so the panel doesn't dominate the hero. */}
+      {/* feed — hover to pause & read on desktop; TAP to pause on touch (no
+          hover there). Each row is its own channel/color. Mobile gets tighter
+          padding/text so the panel doesn't dominate the hero. */}
       <ul
         className="flex flex-col gap-0.5 p-2 font-mono text-[0.74rem] sm:gap-1 sm:p-2.5 sm:text-[0.82rem]"
-        onMouseEnter={() => (paused.current = true)}
-        onMouseLeave={() => (paused.current = false)}
+        onMouseEnter={() => { paused.current = true; }}
+        onMouseLeave={() => { setPaused(false); }}
+        onPointerDown={(e) => { if (e.pointerType === "touch") setPaused(!paused.current); }}
+        role="button"
+        tabIndex={0}
+        aria-label={showPaused ? "Resume live feed" : "Pause live feed"}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setPaused(!paused.current); } }}
       >
         <AnimatePresence initial={false} mode="popLayout">
           {events.map((e) => {

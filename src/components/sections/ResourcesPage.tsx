@@ -4,7 +4,9 @@ import { useState } from "react";
 import { Download, ArrowUpRight, ClipboardCheck, Zap, BarChart3 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
-import { Section, Eyebrow, Heading, BookCallButton } from "@/components/v2/studio/primitives";
+import { Section, Container, Eyebrow, Heading, BookCallButton } from "@/components/v2/studio/primitives";
+import { RevealHeading } from "@/components/v2/studio/RevealHeading";
+import { HERO_HEADING } from "@/lib/type-recipes";
 import { leadMagnets } from "@/content/lead-magnets";
 import { ResourceGate } from "@/components/sections/ResourceGate";
 
@@ -22,60 +24,70 @@ export function ResourcesPage() {
 
   return (
     <>
-      {/* hero */}
-      <Section width="wide" className="pt-32">
-        <div className="max-w-3xl">
-          <Eyebrow className="mb-7">free resources</Eyebrow>
-          <Heading size={1} as="h1" className="text-[clamp(2.4rem,4.6vw,4.75rem)] leading-[1.02]">
-            Resources that actually <Heading.Italic>help.</Heading.Italic>
-          </Heading>
-          <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-            No fluff, no filler. Practical guides, checklists, and comparisons
-            built for small business owners who want to make smarter decisions
-            about AI and automation.
-          </p>
-        </div>
-      </Section>
-
-      {/* featured + grid */}
-      <Section width="wide" divide>
-        {featured && (() => {
-          const FeaturedIcon = iconMap[featured.icon] || Download;
-          return (
-            <AnimateOnScroll
-              as="div"
-              className="mb-8 rounded-2xl border border-border-gold/40 bg-[color-mix(in_srgb,var(--gold-base)_4%,var(--bg-elevated))] p-6 backdrop-blur-md sm:p-8"
-            >
-              <div className="flex flex-col items-start gap-5 sm:flex-row sm:gap-6">
-                <span className="grid h-14 w-14 shrink-0 place-items-center rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)] text-gold">
-                  <FeaturedIcon className="h-7 w-7" strokeWidth={1.75} />
-                </span>
-                <div className="flex-1">
-                  <span className="font-mono text-[0.6rem] uppercase tracking-[0.2em] text-gold">
-                    {categoryLabels[featured.category]}
-                  </span>
-                  <h2 className="mt-2 font-display text-2xl font-bold tracking-[-0.02em] text-heading">
-                    {featured.title}
-                  </h2>
-                  <p className="mt-1 text-sm text-gold-light">{featured.subtitle}</p>
-                  <p className="mt-4 text-sm leading-relaxed text-white-secondary">
-                    {featured.description}
-                  </p>
-                  <button
-                    type="button"
-                    data-cursor="link"
-                    onClick={() => setGatedResource(featured.id)}
-                    className="group mt-6 inline-flex items-center gap-2.5 rounded-full bg-gold px-7 py-3.5 text-sm font-semibold text-btn-text transition-opacity hover:opacity-90"
-                  >
-                    <Download className="h-4 w-4" />
-                    Download free
-                  </button>
-                </div>
-              </div>
+      {/* hero — statement left, the featured resource (lead with your best) right */}
+      <section className="relative overflow-hidden pt-32 pb-24">
+        <Container width="wide">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+          <div className="min-w-0">
+            <AnimateOnScroll><Eyebrow className="mb-7">free resources</Eyebrow></AnimateOnScroll>
+            <RevealHeading
+              as="h1"
+              className={HERO_HEADING}
+              lead="Resources that actually"
+              accent="help."
+              delay={0.1}
+            />
+            <AnimateOnScroll delay={0.3}>
+              <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
+                No fluff, no filler. Practical guides, checklists, and comparisons
+                built for small business owners who want to make smarter decisions
+                about AI and automation.
+              </p>
             </AnimateOnScroll>
-          );
-        })()}
+          </div>
 
+          {featured && (() => {
+            const FeaturedIcon = iconMap[featured.icon] || Download;
+            return (
+              <AnimateOnScroll
+                as="div"
+                className="relative overflow-hidden rounded-3xl border border-border-gold/50 bg-[color-mix(in_srgb,var(--gold-base)_5%,var(--bg-elevated))] p-7 backdrop-blur-md sm:p-8"
+              >
+                <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold to-transparent opacity-70" />
+                <div className="mb-5 flex items-center gap-3">
+                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)] text-gold">
+                    <FeaturedIcon className="h-6 w-6" strokeWidth={1.75} />
+                  </span>
+                  <span className="font-mono text-[0.6rem] uppercase tracking-[0.2em] text-gold">
+                    Featured · {categoryLabels[featured.category]}
+                  </span>
+                </div>
+                <h2 className="font-display text-2xl font-bold tracking-[-0.02em] text-heading">
+                  {featured.title}
+                </h2>
+                <p className="mt-1 text-sm text-gold-light">{featured.subtitle}</p>
+                <p className="mt-4 text-sm leading-relaxed text-white-secondary">
+                  {featured.description}
+                </p>
+                <button
+                  type="button"
+                  data-cursor="link"
+                  onClick={() => setGatedResource(featured.id)}
+                  className="group mt-6 inline-flex items-center gap-2.5 rounded-full bg-gold px-7 py-3.5 text-sm font-semibold text-btn-text transition-opacity hover:opacity-90"
+                >
+                  <Download className="h-4 w-4" />
+                  Download free
+                </button>
+              </AnimateOnScroll>
+            );
+          })()}
+        </div>
+        </Container>
+      </section>
+
+      {/* the rest of the library */}
+      <Section width="wide" divide>
+        <Eyebrow className="mb-8">more free resources</Eyebrow>
         <div className="grid gap-5 sm:grid-cols-2">
           {rest.map((resource, i) => {
             const Icon = iconMap[resource.icon] || Download;
@@ -122,8 +134,8 @@ export function ResourcesPage() {
         <div className="grid items-center gap-12 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
           <div>
             <Eyebrow className="mb-7">start</Eyebrow>
-            <Heading size={1} as="h2" className="text-[clamp(2.6rem,5.4vw,5.5rem)] leading-[0.98]">
-              Want a plan built <Heading.Italic>around you?</Heading.Italic>
+            <Heading size={1} as="h2">
+              Want a plan built <span className="display-italic">around you?</span>
             </Heading>
           </div>
           <div className="flex flex-col gap-7">

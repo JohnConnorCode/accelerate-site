@@ -14,7 +14,7 @@ import { Eyebrow } from "./primitives";
 const SEGMENTS: { text: string; cls?: string }[] = [
   { text: "Most owners don't have a growth problem. They have a " },
   { text: "time", cls: "text-heading" },
-  { text: " problem. So we build systems that handle the repetitive work — " },
+  { text: " problem. So we build systems that handle the repetitive work, " },
   { text: "turning every inquiry into revenue", cls: "text-heading" },
   { text: " while quietly " },
   { text: "handing your week back.", cls: "font-editorial italic text-gold" },

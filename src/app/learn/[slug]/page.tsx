@@ -19,13 +19,12 @@ import {
   generateArticleJsonLd,
   generateBreadcrumbJsonLd,
 } from "@/lib/seo";
-import { GlassCard } from "@/components/ui/GlassCard";
 import { SectionDivider } from "@/components/ui/SectionDivider";
 import {
   AnimateOnScroll,
   StaggerContainer,
 } from "@/components/ui/AnimateOnScroll";
-import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { Section, Eyebrow, Heading, BookCallButton } from "@/components/v2/studio/primitives";
 import { TableOfContents } from "@/components/mdx/TableOfContents";
 import { RelatedArticles } from "@/components/mdx/RelatedArticles";
 import { ArticleTracker } from "@/components/ArticleTracker";
@@ -312,41 +311,33 @@ export default async function ArticlePage({
         </div>
       </article>
 
-      <SectionDivider variant="fade" />
-
       {/* ------------------------------------------------------------------ */}
-      {/* Bottom CTA                                                          */}
+      {/* Bottom CTA — master style                                            */}
       {/* ------------------------------------------------------------------ */}
-      <section className="py-20 bg-[var(--bg-section-warm)] relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] rounded-full bg-radial from-[rgba(var(--accent-rgb),0.06)] to-transparent" />
+      <Section width="wide" divide>
+        <div className="grid items-center gap-12 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
+          <div>
+            <Eyebrow className="mb-7">start</Eyebrow>
+            <Heading size={1} as="h2">
+              Ready to <span className="display-italic">accelerate?</span>
+            </Heading>
+          </div>
+          <div className="flex flex-col gap-7">
+            <p className="text-lg leading-relaxed text-white-secondary">
+              Book a free 30-minute discovery call. We&apos;ll learn your
+              business and tell you exactly where AI can drive growth. No
+              pitch, no obligation.
+            </p>
+            <BookCallButton />
+            <div className="flex flex-wrap gap-x-8 gap-y-3 border-t border-border-glass pt-6 font-mono text-xs uppercase tracking-[0.15em] text-white-muted">
+              <span>Free</span><span>·</span>
+              <span>30 minutes</span><span>·</span>
+              <span>No obligation</span><span>·</span>
+              <span>Direct to the founder</span>
+            </div>
+          </div>
         </div>
-
-        <div className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <ScrollReveal animation="clip-reveal">
-            <GlassCard variant="gold" padding="none" className="text-center">
-              <div className="p-8 sm:p-12">
-                <h2 className="font-display text-2xl sm:text-3xl font-bold text-white mb-3">
-                  Ready to Accelerate{" "}
-                  <span className="text-gold-gradient">Your Growth?</span>
-                </h2>
-                <p className="text-white-secondary max-w-md mx-auto mb-8">
-                  Get a personalized AI growth plan based on your specific
-                  industry and goals. Takes under 5 minutes.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <ArticleCTA slug={slug} href="/contact" variant="primary" size="lg" className="w-full sm:w-auto">
-                    Book a Free Discovery Call
-                  </ArticleCTA>
-                  <ArticleCTA slug={slug} href="/contact" variant="secondary" size="lg" className="w-full sm:w-auto">
-                    Book a Strategy Call
-                  </ArticleCTA>
-                </div>
-              </div>
-            </GlassCard>
-          </ScrollReveal>
-        </div>
-      </section>
+      </Section>
 
       <SectionDivider variant="glow" />
 

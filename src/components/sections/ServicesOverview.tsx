@@ -82,7 +82,7 @@ export function ServicesOverview() {
           </h2>
           <p className="section-description">
             We find the highest-impact opportunities in your operations, then
-            build the systems that capture them — scoped to your tools, your
+            build the systems that capture them, scoped to your tools, your
             team, and your goals.
           </p>
         </AnimateOnScroll>

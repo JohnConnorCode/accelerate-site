@@ -2,12 +2,14 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Accelerate — AI Strategy & Systems for Small Business",
+    name: "Accelerate: AI Strategy & Systems for Small Business",
     short_name: "Accelerate",
     description:
       "We help small businesses figure out where AI fits, then build and manage the systems that make it happen.",
     start_url: "/",
-    display: "standalone",
+    // "browser" (not "standalone") so this stays a normal website — no PWA
+    // "install / download app" prompt, which doesn't belong on a marketing site.
+    display: "browser",
     background_color: "#0a0a0a",
     theme_color: "#0a0a0a",
     icons: [

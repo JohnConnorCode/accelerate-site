@@ -1,342 +1,249 @@
 "use client";
 
-import { useRef } from "react";
-import Link from "next/link";
 import {
-  ArrowRight,
-  Check,
-  PhoneMissed,
-  Clock,
-  UserX,
-  Monitor,
-  Moon,
-  FileText,
-  Users,
-  CalendarX,
-  SearchX,
-  Thermometer,
-  DollarSign,
-  RefreshCw,
-  Database,
-  Wrench,
-  Scale,
-  Briefcase,
-  Building2,
+  Check, PhoneMissed, Clock, UserX, Monitor, Moon, FileText, Users,
+  CalendarX, SearchX, Thermometer, DollarSign, RefreshCw, Database,
+  Wrench, Scale, Briefcase, Building2,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useGSAP } from "@gsap/react";
-import { gsap } from "@/lib/gsap-init";
-import { prefersReducedMotion } from "@/lib/utils";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { Button } from "@/components/ui/Button";
-import { ScrollReveal } from "@/components/ui/ScrollReveal";
-import { SectionHeader } from "@/components/ui/SectionHeader";
-import { SectionDivider } from "@/components/ui/SectionDivider";
-import { MagneticButton } from "@/components/ui/MagneticButton";
-import { FinalCTA } from "@/components/sections/FinalCTA";
+import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
+import { Container, Eyebrow, BookCallButton } from "@/components/v2/studio/primitives";
+import { RevealHeading } from "@/components/v2/studio/RevealHeading";
+import { OpsConsole } from "@/components/v2/studio/OpsConsole";
+import { INDUSTRY_FEEDS } from "@/content/industry-feeds";
 import type { Vertical } from "@/lib/types";
 
 const iconMap: Record<string, LucideIcon> = {
-  PhoneMissed,
-  Clock,
-  UserX,
-  Monitor,
-  Moon,
-  FileText,
-  Users,
-  CalendarX,
-  SearchX,
-  Thermometer,
-  DollarSign,
-  RefreshCw,
-  Database,
-  Wrench,
-  Scale,
-  Briefcase,
-  Building2,
+  PhoneMissed, Clock, UserX, Monitor, Moon, FileText, Users,
+  CalendarX, SearchX, Thermometer, DollarSign, RefreshCw, Database,
+  Wrench, Scale, Briefcase, Building2,
 };
+
+/* Shared type recipes (NOT the .display-* classes — those are owned by the CSS
+   section-reveal system; RevealHeading drives its own word-stagger entrance). */
+const H1 = "font-display font-extrabold leading-[1.04] tracking-[-0.035em] text-[clamp(2.1rem,3.8vw,3.9rem)] text-heading";
+const H2 = "font-display font-bold leading-[1.06] tracking-[-0.03em] text-[clamp(1.85rem,3.2vw,2.9rem)] text-heading";
 
 interface VerticalPageProps {
   vertical: Vertical;
 }
 
 export function VerticalPage({ vertical }: VerticalPageProps) {
-  const solutionsRef = useRef<HTMLDivElement>(null);
-  const metricsRef = useRef<HTMLDivElement>(null);
-
-  // GSAP stagger for solution cards
-  useGSAP(() => {
-    if (!solutionsRef.current || prefersReducedMotion()) return;
-    const cards = solutionsRef.current.querySelectorAll("[data-solution-card]");
-    gsap.fromTo(cards,
-      { opacity: 0, y: 24 },
-      {
-        opacity: 1, y: 0, duration: 0.5, delay: 0.25, stagger: 0.1, ease: "power2.out",
-        scrollTrigger: { trigger: solutionsRef.current, start: "top 80%", toggleActions: "play none none none" },
-      }
-    );
-  }, { scope: solutionsRef });
-
-  // GSAP stagger for metric boxes
-  useGSAP(() => {
-    if (!metricsRef.current || prefersReducedMotion()) return;
-    const items = metricsRef.current.querySelectorAll("[data-metric]");
-    gsap.fromTo(items,
-      { opacity: 0, scale: 0.9 },
-      {
-        opacity: 1, scale: 1, duration: 0.4, delay: 0.2, stagger: 0.08, ease: "power2.out",
-        scrollTrigger: { trigger: metricsRef.current, start: "top 85%", toggleActions: "play none none none" },
-      }
-    );
-  }, { scope: metricsRef });
-
-  // Split solutions: first 2 hero, rest compact
   const heroSolutions = vertical.solutions.slice(0, 2);
   const restSolutions = vertical.solutions.slice(2);
+  const opsFeed = INDUSTRY_FEEDS[vertical.slug];
 
   return (
     <>
-      {/* Hero */}
-      <section className="relative flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 gradient-mesh opacity-40" />
-          <div className="absolute inset-0 grid-overlay opacity-20" />
-          <div className="hero-glow-orb hero-glow-orb-gold absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-        </div>
-
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[var(--bg-base)] to-transparent pointer-events-none z-[5]" />
-
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center py-20 sm:py-28">
-          <ScrollReveal animation="blur-up">
-            <p className="section-label">{vertical.name}</p>
-            <h1 className="page-heading leading-[1.1] mb-6">
-              {vertical.heroHeadlineWhite}{" "}
-              <span className="text-gold-gradient">
-                {vertical.heroHeadlineGold}
-              </span>
-            </h1>
-            <p className="text-lg sm:text-xl text-white-secondary max-w-2xl mx-auto mb-10 leading-relaxed">
-              {vertical.heroSubheadline}
-            </p>
-            <MagneticButton>
-              <Link href="/contact">
-                <Button variant="primary" size="lg" pulse>
-                  Book a Free Discovery Call
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </Link>
-            </MagneticButton>
-          </ScrollReveal>
-        </div>
+      {/* hero — statement + this trade's live ops console (the signature motif) */}
+      <section className="relative flex min-h-[88vh] items-center overflow-hidden pt-32 pb-20">
+        <Container width="wide">
+          <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+            <div className="min-w-0">
+              <AnimateOnScroll>
+                <Eyebrow className="mb-7">{vertical.name}</Eyebrow>
+              </AnimateOnScroll>
+              <RevealHeading
+                as="h1"
+                className={H1}
+                lead={vertical.heroHeadlineWhite}
+                accent={vertical.heroHeadlineGold}
+                delay={0.12}
+              />
+              <AnimateOnScroll delay={0.25}>
+                <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
+                  {vertical.heroSubheadline}
+                </p>
+              </AnimateOnScroll>
+              <AnimateOnScroll delay={0.35}>
+                <div className="mt-9">
+                  <BookCallButton />
+                </div>
+              </AnimateOnScroll>
+            </div>
+            {opsFeed && (
+              <AnimateOnScroll as="div" delay={0.2} className="relative min-w-0">
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -inset-8 -z-10 opacity-60"
+                  style={{ background: "radial-gradient(60% 55% at 70% 30%, rgba(var(--accent-rgb),0.16), transparent 70%)", filter: "blur(8px)" }}
+                />
+                <OpsConsole
+                  name={vertical.name}
+                  feed={opsFeed.feed}
+                  footer={
+                    <p className="text-center font-mono text-[0.6rem] uppercase tracking-[0.18em] text-white-muted">
+                      A day at a {vertical.name.replace(/s$/, "").toLowerCase()}, run by Accelerate
+                    </p>
+                  }
+                />
+              </AnimateOnScroll>
+            )}
+          </div>
+        </Container>
       </section>
 
-      <SectionDivider variant="fade" />
-
-      {/* Pain Points — alternating slide animations */}
-      <section className="relative pt-16 pb-24 bg-[var(--bg-section-warm)] overflow-hidden">
-        <div className="absolute inset-0 grid-overlay-fine pointer-events-none" />
-        <div className="orb-gold -top-32 -right-32 opacity-60" />
-
-        <div className="page-shell">
-          <ScrollReveal animation="blur-up">
-            <SectionHeader
-              label="Sound Familiar?"
-              heading={
-                <>
-                  The problems costing you{" "}
-                  <span className="text-gold-gradient">real money.</span>
-                </>
-              }
-              description={`These are the issues we hear from ${vertical.name.toLowerCase()} businesses every week.`}
-              className="mb-16"
-            />
-          </ScrollReveal>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {vertical.painPoints.map((painPoint, i) => {
-              const Icon = iconMap[painPoint.icon] || Monitor;
+      {/* pain points */}
+      <section className="section-y section-divide relative bg-[var(--bg-section-warm)]">
+        <Container width="wide">
+          <AnimateOnScroll><Eyebrow className="mb-6">sound familiar?</Eyebrow></AnimateOnScroll>
+          <RevealHeading
+            className={`${H2} mb-3 max-w-3xl`}
+            lead="The problems costing you"
+            accent="real money."
+          />
+          <AnimateOnScroll delay={0.15}>
+            <p className="mb-12 max-w-xl text-base leading-relaxed text-white-muted">
+              These are the issues we hear from {vertical.name.toLowerCase()} businesses every week.
+            </p>
+          </AnimateOnScroll>
+          <div className="grid gap-4 md:grid-cols-2">
+            {vertical.painPoints.map((pain, i) => {
+              const Icon = iconMap[pain.icon] || Monitor;
               return (
-                <ScrollReveal
-                  key={painPoint.title}
-                  animation={i % 2 === 0 ? "slide-left" : "slide-right"}
-                  delay={0.2 + i * 0.08}
+                <AnimateOnScroll
+                  key={pain.title}
+                  as="div"
+                  delay={i * 0.05}
+                  className="flex gap-5 rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)] p-6 backdrop-blur-md sm:p-7"
                 >
-                  <GlassCard
-                    hover="lift"
-                    padding="none"
-                    className="overflow-hidden"
-                  >
-                    <div className="p-6 sm:p-8 flex gap-5">
-                      <div className="w-12 h-12 rounded-xl bg-[rgba(var(--accent-rgb),0.08)] flex items-center justify-center shrink-0">
-                        <Icon className="w-6 h-6 text-gold" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold text-heading mb-2">
-                          {painPoint.title}
-                        </h3>
-                        <p className="text-sm text-white-muted leading-relaxed">
-                          {painPoint.description}
-                        </p>
-                      </div>
-                    </div>
-                  </GlassCard>
-                </ScrollReveal>
+                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_60%,transparent)] text-gold">
+                    <Icon className="h-6 w-6" strokeWidth={1.75} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="mb-2 font-display text-lg font-semibold text-heading">{pain.title}</h3>
+                    <p className="text-sm leading-relaxed text-white-muted">{pain.description}</p>
+                  </div>
+                </AnimateOnScroll>
               );
             })}
           </div>
-        </div>
+        </Container>
       </section>
 
-      <SectionDivider variant="glow" />
+      {/* solutions */}
+      <section className="section-y section-divide relative bg-[var(--bg-section-deep)]">
+        <Container width="wide">
+          <AnimateOnScroll><Eyebrow className="mb-6">what we build</Eyebrow></AnimateOnScroll>
+          <RevealHeading
+            className={`${H2} mb-3 max-w-3xl`}
+            lead="Purpose-built systems."
+            accent="Real results."
+          />
+          <AnimateOnScroll delay={0.15}>
+            <p className="mb-12 max-w-2xl text-base leading-relaxed text-white-muted">
+              Every solution is scoped to {vertical.name.toLowerCase()} operations: your
+              tools, your workflow, your goals.
+            </p>
+          </AnimateOnScroll>
 
-      {/* Solutions — bento layout with grid-dots-glow background */}
-      <section className="relative py-24 bg-[var(--bg-section-deep)] overflow-hidden">
-        <div className="absolute inset-0 grid-dots-glow pointer-events-none" />
-        <div className="orb-gold -bottom-48 -left-48 opacity-60" />
-
-        <div className="page-shell">
-          <ScrollReveal animation="blur-up">
-            <SectionHeader
-              label="What We Build"
-              heading={
-                <>
-                  Purpose-built systems.{" "}
-                  <span className="text-gold-gradient">Real results.</span>
-                </>
-              }
-              description={`Every solution is scoped to ${vertical.name.toLowerCase()} operations — your tools, your workflow, your goals.`}
-              className="mb-16"
-            />
-          </ScrollReveal>
-
-          <div ref={solutionsRef} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {heroSolutions.map((solution) => (
-                <GlassCard
+          <div className="flex flex-col gap-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              {heroSolutions.map((solution, i) => (
+                <AnimateOnScroll
                   key={solution.title}
-                  data-solution-card
-                  hover="shine"
-                  padding="none"
-                  className="overflow-hidden"
+                  as="div"
+                  delay={i * 0.06}
+                  className="flex h-full flex-col rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_88%,transparent)] p-7 backdrop-blur-md sm:p-9"
                 >
-                  <div className="p-6 sm:p-8 md:p-10 flex flex-col h-full">
-                    <h3 className="text-xl font-semibold text-heading mb-3">
-                      {solution.title}
-                    </h3>
-                    <p className="text-white-secondary leading-relaxed mb-5">
-                      {solution.description}
-                    </p>
-                    <ul className="space-y-2 mt-auto">
-                      {solution.features.map((feature) => (
-                        <li
-                          key={feature}
-                          className="flex items-start gap-2 text-sm text-white-secondary"
-                        >
-                          <Check className="w-4 h-4 text-gold shrink-0 mt-0.5" />
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </GlassCard>
+                  <h3 className="mb-3 font-display text-xl font-semibold text-heading">{solution.title}</h3>
+                  <p className="mb-5 leading-relaxed text-white-secondary">{solution.description}</p>
+                  <ul className="mt-auto flex flex-col gap-2">
+                    {solution.features.map((feature) => (
+                      <li key={feature} className="flex items-start gap-2 text-sm text-white-secondary">
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" strokeWidth={2.5} />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </AnimateOnScroll>
               ))}
             </div>
 
             {restSolutions.length > 0 && (
-              <div className={`grid grid-cols-1 sm:grid-cols-2 ${restSolutions.length >= 3 ? "lg:grid-cols-3" : ""} gap-4`}>
-                {restSolutions.map((solution) => (
-                  <GlassCard
+              <div className={`grid gap-4 sm:grid-cols-2 ${restSolutions.length >= 3 ? "lg:grid-cols-3" : ""}`}>
+                {restSolutions.map((solution, i) => (
+                  <AnimateOnScroll
                     key={solution.title}
-                    data-solution-card
-                    hover="shine"
-                    padding="lg"
-                    className="overflow-hidden"
+                    as="div"
+                    delay={i * 0.05}
+                    className="flex h-full flex-col rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)] p-6 backdrop-blur-md"
                   >
-                    <h3 className="text-base font-semibold text-heading mb-2">
-                      {solution.title}
-                    </h3>
-                    <p className="text-sm text-white-muted leading-relaxed mb-4">
-                      {solution.description}
-                    </p>
-                    <ul className="space-y-1.5">
+                    <h3 className="mb-2 font-display text-base font-semibold text-heading">{solution.title}</h3>
+                    <p className="mb-4 text-sm leading-relaxed text-white-muted">{solution.description}</p>
+                    <ul className="mt-auto flex flex-col gap-1.5">
                       {solution.features.slice(0, 3).map((feature) => (
-                        <li
-                          key={feature}
-                          className="flex items-start gap-2 text-xs text-white-muted"
-                        >
-                          <Check className="w-3.5 h-3.5 text-gold shrink-0 mt-0.5" />
-                          {feature}
+                        <li key={feature} className="flex items-start gap-2 text-xs text-white-muted">
+                          <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold" strokeWidth={2.5} />
+                          <span>{feature}</span>
                         </li>
                       ))}
                     </ul>
-                  </GlassCard>
+                  </AnimateOnScroll>
                 ))}
               </div>
             )}
           </div>
-        </div>
+        </Container>
       </section>
 
-      <SectionDivider variant="glow" />
+      {/* case study */}
+      <section className="section-y section-divide relative">
+        <Container width="wide">
+          <AnimateOnScroll><Eyebrow className="mb-6">case study</Eyebrow></AnimateOnScroll>
+          <RevealHeading className={`${H2} mb-10 max-w-3xl`} lead={vertical.caseStudy.title} />
+          <AnimateOnScroll delay={0.1} as="div" className="rounded-2xl border border-border-gold/40 bg-[color-mix(in_srgb,var(--gold-base)_4%,var(--bg-elevated))] p-8 backdrop-blur-md sm:p-12">
+            <p className="mb-10 max-w-3xl text-lg leading-relaxed text-white-secondary">
+              {vertical.caseStudy.description}
+            </p>
+            <div className="grid gap-3 sm:gap-4 md:grid-cols-4">
+              {vertical.caseStudy.metrics.map((metric, i) => (
+                <AnimateOnScroll
+                  key={metric.label}
+                  as="div"
+                  delay={0.15 + i * 0.05}
+                  className="rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)] p-5 text-center"
+                >
+                  <p className="mb-1 font-display text-2xl font-bold text-gold sm:text-3xl">{metric.value}</p>
+                  <p className="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-white-muted">{metric.label}</p>
+                </AnimateOnScroll>
+              ))}
+            </div>
+          </AnimateOnScroll>
+        </Container>
+      </section>
 
-      {/* Case Study */}
-      <section className="relative py-24 bg-bg-base overflow-hidden">
-        <div className="absolute inset-0 dot-grid pointer-events-none" />
-
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <ScrollReveal animation="blur-up">
-            <SectionHeader
-              label="Case Study"
-              heading={
-                <>{vertical.caseStudy.title}</>
-              }
-              className="mb-12"
-            />
-          </ScrollReveal>
-
-          <ScrollReveal animation="clip-left" delay={0.15}>
-            <GlassCard variant="gold" padding="none" className="overflow-hidden">
-              <div className="p-8 sm:p-10 md:p-12">
-                <p className="text-white-secondary leading-relaxed text-lg mb-10 max-w-3xl">
-                  {vertical.caseStudy.description}
+      {/* closing — master style */}
+      <section className="section-y section-divide relative">
+        <Container width="wide">
+          <div className="grid items-center gap-12 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
+            <div className="min-w-0">
+              <AnimateOnScroll><Eyebrow className="mb-7">start</Eyebrow></AnimateOnScroll>
+              <RevealHeading
+                as="h2"
+                className="font-display font-extrabold leading-[1.0] tracking-[-0.04em] text-[clamp(2.4rem,4.6vw,4.5rem)] text-heading"
+                lead="A plan built for"
+                accent={`${vertical.name.toLowerCase()}.`}
+              />
+            </div>
+            <div className="flex flex-col gap-7">
+              <AnimateOnScroll delay={0.15}>
+                <p className="text-lg leading-relaxed text-white-secondary">
+                  30 minutes. We&apos;ll map exactly where AI and automation move the
+                  needle for your business. No pitch, no obligation.
                 </p>
-                <div ref={metricsRef} className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-                  {vertical.caseStudy.metrics.map((metric) => (
-                    <div
-                      key={metric.label}
-                      data-metric
-                      className="glass rounded-xl p-5 text-center"
-                    >
-                      <p className="font-display text-3xl font-bold text-gold-gradient mb-1">
-                        {metric.value}
-                      </p>
-                      <p className="text-xs text-white-muted uppercase tracking-wider">
-                        {metric.label}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </GlassCard>
-          </ScrollReveal>
-        </div>
+              </AnimateOnScroll>
+              <AnimateOnScroll delay={0.25}><BookCallButton /></AnimateOnScroll>
+              <AnimateOnScroll delay={0.35} as="div" className="flex flex-wrap gap-x-8 gap-y-3 border-t border-border-glass pt-6 font-mono text-xs uppercase tracking-[0.15em] text-white-muted">
+                <span>Free</span><span>·</span>
+                <span>30 minutes</span><span>·</span>
+                <span>No obligation</span><span>·</span>
+                <span>Direct to the founder</span>
+              </AnimateOnScroll>
+            </div>
+          </div>
+        </Container>
       </section>
-
-      <SectionDivider variant="fade" />
-
-      {/* Final CTA */}
-      <FinalCTA
-        heading={
-          <>
-            Get Your Free{" "}
-            <span className="text-gold-gradient">{vertical.name}</span>{" "}
-            Growth Plan
-          </>
-        }
-        description="Answer a few questions about your business and get a personalized plan with specific recommendations, pricing, and projected ROI."
-        primaryCTA={{ label: "Book a Free Discovery Call", href: "/contact" }}
-        secondaryCTA={{ label: "Book a Free Discovery Call", href: "/contact" }}
-      />
     </>
   );
 }

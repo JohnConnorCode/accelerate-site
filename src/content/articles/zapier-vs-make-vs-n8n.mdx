@@ -238,7 +238,7 @@ Here is the operator perspective that comparison articles never include: it is n
 
 At Accelerate, we use Make.com for the majority of client automation builds. Here is why:
 
-When we automated [SparkBlox's entire client onboarding](/results/sparkblox) — from contract signing to account setup to welcome sequences — the workflow had 12 steps with conditional branching, API calls to three different platforms, and error handling for edge cases. Make.com's visual builder made it possible to build, test, and debug this in about a day. The same workflow in Zapier would have required three separate Zaps chained together with webhooks, and any failure in the chain would silently break everything downstream.
+When we automated [SparkBlox's entire client onboarding](/results/sparkblox), from contract signing to account setup to welcome sequences, the workflow had 12 steps with conditional branching, API calls to three different platforms, and error handling for edge cases. Make.com's visual builder made it possible to build, test, and debug this in about a day. The same workflow in Zapier would have required three separate Zaps chained together with webhooks, and any failure in the chain would silently break everything downstream.
 
 We still use Zapier for simple, two-step integrations where it has a native connector that Make.com lacks. And we deploy n8n for clients who need to keep data on their own servers (usually financial services and healthcare).
 

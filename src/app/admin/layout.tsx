@@ -31,6 +31,8 @@ import {
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { NotificationBell } from "@/components/admin/NotificationBell";
+import { Toaster } from "@/components/admin/Toaster";
+import { AdminErrorBoundary } from "@/components/admin/AdminErrorBoundary";
 
 const sidebarSections = [
   {
@@ -146,7 +148,12 @@ export default function AdminLayout({
 
   // Don't show sidebar on login page
   if (pathname === "/admin/login") {
-    return <>{children}</>;
+    return (
+      <>
+        {children}
+        <Toaster />
+      </>
+    );
   }
 
   const handleSignOut = async () => {
@@ -260,8 +267,9 @@ export default function AdminLayout({
             ))}
           </nav>
         )}
-        {children}
+        <AdminErrorBoundary key={pathname}>{children}</AdminErrorBoundary>
       </main>
+      <Toaster />
     </div>
   );
 }

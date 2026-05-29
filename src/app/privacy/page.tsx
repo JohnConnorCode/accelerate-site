@@ -65,10 +65,11 @@ export default function PrivacyPage() {
               4. Cookies
             </h2>
             <p>
-              We use essential cookies to operate our website and optional
-              analytics and marketing cookies with your consent. You can manage
-              your cookie preferences at any time through the cookie consent
-              banner.
+              We use cookies and similar technologies to operate our website
+              and to understand how it&apos;s used through analytics tools such
+              as Google Analytics, Meta Pixel, and Plausible. You can control or
+              block cookies through your browser settings, and opt out of
+              specific analytics providers using their own opt-out tools.
             </p>
           </section>
 

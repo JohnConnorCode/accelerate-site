@@ -3,7 +3,7 @@ import { generateBreadcrumbJsonLd } from "@/lib/seo";
 import { AboutPageContent } from "@/components/sections/AboutPage";
 
 export const metadata = seoMetadata({
-  title: "About Us — Built by a Business Owner",
+  title: "About Us: Built by a Business Owner",
   description:
     "Built by a business owner who ran into the same problems you have. Accelerate delivers AI strategy and systems for small businesses.",
   ogTitle: "About Accelerate",

@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -45,11 +46,21 @@ const navLinks: NavLink[] = [
   { label: "Contact", href: "/contact" },
 ];
 
+// Shared underline used by every nav item — grows from the left on hover and
+// stays full-width for the current route. The single source of the nav's
+// "where am I" + hover feedback.
+const navUnderline =
+  "pointer-events-none absolute -bottom-1 left-0 h-px w-full origin-left bg-gold transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]";
+
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const headerRef = useRef<HTMLElement>(null);
+  const pathname = usePathname();
+  // active when on the exact route or any child route (e.g. /results/farrell)
+  const isActive = (href: string) =>
+    href !== "#" && (pathname === href || pathname.startsWith(href + "/"));
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -109,12 +120,31 @@ export function Header() {
                   }}
                 >
                   <button
-                    className="text-sm text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] transition-colors cursor-pointer rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+                    className={cn(
+                      "group/nav relative inline-flex items-center gap-1 text-sm transition-colors cursor-pointer rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
+                      pathname.startsWith("/industries")
+                        ? "text-[var(--text-nav-hover)]"
+                        : "text-[var(--text-nav)] hover:text-[var(--text-nav-hover)]"
+                    )}
                     aria-expanded={openDropdown === link.label}
                     aria-haspopup="true"
                     onFocus={() => setOpenDropdown(link.label)}
                   >
                     {link.label}
+                    <ChevronDown
+                      className={cn(
+                        "h-3.5 w-3.5 transition-transform duration-300",
+                        openDropdown === link.label && "rotate-180"
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        navUnderline,
+                        pathname.startsWith("/industries")
+                          ? "scale-x-100"
+                          : "scale-x-0 group-hover/nav:scale-x-100"
+                      )}
+                    />
                   </button>
                   <AnimatePresence>
                     {openDropdown === link.label && (
@@ -154,9 +184,21 @@ export function Header() {
                 <motion.div key={link.href} variants={headerNavItem}>
                   <Link
                     href={link.href}
-                    className="text-sm text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] transition-colors rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+                    aria-current={isActive(link.href) ? "page" : undefined}
+                    className={cn(
+                      "group/nav relative inline-flex text-sm transition-colors rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
+                      isActive(link.href)
+                        ? "text-[var(--text-nav-hover)]"
+                        : "text-[var(--text-nav)] hover:text-[var(--text-nav-hover)]"
+                    )}
                   >
                     {link.label}
+                    <span
+                      className={cn(
+                        navUnderline,
+                        isActive(link.href) ? "scale-x-100" : "scale-x-0 group-hover/nav:scale-x-100"
+                      )}
+                    />
                   </Link>
                 </motion.div>
               )

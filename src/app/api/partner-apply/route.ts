@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
         Promise.resolve(supabase.from("admin_notifications").insert({
           type: "new_partner",
           title: `New partner application: ${name}`,
-          description: `${company} — ${partnerType}`,
+          description: `${company}: ${partnerType}`,
           link: "/admin/partners",
         })).catch(() => {});
       } catch (e) {

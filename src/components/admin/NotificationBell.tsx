@@ -6,6 +6,10 @@ import Link from "next/link";
 import { Bell, Check, Inbox, Users, MessageCircle, Handshake, FileCheck, CheckSquare, AlertCircle, Eye } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "@/lib/admin/useToast";
+
+const DEFAULT_POLL_MS = 30_000;
+const URGENT_POLL_MS = 10_000;
 
 interface Notification {
   id: string;
@@ -42,24 +46,69 @@ export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const fetchErrorCount = useRef(0);
+
   const fetchNotifications = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/notifications");
-      if (!res.ok) return;
+      if (!res.ok) {
+        // 401/403 mean the admin session expired — don't toast every poll.
+        if (res.status !== 401 && res.status !== 403) {
+          fetchErrorCount.current += 1;
+          if (fetchErrorCount.current === 3) {
+            toast.error("Can't reach notifications. Check your connection.");
+          }
+        }
+        return;
+      }
+      fetchErrorCount.current = 0;
       const data = await res.json();
       setNotifications(data.notifications || []);
       setUnreadCount(data.unreadCount || 0);
       setUrgentCount(data.urgentCount || 0);
-    } catch {
-      // silent — table may not exist yet
+    } catch (err) {
+      console.error("[NotificationBell] fetch failed:", err);
+      fetchErrorCount.current += 1;
+      if (fetchErrorCount.current === 3) {
+        toast.error("Lost connection to notifications.");
+      }
     }
   }, []);
 
+  // Two-tier polling: default 30s, faster 10s when there's an urgent unread.
+  // Pauses while the tab is hidden.
   useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 60000); // poll every minute
-    return () => clearInterval(interval);
-  }, [fetchNotifications]);
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const tick = async () => {
+      if (cancelled) return;
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+        timer = setTimeout(tick, DEFAULT_POLL_MS);
+        return;
+      }
+      await fetchNotifications();
+      if (cancelled) return;
+      const delay = urgentCount > 0 ? URGENT_POLL_MS : DEFAULT_POLL_MS;
+      timer = setTimeout(tick, delay);
+    };
+
+    tick();
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        // Refresh immediately when the user comes back.
+        fetchNotifications();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [fetchNotifications, urgentCount]);
 
   // Close on click outside
   useEffect(() => {
@@ -74,36 +123,40 @@ export function NotificationBell() {
 
   const handleMarkAllRead = async () => {
     try {
-      await fetch("/api/admin/notifications", {
+      const res = await fetch("/api/admin/notifications", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ markAllRead: true }),
       });
+      if (!res.ok) throw new Error(`status ${res.status}`);
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       setUnreadCount(0);
-    } catch {
-      // silent
+      setUrgentCount(0);
+    } catch (err) {
+      console.error("[NotificationBell] markAllRead failed:", err);
+      toast.error("Couldn't mark notifications read. Try again.");
     }
   };
 
   const handleMarkRead = async (id: string) => {
     try {
-      await fetch("/api/admin/notifications", {
+      const res = await fetch("/api/admin/notifications", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
       });
+      if (!res.ok) throw new Error(`status ${res.status}`);
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, read: true } : n))
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
-    } catch {
-      // silent
+    } catch (err) {
+      console.error("[NotificationBell] markRead failed:", err);
+      toast.error("Couldn't mark that notification read.");
     }
   };
 
   const timeAgo = (dateStr: string) => {
-    // eslint-disable-next-line react-hooks/purity -- relative-time formatting needs real "now"
     const diff = Date.now() - new Date(dateStr).getTime();
     const minutes = Math.floor(diff / 60000);
     if (minutes < 60) return `${minutes}m`;

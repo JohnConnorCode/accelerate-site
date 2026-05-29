@@ -18,7 +18,7 @@ interface EmailTemplate {
 const templates: EmailTemplate[] = [
   {
     label: "Introduction",
-    subject: "Welcome to Accelerate — Your Custom Growth Plan",
+    subject: "Welcome to Accelerate: Your Custom Growth Plan",
     body: `Hi {{name}},
 
 Thank you for requesting a custom growth plan for {{business}}. I've reviewed your submission and wanted to personally reach out.

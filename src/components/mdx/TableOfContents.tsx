@@ -22,7 +22,11 @@ const readHeadings = (): TocItem[] => {
 };
 
 export function TableOfContents() {
-  const [headings, setHeadings] = useState<TocItem[]>(() => readHeadings());
+  // Start empty so the server render and the client's first (hydration) render
+  // match — both produce `null`. Headings are read from the DOM after mount,
+  // then the TOC fades in. Reading during render would diverge (no `document`
+  // on the server) and break hydration of this aside's siblings.
+  const [headings, setHeadings] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string>("");
 
   useEffect(() => {
@@ -30,12 +34,19 @@ export function TableOfContents() {
     const article = document.querySelector("[data-article-content]");
     if (!article) return;
 
+    // Read on the next frame (not synchronously in this effect) so the first
+    // client render still matches the server's `null` — then the TOC fades in.
+    const raf = requestAnimationFrame(() => setHeadings(readHeadings()));
+
     const observer = new MutationObserver(() => {
       setHeadings(readHeadings());
     });
 
     observer.observe(article, { childList: true, subtree: true });
-    return () => observer.disconnect();
+    return () => {
+      cancelAnimationFrame(raf);
+      observer.disconnect();
+    };
   }, []);
 
   useEffect(() => {

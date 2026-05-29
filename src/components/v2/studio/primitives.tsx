@@ -1,7 +1,11 @@
+"use client";
+
+import { useEffect, useRef } from "react";
 import type { ReactNode, HTMLAttributes } from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { MagneticButton } from "@/components/ui/MagneticButton";
+import { WordMask, childrenToTokens } from "./RevealHeading";
 
 /* ──────────────────────────────────────────────────────────────────────────────
    Design-system primitives for /v2 sections.
@@ -15,6 +19,36 @@ function widthClass(w?: Width) {
   if (w === "narrow") return "page-shell page-shell--narrow";
   if (w === "text") return "page-shell page-shell--text";
   return "page-shell"; // default = wide
+}
+
+/* ─── useReveal ─── single IntersectionObserver hook that flips `is-revealed`
+   on its target element when it enters the viewport. Pair with the CSS rules
+   in globals.css and the `section-reveal` class to opt any element into the
+   universal entrance pattern (used by Section + per-service bands etc.). */
+export function useReveal<T extends HTMLElement = HTMLElement>() {
+  const ref = useRef<T>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    if (reduced) {
+      el.classList.add("is-revealed");
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry?.isIntersecting) {
+          el.classList.add("is-revealed");
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "0px 0px -8% 0px", threshold: 0.04 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
 }
 
 /* ─── Container ─── shared content frame; same gutters everywhere, three caps */
@@ -34,7 +68,12 @@ export function Container({
 /* ─── Section ─── full-bleed wrapper that owns vertical rhythm + (optionally)
    wraps its children in a Container.
    <Section> by default just provides section-y + a default Container around children.
-   <Section bleed> opts OUT of the Container (caller controls full-bleed bands). */
+   <Section bleed> opts OUT of the Container (caller controls full-bleed bands).
+
+   Every Section is also a UNIVERSAL ENTRANCE: a single IntersectionObserver
+   flips an `is-revealed` class when the section enters the viewport, and a CSS
+   rule in globals.css fades + lifts the eyebrow, heading, and direct content
+   blocks in with a staggered cadence. Zero per-page animation code. */
 export function Section({
   width = "wide",
   bleed = false,
@@ -52,9 +91,10 @@ export function Section({
   className?: string;
   children: ReactNode;
 } & HTMLAttributes<HTMLElement>) {
-  const root = `section-y relative ${divide ? "section-divide" : ""} ${className ?? ""}`;
+  const ref = useReveal<HTMLElement>();
+  const root = `section-y section-reveal relative ${divide ? "section-divide" : ""} ${className ?? ""}`;
   return (
-    <section className={root} {...rest}>
+    <section ref={ref} className={root} {...rest}>
       {bleed ? children : <Container width={width}>{children}</Container>}
     </section>
   );
@@ -70,11 +110,16 @@ export function Eyebrow({
 }
 
 /* ─── Heading ─── display-scale headings (single source for type recipe).
-   <Heading size="2">First line <Heading.Italic>accent</Heading.Italic></Heading>
+   <Heading size="2">First line <span className="display-italic">accent</span></Heading>
 */
 type HeadingSize = 1 | 2 | 3;
 function sizeClass(s: HeadingSize) {
-  return s === 1 ? "display-1" : s === 3 ? "display-3" : "display-2";
+  // size 1 = page-hero scale (`.display-hero`), NOT the cinematic 10rem
+  // `.display-1` (reserved for the homepage ClosingCTA used raw). This is the
+  // single source of truth — never override a heading size with inline text-[…]
+  // (a `.display-*` plain rule beats Tailwind utilities in v4 and the override
+  // is silently ignored).
+  return s === 1 ? "display-hero" : s === 3 ? "display-3" : "display-2";
 }
 
 export function Heading({
@@ -89,13 +134,21 @@ export function Heading({
   children: ReactNode;
 }) {
   const Tag = (as ?? (size === 1 ? "h1" : "h2")) as "h1" | "h2" | "h3";
-  return <Tag className={`${sizeClass(size)} ${className ?? ""}`}>{children}</Tag>;
+  const cls = `${sizeClass(size)} ${className ?? ""}`;
+  // Hero headings (size 1) animate WORD BY WORD via the shared WordMask; section
+  // headings (2/3) keep the lighter CSS section-reveal. Falls back to a plain
+  // tag when children can't be tokenized (e.g. arbitrary nested markup).
+  if (size === 1) {
+    const tokens = childrenToTokens(children);
+    if (tokens) return <WordMask tokens={tokens} as={Tag} className={cls} />;
+  }
+  return <Tag className={cls}>{children}</Tag>;
 }
 
-/* Inline italic accent ("the gold part of a heading"). */
-Heading.Italic = function HeadingItalic({ children, className }: { children: ReactNode; className?: string }) {
-  return <span className={`display-italic ${className ?? ""}`}>{children}</span>;
-};
+/* Inline italic accent: use `<span className="display-italic">…</span>` directly
+   inside a Heading. (Compound subcomponents attached to a function — e.g.
+   `Heading.Italic = …` — don't survive Next 16 / Turbopack prod builds, so the
+   pattern was dropped. The `.display-italic` utility is the source of truth.) */
 
 /* ─── BookCallButton ─── the standard primary CTA, identical across Hero/Model/Close.
    Variants: "primary" (gold on dark), "inverse" (dark on gold — for the lime band). */
@@ -116,7 +169,7 @@ export function BookCallButton({
         data-cursor="link"
         data-cursor-label="Go"
         className={
-          "group inline-flex items-center gap-2.5 self-start rounded-full px-7 py-3.5 text-sm font-semibold " +
+          "group inline-flex items-center gap-2.5 self-start whitespace-nowrap rounded-full px-7 py-3.5 text-sm font-semibold " +
           (inverse ? "bg-btn-text text-gold" : "bg-gold text-btn-text")
         }
       >

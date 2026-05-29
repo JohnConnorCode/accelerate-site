@@ -64,6 +64,28 @@ After making visual/layout changes to components, always take a screenshot and r
 
 Local values: `.env.local` (gitignored). Production values: Vercel dashboard.
 
+## Deploying — READ THIS BEFORE TOUCHING DEPLOYS
+
+**Full guide: `DEPLOY.md` (project root).**
+
+**The deploy is one command:**
+```bash
+npm run deploy        # runs: vercel pull → vercel build --prod → vercel deploy --prebuilt --prod
+```
+
+**Verify the account is right BEFORE deploying:**
+```bash
+npm run deploy:check  # must print "farrellroofingco-4693" and "robert-farrells-projects"
+```
+
+If you're on the wrong Vercel account, `vercel logout && vercel login` and pick the right one. **Never deploy via `git push`** — the project has Commit-Author Verification on Robert Farrell's team, so non-Robert commits get auto-blocked (`readyState: BLOCKED`, hidden behind `UNKNOWN` in CLI). CLI `--prebuilt` deploys bypass this entirely (no source, no `.git` read).
+
+**Never run `vercel link`** — the project is already linked via `.vercel/project.json` (`prj_JDk6HGWB7lcgeJlusvWZmYxIIrfj` / `team_qHBO9P2V9uF31MH4k6s4mz8F`). Running `link` without `--project` while authed against the wrong team creates a phantom project on that team.
+
+**Rollback:** `npm run deploy:rollback` (interactive picker, re-aliases prod to a previous Ready deploy).
+
+**Verify after deploy:** `curl -sI https://www.acceleratewith.us | head -3` should return `HTTP/2 200`. (Note: `acceleratewith.us` 307-redirects to `www.acceleratewith.us` — always check the `www` URL.)
+
 ### Database Migrations (run order)
 1. `supabase/migration.sql` — Base schema (solution_requests, plan_views)
 2. `supabase/migration-prompt2.sql` — Lead management, content_calendar, chat_leads

@@ -104,9 +104,9 @@ export const PROOF_POINTS: ProofPoint[] = [
       "Eliminated manual data entry across 4 tools",
     ],
     oneLiner:
-      "We automated SparkBlox's entire client onboarding — from 2 hours per client to under 10 minutes. They grew clients 70% in Q1 without adding staff.",
+      "We automated SparkBlox's entire client onboarding, taking it from 2 hours per client to under 10 minutes. They grew clients 70% in Q1 without adding staff.",
     extendedProofPoint:
-      "SparkBlox was spending 2 hours onboarding each new client — manual data entry across four disconnected tools, copy-pasting information, and sending welcome emails by hand. We built an automated onboarding pipeline that handles everything from contract signing to account setup to welcome sequences. Onboarding dropped to under 10 minutes per client. With that time freed up, they grew their client base 70% in Q1 without hiring a single additional person.",
+      "SparkBlox was spending 2 hours onboarding each new client: manual data entry across four disconnected tools, copy-pasting information, and sending welcome emails by hand. We built an automated onboarding pipeline that handles everything from contract signing to account setup to welcome sequences. Onboarding dropped to under 10 minutes per client. With that time freed up, they grew their client base 70% in Q1 without hiring a single additional person.",
     timeline: "3 weeks to full automation",
   },
   {
@@ -147,7 +147,7 @@ export const PROOF_POINTS: ProofPoint[] = [
     oneLiner:
       "Montoya Capital's AI response system engages prospects in under 3 minutes. Consultation rate up 40%, new clients up 150% in Q1.",
     extendedProofPoint:
-      "Montoya Capital was losing prospects to competitors who responded faster. Average response time was over 4 hours — by then, prospects had already booked consultations elsewhere. We built an AI response system that engages every prospect within 3 minutes, qualifies their needs, and books consultations automatically. Consultation rate jumped 40%, and they signed 150% more new clients in Q1.",
+      "Montoya Capital was losing prospects to competitors who responded faster. Average response time was over 4 hours. By then, prospects had already booked consultations elsewhere. We built an AI response system that engages every prospect within 3 minutes, qualifies their needs, and books consultations automatically. Consultation rate jumped 40%, and they signed 150% more new clients in Q1.",
     timeline: "2 weeks to deployment",
   },
 ];

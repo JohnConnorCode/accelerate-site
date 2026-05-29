@@ -4,7 +4,7 @@ export const emailSequences: Record<EmailSequenceType, EmailSequenceStep[]> = {
   plan_nurture: [
     {
       stepNumber: 1,
-      subject: "Your Growth Plan is Ready — Here's What to Do Next",
+      subject: "Your Growth Plan is Ready. Here's What to Do Next",
       delayDays: 0,
       bodyTemplate: `Hi {{name}},
 
@@ -21,7 +21,8 @@ Book your consultation: https://acceleratewith.us/contact
 
 No pressure, no pitch. Just a conversation about what would actually move the needle for your business.
 
-— The Accelerate Team`,
+Talk soon,
+The Accelerate Team`,
     },
     {
       stepNumber: 2,
@@ -42,7 +43,8 @@ Your growth plan includes a solution for this. If you haven't reviewed it yet, h
 And if you want to talk about the fastest way to fix your response time, we're here:
 https://acceleratewith.us/contact
 
-— The Accelerate Team`,
+Talk soon,
+The Accelerate Team`,
     },
     {
       stepNumber: 3,
@@ -65,7 +67,8 @@ Your plan was designed to deliver similar results for your business. The questio
 
 If it is, let's talk: https://acceleratewith.us/contact
 
-— The Accelerate Team`,
+Talk soon,
+The Accelerate Team`,
     },
     {
       stepNumber: 4,
@@ -90,13 +93,14 @@ Or if you just want to revisit your plan: {{planLink}}
 
 Either way, I appreciate you taking the time to explore what Accelerate can do.
 
-— The Accelerate Team`,
+Talk soon,
+The Accelerate Team`,
     },
   ],
   resource_welcome: [
     {
       stepNumber: 1,
-      subject: "Your download is ready — plus a bonus inside",
+      subject: "Your download is ready, plus a bonus inside",
       delayDays: 0,
       bodyTemplate: `Hi {{name}},
 
@@ -110,7 +114,8 @@ Try it here: https://acceleratewith.us/plan-builder
 
 Enjoy the resource. If you have any questions, just reply to this email.
 
-— The Accelerate Team`,
+Talk soon,
+The Accelerate Team`,
     },
     {
       stepNumber: 2,
@@ -118,13 +123,14 @@ Enjoy the resource. If you have any questions, just reply to this email.
       delayDays: 3,
       bodyTemplate: `Hi {{name}},
 
-Just checking in — did you get a chance to go through {{resourceTitle}}?
+Just checking in. Did you get a chance to go through {{resourceTitle}}?
 
-If you found it useful and want to see how this applies to your specific business, the best next step is a free 30-minute discovery call. We'll map out exactly where AI and automation could help you book more clients and reclaim time — whether you work with us or not.
+If you found it useful and want to see how this applies to your specific business, the best next step is a free 30-minute discovery call. We'll map out exactly where AI and automation could help you book more clients and reclaim time, whether you work with us or not.
 
 Grab a time here: https://acceleratewith.us/contact
 
-— The Accelerate Team`,
+Talk soon,
+The Accelerate Team`,
     },
     {
       stepNumber: 3,
@@ -132,7 +138,7 @@ Grab a time here: https://acceleratewith.us/contact
       delayDays: 7,
       bodyTemplate: `Hi {{name}},
 
-I'm curious — what's the biggest bottleneck in your business right now?
+I'm curious: what's the biggest bottleneck in your business right now?
 
 A) Not enough inquiries coming in
 B) Inquiries coming in but not converting
@@ -146,13 +152,14 @@ https://acceleratewith.us/contact
 
 We help small businesses fix exactly these problems every day.
 
-— The Accelerate Team`,
+Talk soon,
+The Accelerate Team`,
     },
   ],
   grader_followup: [
     {
       stepNumber: 1,
-      subject: "Your website scored {{score}}/100 — here's what that means",
+      subject: "Your website scored {{score}}/100: here's what that means",
       delayDays: 0,
       bodyTemplate: `Hi {{name}},
 
@@ -172,7 +179,8 @@ https://acceleratewith.us/plan-builder
 Or if you'd rather have an expert walk you through it:
 https://acceleratewith.us/contact
 
-— The Accelerate Team`,
+Talk soon,
+The Accelerate Team`,
     },
     {
       stepNumber: 2,
@@ -182,17 +190,18 @@ https://acceleratewith.us/contact
 
 Based on your website grade of {{score}}/100, here are three things you can fix this week that will make the biggest difference:
 
-1. **Page speed** — Compress your images and enable browser caching. Every second of load time costs you 7% in conversions.
+1. **Page speed.** Compress your images and enable browser caching. Every second of load time costs you 7% in conversions.
 
-2. **Mobile optimization** — Over 60% of your traffic is on mobile. If your site isn't fast and easy to use on a phone, you're losing more than half your potential customers.
+2. **Mobile optimization.** Over 60% of your traffic is on mobile. If your site isn't fast and easy to use on a phone, you're losing more than half your potential customers.
 
-3. **Clear CTAs** — Every page should have one clear next step for the visitor. "Call now," "Book a consultation," "Get a free quote." Make it obvious and make it easy.
+3. **Clear CTAs.** Every page should have one clear next step for the visitor. "Call now," "Book a consultation," "Get a free quote." Make it obvious and make it easy.
 
 Want us to handle all of this for you? Our Launch package starts at $2,500 and includes a complete website built around conversion:
 
 https://acceleratewith.us/packages
 
-— The Accelerate Team`,
+Talk soon,
+The Accelerate Team`,
     },
   ],
 };

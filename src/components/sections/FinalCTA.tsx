@@ -36,7 +36,7 @@ export function FinalCTA({
   );
   const resolvedDescription =
     description ??
-    "Free discovery call. 30 minutes. You walk away with a clear plan — whether you work with us or not.";
+    "Free discovery call. 30 minutes. You walk away with a clear plan, whether you work with us or not.";
   const resolvedPrimary = primaryCTA ?? {
     label: "Book a Free Discovery Call",
     href: "/contact",

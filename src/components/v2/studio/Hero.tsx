@@ -25,15 +25,23 @@ export function Hero() {
   const lift = useTransform(scrollYProgress, [0, 1], [0, -80]);
 
   return (
-    <section ref={ref} className="relative flex min-h-screen items-center overflow-hidden pb-20 pt-32">
+    <section ref={ref} className="relative flex min-h-screen items-center overflow-hidden pb-16 pt-28 sm:pb-20 sm:pt-32">
       <LivingBlobs />
 
       <motion.div
         style={reduced ? undefined : { opacity: fade, y: lift }}
-        className="page-shell grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16"
+        className="page-shell grid items-center gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16"
       >
         {/* left — message */}
-        <div>
+        <div className="relative">
+          {/* soft glow behind the headline — gives the (otherwise flat) top of
+              the hero depth, most noticeable on mobile where there's no console
+              beside it. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -left-10 -top-16 -z-10 h-72 w-72 opacity-70"
+            style={{ background: "radial-gradient(circle, rgba(var(--accent-rgb),0.12), transparent 70%)", filter: "blur(12px)" }}
+          />
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -63,8 +71,8 @@ export function Hero() {
             transition={{ duration: 0.8, ease: EASE, delay: 0.7 }}
             className="mt-7 max-w-md text-base leading-relaxed text-white-secondary"
           >
-            Custom business solutions, powered by AI — built and run for you to
-            solve real problems, save time, and grow revenue.{" "}
+            We build and run the systems that capture every inquiry, follow up
+            automatically, and turn your busywork into booked revenue.{" "}
             <span className="font-semibold text-gold">Guaranteed.</span>
           </motion.p>
 
@@ -72,7 +80,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: EASE, delay: 0.85 }}
-            className="mt-9 flex items-center gap-6"
+            className="mt-8 flex flex-col items-start gap-4 sm:mt-9 sm:flex-row sm:items-center sm:gap-6"
           >
             <BookCallButton />
             <Link
@@ -80,7 +88,7 @@ export function Hero() {
               data-cursor="link"
               className="text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-gold hover:underline"
             >
-              See how it works
+              See how it works →
             </Link>
           </motion.div>
         </div>

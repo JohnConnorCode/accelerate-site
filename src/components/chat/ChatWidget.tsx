@@ -14,7 +14,7 @@ export function ChatWidget() {
   if (pathname.startsWith("/admin")) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-[80]">
+    <div className="chat-widget-root fixed bottom-6 right-6 z-[80] transition-[bottom] duration-300">
       <AnimatePresence>
         {isOpen && (
           <motion.div

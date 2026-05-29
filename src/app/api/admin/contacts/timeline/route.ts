@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
   (solutionRes.data || []).forEach((r: any) => {
     timeline.push({
       type: "lead",
-      title: `Plan request — ${r.industry?.replace(/_/g, " ") || "Unknown"}`,
+      title: `Plan request: ${r.industry?.replace(/_/g, " ") || "Unknown"}`,
       description: `Business: ${r.business_name || "N/A"} · Status: ${r.lead_status || "new"}${r.estimated_value ? ` · $${r.estimated_value.toLocaleString()}` : ""}`,
       timestamp: r.created_at,
       sourceId: r.id,
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
   (contactRes.data || []).forEach((r: any) => {
     timeline.push({
       type: "contact",
-      title: `Contact form — ${r.name}`,
+      title: `Contact form: ${r.name}`,
       description: r.message?.substring(0, 120) || "No message",
       timestamp: r.created_at,
       sourceId: r.id,
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
     const msgCount = Array.isArray(r.conversation) ? r.conversation.length : 0;
     timeline.push({
       type: "chat",
-      title: `Chat conversation — ${r.name}`,
+      title: `Chat conversation: ${r.name}`,
       description: `${msgCount} message${msgCount !== 1 ? "s" : ""}`,
       timestamp: r.created_at,
       sourceId: r.id,

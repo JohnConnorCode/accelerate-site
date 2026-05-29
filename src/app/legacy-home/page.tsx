@@ -21,7 +21,7 @@ import { SectionDivider } from "@/components/ui/SectionDivider";
 
 export const metadata: Metadata = {
   ...seoMetadata({
-    title: "Accelerate — legacy homepage",
+    title: "Accelerate legacy homepage",
     description: "Previous homepage layout (archived, unlinked).",
     path: "/legacy-home",
   }),

@@ -118,7 +118,7 @@ export function Hero() {
             We solve your technology problems, automate the busywork, and turn
             more of your inquiries into booked revenue. The AI systems that{" "}
             <span className="text-heading font-semibold">drive your business</span>{" "}
-            — and make you money.
+            and make you money.
           </motion.p>
 
           <motion.div
@@ -157,7 +157,7 @@ export function Hero() {
           >
             <span className="hidden sm:inline">AI strategy &amp; delivery</span>
             <span className="hidden sm:inline text-white-muted" aria-hidden="true">|</span>
-            <span className="hidden sm:inline">Live in 1–2 weeks</span>
+            <span className="hidden sm:inline">Live in 1 to 2 weeks</span>
             <span className="hidden sm:inline text-white-muted" aria-hidden="true">|</span>
             <span className="hidden sm:inline">Transparent pricing</span>
             <span className="hidden sm:inline text-white-muted" aria-hidden="true">|</span>

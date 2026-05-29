@@ -7,7 +7,10 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
-import { Section, Eyebrow, Heading, BookCallButton } from "@/components/v2/studio/primitives";
+import { Section, Container, Eyebrow, Heading, BookCallButton, useReveal } from "@/components/v2/studio/primitives";
+import { RevealHeading } from "@/components/v2/studio/RevealHeading";
+import { HERO_HEADING } from "@/lib/type-recipes";
+import { OpsFeed } from "@/components/v2/living/OpsFeed";
 import { services } from "@/content/services";
 
 const iconMap: Record<string, LucideIcon> = {
@@ -15,26 +18,28 @@ const iconMap: Record<string, LucideIcon> = {
 };
 
 /* ────────────────────────────────────────────────────────────────────────────
-   Single per-service section. Alternates background, mirrors the homepage's
-   refined dark-glass language. No fabricated metrics, no case-study links —
-   the deliverables list + pricing + CTA are the content. */
+   Single per-service row. Consistent layout (text left, deliverables card
+   right) and vertically centered, so a tall card never leaves a void under a
+   short description. Hairline dividers tie the six rows into one cohesive list
+   instead of six disjoint full-height sections. */
 function ServiceBand({
   service,
-  index,
 }: {
   service: (typeof services)[number];
-  index: number;
 }) {
   const Icon = iconMap[service.icon];
-  const isReversed = index % 2 !== 0;
-  const bgClass = index % 2 === 0 ? "bg-bg-base" : "bg-[var(--bg-section-warm)]";
+  const ref = useReveal<HTMLElement>();
 
   return (
-    <section id={service.id} className={`section-y scroll-mt-[104px] ${bgClass}`}>
-      <div className="page-shell grid items-start gap-10 lg:grid-cols-5 lg:gap-16">
-        {/* text — 3 cols, order flips alternating rows */}
-        <div className={`lg:col-span-3 ${isReversed ? "lg:order-2" : ""}`}>
-          <AnimateOnScroll>
+    <section
+      ref={ref}
+      id={service.id}
+      className="section-reveal scroll-mt-[104px] border-t border-border-glass py-14 lg:py-[5.5rem]"
+    >
+      <div className="page-shell grid items-center gap-10 lg:grid-cols-5 lg:gap-16">
+        {/* text — 3 cols */}
+        <div className="lg:col-span-3">
+          <div>
             {Icon && (
               <span className="mb-5 inline-grid h-12 w-12 place-items-center rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)] text-gold">
                 <Icon className="h-6 w-6" strokeWidth={1.75} />
@@ -47,37 +52,35 @@ function ServiceBand({
             <p className="max-w-2xl text-base leading-relaxed text-white-secondary">
               {service.description}
             </p>
-          </AnimateOnScroll>
+          </div>
         </div>
 
         {/* deliverables card — 2 cols */}
-        <div className={`lg:col-span-2 ${isReversed ? "lg:order-1" : ""}`}>
-          <AnimateOnScroll delay={0.1}>
-            <div className="rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-md sm:p-7">
-              <p className="mb-4 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white-muted">
-                What you get
-              </p>
-              <ul className="mb-7 flex flex-col gap-2.5">
-                {service.deliverables.map((d) => (
-                  <li key={d} className="flex items-start gap-3 text-sm leading-relaxed text-white-secondary">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" strokeWidth={2.5} />
-                    <span>{d}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border-glass pt-5">
-                <p className="font-display text-lg font-semibold text-heading">{service.pricingDisplay}</p>
-                <Link
-                  href="/contact"
-                  data-cursor="link"
-                  className="group inline-flex items-center gap-1.5 text-sm font-semibold text-heading"
-                >
-                  <span className="ink-sweep">Get started</span>
-                  <ArrowUpRight className="h-4 w-4 text-gold transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                </Link>
-              </div>
+        <div className="lg:col-span-2">
+          <div className="rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-md sm:p-7">
+            <p className="mb-4 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white-muted">
+              What you get
+            </p>
+            <ul className="mb-7 flex flex-col gap-2.5">
+              {service.deliverables.map((d) => (
+                <li key={d} className="flex items-start gap-3 text-sm leading-relaxed text-white-secondary">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" strokeWidth={2.5} />
+                  <span>{d}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border-glass pt-5">
+              <p className="font-display text-lg font-semibold text-heading">{service.pricingDisplay}</p>
+              <Link
+                href="/contact"
+                data-cursor="link"
+                className="group inline-flex items-center gap-1.5 text-sm font-semibold text-heading"
+              >
+                <span className="ink-sweep">Get started</span>
+                <ArrowUpRight className="h-4 w-4 text-gold transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </Link>
             </div>
-          </AnimateOnScroll>
+          </div>
         </div>
       </div>
     </section>
@@ -86,8 +89,8 @@ function ServiceBand({
 
 const STEPS = [
   { n: "01", t: "Discovery", d: "A free 30-minute call. We learn how your business runs and where AI moves the needle first." },
-  { n: "02", t: "Strategy & Roadmap", d: "A tailored plan with exact deliverables, timeline, and projected ROI — before you spend a dollar." },
-  { n: "03", t: "Build & Launch", d: "We handle the technical work end-to-end — configuration, integration, testing, training. Live within weeks." },
+  { n: "02", t: "Strategy & Roadmap", d: "A tailored plan with exact deliverables, timeline, and projected ROI, all before you spend a dollar." },
+  { n: "03", t: "Build & Launch", d: "We handle the technical work end-to-end: configuration, integration, testing, training. Live within weeks." },
   { n: "04", t: "Optimize & Grow", d: "Ongoing measurement, learning, and tuning so the system keeps getting sharper after launch." },
 ];
 
@@ -114,58 +117,56 @@ export function ServicesPageContent() {
 
   return (
     <>
-      {/* hero — master style: eyebrow + display heading + supporting + CTA */}
-      <Section width="wide" className="pt-32">
-        <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
-          <div>
-            <Eyebrow className="mb-7">our services</Eyebrow>
-            <Heading size={1} as="h1" className="text-[clamp(2.4rem,4.6vw,4.75rem)] leading-[1.02]">
-              Six systems that <Heading.Italic>do the work</Heading.Italic>
-            </Heading>
-            <p className="mt-7 max-w-md text-base leading-relaxed text-white-secondary">
-              We don&apos;t sell software. We build and run custom AI systems —
-              strategy, automation, engagement, content, reporting — tailored to
-              your business. <span className="font-semibold text-gold">Guaranteed.</span>
-            </p>
-            <div className="mt-9 flex items-center gap-6">
-              <BookCallButton />
-              <Link
-                href="#strategy"
-                data-cursor="link"
-                className="text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-gold hover:underline"
-              >
-                See the systems
-              </Link>
+      {/* hero — word-stagger headline + the live operations feed */}
+      <section className="relative overflow-hidden pt-32 pb-24">
+        <Container width="wide">
+          <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
+            <div className="min-w-0">
+              <AnimateOnScroll><Eyebrow className="mb-7">our services</Eyebrow></AnimateOnScroll>
+              <RevealHeading
+                as="h1"
+                className={HERO_HEADING}
+                lead="Six systems that"
+                accent="do the work"
+                delay={0.1}
+              />
+              <AnimateOnScroll delay={0.25}>
+                <p className="mt-7 max-w-md text-base leading-relaxed text-white-secondary">
+                  We don&apos;t sell software. We build and run custom AI systems for
+                  strategy, automation, engagement, content, and reporting, all tailored to
+                  your business. <span className="font-semibold text-gold">Guaranteed.</span>
+                </p>
+              </AnimateOnScroll>
+              <AnimateOnScroll delay={0.35}>
+                <div className="mt-9 flex items-center gap-6">
+                  <BookCallButton />
+                  <Link
+                    href="#strategy"
+                    data-cursor="link"
+                    className="text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-gold hover:underline"
+                  >
+                    See the systems
+                  </Link>
+                </div>
+              </AnimateOnScroll>
             </div>
-          </div>
 
-          {/* service icon grid — visual that matches the rest of the page */}
-          <div className="grid grid-cols-3 gap-3">
-            {services.map((s, i) => {
-              const Icon = iconMap[s.icon];
-              if (!Icon) return null;
-              return (
-                <AnimateOnScroll
-                  key={s.id}
-                  delay={0.05 * i}
-                  as="div"
-                  className="relative grid aspect-square place-items-center overflow-hidden rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)]"
-                >
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute inset-0"
-                    style={{ background: "radial-gradient(70% 70% at 50% 30%, rgba(var(--accent-rgb),0.18), transparent 70%)" }}
-                  />
-                  <Icon className="relative h-7 w-7 text-gold" strokeWidth={1.6} />
-                  <span className="absolute bottom-2 left-2 right-2 truncate text-center font-mono text-[0.55rem] uppercase tracking-[0.16em] text-white-muted">
-                    {s.name}
-                  </span>
-                </AnimateOnScroll>
-              );
-            })}
+            {/* hero visual — the live operations feed, same as the homepage */}
+            <AnimateOnScroll as="div" delay={0.2} className="relative min-w-0">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -inset-8 -z-10 opacity-60"
+                style={{
+                  background:
+                    "radial-gradient(60% 55% at 70% 30%, rgba(var(--accent-rgb),0.18), transparent 70%)",
+                  filter: "blur(8px)",
+                }}
+              />
+              <OpsFeed className="w-full shadow-2xl shadow-black/40" />
+            </AnimateOnScroll>
           </div>
-        </div>
-      </Section>
+        </Container>
+      </section>
 
       {/* sticky service quick-nav — on-brand colors */}
       <nav
@@ -196,15 +197,15 @@ export function ServicesPageContent() {
       </nav>
 
       {/* per-service bands */}
-      {services.map((service, i) => (
-        <ServiceBand key={service.id} service={service} index={i} />
+      {services.map((service) => (
+        <ServiceBand key={service.id} service={service} />
       ))}
 
       {/* process timeline — master language: numbered nodes + connector */}
       <Section width="wide" className="bg-[var(--bg-section-warm)]">
         <Eyebrow className="mb-6">the process</Eyebrow>
         <Heading size={2} as="h2" className="mb-12 max-w-3xl">
-          From kickoff to running, <Heading.Italic>in weeks</Heading.Italic>
+          From kickoff to running, <span className="display-italic">in weeks</span>
         </Heading>
         <div className="relative mx-auto max-w-2xl">
           <div className="absolute bottom-12 left-[18px] top-3 w-px bg-[color-mix(in_srgb,var(--gold-base)_40%,transparent)]" aria-hidden />
@@ -227,14 +228,14 @@ export function ServicesPageContent() {
         <div className="grid items-center gap-12 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
           <div>
             <Eyebrow className="mb-7">start</Eyebrow>
-            <Heading size={1} as="h2" className="text-[clamp(2.6rem,5.4vw,5.5rem)] leading-[0.98]">
-              Not sure where to <Heading.Italic>start?</Heading.Italic>
+            <Heading size={1} as="h2">
+              Not sure where to <span className="display-italic">start?</span>
             </Heading>
           </div>
           <div className="flex flex-col gap-7">
             <p className="text-lg leading-relaxed text-white-secondary">
               Book a free discovery call. We&apos;ll learn your business and tell
-              you exactly where AI can help — no pitch, no obligation.
+              you exactly where AI can help. No pitch, no obligation.
             </p>
             <BookCallButton />
             <div className="flex flex-wrap gap-x-8 gap-y-3 border-t border-border-glass pt-6 font-mono text-xs uppercase tracking-[0.15em] text-white-muted">

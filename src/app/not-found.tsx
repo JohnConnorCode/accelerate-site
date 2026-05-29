@@ -17,10 +17,10 @@ export default function NotFound() {
       <Container width="text" className="flex flex-col gap-8">
         <Eyebrow>not found</Eyebrow>
         <Heading size={1}>
-          You took a <Heading.Italic>wrong turn.</Heading.Italic>
+          You took a <span className="display-italic">wrong turn.</span>
         </Heading>
         <p className="max-w-xl text-lg leading-relaxed text-white-muted">
-          The page you&apos;re looking for doesn&apos;t exist — or it moved while you weren&apos;t
+          The page you&apos;re looking for doesn&apos;t exist, or it moved while you weren&apos;t
           looking. Head back to the homepage, or grab 30 free minutes with us and we&apos;ll
           help you find what you actually need.
         </p>

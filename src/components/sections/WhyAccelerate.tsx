@@ -82,7 +82,7 @@ export function WhyAccelerate() {
                 Management = Growth
               </>
             }
-            description="We build and run AI systems for your business. Strategy, implementation, and ongoing management — all from one team that actually understands your operations."
+            description="We build and run AI systems for your business. Strategy, implementation, and ongoing management, all from one team that actually understands your operations."
           />
         </AnimateOnScroll>
 

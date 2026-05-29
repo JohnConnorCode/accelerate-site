@@ -72,7 +72,7 @@ export async function sendRoiReportEmail(
   await getResend().emails.send({
     from: FROM_EMAIL,
     to: email,
-    subject: `Your ROI Analysis — ${Math.round(data.roiPercentage)}% Projected Return`,
+    subject: `Your ROI Analysis: ${Math.round(data.roiPercentage)}% Projected Return`,
     html: roiReportEmail(data),
   });
 }

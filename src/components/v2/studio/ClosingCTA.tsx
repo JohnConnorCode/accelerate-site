@@ -73,6 +73,13 @@ export function ClosingCTA() {
           style={{ background: glowBg }}
         />
       )}
+      {/* top fade — keeps the lime→dark seam from the ValueBand above crisp and
+          confident; the atmospheric glow resumes below it, not at the edge. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 -z-[1] h-40"
+        style={{ background: "linear-gradient(to bottom, var(--bg-base), transparent)" }}
+      />
       <div className="page-shell mb-8"><Eyebrow>start</Eyebrow></div>
 
       <div className="page-shell grid items-center gap-12 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
@@ -108,7 +115,7 @@ export function ClosingCTA() {
         <div className="flex flex-col gap-7">
           <p className="text-lg leading-relaxed text-white-secondary">
             A free 30-minute call. We&apos;ll map exactly where AI-powered systems can
-            drive revenue and give you your time back — whether you work with us or not.
+            drive revenue and give you your time back, whether you work with us or not.
           </p>
 
           {/* risk reversal — what you walk away with, free */}
@@ -116,7 +123,7 @@ export function ClosingCTA() {
             {[
               "A prioritized roadmap of your biggest wins",
               "ROI projections mapped to your business",
-              "Yours to keep — even if we never work together",
+              "Yours to keep, even if we never work together",
             ].map((item) => (
               <li key={item} className="flex items-start gap-3 text-white-secondary">
                 <Check className="mt-1 h-4 w-4 shrink-0 text-gold" strokeWidth={2.5} />

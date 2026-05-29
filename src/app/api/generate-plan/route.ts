@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
         Promise.resolve(supabase.from("admin_notifications").insert({
           type: "new_lead",
           title: `New lead: ${formData.contactName}`,
-          description: `${formData.industry?.replace(/_/g, " ")} — ${formData.businessName || "No business name"}`,
+          description: `${formData.industry?.replace(/_/g, " ")}: ${formData.businessName || "No business name"}`,
           link: "/admin/leads",
         })).catch(() => {});
       } catch (e) {

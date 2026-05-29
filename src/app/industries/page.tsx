@@ -2,12 +2,11 @@ import Link from "next/link";
 import { seoMetadata } from "@/lib/og";
 import { generateBreadcrumbJsonLd } from "@/lib/seo";
 import { verticals } from "@/content/verticals";
-import { ArrowRight, Wrench, Scale, Briefcase, Building2 } from "lucide-react";
-import { ScrollReveal } from "@/components/ui/ScrollReveal";
-import { SectionHeader } from "@/components/ui/SectionHeader";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { Button } from "@/components/ui/Button";
-import { BokehField } from "@/components/ui/BokehField";
+import { ArrowUpRight, Wrench, Scale, Briefcase, Building2 } from "lucide-react";
+import { Section, Container, Eyebrow, Heading, BookCallButton } from "@/components/v2/studio/primitives";
+import { RevealHeading } from "@/components/v2/studio/RevealHeading";
+import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
+import { HERO_HEADING } from "@/lib/type-recipes";
 
 export const metadata = seoMetadata({
   title: "Industries We Serve",
@@ -19,10 +18,10 @@ export const metadata = seoMetadata({
 });
 
 const iconMap: Record<string, React.ReactNode> = {
-  Wrench: <Wrench className="w-6 h-6" />,
-  Scale: <Scale className="w-6 h-6" />,
-  Briefcase: <Briefcase className="w-6 h-6" />,
-  Building2: <Building2 className="w-6 h-6" />,
+  Wrench: <Wrench className="h-6 w-6" strokeWidth={1.75} />,
+  Scale: <Scale className="h-6 w-6" strokeWidth={1.75} />,
+  Briefcase: <Briefcase className="h-6 w-6" strokeWidth={1.75} />,
+  Building2: <Building2 className="h-6 w-6" strokeWidth={1.75} />,
 };
 
 const breadcrumbJsonLd = generateBreadcrumbJsonLd([
@@ -38,67 +37,112 @@ export default function IndustriesPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
-      <section className="relative pt-24 pb-16 bg-[var(--bg-section-warm)] overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full bg-radial from-[rgba(var(--accent-rgb),0.05)] to-transparent" />
-          <BokehField />
-        </div>
-
-        <div className="relative z-10 page-shell">
-          <ScrollReveal animation="fade-up">
-            <SectionHeader
-              label="Industries"
-              heading={
-                <>
-                  AI Systems Built for{" "}
-                  <span className="text-gold-gradient">Your Industry</span>
-                </>
-              }
-              description="Generic software doesn't cut it. We build AI-powered automation tailored to the specific workflows, challenges, and revenue drivers of your industry."
-              className="mb-16"
+      {/* hero — statement left, the universal lifecycle we run for every trade */}
+      <section className="relative overflow-hidden pt-32 pb-24">
+        <Container width="wide">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
+          <div className="min-w-0">
+            <AnimateOnScroll><Eyebrow className="mb-7">industries</Eyebrow></AnimateOnScroll>
+            <RevealHeading
+              as="h1"
+              className={HERO_HEADING}
+              lead="AI systems built for"
+              accent="your industry."
+              delay={0.1}
             />
-          </ScrollReveal>
-
-          <div className="grid gap-6 md:grid-cols-2">
-            {verticals.map((vertical, i) => (
-              <ScrollReveal key={vertical.id} animation="fade-up" delay={0.15 + i * 0.1}>
-                <Link href={`/industries/${vertical.slug}`} className="block h-full">
-                  <GlassCard hover="lift" padding="lg" className="h-full flex flex-col">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-xl bg-[rgba(var(--accent-rgb),0.1)] border border-[rgba(var(--accent-rgb),0.2)] flex items-center justify-center text-gold">
-                        {iconMap[vertical.icon]}
-                      </div>
-                      <h2 className="font-display text-xl font-bold text-heading">
-                        {vertical.name}
-                      </h2>
-                    </div>
-                    <p className="text-white-secondary text-sm leading-relaxed mb-6 flex-1">
-                      {vertical.shortDescription}
-                    </p>
-                    <div className="flex items-center gap-2 text-sm font-medium text-gold">
-                      Learn more <ArrowRight className="w-4 h-4" />
-                    </div>
-                  </GlassCard>
-                </Link>
-              </ScrollReveal>
-            ))}
-          </div>
-
-          <ScrollReveal animation="fade-up" delay={0.3}>
-            <div className="mt-16 text-center">
-              <p className="text-white-muted mb-6">
-                Don&apos;t see your industry? We work with any service-based business.
+            <AnimateOnScroll delay={0.3}>
+              <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
+                Generic software doesn&apos;t cut it. We build AI-powered automation
+                tailored to the workflows, challenges, and revenue drivers of your
+                specific industry.
               </p>
-              <Link href="/contact">
-                <Button variant="primary" size="lg">
-                  Talk to Us About Your Business
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
+            </AnimateOnScroll>
+          </div>
+          <AnimateOnScroll as="div" delay={0.2} className="mx-auto w-full max-w-sm">
+            <div className="relative overflow-hidden rounded-3xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] p-7 backdrop-blur-md sm:p-8">
+              <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold to-transparent opacity-70" />
+              <p className="mb-6 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">
+                Same lifecycle, every trade
+              </p>
+              <ol className="relative flex flex-col gap-5">
+                <span aria-hidden className="absolute bottom-2 left-[15px] top-2 w-px bg-border-gold" />
+                {[
+                  { n: "Find", d: "Every inquiry captured: call, text, form, after hours." },
+                  { n: "Win", d: "Answered in seconds, followed up until they book." },
+                  { n: "Keep", d: "Clients retained, reviews requested, nothing dropped." },
+                  { n: "Grow", d: "Every job compounds into the next one." },
+                ].map((s, i) => (
+                  <li key={s.n} className="relative flex items-start gap-4">
+                    <span className="relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border-gold bg-bg-base font-mono text-[0.6rem] font-bold text-gold">
+                      0{i + 1}
+                    </span>
+                    <div className="pt-0.5">
+                      <p className="font-display text-base font-bold text-heading">{s.n}</p>
+                      <p className="mt-0.5 text-xs leading-relaxed text-white-muted">{s.d}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
             </div>
-          </ScrollReveal>
+          </AnimateOnScroll>
         </div>
+        </Container>
       </section>
+
+      {/* industry tiles */}
+      <Section width="wide" divide>
+        <div className="grid gap-5 md:grid-cols-2">
+          {verticals.map((vertical) => (
+            <Link
+              key={vertical.id}
+              href={`/industries/${vertical.slug}`}
+              data-cursor="link"
+              className="group flex h-full flex-col rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_88%,transparent)] p-7 backdrop-blur-md transition-colors hover:border-border-gold sm:p-8"
+            >
+              <div className="mb-5 flex items-center gap-4">
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_60%,transparent)] text-gold">
+                  {iconMap[vertical.icon]}
+                </span>
+                <h2 className="font-display text-xl font-bold tracking-[-0.02em] text-heading">
+                  {vertical.name}
+                </h2>
+              </div>
+              <p className="mb-6 flex-1 text-sm leading-relaxed text-white-secondary">
+                {vertical.shortDescription}
+              </p>
+              <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-heading">
+                <span className="ink-sweep">Learn more</span>
+                <ArrowUpRight className="h-4 w-4 text-gold transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </span>
+            </Link>
+          ))}
+        </div>
+      </Section>
+
+      {/* closing — master style */}
+      <Section width="wide" divide>
+        <div className="grid items-center gap-12 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
+          <div>
+            <Eyebrow className="mb-7">don&apos;t see yours?</Eyebrow>
+            <Heading size={1} as="h2">
+              If you have customers, <span className="display-italic">we can help.</span>
+            </Heading>
+          </div>
+          <div className="flex flex-col gap-7">
+            <p className="text-lg leading-relaxed text-white-secondary">
+              We work with any service-based business. 30 minutes on the phone
+              and we&apos;ll tell you exactly where AI can move the needle.
+            </p>
+            <BookCallButton />
+            <div className="flex flex-wrap gap-x-8 gap-y-3 border-t border-border-glass pt-6 font-mono text-xs uppercase tracking-[0.15em] text-white-muted">
+              <span>Free</span><span>·</span>
+              <span>30 minutes</span><span>·</span>
+              <span>No obligation</span><span>·</span>
+              <span>Direct to the founder</span>
+            </div>
+          </div>
+        </div>
+      </Section>
     </>
   );
 }

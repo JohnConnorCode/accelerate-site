@@ -41,19 +41,19 @@ export function LivingBlobs({ className }: { className?: string }) {
 
   return (
     <div ref={ref} aria-hidden className={`pointer-events-none absolute inset-0 -z-10 overflow-hidden ${className ?? ""}`}>
-      <motion.div style={{ y: yA }} className="absolute -left-[14%] top-[0%] h-[48vw] w-[48vw]">
+      <motion.div style={{ y: yA }} className="absolute -left-[16%] top-[-14%] h-[48vw] w-[48vw]">
         <motion.div style={{ x: pxA, y: pyA }} className="h-full w-full">
-          <div className="living-blob h-full w-full" style={{ background: bg(0.5) }} />
+          <div className="living-blob h-full w-full" style={{ background: bg(0.3) }} />
         </motion.div>
       </motion.div>
       <motion.div style={{ y: yB }} className="absolute -right-[12%] bottom-[-12%] h-[42vw] w-[42vw]">
         <motion.div style={{ x: pxB, y: pyB }} className="h-full w-full">
-          <div className="living-blob living-blob--alt h-full w-full" style={{ background: bg(0.34) }} />
+          <div className="living-blob living-blob--alt h-full w-full" style={{ background: bg(0.2) }} />
         </motion.div>
       </motion.div>
       <motion.div style={{ y: yC }} className="absolute left-[42%] top-[34%] h-[26vw] w-[26vw]">
         <motion.div style={{ x: pxC, y: pyC }} className="h-full w-full">
-          <div className="living-blob h-full w-full" style={{ background: bg(0.22), animationDelay: "-8s" }} />
+          <div className="living-blob h-full w-full" style={{ background: bg(0.14), animationDelay: "-8s" }} />
         </motion.div>
       </motion.div>
     </div>

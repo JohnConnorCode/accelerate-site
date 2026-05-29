@@ -1,10 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { getSetting } from "@/lib/admin/settings";
+import { rateLimit } from "@/lib/rate-limit";
+
+const TEST_LIMIT = 10;
+const TEST_WINDOW_MS = 60 * 60 * 1000;
 
 export async function POST(request: NextRequest) {
+  // Don't expose API-key probing in production.
+  if (process.env.NODE_ENV === "production") {
+    return new NextResponse("Not found", { status: 404 });
+  }
+
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
+
+  const adminKey = auth.user.email ?? auth.user.id;
+  const { success } = rateLimit(`admin-settings-test:${adminKey}`, TEST_LIMIT, TEST_WINDOW_MS);
+  if (!success) {
+    return NextResponse.json(
+      { success: false, error: "Rate limit reached. Try again later." },
+      { status: 429 },
+    );
+  }
 
   const { key } = await request.json();
 

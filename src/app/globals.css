@@ -474,11 +474,153 @@ body {
 .logo-link:hover .logo-mark__cv--1 { transform: translateX(2px); transition-delay: 0s; }
 .logo-link:hover .logo-mark__cv--2 { transform: translateX(1px); transition-delay: 0.06s; }
 .logo-link:hover .logo-mark__cv--3 { transform: translateX(0);   transition-delay: 0.12s; }
+
+/* ─── Wordmark ─── shares the chevrons' language: each letter rises in
+   sequentially on entrance (clip reveal), and on hover a gold shade-shift
+   sweeps across the letters left-to-right — the same cascade the chevrons do,
+   so the mark + word read as one living lockup. Cool, not constant. */
+.logo-word {
+  display: inline-flex;
+  overflow: hidden;            /* clip mask for the rising letters */
+  padding: 0.1em 0 0.06em;     /* room so caps aren't clipped at rest */
+  line-height: 1;
+}
+.logo-letter {
+  display: inline-block;
+  color: var(--heading-color);
+  letter-spacing: 0.22em;      /* tracking per letter (inline-flex drops letter-spacing) */
+  transition: color 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: 0s;
+}
+/* hover/focus: a gold wave cascades across the word, mirroring the chevrons */
+.logo-link:hover .logo-letter,
+.logo-link:focus-visible .logo-letter {
+  color: var(--gold-base);
+  transition-delay: calc(var(--i, 0) * 0.022s);
+}
+@media (prefers-reduced-motion: no-preference) {
+  /* sequential entrance — letters rise from the clip, staggered, just after the
+     chevrons begin their cascade so the whole lockup reveals as one motion. */
+  .logo-letter {
+    animation: logo-letter-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(0.18s + var(--i, 0) * 0.04s);
+  }
+  @keyframes logo-letter-in {
+    from { transform: translateY(108%); }
+    to   { transform: translateY(0); }
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .logo-mark__cv { animation: none !important; transition: none !important; }
   .logo-mark__cv--1 { opacity: 0.35; }
   .logo-mark__cv--2 { opacity: 0.65; }
   .logo-mark__cv--3 { opacity: 1; }
+}
+
+/* Sticky mobile CTA bar coordination — when the bar is showing (body[data-mcta]),
+   lift the floating chat bubble above it on phones so they don't overlap.
+   Desktop (lg+) never shows the bar, so the bubble stays put. */
+@media (max-width: 1023px) {
+  body[data-mcta="on"] .chat-widget-root {
+    bottom: calc(6rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   UNIVERSAL SECTION ENTRANCE REVEAL
+   Every <Section> gets `.section-reveal`. A single IntersectionObserver in
+   the Section primitive flips `.is-revealed` once the section enters view,
+   and these rules choreograph **different** entrances per element type:
+
+     • eyebrow   →  slides in from the left + blur clears (directional label)
+     • display headings → lift + blur clears  (cinematic "title" reveal)
+     • italic accent inside the heading → arrives after main, with a slight skew
+     • direct content blocks under page-shell → fade-up, cascading delays
+
+   Gated by `[data-js="on"]` so no-JS users see everything; disabled under
+   `prefers-reduced-motion`.
+   ────────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  /* eyebrow — directional slide from the left, blur clears */
+  [data-js="on"] .section-reveal .eyebrow {
+    opacity: 0;
+    transform: translateX(-18px);
+    filter: blur(2px);
+    transition:
+      opacity 0.6s var(--ease-out),
+      transform 0.7s var(--ease-out),
+      filter 0.5s var(--ease-out);
+    transition-delay: 0ms;
+    will-change: opacity, transform, filter;
+  }
+
+  /* display headings — lift + blur clears, the cinematic title reveal */
+  [data-js="on"] .section-reveal .display-1,
+  [data-js="on"] .section-reveal .display-2,
+  [data-js="on"] .section-reveal .display-3,
+  [data-js="on"] .section-reveal .page-heading {
+    opacity: 0;
+    transform: translateY(40px);
+    filter: blur(6px);
+    transition:
+      opacity 1s var(--ease-out),
+      transform 1s var(--ease-out),
+      filter 0.9s var(--ease-out);
+    transition-delay: 120ms;
+    will-change: opacity, transform, filter;
+  }
+
+  /* italic accent inside heading — arrives after main with a kinetic skew */
+  [data-js="on"] .section-reveal .display-italic {
+    display: inline-block;
+    opacity: 0;
+    transform: translateX(-14px) skewX(-3deg);
+    transition:
+      opacity 0.9s var(--ease-out),
+      transform 0.9s var(--ease-spring);
+    transition-delay: 280ms;
+  }
+
+  /* direct content blocks under the shell — fade-up cascade */
+  [data-js="on"] .section-reveal > .page-shell > *,
+  [data-js="on"] .section-reveal > .page-shell--narrow > *,
+  [data-js="on"] .section-reveal > .page-shell--text > * {
+    opacity: 0;
+    transform: translateY(26px);
+    transition:
+      opacity 0.85s var(--ease-out),
+      transform 0.85s var(--ease-out);
+  }
+  [data-js="on"] .section-reveal > [class*="page-shell"] > *:nth-child(1) { transition-delay: 260ms; }
+  [data-js="on"] .section-reveal > [class*="page-shell"] > *:nth-child(2) { transition-delay: 340ms; }
+  [data-js="on"] .section-reveal > [class*="page-shell"] > *:nth-child(3) { transition-delay: 420ms; }
+  [data-js="on"] .section-reveal > [class*="page-shell"] > *:nth-child(4) { transition-delay: 500ms; }
+  [data-js="on"] .section-reveal > [class*="page-shell"] > *:nth-child(n+5) { transition-delay: 560ms; }
+
+  /* revealed state — every variant lands at the resting position */
+  [data-js="on"] .section-reveal.is-revealed .eyebrow,
+  [data-js="on"] .section-reveal.is-revealed .display-1,
+  [data-js="on"] .section-reveal.is-revealed .display-2,
+  [data-js="on"] .section-reveal.is-revealed .display-3,
+  [data-js="on"] .section-reveal.is-revealed .page-heading,
+  [data-js="on"] .section-reveal.is-revealed .display-italic,
+  [data-js="on"] .section-reveal.is-revealed > [class*="page-shell"] > * {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+
+  /* `.reveal-self` headings own their own entrance (Framer WordMask, word by
+     word). Neutralize the CSS section-reveal on them and their italic accents
+     so the two systems don't fight. `transform: none` here is intentionally
+     NOT !important — Framer's inline per-word transform still wins. */
+  [data-js="on"] .section-reveal .reveal-self,
+  [data-js="on"] .section-reveal .reveal-self .display-italic {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
 }
 
 /* Shared content frame — capped + centered + responsive gutters.
@@ -528,13 +670,30 @@ body {
 .eyebrow {
   font-family: var(--font-mono-face), ui-monospace, "SFMono-Regular", Menlo, monospace;
   font-size: 0.75rem;
-  line-height: 1;
+  line-height: 1.1;
   text-transform: uppercase;
   letter-spacing: 0.3em;
   color: var(--gold-base);
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
+  /* keep the bracketed label from orphaning its closing "]" on a new line */
+  text-wrap: balance;
+}
+/* On phones the 0.3em tracking blows the label past the gutter and orphans
+   the trailing bracket — tighten tracking + size so it reads as one unit. */
+@media (max-width: 480px) {
+  .eyebrow {
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+  }
+}
+@media (max-width: 400px) {
+  .eyebrow {
+    font-size: 0.625rem;
+    letter-spacing: 0.11em;
+    gap: 0.5rem;
+  }
 }
 /* Anchored variant: number · rule · label  — the pro "01 ──── [ label ]" pattern */
 .eyebrow-rule::before {
@@ -548,30 +707,48 @@ body {
   vertical-align: middle;
 }
 
-/* Display heading scale — replaces per-section inline clamp recipes. */
-.display-1 {
-  font-family: var(--font-jost), system-ui, sans-serif;
-  font-weight: 800;
-  line-height: 0.85;
-  letter-spacing: -0.05em;
-  font-size: clamp(3.5rem, 11vw, 10rem);
-  color: var(--heading-color);
-}
-.display-2 {
-  font-family: var(--font-jost), system-ui, sans-serif;
-  font-weight: 700;
-  line-height: 1.02;
-  letter-spacing: -0.03em;
-  font-size: clamp(2rem, 5vw, 4.5rem);
-  color: var(--heading-color);
-}
-.display-3 {
-  font-family: var(--font-jost), system-ui, sans-serif;
-  font-weight: 800;
-  line-height: 1.0;
-  letter-spacing: -0.03em;
-  font-size: clamp(2.2rem, 4.5vw, 4rem);
-  color: var(--heading-color);
+/* Display heading scale — replaces per-section inline clamp recipes.
+   In @layer components so a Tailwind size utility (e.g. the per-hero
+   `text-[clamp(...)]` overrides) reliably wins over the default font-size —
+   otherwise these unlayered rules beat the utilities layer and every hero
+   renders at the giant display-1 size. */
+@layer components {
+  .display-1 {
+    font-family: var(--font-jost), system-ui, sans-serif;
+    font-weight: 800;
+    line-height: 0.85;
+    letter-spacing: -0.05em;
+    font-size: clamp(3.5rem, 11vw, 10rem);
+    color: var(--heading-color);
+  }
+  .display-2 {
+    font-family: var(--font-jost), system-ui, sans-serif;
+    font-weight: 700;
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    font-size: clamp(2rem, 5vw, 4.5rem);
+    color: var(--heading-color);
+  }
+  .display-3 {
+    font-family: var(--font-jost), system-ui, sans-serif;
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    font-size: clamp(2.2rem, 4.5vw, 4rem);
+    color: var(--heading-color);
+  }
+  /* Page-hero scale — source of truth for inner-page <Heading size={1}> (h1
+     heroes + closing statements). Deliberately smaller than the homepage's
+     cinematic `.display-1` (…,10rem), which is reserved for raw use on the
+     ClosingCTA. With this default, hero call-sites need NO inline text-[…]. */
+  .display-hero {
+    font-family: var(--font-jost), system-ui, sans-serif;
+    font-weight: 800;
+    line-height: 1.03;
+    letter-spacing: -0.035em;
+    font-size: clamp(2.4rem, 4.6vw, 4.75rem);
+    color: var(--heading-color);
+  }
 }
 /* Gold italic accent within a display heading (e.g. "do the work."). */
 .display-italic {
@@ -1302,12 +1479,6 @@ select:-webkit-autofill:focus {
     animation: none !important;
   }
 
-  .scroll-progress-bar {
-    animation: none !important;
-    transform: scaleX(1);
-    opacity: 0.3;
-  }
-
   .scroll-animate-in {
     animation: none !important;
     opacity: 1;
@@ -1335,24 +1506,6 @@ select:-webkit-autofill:focus {
 /* ========================================
    SCROLL-DRIVEN ANIMATIONS (2025+ CSS)
    ======================================== */
-
-@keyframes scroll-progress-fill {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
-}
-
-.scroll-progress-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--gold-base), var(--gold-light), var(--gold-champagne));
-  transform-origin: left;
-  z-index: 9999;
-  animation: scroll-progress-fill linear;
-  animation-timeline: scroll();
-}
 
 @keyframes scroll-fade-in {
   from { opacity: 0; transform: translateY(20px); }

@@ -1,10 +1,26 @@
 "use client";
 
+import { motion, useReducedMotion } from "framer-motion";
 import { MaskReveal } from "./MaskReveal";
 import { OptimizationLoop } from "./OptimizationLoop";
 import { BookCallButton } from "./primitives";
 
+const EASE = [0.22, 1, 0.36, 1] as const;
+
 export function ValueBand() {
+  const reduced = useReducedMotion();
+  // staggered entry for the supporting content (the heading masks in on its own)
+  const container = {
+    hidden: {},
+    show: { transition: { staggerChildren: 0.1, delayChildren: 0.15 } },
+  };
+  const item = reduced
+    ? { hidden: { opacity: 1 }, show: { opacity: 1 } }
+    : {
+        hidden: { opacity: 0, y: 24 },
+        show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE } },
+      };
+
   return (
     <section
       className="section-y relative overflow-hidden"
@@ -18,31 +34,46 @@ export function ValueBand() {
 
       <div className="page-shell page-shell--narrow relative grid gap-12 lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-16">
         {/* left: statement */}
-        <div>
-          <p className="mb-7 font-mono text-xs uppercase tracking-[0.3em] opacity-70">[ the model ]</p>
+        <motion.div
+          variants={container}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-100px" }}
+        >
+          <motion.p variants={item} className="mb-7 font-mono text-xs uppercase tracking-[0.3em] opacity-70">[ the model ]</motion.p>
           <h2 className="font-display text-[clamp(2.6rem,6vw,6rem)] font-extrabold leading-[0.92] tracking-[-0.04em]">
             <MaskReveal>Built to run</MaskReveal>
             <MaskReveal delay={0.12} className="font-editorial italic">without you.</MaskReveal>
           </h2>
-          <p className="mt-7 max-w-md text-lg leading-relaxed opacity-80">
+          <motion.p variants={item} className="mt-7 max-w-md text-lg leading-relaxed opacity-80">
             Not another tool to manage. A team that sets the systems up, runs them,
-            and keeps them sharp — so your growth stops depending on your hours.
-          </p>
-          <BookCallButton variant="inverse" className="mt-9" />
+            and keeps them sharp, so your growth stops depending on your hours.
+          </motion.p>
+          <motion.div variants={item}>
+            <BookCallButton variant="inverse" className="mt-9" />
+          </motion.div>
 
           {/* always-on cue — on-brand "it keeps running" indicator */}
-          <div className="mt-10 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] opacity-70">
+          <motion.div variants={item} className="mt-10 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] opacity-70">
             <span className="relative flex h-2.5 w-2.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-black/60" />
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-black" />
             </span>
             Always on · runs while you sleep
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* right: the continuous improvement loop — we iterate on the data so it
             keeps getting sharper (interactive: hover a stage to inspect it) */}
-        <OptimizationLoop className="lg:self-center" />
+        <motion.div
+          initial={reduced ? false : { opacity: 0, y: 30, scale: 0.97 }}
+          whileInView={reduced ? undefined : { opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.8, ease: EASE, delay: 0.2 }}
+          className="lg:self-center"
+        >
+          <OptimizationLoop />
+        </motion.div>
       </div>
     </section>
   );

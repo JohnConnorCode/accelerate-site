@@ -80,7 +80,7 @@ export function TodaysPriorities({ priorities, unreadContacts, pendingPartners, 
                       {item.name}
                     </p>
                     <p className="text-xs text-white-muted">
-                      {item.type === "hot_lead" ? "Hot lead — needs contact" : "Stuck in new — 48h+"} · {item.timeAgo}
+                      {item.type === "hot_lead" ? "Hot lead, needs contact" : "Stuck in new, 48h+"} · {item.timeAgo}
                     </p>
                   </div>
                   <span

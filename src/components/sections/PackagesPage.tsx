@@ -6,7 +6,9 @@ import {
   Accordion, AccordionItem, AccordionTrigger, AccordionContent,
 } from "@/components/ui/Accordion";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
-import { Section, Eyebrow, Heading, BookCallButton } from "@/components/v2/studio/primitives";
+import { Section, Container, Eyebrow, Heading, BookCallButton } from "@/components/v2/studio/primitives";
+import { RevealHeading } from "@/components/v2/studio/RevealHeading";
+import { HERO_HEADING } from "@/lib/type-recipes";
 import { cn, formatCurrency } from "@/lib/utils";
 import { packages, packageFaqs } from "@/content/packages";
 import type { ServicePackage } from "@/lib/types";
@@ -84,7 +86,7 @@ function PricingCard({ pkg }: { pkg: ServicePackage }) {
               <span className={cn("text-sm leading-relaxed", feature.included ? "text-white-secondary" : "text-white-muted")}>
                 {feature.name}
                 {feature.included && feature.detail && (
-                  <span className="ml-1 text-white-muted">— {feature.detail}</span>
+                  <span className="ml-1 text-white-muted">({feature.detail})</span>
                 )}
               </span>
             </li>
@@ -159,19 +161,51 @@ function ComparisonTable() {
 export function PackagesPageContent() {
   return (
     <>
-      {/* hero */}
-      <Section width="wide" className="pt-32">
-        <div className="max-w-3xl">
-          <Eyebrow className="mb-7">packages</Eyebrow>
-          <Heading size={1} as="h1" className="text-[clamp(2.4rem,4.6vw,4.75rem)] leading-[1.02]">
-            Transparent pricing, <Heading.Italic>real deliverables.</Heading.Italic>
-          </Heading>
-          <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-            Pick the package that matches where you are today. Upgrade whenever
-            you&apos;re ready — no contracts, no surprises.
-          </p>
+      {/* hero — pricing statement + the guarantee that every package shares,
+          right where price anxiety peaks */}
+      <section className="relative overflow-hidden pt-32 pb-24">
+        <Container width="wide">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
+          <div className="min-w-0">
+            <AnimateOnScroll><Eyebrow className="mb-7">packages</Eyebrow></AnimateOnScroll>
+            <RevealHeading
+              as="h1"
+              className={HERO_HEADING}
+              lead="Transparent pricing,"
+              accent="real deliverables."
+              delay={0.1}
+            />
+            <AnimateOnScroll delay={0.3}>
+              <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
+                Pick the package that matches where you are today. Upgrade whenever
+                you&apos;re ready. No contracts, no surprises.
+              </p>
+            </AnimateOnScroll>
+          </div>
+          <AnimateOnScroll as="div" delay={0.2} className="mx-auto w-full max-w-sm">
+            <div className="relative overflow-hidden rounded-3xl border border-border-gold/50 bg-[color-mix(in_srgb,var(--gold-base)_5%,var(--bg-elevated))] p-7 backdrop-blur-md">
+              <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold to-transparent opacity-70" />
+              <p className="mb-5 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">
+                In every package
+              </p>
+              <ul className="flex flex-col gap-3.5">
+                {[
+                  "Built and run by us, not software you manage",
+                  "A senior team, not a junior account rep",
+                  "No long-term contracts. Cancel anytime.",
+                  "A direct line to the founder",
+                ].map((g) => (
+                  <li key={g} className="flex items-start gap-3 text-sm leading-relaxed text-white-secondary">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" strokeWidth={2.5} />
+                    <span>{g}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </AnimateOnScroll>
         </div>
-      </Section>
+        </Container>
+      </section>
 
       {/* pricing cards */}
       <Section width="wide">
@@ -189,7 +223,7 @@ export function PackagesPageContent() {
       <Section width="wide" divide className="bg-[var(--bg-section-deep)]">
         <Eyebrow className="mb-6">compare every feature</Eyebrow>
         <Heading size={2} as="h2" className="mb-3 max-w-3xl">
-          What&apos;s in each <Heading.Italic>package.</Heading.Italic>
+          What&apos;s in each <span className="display-italic">package.</span>
         </Heading>
         <p className="mb-10 max-w-2xl text-base leading-relaxed text-white-muted">
           See exactly what&apos;s included in each package so you can choose
@@ -208,7 +242,7 @@ export function PackagesPageContent() {
       <Section width="text" divide>
         <Eyebrow className="mb-6">frequently asked</Eyebrow>
         <Heading size={2} as="h2" className="mb-3 max-w-3xl">
-          Questions, <Heading.Italic>answered.</Heading.Italic>
+          Questions, <span className="display-italic">answered.</span>
         </Heading>
         <p className="mb-10 max-w-xl text-base leading-relaxed text-white-muted">
           Everything you need to know about our packages and pricing.
@@ -240,14 +274,14 @@ export function PackagesPageContent() {
         <div className="grid items-center gap-12 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
           <div>
             <Eyebrow className="mb-7">start</Eyebrow>
-            <Heading size={1} as="h2" className="text-[clamp(2.6rem,5.4vw,5.5rem)] leading-[0.98]">
-              Not sure which is <Heading.Italic>right?</Heading.Italic>
+            <Heading size={1} as="h2">
+              Not sure which is <span className="display-italic">right?</span>
             </Heading>
           </div>
           <div className="flex flex-col gap-7">
             <p className="text-lg leading-relaxed text-white-secondary">
               Book a free discovery call. We&apos;ll learn your business and
-              recommend the package that fits — no pitch, no obligation.
+              recommend the package that fits. No pitch, no obligation.
             </p>
             <BookCallButton />
             <div className="flex flex-wrap gap-x-8 gap-y-3 border-t border-border-glass pt-6 font-mono text-xs uppercase tracking-[0.15em] text-white-muted">

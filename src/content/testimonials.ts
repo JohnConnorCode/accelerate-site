@@ -4,7 +4,7 @@ export const testimonials: Testimonial[] = [
   {
     id: "testimonial-1",
     quote:
-      "We were losing jobs because we couldn't answer calls fast enough on the roof. Accelerate set up an AI system that handles every call and text instantly — even nights and weekends. We've booked 15 extra jobs a month since going live.",
+      "We were losing jobs because we couldn't answer calls fast enough on the roof. Accelerate set up an AI system that handles every call and text instantly, even nights and weekends. We've booked 15 extra jobs a month since going live.",
     name: "Robert Farrell",
     title: "Owner",
     businessType: "Farrell Roofing",
@@ -22,7 +22,7 @@ export const testimonials: Testimonial[] = [
   {
     id: "testimonial-3",
     quote:
-      "Managing bookings, member comms, and tour requests was eating my entire week. Accelerate automated all of it — now our coworking space practically runs itself and I can focus on growth.",
+      "Managing bookings, member comms, and tour requests was eating my entire week. Accelerate automated all of it. Now our coworking space practically runs itself and I can focus on growth.",
     name: "Theresa VanderMeer",
     title: "Founder",
     businessType: "workshelter.co",
@@ -49,7 +49,7 @@ export const testimonials: Testimonial[] = [
   {
     id: "testimonial-6",
     quote:
-      "As a nonprofit, we don't have the budget for a big staff. Accelerate gave us AI tools that handle event registration, parent emails, and tournament logistics — doing the work of two full-time coordinators.",
+      "As a nonprofit, we don't have the budget for a big staff. Accelerate gave us AI tools that handle event registration, parent emails, and tournament logistics, doing the work of two full-time coordinators.",
     name: "Priya Nair",
     title: "Executive Director",
     businessType: "SuperDebate.org",

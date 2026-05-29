@@ -2,7 +2,9 @@
 
 import { Mail, Clock, Zap, Check } from "lucide-react";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
-import { Section, Eyebrow, Heading } from "@/components/v2/studio/primitives";
+import { Section, Container, Eyebrow, Heading } from "@/components/v2/studio/primitives";
+import { RevealHeading } from "@/components/v2/studio/RevealHeading";
+import { HERO_HEADING } from "@/lib/type-recipes";
 import { ContactForm } from "@/components/sections/ContactForm";
 
 const INFO_CARDS = [
@@ -27,26 +29,27 @@ const INFO_CARDS = [
 const RISK_REVERSAL = [
   "A prioritized roadmap of your biggest wins",
   "ROI projections mapped to your business",
-  "Yours to keep — even if we never work together",
+  "Yours to keep, even if we never work together",
 ];
 
 export function ContactPageContent() {
   return (
     <>
       {/* hero — eyebrow + display heading + info cards in dark-glass tiles */}
-      <Section width="wide" className="pt-32">
+      <section className="relative overflow-hidden pt-32 pb-24">
+        <Container width="wide">
         <div className="grid items-start gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
           {/* left: statement */}
-          <div>
-            <Eyebrow className="mb-7">contact</Eyebrow>
-            <Heading size={1} as="h1" className="text-[clamp(2.4rem,4.6vw,4.75rem)] leading-[1.02]">
-              Let&apos;s <Heading.Italic>talk.</Heading.Italic>
-            </Heading>
-            <p className="mt-7 max-w-md text-base leading-relaxed text-white-secondary">
-              Tell us where you are and where you want to go. We&apos;ll respond
-              within one business day — and the discovery call is{" "}
-              <span className="font-semibold text-gold">free, with no obligation.</span>
-            </p>
+          <div className="min-w-0">
+            <AnimateOnScroll><Eyebrow className="mb-7">contact</Eyebrow></AnimateOnScroll>
+            <RevealHeading as="h1" className={HERO_HEADING} lead="Let's" accent="talk." delay={0.1} />
+            <AnimateOnScroll delay={0.3}>
+              <p className="mt-7 max-w-md text-base leading-relaxed text-white-secondary">
+                Tell us where you are and where you want to go. We&apos;ll respond
+                within one business day, and the discovery call is{" "}
+                <span className="font-semibold text-gold">free, with no obligation.</span>
+              </p>
+            </AnimateOnScroll>
 
             {/* info cards */}
             <div className="mt-10 flex flex-col gap-3">
@@ -94,7 +97,8 @@ export function ContactPageContent() {
             </div>
           </AnimateOnScroll>
         </div>
-      </Section>
+        </Container>
+      </section>
 
       {/* risk reversal — what you walk away with, free */}
       <Section width="wide" divide>
@@ -102,7 +106,7 @@ export function ContactPageContent() {
           <div>
             <Eyebrow className="mb-7">what you walk away with</Eyebrow>
             <Heading size={2} as="h2" className="max-w-md">
-              A free plan, <Heading.Italic>yours to keep.</Heading.Italic>
+              A free plan, <span className="display-italic">yours to keep.</span>
             </Heading>
           </div>
           <div className="flex flex-col gap-4 lg:mt-3">
