@@ -38,10 +38,12 @@ export function IndustryList() {
             <span className="display-italic">not a template.</span>
           </MaskReveal>
         </h2>
-        <p className="mt-5 max-w-xl text-lg text-white-muted">
-          Same lifecycle, tuned to how your trade actually runs.
-          <span className="hidden lg:inline"> Hover an industry to watch a day go by.</span>
-        </p>
+        <AnimateOnScroll delay={0.1}>
+          <p className="mt-5 max-w-xl text-lg text-white-muted">
+            Same lifecycle, tuned to how your trade actually runs.
+            <span className="hidden lg:inline"> Hover an industry to watch a day go by.</span>
+          </p>
+        </AnimateOnScroll>
 
         <div className="mt-12 grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start lg:gap-16">
           {/* ── left: the editorial list ── */}
@@ -125,6 +127,7 @@ export function IndustryList() {
 
           {/* ── right: the anchored live-ops console (desktop) ── */}
           <div className="hidden lg:block lg:sticky lg:top-28">
+            <AnimateOnScroll as="div" delay={0.15}>
             <OpsConsole
               name={current.name}
               feed={data.feed}
@@ -147,6 +150,7 @@ export function IndustryList() {
                 </div>
               }
             />
+            </AnimateOnScroll>
           </div>
         </div>
       </div>

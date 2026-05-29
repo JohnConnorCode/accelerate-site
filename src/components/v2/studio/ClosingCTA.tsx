@@ -112,7 +112,13 @@ export function ClosingCTA() {
         </div>
 
         {/* right: the offer + what you walk away with */}
-        <div className="flex flex-col gap-7">
+        <motion.div
+          className="flex flex-col gap-7"
+          initial={reduced ? false : { opacity: 0, y: 24 }}
+          whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
+        >
           <p className="text-lg leading-relaxed text-white-secondary">
             A free 30-minute call. We&apos;ll map exactly where AI-powered systems can
             drive revenue and give you your time back, whether you work with us or not.
@@ -141,7 +147,7 @@ export function ClosingCTA() {
             <Mail className="h-4 w-4 text-gold" />
             <span className="ink-sweep">john@acceleratewith.us</span>
           </a>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
