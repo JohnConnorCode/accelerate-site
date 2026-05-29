@@ -74,6 +74,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
           </div>
 
           {featuredArticle && (
+            <AnimateOnScroll as="div" delay={0.2}>
             <Link
               href={`/learn/${featuredArticle.slug}`}
               data-cursor="link"
@@ -101,6 +102,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                 </span>
               </div>
             </Link>
+            </AnimateOnScroll>
           )}
         </div>
         </Container>

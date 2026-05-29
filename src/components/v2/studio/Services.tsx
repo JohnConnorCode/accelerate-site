@@ -245,7 +245,13 @@ export function Services() {
 
       <div className="page-shell page-shell--narrow relative grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
         {/* left: module menu (desktop) — mobile gets its own enriched list below */}
-        <div className="relative hidden lg:block">
+        <motion.div
+          className="relative hidden lg:block"
+          initial={reduced ? false : { opacity: 0, y: 24 }}
+          whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.7, ease: EASE }}
+        >
           <KineticWord word="REVENUE" />
           <ul className="border-t border-border-glass">
             {items.map((s, i) => {
@@ -275,10 +281,16 @@ export function Services() {
               );
             })}
           </ul>
-        </div>
+        </motion.div>
 
         {/* right: live preview of the active module (desktop) */}
-        <div className="hidden lg:block">
+        <motion.div
+          className="hidden lg:block"
+          initial={reduced ? false : { opacity: 0, y: 24 }}
+          whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.7, ease: EASE, delay: 0.15 }}
+        >
           <div className="sticky top-24">
             <ConsoleChrome status={status} contentClassName="relative p-0">
               {/* module tab — grounds the demo as a real screen, not a floating widget */}
@@ -329,7 +341,7 @@ export function Services() {
               </motion.p>
             </AnimatePresence>
           </div>
-        </div>
+        </motion.div>
 
         {/* mobile: enriched card list — icon + name + description, no redundancy */}
         <ul className="flex flex-col divide-y divide-border-glass border-y border-border-glass lg:hidden">
