@@ -48,18 +48,18 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="eyebrow mb-7"
           >
-            [ Custom solutions, powered by AI ]
+            [ A boutique AI consultancy ]
           </motion.p>
 
           <Kinetic intensity={1.1}>
             <h1 className="font-display font-extrabold leading-[1.02] tracking-[-0.035em] text-[clamp(2.4rem,4.6vw,4.75rem)] text-heading">
               {/* pb on each mask span so descenders (y, g) and italic tails aren't clipped */}
               <span className="block overflow-hidden pb-[0.15em]">
-                <motion.span className="block" {...line(0.15)}>Grow your revenue.</motion.span>
+                <motion.span className="block" {...line(0.15)}>Custom AI that grows</motion.span>
               </span>
               <span className="block overflow-hidden pb-[0.2em]">
                 <motion.span className="block" {...line(0.29)}>
-                  <span className="display-italic">Reclaim your time.</span>
+                  <span className="display-italic">what you&apos;ve built.</span>
                 </motion.span>
               </span>
             </h1>
@@ -71,8 +71,9 @@ export function Hero() {
             transition={{ duration: 0.8, ease: EASE, delay: 0.7 }}
             className="mt-7 max-w-md text-base leading-relaxed text-white-secondary"
           >
-            We build and run the systems that capture every inquiry, follow up
-            automatically, and turn your busywork into booked revenue.{" "}
+            We design, build, and run bespoke AI systems — precise to how your
+            business works, powered by the most advanced tools in the world, and
+            accountable to results you can measure. Not software. Outcomes.{" "}
             <span className="font-semibold text-gold">Guaranteed.</span>
           </motion.p>
 
