@@ -8,10 +8,10 @@ export const verticals: Vertical[] = [
     icon: "Wrench",
     shortDescription:
       "AI tools built for contractors, plumbers, roofers, HVAC techs, and home service pros who are tired of losing jobs to whoever picks up the phone first.",
-    heroHeadlineWhite: "Stop Losing Jobs to the Contractor Who",
-    heroHeadlineGold: "Answers the Phone First",
+    heroHeadlineWhite: "Stop losing jobs to whoever",
+    heroHeadlineGold: "answers first.",
     heroSubheadline:
-      "Most home service businesses lose 40% of their potential customers before anyone even picks up. We build AI systems that answer every call, send instant estimates, and follow up automatically so you close more jobs without hiring more office staff.",
+      "Home service businesses lose up to 40% of customers before anyone picks up. We build and run AI that answers every call, sends instant estimates, and follows up automatically — live in 4–6 weeks, so you book more jobs without hiring more office staff.",
     painPoints: [
       {
         icon: "PhoneMissed",
@@ -109,10 +109,10 @@ export const verticals: Vertical[] = [
     icon: "Scale",
     shortDescription:
       "AI-powered intake, follow-up, and client communication systems built for law firms that want to sign more clients without adding more admin staff.",
-    heroHeadlineWhite: "Your Next Client Called.",
-    heroHeadlineGold: "You Missed It.",
+    heroHeadlineWhite: "Your next client called.",
+    heroHeadlineGold: "You missed it.",
     heroSubheadline:
-      "Legal intake is broken. Potential clients call after hours, fill out forms that nobody checks until Monday, and hire the first firm that actually responds. We fix that with AI intake systems that respond instantly, qualify cases, and get retainers signed faster.",
+      "Clients call after hours and hire the first firm that responds. We build and run AI intake that answers instantly, qualifies cases, and gets retainers signed faster — live in 4–6 weeks, so you sign more clients without adding admin staff.",
     painPoints: [
       {
         icon: "Clock",
@@ -210,10 +210,10 @@ export const verticals: Vertical[] = [
     icon: "Briefcase",
     shortDescription:
       "Digital growth systems for accountants, consultants, financial advisors, and professional service firms that want to stop relying solely on referrals.",
-    heroHeadlineWhite: "Your Expertise Deserves a Digital Presence",
-    heroHeadlineGold: "That Works as Hard as You Do",
+    heroHeadlineWhite: "A pipeline you can",
+    heroHeadlineGold: "predict.",
     heroSubheadline:
-      "You've built your practice on referrals and reputation. That's a strong foundation, but it's also a ceiling. We build digital systems that turn your expertise into a client acquisition engine, so growth doesn't depend on who happens to mention your name.",
+      "Referrals built your practice, but they're a ceiling. We build and run digital systems that turn your expertise into a steady client pipeline — live in 4–6 weeks, so growth stops depending on who happens to mention your name.",
     painPoints: [
       {
         icon: "Users",
@@ -311,10 +311,10 @@ export const verticals: Vertical[] = [
     icon: "Building2",
     shortDescription:
       "Client capture, nurture, and conversion systems for real estate agents and brokerages who are tired of paying for inquiries that never convert.",
-    heroHeadlineWhite: "Every Missed Call Is a",
-    heroHeadlineGold: "Lost Commission",
+    heroHeadlineWhite: "Every missed call is a",
+    heroHeadlineGold: "lost commission.",
     heroSubheadline:
-      "You're spending thousands on Zillow, Realtor.com, and Facebook ads. But if your follow-up is slow and your nurture is nonexistent, you're paying for inquiries that someone else closes. We build systems that capture, qualify, and convert prospects before they go cold.",
+      "You spend thousands on Zillow, Realtor.com, and Facebook ads — then lose those inquiries to slow follow-up. We build and run systems that capture, qualify, and convert prospects before they go cold — live in 4–6 weeks, so less chasing means more closings.",
     painPoints: [
       {
         icon: "Thermometer",

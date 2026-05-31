@@ -63,11 +63,6 @@ export function VerticalPage({ vertical }: VerticalPageProps) {
             </div>
             {opsFeed && (
               <AnimateOnScroll as="div" delay={0.2} className="relative min-w-0">
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute -inset-8 -z-10 opacity-60"
-                  style={{ background: "radial-gradient(60% 55% at 70% 30%, rgba(var(--accent-rgb),0.16), transparent 70%)", filter: "blur(8px)" }}
-                />
                 <OpsConsole
                   name={vertical.name}
                   feed={opsFeed.feed}
@@ -127,8 +122,8 @@ export function VerticalPage({ vertical }: VerticalPageProps) {
           <AnimateOnScroll><Eyebrow className="mb-6">what we build</Eyebrow></AnimateOnScroll>
           <RevealHeading
             className={`${H2} mb-3 max-w-3xl`}
-            lead="Purpose-built systems."
-            accent="Real results."
+            lead="Purpose-built systems we"
+            accent="build and run."
           />
           <AnimateOnScroll delay={0.15}>
             <p className="mb-12 max-w-2xl text-base leading-relaxed text-white-muted">

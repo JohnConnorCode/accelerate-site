@@ -81,15 +81,15 @@ export function PartnersPage() {
             <RevealHeading
               as="h1"
               className={HERO_HEADING}
-              lead="Grow together."
-              accent="Earn together."
+              lead="Add AI to your offering."
+              accent="Keep the revenue."
               delay={0.1}
             />
             <AnimateOnScroll delay={0.3}>
               <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                Whether you&apos;re a consultant, agency, or technology company,
-                partner with Accelerate to deliver AI solutions to your clients
-                while earning recurring revenue.
+                Refer clients or white-label our work — we design, build, and run
+                the AI systems, accountable to results, so your name stays on the
+                win. Earn recurring revenue for as long as they stay.
               </p>
             </AnimateOnScroll>
           </div>
@@ -118,7 +118,7 @@ export function PartnersPage() {
       <Section width="wide" divide>
         <Eyebrow className="mb-6">why partner</Eyebrow>
         <Heading size={2} as="h2" className="mb-12 max-w-2xl">
-          A real <span className="display-italic">partnership.</span>
+          A real partnership.
         </Heading>
         <div className="grid gap-5 sm:grid-cols-3">
           {WHY.map(({ icon: Icon, title, desc }) => (
@@ -140,7 +140,7 @@ export function PartnersPage() {
       <Section width="wide" divide>
         <Eyebrow className="mb-6">partner tiers</Eyebrow>
         <Heading size={2} as="h2" className="mb-12 max-w-3xl">
-          Three ways <span className="display-italic">to partner.</span>
+          Three ways to partner.
         </Heading>
         <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3">
           {partnerTiers.map((tier, i) => {
@@ -275,7 +275,7 @@ export function PartnersPage() {
           <div>
             <Eyebrow className="mb-7">start</Eyebrow>
             <Heading size={1} as="h2">
-              Questions about <span className="display-italic">partnering?</span>
+              Questions about partnering?
             </Heading>
           </div>
           <div className="flex flex-col gap-7">

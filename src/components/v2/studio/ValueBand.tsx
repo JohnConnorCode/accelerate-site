@@ -40,17 +40,17 @@ export function ValueBand() {
           whileInView="show"
           viewport={{ once: true, margin: "-100px" }}
         >
-          <motion.p variants={item} className="mb-7 font-mono text-xs uppercase tracking-[0.3em] opacity-70">[ the model ]</motion.p>
+          <motion.p variants={item} className="mb-7 font-mono text-xs uppercase tracking-[0.3em] opacity-70">the model</motion.p>
           <h2 className="font-display text-[clamp(2.6rem,6vw,6rem)] font-extrabold leading-[0.92] tracking-[-0.04em]">
-            <MaskReveal>Built to run</MaskReveal>
-            <MaskReveal delay={0.12} className="font-editorial italic">without you.</MaskReveal>
+            <MaskReveal>We build the systems.</MaskReveal>
+            <MaskReveal delay={0.12}>Then we run them.</MaskReveal>
           </h2>
           <motion.p variants={item} className="mt-7 max-w-md text-lg leading-relaxed opacity-80">
-            Not another tool to manage. A team that sets the systems up, runs them,
-            and keeps them sharp, so your growth stops depending on your hours.
+            Not another tool to manage. A team that builds your systems, runs them,
+            and keeps them sharp — so your growth stops depending on your hours.
           </motion.p>
           <motion.div variants={item}>
-            <BookCallButton variant="inverse" className="mt-9" />
+            <BookCallButton variant="inverse" label="Book a free strategy call" className="mt-9" />
           </motion.div>
 
           {/* always-on cue — on-brand "it keeps running" indicator */}

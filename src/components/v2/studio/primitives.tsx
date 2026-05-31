@@ -106,7 +106,7 @@ export function Eyebrow({
   children,
   className,
 }: { children: ReactNode; className?: string }) {
-  return <p className={`eyebrow ${className ?? ""}`}>[ {children} ]</p>;
+  return <p className={`eyebrow ${className ?? ""}`}>{children}</p>;
 }
 
 /* ─── Heading ─── display-scale headings (single source for type recipe).

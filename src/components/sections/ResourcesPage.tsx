@@ -33,15 +33,14 @@ export function ResourcesPage() {
             <RevealHeading
               as="h1"
               className={HERO_HEADING}
-              lead="Resources that actually"
-              accent="help."
+              lead="Tools you can use"
+              accent="today."
               delay={0.1}
             />
             <AnimateOnScroll delay={0.3}>
               <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                No fluff, no filler. Practical guides, checklists, and comparisons
-                built for small business owners who want to make smarter decisions
-                about AI and automation.
+                Checklists, guides, and head-to-head comparisons — built for
+                owners making real decisions about AI and automation.
               </p>
             </AnimateOnScroll>
           </div>
@@ -135,7 +134,7 @@ export function ResourcesPage() {
           <div>
             <Eyebrow className="mb-7">start</Eyebrow>
             <Heading size={1} as="h2">
-              Want a plan built <span className="display-italic">around you?</span>
+              Want a plan built around you?
             </Heading>
           </div>
           <div className="flex flex-col gap-7">

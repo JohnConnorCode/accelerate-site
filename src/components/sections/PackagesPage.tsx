@@ -171,14 +171,15 @@ export function PackagesPageContent() {
             <RevealHeading
               as="h1"
               className={HERO_HEADING}
-              lead="Transparent pricing,"
-              accent="real deliverables."
+              lead="Pick where you start. Grow from"
+              accent="there."
               delay={0.1}
             />
             <AnimateOnScroll delay={0.3}>
               <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                Pick the package that matches where you are today. Upgrade whenever
-                you&apos;re ready. No contracts, no surprises.
+                Clear scope, clear pricing, no long-term contracts. Every package
+                is built and run by our team — not software handed off for you to
+                manage — and live in 4–6 weeks.
               </p>
             </AnimateOnScroll>
           </div>
@@ -223,7 +224,7 @@ export function PackagesPageContent() {
       <Section width="wide" divide className="bg-[var(--bg-section-deep)]">
         <Eyebrow className="mb-6">compare every feature</Eyebrow>
         <Heading size={2} as="h2" className="mb-3 max-w-3xl">
-          What&apos;s in each <span className="display-italic">package.</span>
+          What&apos;s in each package.
         </Heading>
         <p className="mb-10 max-w-2xl text-base leading-relaxed text-white-muted">
           See exactly what&apos;s included in each package so you can choose
@@ -242,7 +243,7 @@ export function PackagesPageContent() {
       <Section width="text" divide>
         <Eyebrow className="mb-6">frequently asked</Eyebrow>
         <Heading size={2} as="h2" className="mb-3 max-w-3xl">
-          Questions, <span className="display-italic">answered.</span>
+          Questions, answered.
         </Heading>
         <p className="mb-10 max-w-xl text-base leading-relaxed text-white-muted">
           Everything you need to know about our packages and pricing.
@@ -275,7 +276,7 @@ export function PackagesPageContent() {
           <div>
             <Eyebrow className="mb-7">start</Eyebrow>
             <Heading size={1} as="h2">
-              Not sure which is <span className="display-italic">right?</span>
+              Not sure which is right?
             </Heading>
           </div>
           <div className="flex flex-col gap-7">

@@ -14,10 +14,7 @@ import { Eyebrow } from "./primitives";
 const SEGMENTS: { text: string; cls?: string }[] = [
   { text: "Most owners don't have a growth problem. They have a " },
   { text: "time", cls: "text-heading" },
-  { text: " problem. So we build systems that handle the repetitive work, " },
-  { text: "turning every inquiry into revenue", cls: "text-heading" },
-  { text: " while quietly " },
-  { text: "handing your week back.", cls: "font-editorial italic text-gold" },
+  { text: " problem. So we build systems that handle the repetitive work, turn every inquiry into revenue, and quietly hand your week back." },
 ];
 
 function buildWords() {
@@ -54,7 +51,7 @@ export function Manifesto() {
       const start = 0.18 + (wi / Math.max(wordCount - 1, 1)) * 0.52;
       const end = start + 0.1;
       const t = Math.min(1, Math.max(0, (v - start) / (end - start)));
-      el.style.opacity = String(0.2 + t * 0.8);
+      el.style.opacity = String(0.42 + t * 0.58);
       wi++;
     }
   };
@@ -92,7 +89,7 @@ export function Manifesto() {
                 wordRefs.current[i] = el;
               }}
               className={item.cls}
-              style={{ opacity: reduced ? 1 : 0.2, transition: reduced ? undefined : "opacity 60ms linear" }}
+              style={{ opacity: reduced ? 1 : 0.42, transition: reduced ? undefined : "opacity 60ms linear" }}
             >
               {item.w}
             </span>

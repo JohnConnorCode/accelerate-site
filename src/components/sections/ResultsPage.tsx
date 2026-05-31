@@ -96,14 +96,14 @@ export function ResultsPageContent() {
             <RevealHeading
               as="h1"
               className={HERO_HEADING}
-              lead="Real stories."
-              accent="Real outcomes."
+              lead="Real numbers from real engagements."
               delay={0.1}
             />
             <AnimateOnScroll delay={0.3}>
               <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                Every result below came from an actual client engagement. No
-                inflated projections, no &ldquo;up to&rdquo; disclaimers.
+                Every number below came from an actual client engagement —
+                measured, not modeled. No inflated projections, no &ldquo;up
+                to&rdquo; disclaimers.
               </p>
             </AnimateOnScroll>
           </div>
@@ -191,7 +191,7 @@ export function ResultsPageContent() {
           <div>
             <Eyebrow className="mb-7">start</Eyebrow>
             <Heading size={1} as="h2">
-              Want results <span className="display-italic">like these?</span>
+              Want results like these?
             </Heading>
           </div>
           <div className="flex flex-col gap-7">

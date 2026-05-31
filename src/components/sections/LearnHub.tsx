@@ -57,18 +57,17 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
         <Container width="wide">
         <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
           <div className="min-w-0">
-            <AnimateOnScroll><Eyebrow className="mb-7">learning hub</Eyebrow></AnimateOnScroll>
+            <AnimateOnScroll><Eyebrow className="mb-7">the learning hub</Eyebrow></AnimateOnScroll>
             <RevealHeading
               as="h1"
               className={HERO_HEADING}
-              lead="Practical guides for"
-              accent="smarter growth."
+              lead="Practical AI for operators."
               delay={0.1}
             />
             <AnimateOnScroll delay={0.3}>
               <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                No fluff, no filler. AI, automation, and growth strategies you can
-                implement today, written by people who actually run small businesses.
+                No filler. AI, automation, and growth tactics you can use this week
+                — written by people who actually run small businesses.
               </p>
             </AnimateOnScroll>
           </div>
@@ -112,7 +111,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
       <Section width="wide" divide>
         <Eyebrow className="mb-6">browse all guides</Eyebrow>
         <Heading size={2} as="h2" className="mb-3 max-w-3xl">
-          Filter by topic. <span className="display-italic">Search by need.</span>
+          Filter by topic. Search by need.
         </Heading>
         <p className="mb-10 max-w-xl text-base leading-relaxed text-white-muted">
           Pick a category, search, or just scroll. Every guide is written to

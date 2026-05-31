@@ -6,7 +6,7 @@ import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "@/lib/gsap-init";
 import { prefersReducedMotion } from "@/lib/utils";
 import {
-  Search, Workflow, Cable, Activity, Check, Phone, Calendar, Mail,
+  Check, Phone, Calendar, Mail,
   CreditCard, MessageSquare, Cpu, TrendingUp,
 } from "lucide-react";
 import { EASE } from "@/lib/animations";
@@ -21,28 +21,28 @@ const STEPS: Step[] = [
   {
     n: "01",
     title: "Diagnose.",
-    sub: "We learn your business cold — where it leaks time, where it leaves money on the table, and where AI creates the most leverage.",
+    sub: "We learn your business cold — where it leaks time, where it leaves money on the table, where AI creates the most leverage.",
     ui: "diagnose",
     status: "Diagnose · mapping the opportunity",
   },
   {
     n: "02",
     title: "Architect.",
-    sub: "We design a solution precise to your operation. No templates. No off-the-shelf software bent to fit.",
+    sub: "We design a system precise to your operation. No templates, no off-the-shelf software bent to fit.",
     ui: "architect",
     status: "Architect · a custom blueprint",
   },
   {
     n: "03",
     title: "Build.",
-    sub: "We engineer it with the most advanced AI in the world — and wire it into the tools you already run on.",
+    sub: "We engineer it with frontier AI and wire it into the tools you already run on.",
     ui: "build",
     status: "Build · frontier AI, integrated",
   },
   {
     n: "04",
-    title: "Operate & compound.",
-    sub: "We run it alongside you — measured, tuned, and accountable to the numbers. Then it compounds, week over week.",
+    title: "Run it with you.",
+    sub: "We operate it beside you — measured, tuned, accountable. It compounds, week over week.",
     ui: "operate",
     status: "Operate · accountable to results",
   },
@@ -99,9 +99,6 @@ function DiagnoseCard() {
           </span>
         </motion.div>
       ))}
-      <div className="mt-1 flex items-center gap-2 font-mono text-[0.56rem] uppercase tracking-[0.16em] text-gold">
-        <Search className="h-3 w-3" /> Prioritized by ROI
-      </div>
     </div>
   );
 }
@@ -138,9 +135,6 @@ function ArchitectCard() {
           </motion.div>
         ))}
       </div>
-      <div className="flex items-center gap-2 font-mono text-[0.56rem] uppercase tracking-[0.16em] text-gold">
-        <Workflow className="h-3 w-3" /> Designed for your operation
-      </div>
     </div>
   );
 }
@@ -166,9 +160,6 @@ function BuildCard() {
           </motion.span>
         </Row>
       ))}
-      <div className="mt-1 flex items-center gap-2 font-mono text-[0.56rem] uppercase tracking-[0.16em] text-gold">
-        <Cable className="h-3 w-3" /> Integrated, tested, live
-      </div>
     </div>
   );
 }
@@ -198,9 +189,6 @@ function OperateCard() {
           />
         ))}
       </div>
-      <div className="flex items-center gap-2 font-mono text-[0.56rem] uppercase tracking-[0.16em] text-gold">
-        <Activity className="h-3 w-3" /> Compounding, every week
-      </div>
     </div>
   );
 }
@@ -219,13 +207,6 @@ function Console({ active }: { active: number }) {
   const Surface = UIMAP[step.ui];
   return (
     <div className="glass-prominent relative w-full max-w-[440px] overflow-hidden rounded-[1.75rem]">
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute -z-10 h-64 w-64 rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(var(--accent-rgb),0.22), transparent 70%)", filter: "blur(20px)" }}
-        animate={{ x: ["10%", "60%", "20%", "50%"][active % 4], y: ["0%", "40%", "20%", "10%"][active % 4] }}
-        transition={{ duration: 1.2, ease: EASE }}
-      />
       <div className="flex items-center justify-between border-b border-border-glass px-5 py-3.5">
         <span className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-full bg-[color-mix(in_srgb,var(--white-muted)_50%,transparent)]" />
@@ -326,13 +307,13 @@ export function ScrollSequence() {
     return (
       <section className="section-y">
         <div className="page-shell page-shell--narrow">
-          <Eyebrow>how we work</Eyebrow>
+          <Eyebrow>How we work</Eyebrow>
           <h2 className="display-3 mt-6">
-            We don&apos;t sell software. <span className="display-italic">We engineer outcomes.</span>
+            We don&apos;t sell software. We engineer outcomes.
           </h2>
           <p className="mt-4 max-w-md text-base leading-relaxed text-white-muted">
-            Every engagement is bespoke — diagnosed, architected, built, and run
-            for your business. Here&apos;s how it goes.
+            Every engagement is built from scratch for your business —
+            diagnosed, designed, built, and run alongside you.
           </p>
         </div>
         <div className="mt-12 flex flex-col">
@@ -346,45 +327,60 @@ export function ScrollSequence() {
 
   return (
     <section ref={sectionRef} className="relative">
-      <div ref={stageRef} className="flex h-screen items-center overflow-hidden">
+      <div ref={stageRef} className="flex min-h-screen items-center overflow-hidden">
         <div className="page-shell page-shell--narrow grid w-full items-center gap-14 lg:grid-cols-[1fr_0.92fr] lg:gap-20">
-          {/* left: narrative + progress */}
-          <div className="flex gap-6">
+          {/* left: narrative + progress — animates in as the section arrives */}
+          <motion.div
+            className="flex gap-6"
+            initial={{ opacity: 0, y: 28 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.7, ease: EASE }}
+          >
             {/* progress rail — ticks sit at step-band starts so the fill and the
                 active step change at the exact same scroll position */}
-            <div className="relative hidden w-0.5 shrink-0 self-stretch rounded-full bg-border-glass sm:block" style={{ minHeight: 260 }}>
-              <div ref={railRef} className="absolute inset-x-0 top-0 h-full origin-top rounded-full bg-gold" style={{ transform: "scaleY(0)" }} />
+            <div className="relative hidden w-px shrink-0 self-stretch bg-white/10 sm:block" style={{ minHeight: 240 }}>
+              <div ref={railRef} className="absolute inset-x-0 top-0 h-full origin-top bg-gold" style={{ transform: "scaleY(0)" }} />
               {STEPS.map((s, i) => (
                 <span
                   key={s.n}
-                  className={`absolute -left-[5px] h-3 w-3 rounded-full ring-2 ring-bg-base transition-colors duration-300 ${i <= active ? "bg-gold" : "bg-white-muted"}`}
+                  className={`absolute -left-[5px] h-2.5 w-2.5 rounded-full ring-4 ring-bg-base transition-colors duration-300 ${i <= active ? "bg-gold" : "bg-white/25"}`}
                   style={{ top: `calc(${(i / STEPS.length) * 100}% + 4px)` }}
                 />
               ))}
             </div>
 
             <div className="min-w-0">
-              <Eyebrow className="mb-6">how we work</Eyebrow>
-              <p className="mb-2 font-display text-2xl font-semibold leading-tight tracking-[-0.02em] text-white-secondary">
-                We don&apos;t sell software.{" "}
-                <span className="display-italic text-gold">We engineer outcomes.</span>
+              <Eyebrow className="mb-5">How we work</Eyebrow>
+              {/* small persistent intro — does NOT compete with the step title */}
+              <p className="mb-10 max-w-xs text-sm leading-relaxed text-white-muted">
+                We don&apos;t sell software. We engineer outcomes — built from
+                scratch for your business.
               </p>
-              <span className="font-mono text-sm text-gold opacity-70">{STEPS[active]!.n} / 0{STEPS.length}</span>
-              <div className="mt-3 min-h-[180px]">
+              <span className="font-mono text-xs uppercase tracking-[0.22em] text-gold opacity-70">
+                {STEPS[active]!.n} / 0{STEPS.length}
+              </span>
+              <div className="mt-4 min-h-[210px]">
                 <AnimatePresence mode="wait">
                   <motion.div key={active} {...stepFx} transition={{ duration: 0.45, ease: EASE }}>
-                    <h2 className="display-3">{STEPS[active]!.title}</h2>
-                    <p className="mt-4 max-w-sm text-lg leading-relaxed text-white-muted">{STEPS[active]!.sub}</p>
+                    <h2 className="display-2">{STEPS[active]!.title}</h2>
+                    <p className="mt-5 max-w-sm text-lg leading-relaxed text-white-secondary">{STEPS[active]!.sub}</p>
                   </motion.div>
                 </AnimatePresence>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          {/* right: the engagement, visualized */}
-          <div className="flex justify-center lg:justify-end">
+          {/* right: the engagement, visualized — animates in too */}
+          <motion.div
+            className="flex justify-center lg:justify-end"
+            initial={{ opacity: 0, y: 28, scale: 0.98 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.8, ease: EASE, delay: 0.15 }}
+          >
             <Console active={active} />
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

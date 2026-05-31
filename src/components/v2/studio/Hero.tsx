@@ -4,7 +4,6 @@ import { useRef } from "react";
 import Link from "next/link";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import { EASE } from "@/lib/animations";
-import { LivingBlobs } from "./LivingBlobs";
 import { Kinetic } from "./Kinetic";
 import { OpsFeed } from "../living/OpsFeed";
 import { BookCallButton } from "./primitives";
@@ -26,29 +25,19 @@ export function Hero() {
 
   return (
     <section ref={ref} className="relative flex min-h-screen items-center overflow-hidden pb-16 pt-28 sm:pb-20 sm:pt-32">
-      <LivingBlobs />
-
       <motion.div
         style={reduced ? undefined : { opacity: fade, y: lift }}
         className="page-shell grid items-center gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16"
       >
         {/* left — message */}
         <div className="relative">
-          {/* soft glow behind the headline — gives the (otherwise flat) top of
-              the hero depth, most noticeable on mobile where there's no console
-              beside it. */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -left-10 -top-16 -z-10 h-72 w-72 opacity-70"
-            style={{ background: "radial-gradient(circle, rgba(var(--accent-rgb),0.12), transparent 70%)", filter: "blur(12px)" }}
-          />
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.1 }}
             className="eyebrow mb-7"
           >
-            [ A boutique AI consultancy ]
+            AI that earns its keep
           </motion.p>
 
           <Kinetic intensity={1.1}>
@@ -71,10 +60,9 @@ export function Hero() {
             transition={{ duration: 0.8, ease: EASE, delay: 0.7 }}
             className="mt-7 max-w-md text-base leading-relaxed text-white-secondary"
           >
-            We design, build, and run bespoke AI systems — precise to how your
-            business works, powered by the most advanced tools in the world, and
-            accountable to results you can measure. Not software. Outcomes.{" "}
-            <span className="font-semibold text-gold">Guaranteed.</span>
+            We design, build, and run AI systems made for your business — then
+            run them alongside you, accountable to the numbers. Most go live in
+            4–6 weeks.
           </motion.p>
 
           <motion.div
@@ -83,7 +71,7 @@ export function Hero() {
             transition={{ duration: 0.8, ease: EASE, delay: 0.85 }}
             className="mt-8 flex flex-col items-start gap-4 sm:mt-9 sm:flex-row sm:items-center sm:gap-6"
           >
-            <BookCallButton />
+            <BookCallButton label="Book a free strategy call" />
             <Link
               href="/services"
               data-cursor="link"
@@ -102,16 +90,6 @@ export function Hero() {
           transition={{ duration: 1, ease: EASE, delay: 0.5 }}
           className="relative mt-2 lg:mt-0"
         >
-          {/* soft accent glow for depth behind the panel */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -inset-8 -z-10 opacity-60"
-            style={{
-              background:
-                "radial-gradient(60% 55% at 70% 30%, rgba(var(--accent-rgb),0.18), transparent 70%)",
-              filter: "blur(8px)",
-            }}
-          />
           <OpsFeed className="w-full shadow-2xl shadow-black/40" />
         </motion.div>
       </motion.div>

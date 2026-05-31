@@ -45,9 +45,9 @@ export function ContactPageContent() {
             <RevealHeading as="h1" className={HERO_HEADING} lead="Let's" accent="talk." delay={0.1} />
             <AnimateOnScroll delay={0.3}>
               <p className="mt-7 max-w-md text-base leading-relaxed text-white-secondary">
-                Tell us where you are and where you want to go. We&apos;ll respond
-                within one business day, and the discovery call is{" "}
-                <span className="font-semibold text-gold">free, with no obligation.</span>
+                Tell us where you are and where you want to go. We respond within
+                one business day &mdash; and the first call is free, no obligation,
+                straight to the founder.
               </p>
             </AnimateOnScroll>
 
@@ -106,7 +106,7 @@ export function ContactPageContent() {
           <div>
             <Eyebrow className="mb-7">what you walk away with</Eyebrow>
             <Heading size={2} as="h2" className="max-w-md">
-              A free plan, <span className="display-italic">yours to keep.</span>
+              A free plan, yours to keep.
             </Heading>
           </div>
           <div className="flex flex-col gap-4 lg:mt-3">

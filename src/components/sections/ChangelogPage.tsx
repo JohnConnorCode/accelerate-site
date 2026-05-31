@@ -13,10 +13,10 @@ const categoryConfig: Record<
   ChangelogEntry["category"],
   { label: string; icon: LucideIcon; accent: string }
 > = {
-  feature:      { label: "new feature",  icon: Sparkles,  accent: "text-emerald-400" },
-  improvement:  { label: "improvement",  icon: Wrench,    accent: "text-sky-400" },
-  fix:          { label: "fix",          icon: Bug,       accent: "text-amber-400" },
-  announcement: { label: "announcement", icon: Megaphone, accent: "text-gold" },
+  feature:      { label: "Shipped",    icon: Sparkles,  accent: "text-gold" },
+  improvement:  { label: "Sharpened",  icon: Wrench,    accent: "text-white-muted" },
+  fix:          { label: "Fixed",      icon: Bug,       accent: "text-white-muted" },
+  announcement: { label: "News",       icon: Megaphone, accent: "text-white-muted" },
 };
 
 const fmtDate = (s: string) =>
@@ -39,11 +39,11 @@ export function ChangelogPage() {
         <div className="lg:sticky lg:top-32 lg:self-start">
           <Eyebrow className="mb-7">changelog</Eyebrow>
           <Heading size={2} as="h1" className="leading-[1.04]">
-            What&apos;s new at <span className="display-italic">Accelerate.</span>
+            What we&apos;ve been <span className="display-italic">building.</span>
           </Heading>
           <p className="mt-6 max-w-sm text-lg leading-relaxed text-white-secondary">
-            Product updates, new features, and improvements. We ship fast and
-            share everything.
+            New capabilities, sharper systems, and what we&apos;re shipping for
+            the businesses we run alongside. We move fast and share the work.
           </p>
           <Link
             href="/changelog/rss.xml"

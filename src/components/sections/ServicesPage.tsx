@@ -46,7 +46,7 @@ function ServiceBand({
               </span>
             )}
             <h2 className="display-3 mb-3">{service.name}</h2>
-            <p className="mb-4 max-w-2xl text-base italic leading-relaxed text-white-muted">
+            <p className="mb-4 max-w-2xl text-base leading-relaxed text-white-muted">
               {service.problemStatement}
             </p>
             <p className="max-w-2xl text-base leading-relaxed text-white-secondary">
@@ -122,19 +122,18 @@ export function ServicesPageContent() {
         <Container width="wide">
           <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
             <div className="min-w-0">
-              <AnimateOnScroll><Eyebrow className="mb-7">our services</Eyebrow></AnimateOnScroll>
+              <AnimateOnScroll><Eyebrow className="mb-7">what we do</Eyebrow></AnimateOnScroll>
               <RevealHeading
                 as="h1"
                 className={HERO_HEADING}
-                lead="Six systems that"
-                accent="do the work"
+                lead="The systems we build — and run for you."
                 delay={0.1}
               />
               <AnimateOnScroll delay={0.25}>
                 <p className="mt-7 max-w-md text-base leading-relaxed text-white-secondary">
-                  We don&apos;t sell software. We build and run custom AI systems for
-                  strategy, automation, engagement, content, and reporting, all tailored to
-                  your business. <span className="font-semibold text-gold">Guaranteed.</span>
+                  We don&apos;t sell software you have to manage. We design, build, and run
+                  custom AI across your whole business — from first inquiry to repeat client.
+                  Scoped to your operation, accountable to your numbers, live in 4–6 weeks.
                 </p>
               </AnimateOnScroll>
               <AnimateOnScroll delay={0.35}>
@@ -153,15 +152,6 @@ export function ServicesPageContent() {
 
             {/* hero visual — the live operations feed, same as the homepage */}
             <AnimateOnScroll as="div" delay={0.2} className="relative min-w-0">
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -inset-8 -z-10 opacity-60"
-                style={{
-                  background:
-                    "radial-gradient(60% 55% at 70% 30%, rgba(var(--accent-rgb),0.18), transparent 70%)",
-                  filter: "blur(8px)",
-                }}
-              />
               <OpsFeed className="w-full shadow-2xl shadow-black/40" />
             </AnimateOnScroll>
           </div>
@@ -205,7 +195,7 @@ export function ServicesPageContent() {
       <Section width="wide" className="bg-[var(--bg-section-warm)]">
         <Eyebrow className="mb-6">the process</Eyebrow>
         <Heading size={2} as="h2" className="mb-12 max-w-3xl">
-          From kickoff to running, <span className="display-italic">in weeks</span>
+          From kickoff to running, in weeks
         </Heading>
         <div className="relative mx-auto max-w-2xl">
           <div className="absolute bottom-12 left-[18px] top-3 w-px bg-[color-mix(in_srgb,var(--gold-base)_40%,transparent)]" aria-hidden />
@@ -229,7 +219,7 @@ export function ServicesPageContent() {
           <div>
             <Eyebrow className="mb-7">start</Eyebrow>
             <Heading size={1} as="h2">
-              Not sure where to <span className="display-italic">start?</span>
+              Not sure where to start?
             </Heading>
           </div>
           <div className="flex flex-col gap-7">

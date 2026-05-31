@@ -69,7 +69,7 @@ const NARRATIVE = [
           your AI agent gives a wrong answer at 11 PM, we fix it by morning.
           When your pipeline dips, we dig into the data before you even notice.
         </p>
-        <p className="font-medium italic text-white-primary">
+        <p className="font-medium text-white-primary">
           This isn&apos;t a set-it-and-forget-it shop. We&apos;re in the business
           of your results.
         </p>
@@ -80,14 +80,9 @@ const NARRATIVE = [
 
 function FounderCard() {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] p-8 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-md">
-      {/* gold top accent + ambient glow — the only portrait on the whole site */}
+    <div className="relative overflow-hidden rounded-3xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] p-8 text-center shadow-2xl shadow-black/40 backdrop-blur-md">
+      {/* thin gold top-rule — the only portrait on the whole site */}
       <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold to-transparent opacity-70" />
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -top-1/3 left-1/2 h-56 w-56 -translate-x-1/2 rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(var(--accent-rgb),0.16), transparent 70%)" }}
-      />
       <div className="relative mx-auto mb-5 h-44 w-44 overflow-hidden rounded-2xl border border-border-gold bg-bg-subtle">
         <span
           aria-hidden
@@ -121,7 +116,7 @@ export function AboutPageContent() {
         <Container width="wide">
           <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
             <div className="min-w-0">
-              <AnimateOnScroll><Eyebrow className="mb-7">about</Eyebrow></AnimateOnScroll>
+              <AnimateOnScroll><Eyebrow className="mb-7">about accelerate</Eyebrow></AnimateOnScroll>
               <RevealHeading
                 as="h1"
                 className={HERO_HEADING}
@@ -131,9 +126,10 @@ export function AboutPageContent() {
               />
               <AnimateOnScroll delay={0.3}>
                 <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                  We&apos;re not a tech company that sells to small businesses.
-                  We&apos;re small business operators who build technology, and that
-                  changes everything about how we work.
+                  We&apos;re not a software company that sells to small
+                  businesses. We&apos;re operators who build and run custom AI
+                  systems — the same ones we use to grow our own roofing company.
+                  That changes how we work.
                 </p>
               </AnimateOnScroll>
             </div>
@@ -179,7 +175,7 @@ export function AboutPageContent() {
       <Section width="wide" divide>
         <Eyebrow className="mb-6">what we stand for</Eyebrow>
         <Heading size={2} as="h2" className="mb-12 max-w-3xl">
-          Three principles, <span className="display-italic">every project.</span>
+          Three principles, every project.
         </Heading>
         <div className="grid gap-5 sm:grid-cols-3">
           {VALUES.map((v, i) => {
@@ -212,7 +208,7 @@ export function AboutPageContent() {
           <div>
             <Eyebrow className="mb-7">start</Eyebrow>
             <Heading size={1} as="h2">
-              Let&apos;s see if we&apos;re a <span className="display-italic">fit.</span>
+              Let&apos;s see if we&apos;re a fit.
             </Heading>
           </div>
           <div className="flex flex-col gap-7">

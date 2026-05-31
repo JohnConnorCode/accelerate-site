@@ -73,8 +73,8 @@ function StrategyDemo() {
           </span>
         </motion.div>
       ))}
-      <div className="mt-1 flex items-center gap-2 font-mono text-[0.56rem] uppercase tracking-[0.16em] text-gold">
-        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-gold" /> Roadmap prioritized by ROI
+      <div className="mt-1 font-mono text-[0.56rem] uppercase tracking-[0.16em] text-gold">
+        Roadmap prioritized by ROI
       </div>
     </div>
   );
@@ -87,13 +87,9 @@ function WorkflowDemo() {
       {nodes.map((n, i) => (
         <div key={n} className="flex items-center">
           <div className="flex flex-col items-center gap-2">
-            <motion.span
-              className="flex h-11 w-11 items-center justify-center rounded-xl border border-border-gold text-gold"
-              animate={{ boxShadow: ["0 0 0 0 rgba(var(--accent-rgb),0.4)", "0 0 0 8px rgba(var(--accent-rgb),0)"] }}
-              transition={{ duration: 1.6, repeat: Infinity, delay: i * 0.4 }}
-            >
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-border-gold text-gold">
               <span className="h-2 w-2 rounded-full bg-gold" />
-            </motion.span>
+            </span>
             <span className="font-mono text-[0.6rem] uppercase tracking-[0.12em] text-white-muted">{n}</span>
           </div>
           {i < nodes.length - 1 && (
@@ -208,8 +204,8 @@ function DataDemo() {
           </div>
         ))}
       </div>
-      <div className="flex items-center gap-2 font-mono text-[0.56rem] uppercase tracking-[0.16em] text-white-muted">
-        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-gold" /> Auto-updated · every channel
+      <div className="font-mono text-[0.56rem] uppercase tracking-[0.16em] text-white-muted">
+        Auto-updated · every channel
       </div>
     </div>
   );
@@ -236,11 +232,14 @@ export function Services() {
   return (
     <section className="section-y section-divide relative overflow-hidden">
       <div className="page-shell page-shell--narrow mb-12">
-        <Eyebrow className="mb-6">what we run</Eyebrow>
+        <Eyebrow className="mb-6">What we run</Eyebrow>
         <h2 className="display-2 max-w-3xl">
-          <MaskReveal>The systems that</MaskReveal>
-          <MaskReveal delay={0.1} className="display-italic">do the work.</MaskReveal>
+          <MaskReveal>The systems we build —</MaskReveal>
+          <MaskReveal delay={0.1}>and run for you.</MaskReveal>
         </h2>
+        <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white-muted">
+          Six custom systems across the full lifecycle — find, win, keep, grow — built for your operation and run by our team, not handed off as software for you to manage.
+        </p>
       </div>
 
       <div className="page-shell page-shell--narrow relative grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">

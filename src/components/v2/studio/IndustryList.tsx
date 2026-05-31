@@ -15,10 +15,10 @@ type Item = { slug: string; name: string; outcome: string; icon: LucideIcon };
 // Row metadata for the list; the per-industry ops feed + metric live in the
 // shared INDUSTRY_FEEDS content module (also used by vertical landing pages).
 const ITEMS: Item[] = [
-  { slug: "home-services", name: "Home Services", outcome: "More booked jobs. Less downtime.", icon: Wrench },
-  { slug: "law-firms", name: "Law Firms", outcome: "More signed cases. Faster intake.", icon: Scale },
-  { slug: "real-estate", name: "Real Estate", outcome: "More closings. Less chasing.", icon: KeyRound },
-  { slug: "professional-services", name: "Professional Services", outcome: "More clients. Predictable pipeline.", icon: Briefcase },
+  { slug: "home-services", name: "Home Services", outcome: "Every call answered. More jobs booked.", icon: Wrench },
+  { slug: "law-firms", name: "Law Firms", outcome: "Faster intake. More cases signed.", icon: Scale },
+  { slug: "real-estate", name: "Real Estate", outcome: "Less chasing. More closings.", icon: KeyRound },
+  { slug: "professional-services", name: "Professional Services", outcome: "A pipeline you can predict.", icon: Briefcase },
 ];
 
 export function IndustryList() {
@@ -31,16 +31,15 @@ export function IndustryList() {
   return (
     <section className="section-y section-divide relative">
       <div className="page-shell">
-        <Eyebrow className="mb-6">industries</Eyebrow>
+        <Eyebrow className="mb-6">Industries</Eyebrow>
         <h2 className="display-2 max-w-4xl">
           <MaskReveal>
-            Built for your industry,{" "}
-            <span className="display-italic">not a template.</span>
+            Built for your trade, not a template.
           </MaskReveal>
         </h2>
         <AnimateOnScroll delay={0.1}>
           <p className="mt-5 max-w-xl text-lg text-white-muted">
-            Same lifecycle, tuned to how your trade actually runs.
+            The same lifecycle — find, win, keep, grow — tuned to how your trade actually runs.
             <span className="hidden lg:inline"> Hover an industry to watch a day go by.</span>
           </p>
         </AnimateOnScroll>
@@ -71,11 +70,6 @@ export function IndustryList() {
                         aria-hidden
                         className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_72%,transparent)] text-gold lg:hidden"
                       >
-                        <span
-                          aria-hidden
-                          className="pointer-events-none absolute inset-0"
-                          style={{ background: "radial-gradient(70% 70% at 50% 30%, rgba(var(--accent-rgb),0.22), transparent 70%)" }}
-                        />
                         <it.icon className="relative h-5 w-5" strokeWidth={1.75} />
                       </span>
                       <span

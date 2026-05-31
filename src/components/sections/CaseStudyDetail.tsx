@@ -225,7 +225,7 @@ export function CaseStudyDetail({ study }: CaseStudyDetailProps) {
           <div>
             <Eyebrow className="mb-7">start</Eyebrow>
             <Heading size={1} as="h2">
-              Want <span className="display-italic">similar results?</span>
+              Want similar results?
             </Heading>
           </div>
           <div className="flex flex-col gap-7">

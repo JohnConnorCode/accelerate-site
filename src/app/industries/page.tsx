@@ -46,15 +46,15 @@ export default function IndustriesPage() {
             <RevealHeading
               as="h1"
               className={HERO_HEADING}
-              lead="AI systems built for"
-              accent="your industry."
+              lead="Built for your trade,"
+              accent="not the average one."
               delay={0.1}
             />
             <AnimateOnScroll delay={0.3}>
               <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                Generic software doesn&apos;t cut it. We build AI-powered automation
-                tailored to the workflows, challenges, and revenue drivers of your
-                specific industry.
+                Generic software doesn&apos;t cut it. We design, build, and run
+                automation around the real workflows and revenue drivers of your
+                industry — and we run it alongside you.
               </p>
             </AnimateOnScroll>
           </div>
@@ -125,7 +125,7 @@ export default function IndustriesPage() {
           <div>
             <Eyebrow className="mb-7">don&apos;t see yours?</Eyebrow>
             <Heading size={1} as="h2">
-              If you have customers, <span className="display-italic">we can help.</span>
+              If you have customers, we can help.
             </Heading>
           </div>
           <div className="flex flex-col gap-7">
