@@ -234,8 +234,8 @@ export function Services() {
       <div className="page-shell page-shell--narrow mb-12">
         <Eyebrow className="mb-6">What we run</Eyebrow>
         <h2 className="display-2 max-w-3xl">
-          <MaskReveal>The systems we build —</MaskReveal>
-          <MaskReveal delay={0.1}>and run for you.</MaskReveal>
+          <MaskReveal>The systems we build.</MaskReveal>
+          <MaskReveal delay={0.1}>And run for you.</MaskReveal>
         </h2>
         <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white-muted">
           Six custom systems across the full lifecycle — find, win, keep, grow — built for your operation and run by our team, not handed off as software for you to manage.

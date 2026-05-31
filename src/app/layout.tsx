@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Hanken_Grotesk, Fraunces, JetBrains_Mono } from "next/font/google";
+import { Jost, Hanken_Grotesk, Fraunces, JetBrains_Mono } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
@@ -18,8 +18,8 @@ const sans = Hanken_Grotesk({
   display: "swap",
 });
 
-const display = Bricolage_Grotesque({
-  variable: "--font-jost", // keep var name; now a characterful display face
+const display = Jost({
+  variable: "--font-jost", // Jost — a geometric Futura revival (per brand direction)
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
   display: "swap",

@@ -329,46 +329,50 @@ export function ScrollSequence() {
     <section ref={sectionRef} className="relative">
       <div ref={stageRef} className="flex min-h-screen items-center overflow-hidden">
         <div className="page-shell page-shell--narrow grid w-full items-center gap-14 lg:grid-cols-[1fr_0.92fr] lg:gap-20">
-          {/* left: narrative + progress — animates in as the section arrives */}
+          {/* left: one clear hierarchy — eyebrow, the statement, then the
+              process as a clean expanding list (active step detailed). */}
           <motion.div
-            className="flex gap-6"
+            className="min-w-0"
             initial={{ opacity: 0, y: 28 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.7, ease: EASE }}
           >
-            {/* progress rail — ticks sit at step-band starts so the fill and the
-                active step change at the exact same scroll position */}
-            <div className="relative hidden w-px shrink-0 self-stretch bg-white/10 sm:block" style={{ minHeight: 240 }}>
-              <div ref={railRef} className="absolute inset-x-0 top-0 h-full origin-top bg-gold" style={{ transform: "scaleY(0)" }} />
-              {STEPS.map((s, i) => (
-                <span
-                  key={s.n}
-                  className={`absolute -left-[5px] h-2.5 w-2.5 rounded-full ring-4 ring-bg-base transition-colors duration-300 ${i <= active ? "bg-gold" : "bg-white/25"}`}
-                  style={{ top: `calc(${(i / STEPS.length) * 100}% + 4px)` }}
-                />
-              ))}
-            </div>
+            <Eyebrow className="mb-6">How we work</Eyebrow>
+            <h2 className="display-3 mb-12 max-w-md">We don&apos;t sell software. We engineer outcomes.</h2>
 
-            <div className="min-w-0">
-              <Eyebrow className="mb-5">How we work</Eyebrow>
-              {/* small persistent intro — does NOT compete with the step title */}
-              <p className="mb-10 max-w-xs text-sm leading-relaxed text-white-muted">
-                We don&apos;t sell software. We engineer outcomes — built from
-                scratch for your business.
-              </p>
-              <span className="font-mono text-xs uppercase tracking-[0.22em] text-gold opacity-70">
-                {STEPS[active]!.n} / 0{STEPS.length}
-              </span>
-              <div className="mt-4 min-h-[210px]">
-                <AnimatePresence mode="wait">
-                  <motion.div key={active} {...stepFx} transition={{ duration: 0.45, ease: EASE }}>
-                    <h2 className="display-2">{STEPS[active]!.title}</h2>
-                    <p className="mt-5 max-w-sm text-lg leading-relaxed text-white-secondary">{STEPS[active]!.sub}</p>
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-            </div>
+            <ol className="max-w-md">
+              {/* hidden ref preserves the (now no-op) rail scrub without a stray visual */}
+              <span ref={railRef} className="hidden" aria-hidden />
+              {STEPS.map((s, i) => {
+                const on = i === active;
+                return (
+                  <li key={s.n} className="border-t border-white/10 first:border-t-0">
+                    <div className="flex items-baseline gap-5 py-5">
+                      <span className={`font-mono text-xs tabular-nums transition-colors duration-300 ${on ? "text-gold" : "text-white-muted/50"}`}>{s.n}</span>
+                      <div className="min-w-0 flex-1">
+                        <h3 className={`font-display text-2xl font-bold tracking-[-0.02em] transition-colors duration-300 ${on ? "text-heading" : "text-white-muted/55"}`}>
+                          {s.title}
+                        </h3>
+                        <AnimatePresence initial={false}>
+                          {on && (
+                            <motion.p
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.4, ease: EASE }}
+                              className="overflow-hidden text-base leading-relaxed text-white-muted"
+                            >
+                              <span className="block pt-3">{s.sub}</span>
+                            </motion.p>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
           </motion.div>
 
           {/* right: the engagement, visualized — animates in too */}
