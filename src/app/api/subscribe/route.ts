@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
         process.env.SUPABASE_SERVICE_ROLE_KEY
       );
 
-      await supabase.from("subscribers").upsert(
+      const { error: dbError } = await supabase.from("subscribers").upsert(
         {
           email: email.trim(),
           utm_source: utm?.utm_source || null,
@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
         },
         { onConflict: "email" }
       );
+      if (dbError) console.error("subscribers upsert FAILED:", dbError.message);
     }
 
     return NextResponse.json({ success: true });

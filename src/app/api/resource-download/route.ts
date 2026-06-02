@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
           process.env.SUPABASE_SERVICE_ROLE_KEY
         );
 
-        await supabase.from("resource_downloads").insert({
+        const { error: dbError } = await supabase.from("resource_downloads").insert({
           resource_id: resourceId,
           name,
           email,
@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
           utm_medium: utm?.utm_medium || null,
           utm_campaign: utm?.utm_campaign || null,
         });
+        if (dbError) console.error("resource_downloads insert FAILED:", dbError.message);
       } catch (e) {
         console.warn("Supabase save failed:", e);
       }

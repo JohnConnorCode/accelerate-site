@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     // Save initial record
     if (supabase) {
       try {
-        await supabase.from("solution_requests").insert({
+        const { error: dbError } = await supabase.from("solution_requests").insert({
           share_token: shareToken,
           status: "generating",
           industry: formData.industry,
@@ -70,6 +70,7 @@ export async function POST(request: NextRequest) {
           utm_medium: utm?.utm_medium || null,
           utm_campaign: utm?.utm_campaign || null,
         });
+        if (dbError) console.error("solution_requests insert FAILED:", dbError.message);
 
         // Create admin notification (fire and forget)
         Promise.resolve(supabase.from("admin_notifications").insert({
