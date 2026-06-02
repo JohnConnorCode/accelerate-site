@@ -169,7 +169,7 @@ export function SocialProof() {
       <div className="page-shell">
         <ScrollReveal animation="blur-up">
           <SectionHeader
-            heading={<>Don&apos;t Take <span className="text-gold-gradient font-editorial">Our Word</span> for It</>}
+            heading={<>Don&apos;t Take <span className="text-gold">Our Word</span> for It</>}
             size="large"
             className="mb-12"
           />

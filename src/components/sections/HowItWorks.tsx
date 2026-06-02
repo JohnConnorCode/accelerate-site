@@ -101,7 +101,7 @@ export function HowItWorks() {
             heading={
               <>
                 From Discovery Call to{" "}
-                <span className="text-gold-gradient font-editorial">Live Systems</span> in Weeks
+                <span className="text-gold">Live Systems</span>, Fast
               </>
             }
             className="mb-20"

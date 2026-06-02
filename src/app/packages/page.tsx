@@ -7,7 +7,7 @@ import { generateBreadcrumbJsonLd } from "@/lib/seo";
 export const metadata = seoMetadata({
   title: "AI Packages & Pricing",
   description:
-    "Transparent pricing for AI strategy, automation, and ongoing management. Choose from Launch, Grow, or Accelerate packages to fit your business goals and budget.",
+    "Transparent pricing for AI strategy, automation, and ongoing management. Pick Launch, Grow, or Accelerate to fit your goals and budget.",
   ogTitle: "Packages & Pricing",
   ogSubtitle: "Transparent pricing for AI strategy and systems",
   path: "/packages",

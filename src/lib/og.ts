@@ -49,6 +49,7 @@ export function seoMetadata({
     title,
     description,
     openGraph: {
+      ...(path && { url: `${SITE_URL}${path}` }),
       images: [{ url: imageUrl, width: 1200, height: 630, alt: imageTitle }],
       ...(openGraph as Metadata["openGraph"]),
     },

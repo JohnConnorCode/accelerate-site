@@ -35,7 +35,7 @@ export const packages: ServicePackage[] = [
     slug: "grow",
     tagline: "Automate and convert",
     description:
-      "Your website plus the automation backbone to never miss an inquiry. Instant follow-ups, AI chat, and CRM integration that turns your site into a booking machine.",
+      "Your website plus the automation backbone so nothing slips through. Instant follow-ups, AI chat, and CRM integration that turn your site into a booking machine.",
     priceOneTime: 4500,
     priceMonthly: 300,
     features: [
@@ -63,7 +63,7 @@ export const packages: ServicePackage[] = [
     slug: "accelerate",
     tagline: "Full AI-powered growth",
     description:
-      "The complete system. Website, automations, AI agents, and ongoing optimization. For businesses ready to dominate their market with technology their competitors don't have.",
+      "The complete system. Website, automations, AI agents, and ongoing optimization. For businesses ready to outpace their market with systems their competitors can't match.",
     priceOneTime: 7500,
     priceMonthly: 600,
     features: [
@@ -115,7 +115,7 @@ export const packageFaqs: FAQ[] = [
   {
     question: "What if I only need one specific service?",
     answer:
-      "Packages offer the best value, but we are happy to discuss individual services. Head over to our services page or use the solution generator to get a custom recommendation based on your specific needs.",
+      "Packages offer the best value, but we are happy to discuss individual services. Head over to our services page or use the growth plan to get a custom recommendation based on your specific needs.",
     category: "packages",
   },
   {

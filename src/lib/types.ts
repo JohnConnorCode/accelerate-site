@@ -93,6 +93,7 @@ export interface ServiceOverviewItem {
   icon: string;
   name: string;
   description: string;
+  href: string;
 }
 
 export interface HowItWorksStep {

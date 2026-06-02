@@ -78,7 +78,7 @@ export function WhyAccelerate() {
             label="Why Us"
             heading={
               <>
-                Strategy + <span className="text-gold-gradient font-editorial">Systems</span> +
+                Strategy + <span className="text-gold">Systems</span> +
                 Management = Growth
               </>
             }

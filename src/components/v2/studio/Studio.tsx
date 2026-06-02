@@ -6,7 +6,9 @@ import { ScrollSequence } from "./ScrollSequence";
 import { Manifesto } from "./Manifesto";
 import { Services } from "./Services";
 import { IndustryList } from "./IndustryList";
+import { Results } from "./Results";
 import { ValueBand } from "./ValueBand";
+import { FAQ } from "./FAQ";
 import { ClosingCTA } from "./ClosingCTA";
 
 /**
@@ -19,11 +21,13 @@ export function Studio() {
     <>
       <FluidCursor />
       <Hero />
-      <ScrollSequence />
       <Manifesto />
+      <ScrollSequence />
       <Services />
       <IndustryList />
+      <Results />
       <ValueBand />
+      <FAQ />
       <ClosingCTA />
     </>
   );

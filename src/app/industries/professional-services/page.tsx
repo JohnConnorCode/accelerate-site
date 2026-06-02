@@ -30,7 +30,7 @@ export default function ProfessionalServicesPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(generateVerticalJsonLd(vertical, "montoya-capital")),
+          __html: JSON.stringify(generateVerticalJsonLd(vertical)),
         }}
       />
       <VerticalPage vertical={vertical} />

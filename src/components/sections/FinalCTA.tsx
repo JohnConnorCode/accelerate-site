@@ -31,7 +31,7 @@ export function FinalCTA({
   const resolvedHeading = heading ?? (
     <>
       Let&apos;s Talk About{" "}
-      <span className="text-gold-gradient font-editorial">Your Business</span>
+      <span className="text-gold">Your Business</span>
     </>
   );
   const resolvedDescription =

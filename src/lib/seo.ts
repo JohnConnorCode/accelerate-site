@@ -87,8 +87,7 @@ export function generateServiceListJsonLd(
 }
 
 export function generateVerticalJsonLd(
-  vertical: { name: string; shortDescription: string; slug: string },
-  caseStudySlug?: string
+  vertical: { name: string; shortDescription: string; slug: string }
 ) {
   const jsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
@@ -105,35 +104,5 @@ export function generateVerticalJsonLd(
     },
   };
 
-  if (caseStudySlug) {
-    jsonLd.hasOfferCatalog = {
-      "@type": "OfferCatalog",
-      name: `${vertical.name} Case Studies`,
-      itemListElement: [
-        {
-          "@type": "Offer",
-          itemOffered: {
-            "@type": "Service",
-            name: `${vertical.name} AI Systems`,
-            url: `${BASE_URL}/results/${caseStudySlug}`,
-          },
-        },
-      ],
-    };
-  }
-
   return jsonLd;
-}
-
-export function generateWebSiteJsonLd() {
-  return {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "@id": `${BASE_URL}/#website`,
-    name: "Accelerate",
-    url: BASE_URL,
-    publisher: {
-      "@id": ORG_ID,
-    },
-  };
 }

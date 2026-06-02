@@ -49,11 +49,11 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://acceleratewith.us"),
   title: {
-    default: "Accelerate | AI Strategy & Systems for Small Business",
+    default: "Accelerate | Custom AI Solutions, Built & Run for You",
     template: "%s | Accelerate",
   },
   description:
-    "We help small businesses figure out where AI fits, then build and manage the systems that make it happen. Strategy, automation, and ongoing management.",
+    "Custom business solutions powered by AI, built and run by Accelerate. Book more jobs, sign more clients, reclaim hours. We deliver the results and stand behind them.",
   applicationName: "Accelerate",
   authors: [{ name: "Accelerate", url: "https://acceleratewith.us" }],
   creator: "Accelerate",
@@ -63,17 +63,17 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://acceleratewith.us",
     siteName: "Accelerate",
-    title: "Accelerate | AI Strategy & Systems for Small Business",
+    title: "Accelerate | Custom AI Solutions, Built & Run for You",
     description:
-      "We help small businesses figure out where AI fits, then build and manage the systems that make it happen. Strategy, automation, and ongoing management.",
+      "Custom business solutions powered by AI, built and run by Accelerate. Book more jobs, sign more clients, reclaim hours. We deliver the results and stand behind them.",
   },
   twitter: {
     card: "summary_large_image",
     site: "@accelerateAIops",
     creator: "@accelerateAIops",
-    title: "Accelerate | AI Strategy & Systems for Small Business",
+    title: "Accelerate | Custom AI Solutions, Built & Run for You",
     description:
-      "We help small businesses figure out where AI fits, then build and manage the systems that make it happen.",
+      "Custom business solutions powered by AI, built and run by Accelerate. Book more jobs, sign more clients, reclaim hours. We deliver the results and stand behind them.",
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GSC_VERIFICATION || undefined,
@@ -104,7 +104,7 @@ const organizationJsonLd = {
     height: 512,
   },
   description:
-    "AI strategy and systems for small businesses. We figure out where AI fits, then build and manage the systems that make it happen.",
+    "Custom business solutions powered by AI, built and run by Accelerate. Book more jobs, sign more clients, reclaim hours. We deliver the results and stand behind them.",
   founder: {
     "@type": "Person",
     name: "John Connor",

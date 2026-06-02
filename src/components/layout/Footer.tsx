@@ -37,7 +37,6 @@ const footerColumns = [
   {
     title: "Resources",
     links: [
-      { label: "Case Studies", href: "/results" },
       { label: "Free Downloads", href: "/resources" },
       { label: "Learning Hub", href: "/learn" },
     ],

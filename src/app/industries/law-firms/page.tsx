@@ -30,7 +30,7 @@ export default function LawFirmsPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(generateVerticalJsonLd(vertical, "sparkblox")),
+          __html: JSON.stringify(generateVerticalJsonLd(vertical)),
         }}
       />
       <VerticalPage vertical={vertical} />

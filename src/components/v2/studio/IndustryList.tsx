@@ -39,7 +39,7 @@ export function IndustryList() {
         </h2>
         <AnimateOnScroll delay={0.1}>
           <p className="mt-5 max-w-xl text-lg text-white-muted">
-            The same lifecycle — find, win, keep, grow — tuned to how your trade actually runs.
+            The same lifecycle (find, win, keep, grow), tuned to how your trade actually runs.
             <span className="hidden lg:inline"> Hover an industry to watch a day go by.</span>
           </p>
         </AnimateOnScroll>

@@ -66,8 +66,9 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
             />
             <AnimateOnScroll delay={0.3}>
               <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                No filler. AI, automation, and growth tactics you can use this week
-                — written by people who actually run small businesses.
+                No filler. Real ways to put AI to work across your whole business,
+                from winning customers to automating the busywork to seeing what
+                actually drives revenue. Written by people who run small businesses.
               </p>
             </AnimateOnScroll>
           </div>
@@ -236,6 +237,48 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
             ))}
           </div>
         )}
+      </Section>
+
+      {/* done-for-you band — route from learning into the money pages */}
+      <Section width="wide" divide>
+        <AnimateOnScroll>
+          <div className="overflow-hidden rounded-3xl border border-border-gold/50 bg-[color-mix(in_srgb,var(--gold-base)_5%,var(--bg-elevated))] p-8 backdrop-blur-md sm:p-12">
+            <span aria-hidden className="block h-px w-full bg-gradient-to-r from-transparent via-gold to-transparent opacity-70" />
+            <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+              <div className="max-w-xl">
+                <p className="mb-3 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">
+                  Looking for done-for-you?
+                </p>
+                <h2 className="font-display text-2xl font-bold tracking-[-0.02em] text-heading sm:text-3xl">
+                  Skip the learning curve. We build it and run it.
+                </h2>
+                <p className="mt-4 leading-relaxed text-white-secondary">
+                  Reading is the fast lane to understanding. Booking more jobs is the
+                  destination. We build custom systems powered by AI and run them
+                  alongside you, working from day one, so nothing slips through.
+                </p>
+              </div>
+              <div className="flex shrink-0 flex-col gap-3 sm:flex-row lg:flex-col">
+                <Link
+                  href="/services"
+                  data-cursor="link"
+                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-btn-text transition-opacity hover:opacity-90"
+                >
+                  See what we build
+                  <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </Link>
+                <Link
+                  href="/industries"
+                  data-cursor="link"
+                  className="group inline-flex items-center justify-center gap-2 rounded-full border border-border-glass px-6 py-3 text-sm font-semibold text-heading transition-colors hover:border-border-gold hover:text-gold"
+                >
+                  Browse by industry
+                  <ArrowUpRight className="h-4 w-4 text-gold transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </AnimateOnScroll>
       </Section>
 
       {/* newsletter */}

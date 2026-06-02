@@ -14,7 +14,6 @@ export const navItems: NavItem[] = [
       { label: "Real Estate", href: "/industries/real-estate" },
     ],
   },
-  { label: "Results", href: "/results" },
   { label: "Learn", href: "/learn" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
@@ -48,7 +47,6 @@ export const footerLinks: {
   {
     heading: "Resources",
     links: [
-      { label: "Case Studies", href: "/results" },
       { label: "Free Downloads", href: "/resources" },
       { label: "Learning Hub", href: "/learn" },
     ],

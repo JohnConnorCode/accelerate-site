@@ -3,7 +3,7 @@ import { generateBreadcrumbJsonLd } from "@/lib/seo";
 import { ContactPageContent } from "@/components/sections/ContactPage";
 
 export const metadata = seoMetadata({
-  title: "Contact",
+  title: "Contact Accelerate: Book a Free AI Consultation",
   description:
     "Get in touch with Accelerate. Book a free consultation or send us a message about your business growth goals.",
   ogTitle: "Contact Us",

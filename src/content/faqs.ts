@@ -4,7 +4,7 @@ export const faqs: FAQ[] = [
   {
     question: "How much does it cost to get started?",
     answer:
-      "Our AI-powered websites start at $2,500 as a one-time build. Automations and AI agents start at $1,500 for setup plus $300 per month for ongoing management and optimization. Every business is different, so we recommend going through our free solution generator to get a custom plan with exact pricing for your situation.",
+      "Our AI-powered websites start at $2,500 as a one-time build. Automations and AI agents start at $1,500 for setup plus $300 per month for ongoing management and optimization. Every business is different, so we recommend going through our free growth plan to get a custom plan with exact pricing for your situation.",
     category: "pricing",
   },
   {
@@ -40,7 +40,7 @@ export const faqs: FAQ[] = [
   {
     question: "What if I already have a website?",
     answer:
-      "If your current site is in good shape structurally, we can add AI chat, automation integrations, and conversion optimization on top of it. If it needs a full rebuild, we'll let you know honestly. Either way, our solution generator will give you a clear recommendation based on your current setup.",
+      "If your current site is in good shape structurally, we can add AI chat, automation integrations, and conversion optimization on top of it. If it needs a full rebuild, we'll let you know honestly. Either way, our growth plan will give you a clear recommendation based on your current setup.",
     category: "general",
   },
   {
@@ -52,11 +52,11 @@ export const faqs: FAQ[] = [
   {
     question: "What industries do you work with?",
     answer:
-      "We specialize in home services (contractors, plumbers, roofers, HVAC), law firms (personal injury, family law, criminal defense), professional services (accountants, financial advisors, consultants), and real estate (agents, brokerages, property management). Our tools and strategies are built specifically for these industries because generic solutions don't cut it.",
+      "We specialize in home services (contractors, plumbers, roofers, HVAC), law firms (personal injury, family law, criminal defense), professional services (accountants, financial advisors, consultants), and real estate (agents, brokerages, property management). The systems we build and run are tailored to these industries because generic solutions don't cut it.",
     category: "general",
   },
   {
-    question: "What happens after I submit the solution generator?",
+    question: "What happens after I submit the growth plan?",
     answer:
       "You'll receive a personalized growth plan within minutes that includes specific recommendations, estimated pricing, a suggested implementation timeline, and projected ROI. There's no obligation attached. If the plan makes sense, we'll schedule a 30-minute call to walk through it together and answer any questions. If you're not ready, the plan is yours to keep.",
     category: "general",

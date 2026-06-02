@@ -11,7 +11,6 @@
 export interface ProofPoint {
   clientName: string;
   slug: string;
-  resultsPage: string;
   relevantCategories: string[];
   relevantTopics: string[];
   metricsBefore: Record<string, string>;
@@ -26,7 +25,6 @@ export const PROOF_POINTS: ProofPoint[] = [
   {
     clientName: "Farrell Roofing",
     slug: "farrell-roofing",
-    resultsPage: "/results/farrell-roofing",
     relevantCategories: [
       "industry",
       "lead-generation",
@@ -37,13 +35,12 @@ export const PROOF_POINTS: ProofPoint[] = [
       "home services",
       "contractors",
       "roofing",
-      "AI receptionist",
+      "AI intake",
       "AI chatbot",
       "follow-up sequences",
       "website redesign",
       "local SEO",
       "after-hours capture",
-      "missed calls",
       "response time",
     ],
     metricsBefore: {
@@ -68,13 +65,12 @@ export const PROOF_POINTS: ProofPoint[] = [
     oneLiner:
       "We set up AI chat + automated follow-up for Farrell Roofing. They went from 10 online inquiries/mo to 50+, with response times under 2 minutes. Revenue up 75%.",
     extendedProofPoint:
-      "When we started working with Farrell Roofing, they were a 14-year-old roofing company generating just 10 online inquiries per month. Missed calls during job hours, zero after-hours capture, and manual follow-up on maybe 30% of estimates. We deployed an AI chat agent trained on their services and service areas, built automated follow-up sequences for every estimate, and rebuilt their website for local SEO. Four weeks later: 50+ inquiries per month, sub-2-minute response times, and 75% revenue growth in the first 90 days.",
+      "When we started working with Farrell Roofing, they were a 14-year-old roofing company generating just 10 online inquiries per month. Inquiries going unanswered during job hours, zero after-hours capture, and manual follow-up on maybe 30% of estimates. We deployed an AI chat agent trained on their services and service areas, built automated follow-up sequences for every estimate, and rebuilt their website for local SEO. Four weeks later: 50+ inquiries per month, sub-2-minute response times, and 75% revenue growth in the first 90 days.",
     timeline: "4 weeks from kickoff to live",
   },
   {
     clientName: "SparkBlox",
     slug: "sparkblox",
-    resultsPage: "/results/sparkblox",
     relevantCategories: ["automation", "foundational", "ai-tools"],
     relevantTopics: [
       "professional services",
@@ -112,7 +108,6 @@ export const PROOF_POINTS: ProofPoint[] = [
   {
     clientName: "Montoya Capital",
     slug: "montoya-capital",
-    resultsPage: "/results/montoya-capital",
     relevantCategories: [
       "lead-generation",
       "automation",

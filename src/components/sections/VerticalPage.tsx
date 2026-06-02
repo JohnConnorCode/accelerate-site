@@ -3,9 +3,10 @@
 import {
   Check, PhoneMissed, Clock, UserX, Monitor, Moon, FileText, Users,
   CalendarX, SearchX, Thermometer, DollarSign, RefreshCw, Database,
-  Wrench, Scale, Briefcase, Building2,
+  Wrench, Scale, Briefcase, Building2, ArrowUpRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import Link from "next/link";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 import { Container, Eyebrow, BookCallButton } from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
@@ -24,6 +25,30 @@ const iconMap: Record<string, LucideIcon> = {
 const H1 = "font-display font-extrabold leading-[1.04] tracking-[-0.035em] text-[clamp(2.1rem,3.8vw,3.9rem)] text-heading";
 const H2 = "font-display font-bold leading-[1.06] tracking-[-0.03em] text-[clamp(1.85rem,3.2vw,2.9rem)] text-heading";
 
+/* Related reading — maps each vertical to the articles that match its operations,
+   so every industry page links into the learn library and back into /services. */
+type RelatedArticle = { slug: string; title: string };
+const RELATED_READING: Record<string, RelatedArticle[]> = {
+  "home-services": [
+    { slug: "home-service-automations-2026", title: "5 Automations Every Home Service Business Needs in 2026" },
+    { slug: "ai-for-contractors", title: "AI for Contractors: How Home Service Businesses Win More Jobs" },
+    { slug: "servicetitan-vs-housecall-pro-vs-jobber", title: "ServiceTitan vs Housecall Pro vs Jobber, Compared for 2026" },
+  ],
+  "law-firms": [
+    { slug: "ai-for-law-firms", title: "AI for Law Firms: Save 10+ Hours Per Week" },
+    { slug: "ai-tools-law-firms-2026", title: "5 AI Tools Every Law Firm Should Be Using in 2026" },
+    { slug: "ai-intake-personal-injury-firms", title: "AI Client Intake for Personal Injury Firms: A Complete Guide" },
+  ],
+  "real-estate": [
+    { slug: "ai-for-real-estate-agents", title: "AI for Real Estate Agents: Automate Follow-Up, Win More Listings" },
+    { slug: "ai-for-real-estate-teams", title: "AI for Real Estate Teams: Automate Follow-Up, Close More Deals" },
+  ],
+  "professional-services": [
+    { slug: "ai-for-accountants", title: "AI for Accountants and Bookkeepers: Automate Client Onboarding" },
+    { slug: "best-crm-small-business-2026", title: "The Best CRM for Small Businesses in 2026" },
+  ],
+};
+
 interface VerticalPageProps {
   vertical: Vertical;
 }
@@ -32,6 +57,7 @@ export function VerticalPage({ vertical }: VerticalPageProps) {
   const heroSolutions = vertical.solutions.slice(0, 2);
   const restSolutions = vertical.solutions.slice(2);
   const opsFeed = INDUSTRY_FEEDS[vertical.slug];
+  const relatedReading = RELATED_READING[vertical.slug] ?? [];
 
   return (
     <>
@@ -207,6 +233,58 @@ export function VerticalPage({ vertical }: VerticalPageProps) {
           </AnimateOnScroll>
         </Container>
       </section>
+
+      {/* related reading — link each industry into the learn library + /services */}
+      {relatedReading.length > 0 && (
+        <section className="section-y section-divide relative bg-[var(--bg-section-warm)]">
+          <Container width="wide">
+            <AnimateOnScroll><Eyebrow className="mb-6">go deeper</Eyebrow></AnimateOnScroll>
+            <RevealHeading
+              className={`${H2} mb-3 max-w-3xl`}
+              lead="Related reading for"
+              accent={`${vertical.name.toLowerCase()}.`}
+            />
+            <AnimateOnScroll delay={0.15}>
+              <p className="mb-12 max-w-2xl text-base leading-relaxed text-white-muted">
+                Guides on the automation, intake, and follow-up systems we build and
+                run for {vertical.name.toLowerCase()} businesses.
+              </p>
+            </AnimateOnScroll>
+
+            <div className={`grid gap-4 sm:grid-cols-2 ${relatedReading.length >= 3 ? "lg:grid-cols-3" : ""}`}>
+              {relatedReading.map((article, i) => (
+                <AnimateOnScroll key={article.slug} as="div" delay={i * 0.06}>
+                  <Link
+                    href={`/learn/${article.slug}`}
+                    className="group flex h-full flex-col rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)] p-6 backdrop-blur-md transition-colors hover:border-border-gold/50"
+                  >
+                    <span className="mb-4 font-mono text-[0.6rem] uppercase tracking-[0.18em] text-white-muted">
+                      Guide
+                    </span>
+                    <h3 className="mb-5 font-display text-lg font-semibold leading-snug text-heading">
+                      {article.title}
+                    </h3>
+                    <span className="mt-auto inline-flex items-center gap-1.5 text-sm font-medium text-gold">
+                      Read the guide
+                      <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    </span>
+                  </Link>
+                </AnimateOnScroll>
+              ))}
+            </div>
+
+            <AnimateOnScroll delay={0.2}>
+              <Link
+                href="/services"
+                className="group mt-8 inline-flex items-center gap-1.5 font-display text-base font-semibold text-heading transition-colors hover:text-gold"
+              >
+                See everything we build and run
+                <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </Link>
+            </AnimateOnScroll>
+          </Container>
+        </section>
+      )}
 
       {/* closing — master style */}
       <section className="section-y section-divide relative">

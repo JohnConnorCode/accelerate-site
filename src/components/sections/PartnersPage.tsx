@@ -87,7 +87,7 @@ export function PartnersPage() {
             />
             <AnimateOnScroll delay={0.3}>
               <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                Refer clients or white-label our work — we design, build, and run
+                Refer clients or white-label our work. We design, build, and run
                 the AI systems, accountable to results, so your name stays on the
                 win. Earn recurring revenue for as long as they stay.
               </p>

@@ -47,7 +47,7 @@ export function ValueBand() {
           </h2>
           <motion.p variants={item} className="mt-7 max-w-md text-lg leading-relaxed opacity-80">
             Not another tool to manage. A team that builds your systems, runs them,
-            and keeps them sharp — so your growth stops depending on your hours.
+            and keeps them sharp, so your growth stops depending on your hours.
           </motion.p>
           <motion.div variants={item}>
             <BookCallButton variant="inverse" label="Book a free strategy call" className="mt-9" />

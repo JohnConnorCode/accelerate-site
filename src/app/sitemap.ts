@@ -1,7 +1,6 @@
 export const revalidate = 3600;
 
 import type { MetadataRoute } from "next";
-import { caseStudies } from "@/content/case-studies";
 import { getAllArticles, getAllCategories, getAllTags } from "@/lib/mdx";
 
 const BASE_URL = "https://acceleratewith.us";
@@ -15,7 +14,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "", priority: 1, freq: "weekly", lastMod: LAST_CONTENT_UPDATE },
     { path: "/services", priority: 0.9, freq: "monthly", lastMod: "2026-02-15" },
     { path: "/packages", priority: 0.9, freq: "monthly", lastMod: "2026-02-15" },
-    { path: "/results", priority: 0.8, freq: "weekly", lastMod: "2026-02-01" },
     { path: "/resources", priority: 0.7, freq: "monthly", lastMod: "2026-02-01" },
     { path: "/industries", priority: 0.7, freq: "monthly", lastMod: LAST_CONTENT_UPDATE },
     { path: "/industries/home-services", priority: 0.8, freq: "monthly", lastMod: "2026-02-15" },
@@ -43,14 +41,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: new Date(path === "/learn" ? latestArticleDate : (lastMod || LAST_CONTENT_UPDATE)),
     changeFrequency: freq,
     priority,
-  }));
-
-  // Dynamic case study pages
-  const caseStudyEntries: MetadataRoute.Sitemap = caseStudies.map((cs) => ({
-    url: `${BASE_URL}/results/${cs.slug}`,
-    lastModified: new Date(cs.publishedAt),
-    changeFrequency: "monthly" as const,
-    priority: 0.7,
   }));
 
   // Learning Hub articles
@@ -85,5 +75,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     };
   });
 
-  return [...staticEntries, ...caseStudyEntries, ...articleEntries, ...categoryEntries, ...tagEntries];
+  return [...staticEntries, ...articleEntries, ...categoryEntries, ...tagEntries];
 }

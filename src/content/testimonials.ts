@@ -4,7 +4,7 @@ export const testimonials: Testimonial[] = [
   {
     id: "testimonial-1",
     quote:
-      "We were losing jobs because we couldn't answer calls fast enough on the roof. Accelerate set up an AI system that handles every call and text instantly, even nights and weekends. We've booked 15 extra jobs a month since going live.",
+      "We were losing jobs because we couldn't respond fast enough from the roof. Accelerate set up an AI system that handles every inquiry instantly, even nights and weekends. We've booked 15 extra jobs a month since going live.",
     name: "Robert Farrell",
     title: "Owner",
     businessType: "Farrell Roofing",

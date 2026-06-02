@@ -16,7 +16,7 @@ export function CTACard({
   title,
   description,
   href = "/contact",
-  buttonText = "Book a Free Discovery Call",
+  buttonText = "Book a free strategy call",
 }: CTACardProps) {
   const pathname = usePathname();
   const slug = pathname.startsWith("/learn/") ? pathname.replace("/learn/", "") : pathname;

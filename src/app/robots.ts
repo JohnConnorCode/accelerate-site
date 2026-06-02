@@ -10,27 +10,27 @@ export default function robots(): MetadataRoute.Robots {
       },
       {
         userAgent: "GPTBot",
-        allow: ["/learn/", "/services", "/packages", "/industries/", "/about", "/results/"],
+        allow: ["/learn/", "/services", "/packages", "/industries/", "/about"],
       },
       {
         userAgent: "Claude-Web",
-        allow: ["/learn/", "/services", "/packages", "/industries/", "/about", "/results/"],
+        allow: ["/learn/", "/services", "/packages", "/industries/", "/about"],
       },
       {
         userAgent: "PerplexityBot",
-        allow: ["/learn/", "/services", "/packages", "/industries/", "/about", "/results/"],
+        allow: ["/learn/", "/services", "/packages", "/industries/", "/about"],
       },
       {
         userAgent: "GoogleOther",
-        allow: ["/learn/", "/services", "/packages", "/industries/", "/about", "/results/"],
+        allow: ["/learn/", "/services", "/packages", "/industries/", "/about"],
       },
       {
         userAgent: "Applebot-Extended",
-        allow: ["/learn/", "/services", "/packages", "/industries/", "/about", "/results/"],
+        allow: ["/learn/", "/services", "/packages", "/industries/", "/about"],
       },
       {
         userAgent: "ClaudeBot",
-        allow: ["/learn/", "/services", "/packages", "/industries/", "/about", "/results/"],
+        allow: ["/learn/", "/services", "/packages", "/industries/", "/about"],
       },
     ],
     sitemap: "https://acceleratewith.us/sitemap.xml",

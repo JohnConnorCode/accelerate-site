@@ -7,17 +7,17 @@ export const verticals: Vertical[] = [
     name: "Home Services",
     icon: "Wrench",
     shortDescription:
-      "AI tools built for contractors, plumbers, roofers, HVAC techs, and home service pros who are tired of losing jobs to whoever picks up the phone first.",
+      "AI systems built for contractors, plumbers, roofers, HVAC techs, and home service pros who are tired of losing jobs to whoever responds first.",
     heroHeadlineWhite: "Stop losing jobs to whoever",
-    heroHeadlineGold: "answers first.",
+    heroHeadlineGold: "moves first.",
     heroSubheadline:
-      "Home service businesses lose up to 40% of customers before anyone picks up. We build and run AI that answers every call, sends instant estimates, and follows up automatically — live in 4–6 weeks, so you book more jobs without hiring more office staff.",
+      "Home service businesses lose up to 40% of customers before anyone gets back to them. We capture every inquiry across every channel, send estimates instantly, and follow up on autopilot, so you book more jobs without hiring more office staff.",
     painPoints: [
       {
-        icon: "PhoneMissed",
-        title: "Missed calls are killing your revenue",
+        icon: "DollarSign",
+        title: "Slow response is killing your revenue",
         description:
-          "You're on a roof or under a sink when the phone rings. By the time you call back, that homeowner already hired someone else. Every missed call is $500 to $5,000 walking out the door.",
+          "You're on a roof or under a sink when a new job comes in. By the time you get back to them, that homeowner already hired someone else. Every inquiry that sits is $500 to $5,000 walking out the door.",
       },
       {
         icon: "Clock",
@@ -40,15 +40,15 @@ export const verticals: Vertical[] = [
     ],
     solutions: [
       {
-        title: "AI Receptionist",
+        title: "Always-On Intake",
         description:
-          "Never miss another call. Our AI answers the phone, texts back instantly, captures job details, and books estimates on your calendar. It works nights, weekends, and holidays.",
+          "Capture every opportunity. AI responds the moment an inquiry lands, across web, text, chat, and phone, captures the job details, and books estimates on your calendar. It works nights, weekends, and holidays.",
         features: [
-          "24/7 call answering and SMS response",
+          "24/7 instant response across web, text, chat, and phone",
           "Automatic job detail capture",
           "Calendar integration for estimate scheduling",
           "Inquiry qualification before it hits your inbox",
-          "Call recording and transcription",
+          "Conversation logging and transcription",
         ],
       },
       {
@@ -91,7 +91,7 @@ export const verticals: Vertical[] = [
     caseStudy: {
       title: "Mississippi Roofing Company Grows Inquiry Volume by 40%",
       description:
-        "A family-owned roofing company in Mississippi was losing customers to competitors with faster response times. We implemented an AI receptionist, rebuilt their website with local SEO, and set up automated follow-up sequences. Within 90 days, their inbound inquiry volume increased by 40% and their average response time dropped from 4 hours to under 2 minutes.",
+        "A family-owned roofing company in Mississippi was losing customers to competitors with faster response times. We deployed an AI intake system that responds across every channel, rebuilt their website with local SEO, and set up automated follow-up sequences. Within 90 days, inbound inquiry volume increased 40% and average response time dropped from 4 hours to under 2 minutes.",
       metrics: [
         { label: "Increase in inquiries", value: "40%" },
         { label: "Response time", value: "Under 2 min" },
@@ -100,7 +100,7 @@ export const verticals: Vertical[] = [
       ],
     },
     ctaText: "Get your free growth plan",
-    ctaLink: "/plan-builder?industry=home_services",
+    ctaLink: "/contact",
   },
   {
     id: "law_firm",
@@ -109,10 +109,10 @@ export const verticals: Vertical[] = [
     icon: "Scale",
     shortDescription:
       "AI-powered intake, follow-up, and client communication systems built for law firms that want to sign more clients without adding more admin staff.",
-    heroHeadlineWhite: "Your next client called.",
-    heroHeadlineGold: "You missed it.",
+    heroHeadlineWhite: "Your next client reached out.",
+    heroHeadlineGold: "Someone else replied first.",
     heroSubheadline:
-      "Clients call after hours and hire the first firm that responds. We build and run AI intake that answers instantly, qualifies cases, and gets retainers signed faster — live in 4–6 weeks, so you sign more clients without adding admin staff.",
+      "Clients reach out after hours and hire the first firm to respond. Our AI intake responds instantly across every channel, qualifies the case, and gets retainers signed faster, so you sign more clients without adding admin staff.",
     painPoints: [
       {
         icon: "Clock",
@@ -122,9 +122,9 @@ export const verticals: Vertical[] = [
       },
       {
         icon: "Moon",
-        title: "No after-hours coverage",
+        title: "Silence after 5 PM costs you clients",
         description:
-          "Accidents don't happen during business hours. DUIs happen at 2 AM. Divorces blow up on weekends. If your phones go to voicemail at 5 PM, you're invisible when people need a lawyer most.",
+          "Accidents don't happen during business hours. DUIs happen at 2 AM. Divorces blow up on weekends. If every inquiry after 5 PM goes unanswered until morning, you're invisible when people need a lawyer most.",
       },
       {
         icon: "FileText",
@@ -136,7 +136,7 @@ export const verticals: Vertical[] = [
         icon: "Monitor",
         title: "Your website doesn't build trust",
         description:
-          "A generic website with stock photos of gavels doesn't convince anyone to trust you with their case. Potential clients want to see results, read reviews, and start their intake before they ever call.",
+          "A generic website with stock photos of gavels doesn't convince anyone to trust you with their case. Potential clients want to see results, read reviews, and start their intake before they ever reach out.",
       },
     ],
     solutions: [
@@ -201,7 +201,7 @@ export const verticals: Vertical[] = [
       ],
     },
     ctaText: "Get your free growth plan",
-    ctaLink: "/plan-builder?industry=law_firm",
+    ctaLink: "/contact",
   },
   {
     id: "professional_services",
@@ -213,13 +213,13 @@ export const verticals: Vertical[] = [
     heroHeadlineWhite: "A pipeline you can",
     heroHeadlineGold: "predict.",
     heroSubheadline:
-      "Referrals built your practice, but they're a ceiling. We build and run digital systems that turn your expertise into a steady client pipeline — live in 4–6 weeks, so growth stops depending on who happens to mention your name.",
+      "Referrals built your practice, but they're a ceiling. We turn your expertise into a steady, predictable client pipeline, so growth stops depending on who happens to mention your name.",
     painPoints: [
       {
         icon: "Users",
         title: "Referrals are unpredictable",
         description:
-          "Referrals are great until they dry up. One slow quarter and you're scrambling. A real growth strategy means having a steady pipeline of inbound inquiries, not just waiting for the phone to ring.",
+          "Referrals are great until they dry up. One slow quarter and you're scrambling. A real growth strategy means having a steady pipeline of inbound inquiries, not just waiting for the next referral to land.",
       },
       {
         icon: "CalendarX",
@@ -302,7 +302,7 @@ export const verticals: Vertical[] = [
       ],
     },
     ctaText: "Get your free growth plan",
-    ctaLink: "/plan-builder?industry=professional_services",
+    ctaLink: "/contact",
   },
   {
     id: "real_estate",
@@ -311,10 +311,10 @@ export const verticals: Vertical[] = [
     icon: "Building2",
     shortDescription:
       "Client capture, nurture, and conversion systems for real estate agents and brokerages who are tired of paying for inquiries that never convert.",
-    heroHeadlineWhite: "Every missed call is a",
+    heroHeadlineWhite: "Every slow reply is a",
     heroHeadlineGold: "lost commission.",
     heroSubheadline:
-      "You spend thousands on Zillow, Realtor.com, and Facebook ads — then lose those inquiries to slow follow-up. We build and run systems that capture, qualify, and convert prospects before they go cold — live in 4–6 weeks, so less chasing means more closings.",
+      "You spend thousands on Zillow, Realtor.com, and Facebook ads, then lose those inquiries to slow follow-up. We capture, qualify, and convert prospects before they go cold, so less chasing means more closings.",
     painPoints: [
       {
         icon: "Thermometer",
@@ -403,6 +403,6 @@ export const verticals: Vertical[] = [
       ],
     },
     ctaText: "Get your free growth plan",
-    ctaLink: "/plan-builder?industry=real_estate",
+    ctaLink: "/contact",
   },
 ];

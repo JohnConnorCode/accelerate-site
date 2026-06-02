@@ -41,7 +41,6 @@ const navLinks: NavLink[] = [
       { label: "Real Estate", href: "/industries/real-estate" },
     ],
   },
-  { label: "Results", href: "/results" },
   { label: "Learn", href: "/learn" },
   { label: "Contact", href: "/contact" },
 ];
@@ -210,7 +209,7 @@ export function Header() {
             <ThemeToggle />
             <Link href="/contact">
               <Button variant="primary" size="sm" className="group/cta">
-                Book a Free Discovery Call
+                Book a free strategy call
                 <ArrowRight className="w-4 h-4 ml-1.5 transition-transform duration-200 group-hover/cta:translate-x-0.5" />
               </Button>
             </Link>

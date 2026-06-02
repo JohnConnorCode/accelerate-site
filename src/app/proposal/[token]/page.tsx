@@ -135,10 +135,10 @@ export default async function ProposalPage({
                         <tr key={i} className="border-b border-border-glass/50">
                           <td className="py-2 text-white-secondary">{price.item}</td>
                           <td className="py-2 text-right text-emerald-400">
-                            {price.monthly > 0 ? `$${price.monthly.toLocaleString()}/mo` : "—"}
+                            {price.monthly > 0 ? `$${price.monthly.toLocaleString()}/mo` : "–"}
                           </td>
                           <td className="py-2 text-right text-white-secondary">
-                            {price.oneTime > 0 ? `$${price.oneTime.toLocaleString()}` : "—"}
+                            {price.oneTime > 0 ? `$${price.oneTime.toLocaleString()}` : "–"}
                           </td>
                         </tr>
                       ))}

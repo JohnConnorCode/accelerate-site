@@ -19,7 +19,7 @@ const WELCOME_MESSAGE: ChatMessageType = {
   id: "welcome",
   role: "assistant",
   content:
-    "Hey, this is John's team at Accelerate. We build and run custom AI systems for small businesses: every call answered, every follow-up sent, more jobs booked. What are you trying to grow?",
+    "Hey, this is John's team at Accelerate. We build and run custom AI systems for small businesses so nothing slips through and more jobs get booked, from first inquiry to repeat client. What are you trying to grow?",
   timestamp: Date.now(),
 };
 

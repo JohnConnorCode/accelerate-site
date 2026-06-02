@@ -23,7 +23,7 @@ export const services: Service[] = [
     problemStatement:
       "You know AI could help your business, but you don't know where to start or what's worth the investment.",
     keyMetrics: [
-      { value: "2-4 wk", label: "Delivery timeline" },
+      { value: "Day one", label: "Clarity before you build" },
       { value: "Custom", label: "Tailored to you" },
       { value: "Clear", label: "ROI before you spend" },
     ],
@@ -95,7 +95,7 @@ export const services: Service[] = [
     problemStatement:
       "Your pipeline leaks. Inquiries go cold because follow-up is manual, inconsistent, and always the first thing to slip.",
     keyMetrics: [
-      { value: "+340%", label: "Avg. inquiry increase" },
+      { value: "+38%", label: "More jobs booked" },
       { value: "24/7", label: "Follow-up coverage" },
       { value: "< 5 min", label: "Response time" },
     ],
@@ -130,10 +130,10 @@ export const services: Service[] = [
     pricingDisplay: "from $1,500 + $300/mo",
     href: "/services#engagement",
     problemStatement:
-      "Customers call at 9 PM. They text on weekends. You can't be everywhere, and you're losing business every hour you're not available.",
+      "Customers reach out at 9 PM. They message on weekends. You can't be everywhere, and you're losing business every hour you're not available.",
     keyMetrics: [
       { value: "60%", label: "Inquiries handled by AI" },
-      { value: "185%", label: "More bookings" },
+      { value: "+40%", label: "More bookings" },
       { value: "$0", label: "Additional labor cost" },
     ],
     process: [

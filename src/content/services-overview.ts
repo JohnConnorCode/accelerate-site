@@ -6,5 +6,6 @@ export const serviceOverviewItems: ServiceOverviewItem[] = services.map(
     icon: s.icon,
     name: s.name,
     description: s.shortDescription,
+    href: `/services#${s.id}`,
   })
 );

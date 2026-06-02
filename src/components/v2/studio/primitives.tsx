@@ -154,7 +154,7 @@ export function Heading({
    Variants: "primary" (gold on dark), "inverse" (dark on gold — for the lime band). */
 export function BookCallButton({
   variant = "primary",
-  label = "Book a Free Discovery Call",
+  label = "Book a free strategy call",
   className,
 }: {
   variant?: "primary" | "inverse";

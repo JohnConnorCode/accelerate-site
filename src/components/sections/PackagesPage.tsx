@@ -178,8 +178,8 @@ export function PackagesPageContent() {
             <AnimateOnScroll delay={0.3}>
               <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
                 Clear scope, clear pricing, no long-term contracts. Every package
-                is built and run by our team — not software handed off for you to
-                manage — and live in 4–6 weeks.
+                is built and run by our team, not software handed off for you to
+                manage, and working from day one.
               </p>
             </AnimateOnScroll>
           </div>

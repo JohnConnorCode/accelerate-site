@@ -8,13 +8,13 @@ export const caseStudies: CaseStudyFull[] = [
     industry: "home_services",
     location: "Southeast US",
     challenge:
-      "Farrell Roofing was running a solid operation but leaving money on the table. Their website hadn't been updated in years, they were missing calls during jobs, and follow-up on estimates was entirely manual. The owner estimated he was losing several customers a week just from slow response times and a website that didn't convert.",
+      "Farrell Roofing was running a solid operation but leaving money on the table. Their website hadn't been updated in years, inquiries went unanswered while the crew was on jobs, and follow-up on estimates was entirely manual. The owner estimated he was losing several customers a week just from slow response times and a website that didn't convert.",
     solution:
       "We rebuilt their website with local SEO targeting every service area in the region. Added an AI chat agent trained on their services and pricing that books roof inspections 24/7. Set up automated follow-up sequences for every estimate request, so no inquiry sits unanswered for more than a few minutes. Integrated everything with their existing CRM so the team has full visibility.",
     results:
       "Within the first quarter, Farrell Roofing saw a dramatic increase in inbound inquiries, cut their average response time to under two minutes, and booked significant additional monthly revenue directly attributable to the new system. The AI agent now handles the majority of initial inquiries without any human involvement, freeing up the office staff to focus on scheduling and customer service.",
     testimonialQuote:
-      "We went from missing half our calls to never missing a single inquiry. The AI agent books inspections while we are up on a roof. Best investment we have made in the business.",
+      "We went from losing half our inquiries to never missing a single one. The system books inspections while we are up on a roof. Best investment we have made in the business.",
     testimonialAuthor: "Robert Farrell",
     testimonialTitle: "Owner, Farrell Roofing",
     metrics: [

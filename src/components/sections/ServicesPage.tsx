@@ -90,7 +90,7 @@ function ServiceBand({
 const STEPS = [
   { n: "01", t: "Discovery", d: "A free 30-minute call. We learn how your business runs and where AI moves the needle first." },
   { n: "02", t: "Strategy & Roadmap", d: "A tailored plan with exact deliverables, timeline, and projected ROI, all before you spend a dollar." },
-  { n: "03", t: "Build & Launch", d: "We handle the technical work end-to-end: configuration, integration, testing, training. Live within weeks." },
+  { n: "03", t: "Build & Launch", d: "We handle the technical work end-to-end: configuration, integration, testing, training. Then it goes live and starts working." },
   { n: "04", t: "Optimize & Grow", d: "Ongoing measurement, learning, and tuning so the system keeps getting sharper after launch." },
 ];
 
@@ -126,14 +126,14 @@ export function ServicesPageContent() {
               <RevealHeading
                 as="h1"
                 className={HERO_HEADING}
-                lead="The systems we build — and run for you."
+                lead="The systems we build and run for you."
                 delay={0.1}
               />
               <AnimateOnScroll delay={0.25}>
                 <p className="mt-7 max-w-md text-base leading-relaxed text-white-secondary">
                   We don&apos;t sell software you have to manage. We design, build, and run
-                  custom AI across your whole business — from first inquiry to repeat client.
-                  Scoped to your operation, accountable to your numbers, live in 4–6 weeks.
+                  custom AI across your whole business, from first inquiry to repeat client.
+                  Scoped to your operation, accountable to your numbers, working from day one.
                 </p>
               </AnimateOnScroll>
               <AnimateOnScroll delay={0.35}>
@@ -195,7 +195,7 @@ export function ServicesPageContent() {
       <Section width="wide" className="bg-[var(--bg-section-warm)]">
         <Eyebrow className="mb-6">the process</Eyebrow>
         <Heading size={2} as="h2" className="mb-12 max-w-3xl">
-          From kickoff to running, in weeks
+          From kickoff to running
         </Heading>
         <div className="relative mx-auto max-w-2xl">
           <div className="absolute bottom-12 left-[18px] top-3 w-px bg-[color-mix(in_srgb,var(--gold-base)_40%,transparent)]" aria-hidden />

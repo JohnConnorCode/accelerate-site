@@ -55,7 +55,7 @@ export const INDUSTRY_FEEDS: Record<string, IndustryFeed> = {
     ],
   },
   "professional-services": {
-    metric: "A pipeline you can predict",
+    metric: "Less admin, more billable work",
     feed: [
       { time: "09:22:50", channel: "capture", label: "Discovery request captured" },
       { time: "09:48:14", channel: "book", label: "Consult scheduled for Wed 10:30" },

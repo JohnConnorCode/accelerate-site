@@ -6,7 +6,7 @@ import { getAllArticles } from "@/lib/mdx";
 import { LearnHub } from "@/components/sections/LearnHub";
 
 export const metadata = seoMetadata({
-  title: "Learning Hub | AI & Automation Guides for Small Business",
+  title: "AI & Automation Guides for Small Business",
   description:
     "Practical guides on AI, automation, client acquisition, and local SEO for small businesses. Actionable strategies you can implement today.",
   ogTitle: "Learning Hub",

@@ -75,7 +75,7 @@ export function MobileCTABar() {
               href="/contact"
               className="flex w-full items-center justify-center gap-2 rounded-full bg-gold px-6 py-3.5 text-sm font-semibold text-btn-text"
             >
-              Book a Free Discovery Call
+              Book a free strategy call
               <ArrowRight className="h-4 w-4" />
             </Link>
             <p className="mt-1.5 text-center font-mono text-[0.62rem] uppercase tracking-[0.16em] text-[var(--white-muted)]">

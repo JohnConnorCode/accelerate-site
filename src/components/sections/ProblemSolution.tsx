@@ -100,7 +100,7 @@ export function ProblemSolution() {
             heading={
               <>
                 Stop Losing Revenue to{" "}
-                <span className="text-gold-gradient font-editorial">Broken Processes</span>
+                <span className="text-gold">Broken Processes</span>
               </>
             }
           />

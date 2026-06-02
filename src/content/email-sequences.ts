@@ -61,7 +61,7 @@ After implementing an AI-powered website and automated follow-up system, they sa
 - Response time dropped from hours to under two minutes
 - Significant additional monthly revenue within the first quarter
 
-Read the full case study: https://acceleratewith.us/results/farrell-roofing
+Read the full case study: https://acceleratewith.us/industries/home-services
 
 Your plan was designed to deliver similar results for your business. The question is just whether now is the right time to start.
 

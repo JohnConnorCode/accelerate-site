@@ -108,7 +108,7 @@ export function Hero() {
           >
             <span className="text-heading">Accelerate your business</span>
             <br />
-            <span className="text-shimmer font-editorial">with AI.</span>
+            <span className="text-gold">with AI.</span>
           </motion.h1>
 
           <motion.p
@@ -136,16 +136,16 @@ export function Hero() {
               </Button>
             </Link>
             <Link
-              href="/results"
+              href="/industries"
               className="pointer-events-auto"
-              onClick={() => trackConversion("CTA Click", { section: "Hero", cta_text: "See Client Results", href: "/results" })}
+              onClick={() => trackConversion("CTA Click", { section: "Hero", cta_text: "See what we build", href: "/industries" })}
             >
               <Button
                 variant="secondary"
                 size="lg"
                 className="w-full sm:w-auto border-gradient-animated"
               >
-                See Client Results
+                See what we build
               </Button>
             </Link>
           </motion.div>
@@ -157,7 +157,7 @@ export function Hero() {
           >
             <span className="hidden sm:inline">AI strategy &amp; delivery</span>
             <span className="hidden sm:inline text-white-muted" aria-hidden="true">|</span>
-            <span className="hidden sm:inline">Live in 1 to 2 weeks</span>
+            <span className="hidden sm:inline">Working from day one</span>
             <span className="hidden sm:inline text-white-muted" aria-hidden="true">|</span>
             <span className="hidden sm:inline">Transparent pricing</span>
             <span className="hidden sm:inline text-white-muted" aria-hidden="true">|</span>

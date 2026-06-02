@@ -54,7 +54,7 @@ export default function IndustriesPage() {
               <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
                 Generic software doesn&apos;t cut it. We design, build, and run
                 automation around the real workflows and revenue drivers of your
-                industry — and we run it alongside you.
+                industry, and we run it alongside you.
               </p>
             </AnimateOnScroll>
           </div>

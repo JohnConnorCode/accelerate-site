@@ -12,7 +12,7 @@ const VALUES = [
     icon: Rocket,
     title: "Ship fast, iterate faster",
     description:
-      "We ship in weeks, not months. Your business can't wait for a six-month project timeline. We move fast, get you live, and optimize from real data instead of guesswork.",
+      "We move fast. Your business can't wait on a drawn-out rollout. We get you live and optimize from real data instead of guesswork.",
   },
   {
     icon: TrendingUp,
@@ -33,10 +33,9 @@ const NARRATIVE = [
     label: "the resume",
     body: (
       <p>
-        Over a decade building technology platforms. Drove 15x revenue growth to
-        300K+ monthly active users at Upland. Raised over $1M for Sparkblox
-        through partnerships with Chainlink and Algorand. Built HelpWith to
-        3,000+ service providers across four markets.
+        Over a decade building and scaling technology platforms. I&apos;ve grown
+        products to hundreds of thousands of users, raised venture funding, and
+        built marketplaces used by thousands of businesses.
       </p>
     ),
   },
@@ -47,9 +46,9 @@ const NARRATIVE = [
         <p>
           But resumes don&apos;t tell you much. Here&apos;s what matters: I also
           run a roofing company in Mississippi. I&apos;ve sat across the table
-          from a homeowner trying to close a deal. I&apos;ve missed calls because
-          I was up on a roof. I&apos;ve wasted money on a website that looked
-          pretty and generated zero calls.
+          from a homeowner trying to close a deal. I&apos;ve lost jobs to a faster
+          competitor because I was up on a roof and couldn&apos;t get back to people.
+          I&apos;ve wasted money on a website that looked pretty and brought in nothing.
         </p>
         <p>
           That frustration is why Accelerate exists. I built the tools I wished I
@@ -128,7 +127,7 @@ export function AboutPageContent() {
                 <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
                   We&apos;re not a software company that sells to small
                   businesses. We&apos;re operators who build and run custom AI
-                  systems — the same ones we use to grow our own roofing company.
+                  systems, the same ones we use to grow our own roofing company.
                   That changes how we work.
                 </p>
               </AnimateOnScroll>
@@ -163,9 +162,9 @@ export function AboutPageContent() {
           <div className="rounded-2xl border border-border-gold/40 bg-[color-mix(in_srgb,var(--gold-base)_5%,var(--bg-elevated))] p-8 text-center backdrop-blur-md sm:p-12">
             <Eyebrow className="mb-6 inline-block">our mission</Eyebrow>
             <p className="font-display text-2xl leading-relaxed text-white-primary sm:text-3xl">
-              Give small businesses the same AI-powered growth tools that
-              Fortune 500 companies use, without the enterprise budget, the
-              six-month timeline, or the 47-slide strategy deck.
+              Give small businesses the same caliber of AI-driven growth that
+              Fortune 500 companies buy, without the enterprise budget, the
+              drawn-out rollout, or the 47-slide strategy deck.
             </p>
           </div>
         </AnimateOnScroll>

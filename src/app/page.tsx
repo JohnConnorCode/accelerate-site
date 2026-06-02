@@ -19,7 +19,7 @@ const websiteJsonLd = {
   name: "Accelerate",
   url: "https://acceleratewith.us",
   description:
-    "AI strategy and systems for small businesses. We figure out where AI fits, then build and manage the systems that make it happen.",
+    "Custom business solutions powered by AI, built and run by Accelerate. Book more jobs, sign more clients, reclaim hours. We deliver the results and stand behind them.",
   publisher: { "@id": "https://acceleratewith.us/#organization" },
   potentialAction: {
     "@type": "SearchAction",
@@ -36,7 +36,7 @@ const serviceJsonLd = {
   "@id": "https://acceleratewith.us/#service",
   name: "AI Strategy & Systems for Small Business",
   description:
-    "We help small businesses figure out where AI fits, then build and manage the systems that make it happen.",
+    "Custom business solutions powered by AI, built and run by Accelerate. Book more jobs, sign more clients, reclaim hours. We deliver the results and stand behind them.",
   provider: { "@id": "https://acceleratewith.us/#organization" },
   serviceType: [
     "AI Strategy & Roadmap",

@@ -292,7 +292,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
               <motion.div variants={ctaVariants}>
                 <Link href="/contact" onClick={onClose}>
                   <Button variant="primary" size="lg" className="w-full group/cta">
-                    Book a Free Discovery Call
+                    Book a free strategy call
                     <ChevronRight className="w-4 h-4 ml-1.5 transition-transform duration-200 group-hover/cta:translate-x-0.5" />
                   </Button>
                 </Link>

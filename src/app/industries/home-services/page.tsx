@@ -30,7 +30,7 @@ export default function HomeServicesPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(generateVerticalJsonLd(vertical, "farrell-roofing")),
+          __html: JSON.stringify(generateVerticalJsonLd(vertical)),
         }}
       />
       <VerticalPage vertical={vertical} />

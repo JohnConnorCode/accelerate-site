@@ -21,7 +21,7 @@ const STEPS: Step[] = [
   {
     n: "01",
     title: "Diagnose.",
-    sub: "We learn your business cold — where it leaks time, where it leaves money on the table, where AI creates the most leverage.",
+    sub: "We learn your business cold: where it leaks time, where it leaves money on the table, where AI creates the most leverage.",
     ui: "diagnose",
     status: "Diagnose · mapping the opportunity",
   },
@@ -42,7 +42,7 @@ const STEPS: Step[] = [
   {
     n: "04",
     title: "Run it with you.",
-    sub: "We operate it beside you — measured, tuned, accountable. It compounds, week over week.",
+    sub: "We operate it beside you: measured, tuned, accountable. It compounds, week over week.",
     ui: "operate",
     status: "Operate · accountable to results",
   },
@@ -309,10 +309,10 @@ export function ScrollSequence() {
         <div className="page-shell page-shell--narrow">
           <Eyebrow>How we work</Eyebrow>
           <h2 className="display-3 mt-6">
-            We don&apos;t sell software. We engineer outcomes.
+            We engineer it around your business.
           </h2>
           <p className="mt-4 max-w-md text-base leading-relaxed text-white-muted">
-            Every engagement is built from scratch for your business —
+            Every engagement is built from scratch for your business:
             diagnosed, designed, built, and run alongside you.
           </p>
         </div>
@@ -339,7 +339,7 @@ export function ScrollSequence() {
             transition={{ duration: 0.7, ease: EASE }}
           >
             <Eyebrow className="mb-6">How we work</Eyebrow>
-            <h2 className="display-3 mb-12 max-w-md">We don&apos;t sell software. We engineer outcomes.</h2>
+            <h2 className="display-3 mb-12 max-w-md">We engineer it around your business.</h2>
 
             <ol className="max-w-md">
               {/* hidden ref preserves the (now no-op) rail scrub without a stray visual */}

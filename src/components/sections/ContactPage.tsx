@@ -46,7 +46,7 @@ export function ContactPageContent() {
             <AnimateOnScroll delay={0.3}>
               <p className="mt-7 max-w-md text-base leading-relaxed text-white-secondary">
                 Tell us where you are and where you want to go. We respond within
-                one business day &mdash; and the first call is free, no obligation,
+                one business day. The first call is free, no obligation,
                 straight to the founder.
               </p>
             </AnimateOnScroll>

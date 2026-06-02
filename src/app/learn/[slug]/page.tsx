@@ -55,6 +55,50 @@ const mdxComponents = {
   StatHighlight,
 };
 
+// Derive a contextual money-page link for the sidebar CTA based on the
+// article's category (and, for industry pieces, its slug/tags).
+function getContextualLink(frontmatter: {
+  category: string;
+  slug: string;
+  tags: string[];
+}): { href: string; label: string } | null {
+  const { category } = frontmatter;
+
+  if (category === "industry") {
+    const haystack = [frontmatter.slug, ...frontmatter.tags]
+      .join(" ")
+      .toLowerCase();
+    if (/\blaw\b|legal|attorney|injury/.test(haystack)) {
+      return { href: "/industries/law-firms", label: "See AI for law firms" };
+    }
+    if (/real[\s-]?estate|realtor|listing/.test(haystack)) {
+      return {
+        href: "/industries/real-estate",
+        label: "See AI for real estate",
+      };
+    }
+    if (/accountant|bookkeep|cpa|accounting/.test(haystack)) {
+      return {
+        href: "/industries/professional-services",
+        label: "See AI for professional services",
+      };
+    }
+    if (/contractor|home[\s-]?service|roofing|hvac|plumb/.test(haystack)) {
+      return {
+        href: "/industries/home-services",
+        label: "See AI for home services",
+      };
+    }
+    return { href: "/industries", label: "See what we build by industry" };
+  }
+
+  if (category === "automation") {
+    return { href: "/services#automation", label: "See our automation systems" };
+  }
+
+  return { href: "/services", label: "See what we build" };
+}
+
 export function generateStaticParams() {
   // Include scheduled articles so pages are pre-built at deploy time.
   // They return notFound() until their date arrives, then ISR revalidates to live content.
@@ -102,6 +146,12 @@ export default async function ArticlePage({
 
   const relatedArticles = getRelatedArticles(slug, 3);
   const { frontmatter, content, readingTime, wordCount } = article;
+
+  const contextualLink = getContextualLink({
+    category: frontmatter.category,
+    slug,
+    tags: frontmatter.tags,
+  });
 
   const { content: mdxContent } = await compileMDX({
     source: content,
@@ -303,6 +353,15 @@ export default async function ArticlePage({
                     <ArticleCTA slug={slug} href="/contact" variant="primary" size="sm" className="w-full">
                       Talk to Us
                     </ArticleCTA>
+                    {contextualLink && (
+                      <Link
+                        href={contextualLink.href}
+                        className="mt-3 inline-flex items-center justify-center gap-1 text-xs font-medium text-gold-light hover:text-gold transition-colors"
+                      >
+                        {contextualLink.label}
+                        <ChevronRight className="h-3 w-3" />
+                      </Link>
+                    )}
                   </div>
                 </div>
               </AnimateOnScroll>

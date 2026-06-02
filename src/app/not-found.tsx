@@ -38,7 +38,7 @@ export default function NotFound() {
             data-cursor="link"
             className="group inline-flex items-center gap-2 text-sm font-semibold text-heading"
           >
-            <span className="ink-sweep">Book a Free Discovery Call</span>
+            <span className="ink-sweep">Book a free strategy call</span>
             <ArrowUpRight className="h-4 w-4 text-gold transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </Link>
         </div>

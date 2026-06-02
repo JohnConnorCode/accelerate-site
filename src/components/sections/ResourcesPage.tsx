@@ -39,7 +39,7 @@ export function ResourcesPage() {
             />
             <AnimateOnScroll delay={0.3}>
               <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                Checklists, guides, and head-to-head comparisons — built for
+                Checklists, guides, and head-to-head comparisons, built for
                 owners making real decisions about AI and automation.
               </p>
             </AnimateOnScroll>
