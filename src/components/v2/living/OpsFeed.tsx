@@ -38,7 +38,7 @@ const OPS: { kind: Kind; label: string }[] = [
   { kind: "book", label: "Consultation booked" },
   { kind: "review", label: "Review request sent" },
   { kind: "book", label: "Appointment confirmed" },
-  { kind: "follow", label: "Lead reactivated" },
+  { kind: "follow", label: "Past customer re-engaged" },
   { kind: "call", label: "New inquiry → responded" },
   { kind: "capture", label: "Web form routed to owner" },
 ];

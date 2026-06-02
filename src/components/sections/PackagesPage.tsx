@@ -230,9 +230,12 @@ export function PackagesPageContent() {
         <Heading size={2} as="h2" className="mb-3 max-w-3xl">
           What&apos;s in each package.
         </Heading>
-        <p className="mb-10 max-w-2xl text-base leading-relaxed text-white-muted">
+        <p className="mb-6 max-w-2xl text-base leading-relaxed text-white-muted sm:mb-10">
           See exactly what&apos;s included in each package so you can choose
           with confidence.
+        </p>
+        <p className="mb-4 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-gold sm:hidden">
+          Swipe the table to compare all three →
         </p>
         <AnimateOnScroll
           as="div"
