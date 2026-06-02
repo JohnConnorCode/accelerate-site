@@ -89,9 +89,9 @@ export const verticals: Vertical[] = [
       },
     ],
     caseStudy: {
-      title: "Mississippi Roofing Company Grew Online Inquiries 5x",
+      title: "How a Roofing Company Grew Online Inquiries 5x",
       description:
-        "A family-owned roofing company in Mississippi was losing customers to competitors with faster response times. We deployed an AI intake system that responds across every channel, rebuilt their website with local SEO, and set up automated follow-up sequences. Within 90 days, their online inquiries grew from 10 to 50+ a month, average response time dropped to under 2 minutes, and revenue rose 75%.",
+        "A roofing company was losing customers to competitors with faster response times. We deployed an AI intake system that responds across every channel, rebuilt their website with local SEO, and set up automated follow-up sequences. Within 90 days, their online inquiries grew from 10 to 50+ a month, average response time dropped to under 2 minutes, and revenue rose 75%.",
       metrics: [
         { label: "Increase in inquiries", value: "5x" },
         { label: "Response time", value: "Under 2 min" },

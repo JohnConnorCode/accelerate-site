@@ -44,16 +44,15 @@ const NARRATIVE = [
     body: (
       <>
         <p>
-          But resumes don&apos;t tell you much. Here&apos;s what matters: I also
-          run a roofing company in Mississippi. I&apos;ve sat across the table
-          from a homeowner trying to close a deal. I&apos;ve lost jobs to a faster
-          competitor because I was up on a roof and couldn&apos;t get back to people.
-          I&apos;ve wasted money on a website that looked pretty and brought in nothing.
+          But resumes don&apos;t tell you much. What matters is why Accelerate
+          exists. I have seen up close how much revenue small businesses lose to
+          slow follow-up, missed calls, and websites that look fine but bring in
+          nothing. It is not a theoretical problem to me.
         </p>
         <p>
-          That frustration is why Accelerate exists. I built the tools I wished I
-          had, and they worked. Then contractors I know started asking,
-          &ldquo;Can you set that up for me too?&rdquo;
+          So I built the systems those businesses actually needed, and they
+          worked. Then other owners started asking, &ldquo;Can you set that up
+          for me too?&rdquo;
         </p>
       </>
     ),

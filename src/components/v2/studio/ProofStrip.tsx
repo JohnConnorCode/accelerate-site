@@ -5,13 +5,12 @@ import { EASE } from "@/lib/animations";
 import { Eyebrow } from "./primitives";
 import { stats } from "@/content/stats";
 
-/* Compact proof for the money pages (Services / Packages): one real client
-   line at the decision point, backed by the aggregate numbers. Verbatim from
-   testimonials.ts; stats single-sourced from stats.ts. Lighter than the home
-   Results section so it reads as a moment, not a second proof page. */
+/* Compact proof for the money pages (Services / Packages): an anonymized client
+   line at the decision point, backed by the aggregate numbers (stats.ts).
+   NOTE: quote + figures pending the owner's accuracy/consent confirmation. */
 const QUOTE = {
   text: "We've booked 15 extra jobs a month since going live.",
-  who: "Robert Farrell, Owner, Farrell Roofing",
+  who: "Owner, home-services business",
 };
 
 export function ProofStrip() {

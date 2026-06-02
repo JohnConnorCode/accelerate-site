@@ -5,11 +5,11 @@ import { EASE } from "@/lib/animations";
 import { Eyebrow } from "./primitives";
 import { stats } from "@/content/stats";
 
-/* Real proof, no decoration. Featured engagement + the verbatim Robert Farrell
-   testimonial come from the Farrell Roofing case study; aggregate numbers are
-   single-sourced from stats.ts; the second quote is verbatim from testimonials.ts. */
+/* Featured engagement + client quotes, anonymized (no specific company names).
+   Aggregate numbers single-sourced from stats.ts. NOTE: all figures and quotes
+   here are pending the owner's accuracy/consent confirmation before going public. */
 const FEATURED = {
-  tag: "Home Services · Farrell Roofing",
+  tag: "Home Services",
   from: "10",
   to: "50+",
   unit: "online inquiries / month",
@@ -19,13 +19,13 @@ const FEATURED = {
     { v: "4 weeks", k: "kickoff to live" },
   ],
   quote:
-    "We were losing jobs because we couldn't respond fast enough from the roof. Accelerate set up an AI system that handles every inquiry instantly, even nights and weekends. We've booked 15 extra jobs a month since going live.",
-  who: "Robert Farrell, Owner, Farrell Roofing",
+    "We were losing jobs because we couldn't respond fast enough. Accelerate set up an AI system that handles every inquiry instantly, even nights and weekends. We've booked 15 extra jobs a month since going live.",
+  who: "Owner, home-services business",
 };
 
 const SECOND = {
   quote: "Our consultation rate jumped 40% the first quarter.",
-  who: "Mike Montoya, Managing Partner, Montoya Capital",
+  who: "Managing Partner, wealth-management firm",
 };
 
 export function Results() {
