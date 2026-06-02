@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
         process.env.SUPABASE_SERVICE_ROLE_KEY
       );
 
-      await supabase.from("contact_submissions").insert({
+      const { error: dbError } = await supabase.from("contact_submissions").insert({
         name,
         email,
         business_type: businessType || null,
@@ -45,6 +45,11 @@ export async function POST(request: NextRequest) {
         utm_medium: utm?.utm_medium || null,
         utm_campaign: utm?.utm_campaign || null,
       });
+      // Surface insert failures instead of swallowing them (a missing column or
+      // dead project would otherwise look like a successful submission).
+      if (dbError) {
+        console.error("contact_submissions insert FAILED:", dbError.message);
+      }
 
       // Create admin notification
       supabase.from("admin_notifications").insert({
