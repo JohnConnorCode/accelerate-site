@@ -383,7 +383,7 @@ export default async function ArticlePage({
           </div>
           <div className="flex flex-col gap-7">
             <p className="text-lg leading-relaxed text-white-secondary">
-              Book a free 30-minute discovery call. We&apos;ll learn your
+              Book a free 30-minute strategy call. We&apos;ll learn your
               business and tell you exactly where AI can drive growth. No
               pitch, no obligation.
             </p>

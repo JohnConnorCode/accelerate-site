@@ -34,6 +34,6 @@ export const homeFaqs: FAQ[] = [
   {
     question: "What if I'm not sure where to start?",
     answer:
-      "That is exactly what the discovery call is for. It is free, 30 minutes, and you walk away with a clear picture of where AI can help your business, whether you work with us or not.",
+      "That is exactly what the strategy call is for. It is free, 30 minutes, and you walk away with a clear picture of where AI can help your business, whether you work with us or not.",
   },
 ];

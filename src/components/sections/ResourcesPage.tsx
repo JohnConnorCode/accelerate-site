@@ -139,7 +139,7 @@ export function ResourcesPage() {
           </div>
           <div className="flex flex-col gap-7">
             <p className="text-lg leading-relaxed text-white-secondary">
-              Book a free 30-minute discovery call and we&apos;ll map out
+              Book a free 30-minute strategy call and we&apos;ll map out
               exactly where AI and automation can move the needle for your
               business.
             </p>

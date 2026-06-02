@@ -9,6 +9,7 @@ import type { LucideIcon } from "lucide-react";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 import { Section, Container, Eyebrow, Heading, BookCallButton, useReveal } from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
+import { ProofStrip } from "@/components/v2/studio/ProofStrip";
 import { HERO_HEADING } from "@/lib/type-recipes";
 import { OpsFeed } from "@/components/v2/living/OpsFeed";
 import { services } from "@/content/services";
@@ -191,6 +192,9 @@ export function ServicesPageContent() {
         <ServiceBand key={service.id} service={service} />
       ))}
 
+      {/* proof, after the visitor has seen what we build */}
+      <ProofStrip />
+
       {/* process timeline — master language: numbered nodes + connector */}
       <Section width="wide" className="bg-[var(--bg-section-warm)]">
         <Eyebrow className="mb-6">the process</Eyebrow>
@@ -224,7 +228,7 @@ export function ServicesPageContent() {
           </div>
           <div className="flex flex-col gap-7">
             <p className="text-lg leading-relaxed text-white-secondary">
-              Book a free discovery call. We&apos;ll learn your business and tell
+              Book a free strategy call. We&apos;ll learn your business and tell
               you exactly where AI can help. No pitch, no obligation.
             </p>
             <BookCallButton />

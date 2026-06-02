@@ -21,7 +21,7 @@ const INFO_CARDS = [
   },
   {
     icon: Zap,
-    label: "Discovery call",
+    label: "Strategy call",
     value: "Free · 30 minutes",
   },
 ] as const;

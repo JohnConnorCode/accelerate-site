@@ -125,7 +125,7 @@ The Accelerate Team`,
 
 Just checking in. Did you get a chance to go through {{resourceTitle}}?
 
-If you found it useful and want to see how this applies to your specific business, the best next step is a free 30-minute discovery call. We'll map out exactly where AI and automation could help you book more clients and reclaim time, whether you work with us or not.
+If you found it useful and want to see how this applies to your specific business, the best next step is a free 30-minute strategy call. We'll map out exactly where AI and automation could help you book more clients and reclaim time, whether you work with us or not.
 
 Grab a time here: https://acceleratewith.us/contact
 

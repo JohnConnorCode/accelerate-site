@@ -8,6 +8,7 @@ import {
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 import { Section, Container, Eyebrow, Heading, BookCallButton } from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
+import { ProofStrip } from "@/components/v2/studio/ProofStrip";
 import { HERO_HEADING } from "@/lib/type-recipes";
 import { cn, formatCurrency } from "@/lib/utils";
 import { packages, packageFaqs } from "@/content/packages";
@@ -220,6 +221,9 @@ export function PackagesPageContent() {
         </p>
       </Section>
 
+      {/* proof, right at the price-decision point */}
+      <ProofStrip />
+
       {/* feature comparison */}
       <Section width="wide" divide className="bg-[var(--bg-section-deep)]">
         <Eyebrow className="mb-6">compare every feature</Eyebrow>
@@ -281,7 +285,7 @@ export function PackagesPageContent() {
           </div>
           <div className="flex flex-col gap-7">
             <p className="text-lg leading-relaxed text-white-secondary">
-              Book a free discovery call. We&apos;ll learn your business and
+              Book a free strategy call. We&apos;ll learn your business and
               recommend the package that fits. No pitch, no obligation.
             </p>
             <BookCallButton />

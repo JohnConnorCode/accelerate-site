@@ -6,7 +6,7 @@ import { Studio } from "@/components/v2/studio/Studio";
 export const metadata = seoMetadata({
   title: "Accelerate | AI Strategy & Systems for Small Businesses",
   description:
-    "We help small businesses figure out where AI fits, then build and manage the systems that make it happen. Free discovery call.",
+    "We help small businesses figure out where AI fits, then build and manage the systems that make it happen. Free strategy call.",
   ogTitle: "AI Strategy & Systems for Small Businesses",
   ogSubtitle: "Operate like you're ten times your size.",
   path: "/",
