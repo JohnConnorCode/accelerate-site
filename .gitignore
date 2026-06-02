@@ -46,3 +46,12 @@ supabase/.temp
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ad-hoc screenshot/diagnostic scripts (dev-only, not committed)
+scripts/cap.mjs
+scripts/cdpcap.mjs
+scripts/diag.mjs
+scripts/herocap.mjs
+scripts/onecap.mjs
+scripts/scrollcap.mjs
+scripts/smoothcap.mjs
