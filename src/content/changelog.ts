@@ -29,11 +29,11 @@ export const changelogEntries: ChangelogEntry[] = [
     publishedAt: "2026-02-28",
   },
   {
-    id: "case-study-farrell-roofing",
-    slug: "case-study-farrell-roofing",
-    title: "Case Study: Farrell Roofing",
+    id: "case-study-home-services",
+    slug: "case-study-home-services",
+    title: "Case Study: A Home-Services Client",
     description:
-      "Published our first detailed case study showing how Farrell Roofing dramatically increased inbound inquiries and grew monthly revenue using our AI-powered website and automation system.",
+      "Published our first detailed case study showing how a home-services client dramatically increased inbound inquiries and grew monthly revenue using our AI-powered website and automation system.",
     category: "announcement",
     publishedAt: "2026-02-25",
   },

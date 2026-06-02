@@ -20,7 +20,7 @@ This is the most expensive kind of work a business does: skilled people doing th
 
 AI document processing fixes this. Not the version where you upload a file and hope, but a real pipeline that reads the document, pulls out the fields you actually need, checks its own confidence, routes the uncertain ones to a human, and writes the clean data straight into the system you already use. This is the playbook to build it.
 
-<StatHighlight value="2 hrs to under 10 min" label="time to onboard a new client after we automated SparkBlox's document pipeline" />
+<StatHighlight value="2 hrs to under 10 min" label="time to onboard a new client after we automated the company's document pipeline" />
 
 ## What you are actually building
 
@@ -111,17 +111,17 @@ Three mistakes show up over and over, and all three come from treating extractio
 Contracts are where blind extraction is most dangerous. Pulling the parties, the effective date, and the renewal date from a contract is reasonable to automate. Deciding whether an indemnification clause is acceptable is not, and no confidence score should let it through unreviewed. For contracts, automate the data fields and the routing (this contract goes to legal, that renewal date creates a reminder task), but keep a human on anything that requires interpreting what the words mean. Automate the filing, not the judgment.
 </Callout>
 
-## The proof: SparkBlox went from 2 hours to under 10 minutes
+## The proof: A software company went from 2 hours to under 10 minutes
 
-This is not theoretical. [SparkBlox](/industries/professional-services), a professional services firm, was drowning in exactly this problem. Every new client meant manually keying the same information into four disconnected tools: their CRM, their project management system, their email platform, and their billing software. Someone read the signed agreement and the intake form, then copied the client's details into each tool by hand. Two hours per client. Every step depended on a person remembering to do the next one, and information drifted as it got re-typed across systems.
+This is not theoretical. [a software company](/industries/professional-services), a professional services firm, was drowning in exactly this problem. Every new client meant manually keying the same information into four disconnected tools: their CRM, their project management system, their email platform, and their billing software. Someone read the signed agreement and the intake form, then copied the client's details into each tool by hand. Two hours per client. Every step depended on a person remembering to do the next one, and information drifted as it got re-typed across systems.
 
 We built the pipeline described in this article. The signed documents and intake forms get captured automatically, a vision model extracts the client details into structured fields, a confidence gate routes anything uncertain to a quick human check, and the validated data writes itself into all four systems at once. One source of truth, populated once, flowing everywhere it needs to go.
 
-Onboarding dropped from **2 hours to under 10 minutes per client**. The number that actually matters to the business: with that time reclaimed, SparkBlox grew its client base **70% in Q1 without hiring a single additional person.** That is the real return on document automation. It is not "we save a few hours." It is "we can take on dramatically more business with the same team," because the work that used to gate growth no longer requires a human to push paper.
+Onboarding dropped from **2 hours to under 10 minutes per client**. The number that actually matters to the business: with that time reclaimed, a software company grew its client base **70% in Q1 without hiring a single additional person.** That is the real return on document automation. It is not "we save a few hours." It is "we can take on dramatically more business with the same team," because the work that used to gate growth no longer requires a human to push paper.
 
 <QuoteBlock
   quote="We were paying skilled people to copy and paste the same client details between four tools. Now that whole step just happens, and the system flags the handful it is unsure about instead of guessing. We grew 70% in a quarter without adding a single hire."
-  author="Operations Lead, SparkBlox"
+  author="Operations Lead, a software company"
   role="Professional services client"
 />
 
@@ -148,4 +148,4 @@ AI document processing is not "upload a file and hope." It is a four-step pipeli
 
 Start small and concrete this week: pick your single highest-volume document type, write down the exact fields it feeds into your system of record, and stand up a capture inbox plus an extraction call in Make or n8n. Run it in shadow mode for a week before you trust a single auto-approval. That one pipeline will pay for itself faster than almost any other automation, because it attacks work that is pure overhead.
 
-When you are ready to do this across every document type your business handles, and have it [built and run for you](/services#automation) rather than maintained on the side of your desk, that is exactly the kind of system we put in place for clients like SparkBlox. The documents process themselves. You get the hours, and the growth, back.
+When you are ready to do this across every document type your business handles, and have it [built and run for you](/services#automation) rather than maintained on the side of your desk, that is exactly the kind of system we put in place for clients like a software company. The documents process themselves. You get the hours, and the growth, back.

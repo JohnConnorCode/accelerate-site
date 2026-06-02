@@ -54,7 +54,7 @@ The Accelerate Team`,
 
 Quick case study that might resonate with you:
 
-Farrell Roofing was running a solid business but losing customers to slow follow-up and an outdated website. Sound familiar?
+A roofing company was running a solid business but losing customers to slow follow-up and an outdated website. Sound familiar?
 
 After implementing an AI-powered website and automated follow-up system, they saw:
 - A dramatic increase in inbound inquiries

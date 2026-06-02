@@ -57,7 +57,7 @@ export function Header() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const headerRef = useRef<HTMLElement>(null);
   const pathname = usePathname();
-  // active when on the exact route or any child route (e.g. /results/farrell)
+  // active when on the exact route or any child route (e.g. /results/[slug])
   const isActive = (href: string) =>
     href !== "#" && (pathname === href || pathname.startsWith(href + "/"));
   useEffect(() => {
