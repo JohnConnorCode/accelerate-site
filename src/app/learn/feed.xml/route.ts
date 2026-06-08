@@ -2,7 +2,7 @@ import { getAllArticles, CATEGORY_LABELS } from "@/lib/mdx";
 
 export const revalidate = 3600;
 
-const BASE_URL = "https://acceleratewith.us";
+const BASE_URL = "https://www.acceleratewith.us";
 
 export async function GET() {
   const articles = getAllArticles();

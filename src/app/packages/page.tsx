@@ -24,7 +24,7 @@ const jsonLd = {
   name: "Accelerate Service Packages",
   description:
     "AI strategy and automation packages for small businesses.",
-  url: "https://acceleratewith.us/packages",
+  url: "https://www.acceleratewith.us/packages",
   numberOfItems: packages.length,
   itemListElement: packages.map((pkg, index) => ({
     "@type": "ListItem",
@@ -33,7 +33,7 @@ const jsonLd = {
       "@type": "Product",
       name: `${pkg.name} Package`,
       description: pkg.description,
-      url: `https://acceleratewith.us/packages#${pkg.slug}`,
+      url: `https://www.acceleratewith.us/packages#${pkg.slug}`,
       offers: {
         "@type": "AggregateOffer",
         priceCurrency: "USD",
@@ -79,7 +79,7 @@ const jsonLd = {
         ],
       },
       brand: {
-        "@id": "https://acceleratewith.us/#organization",
+        "@id": "https://www.acceleratewith.us/#organization",
       },
     },
   })),

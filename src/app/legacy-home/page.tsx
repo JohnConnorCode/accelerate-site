@@ -14,7 +14,6 @@ import { HowItWorks } from "@/components/sections/HowItWorks";
 import { WhyAccelerate } from "@/components/sections/WhyAccelerate";
 import { WhoThisIsFor } from "@/components/sections/WhoThisIsFor";
 import { Integrations } from "@/components/sections/Integrations";
-import { SocialProof } from "@/components/sections/SocialProof";
 import { HomeFAQ } from "@/components/sections/HomeFAQ";
 import { FinalCTA } from "@/components/sections/FinalCTA";
 import { SectionDivider } from "@/components/ui/SectionDivider";
@@ -43,8 +42,6 @@ export default function LegacyHomePage() {
       <SectionDivider variant="line" />
       <ProblemSolution />
       <SectionDivider variant="glow" />
-      <SocialProof />
-      <SectionDivider variant="fade" />
       <HowItWorks />
       <SectionDivider variant="glow" />
       <WhyAccelerate />

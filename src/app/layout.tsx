@@ -47,7 +47,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://acceleratewith.us"),
+  metadataBase: new URL("https://www.acceleratewith.us"),
   title: {
     default: "Accelerate | Custom AI Solutions, Built & Run for You",
     template: "%s | Accelerate",
@@ -55,13 +55,13 @@ export const metadata: Metadata = {
   description:
     "Custom business solutions powered by AI, built and run by Accelerate. Book more jobs, sign more clients, reclaim hours. We deliver the results and stand behind them.",
   applicationName: "Accelerate",
-  authors: [{ name: "Accelerate", url: "https://acceleratewith.us" }],
+  authors: [{ name: "Accelerate", url: "https://www.acceleratewith.us" }],
   creator: "Accelerate",
   publisher: "Accelerate",
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://acceleratewith.us",
+    url: "https://www.acceleratewith.us",
     siteName: "Accelerate",
     title: "Accelerate | Custom AI Solutions, Built & Run for You",
     description:
@@ -94,12 +94,12 @@ export const metadata: Metadata = {
 const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  "@id": "https://acceleratewith.us/#organization",
+  "@id": "https://www.acceleratewith.us/#organization",
   name: "Accelerate",
-  url: "https://acceleratewith.us",
+  url: "https://www.acceleratewith.us",
   logo: {
     "@type": "ImageObject",
-    url: "https://acceleratewith.us/logo.png",
+    url: "https://www.acceleratewith.us/logo.png",
     width: 512,
     height: 512,
   },
@@ -114,7 +114,7 @@ const organizationJsonLd = {
     "@type": "ContactPoint",
     contactType: "sales",
     email: "john@acceleratewith.us",
-    url: "https://acceleratewith.us/contact",
+    url: "https://www.acceleratewith.us/contact",
   },
   areaServed: {
     "@type": "Country",

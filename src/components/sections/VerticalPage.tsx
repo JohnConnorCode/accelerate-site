@@ -209,30 +209,32 @@ export function VerticalPage({ vertical }: VerticalPageProps) {
       </section>
 
       {/* case study */}
-      <section className="section-y section-divide relative">
-        <Container width="wide">
-          <AnimateOnScroll><Eyebrow className="mb-6">case study</Eyebrow></AnimateOnScroll>
-          <RevealHeading className={`${H2} mb-10 max-w-3xl`} lead={vertical.caseStudy.title} />
-          <AnimateOnScroll delay={0.1} as="div" className="rounded-2xl border border-border-gold/40 bg-[color-mix(in_srgb,var(--gold-base)_4%,var(--bg-elevated))] p-8 backdrop-blur-md sm:p-12">
-            <p className="mb-10 max-w-3xl text-lg leading-relaxed text-white-secondary">
-              {vertical.caseStudy.description}
-            </p>
-            <div className="grid gap-3 sm:gap-4 md:grid-cols-4">
-              {vertical.caseStudy.metrics.map((metric, i) => (
-                <AnimateOnScroll
-                  key={metric.label}
-                  as="div"
-                  delay={0.15 + i * 0.05}
-                  className="rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)] p-5 text-center"
-                >
-                  <p className="mb-1 font-display text-2xl font-bold text-gold sm:text-3xl">{metric.value}</p>
-                  <p className="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-white-muted">{metric.label}</p>
-                </AnimateOnScroll>
-              ))}
-            </div>
-          </AnimateOnScroll>
-        </Container>
-      </section>
+      {vertical.caseStudy && (
+        <section className="section-y section-divide relative">
+          <Container width="wide">
+            <AnimateOnScroll><Eyebrow className="mb-6">case study</Eyebrow></AnimateOnScroll>
+            <RevealHeading className={`${H2} mb-10 max-w-3xl`} lead={vertical.caseStudy.title} />
+            <AnimateOnScroll delay={0.1} as="div" className="rounded-2xl border border-border-gold/40 bg-[color-mix(in_srgb,var(--gold-base)_4%,var(--bg-elevated))] p-8 backdrop-blur-md sm:p-12">
+              <p className="mb-10 max-w-3xl text-lg leading-relaxed text-white-secondary">
+                {vertical.caseStudy.description}
+              </p>
+              <div className="grid gap-3 sm:gap-4 md:grid-cols-4">
+                {vertical.caseStudy.metrics.map((metric, i) => (
+                  <AnimateOnScroll
+                    key={metric.label}
+                    as="div"
+                    delay={0.15 + i * 0.05}
+                    className="rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)] p-5 text-center"
+                  >
+                    <p className="mb-1 font-display text-2xl font-bold text-gold sm:text-3xl">{metric.value}</p>
+                    <p className="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-white-muted">{metric.label}</p>
+                  </AnimateOnScroll>
+                ))}
+              </div>
+            </AnimateOnScroll>
+          </Container>
+        </section>
+      )}
 
       {/* related reading — link each industry into the learn library + /services */}
       {relatedReading.length > 0 && (

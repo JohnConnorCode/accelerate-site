@@ -27,7 +27,7 @@ export async function generateMetadata({
       ogTitle: `${decoded} Articles`,
       ogSubtitle: "Practical strategies for small businesses",
       alternates: {
-        canonical: `https://acceleratewith.us/learn/tag/${encodeURIComponent(tag)}`,
+        canonical: `https://www.acceleratewith.us/learn/tag/${encodeURIComponent(tag)}`,
       },
     }),
     ...(isThin && {

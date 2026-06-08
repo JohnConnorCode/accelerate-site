@@ -130,7 +130,7 @@ export async function generateMetadata({
       tags: frontmatter.tags,
     },
     alternates: {
-      canonical: `https://acceleratewith.us/learn/${slug}`,
+      canonical: `https://www.acceleratewith.us/learn/${slug}`,
     },
   });
 }

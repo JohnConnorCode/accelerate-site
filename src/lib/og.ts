@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-const SITE_URL = "https://acceleratewith.us";
+const SITE_URL = "https://www.acceleratewith.us";
 
 function ogImageUrl(title: string, subtitle?: string): string {
   const params = new URLSearchParams({ title });

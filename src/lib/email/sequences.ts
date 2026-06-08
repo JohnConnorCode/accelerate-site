@@ -92,7 +92,7 @@ function replaceTemplateVars(
     "{{email}}": email,
     "{{industry}}": metadata.industry || "your",
     "{{planLink}}":
-      metadata.planLink || "https://acceleratewith.us/plan-builder",
+      metadata.planLink || "https://www.acceleratewith.us/plan-builder",
     "{{planSummary}}":
       metadata.planSummary ||
       "Your personalized recommendations are ready.",

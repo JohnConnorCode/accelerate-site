@@ -10,7 +10,7 @@ function escapeXml(str: string): string {
 }
 
 export async function GET() {
-  const baseUrl = "https://acceleratewith.us";
+  const baseUrl = "https://www.acceleratewith.us";
 
   const items = changelogEntries
     .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())

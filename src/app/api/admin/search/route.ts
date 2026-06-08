@@ -7,9 +7,13 @@ export async function GET(request: NextRequest) {
   if (auth instanceof NextResponse) return auth;
 
   const { searchParams } = new URL(request.url);
-  const q = searchParams.get("q");
+  const rawQ = searchParams.get("q");
+  // Strip characters that are meaningful in the PostgREST .or() filter DSL
+  // (commas, parentheses, backslash, quotes) so a crafted q cannot inject
+  // extra filter conditions. Dots, @, _, - are kept so name/email search works.
+  const q = (rawQ || "").replace(/[,()\\"]/g, "").trim();
 
-  if (!q || q.length < 3) {
+  if (q.length < 3) {
     return NextResponse.json({ results: [] });
   }
 

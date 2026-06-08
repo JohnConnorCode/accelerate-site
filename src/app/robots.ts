@@ -33,7 +33,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: ["/learn/", "/services", "/packages", "/industries/", "/about"],
       },
     ],
-    sitemap: "https://acceleratewith.us/sitemap.xml",
-    host: "https://acceleratewith.us",
+    sitemap: "https://www.acceleratewith.us/sitemap.xml",
+    host: "https://www.acceleratewith.us",
   };
 }

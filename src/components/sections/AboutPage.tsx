@@ -99,7 +99,7 @@ function FounderCard() {
       <h2 className="font-display text-2xl font-bold text-heading">John Connor</h2>
       <p className="mt-1 font-mono text-xs uppercase tracking-[0.2em] text-gold">Founder</p>
       <p className="mt-3 text-sm leading-relaxed text-white-muted">
-        Tech builder. Business owner. Roofer (seriously).
+        Tech builder. Business owner. Operator.
       </p>
     </div>
   );
@@ -126,8 +126,8 @@ export function AboutPageContent() {
                 <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
                   We&apos;re not a software company that sells to small
                   businesses. We&apos;re operators who build and run custom AI
-                  systems, the same ones we use to grow our own roofing company.
-                  That changes how we work.
+                  systems, the same way we&apos;d run them inside our own
+                  business. That changes how we work.
                 </p>
               </AnimateOnScroll>
             </div>

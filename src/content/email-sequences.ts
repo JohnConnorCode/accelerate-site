@@ -17,7 +17,7 @@ Here's a quick summary of what we recommended:
 
 The fastest way to move forward is to book a free 30-minute consultation where we walk through the plan together and answer any questions.
 
-Book your consultation: https://acceleratewith.us/contact
+Book your consultation: https://www.acceleratewith.us/contact
 
 No pressure, no pitch. Just a conversation about what would actually move the needle for your business.
 
@@ -41,31 +41,26 @@ Your growth plan includes a solution for this. If you haven't reviewed it yet, h
 {{planLink}}
 
 And if you want to talk about the fastest way to fix your response time, we're here:
-https://acceleratewith.us/contact
+https://www.acceleratewith.us/contact
 
 Talk soon,
 The Accelerate Team`,
     },
     {
       stepNumber: 3,
-      subject: "How one roofing company tripled their inbound inquiries",
+      subject: "The #1 reason small businesses lose inquiries",
       delayDays: 5,
       bodyTemplate: `Hi {{name}},
 
-Quick case study that might resonate with you:
+Most small businesses we talk to are losing customers for the same reason: slow follow-up and a website that doesn't convert.
 
-A roofing company was running a solid business but losing customers to slow follow-up and an outdated website. Sound familiar?
+It usually looks like this. An inquiry comes in while you're busy with a customer. By the time you get back to them, they've already hired whoever answered first. The work was there. The response time wasn't.
 
-After implementing an AI-powered website and automated follow-up system, they saw:
-- A dramatic increase in inbound inquiries
-- Response time dropped from hours to under two minutes
-- Significant additional monthly revenue within the first quarter
+That's exactly what we build and run for you: instant response across every channel, automated follow-up, and a website that turns visitors into booked work. So nothing slips while you're heads-down running the business.
 
-Read the full case study: https://acceleratewith.us/industries/home-services
+Your plan was designed to fix this for your business. The question is just whether now is the right time to start.
 
-Your plan was designed to deliver similar results for your business. The question is just whether now is the right time to start.
-
-If it is, let's talk: https://acceleratewith.us/contact
+If it is, let's talk: https://www.acceleratewith.us/contact
 
 Talk soon,
 The Accelerate Team`,
@@ -87,7 +82,7 @@ If any of these apply to you, a quick conversation could save you months of tria
 
 We've helped dozens of businesses in your position and the conversation is always free.
 
-Book a call: https://acceleratewith.us/contact
+Book a call: https://www.acceleratewith.us/contact
 
 Or if you just want to revisit your plan: {{planLink}}
 
@@ -110,7 +105,7 @@ Thanks for downloading {{resourceTitle}}. Here's your link:
 
 While you're diving into that, here's a bonus: our free AI Solution Generator creates a custom growth plan for your business in under 5 minutes. It's specific to your industry, your current setup, and your goals.
 
-Try it here: https://acceleratewith.us/plan-builder
+Try it here: https://www.acceleratewith.us/plan-builder
 
 Enjoy the resource. If you have any questions, just reply to this email.
 
@@ -127,7 +122,7 @@ Just checking in. Did you get a chance to go through {{resourceTitle}}?
 
 If you found it useful and want to see how this applies to your specific business, the best next step is a free 30-minute strategy call. We'll map out exactly where AI and automation could help you book more clients and reclaim time, whether you work with us or not.
 
-Grab a time here: https://acceleratewith.us/contact
+Grab a time here: https://www.acceleratewith.us/contact
 
 Talk soon,
 The Accelerate Team`,
@@ -148,7 +143,7 @@ D) All of the above
 Just reply with a letter and I'll send you the most relevant resource or recommendation.
 
 Or if you'd rather talk it through, book a free 30-minute consultation:
-https://acceleratewith.us/contact
+https://www.acceleratewith.us/contact
 
 We help small businesses fix exactly these problems every day.
 
@@ -174,10 +169,10 @@ The good news: most of these issues are fixable, and fixing them can have an imm
 
 Want to see what a top-performing website in your industry looks like? Our AI Solution Generator will create a custom plan based on your specific situation:
 
-https://acceleratewith.us/plan-builder
+https://www.acceleratewith.us/plan-builder
 
 Or if you'd rather have an expert walk you through it:
-https://acceleratewith.us/contact
+https://www.acceleratewith.us/contact
 
 Talk soon,
 The Accelerate Team`,
@@ -198,7 +193,7 @@ Based on your website grade of {{score}}/100, here are three things you can fix 
 
 Want us to handle all of this for you? Our Launch package starts at $2,500 and includes a complete website built around conversion:
 
-https://acceleratewith.us/packages
+https://www.acceleratewith.us/packages
 
 Talk soon,
 The Accelerate Team`,

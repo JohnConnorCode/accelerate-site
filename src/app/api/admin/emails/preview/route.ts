@@ -23,14 +23,14 @@ const SAMPLE = {
   phone: "(555) 234-5678",
   business: "Mitchell HVAC Services",
   industry: "home_services",
-  planUrl: "https://acceleratewith.us/plan/abc123",
+  planUrl: "https://www.acceleratewith.us/plan/abc123",
   planSummary:
     "AI-powered website with 24/7 chat, automated follow-up sequences, and review management system.",
   score: "62",
   topIssues:
     "- Mobile page speed: 2.8s (target: <1.5s)\n- No SSL certificate detected\n- Missing meta descriptions on 4 pages",
   resourceTitle: "The Small Business AI Automation Playbook",
-  downloadLink: "https://acceleratewith.us/resources/ai-playbook",
+  downloadLink: "https://www.acceleratewith.us/resources/ai-playbook",
 };
 
 function escapeHtml(text: string): string {

@@ -35,7 +35,11 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
+  // Fail closed: redirect to login unless a logged-in user matches ADMIN_EMAIL
+  // exactly (mirrors requireAdmin() on the /api/admin routes so the page gate
+  // and the API gate agree).
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (!user || !adminEmail || user.email !== adminEmail) {
     const loginUrl = new URL("/admin/login", request.url);
     loginUrl.searchParams.set("redirect", request.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);

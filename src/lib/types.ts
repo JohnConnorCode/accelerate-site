@@ -38,7 +38,7 @@ export interface Vertical {
   heroSubheadline: string;
   painPoints: PainPoint[];
   solutions: VerticalSolution[];
-  caseStudy: CaseStudy;
+  caseStudy?: CaseStudy;
   ctaText: string;
   ctaLink: string;
 }

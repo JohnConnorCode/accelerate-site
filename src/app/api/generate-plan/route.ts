@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
       metadata: {
         name: formData.contactName,
         industry: formData.industry,
-        planLink: `https://acceleratewith.us/plan/${shareToken}`,
+        planLink: `https://www.acceleratewith.us/plan/${shareToken}`,
         planSummary: plan.executiveSummary,
       },
     }).catch((e) => console.warn("Plan nurture sequence failed:", e));

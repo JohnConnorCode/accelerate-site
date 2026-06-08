@@ -13,7 +13,7 @@ export async function sendPlanEmail(
   summary: string,
   shareToken: string
 ) {
-  const planUrl = `https://acceleratewith.us/plan/${shareToken}`;
+  const planUrl = `https://www.acceleratewith.us/plan/${shareToken}`;
 
   await Promise.all([
     getResend().emails.send({

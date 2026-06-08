@@ -12,9 +12,9 @@ export const metadata = seoMetadata({
   ogTitle: "Learning Hub",
   ogSubtitle: "AI & automation guides for small businesses",
   alternates: {
-    canonical: "https://acceleratewith.us/learn",
+    canonical: "https://www.acceleratewith.us/learn",
     types: {
-      "application/rss+xml": "https://acceleratewith.us/learn/feed.xml",
+      "application/rss+xml": "https://www.acceleratewith.us/learn/feed.xml",
     },
   },
 });
@@ -38,14 +38,14 @@ export default function LearnPage() {
     name: "Learning Hub | AI & Automation Guides for Small Business",
     description:
       "Practical guides on AI, automation, client acquisition, and local SEO for small businesses.",
-    url: "https://acceleratewith.us/learn",
+    url: "https://www.acceleratewith.us/learn",
     mainEntity: {
       "@type": "ItemList",
       itemListElement: articles.map((article, index) => ({
         "@type": "ListItem",
         position: index + 1,
         name: article.frontmatter.title,
-        url: `https://acceleratewith.us/learn/${article.slug}`,
+        url: `https://www.acceleratewith.us/learn/${article.slug}`,
       })),
     },
   };

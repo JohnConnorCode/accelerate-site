@@ -3,7 +3,7 @@ export const revalidate = 3600;
 import type { MetadataRoute } from "next";
 import { getAllArticles, getAllCategories, getAllTags } from "@/lib/mdx";
 
-const BASE_URL = "https://acceleratewith.us";
+const BASE_URL = "https://www.acceleratewith.us";
 
 // Last significant content/design update date for static pages
 // Must not be a future date — Google penalizes sitemaps with future lastModified

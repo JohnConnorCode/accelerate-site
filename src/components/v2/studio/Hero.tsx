@@ -44,14 +44,14 @@ export function Hero() {
             <h1 className="font-display font-extrabold leading-[1.02] tracking-[-0.035em] text-[clamp(2.4rem,4.6vw,4.75rem)] text-heading">
               {/* pb on each mask span so descenders (y, g) and italic tails aren't clipped */}
               <span className="block overflow-hidden pb-[0.12em]">
-                <motion.span className="block" {...line(0.12)}>Every inquiry answered.</motion.span>
+                <motion.span className="block" {...line(0.12)}>Earn more money.</motion.span>
               </span>
               <span className="block overflow-hidden pb-[0.12em]">
-                <motion.span className="block" {...line(0.22)}>Every job booked.</motion.span>
+                <motion.span className="block" {...line(0.22)}>Reclaim your time.</motion.span>
               </span>
               <span className="block overflow-hidden pb-[0.2em]">
                 <motion.span className="block" {...line(0.32)}>
-                  <span className="display-italic">Results guaranteed.</span>
+                  <span className="display-italic">Scale with ease.</span>
                 </motion.span>
               </span>
             </h1>
@@ -63,9 +63,8 @@ export function Hero() {
             transition={{ duration: 0.8, ease: EASE, delay: 0.7 }}
             className="mt-7 max-w-md text-base leading-relaxed text-white-secondary"
           >
-            We&apos;re the team that builds custom AI for your business and runs
-            it for you. Every call, text, and form answered, every follow-up
-            sent, your busywork turned into booked revenue.
+            Not another tool to manage. A custom operation we build and run
+            with you, handling the work so you can focus on what grows the business.
           </motion.p>
 
           <motion.div

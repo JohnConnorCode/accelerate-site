@@ -1,6 +1,6 @@
 import type { ArticleFrontmatter } from "./types";
 
-const BASE_URL = "https://acceleratewith.us";
+const BASE_URL = "https://www.acceleratewith.us";
 const ORG_ID = `${BASE_URL}/#organization`;
 
 export function generateArticleJsonLd(

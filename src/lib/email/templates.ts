@@ -1,4 +1,4 @@
-const BASE_URL = "https://acceleratewith.us";
+const BASE_URL = "https://www.acceleratewith.us";
 
 function esc(text: string): string {
   return text

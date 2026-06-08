@@ -20,9 +20,9 @@ const contactJsonLd = {
   "@context": "https://schema.org",
   "@type": "ContactPage",
   name: "Contact Accelerate",
-  url: "https://acceleratewith.us/contact",
+  url: "https://www.acceleratewith.us/contact",
   mainEntity: {
-    "@id": "https://acceleratewith.us/#organization",
+    "@id": "https://www.acceleratewith.us/#organization",
   },
 };
 

@@ -88,17 +88,6 @@ export const verticals: Vertical[] = [
         ],
       },
     ],
-    caseStudy: {
-      title: "How a Roofing Company Grew Online Inquiries 5x",
-      description:
-        "A roofing company was losing customers to competitors with faster response times. We deployed an AI intake system that responds across every channel, rebuilt their website with local SEO, and set up automated follow-up sequences. Within 90 days, their online inquiries grew from 10 to 50+ a month, average response time dropped to under 2 minutes, and revenue rose 75%.",
-      metrics: [
-        { label: "Increase in inquiries", value: "5x" },
-        { label: "Response time", value: "Under 2 min" },
-        { label: "After-hours inquiries", value: "35%" },
-        { label: "Revenue, 90 days", value: "+75%" },
-      ],
-    },
     ctaText: "Get your free growth plan",
     ctaLink: "/contact",
   },
@@ -189,17 +178,6 @@ export const verticals: Vertical[] = [
         ],
       },
     ],
-    caseStudy: {
-      title: "Personal Injury Firm Cuts Intake Time by 60%",
-      description:
-        "A three-attorney personal injury firm was losing cases to larger firms with faster intake. We deployed an AI intake system with after-hours coverage and automated follow-up. Their average intake time dropped from 48 hours to under 4 hours, and they signed 35% more cases in the first quarter.",
-      metrics: [
-        { label: "Intake time reduction", value: "60%" },
-        { label: "More cases signed", value: "35%" },
-        { label: "After-hours inquiries captured", value: "42%" },
-        { label: "Client satisfaction score", value: "4.9/5" },
-      ],
-    },
     ctaText: "Get your free growth plan",
     ctaLink: "/contact",
   },
@@ -290,17 +268,6 @@ export const verticals: Vertical[] = [
         ],
       },
     ],
-    caseStudy: {
-      title: "Accounting Firm Doubles Online Inquiries in 6 Months",
-      description:
-        "A mid-size accounting firm relied entirely on referrals and hadn't updated their website in five years. We rebuilt their digital presence with service-specific landing pages, launched a Google Ads campaign, and automated their consultation booking. Within six months, online inquiries accounted for 45% of new clients.",
-      metrics: [
-        { label: "Online inquiries increase", value: "2x" },
-        { label: "New clients from digital", value: "45%" },
-        { label: "Scheduling time saved", value: "8 hrs/week" },
-        { label: "Cost per inquiry", value: "$32" },
-      ],
-    },
     ctaText: "Get your free growth plan",
     ctaLink: "/contact",
   },
@@ -391,17 +358,6 @@ export const verticals: Vertical[] = [
         ],
       },
     ],
-    caseStudy: {
-      title: "Solo Agent Increases Closings by 25% with AI Automation",
-      description:
-        "A solo agent in a competitive metro market was spending $3,000/month on ads but only converting 2%. We implemented instant response, a 12-month nurture sequence, and end-to-end ROI tracking. Within a year, their conversion rate hit 5% and they closed 25% more deals with the same ad spend.",
-      metrics: [
-        { label: "More closings", value: "25%" },
-        { label: "Inquiry conversion rate", value: "5% (was 2%)" },
-        { label: "Average response time", value: "45 seconds" },
-        { label: "ROI on ad spend", value: "4.2x" },
-      ],
-    },
     ctaText: "Get your free growth plan",
     ctaLink: "/contact",
   },

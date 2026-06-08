@@ -20,9 +20,9 @@ const aboutJsonLd = {
   "@context": "https://schema.org",
   "@type": "AboutPage",
   mainEntity: {
-    "@id": "https://acceleratewith.us/#organization",
+    "@id": "https://www.acceleratewith.us/#organization",
   },
-  url: "https://acceleratewith.us/about",
+  url: "https://www.acceleratewith.us/about",
 };
 
 export default function AboutPage() {

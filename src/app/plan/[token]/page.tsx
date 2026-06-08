@@ -22,9 +22,12 @@ async function fetchPlan(token: string): Promise<SolutionRequest | null> {
     );
     const supabase = await createServerSupabaseClient();
 
+    // Only select the columns this public page actually renders. Avoid
+    // pulling PII (contact_email, contact_phone, intake_data, utm_*) into the
+    // server-rendered payload for anyone holding the share link.
     const { data, error } = await supabase
       .from("solution_requests")
-      .select("*")
+      .select("ai_plan, business_name")
       .eq("share_token", token)
       .single();
 

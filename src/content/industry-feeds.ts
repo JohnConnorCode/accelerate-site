@@ -35,7 +35,7 @@ export const INDUSTRY_FEEDS: Record<string, IndustryFeed> = {
     ],
   },
   "law-firms": {
-    metric: "2.1× signed cases",
+    metric: "Less intake work, more signed cases",
     feed: [
       { time: "09:04:22", channel: "capture", label: "New case intake captured" },
       { time: "09:06:50", channel: "follow", label: "Conflict check: clear" },

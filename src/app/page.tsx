@@ -15,15 +15,15 @@ export const metadata = seoMetadata({
 const websiteJsonLd = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  "@id": "https://acceleratewith.us/#website",
+  "@id": "https://www.acceleratewith.us/#website",
   name: "Accelerate",
-  url: "https://acceleratewith.us",
+  url: "https://www.acceleratewith.us",
   description:
     "Custom business solutions powered by AI, built and run by Accelerate. Book more jobs, sign more clients, reclaim hours. We deliver the results and stand behind them.",
-  publisher: { "@id": "https://acceleratewith.us/#organization" },
+  publisher: { "@id": "https://www.acceleratewith.us/#organization" },
   potentialAction: {
     "@type": "SearchAction",
-    target: "https://acceleratewith.us/learn?q={search_term_string}",
+    target: "https://www.acceleratewith.us/learn?q={search_term_string}",
     "query-input": "required name=search_term_string",
   },
 };
@@ -33,11 +33,11 @@ const faqJsonLd = generateFaqJsonLd(homeFaqs);
 const serviceJsonLd = {
   "@context": "https://schema.org",
   "@type": "Service",
-  "@id": "https://acceleratewith.us/#service",
+  "@id": "https://www.acceleratewith.us/#service",
   name: "AI Strategy & Systems for Small Business",
   description:
     "Custom business solutions powered by AI, built and run by Accelerate. Book more jobs, sign more clients, reclaim hours. We deliver the results and stand behind them.",
-  provider: { "@id": "https://acceleratewith.us/#organization" },
+  provider: { "@id": "https://www.acceleratewith.us/#organization" },
   serviceType: [
     "AI Strategy & Roadmap",
     "Workflow Automation",

@@ -307,7 +307,7 @@ function generatePlanHTML(
 
   <div class="footer">
     <p><strong>Accelerate</strong> | AI Strategy & Systems for Small Business</p>
-    <p><a href="https://acceleratewith.us">acceleratewith.us</a> | john@acceleratewith.us</p>
+    <p><a href="https://www.acceleratewith.us">acceleratewith.us</a> | john@acceleratewith.us</p>
     <p style="margin-top: 8px; font-size: 11px; color: #999;">This plan was generated based on information you provided and is intended as a starting point for discussion. Final pricing and timelines are confirmed during consultation.</p>
   </div>
 </body>

@@ -31,7 +31,7 @@ export async function generateMetadata({
     ogTitle: `${label} Articles`,
     ogSubtitle: `Practical ${label.toLowerCase()} strategies for small businesses`,
     alternates: {
-      canonical: `https://acceleratewith.us/learn/category/${category}`,
+      canonical: `https://www.acceleratewith.us/learn/category/${category}`,
     },
   });
 }
