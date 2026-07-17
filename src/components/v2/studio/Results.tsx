@@ -49,13 +49,6 @@ export function Results() {
           ))}
         </motion.div>
 
-        <motion.p
-          {...rv(0.15)}
-          className="mt-14 max-w-xl text-base leading-relaxed text-white-secondary"
-        >
-          Every engagement comes with a results guarantee, plus a roadmap and ROI
-          projection that is yours to keep, even if we never work together.
-        </motion.p>
       </div>
     </section>
   );

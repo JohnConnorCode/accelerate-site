@@ -398,7 +398,10 @@
 
 html,
 body {
-  overflow-x: hidden;
+  /* clip, not hidden: overflow-x hidden makes body a scroll container, which
+     silently disables every position:sticky descendant (e.g. the packages
+     comparison-table header). clip guards horizontal bleed without that. */
+  overflow-x: clip;
 }
 
 /* Lenis smooth-scroll (scoped to the /v2 experience) */

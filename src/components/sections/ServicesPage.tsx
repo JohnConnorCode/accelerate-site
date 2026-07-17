@@ -18,6 +18,69 @@ const iconMap: Record<string, LucideIcon> = {
   Compass, Workflow, TrendingUp, MessageCircle, PenTool, BarChart3,
 };
 
+/* Static micro-feed per service — the ops-feed motif carried through to each
+   card, showing that service's work in the same live-operations language as
+   the hero. Deterministic (no timers): three rows, one glance. */
+const MICRO_FEEDS: Record<string, { time: string; glyph: string; rgb: string; label: string }[]> = {
+  strategy: [
+    { time: "09:02", glyph: "◆", rgb: "96,165,250", label: "Opportunity map delivered" },
+    { time: "09:15", glyph: "↗", rgb: "163,230,53", label: "ROI projection updated" },
+    { time: "11:40", glyph: "✓", rgb: "190,242,100", label: "Quarter roadmap approved" },
+  ],
+  automation: [
+    { time: "07:58", glyph: "→", rgb: "34,211,238", label: "Intake routed → job created" },
+    { time: "08:31", glyph: "＄", rgb: "52,211,153", label: "Invoice chased → paid" },
+    { time: "08:45", glyph: "✓", rgb: "190,242,100", label: "Morning handoff done by 9am" },
+  ],
+  sales: [
+    { time: "12:04", glyph: "●", rgb: "56,189,248", label: "New inquiry → replied in 40s" },
+    { time: "14:22", glyph: "↻", rgb: "167,139,250", label: "Follow-up #3 delivered" },
+    { time: "16:51", glyph: "✦", rgb: "163,230,53", label: "Proposal opened → owner pinged" },
+  ],
+  engagement: [
+    { time: "02:11", glyph: "●", rgb: "56,189,248", label: "2am inquiry answered" },
+    { time: "09:30", glyph: "✓", rgb: "190,242,100", label: "Appointment confirmed" },
+    { time: "17:05", glyph: "★", rgb: "251,191,36", label: "Review request sent" },
+  ],
+  content: [
+    { time: "08:20", glyph: "✎", rgb: "167,139,250", label: "Article drafted → in review" },
+    { time: "10:12", glyph: "◆", rgb: "96,165,250", label: "Local page published" },
+    { time: "15:44", glyph: "✓", rgb: "190,242,100", label: "Month of posts scheduled" },
+  ],
+  reporting: [
+    { time: "06:30", glyph: "↗", rgb: "163,230,53", label: "Dashboard refreshed" },
+    { time: "07:00", glyph: "●", rgb: "56,189,248", label: "Weekly numbers → owner briefed" },
+    { time: "07:02", glyph: "◆", rgb: "96,165,250", label: "Forecast updated" },
+  ],
+};
+
+function MicroFeed({ serviceId }: { serviceId: string }) {
+  const rows = MICRO_FEEDS[serviceId];
+  if (!rows) return null;
+  return (
+    <div className="mb-6 overflow-hidden rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-base)_88%,transparent)]">
+      <p className="flex items-center gap-2 border-b border-border-glass px-3.5 py-2 font-mono text-[0.56rem] uppercase tracking-[0.22em] text-white-muted">
+        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--gold-base)]" />
+        live · operations
+      </p>
+      <ul className="flex flex-col px-1.5 py-1.5 font-mono text-[0.72rem]">
+        {rows.map((r) => (
+          <li key={r.label} className="flex items-center gap-2.5 rounded-lg px-2 py-1.5">
+            <span className="text-[0.62rem] tabular-nums text-white-muted">{r.time}</span>
+            <span
+              className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded text-[0.66rem]"
+              style={{ color: `rgb(${r.rgb})`, background: `rgba(${r.rgb},0.14)` }}
+            >
+              {r.glyph}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-white-secondary">{r.label}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 /* ────────────────────────────────────────────────────────────────────────────
    Single per-service row. Consistent layout (text left, deliverables card
    right) and vertically centered, so a tall card never leaves a void under a
@@ -59,6 +122,7 @@ function ServiceBand({
         {/* deliverables card — 2 cols */}
         <div className="lg:col-span-2">
           <div className="rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-md sm:p-7">
+            <MicroFeed serviceId={service.id} />
             <p className="mb-4 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white-muted">
               What you get
             </p>

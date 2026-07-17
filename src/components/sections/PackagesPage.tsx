@@ -113,11 +113,11 @@ function PricingCard({ pkg }: { pkg: ServicePackage }) {
 function ComparisonTable() {
   const featureNames = getAllFeatureNames();
   return (
-    <div className="-mx-4 overflow-x-auto sm:mx-0">
+    <div className="-mx-4 overflow-x-auto sm:mx-0 lg:overflow-visible">
       <table className="w-full min-w-[640px] border-collapse" role="table">
         <thead>
           <tr>
-            <th scope="col" className="pb-4 pl-4 pr-4 text-left font-mono text-[0.62rem] uppercase tracking-[0.2em] text-white-muted sm:pl-0">
+            <th scope="col" className="sticky top-[72px] z-10 bg-[color-mix(in_srgb,var(--bg-base)_94%,transparent)] py-4 pl-4 pr-4 text-left font-mono text-[0.62rem] uppercase tracking-[0.2em] text-white-muted backdrop-blur-md sm:pl-0">
               Feature
             </th>
             {packages.map((pkg) => (
@@ -125,24 +125,29 @@ function ComparisonTable() {
                 key={pkg.id}
                 scope="col"
                 className={cn(
-                  "px-4 pb-4 text-center font-display text-sm font-semibold",
+                  "sticky top-[72px] z-10 bg-[color-mix(in_srgb,var(--bg-base)_94%,transparent)] px-4 py-4 text-center font-display text-sm font-semibold backdrop-blur-md",
                   pkg.highlighted ? "text-gold" : "text-heading"
                 )}
               >
                 {pkg.name}
+                {pkg.highlighted && (
+                  <span className="mt-0.5 block font-mono text-[0.52rem] font-normal uppercase tracking-[0.2em] text-white-muted">
+                    Most popular
+                  </span>
+                )}
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
           {featureNames.map((name, idx) => (
-            <tr key={name} className={cn("border-t border-border-glass", idx % 2 === 0 && "bg-white/[0.02]")}>
+            <tr key={name} className={cn("border-t border-border-glass transition-colors hover:bg-white/[0.045]", idx % 2 === 0 && "bg-white/[0.02]")}>
               <td className="py-3 pl-4 pr-4 text-sm text-white-secondary sm:pl-0">{name}</td>
               {packages.map((pkg) => {
                 const feature = pkg.features.find((f) => f.name === name);
                 const included = feature?.included ?? false;
                 return (
-                  <td key={pkg.id} className="px-4 py-3 text-center">
+                  <td key={pkg.id} className={cn("px-4 py-3 text-center", pkg.highlighted && "bg-[color-mix(in_srgb,var(--gold-base)_4%,transparent)]")}>
                     {included ? (
                       <Check className="mx-auto h-4 w-4 text-gold" strokeWidth={2.5} aria-label={`${name} included in ${pkg.name}`} />
                     ) : (
@@ -239,10 +244,13 @@ export function PackagesPageContent() {
         <p className="mb-4 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-gold sm:hidden">
           Swipe the table to compare all three →
         </p>
+        {/* fade-only reveal: a y-transform here would make this card a containing
+            block and un-stick the comparison table's sticky column headers */}
         <AnimateOnScroll
           as="div"
           delay={0.1}
-          className="rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] p-6 backdrop-blur-md sm:p-8"
+          variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 0.7 } } }}
+          className="rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] p-6 sm:p-8"
         >
           <ComparisonTable />
         </AnimateOnScroll>

@@ -7,6 +7,7 @@ import { Manifesto } from "./Manifesto";
 import { Services } from "./Services";
 import { IndustryList } from "./IndustryList";
 import { Results } from "./Results";
+import { Guarantee } from "./Guarantee";
 import { ValueBand } from "./ValueBand";
 import { FAQ } from "./FAQ";
 import { ClosingCTA } from "./ClosingCTA";
@@ -26,6 +27,7 @@ export function Studio() {
       <Services />
       <IndustryList />
       <Results />
+      <Guarantee />
       <ValueBand />
       <FAQ />
       <ClosingCTA />
