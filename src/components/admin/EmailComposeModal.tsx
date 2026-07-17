@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Toast } from "@/components/ui/Toast";
+import { useModalDismiss } from "@/lib/admin/useModalDismiss";
 
 interface EmailTemplate {
   label: string;
@@ -87,6 +88,8 @@ export function EmailComposeModal({
   const [sending, setSending] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
+  useModalDismiss(isOpen, onClose);
+
   const applyTemplate = (templateLabel: string) => {
     setSelectedTemplate(templateLabel);
     const template = templates.find((t) => t.label === templateLabel);
@@ -143,6 +146,9 @@ export function EmailComposeModal({
               onClick={onClose}
             />
             <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="email-compose-title"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
@@ -150,11 +156,12 @@ export function EmailComposeModal({
             >
               <GlassCard variant="prominent" padding="lg">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-display text-lg font-semibold text-white-primary">
+                  <h3 id="email-compose-title" className="font-display text-lg font-semibold text-white-primary">
                     Send Email
                   </h3>
                   <button
                     onClick={onClose}
+                    aria-label="Close dialog"
                     className="text-white-muted hover:text-white-primary cursor-pointer"
                   >
                     <X className="h-5 w-5" />

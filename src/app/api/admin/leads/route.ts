@@ -14,8 +14,20 @@ export async function GET(request: NextRequest) {
   const dateTo = searchParams.get("dateTo");
   const page = Math.max(1, parseInt(searchParams.get("page") || "1") || 1);
   const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "25") || 25));
-  const sort = searchParams.get("sort") || "created_at";
-  const order = searchParams.get("order") || "desc";
+
+  // Whitelist sortable columns to prevent invalid/unsafe order clauses
+  const SORTABLE = new Set([
+    "created_at",
+    "contact_name",
+    "contact_email",
+    "lead_status",
+    "industry",
+    "estimated_value",
+    "contacted_at",
+  ]);
+  const sortParam = searchParams.get("sort") || "created_at";
+  const sort = SORTABLE.has(sortParam) ? sortParam : "created_at";
+  const order = searchParams.get("order") === "asc" ? "asc" : "desc";
 
   let query = supabase
     .from("solution_requests")

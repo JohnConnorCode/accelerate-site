@@ -73,6 +73,7 @@ export default function AdminDashboardPage() {
   const [emailStats, setEmailStats] = useState<{ active: number; completed: number; total: number } | undefined>();
   const [recentLeads, setRecentLeads] = useState<RecentLead[]>([]);
   const [overdueTasks, setOverdueTasks] = useState(0);
+  const [stalledProposals, setStalledProposals] = useState(0);
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(30);
   const aiRef = useRef<HTMLDivElement>(null);
@@ -96,6 +97,7 @@ export default function AdminDashboardPage() {
       setPipelineValues(metricsData.pipelineValues || {});
       setEmailStats(metricsData.emailStats);
       setOverdueTasks(metricsData.overdueTasks || 0);
+      setStalledProposals(metricsData.stalledProposals || 0);
       setRecentLeads((leadsData.leads || []).slice(0, 10));
     } catch {
       // Handle error silently
@@ -142,6 +144,7 @@ export default function AdminDashboardPage() {
         unreadContacts={unreadContacts}
         pendingPartners={pendingPartners}
         overdueTasks={overdueTasks}
+        stalledProposals={stalledProposals}
       />
 
       <TaskWidget />

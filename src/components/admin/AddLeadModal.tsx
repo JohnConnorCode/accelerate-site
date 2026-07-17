@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Toast } from "@/components/ui/Toast";
+import { useModalDismiss } from "@/lib/admin/useModalDismiss";
 
 interface AddLeadModalProps {
   isOpen: boolean;
@@ -46,6 +47,8 @@ export function AddLeadModal({ isOpen, onClose, onLeadCreated }: AddLeadModalPro
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+  useModalDismiss(isOpen, onClose);
 
   const handleSubmit = async () => {
     if (!contactName || !contactEmail) return;
@@ -102,6 +105,9 @@ export function AddLeadModal({ isOpen, onClose, onLeadCreated }: AddLeadModalPro
               onClick={onClose}
             />
             <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="add-lead-title"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
@@ -109,11 +115,12 @@ export function AddLeadModal({ isOpen, onClose, onLeadCreated }: AddLeadModalPro
             >
               <GlassCard variant="prominent" padding="lg">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-display text-lg font-semibold text-white-primary">
+                  <h3 id="add-lead-title" className="font-display text-lg font-semibold text-white-primary">
                     Add New Lead
                   </h3>
                   <button
                     onClick={onClose}
+                    aria-label="Close dialog"
                     className="text-white-muted hover:text-white-primary cursor-pointer"
                   >
                     <X className="h-5 w-5" />

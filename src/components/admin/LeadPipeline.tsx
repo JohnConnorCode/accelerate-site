@@ -2,14 +2,7 @@
 
 import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
-
-const stages = [
-  { key: "new", label: "New", color: "bg-blue-500" },
-  { key: "contacted", label: "Contacted", color: "bg-yellow-500" },
-  { key: "qualified", label: "Qualified", color: "bg-green-500" },
-  { key: "proposal", label: "Proposal", color: "bg-purple-500" },
-  { key: "won", label: "Won", color: "bg-emerald-500" },
-];
+import { PIPELINE_STAGES as stages } from "@/lib/admin/pipeline-stages";
 
 interface LeadPipelineProps {
   pipeline: Record<string, number>;

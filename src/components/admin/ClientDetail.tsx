@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { DollarSign, Calendar, CheckCircle2, Circle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Toast } from "@/components/ui/Toast";
 import { GlassCard } from "@/components/ui/GlassCard";

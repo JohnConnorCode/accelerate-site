@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { AlertTriangle, Flame, Clock, Inbox, Handshake, ArrowRight, CheckSquare } from "lucide-react";
+import { AlertTriangle, Flame, Clock, Inbox, Handshake, ArrowRight, CheckSquare, FileCheck } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -23,10 +23,11 @@ interface TodaysPrioritiesProps {
   unreadContacts: number;
   pendingPartners: number;
   overdueTasks?: number;
+  stalledProposals?: number;
 }
 
-export function TodaysPriorities({ priorities, unreadContacts, pendingPartners, overdueTasks = 0 }: TodaysPrioritiesProps) {
-  const hasItems = priorities.length > 0 || unreadContacts > 0 || pendingPartners > 0 || overdueTasks > 0;
+export function TodaysPriorities({ priorities, unreadContacts, pendingPartners, overdueTasks = 0, stalledProposals = 0 }: TodaysPrioritiesProps) {
+  const hasItems = priorities.length > 0 || unreadContacts > 0 || pendingPartners > 0 || overdueTasks > 0 || stalledProposals > 0;
 
   if (!hasItems) return null;
 
@@ -55,6 +56,21 @@ export function TodaysPriorities({ priorities, unreadContacts, pendingPartners, 
                     {overdueTasks} overdue task{overdueTasks !== 1 ? "s" : ""}
                   </p>
                   <p className="text-xs text-red-400/70">Follow-ups past due date</p>
+                </div>
+                <ArrowRight className="h-3.5 w-3.5 text-white-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+              </div>
+            </Link>
+          )}
+
+          {stalledProposals > 0 && (
+            <Link href="/admin/proposals" className="block">
+              <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-white/5 transition-colors group bg-amber-500/10 border border-amber-500/20">
+                <FileCheck className="h-4 w-4 text-amber-400 shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm text-amber-200 font-medium">
+                    {stalledProposals} proposal{stalledProposals !== 1 ? "s" : ""} awaiting response
+                  </p>
+                  <p className="text-xs text-amber-400/70">Sent 3+ days ago, no reply</p>
                 </div>
                 <ArrowRight className="h-3.5 w-3.5 text-white-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
               </div>

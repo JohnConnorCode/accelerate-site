@@ -16,7 +16,6 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { GlassCard } from "@/components/ui/GlassCard";
 import { StatusBadge } from "./StatusBadge";
 import type { ContentCalendarItem, ContentStatus } from "@/lib/types";
 

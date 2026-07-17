@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Mail, Play, CheckCircle, AlertCircle, Send } from "lucide-react";
+import { Mail, Play, UserMinus, AlertCircle, Send } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { StatCard } from "@/components/admin/StatCard";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -84,10 +84,10 @@ export default function EmailSequencesPage() {
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-4 mb-6">
-        <StatCard label="Scheduled" value={stats.completed} icon={Send} index={0} />
-        <StatCard label="Active (Legacy)" value={stats.active} icon={Play} index={1} />
-        <StatCard label="Total" value={stats.total} icon={Mail} index={2} />
-        <StatCard label="Completed" value={stats.completed} icon={CheckCircle} index={3} />
+        <StatCard label="Total" value={stats.total} icon={Mail} index={0} />
+        <StatCard label="Scheduled" value={stats.completed} icon={Send} index={1} />
+        <StatCard label="Active (Legacy)" value={stats.active} icon={Play} index={2} />
+        <StatCard label="Unsubscribed" value={stats.unsubscribed} icon={UserMinus} index={3} />
       </div>
 
       {/* Filters */}

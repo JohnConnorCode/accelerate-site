@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
     pendingPartnersRes,
     overdueTasksRes,
     clientsRes,
+    stalledProposalsRes,
   ] = await Promise.all([
     supabase
       .from("solution_requests")
@@ -117,6 +118,13 @@ export async function GET(request: NextRequest) {
     supabase
       .from("clients")
       .select("id, monthly_value, status"),
+    // Stalled proposals: sent/viewed but no response after 3+ days
+    supabase
+      .from("proposals")
+      .select("id, sent_at")
+      .in("status", ["sent", "viewed"])
+      .is("responded_at", null)
+      .lt("sent_at", new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString()),
   ]);
 
   // Client stats
@@ -264,6 +272,7 @@ export async function GET(request: NextRequest) {
     unreadContacts: unreadContactsRes.count || 0,
     pendingPartners: pendingPartnersRes.count || 0,
     overdueTasks: overdueTasksRes.count || 0,
+    stalledProposals: (stalledProposalsRes.data || []).length,
     pipeline,
     pipelineValues,
     topIndustries,

@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { FileText, Download, Activity, Sparkles, Building2 } from "lucide-react";
+import { FileText, Download, Sparkles, Building2 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 
 interface QuickAction {

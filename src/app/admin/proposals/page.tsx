@@ -2,8 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -45,14 +44,13 @@ const statusMap: Record<string, string> = {
 };
 
 export default function ProposalsPage() {
-  const router = useRouter();
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [totalOneTime, setTotalOneTime] = useState(0);
   const [totalMonthly, setTotalMonthly] = useState(0);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
-  const [generating, setGenerating] = useState(false);
+  const [generating] = useState(false);
 
   const fetchProposals = useCallback(async () => {
     try {
@@ -132,9 +130,10 @@ export default function ProposalsPage() {
         <div className="mb-4">
           <button
             onClick={() => setSelectedProposal(null)}
-            className="text-xs text-white-muted hover:text-white-secondary transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-xs text-white-muted hover:text-white-secondary transition-colors cursor-pointer"
           >
-            &larr; Back to Proposals
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back to Proposals
           </button>
         </div>
         <PageHeader
