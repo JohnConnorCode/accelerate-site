@@ -14,7 +14,7 @@
 2. The team you never had to hire — AI framed as team members, not software
 3. Full lifecycle: Find > Win > Keep > Grow — not just top-of-funnel
 4. Time as currency — specific hours reclaimed
-5. Peace of mind — "Every call answered. Every follow-up sent."
+5. Peace of mind — "Every inquiry answered. Every follow-up sent." (NEVER call-centric: "every call answered", "missed calls", "answer every call" are banned in positioning copy — Accelerate is channel-agnostic, phone answering is one feature of one service, not the identity)
 6. Built and run for you — the differentiator vs software/agencies
 
 **Vocabulary rules:**

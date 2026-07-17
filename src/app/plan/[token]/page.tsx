@@ -132,14 +132,14 @@ export default async function PlanPage({ params }: PageProps) {
             Plan Viewer Not Available
           </h1>
           <p className="text-white-muted text-sm">
-            The plan viewing system is not configured yet. Please use the
-            solution generator to create a new plan.
+            The plan viewing system is not configured yet. Reach out and we
+            will get you a fresh copy of your plan.
           </p>
           <Link
-            href="/plan-builder"
+            href="/contact"
             className="inline-flex items-center gap-2 text-sm text-gold-light hover:text-white-primary transition-colors mt-4"
           >
-            Go to Solution Generator
+            Contact Us
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -167,10 +167,10 @@ export default async function PlanPage({ params }: PageProps) {
             URL may be incorrect.
           </p>
           <Link
-            href="/plan-builder"
+            href="/contact"
             className="inline-flex items-center gap-2 text-sm text-gold-light hover:text-white-primary transition-colors mt-4"
           >
-            Build a New Plan
+            Book a Free Strategy Call
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>

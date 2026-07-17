@@ -99,9 +99,9 @@ export function contactConfirmationEmail(name: string): string {
       Thanks for reaching out to Accelerate. We have received your message and will get back to you within 24 hours.
     </p>
     <p style="margin:0 0 16px 0;font-size:15px;color:rgba(255,255,255,0.65);line-height:1.6;">
-      In the meantime, you can get a free AI-powered growth plan for your business:
+      In the meantime, take a look at what we build and run for businesses like yours:
     </p>
-    ${goldButton("Get Your Free Growth Plan", `${BASE_URL}/plan-builder`)}
+    ${goldButton("See What We Build", `${BASE_URL}/services`)}
   `);
 }
 
@@ -146,7 +146,7 @@ export function roiReportEmail(data: {
     <p style="margin:24px 0 8px 0;font-size:15px;color:rgba(255,255,255,0.65);line-height:1.6;">
       Want to see exactly how we would implement this for your business?
     </p>
-    ${goldButton("Get Your Custom Growth Plan", `${BASE_URL}/plan-builder`)}
+    ${goldButton("Book a Free Strategy Call", `${BASE_URL}/contact`)}
     <p style="margin:24px 0 0 0;font-size:12px;color:rgba(255,255,255,0.38);line-height:1.5;">
       These projections are estimates based on industry averages and the inputs you provided. Actual results vary depending on your market, competition, and execution.
     </p>

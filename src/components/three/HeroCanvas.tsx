@@ -70,10 +70,6 @@ function pickStarColor(): [number, number, number] {
   return STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)]!;
 }
 
-function pickLightStarColor(): [number, number, number] {
-  return LIGHT_STAR_COLORS[Math.floor(Math.random() * LIGHT_STAR_COLORS.length)]!;
-}
-
 export default function HeroCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animId = useRef(0);

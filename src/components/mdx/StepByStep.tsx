@@ -11,9 +11,9 @@ export function Step({ number, title, children }: StepProps) {
         {number}
       </div>
       <div className="flex-1">
-        <h4 className="m-0 font-display font-semibold text-white-primary">
+        <h3 className="m-0 font-display font-semibold text-white-primary">
           {title}
-        </h4>
+        </h3>
         <div className="mt-2 text-sm text-white-secondary leading-relaxed [&>p]:m-0">
           {children}
         </div>

@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     if (!process.env.ANTHROPIC_API_KEY) {
       return plainText(
-        "I'm in demo mode right now. For live help, email john@acceleratewith.us or try the Solution Generator at /plan-builder for a free custom growth plan.",
+        "I'm in demo mode right now. For live help, email john@acceleratewith.us or book a free strategy call at acceleratewith.us/contact.",
       );
     }
 

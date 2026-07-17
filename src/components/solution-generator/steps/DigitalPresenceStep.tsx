@@ -89,14 +89,6 @@ export function DigitalPresenceStep({
     });
   };
 
-  const handleMultiToggle = (questionId: string, optionValue: string) => {
-    const current = (industryAnswers[questionId] as string[]) || [];
-    const updated = current.includes(optionValue)
-      ? current.filter((v) => v !== optionValue)
-      : [...current, optionValue];
-    handleIndustryAnswer(questionId, updated);
-  };
-
   const renderIndustryQuestion = (question: IntakeQuestion) => {
     const currentValue = industryAnswers[question.id];
 

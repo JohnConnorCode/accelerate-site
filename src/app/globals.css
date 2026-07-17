@@ -517,6 +517,35 @@ body {
   .logo-mark__cv--3 { opacity: 1; }
 }
 
+/* Hero entrance runs in pure CSS so the headline paints before JS hydrates
+   (Framer-driven entrances hold the text invisible until hydration → LCP). */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-rise {
+    animation: hero-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--hero-delay, 0s);
+  }
+  @keyframes hero-rise {
+    from { transform: translateY(115%); }
+    to   { transform: translateY(0); }
+  }
+  .hero-fade-up {
+    animation: hero-fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--hero-delay, 0s);
+  }
+  @keyframes hero-fade-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .hero-fade {
+    animation: hero-fade 0.7s ease-out both;
+    animation-delay: var(--hero-delay, 0s);
+  }
+  @keyframes hero-fade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+}
+
 /* Sticky mobile CTA bar coordination — when the bar is showing (body[data-mcta]),
    lift the floating chat bubble above it on phones so they don't overlap.
    Desktop (lg+) never shows the bar, so the bubble stays put. */

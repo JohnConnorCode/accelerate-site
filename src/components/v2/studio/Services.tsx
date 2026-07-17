@@ -43,7 +43,7 @@ function Row({ children, delay = 0 }: { children: React.ReactNode; delay?: numbe
 function StrategyDemo() {
   // a prioritized opportunity map — ranked by impact, the way we actually scope
   const ops = [
-    { t: "Missed-call recovery", v: 0.94 },
+    { t: "After-hours coverage", v: 0.94 },
     { t: "Follow-up automation", v: 0.78 },
     { t: "Review engine", v: 0.63 },
     { t: "Intake triage", v: 0.47 },

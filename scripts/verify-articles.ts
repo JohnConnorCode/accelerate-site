@@ -30,10 +30,12 @@ const WORD_COUNT_RANGES: Record<string, { min: number; max: number }> = {
   decision: { min: 1200, max: 2000 },
 };
 
-const CASE_STUDY_REFERENCES = [
-  /farrell\s*roofing/i,
+// Named-client references were removed site-wide (fabricated/non-consented);
+// articles must never reintroduce them, and /results was retired.
+const BANNED_CLIENT_REFERENCES = [
+  /farrell/i,
   /sparkblox/i,
-  /montoya\s*capital/i,
+  /montoya/i,
   /\/results\//,
 ];
 
@@ -177,13 +179,13 @@ function verifyArticle(filename: string): ArticleResult {
     }
   }
 
-  // --- Case study / proof point reference ---
-  const hasProofPoint = CASE_STUDY_REFERENCES.some((pattern) =>
+  // --- Banned client references (removed site-wide, must not reappear) ---
+  const bannedHit = BANNED_CLIENT_REFERENCES.find((pattern) =>
     pattern.test(content)
   );
-  if (!hasProofPoint) {
+  if (bannedHit) {
     failures.push(
-      "No case study reference found (needs Farrell Roofing, SparkBlox, Montoya Capital, or /results/ link)"
+      `Banned client/case-study reference found (${bannedHit}) — named clients were removed site-wide`
     );
   }
 

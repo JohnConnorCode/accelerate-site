@@ -8,12 +8,6 @@ import { Kinetic } from "./Kinetic";
 import { OpsFeed } from "../living/OpsFeed";
 import { BookCallButton } from "./primitives";
 
-const line = (delay: number) => ({
-  initial: { y: "115%" },
-  animate: { y: 0 },
-  transition: { duration: 0.9, ease: EASE, delay },
-});
-
 export function Hero() {
   const ref = useRef<HTMLElement>(null);
   const reduced = useReducedMotion();
@@ -31,47 +25,38 @@ export function Hero() {
       >
         {/* left — message */}
         <div className="relative">
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="eyebrow mb-7"
-          >
+          <p className="eyebrow hero-fade mb-7" style={{ "--hero-delay": "0.1s" } as React.CSSProperties}>
             Custom AI, built and run for you
-          </motion.p>
+          </p>
 
           <Kinetic intensity={1.1}>
             <h1 className="font-display font-extrabold leading-[1.02] tracking-[-0.035em] text-[clamp(2.4rem,4.6vw,4.75rem)] text-heading">
               {/* pb on each mask span so descenders (y, g) and italic tails aren't clipped */}
               <span className="block overflow-hidden pb-[0.12em]">
-                <motion.span className="block" {...line(0.12)}>Earn more money.</motion.span>
+                <span className="hero-rise block" style={{ "--hero-delay": "0.12s" } as React.CSSProperties}>Earn more money.</span>
               </span>
               <span className="block overflow-hidden pb-[0.12em]">
-                <motion.span className="block" {...line(0.22)}>Reclaim your time.</motion.span>
+                <span className="hero-rise block" style={{ "--hero-delay": "0.22s" } as React.CSSProperties}>Reclaim your time.</span>
               </span>
               <span className="block overflow-hidden pb-[0.2em]">
-                <motion.span className="block" {...line(0.32)}>
+                <span className="hero-rise block" style={{ "--hero-delay": "0.32s" } as React.CSSProperties}>
                   <span className="display-italic">Scale with ease.</span>
-                </motion.span>
+                </span>
               </span>
             </h1>
           </Kinetic>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: EASE, delay: 0.7 }}
-            className="mt-7 max-w-md text-base leading-relaxed text-white-secondary"
+          <p
+            className="hero-fade-up mt-7 max-w-md text-base leading-relaxed text-white-secondary"
+            style={{ "--hero-delay": "0.7s" } as React.CSSProperties}
           >
             Not another tool to manage. A custom operation we build and run
             with you, handling the work so you can focus on what grows the business.
-          </motion.p>
+          </p>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: EASE, delay: 0.85 }}
-            className="mt-8 flex flex-col items-start gap-4 sm:mt-9 sm:flex-row sm:items-center sm:gap-6"
+          <div
+            className="hero-fade-up mt-8 flex flex-col items-start gap-4 sm:mt-9 sm:flex-row sm:items-center sm:gap-6"
+            style={{ "--hero-delay": "0.85s" } as React.CSSProperties}
           >
             <BookCallButton label="Book a free strategy call" />
             <Link
@@ -81,16 +66,14 @@ export function Hero() {
             >
               See how it works →
             </Link>
-          </motion.div>
+          </div>
 
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 1 }}
-            className="mt-6 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-white-muted"
+          <p
+            className="hero-fade mt-6 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-white-muted"
+            style={{ "--hero-delay": "1s" } as React.CSSProperties}
           >
             Free 30-minute call · roadmap + ROI projection, yours to keep
-          </motion.p>
+          </p>
         </div>
 
         {/* right — hero visual: the live operations feed (the product, working).

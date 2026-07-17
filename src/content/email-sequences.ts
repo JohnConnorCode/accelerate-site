@@ -103,9 +103,9 @@ Thanks for downloading {{resourceTitle}}. Here's your link:
 
 {{downloadLink}}
 
-While you're diving into that, here's a bonus: our free AI Solution Generator creates a custom growth plan for your business in under 5 minutes. It's specific to your industry, your current setup, and your goals.
+While you're diving into that, here's a bonus: book a free strategy call and we'll map out exactly where AI can save you time and grow revenue in your business. Specific to your industry, your current setup, and your goals.
 
-Try it here: https://www.acceleratewith.us/plan-builder
+Book it here: https://www.acceleratewith.us/contact
 
 Enjoy the resource. If you have any questions, just reply to this email.
 
@@ -167,11 +167,8 @@ Top issues we found:
 
 The good news: most of these issues are fixable, and fixing them can have an immediate impact on your client acquisition.
 
-Want to see what a top-performing website in your industry looks like? Our AI Solution Generator will create a custom plan based on your specific situation:
+Want a plan for fixing them? Book a free strategy call and we'll walk you through it, specific to your business:
 
-https://www.acceleratewith.us/plan-builder
-
-Or if you'd rather have an expert walk you through it:
 https://www.acceleratewith.us/contact
 
 Talk soon,

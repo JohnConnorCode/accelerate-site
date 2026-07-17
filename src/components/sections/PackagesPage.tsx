@@ -56,9 +56,9 @@ function PricingCard({ pkg }: { pkg: ServicePackage }) {
         )}
       >
         <div className="mb-6">
-          <h3 className="font-display text-2xl font-bold tracking-[-0.02em] text-heading">
+          <h2 className="font-display text-2xl font-bold tracking-[-0.02em] text-heading">
             {pkg.name}
-          </h3>
+          </h2>
           <p className="mt-1 text-sm text-white-muted">{pkg.tagline}</p>
           <p className="mt-1 text-xs italic text-white-muted">Best for: {pkg.idealFor}</p>
         </div>
@@ -146,7 +146,9 @@ function ComparisonTable() {
                     {included ? (
                       <Check className="mx-auto h-4 w-4 text-gold" strokeWidth={2.5} aria-label={`${name} included in ${pkg.name}`} />
                     ) : (
-                      <span className="mx-auto block h-[2px] w-4 rounded bg-white/15" aria-label={`${name} not included in ${pkg.name}`} />
+                      <span className="mx-auto block h-[2px] w-4 rounded bg-white/15">
+                        <span className="sr-only">Not included</span>
+                      </span>
                     )}
                   </td>
                 );

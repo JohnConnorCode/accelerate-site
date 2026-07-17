@@ -72,7 +72,7 @@ function Row({ children, delay = 0 }: { children: React.ReactNode; delay?: numbe
 function DiagnoseCard() {
   // a prioritized opportunity map — ranked by impact, the way we actually scope
   const ops = [
-    { t: "Missed-call recovery", v: 0.94 },
+    { t: "After-hours coverage", v: 0.94 },
     { t: "Quote turnaround", v: 0.81 },
     { t: "Follow-up automation", v: 0.66 },
     { t: "Review engine", v: 0.49 },

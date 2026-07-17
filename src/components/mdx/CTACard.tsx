@@ -27,9 +27,9 @@ export function CTACard({
 
   return (
     <div className="my-8 glass-gold rounded-lg p-6 text-center">
-      <h4 className="m-0 font-display text-lg font-semibold text-white-primary">
+      <h3 className="m-0 font-display text-lg font-semibold text-white-primary">
         {title}
-      </h4>
+      </h3>
       <p className="mt-2 mb-4 text-sm text-white-secondary">{description}</p>
       <Link
         href={href}

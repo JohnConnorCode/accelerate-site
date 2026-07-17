@@ -57,7 +57,7 @@ export function OpsConsole({
               }}
               className={`flex items-center gap-3 py-3 ${money ? "rounded-lg bg-[rgba(var(--accent-rgb),0.06)] px-2" : ""}`}
             >
-              <span className="font-mono text-[0.62rem] tabular-nums text-white-muted opacity-60">{e.time}</span>
+              <span className="font-mono text-[0.62rem] tabular-nums text-white-muted">{e.time}</span>
               <span className="font-mono text-sm leading-none" style={{ color: `rgb(${c.rgb})` }}>{c.glyph}</span>
               <span className="min-w-0 flex-1 truncate font-mono text-[0.78rem] text-white-secondary">{e.label}</span>
               {e.value && (

@@ -153,9 +153,9 @@ export function Footer() {
           {/* Link Columns */}
           {footerColumns.map((col) => (
             <div key={col.title} data-footer-section>
-              <h4 className="text-sm font-semibold text-white-primary mb-4">
+              <h3 className="text-sm font-semibold text-white-primary mb-4">
                 {col.title}
-              </h4>
+              </h3>
               <ul className="space-y-2.5">
                 {col.links.map((link) => (
                   <li key={link.href}>
@@ -176,9 +176,9 @@ export function Footer() {
         <div data-footer-section className="mt-14 pt-8 border-t border-[var(--border-subtle)]">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
             <div>
-              <h4 className="text-sm font-semibold text-white-primary mb-1">
+              <h3 className="text-sm font-semibold text-white-primary mb-1">
                 Get growth tips in your inbox
-              </h4>
+              </h3>
               <p className="text-sm text-white-muted">
                 No spam. Unsubscribe anytime.
               </p>

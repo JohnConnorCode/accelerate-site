@@ -132,7 +132,7 @@ async function sendWelcomeEmail(lead: ChatLeadInput): Promise<"ok" | "skipped" |
 
 Thanks for jumping into the chat on acceleratewith.us. I saw your note come through and wanted to reach out personally.
 
-If you'd like a deeper look at where AI could plug into your business right now, the Solution Generator takes about five minutes and returns a custom plan: ${siteUrl()}/plan-builder
+If you'd like a deeper look at where AI could plug into your business right now, grab a free strategy call. Thirty minutes, no pitch, and you leave with a plan: ${siteUrl()}/contact
 
 Otherwise, just hit reply on this email. I read every one.
 

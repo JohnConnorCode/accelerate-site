@@ -46,8 +46,8 @@ const NARRATIVE = [
         <p>
           But resumes don&apos;t tell you much. What matters is why Accelerate
           exists. I have seen up close how much revenue small businesses lose to
-          slow follow-up, missed calls, and websites that look fine but bring in
-          nothing. It is not a theoretical problem to me.
+          slow follow-up, missed inquiries, and websites that look fine but
+          bring in nothing. It is not a theoretical problem to me.
         </p>
         <p>
           So I built the systems those businesses actually needed, and they

@@ -51,7 +51,7 @@ export function Manifesto() {
       const start = 0.18 + (wi / Math.max(wordCount - 1, 1)) * 0.52;
       const end = start + 0.1;
       const t = Math.min(1, Math.max(0, (v - start) / (end - start)));
-      el.style.opacity = String(0.42 + t * 0.58);
+      el.style.opacity = String(0.5 + t * 0.5);
       wi++;
     }
   };
@@ -81,7 +81,7 @@ export function Manifesto() {
       <KineticWord word="TIME" />
       <div className="page-shell page-shell--narrow mb-10"><Eyebrow>the idea</Eyebrow></div>
       <div className="page-shell page-shell--narrow grid items-center gap-12 lg:grid-cols-[1.35fr_0.65fr] lg:gap-16">
-        <h2 className="font-display text-[clamp(1.8rem,4.2vw,3.6rem)] font-semibold leading-[1.15] tracking-[-0.02em] text-white-muted">
+        <h2 className="font-display text-[clamp(1.8rem,4.2vw,3.6rem)] font-semibold leading-[1.15] tracking-[-0.02em] text-white-secondary">
           {words.map((item, i) => (
             <span
               key={i}
@@ -89,7 +89,7 @@ export function Manifesto() {
                 wordRefs.current[i] = el;
               }}
               className={item.cls}
-              style={{ opacity: reduced ? 1 : 0.42, transition: reduced ? undefined : "opacity 60ms linear" }}
+              style={{ opacity: reduced ? 1 : 0.5, transition: reduced ? undefined : "opacity 60ms linear" }}
             >
               {item.w}
             </span>

@@ -480,10 +480,10 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
       {/* Back to generator */}
       <div className="text-center pt-4">
         <Link
-          href="/plan-builder"
+          href="/contact"
           className="inline-flex items-center gap-1.5 text-sm text-white-muted hover:text-white-primary link-gold-underline transition-colors"
         >
-          Build a new plan
+          Book a free strategy call
           <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>

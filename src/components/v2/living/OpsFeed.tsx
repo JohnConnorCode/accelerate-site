@@ -31,15 +31,15 @@ const KIND: Record<Kind, { glyph: string; rgb: string }> = {
 };
 
 const OPS: { kind: Kind; label: string }[] = [
-  { kind: "call", label: "Incoming call answered" },
+  { kind: "call", label: "New inquiry → answered in 40s" },
   { kind: "capture", label: "After-hours inquiry captured" },
-  { kind: "text", label: "Missed call → text-back sent" },
+  { kind: "text", label: "Quote drafted → sent same day" },
   { kind: "follow", label: "Follow-up delivered" },
   { kind: "book", label: "Consultation booked" },
   { kind: "review", label: "Review request sent" },
   { kind: "book", label: "Appointment confirmed" },
   { kind: "follow", label: "Past customer re-engaged" },
-  { kind: "call", label: "New inquiry → responded" },
+  { kind: "call", label: "Weekly numbers → owner briefed" },
   { kind: "capture", label: "Web form routed to owner" },
 ];
 
@@ -53,7 +53,7 @@ function clockFrom(base: number) {
   return new Date(base).toTimeString().slice(0, 8);
 }
 
-let counter = 0;
+let counter = 7; // INITIAL_EVENTS occupies ids 0-6
 function makeEvent(base: number, kind?: Kind, avoid?: string): Event {
   if (kind === "won") return { id: counter++, time: clockFrom(base), kind, label: "Deal closed", value: money(pick(DEAL_AMOUNTS)) };
   if (kind === "paid") return { id: counter++, time: clockFrom(base), kind, label: "Payment received", value: money(pick(PAY_AMOUNTS)) };
@@ -65,9 +65,22 @@ function makeEvent(base: number, kind?: Kind, avoid?: string): Event {
 
 const MAX = 7;
 
+// Deterministic SSR seed — the feed must be present in server HTML so the hero
+// panel paints before hydration (LCP); times are re-stamped with the visitor's
+// clock on mount. Must stay in sync with counter's start value below.
+const INITIAL_EVENTS: Event[] = [
+  { id: 6, time: "09:41:12", kind: "call", label: "New inquiry → answered in 40s" },
+  { id: 5, time: "09:41:04", kind: "won", label: "Deal closed", value: "+$4,800" },
+  { id: 4, time: "09:40:57", kind: "book", label: "Consultation booked" },
+  { id: 3, time: "09:40:49", kind: "follow", label: "Follow-up delivered" },
+  { id: 2, time: "09:40:41", kind: "paid", label: "Payment received", value: "+$1,250" },
+  { id: 1, time: "09:40:33", kind: "capture", label: "After-hours inquiry captured" },
+  { id: 0, time: "09:40:26", kind: "review", label: "Review request sent" },
+];
+
 export function OpsFeed({ className }: { className?: string }) {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [count, setCount] = useState(0);
+  const [events, setEvents] = useState<Event[]>(INITIAL_EVENTS);
+  const [count, setCount] = useState(47);
   // wall-clock seed for event timestamps — render-time read is intentional
   // eslint-disable-next-line react-hooks/purity
   const clock = useRef(Date.now());
@@ -83,15 +96,16 @@ export function OpsFeed({ className }: { className?: string }) {
   };
 
   useEffect(() => {
-    const seedKinds: (Kind | undefined)[] = [undefined, "paid", undefined, undefined, "won", undefined, undefined];
-    const seed: Event[] = [];
+    // re-stamp the deterministic SSR seed with the visitor's wall clock —
+    // updates text in place (same ids), so nothing re-animates or flickers
     let t = Date.now() - MAX * 4200;
+    const times: string[] = [];
     for (let i = 0; i < MAX; i++) {
       t += 3200 + Math.random() * 2400;
-      seed.push(makeEvent(t, seedKinds[i], seed[i - 1]?.label));
+      times.push(clockFrom(t));
     }
     clock.current = t;
-    setEvents(seed.reverse());
+    setEvents((prev) => prev.map((e, i) => ({ ...e, time: times[MAX - 1 - i] ?? e.time })));
     setCount(38 + Math.floor(Math.random() * 24));
 
     if (prefersReducedMotion()) return;
@@ -130,17 +144,25 @@ export function OpsFeed({ className }: { className?: string }) {
           </span>
           live · operations
         </span>
-        {showPaused ? (
-          <span className="flex items-center gap-1.5 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-[var(--gold-base)]">
-            <span className="grid grid-cols-2 gap-[2px]">
-              <span className="h-2 w-[3px] rounded-[1px] bg-[var(--gold-base)]" />
-              <span className="h-2 w-[3px] rounded-[1px] bg-[var(--gold-base)]" />
+        <button
+          type="button"
+          onClick={() => setPaused(!paused.current)}
+          aria-pressed={showPaused}
+          className="cursor-pointer"
+        >
+          <span className="sr-only">{showPaused ? "resume live feed:" : "pause live feed:"}</span>
+          {showPaused ? (
+            <span className="flex items-center gap-1.5 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-[var(--gold-base)]">
+              <span className="grid grid-cols-2 gap-[2px]">
+                <span className="h-2 w-[3px] rounded-[1px] bg-[var(--gold-base)]" />
+                <span className="h-2 w-[3px] rounded-[1px] bg-[var(--gold-base)]" />
+              </span>
+              paused
             </span>
-            paused
-          </span>
-        ) : (
-          <span className="font-mono text-[0.68rem] tracking-wide text-[var(--white-muted)]">built for you</span>
-        )}
+          ) : (
+            <span className="font-mono text-[0.68rem] tracking-wide text-[var(--white-muted)]">built for you</span>
+          )}
+        </button>
       </div>
 
       {/* processing strip — a scanning line + a live tally make it feel alive */}
@@ -171,10 +193,6 @@ export function OpsFeed({ className }: { className?: string }) {
         onMouseEnter={() => { paused.current = true; }}
         onMouseLeave={() => { setPaused(false); }}
         onPointerDown={(e) => { if (e.pointerType === "touch") setPaused(!paused.current); }}
-        role="button"
-        tabIndex={0}
-        aria-label={showPaused ? "Resume live feed" : "Pause live feed"}
-        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setPaused(!paused.current); } }}
       >
         <AnimatePresence initial={false} mode="popLayout">
           {events.map((e) => {
@@ -185,11 +203,10 @@ export function OpsFeed({ className }: { className?: string }) {
                 key={e.id}
                 layout
                 data-cursor="link"
-                initial={{ opacity: 0, y: -14, filter: "blur(6px)", backgroundColor: `rgba(${c},0.24)` }}
+                initial={{ opacity: 0, y: -14, backgroundColor: `rgba(${c},0.24)` }}
                 animate={{
                   opacity: 1,
                   y: 0,
-                  filter: "blur(0px)",
                   backgroundColor: value ? `rgba(${c},0.12)` : "rgba(0,0,0,0)",
                 }}
                 exit={{ opacity: 0, y: 6, height: 0, marginTop: 0, transition: { duration: 0.3, ease: "easeIn" } }}

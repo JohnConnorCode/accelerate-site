@@ -48,13 +48,18 @@ export async function POST(request: NextRequest) {
         process.env.SUPABASE_SERVICE_ROLE_KEY
       );
 
-      await supabase.from("contact_submissions").insert({
-        name,
-        email,
-        phone: phone || null,
-        business_type: businessType || null,
-        message,
-      });
+      const { error: dbError } = await supabase
+        .from("contact_submissions")
+        .insert({
+          name,
+          email,
+          phone: phone || null,
+          business_type: businessType || null,
+          message,
+        });
+      if (dbError) {
+        console.error("contact_submissions insert FAILED:", dbError.message);
+      }
 
       // Create admin notification (fire and forget)
       Promise.resolve(supabase.from("admin_notifications").insert({

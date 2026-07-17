@@ -228,7 +228,7 @@ function generateFallbackPlan(data: IntakeFormData): DigitalGrowthPlan {
       ? "An AI-powered intake system that qualifies potential clients 24/7, asks the right questions, and books consultations automatically."
       : "Automated email and SMS sequences that follow up with every inquiry within minutes, not days. Keeps prospects engaged until they are ready to buy.",
     whyItMatters: isLawFirm
-      ? "35% of law firm calls go unanswered. Every missed call could be a case worth thousands. This system ensures no inquiry falls through the cracks."
+      ? "Every unanswered inquiry could be a case worth thousands. This system ensures no potential client falls through the cracks."
       : "80% of deals go to whoever responds first. Automated follow-up ensures you are always first, even when you are on a job site.",
     features: [
       "Instant response to new inquiries (under 2 minutes)",
@@ -246,16 +246,16 @@ function generateFallbackPlan(data: IntakeFormData): DigitalGrowthPlan {
   };
 
   const agentRec = {
-    name: isRealEstate ? "AI Lead Response Agent" : "AI Phone & Chat Agent",
+    name: isRealEstate ? "AI Inquiry Response Agent" : "AI Phone & Chat Agent",
     description: isRealEstate
-      ? "An AI agent that responds to ad leads instantly, qualifies buyers based on criteria you set, and keeps them engaged with personalized follow-up."
-      : "An AI-powered agent that answers your phone and website chat 24/7. Books appointments, answers common questions, and captures lead information.",
+      ? "An AI agent that responds to ad inquiries instantly, qualifies buyers based on criteria you set, and keeps them engaged with personalized follow-up."
+      : "An AI-powered agent that answers your phone and website chat 24/7. Books appointments, answers common questions, and captures contact information.",
     whyItMatters: "You cannot be available 24/7, but your customers expect instant responses. This agent handles the first touchpoint so you never miss an opportunity.",
     features: [
       "24/7 availability for calls and web chat",
       "Natural conversation that represents your brand",
       "Appointment booking with calendar integration",
-      "Lead qualification and data capture",
+      "Inquiry qualification and data capture",
       "Call transcripts and chat logs for review",
     ],
     estimatedImpact: "Capture 40-60% of after-hours inquiries that currently go unanswered.",
@@ -271,29 +271,29 @@ function generateFallbackPlan(data: IntakeFormData): DigitalGrowthPlan {
   const totalMonthly = recommendations.reduce((sum, r) => sum + (r.pricingMonthly || 0), 0);
 
   return {
-    executiveSummary: `Based on your intake, your ${formatIndustry(industry)} business has strong growth potential that is being held back by gaps in your digital presence and lead management. The biggest immediate opportunity is capturing the leads you are currently missing through faster response times and a website that actually converts visitors into customers.`,
+    executiveSummary: `Based on your intake, your ${formatIndustry(industry)} business has strong growth potential that is being held back by gaps in your digital presence and follow-up. The biggest immediate opportunity is capturing the inquiries you are currently missing through faster response times and a website that actually converts visitors into customers.`,
     recommendations,
     implementationRoadmap: [
       {
         phase: 1,
         name: "Foundation",
-        description: "Launch your new website and set up core lead capture. This gives you an immediate uplift in online visibility and conversion.",
+        description: "Launch your new website and set up core inquiry capture. This gives you an immediate uplift in online visibility and conversion.",
         duration: "2-3 weeks",
         solutions: ["AI-Powered Website Redesign"],
       },
       {
         phase: 2,
         name: "Automation",
-        description: "Deploy automated follow-up sequences and CRM integration. Every lead gets a response within minutes.",
+        description: "Deploy automated follow-up sequences and CRM integration. Every inquiry gets a response within minutes.",
         duration: "1-2 weeks",
-        solutions: [isLawFirm ? "AI Client Intake System" : "Automated Lead Follow-Up"],
+        solutions: [isLawFirm ? "AI Client Intake System" : "Automated Prospect Follow-Up"],
       },
       {
         phase: 3,
         name: "Intelligence",
         description: "Activate 24/7 AI agent for phone and chat. Full coverage, no missed opportunities.",
         duration: "1-2 weeks",
-        solutions: [isRealEstate ? "AI Lead Response Agent" : "AI Phone & Chat Agent"],
+        solutions: [isRealEstate ? "AI Inquiry Response Agent" : "AI Phone & Chat Agent"],
       },
     ],
     roiProjection: {
