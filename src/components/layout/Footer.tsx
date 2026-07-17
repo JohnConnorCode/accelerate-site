@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Mail, ArrowRight, Loader2, CheckCircle2, Linkedin } from "lucide-react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap-init";
@@ -53,6 +54,7 @@ const footerColumns = [
 ];
 
 export function Footer() {
+  const pathname = usePathname();
   const footerRef = useRef<HTMLElement>(null);
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -115,6 +117,9 @@ export function Footer() {
       setErrorMsg(err instanceof Error ? err.message : "Failed to subscribe. Please try again.");
     }
   };
+
+  // the admin app has its own chrome; the marketing footer doesn't belong there
+  if (pathname.startsWith("/admin")) return null;
 
   return (
     <footer ref={footerRef} className="relative bg-bg-base">
