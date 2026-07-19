@@ -68,7 +68,7 @@ export function Hero() {
           </div>
 
           <p
-            className="hero-fade mt-6 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-white-muted"
+            className="hero-fade mt-6 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-white-secondary"
             style={{ "--hero-delay": "1s" } as React.CSSProperties}
           >
             Free 30-minute call · roadmap + ROI projection, yours to keep

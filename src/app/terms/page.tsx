@@ -110,7 +110,7 @@ export default function TermsPage() {
               Questions about these terms? Contact us at{" "}
               <a
                 href="mailto:john@acceleratewith.us"
-                className="text-gold-light hover:underline"
+                className="text-gold-light underline underline-offset-2"
               >
                 john@acceleratewith.us
               </a>

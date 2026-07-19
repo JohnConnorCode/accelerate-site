@@ -113,7 +113,12 @@ function PricingCard({ pkg }: { pkg: ServicePackage }) {
 function ComparisonTable() {
   const featureNames = getAllFeatureNames();
   return (
-    <div className="-mx-4 overflow-x-auto sm:mx-0 lg:overflow-visible">
+    <div
+      className="-mx-4 overflow-x-auto sm:mx-0 lg:overflow-visible"
+      tabIndex={0}
+      role="region"
+      aria-label="Package comparison table, scrollable"
+    >
       <table className="w-full min-w-[640px] border-collapse" role="table">
         <thead>
           <tr>

@@ -94,7 +94,7 @@ export default function PrivacyPage() {
               information. To exercise these rights, contact us at{" "}
               <a
                 href="mailto:john@acceleratewith.us"
-                className="text-gold-light hover:underline"
+                className="text-gold-light underline underline-offset-2"
               >
                 john@acceleratewith.us
               </a>
@@ -111,7 +111,7 @@ export default function PrivacyPage() {
               at{" "}
               <a
                 href="mailto:john@acceleratewith.us"
-                className="text-gold-light hover:underline"
+                className="text-gold-light underline underline-offset-2"
               >
                 john@acceleratewith.us
               </a>
