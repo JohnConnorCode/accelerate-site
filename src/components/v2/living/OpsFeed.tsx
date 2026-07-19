@@ -88,6 +88,11 @@ export function OpsFeed({ className }: { className?: string }) {
   // visible paused state — driven by touch taps (mobile has no hover) so the
   // feed is interactive on phones, with a clear "Paused" affordance.
   const [showPaused, setShowPaused] = useState(false);
+  // rows present at SSR/first paint must NOT start hidden — framer bakes the
+  // `initial` style into the server HTML, which would hide the LCP element
+  // (a feed row) until hydration. Seed rows render visible; only rows added
+  // after mount play the entrance animation.
+  const [mounted, setMounted] = useState(false);
   const reduced = useReducedMotion();
 
   const setPaused = (v: boolean) => {
@@ -96,6 +101,8 @@ export function OpsFeed({ className }: { className?: string }) {
   };
 
   useEffect(() => {
+    // seed rows have painted; entrance animation may now apply to new rows
+    setMounted(true);
     // re-stamp the deterministic SSR seed with the visitor's wall clock —
     // updates text in place (same ids), so nothing re-animates or flickers
     let t = Date.now() - MAX * 4200;
@@ -203,7 +210,7 @@ export function OpsFeed({ className }: { className?: string }) {
                 key={e.id}
                 layout
                 data-cursor="link"
-                initial={{ opacity: 0, y: -14, backgroundColor: `rgba(${c},0.24)` }}
+                initial={mounted && !reduced ? { opacity: 0, y: -14, backgroundColor: `rgba(${c},0.24)` } : false}
                 animate={{
                   opacity: 1,
                   y: 0,

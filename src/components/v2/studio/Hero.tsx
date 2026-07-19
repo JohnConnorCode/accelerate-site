@@ -3,7 +3,6 @@
 import { useRef } from "react";
 import Link from "next/link";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
-import { EASE } from "@/lib/animations";
 import { Kinetic } from "./Kinetic";
 import { OpsFeed } from "../living/OpsFeed";
 import { BookCallButton } from "./primitives";
@@ -77,15 +76,11 @@ export function Hero() {
         </div>
 
         {/* right — hero visual: the live operations feed (the product, working).
-            Now shown on every breakpoint so mobile visitors see the product, too. */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, ease: EASE, delay: 0.5 }}
-          className="relative mt-2 lg:mt-0"
-        >
+            Entrance is pure CSS (hero-panel) so the panel — the LCP element on
+            mobile — paints without waiting for framer-motion JS to hydrate. */}
+        <div className="hero-panel relative mt-2 lg:mt-0" style={{ "--hero-delay": "0.4s" } as React.CSSProperties}>
           <OpsFeed className="w-full shadow-2xl shadow-black/40" />
-        </motion.div>
+        </div>
       </motion.div>
     </section>
   );
