@@ -119,6 +119,9 @@ export async function generateMetadata({
   const { frontmatter } = article;
   return seoMetadata({
     title: frontmatter.seoTitle || frontmatter.title,
+    // article seoTitles are self-contained (and many carry their own "| …"
+    // suffix) — skip the site template so they don't truncate in search
+    absoluteTitle: true,
     description: frontmatter.seoDescription || frontmatter.excerpt,
     ogTitle: frontmatter.title,
     ogSubtitle: frontmatter.excerpt?.slice(0, 80),

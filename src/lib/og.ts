@@ -25,9 +25,13 @@ export function seoMetadata({
   openGraph,
   alternates,
   path,
+  absoluteTitle,
 }: {
   title: string;
   description: string;
+  /** Skip the "%s | Accelerate" layout template — for content pages (articles)
+      whose title is self-contained and would otherwise truncate in search. */
+  absoluteTitle?: boolean;
   /** Title rendered on the OG image card (defaults to `title`) */
   ogTitle?: string;
   /** Subtitle rendered below the title on the OG image card */
@@ -46,7 +50,7 @@ export function seoMetadata({
   const resolvedAlternates = alternates || (path ? { canonical: `${SITE_URL}${path}` } : undefined);
 
   return {
-    title,
+    title: absoluteTitle ? { absolute: title } : title,
     description,
     openGraph: {
       ...(path && { url: `${SITE_URL}${path}` }),
