@@ -547,14 +547,6 @@ body {
     from { opacity: 0; }
     to   { opacity: 1; }
   }
-  .hero-panel {
-    animation: hero-panel 1s cubic-bezier(0.22, 1, 0.36, 1) both;
-    animation-delay: var(--hero-delay, 0s);
-  }
-  @keyframes hero-panel {
-    from { opacity: 0; transform: scale(0.96); }
-    to   { opacity: 1; transform: scale(1); }
-  }
 }
 
 /* Sticky mobile CTA bar coordination — when the bar is showing (body[data-mcta]),

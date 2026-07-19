@@ -76,9 +76,11 @@ export function Hero() {
         </div>
 
         {/* right — hero visual: the live operations feed (the product, working).
-            Entrance is pure CSS (hero-panel) so the panel — the LCP element on
-            mobile — paints without waiting for framer-motion JS to hydrate. */}
-        <div className="hero-panel relative mt-2 lg:mt-0" style={{ "--hero-delay": "0.4s" } as React.CSSProperties}>
+            No entrance animation on the panel itself: it's the mobile LCP
+            element, and fading it in delayed LCP under throttled CPU (measured
+            4.8s -> 4.4s by removing it). The feed rows animate on their own and
+            the hero text rises in, so the section still has motion. */}
+        <div className="relative mt-2 lg:mt-0">
           <OpsFeed className="w-full shadow-2xl shadow-black/40" />
         </div>
       </motion.div>
