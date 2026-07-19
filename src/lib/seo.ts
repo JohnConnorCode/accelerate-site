@@ -27,6 +27,7 @@ export function generateArticleJsonLd(
     mainEntityOfPage: `${BASE_URL}/learn/${frontmatter.slug}`,
     wordCount,
     timeRequired: `PT${parseInt(readingTime)}M`,
+    articleSection: frontmatter.category,
     keywords: frontmatter.targetKeywords.join(", "),
     image: `${BASE_URL}/api/og?title=${encodeURIComponent(frontmatter.seoTitle || frontmatter.title)}`,
   };
