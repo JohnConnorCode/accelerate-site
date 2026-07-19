@@ -62,18 +62,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
     };
   });
 
-  // Learning Hub tags — lastModified from most recent article with each tag
-  const tagEntries: MetadataRoute.Sitemap = getAllTags().map(({ tag }) => {
-    const latest = articles.find((a) => a.frontmatter.tags.includes(tag));
-    return {
+  // Learning Hub tags — only include tags with >= 2 articles. Thin tags
+  // (< 2) are noindex on the page itself (see learn/tag/[tag]/page.tsx), so
+  // listing them here would submit noindex URLs to Google — contradictory
+  // signals that waste crawl budget and trigger Search Console warnings.
+  const tagEntries: MetadataRoute.Sitemap = getAllTags()
+    .map(({ tag }) => ({
+      tag,
+      matched: articles.filter((a) => a.frontmatter.tags.includes(tag)),
+    }))
+    .filter(({ matched }) => matched.length >= 2)
+    .map(({ tag, matched }) => ({
       url: `${BASE_URL}/learn/tag/${encodeURIComponent(tag)}`,
-      lastModified: latest
-        ? new Date(latest.frontmatter.updatedDate || latest.frontmatter.date)
-        : new Date(LAST_CONTENT_UPDATE),
+      lastModified: new Date(
+        matched[0]!.frontmatter.updatedDate || matched[0]!.frontmatter.date
+      ),
       changeFrequency: "weekly" as const,
       priority: 0.4,
-    };
-  });
+    }));
 
   return [...staticEntries, ...articleEntries, ...categoryEntries, ...tagEntries];
 }
