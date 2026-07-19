@@ -1,6 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
+import { PIPELINE_STAGES } from "@/lib/admin/pipeline-stages";
+
+// Statuses a lead can be set to: canonical pipeline stages plus "lost".
+const VALID_LEAD_STATUSES = new Set<string>([
+  ...PIPELINE_STAGES.map((s) => s.key),
+  "lost",
+]);
+const MAX_BULK_IDS = 200;
+
+/** Validate a bulk `ids` payload: must be a non-empty array of strings, capped. */
+function validateBulkIds(ids: unknown): string[] | null {
+  if (!Array.isArray(ids) || ids.length === 0 || ids.length > MAX_BULK_IDS) {
+    return null;
+  }
+  if (!ids.every((id) => typeof id === "string" && id.length > 0)) {
+    return null;
+  }
+  return ids as string[];
+}
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
@@ -118,21 +137,32 @@ export async function PATCH(request: NextRequest) {
   const supabase = createServiceRoleClient();
   const body = await request.json();
 
-  // Support bulk updates
-  if (Array.isArray(body.ids) && body.lead_status) {
+  // Support bulk status updates: { ids: string[], lead_status: string }
+  if (body.ids !== undefined && body.id === undefined) {
+    const ids = validateBulkIds(body.ids);
+    if (!ids) {
+      return NextResponse.json(
+        { error: `ids must be a non-empty array of up to ${MAX_BULK_IDS} strings` },
+        { status: 400 },
+      );
+    }
+    if (typeof body.lead_status !== "string" || !VALID_LEAD_STATUSES.has(body.lead_status)) {
+      return NextResponse.json({ error: "Invalid lead_status" }, { status: 400 });
+    }
+
     const updateData: Record<string, unknown> = { lead_status: body.lead_status };
     if (body.lead_status === "contacted") updateData.contacted_at = new Date().toISOString();
 
     const { error } = await supabase
       .from("solution_requests")
       .update(updateData)
-      .in("id", body.ids);
+      .in("id", ids);
 
     if (error) {
       console.error("Database error:", error.message);
-    return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
+      return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
     }
-    return NextResponse.json({ success: true, updated: body.ids.length });
+    return NextResponse.json({ success: true, updated: ids.length });
   }
 
   // Single update
@@ -200,4 +230,32 @@ export async function PATCH(request: NextRequest) {
   }
 
   return NextResponse.json({ lead: data });
+}
+
+export async function DELETE(request: NextRequest) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+
+  const supabase = createServiceRoleClient();
+  const body = await request.json();
+
+  const ids = validateBulkIds(body.ids);
+  if (!ids) {
+    return NextResponse.json(
+      { error: `ids must be a non-empty array of up to ${MAX_BULK_IDS} strings` },
+      { status: 400 },
+    );
+  }
+
+  const { error } = await supabase
+    .from("solution_requests")
+    .delete()
+    .in("id", ids);
+
+  if (error) {
+    console.error("Database error:", error.message);
+    return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true, deleted: ids.length });
 }

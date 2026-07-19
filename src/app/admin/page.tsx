@@ -17,6 +17,8 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { calculateLeadScore, getScoreColor, getScoreLabel } from "@/lib/admin/lead-scoring";
+import { fetchJson } from "@/lib/admin/fetchJson";
+import { toast } from "@/lib/admin/useToast";
 
 interface Metrics {
   leadsToday: number;
@@ -61,6 +63,20 @@ interface RecentLead {
   view_count?: number;
 }
 
+interface MetricsResponse {
+  metrics: Metrics;
+  trends?: Trends;
+  priorities?: Priority[];
+  unreadContacts?: number;
+  pendingPartners?: number;
+  chartData?: { date: string; leads: number }[];
+  pipeline?: Record<string, number>;
+  pipelineValues?: Record<string, number>;
+  emailStats?: { active: number; completed: number; total: number };
+  overdueTasks?: number;
+  stalledProposals?: number;
+}
+
 export default function AdminDashboardPage() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [trends, setTrends] = useState<Trends | undefined>();
@@ -80,27 +96,25 @@ export default function AdminDashboardPage() {
 
   const fetchData = useCallback(async (chartDays: number) => {
     try {
-      const [metricsRes, leadsRes] = await Promise.all([
-        fetch(`/api/admin/metrics?days=${chartDays}`),
-        fetch("/api/admin/leads"),
+      const [metricsData, leadsData] = await Promise.all([
+        fetchJson<MetricsResponse>(`/api/admin/metrics?days=${chartDays}`),
+        fetchJson<{ leads?: RecentLead[] }>("/api/admin/leads"),
       ]);
-      const metricsData = await metricsRes.json();
-      const leadsData = await leadsRes.json();
 
       setMetrics(metricsData.metrics);
       setTrends(metricsData.trends);
       setPriorities(metricsData.priorities || []);
       setUnreadContacts(metricsData.unreadContacts || 0);
       setPendingPartners(metricsData.pendingPartners || 0);
-      setChartData(metricsData.chartData);
+      setChartData(metricsData.chartData || []);
       setPipeline(metricsData.pipeline || {});
       setPipelineValues(metricsData.pipelineValues || {});
       setEmailStats(metricsData.emailStats);
       setOverdueTasks(metricsData.overdueTasks || 0);
       setStalledProposals(metricsData.stalledProposals || 0);
       setRecentLeads((leadsData.leads || []).slice(0, 10));
-    } catch {
-      // Handle error silently
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to load dashboard");
     } finally {
       setLoading(false);
     }

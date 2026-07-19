@@ -1,14 +1,25 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Plus } from "lucide-react";
+import { Plus, X, Save } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { LeadsTable } from "@/components/admin/LeadsTable";
 import { DateRangeFilter } from "@/components/admin/DateRangeFilter";
 import { AddLeadModal } from "@/components/admin/AddLeadModal";
 import { Button } from "@/components/ui/Button";
+import { fetchJson } from "@/lib/admin/fetchJson";
+import { toast } from "@/lib/admin/useToast";
+import {
+  loadLastFilters,
+  saveLastFilters,
+  loadSavedViews,
+  addSavedView,
+  removeSavedView,
+  type LeadsFilterState,
+  type SavedLeadsView,
+} from "@/lib/admin/leadsViews";
 
 interface Lead {
   id: string;
@@ -62,6 +73,29 @@ export default function AdminLeadsPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [showAddLead, setShowAddLead] = useState(false);
+  const [savedViews, setSavedViews] = useState<SavedLeadsView[]>([]);
+  const [showSaveView, setShowSaveView] = useState(false);
+  const [viewName, setViewName] = useState("");
+  const hydratedRef = useRef(false);
+
+  // Restore persisted filters + saved views once, on mount (SSR-safe).
+  useEffect(() => {
+    const last = loadLastFilters();
+    setStatusFilter(last.statusFilter);
+    setIndustryFilter(last.industryFilter);
+    setDateFrom(last.dateFrom);
+    setDateTo(last.dateTo);
+    setSortField(last.sortField);
+    setSortOrder(last.sortOrder);
+    setSavedViews(loadSavedViews());
+    hydratedRef.current = true;
+  }, []);
+
+  // Persist filter/sort state whenever it changes (after hydration).
+  useEffect(() => {
+    if (!hydratedRef.current) return;
+    saveLastFilters({ statusFilter, industryFilter, dateFrom, dateTo, sortField, sortOrder });
+  }, [statusFilter, industryFilter, dateFrom, dateTo, sortField, sortOrder]);
 
   const fetchLeads = useCallback(async () => {
     try {
@@ -76,13 +110,14 @@ export default function AdminLeadsPage() {
       if (dateFrom) params.set("dateFrom", dateFrom);
       if (dateTo) params.set("dateTo", dateTo);
 
-      const res = await fetch(`/api/admin/leads?${params}`);
-      const data = await res.json();
+      const data = await fetchJson<{ leads?: Lead[]; total?: number; totalPages?: number }>(
+        `/api/admin/leads?${params}`,
+      );
       setLeads(data.leads || []);
       setTotal(data.total || 0);
       setTotalPages(data.totalPages || 1);
-    } catch {
-      // Handle error silently
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to load leads");
     } finally {
       setLoading(false);
     }
@@ -92,19 +127,59 @@ export default function AdminLeadsPage() {
     fetchLeads();
   }, [fetchLeads]);
 
+  // Open the New Lead modal when triggered by the `n` keyboard shortcut.
+  useEffect(() => {
+    const open = () => setShowAddLead(true);
+    window.addEventListener("admin:new-lead", open);
+    return () => window.removeEventListener("admin:new-lead", open);
+  }, []);
+
   const handleUpdateLead = async (
     id: string,
     data: { lead_status?: string; notes?: string; estimated_value?: number }
   ) => {
     try {
-      await fetch("/api/admin/leads", {
+      await fetchJson("/api/admin/leads", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, ...data }),
       });
+      toast.success("Lead updated");
       await fetchLeads();
-    } catch {
-      // Handle error silently
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't update lead");
+    }
+  };
+
+  const handleBulkStatus = async (ids: string[], status: string) => {
+    try {
+      await fetchJson("/api/admin/leads", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids, lead_status: status }),
+      });
+      toast.success(`${ids.length} lead${ids.length === 1 ? "" : "s"} updated`);
+      await fetchLeads();
+      return true;
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't update leads");
+      return false;
+    }
+  };
+
+  const handleBulkDelete = async (ids: string[]) => {
+    try {
+      await fetchJson("/api/admin/leads", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids }),
+      });
+      toast.success(`${ids.length} lead${ids.length === 1 ? "" : "s"} deleted`);
+      await fetchLeads();
+      return true;
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't delete leads");
+      return false;
     }
   };
 
@@ -116,6 +191,31 @@ export default function AdminLeadsPage() {
       setSortOrder("desc");
     }
     setPage(1);
+  };
+
+  const applyView = (filters: LeadsFilterState) => {
+    setStatusFilter(filters.statusFilter);
+    setIndustryFilter(filters.industryFilter);
+    setDateFrom(filters.dateFrom);
+    setDateTo(filters.dateTo);
+    setSortField(filters.sortField);
+    setSortOrder(filters.sortOrder);
+    setPage(1);
+  };
+
+  const handleSaveView = () => {
+    const name = viewName.trim();
+    if (!name) return;
+    setSavedViews(
+      addSavedView(name, { statusFilter, industryFilter, dateFrom, dateTo, sortField, sortOrder }),
+    );
+    setViewName("");
+    setShowSaveView(false);
+    toast.success(`Saved view "${name}"`);
+  };
+
+  const handleRemoveView = (id: string) => {
+    setSavedViews(removeSavedView(id));
   };
 
   if (loading) {
@@ -178,12 +278,82 @@ export default function AdminLeadsPage() {
         />
       </div>
 
+      {/* Saved views */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        {savedViews.map((view) => (
+          <span
+            key={view.id}
+            className="inline-flex items-center gap-1.5 rounded-full bg-bg-subtle border border-border-glass pl-3 pr-1 py-1 text-xs text-white-secondary"
+          >
+            <button
+              type="button"
+              onClick={() => applyView(view.filters)}
+              className="hover:text-white-primary transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] rounded cursor-pointer"
+            >
+              {view.name}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleRemoveView(view.id)}
+              aria-label={`Remove view ${view.name}`}
+              className="text-white-muted hover:text-red-400 transition-colors rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </span>
+        ))}
+
+        {showSaveView ? (
+          <span className="inline-flex items-center gap-1">
+            <input
+              type="text"
+              value={viewName}
+              onChange={(e) => setViewName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSaveView();
+                if (e.key === "Escape") { setShowSaveView(false); setViewName(""); }
+              }}
+              placeholder="View name"
+              autoFocus
+              className="rounded-lg bg-bg-subtle border border-border-glass px-2.5 py-1 text-xs text-white-primary focus:outline-none focus:border-gold transition-all placeholder:text-white-muted w-32"
+            />
+            <button
+              type="button"
+              onClick={handleSaveView}
+              disabled={!viewName.trim()}
+              className="text-xs text-gold-light hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed transition-all rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer px-1"
+            >
+              Save
+            </button>
+            <button
+              type="button"
+              onClick={() => { setShowSaveView(false); setViewName(""); }}
+              aria-label="Cancel saving view"
+              className="text-white-muted hover:text-white-primary transition-colors rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowSaveView(true)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border-glass px-3 py-1 text-xs text-white-muted hover:text-white-secondary hover:border-white/20 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer"
+          >
+            <Save className="h-3 w-3" />
+            Save current view
+          </button>
+        )}
+      </div>
+
       <LeadsTable
         leads={leads}
         total={total}
         page={page}
         totalPages={totalPages}
         onUpdateLead={handleUpdateLead}
+        onBulkStatus={handleBulkStatus}
+        onBulkDelete={handleBulkDelete}
         onPageChange={setPage}
         onSort={handleSort}
         sortField={sortField}

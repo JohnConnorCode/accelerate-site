@@ -7,6 +7,8 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { TaskQuickAdd } from "./TaskQuickAdd";
+import { fetchJson } from "@/lib/admin/fetchJson";
+import { toast } from "@/lib/admin/useToast";
 
 interface Task {
   id: string;
@@ -37,12 +39,10 @@ export function TaskWidget() {
   const fetchTasks = useCallback(async () => {
     try {
       const today = new Date().toISOString().split("T")[0]!;
-      const [todayRes, overdueRes] = await Promise.all([
-        fetch(`/api/admin/tasks?status=pending&date=${today}`),
-        fetch(`/api/admin/tasks?include_overdue=true`),
+      const [todayData, overdueData] = await Promise.all([
+        fetchJson<{ tasks?: Task[] }>(`/api/admin/tasks?status=pending&date=${today}`),
+        fetchJson<{ tasks?: Task[] }>(`/api/admin/tasks?include_overdue=true`),
       ]);
-      const todayData = await todayRes.json();
-      const overdueData = await overdueRes.json();
 
       // Merge and deduplicate: overdue first, then today's
       const overdueIds = new Set<string>();
@@ -56,8 +56,8 @@ export function TaskWidget() {
       const todayTasks = (todayData.tasks || []).filter((t: Task) => !overdueIds.has(t.id));
 
       setTasks([...overdue, ...todayTasks]);
-    } catch {
-      // Silent
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to load tasks");
     } finally {
       setLoading(false);
     }
@@ -69,14 +69,15 @@ export function TaskWidget() {
 
   const handleComplete = async (taskId: string) => {
     try {
-      await fetch("/api/admin/tasks", {
+      await fetchJson("/api/admin/tasks", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: taskId, status: "completed" }),
       });
       setTasks((prev) => prev.filter((t) => t.id !== taskId));
-    } catch {
-      // Silent
+      toast.success("Task completed");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't complete task");
     }
   };
 

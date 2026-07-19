@@ -9,10 +9,12 @@ import {
   Search,
   Download,
   ArrowUpDown,
+  Trash2,
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { calculateLeadScore, getScoreColor, getScoreLabel } from "@/lib/admin/lead-scoring";
+import { PIPELINE_STAGES } from "@/lib/admin/pipeline-stages";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -43,13 +45,16 @@ interface LeadsTableProps {
   page: number;
   totalPages: number;
   onUpdateLead: (id: string, data: { lead_status?: string; notes?: string; estimated_value?: number }) => void;
+  onBulkStatus: (ids: string[], status: string) => Promise<boolean>;
+  onBulkDelete: (ids: string[]) => Promise<boolean>;
   onPageChange: (page: number) => void;
   onSort: (field: string) => void;
   sortField: string;
   sortOrder: string;
 }
 
-const statusOptions = ["new", "contacted", "qualified", "proposal", "won", "lost"];
+// Bulk status options: canonical pipeline stages plus "lost".
+const statusOptions = [...PIPELINE_STAGES.map((s) => s.key), "lost"];
 
 export function LeadsTable({
   leads,
@@ -57,6 +62,8 @@ export function LeadsTable({
   page,
   totalPages,
   onUpdateLead,
+  onBulkStatus,
+  onBulkDelete,
   onPageChange,
   onSort,
   sortField,
@@ -66,6 +73,8 @@ export function LeadsTable({
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkStatus, setBulkStatus] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [scoreSort, setScoreSort] = useState<"asc" | "desc" | null>(null);
 
   const filtered = useMemo(() => {
@@ -106,20 +115,27 @@ export function LeadsTable({
     setSelectedIds(next);
   };
 
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+    setBulkStatus("");
+    setConfirmDelete(false);
+  };
+
   const handleBulkUpdate = async () => {
-    if (!bulkStatus || selectedIds.size === 0) return;
-    try {
-      await fetch("/api/admin/leads", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: Array.from(selectedIds), lead_status: bulkStatus }),
-      });
-      selectedIds.forEach((id) => onUpdateLead(id, { lead_status: bulkStatus }));
-      setSelectedIds(new Set());
-      setBulkStatus("");
-    } catch {
-      // silent
-    }
+    if (!bulkStatus || selectedIds.size === 0 || bulkBusy) return;
+    setBulkBusy(true);
+    const ok = await onBulkStatus(Array.from(selectedIds), bulkStatus);
+    setBulkBusy(false);
+    if (ok) clearSelection();
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0 || bulkBusy) return;
+    setBulkBusy(true);
+    const ok = await onBulkDelete(Array.from(selectedIds));
+    setBulkBusy(false);
+    if (ok) clearSelection();
+    else setConfirmDelete(false);
   };
 
   const handleExport = () => {
@@ -160,14 +176,16 @@ export function LeadsTable({
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
           >
-            <GlassCard padding="sm" hover="none" className="flex items-center gap-3 mb-3">
+            <GlassCard padding="sm" hover="none" className="flex flex-wrap items-center gap-3 mb-3">
               <span className="text-sm text-white-secondary">
                 {selectedIds.size} selected
               </span>
               <select
                 value={bulkStatus}
                 onChange={(e) => setBulkStatus(e.target.value)}
-                className="rounded-lg glass px-3 py-1.5 text-sm text-white-primary bg-transparent focus:outline-none"
+                aria-label="Set status for selected leads"
+                disabled={bulkBusy}
+                className="rounded-lg glass px-3 py-1.5 text-sm text-white-primary bg-transparent focus:outline-none disabled:opacity-50"
               >
                 <option value="">Change status to...</option>
                 {statusOptions.map((s) => (
@@ -176,10 +194,42 @@ export function LeadsTable({
                   </option>
                 ))}
               </select>
-              <Button variant="primary" size="sm" onClick={handleBulkUpdate} disabled={!bulkStatus}>
+              <Button variant="primary" size="sm" onClick={handleBulkUpdate} disabled={!bulkStatus || bulkBusy}>
                 Apply
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())}>
+
+              {confirmDelete ? (
+                <span className="inline-flex items-center gap-2">
+                  <span className="text-sm text-white-secondary">
+                    Delete {selectedIds.size}?
+                  </span>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleBulkDelete}
+                    disabled={bulkBusy}
+                    className="!border-red-500/40 !text-red-400 hover:!border-red-500/60"
+                  >
+                    {bulkBusy ? "Deleting..." : "Confirm"}
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setConfirmDelete(false)} disabled={bulkBusy}>
+                    Cancel
+                  </Button>
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(true)}
+                  disabled={bulkBusy}
+                  aria-label="Delete selected leads"
+                  className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 cursor-pointer"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Delete
+                </button>
+              )}
+
+              <Button variant="ghost" size="sm" onClick={clearSelection} disabled={bulkBusy}>
                 Clear
               </Button>
             </GlassCard>
@@ -197,6 +247,7 @@ export function LeadsTable({
                   type="checkbox"
                   checked={selectedIds.size === filtered.length && filtered.length > 0}
                   onChange={handleSelectAll}
+                  aria-label="Select all leads"
                   className="rounded cursor-pointer"
                 />
               </th>
@@ -279,6 +330,7 @@ export function LeadsTable({
                         type="checkbox"
                         checked={selectedIds.has(lead.id)}
                         onChange={() => handleSelect(lead.id)}
+                        aria-label={`Select ${lead.contact_name}`}
                         className="rounded cursor-pointer"
                       />
                     </td>

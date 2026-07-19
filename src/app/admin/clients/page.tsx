@@ -9,6 +9,8 @@ import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { EmptyState } from "@/components/admin/EmptyState";
+import { fetchJson } from "@/lib/admin/fetchJson";
+import { toast } from "@/lib/admin/useToast";
 
 interface Client {
   id: string;
@@ -46,13 +48,14 @@ export default function ClientsPage() {
       if (statusFilter !== "all") params.set("status", statusFilter);
       if (search) params.set("search", search);
 
-      const res = await fetch(`/api/admin/clients?${params}`);
-      const data = await res.json();
+      const data = await fetchJson<{ clients?: Client[]; totalMRR?: number; activeCount?: number }>(
+        `/api/admin/clients?${params}`,
+      );
       setClients(data.clients || []);
       setTotalMRR(data.totalMRR || 0);
       setActiveCount(data.activeCount || 0);
-    } catch {
-      // Silent
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to load clients");
     } finally {
       setLoading(false);
     }

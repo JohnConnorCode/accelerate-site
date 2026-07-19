@@ -9,6 +9,8 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { ProposalEditor } from "@/components/admin/ProposalEditor";
+import { fetchJson } from "@/lib/admin/fetchJson";
+import { toast } from "@/lib/admin/useToast";
 
 interface Proposal {
   id: string;
@@ -57,13 +59,14 @@ export default function ProposalsPage() {
       const params = new URLSearchParams();
       if (statusFilter !== "all") params.set("status", statusFilter);
 
-      const res = await fetch(`/api/admin/proposals?${params}`);
-      const data = await res.json();
+      const data = await fetchJson<{ proposals?: Proposal[]; totalOneTime?: number; totalMonthly?: number }>(
+        `/api/admin/proposals?${params}`,
+      );
       setProposals(data.proposals || []);
       setTotalOneTime(data.totalOneTime || 0);
       setTotalMonthly(data.totalMonthly || 0);
-    } catch {
-      // Silent
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to load proposals");
     } finally {
       setLoading(false);
     }
@@ -74,40 +77,47 @@ export default function ProposalsPage() {
   }, [fetchProposals]);
 
   const handleSave = async (updates: Record<string, unknown>) => {
-    await fetch("/api/admin/proposals", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updates),
-    });
-    await fetchProposals();
-    if (selectedProposal && updates.id === selectedProposal.id) {
-      const res = await fetch(`/api/admin/proposals?id=${selectedProposal.id}`);
-      const data = await res.json();
-      setSelectedProposal(data.proposal);
+    try {
+      await fetchJson("/api/admin/proposals", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      await fetchProposals();
+      if (selectedProposal && updates.id === selectedProposal.id) {
+        const data = await fetchJson<{ proposal: Proposal }>(`/api/admin/proposals?id=${selectedProposal.id}`);
+        setSelectedProposal(data.proposal);
+      }
+      toast.success("Proposal saved");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't save proposal");
     }
   };
 
   const handleCreateBlank = async () => {
-    const res = await fetch("/api/admin/proposals", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        client_name: "New Client",
-        title: "New Proposal",
-        content: {
-          sections: [
-            { title: "Executive Summary", content: "" },
-            { title: "Proposed Solution", content: "" },
-            { title: "Investment", content: "", pricing: [] },
-            { title: "Next Steps", content: "" },
-          ],
-        },
-      }),
-    });
-    const data = await res.json();
-    if (data.proposal) {
-      setSelectedProposal(data.proposal);
-      await fetchProposals();
+    try {
+      const data = await fetchJson<{ proposal?: Proposal }>("/api/admin/proposals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          client_name: "New Client",
+          title: "New Proposal",
+          content: {
+            sections: [
+              { title: "Executive Summary", content: "" },
+              { title: "Proposed Solution", content: "" },
+              { title: "Investment", content: "", pricing: [] },
+              { title: "Next Steps", content: "" },
+            ],
+          },
+        }),
+      });
+      if (data.proposal) {
+        setSelectedProposal(data.proposal);
+        await fetchProposals();
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't create proposal");
     }
   };
 

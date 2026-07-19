@@ -33,6 +33,7 @@ import { createClient } from "@/lib/supabase/client";
 import { NotificationBell } from "@/components/admin/NotificationBell";
 import { Toaster } from "@/components/admin/Toaster";
 import { AdminErrorBoundary } from "@/components/admin/AdminErrorBoundary";
+import { AdminShortcuts } from "@/components/admin/AdminShortcuts";
 
 const sidebarSections = [
   {
@@ -270,6 +271,7 @@ export default function AdminLayout({
         <AdminErrorBoundary key={pathname}>{children}</AdminErrorBoundary>
       </main>
       <Toaster />
+      <AdminShortcuts />
     </div>
   );
 }
