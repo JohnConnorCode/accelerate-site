@@ -53,6 +53,9 @@ export function seoMetadata({
     title: absoluteTitle ? { absolute: title } : title,
     description,
     openGraph: {
+      // og:type is required by the Open Graph spec; default to "website" so
+      // core pages emit it. Article pages override via the openGraph prop.
+      type: "website",
       ...(path && { url: `${SITE_URL}${path}` }),
       images: [{ url: imageUrl, width: 1200, height: 630, alt: imageTitle }],
       ...(openGraph as Metadata["openGraph"]),
