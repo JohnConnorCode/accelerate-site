@@ -86,11 +86,12 @@ export function ContactForm() {
                 "var(--font-jost), var(--font-inter), sans-serif",
             }}
           >
-            Message Sent
+            On its way to John
           </h3>
           <p className="text-white-secondary max-w-md mx-auto">
-            Thanks for reaching out. We will get back to you within one business
-            day.
+            John reads every message and replies within one business day. On the
+            first call we map where AI moves the needle for your business, and
+            the roadmap is yours to keep.
           </p>
         </div>
       </GlassCard>
@@ -186,7 +187,7 @@ export function ContactForm() {
             </>
           ) : (
             <>
-              Send Message
+              Send to John
               <Send className="w-4 h-4 ml-2" />
             </>
           )}
