@@ -58,7 +58,7 @@ export function Hero() {
             className="hero-fade-up mt-8 flex flex-col items-start gap-4 sm:mt-9 sm:flex-row sm:items-center sm:gap-6"
             style={{ "--hero-delay": "0.85s" } as React.CSSProperties}
           >
-            <BookCallButton label="Book a free strategy call" />
+            <BookCallButton location="home_hero" label="Book a free strategy call" />
             <Link
               href="/services"
               data-cursor="link"

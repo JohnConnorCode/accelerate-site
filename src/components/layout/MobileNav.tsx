@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { trackConversion } from "@/lib/analytics";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Logo } from "@/components/ui/Logo";
 
@@ -290,7 +291,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
 
               {/* CTA */}
               <motion.div variants={ctaVariants}>
-                <Link href="/contact" onClick={onClose}>
+                <Link href="/contact" onClick={() => { trackConversion("Strategy Call CTA Clicked", { location: "mobile_nav" }); onClose(); }}>
                   <Button variant="primary" size="lg" className="w-full group/cta">
                     Book a free strategy call
                     <ChevronRight className="w-4 h-4 ml-1.5 transition-transform duration-200 group-hover/cta:translate-x-0.5" />

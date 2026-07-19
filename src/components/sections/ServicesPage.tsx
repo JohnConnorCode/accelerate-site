@@ -13,6 +13,7 @@ import { ProofStrip } from "@/components/v2/studio/ProofStrip";
 import { HERO_HEADING } from "@/lib/type-recipes";
 import { OpsFeed } from "@/components/v2/living/OpsFeed";
 import { services } from "@/content/services";
+import { trackConversion } from "@/lib/analytics";
 
 const iconMap: Record<string, LucideIcon> = {
   Compass, Workflow, TrendingUp, MessageCircle, PenTool, BarChart3,
@@ -139,6 +140,7 @@ function ServiceBand({
               <Link
                 href="/contact"
                 data-cursor="link"
+                onClick={() => trackConversion("Service Get Started", { service: service.name })}
                 className="group inline-flex items-center gap-1.5 text-sm font-semibold text-heading"
               >
                 <span className="ink-sweep">Get started</span>
@@ -203,7 +205,7 @@ export function ServicesPageContent() {
               </AnimateOnScroll>
               <AnimateOnScroll delay={0.35}>
                 <div className="mt-9 flex items-center gap-6">
-                  <BookCallButton />
+                  <BookCallButton location="services_inline" />
                   <Link
                     href="#strategy"
                     data-cursor="link"
@@ -295,7 +297,7 @@ export function ServicesPageContent() {
               Book a free strategy call. We&apos;ll learn your business and tell
               you exactly where AI can help. No pitch, no obligation.
             </p>
-            <BookCallButton />
+            <BookCallButton location="services_closing" />
             <div className="flex flex-wrap gap-x-8 gap-y-3 border-t border-border-glass pt-6 font-mono text-xs uppercase tracking-[0.15em] text-white-muted">
               <span>Free</span><span>·</span>
               <span>30 minutes</span><span>·</span>

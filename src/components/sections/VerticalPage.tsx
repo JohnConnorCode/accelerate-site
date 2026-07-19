@@ -83,7 +83,7 @@ export function VerticalPage({ vertical }: VerticalPageProps) {
               </AnimateOnScroll>
               <AnimateOnScroll delay={0.35}>
                 <div className="mt-9">
-                  <BookCallButton />
+                  <BookCallButton location="industry_hero" />
                 </div>
               </AnimateOnScroll>
             </div>
@@ -308,7 +308,7 @@ export function VerticalPage({ vertical }: VerticalPageProps) {
                   needle for your business. No pitch, no obligation.
                 </p>
               </AnimateOnScroll>
-              <AnimateOnScroll delay={0.25}><BookCallButton /></AnimateOnScroll>
+              <AnimateOnScroll delay={0.25}><BookCallButton location="industry_closing" /></AnimateOnScroll>
               <AnimateOnScroll delay={0.35} as="div" className="flex flex-wrap gap-x-8 gap-y-3 border-t border-border-glass pt-6 font-mono text-xs uppercase tracking-[0.15em] text-white-muted">
                 <span>Free</span><span>·</span>
                 <span>30 minutes</span><span>·</span>

@@ -301,7 +301,7 @@ export function PackagesPageContent() {
               Book a free strategy call. We&apos;ll learn your business and
               recommend the package that fits. No pitch, no obligation.
             </p>
-            <BookCallButton />
+            <BookCallButton location="packages_closing" />
             <div className="flex flex-wrap gap-x-8 gap-y-3 border-t border-border-glass pt-6 font-mono text-xs uppercase tracking-[0.15em] text-white-muted">
               <span>Free</span><span>·</span>
               <span>30 minutes</span><span>·</span>

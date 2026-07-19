@@ -75,7 +75,7 @@ export function ClosingCTA() {
             ))}
           </ul>
 
-          <BookCallButton label="Book a free strategy call" />
+          <BookCallButton location="home_closing" label="Book a free strategy call" />
           <a
             href="mailto:john@acceleratewith.us"
             data-cursor="link"

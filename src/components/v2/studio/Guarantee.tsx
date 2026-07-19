@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { trackConversion } from "@/lib/analytics";
 import { motion, useReducedMotion } from "framer-motion";
 import { EASE } from "@/lib/animations";
 import { Eyebrow } from "./primitives";
@@ -89,6 +90,7 @@ export function Guarantee() {
           <Link
             href="/contact"
             data-cursor="link"
+            onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "guarantee" })}
             className="text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-gold hover:underline"
           >
             Book a free strategy call →

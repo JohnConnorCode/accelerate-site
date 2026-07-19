@@ -50,7 +50,7 @@ export function ValueBand() {
             and keeps them sharp, so your growth stops depending on your hours.
           </motion.p>
           <motion.div variants={item}>
-            <BookCallButton variant="inverse" label="Book a free strategy call" className="mt-9" />
+            <BookCallButton variant="inverse" location="home_valueband" label="Book a free strategy call" className="mt-9" />
           </motion.div>
 
           {/* always-on cue — on-brand "it keeps running" indicator */}

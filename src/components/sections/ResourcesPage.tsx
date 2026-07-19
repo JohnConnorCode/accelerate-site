@@ -143,7 +143,7 @@ export function ResourcesPage() {
               exactly where AI and automation can move the needle for your
               business.
             </p>
-            <BookCallButton />
+            <BookCallButton location="resources" />
             <div className="flex flex-wrap gap-x-8 gap-y-3 border-t border-border-glass pt-6 font-mono text-xs uppercase tracking-[0.15em] text-white-muted">
               <span>Free</span><span>·</span>
               <span>30 minutes</span><span>·</span>

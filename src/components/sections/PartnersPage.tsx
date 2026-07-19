@@ -283,7 +283,7 @@ export function PartnersPage() {
               Let&apos;s talk about how we can work together to deliver AI
               solutions to your clients.
             </p>
-            <BookCallButton />
+            <BookCallButton location="partners" />
             <div className="flex flex-wrap gap-x-8 gap-y-3 border-t border-border-glass pt-6 font-mono text-xs uppercase tracking-[0.15em] text-white-muted">
               <span>Free</span><span>·</span>
               <span>30 minutes</span><span>·</span>

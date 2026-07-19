@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { trackConversion } from "@/lib/analytics";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
@@ -210,7 +211,7 @@ export function Header() {
           {/* Desktop CTA + Theme Toggle */}
           <motion.div variants={headerCtaReveal} className="hidden lg:flex items-center gap-3">
             <ThemeToggle />
-            <Link href="/contact">
+            <Link href="/contact" onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "header" })}>
               <Button variant="primary" size="sm" className="group/cta">
                 Book a free strategy call
                 <ArrowRight className="w-4 h-4 ml-1.5 transition-transform duration-200 group-hover/cta:translate-x-0.5" />

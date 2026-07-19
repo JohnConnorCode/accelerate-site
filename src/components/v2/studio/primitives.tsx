@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 import { WordMask, childrenToTokens } from "./RevealHeading";
+import { trackConversion } from "@/lib/analytics";
 
 /* ──────────────────────────────────────────────────────────────────────────────
    Design-system primitives for /v2 sections.
@@ -156,10 +157,14 @@ export function BookCallButton({
   variant = "primary",
   label = "Book a free strategy call",
   className,
+  location = "unknown",
 }: {
   variant?: "primary" | "inverse";
   label?: string;
   className?: string;
+  /** where this CTA lives (hero, closing, packages…) — attached to the
+      conversion event so John can see which placement drives calls. */
+  location?: string;
 }) {
   const inverse = variant === "inverse";
   return (
@@ -168,6 +173,7 @@ export function BookCallButton({
         href="/contact"
         data-cursor="link"
         data-cursor-label="Go"
+        onClick={() => trackConversion("Strategy Call CTA Clicked", { location })}
         className={
           "group inline-flex items-center gap-2.5 self-start whitespace-nowrap rounded-full px-7 py-3.5 text-sm font-semibold " +
           (inverse ? "bg-btn-text text-gold" : "bg-gold text-btn-text")

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowRight } from "lucide-react";
+import { trackConversion } from "@/lib/analytics";
 import { AnimatePresence, motion } from "framer-motion";
 
 /**
@@ -73,6 +74,7 @@ export function MobileCTABar() {
           >
             <Link
               href="/contact"
+              onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "mobile_sticky_bar" })}
               className="flex w-full items-center justify-center gap-2 rounded-full bg-gold px-6 py-3.5 text-sm font-semibold text-btn-text"
             >
               Book a free strategy call

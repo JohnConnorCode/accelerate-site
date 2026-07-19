@@ -133,7 +133,7 @@ export default function IndustriesPage() {
               We work with any service-based business. 30 minutes on the phone
               and we&apos;ll tell you exactly where AI can move the needle.
             </p>
-            <BookCallButton />
+            <BookCallButton location="industries_index" />
             <div className="flex flex-wrap gap-x-8 gap-y-3 border-t border-border-glass pt-6 font-mono text-xs uppercase tracking-[0.15em] text-white-muted">
               <span>Free</span><span>·</span>
               <span>30 minutes</span><span>·</span>
