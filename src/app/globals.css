@@ -398,9 +398,14 @@
 
 html,
 body {
-  /* clip, not hidden: overflow-x hidden makes body a scroll container, which
-     silently disables every position:sticky descendant (e.g. the packages
-     comparison-table header). clip guards horizontal bleed without that. */
+  /* Progressive enhancement, ordered on purpose:
+     - `hidden` is the universal fallback (Safari <16 / iOS 15 don't support
+       `clip`) — guarantees no horizontal scroll everywhere.
+     - `clip` overrides it in modern browsers: same bleed guard, but WITHOUT
+       making <body> a scroll container, so position:sticky (e.g. the packages
+       comparison-table header) keeps working. Old Safari keeps `hidden` and
+       simply loses the sticky header — acceptable degradation. */
+  overflow-x: hidden;
   overflow-x: clip;
 }
 
