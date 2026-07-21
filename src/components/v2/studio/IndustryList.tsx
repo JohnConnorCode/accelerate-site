@@ -15,7 +15,7 @@ type Item = { slug: string; name: string; outcome: string; icon: LucideIcon };
 // Row metadata for the list; the per-industry ops feed + metric live in the
 // shared INDUSTRY_FEEDS content module (also used by vertical landing pages).
 const ITEMS: Item[] = [
-  { slug: "home-services", name: "Home Services", outcome: "Every call answered. More jobs booked.", icon: Wrench },
+  { slug: "home-services", name: "Home Services", outcome: "Every inquiry answered. More jobs booked.", icon: Wrench },
   { slug: "law-firms", name: "Law Firms", outcome: "Faster intake. More cases signed.", icon: Scale },
   { slug: "real-estate", name: "Real Estate", outcome: "Less chasing. More closings.", icon: KeyRound },
   { slug: "professional-services", name: "Professional Services", outcome: "A pipeline you can predict.", icon: Briefcase },

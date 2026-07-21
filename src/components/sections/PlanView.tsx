@@ -454,7 +454,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
             className="w-full gap-2"
           >
             <CalendarCheck className="w-5 h-5" />
-            Book a Free Discovery Call
+            Book a Free Strategy Call
           </Button>
         </Link>
         <Button

@@ -185,7 +185,7 @@ export function ProblemSolution() {
           <MagneticButton>
             <Link href="/contact">
               <Button variant="primary" size="lg" className="group/cta">
-                Book a Free Discovery Call
+                Book a Free Strategy Call
                 <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover/cta:translate-x-0.5" />
               </Button>
             </Link>

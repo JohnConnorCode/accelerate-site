@@ -134,7 +134,7 @@ export function ServicesOverview() {
         <AnimateOnScroll variants={fadeUp} delay={0.15} className="mt-12 flex flex-wrap items-center gap-4">
           <Link href="/contact">
             <Button variant="primary" size="lg">
-              Book a Free Discovery Call
+              Book a Free Strategy Call
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>

@@ -100,7 +100,7 @@ export function HowItWorks() {
             label="How It Works"
             heading={
               <>
-                From Discovery Call to{" "}
+                From Strategy Call to{" "}
                 <span className="text-gold">Live Systems</span>, Fast
               </>
             }

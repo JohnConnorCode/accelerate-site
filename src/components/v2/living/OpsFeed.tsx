@@ -210,13 +210,16 @@ export function OpsFeed({ className }: { className?: string }) {
                 key={e.id}
                 layout
                 data-cursor="link"
-                initial={mounted && !reduced ? { opacity: 0, y: -14, backgroundColor: `rgba(${c},0.24)` } : false}
+                // Slide + brief highlight on entrance, but NO text-opacity fade:
+                // fading the text dips it below AA contrast mid-animation, and
+                // the feed animates continuously, so a contrast checker always
+                // catches a transition frame. Rows arrive at full opacity.
+                initial={mounted && !reduced ? { y: -14, backgroundColor: `rgba(${c},0.24)` } : false}
                 animate={{
-                  opacity: 1,
                   y: 0,
                   backgroundColor: value ? `rgba(${c},0.12)` : "rgba(0,0,0,0)",
                 }}
-                exit={{ opacity: 0, y: 6, height: 0, marginTop: 0, transition: { duration: 0.3, ease: "easeIn" } }}
+                exit={{ opacity: 0, y: 6, height: 0, marginTop: 0, transition: { duration: 0.25, ease: "easeIn" } }}
                 transition={{ duration: 0.55, ease: EASE, backgroundColor: { duration: 1.2, ease: "easeOut" } }}
                 whileHover={{ x: 5, backgroundColor: `rgba(${c},0.16)` }}
                 className="group flex cursor-pointer items-center gap-2 rounded-lg border px-2 py-1.5 sm:gap-3 sm:px-3 sm:py-2.5"

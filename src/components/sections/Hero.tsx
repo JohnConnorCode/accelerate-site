@@ -128,10 +128,10 @@ export function Hero() {
             <Link
               href="/contact"
               className="pointer-events-auto"
-              onClick={() => trackConversion("CTA Click", { section: "Hero", cta_text: "Book a Free Discovery Call", href: "/contact" })}
+              onClick={() => trackConversion("CTA Click", { section: "Hero", cta_text: "Book a Free Strategy Call", href: "/contact" })}
             >
               <Button variant="primary" size="lg" className="w-full sm:w-auto">
-                Book a Free Discovery Call
+                Book a Free Strategy Call
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
@@ -161,7 +161,7 @@ export function Hero() {
             <span className="hidden sm:inline text-white-muted" aria-hidden="true">|</span>
             <span className="hidden sm:inline">Transparent pricing</span>
             <span className="hidden sm:inline text-white-muted" aria-hidden="true">|</span>
-            <span className="hidden sm:inline">Free discovery call</span>
+            <span className="hidden sm:inline">Free strategy call</span>
           </motion.div>
         </motion.div>
       </div>

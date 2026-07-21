@@ -431,7 +431,7 @@ export function ResultsStep({ plan, shareToken }: StepProps) {
           }}
         >
           <CalendarCheck className="w-5 h-5" />
-          Book a Free Discovery Call
+          Book a Free Strategy Call
         </Button>
         <Button
           variant="secondary"
