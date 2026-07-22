@@ -13,7 +13,8 @@
     "deploy:build": "vercel build --prod",
     "deploy:upload": "vercel deploy --prebuilt --prod --archive=tgz",
     "deploy": "npm run deploy:pull && npm run deploy:build && npm run deploy:upload",
-    "deploy:rollback": "vercel rollback"
+    "deploy:rollback": "vercel rollback",
+    "verify:guardrails": "npx tsx scripts/verify-guardrails.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
