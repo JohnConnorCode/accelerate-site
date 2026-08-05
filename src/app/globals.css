@@ -322,7 +322,10 @@ body {
   padding: 3px 8px;
   color: var(--mid);
   white-space: nowrap;
+  display: inline-block;
 }
+a.tag { transition: color .2s ease, border-color .2s ease; }
+a.tag:hover { color: var(--fg); border-color: var(--fg); }
 .ink-panel .tag { color: #8A8A86; }
 
 /* ─── Buttons ─── */
