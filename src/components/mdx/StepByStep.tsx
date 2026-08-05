@@ -7,7 +7,7 @@ interface StepProps {
 export function Step({ number, title, children }: StepProps) {
   return (
     <div className="flex gap-4 mb-6">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold-gradient text-black font-display font-bold text-sm">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold-gradient font-display font-bold text-sm">
         {number}
       </div>
       <div className="flex-1">

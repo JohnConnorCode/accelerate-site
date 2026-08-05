@@ -6,6 +6,7 @@ import { Section, Container, Eyebrow, Heading } from "@/components/v2/studio/pri
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { HERO_HEADING } from "@/lib/type-recipes";
 import { ContactForm } from "@/components/sections/ContactForm";
+import { CalendlyEmbed } from "@/components/sections/CalendlyEmbed";
 
 const INFO_CARDS = [
   {
@@ -84,19 +85,36 @@ export function ContactPageContent() {
             </div>
           </div>
 
-          {/* right: the form, the actual point of this page */}
+          {/* right: book directly on the calendar — the primary conversion path */}
           <AnimateOnScroll as="div" delay={0.15} className="lg:sticky lg:top-32">
-            <div className="rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_20px_60px_rgba(0,0,0,0.25)] backdrop-blur-md sm:p-8">
-              <p className="mb-1 font-mono text-[0.6rem] uppercase tracking-[0.22em] text-white-muted">
+            <div className="rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_20px_60px_rgba(0,0,0,0.25)] backdrop-blur-md sm:p-6">
+              <p className="mb-1 px-2 font-mono text-[0.6rem] uppercase tracking-[0.22em] text-white-muted">
                 Start here
               </p>
-              <h2 className="mb-5 font-display text-2xl font-bold tracking-[-0.02em] text-heading">
-                Tell us about your business
+              <h2 className="mb-4 px-2 font-display text-2xl font-bold tracking-[-0.02em] text-heading">
+                Book a free 30-minute call
               </h2>
-              <ContactForm />
+              <CalendlyEmbed />
             </div>
           </AnimateOnScroll>
         </div>
+        </Container>
+      </section>
+
+      {/* secondary path: a message instead of a call */}
+      <section className="pb-8">
+        <Container width="wide">
+          <div className="mx-auto max-w-xl">
+            <div className="rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] p-6 backdrop-blur-md sm:p-8">
+              <p className="mb-1 font-mono text-[0.6rem] uppercase tracking-[0.22em] text-white-muted">
+                Prefer email
+              </p>
+              <h2 className="mb-5 font-display text-2xl font-bold tracking-[-0.02em] text-heading">
+                Send a message instead
+              </h2>
+              <ContactForm />
+            </div>
+          </div>
         </Container>
       </section>
 

@@ -26,8 +26,8 @@ export function OpsConsole({
       <div className="flex items-center justify-between border-b border-border-glass px-5 py-3.5">
         <div className="flex items-center gap-2.5">
           <span className="flex gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
-            <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
+            <span className="h-2.5 w-2.5 rounded-full bg-rule" />
+            <span className="h-2.5 w-2.5 rounded-full bg-rule" />
             <span className="h-2.5 w-2.5 rounded-full bg-gold/70" />
           </span>
           <span className="font-mono text-[0.62rem] uppercase tracking-[0.18em] text-white-muted">

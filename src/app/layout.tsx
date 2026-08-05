@@ -1,35 +1,36 @@
 import type { Metadata, Viewport } from "next";
-import { Jost, Hanken_Grotesk, Fraunces, JetBrains_Mono } from "next/font/google";
+import { Inter_Tight, Inter, Newsreader, JetBrains_Mono } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { TrackingScripts } from "@/components/layout/TrackingScripts";
 import { UTMCapture } from "@/components/layout/UTMCapture";
 import { ChatWidget } from "@/components/chat/ChatWidget";
-import { MobileCTABar } from "@/components/layout/MobileCTABar";
-import { ScrollProgress } from "@/components/v2/studio/ScrollProgress";
-import { LenisProvider } from "@/components/v2/living/LenisProvider";
+import { ScrollProgress } from "@/components/layout/ScrollProgress";
+import { Dock } from "@/components/home/Dock";
 import "./globals.css";
 
-// Distinctive type system (frontend-design skill: avoid Inter/generic).
-const sans = Hanken_Grotesk({
-  variable: "--font-inter", // keep var name; now points to a refined grotesque
+// High-contrast editorial type system: Inter Tight (display), Inter (body),
+// JetBrains Mono (labels/utility), Newsreader italic (serif accent).
+const sans = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  weight: ["400", "500"],
   display: "swap",
 });
 
-const display = Jost({
-  variable: "--font-jost", // Jost — a geometric Futura revival (per brand direction)
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  display: "swap",
-});
-
-const editorial = Fraunces({
-  variable: "--font-editorial",
+const display = Inter_Tight({
+  variable: "--font-jost", // keep var name — @theme inline maps --font-display to it
   subsets: ["latin"],
   weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
+  display: "swap",
+});
+
+const editorial = Newsreader({
+  variable: "--font-editorial",
+  subsets: ["latin"],
+  weight: ["200", "300", "500"],
+  style: ["italic"],
   display: "swap",
 });
 
@@ -43,7 +44,7 @@ const mono = JetBrains_Mono({
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0a0a0a",
+  themeColor: "#FBFBFA",
 };
 
 export const metadata: Metadata = {
@@ -143,6 +144,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${sans.variable} ${display.variable} ${editorial.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
+        {/* Warm the connection for Calendly (embedded on /contact, the
+            destination of every "Book a call" CTA site-wide) so the widget's
+            DNS/TLS handshake is already done by the time someone lands there. */}
+        <link rel="preconnect" href="https://calendly.com" />
+        <link rel="preconnect" href="https://assets.calendly.com" crossOrigin="" />
+        <link rel="dns-prefetch" href="https://calendly.com" />
+        <link rel="dns-prefetch" href="https://assets.calendly.com" />
         {/* progressive-enhancement flag — section-reveal CSS only hides content
             when JS is actually available, so no-JS users still see everything. */}
         <script
@@ -165,21 +173,18 @@ export default function RootLayout({
         <ThemeProvider>
           <a
             href="#main-content"
-            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-gold-gradient focus:text-black focus:font-semibold focus:text-sm"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-[var(--fg)] focus:text-[var(--bg)] focus:font-semibold focus:text-sm"
           >
             Skip to main content
           </a>
           <TrackingScripts />
           <UTMCapture />
-          {/* site-wide smooth scroll (desktop, non-reduced-motion) so every
-              page feels as smooth as the homepage — not just `/` */}
-          <LenisProvider />
           <ScrollProgress />
           <Header />
           <main id="main-content" className="flex-1">{children}</main>
           <Footer />
           <ChatWidget />
-          <MobileCTABar />
+          <Dock />
         </ThemeProvider>
       </body>
     </html>

@@ -44,7 +44,7 @@ export function ChatLeadCapture({ onSubmit }: ChatLeadCaptureProps) {
         />
         <button
           type="submit"
-          className="w-full flex items-center justify-center gap-1 rounded-md bg-gold-gradient px-3 py-1.5 text-xs font-semibold text-black hover:brightness-110 transition-all cursor-pointer"
+          className="w-full flex items-center justify-center gap-1 rounded-md bg-gold-gradient px-3 py-1.5 text-xs font-semibold hover:brightness-110 transition-all cursor-pointer"
         >
           Send <ArrowRight className="h-3 w-3" />
         </button>

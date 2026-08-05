@@ -1,36 +1,35 @@
 "use client";
 
-import { FluidCursor } from "./FluidCursor";
-import { Hero } from "./Hero";
-import { ScrollSequence } from "./ScrollSequence";
-import { Manifesto } from "./Manifesto";
-import { Services } from "./Services";
-import { IndustryList } from "./IndustryList";
-import { Results } from "./Results";
-import { Guarantee } from "./Guarantee";
-import { ValueBand } from "./ValueBand";
-import { FAQ } from "./FAQ";
-import { ClosingCTA } from "./ClosingCTA";
+import { Hero } from "@/components/home/Hero";
+import { Marquee } from "@/components/home/Marquee";
+import { Evidence } from "@/components/home/Evidence";
+import { Outcomes } from "@/components/home/Outcomes";
+import { WherePays } from "@/components/home/WherePays";
+import { HowWeWork } from "@/components/home/HowWeWork";
+import { Plan } from "@/components/home/Plan";
+import { Who } from "@/components/home/Who";
+import { Faq } from "@/components/home/Faq";
+import { FinalCta } from "@/components/home/FinalCta";
 
 /**
- * Accelerate homepage — single unifying concept: VELOCITY.
- * Scroll-reactive marquees, G-force heading skew, a velocity HUD, living shapes,
- * a fluid cursor. Cuberto-grade interactivity; outcome-first copy. No particles.
+ * Accelerate homepage — a faithful build of the reference editorial mockup
+ * (see accelerate.html), using the site's real Header/Footer chrome and deep
+ * links into /services, /packages, /about, /learn in place of the mockup's
+ * static anchors.
  */
 export function Studio() {
   return (
     <>
-      <FluidCursor />
       <Hero />
-      <Manifesto />
-      <ScrollSequence />
-      <Services />
-      <IndustryList />
-      <Results />
-      <Guarantee />
-      <ValueBand />
-      <FAQ />
-      <ClosingCTA />
+      <Marquee />
+      <Evidence />
+      <Outcomes />
+      <WherePays />
+      <HowWeWork />
+      <Plan />
+      <Who />
+      <Faq />
+      <FinalCta />
     </>
   );
 }

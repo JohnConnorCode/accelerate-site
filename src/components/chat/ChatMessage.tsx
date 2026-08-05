@@ -19,7 +19,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
         className={cn(
           "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
           isUser
-            ? "bg-gold-gradient text-black rounded-br-md font-medium"
+            ? "bg-gold-gradient rounded-br-md font-medium"
             : "bg-bg-subtle border border-border-glass text-white-secondary rounded-bl-md"
         )}
       >

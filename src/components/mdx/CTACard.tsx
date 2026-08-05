@@ -34,7 +34,7 @@ export function CTACard({
       <Link
         href={href}
         onClick={handleClick}
-        className="inline-flex items-center gap-2 rounded-lg bg-gold-gradient px-5 py-2.5 text-sm font-semibold text-black transition-all hover:brightness-110"
+        className="inline-flex items-center gap-2 rounded-lg bg-gold-gradient px-5 py-2.5 text-sm font-semibold transition-all hover:brightness-110"
       >
         {buttonText}
         <ArrowRight className="h-4 w-4" />

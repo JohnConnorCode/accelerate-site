@@ -40,7 +40,7 @@ function SolutionCard({ solution }: { solution: SolutionRecommendation }) {
             <h4 className="font-semibold text-white-primary">
               {solution.name}
             </h4>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-gold-gradient text-black font-medium shrink-0">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-gold-gradient font-medium shrink-0">
               {solution.estimatedImpact}
             </span>
           </div>
@@ -223,7 +223,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
                 viewport={{ once: true }}
                 className="relative pl-14"
               >
-                <div className="absolute left-2 top-1 w-7 h-7 rounded-full bg-gold-gradient text-black flex items-center justify-center text-xs font-bold">
+                <div className="absolute left-2 top-1 w-7 h-7 rounded-full bg-gold-gradient flex items-center justify-center text-xs font-bold">
                   {phase.phase}
                 </div>
 
@@ -432,7 +432,7 @@ export function PlanView({ plan, shareToken }: PlanViewProps) {
           <ol className="space-y-3">
             {plan.nextSteps.map((step, i) => (
               <li key={i} className="flex items-start gap-3">
-                <span className="w-6 h-6 rounded-full bg-gold-gradient text-black text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                <span className="w-6 h-6 rounded-full bg-gold-gradient text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
                   {i + 1}
                 </span>
                 <span className="text-sm text-white-secondary">

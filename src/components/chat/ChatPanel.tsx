@@ -290,7 +290,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className="rounded-lg bg-gold-gradient p-2 text-black hover:brightness-110 transition-all disabled:opacity-50 cursor-pointer"
+            className="rounded-lg bg-gold-gradient p-2 hover:brightness-110 transition-all disabled:opacity-50 cursor-pointer"
           >
             <Send className="h-4 w-4" />
           </button>

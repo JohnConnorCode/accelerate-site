@@ -2,38 +2,38 @@ import type { FAQ } from "@/lib/types";
 
 export const homeFaqs: FAQ[] = [
   {
-    question: "Do I need to understand AI to work with you?",
+    question: "What does this cost?",
     answer:
-      "Not at all. We handle the technical side. You just need to know your business, and we figure out where AI fits and how to make it work for you.",
+      "The call and the plan cost nothing. Delivery is a fixed price agreed before work begins. If a project is too small to justify the fee, we will say so on the call.",
   },
   {
-    question: "What does it cost?",
+    question: "How soon would we see a result?",
     answer:
-      "It depends on what we build. Strategy engagements start at $1,500. Automation setups typically range from $2,500 to $7,500 with ongoing management from $300 per month. We scope everything up front so there are no surprises.",
+      "Weeks, not quarters. We start with one constraint that has a clear before and after, so the work can be judged before anyone commits to more.",
   },
   {
-    question: "How long until I see results?",
+    question: "Nobody here is technical. Is that a problem?",
     answer:
-      "Most clients see their first systems live within one to two weeks. Measurable results like time saved, faster response times, and more bookings usually follow within the first month.",
+      "No, and it is the usual case. You explain how the business runs. We handle the rest, and your team is trained on anything they touch.",
   },
   {
-    question: "Will this work with the tools I already use?",
+    question: "Our data is disorganized. Fix that first?",
     answer:
-      "Almost certainly. We integrate with HubSpot, GoHighLevel, Google Workspace, QuickBooks, Calendly, Mailchimp, Slack, Stripe, and hundreds of other tools through Zapier and Make. We build around your existing stack.",
+      "No. Waiting to clean it up is the most common reason projects never start. We scope around what exists and improve the rest along the way.",
   },
   {
-    question: "How does pricing work?",
+    question: "We bought an AI tool and nobody uses it.",
     answer:
-      "Setup is a one-time project fee. Ongoing management is billed monthly with simple, transparent pricing. Every package includes clear deliverables and monthly reporting so you always know exactly what you're getting.",
+      "Common, and the tool is usually fine. What is missing is a rule for when to use it and a standard for what good output looks like. Sometimes that is training and a few guardrails rather than anything new, and we would rather tell you than sell you a build.",
   },
   {
-    question: "What makes you different from an agency or a SaaS platform?",
+    question: "Is our data safe?",
     answer:
-      "Agencies give you a strategy and leave you to execute it. Platforms give you tools and leave you to figure them out. We do both. We advise, build, and run your AI systems alongside you. One team, full accountability.",
+      "It stays in your accounts. We use providers with no-training agreements, give each system access only to what it needs, and log what it touches. Bring your compliance requirements to the first call.",
   },
   {
-    question: "What if I'm not sure where to start?",
+    question: "Who owns what you build?",
     answer:
-      "That is exactly what the strategy call is for. It is free, 30 minutes, and you walk away with a clear picture of where AI can help your business, whether you work with us or not.",
+      "You do. The accounts, the code, the documentation. Support is available and optional, and nothing is built so that you need us to keep it running.",
   },
 ];

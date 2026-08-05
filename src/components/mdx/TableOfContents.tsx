@@ -14,11 +14,17 @@ const readHeadings = (): TocItem[] => {
   const article = document.querySelector("[data-article-content]");
   if (!article) return [];
   const elements = article.querySelectorAll("h2, h3");
-  return Array.from(elements).map((el) => ({
-    id: el.id,
-    text: el.textContent || "",
-    level: parseInt(el.tagName[1] ?? "2"),
-  }));
+  // Only headings rehype-slug actually assigned an id to (article-body h2/h3
+  // from markdown). MDX components like StepByStep/CTACard render their own
+  // h3s with no id — they have nothing to link to and would collide as
+  // duplicate "" keys if included.
+  return Array.from(elements)
+    .filter((el) => el.id)
+    .map((el) => ({
+      id: el.id,
+      text: el.textContent || "",
+      level: parseInt(el.tagName[1] ?? "2"),
+    }));
 };
 
 export function TableOfContents() {

@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import type { ReactNode, HTMLAttributes } from "react";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 import { WordMask, childrenToTokens } from "./RevealHeading";
 import { trackConversion } from "@/lib/analytics";
@@ -151,8 +150,9 @@ export function Heading({
    `Heading.Italic = …` — don't survive Next 16 / Turbopack prod builds, so the
    pattern was dropped. The `.display-italic` utility is the source of truth.) */
 
-/* ─── BookCallButton ─── the standard primary CTA, identical across Hero/Model/Close.
-   Variants: "primary" (gold on dark), "inverse" (dark on gold — for the lime band). */
+/* ─── BookCallButton ─── the standard primary CTA, identical everywhere on the
+   site (shares the flat/square editorial `.btn` system with the homepage).
+   Variants: "primary" (ink fill), "inverse" (paper fill — for ink-panel bands). */
 export function BookCallButton({
   variant = "primary",
   label = "Book a free strategy call",
@@ -174,13 +174,10 @@ export function BookCallButton({
         data-cursor="link"
         data-cursor-label="Go"
         onClick={() => trackConversion("Strategy Call CTA Clicked", { location })}
-        className={
-          "group inline-flex items-center gap-2.5 self-start whitespace-nowrap rounded-full px-7 py-3.5 text-sm font-semibold " +
-          (inverse ? "bg-btn-text text-gold" : "bg-gold text-btn-text")
-        }
+        className={`btn ${inverse ? "btn-inv" : ""}`}
       >
         {label}
-        <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        <span className="arw">→</span>
       </Link>
     </MagneticButton>
   );

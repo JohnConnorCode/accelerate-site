@@ -168,7 +168,7 @@ export default function ProposalsPage() {
           <div className="flex gap-2">
             <button
               onClick={handleCreateBlank}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-gold text-black hover:brightness-110 transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-gold-gradient hover:brightness-110 transition-all cursor-pointer"
             >
               + New Proposal
             </button>
