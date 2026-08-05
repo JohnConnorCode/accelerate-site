@@ -1805,6 +1805,8 @@ summary:focus-visible {
 @media (max-width: 620px) { .arrows { display: none; } }
 
 /* who */
+.who { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(34px, 6vw, 86px); }
+@media (max-width: 800px) { .who { grid-template-columns: 1fr; gap: 30px; } }
 .who-copy p { margin-bottom: 17px; font-size: 16.5px; line-height: 1.62; max-width: 50ch; color: var(--mid); }
 .who-copy p.lead-p { color: var(--fg); }
 

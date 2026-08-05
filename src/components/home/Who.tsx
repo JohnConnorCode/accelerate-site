@@ -17,28 +17,32 @@ export function Who() {
             had a name.
           </Reveal>
         </div>
-        <Reveal rv className="who-copy" style={{ maxWidth: "62ch" }}>
-          <p className="lead-p">
-            Engineers, data scientists, and operators who were putting
-            machine learning into production well before it was marketed as
-            AI. Knowing where to point it, and what breaks when you do, is
-            only learned by having been wrong a few times.
-          </p>
-          <p>
-            We stay selective about what we take on, and bring in the
-            specialists a project calls for. You deal directly with the
-            people doing the work, not an account manager relaying it. The
-            practice is led by John Connor, who has spent fifteen years
-            building and scaling software companies.
-          </p>
-          <Link
-            href="/about"
-            className="body-c"
-            style={{ fontSize: "14.5px", textDecoration: "underline", textUnderlineOffset: "3px" }}
-          >
-            Read more about the team →
-          </Link>
-        </Reveal>
+        <div className="who">
+          <Reveal rv className="who-copy">
+            <p className="lead-p">
+              Engineers, data scientists, and operators who were putting
+              machine learning into production well before it was marketed
+              as AI. Knowing where to point it, and what breaks when you do,
+              is only learned by having been wrong a few times.
+            </p>
+          </Reveal>
+          <Reveal rv className="who-copy" delay={0.08}>
+            <p>
+              We stay selective about what we take on, and bring in the
+              specialists a project calls for. You deal directly with the
+              people doing the work, not an account manager relaying it. The
+              practice is led by John Connor, who has spent fifteen years
+              building and scaling software companies.
+            </p>
+            <Link
+              href="/about"
+              className="body-c"
+              style={{ fontSize: "14.5px", textDecoration: "underline", textUnderlineOffset: "3px" }}
+            >
+              Read more about the team →
+            </Link>
+          </Reveal>
+        </div>
       </div>
     </section>
   );
