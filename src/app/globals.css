@@ -1805,17 +1805,8 @@ summary:focus-visible {
 @media (max-width: 620px) { .arrows { display: none; } }
 
 /* who */
-.who { display: grid; grid-template-columns: 1fr 1.14fr; gap: clamp(34px, 6vw, 86px); }
-@media (max-width: 940px) { .who { grid-template-columns: 1fr; gap: 42px; } }
-.who p { margin-bottom: 17px; font-size: 16.5px; line-height: 1.62; max-width: 50ch; color: var(--mid); }
-.who p.lead-p { color: var(--fg); }
-.cred { list-style: none; }
-.cred li { position: relative; padding: 15px 0; display: grid; grid-template-columns: 150px 1fr; gap: 18px; font-size: 14.8px; line-height: 1.5; color: var(--mid); }
-.cred li::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: var(--rule); transform: scaleX(0); transform-origin: 0 50%; transition: transform .8s var(--ease) var(--d, 0s); }
-.cred li:last-child::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: var(--rule); transform: scaleX(0); transform-origin: 0 50%; transition: transform .8s var(--ease) .5s; }
-.cred.in li::before, .cred.in li:last-child::after { transform: scaleX(1); }
-@media (max-width: 640px) { .cred li { grid-template-columns: 1fr; gap: 3px; } }
-.cred b { font-family: var(--util); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--fg); font-weight: 400; padding-top: 4px; }
+.who-copy p { margin-bottom: 17px; font-size: 16.5px; line-height: 1.62; max-width: 50ch; color: var(--mid); }
+.who-copy p.lead-p { color: var(--fg); }
 
 /* faq accordion (editorial variant — used by the new homepage FAQ) */
 .efaq details { border-bottom: 1px solid var(--rule); }
@@ -1914,5 +1905,5 @@ summary:focus-visible {
 .fcta .h2 { max-width: 16ch; margin: 20px auto 22px; }
 .fcta .lede { margin: 0 auto 34px; text-align: center; }
 @media (prefers-reduced-motion: reduce) {
-  .ev-c + .ev-c::before, .oc-div, .appr-c + .appr-c::before, .step::before, .plan-list li::before, .plan-list li:last-child::after, .cred li::before, .cred li:last-child::after { transform: scale(1) !important; }
+  .ev-c + .ev-c::before, .oc-div, .appr-c + .appr-c::before, .step::before, .plan-list li::before, .plan-list li:last-child::after { transform: scale(1) !important; }
 }
