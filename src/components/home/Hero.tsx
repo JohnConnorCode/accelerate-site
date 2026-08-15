@@ -50,41 +50,45 @@ export function Hero() {
         <span className="hero-tick hero-tick-br" />
       </motion.div>
       <motion.div className="wrap" style={reduced ? undefined : { opacity: fade, y: lift }}>
-        <p className={`label eyebrow-anim rv${loaded ? " in" : ""}`}>
-          AI strategy, automation, and implementation
-        </p>
-        <h1 className="h1">
-          {/* One phrase-per-line structure for every breakpoint — an
-              earlier attempt regrouped these into fewer, "wider" lines
-              specifically for mobile, but on a real phone the merged
-              phrases ("We design and implement", "custom AI solutions
-              that drive") were too long to fit and wrapped mid-phrase
-              anyway, producing ugly orphan words AND no real line-count
-              win. Mobile spacing is handled with type size/line-height in
-              globals.css (`.hero .h1`) instead — see the mobile media
-              query there. */}
-          <span className="line">
-            <span>We design and</span>
-          </span>
-          <span className="line">
-            <span style={{ "--d": ".07s" } as CSSProperties}>implement custom AI</span>
-          </span>
-          <span className="line">
-            <span style={{ "--d": ".14s" } as CSSProperties}>solutions that drive</span>
-          </span>
-          <span className="h1-last">
+        {/* Grouped so mobile can space-between this block and .hero-btm —
+            see `.hero-band .hero .wrap` in globals.css. */}
+        <div className="hero-top">
+          <p className={`label eyebrow-anim rv${loaded ? " in" : ""}`}>
+            AI strategy, automation, and implementation
+          </p>
+          <h1 className="h1">
+            {/* One phrase-per-line structure for every breakpoint — an
+                earlier attempt regrouped these into fewer, "wider" lines
+                specifically for mobile, but on a real phone the merged
+                phrases ("We design and implement", "custom AI solutions
+                that drive") were too long to fit and wrapped mid-phrase
+                anyway, producing ugly orphan words AND no real line-count
+                win. Mobile spacing is handled with type size/line-height in
+                globals.css (`.hero .h1`) instead — see the mobile media
+                query there. */}
             <span className="line">
-              <span className="strike" style={{ "--d": ".21s" } as CSSProperties}>
-                business results
-              </span>
+              <span>We design and</span>
             </span>
             <span className="line">
-              <span className="swap it" style={{ "--d": ".28s" } as CSSProperties}>
-                (revenue)
+              <span style={{ "--d": ".07s" } as CSSProperties}>implement custom AI</span>
+            </span>
+            <span className="line">
+              <span style={{ "--d": ".14s" } as CSSProperties}>solutions that drive</span>
+            </span>
+            <span className="h1-last">
+              <span className="line">
+                <span className="strike" style={{ "--d": ".21s" } as CSSProperties}>
+                  business results
+                </span>
+              </span>
+              <span className="line">
+                <span className="swap it" style={{ "--d": ".28s" } as CSSProperties}>
+                  (revenue)
+                </span>
               </span>
             </span>
-          </span>
-        </h1>
+          </h1>
+        </div>
 
         <div className={`hero-btm st${loaded ? " in" : ""}`}>
           <div style={{ "--d": "1.05s" } as CSSProperties}>

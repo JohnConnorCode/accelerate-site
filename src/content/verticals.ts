@@ -361,4 +361,457 @@ export const verticals: Vertical[] = [
     ctaText: "Book the call",
     ctaLink: "/contact",
   },
+  {
+    id: "manufacturing",
+    slug: "manufacturing",
+    name: "Manufacturing",
+    icon: "Factory",
+    opsLabel: "a manufacturer",
+    shortDescription:
+      "AI systems built for manufacturers and industrial shops that lose orders to slow quote turnaround and let supplier and customer follow-up fall through the cracks.",
+    heroHeadlineWhite: "The RFQ sat in your inbox.",
+    heroHeadlineGold: "The order went to whoever quoted first.",
+    heroSubheadline:
+      "A buyer sends the same RFQ to four shops. The first accurate quote back usually wins the order, and yours is stuck behind a purchasing agent's morning. We capture every inquiry the moment it lands, get a quote number in front of the buyer fast, and keep every open order, every follow-up, and every supplier commitment somewhere your team can actually see it.",
+    painPoints: [
+      {
+        icon: "DollarSign",
+        title: "Quotes go out too slow to win the order",
+        description:
+          "An RFQ lands by email or through a portal and sits until someone has time to price it. By the time your quote goes out, the buyer already has three others on the desk and picked the fastest one.",
+      },
+      {
+        icon: "Clock",
+        title: "Purchase orders and change orders live in someone's inbox",
+        description:
+          "A PO comes in, a spec changes, a ship date moves. If that only exists in an email thread, the shop floor finds out when it is already a problem.",
+      },
+      {
+        icon: "UserX",
+        title: "Supplier follow-up is whoever remembers to call",
+        description:
+          "A late shipment from a supplier can shut down a line. Chasing that down usually depends on one person noticing and picking up the phone, not a system that flags it automatically.",
+      },
+      {
+        icon: "Monitor",
+        title: "Your website doesn't help a buyer qualify you",
+        description:
+          "An engineer or buyer searching for a shop that can run their part finds a site with no capabilities list, no tolerances, no way to submit a drawing. They move to the next search result.",
+      },
+    ],
+    solutions: [
+      {
+        title: "Instant RFQ Capture and Routing",
+        description:
+          "Every inquiry, whether it lands by email, through a portal, or as a dropped-in drawing, is logged, routed to the right estimator, and acknowledged automatically so the buyer knows it was received.",
+        features: [
+          "RFQ intake from email, web form, and file upload",
+          "Automatic routing to the right estimator by part type",
+          "Instant acknowledgment sent to the buyer",
+          "Drawing and spec attachment logged against the job",
+          "Response-time tracking so nothing goes stale",
+        ],
+      },
+      {
+        title: "Quote and Order Tracking",
+        description:
+          "Every open quote, PO, and change order in one place, so a purchasing agent's question about status gets answered in a minute instead of a search through email.",
+        features: [
+          "Quote status visible from submitted to won or lost",
+          "Automatic follow-up on quotes going cold",
+          "PO and change-order log tied to the job number",
+          "Ship-date tracking with automatic alerts on slippage",
+          "Win-rate reporting by customer and part type",
+        ],
+      },
+      {
+        title: "Supplier and Vendor Follow-Up",
+        description:
+          "Automated check-ins on outstanding purchase orders to suppliers, so a late shipment gets caught before it stops the line, not after.",
+        features: [
+          "Automated status requests on open supplier POs",
+          "Escalation alerts when a ship date is at risk",
+          "Vendor performance history by on-time rate",
+          "Material shortage flagged against affected jobs",
+          "Reorder reminders on recurring materials",
+        ],
+      },
+      {
+        title: "A Website That Helps a Buyer Qualify You",
+        description:
+          "A fast, technical site built for the engineer or buyer doing the search: capabilities, tolerances, certifications, and a way to submit a drawing without a phone call.",
+        features: [
+          "Capabilities and equipment list built for search",
+          "Certifications and quality documentation up front",
+          "Drawing upload for instant quote requests",
+          "Case examples by part type and industry",
+          "Mobile-first for a buyer searching from the floor",
+        ],
+      },
+    ],
+    ctaText: "Book the call",
+    ctaLink: "/contact",
+  },
+  {
+    id: "startups",
+    slug: "startups",
+    name: "Startups",
+    icon: "Rocket",
+    shortDescription:
+      "AI systems for early-stage teams that need investor updates, user onboarding, and support running without a full ops team to run them.",
+    heroHeadlineWhite: "You didn't raise money",
+    heroHeadlineGold: "to spend it on admin.",
+    heroSubheadline:
+      "Small teams end up doing the operations work themselves: investor updates, onboarding new users, support tickets, the internal spreadsheet that tracks everything because there is no system for it yet. We build the operating layer a five-person team needs, so the founders spend their hours on the product and the customers, not on keeping the business's own information straight.",
+    painPoints: [
+      {
+        icon: "Clock",
+        title: "Investor updates get written the night before they're late",
+        description:
+          "A monthly update is easy to write when the metrics are already pulled together. It is a scramble when someone has to go find them across four tools first.",
+      },
+      {
+        icon: "UserX",
+        title: "New users get a generic email, then silence",
+        description:
+          "Onboarding a new signup, a new customer, or a new hire usually means one templated email and no follow-through. The people who needed a nudge on day three never got one.",
+      },
+      {
+        icon: "Database",
+        title: "The business runs on a spreadsheet somebody built once",
+        description:
+          "Customer status, pipeline, and open tasks live in a doc that one person maintains from memory. When that person is heads-down or leaves, the business loses its own state.",
+      },
+      {
+        icon: "SearchX",
+        title: "Support and product feedback go nowhere",
+        description:
+          "A user reports a bug or asks a question in Slack, Intercom, or an email, and it either gets answered once and forgotten or never routed to whoever should see it.",
+      },
+    ],
+    solutions: [
+      {
+        title: "Investor and Stakeholder Updates",
+        description:
+          "Metrics pulled automatically from the tools you already use, drafted into an update you edit instead of build from scratch.",
+        features: [
+          "Metrics pulled from your existing tools automatically",
+          "Update drafted on a schedule, ready to review and send",
+          "Historical trend included, not just the current number",
+          "One version for investors, one for the internal team",
+          "Sent on the day you pick, not the day you remembered",
+        ],
+      },
+      {
+        title: "Onboarding and Lifecycle Automation",
+        description:
+          "A new signup, customer, or teammate gets the right sequence automatically: the welcome, the follow-up, the check-in at the moment they are most likely to need one.",
+        features: [
+          "Automated onboarding sequences by user type",
+          "Follow-up triggered by behavior, not just a fixed schedule",
+          "Internal alerts when a new customer goes quiet",
+          "New-hire onboarding checklist that runs itself",
+          "Every touch logged against the person, not lost in an inbox",
+        ],
+      },
+      {
+        title: "One Operating System Instead of Six Tools",
+        description:
+          "Customers, tasks, pipeline, and notes in one place your whole team can see, replacing the spreadsheet one person maintains from memory.",
+        features: [
+          "Contacts, deals, and tasks in a single system",
+          "Custom fields for whatever your business actually tracks",
+          "Full history per customer, searchable a year later",
+          "Role-based access as the team grows past three people",
+          "Exportable, so it is always yours",
+        ],
+      },
+      {
+        title: "Support and Feedback Routing",
+        description:
+          "Every support message and piece of product feedback captured, tagged, and routed to whoever should see it, so nothing said by a user disappears into a channel nobody reads later.",
+        features: [
+          "Support intake from email, chat, or a form",
+          "Automatic tagging by issue type and urgency",
+          "Feedback routed to product, not lost in a chat channel",
+          "Response-time tracking on open tickets",
+          "Weekly digest of what users are actually saying",
+        ],
+      },
+    ],
+    ctaText: "Book the call",
+    ctaLink: "/contact",
+  },
+  {
+    id: "medical_dental",
+    slug: "medical-dental",
+    name: "Medical & Dental Practices",
+    icon: "Stethoscope",
+    shortDescription:
+      "AI intake, scheduling, and follow-up for medical and dental practices that lose patients to slow response and empty chairs to no-shows.",
+    heroHeadlineWhite: "The patient called.",
+    heroHeadlineGold: "Your front desk was with someone else.",
+    heroSubheadline:
+      "A new patient calling to book usually tries the next practice on the list if nobody picks up. We answer every inquiry the moment it comes in, fill the schedule with reminders that actually cut no-shows, and handle the insurance and intake paperwork before the patient ever sits in the chair.",
+    painPoints: [
+      {
+        icon: "PhoneMissed",
+        title: "A slow response is a patient calling the next practice",
+        description:
+          "Your front desk is with a patient, on hold with insurance, or gone for lunch, and the person calling to book does not leave a voicemail. They call the next name on their list instead.",
+      },
+      {
+        icon: "CalendarX",
+        title: "No-shows leave chairs empty and revenue on the table",
+        description:
+          "A patient books, forgets, and does not show. A single unfilled slot on a hygienist's or provider's schedule is revenue that is gone for good, not just delayed.",
+      },
+      {
+        icon: "FileText",
+        title: "Intake and insurance verification eat staff hours",
+        description:
+          "New-patient paperwork, insurance verification, and history forms handled by phone or in the waiting room slow down the front desk and the first visit both.",
+      },
+      {
+        icon: "RefreshCw",
+        title: "Recall and hygiene reminders don't go out consistently",
+        description:
+          "The patient due for a six-month cleaning or an annual visit should get a reminder on schedule. When that depends on someone remembering to run a report, it happens inconsistently, and the chair sits empty instead.",
+      },
+    ],
+    solutions: [
+      {
+        title: "Instant Patient Response",
+        description:
+          "Every call, text, and web inquiry gets an immediate reply and a path to book, so a new patient never gets far enough to call the next practice.",
+        features: [
+          "Sub-60-second response on calls, text, and web",
+          "After-hours and weekend coverage",
+          "Symptom and urgency triage before it hits your schedule",
+          "Direct booking into open appointment slots",
+          "New-patient intake started before the first visit",
+        ],
+      },
+      {
+        title: "No-Show Reduction",
+        description:
+          "Automated reminders across text, email, and call that actually cut no-shows, with easy rebooking when a patient needs to move their appointment instead of skipping it.",
+        features: [
+          "Multi-channel appointment reminders on a set schedule",
+          "One-tap confirm or reschedule from the reminder itself",
+          "Waitlist automatically offered an opening when one appears",
+          "No-show pattern flagged so you can address it directly",
+          "Day-before and morning-of reminder sequencing",
+        ],
+      },
+      {
+        title: "Intake and Insurance Automation",
+        description:
+          "New-patient forms, history, and insurance verification handled before the visit, so the first appointment starts with the exam instead of the paperwork.",
+        features: [
+          "Digital intake forms sent and completed before arrival",
+          "Insurance verification run automatically ahead of the visit",
+          "History and consent forms stored and searchable",
+          "Front-desk time freed from repetitive data entry",
+          "Referral and prior-provider records requested automatically",
+        ],
+      },
+      {
+        title: "Recall and Retention",
+        description:
+          "Recall and hygiene reminders that go out on schedule every time, plus review requests after a good visit, so the practice fills its own calendar instead of relying on new-patient marketing alone.",
+        features: [
+          "Recall reminders triggered automatically by visit history",
+          "Review requests sent after a completed appointment",
+          "Reactivation outreach to patients who have gone quiet",
+          "Family and household reminders grouped together",
+          "Reporting on recall and retention rates over time",
+        ],
+      },
+    ],
+    ctaText: "Book the call",
+    ctaLink: "/contact",
+  },
+  {
+    id: "insurance_agencies",
+    slug: "insurance-agencies",
+    name: "Insurance Agencies",
+    icon: "ShieldCheck",
+    opsLabel: "an insurance agency",
+    shortDescription:
+      "AI intake, quoting, and renewal follow-up for independent insurance agencies that lose quote requests to slow response and let renewals slip.",
+    heroHeadlineWhite: "The quote request came in.",
+    heroHeadlineGold: "It sat until Monday.",
+    heroSubheadline:
+      "A quote request submitted Friday afternoon usually gets an answer from whichever agency responds first, not whichever agency is best. We capture every inquiry the moment it lands, get a quote moving immediately, and keep renewals from slipping past the date a client stops being covered.",
+    painPoints: [
+      {
+        icon: "Clock",
+        title: "Quote requests go stale before anyone replies",
+        description:
+          "A form fill or a call about a new policy sits in a queue until someone has a free hour. By then the prospect has already gotten a quote from an agency that answered faster.",
+      },
+      {
+        icon: "RefreshCw",
+        title: "Renewals get missed, and a client finds out at the worst time",
+        description:
+          "A renewal date passing unnoticed means a client discovers a lapse when they need coverage, not before. That is the kind of mistake that ends a relationship, not just a policy.",
+      },
+      {
+        icon: "FileText",
+        title: "Policy changes and claims follow-up are manual",
+        description:
+          "An address change, a new driver, a claim in progress. Each one is a phone call and a note somewhere, easy to lose track of when an agent is juggling two hundred active clients.",
+      },
+      {
+        icon: "Users",
+        title: "Cross-sell and account rounding never happens systematically",
+        description:
+          "A client with just an auto policy who should also have renters or life coverage rarely gets asked, because nobody has a system that flags it. That is revenue sitting in your own book of business.",
+      },
+    ],
+    solutions: [
+      {
+        title: "Instant Quote Response",
+        description:
+          "New quote requests get an immediate response and the right next step, across web, phone, and referral, so speed stops being the reason you lose the account.",
+        features: [
+          "Sub-60-second response on new quote requests",
+          "Automatic routing to the right line of business",
+          "Pre-qualification questions before the call",
+          "Carrier and coverage matching based on client profile",
+          "Follow-up sequence until the prospect answers either way",
+        ],
+      },
+      {
+        title: "Renewal and Retention Automation",
+        description:
+          "Every policy's renewal date tracked and worked automatically, so a lapse never happens because a date got missed on a busy week.",
+        features: [
+          "Renewal reminders sequenced ahead of the actual date",
+          "Automatic outreach for policies at risk of lapsing",
+          "Coverage review scheduled before major renewals",
+          "Client-facing reminders alongside internal alerts",
+          "Retention reporting by book and by producer",
+        ],
+      },
+      {
+        title: "Policy Service and Claims Follow-Up",
+        description:
+          "Endorsements, changes, and claims tracked from first call to resolution, so nothing sits in a note nobody reads again.",
+        features: [
+          "Policy change requests logged and tracked to completion",
+          "Claims status followed up automatically with the carrier",
+          "Client updated at each stage without a manual call",
+          "Document and endorsement history per policy",
+          "Escalation flagged when a claim stalls",
+        ],
+      },
+      {
+        title: "Cross-Sell and Account Rounding",
+        description:
+          "Every client's coverage gaps surfaced automatically, so account rounding is a list you work from instead of something you have to remember to think about.",
+        features: [
+          "Coverage-gap detection across a client's full policy set",
+          "Automated outreach on the highest-value gaps first",
+          "Life-event triggers, like a new driver or new home, flagged for outreach",
+          "Rounding performance tracked by producer",
+          "Referral requests sent after a well-handled claim",
+        ],
+      },
+    ],
+    ctaText: "Book the call",
+    ctaLink: "/contact",
+  },
+  {
+    id: "auto_dealers",
+    slug: "auto-dealers",
+    name: "Auto Dealers & Service Centers",
+    icon: "Car",
+    opsLabel: "an auto dealer",
+    shortDescription:
+      "AI intake, scheduling, and follow-up for auto dealerships and service centers that lose deals to slow response and let the service bay sit empty.",
+    heroHeadlineWhite: "They filled out the form",
+    heroHeadlineGold: "for three dealers, not just yours.",
+    heroSubheadline:
+      "A shopper filling out a form online is talking to whichever dealer replies first, and a car owner who needs service will book with whoever picks up. We answer every inquiry in seconds, keep the service bay full with reminders that actually get answered, and follow up on every deal that didn't close yet instead of letting it go cold.",
+    painPoints: [
+      {
+        icon: "Thermometer",
+        title: "Internet inquiries go cold in minutes, not hours",
+        description:
+          "A shopper who fills out a form on your site or a listing site is doing the same thing on two other lots at once. The first real response usually gets the appointment.",
+      },
+      {
+        icon: "CalendarX",
+        title: "The service bay has empty slots that shouldn't exist",
+        description:
+          "A car due for maintenance should get a reminder before the owner forgets. When that depends on someone running a list manually, slots go unfilled that a reminder would have booked.",
+      },
+      {
+        icon: "UserX",
+        title: "Deals that didn't close today just disappear",
+        description:
+          "A shopper who didn't buy on the lot visit rarely gets a real follow-up. Without a system tracking it, that is a sale walking out the door for good instead of coming back in three weeks.",
+      },
+      {
+        icon: "DollarSign",
+        title: "Trade-in and equity opportunities go unworked",
+        description:
+          "Customers sitting on positive equity or coming up on a lease end are exactly who should be hearing from you first. Most stores have no system flagging who those people are.",
+      },
+    ],
+    solutions: [
+      {
+        title: "Instant Inquiry Response",
+        description:
+          "Every internet inquiry, call, and walk-in visit answered within seconds and moved toward an appointment, so speed stops costing you deals to the lot down the street.",
+        features: [
+          "Sub-60-second response on web, text, and phone inquiries",
+          "Trade-in and financing pre-qualification before the visit",
+          "Appointment booking straight into your calendar",
+          "Inquiry source tracking so you know what's actually working",
+          "After-hours coverage so nights and weekends still convert",
+        ],
+      },
+      {
+        title: "Service Scheduling and Reminders",
+        description:
+          "Maintenance and recall reminders that go out automatically and actually get booked, keeping the service bay full without a service advisor running lists by hand.",
+        features: [
+          "Mileage and time-based service reminders",
+          "One-tap booking straight from the reminder",
+          "Recall and open campaign alerts matched to VIN",
+          "Loaner and shuttle scheduling coordinated automatically",
+          "No-show follow-up to get the slot rebooked fast",
+        ],
+      },
+      {
+        title: "Deal Follow-Up That Doesn't Quit",
+        description:
+          "Every unclosed deal followed up automatically until the shopper buys somewhere or says no, instead of going cold the day after the lot visit.",
+        features: [
+          "Automated follow-up sequences for unclosed deals",
+          "Inventory alerts when a matching vehicle arrives",
+          "Price-drop and incentive notifications to past shoppers",
+          "CRM view of every deal's real status, not a guess",
+          "Sales performance reporting by rep and by source",
+        ],
+      },
+      {
+        title: "Equity Mining and Loyalty",
+        description:
+          "Customers with positive equity or an approaching lease end surfaced automatically, so your team is working the best opportunities in your own database first.",
+        features: [
+          "Automatic equity and lease-end detection",
+          "Targeted outreach to the highest-opportunity customers",
+          "Service-to-sales handoff when a customer is ready to trade",
+          "Review requests sent after a completed purchase or service visit",
+          "Loyalty and repeat-buyer tracking across service and sales",
+        ],
+      },
+    ],
+    ctaText: "Book the call",
+    ctaLink: "/contact",
+  },
 ];

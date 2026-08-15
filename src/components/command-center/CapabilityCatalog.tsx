@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { CSSProperties, MouseEvent } from "react";
+import type { CSSProperties } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -14,16 +14,15 @@ import {
 
 /* The full surface, filterable. Follows the house filter pattern from
    LearnHub (pill row + search + AnimatePresence keyed on the filter) and the
-   house collapsible from home/Faq (.efaq, which brings its own surface,
-   spring height transition, and plus-to-cross rotator).
-
-   Rows are collapsed by default because the point of this section is that the
-   list is long. Reading all of it is optional. */
+   house surface look from home/Faq (.efaq), but rows are static, not
+   collapsible — an earlier version hid every row's detail behind a click,
+   which left 43 rows on screen showing nothing but a title, several of them
+   two words ("Companies", "An API"). Reads as thin no matter how good the
+   copy behind the click is, so the detail is on screen by default now. */
 
 export function CapabilityCatalog() {
   const [active, setActive] = useState<CapabilityCategory | "all">("all");
   const [query, setQuery] = useState("");
-  const [open, setOpen] = useState<string[]>([]);
 
   const counts = useMemo(() => {
     const map = new Map<CapabilityCategory, number>();
@@ -55,9 +54,6 @@ export function CapabilityCatalog() {
       items: filtered.filter((c) => c.category === meta.id),
     })).filter((g) => g.items.length > 0);
   }, [filtered, active, showGroupHeads]);
-
-  const toggle = (id: string) =>
-    setOpen((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
   const pill = (isActive: boolean) =>
     cn(
@@ -139,34 +135,24 @@ export function CapabilityCatalog() {
                     <span className="cc-group-b">{g.blurb}</span>
                   </p>
                 )}
-                <div className="efaq cc-cat-list">
+                <div className="cc-cat-list">
                   {g.items.map((cap, i) => (
                     <Reveal
                       key={cap.id}
-                      as="details"
-                      className="item-rv"
+                      as="div"
+                      className="item-rv cc-row"
                       style={{ "--d": `${0.03 * (i % 6)}s` } as CSSProperties}
-                      open={open.includes(cap.id)}
-                      onClick={(e: MouseEvent) => {
-                        e.preventDefault();
-                        toggle(cap.id);
-                      }}
                     >
-                      <summary>
-                        <span className="cc-sum">
-                          <span className="cc-cat" style={{ color: `rgb(${g.rgb})` }} aria-hidden="true">
-                            {g.glyph}
-                          </span>
-                          {cap.title}
+                      <span className="cc-cat" style={{ color: `rgb(${g.rgb})` }} aria-hidden="true">
+                        {g.glyph}
+                      </span>
+                      <span className="cc-sum-text">
+                        <span className="cc-sum-title">{cap.title}</span>
+                        <span className="cc-sum-preview">
+                          {cap.detail}
+                          {cap.gated && <span className="cc-chip cc-chip-inline">Waits for your approval</span>}
                         </span>
-                        <span className="pm" />
-                      </summary>
-                      <div className="ans">
-                        <div>
-                          <p>{cap.detail}</p>
-                          {cap.gated && <span className="cc-chip">Waits for your approval</span>}
-                        </div>
-                      </div>
+                      </span>
                     </Reveal>
                   ))}
                 </div>

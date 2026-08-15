@@ -39,6 +39,11 @@ export interface Vertical {
   painPoints: PainPoint[];
   solutions: VerticalSolution[];
   caseStudy?: CaseStudy;
+  /** Overrides the auto-singularized "a day at a {name}" ops-console footer
+   *  phrase (strip-trailing-s breaks on irregular plurals and mass nouns —
+   *  "Insurance Agencies" -> "agencie", "Manufacturing" -> "a manufacturing").
+   *  Include the article: "a manufacturer", "an insurance agency". */
+  opsLabel?: string;
   ctaText: string;
   ctaLink: string;
 }

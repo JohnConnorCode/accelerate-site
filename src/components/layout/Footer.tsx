@@ -66,6 +66,11 @@ const footerColumns = [
       { label: "Law Firms", href: "/industries/law-firms" },
       { label: "Professional Services", href: "/industries/professional-services" },
       { label: "Real Estate", href: "/industries/real-estate" },
+      { label: "Manufacturing", href: "/industries/manufacturing" },
+      { label: "Startups", href: "/industries/startups" },
+      { label: "Medical & Dental", href: "/industries/medical-dental" },
+      { label: "Insurance Agencies", href: "/industries/insurance-agencies" },
+      { label: "Auto Dealers", href: "/industries/auto-dealers" },
     ],
   },
   {

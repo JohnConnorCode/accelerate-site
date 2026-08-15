@@ -2088,19 +2088,21 @@ summary:focus-visible {
    (transparent, floating) header, just without stealing a chunk of an
    already-short screen. */
 @media (max-width: 640px) {
-  /* Reverted the earlier "force .hero to 100svh, pin the band with
-     margin-top:auto" attempt — on a real phone the actual content
-     (label + 4 headline lines + lede + CTA) is already taller than one
-     screen, so there was no spare space for the auto margin to push
-     into: the band just landed wherever content happened to end,
-     requiring a scroll same as before, except now the grid backdrop
-     was ALSO stretched to fill the forced 100svh height, tiling across
-     a much taller area than the content needed and reading as an
-     awkward empty gap instead of an intentional composition. Back to
-     plain content-driven height until there's a real way to test the
-     fix against an actual device. */
-  .hero { padding-top: 92px; padding-bottom: 40px; }
-  .hero h1 { margin-top: 20px; }
+  /* An earlier attempt forced .hero itself to 100svh and tried to pin the
+     band with margin-top:auto — that failed because .hero was sized
+     against the FULL viewport with no room subtracted for the marquee
+     band that comes after it, so the band always landed one band-height
+     below the fold regardless of content height. Fixed properly this
+     time: .hero-band (Hero + Marquee's shared parent, see Studio.tsx) is
+     the flex column with min-height:100dvh, so .hero's flex-grow only
+     ever fills 100dvh MINUS whatever height the band actually renders
+     at — the two sections are sized against each other, not guessed
+     independently. The remaining risk from before — content taller than
+     the available space — is handled by sizing the padding/type in dvh
+     so it compresses on short phones instead of overflowing past the
+     band. */
+  .hero { padding-top: clamp(64px, 9.6dvh, 92px); padding-bottom: clamp(20px, 3dvh, 32px); }
+  .hero h1 { margin-top: clamp(10px, 1.5dvh, 20px); }
   /* The 40px attempt broke "implement custom AI" onto its own orphaned
      "AI" line on a real phone — that exact phrase (~20 characters) is
      the hard binding constraint: content width here is viewport minus
@@ -2111,9 +2113,36 @@ summary:focus-visible {
      safety-margined bump from the old 30px floor, not the confident
      jump asked for. Meaningfully larger without breaking the layout
      would mean shortening that specific line's wording or redesigning
-     it to wrap on purpose, not just picking a bigger number. */
-  .hero .h1 { font-size: clamp(30px, 8vw, 32px); line-height: 1.18; }
+     it to wrap on purpose, not just picking a bigger number.
+     font-size now also has a dvh floor so it shrinks on genuinely short
+     viewports rather than being a fixed 32px regardless of available
+     room — 26px is still comfortably readable at this weight/tracking. */
+  .hero .h1 { font-size: clamp(26px, 3.9dvh, 32px); line-height: 1.16; }
   .hero .eyebrow-anim { letter-spacing: .1em; }
+
+  .hero-band { display: flex; flex-direction: column; min-height: 100dvh; }
+  .hero-band .hero {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  /* space-between so .hero-top (label+headline) stays put near the top
+     and .hero-btm (lede+CTA) is pushed down to sit just above the band —
+     on a tall phone the gap between them grows; on a short one it
+     shrinks toward zero. min-height:0 lets the flex child actually
+     shrink to the space .hero-band has left instead of the default
+     flex min-size:auto forcing it back out to content height. */
+  .hero-band .hero .wrap { flex: 1; display: flex; flex-direction: column; justify-content: space-between; min-height: 0; }
+  .hero-band .hero-top { flex: 0 0 auto; }
+  .hero-band .hero-btm {
+    flex: 0 0 auto;
+    margin-top: clamp(16px, 2.4dvh, 36px);
+    padding-top: clamp(14px, 2.1dvh, 26px);
+    gap: clamp(14px, 2.1dvh, 32px);
+  }
+  .hero-band .hero-btm .lede { font-size: clamp(14px, 2.1dvh, 15.5px); line-height: 1.5; }
+  .hero-band .mq { flex: 0 0 auto; }
 }
 
 /* hero backdrop — a fine drafting grid in hairline rule color (no blur, so
@@ -2258,21 +2287,44 @@ summary:focus-visible {
 }
 
 /* --- capability catalog ---------------------------------------------------
-   Rows reuse .efaq (surface, spring height, plus-to-cross rotator). These
-   only add the category glyph and the approval chip. */
-.cc-sum { display: flex; align-items: baseline; gap: 13px; min-width: 0; }
+   Static rows (glyph + title + detail, always visible) — an earlier version
+   put every row's detail behind an accordion click, which left the page
+   showing 43 bare titles by default, several of them one or two words. The
+   surface look (blur/highlight) is copied from .efaq details rather than
+   shared with it, since these are plain divs now, not <details>. */
+.cc-cat-list { display: flex; flex-direction: column; gap: 6px; }
+.cc-row {
+  display: flex; align-items: flex-start; gap: 13px;
+  padding: 14px 18px;
+  background: var(--surface-bg);
+  -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(150%);
+  backdrop-filter: blur(var(--surface-blur)) saturate(150%);
+  box-shadow: inset 0 1px 0 var(--surface-highlight);
+}
 .cc-cat {
   flex: 0 0 20px; display: inline-grid; place-items: center;
   width: 20px; height: 20px; font-family: var(--util); font-size: 10px;
-  line-height: 1; transform: translateY(1px);
+  line-height: 1; margin-top: 2px;
 }
+.cc-sum-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.cc-sum-title {
+  font-family: var(--display); font-weight: 500;
+  font-size: clamp(15px, 1.15vw, 16.5px); letter-spacing: -.02em; line-height: 1.32;
+}
+.cc-sum-preview { font-size: 14px; color: var(--mid); line-height: 1.58; max-width: 58ch; }
 .cc-chip {
   display: inline-block; margin: 0 22px 20px;
   font-family: var(--util); font-size: 9px; letter-spacing: .12em;
   text-transform: uppercase; padding: 5px 9px; color: var(--mid);
   border: 1px solid var(--rule);
 }
-.ink-panel .cc-chip { color: var(--soft); border-color: var(--rule-dark); }
+.cc-chip-inline {
+  display: inline-block; margin-left: 9px; transform: translateY(-1px);
+  font-family: var(--util); font-size: 9px; letter-spacing: .12em;
+  text-transform: uppercase; padding: 3px 7px; color: var(--mid);
+  border: 1px solid var(--rule);
+}
+.ink-panel .cc-chip, .ink-panel .cc-chip-inline { color: var(--soft); border-color: var(--rule-dark); }
 .cc-count {
   font-family: var(--util); font-size: 10.5px; letter-spacing: .14em;
   text-transform: uppercase; color: var(--soft);
@@ -2287,13 +2339,8 @@ summary:focus-visible {
 .cc-hero h1.h1 { font-size: clamp(31px, 4.4vw, 60px); letter-spacing: -.032em; }
 .cc-hero .lede { max-width: 44ch; }
 
-/* --- capability catalog: grouping + denser rows ---------------------------
-   43 rows at the default .efaq size is 3,000px of near-identical bars. Tighter
-   rows plus a header per category turns a wall into a list. */
-.efaq.cc-cat-list { gap: 6px; }
-.efaq.cc-cat-list summary { padding: 13px 18px; font-size: clamp(15px, 1.15vw, 16.5px); }
-.efaq.cc-cat-list .ans p { padding: 0 18px 18px; font-size: 14.5px; }
-.efaq.cc-cat-list .pm { margin-top: .25em; }
+/* --- capability catalog: grouping ------------------------------------------
+   43 rows in one run is a wall; a header per category turns it into a list. */
 .cc-group {
   display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
   margin: 0 0 12px; padding-bottom: 9px; border-bottom: 1px solid var(--rule);

@@ -94,7 +94,7 @@ export function VerticalPage({ vertical }: VerticalPageProps) {
                   feed={opsFeed.feed}
                   footer={
                     <p className="text-center font-mono text-[0.6rem] uppercase tracking-[0.18em] text-white-muted">
-                      A day at a {vertical.name.replace(/s$/, "").toLowerCase()}, run by Accelerate
+                      A day at {vertical.opsLabel ?? `a ${vertical.name.replace(/s$/, "").toLowerCase()}`}, run by Accelerate
                     </p>
                   }
                 />
@@ -115,7 +115,7 @@ export function VerticalPage({ vertical }: VerticalPageProps) {
           />
           <AnimateOnScroll delay={0.15}>
             <p className="mb-12 max-w-xl text-base leading-relaxed text-white-muted">
-              These are the issues we hear from {vertical.name.toLowerCase()} businesses every week.
+              These are the issues we hear from {vertical.name.toLowerCase()} every week.
             </p>
           </AnimateOnScroll>
           <div className="grid gap-4 md:grid-cols-2">
@@ -153,7 +153,7 @@ export function VerticalPage({ vertical }: VerticalPageProps) {
           />
           <AnimateOnScroll delay={0.15}>
             <p className="mb-12 max-w-2xl text-base leading-relaxed text-white-muted">
-              Every solution is scoped to {vertical.name.toLowerCase()} operations: your
+              Every solution here is scoped to your operations: your
               tools, your workflow, your goals.
             </p>
           </AnimateOnScroll>

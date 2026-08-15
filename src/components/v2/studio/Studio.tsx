@@ -19,8 +19,14 @@ import { FinalCta } from "@/components/home/FinalCta";
 export function Studio() {
   return (
     <>
-      <Hero />
-      <Marquee />
+      {/* Grouped so the marquee band can sit pinned to the bottom of the
+          initial mobile viewport (see `.hero-band` in globals.css) — that
+          only works if hero + band share one flex parent, since a single
+          section can't reserve space for a sibling's height on its own. */}
+      <div className="hero-band">
+        <Hero />
+        <Marquee />
+      </div>
       <Evidence />
       <Outcomes />
       <CommandCenter />

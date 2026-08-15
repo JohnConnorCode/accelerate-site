@@ -2,7 +2,7 @@ import Link from "next/link";
 import { seoMetadata } from "@/lib/og";
 import { generateBreadcrumbJsonLd } from "@/lib/seo";
 import { verticals } from "@/content/verticals";
-import { ArrowUpRight, Wrench, Scale, Briefcase, Building2 } from "lucide-react";
+import { ArrowUpRight, Wrench, Scale, Briefcase, Building2, Factory, Rocket, Stethoscope, ShieldCheck, Car } from "lucide-react";
 import { Section, Container, Eyebrow, Heading, BookCallButton, CallTerms } from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
@@ -22,6 +22,11 @@ const iconMap: Record<string, React.ReactNode> = {
   Scale: <Scale className="h-6 w-6" strokeWidth={1.75} />,
   Briefcase: <Briefcase className="h-6 w-6" strokeWidth={1.75} />,
   Building2: <Building2 className="h-6 w-6" strokeWidth={1.75} />,
+  Factory: <Factory className="h-6 w-6" strokeWidth={1.75} />,
+  Rocket: <Rocket className="h-6 w-6" strokeWidth={1.75} />,
+  Stethoscope: <Stethoscope className="h-6 w-6" strokeWidth={1.75} />,
+  ShieldCheck: <ShieldCheck className="h-6 w-6" strokeWidth={1.75} />,
+  Car: <Car className="h-6 w-6" strokeWidth={1.75} />,
 };
 
 const breadcrumbJsonLd = generateBreadcrumbJsonLd([

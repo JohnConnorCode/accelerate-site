@@ -415,17 +415,6 @@ export const MARQUEE_ITEMS = [
   "Waits for your yes",
 ];
 
-/* The honest half. The most-cited complaint about tools in this category is
-   that the product did not do what the marketing implied, so this is on the
-   page rather than left for the call. */
-export const LIMITS = [
-  "It only knows what got recorded. A conversation in a car park that never turns into a note or an email is invisible to it, the same way it is to you.",
-  "Transcripts are not perfect. Strong accents, people talking over each other, and industry jargon still trip it up. That is one reason every extracted item shows you the line it came from before you keep it.",
-  "The first month is work. You are correcting drafts and telling it what it got wrong. That is the price of it sounding like you by month three, and there is no version where you skip it.",
-  "It does not make the judgment calls. It will tell you an account is going cold and have the rescue written. Whether that client is worth rescuing is still your problem.",
-  "It will not fix a business with no process at all. If nothing is written down and nobody agrees what the stages are, the first week goes on that instead, and we would rather say so now than discover it together.",
-];
-
 export const WHO_ITS_FOR = [
   "You run client work, business development, and admin, and there is no operations hire coming.",
   "Your team is small and most of what the business knows is in one person's head.",

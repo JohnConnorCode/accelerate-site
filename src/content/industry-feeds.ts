@@ -64,4 +64,54 @@ export const INDUSTRY_FEEDS: Record<string, IndustryFeed> = {
       { time: "16:44:03", channel: "paid", label: "Monthly retainer", value: "+$3,500" },
     ],
   },
+  manufacturing: {
+    metric: "Less chasing, more shop time",
+    feed: [
+      { time: "07:48:15", channel: "capture", label: "New RFQ captured from portal" },
+      { time: "08:02:40", channel: "text", label: "Quote acknowledgment sent to buyer" },
+      { time: "10:15:22", channel: "follow", label: "Quote follow-up sent, no response yet" },
+      { time: "13:40:07", channel: "won", label: "PO received, job scheduled", value: "+$18,200" },
+      { time: "16:05:51", channel: "follow", label: "Supplier ship-date check sent" },
+    ],
+  },
+  startups: {
+    metric: "Less admin, more building",
+    feed: [
+      { time: "08:10:00", channel: "capture", label: "New signup onboarded automatically" },
+      { time: "09:32:14", channel: "text", label: "Day-3 check-in sent to new customer" },
+      { time: "11:05:47", channel: "follow", label: "Support ticket routed to product" },
+      { time: "14:20:03", channel: "book", label: "Investor update drafted for review" },
+      { time: "16:48:29", channel: "won", label: "Renewal confirmed", value: "+$2,400" },
+    ],
+  },
+  "medical-dental": {
+    metric: "Fewer no-shows, fuller chairs",
+    feed: [
+      { time: "07:55:10", channel: "capture", label: "New patient inquiry captured" },
+      { time: "08:20:44", channel: "book", label: "Appointment booked for Thu 2:00" },
+      { time: "09:10:33", channel: "text", label: "Reminder sent, 48 hours out" },
+      { time: "13:44:18", channel: "follow", label: "Insurance verification completed" },
+      { time: "16:30:02", channel: "review", label: "5★ review request sent" },
+    ],
+  },
+  "insurance-agencies": {
+    metric: "Less chasing, more policies bound",
+    feed: [
+      { time: "08:05:22", channel: "capture", label: "New quote request captured" },
+      { time: "08:40:15", channel: "text", label: "Quote sent to prospect" },
+      { time: "11:12:48", channel: "follow", label: "Renewal reminder sent, 30 days out" },
+      { time: "14:05:36", channel: "won", label: "Policy bound", value: "+$1,850" },
+      { time: "16:22:09", channel: "follow", label: "Coverage-gap outreach sent" },
+    ],
+  },
+  "auto-dealers": {
+    metric: "Less chasing, more appointments",
+    feed: [
+      { time: "08:00:12", channel: "capture", label: "New internet inquiry captured" },
+      { time: "08:14:50", channel: "text", label: "Response sent, appointment offered" },
+      { time: "10:30:27", channel: "book", label: "Service appointment booked for Fri 9:00" },
+      { time: "13:15:44", channel: "follow", label: "Unclosed deal follow-up sent" },
+      { time: "16:40:19", channel: "won", label: "Vehicle sold", value: "+$32,400" },
+    ],
+  },
 };

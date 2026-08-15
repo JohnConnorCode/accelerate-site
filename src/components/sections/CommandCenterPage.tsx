@@ -15,7 +15,6 @@ import {
   TRUST_LADDER,
   MARQUEE_ITEMS,
   WHO_ITS_FOR,
-  LIMITS,
 } from "@/content/command-center";
 import type { MouseEvent } from "react";
 
@@ -147,10 +146,7 @@ function Problem() {
               that only <span className="it">you know.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              Tuesday&apos;s call produced three commitments, two of them yours. They exist in your memory and nowhere else, so nobody else can act on them and nothing moves until you get to it. Multiply that across a week of calls and email and the constraint on the business stops being demand or capacity. It becomes how fast one person can work through what they already know.
-            </Reveal>
-            <Reveal rv as="p" className="lede" delay={0.18} style={{ marginTop: 16 }}>
-              An operations hire fixes it. So does a system that captures the same things and acts on them, for a good deal less, with something running inside two weeks.
+              Tuesday&apos;s call produced three commitments, two of them yours, and none of them exist anywhere but your memory. Multiply that across a week of calls and email and the real constraint on the business is not demand or capacity. It is how fast one person can work through what they already know. An operations hire fixes that. So does a system that captures the same things and acts on them, for a good deal less, running inside two weeks.
             </Reveal>
           </div>
         </div>
@@ -179,17 +175,7 @@ function Built() {
               <span className="it">configured to it.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              There is no generic version of this. Before anything gets built we spend
-              the discovery working out how your business actually runs: what comes in
-              and through which door, what a job or a matter or a deal is called in
-              your language, which decisions you would never hand to software, and
-              where the hours currently go.
-            </Reveal>
-            <Reveal rv as="p" className="lede" delay={0.18} style={{ marginTop: 16 }}>
-              What we build follows that. The categories, the vocabulary, the stages
-              and the rules end up being yours. Two installs in the same industry do
-              not look alike, because two businesses in the same industry do not run
-              alike.
+              There is no generic version of this. The discovery works out how your business actually runs: what a job or a matter or a deal is called in your language, which decisions you would never hand to software, and where the hours currently go. What we build follows that. The categories, the vocabulary, and the stages end up being yours, which is why two installs in the same industry never look alike.
             </Reveal>
           </div>
         </div>
@@ -292,10 +278,7 @@ function TrustLadder() {
               meant to <span className="it">get smaller.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              An approval queue is easy to sell and easy to get wrong. If you are still clicking approve on the same routine work a year from now, it has quietly become a slower way of doing the job yourself.
-            </Reveal>
-            <Reveal rv as="p" className="lede" delay={0.18} style={{ marginTop: 16 }}>
-              So the gate moves. Each category of work carries its own setting, and a category graduates once you have approved it unedited often enough that reading it stopped being a decision. You make that call, we show you the approval rate it rests on, and you can put it back in one click. Nothing widens on its own.
+              An approval queue is easy to sell and easy to get wrong. If you are still clicking approve on the same routine work a year from now, it has quietly become a slower way of doing the job yourself. So the gate moves. Each category of work carries its own setting and graduates once you have approved it unedited often enough that reading it stopped being a decision, a call you make yourself, backed by the approval rate it rests on and reversible in one click.
             </Reveal>
           </div>
         </div>
@@ -360,34 +343,9 @@ function Proof() {
               <span className="it">ourselves first.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              This was not designed as a product. We had the same problem, built something to solve it, and have been running our own operation on it daily since. The calls, the follow-ups, the pipeline, the notes. Every rough edge you would have hit, we hit first.
-            </Reveal>
-            <Reveal rv as="p" className="lede" delay={0.18} style={{ marginTop: 16 }}>
-              On the call we will screen-share the real one rather than the demonstration above, mess included.
+              This was not designed as a product. We had the same problem, built something to solve it, and have been running our own operation on it daily since, the calls, the follow-ups, the pipeline, the notes, so every rough edge you would have hit, we hit first. On the call we will screen-share the real one rather than the demonstration above, mess included.
             </Reveal>
           </div>
-        </div>
-
-        <div style={{ marginTop: "clamp(54px,7vw,92px)" }}>
-          <Reveal rv as="h3" className="h3" style={{ marginBottom: 8 }}>
-            Where it <span className="it">falls short.</span>
-          </Reveal>
-          <Reveal rv as="p" className="lede" delay={0.06}>
-            The most common complaint about tools in this category is that the product did not do what the demonstration implied. So here is the other half, before you spend anything.
-          </Reveal>
-          <ul className="plan-list" style={{ marginTop: 22 }}>
-            {LIMITS.map((item, i) => (
-              <Reveal
-                key={item}
-                as="li"
-                className="item-rv"
-                style={{ "--d": `${0.05 * i}s` } as CSSProperties}
-              >
-                <i>{String(i + 1).padStart(2, "0")}</i>
-                <span>{item}</span>
-              </Reveal>
-            ))}
-          </ul>
         </div>
       </div>
     </section>
