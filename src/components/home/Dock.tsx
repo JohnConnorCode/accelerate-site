@@ -9,7 +9,9 @@ import { AnimatePresence, motion } from "framer-motion";
 /**
  * Floating "book a call" dock — shows on desktop and mobile alike once the
  * visitor scrolls past the hero. Hidden near the page bottom (the footer CTA
- * covers that) and on routes where it's redundant (contact) or wrong (admin).
+ * covers that) and on routes where it's redundant (contact), wrong (admin),
+ * or replaced by a page-scoped equivalent (command-center has its own bottom
+ * nav with the booking button built in — see CommandCenterNav).
  *
  * Coordinates with the chat bubble via `document.body[data-mcta]` — a CSS rule
  * in globals.css lifts the bubble above the dock on mobile while it's showing.
@@ -19,7 +21,9 @@ export function Dock() {
   const [visible, setVisible] = useState(false);
 
   const hiddenRoute =
-    pathname.startsWith("/admin") || pathname.startsWith("/contact");
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/contact") ||
+    pathname.startsWith("/command-center");
 
   useEffect(() => {
     if (hiddenRoute) return;

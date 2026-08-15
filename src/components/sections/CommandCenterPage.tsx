@@ -9,6 +9,7 @@ import { AmbientField } from "@/components/home/AmbientField";
 import { ApprovalQueue } from "@/components/command-center/ApprovalQueue";
 import { CapabilityCatalog } from "@/components/command-center/CapabilityCatalog";
 import { CommandCenterDemo } from "@/components/command-center/demo/CommandCenterDemo";
+import { CommandCenterNav } from "@/components/command-center/CommandCenterNav";
 import { commandCenterFaqs } from "@/content/command-center-faq";
 import {
   LOOP_STEPS,
@@ -39,6 +40,7 @@ export function CommandCenterPageContent() {
       <WhoItsFor />
       <Faq />
       <Closing />
+      <CommandCenterNav />
     </>
   );
 }
@@ -329,7 +331,7 @@ function Catalog() {
 
 function Proof() {
   return (
-    <section className="sect ink-panel">
+    <section className="sect ink-panel" id="proof">
       <AmbientField />
       <div className="wrap">
         <div className="shead">
@@ -356,7 +358,7 @@ function Proof() {
 
 function WhoItsFor() {
   return (
-    <section className="sect">
+    <section className="sect" id="who">
       <AmbientField />
       <div className="wrap">
         <div className="shead">

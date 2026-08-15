@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, MouseEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -13,16 +13,22 @@ import {
 } from "@/content/command-center";
 
 /* The full surface, filterable. Follows the house filter pattern from
-   LearnHub (pill row + search + AnimatePresence keyed on the filter) and the
-   house surface look from home/Faq (.efaq), but rows are static, not
-   collapsible — an earlier version hid every row's detail behind a click,
-   which left 43 rows on screen showing nothing but a title, several of them
-   two words ("Companies", "An API"). Reads as thin no matter how good the
-   copy behind the click is, so the detail is on screen by default now. */
+   LearnHub (pill row + search + AnimatePresence keyed on the filter).
+
+   Rows are collapsible <details> — a version that showed every row's detail
+   text on screen at once turned 43 rows into a wall the height of several
+   screens. But an earlier collapsed version showed NOTHING but the title
+   when closed, several of them two words ("Companies", "An API"), which read
+   as thin. This splits the difference: collapsed rows are compact (title
+   only, one line), and the two-column grid keeps even 43 of them from
+   reading as an endless single-file scroll. */
 
 export function CapabilityCatalog() {
   const [active, setActive] = useState<CapabilityCategory | "all">("all");
   const [query, setQuery] = useState("");
+  const [open, setOpen] = useState<string[]>([]);
+  const toggle = (id: string) =>
+    setOpen((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
   const counts = useMemo(() => {
     const map = new Map<CapabilityCategory, number>();
@@ -139,20 +145,30 @@ export function CapabilityCatalog() {
                   {g.items.map((cap, i) => (
                     <Reveal
                       key={cap.id}
-                      as="div"
+                      as="details"
                       className="item-rv cc-row"
                       style={{ "--d": `${0.03 * (i % 6)}s` } as CSSProperties}
+                      open={open.includes(cap.id)}
+                      onClick={(e: MouseEvent) => {
+                        e.preventDefault();
+                        toggle(cap.id);
+                      }}
                     >
-                      <span className="cc-cat" style={{ color: `rgb(${g.rgb})` }} aria-hidden="true">
-                        {g.glyph}
-                      </span>
-                      <span className="cc-sum-text">
-                        <span className="cc-sum-title">{cap.title}</span>
-                        <span className="cc-sum-preview">
-                          {cap.detail}
-                          {cap.gated && <span className="cc-chip cc-chip-inline">Waits for your approval</span>}
+                      <summary>
+                        <span className="cc-cat" style={{ color: `rgb(${g.rgb})` }} aria-hidden="true">
+                          {g.glyph}
                         </span>
-                      </span>
+                        <span className="cc-sum-title">{cap.title}</span>
+                        <span className="pm" />
+                      </summary>
+                      <div className="cc-ans">
+                        <div>
+                          <p>
+                            {cap.detail}
+                            {cap.gated && <span className="cc-chip cc-chip-inline">Waits for your approval</span>}
+                          </p>
+                        </div>
+                      </div>
                     </Reveal>
                   ))}
                 </div>

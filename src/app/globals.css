@@ -270,7 +270,7 @@ body {
    ======================================== */
 
 .wrap { max-width: 1340px; margin: 0 auto; padding: 0 var(--gut); }
-.sect { padding: clamp(78px, 11vw, 160px) 0; position: relative; }
+.sect { padding: clamp(78px, 11vw, 160px) 0; position: relative; scroll-margin-top: 96px; }
 
 .ink-panel {
   background: var(--panel);
@@ -2287,31 +2287,54 @@ summary:focus-visible {
 }
 
 /* --- capability catalog ---------------------------------------------------
-   Static rows (glyph + title + detail, always visible) — an earlier version
-   put every row's detail behind an accordion click, which left the page
-   showing 43 bare titles by default, several of them one or two words. The
-   surface look (blur/highlight) is copied from .efaq details rather than
-   shared with it, since these are plain divs now, not <details>. */
-.cc-cat-list { display: flex; flex-direction: column; gap: 6px; }
+   Collapsible <details> rows, arranged two-up so 43 of them read as an
+   organized grid rather than one long single-file scroll. Two prior
+   attempts overcorrected in opposite directions: one hid every row's detail
+   behind a click with nothing else on screen (read as thin — several titles
+   are one or two words); the other showed every detail at once (a scroll the
+   height of several screens). This keeps rows closed by default, closed rows
+   compact (title only, one line), and the detail clear and legible on open. */
+.cc-cat-list { display: grid; grid-template-columns: 1fr; gap: 8px; align-items: start; }
+@media (min-width: 860px) {
+  .cc-cat-list { grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+}
 .cc-row {
-  display: flex; align-items: flex-start; gap: 13px;
-  padding: 14px 18px;
   background: var(--surface-bg);
   -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(150%);
   backdrop-filter: blur(var(--surface-blur)) saturate(150%);
   box-shadow: inset 0 1px 0 var(--surface-highlight);
+  transition: background-color .3s ease, box-shadow .3s ease;
 }
+.cc-row[open] { background: var(--surface-bg-strong); box-shadow: inset 0 1px 0 var(--surface-highlight), var(--surface-shadow); }
+.cc-row summary {
+  list-style: none; cursor: pointer;
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 16px;
+  transition: opacity .25s ease;
+}
+.cc-row summary::-webkit-details-marker { display: none; }
+.cc-row summary:hover, .cc-row summary:active { opacity: .6; }
 .cc-cat {
   flex: 0 0 20px; display: inline-grid; place-items: center;
   width: 20px; height: 20px; font-family: var(--util); font-size: 10px;
-  line-height: 1; margin-top: 2px;
+  line-height: 1;
 }
-.cc-sum-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .cc-sum-title {
+  flex: 1; min-width: 0;
   font-family: var(--display); font-weight: 500;
-  font-size: clamp(15px, 1.15vw, 16.5px); letter-spacing: -.02em; line-height: 1.32;
+  font-size: clamp(14.5px, 1.05vw, 16px); letter-spacing: -.02em; line-height: 1.32;
 }
-.cc-sum-preview { font-size: 14px; color: var(--mid); line-height: 1.58; max-width: 58ch; }
+.cc-row .pm { flex: 0 0 13px; position: relative; height: 13px; }
+.cc-row .pm::before, .cc-row .pm::after { content: ""; position: absolute; background: var(--fg); transition: transform .4s var(--spring); }
+.cc-row .pm::before { top: 6px; left: 0; width: 13px; height: 1.4px; }
+.cc-row .pm::after { left: 6px; top: 0; width: 1.4px; height: 13px; }
+.cc-row[open] .pm::after { transform: rotate(90deg); }
+.cc-ans { overflow: hidden; display: grid; grid-template-rows: 0fr; transition: grid-template-rows .5s var(--spring); }
+.cc-row[open] .cc-ans { grid-template-rows: 1fr; }
+.cc-ans > div { min-height: 0; }
+/* padding-left lines the detail text up under the title, not the glyph
+   column (20px glyph + 12px summary gap + 16px summary padding = 48px). */
+.cc-ans p { padding: 0 16px 16px 48px; color: var(--mid); font-size: 14px; line-height: 1.62; max-width: 48ch; }
 .cc-chip {
   display: inline-block; margin: 0 22px 20px;
   font-family: var(--util); font-size: 9px; letter-spacing: .12em;
@@ -2319,7 +2342,7 @@ summary:focus-visible {
   border: 1px solid var(--rule);
 }
 .cc-chip-inline {
-  display: inline-block; margin-left: 9px; transform: translateY(-1px);
+  display: block; width: fit-content; margin-top: 10px;
   font-family: var(--util); font-size: 9px; letter-spacing: .12em;
   text-transform: uppercase; padding: 3px 7px; color: var(--mid);
   border: 1px solid var(--rule);
