@@ -6,7 +6,7 @@ import {
   Accordion, AccordionItem, AccordionTrigger, AccordionContent,
 } from "@/components/ui/Accordion";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
-import { Section, Container, Eyebrow, Heading, BookCallButton } from "@/components/v2/studio/primitives";
+import { Section, Container, Eyebrow, Heading, BookCallButton, CallTerms } from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { ProofStrip } from "@/components/v2/studio/ProofStrip";
 import { HERO_HEADING } from "@/lib/type-recipes";
@@ -307,12 +307,7 @@ export function PackagesPageContent() {
               recommend the package that fits. No pitch, no obligation.
             </p>
             <BookCallButton location="packages_closing" />
-            <div className="flex flex-wrap gap-x-8 gap-y-3 border-t border-border-glass pt-6 font-mono text-xs uppercase tracking-[0.15em] text-white-muted">
-              <span>Free</span><span>·</span>
-              <span>30 minutes</span><span>·</span>
-              <span>No obligation</span><span>·</span>
-              <span>Direct to the founder</span>
-            </div>
+            <CallTerms />
           </div>
         </div>
       </Section>

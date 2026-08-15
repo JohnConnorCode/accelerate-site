@@ -96,7 +96,7 @@ export const services: Service[] = [
       "Your pipeline leaks. Inquiries go cold because follow-up is manual, inconsistent, and always the first thing to slip.",
     keyMetrics: [
       { value: "+38%", label: "More jobs booked" },
-      { value: "24/7", label: "Follow-up coverage" },
+      { value: "0", label: "Follow-ups missed" },
       { value: "< 5 min", label: "Response time" },
     ],
     process: [
@@ -146,9 +146,9 @@ export const services: Service[] = [
     id: "content",
     name: "Content Creation",
     description:
-      "Systematic content in your voice across every channel. Blog posts, social media, email newsletters. Consistent output on a real schedule, without a marketing hire.",
+      "Content on a schedule, written from a voice guide we build with you in week one. Blog posts, social media, email newsletters. Consistent output on a real schedule, without a marketing hire.",
     shortDescription:
-      "Blog posts, social media, and email newsletters, created in your voice on a consistent schedule.",
+      "Blog posts, social media, and email newsletters, published on a calendar you approve monthly.",
     icon: "PenTool",
     deliverables: [
       "Content strategy and editorial calendar",
@@ -166,7 +166,7 @@ export const services: Service[] = [
     keyMetrics: [
       { value: "4x", label: "Content output" },
       { value: "Weekly", label: "Consistent schedule" },
-      { value: "Your", label: "Voice, not ours" },
+      { value: "12", label: "Pieces per month" },
     ],
     process: [
       { step: "Voice & Strategy", description: "We learn your tone, audience, and goals to build an editorial calendar." },

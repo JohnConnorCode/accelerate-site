@@ -61,9 +61,9 @@ export const packages: ServicePackage[] = [
     id: "accelerate",
     name: "Accelerate",
     slug: "accelerate",
-    tagline: "Full AI-powered growth",
+    tagline: "Everything, run by us",
     description:
-      "The complete system. Website, automations, AI agents, and ongoing optimization. For businesses ready to outpace their market with systems their competitors can't match.",
+      "The complete system. Website, automations, AI agents, and ongoing optimization. For businesses where a dropped inquiry costs four figures.",
     priceOneTime: 7500,
     priceMonthly: 600,
     features: [
@@ -76,12 +76,12 @@ export const packages: ServicePackage[] = [
       { name: "Ongoing support", included: true, detail: "Dedicated account manager" },
       { name: "AI chat widget", included: true, detail: "Advanced multi-turn conversations" },
       { name: "Automated follow-ups", included: true, detail: "Full nurture sequences" },
-      { name: "AI phone agent", included: true, detail: "24/7 inbound call handling" },
+      { name: "AI phone agent", included: true, detail: "Answers on the second ring, any hour" },
       { name: "CRM integration", included: true, detail: "Deep bi-directional sync" },
       { name: "Monthly reporting", included: true, detail: "ROI tracking and optimization" },
     ],
     highlighted: false,
-    ctaText: "Go All In",
+    ctaText: "Start with Accelerate",
     ctaLink: "/contact?package=accelerate",
     idealFor: "Full-service growth",
   },
@@ -91,7 +91,7 @@ export const packageFaqs: FAQ[] = [
   {
     question: "Can I upgrade my package later?",
     answer:
-      "Absolutely. Most of our clients start with Launch or Grow and upgrade as they see results. When you upgrade, we credit what you have already paid toward the new package so you never pay twice for the same work.",
+      "Yes. You upgrade at the difference, never the full price. Whatever you have paid credits against the new tier. When you upgrade, we credit what you have already paid toward the new package so you never pay twice for the same work.",
     category: "packages",
   },
   {
@@ -103,19 +103,19 @@ export const packageFaqs: FAQ[] = [
   {
     question: "How does billing work?",
     answer:
-      "The one-time setup fee is paid upfront (we offer payment plans for larger packages). Monthly services are billed on a simple recurring basis. Every package includes clear deliverables and monthly reporting so you always know what you're paying for.",
+      "The one-time setup fee is paid upfront (we offer payment plans for larger packages). Monthly services are billed on a simple recurring basis. Every package includes clear deliverables and monthly reporting Every invoice lists the deliverables it covers.",
     category: "packages",
   },
   {
     question: "Do you offer payment plans?",
     answer:
-      "Yes. For the Grow and Accelerate packages, we offer 2-3 month payment plans on the setup fee. Monthly service fees are billed at the start of each month. We are happy to work with you to find a payment structure that fits your cash flow.",
+      "Yes. For the Grow and Accelerate packages, we offer 2-3 month payment plans on the setup fee. Monthly service fees are billed at the start of each month. If the setup fee is the blocker, say so on the call. We will split it.",
     category: "packages",
   },
   {
     question: "What if I only need one specific service?",
     answer:
-      "Packages offer the best value, but we are happy to discuss individual services. Head over to our services page or use the growth plan to get a custom recommendation based on your specific needs.",
+      "Yes. Six services, priced individually on the services page. Packages work out cheaper if you need more than two of them.",
     category: "packages",
   },
   {

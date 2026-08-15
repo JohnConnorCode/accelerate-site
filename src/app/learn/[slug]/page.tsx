@@ -24,7 +24,7 @@ import {
   AnimateOnScroll,
   StaggerContainer,
 } from "@/components/ui/AnimateOnScroll";
-import { Section, Eyebrow, Heading, BookCallButton } from "@/components/v2/studio/primitives";
+import { Section, Eyebrow, Heading, BookCallButton, CallTerms } from "@/components/v2/studio/primitives";
 import { TableOfContents } from "@/components/mdx/TableOfContents";
 import { RelatedArticles } from "@/components/mdx/RelatedArticles";
 import { ArticleTracker } from "@/components/ArticleTracker";
@@ -391,12 +391,7 @@ export default async function ArticlePage({
               pitch, no obligation.
             </p>
             <BookCallButton location="article" />
-            <div className="flex flex-wrap gap-x-8 gap-y-3 border-t border-border-glass pt-6 font-mono text-xs uppercase tracking-[0.15em] text-white-muted">
-              <span>Free</span><span>·</span>
-              <span>30 minutes</span><span>·</span>
-              <span>No obligation</span><span>·</span>
-              <span>Direct to the founder</span>
-            </div>
+            <CallTerms />
           </div>
         </div>
       </Section>

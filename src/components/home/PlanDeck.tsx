@@ -35,9 +35,9 @@ const PAGES: PlanPage[] = [
     sub: "Value against effort",
     rows: [
       { label: "01 · Same-day quote drafting", detail: "Runs on the CRM you have", value: "3 wks", tail: "· high" },
-      { label: "02 · Automated second contact", detail: "Recovers leads now dropped", value: "1 wk", tail: "· high" },
+      { label: "02 · Automated second contact", detail: "Recovers inquiries now dropped", value: "1 wk", tail: "· high" },
       { label: "03 · Field notes by voice", detail: "Ends evening paperwork", value: "2 wks", tail: "· med" },
-      { label: "Not recommended · Website chat", detail: "Volume too low to return the effort", value: "—", mute: true },
+      { label: "Not recommended · Website chat", detail: "Volume too low to return the effort", value: "n/a", mute: true },
     ],
     note: "Order follows dependency as well as value. Quoting produces the clean pricing data the follow-up needs.",
   },

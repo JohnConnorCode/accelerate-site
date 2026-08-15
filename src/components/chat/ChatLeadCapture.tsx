@@ -21,7 +21,8 @@ export function ChatLeadCapture({ onSubmit }: ChatLeadCaptureProps) {
   return (
     <div className="rounded-lg p-3 mx-2 mb-2 bg-bg-subtle border border-border-glass">
       <p className="text-xs text-white-secondary mb-2">
-        Want personalized recommendations? Share your info and we&rsquo;ll follow up:
+        Want John to look at this properly? Leave your name and email. You&rsquo;ll get one note
+        confirming it landed, then a real reply from John. That&rsquo;s it.
       </p>
       <form onSubmit={handleSubmit} className="space-y-2">
         <input

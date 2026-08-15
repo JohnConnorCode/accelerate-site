@@ -149,7 +149,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
               <button
                 ref={closeButtonRef}
                 onClick={onClose}
-                className="relative w-10 h-10 flex items-center justify-center rounded-full border border-[var(--border-light)] hover:border-border-gold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+                className="relative w-11 h-11 flex items-center justify-center rounded-full border border-[var(--border-light)] hover:border-border-gold transition-all duration-150 active:scale-90 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
                 aria-label="Close navigation menu"
               >
                 <span
@@ -190,7 +190,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                           )
                         }
                         aria-expanded={expandedItem === link.label}
-                        className="w-full flex items-center justify-between py-3.5 group cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+                        className="w-full flex items-center justify-between py-3.5 px-2 -mx-2 group cursor-pointer rounded-lg transition-[background-color] duration-150 active:bg-[var(--bg-hover-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
                       >
                         <div className="flex items-center gap-4">
                           <span
@@ -240,7 +240,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                                   <Link
                                     href={child.href}
                                     onClick={onClose}
-                                    className="block py-2.5 text-[15px] text-white-muted hover:text-[var(--text-nav-hover)] transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+                                    className="block py-2.5 px-2 -mx-2 text-[15px] text-white-muted hover:text-[var(--text-nav-hover)] active:text-[var(--text-nav-hover)] active:bg-[var(--bg-hover-subtle)] transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
                                   >
                                     {child.label}
                                   </Link>
@@ -260,7 +260,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                       <Link
                         href={link.href}
                         onClick={onClose}
-                        className="flex items-center gap-4 py-3.5 group rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+                        className="flex items-center gap-4 py-3.5 px-2 -mx-2 group rounded-lg transition-[background-color] duration-150 active:bg-[var(--bg-hover-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
                       >
                         <span
                           className="text-xs font-mono tabular-nums"

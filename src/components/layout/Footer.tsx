@@ -1,17 +1,50 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Mail, ArrowRight, Loader2, CheckCircle2, Linkedin } from "lucide-react";
-import { useGSAP } from "@gsap/react";
-import { gsap } from "@/lib/gsap-init";
-import { prefersReducedMotion } from "@/lib/utils";
 import { isValidEmail } from "@/lib/validation";
 import { SectionDivider } from "@/components/ui/SectionDivider";
 import { Logo } from "@/components/ui/Logo";
 import { trackConversion } from "@/lib/analytics";
 import { getUTMParams, clearUTMParams } from "@/lib/utm";
+import { useRv } from "@/components/home/reveal";
+
+/**
+ * Each footer section gets its own scroll trigger via `useRv` (the same
+ * primitive every other list on the site now uses) instead of one shared
+ * observer on the whole <footer> with a fixed per-section delay. A single
+ * trigger + baked-in delay reads correctly only if the user's scroll speed
+ * happens to match the delay window — scroll slowly and a later section's
+ * delay has long since elapsed before it's ever visible; scroll fast and
+ * several trigger in the same instant. This section fades in exactly when
+ * IT individually scrolls into view, independent of its siblings.
+ */
+function FooterSection({
+  className = "",
+  style,
+  index,
+  children,
+}: {
+  className?: string;
+  style?: CSSProperties;
+  index: number;
+  children: ReactNode;
+}) {
+  const ref = useRv<HTMLDivElement>();
+  return (
+    <div
+      ref={ref}
+      data-footer-section
+      className={`item-rv ${className}`}
+      style={{ "--d": `${0.06 * index}s`, ...style } as CSSProperties}
+    >
+      {children}
+    </div>
+  );
+}
 
 const footerColumns = [
   {
@@ -55,33 +88,9 @@ const footerColumns = [
 
 export function Footer() {
   const pathname = usePathname();
-  const footerRef = useRef<HTMLElement>(null);
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
-
-  useGSAP(() => {
-    if (!footerRef.current) return;
-    if (prefersReducedMotion()) return;
-
-    const sections = footerRef.current.querySelectorAll("[data-footer-section]");
-
-    gsap.fromTo(sections,
-      { opacity: 0, y: 20 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.5,
-        stagger: 0.1,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: footerRef.current,
-          start: "top 90%",
-          toggleActions: "play none none none",
-        },
-      }
-    );
-  }, { scope: footerRef });
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,18 +131,17 @@ export function Footer() {
   if (pathname.startsWith("/admin")) return null;
 
   return (
-    <footer ref={footerRef} className="relative bg-bg-base">
+    <footer className="relative bg-bg-base">
       {/* Gold top line */}
       <SectionDivider variant="glow" />
 
       <div className="page-shell py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-10 lg:gap-8">
           {/* Brand Column */}
-          <div data-footer-section className="lg:col-span-2">
+          <FooterSection index={0} className="lg:col-span-2">
             <Logo className="mb-4" />
             <p className="text-white-secondary text-sm leading-relaxed mb-6 max-w-sm">
-              AI strategy and systems for small businesses. We figure out where
-              AI fits, then build and manage the systems that make it happen.
+              AI systems for small businesses. We find where it fits, build it, and run it.
             </p>
             <div className="flex flex-col gap-2 text-sm text-white-muted">
               <a
@@ -153,11 +161,11 @@ export function Footer() {
                 LinkedIn
               </a>
             </div>
-          </div>
+          </FooterSection>
 
           {/* Link Columns */}
-          {footerColumns.map((col) => (
-            <div key={col.title} data-footer-section>
+          {footerColumns.map((col, i) => (
+            <FooterSection key={col.title} index={i + 1}>
               <h3 className="text-sm font-semibold text-white-primary mb-4">
                 {col.title}
               </h3>
@@ -173,16 +181,16 @@ export function Footer() {
                   </li>
                 ))}
               </ul>
-            </div>
+            </FooterSection>
           ))}
         </div>
 
         {/* Email Signup */}
-        <div data-footer-section className="mt-14 pt-8 border-t border-[var(--border-subtle)]">
+        <FooterSection index={5} className="mt-14 pt-8 border-t border-[var(--border-subtle)]">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
             <div>
               <h3 className="text-sm font-semibold text-white-primary mb-1">
-                Get growth tips in your inbox
+                One email a week
               </h3>
               <p className="text-sm text-white-muted">
                 No spam. Unsubscribe anytime.
@@ -213,12 +221,12 @@ export function Footer() {
                     }}
                     disabled={status === "loading"}
                     aria-label="Email address"
-                    className="flex-1 sm:w-64 px-4 py-2.5 rounded-lg text-sm bg-bg-subtle border border-border-glass text-white-primary placeholder:text-white-muted focus:outline-none focus:ring-2 focus:ring-[var(--gold-base)] focus:border-gold transition-colors disabled:opacity-50"
+                    className="flex-1 sm:w-64 px-4 py-2.5 text-sm bg-bg-subtle border border-border-glass text-white-primary placeholder:text-white-muted focus:outline-none focus:ring-2 focus:ring-[var(--gold-base)] focus:border-gold transition-colors disabled:opacity-50"
                   />
                   <button
                     type="submit"
                     disabled={status === "loading"}
-                    className="bg-gold-gradient text-black px-4 py-2.5 rounded-lg text-sm font-semibold hover:brightness-110 transition-all inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-base)]"
+                    className="bg-gold-gradient text-black px-4 py-2.5 text-sm font-semibold hover:brightness-110 transition-all inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-base)]"
                   >
                     {status === "loading" ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -236,10 +244,13 @@ export function Footer() {
               </div>
             )}
           </div>
-        </div>
+        </FooterSection>
 
         {/* Bottom Bar */}
-        <div data-footer-section className="mt-10 pt-6 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white-muted">
+        <FooterSection
+          index={6}
+          className="mt-10 pt-6 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white-muted"
+        >
           <p>&copy; {new Date().getFullYear()} Accelerate. All rights reserved.</p>
           <div className="flex gap-6">
             <Link href="/privacy" className="hover:text-white-secondary transition-colors">
@@ -249,7 +260,7 @@ export function Footer() {
               Terms of Service
             </Link>
           </div>
-        </div>
+        </FooterSection>
       </div>
     </footer>
   );

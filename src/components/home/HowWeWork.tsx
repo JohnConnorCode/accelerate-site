@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { Reveal } from "./reveal";
+import { AmbientField } from "./AmbientField";
 
 const STEPS = [
   {
@@ -31,6 +32,7 @@ const STEPS = [
 export function HowWeWork() {
   return (
     <section className="sect ink-panel" id="how">
+      <AmbientField />
       <div className="wrap">
         <div className="shead">
           <Reveal rv as="p" className="label eyebrow-anim">
@@ -51,18 +53,28 @@ export function HowWeWork() {
           </div>
         </div>
 
-        <Reveal as="div" className="steps">
+        <div className="steps">
+          {/* Each step gets its own <Reveal> — its own scroll trigger — so
+              it fades in exactly when THAT step scrolls into view, not on
+              a fixed delay measured from when the list's top appeared.
+              --d is only a small tie-breaker for a fast scroll that brings
+              two steps into view in the same tick. */}
           {STEPS.map((step, i) => (
-            <div key={step.n} className="step" style={{ "--d": `${0.06 * i}s` } as CSSProperties}>
+            <Reveal
+              key={step.n}
+              as="div"
+              className="step item-rv"
+              style={{ "--d": `${0.06 * i}s` } as CSSProperties}
+            >
               <p className="step-n">{step.n}</p>
               <div className="step-t">
                 <h3 className="h3">{step.title}</h3>
                 <span className="tag">{step.tag}</span>
               </div>
               <p>{step.body}</p>
-            </div>
+            </Reveal>
           ))}
-        </Reveal>
+        </div>
       </div>
     </section>
   );

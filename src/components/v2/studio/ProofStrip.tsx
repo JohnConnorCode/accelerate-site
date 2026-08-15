@@ -25,7 +25,7 @@ export function ProofStrip() {
       <div className="page-shell page-shell--narrow text-center">
         <motion.div {...rv()}>
           <Eyebrow className="mb-6">The numbers</Eyebrow>
-          <h2 className="display-3 mx-auto max-w-2xl">What our systems deliver.</h2>
+          <h2 className="display-3 mx-auto max-w-2xl">The numbers we build against.</h2>
         </motion.div>
 
         <motion.div
@@ -48,7 +48,7 @@ export function ProofStrip() {
           {...rv(0.15)}
           className="mt-10 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-white-muted"
         >
-          Typical results · yours on a live dashboard from day one
+          Targets, not averages. Measured on your dashboard from week one.
         </motion.p>
       </div>
     </section>

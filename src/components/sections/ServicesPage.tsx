@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
-import { Section, Container, Eyebrow, Heading, BookCallButton, useReveal } from "@/components/v2/studio/primitives";
+import { Section, Container, Eyebrow, Heading, BookCallButton, useReveal, CallTerms } from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { ProofStrip } from "@/components/v2/studio/ProofStrip";
 import { HERO_HEADING } from "@/lib/type-recipes";
@@ -157,8 +157,8 @@ function ServiceBand({
 const STEPS = [
   { n: "01", t: "Discovery", d: "A free 30-minute call. We learn how your business runs and where AI moves the needle first." },
   { n: "02", t: "Strategy & Roadmap", d: "A tailored plan with exact deliverables, timeline, and projected ROI, all before you spend a dollar." },
-  { n: "03", t: "Build & Launch", d: "We handle the technical work end-to-end: configuration, integration, testing, training. Then it goes live and starts working." },
-  { n: "04", t: "Optimize & Grow", d: "Ongoing measurement, learning, and tuning so the system keeps getting sharper after launch." },
+  { n: "03", t: "Build & Launch", d: "Configuration, integration, testing, training. Then it goes live." },
+  { n: "04", t: "Optimize & Grow", d: "Monthly review against the number. We tune what is underperforming and tell you what is not worth fixing." },
 ];
 
 export function ServicesPageContent() {
@@ -193,14 +193,13 @@ export function ServicesPageContent() {
               <RevealHeading
                 as="h1"
                 className={HERO_HEADING}
-                lead="The systems we build and run for you."
+                lead="Six systems."
+            accent="One team runs them."
                 delay={0.1}
               />
               <AnimateOnScroll delay={0.25}>
                 <p className="mt-7 max-w-md text-base leading-relaxed text-white-secondary">
-                  We don&apos;t sell software you have to manage. We design, build, and run
-                  custom AI across your whole business, from first inquiry to repeat client.
-                  Scoped to your operation, accountable to your numbers, working from day one.
+                  We don&apos;t sell software you have to manage. We build it, then we run it. First inquiry to repeat client, on your tools, against a number you pick.
                 </p>
               </AnimateOnScroll>
               <AnimateOnScroll delay={0.35}>
@@ -298,12 +297,7 @@ export function ServicesPageContent() {
               you exactly where AI can help. No pitch, no obligation.
             </p>
             <BookCallButton location="services_closing" />
-            <div className="flex flex-wrap gap-x-8 gap-y-3 border-t border-border-glass pt-6 font-mono text-xs uppercase tracking-[0.15em] text-white-muted">
-              <span>Free</span><span>·</span>
-              <span>30 minutes</span><span>·</span>
-              <span>No obligation</span><span>·</span>
-              <span>Direct to the founder</span>
-            </div>
+            <CallTerms />
           </div>
         </div>
       </Section>

@@ -98,7 +98,7 @@ export function Hero() {
             variants={heroTagline}
             className="font-mono text-xs sm:text-sm font-medium text-gold tracking-wide mb-5"
           >
-            {"// ai · automation · cutting-edge strategy"}
+            {"// ai · automation · systems we run"}
           </motion.p>
 
           <motion.h1

@@ -1,12 +1,29 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { X, Send, Loader2 } from "lucide-react";
+import { X, Send, Loader2, CalendarDays, ArrowRight } from "lucide-react";
 import { ChatMessage } from "./ChatMessage";
 import { ChatLeadCapture } from "./ChatLeadCapture";
 import type { ChatMessage as ChatMessageType } from "@/lib/types";
 import { trackConversion } from "@/lib/analytics";
 import { getUTMParams, clearUTMParams } from "@/lib/utm";
+import { BOOKING_PATH, CONTACT_EMAIL } from "@/lib/booking";
+import { ERROR_REPLY } from "@/lib/chat/fallbacks";
+import { homeFaqs } from "@/content/home-faq";
+
+// A handful of quick-reply prompts so a visitor who doesn't know what to
+// ask gets a real, specific, already-vetted answer instantly instead of
+// having to type — and so the chat still feels genuinely useful while the
+// live model is unconfigured (demo mode). Reuses the same FAQ copy already
+// approved for the homepage rather than writing new answers to keep in
+// sync by hand.
+const QUICK_QUESTION_TEXT = [
+  "What does this cost?",
+  "How soon would we see a result?",
+  "Is our data safe?",
+  "Who owns what you build?",
+];
+const QUICK_QUESTIONS = homeFaqs.filter((faq) => QUICK_QUESTION_TEXT.includes(faq.question));
 
 interface ChatPanelProps {
   onClose: () => void;
@@ -69,6 +86,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
   const [showLeadCapture, setShowLeadCapture] = useState(false);
   const [leadCaptured, setLeadCaptured] = useState(false);
   const [messageCount, setMessageCount] = useState(0);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hydratedRef = useRef(false);
 
@@ -95,7 +113,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
   }, [messages]);
 
   const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || isTyping) return;
 
     const userMessage: ChatMessageType = {
       id: `user-${Date.now()}`,
@@ -181,14 +199,49 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
         {
           id: `error-${Date.now()}`,
           role: "assistant",
-          content:
-            "Sorry, I had trouble responding. Try again, or email john@acceleratewith.us.",
+          content: ERROR_REPLY,
           timestamp: Date.now(),
         },
       ]);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Quick-reply prompts skip the network entirely — the answer is already
+  // known and vetted, so there's nothing to call the model for. A short
+  // typing pause keeps it from feeling like a static FAQ accordion instead
+  // of a conversation.
+  const handleQuickQuestion = (faq: { question: string; answer: string }) => {
+    if (isLoading || isTyping) return;
+
+    const userMessage: ChatMessageType = {
+      id: `user-${Date.now()}`,
+      role: "user",
+      content: faq.question,
+      timestamp: Date.now(),
+    };
+    setMessages((prev) => [...prev, userMessage]);
+    setIsTyping(true);
+
+    const newCount = messageCount + 1;
+    setMessageCount(newCount);
+    if (newCount >= 3 && !leadCaptured) {
+      setShowLeadCapture(true);
+    }
+
+    window.setTimeout(() => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `assistant-${Date.now()}`,
+          role: "assistant",
+          content: faq.answer,
+          timestamp: Date.now(),
+        },
+      ]);
+      setIsTyping(false);
+    }, 550);
   };
 
   const handleLeadSubmit = async (name: string, email: string) => {
@@ -216,8 +269,8 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
     }
 
     const ackContent = saved
-      ? `Thanks, ${name}! I sent your note over to John, and he'll reply at ${email} within a business day. Keep asking questions if you'd like.`
-      : `Thanks, ${name}! I had trouble saving that on my end, but feel free to email John directly at john@acceleratewith.us so we don't lose track of you.`;
+      ? `Thanks, ${name}! I sent your note over to John, and he'll reply at ${email} within a business day. If you'd rather not wait, grab a time on his calendar with the link below: 30 minutes, free, no catch. Keep asking questions in the meantime.`
+      : `Thanks, ${name}! I had trouble saving that on my end, so email John directly at ${CONTACT_EMAIL} and he'll pick it up from there. You can also book a time with the link below.`;
 
     setMessages((prev) => [
       ...prev,
@@ -254,7 +307,25 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
         {messages.map((msg) => (
           <ChatMessage key={msg.id} message={msg} />
         ))}
-        {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
+        {/* Quick-reply prompts — only while the conversation is still just
+            the welcome message, so a visitor who doesn't know what to type
+            has somewhere to start. Disappears the moment any message (typed
+            or a quick reply) actually goes out. */}
+        {messages.length === 1 && (
+          <div className="flex flex-wrap gap-2 pt-1">
+            {QUICK_QUESTIONS.map((faq) => (
+              <button
+                key={faq.question}
+                type="button"
+                onClick={() => handleQuickQuestion(faq)}
+                className="rounded-full border border-border-glass bg-bg-subtle px-3 py-1.5 text-xs text-white-secondary transition-colors hover:border-gold hover:text-white-primary cursor-pointer"
+              >
+                {faq.question}
+              </button>
+            ))}
+          </div>
+        )}
+        {(isLoading || isTyping) && messages[messages.length - 1]?.role !== "assistant" && (
           <div className="flex justify-start">
             <div className="rounded-2xl rounded-bl-md px-4 py-2.5 bg-bg-subtle border border-border-glass">
               <Loader2 className="h-4 w-4 animate-spin text-white-muted" />
@@ -268,6 +339,23 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
       {showLeadCapture && !leadCaptured && (
         <ChatLeadCapture onSubmit={handleLeadSubmit} />
       )}
+
+      {/* The offer, always one click away. The bot points at the same page in
+          conversation, but a visitor who never types a word can still get to
+          the calendar from here. */}
+      <a
+        href={BOOKING_PATH}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-cursor="link"
+        onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "chat" })}
+        className="group flex items-center justify-center gap-2 border-t border-border-glass bg-bg-subtle px-4 py-2.5 text-xs transition-colors hover:bg-bg-elevated"
+      >
+        <CalendarDays className="h-3.5 w-3.5 shrink-0 text-gold" strokeWidth={1.75} />
+        <span className="font-medium text-white-primary">Book a free 30-minute call</span>
+        <span className="text-white-muted">· no catch</span>
+        <ArrowRight className="h-3 w-3 shrink-0 text-white-muted transition-transform group-hover:translate-x-0.5" />
+      </a>
 
       {/* Input */}
       <div className="border-t border-border-glass p-3 bg-bg-subtle">
@@ -285,11 +373,11 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
             placeholder="Type a message..."
             aria-label="Chat message"
             className="flex-1 rounded-lg bg-bg-base border border-border-glass px-3 py-2 text-sm text-white-primary placeholder:text-white-muted focus:outline-none focus:border-gold transition-colors"
-            disabled={isLoading}
+            disabled={isLoading || isTyping}
           />
           <button
             type="submit"
-            disabled={isLoading || !input.trim()}
+            disabled={isLoading || isTyping || !input.trim()}
             className="rounded-lg bg-gold-gradient p-2 hover:brightness-110 transition-all disabled:opacity-50 cursor-pointer"
           >
             <Send className="h-4 w-4" />

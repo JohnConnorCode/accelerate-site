@@ -5,7 +5,7 @@ import { AboutPageContent } from "@/components/sections/AboutPage";
 export const metadata = seoMetadata({
   title: "About Us: Built by a Business Owner",
   description:
-    "Built by a business owner who ran into the same problems you have. Accelerate delivers AI strategy and systems for small businesses.",
+    "John Connor. Twelve years building software companies, now running AI operations for small businesses. A short client list, on purpose.",
   ogTitle: "About Accelerate",
   ogSubtitle: "Built by a business owner, for business owners",
   path: "/about",

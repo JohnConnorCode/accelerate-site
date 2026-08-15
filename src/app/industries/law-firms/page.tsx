@@ -10,7 +10,7 @@ export const metadata = seoMetadata({
   title: "Law Firm AI Solutions",
   description: vertical.shortDescription,
   ogTitle: "Law Firm AI Solutions",
-  ogSubtitle: "AI-powered growth tools for law firms",
+  ogSubtitle: "AI intake and follow-up, built and run for law firms",
   path: "/industries/law-firms",
 });
 

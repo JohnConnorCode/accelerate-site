@@ -3,7 +3,7 @@ import { seoMetadata } from "@/lib/og";
 import { generateBreadcrumbJsonLd } from "@/lib/seo";
 import { verticals } from "@/content/verticals";
 import { ArrowUpRight, Wrench, Scale, Briefcase, Building2 } from "lucide-react";
-import { Section, Container, Eyebrow, Heading, BookCallButton } from "@/components/v2/studio/primitives";
+import { Section, Container, Eyebrow, Heading, BookCallButton, CallTerms } from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 import { HERO_HEADING } from "@/lib/type-recipes";
@@ -11,7 +11,7 @@ import { HERO_HEADING } from "@/lib/type-recipes";
 export const metadata = seoMetadata({
   title: "Industries We Serve",
   description:
-    "AI strategy and automation systems built for home services, law firms, professional services, and real estate. Industry-specific solutions, not generic software.",
+    "Home services, law firms, professional services, real estate. Same lifecycle, different intake. We build for the trade, then we run it.",
   ogTitle: "Industries We Serve",
   ogSubtitle: "AI systems built for your industry",
   path: "/industries",
@@ -134,12 +134,7 @@ export default function IndustriesPage() {
               and we&apos;ll tell you exactly where AI can move the needle.
             </p>
             <BookCallButton location="industries_index" />
-            <div className="flex flex-wrap gap-x-8 gap-y-3 border-t border-border-glass pt-6 font-mono text-xs uppercase tracking-[0.15em] text-white-muted">
-              <span>Free</span><span>·</span>
-              <span>30 minutes</span><span>·</span>
-              <span>No obligation</span><span>·</span>
-              <span>Direct to the founder</span>
-            </div>
+            <CallTerms />
           </div>
         </div>
       </Section>

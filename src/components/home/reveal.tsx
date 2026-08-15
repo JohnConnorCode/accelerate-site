@@ -9,7 +9,10 @@ import type { CSSProperties, ElementType, ReactNode } from "react";
  * reveal primitives in globals.css (ported from the reference mockup, which
  * drives the same classes off a single IntersectionObserver).
  */
-export function useRv<T extends HTMLElement = HTMLElement>() {
+export function useRv<T extends HTMLElement = HTMLElement>(
+  threshold = 0.1,
+  rootMargin = "0px 0px -8% 0px"
+) {
   const ref = useRef<T>(null);
   useEffect(() => {
     const el = ref.current;
@@ -27,11 +30,11 @@ export function useRv<T extends HTMLElement = HTMLElement>() {
           observer.disconnect();
         }
       },
-      { rootMargin: "0px 0px -8% 0px", threshold: 0.1 }
+      { rootMargin, threshold }
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [threshold, rootMargin]);
   return ref;
 }
 
@@ -52,6 +55,8 @@ export function Reveal({
   className = "",
   rv = false,
   delay,
+  threshold,
+  rootMargin,
   style,
   children,
   ...rest
@@ -60,11 +65,13 @@ export function Reveal({
   className?: string;
   rv?: boolean;
   delay?: number;
+  threshold?: number;
+  rootMargin?: string;
   style?: CSSProperties;
   children?: ReactNode;
 } & Record<string, unknown>) {
   const Tag = (as ?? "div") as ElementType;
-  const ref = useRv<HTMLElement>();
+  const ref = useRv<HTMLElement>(threshold, rootMargin);
   const cls = [rv ? "rv" : "", className].filter(Boolean).join(" ");
   const mergedStyle = { ...(delay != null ? delayStyle(delay) : null), ...style };
   return (

@@ -6,9 +6,9 @@ import { faqs } from "@/content/faqs";
 import { generateServiceListJsonLd, generateFaqJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 
 export const metadata = seoMetadata({
-  title: "AI Strategy & Automation Services",
+  title: "AI Services We Build and Run",
   description:
-    "AI strategy, workflow automation, sales systems, and ongoing management for small businesses. We build it and run it alongside you.",
+    "We build the AI systems, then we run them. Intake, follow-up, content, reporting. Six services, priced from $500 a month.",
   ogTitle: "Our Services",
   ogSubtitle: "AI strategy, automation, and ongoing management",
   path: "/services",

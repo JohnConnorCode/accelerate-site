@@ -3,28 +3,28 @@
 import Image from "next/image";
 import { Rocket, TrendingUp, Handshake } from "lucide-react";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
-import { Section, Container, Eyebrow, Heading, BookCallButton } from "@/components/v2/studio/primitives";
+import { Section, Container, Eyebrow, Heading, BookCallButton, CallTerms } from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { HERO_HEADING } from "@/lib/type-recipes";
 
 const VALUES = [
   {
     icon: Rocket,
-    title: "Ship fast, iterate faster",
+    title: "Live in a week",
     description:
-      "We move fast. Your business can't wait on a drawn-out rollout. We get you live and optimize from real data instead of guesswork.",
+      "First system goes live inside a week. We tune it on your real data, not on a plan we wrote before we met you.",
   },
   {
     icon: TrendingUp,
-    title: "Measure everything that matters",
+    title: "One number per project",
     description:
-      "We measure success by your growth, not our hours. Every project has clear metrics from day one, and we track them obsessively so you always know what's working.",
+      "Every project gets one number it has to move, agreed before we build. You see it on a dashboard. If it does not move, we say so first.",
   },
   {
     icon: Handshake,
     title: "Earn it every month",
     description:
-      "No vanity metrics. No overblown promises. We earn your business every single month by delivering results you can see in your bank account.",
+      "No vanity metrics. No overblown promises. Month to month, cancel anytime. The results show up in the bank account or we have not earned the month.",
   },
 ];
 
@@ -33,9 +33,7 @@ const NARRATIVE = [
     label: "the resume",
     body: (
       <p>
-        Over a decade building and scaling technology platforms. I&apos;ve grown
-        products to hundreds of thousands of users, raised venture funding, and
-        built marketplaces used by thousands of businesses.
+        Twelve years building software companies. Products past a hundred thousand users, a venture round, and a marketplace that still runs.
       </p>
     ),
   },
@@ -68,8 +66,8 @@ const NARRATIVE = [
           When your pipeline dips, we dig into the data before you even notice.
         </p>
         <p className="font-medium text-white-primary">
-          This isn&apos;t a set-it-and-forget-it shop. We&apos;re in the business
-          of your results.
+          This isn&apos;t a set-it-and-forget-it shop. We&apos;re on the hook after
+          launch, which is the only part that is hard.
         </p>
       </>
     ),
@@ -127,7 +125,7 @@ export function AboutPageContent() {
                   We&apos;re not a software company that sells to small
                   businesses. We&apos;re operators who build and run custom AI
                   systems, the same way we&apos;d run them inside our own
-                  business. That changes how we work.
+                  business. So when it breaks, it is our problem, not a support ticket.
                 </p>
               </AnimateOnScroll>
             </div>
@@ -161,9 +159,7 @@ export function AboutPageContent() {
           <div className="rounded-2xl border border-border-gold/40 bg-[color-mix(in_srgb,var(--gold-base)_5%,var(--bg-elevated))] p-8 text-center backdrop-blur-md sm:p-12">
             <Eyebrow className="mb-6 inline-block">our mission</Eyebrow>
             <p className="font-display text-2xl leading-relaxed text-white-primary sm:text-3xl">
-              Give small businesses the same caliber of AI-driven growth that
-              Fortune 500 companies buy, without the enterprise budget, the
-              drawn-out rollout, or the 47-slide strategy deck.
+              Small businesses lose money in the same three places every time. Slow replies, dropped follow-up, and a website that does nothing. We fix those, then we run them. No 47-slide deck.
             </p>
           </div>
         </AnimateOnScroll>
@@ -215,12 +211,7 @@ export function AboutPageContent() {
               about your business.
             </p>
             <BookCallButton location="about" />
-            <div className="flex flex-wrap gap-x-8 gap-y-3 border-t border-border-glass pt-6 font-mono text-xs uppercase tracking-[0.15em] text-white-muted">
-              <span>Free</span><span>·</span>
-              <span>30 minutes</span><span>·</span>
-              <span>No obligation</span><span>·</span>
-              <span>Direct to the founder</span>
-            </div>
+            <CallTerms />
           </div>
         </div>
       </Section>

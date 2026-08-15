@@ -177,7 +177,7 @@ export function BookCallButton({
         className={`btn ${inverse ? "btn-inv" : ""}`}
       >
         {label}
-        <span className="arw">→</span>
+        <span className="arw" aria-hidden="true">→</span>
       </Link>
     </MagneticButton>
   );
@@ -198,6 +198,30 @@ export function Stack({
   return (
     <div className={`flex flex-col ${className ?? ""}`} style={{ gap: g }}>
       {children}
+    </div>
+  );
+}
+
+/* ─── CallTerms ─── the four things true of every first call.
+
+   This block was copy-pasted into eight files and rendered on eleven URLs plus
+   every article page, so changing a term meant eight edits and there was no
+   way to be sure they still agreed. One string now.
+
+   "Direct to the founder" became "You talk to John, not a rep": the first is a
+   vibe, the second is checkable against the calendar you land on. */
+export function CallTerms({ className }: { className?: string }) {
+  const terms = ["Free", "30 minutes", "You keep the written plan", "You talk to John, not a rep"];
+  return (
+    <div
+      className={`flex flex-wrap gap-x-8 gap-y-3 border-t border-border-glass pt-6 font-mono text-xs uppercase tracking-[0.15em] text-white-muted ${className ?? ""}`}
+    >
+      {terms.map((t, i) => (
+        <span key={t} className="contents">
+          <span>{t}</span>
+          {i < terms.length - 1 && <span aria-hidden="true">·</span>}
+        </span>
+      ))}
     </div>
   );
 }

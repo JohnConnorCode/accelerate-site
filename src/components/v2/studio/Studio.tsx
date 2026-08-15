@@ -3,6 +3,7 @@
 import { Hero } from "@/components/home/Hero";
 import { Marquee } from "@/components/home/Marquee";
 import { Evidence } from "@/components/home/Evidence";
+import { CommandCenter } from "@/components/home/CommandCenter";
 import { Outcomes } from "@/components/home/Outcomes";
 import { HowWeWork } from "@/components/home/HowWeWork";
 import { Plan } from "@/components/home/Plan";
@@ -22,6 +23,7 @@ export function Studio() {
       <Marquee />
       <Evidence />
       <Outcomes />
+      <CommandCenter />
       <HowWeWork />
       <Plan />
       <Who />

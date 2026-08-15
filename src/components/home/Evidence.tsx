@@ -1,6 +1,9 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { Reveal } from "./reveal";
 import { CountUp } from "./CountUp";
+import { ScrollParallax } from "./ScrollParallax";
+import { AmbientField } from "./AmbientField";
 
 const CONSTRAINTS = [
   { title: "Sales and pipeline", href: "/services#sales" },
@@ -18,6 +21,7 @@ const CONSTRAINTS = [
 export function Evidence() {
   return (
     <section className="sect" id="evidence">
+      <AmbientField />
       <div className="wrap">
         <div className="shead" style={{ marginBottom: "clamp(24px,3vw,36px)" }}>
           <Reveal rv as="p" className="label eyebrow-anim">
@@ -33,30 +37,45 @@ export function Evidence() {
         </div>
 
         <Reveal as="div" className="ev">
-          <Reveal rv as="div" className="ev-c">
-            <CountUp target="95%" className="ev-n" />
-            <p>Of enterprise AI deployments never reach a measurable return.</p>
-            <span className="ev-src">MIT Project NANDA, 2025</span>
-          </Reveal>
-          <Reveal rv as="div" className="ev-c" delay={0.12}>
-            <CountUp target="2×" className="ev-n" />
-            <p>The production rate for companies who bring in outside help.</p>
-            <span className="ev-src">67% partnered vs 33% internal</span>
-          </Reveal>
+          <ScrollParallax speed={-0.15} className="ev-c">
+            <Reveal rv>
+              <CountUp target="21×" className="ev-n" />
+              <p>More likely to qualify an inquiry when you respond within five minutes instead of thirty.</p>
+              <span className="ev-src">Lead Response Management Study, MIT</span>
+            </Reveal>
+          </ScrollParallax>
+          <ScrollParallax speed={0.15} className="ev-c">
+            <Reveal rv delay={0.12}>
+              <CountUp target="2×" className="ev-n" />
+              <p>The production rate for companies that bring in outside help.</p>
+              <span className="ev-src">67% partnered vs 33% internal</span>
+            </Reveal>
+          </ScrollParallax>
         </Reveal>
 
-        <Reveal rv delay={0.2} style={{ marginTop: "clamp(24px,3vw,36px)" }}>
-          <p className="label" style={{ marginBottom: 14 }}>
+        <div style={{ marginTop: "clamp(24px,3vw,36px)" }}>
+          <Reveal rv as="p" delay={0.2} className="label" style={{ marginBottom: 14 }}>
             Shows up the same way everywhere we open the books
-          </p>
+          </Reveal>
           <div className="cta-cluster">
-            {CONSTRAINTS.map((c) => (
-              <Link key={c.title} href={c.href} className="tag">
+            {/* Each tag gets its own <Reveal> — its own scroll trigger — so
+                it fades in exactly when THAT tag scrolls into view, not on
+                a fixed delay from when the row appeared. --d is only a
+                small tie-breaker for a fast scroll that brings two tags
+                into view in the same tick. */}
+            {CONSTRAINTS.map((c, i) => (
+              <Reveal
+                key={c.title}
+                as={Link}
+                href={c.href}
+                className="tag item-rv"
+                style={{ "--d": `${0.06 * i}s` } as CSSProperties}
+              >
                 {c.title}
-              </Link>
+              </Reveal>
             ))}
           </div>
-        </Reveal>
+        </div>
       </div>
     </section>
   );

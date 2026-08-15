@@ -10,7 +10,7 @@ export const metadata = seoMetadata({
   title: "Home Services AI Solutions",
   description: vertical.shortDescription,
   ogTitle: "Home Services AI Solutions",
-  ogSubtitle: "AI-powered growth tools for home service businesses",
+  ogSubtitle: "AI intake and follow-up, built and run for home service businesses",
   path: "/industries/home-services",
 });
 

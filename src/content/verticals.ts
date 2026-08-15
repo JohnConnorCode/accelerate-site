@@ -11,7 +11,7 @@ export const verticals: Vertical[] = [
     heroHeadlineWhite: "Stop losing jobs to whoever",
     heroHeadlineGold: "moves first.",
     heroSubheadline:
-      "Home service businesses lose up to 40% of customers before anyone gets back to them. We capture every inquiry across every channel, send estimates instantly, and follow up on autopilot, so you book more jobs without hiring more office staff.",
+      "The homeowner books whoever answers. Most of the time that is not you, because you are on a roof. We capture every inquiry across every channel, send estimates instantly, and follow up on autopilot, so you book more jobs without hiring more office staff.",
     painPoints: [
       {
         icon: "DollarSign",
@@ -40,11 +40,11 @@ export const verticals: Vertical[] = [
     ],
     solutions: [
       {
-        title: "Always-On Intake",
+        title: "Answered in 40 Seconds",
         description:
           "Capture every opportunity. AI responds the moment an inquiry lands, across web, text, chat, and phone, captures the job details, and books estimates on your calendar. It works nights, weekends, and holidays.",
         features: [
-          "24/7 instant response across web, text, chat, and phone",
+          "Under 60 seconds on web, text, chat, and phone. Nights, weekends, holidays.",
           "Automatic job detail capture",
           "Calendar integration for estimate scheduling",
           "Inquiry qualification before it hits your inbox",
@@ -88,7 +88,7 @@ export const verticals: Vertical[] = [
         ],
       },
     ],
-    ctaText: "Get your free growth plan",
+    ctaText: "Book the call",
     ctaLink: "/contact",
   },
   {
@@ -107,7 +107,7 @@ export const verticals: Vertical[] = [
         icon: "Clock",
         title: "Slow intake is costing you cases",
         description:
-          "The average potential client contacts three firms. The first one to respond signs the case 78% of the time. If your intake process takes hours instead of minutes, you're handing cases to your competition.",
+          "A potential client calls three firms. The one that picks up gets the case. If your intake runs on business hours, you are the second call. If your intake process takes hours instead of minutes, you're handing cases to your competition.",
       },
       {
         icon: "Moon",
@@ -132,7 +132,7 @@ export const verticals: Vertical[] = [
       {
         title: "AI Intake System",
         description:
-          "An intelligent intake system that qualifies cases 24/7. Potential clients answer practice-area-specific questions, upload documents, and get a same-day response. Your team gets a case summary before the first call.",
+          "Intake that qualifies the case before you read it. 2 AM DUI, Saturday divorce, same response. Potential clients answer practice-area-specific questions, upload documents, and get a same-day response. Your team gets a case summary before the first call.",
         features: [
           "Practice-area-specific intake questionnaires",
           "Document upload and organization",
@@ -171,14 +171,14 @@ export const verticals: Vertical[] = [
           "A credibility-first website designed for your practice areas. Case results, attorney bios, client testimonials, and intake forms that make it easy for the right clients to find you and take action.",
         features: [
           "Practice area landing pages optimized for search",
-          "Case results and verdict showcase",
+          "Case results and verdicts, by practice area",
           "Attorney bio pages with credentials and media",
           "Integrated intake forms by practice area",
           "Live chat with AI pre-qualification",
         ],
       },
     ],
-    ctaText: "Get your free growth plan",
+    ctaText: "Book the call",
     ctaLink: "/contact",
   },
   {
@@ -187,9 +187,9 @@ export const verticals: Vertical[] = [
     name: "Professional Services",
     icon: "Briefcase",
     shortDescription:
-      "Digital growth systems for accountants, consultants, financial advisors, and professional service firms that want to stop relying solely on referrals.",
-    heroHeadlineWhite: "A pipeline you can",
-    heroHeadlineGold: "predict.",
+      "AI intake, scheduling, and follow-up for accountants, consultants, and financial advisors who want a pipeline that does not depend on referrals.",
+    heroHeadlineWhite: "Stop waiting for the phone",
+    heroHeadlineGold: "to ring.",
     heroSubheadline:
       "Referrals built your practice, but they're a ceiling. We turn your expertise into a steady, predictable client pipeline, so growth stops depending on who happens to mention your name.",
     painPoints: [
@@ -226,7 +226,7 @@ export const verticals: Vertical[] = [
         features: [
           "Service pages optimized for local search",
           "Thought leadership blog with SEO strategy",
-          "Team credential and certification showcases",
+          "Credentials and certifications, per person",
           "Online scheduling with calendar integration",
           "Downloadable resources (guides, checklists, assessments)",
         ],
@@ -268,7 +268,7 @@ export const verticals: Vertical[] = [
         ],
       },
     ],
-    ctaText: "Get your free growth plan",
+    ctaText: "Book the call",
     ctaLink: "/contact",
   },
   {
@@ -287,7 +287,7 @@ export const verticals: Vertical[] = [
         icon: "Thermometer",
         title: "Prospects go cold in hours",
         description:
-          "A new inquiry from Zillow has a 5-minute window before they move on. If your response is a generic email that arrives 3 hours later, that prospect is already talking to another agent.",
+          "A portal inquiry goes to four agents at once. Reply while they are still looking, or read about the closing. If your response is a generic email that arrives 3 hours later, that prospect is already talking to another agent.",
       },
       {
         icon: "DollarSign",
@@ -358,7 +358,7 @@ export const verticals: Vertical[] = [
         ],
       },
     ],
-    ctaText: "Get your free growth plan",
+    ctaText: "Book the call",
     ctaLink: "/contact",
   },
 ];

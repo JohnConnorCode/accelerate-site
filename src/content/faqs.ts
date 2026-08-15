@@ -4,7 +4,7 @@ export const faqs: FAQ[] = [
   {
     question: "How much does it cost to get started?",
     answer:
-      "Our AI-powered websites start at $2,500 as a one-time build. Automations and AI agents start at $1,500 for setup plus $300 per month for ongoing management and optimization. Every business is different, so we recommend going through our free growth plan to get a custom plan with exact pricing for your situation.",
+      "Our AI-powered websites start at $2,500 as a one-time build. Automations and AI agents start at $1,500 for setup plus $300 per month for ongoing management and optimization. Every business is different, so book the free 30-minute call. You leave with exact pricing for your situation, written down, whether you hire us or not.",
     category: "pricing",
   },
   {
@@ -16,7 +16,7 @@ export const faqs: FAQ[] = [
   {
     question: "What's included in the monthly fee?",
     answer:
-      "The monthly fee covers hosting, ongoing optimization, performance monitoring, and support. For automations and AI agents, it also includes workflow adjustments, AI model updates, conversation monitoring, and monthly performance reporting. Think of it as having a digital operations team on retainer without the overhead of hiring one.",
+      "The monthly fee covers hosting, ongoing optimization, performance monitoring, and support. For automations and AI agents, it also includes workflow adjustments, AI model updates, conversation monitoring, and monthly performance reporting. It is an operations team on retainer. No payroll, no benefits, no hiring.",
     category: "pricing",
   },
   {
@@ -40,7 +40,7 @@ export const faqs: FAQ[] = [
   {
     question: "What if I already have a website?",
     answer:
-      "If your current site is in good shape structurally, we can add AI chat, automation integrations, and conversion optimization on top of it. If it needs a full rebuild, we'll let you know honestly. Either way, our growth plan will give you a clear recommendation based on your current setup.",
+      "If your current site is in good shape structurally, we can add AI chat, automation integrations, and conversion optimization on top of it. If it needs a full rebuild, we'll let you know honestly. Either way, you get a written recommendation after the first call, based on how the business runs today.",
     category: "general",
   },
   {
@@ -56,9 +56,9 @@ export const faqs: FAQ[] = [
     category: "general",
   },
   {
-    question: "What happens after I submit the growth plan?",
+    question: "What happens on the first call?",
     answer:
-      "You'll receive a personalized growth plan within minutes that includes specific recommendations, estimated pricing, a suggested implementation timeline, and projected ROI. There's no obligation attached. If the plan makes sense, we'll schedule a 30-minute call to walk through it together and answer any questions. If you're not ready, the plan is yours to keep.",
+      "Thirty minutes. You describe how the business runs, we name the one constraint costing you the most and what it takes to fix. You get that in writing within two business days: scope, price, timeline. Yours to keep either way.",
     category: "general",
   },
 ];

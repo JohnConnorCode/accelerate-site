@@ -13,20 +13,23 @@ export const stats: Stat[] = [
     numericValue: 38,
     suffix: "%",
     label: "More jobs booked",
-    detail: "Across all client engagements",
+    detail: "What we build against",
   },
   {
     value: "10",
     numericValue: 10,
     suffix: "+",
     label: "Hours reclaimed per week",
-    detail: "Per client on average",
+    detail: "What we build against",
   },
   {
-    value: "94",
-    numericValue: 94,
-    suffix: "%",
-    label: "Client retention rate",
-    detail: "Year over year",
+    // Replaced a "94% client retention, year over year" claim. The company
+    // launched in Feb 2026, so there is no year to measure over. This one is a
+    // policy anyone can check against the pricing page instead of a metric.
+    value: "0",
+    numericValue: 0,
+    suffix: "",
+    label: "Lock-in contracts",
+    detail: "Month to month after setup",
   },
 ];

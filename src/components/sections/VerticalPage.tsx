@@ -8,7 +8,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
-import { Container, Eyebrow, BookCallButton } from "@/components/v2/studio/primitives";
+import { Container, Eyebrow, BookCallButton, CallTerms } from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { OpsConsole } from "@/components/v2/studio/OpsConsole";
 import { INDUSTRY_FEEDS } from "@/content/industry-feeds";
@@ -309,12 +309,7 @@ export function VerticalPage({ vertical }: VerticalPageProps) {
                 </p>
               </AnimateOnScroll>
               <AnimateOnScroll delay={0.25}><BookCallButton location="industry_closing" /></AnimateOnScroll>
-              <AnimateOnScroll delay={0.35} as="div" className="flex flex-wrap gap-x-8 gap-y-3 border-t border-border-glass pt-6 font-mono text-xs uppercase tracking-[0.15em] text-white-muted">
-                <span>Free</span><span>·</span>
-                <span>30 minutes</span><span>·</span>
-                <span>No obligation</span><span>·</span>
-                <span>Direct to the founder</span>
-              </AnimateOnScroll>
+              <AnimateOnScroll delay={0.35}><CallTerms /></AnimateOnScroll>
             </div>
           </div>
         </Container>

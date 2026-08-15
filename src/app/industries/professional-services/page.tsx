@@ -10,7 +10,7 @@ export const metadata = seoMetadata({
   title: "Professional Services AI Solutions",
   description: vertical.shortDescription,
   ogTitle: "Professional Services AI",
-  ogSubtitle: "AI-powered growth tools for professional service firms",
+  ogSubtitle: "AI intake and follow-up, built and run for professional service firms",
   path: "/industries/professional-services",
 });
 

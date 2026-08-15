@@ -5,7 +5,7 @@ import { ContactPageContent } from "@/components/sections/ContactPage";
 export const metadata = seoMetadata({
   title: "Contact Accelerate: Book a Free AI Consultation",
   description:
-    "Get in touch with Accelerate. Book a free consultation or send us a message about your business growth goals.",
+    "Book 30 minutes with John. You leave with the one constraint costing you the most, in writing, whether you hire us or not.",
   ogTitle: "Contact Us",
   ogSubtitle: "Book a free consultation about your business growth goals",
   path: "/contact",

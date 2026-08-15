@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Inter_Tight, Inter, Newsreader, JetBrains_Mono } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -152,17 +153,23 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://calendly.com" />
         <link rel="dns-prefetch" href="https://assets.calendly.com" />
         {/* progressive-enhancement flag — section-reveal CSS only hides content
-            when JS is actually available, so no-JS users still see everything. */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: "document.documentElement.dataset.js='on';",
-          }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
-        />
-        <script
+            when JS is actually available, so no-JS users still see everything.
+            Rendered via next/script (not a raw JSX <script>) so Next injects it
+            through its own hydration-safe path instead of a node React must
+            diff 1:1 against the DOM — raw <head> scripts get shifted out of
+            order by extensions that inject their own <script> tags before
+            hydration (e.g. crypto wallet content scripts), which throws a
+            hydration-mismatch error that can leave the whole page's scroll-
+            reveal animations frozen invisible. */}
+        <Script id="js-flag" strategy="beforeInteractive">
+          {"document.documentElement.dataset.js='on';"}
+        </Script>
+        <Script id="org-jsonld" type="application/ld+json" strategy="beforeInteractive">
+          {JSON.stringify(organizationJsonLd)}
+        </Script>
+        <Script
+          id="plausible"
+          strategy="beforeInteractive"
           defer
           data-domain={process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN || "acceleratewith.us"}
           data-api="/api/event"

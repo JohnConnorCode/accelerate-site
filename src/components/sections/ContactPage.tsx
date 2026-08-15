@@ -28,9 +28,9 @@ const INFO_CARDS = [
 ] as const;
 
 const RISK_REVERSAL = [
-  "A prioritized roadmap of your biggest wins",
-  "ROI projections mapped to your business",
-  "Yours to keep, even if we never work together",
+  "The one constraint costing you the most, named",
+  "What it costs to fix, and how long it takes",
+  "In writing within two business days, hire us or not",
 ];
 
 export function ContactPageContent() {
@@ -46,9 +46,7 @@ export function ContactPageContent() {
             <RevealHeading as="h1" className={HERO_HEADING} lead="Let's" accent="talk." delay={0.1} />
             <AnimateOnScroll delay={0.3}>
               <p className="mt-7 max-w-md text-base leading-relaxed text-white-secondary">
-                Tell us where you are and where you want to go. We respond within
-                one business day. The first call is free, no obligation,
-                straight to the founder.
+                Tell us what is breaking. We reply within one business day. The call is with John.
               </p>
             </AnimateOnScroll>
 

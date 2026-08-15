@@ -31,6 +31,7 @@ interface NavLink {
 
 const navLinks: NavLink[] = [
   { label: "Services", href: "/services" },
+  { label: "Command Center", href: "/command-center" },
   { label: "Packages", href: "/packages" },
   {
     label: "Industries",
@@ -222,7 +223,7 @@ export function Header() {
           {/* Mobile Hamburger */}
           <motion.button
             variants={headerCtaReveal}
-            className="lg:hidden relative w-10 h-10 flex items-center justify-center -mr-2 cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+            className="lg:hidden relative w-11 h-11 flex items-center justify-center -mr-2 cursor-pointer rounded-lg transition-transform duration-150 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
             onClick={() => setMobileOpen(true)}
             aria-label="Open navigation menu"
           >

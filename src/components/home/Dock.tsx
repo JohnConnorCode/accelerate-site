@@ -55,6 +55,7 @@ export function Dock() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: "150%", opacity: 0 }}
           transition={{ type: "spring", damping: 26, stiffness: 260, mass: 0.7 }}
+          data-dock
           className="fixed inset-x-3.5 bottom-5 z-[950] flex items-center gap-3 border border-white/[0.16] py-2.5 pl-4 pr-2.5 shadow-[0_20px_60px_rgba(0,0,0,0.34)] sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:gap-4.5 sm:pl-5.5"
           style={{
             paddingBottom: "max(10px, env(safe-area-inset-bottom))",
@@ -76,7 +77,7 @@ export function Dock() {
             onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "dock" })}
             className="btn btn-inv shrink-0 whitespace-nowrap !px-5 !py-3 !text-[10px]"
           >
-            Book <span className="arw">→</span>
+            Book <span className="arw" aria-hidden="true">→</span>
           </Link>
         </motion.aside>
       )}

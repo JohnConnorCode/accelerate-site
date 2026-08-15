@@ -4,7 +4,7 @@ import { ChangelogPage } from "@/components/sections/ChangelogPage";
 export const metadata = seoMetadata({
   title: "Changelog",
   description:
-    "See what's new at Accelerate. Product updates, new features, and improvements to our AI solutions for small businesses.",
+    "What we shipped and when. Tools, packages, and system changes, dated.",
   ogSubtitle: "Product updates, new features, and improvements",
   alternates: {
     canonical: "https://www.acceleratewith.us/changelog",

@@ -10,7 +10,7 @@ export const metadata = seoMetadata({
   title: "Real Estate AI Solutions",
   description: vertical.shortDescription,
   ogTitle: "Real Estate AI Solutions",
-  ogSubtitle: "AI-powered growth tools for real estate professionals",
+  ogSubtitle: "AI intake and follow-up, built and run for real estate professionals",
   path: "/industries/real-estate",
 });
 

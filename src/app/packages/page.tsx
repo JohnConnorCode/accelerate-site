@@ -5,9 +5,9 @@ import { packages } from "@/content/packages";
 import { generateBreadcrumbJsonLd } from "@/lib/seo";
 
 export const metadata = seoMetadata({
-  title: "AI Packages & Pricing",
+  title: "AI Packages: $2,500 to $7,500",
   description:
-    "Transparent pricing for AI strategy, automation, and ongoing management. Pick Launch, Grow, or Accelerate to fit your goals and budget.",
+    "Three tiers, every price published. Launch $2,500. Grow $4,500 plus $300/mo. Accelerate $7,500 plus $600/mo. Month to month after setup.",
   ogTitle: "Packages & Pricing",
   ogSubtitle: "Transparent pricing for AI strategy and systems",
   path: "/packages",

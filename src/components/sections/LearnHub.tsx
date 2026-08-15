@@ -66,9 +66,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
             />
             <AnimateOnScroll delay={0.3}>
               <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                No filler. Real ways to put AI to work across your whole business,
-                from winning customers to automating the busywork to seeing what
-                actually drives revenue. Written by people who run small businesses.
+                No filler. How to actually put AI into a business that already has customers. Written by someone who runs one.
               </p>
             </AnimateOnScroll>
           </div>
@@ -253,9 +251,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                   Skip the learning curve. We build it and run it.
                 </h2>
                 <p className="mt-4 leading-relaxed text-white-secondary">
-                  Reading is the fast lane to understanding. Booking more jobs is the
-                  destination. We build custom systems powered by AI and run them
-                  alongside you, working from day one, so nothing slips through.
+                  Reading gets you the theory. We build the thing. Custom systems, run by us, live in a week.
                 </p>
               </div>
               <div className="flex shrink-0 flex-col gap-3 sm:flex-row lg:flex-col">
@@ -291,8 +287,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
             Get new guides in your inbox
           </h2>
           <p className="mx-auto mb-7 max-w-md text-sm text-white-muted">
-            One email per week. Actionable AI and automation insights. No spam,
-            unsubscribe anytime.
+            One email a week. One thing you can build in an hour. Unsubscribe anytime.
           </p>
           <form className="mx-auto flex max-w-md flex-col gap-3 sm:flex-row">
             <input

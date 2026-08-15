@@ -5,6 +5,7 @@ import { createServiceRoleClient } from "@/lib/supabase/server";
 import { isValidEmail } from "@/lib/validation";
 import { SYSTEM_PROMPT } from "@/lib/chat/system-prompt";
 import { preflightCheck } from "@/lib/chat/guardrails";
+import { DEMO_MODE_REPLY, ERROR_REPLY } from "@/lib/chat/fallbacks";
 import { handleChatLeadCapture } from "@/lib/chat/lead-capture";
 import type { ChatMessage } from "@/lib/types";
 
@@ -72,9 +73,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!process.env.ANTHROPIC_API_KEY) {
-      return plainText(
-        "I'm in demo mode right now. For live help, email john@acceleratewith.us or book a free strategy call at acceleratewith.us/contact.",
-      );
+      return plainText(DEMO_MODE_REPLY);
     }
 
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -121,10 +120,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("[chat] POST error:", error);
-    return plainText(
-      "Sorry, I had trouble processing that. Try again, or email john@acceleratewith.us.",
-      500,
-    );
+    return plainText(ERROR_REPLY, 500);
   }
 }
 

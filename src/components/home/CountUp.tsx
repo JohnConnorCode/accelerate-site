@@ -15,10 +15,12 @@ function parseTarget(raw: string) {
 /** Counts up from 0 to the numeric part of `target` once scrolled into view. */
 export function CountUp({ target, className }: { target: string; className?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const [display, setDisplay] = useState<string>(() => {
-    const { prefix, suffix } = parseTarget(target);
-    return `${prefix}0${suffix}`;
-  });
+  // Server-render the REAL figure, not "0". This used to emit `0×` and `0`
+  // into the HTML, so the page's headline claims read as zero to crawlers,
+  // to anyone with JS off, and for the whole pre-hydration paint. The effect
+  // drops it back to zero itself, but only on the client and only when it is
+  // actually about to animate.
+  const [display, setDisplay] = useState<string>(target);
 
   useEffect(() => {
     const el = ref.current;
@@ -37,6 +39,7 @@ export function CountUp({ target, className }: { target: string; className?: str
           return;
         }
 
+        setDisplay(`${prefix}0${suffix}`);
         const duration = 1400;
         const start = performance.now();
         const isInt = Number.isInteger(value);
