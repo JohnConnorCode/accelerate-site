@@ -36,19 +36,15 @@ export function CommandCenter() {
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              The AI runs the day.
+              A custom automation engine
               <br />
-              You keep <span className="it">the last word.</span>
+              for your <span className="it">entire operation.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              For the clients we build the most for, the whole operation ends up
-              running out of one place. It reads the calls and the email, writes the
-              follow-ups, moves the pipeline, and files what was said. Then it stops
-              and waits for you.
+              The Command Center is a complete business automation system built specifically for your firm. If a process is digital, we can engineer the system to execute it. It monitors your communications, drafts responses, advances your pipeline, and orchestrates your workflow autonomously—pausing only for your final approval.
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.18} style={{ marginTop: 16 }}>
-              This is it, running on invented data. Clear the queue, open a file, ask
-              it something.
+              Below is a working demonstration running on simulated data. Clear the approval queue, inspect a record, or ask the intelligence engine a question.
             </Reveal>
           </div>
         </div>

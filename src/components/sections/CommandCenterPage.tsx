@@ -59,7 +59,7 @@ function Hero() {
     target: sectionRef,
     offset: ["start start", "end start"],
   });
-  const fade = useTransform(scrollYProgress, [0, 0.75], [1, 0]);
+  const fade = useTransform(scrollYProgress, [0, 0.8, 1], [1, 1, 0]);
   const lift = useTransform(scrollYProgress, [0, 1], [0, -70]);
   const gridDrift = useTransform(scrollYProgress, [0, 1], [0, 120]);
 
@@ -83,20 +83,25 @@ function Hero() {
             <p className={`label eyebrow-anim rv${loaded ? " in" : ""}`}>Command Center</p>
             <h1 className="h1">
               <span className="line">
-                <span style={{ "--d": ".06s" } as CSSProperties}>An AI that runs</span>
+                <span style={{ "--d": ".06s" } as CSSProperties}>Complete digital</span>
               </span>
               <span className="line">
-                <span style={{ "--d": ".13s" } as CSSProperties}>your business.</span>
+                <span style={{ "--d": ".13s" } as CSSProperties}>automation.</span>
               </span>
               <span className="line">
                 <span className="it" style={{ "--d": ".2s" } as CSSProperties}>
-                  You approve the work.
+                  Total executive control.
                 </span>
               </span>
             </h1>
-            <p className={`lede rv${loaded ? " in" : ""}`} style={{ "--d": ".5s", marginTop: 26 } as CSSProperties}>
-              It reads your calls, your email and your calendar, then acts on what it finds: the follow-up written, the deal moved to the right stage, the next call booked, the notes filed. Every one of those waits in a single queue for your approval. We build it around how your business actually runs and hand it over already loaded with your history.
-            </p>
+            <div className={`rv${loaded ? " in" : ""} flex flex-col gap-5`} style={{ "--d": ".5s", marginTop: 26 } as CSSProperties}>
+              <p className="lede text-balance relative z-10 px-5 py-6 -mx-5 rounded-2xl bg-[var(--surface-bg)] backdrop-blur-[20px] border border-[var(--border-glass)] shadow-[var(--surface-shadow)] sm:bg-transparent sm:backdrop-blur-none sm:border-transparent sm:shadow-none sm:p-0 sm:mx-0 sm:rounded-none">
+                A custom-engineered system capable of executing any digital workflow. It analyzes your communications, orchestrates complex tasks, and prepares deliverables—from drafting strategic follow-ups to managing your active pipeline.
+              </p>
+              <p className="lede text-balance hidden sm:block">
+                Every action is queued for your final authorization. We architect the entire infrastructure around your exact operational model and deploy it fully integrated with your historical data.
+              </p>
+            </div>
             <div className={`rv${loaded ? " in" : ""}`} style={{ "--d": ".62s", marginTop: 32 } as CSSProperties}>
               <BookCallButton location="command_center_hero" />
             </div>
@@ -143,12 +148,12 @@ function Problem() {
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              The business knows things
+              The ultimate operational
               <br />
-              that only <span className="it">you know.</span>
+              <span className="it">bottleneck.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              Tuesday&apos;s call produced three commitments, two of them yours, and none of them exist anywhere but your memory. Multiply that across a week of calls and email and the real constraint on the business is not demand or capacity. It is how fast one person can work through what they already know. An operations hire fixes that. So does a system that captures the same things and acts on them, for a good deal less, running inside two weeks.
+              When critical context exists only in your memory, you become the ceiling on your own growth. The true constraint on scaling is rarely demand—it is the velocity at which an executive can process information and execute tasks. A bespoke automation system captures that context and acts on it autonomously, operating continuously without overhead, deployed in a fraction of the time of a traditional hire.
             </Reveal>
           </div>
         </div>
@@ -170,14 +175,14 @@ function Built() {
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              Built around your
+              Custom engineering,
               <br />
-              business, not
+              not off-the-shelf
               <br />
-              <span className="it">configured to it.</span>
+              <span className="it">software.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              There is no generic version of this. The discovery works out how your business actually runs: what a job or a matter or a deal is called in your language, which decisions you would never hand to software, and where the hours currently go. What we build follows that. The categories, the vocabulary, and the stages end up being yours, which is why two installs in the same industry never look alike.
+              There is no generic version of this system. We conduct a rigorous discovery process to map the exact architecture of your operations. The automation engine is then built from the ground up to utilize your proprietary taxonomy, respect your executive boundaries, and execute your specific protocols. Two deployments in the same industry will never look alike.
             </Reveal>
           </div>
         </div>
@@ -275,12 +280,12 @@ function TrustLadder() {
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              The approval step is
+              Systems that learn
               <br />
-              meant to <span className="it">get smaller.</span>
+              and <span className="it">adapt autonomously.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              An approval queue is easy to sell and easy to get wrong. If you are still clicking approve on the same routine work a year from now, it has quietly become a slower way of doing the job yourself. So the gate moves. Each category of work carries its own setting and graduates once you have approved it unedited often enough that reading it stopped being a decision, a call you make yourself, backed by the approval rate it rests on and reversible in one click.
+              An approval queue should be a transitional mechanism, not a permanent workflow. Once the system demonstrates consistent accuracy within a specific task category, you can elevate its autonomy permissions. It graduates from requiring manual approval to executing independently, transforming routine oversight into complete automation—reversible instantly with a single command.
             </Reveal>
           </div>
         </div>
@@ -308,16 +313,16 @@ function Catalog() {
       <div className="wrap">
         <div className="shead" style={{ marginBottom: "clamp(30px,4vw,50px)" }}>
           <Reveal rv as="p" className="label eyebrow-anim">
-            Scope
+            Capabilities
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              What we can put
+              If it is digital,
               <br />
-              <span className="it">in yours.</span>
+              <span className="it">we can automate it.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              This is the surface we draw from, not a list you receive. Most installs start with the four or five things that pay for the build and grow from there once those are running. Working out which ones those are for you is what the first call is for.
+              This is a cross-section of our deployment capabilities. We engineer bespoke automation systems that execute your most resource-intensive workflows. Deployments typically begin with the core functions that immediately drive revenue, scaling outward as your operation accelerates.
             </Reveal>
           </div>
         </div>
@@ -459,16 +464,16 @@ function Closing() {
           </Reveal>
           <h2 ref={headingRef} className="h2 line-h">
             <span className="line">
-              <span style={{ "--d": ".05s" } as CSSProperties}>Find out what this</span>
+              <span style={{ "--d": ".05s" } as CSSProperties}>Architect the future</span>
             </span>
             <span className="line">
               <span className="it" style={{ "--d": ".12s" } as CSSProperties}>
-                would look like for you.
+                of your operation.
               </span>
             </span>
           </h2>
           <Reveal rv as="p" className="lede" delay={0.1}>
-            Thirty minutes on how your operation actually runs, then a written plan you keep either way. If a Command Center is the wrong thing to build for you, that is a perfectly good outcome for the call.
+            A rigorous thirty-minute consultation to analyze your organizational bottlenecks. You will receive a comprehensive automation blueprint, yours to keep regardless of whether we partner together.
           </Reveal>
           <Reveal rv as="div" delay={0.16}>
             <BookCallButton variant="inverse" location="command_center_closing" />

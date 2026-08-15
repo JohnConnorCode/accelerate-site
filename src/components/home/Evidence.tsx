@@ -29,9 +29,9 @@ export function Evidence() {
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              Most owners don&apos;t have a growth problem.
+              You don&apos;t have a growth problem.
               <br />
-              They have a <span className="it">time</span> problem.
+              You have a <span className="it">capacity</span> problem.
             </Reveal>
           </div>
         </div>

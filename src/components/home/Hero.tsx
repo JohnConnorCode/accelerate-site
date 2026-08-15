@@ -67,24 +67,22 @@ export function Hero() {
                 globals.css (`.hero .h1`) instead — see the mobile media
                 query there. */}
             <span className="line">
-              <span>We design and</span>
+              <span>We design and implement</span>
             </span>
             <span className="line">
-              <span style={{ "--d": ".07s" } as CSSProperties}>implement custom AI</span>
+              <span style={{ "--d": ".07s" } as CSSProperties}>custom AI solutions</span>
             </span>
             <span className="line">
-              <span style={{ "--d": ".14s" } as CSSProperties}>solutions that drive</span>
-            </span>
-            <span className="h1-last">
-              <span className="line">
+              <span style={{ "--d": ".14s" } as CSSProperties}>
+                that drive{" "}
                 <span className="strike" style={{ "--d": ".21s" } as CSSProperties}>
                   business results
                 </span>
               </span>
-              <span className="line">
-                <span className="swap it" style={{ "--d": ".28s" } as CSSProperties}>
-                  (revenue)
-                </span>
+            </span>
+            <span className="line">
+              <span className="swap it" style={{ "--d": ".28s" } as CSSProperties}>
+                (revenue)
               </span>
             </span>
           </h1>

@@ -22,15 +22,14 @@ export function FinalCta() {
         </Reveal>
         <h2 ref={headingRef} className="h2 line-h">
           <span className="line">
-            <span style={{ "--d": ".05s" } as CSSProperties}>The first conversation</span>
+            <span style={{ "--d": ".05s" } as CSSProperties}>Architect the future</span>
           </span>
           <span className="line">
-            <span style={{ "--d": ".16s" } as CSSProperties}>usually pays for itself.</span>
+            <span style={{ "--d": ".16s" } as CSSProperties}>of your operation.</span>
           </span>
         </h2>
         <Reveal rv as="p" className="lede" delay={0.13}>
-          Thirty minutes on a call, then a written plan. No pitch deck, no
-          discovery invoice, no obligation.
+          A rigorous thirty-minute consultation to analyze your bottlenecks. You receive a comprehensive automation blueprint, yours to keep either way.
         </Reveal>
         <Reveal rv delay={0.19}>
           <Link

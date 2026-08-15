@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Suspense } from "react";
 
@@ -12,7 +12,6 @@ function LoginForm() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [resetMode, setResetMode] = useState(false);
-  const router = useRouter();
   const searchParams = useSearchParams();
   const rawRedirect = searchParams.get("redirect") || "/admin";
   const redirect = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/admin";
@@ -35,7 +34,8 @@ function LoginForm() {
       return;
     }
 
-    router.push(redirect);
+    // Force a hard navigation to ensure cookies are sent and middleware runs
+    window.location.href = redirect;
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {

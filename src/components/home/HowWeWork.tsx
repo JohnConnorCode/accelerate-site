@@ -5,27 +5,27 @@ import { AmbientField } from "./AmbientField";
 const STEPS = [
   {
     n: "STEP 01",
-    title: "A working session on your operation",
+    title: "Operational Audit",
     tag: "30 min · free",
-    body: "Where the time goes, what your team redoes by hand, what you would fix first. You do most of the talking.",
+    body: "We map where hours are lost and bottlenecks form. We listen, you talk.",
   },
   {
     n: "STEP 02",
-    title: "A written plan, delivered",
+    title: "Blueprint Delivery",
     tag: "free · yours to keep",
-    body: "Your opportunities ranked by value against effort, with the reasoning behind the order. Take it to any firm you like.",
+    body: "A prioritized roadmap of automation opportunities, ranked by immediate ROI.",
   },
   {
     n: "STEP 03",
-    title: "Scope agreed, then delivered",
+    title: "Build & Deploy",
     tag: "fixed price",
-    body: "We define what it does, what it deliberately does not, and the measure that says it worked. Something runs inside two weeks.",
+    body: "We define the exact scope and success metrics. The first deployment runs within two weeks.",
   },
   {
     n: "STEP 04",
-    title: "Handover, training, review",
+    title: "Handover & Scale",
     tag: "support optional",
-    body: "Everything is yours and your team is trained on it. These systems drift, so a review catches it before your customers do.",
+    body: "Your team is fully trained. The system is yours, supported by ongoing optimization.",
   },
 ];
 
@@ -40,15 +40,14 @@ export function HowWeWork() {
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              We start with the
+              Solving constraints,
               <br />
-              constraint, not with
+              not selling
               <br />
-              a product.
+              software.
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              Nothing to license and nothing to upsell, so the recommendation
-              follows the diagnosis.
+              No generic licenses. No hidden upsells. Just custom engineering that directly attacks your operational bottlenecks.
             </Reveal>
           </div>
         </div>

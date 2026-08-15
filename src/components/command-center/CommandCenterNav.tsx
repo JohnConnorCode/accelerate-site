@@ -124,9 +124,9 @@ export function CommandCenterNav() {
           <Link
             href="/contact"
             onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "command_center_nav" })}
-            className="btn btn-inv ml-1 shrink-0 whitespace-nowrap !px-5 !py-3 !text-[10px]"
+            className="btn btn-inv ml-1 shrink-0 whitespace-nowrap !px-4 !py-2.5 !text-[10px] sm:!px-5 sm:!py-3"
           >
-            Book <span className="arw" aria-hidden="true">→</span>
+            <span>Book</span> <span className="arw hidden sm:inline-block" aria-hidden="true">→</span>
           </Link>
         </motion.nav>
       )}

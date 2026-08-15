@@ -263,6 +263,10 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-jost), system-ui, sans-serif;
+}
+
 /* ========================================
    FILE DESIGN SYSTEM — SHARED EDITORIAL CLASSES
    Ported from the reference design. These are the primitives every page
@@ -847,21 +851,26 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.95); tran
 }
 
 .glass {
-  background: var(--bg);
-  border: 1px solid var(--rule);
-  box-shadow: none;
+  background: var(--surface-bg);
+  border: 1px solid var(--border-glass);
+  backdrop-filter: blur(var(--surface-blur)) saturate(1.7);
+  -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(1.7);
 }
 
 .glass-prominent {
-  background: var(--bg);
-  border: 1px solid var(--rule);
-  box-shadow: none;
+  background: var(--surface-bg-strong);
+  border: 1px solid var(--border-glass);
+  box-shadow: var(--surface-shadow);
+  backdrop-filter: blur(var(--surface-blur)) saturate(1.7);
+  -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(1.7);
 }
 
 .glass-gold {
-  background: var(--bg);
-  border: 1px solid var(--rule);
-  box-shadow: none;
+  background: color-mix(in srgb, var(--gold-base) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold-base) 30%, transparent);
+  box-shadow: var(--surface-shadow);
+  backdrop-filter: blur(var(--surface-blur)) saturate(1.7);
+  -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(1.7);
 }
 
 .card-spotlight {
@@ -2117,7 +2126,7 @@ summary:focus-visible {
      font-size now also has a dvh floor so it shrinks on genuinely short
      viewports rather than being a fixed 32px regardless of available
      room — 26px is still comfortably readable at this weight/tracking. */
-  .hero .h1 { font-size: clamp(26px, 3.9dvh, 32px); line-height: 1.16; }
+  .hero .h1 { font-size: clamp(34px, 8vw, 44px); line-height: 1.1; text-wrap: balance; }
   .hero .eyebrow-anim { letter-spacing: .1em; }
 
   .hero-band { display: flex; flex-direction: column; min-height: 100dvh; }

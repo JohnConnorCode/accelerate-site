@@ -13,11 +13,11 @@ export function Who() {
             The firm
           </Reveal>
           <Reveal rv as="h2" className="h2" delay={0.06}>
-            Operators who&apos;ve done
+            Engineered by
             <br />
-            this since before it
+            veteran founders
             <br />
-            had a name.
+            and operators.
           </Reveal>
         </div>
         <div className="who">
@@ -30,21 +30,15 @@ export function Who() {
           <Reveal rv className="who-stat">
             <CountUp target="15" className="who-n" />
             <span className="who-n-label">
-              Years building and scaling software companies
+              Years deploying machine learning at scale
             </span>
           </Reveal>
           <Reveal rv className="who-copy" delay={0.08}>
             <p className="lead-p">
-              Engineers, data scientists, and operators who were putting
-              machine learning into production well before it was marketed
-              as AI. Knowing where to point it, and what breaks when you do,
-              is only learned by having been wrong a few times.
+              We put AI into production long before the hype cycle. Knowing exactly where to deploy automation—and what will break when you do—is expertise earned through a decade of scaling real software companies.
             </p>
             <p>
-              We stay selective about what we take on, and bring in the
-              specialists a project calls for. You deal directly with the
-              people doing the work, not an account manager relaying it. The
-              practice is led by John Connor.
+              We are deliberately selective. You interface directly with the engineers architecting your system, never an account manager. The practice is led by John Connor.
             </p>
             <Link
               href="/about"

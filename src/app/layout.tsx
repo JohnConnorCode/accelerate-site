@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { Inter_Tight, Inter, Newsreader, JetBrains_Mono } from "next/font/google";
+import { Jost, Inter, Newsreader, JetBrains_Mono } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
@@ -20,7 +20,7 @@ const sans = Inter({
   display: "swap",
 });
 
-const display = Inter_Tight({
+const display = Jost({
   variable: "--font-jost", // keep var name — @theme inline maps --font-display to it
   subsets: ["latin"],
   weight: ["400", "500", "600"],
