@@ -36,15 +36,15 @@ export function CommandCenter() {
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              A custom automation engine
+              A custom operational engine
               <br />
-              for your <span className="it">entire operation.</span>
+              for your <span className="it">entire business.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              The Command Center is the operational brain of your firm. If a workflow is digital, we engineer the system to execute it autonomously. It monitors inbound communications, drafts custom quotes, advances your CRM pipeline, and orchestrates complex follow-up—surfacing to you only for final approval.
+              The Command Center is your firm&apos;s operational core. It captures communications, drafts quotes, advances your pipeline, and orchestrates follow-ups—surfacing to you only for final approval.
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.18} style={{ marginTop: 16 }}>
-              Below is a live, interactive sandbox running simulated operational data. Try clearing the approval queue, inspecting a workflow, or querying the intelligence engine.
+              Test drive the live sandbox below. Try clearing the approval queue, inspecting a workflow, or querying intelligence records in real time.
             </Reveal>
           </div>
         </div>

@@ -352,7 +352,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
         className="group flex items-center justify-center gap-2 border-t border-border-glass bg-bg-subtle px-4 py-2.5 text-xs transition-colors hover:bg-bg-elevated"
       >
         <CalendarDays className="h-3.5 w-3.5 shrink-0 text-gold" strokeWidth={1.75} />
-        <span className="font-medium text-white-primary">Book a free 30-minute call</span>
+        <span className="font-medium text-white-primary">Book a free 30-minute strategy session</span>
         <span className="text-white-muted">· no catch</span>
         <ArrowRight className="h-3 w-3 shrink-0 text-white-muted transition-transform group-hover:translate-x-0.5" />
       </a>

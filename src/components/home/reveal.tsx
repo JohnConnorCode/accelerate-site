@@ -10,8 +10,8 @@ import type { CSSProperties, ElementType, ReactNode } from "react";
  * drives the same classes off a single IntersectionObserver).
  */
 export function useRv<T extends HTMLElement = HTMLElement>(
-  threshold = 0.1,
-  rootMargin = "0px 0px -8% 0px"
+  threshold = 0.02,
+  rootMargin = "0px 0px 40px 0px"
 ) {
   const ref = useRef<T>(null);
   useEffect(() => {
@@ -22,6 +22,16 @@ export function useRv<T extends HTMLElement = HTMLElement>(
       el.classList.add("in");
       return;
     }
+
+    // If element is already within viewport on mount, trigger reveal
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight + 40 && rect.bottom > -40) {
+      const raf = requestAnimationFrame(() => {
+        el.classList.add("in");
+      });
+      return () => cancelAnimationFrame(raf);
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
@@ -33,7 +43,18 @@ export function useRv<T extends HTMLElement = HTMLElement>(
       { rootMargin, threshold }
     );
     observer.observe(el);
-    return () => observer.disconnect();
+
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        el.classList.add("in");
+      }
+    };
+    window.addEventListener("pageshow", onPageShow);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("pageshow", onPageShow);
+    };
   }, [threshold, rootMargin]);
   return ref;
 }

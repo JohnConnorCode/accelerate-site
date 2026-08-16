@@ -109,7 +109,7 @@ export const packageFaqs: FAQ[] = [
   {
     question: "Do you offer payment plans?",
     answer:
-      "Yes. For the Grow and Accelerate packages, we offer 2-3 month payment plans on the setup fee. Monthly service fees are billed at the start of each month. If the setup fee is the blocker, say so on the call. We will split it.",
+      "Yes. For the Grow and Accelerate packages, we offer 2-3 month payment plans on the setup fee. Monthly service fees are billed at the start of each month. If the setup fee is the blocker, say so on the session. We will split it.",
     category: "packages",
   },
   {

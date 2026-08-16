@@ -30,7 +30,7 @@ export interface WordToken {
 
 const wordVariants = {
   hidden: { y: "115%" },
-  visible: { y: 0, transition: { duration: 0.7, ease: EASE } },
+  visible: { y: 0, transition: { duration: 0.85, ease: EASE } },
 };
 
 /** Rebuild readable markup from tokens (reduced-motion / no-anim fallback). */
@@ -47,8 +47,8 @@ export function WordMask({
   tokens,
   as = "h2",
   className = "",
-  stagger = 0.055,
-  delay = 0,
+  stagger = 0.08,
+  delay = 0.1,
 }: {
   tokens: WordToken[];
   as?: "h1" | "h2" | "h3";
@@ -69,7 +69,7 @@ export function WordMask({
       className={`reveal-self ${className}`}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: "-12% 0px -12% 0px" }}
+      viewport={{ once: true, margin: "0px 0px 40px 0px" }}
       variants={{
         hidden: {},
         visible: { transition: { staggerChildren: stagger, delayChildren: delay } },
@@ -136,8 +136,8 @@ export function RevealHeading({
   accent,
   as = "h2",
   className = "",
-  stagger = 0.055,
-  delay = 0,
+  stagger = 0.08,
+  delay = 0.1,
 }: {
   lead: string;
   accent?: string;

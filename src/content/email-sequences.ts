@@ -82,7 +82,7 @@ If any of these apply to you, a quick conversation could save you months of tria
 
 We've helped dozens of businesses in your position and the conversation is always free.
 
-Book a call: https://www.acceleratewith.us/contact
+Book a strategy session: https://www.acceleratewith.us/contact
 
 Or if you just want to revisit your plan: {{planLink}}
 

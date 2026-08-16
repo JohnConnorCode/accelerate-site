@@ -4,7 +4,7 @@ export const faqs: FAQ[] = [
   {
     question: "How much does it cost to get started?",
     answer:
-      "Our AI-powered websites start at $2,500 as a one-time build. Automations and AI agents start at $1,500 for setup plus $300 per month for ongoing management and optimization. Every business is different, so book the free 30-minute call. You leave with exact pricing for your situation, written down, whether you hire us or not.",
+      "Our AI-powered websites start at $2,500 as a one-time build. Automations and AI agents start at $1,500 for setup plus $300 per month for ongoing management and optimization. Every business is different, so book the free 30-minute strategy session. You leave with exact pricing for your situation, written down, whether you hire us or not.",
     category: "pricing",
   },
   {

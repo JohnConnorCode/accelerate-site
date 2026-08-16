@@ -408,10 +408,10 @@ export const MARQUEE_ITEMS = [
   "Drafts the follow-up",
   "Files the meeting",
   "Moves the deal",
-  "Books the call",
+  "Books the session",
   "Flags the cooling client",
   "Answers what you agreed",
-  "Briefs you before the call",
+  "Briefs you before the session",
   "Waits for your yes",
 ];
 

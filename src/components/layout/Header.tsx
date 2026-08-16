@@ -4,9 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { trackConversion } from "@/lib/analytics";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/Button";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "./MobileNav";
@@ -214,14 +213,15 @@ export function Header() {
             )}
           </nav>
 
-          {/* Desktop CTA + Theme Toggle */}
+          {/* Desktop CTA + Theme Toggle — same flat mono .btn as the hero CTA */}
           <motion.div variants={headerCtaReveal} className="hidden lg:flex items-center gap-3">
             <ThemeToggle />
-            <Link href="/contact" onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "header" })}>
-              <Button variant="primary" size="sm" className="group/cta">
-                Book a free strategy call
-                <ArrowRight className="w-4 h-4 ml-1.5 transition-transform duration-200 group-hover/cta:translate-x-0.5" />
-              </Button>
+            <Link
+              href="/contact"
+              onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "header" })}
+              className="btn btn-sm"
+            >
+              Book a free strategy session <span className="arw" aria-hidden="true">→</span>
             </Link>
           </motion.div>
 

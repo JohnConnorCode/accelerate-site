@@ -88,7 +88,7 @@ export const verticals: Vertical[] = [
         ],
       },
     ],
-    ctaText: "Book the call",
+    ctaText: "Book the session",
     ctaLink: "/contact",
   },
   {
@@ -178,7 +178,7 @@ export const verticals: Vertical[] = [
         ],
       },
     ],
-    ctaText: "Book the call",
+    ctaText: "Book the session",
     ctaLink: "/contact",
   },
   {
@@ -268,7 +268,7 @@ export const verticals: Vertical[] = [
         ],
       },
     ],
-    ctaText: "Book the call",
+    ctaText: "Book the session",
     ctaLink: "/contact",
   },
   {
@@ -358,7 +358,7 @@ export const verticals: Vertical[] = [
         ],
       },
     ],
-    ctaText: "Book the call",
+    ctaText: "Book the session",
     ctaLink: "/contact",
   },
   {
@@ -449,7 +449,7 @@ export const verticals: Vertical[] = [
         ],
       },
     ],
-    ctaText: "Book the call",
+    ctaText: "Book the session",
     ctaLink: "/contact",
   },
   {
@@ -539,7 +539,7 @@ export const verticals: Vertical[] = [
         ],
       },
     ],
-    ctaText: "Book the call",
+    ctaText: "Book the session",
     ctaLink: "/contact",
   },
   {
@@ -629,7 +629,7 @@ export const verticals: Vertical[] = [
         ],
       },
     ],
-    ctaText: "Book the call",
+    ctaText: "Book the session",
     ctaLink: "/contact",
   },
   {
@@ -678,7 +678,7 @@ export const verticals: Vertical[] = [
         features: [
           "Sub-60-second response on new quote requests",
           "Automatic routing to the right line of business",
-          "Pre-qualification questions before the call",
+          "Pre-qualification questions before the session",
           "Carrier and coverage matching based on client profile",
           "Follow-up sequence until the prospect answers either way",
         ],
@@ -720,7 +720,7 @@ export const verticals: Vertical[] = [
         ],
       },
     ],
-    ctaText: "Book the call",
+    ctaText: "Book the session",
     ctaLink: "/contact",
   },
   {
@@ -811,7 +811,7 @@ export const verticals: Vertical[] = [
         ],
       },
     ],
-    ctaText: "Book the call",
+    ctaText: "Book the session",
     ctaLink: "/contact",
   },
 ];

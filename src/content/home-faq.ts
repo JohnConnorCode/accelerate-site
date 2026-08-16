@@ -4,7 +4,7 @@ export const homeFaqs: FAQ[] = [
   {
     question: "What does this cost?",
     answer:
-      "The call and the plan cost nothing. Delivery is a fixed price agreed before work begins. If a project is too small to justify the fee, we will say so on the call.",
+      "The session and the plan cost nothing. Delivery is a fixed price agreed before work begins. If a project is too small to justify the fee, we will say so on the session.",
   },
   {
     question: "How soon would we see a result?",

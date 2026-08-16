@@ -70,7 +70,7 @@ export function Dock() {
         >
           <div className="flex flex-col gap-0.5 leading-tight">
             <b className="font-display text-[13.5px] font-medium tracking-[-0.01em] text-[var(--paper)]">
-              Free 30-minute call
+              Free 30-minute strategy session
             </b>
             <span className="font-mono text-[9.5px] uppercase tracking-[0.13em] text-[rgba(251,251,250,0.5)]">
               You leave with a written plan

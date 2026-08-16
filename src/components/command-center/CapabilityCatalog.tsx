@@ -124,7 +124,7 @@ export function CapabilityCatalog() {
         >
           {filtered.length === 0 ? (
             <p className="py-14 text-center text-mid">
-              Nothing matches that. It probably still does it, so ask on the call.
+              Nothing matches that. It probably still does it, so ask on the session.
             </p>
           ) : (
             // Grouped while showing everything, flat once a category is picked.

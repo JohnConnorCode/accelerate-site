@@ -64,8 +64,13 @@ function Hero() {
   const gridDrift = useTransform(scrollYProgress, [0, 1], [0, 120]);
 
   useEffect(() => {
-    const raf = requestAnimationFrame(() => setLoaded(true));
-    return () => cancelAnimationFrame(raf);
+    const timer = setTimeout(() => setLoaded(true), 40);
+    const onPageShow = () => setLoaded(true);
+    window.addEventListener("pageshow", onPageShow);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("pageshow", onPageShow);
+    };
   }, []);
 
   return (
@@ -82,24 +87,34 @@ function Hero() {
           <div className="min-w-0">
             <p className={`label eyebrow-anim rv${loaded ? " in" : ""}`}>The Command Center</p>
             <h1 className="h1">
-              <span className="line">
-                <span style={{ "--d": ".06s" } as CSSProperties}>Your operation,</span>
+              <span className="h1-word-row">
+                {["Your", "operation,"].map((w, i) => (
+                  <span key={w} className="word">
+                    <span style={{ "--d": `${0.06 + i * 0.1}s` } as CSSProperties}>{w}</span>
+                  </span>
+                ))}
               </span>
-              <span className="line">
-                <span style={{ "--d": ".13s" } as CSSProperties}>running itself.</span>
+              <span className="h1-word-row">
+                {["running", "itself."].map((w, i) => (
+                  <span key={w} className="word">
+                    <span style={{ "--d": `${0.26 + i * 0.1}s` } as CSSProperties}>{w}</span>
+                  </span>
+                ))}
               </span>
-              <span className="line">
-                <span className="it" style={{ "--d": ".2s" } as CSSProperties}>
-                  You just approve.
-                </span>
+              <span className="h1-word-row">
+                {["You", "just", "approve."].map((w, i) => (
+                  <span key={w} className="word">
+                    <span className="it" style={{ "--d": `${0.46 + i * 0.08}s` } as CSSProperties}>{w}</span>
+                  </span>
+                ))}
               </span>
             </h1>
             <div className={`rv${loaded ? " in" : ""} flex flex-col gap-5`} style={{ "--d": ".5s", marginTop: 26 } as CSSProperties}>
               <p className="lede text-balance">
-                A bespoke automation engine that reads your communications, orchestrates your pipeline, drafts your follow-ups, and files your meeting notes — before you&apos;ve opened your laptop.
+                A custom operational solution that captures your communications, advances your pipeline, drafts your follow-ups, and files your meeting notes — before you&apos;ve opened your laptop.
               </p>
               <p className="lede text-balance hidden sm:block">
-                Every action surfaces for your final call. Nothing ships without your approval. We architect the entire system around your exact operation and deploy it in days, not months.
+                Every action stages in one queue for your final call. Nothing leaves without your approval. We build the exact system your business needs and install it running.
               </p>
             </div>
             <div className={`rv${loaded ? " in" : ""}`} style={{ "--d": ".62s", marginTop: 32 } as CSSProperties}>
@@ -144,16 +159,16 @@ function Problem() {
       <div className="wrap">
         <div className="shead">
           <Reveal rv as="p" className="label eyebrow-anim">
-            What it costs you
+            The bottleneck
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              The ultimate operational
+              When everything relies on you,
               <br />
-              <span className="it">bottleneck.</span>
+              you become <span className="it">the ceiling.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              When critical context exists only in your memory, you become the ceiling on your own growth. The true constraint on scaling is rarely demand—it is the velocity at which an executive can process information and execute tasks. A bespoke automation system captures that context and acts on it autonomously, operating continuously without overhead, deployed in a fraction of the time of a traditional hire.
+              The constraint on scaling is rarely demand—it&apos;s the hours lost to admin, scattered notes, forgotten follow-ups, and manual coordination. A custom operational system captures every detail and does the heavy lifting, giving you back 15+ hours every week without hiring overhead.
             </Reveal>
           </div>
         </div>
@@ -175,14 +190,14 @@ function Built() {
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              Custom engineering,
+              A custom solution,
               <br />
-              not off-the-shelf
+              built for your
               <br />
-              <span className="it">software.</span>
+              <span className="it">exact business.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              There is no generic version of this system. We conduct a rigorous discovery process to map the exact architecture of your operations. The automation engine is then built from the ground up to utilize your proprietary taxonomy, respect your executive boundaries, and execute your specific protocols. Two deployments in the same industry will never look alike.
+              Off-the-shelf software forces you to change how you work. We engineer custom operational solutions that fit directly into your existing tools, communication channels, and workflows. From day one, your system knows your clients, speaks your industry language, and executes your specific business rules.
             </Reveal>
           </div>
         </div>
@@ -200,16 +215,16 @@ function Demo() {
       <div className="wrap">
         <div className="shead">
           <Reveal rv as="p" className="label eyebrow-anim">
-            A demonstration
+            Interactive demonstration
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              What it is like
+              See how your day
               <br />
-              <span className="it">to work in one.</span>
+              <span className="it">actually changes.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              Below is a working demonstration running on invented data for a company that does not exist. It is not a screenshot and not a recording, so you can clear the queue, open a record, ask it a question and apply a set of meeting notes. Read it as the shape of the thing rather than the thing itself: yours would be built around your work, with your people and your language in it.
+              Try the live sandbox below. Approve draft emails, update deal stages, query records, or process meeting notes in seconds. For your business, this runs in the background with your real data, contacts, and workflow.
             </Reveal>
           </div>
         </div>
@@ -230,16 +245,16 @@ function HowItWorks() {
       <div className="wrap">
         <div className="shead">
           <Reveal rv as="p" className="label eyebrow-anim">
-            How it works
+            The process
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              The loop everything
+              The 4-step loop
               <br />
-              <span className="it">runs on.</span>
+              that <span className="it">runs your work.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              Whatever we end up building for you, the mechanism underneath is the same four steps. Most tools hand you a draft when you go looking for one. This has already written it, attached it to the right record and put it in a queue before you sat down.
+              Most tools wait around for you to ask. Your custom system stays ahead: capturing context, staging drafts, and queueing every next action so you can clear a morning of admin in minutes.
             </Reveal>
           </div>
         </div>
@@ -276,16 +291,16 @@ function TrustLadder() {
       <div className="wrap">
         <div className="shead">
           <Reveal rv as="p" className="label eyebrow-anim">
-            Autonomy
+            Control & Autonomy
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              Systems that learn
+              Complete oversight on day one.
               <br />
-              and <span className="it">adapt autonomously.</span>
+              Automation at <span className="it">your pace.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              An approval queue should be a transitional mechanism, not a permanent workflow. Once the system demonstrates consistent accuracy within a specific task category, you can elevate its autonomy permissions. It graduates from requiring manual approval to executing independently, transforming routine oversight into complete automation—reversible instantly with a single command.
+              You start with 100% control—every outbound message, record change, and follow-up waits for your review. As the system learns your voice and processes, you decide what runs autonomously and what requires your sign-off. You stay in total control at all times.
             </Reveal>
           </div>
         </div>
@@ -317,12 +332,12 @@ function Catalog() {
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              If it is digital,
+              End-to-end automation
               <br />
-              <span className="it">we can automate it.</span>
+              for your <span className="it">entire operation.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              This is a cross-section of our deployment capabilities. We engineer bespoke automation systems that execute your most resource-intensive workflows. Deployments typically begin with the core functions that immediately drive revenue, scaling outward as your operation accelerates.
+              A cross-section of what we build into your Command Center. We start by eliminating the biggest friction points in your client intake, sales pipeline, and delivery, then expand capabilities as your operation scales.
             </Reveal>
           </div>
         </div>
@@ -341,16 +356,16 @@ function Proof() {
       <div className="wrap">
         <div className="shead">
           <Reveal rv as="p" className="label eyebrow-anim">
-            Where this comes from
+            Real-world tested
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              We built it for
+              Tested daily in our
               <br />
-              <span className="it">ourselves first.</span>
+              <span className="it">own business.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              This was not designed as a product. We had the same problem, built something to solve it, and have been running our own operation on it daily since, the calls, the follow-ups, the pipeline, the notes, so every rough edge you would have hit, we hit first. On the call we will screen-share the real one rather than the demonstration above, mess included.
+              We run our own agency on this exact system every day—client intake, call notes, pipeline follow-ups, and proposals. On our strategy call, we will screen-share our live production system so you can see how it runs in real time.
             </Reveal>
           </div>
         </div>
@@ -372,9 +387,9 @@ function WhoItsFor() {
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              Businesses where one
+              Built for high-output
               <br />
-              person is <span className="it">the constraint.</span>
+              founders and <span className="it">lean teams.</span>
             </Reveal>
             <ul className="plan-list" style={{ marginTop: 26 }}>
               {WHO_ITS_FOR.map((item, i) => (
@@ -390,7 +405,7 @@ function WhoItsFor() {
               ))}
             </ul>
             <Reveal rv as="p" className="lede" delay={0.1}>
-              If you already have an operations manager and a system the team actually follows, you need less than this, and we will say so on the call.
+              If you already have a full operations team managing every step, you might not need this—and we will tell you so on the session.
             </Reveal>
           </div>
         </div>
@@ -460,20 +475,20 @@ function Closing() {
       <div className="wrap">
         <div className="fcta">
           <Reveal rv as="p" className="label eyebrow-anim">
-            Start
+            Next steps
           </Reveal>
           <h2 ref={headingRef} className="h2 line-h">
             <span className="line">
-              <span style={{ "--d": ".05s" } as CSSProperties}>Architect the future</span>
+              <span style={{ "--d": ".05s" } as CSSProperties}>Get your custom</span>
             </span>
             <span className="line">
               <span className="it" style={{ "--d": ".12s" } as CSSProperties}>
-                of your operation.
+                automation roadmap.
               </span>
             </span>
           </h2>
           <Reveal rv as="p" className="lede" delay={0.1}>
-            A rigorous thirty-minute consultation to analyze your organizational bottlenecks. You will receive a comprehensive automation blueprint, yours to keep regardless of whether we partner together.
+            A free 30-minute operational consultation to pinpoint your bottlenecks. You will receive a tailored action plan showing exactly how to automate your core workflows—yours to keep whether we work together or not.
           </Reveal>
           <Reveal rv as="div" delay={0.16}>
             <BookCallButton variant="inverse" location="command_center_closing" />

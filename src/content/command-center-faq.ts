@@ -19,7 +19,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "We bought an AI tool last year and nobody used it.",
     answer:
-      "Usually the tool was fine and there was no rule about when to use it. This one gives you one place to go each morning and a short list of decisions sitting there. If that is not going to change anything for you, we would rather work that out on the call than after you have paid for a build.",
+      "Usually the tool was fine and there was no rule about when to use it. This one gives you one place to go each morning and a short list of decisions sitting there. If that is not going to change anything for you, we would rather work that out on the session than after you have paid for a build.",
   },
   {
     question: "Where does our data live?",
@@ -39,6 +39,6 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "What does it cost, and how long does it take?",
     answer:
-      "The call and the written plan are free. The build is a fixed price agreed before anything starts, and ongoing support is optional. Something is running inside a couple of weeks, and because it loads your history first, there is work waiting in the queue the first morning you log in.",
+      "The session and the written plan are free. The build is a fixed price agreed before anything starts, and ongoing support is optional. Something is running inside a couple of weeks, and because it loads your history first, there is work waiting in the queue the first morning you log in.",
   },
 ];

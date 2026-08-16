@@ -37,7 +37,7 @@ export function FinalCta() {
             onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "final_cta" })}
             className="btn btn-inv"
           >
-            Book a free call <span className="arw" aria-hidden="true">→</span>
+            Book a free strategy session <span className="arw" aria-hidden="true">→</span>
           </Link>
         </Reveal>
       </div>

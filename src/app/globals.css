@@ -302,7 +302,11 @@ h1, h2, h3, h4, h5, h6 {
 .h1 {
   font-family: var(--font-jost), system-ui, sans-serif;
   font-weight: 600;
-  font-size: clamp(34px, 7.4vw, 98px);
+  /* One continuous curve from the smallest phone to desktop — no
+     breakpoint jump. 24px floor keeps 2-4 words per line on a narrow
+     phone instead of the ~40px an old mobile-only override produced,
+     which was wide enough that most words got a line to themselves. */
+  font-size: clamp(24px, 7.4vw, 98px);
   line-height: 1;
   letter-spacing: -.038em;
   color: var(--fg);
@@ -530,6 +534,65 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.95); tran
    .line-h's own IO-driven .in class instead of the hero's mount-time
    .loaded state (see FinalCta.tsx). */
 .line-h.in .line > span { transform: translateY(0); }
+/* Word-level clip-reveal: .h1-word-row is the flex container that wraps
+   words naturally; .word is the inline overflow:hidden clip per word;
+   the inner span slides up just like .line > span does. This produces
+   a per-word cascade rather than a per-line one. */
+.h1-word-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.25em;
+  row-gap: 0;
+  overflow: visible;
+}
+.word {
+  display: inline-block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+  padding-right: 0.14em;
+  margin-bottom: -0.08em;
+  margin-right: -0.05em;
+  vertical-align: bottom;
+  /* Flex items default to min-width:auto (their content's min-content
+     size) and won't shrink below it. The scramble text inside "intelligent
+     automation" briefly renders much wider than the settled word (random
+     glyphs, some wide), which without this pushes the whole row — and the
+     viewport — wider instead of wrapping normally. */
+  min-width: 0;
+}
+/* Word-level fade-in-up carries the site's signature blur-in (see .rv-in)
+   so every h1 word — including PROFIT, via its own --d — blurs into focus
+   as it rises, instead of snapping in sharp. */
+@keyframes word-blur-in {
+  from { transform: translateY(112%); filter: blur(8px); }
+  to   { transform: translateY(0); filter: blur(0); }
+}
+.word > span {
+  display: block;
+  transform: translateY(112%);
+  filter: blur(8px);
+  will-change: transform, filter;
+}
+.loaded .word > span {
+  animation: word-blur-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0s) both;
+}
+/* PROFIT + CTA sit on their own row below the main headline paragraph
+   (see Hero.tsx) — a deliberate line break, not part of the natural
+   reflow above it. CTA wraps below full-width on narrow screens instead
+   of squeezing in beside PROFIT. */
+.hero-row-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: 14px;
+  margin-top: clamp(10px, 1.8vw, 20px);
+}
+.hero-inline-cta { align-self: center; margin-left: clamp(10px, 1.8vw, 24px); }
+@media (max-width: 720px) {
+  .hero-inline-cta { width: 100%; margin-left: 0; margin-top: 4px; }
+  .hero-inline-cta .btn { width: 100%; }
+}
 .eyebrow-anim { display: inline-flex; align-items: center; gap: 12px; }
 .eyebrow-anim::after {
   content: "";
@@ -547,7 +610,7 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.95); tran
 .marquee-loop { display: flex; width: max-content; will-change: transform; }
 
 @media (prefers-reduced-motion: reduce) {
-  .rv, .item-rv, .line > span, .rv:has(> .deck) > .deck { opacity: 1 !important; transform: none !important; filter: none !important; }
+  .rv, .item-rv, .line > span, .word > span, .rv:has(> .deck) > .deck { opacity: 1 !important; transform: none !important; filter: none !important; }
   .eyebrow-anim::after { transform: scaleX(1) !important; }
 }
 
@@ -2086,61 +2149,44 @@ summary:focus-visible {
    (transparent, floating) header, just without stealing a chunk of an
    already-short screen. */
 @media (max-width: 640px) {
-  /* An earlier attempt forced .hero itself to 100svh and tried to pin the
-     band with margin-top:auto — that failed because .hero was sized
-     against the FULL viewport with no room subtracted for the marquee
-     band that comes after it, so the band always landed one band-height
-     below the fold regardless of content height. Fixed properly this
-     time: .hero-band (Hero + Marquee's shared parent, see Studio.tsx) is
-     the flex column with min-height:100dvh, so .hero's flex-grow only
-     ever fills 100dvh MINUS whatever height the band actually renders
-     at — the two sections are sized against each other, not guessed
-     independently. The remaining risk from before — content taller than
-     the available space — is handled by sizing the padding/type in dvh
-     so it compresses on short phones instead of overflowing past the
-     band. */
-  .hero { padding-top: clamp(88px, 11.2dvh, 110px); padding-bottom: clamp(20px, 3dvh, 32px); }
-  .hero h1 { margin-top: clamp(10px, 1.5dvh, 20px); }
-  /* The 40px attempt broke "implement custom AI" onto its own orphaned
-     "AI" line on a real phone — that exact phrase (~20 characters) is
-     the hard binding constraint: content width here is viewport minus
-     2x --gut (22px floor each side), so ~331-346px on the 375-390px
-     phones this actually needs to work on. Measured against the broken
-     40px screenshot, that phrase needs ~33-34px to be the ABSOLUTE
-     ceiling before it wraps again — so this is a deliberately modest,
-     safety-margined bump from the old 30px floor, not the confident
-     jump asked for. Meaningfully larger without breaking the layout
-     would mean shortening that specific line's wording or redesigning
-     it to wrap on purpose, not just picking a bigger number.
-     font-size now also has a dvh floor so it shrinks on genuinely short
-     viewports rather than being a fixed 32px regardless of available
-     room — 26px is still comfortably readable at this weight/tracking. */
-  .hero .h1 { font-size: clamp(34px, 8vw, 44px); line-height: 1.1; text-wrap: pretty; }
-  .hero .eyebrow-anim { letter-spacing: .1em; }
-
+  /* The design intent: the hero band fills exactly the first mobile
+     screen (100dvh) with the marquee anchored to its bottom edge, and
+     the headline scales with SCREEN HEIGHT (dvh, not vw) so a tall phone
+     gets bigger type filling that extra room and a short phone gets
+     smaller type instead of overflowing — "dynamic, fills the space."
+     That part needs the flex-column-100dvh structure back.
+     What was actually broken: justify-content:space-between inside
+     .wrap stretched .hero-top and .hero-btm apart to consume whatever
+     height was left, dumping it all into ONE gap (under the CTA) —
+     center instead, so leftover room splits evenly above/below the
+     content block and the marquee still lands at the bottom via .hero's
+     own flex-grow. Font-size is dvh-driven for the same reason: on a
+     416px-wide/926px-tall phone, 4.6dvh ≈ 42px still wraps 2-3 words per
+     line (checked against real device dimensions, not width alone). */
   .hero-band { display: flex; flex-direction: column; min-height: 100dvh; }
-  .hero-band .hero {
-    flex: 1 0 auto;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  /* space-between so .hero-top (label+headline) stays put near the top
-     and .hero-btm (lede+CTA) is pushed down to sit just above the band —
-     on a tall phone the gap between them grows; on a short one it
-     shrinks toward zero. min-height:0 lets the flex child actually
-     shrink to the space .hero-band has left instead of the default
-     flex min-size:auto forcing it back out to content height. */
-  .hero-band .hero .wrap { flex: 1; display: flex; flex-direction: column; justify-content: space-between; min-height: 0; }
-  .hero-band .hero-top { flex: 0 0 auto; }
-  .hero-band .hero-btm {
-    flex: 0 0 auto;
-    margin-top: clamp(16px, 2.4dvh, 36px);
-    padding-top: clamp(14px, 2.1dvh, 26px);
-    gap: clamp(14px, 2.1dvh, 32px);
-  }
+  .hero-band .hero { flex: 1 0 auto; display: flex; flex-direction: column; overflow: hidden; }
+  .hero-band .hero .wrap { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; min-width: 0; max-width: 100%; }
+  .hero-band .hero-top { flex: 0 0 auto; min-width: 0; max-width: 100%; overflow: hidden; }
+  .hero-band .hero-btm { flex: 0 0 auto; margin-top: clamp(24px, 4dvh, 40px); padding-top: clamp(14px, 2.1dvh, 26px); }
   .hero-band .hero-btm .lede { font-size: clamp(14px, 2.1dvh, 15.5px); line-height: 1.5; }
   .hero-band .mq { flex: 0 0 auto; }
+
+  .hero { padding-top: clamp(70px, 9dvh, 96px); padding-bottom: clamp(20px, 3dvh, 32px); }
+  .hero h1 { margin-top: clamp(10px, 1.6dvh, 20px); }
+  /* min(vw, dvh) — not dvh alone: a pure height-based size ignores width,
+     so on a normal tall-aspect phone (e.g. 390×844) it computes ~39px,
+     large enough that "deploy"/"intelligent"/"automation" each stop
+     fitting next to their neighbor and go one-per-line. Capping by
+     whichever dimension is smaller keeps wrap quality (2-3 words/line)
+     on every phone while still letting the height side take over and
+     grow the type on unusually wide/short viewports. */
+  .hero .h1 { font-size: clamp(24px, min(7vw, 4.6dvh), 44px); line-height: 1.1; letter-spacing: -.03em; }
+  .hero .eyebrow-anim { letter-spacing: .1em; }
+  /* max-width:100% + overflow:hidden: the scramble text mid-flicker can
+     briefly render wider glyphs than the settled word, which without
+     this pushes .hero-top — and the whole viewport — wider instead of
+     wrapping/clipping. */
+  .hero-top { max-width: 100%; overflow: hidden; }
 }
 
 /* hero backdrop — a fine drafting grid in hairline rule color (no blur, so
@@ -2209,21 +2255,24 @@ summary:focus-visible {
 .h1-last { display: flex; flex-wrap: wrap; column-gap: .26em; }
 .strike { position: relative; display: inline-block; white-space: nowrap; }
 .strike::after { content: ""; position: absolute; left: -.02em; right: -.02em; top: 56%; height: .042em; min-height: 2px; background: currentColor; transform: scaleX(0); transform-origin: 0 50%; }
-.loaded .strike::after { transform: scaleX(1); transition: transform 1.0s var(--ease) 3.6s; }
-/* The line-slide (transform) comes free from the shared .loaded .line >
-   span animation above — .swap only needs its own delayed opacity fade,
-   on `transition` (a separate property from `animation`), so it can't
-   collide with that shared rule. */
+.loaded .strike::after { transform: scaleX(1); transition: transform 1.0s var(--ease) 3.85s; }
+/* PROFIT (.swap) and the CTA (.hero-inline-cta) both use a plain
+   opacity+blur fade — no scramble, no slide-up. Just a clean blur into
+   focus, timed off .loaded via `transition` (not `animation`) so each one
+   only needs a single delay value. */
 .swap { opacity: 0; filter: blur(8px); }
-.line .swap { transition: opacity .7s ease 4.7s, filter .7s ease 4.7s; }
-.loaded .swap { opacity: 1; filter: blur(0px); }
+.loaded .swap { opacity: 1; filter: blur(0px); transition: opacity .7s ease 4.7s, filter .7s ease 4.7s; }
 .rev-ul { position: relative; }
 .rev-ul::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0.05em; height: .042em; min-height: 2px; background: currentColor; transform: scaleX(0); transform-origin: 0 50%; }
 .loaded .rev-ul::after { transform: scaleX(1); transition: transform .9s var(--ease) 5.1s; }
-.hero-btm { display: grid; grid-template-columns: 1.05fr .95fr; gap: clamp(26px, 5vw, 72px); align-items: end; border-top: 1px solid var(--rule); padding-top: clamp(26px, 3vw, 36px); margin-top: clamp(36px, 5vw, 64px); }
-@media (max-width: 940px) { .hero-btm { grid-template-columns: 1fr; align-items: start; gap: 32px; } }
+.hero-inline-cta { opacity: 0; filter: blur(8px); }
+.loaded .hero-inline-cta { opacity: 1; filter: blur(0px); transition: opacity .6s ease var(--d, 0s), filter .6s ease var(--d, 0s); }
+/* CTA now lands inline next to PROFIT (see .hero-inline-cta) instead of
+   the old two-column layout, so hero-btm is just the subtext beneath the
+   headline, at .lede's own default width. */
+.hero-btm { border-top: 1px solid var(--rule); padding-top: clamp(26px, 3vw, 36px); margin-top: clamp(36px, 5vw, 64px); }
 @media (prefers-reduced-motion: reduce) {
-  .strike::after, .swap, .rev-ul::after { transition: none !important; transform: scaleX(1) !important; opacity: 1 !important; }
+  .strike::after, .swap, .rev-ul::after, .hero-inline-cta { transition: none !important; transform: scaleX(1) !important; opacity: 1 !important; filter: none !important; }
 }
 
 /* final CTA */
@@ -2368,8 +2417,18 @@ summary:focus-visible {
    the approval queue, where 98px wraps to six lines. Same type recipe, sized
    for the column it actually lives in. A plain .h1 rule beats a Tailwind
    utility in v4, so this has to be CSS. */
+/* Command Center hero — h1 sizing for the constrained column layout.
+   On mobile (<640px) the two-column grid collapses so the h1 gets
+   the full width; match the home hero mobile sizing so it fills the
+   screen properly. */
 .cc-hero h1.h1 { font-size: clamp(31px, 4.4vw, 60px); letter-spacing: -.032em; }
 .cc-hero .lede { max-width: 44ch; }
+@media (max-width: 640px) {
+  .cc-hero { padding-top: clamp(76px, 9.5dvh, 96px); padding-bottom: clamp(24px, 3dvh, 40px); }
+  .cc-hero h1.h1 { font-size: clamp(38px, 11vw, 54px); letter-spacing: -.04em; line-height: 1.08; }
+  .cc-hero .lede { max-width: none; }
+  .cc-hero .grid { gap: clamp(28px, 5dvh, 44px); }
+}
 
 /* --- capability catalog: grouping ------------------------------------------
    43 rows in one run is a wall; a header per category turns it into a list. */

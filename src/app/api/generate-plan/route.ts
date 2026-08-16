@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Generate plan error:", error);
     return NextResponse.json(
-      { error: "Failed to generate your growth plan. Please try again or book a call with us." },
+      { error: "Failed to generate your growth plan. Please try again or book a strategy session with us." },
       { status: 500 }
     );
   }

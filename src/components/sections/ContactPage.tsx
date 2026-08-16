@@ -46,7 +46,7 @@ export function ContactPageContent() {
             <RevealHeading as="h1" className={HERO_HEADING} lead="Let's" accent="talk." delay={0.1} />
             <AnimateOnScroll delay={0.3}>
               <p className="mt-7 max-w-md text-base leading-relaxed text-white-secondary">
-                Tell us what is breaking. We reply within one business day. The call is with John.
+                Tell us what is breaking. We reply within one business day. The session is with John.
               </p>
             </AnimateOnScroll>
 
@@ -90,7 +90,7 @@ export function ContactPageContent() {
                 Start here
               </p>
               <h2 className="mb-4 px-2 font-display text-2xl font-bold tracking-[-0.02em] text-heading">
-                Book a free 30-minute call
+                Book a free 30-minute strategy session
               </h2>
               <CalendlyEmbed />
             </div>

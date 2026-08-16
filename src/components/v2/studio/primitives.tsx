@@ -35,6 +35,15 @@ export function useReveal<T extends HTMLElement = HTMLElement>() {
       el.classList.add("is-revealed");
       return;
     }
+
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight + 40 && rect.bottom > -40) {
+      const raf = requestAnimationFrame(() => {
+        el.classList.add("is-revealed");
+      });
+      return () => cancelAnimationFrame(raf);
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
@@ -43,10 +52,21 @@ export function useReveal<T extends HTMLElement = HTMLElement>() {
           observer.disconnect();
         }
       },
-      { rootMargin: "0px 0px -8% 0px", threshold: 0.04 }
+      { rootMargin: "0px 0px 40px 0px", threshold: 0.02 }
     );
     observer.observe(el);
-    return () => observer.disconnect();
+
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        el.classList.add("is-revealed");
+      }
+    };
+    window.addEventListener("pageshow", onPageShow);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("pageshow", onPageShow);
+    };
   }, []);
   return ref;
 }
@@ -155,7 +175,7 @@ export function Heading({
    Variants: "primary" (ink fill), "inverse" (paper fill — for ink-panel bands). */
 export function BookCallButton({
   variant = "primary",
-  label = "Book a free strategy call",
+  label = "Book a free strategy session",
   className,
   location = "unknown",
 }: {

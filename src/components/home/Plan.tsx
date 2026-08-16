@@ -25,16 +25,18 @@ export function Plan() {
             <Reveal rv as="p" className="label eyebrow-anim">
               The plan
             </Reveal>
-            <Reveal rv as="h2" className="h2" delay={0.06} style={{ marginTop: 18 }}>
-              You leave the first
-              <br />
-              call with something
-              <br />
-              usable.
+            <Reveal
+              rv
+              as="h2"
+              className="h2"
+              delay={0.06}
+              style={{ marginTop: 18, lineHeight: 1.15 }}
+            >
+              You leave the first session with something usable.
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 18 }}>
               Most firms hold the analysis back until you sign. We hand it
-              over after the first call. If the thinking is good you will
+              over after the first session. If the thinking is good you will
               want the people who did it.
             </Reveal>
             <ul className="plan-list">
@@ -61,7 +63,7 @@ export function Plan() {
                 onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "plan" })}
                 className="btn"
               >
-                Book a free call <span className="arw" aria-hidden="true">→</span>
+                Book a free strategy session <span className="arw" aria-hidden="true">→</span>
               </Link>
             </Reveal>
           </div>

@@ -51,7 +51,7 @@ export function AnimateOnScroll({
       variants={resolvedVariants}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: "-50px" }}
+      viewport={{ once: true, margin: "0px 0px 40px 0px" }}
       transition={!stagger && delay ? { delay } : undefined}
       className={cn(className)}
     >
