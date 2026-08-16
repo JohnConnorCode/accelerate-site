@@ -103,15 +103,13 @@ export function ContactPageContent() {
       <section className="pb-8">
         <Container width="wide">
           <div className="mx-auto max-w-xl">
-            <div className="rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] p-6 backdrop-blur-md sm:p-8">
-              <p className="mb-1 font-mono text-[0.6rem] uppercase tracking-[0.22em] text-white-muted">
-                Prefer email
-              </p>
-              <h2 className="mb-5 font-display text-2xl font-bold tracking-[-0.02em] text-heading">
-                Send a message instead
-              </h2>
-              <ContactForm />
-            </div>
+            <p className="mb-1 font-mono text-[0.6rem] uppercase tracking-[0.22em] text-white-muted">
+              Prefer email
+            </p>
+            <h2 className="mb-5 font-display text-2xl font-bold tracking-[-0.02em] text-heading">
+              Send a message instead
+            </h2>
+            <ContactForm />
           </div>
         </Container>
       </section>

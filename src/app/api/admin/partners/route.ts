@@ -2,14 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
 
+const VALID_PARTNER_STATUSES = new Set(["pending", "approved", "rejected", "active", "inactive"]);
+
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
   const supabase = createServiceRoleClient();
   const { searchParams } = new URL(request.url);
-  const page = parseInt(searchParams.get("page") || "1");
-  const limit = parseInt(searchParams.get("limit") || "25");
+  const page = Math.max(1, parseInt(searchParams.get("page") || "1") || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "25") || 25));
   const status = searchParams.get("status");
   const from = (page - 1) * limit;
 
@@ -46,6 +48,10 @@ export async function PATCH(request: NextRequest) {
 
   if (!id || !status) {
     return NextResponse.json({ error: "Missing id or status" }, { status: 400 });
+  }
+
+  if (!VALID_PARTNER_STATUSES.has(status)) {
+    return NextResponse.json({ error: "Invalid status value" }, { status: 400 });
   }
 
   const { data, error } = await supabase

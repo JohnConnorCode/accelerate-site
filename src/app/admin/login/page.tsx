@@ -22,20 +22,25 @@ function LoginForm() {
     setLoading(true);
     setError("");
 
-    const supabase = createClient();
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const supabase = createClient();
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (authError) {
-      setError(authError.message);
+      if (authError) {
+        setError(authError.message);
+        setLoading(false);
+        return;
+      }
+
+      // Force a hard navigation to ensure cookies are sent and middleware runs
+      window.location.href = redirect;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unexpected error occurred.");
       setLoading(false);
-      return;
     }
-
-    // Force a hard navigation to ensure cookies are sent and middleware runs
-    window.location.href = redirect;
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -50,18 +55,22 @@ function LoginForm() {
       return;
     }
 
-    const supabase = createClient();
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-      email,
-      {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      }
-    );
+    try {
+      const supabase = createClient();
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        email,
+        {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        }
+      );
 
-    if (resetError) {
-      setError(resetError.message);
-    } else {
-      setSuccess("Check your email for a password reset link.");
+      if (resetError) {
+        setError(resetError.message);
+      } else {
+        setSuccess("Check your email for a password reset link.");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unexpected error occurred.");
     }
     setLoading(false);
   };

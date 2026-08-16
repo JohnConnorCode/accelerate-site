@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
 
+const VALID_SEQUENCE_STATUSES = new Set(["active", "paused", "completed", "unsubscribed"]);
+
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
@@ -67,6 +69,10 @@ export async function PATCH(request: NextRequest) {
 
   if (!id || !status) {
     return NextResponse.json({ error: "Missing id or status" }, { status: 400 });
+  }
+
+  if (!VALID_SEQUENCE_STATUSES.has(status)) {
+    return NextResponse.json({ error: "Invalid status value" }, { status: 400 });
   }
 
   const { data, error } = await supabase

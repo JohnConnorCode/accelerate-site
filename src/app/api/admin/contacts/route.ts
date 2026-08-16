@@ -27,12 +27,51 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
 
+  // Auto-mark fetched contacts as read (fire-and-forget).
+  // The dashboard unread count queries read_at IS NULL, so this keeps it accurate.
+  const unreadIds = (data || [])
+    .filter((c: { id: string; read_at: string | null }) => !c.read_at)
+    .map((c: { id: string }) => c.id);
+  if (unreadIds.length > 0) {
+    supabase
+      .from("contact_submissions")
+      .update({ read_at: new Date().toISOString() })
+      .in("id", unreadIds)
+      .then(() => {}, (err: unknown) => console.error("Failed to mark contacts read:", err));
+  }
+
   return NextResponse.json({
     contacts: data || [],
     total: count || 0,
     totalPages: Math.ceil((count || 0) / pageSize),
     page,
   });
+}
+
+/** PATCH { id } — mark a single contact as read/unread */
+export async function PATCH(request: NextRequest) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+
+  const body = await request.json();
+  const { id, read } = body;
+
+  if (!id) {
+    return NextResponse.json({ error: "Missing id" }, { status: 400 });
+  }
+
+  const supabase = createServiceRoleClient();
+  const { error } = await supabase
+    .from("contact_submissions")
+    .update({ read_at: read === false ? null : new Date().toISOString() })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Database error:", error.message);
+    return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
 }
 
 export async function DELETE(request: NextRequest) {
@@ -57,3 +96,4 @@ export async function DELETE(request: NextRequest) {
 
   return NextResponse.json({ success: true });
 }
+

@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
 
   const supabase = createServiceRoleClient();
   const url = new URL(request.url);
-  const page = parseInt(url.searchParams.get("page") || "1");
+  const page = Math.max(1, parseInt(url.searchParams.get("page") || "1") || 1);
   const pageSize = 25;
   const offset = (page - 1) * pageSize;
 
@@ -16,10 +16,10 @@ export async function GET(request: NextRequest) {
     .from("resource_downloads")
     .select("*", { count: "exact", head: true });
 
-  // Count unique emails
+  // Count unique emails via RPC
   const { data: uniqueData } = await supabase
     .rpc("count_distinct_emails_resources")
-    .single();
+    .single<{ count: number }>();
 
   const { data, error } = await supabase
     .from("resource_downloads")

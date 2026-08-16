@@ -2160,28 +2160,29 @@ summary:focus-visible {
   background-size: 64px 64px;
 }
 .hero-grid-base {
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 76%, transparent 100%);
-  mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 76%, transparent 100%);
+  opacity: 0.35;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 22%, #000 65%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 22%, #000 65%, transparent 100%);
 }
 .hero-grid-lit {
   background-image:
     linear-gradient(to right, var(--fg) 1px, transparent 1px),
     linear-gradient(to bottom, var(--fg) 1px, transparent 1px);
-  opacity: .75;
-  -webkit-mask-image: radial-gradient(closest-side, #000 0%, #000 32%, transparent 100%);
-  mask-image: radial-gradient(closest-side, #000 0%, #000 32%, transparent 100%);
+  opacity: .42;
+  -webkit-mask-image: radial-gradient(closest-side, #000 0%, #000 20%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 0%, #000 20%, transparent 100%);
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
-  -webkit-mask-size: 500px 500px;
-  mask-size: 500px 500px;
+  -webkit-mask-size: 380px 380px;
+  mask-size: 380px 380px;
   /* Default slow scan fallback */
   animation: hero-scan 30s ease-in-out infinite;
 }
 .hero-grid-lit.interactive {
   /* Override the animation when mouse moves, snapping the mask directly to the cursor */
   animation: none;
-  -webkit-mask-position: calc(var(--mouse-x, 50%) - 250px) calc(var(--mouse-y, 50%) - 250px);
-  mask-position: calc(var(--mouse-x, 50%) - 250px) calc(var(--mouse-y, 50%) - 250px);
+  -webkit-mask-position: calc(var(--mouse-x, 50%) - 190px) calc(var(--mouse-y, 50%) - 190px);
+  mask-position: calc(var(--mouse-x, 50%) - 190px) calc(var(--mouse-y, 50%) - 190px);
 }
 @keyframes hero-scan {
   0%   { -webkit-mask-position: 80% 18%; mask-position: 80% 18%; }
@@ -2199,7 +2200,7 @@ summary:focus-visible {
 .hero-tick-br { bottom: 26px; right: 22px; }
 @media (max-width: 700px) {
   .hero-grid-base, .hero-grid-lit { background-size: 44px 44px; }
-  .hero-grid-lit { -webkit-mask-size: 300px 300px; mask-size: 300px 300px; }
+  .hero-grid-lit { -webkit-mask-size: 240px 240px; mask-size: 240px 240px; }
   .hero-tick { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
