@@ -2740,3 +2740,182 @@ summary:focus-visible {
    touching. Visibility is the cleaner of the two: it keeps the element in the
    AnimatePresence tree and needs no !important arms race. */
 body.modal-open [data-dock] { visibility: hidden; pointer-events: none; }
+
+/* ========================================
+   ADMIN OPERATIONS SYSTEM
+   Opaque, high-clarity surfaces for dense operational work. These are scoped
+   away from the public-site glass material on purpose.
+   ======================================== */
+.admin-shell {
+  --admin-canvas: #f3f3f0;
+  --admin-surface: #fbfbfa;
+  --admin-surface-subtle: #f7f7f4;
+  --admin-ink: #0b0b0b;
+  --admin-muted: #6e6e68;
+  --admin-rule: rgba(11, 11, 11, 0.09);
+  --admin-shadow:
+    0 0 0 1px rgba(11, 11, 11, 0.055),
+    0 1px 2px -1px rgba(11, 11, 11, 0.08),
+    0 14px 34px -24px rgba(11, 11, 11, 0.24);
+  --admin-shadow-hover:
+    0 0 0 1px rgba(11, 11, 11, 0.09),
+    0 2px 5px -2px rgba(11, 11, 11, 0.1),
+    0 22px 42px -26px rgba(11, 11, 11, 0.28);
+  min-height: 100vh;
+  color: var(--admin-ink);
+  background:
+    linear-gradient(var(--admin-rule) 1px, transparent 1px),
+    linear-gradient(90deg, var(--admin-rule) 1px, transparent 1px),
+    var(--admin-canvas);
+  background-size: 48px 48px;
+  background-position: -1px -1px;
+}
+
+[data-theme="dark"] .admin-shell {
+  --admin-canvas: #10100f;
+  --admin-surface: #171716;
+  --admin-surface-subtle: #1c1c1a;
+  --admin-ink: #fbfbfa;
+  --admin-muted: #a8a8a4;
+  --admin-rule: rgba(255, 255, 255, 0.045);
+  --admin-shadow: 0 0 0 1px rgba(255, 255, 255, 0.075);
+  --admin-shadow-hover: 0 0 0 1px rgba(255, 255, 255, 0.13);
+}
+
+.admin-main {
+  min-width: 0;
+  background: color-mix(in srgb, var(--admin-canvas) 96%, transparent);
+}
+
+.admin-sidebar {
+  background: #0b0b0b;
+  color: #fbfbfa;
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.08), 18px 0 42px -34px rgba(0, 0, 0, 0.85);
+}
+
+.admin-mobile-header {
+  background: #0b0b0b;
+  color: #fbfbfa;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08), 0 14px 34px -28px rgba(0, 0, 0, 0.8);
+}
+.admin-sidebar .admin-notification-trigger,
+.admin-mobile-header .admin-notification-trigger { color: rgba(255, 255, 255, 0.52); }
+.admin-sidebar .admin-notification-trigger:hover,
+.admin-mobile-header .admin-notification-trigger:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+
+.admin-surface {
+  border-radius: 16px;
+  background: var(--admin-surface);
+  color: var(--admin-ink);
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-surface-subtle { background: var(--admin-surface-subtle); }
+.admin-surface-ink { background: #0b0b0b; color: #fbfbfa; }
+.admin-surface-attention {
+  background: color-mix(in srgb, var(--admin-surface) 94%, #b8860b 6%);
+  box-shadow: 0 0 0 1px rgba(146, 104, 17, 0.18), 0 16px 36px -28px rgba(90, 60, 0, 0.4);
+}
+.admin-surface-interactive {
+  transition-property: box-shadow, transform;
+  transition-duration: 180ms;
+  transition-timing-function: var(--ease);
+}
+.admin-surface-interactive:hover { box-shadow: var(--admin-shadow-hover); transform: translateY(-1px); }
+.admin-surface-interactive:active { transform: scale(0.96); }
+
+/* Existing admin pages still use the shared GlassCard component. Inside the
+   operations shell it resolves to an opaque work surface, never frosted glass. */
+.admin-shell .glass,
+.admin-shell .glass-prominent,
+.admin-shell .glass-gold {
+  background: var(--admin-surface);
+  border-color: transparent;
+  box-shadow: var(--admin-shadow);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.admin-shell .glass-gold {
+  background: color-mix(in srgb, var(--admin-surface) 94%, #b8860b 6%);
+}
+
+.admin-dialog-surface { box-shadow: 0 0 0 1px rgba(11, 11, 11, 0.08), 0 30px 80px -28px rgba(0, 0, 0, 0.5); }
+[data-theme="dark"] .admin-dialog-surface { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.11), 0 30px 80px -28px #000; }
+
+.admin-eyebrow {
+  margin-bottom: 5px;
+  color: var(--admin-muted);
+  font-family: var(--util);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.admin-dialog-title,
+.admin-page-title {
+  color: var(--admin-ink);
+  font-family: var(--display);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+.admin-dialog-title { font-size: 1.35rem; }
+.admin-page-title { font-size: clamp(1.75rem, 2.5vw, 2.35rem); }
+.admin-copy { color: var(--admin-muted); text-wrap: pretty; }
+.admin-number { font-variant-numeric: tabular-nums; }
+
+.admin-icon-button {
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: var(--admin-muted);
+  transition-property: color, background-color, transform;
+  transition-duration: 160ms;
+  transition-timing-function: var(--ease);
+}
+.admin-icon-button:hover { color: var(--admin-ink); background: var(--admin-surface-subtle); }
+.admin-icon-button:active { transform: scale(0.96); }
+
+.admin-field-label {
+  display: grid;
+  gap: 6px;
+  color: var(--admin-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.admin-field-label > span { display: flex; align-items: center; gap: 6px; }
+.admin-field {
+  min-height: 42px;
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--admin-ink) 13%, transparent);
+  border-radius: 10px;
+  background: var(--admin-surface-subtle);
+  padding: 0 12px;
+  color: var(--admin-ink);
+  font-size: 13px;
+  outline: none;
+  transition-property: border-color, box-shadow, background-color;
+  transition-duration: 160ms;
+}
+.admin-field:focus { border-color: var(--admin-ink); box-shadow: 0 0 0 3px color-mix(in srgb, var(--admin-ink) 10%, transparent); background: var(--admin-surface); }
+
+.admin-route-frame { width: 100%; max-width: 1500px; margin-inline: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-shell *,
+  .admin-shell *::before,
+  .admin-shell *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .admin-surface-interactive:hover { transform: none; }
+}

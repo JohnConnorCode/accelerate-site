@@ -45,12 +45,16 @@ export function NotificationBell() {
   const [urgentCount, setUrgentCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const fetchAbortRef = useRef<AbortController | null>(null);
 
   const fetchErrorCount = useRef(0);
 
   const fetchNotifications = useCallback(async () => {
+    fetchAbortRef.current?.abort();
+    const controller = new AbortController();
+    fetchAbortRef.current = controller;
     try {
-      const res = await fetch("/api/admin/notifications");
+      const res = await fetch("/api/admin/notifications", { signal: controller.signal });
       if (!res.ok) {
         // 401/403 mean the admin session expired — don't toast every poll.
         if (res.status !== 401 && res.status !== 403) {
@@ -67,11 +71,14 @@ export function NotificationBell() {
       setUnreadCount(data.unreadCount || 0);
       setUrgentCount(data.urgentCount || 0);
     } catch (err) {
+      if (controller.signal.aborted) return;
       console.error("[NotificationBell] fetch failed:", err);
       fetchErrorCount.current += 1;
       if (fetchErrorCount.current === 3) {
         toast.error("Lost connection to notifications.");
       }
+    } finally {
+      if (fetchAbortRef.current === controller) fetchAbortRef.current = null;
     }
   }, []);
 
@@ -106,6 +113,7 @@ export function NotificationBell() {
     return () => {
       cancelled = true;
       if (timer) clearTimeout(timer);
+      fetchAbortRef.current?.abort();
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [fetchNotifications, urgentCount]);
@@ -169,7 +177,9 @@ export function NotificationBell() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-1.5 text-white-muted hover:text-white-primary transition-colors cursor-pointer"
+        className="admin-notification-trigger relative inline-flex h-10 w-10 items-center justify-center rounded-[10px] text-white-muted transition-[color,background-color,transform] duration-150 hover:bg-black/5 hover:text-white-primary active:scale-[0.96] cursor-pointer"
+        aria-label={isOpen ? "Close notifications" : `Open notifications${unreadCount ? `, ${unreadCount} unread` : ""}`}
+        aria-expanded={isOpen}
       >
         <Bell className="h-4.5 w-4.5" />
         {unreadCount > 0 && (
@@ -182,14 +192,14 @@ export function NotificationBell() {
         )}
       </button>
 
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, y: -4, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-2 w-80 glass-prominent rounded-xl shadow-2xl border border-border-glass z-50 overflow-clip"
+            className="absolute right-0 top-full z-50 mt-2 w-80 overflow-clip rounded-[14px] bg-[var(--admin-surface,#fbfbfa)] text-[var(--admin-ink,#0b0b0b)] shadow-2xl"
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-border-glass">
               <h4 className="text-sm font-semibold text-white-primary">Notifications</h4>

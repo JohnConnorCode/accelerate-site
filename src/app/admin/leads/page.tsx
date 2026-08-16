@@ -134,6 +134,12 @@ export default function AdminLeadsPage() {
     return () => window.removeEventListener("admin:new-lead", open);
   }, []);
 
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("new") === "1") {
+      setShowAddLead(true);
+    }
+  }, []);
+
   const handleUpdateLead = async (
     id: string,
     data: { lead_status?: string; notes?: string; estimated_value?: number }

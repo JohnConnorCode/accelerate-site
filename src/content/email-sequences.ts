@@ -1,6 +1,82 @@
 import type { EmailSequenceStep, EmailSequenceType } from "@/lib/types";
 
 export const emailSequences: Record<EmailSequenceType, EmailSequenceStep[]> = {
+  manual_audit_followup: [
+    {
+      stepNumber: 1,
+      subject: "We received your roofing revenue audit request",
+      delayDays: 0,
+      bodyTemplate: `Hi {{name}},
+
+Your Roofing Revenue Leak Audit request is in.
+
+I'm going to review the company and the constraint you selected, then email you personally within one business day with the best next step and a few times to talk.
+
+The session is free. Within two business days after we speak, you'll get the highest-cost leak, the first fix, and the implementation order in writing.
+
+John
+Accelerate`,
+    },
+  ],
+  booking_nurture: [
+    {
+      stepNumber: 1,
+      subject: "Your roofing revenue audit is ready to book",
+      delayDays: 0,
+      bodyTemplate: `Hi {{name}},
+
+Based on what you shared, your company is a fit for a free Roofing Revenue Leak Audit.
+
+Pick a time here: {{planLink}}
+
+In 30 minutes, we'll identify the highest-cost gap between a new inquiry and booked work. Within two business days, you'll get the finding, the fix, and the likely implementation sequence in writing—whether we work together or not.
+
+John
+Accelerate`,
+    },
+    {
+      stepNumber: 2,
+      subject: "The leak is usually after the first inquiry",
+      delayDays: 1,
+      bodyTemplate: `Hi {{name}},
+
+Roofing companies rarely lose revenue because nobody in the market needs a roof. It gets lost in slow first response, estimates that go quiet, and follow-up that depends on somebody remembering.
+
+We'll map which one is costing you the most. Book your audit here: {{planLink}}
+
+John`,
+    },
+    {
+      stepNumber: 3,
+      subject: "Should I close the loop?",
+      delayDays: 3,
+      bodyTemplate: `Hi {{name}},
+
+I don't want to crowd your inbox. If tightening inquiry response and estimate follow-up is a priority, you can choose a time here: {{planLink}}
+
+If it is not the right time, no reply is needed.
+
+John`,
+    },
+  ],
+  roofing_nurture: [
+    {
+      stepNumber: 1,
+      subject: "A practical place to start",
+      delayDays: 0,
+      bodyTemplate: `Hi {{name}},
+
+Thanks for sharing where the business is today. Our managed system is designed for established roofing and exterior companies with enough inquiry volume to justify hands-on operation.
+
+This guide is the best place to start in the meantime:
+https://www.acceleratewith.us/learn/automate-lead-follow-up
+
+When the business is consistently above $1M in annual revenue, reply and we'll take another look.
+
+John
+Accelerate`,
+    },
+  ],
   plan_nurture: [
     {
       stepNumber: 1,

@@ -1,88 +1,111 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import {
-  LayoutDashboard,
-  Users,
-  FileText,
-  LogOut,
-  Settings,
-  MessageCircle,
-  Handshake,
-  Mail,
-  Globe,
-  Menu,
-  X,
-  Inbox,
-  AtSign,
-  Download,
   Activity,
-  Search,
+  ArrowUpRight,
+  AtSign,
   BarChart3,
-  User,
   Building2,
-  FileCheck,
+  CalendarCheck2,
+  CheckSquare,
+  Command,
   DollarSign,
+  Download,
   Eye,
+  FileCheck,
+  FileText,
+  Globe,
+  Handshake,
+  Inbox,
+  LayoutDashboard,
+  ListChecks,
+  LogOut,
+  Mail,
+  Menu,
+  MessageCircle,
+  Plus,
+  Search,
+  Settings,
+  User,
+  Users,
+  X,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { NotificationBell } from "@/components/admin/NotificationBell";
 import { Toaster } from "@/components/admin/Toaster";
 import { AdminErrorBoundary } from "@/components/admin/AdminErrorBoundary";
 import { AdminShortcuts } from "@/components/admin/AdminShortcuts";
+import { AdminCreateTaskModal } from "@/components/admin/AdminCreateTaskModal";
+import { EmailComposeModal } from "@/components/admin/EmailComposeModal";
+import { adminDialogTransition, adminPageVariants } from "@/lib/admin/motion";
 
-const sidebarSections = [
+interface NavLink {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+}
+
+const sidebarSections: { label: string; links: NavLink[] }[] = [
   {
-    label: "Overview",
+    label: "Operate",
     links: [
-      { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-      { label: "Activity", href: "/admin/activity", icon: Activity },
+      { label: "Command Center", href: "/admin", icon: LayoutDashboard },
+      { label: "Operator Inbox", href: "/admin/inbox", icon: Inbox },
       { label: "Leads", href: "/admin/leads", icon: Users },
+      { label: "Bookings", href: "/admin/bookings", icon: CalendarCheck2 },
       { label: "Clients", href: "/admin/clients", icon: Building2 },
       { label: "Proposals", href: "/admin/proposals", icon: FileCheck },
+    ],
+  },
+  {
+    label: "Grow",
+    links: [
+      { label: "Contacts", href: "/admin/contacts", icon: AtSign },
+      { label: "Chat Handoffs", href: "/admin/chat-leads", icon: MessageCircle },
+      { label: "Subscribers", href: "/admin/subscribers", icon: Mail },
+      { label: "Partner Applications", href: "/admin/partners", icon: Handshake },
+      { label: "Content", href: "/admin/content", icon: FileText },
+      { label: "Email Sequences", href: "/admin/email-sequences", icon: Mail },
+    ],
+  },
+  {
+    label: "Measure",
+    links: [
       { label: "Revenue", href: "/admin/revenue", icon: DollarSign },
       { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
-      { label: "Content", href: "/admin/content", icon: FileText },
+      { label: "Activity", href: "/admin/activity", icon: Activity },
     ],
   },
   {
-    label: "Channels",
+    label: "Tools",
     links: [
-      { label: "Contacts", href: "/admin/contacts", icon: Inbox },
-      { label: "Subscribers", href: "/admin/subscribers", icon: AtSign },
-      { label: "Chat Leads", href: "/admin/chat-leads", icon: MessageCircle },
-      { label: "Resources", href: "/admin/resources", icon: Download },
-      { label: "Partners", href: "/admin/partners", icon: Handshake },
-      { label: "Email Sequences", href: "/admin/email-sequences", icon: Mail },
+      { label: "Resource Downloads", href: "/admin/resources", icon: Download },
       { label: "Website Grades", href: "/admin/website-grades", icon: Globe },
-    ],
-  },
-  {
-    label: "System",
-    links: [
-      { label: "Emails", href: "/admin/emails", icon: Eye },
+      { label: "Email Previews", href: "/admin/emails", icon: Eye },
+      { label: "Launch Setup", href: "/admin/setup", icon: ListChecks },
       { label: "Settings", href: "/admin/settings", icon: Settings },
     ],
   },
 ];
 
-const allLinks = sidebarSections.flatMap((s) => s.links);
+const allLinks: NavLink[] = sidebarSections.flatMap((section) => section.links);
 
 function getBreadcrumbs(pathname: string): { label: string; href: string }[] {
-  const crumbs = [{ label: "Admin", href: "/admin" }];
+  const crumbs = [{ label: "Command Center", href: "/admin" }];
   const active = allLinks.find(
-    (l) => l.href !== "/admin" && pathname.startsWith(l.href)
+    (link) => link.href !== "/admin" && pathname.startsWith(link.href),
   );
-  if (active) {
-    crumbs.push({ label: active.label, href: active.href });
-  }
-  // Handle contact timeline pages
+  if (active) crumbs.push({ label: active.label, href: active.href });
   if (pathname.startsWith("/admin/contacts/") && pathname !== "/admin/contacts") {
-    crumbs.push({ label: "Contacts", href: "/admin/contacts" });
+    if (!crumbs.some((crumb) => crumb.href === "/admin/contacts")) {
+      crumbs.push({ label: "Contacts", href: "/admin/contacts" });
+    }
     crumbs.push({ label: "Timeline", href: pathname });
   }
   return crumbs;
@@ -94,11 +117,15 @@ interface SearchPerson {
   type: string;
 }
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+interface CommandAction {
+  label: string;
+  description: string;
+  keywords: string;
+  icon: LucideIcon;
+  run: () => void;
+}
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -106,16 +133,22 @@ export default function AdminLayout({
   const [searchQuery, setSearchQuery] = useState("");
   const [searchPeople, setSearchPeople] = useState<SearchPerson[]>([]);
   const [searchingPeople, setSearchingPeople] = useState(false);
+  const [composeOpen, setComposeOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<NodeJS.Timeout>(undefined);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const searchAbortRef = useRef<AbortController | null>(null);
 
-  // Cmd+K shortcut to toggle search
+  const closeSearch = useCallback(() => {
+    setSearchOpen(false);
+    setSearchQuery("");
+    setSearchPeople([]);
+  }, []);
+
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        setSearchOpen((prev) => !prev);
+    const handler = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setSearchOpen((current) => !current);
         setSearchQuery("");
         setSearchPeople([]);
       }
@@ -124,7 +157,6 @@ export default function AdminLayout({
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
-  // Debounced people search
   const searchForPeople = useCallback(async (query: string) => {
     searchAbortRef.current?.abort();
     if (query.length < 3) {
@@ -136,16 +168,17 @@ export default function AdminLayout({
     searchAbortRef.current = controller;
     setSearchingPeople(true);
     try {
-      const res = await fetch(`/api/admin/search?q=${encodeURIComponent(query)}`, {
+      const response = await fetch(`/api/admin/search?q=${encodeURIComponent(query)}`, {
         signal: controller.signal,
       });
-      if (!res.ok) throw new Error(`Search failed (${res.status})`);
-      const data = await res.json();
+      if (!response.ok) throw new Error(`Search failed (${response.status})`);
+      const data = await response.json();
       setSearchPeople(data.results || []);
     } catch (error) {
-      if (controller.signal.aborted) return;
-      console.error("[admin-search] failed:", error);
-      setSearchPeople([]);
+      if (!controller.signal.aborted) {
+        console.error("[admin-search] failed:", error);
+        setSearchPeople([]);
+      }
     } finally {
       if (searchAbortRef.current === controller) {
         searchAbortRef.current = null;
@@ -157,7 +190,7 @@ export default function AdminLayout({
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => searchForPeople(value), 300);
+    debounceRef.current = setTimeout(() => searchForPeople(value), 260);
   };
 
   useEffect(() => () => {
@@ -165,8 +198,15 @@ export default function AdminLayout({
     searchAbortRef.current?.abort();
   }, []);
 
-  // Don't show sidebar on login page
-  if (pathname === "/admin/login") {
+  useEffect(() => setMobileOpen(false), [pathname]);
+
+  useEffect(() => {
+    const openComposer = () => setComposeOpen(true);
+    window.addEventListener("admin:compose-email", openComposer);
+    return () => window.removeEventListener("admin:compose-email", openComposer);
+  }, []);
+
+  if (pathname === "/admin/login" || pathname === "/admin/update-password") {
     return (
       <>
         {children}
@@ -178,371 +218,323 @@ export default function AdminLayout({
   const handleSignOut = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
-    window.location.href = "/admin/login";
+    window.location.replace("/admin/login");
   };
 
   const isActive = (href: string) =>
     pathname === href || (href !== "/admin" && pathname.startsWith(href));
 
+  const commandActions: CommandAction[] = [
+    {
+      label: "New lead",
+      description: "Add an opportunity to the pipeline",
+      keywords: "create add lead opportunity",
+      icon: Plus,
+      run: () => {
+        if (pathname === "/admin/leads") {
+          window.dispatchEvent(new CustomEvent("admin:new-lead"));
+        } else {
+          router.push("/admin/leads?new=1");
+        }
+      },
+    },
+    {
+      label: "Compose email",
+      description: "Write a direct follow-up",
+      keywords: "send reply follow up message",
+      icon: Mail,
+      run: () => setComposeOpen(true),
+    },
+    {
+      label: "Add task",
+      description: "Put a follow-up in the operator queue",
+      keywords: "create todo reminder follow up",
+      icon: CheckSquare,
+      run: () => window.dispatchEvent(new CustomEvent("admin:add-task")),
+    },
+    {
+      label: "Export leads",
+      description: "Download the current lead database",
+      keywords: "csv download backup",
+      icon: Download,
+      run: () => window.open("/api/admin/leads/export", "_blank", "noopener,noreferrer"),
+    },
+    {
+      label: "View live site",
+      description: "Open acceleratewith.us in a new tab",
+      keywords: "website public open",
+      icon: ArrowUpRight,
+      run: () => window.open("/", "_blank", "noopener,noreferrer"),
+    },
+  ];
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const filteredLinks = normalizedQuery
+    ? allLinks.filter((link) => link.label.toLowerCase().includes(normalizedQuery))
+    : allLinks.slice(0, 7);
+  const filteredActions = normalizedQuery
+    ? commandActions.filter((action) =>
+        `${action.label} ${action.description} ${action.keywords}`.toLowerCase().includes(normalizedQuery),
+      )
+    : commandActions;
   const breadcrumbs = getBreadcrumbs(pathname);
 
-  const filteredLinks = searchQuery
-    ? allLinks.filter((l) =>
-        l.label.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : allLinks;
-
   return (
-    <div className="flex min-h-screen">
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:block w-60 shrink-0 glass-prominent border-r border-border-glass">
-        <div className="sticky top-0 flex h-screen flex-col p-4">
+    <MotionConfig reducedMotion="user">
+    <div className="admin-shell flex min-h-screen">
+      <aside className="admin-sidebar hidden w-[272px] shrink-0 lg:block" data-admin-sidebar>
+        <div className="sticky top-0 flex h-screen flex-col px-4 py-5">
           <SidebarContent isActive={isActive} onSignOut={handleSignOut} />
         </div>
       </aside>
 
-      {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 glass-prominent border-b border-border-glass px-4 py-3 flex items-center justify-between">
-        <Link href="/admin" className="font-display text-lg font-bold text-gold-gradient">
-          Accelerate
+      <header className="admin-mobile-header fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between px-4 lg:hidden">
+        <Link href="/admin" className="font-display text-[15px] font-semibold tracking-[-0.02em] text-white">
+          Accelerate <span className="text-white/45">/ Ops</span>
         </Link>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <NotificationBell />
-          <button
-            onClick={() => setSearchOpen(true)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-white-muted transition-[color,background-color,transform] cursor-pointer hover:bg-white/5 hover:text-white-primary active:scale-[0.96]"
-            aria-label="Search admin"
-          >
-            <Search className="h-5 w-5" />
+          <button type="button" onClick={() => setSearchOpen(true)} className="inline-flex h-10 w-10 items-center justify-center rounded-[10px] text-white/60 transition-[color,background-color,transform] duration-150 hover:bg-white/8 hover:text-white active:scale-[0.96]" aria-label="Open command palette">
+            <Search className="h-4.5 w-4.5" />
           </button>
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-white-primary transition-[background-color,transform] cursor-pointer hover:bg-white/5 active:scale-[0.96]"
-            aria-label={mobileOpen ? "Close admin navigation" : "Open admin navigation"}
-            aria-expanded={mobileOpen}
-          >
-            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          <button type="button" onClick={() => setMobileOpen((current) => !current)} className="inline-flex h-10 w-10 items-center justify-center rounded-[10px] text-white/75 transition-[color,background-color,transform] duration-150 hover:bg-white/8 hover:text-white active:scale-[0.96]" aria-label={mobileOpen ? "Close navigation" : "Open navigation"} aria-expanded={mobileOpen}>
+            <AnimatePresence initial={false} mode="popLayout">
+              <motion.span
+                key={mobileOpen ? "close" : "menu"}
+                initial={{ opacity: 0, scale: 0.25, filter: "blur(4px)" }}
+                animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                exit={{ opacity: 0, scale: 0.25, filter: "blur(4px)" }}
+                transition={{ type: "spring", duration: 0.3, bounce: 0 }}
+              >
+                {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </motion.span>
+            </AnimatePresence>
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* Mobile Sidebar Overlay */}
       <AnimatePresence initial={false}>
         {mobileOpen && (
-          <div className="lg:hidden fixed inset-0 z-50">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/60"
-              onClick={() => setMobileOpen(false)}
-            />
-            <motion.aside
-              initial={{ x: -260 }}
-              animate={{ x: 0 }}
-              exit={{ x: -260 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-              className="absolute left-0 top-0 h-full w-64 glass-prominent border-r border-border-glass p-4 flex flex-col"
-            >
-              <SidebarContent
-                isActive={isActive}
-                onSignOut={handleSignOut}
-                onNavigate={() => setMobileOpen(false)}
-              />
+          <div className="fixed inset-0 z-50 lg:hidden">
+            <motion.button type="button" aria-label="Close navigation" className="absolute inset-0 bg-black/55" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileOpen(false)} />
+            <motion.aside className="admin-sidebar absolute inset-y-0 left-0 flex w-[286px] flex-col px-4 py-5" initial={{ x: -286 }} animate={{ x: 0 }} exit={{ x: -286 }} transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}>
+              <SidebarContent isActive={isActive} onSignOut={handleSignOut} onNavigate={() => setMobileOpen(false)} />
             </motion.aside>
           </div>
         )}
       </AnimatePresence>
 
-      {/* Cmd+K Search Overlay */}
       <CmdKSearch
         open={searchOpen}
-        onClose={() => { setSearchOpen(false); setSearchQuery(""); setSearchPeople([]); }}
+        onClose={closeSearch}
         query={searchQuery}
         onQueryChange={handleSearchChange}
+        actions={filteredActions}
         pageResults={filteredLinks}
         peopleResults={searchPeople}
         searchingPeople={searchingPeople}
-        onSelectPage={(href) => { router.push(href); setSearchOpen(false); setSearchQuery(""); setSearchPeople([]); }}
-        onSelectPerson={(email) => { router.push(`/admin/contacts/${encodeURIComponent(email)}`); setSearchOpen(false); setSearchQuery(""); setSearchPeople([]); }}
+        onSelectPage={(href) => { router.push(href); closeSearch(); }}
+        onSelectPerson={(email) => { router.push(`/admin/contacts/${encodeURIComponent(email)}`); closeSearch(); }}
+        onSelectAction={(action) => { closeSearch(); action.run(); }}
         inputRef={searchInputRef}
       />
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto p-4 pt-16 lg:p-8 lg:pt-8">
-        {/* Breadcrumbs */}
-        {breadcrumbs.length > 1 && (
-          <nav className="mb-4 flex items-center gap-1.5 text-xs text-white-muted lg:mb-2">
-            {breadcrumbs.map((crumb, i) => (
-              <span key={crumb.href} className="flex items-center gap-1.5">
-                {i > 0 && <span className="text-white-muted/50">/</span>}
-                <Link
-                  href={crumb.href}
-                  className={cn(
-                    "hover:text-white-secondary transition-colors",
-                    i === breadcrumbs.length - 1 && "text-white-secondary"
-                  )}
-                >
-                  {crumb.label}
-                </Link>
-              </span>
-            ))}
-          </nav>
-        )}
-        <AdminErrorBoundary key={pathname}>{children}</AdminErrorBoundary>
+      <main className="admin-main min-w-0 flex-1 px-4 pb-12 pt-[76px] sm:px-6 lg:px-8 lg:pt-6 xl:px-10">
+        <div className="admin-route-frame">
+          <div className="mb-5 flex min-h-10 items-center justify-between gap-4">
+            <nav className="flex min-w-0 items-center gap-1.5 text-xs text-[var(--admin-muted)]" aria-label="Breadcrumb">
+              {breadcrumbs.map((crumb, index) => (
+                <span key={`${crumb.href}-${index}`} className="flex min-w-0 items-center gap-1.5">
+                  {index > 0 && <span className="opacity-45">/</span>}
+                  <Link href={crumb.href} className={cn("truncate transition-colors duration-150 hover:text-[var(--admin-ink)]", index === breadcrumbs.length - 1 && "text-[var(--admin-ink)]")} aria-current={index === breadcrumbs.length - 1 ? "page" : undefined}>
+                    {crumb.label}
+                  </Link>
+                </span>
+              ))}
+            </nav>
+            <button type="button" onClick={() => setSearchOpen(true)} className="hidden min-h-10 items-center gap-3 rounded-[11px] bg-[var(--admin-surface)] px-3 text-xs text-[var(--admin-muted)] shadow-[var(--admin-shadow)] transition-[box-shadow,color,transform] duration-150 hover:text-[var(--admin-ink)] hover:shadow-[var(--admin-shadow-hover)] active:scale-[0.96] sm:flex">
+              <Search className="h-3.5 w-3.5" />
+              Search or run a command
+              <kbd className="ml-2 rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-0.5 font-mono text-[10px]">⌘K</kbd>
+            </button>
+          </div>
+
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div key={pathname} variants={adminPageVariants} initial="hidden" animate="visible" exit="exit">
+              <AdminErrorBoundary key={pathname}>{children}</AdminErrorBoundary>
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </main>
+
+      <EmailComposeModal isOpen={composeOpen} onClose={() => setComposeOpen(false)} recipientEmail="" />
+      <AdminCreateTaskModal />
       <Toaster />
       <AdminShortcuts />
     </div>
+    </MotionConfig>
   );
-}
-
-interface SidebarContentProps {
-  isActive: (href: string) => boolean;
-  onSignOut: () => Promise<void> | void;
-  onNavigate?: () => void;
 }
 
 function SidebarContent({
   isActive,
   onSignOut,
   onNavigate,
-}: SidebarContentProps) {
-  const handleNavigate = () => {
-    onNavigate?.();
-  };
-
-  const handleSignOutClick = async () => {
-    onNavigate?.();
-    await onSignOut();
-  };
-
+}: {
+  isActive: (href: string) => boolean;
+  onSignOut: () => Promise<void> | void;
+  onNavigate?: () => void;
+}) {
   return (
     <>
-      <div className="flex items-center justify-between mb-6 px-3 pt-2">
-        <Link href="/admin" onClick={handleNavigate}>
-          <span className="font-display text-xl font-bold text-gold-gradient">
-            Accelerate
-          </span>
-          <span className="block text-xs text-white-muted mt-0.5">
-            Admin Panel
-          </span>
+      <div className="mb-6 flex items-start justify-between gap-3 px-2">
+        <Link href="/admin" onClick={onNavigate} className="group min-w-0">
+          <span className="block font-display text-lg font-semibold tracking-[-0.035em] text-white">Accelerate</span>
+          <span className="mt-0.5 block font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-white/38 group-hover:text-white/55">Operations</span>
         </Link>
         <NotificationBell />
       </div>
 
-      <nav className="flex-1 space-y-5 overflow-y-auto">
-        {sidebarSections.map((section) => (
-          <div key={section.label}>
-            <p className="px-3 mb-1.5 text-[10px] font-semibold text-white-muted uppercase tracking-wider">
-              {section.label}
-            </p>
+      <nav className="flex-1 space-y-5 overflow-y-auto overscroll-contain pr-1" aria-label="Admin navigation">
+        {sidebarSections.map((section, sectionIndex) => (
+          <motion.div key={section.label} initial={{ opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: sectionIndex * 0.065, duration: 0.32, ease: [0.16, 1, 0.3, 1] }}>
+            <p className="mb-1.5 px-2 font-mono text-[9px] font-semibold uppercase tracking-[0.15em] text-white/30">{section.label}</p>
             <div className="space-y-0.5">
               {section.links.map((link) => {
                 const active = isActive(link.href);
                 return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={handleNavigate}
-                    className={cn(
-                      "flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm transition-[color,background-color,transform] relative active:scale-[0.96]",
-                      active
-                        ? "bg-gold-gradient text-black font-semibold"
-                        : "text-white-secondary hover:text-white-primary hover:bg-white/5"
-                    )}
-                  >
-                    {active && (
-                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-gold rounded-r" />
-                    )}
-                    <link.icon className="h-4 w-4" />
-                    {link.label}
+                  <Link key={link.href} href={link.href} onClick={onNavigate} className={cn("group relative flex min-h-10 items-center gap-3 rounded-[10px] px-2.5 text-[13px] transition-[color,background-color,transform] duration-150 active:scale-[0.96]", active ? "bg-white text-black shadow-[0_1px_2px_rgba(0,0,0,0.18)]" : "text-white/58 hover:bg-white/7 hover:text-white")} aria-current={active ? "page" : undefined}>
+                    <link.icon className={cn("h-4 w-4 shrink-0 transition-colors duration-150", active ? "text-black" : "text-white/38 group-hover:text-white/75")} />
+                    <span className="min-w-0 truncate">{link.label}</span>
+                    {active && <motion.span layoutId="admin-nav-active" className="absolute inset-y-2 -left-4 w-0.5 rounded-r bg-white" transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }} />}
                   </Link>
                 );
               })}
             </div>
-          </div>
+          </motion.div>
         ))}
       </nav>
 
-      <div className="border-t border-border-glass pt-4 mt-4">
-        <Link
-          href="/"
-          className="block text-xs text-white-muted hover:text-white-secondary transition-colors mb-3 px-3"
-          onClick={handleNavigate}
-        >
-          View Site
+      <div className="mt-4 border-t border-white/10 pt-3">
+        <Link href="/" target="_blank" onClick={onNavigate} className="flex min-h-10 items-center gap-3 rounded-[10px] px-2.5 text-xs text-white/42 transition-[color,background-color,transform] duration-150 hover:bg-white/7 hover:text-white active:scale-[0.96]">
+          <ArrowUpRight className="h-4 w-4" /> View live site
         </Link>
-        <button
-          onClick={handleSignOutClick}
-          className="flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white-muted hover:text-white-primary hover:bg-white/5 transition-[color,background-color,transform] active:scale-[0.96] cursor-pointer"
-        >
-          <LogOut className="h-4 w-4" />
-          Sign Out
+        <button type="button" onClick={async () => { onNavigate?.(); await onSignOut(); }} className="flex min-h-10 w-full items-center gap-3 rounded-[10px] px-2.5 text-xs text-white/42 transition-[color,background-color,transform] duration-150 hover:bg-white/7 hover:text-white active:scale-[0.96]">
+          <LogOut className="h-4 w-4" /> Sign out
         </button>
       </div>
     </>
   );
 }
 
-// Enhanced Cmd+K Search with People
 function CmdKSearch({
   open,
   onClose,
   query,
   onQueryChange,
+  actions,
   pageResults,
   peopleResults,
   searchingPeople,
   onSelectPage,
   onSelectPerson,
+  onSelectAction,
   inputRef,
 }: {
   open: boolean;
   onClose: () => void;
   query: string;
-  onQueryChange: (q: string) => void;
-  pageResults: typeof allLinks;
+  onQueryChange: (query: string) => void;
+  actions: CommandAction[];
+  pageResults: NavLink[];
   peopleResults: SearchPerson[];
   searchingPeople: boolean;
   onSelectPage: (href: string) => void;
   onSelectPerson: (email: string) => void;
+  onSelectAction: (action: CommandAction) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
 }) {
-  const [selectedIdx, setSelectedIdx] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const items = useMemo(() => [
+    ...actions.map((action) => ({ kind: "action" as const, action })),
+    ...pageResults.map((page) => ({ kind: "page" as const, page })),
+    ...peopleResults.map((person) => ({ kind: "person" as const, person })),
+  ], [actions, pageResults, peopleResults]);
 
   useEffect(() => {
-    if (open) {
-      const timer = window.setTimeout(() => inputRef.current?.focus(), 50);
-      return () => window.clearTimeout(timer);
-    }
+    if (!open) return;
+    const timer = window.setTimeout(() => {
+      setSelectedIndex(0);
+      inputRef.current?.focus();
+    }, 40);
+    return () => window.clearTimeout(timer);
   }, [open, inputRef]);
 
-  const totalItems = pageResults.length + peopleResults.length;
-
-  const handleQueryInput = (value: string) => {
-    setSelectedIdx(0);
-    onQueryChange(value);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setSelectedIdx((i) => Math.min(i + 1, totalItems - 1));
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setSelectedIdx((i) => Math.max(i - 1, 0));
-    } else if (e.key === "Enter") {
-      if (selectedIdx < pageResults.length) {
-        const page = pageResults[selectedIdx];
-        if (page) onSelectPage(page.href);
-      } else {
-        const person = peopleResults[selectedIdx - pageResults.length];
-        if (person) onSelectPerson(person.email);
-      }
-    } else if (e.key === "Escape") {
-      onClose();
-    }
+  const select = (index: number) => {
+    const item = items[index];
+    if (!item) return;
+    if (item.kind === "action") onSelectAction(item.action);
+    if (item.kind === "page") onSelectPage(item.page.href);
+    if (item.kind === "person") onSelectPerson(item.person.email);
   };
 
   return (
     <AnimatePresence initial={false}>
       {open && (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[20vh]" role="dialog" aria-modal="true" aria-label="Search admin">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/60"
-            onClick={onClose}
-          />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -10 }}
-            transition={{ duration: 0.15 }}
-            className="relative w-full max-w-md mx-4 glass-prominent rounded-xl overflow-clip shadow-2xl"
-          >
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-border-glass">
-              <Search className="h-4 w-4 text-white-muted shrink-0" />
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={(e) => handleQueryInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Search pages and people..."
-                className="flex-1 bg-transparent text-sm text-white-primary placeholder:text-white-muted focus:outline-none"
-              />
-              <kbd className="hidden sm:inline-flex px-1.5 py-0.5 text-[10px] text-white-muted border border-border-glass rounded">
-                ESC
-              </kbd>
+        <div className="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[12vh] sm:pt-[18vh]" role="dialog" aria-modal="true" aria-label="Admin command palette">
+          <motion.button type="button" aria-label="Close command palette" className="absolute inset-0 bg-black/55" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={adminDialogTransition} onClick={onClose} />
+          <motion.div className="relative w-full max-w-xl overflow-hidden rounded-[18px] bg-[#fbfbfa] text-[#0b0b0b] shadow-[0_30px_90px_-25px_rgba(0,0,0,0.58)]" initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8, scale: 0.98 }} transition={adminDialogTransition}>
+            <div className="flex min-h-14 items-center gap-3 border-b border-black/8 px-4">
+              <Search className="h-4 w-4 shrink-0 text-black/38" />
+              <input ref={inputRef} value={query} onChange={(event) => { setSelectedIndex(0); onQueryChange(event.target.value); }} onKeyDown={(event) => {
+                if (event.key === "ArrowDown") { event.preventDefault(); setSelectedIndex((current) => Math.min(current + 1, Math.max(0, items.length - 1))); }
+                if (event.key === "ArrowUp") { event.preventDefault(); setSelectedIndex((current) => Math.max(current - 1, 0)); }
+                if (event.key === "Enter") { event.preventDefault(); select(selectedIndex); }
+                if (event.key === "Escape") onClose();
+              }} placeholder="Search people, pages, or run a command…" className="min-w-0 flex-1 bg-transparent text-sm text-black outline-none placeholder:text-black/35" />
+              <kbd className="rounded-md bg-black/5 px-1.5 py-1 font-mono text-[9px] text-black/42">ESC</kbd>
             </div>
-            <div className="max-h-80 overflow-y-auto py-1">
-              {/* Pages section */}
-              {pageResults.length > 0 && (
-                <>
-                  <p className="px-4 py-1.5 text-[10px] uppercase font-semibold text-white-muted">Pages</p>
-                  {pageResults.map((link, i) => (
-                    <button
-                      key={link.href}
-                      onClick={() => onSelectPage(link.href)}
-                      className={cn(
-                        "flex items-center gap-3 w-full px-4 py-2.5 text-sm transition-colors cursor-pointer",
-                        i === selectedIdx
-                          ? "bg-white/10 text-white-primary"
-                          : "text-white-secondary hover:bg-white/5"
-                      )}
-                    >
-                      <link.icon className="h-4 w-4 shrink-0" />
-                      {link.label}
-                    </button>
-                  ))}
-                </>
-              )}
 
-              {/* People section */}
-              {peopleResults.length > 0 && (
-                <>
-                  <p className="px-4 py-1.5 text-[10px] uppercase font-semibold text-white-muted mt-1">People</p>
-                  {peopleResults.map((person, i) => {
-                    const idx = pageResults.length + i;
-                    return (
-                      <button
-                        key={person.email}
-                        onClick={() => onSelectPerson(person.email)}
-                        className={cn(
-                          "flex items-center gap-3 w-full px-4 py-2.5 text-sm transition-colors cursor-pointer",
-                          idx === selectedIdx
-                            ? "bg-white/10 text-white-primary"
-                            : "text-white-secondary hover:bg-white/5"
-                        )}
-                      >
-                        <User className="h-4 w-4 shrink-0" />
-                        <div className="flex-1 text-left min-w-0">
-                          <p className="truncate">{person.name}</p>
-                          <p className="text-xs text-white-muted truncate">{person.email}</p>
-                        </div>
-                        <span className="text-[10px] text-white-muted shrink-0">{person.type}</span>
-                      </button>
-                    );
-                  })}
-                </>
-              )}
-
-              {searchingPeople && (
-                <p className="px-4 py-3 text-sm text-white-muted text-center">Searching...</p>
-              )}
-
-              {pageResults.length === 0 && peopleResults.length === 0 && !searchingPeople && query && (
-                <p className="px-4 py-6 text-sm text-white-muted text-center">
-                  No results found
-                </p>
-              )}
+            <div className="max-h-[58vh] overflow-y-auto p-2">
+              {actions.length > 0 && <ResultSection label="Actions">
+                {actions.map((action, index) => <CommandRow key={action.label} icon={action.icon} label={action.label} description={action.description} selected={selectedIndex === index} onClick={() => onSelectAction(action)} />)}
+              </ResultSection>}
+              {pageResults.length > 0 && <ResultSection label="Pages">
+                {pageResults.map((page, index) => {
+                  const itemIndex = actions.length + index;
+                  return <CommandRow key={page.href} icon={page.icon} label={page.label} description="Open admin page" selected={selectedIndex === itemIndex} onClick={() => onSelectPage(page.href)} />;
+                })}
+              </ResultSection>}
+              {peopleResults.length > 0 && <ResultSection label="People">
+                {peopleResults.map((person, index) => {
+                  const itemIndex = actions.length + pageResults.length + index;
+                  return <CommandRow key={person.email} icon={User} label={person.name} description={`${person.email} · ${person.type}`} selected={selectedIndex === itemIndex} onClick={() => onSelectPerson(person.email)} />;
+                })}
+              </ResultSection>}
+              {searchingPeople && <p className="px-3 py-4 text-center text-xs text-black/45">Searching records…</p>}
+              {!searchingPeople && items.length === 0 && query && <p className="px-3 py-8 text-center text-sm text-black/45">No matching people, pages, or commands.</p>}
+            </div>
+            <div className="flex items-center justify-between border-t border-black/8 px-4 py-2 font-mono text-[9px] uppercase tracking-[0.08em] text-black/35">
+              <span className="flex items-center gap-1.5"><Command className="h-3 w-3" /> Command Center</span>
+              <span>↑↓ navigate · ↵ open</span>
             </div>
           </motion.div>
         </div>
       )}
     </AnimatePresence>
+  );
+}
+
+function ResultSection({ label, children }: { label: string; children: React.ReactNode }) {
+  return <section className="mb-2 last:mb-0"><p className="px-3 py-1.5 font-mono text-[9px] font-semibold uppercase tracking-[0.13em] text-black/35">{label}</p>{children}</section>;
+}
+
+function CommandRow({ icon: Icon, label, description, selected, onClick }: { icon: LucideIcon; label: string; description: string; selected: boolean; onClick: () => void }) {
+  return (
+    <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={onClick} className={cn("flex min-h-12 w-full items-center gap-3 rounded-[11px] px-3 text-left transition-[background-color,color] duration-100", selected ? "bg-black text-white" : "text-black hover:bg-black/5")}>
+      <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px]", selected ? "bg-white/12 text-white" : "bg-black/5 text-black/55")}><Icon className="h-4 w-4" /></span>
+      <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{label}</span><span className={cn("block truncate text-[11px]", selected ? "text-white/55" : "text-black/42")}>{description}</span></span>
+      <span className={cn("font-mono text-[10px]", selected ? "text-white/45" : "text-black/25")}>↵</span>
+    </button>
   );
 }

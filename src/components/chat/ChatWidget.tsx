@@ -35,7 +35,7 @@ export function ChatWidget() {
   }, [isOpen]);
 
   // Hide on admin pages
-  if (pathname.startsWith("/admin")) return null;
+  if (pathname.startsWith("/admin") || pathname.startsWith("/roofing")) return null;
 
   return (
     <div className="chat-widget-root fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[80] transition-[bottom] duration-300">

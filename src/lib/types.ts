@@ -440,7 +440,13 @@ export interface LeadMagnet {
 }
 
 // Email Sequences
-export type EmailSequenceType = "plan_nurture" | "resource_welcome" | "grader_followup";
+export type EmailSequenceType =
+  | "plan_nurture"
+  | "resource_welcome"
+  | "grader_followup"
+  | "booking_nurture"
+  | "roofing_nurture"
+  | "manual_audit_followup";
 
 export interface EmailSequenceStep {
   stepNumber: number;

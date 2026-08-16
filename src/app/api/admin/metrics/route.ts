@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
     weekRes,
     monthRes,
     totalRes,
+    wonMonthRes,
     chatLeadsRes,
     partnersRes,
     gradesRes,
@@ -60,6 +61,11 @@ export async function GET(request: NextRequest) {
       .from("solution_requests")
       .select("id", { count: "exact", head: true })
       .eq("status", "completed"),
+    supabase
+      .from("solution_requests")
+      .select("id", { count: "exact", head: true })
+      .eq("lead_status", "won")
+      .gte("created_at", monthStart),
     supabase
       .from("chat_leads")
       .select("id", { count: "exact", head: true }),
@@ -186,9 +192,10 @@ export async function GET(request: NextRequest) {
   const leadsMonth = monthRes.count || 0;
   const leadsWeek = weekRes.count || 0;
   const plansGenerated = totalRes.count || 0;
+  const wonThisMonth = wonMonthRes.count || 0;
   const conversionRate =
     leadsMonth > 0
-      ? `${Math.round((plansGenerated / Math.max(leadsMonth, 1)) * 100)}%`
+      ? `${Math.round((wonThisMonth / leadsMonth) * 100)}%`
       : "0%";
 
   // Trends
@@ -248,8 +255,32 @@ export async function GET(request: NextRequest) {
   // Sort by score desc, take top 5
   priorities.sort((a, b) => b.score - a.score);
   const topPriorities = priorities.slice(0, 5);
+  const openPipelineValue = Object.entries(pipelineValues)
+    .filter(([stage]) => stage !== "won" && stage !== "lost")
+    .reduce((sum, [, value]) => sum + value, 0);
+  const highPriorityCount =
+    topPriorities.length +
+    (unreadContactsRes.count || 0) +
+    (overdueTasksRes.count || 0) +
+    (stalledProposalsRes.data || []).length;
 
   return NextResponse.json({
+    summary: {
+      newOpportunities: leadsWeek,
+      highPriorityCount,
+      openPipelineValue,
+      activeClientMrr: totalMRR,
+      wonThisMonth,
+      conversionRate,
+    },
+    actionCounts: {
+      hotOrStaleLeads: topPriorities.length,
+      unreadContacts: unreadContactsRes.count || 0,
+      pendingPartners: pendingPartnersRes.count || 0,
+      overdueTasks: overdueTasksRes.count || 0,
+      stalledProposals: (stalledProposalsRes.data || []).length,
+    },
+    updatedAt: now.toISOString(),
     metrics: {
       leadsToday: todayRes.count || 0,
       leadsWeek,

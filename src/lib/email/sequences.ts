@@ -82,6 +82,34 @@ export async function scheduleEmailSequence(
   return { sequenceId, emailIds };
 }
 
+/** Stop scheduled nudges once the prospect books. Already-sent messages are
+ * harmless; Resend returns an error for those and we intentionally ignore it. */
+export async function cancelScheduledSequences(
+  email: string,
+  sequenceType: EmailSequenceType,
+): Promise<void> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return;
+
+  const { createClient } = await import("@supabase/supabase-js");
+  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+  const { data } = await supabase
+    .from("email_sequences")
+    .select("id, metadata")
+    .eq("email", email)
+    .eq("sequence_type", sequenceType)
+    .neq("status", "paused");
+  if (!data?.length) return;
+
+  const resend = getResend();
+  for (const sequence of data) {
+    const ids = Array.isArray(sequence.metadata?.resend_email_ids)
+      ? sequence.metadata.resend_email_ids.filter((id: unknown): id is string => typeof id === "string")
+      : [];
+    await Promise.allSettled(ids.map((id: string) => resend.emails.cancel(id)));
+    await supabase.from("email_sequences").update({ status: "paused" }).eq("id", sequence.id);
+  }
+}
+
 function replaceTemplateVars(
   template: string,
   metadata: Record<string, string>,

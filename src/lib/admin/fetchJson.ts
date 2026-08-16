@@ -10,6 +10,15 @@ export async function fetchJson<T = unknown>(
   const res = await fetch(input, init);
 
   if (!res.ok) {
+    if (
+      res.status === 401 &&
+      typeof window !== "undefined" &&
+      window.location.pathname.startsWith("/admin") &&
+      window.location.pathname !== "/admin/login"
+    ) {
+      const destination = `${window.location.pathname}${window.location.search}`;
+      window.location.replace(`/admin/login?redirect=${encodeURIComponent(destination)}`);
+    }
     let message = `Request failed (${res.status})`;
     try {
       const body = await res.json();

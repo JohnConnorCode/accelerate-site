@@ -5,6 +5,7 @@ import { BarChart3, Globe, ArrowUpRight, Target } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 
 interface PlausibleData {
+  configured?: boolean;
   realtime: number;
   topPages: { page: string; visitors: number }[];
   topSources: { source: string; visitors: number }[];
@@ -25,7 +26,12 @@ export function PlausibleWidget() {
         }
         throw new Error("Failed to fetch");
       }
-      setData(await res.json());
+      const nextData = await res.json();
+      if (nextData.configured === false) {
+        setError("Plausible API key not configured");
+        return;
+      }
+      setData(nextData);
       setError(null);
     } catch {
       setError("Failed to load analytics");

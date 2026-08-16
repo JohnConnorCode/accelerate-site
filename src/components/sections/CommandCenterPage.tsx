@@ -102,7 +102,7 @@ function Hero() {
                 ))}
               </span>
               <span className="h1-word-row">
-                {["You", "just", "approve."].map((w, i) => (
+                {["Just", "approve."].map((w, i) => (
                   <span key={w} className="word">
                     <span className="it" style={{ "--d": `${0.46 + i * 0.08}s` } as CSSProperties}>{w}</span>
                   </span>

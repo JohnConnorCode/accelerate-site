@@ -132,7 +132,7 @@ export function Footer() {
   };
 
   // the admin app has its own chrome; the marketing footer doesn't belong there
-  if (pathname.startsWith("/admin")) return null;
+  if (pathname.startsWith("/admin") || pathname.startsWith("/roofing")) return null;
 
   return (
     <footer className="relative bg-bg-base">

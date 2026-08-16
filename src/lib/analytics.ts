@@ -60,6 +60,11 @@ const metaEventMap: Record<string, string> = {
   "Chat Lead Captured": "Lead",
   "Package Selected": "InitiateCheckout",
   "CTA Click": "ViewContent",
+  roofing_audit_cta: "ViewContent",
+  qualifier_started: "ViewContent",
+  qualifier_completed: "Lead",
+  calendar_viewed: "Schedule",
+  call_booked: "Schedule",
 };
 
 // ========================================

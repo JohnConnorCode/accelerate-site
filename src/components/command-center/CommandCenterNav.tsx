@@ -77,15 +77,19 @@ export function CommandCenterNav() {
     return () => observer.disconnect();
   }, []);
 
-  // Keep the active pill scrolled into view within the horizontal rail.
+  // Keep the active pill centered inside the horizontal rail. Do not use
+  // scrollIntoView here: on mobile it is allowed to move the page viewport as
+  // well as the rail, so scrollspy could fight the reader's vertical scroll.
   useEffect(() => {
     const rail = railRef.current;
     const activeEl = rail?.querySelector<HTMLElement>(`[data-id="${active}"]`);
-    activeEl?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    if (!rail || !activeEl) return;
+    const left = activeEl.offsetLeft - (rail.clientWidth - activeEl.offsetWidth) / 2;
+    rail.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
   }, [active]);
 
   return (
-    <AnimatePresence>
+    <AnimatePresence initial={false}>
       {visible && (
         <motion.nav
           initial={{ y: "150%", opacity: 0 }}
@@ -111,7 +115,7 @@ export function CommandCenterNav() {
                 key={s.id}
                 href={`#${s.id}`}
                 data-id={s.id}
-                className={`shrink-0 whitespace-nowrap rounded-full px-3 py-2 font-mono text-[10px] uppercase tracking-[0.1em] transition-colors ${
+                className={`flex min-h-10 shrink-0 items-center whitespace-nowrap rounded-full px-3 py-2 font-mono text-[10px] uppercase tracking-[0.1em] transition-colors ${
                   active === s.id
                     ? "bg-white/[0.14] text-[var(--paper)]"
                     : "text-[rgba(251,251,250,0.5)] hover:text-[var(--paper)]"

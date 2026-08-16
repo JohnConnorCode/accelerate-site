@@ -104,6 +104,7 @@ export function Hero() {
     let targetX = currentX;
     let targetY = currentY;
     let previousTime = performance.now();
+    let touchReleaseTimer: ReturnType<typeof setTimeout> | undefined;
 
     const idlePosition = (time: number) => {
       const seconds = time / 1000;
@@ -147,30 +148,52 @@ export function Hero() {
       spotlightRaf = undefined;
     };
 
-    const onPointerMove = (e: PointerEvent) => {
-      if (e.pointerType === "touch") return;
+    const pointSpotlightAt = (clientX: number, clientY: number, tilt: boolean) => {
       const rect = el.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
 
       pointerHasControl = true;
       targetX = Math.max(0, Math.min(100, (x / rect.width) * 100));
       targetY = Math.max(0, Math.min(100, (y / rect.height) * 100));
 
-      // Update MotionValues for the 3D tilt
-      const normX = (x / rect.width) * 2 - 1;
-      const normY = (y / rect.height) * 2 - 1;
-      mouseX.set(normX);
-      mouseY.set(normY);
+      if (tilt) {
+        const normX = (x / rect.width) * 2 - 1;
+        const normY = (y / rect.height) * 2 - 1;
+        mouseX.set(normX);
+        mouseY.set(normY);
+      }
     };
 
-    const onPointerLeave = () => {
+    const releasePointerControl = () => {
       pointerHasControl = false;
       mouseX.set(0);
       mouseY.set(0);
     };
 
+    const onPointerMove = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
+      pointSpotlightAt(e.clientX, e.clientY, true);
+    };
+
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.pointerType !== "touch") return;
+      if (touchReleaseTimer) clearTimeout(touchReleaseTimer);
+
+      // A tap becomes the mobile equivalent of hover. It does not prevent the
+      // native gesture, capture the pointer, or alter focus, so links and
+      // vertical scrolling remain fully native.
+      pointSpotlightAt(e.clientX, e.clientY, true);
+      touchReleaseTimer = setTimeout(releasePointerControl, 1050);
+    };
+
+    const onPointerLeave = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
+      releasePointerControl();
+    };
+
     el.addEventListener("pointermove", onPointerMove);
+    el.addEventListener("pointerdown", onPointerDown, { passive: true });
     el.addEventListener("pointerleave", onPointerLeave);
 
     // Do not spend animation frames on a hero that is several sections above
@@ -193,8 +216,10 @@ export function Hero() {
       if (entranceRaf.current) cancelAnimationFrame(entranceRaf.current);
       stopSpotlight();
       if (timer) clearTimeout(timer);
+      if (touchReleaseTimer) clearTimeout(touchReleaseTimer);
       visibilityObserver.disconnect();
       el.removeEventListener("pointermove", onPointerMove);
+      el.removeEventListener("pointerdown", onPointerDown);
       el.removeEventListener("pointerleave", onPointerLeave);
       window.removeEventListener("pageshow", onPageShow);
     };

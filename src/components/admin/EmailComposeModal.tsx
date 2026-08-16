@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
-import { GlassCard } from "@/components/ui/GlassCard";
+import { AdminSurface } from "@/components/admin/AdminSurface";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
@@ -82,11 +82,16 @@ export function EmailComposeModal({
   businessName,
   leadId,
 }: EmailComposeModalProps) {
+  const [recipient, setRecipient] = useState(recipientEmail);
   const [selectedTemplate, setSelectedTemplate] = useState("Custom");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+  useEffect(() => {
+    if (isOpen) setRecipient(recipientEmail);
+  }, [isOpen, recipientEmail]);
 
   useModalDismiss(isOpen, onClose);
 
@@ -105,14 +110,14 @@ export function EmailComposeModal({
   };
 
   const handleSend = async () => {
-    if (!subject || !body) return;
+    if (!recipient.trim() || !subject || !body) return;
     setSending(true);
     try {
       const res = await fetch("/api/admin/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          to: recipientEmail,
+          to: recipient.trim(),
           subject,
           body,
           leadId,
@@ -135,7 +140,7 @@ export function EmailComposeModal({
 
   return (
     <>
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {isOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <motion.div
@@ -154,7 +159,7 @@ export function EmailComposeModal({
               exit={{ opacity: 0, scale: 0.95 }}
               className="relative w-full max-w-lg mx-4"
             >
-              <GlassCard variant="prominent" padding="lg">
+              <AdminSurface padding="lg" className="admin-dialog-surface">
                 <div className="flex items-center justify-between mb-4">
                   <h3 id="email-compose-title" className="font-display text-lg font-semibold text-white-primary">
                     Send Email
@@ -162,14 +167,22 @@ export function EmailComposeModal({
                   <button
                     onClick={onClose}
                     aria-label="Close dialog"
-                    className="text-white-muted hover:text-white-primary cursor-pointer"
+                    className="admin-icon-button"
                   >
                     <X className="h-5 w-5" />
                   </button>
                 </div>
 
                 <div className="space-y-3">
-                  <Input label="To" type="text" value={recipientEmail} disabled />
+                  <Input
+                    label="To"
+                    type="email"
+                    value={recipient}
+                    onChange={(event) => setRecipient(event.target.value)}
+                    disabled={Boolean(recipientEmail)}
+                    placeholder="name@company.com"
+                    autoFocus={!recipientEmail}
+                  />
 
                   {/* Template selector */}
                   <div>
@@ -177,7 +190,7 @@ export function EmailComposeModal({
                     <select
                       value={selectedTemplate}
                       onChange={(e) => applyTemplate(e.target.value)}
-                      className="w-full rounded-lg bg-bg-subtle border border-border-glass px-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold transition-all"
+                      className="w-full rounded-lg bg-bg-subtle border border-border-glass px-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold transition-[border-color,box-shadow,background-color]"
                     >
                       {templates.map((t) => (
                         <option key={t.label} value={t.label}>{t.label}</option>
@@ -202,13 +215,13 @@ export function EmailComposeModal({
                   <Button
                     variant="primary"
                     onClick={handleSend}
-                    disabled={sending || !subject || !body}
+                    disabled={sending || !recipient.trim() || !subject || !body}
                     className="w-full"
                   >
                     {sending ? "Sending..." : "Send Email"}
                   </Button>
                 </div>
-              </GlassCard>
+              </AdminSurface>
             </motion.div>
           </div>
         )}

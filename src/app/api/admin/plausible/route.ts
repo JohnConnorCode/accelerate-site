@@ -9,10 +9,7 @@ export async function GET() {
   const domain = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN || "acceleratewith.us";
 
   if (!apiKey) {
-    return NextResponse.json(
-      { error: "Plausible API key not configured" },
-      { status: 503 }
-    );
+    return NextResponse.json({ configured: false });
   }
 
   const headers = {
@@ -62,6 +59,7 @@ export async function GET() {
         : [];
 
     return NextResponse.json({
+      configured: true,
       realtime,
       topPages,
       topSources,

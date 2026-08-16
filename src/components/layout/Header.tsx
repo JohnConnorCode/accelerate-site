@@ -83,7 +83,7 @@ export function Header() {
   }, [mobileOpen]);
 
   // the admin app has its own chrome; the marketing header doesn't belong there
-  if (pathname.startsWith("/admin")) return null;
+  if (pathname.startsWith("/admin") || pathname.startsWith("/roofing")) return null;
 
   return (
     <>
