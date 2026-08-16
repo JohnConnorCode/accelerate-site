@@ -588,9 +588,13 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.95); tran
   row-gap: 14px;
   margin-top: clamp(10px, 1.8vw, 20px);
 }
-.hero-inline-cta { align-self: center; margin-left: clamp(10px, 1.8vw, 24px); }
+/* ~100px of breathing room from PROFIT on a full desktop viewport,
+   scaling down smoothly (not a hard breakpoint jump) as the row gets
+   tighter, down to the mobile override below where it drops to its own
+   full-width row instead. */
+.hero-inline-cta { align-self: center; margin-left: clamp(24px, 6vw, 100px); }
 @media (max-width: 720px) {
-  .hero-inline-cta { width: 100%; margin-left: 0; margin-top: 4px; }
+  .hero-inline-cta { width: 100%; margin-left: 0; margin-top: 20px; }
   .hero-inline-cta .btn { width: 100%; }
 }
 .eyebrow-anim { display: inline-flex; align-items: center; gap: 12px; }
@@ -2010,8 +2014,17 @@ summary:focus-visible {
 /* plan */
 .plan-grid { display: grid; grid-template-columns: .92fr 1.08fr; gap: clamp(38px, 6vw, 78px); align-items: center; }
 @media (max-width: 1000px) { .plan-grid { grid-template-columns: 1fr; gap: 44px; } }
+/* Grid items default to min-width:auto (content's min-content size) — the
+   deck card's own max-width:100%/overflow:hidden do nothing if the GRID
+   CELL containing it is already wider than the viewport because some
+   descendant's content pushed the cell's min-content size out. */
+.plan-grid > * { min-width: 0; }
 .plan-list { list-style: none; margin: 26px 0 30px; }
 .plan-list li { position: relative; padding: 14px 0; display: flex; gap: 15px; font-size: 15.5px; color: var(--mid); align-items: flex-start; line-height: 1.5; }
+/* Flex items default to min-width:auto (their content's min-content
+   size) and won't shrink below it — without this, longer item text
+   overflows the row instead of wrapping on narrow screens. */
+.plan-list li > span { min-width: 0; }
 .plan-list li::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: var(--rule); transform: scaleX(0); transform-origin: 0 50%; transition: transform .8s var(--ease) var(--d, 0s); }
 .plan-list li:last-child::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: var(--rule); transform: scaleX(0); transform-origin: 0 50%; transition: transform .8s var(--ease) .5s; }
 .plan-list li.in::before, .plan-list li:last-child.in::after { transform: scaleX(1); }
@@ -2030,6 +2043,7 @@ summary:focus-visible {
   animation: float-gentle 7s ease-in-out infinite;
 }
 .deck-hd { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 16px clamp(18px, 2.4vw, 28px); border-bottom: 1px solid rgba(255,255,255,.08); font-family: var(--util); font-size: 10px; letter-spacing: .15em; text-transform: uppercase; color: #9A9A96; }
+.deck-hd > span:first-child { min-width: 0; }
 .deck-hd b { font-weight: 500; color: #E2E2DF; }
 .deck-hd .cnt { flex: 0 0 auto; letter-spacing: .12em; color: #B6B6B2; }
 .deck-view { overflow: hidden; touch-action: pan-y; cursor: grab; }
@@ -2055,6 +2069,9 @@ summary:focus-visible {
 }
 .prow:first-of-type { border-top: 0; }
 .prow:hover { background: rgba(255, 255, 255, .05); }
+/* Grid items default to min-width:auto (content's min-content size) —
+   without this, a long label can overflow the card instead of wrapping. */
+.prow > span:first-child { min-width: 0; }
 .prow b { font-weight: 500; color: #FFF; display: block; margin-bottom: 3px; }
 .prow em { font-style: normal; color: #8A8A86; font-size: 11.5px; display: block; margin-top: 2px; }
 .prow .v { color: #FFF; text-align: right; white-space: nowrap; font-size: 13px; font-weight: 500; transition: transform .3s ease; }

@@ -119,7 +119,7 @@ export function CommandCenterDemo() {
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       style={reduced ? undefined : { rotateX, rotateY, transformStyle: "preserve-3d" }}
-      className="cc overflow-hidden border border-white/10 bg-[#0B0B0B] shadow-[0_40px_90px_-40px_rgba(0,0,0,.55)] transition-all duration-300"
+      className="cc overflow-hidden rounded-[14px] border border-white/10 bg-[#0B0B0B] shadow-[0_40px_90px_-40px_rgba(0,0,0,.55)] transition-all duration-300"
     >
       <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
         <div className="flex min-w-0 items-center gap-3">

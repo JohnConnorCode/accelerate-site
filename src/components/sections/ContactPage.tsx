@@ -71,7 +71,7 @@ export function ContactPageContent() {
                   </>
                 );
                 return (
-                  <AnimateOnScroll as="div" key={card.label} delay={i * 0.06}>
+                  <AnimateOnScroll as="div" key={card.label} delay={0.45 + i * 0.12}>
                     {href ? (
                       <a href={href} data-cursor="link" className={shell}>{inner}</a>
                     ) : (
@@ -84,7 +84,7 @@ export function ContactPageContent() {
           </div>
 
           {/* right: book directly on the calendar — the primary conversion path */}
-          <AnimateOnScroll as="div" delay={0.15} className="lg:sticky lg:top-32">
+          <AnimateOnScroll as="div" delay={0.3} className="lg:sticky lg:top-32">
             <div className="rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_20px_60px_rgba(0,0,0,0.25)] backdrop-blur-md sm:p-6">
               <p className="mb-1 px-2 font-mono text-[0.6rem] uppercase tracking-[0.22em] text-white-muted">
                 Start here
@@ -128,7 +128,7 @@ export function ContactPageContent() {
               <AnimateOnScroll
                 as="div"
                 key={item}
-                delay={i * 0.06}
+                delay={i * 0.12}
                 className="flex items-start gap-3 border-t border-border-glass pt-4 text-base text-white-secondary"
               >
                 <Check className="mt-1 h-5 w-5 shrink-0 text-gold" strokeWidth={2.5} />

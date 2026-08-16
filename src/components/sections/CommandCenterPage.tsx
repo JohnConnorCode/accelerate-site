@@ -405,7 +405,7 @@ function WhoItsFor() {
               ))}
             </ul>
             <Reveal rv as="p" className="lede" delay={0.1}>
-              If you already have a full operations team managing every step, you might not need this—and we will tell you so on the session.
+              A full operations team gets more out of this, not less—the routine work runs itself, so your people spend their time on what actually needs a person.
             </Reveal>
           </div>
         </div>
