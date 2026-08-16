@@ -29,37 +29,49 @@ export function ChatWidget() {
   if (pathname.startsWith("/admin")) return null;
 
   return (
-    <div className="chat-widget-root fixed bottom-6 right-6 z-[80] transition-[bottom] duration-300">
-      {/* Blur in/out on open — the same signature entrance the rest of the
-          site uses (see .rv/.item-rv in globals.css), applied here via
-          Framer since this is a JS-driven mount/unmount, not a scroll
-          reveal. */}
+    <div className="chat-widget-root fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[80] transition-[bottom] duration-300">
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95, filter: "blur(10px)" }}
-            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: 20, scale: 0.95, filter: "blur(10px)" }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="mb-4"
-          >
-            <ChatPanel onClose={() => setIsOpen(false)} />
-          </motion.div>
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="fixed inset-0 z-[-1] bg-black/5 backdrop-blur-md"
+            onClick={() => setIsOpen(false)}
+          />
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {!isOpen && hasScrolled && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8, filter: "blur(8px)" }}
-            animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-            exit={{ opacity: 0, scale: 0.8, filter: "blur(8px)" }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <ChatBubble onClick={() => setIsOpen(true)} />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="relative">
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 30, scale: 0.95, filter: "blur(12px)" }}
+              animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+              exit={{ opacity: 0, y: 15, scale: 0.98, filter: "blur(8px)" }}
+              transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1] }}
+              className="absolute bottom-0 right-0 origin-bottom-right"
+            >
+              <ChatPanel onClose={() => setIsOpen(false)} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {!isOpen && hasScrolled && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, filter: "blur(8px)" }}
+              animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+              exit={{ opacity: 0, scale: 0.8, filter: "blur(8px)" }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute bottom-0 right-0 origin-bottom-right"
+            >
+              <ChatBubble onClick={() => setIsOpen(true)} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

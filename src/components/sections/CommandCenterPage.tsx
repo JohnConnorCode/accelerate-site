@@ -59,7 +59,7 @@ function Hero() {
     target: sectionRef,
     offset: ["start start", "end start"],
   });
-  const fade = useTransform(scrollYProgress, [0, 0.8, 1], [1, 1, 0]);
+  // Removed fade out completely per user request so demo stays visible
   const lift = useTransform(scrollYProgress, [0, 1], [0, -70]);
   const gridDrift = useTransform(scrollYProgress, [0, 1], [0, 120]);
 
@@ -77,29 +77,29 @@ function Hero() {
         <span className="hero-tick hero-tick-br" />
       </motion.div>
 
-      <motion.div className="wrap" style={reduced ? undefined : { opacity: fade, y: lift }}>
+      <motion.div className="wrap" style={reduced ? undefined : { y: lift }}>
         <div className="grid items-center gap-y-12 lg:grid-cols-[1.12fr_0.88fr] lg:gap-x-14">
           <div className="min-w-0">
-            <p className={`label eyebrow-anim rv${loaded ? " in" : ""}`}>Command Center</p>
+            <p className={`label eyebrow-anim rv${loaded ? " in" : ""}`}>The Command Center</p>
             <h1 className="h1">
               <span className="line">
-                <span style={{ "--d": ".06s" } as CSSProperties}>Complete digital</span>
+                <span style={{ "--d": ".06s" } as CSSProperties}>Your operation,</span>
               </span>
               <span className="line">
-                <span style={{ "--d": ".13s" } as CSSProperties}>automation.</span>
+                <span style={{ "--d": ".13s" } as CSSProperties}>running itself.</span>
               </span>
               <span className="line">
                 <span className="it" style={{ "--d": ".2s" } as CSSProperties}>
-                  Total executive control.
+                  You just approve.
                 </span>
               </span>
             </h1>
             <div className={`rv${loaded ? " in" : ""} flex flex-col gap-5`} style={{ "--d": ".5s", marginTop: 26 } as CSSProperties}>
-              <p className="lede text-balance relative z-10 px-5 py-6 -mx-5 rounded-2xl bg-[var(--surface-bg)] backdrop-blur-[20px] border border-[var(--border-glass)] shadow-[var(--surface-shadow)] sm:bg-transparent sm:backdrop-blur-none sm:border-transparent sm:shadow-none sm:p-0 sm:mx-0 sm:rounded-none">
-                A custom-engineered system capable of executing any digital workflow. It analyzes your communications, orchestrates complex tasks, and prepares deliverables—from drafting strategic follow-ups to managing your active pipeline.
+              <p className="lede text-balance">
+                A bespoke automation engine that reads your communications, orchestrates your pipeline, drafts your follow-ups, and files your meeting notes — before you&apos;ve opened your laptop.
               </p>
               <p className="lede text-balance hidden sm:block">
-                Every action is queued for your final authorization. We architect the entire infrastructure around your exact operational model and deploy it fully integrated with your historical data.
+                Every action surfaces for your final call. Nothing ships without your approval. We architect the entire system around your exact operation and deploy it in days, not months.
               </p>
             </div>
             <div className={`rv${loaded ? " in" : ""}`} style={{ "--d": ".62s", marginTop: 32 } as CSSProperties}>

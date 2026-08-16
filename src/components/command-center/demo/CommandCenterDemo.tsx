@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import type { Variants } from "framer-motion";
 import {
   MessageSquareWarning,
@@ -87,9 +87,40 @@ export function CommandCenterDemo() {
   const [approved, setApproved] = useState(11);
   const [pending, setPending] = useState(DEMO_ACTIONS.length);
   const reduced = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const springConfig = { damping: 20, stiffness: 100 };
+  const smoothX = useSpring(mouseX, springConfig);
+  const smoothY = useSpring(mouseY, springConfig);
+
+  const rotateX = useTransform(smoothY, [-1, 1], [1.5, -1.5]);
+  const rotateY = useTransform(smoothX, [-1, 1], [-1.5, 1.5]);
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!ref.current || reduced) return;
+    const rect = ref.current.getBoundingClientRect();
+    const normX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    const normY = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+    mouseX.set(normX);
+    mouseY.set(normY);
+  };
+
+  const handlePointerLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
 
   return (
-    <div className="cc overflow-hidden border border-white/10 bg-[#0B0B0B] shadow-[0_40px_90px_-40px_rgba(0,0,0,.55)]">
+    <motion.div 
+      ref={ref}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
+      style={reduced ? undefined : { rotateX, rotateY, transformStyle: "preserve-3d" }}
+      className="cc overflow-hidden border border-white/10 bg-[#0B0B0B] shadow-[0_40px_90px_-40px_rgba(0,0,0,.55)] transition-all duration-300"
+    >
       <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
         <div className="flex min-w-0 items-center gap-3">
           <span className="flex shrink-0 gap-1.5" aria-hidden="true">
@@ -167,6 +198,7 @@ export function CommandCenterDemo() {
               animate="show"
               exit="exit"
             >
+              {view === "today" && <Today />}
               {view === "approvals" && (
                 <Approvals
                   approved={approved}
@@ -178,10 +210,100 @@ export function CommandCenterDemo() {
               {view === "pipeline" && <Pipeline />}
               {view === "ask" && <Ask />}
               {view === "meeting" && <Meeting />}
-              {STUBS[view] && <Stub id={view} />}
+              {view !== "today" && STUBS[view] && <Stub id={view} />}
             </motion.div>
           </AnimatePresence>
         </div>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ── today ─────────────────────────────────────────────────────────────── */
+
+function Today() {
+  const reduced = useReducedMotion();
+  
+  return (
+    <div className="flex h-full flex-col">
+      <Head
+        title="Today"
+        sub="Your operational overview. The system has already organized your morning."
+        right="Updated just now"
+      />
+      <div className="cc-scroll flex-1 overflow-y-auto p-4 sm:p-5 space-y-6">
+        
+        {/* Top metrics */}
+        <motion.div variants={reduced ? undefined : ITEM} className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="border border-white/10 bg-white/[0.03] p-3 transition-colors hover:bg-white/[0.05]">
+            <p className={`${MONO} text-white/35`}>Inbox Zero</p>
+            <p className="mt-2 text-2xl font-light text-white">14</p>
+            <p className="mt-1 text-[0.7rem] text-[rgb(163,230,53)]">✦ Processed overnight</p>
+          </div>
+          <div className="border border-[rgb(163,230,53)]/30 bg-[rgb(163,230,53)]/[0.05] p-3 transition-colors">
+            <p className={`${MONO} text-white/35`}>Needs Approval</p>
+            <p className="mt-2 text-2xl font-light text-white">6</p>
+            <p className="mt-1 text-[0.7rem] text-[rgb(163,230,53)]">Drafts ready to review</p>
+          </div>
+          <div className="border border-white/10 bg-white/[0.03] p-3 transition-colors hover:bg-white/[0.05]">
+            <p className={`${MONO} text-white/35`}>Meetings</p>
+            <p className="mt-2 text-2xl font-light text-white">2</p>
+            <p className="mt-1 text-[0.7rem] text-white/45">Next at 10:00 AM</p>
+          </div>
+          <div className="border border-white/10 bg-white/[0.03] p-3 transition-colors hover:bg-white/[0.05]">
+            <p className={`${MONO} text-white/35`}>Pipeline Risk</p>
+            <p className="mt-2 text-2xl font-light text-[#F87171]">1</p>
+            <p className="mt-1 text-[0.7rem] text-white/45">Atwell Construction</p>
+          </div>
+        </motion.div>
+
+        {/* Priority items */}
+        <motion.div variants={reduced ? undefined : ITEM}>
+          <Sub>High Priority Context</Sub>
+          <div className="space-y-3">
+            <div className="flex gap-4 border-l-2 border-[rgb(163,230,53)] bg-white/[0.03] p-3.5">
+              <div className="mt-0.5 text-[rgb(163,230,53)]"><Sparkles className="h-4 w-4" /></div>
+              <div>
+                <p className="text-[0.88rem] font-medium text-white">Northwind Proposal Ready</p>
+                <p className="mt-1 text-[0.82rem] leading-relaxed text-white/60">I&apos;ve generated the revised scope based on yesterday&apos;s kickoff call. The reporting section is split out as requested. It is waiting in your Approvals queue.</p>
+              </div>
+            </div>
+            <div className="flex gap-4 border-l-2 border-[#F87171] bg-white/[0.03] p-3.5">
+              <div className="mt-0.5 text-[#F87171]"><MessageSquareWarning className="h-4 w-4" /></div>
+              <div>
+                <p className="text-[0.88rem] font-medium text-white">Ray Atwell is going cold</p>
+                <p className="mt-1 text-[0.82rem] leading-relaxed text-white/60">Invoice 2043 is 18 days overdue. Two automated emails have gone unanswered. I have drafted a direct escalation email for you.</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Schedule */}
+        <motion.div variants={reduced ? undefined : ITEM}>
+          <Sub>Schedule & Briefings</Sub>
+          <div className="space-y-3">
+            <div className="flex items-start gap-4 border-b border-white/5 pb-3">
+              <div className={`${MONO} w-16 shrink-0 pt-0.5 text-white/50`}>10:00</div>
+              <div className="flex-1">
+                <p className="text-[0.85rem] text-white">Halcyon Legal Intake Review</p>
+                <p className="mt-0.5 text-[0.78rem] text-white/45">Zoom • 45m</p>
+                <div className="mt-2 inline-flex items-center gap-1.5 border border-white/10 bg-white/5 px-2 py-1 transition-colors hover:bg-white/10">
+                  <FileText className="h-3 w-3 text-[rgb(163,230,53)]" />
+                  <span className="text-[0.75rem] text-white/70">Pre-call briefing ready</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 border-b border-white/5 pb-3">
+              <div className={`${MONO} w-16 shrink-0 pt-0.5 text-white/50`}>14:30</div>
+              <div className="flex-1">
+                <p className="text-[0.85rem] text-white">Brightwater Site Walkthrough</p>
+                <p className="mt-0.5 text-[0.78rem] text-white/45">On-site • 2h</p>
+                <p className={`${CITE} mt-1.5 text-white/35`}><span className="text-[rgb(163,230,53)]">✦</span> Voice notes will automatically sync to CRM upon completion.</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
       </div>
     </div>
   );

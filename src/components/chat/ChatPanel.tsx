@@ -284,7 +284,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
   };
 
   return (
-    <div className="flex flex-col h-[500px] w-[calc(100vw-2rem)] sm:w-[380px] max-w-[380px] rounded-2xl overflow-clip border border-border-glass bg-bg-elevated shadow-2xl">
+    <div className="flex flex-col h-[min(600px,calc(100dvh-2rem))] w-[calc(100vw-2rem)] sm:w-[380px] max-w-[380px] rounded-2xl overflow-clip border border-border-glass bg-bg-elevated shadow-2xl">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border-glass bg-bg-subtle">
         <div>

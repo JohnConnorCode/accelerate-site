@@ -60,16 +60,16 @@ function MicroFeed({ serviceId }: { serviceId: string }) {
   if (!rows) return null;
   return (
     <div className="mb-6 overflow-hidden rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-base)_88%,transparent)]">
-      <p className="flex items-center gap-2 border-b border-border-glass px-3.5 py-2 font-mono text-[0.56rem] uppercase tracking-[0.22em] text-white-muted">
+      <p className="flex items-center gap-2 border-b border-border-glass px-3.5 py-2.5 font-mono text-[0.65rem] sm:text-[0.56rem] uppercase tracking-[0.22em] text-white-muted">
         <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--gold-base)]" />
         live · operations
       </p>
-      <ul className="flex flex-col px-1.5 py-1.5 font-mono text-[0.72rem]">
+      <ul className="flex flex-col px-1.5 py-1.5 font-mono text-[0.8rem] sm:text-[0.72rem]">
         {rows.map((r) => (
-          <li key={r.label} className="flex items-center gap-2.5 rounded-lg px-2 py-1.5">
-            <span className="text-[0.62rem] tabular-nums text-white-muted">{r.time}</span>
+          <li key={r.label} className="flex items-center gap-3 sm:gap-2.5 rounded-lg px-2.5 sm:px-2 py-2 sm:py-1.5">
+            <span className="text-[0.7rem] sm:text-[0.62rem] tabular-nums text-white-muted">{r.time}</span>
             <span
-              className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded text-[0.66rem]"
+              className="grid h-[20px] w-[20px] sm:h-[18px] sm:w-[18px] shrink-0 place-items-center rounded text-[0.75rem] sm:text-[0.66rem]"
               style={{ color: `rgb(${r.rgb})`, background: `rgba(${r.rgb},0.14)` }}
             >
               {r.glyph}
@@ -199,7 +199,7 @@ export function ServicesPageContent() {
               />
               <AnimateOnScroll delay={0.25}>
                 <p className="mt-7 max-w-md text-base leading-relaxed text-white-secondary">
-                  We don&apos;t sell software licenses. We architect custom automation engines and run them for you. Complete digital workflows deployed across your infrastructure, measured strictly by the revenue they generate.
+                  We don&apos;t sell SaaS subscriptions. We architect custom automation engines and run them for you. Full-stack workflows deployed across your operation, measured entirely by the revenue they generate.
                 </p>
               </AnimateOnScroll>
               <AnimateOnScroll delay={0.35}>

@@ -41,10 +41,10 @@ export function CommandCenter() {
               for your <span className="it">entire operation.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              The Command Center is a complete business automation system built specifically for your firm. If a process is digital, we can engineer the system to execute it. It monitors your communications, drafts responses, advances your pipeline, and orchestrates your workflow autonomously—pausing only for your final approval.
+              The Command Center is the operational brain of your firm. If a workflow is digital, we engineer the system to execute it autonomously. It monitors inbound communications, drafts custom quotes, advances your CRM pipeline, and orchestrates complex follow-up—surfacing to you only for final approval.
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.18} style={{ marginTop: 16 }}>
-              Below is a working demonstration running on simulated data. Clear the approval queue, inspect a record, or ask the intelligence engine a question.
+              Below is a live, interactive sandbox running simulated operational data. Try clearing the approval queue, inspecting a workflow, or querying the intelligence engine.
             </Reveal>
           </div>
         </div>

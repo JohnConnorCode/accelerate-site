@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { EASE } from "@/lib/animations";
 import { ACTION_KIND, DEMO_ACTIONS } from "./demo/demo-data";
 
@@ -40,12 +40,30 @@ export function ApprovalQueue() {
 
   const items = Array.from({ length: VISIBLE }, (_, i) => DEMO_ACTIONS[(cursor + i) % DEMO_ACTIONS.length]!);
 
+  const ref = useRef<HTMLDivElement>(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const smoothX = useSpring(mouseX, { damping: 20, stiffness: 100 });
+  const smoothY = useSpring(mouseY, { damping: 20, stiffness: 100 });
+  const rotateX = useTransform(smoothY, [-1, 1], [1.5, -1.5]);
+  const rotateY = useTransform(smoothX, [-1, 1], [-1.5, 1.5]);
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!ref.current || reduced) return;
+    const rect = ref.current.getBoundingClientRect();
+    mouseX.set(((e.clientX - rect.left) / rect.width) * 2 - 1);
+    mouseY.set(((e.clientY - rect.top) / rect.height) * 2 - 1);
+  };
+
   return (
-    <div
+    <motion.div
+      ref={ref}
       className="deck"
+      onPointerMove={handlePointerMove}
+      onPointerLeave={() => { mouseX.set(0); mouseY.set(0); setPaused(false); }}
       onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
       onTouchStart={() => setPaused((p) => !p)}
+      style={reduced ? undefined : { rotateX, rotateY, transformStyle: "preserve-3d" }}
     >
       <div className="deck-hd">
         <span>
@@ -98,6 +116,6 @@ export function ApprovalQueue() {
           Edited <b>2</b> / Rejected <b>1</b>
         </span>
       </div>
-    </div>
+    </motion.div>
   );
 }

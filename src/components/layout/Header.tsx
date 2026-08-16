@@ -98,7 +98,7 @@ export function Header() {
           "fixed top-0 left-0 right-0 z-[90] transition-[background-color,backdrop-filter,padding,box-shadow] duration-500",
           scrolled
             ? "py-3 shadow-[0_20px_70px_rgba(0,0,0,0.45)]"
-            : "py-5"
+            : "py-6 lg:py-8"
         )}
         style={{
           backgroundColor: scrolled ? "var(--header-bg-scrolled)" : "transparent",

@@ -77,9 +77,10 @@ export function WordMask({
     >
       {tokens.map((t, i) => (
         <Fragment key={i}>
-          {/* mask: overflow-hidden with extra bottom room so descenders & italic
-              tails aren't clipped; negative margin preserves line rhythm */}
-          <span className="inline-block overflow-hidden align-bottom pb-[0.18em] -mb-[0.18em]">
+          {/* mask: clip-path preserves the true text baseline (unlike overflow-hidden
+              which forces baseline to bottom margin edge). inset prevents clipping italics
+              tails horizontally but hides it vertically. */}
+          <span className="inline-block pb-[0.18em] -mb-[0.18em]" style={{ clipPath: "inset(-10% -10% 0 -10%)" }}>
             <motion.span
               className={`inline-block ${t.italic ? "display-italic" : ""}`}
               variants={wordVariants}

@@ -5,7 +5,7 @@ export const services: Service[] = [
     id: "strategy",
     name: "AI Strategy & Roadmap",
     description:
-      "A comprehensive operational audit that maps your existing workflows against automation potential. You receive an engineered blueprint detailing exact toolchain integrations, ROI models, and a phased deployment sequence. No guesswork, just precision execution.",
+      "We audit your operation, identify the bottlenecks, and engineer a precise automation blueprint. You receive the exact toolchain architecture, hard ROI projections, and a phased deployment sequence. No guesswork. Just execution.",
     shortDescription:
       "A full audit of your operations with a prioritized AI roadmap, tool recommendations, and ROI projections.",
     icon: "Compass",
@@ -21,7 +21,7 @@ export const services: Service[] = [
     pricingDisplay: "from $1,500",
     href: "/services#strategy",
     problemStatement:
-      "You recognize the imperative to automate, but lack the technical architecture and financial models to deploy capital effectively.",
+      "You know you need to automate, but deploying capital without a rigorous architectural plan is just guessing.",
     keyMetrics: [
       { value: "Day one", label: "Clarity before you build" },
       { value: "Custom", label: "Tailored to you" },
@@ -37,7 +37,7 @@ export const services: Service[] = [
     id: "automation",
     name: "Workflow Automation",
     description:
-      "Total integration of your operational tech stack. We engineer autonomous workflows that completely absorb manual data entry, handoffs, and routine processes—from intake and scheduling to complex internal approvals.",
+      "Total integration of your operational tech stack. We build autonomous engines that completely absorb manual data entry, handoffs, and routine processes—so your talent can focus on high-leverage work.",
     shortDescription:
       "Automated follow-ups, scheduling, invoicing, and internal workflows that keep your business moving.",
     icon: "Workflow",
@@ -58,7 +58,7 @@ export const services: Service[] = [
     pricingDisplay: "from $2,500 + $300/mo",
     href: "/services#automation",
     problemStatement:
-      "Your most valuable personnel are burning hours executing repetitive digital tasks that software should handle instantaneously.",
+      "Your most expensive personnel are burning hours executing repetitive digital tasks that software should handle instantly.",
     keyMetrics: [
       { value: "10+", label: "Hours saved / week" },
       { value: "< 60s", label: "First response time" },
@@ -74,7 +74,7 @@ export const services: Service[] = [
     id: "sales",
     name: "Sales & Marketing Automation",
     description:
-      "Autonomous lead qualification, dynamic routing, and relentless follow-up sequences. We construct an autonomous pipeline engine that sustains engagement and advances deals while your team focuses exclusively on closing.",
+      "Autonomous lead qualification, dynamic routing, and relentless follow-up sequences. We construct a pipeline engine that sustains engagement and advances deals while your team focuses exclusively on closing.",
     shortDescription:
       "Automated pipeline management, email campaigns, social scheduling, and follow-up sequences.",
     icon: "TrendingUp",

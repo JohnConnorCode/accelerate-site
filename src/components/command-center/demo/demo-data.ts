@@ -329,7 +329,7 @@ export const RAIL: { label: string; items: RailItem[] }[] = [
   {
     label: "Daily",
     items: [
-      { id: "today", label: "Today", icon: "Sun", badge: "4" },
+      { id: "today", label: "Today", icon: "Sun", badge: "4", core: true },
       { id: "approvals", label: "Approvals", icon: "Inbox", core: true },
       { id: "inbox", label: "Inbox", icon: "Mail", badge: "12" },
     ],
@@ -383,13 +383,14 @@ export interface StubRow {
 export const STUBS: Record<string, { title: string; sub: string; head: [string, string, string]; rows: StubRow[] }> = {
   today: {
     title: "Today",
-    sub: "What is owed, what is at risk, and what it wants to do about it.",
-    head: ["Item", "Why", "When"],
+    sub: "AI-prioritized daily agenda, syncing your calendar, emails, and CRM in real-time.",
+    head: ["Action Required", "Context", "Status / Integration"],
     rows: [
-      { a: "Send Sarah Chen the revised scope", b: "You promised Friday on the call", c: "Today", ai: true },
-      { a: "Call back Ray Atwell", b: "Invoice 18 days overdue, two chases ignored", c: "Today" },
-      { a: "Northwind kickoff prep", b: "Briefing ready 15 min before", c: "Thu 09:15", ai: true },
-      { a: "Make the Priya Raman intro", b: "Offered to Dana in March, still open", c: "This week" },
+      { a: "Approve revised proposal for Northwind", b: "Auto-generated from yesterday's Zoom transcript", c: "Draft ready in Docs", ai: true },
+      { a: "Follow up with Sarah Chen", b: "She opened the pricing page 3 times today", c: "HubSpot signal", ai: true },
+      { a: "Review Q3 Marketing Spend", b: "Approaching budget limit threshold", c: "QuickBooks alert", ai: true },
+      { a: "Call back Ray Atwell", b: "Invoice 18 days overdue, two automated emails ignored", c: "Stripe / Pending" },
+      { a: "Prep for QBR with Halcyon Legal", b: "AI pulled key metrics from past 3 months", c: "Meeting at 14:00", ai: true },
     ],
   },
   inbox: {

@@ -8,11 +8,11 @@ import { PlanDeck } from "./PlanDeck";
 import { AmbientField } from "./AmbientField";
 
 const ITEMS = [
-  "What your current process costs, measured",
-  "Opportunities ranked by value against effort",
-  "A sequence, and what each stage depends on",
-  "What to leave alone, and why",
-  "What your team can run without us",
+  "Comprehensive diagnostic of your current bottlenecks",
+  "A phased roadmap prioritized by highest immediate ROI",
+  "Clear metrics on what the automations will recover",
+  "Detailed technical requirements and CRM integrations",
+  "A complete transition plan for your team",
 ];
 
 export function Plan() {

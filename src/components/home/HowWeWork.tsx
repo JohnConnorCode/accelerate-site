@@ -4,28 +4,28 @@ import { AmbientField } from "./AmbientField";
 
 const STEPS = [
   {
-    n: "STEP 01",
-    title: "Operational Audit",
+    n: "01",
+    title: "Diagnostic Audit",
     tag: "30 min · free",
-    body: "We map where hours are lost and bottlenecks form. We listen, you talk.",
+    body: "We map exactly where your team loses hours and where leads fall through the cracks.",
   },
   {
-    n: "STEP 02",
-    title: "Blueprint Delivery",
-    tag: "free · yours to keep",
-    body: "A prioritized roadmap of automation opportunities, ranked by immediate ROI.",
+    n: "02",
+    title: "ROI Blueprint",
+    tag: "yours to keep",
+    body: "A detailed, phased automation roadmap prioritized strictly by the fastest path to positive ROI.",
   },
   {
-    n: "STEP 03",
-    title: "Build & Deploy",
-    tag: "fixed price",
-    body: "We define the exact scope and success metrics. The first deployment runs within two weeks.",
+    n: "03",
+    title: "Build & Integrate",
+    tag: "fixed scope",
+    body: "We engineer and deploy the systems into your existing CRM. Phase one is live in under two weeks.",
   },
   {
-    n: "STEP 04",
-    title: "Handover & Scale",
-    tag: "support optional",
-    body: "Your team is fully trained. The system is yours, supported by ongoing optimization.",
+    n: "04",
+    title: "Train & Scale",
+    tag: "ongoing support",
+    body: "We train your team and continuously monitor the agents to ensure they exceed human performance baselines.",
   },
 ];
 

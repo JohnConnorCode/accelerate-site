@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
+import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from "framer-motion";
 
 interface PlanRow {
   label: string;
@@ -19,39 +20,39 @@ interface PlanPage {
 
 const PAGES: PlanPage[] = [
   {
-    title: "What the process costs today",
-    sub: "Measured over four weeks",
+    title: "1. Diagnostic & Baseline Metrics",
+    sub: "Measured over a 30-day sample period",
     rows: [
-      { label: "Inbound requests", detail: "per week", value: "41" },
-      { label: "Median first reply", value: "19 hrs" },
-      { label: "Median time to quote", value: "4.2 days" },
-      { label: "Quotes revised for pricing errors", value: "1 in 5" },
-      { label: "Inquiries never contacted twice", value: "22%" },
+      { label: "Inbound lead abandonment", detail: "Dropped after 1st missed contact", value: "38%" },
+      { label: "Median first response time", detail: "Business hours only", value: "4.8 hrs", mute: true },
+      { label: "Time spent on routine inquiries", detail: "Per week, across 2 team members", value: "22 hrs" },
+      { label: "Quote turnaround latency", detail: "Initial request to delivery", value: "3.2 days" },
+      { label: "Estimated annual lost revenue", detail: "Due to delayed or missed follow-ups", value: "$142,000" },
     ],
-    note: "Competing bids come back within 48 hours. Most of the loss happens before anyone compares price.",
+    note: "Your team is spending significant time on qualification, leading to slow quoting and dropped leads on high-value projects before price is even discussed.",
   },
   {
-    title: "Opportunities, ranked",
-    sub: "Value against effort",
+    title: "2. Implementation Roadmap",
+    sub: "Prioritized by immediate business value",
     rows: [
-      { label: "01 · Same-day quote drafting", detail: "Runs on the CRM you have", value: "3 wks", tail: "· high" },
-      { label: "02 · Automated second contact", detail: "Recovers inquiries now dropped", value: "1 wk", tail: "· high" },
-      { label: "03 · Field notes by voice", detail: "Ends evening paperwork", value: "2 wks", tail: "· med" },
-      { label: "Not recommended · Website chat", detail: "Volume too low to return the effort", value: "n/a", mute: true },
+      { label: "Phase 1: AI Front Desk", detail: "24/7 capture, qualification & routing", value: "Week 1", tail: "· High ROI" },
+      { label: "Phase 2: Automated Follow-ups", detail: "Multi-channel drip for unclosed quotes", value: "Week 2", tail: "· High ROI" },
+      { label: "Phase 3: Deep CRM Integration", detail: "Bi-directional sync & pipeline updates", value: "Week 3", tail: "· Medium" },
+      { label: "Phase 4: Field Voice Notes", detail: "End-of-day paperwork automation", value: "Week 4", mute: true },
     ],
-    note: "Order follows dependency as well as value. Quoting produces the clean pricing data the follow-up needs.",
+    note: "We deploy in modular phases based on highest impact. You start capturing and qualifying leads automatically by day 7 without disrupting current operations.",
   },
   {
-    title: "What delivery takes",
-    sub: "Commitments on both sides",
+    title: "3. Projected 12-Month Impact",
+    sub: "Modeled on similar regional service operators",
     rows: [
-      { label: "Your time", detail: "One operations lead", value: "2 hrs / wk" },
-      { label: "Access needed", value: "CRM, inbox, price list" },
-      { label: "Systems replaced", value: "None" },
-      { label: "Live to your team", value: "Week 3" },
-      { label: "Measured by", detail: "30 consecutive quotes", value: "Under 24 hrs" },
+      { label: "Response time reduction", detail: "Under 3 minutes, 24/7/365", value: "98%" },
+      { label: "Recovered administrative hours", detail: "Monthly hours returned to the team", value: "85+ hrs" },
+      { label: "Lead-to-appointment conversion", detail: "Driven by automated persistent follow-up", value: "+24%" },
+      { label: "Implementation cost recovery", detail: "Expected time to break even", value: "2.5 mo" },
+      { label: "First-year ROI", detail: "Conservative estimate", value: "340%" },
     ],
-    note: "If turnaround does not hold under 24 hours across 30 quotes, the work is not finished.",
+    note: "By automating the top of your funnel, your operations team can focus entirely on closing qualified appointments and executing the actual work.",
   },
 ];
 
@@ -64,6 +65,18 @@ export function PlanDeck() {
   const [dx, setDx] = useState(0);
   const [dragging, setDragging] = useState(false);
   const dragStart = useRef({ x: 0 });
+  const ref = useRef<HTMLDivElement>(null);
+  const reduced = useReducedMotion();
+
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const springConfig = { damping: 20, stiffness: 100 };
+  const smoothX = useSpring(mouseX, springConfig);
+  const smoothY = useSpring(mouseY, springConfig);
+
+  const rotateX = useTransform(smoothY, [-1, 1], [1.5, -1.5]);
+  const rotateY = useTransform(smoothX, [-1, 1], [-1.5, 1.5]);
 
   const go = (next: number) => {
     setIdx(Math.max(0, Math.min(PAGES.length - 1, next)));
@@ -77,8 +90,17 @@ export function PlanDeck() {
     e.currentTarget.setPointerCapture(e.pointerId);
   };
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!dragging) return;
-    setDx(e.clientX - dragStart.current.x);
+    if (dragging) {
+      setDx(e.clientX - dragStart.current.x);
+    }
+    
+    // Parallax
+    if (!ref.current || reduced) return;
+    const rect = ref.current.getBoundingClientRect();
+    const normX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    const normY = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+    mouseX.set(normX);
+    mouseY.set(normY);
   };
   const endDrag = () => {
     if (!dragging) return;
@@ -86,9 +108,19 @@ export function PlanDeck() {
     if (Math.abs(dx) > 60) go(idx + (dx < 0 ? 1 : -1));
     else setDx(0);
   };
+  const onPointerLeave = () => {
+    endDrag();
+    mouseX.set(0);
+    mouseY.set(0);
+  };
 
   return (
-    <div className="deck">
+    <motion.div 
+      ref={ref}
+      className="deck transition-all duration-300"
+      style={reduced ? undefined : { rotateX, rotateY, transformStyle: "preserve-3d" }}
+      onPointerLeave={onPointerLeave}
+    >
       <div className="deck-hd">
         <span>
           <b>Sample plan</b> · Regional services co.
@@ -166,6 +198,6 @@ export function PlanDeck() {
           </button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
