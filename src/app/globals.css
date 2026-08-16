@@ -563,19 +563,23 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.95); tran
 }
 /* Word-level fade-in-up carries the site's signature blur-in (see .rv-in)
    so every h1 word — including PROFIT, via its own --d — blurs into focus
-   as it rises, instead of snapping in sharp. */
+   as it rises, instead of snapping in sharp. --word-blur is a custom
+   property (not a hardcoded px in the keyframe) so mobile can dial it
+   down below — the hero type is ~1/3 the size there, so the same 18px
+   blur reads proportionally much stronger and turns into an illegible
+   smudge for most of the transition instead of a crisp focus-pull. */
 @keyframes word-blur-in {
-  from { transform: translateY(112%); filter: blur(8px); }
+  from { transform: translateY(112%); filter: blur(var(--word-blur, 18px)); }
   to   { transform: translateY(0); filter: blur(0); }
 }
 .word > span {
   display: block;
   transform: translateY(112%);
-  filter: blur(8px);
+  filter: blur(var(--word-blur, 18px));
   will-change: transform, filter;
 }
 .loaded .word > span {
-  animation: word-blur-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0s) both;
+  animation: word-blur-in 0.95s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s) both;
 }
 /* PROFIT + CTA sit on their own row below the main headline paragraph
    (see Hero.tsx) — a deliberate line break, not part of the natural
@@ -2157,7 +2161,7 @@ summary:focus-visible {
 @media (max-width: 560px) { .cta-cluster .btn { width: 100%; } }
 
 /* hero */
-.hero { position: relative; overflow: hidden; padding-top: clamp(114px, 16vw, 180px); padding-bottom: clamp(46px, 7vw, 74px); }
+.hero { position: relative; overflow: hidden; padding-top: clamp(114px, 16vw, 180px); padding-bottom: clamp(46px, 7vw, 74px); --word-blur: 18px; }
 .hero h1 { margin-top: clamp(20px, 2.6vw, 34px); }
 .hero .wrap { position: relative; z-index: 1; }
 /* The 114px floor above is sized for the fixed header's clearance on
@@ -2187,7 +2191,7 @@ summary:focus-visible {
   .hero-band .hero-btm .lede { font-size: clamp(14px, 2.1dvh, 15.5px); line-height: 1.5; }
   .hero-band .mq { flex: 0 0 auto; }
 
-  .hero { padding-top: 108px; padding-bottom: clamp(20px, 3dvh, 32px); }
+  .hero { padding-top: 108px; padding-bottom: clamp(20px, 3dvh, 32px); --word-blur: 9px; }
   .hero h1 { margin-top: clamp(10px, 1.6dvh, 20px); }
   /* min(vw, dvh) — not either alone: a pure height-based size ignores
      width, computing large enough on a normal tall-aspect phone that
@@ -2271,19 +2275,21 @@ summary:focus-visible {
 }
 .h1-last { display: flex; flex-wrap: wrap; column-gap: .26em; }
 .strike { position: relative; display: inline-block; white-space: nowrap; }
-.strike::after { content: ""; position: absolute; left: -.02em; right: -.02em; top: 56%; height: .042em; min-height: 2px; background: currentColor; transform: scaleX(0); transform-origin: 0 50%; }
+.strike::after { content: ""; position: absolute; left: -.02em; right: -.02em; top: 56%; height: .09em; min-height: 3.5px; background: currentColor; transform: scaleX(0); transform-origin: 0 50%; }
 .loaded .strike::after { transform: scaleX(1); transition: transform 1.0s var(--ease) 3.85s; }
 /* PROFIT (.swap) and the CTA (.hero-inline-cta) both use a plain
    opacity+blur fade — no scramble, no slide-up. Just a clean blur into
    focus, timed off .loaded via `transition` (not `animation`) so each one
-   only needs a single delay value. */
-.swap { opacity: 0; filter: blur(8px); }
-.loaded .swap { opacity: 1; filter: blur(0px); transition: opacity .7s ease 4.7s, filter .7s ease 4.7s; }
+   only needs a single delay value. Blur strength/duration matches the
+   headline words' word-blur-in for a consistent, stronger, smoother
+   entrance across the whole hero. */
+.swap { opacity: 0; filter: blur(var(--word-blur, 18px)); }
+.loaded .swap { opacity: 1; filter: blur(0px); transition: opacity .9s cubic-bezier(0.16, 1, 0.3, 1) 4.7s, filter .9s cubic-bezier(0.16, 1, 0.3, 1) 4.7s; }
 .rev-ul { position: relative; }
 .rev-ul::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0.05em; height: .042em; min-height: 2px; background: currentColor; transform: scaleX(0); transform-origin: 0 50%; }
 .loaded .rev-ul::after { transform: scaleX(1); transition: transform .9s var(--ease) 5.1s; }
-.hero-inline-cta { opacity: 0; filter: blur(8px); }
-.loaded .hero-inline-cta { opacity: 1; filter: blur(0px); transition: opacity .6s ease var(--d, 0s), filter .6s ease var(--d, 0s); }
+.hero-inline-cta { opacity: 0; filter: blur(var(--word-blur, 18px)); }
+.loaded .hero-inline-cta { opacity: 1; filter: blur(0px); transition: opacity .8s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s), filter .8s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s); }
 /* CTA now lands inline next to PROFIT (see .hero-inline-cta) instead of
    the old two-column layout, so hero-btm is just the subtext beneath the
    headline, at .lede's own default width. */
