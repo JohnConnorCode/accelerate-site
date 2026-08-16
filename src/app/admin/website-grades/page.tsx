@@ -125,7 +125,7 @@ export default function WebsiteGradesPage() {
         <select
           value={scoreFilter}
           onChange={(e) => setScoreFilter(e.target.value)}
-          className="rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-gold transition-all"
+          className="rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-gold transition-[border-color,box-shadow,background-color]"
         >
           <option value="all">All Scores</option>
           <option value="high">High (80+)</option>

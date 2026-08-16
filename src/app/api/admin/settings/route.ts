@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { maskSecret } from "@/lib/admin/settings";
+import { SERVER_ONLY_SECRET_KEYS } from "@/lib/admin/settings";
 
 export async function GET() {
   const auth = await requireAdmin();
@@ -18,11 +18,13 @@ export async function GET() {
     return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
 
-  // Mask secret values for display
+  // Secret values are never returned, even masked; a mask still leaks length
+  // and encourages treating the database as a secret store.
   const settings = (data || []).map(
     (s: { key: string; value: string; is_secret: boolean; description: string; updated_at: string }) => ({
       ...s,
-      value: s.is_secret ? maskSecret(s.value) : s.value,
+      value: s.is_secret || SERVER_ONLY_SECRET_KEYS.has(s.key) ? "" : s.value,
+      configured: SERVER_ONLY_SECRET_KEYS.has(s.key) ? Boolean(process.env[s.key]) : Boolean(s.value),
     })
   );
 
@@ -37,6 +39,13 @@ export async function PUT(request: NextRequest) {
 
   if (!key || value === undefined) {
     return NextResponse.json({ error: "Missing key or value" }, { status: 400 });
+  }
+
+  if (SERVER_ONLY_SECRET_KEYS.has(key)) {
+    return NextResponse.json(
+      { error: `${key} is server-only. Configure it in Vercel environment variables.` },
+      { status: 400 },
+    );
   }
 
   const supabase = createServiceRoleClient();

@@ -7,31 +7,25 @@ import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import {
   Activity,
   ArrowUpRight,
-  AtSign,
   BarChart3,
-  Building2,
-  CalendarCheck2,
+  ChevronDown,
   CheckSquare,
   Command,
   DollarSign,
   Download,
-  Eye,
   FileCheck,
-  FileText,
-  Globe,
-  Handshake,
   Inbox,
+  KanbanSquare,
   LayoutDashboard,
   ListChecks,
   LogOut,
   Mail,
   Menu,
-  MessageCircle,
   Plus,
   Search,
   Settings,
+  Target,
   User,
-  Users,
   X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -55,40 +49,26 @@ const sidebarSections: { label: string; links: NavLink[] }[] = [
   {
     label: "Operate",
     links: [
-      { label: "Command Center", href: "/admin", icon: LayoutDashboard },
-      { label: "Operator Inbox", href: "/admin/inbox", icon: Inbox },
-      { label: "Leads", href: "/admin/leads", icon: Users },
-      { label: "Bookings", href: "/admin/bookings", icon: CalendarCheck2 },
-      { label: "Clients", href: "/admin/clients", icon: Building2 },
+      { label: "Today", href: "/admin/today", icon: LayoutDashboard },
+      { label: "Pipeline", href: "/admin/pipeline", icon: Target },
+      { label: "Conversations", href: "/admin/conversations", icon: Inbox },
+      { label: "Campaigns", href: "/admin/campaigns", icon: Mail },
       { label: "Proposals", href: "/admin/proposals", icon: FileCheck },
-    ],
-  },
-  {
-    label: "Grow",
-    links: [
-      { label: "Contacts", href: "/admin/contacts", icon: AtSign },
-      { label: "Chat Handoffs", href: "/admin/chat-leads", icon: MessageCircle },
-      { label: "Subscribers", href: "/admin/subscribers", icon: Mail },
-      { label: "Partner Applications", href: "/admin/partners", icon: Handshake },
-      { label: "Content", href: "/admin/content", icon: FileText },
-      { label: "Email Sequences", href: "/admin/email-sequences", icon: Mail },
+      { label: "Feature Board", href: "/admin/features", icon: KanbanSquare },
     ],
   },
   {
     label: "Measure",
     links: [
-      { label: "Revenue", href: "/admin/revenue", icon: DollarSign },
       { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+      { label: "Revenue", href: "/admin/revenue", icon: DollarSign },
       { label: "Activity", href: "/admin/activity", icon: Activity },
     ],
   },
   {
-    label: "Tools",
+    label: "System",
     links: [
-      { label: "Resource Downloads", href: "/admin/resources", icon: Download },
-      { label: "Website Grades", href: "/admin/website-grades", icon: Globe },
-      { label: "Email Previews", href: "/admin/emails", icon: Eye },
-      { label: "Launch Setup", href: "/admin/setup", icon: ListChecks },
+      { label: "Setup Center", href: "/admin/setup", icon: ListChecks },
       { label: "Settings", href: "/admin/settings", icon: Settings },
     ],
   },
@@ -97,9 +77,9 @@ const sidebarSections: { label: string; links: NavLink[] }[] = [
 const allLinks: NavLink[] = sidebarSections.flatMap((section) => section.links);
 
 function getBreadcrumbs(pathname: string): { label: string; href: string }[] {
-  const crumbs = [{ label: "Command Center", href: "/admin" }];
+  const crumbs = [{ label: "Today", href: "/admin/today" }];
   const active = allLinks.find(
-    (link) => link.href !== "/admin" && pathname.startsWith(link.href),
+    (link) => link.href !== "/admin/today" && pathname.startsWith(link.href),
   );
   if (active) crumbs.push({ label: active.label, href: active.href });
   if (pathname.startsWith("/admin/contacts/") && pathname !== "/admin/contacts") {
@@ -231,11 +211,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       keywords: "create add lead opportunity",
       icon: Plus,
       run: () => {
-        if (pathname === "/admin/leads") {
-          window.dispatchEvent(new CustomEvent("admin:new-lead"));
-        } else {
-          router.push("/admin/leads?new=1");
-        }
+        router.push("/admin/pipeline");
       },
     },
     {
@@ -289,8 +265,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       <header className="admin-mobile-header fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between px-4 lg:hidden">
-        <Link href="/admin" className="font-display text-[15px] font-semibold tracking-[-0.02em] text-white">
-          Accelerate <span className="text-white/45">/ Ops</span>
+        <Link href="/admin/today" className="font-display text-[15px] font-semibold tracking-[-0.02em] text-white">
+          Accelerate <span className="text-white/45">/ Revenue OS</span>
         </Link>
         <div className="flex items-center gap-1">
           <NotificationBell />
@@ -385,22 +361,58 @@ function SidebarContent({
   onSignOut: () => Promise<void> | void;
   onNavigate?: () => void;
 }) {
+  const activeSection = sidebarSections.find((section) =>
+    section.links.some((link) => isActive(link.href)),
+  )?.label;
+  const [expandedSections, setExpandedSections] = useState<string[]>([]);
+
+  const toggleSection = (label: string) => {
+    setExpandedSections((current) =>
+      current.includes(label)
+        ? current.filter((section) => section !== label)
+        : [...current, label],
+    );
+  };
+
   return (
     <>
       <div className="mb-6 flex items-start justify-between gap-3 px-2">
-        <Link href="/admin" onClick={onNavigate} className="group min-w-0">
+        <Link href="/admin/today" onClick={onNavigate} className="group min-w-0">
           <span className="block font-display text-lg font-semibold tracking-[-0.035em] text-white">Accelerate</span>
-          <span className="mt-0.5 block font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-white/38 group-hover:text-white/55">Operations</span>
+          <span className="mt-0.5 block font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-white/38 group-hover:text-white/55">Revenue OS</span>
         </Link>
         <NotificationBell />
       </div>
 
-      <nav className="flex-1 space-y-5 overflow-y-auto overscroll-contain pr-1" aria-label="Admin navigation">
+      <nav className="admin-nav-scroll flex-1 space-y-1.5 overflow-y-auto overscroll-contain" aria-label="Admin navigation">
         {sidebarSections.map((section, sectionIndex) => (
-          <motion.div key={section.label} initial={{ opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: sectionIndex * 0.065, duration: 0.32, ease: [0.16, 1, 0.3, 1] }}>
-            <p className="mb-1.5 px-2 font-mono text-[9px] font-semibold uppercase tracking-[0.15em] text-white/30">{section.label}</p>
-            <div className="space-y-0.5">
-              {section.links.map((link) => {
+          <motion.section key={section.label} initial={{ opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: sectionIndex * 0.055, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}>
+            {(() => {
+              const expanded = section.label === activeSection || expandedSections.includes(section.label);
+              const panelId = `admin-nav-${section.label.toLowerCase()}`;
+              return <>
+                <button
+                  type="button"
+                  onClick={() => toggleSection(section.label)}
+                  className="group flex min-h-10 w-full items-center justify-between rounded-[10px] px-2.5 text-left font-mono text-[9px] font-semibold uppercase tracking-[0.15em] text-white/38 transition-[background-color,color,transform] duration-150 hover:bg-white/[0.055] hover:text-white/70 active:scale-[0.96]"
+                  aria-expanded={expanded}
+                  aria-controls={panelId}
+                >
+                  <span>{section.label}</span>
+                  <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-200", expanded && "rotate-180")} />
+                </button>
+                <AnimatePresence initial={false}>
+                  {expanded && (
+                    <motion.div
+                      id={panelId}
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <div className="space-y-0.5 pb-1">
+                        {section.links.map((link) => {
                 const active = isActive(link.href);
                 return (
                   <Link key={link.href} href={link.href} onClick={onNavigate} className={cn("group relative flex min-h-10 items-center gap-3 rounded-[10px] px-2.5 text-[13px] transition-[color,background-color,transform] duration-150 active:scale-[0.96]", active ? "bg-white text-black shadow-[0_1px_2px_rgba(0,0,0,0.18)]" : "text-white/58 hover:bg-white/7 hover:text-white")} aria-current={active ? "page" : undefined}>
@@ -409,9 +421,14 @@ function SidebarContent({
                     {active && <motion.span layoutId="admin-nav-active" className="absolute inset-y-2 -left-4 w-0.5 rounded-r bg-white" transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }} />}
                   </Link>
                 );
-              })}
-            </div>
-          </motion.div>
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </>;
+            })()}
+          </motion.section>
         ))}
       </nav>
 

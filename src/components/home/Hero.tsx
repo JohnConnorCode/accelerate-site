@@ -300,9 +300,9 @@ export function Hero() {
                 blur-in treatment and reveals once the underline finishes
                 drawing. */}
             <span className="hero-row-cta">
-              <span style={{ overflow: "visible", display: "inline-block" }}>
+              <span className="hero-profit-slot" style={{ overflow: "visible", display: "inline-block" }}>
                 <span
-                  className="swap it rev-ul"
+                  className="swap it rev-ul hero-profit"
                   style={{ position: "relative", zIndex: 10, display: "inline-block", transform: "translateY(0.12em)", lineHeight: 1.25, paddingTop: "0.1em" } as CSSProperties}
                 >
                   PROFIT

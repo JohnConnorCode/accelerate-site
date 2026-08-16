@@ -52,7 +52,7 @@ function SortableCard({
     <div
       ref={setNodeRef}
       style={style}
-      className="glass rounded-lg p-3 group hover:border-border-gold transition-all"
+      className="glass rounded-lg p-3 group hover:border-border-gold transition-[border-color,box-shadow,transform]"
     >
       <div className="flex items-start gap-2">
         <button
@@ -79,7 +79,7 @@ function SortableCard({
         </div>
         <button
           onClick={() => onEdit(item)}
-          className="opacity-0 group-hover:opacity-100 text-white-muted hover:text-white-primary transition-all cursor-pointer"
+          className="opacity-0 group-hover:opacity-100 text-white-muted hover:text-white-primary transition-[opacity,color] cursor-pointer"
         >
           <Pencil className="h-3.5 w-3.5" />
         </button>

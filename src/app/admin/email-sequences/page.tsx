@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Mail, Play, UserMinus, AlertCircle, Send } from "lucide-react";
+import { Mail, Play, AlertCircle, CheckCircle2, PauseCircle } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { StatCard } from "@/components/admin/StatCard";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -80,14 +80,14 @@ export default function EmailSequencesPage() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <PageHeader title="Email Sequences" />
+      <PageHeader title="Email Sequences" subtitle="Monitor every active nurture path and its delivery lifecycle." />
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-4 mb-6">
         <StatCard label="Total" value={stats.total} icon={Mail} index={0} />
-        <StatCard label="Scheduled" value={stats.completed} icon={Send} index={1} />
-        <StatCard label="Active (Legacy)" value={stats.active} icon={Play} index={2} />
-        <StatCard label="Unsubscribed" value={stats.unsubscribed} icon={UserMinus} index={3} />
+        <StatCard label="Active" value={stats.active} icon={Play} index={1} />
+        <StatCard label="Completed" value={stats.completed} icon={CheckCircle2} index={2} />
+        <StatCard label="Paused" value={stats.paused} icon={PauseCircle} index={3} />
       </div>
 
       {/* Filters */}
@@ -108,8 +108,8 @@ export default function EmailSequencesPage() {
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
           options={[
             { value: "all", label: "All Statuses" },
-            { value: "completed", label: "Scheduled" },
-            { value: "active", label: "Active (Legacy)" },
+            { value: "completed", label: "Completed" },
+            { value: "active", label: "Active" },
             { value: "paused", label: "Paused" },
             { value: "unsubscribed", label: "Unsubscribed" },
           ]}
@@ -145,10 +145,10 @@ export default function EmailSequencesPage() {
                     {seq.sequence_type?.replace(/_/g, " ")}
                   </td>
                   <td className="px-4 py-3 text-white-secondary">
-                    {emailCount} scheduled
+                    {emailCount} emails
                   </td>
                   <td className="px-4 py-3">
-                    <StatusBadge status={seq.status === "completed" ? "scheduled" : seq.status} />
+                    <StatusBadge status={seq.status} />
                   </td>
                   <td className="px-4 py-3 text-white-muted text-xs">
                     {seq.created_at

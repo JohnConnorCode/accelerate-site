@@ -275,17 +275,6 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .route-entry {
-    animation: route-entry .38s var(--ease) both;
-  }
-
-  @keyframes route-entry {
-    from { opacity: 0; filter: blur(3px); }
-    to { opacity: 1; filter: none; }
-  }
-}
-
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-jost), system-ui, sans-serif;
 }
@@ -2322,16 +2311,27 @@ summary:focus-visible {
      change with viewport height either — a dvh-scaled floor was
      occasionally computing below that and getting overlapped by the
      header on shorter phones. */
-  .hero-band { display: flex; flex-direction: column; min-height: 100dvh; }
+  /* A first-screen composition, not an endlessly expanding canvas. The band
+     stays stable on tall phones, but can grow when a short device needs the
+     room so no headline or CTA is clipped. */
+  .hero-band { display: flex; flex-direction: column; min-height: min(100dvh, 680px); }
   .hero-band .hero { flex: 1 0 auto; display: flex; flex-direction: column; overflow: hidden; }
   .hero-band .hero .wrap { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; min-height: 0; min-width: 0; max-width: 100%; }
   .hero-band .hero-top { flex: 0 0 auto; min-width: 0; max-width: 100%; overflow: hidden; }
-  .hero-band .hero-btm { flex: 0 0 auto; margin-top: clamp(24px, 4dvh, 40px); padding-top: clamp(14px, 2.1dvh, 26px); }
+  /* Keep the supporting proof statement attached to the CTA with a bounded,
+     fluid rhythm. The marquee remains the lower edge of the hero band. */
+  .hero-band .hero-btm { flex: 0 0 auto; margin-top: clamp(22px, 3.5dvh, 34px); padding-top: clamp(14px, 2.1dvh, 26px); }
   .hero-band .hero-btm .lede { font-size: clamp(14px, 2.1dvh, 15.5px); line-height: 1.5; }
   .hero-band .mq { flex: 0 0 auto; }
 
   .hero { padding-top: 108px; padding-bottom: clamp(20px, 3dvh, 32px); --word-blur: 9px; }
   .hero h1 { margin-top: clamp(10px, 1.6dvh, 20px); }
+  /* Make PROFIT a deliberate half-line anchor on phones. The CTA still
+     owns its own full-width line below, so this increases emphasis without
+     competing with the conversion action. */
+  .hero-profit-slot { width: 50%; }
+  .hero-profit { font-size: clamp(4rem, 16vw, 5rem); letter-spacing: -0.05em; line-height: 0.9 !important; }
+  .hero-inline-cta { margin-top: clamp(14px, 2dvh, 18px); }
   /* min(vw, dvh) — not either alone: a pure height-based size ignores
      width, computing large enough on a normal tall-aspect phone that
      "deploy"/"intelligent"/"automation" stop fitting next to their
@@ -2790,7 +2790,10 @@ body.modal-open [data-dock] { visibility: hidden; pointer-events: none; }
 .admin-sidebar {
   background: #0b0b0b;
   color: #fbfbfa;
-  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.08), 18px 0 42px -34px rgba(0, 0, 0, 0.85);
+  opacity: 1;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.09), 18px 0 42px -34px rgba(0, 0, 0, 0.85);
 }
 
 .admin-mobile-header {
@@ -2798,6 +2801,16 @@ body.modal-open [data-dock] { visibility: hidden; pointer-events: none; }
   color: #fbfbfa;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08), 0 14px 34px -28px rgba(0, 0, 0, 0.8);
 }
+
+/* Collapsed groups keep the operator's navigation compact. Overflow remains
+   available for keyboards and wheels without leaving a permanent chrome rail. */
+.admin-nav-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-right: 2px;
+}
+.admin-nav-scroll::-webkit-scrollbar { display: none; }
+.admin-nav-scroll:focus-within { scrollbar-gutter: stable; }
 .admin-sidebar .admin-notification-trigger,
 .admin-mobile-header .admin-notification-trigger { color: rgba(255, 255, 255, 0.52); }
 .admin-sidebar .admin-notification-trigger:hover,

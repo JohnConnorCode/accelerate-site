@@ -38,6 +38,8 @@ See detailed analysis: `.claude/projects/.../memory/competitor-references.md`
 ## Visual QA Rule
 After making visual/layout changes to components, always take a screenshot and review it before considering the work done. Check for empty space, broken layouts, alignment issues, and overall visual balance. Iterate until it looks right — don't ship blind.
 
+Use Playwright for local visual and interaction QA. If the in-app browser is unavailable, disconnected, or unauthenticated, that is not a blocker and is not worth reporting as one: immediately use the repository's Playwright installation instead. Capture desktop and mobile screenshots for substantial admin UI changes and exercise the primary interaction when practical.
+
 ## Infrastructure
 
 ### Supabase
@@ -95,6 +97,11 @@ If you're on the wrong Vercel account, `vercel logout && vercel login` and pick 
 6. `supabase/migration-prompt5.sql` — Admin notifications table
 7. `migrations/business-operating-system.sql` — Tasks, clients, sent_emails, proposals, notification priority column
 8. `migrations/utm-tracking.sql` — UTM attribution columns on all lead capture tables
+9. `migrations/roofing-booking-machine.sql` — Legacy roofing qualifier and Calendly attribution compatibility
+10. `migrations/20260816-revenue-os.sql` — Canonical Revenue OS, conversations, campaigns, Google, approvals, health, and audit ledger
+11. `migrations/20260816-feature-board.sql` — Internal roadmap, durable drag ordering, labels, priorities, delivery details, and seeded Revenue OS follow-up work
+
+Revenue OS setup and verification: `docs/REVENUE-OS-SETUP.md`. Secret settings are environment-only; do not store API keys in `admin_settings`.
 
 All migrations are idempotent (`CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`).
 

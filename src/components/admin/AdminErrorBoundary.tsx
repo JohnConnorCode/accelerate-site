@@ -58,7 +58,7 @@ export class AdminErrorBoundary extends Component<Props, State> {
             </button>
             <button
               onClick={this.handleReload}
-              className="flex items-center gap-1.5 rounded-lg bg-gold-gradient px-3 py-1.5 text-sm font-semibold text-black hover:brightness-110 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 rounded-lg bg-gold-gradient px-3 py-1.5 text-sm font-semibold text-black hover:brightness-110 transition-[filter,transform] cursor-pointer"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               Reload

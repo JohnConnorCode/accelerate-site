@@ -14,7 +14,8 @@
     "deploy:upload": "vercel deploy --prebuilt --prod --archive=tgz",
     "deploy": "npm run deploy:pull && npm run deploy:build && npm run deploy:upload",
     "deploy:rollback": "vercel rollback",
-    "verify:guardrails": "npx tsx scripts/verify-guardrails.ts"
+    "verify:guardrails": "npx tsx scripts/verify-guardrails.ts",
+    "test:features": "node --env-file=.env.local scripts/qa-feature-board.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

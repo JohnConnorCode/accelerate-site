@@ -85,7 +85,7 @@ export default function AnalyticsPage() {
           <button
             key={d}
             onClick={() => setDays(d)}
-            className={`px-3 py-1.5 rounded-lg text-sm transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-lg text-sm transition-[background-color,color,transform] cursor-pointer ${
               days === d
                 ? "bg-gold-gradient text-black font-semibold"
                 : "glass text-white-secondary hover:text-white-primary"

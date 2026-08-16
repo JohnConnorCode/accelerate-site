@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
+import { motion } from "framer-motion";
+import { adminHeaderItemVariants, adminHeaderVariants } from "@/lib/admin/motion";
 
 interface PageHeaderProps {
   title: string;
@@ -14,17 +16,17 @@ export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
   }, [title]);
 
   return (
-    <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+    <motion.div variants={adminHeaderVariants} className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
       <div className="min-w-0">
-        <p className="admin-eyebrow">Accelerate operations</p>
-        <h1 className="admin-page-title">
+        <motion.p variants={adminHeaderItemVariants} className="admin-eyebrow">Accelerate operations</motion.p>
+        <motion.h1 variants={adminHeaderItemVariants} className="admin-page-title">
           {title}
-        </h1>
+        </motion.h1>
         {subtitle && (
-          <p className="admin-copy mt-1.5 max-w-2xl text-sm">{subtitle}</p>
+          <motion.p variants={adminHeaderItemVariants} className="admin-copy mt-1.5 max-w-2xl text-sm">{subtitle}</motion.p>
         )}
       </div>
-      {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
-    </div>
+      {actions && <motion.div variants={adminHeaderItemVariants} className="flex shrink-0 flex-wrap items-center gap-2">{actions}</motion.div>}
+    </motion.div>
   );
 }

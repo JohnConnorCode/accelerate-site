@@ -1,9 +1,23 @@
 import { createServiceRoleClient } from "@/lib/supabase/server";
 
-/**
- * Get a setting value: checks admin_settings DB table first, falls back to process.env
- */
+export const SERVER_ONLY_SECRET_KEYS = new Set([
+  "ANTHROPIC_API_KEY",
+  "RESEND_API_KEY",
+  "CRON_SECRET",
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "PLAUSIBLE_API_KEY",
+  "GOOGLE_CLIENT_ID",
+  "GOOGLE_CLIENT_SECRET",
+  "GOOGLE_TOKEN_ENCRYPTION_KEY",
+  "CALENDLY_PERSONAL_ACCESS_TOKEN",
+  "CALENDLY_WEBHOOK_SECRET",
+]);
+
+/** Secret configuration is environment-only. Non-secret operator preferences
+ * may still live in admin_settings. Environment variables always win. */
 export async function getSetting(key: string): Promise<string> {
+  if (process.env[key]) return process.env[key] || "";
+  if (SERVER_ONLY_SECRET_KEYS.has(key)) return "";
   try {
     const supabase = createServiceRoleClient();
     const { data } = await supabase
@@ -17,7 +31,7 @@ export async function getSetting(key: string): Promise<string> {
     // Fall through to env var
   }
 
-  return process.env[key] || "";
+  return "";
 }
 
 /**

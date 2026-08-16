@@ -39,7 +39,7 @@ export function LeadsChart({ data, days = 30, onDaysChange }: LeadsChartProps) {
                   key={opt.value}
                   onClick={() => onDaysChange(opt.value)}
                   className={cn(
-                    "px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer",
+                    "px-2.5 py-1 rounded-md text-xs font-medium transition-[background-color,color,transform] cursor-pointer",
                     days === opt.value
                       ? "bg-gold-gradient text-black"
                       : "glass text-white-muted hover:text-white-primary"

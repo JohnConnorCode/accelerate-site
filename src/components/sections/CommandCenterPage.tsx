@@ -64,11 +64,16 @@ function Hero() {
   const gridDrift = useTransform(scrollYProgress, [0, 1], [0, 120]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoaded(true), 40);
+    // Leave the initial styles in place for two frames before revealing. This
+    // makes the word cascade reliable after an App Router navigation instead
+    // of depending on a cache-timing-sensitive timeout.
+    let frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => setLoaded(true));
+    });
     const onPageShow = () => setLoaded(true);
     window.addEventListener("pageshow", onPageShow);
     return () => {
-      clearTimeout(timer);
+      cancelAnimationFrame(frame);
       window.removeEventListener("pageshow", onPageShow);
     };
   }, []);

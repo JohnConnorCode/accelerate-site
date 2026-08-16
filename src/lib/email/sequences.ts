@@ -1,4 +1,5 @@
 import { getResend, FROM_EMAIL } from "./resend";
+import { textEmail } from "./templates";
 import { emailSequences } from "@/content/email-sequences";
 import type { EmailSequenceType } from "@/lib/types";
 
@@ -41,6 +42,7 @@ export async function scheduleEmailSequence(
       to: email,
       subject: resolvedSubject,
       text: resolvedBody,
+      html: textEmail(resolvedBody),
     };
 
     // Schedule future emails; send step 0 immediately
@@ -163,12 +165,16 @@ async function saveSequenceRecord(
     const steps = emailSequences[enrollment.sequenceType];
     const totalSteps = steps?.length ?? 0;
 
+    const hasScheduledStep = steps?.some((step) => step.delayDays > 0) ?? false;
     await supabase.from("email_sequences").insert({
       id: sequenceId,
       email: enrollment.email,
       sequence_type: enrollment.sequenceType,
       current_step: totalSteps,
-      status: "completed",
+      // A sequence with future steps remains active until the automation that
+      // owns its lifecycle cancels or completes it. Recording it as completed
+      // immediately made the operator view misleading.
+      status: hasScheduledStep ? "active" : "completed",
       metadata: {
         ...enrollment.metadata,
         resend_email_ids: emailIds,

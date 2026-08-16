@@ -167,7 +167,7 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="w-full rounded-lg bg-bg-subtle border border-border-glass px-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold focus:ring-1 focus:ring-[var(--gold-base)]/30 transition-all duration-200"
+            className="w-full rounded-lg bg-bg-subtle border border-border-glass px-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold focus:ring-1 focus:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color] duration-200"
           >
             {statusOptions.map((s) => (
               <option key={s} value={s}>
@@ -189,7 +189,7 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
               value={dealValue}
               onChange={(e) => setDealValue(e.target.value)}
               placeholder="0"
-              className="w-full rounded-lg bg-bg-subtle border border-border-glass pl-9 pr-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold focus:ring-1 focus:ring-[var(--gold-base)]/30 transition-all duration-200"
+              className="w-full rounded-lg bg-bg-subtle border border-border-glass pl-9 pr-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold focus:ring-1 focus:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color] duration-200"
             />
           </div>
         </div>

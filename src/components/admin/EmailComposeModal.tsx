@@ -18,49 +18,45 @@ interface EmailTemplate {
 
 const templates: EmailTemplate[] = [
   {
-    label: "Introduction",
-    subject: "Welcome to Accelerate: Your Custom Growth Plan",
+    label: "Plan review",
+    subject: "A clear next step for {{business}}",
     body: `Hi {{name}},
 
-Thank you for requesting a custom growth plan for {{business}}. I've reviewed your submission and wanted to personally reach out.
+I reviewed the plan for {{business}} and pulled out the one or two changes most likely to move the needle first.
 
-Your plan highlights several key opportunities specific to your industry. I'd love to walk you through the findings and discuss how we can help implement them.
+If it would be useful, I can walk you through the reasoning, the rollout order, and what we would leave with you after the call.
 
-Would you be open to a quick 15-minute call this week?
+Would a short conversation this week be useful?
 
-Best,
-Accelerate Team`,
+John
+Accelerate`,
   },
   {
-    label: "Follow-up",
-    subject: "Following up on your growth plan",
+    label: "Decision follow-up",
+    subject: "A quick follow-up on {{business}}'s plan",
     body: `Hi {{name}},
 
-I wanted to follow up on the growth plan we prepared for {{business}}. Have you had a chance to review it?
+I wanted to make sure the plan for {{business}} did not get buried.
 
-I noticed some quick wins that could start generating results within the first 30 days. Happy to walk you through the specifics.
+The fastest wins are usually response time, follow-through, and the handoffs that depend on someone remembering. If one of those is a priority right now, I can show you the cleanest place to begin.
 
-Let me know if you have any questions.
+No pressure either way—just reply if you want to talk it through.
 
-Best,
-Accelerate Team`,
+John`,
   },
   {
-    label: "Proposal",
-    subject: "Your Custom Proposal from Accelerate",
+    label: "Proposal ready",
+    subject: "The proposal for {{business}} is ready",
     body: `Hi {{name}},
 
-Following our conversation, I've put together a proposal tailored to {{business}}'s needs.
+I put together the proposal for {{business}} around the priorities we discussed.
 
-The plan covers:
-- [Key deliverable 1]
-- [Key deliverable 2]
-- [Key deliverable 3]
+It covers the operating system, the implementation sequence, and what we will own after launch—so the work does not fall back on your team.
 
-I believe this approach will deliver measurable results within 60-90 days. Happy to discuss the details at your convenience.
+Reply with any questions, or send a few times that work and we will walk through it together.
 
-Best,
-Accelerate Team`,
+John
+Accelerate`,
   },
   { label: "Custom", subject: "", body: "" },
 ];
@@ -121,6 +117,8 @@ export function EmailComposeModal({
           subject,
           body,
           leadId,
+          recipientName,
+          template: selectedTemplate === "Custom" ? undefined : selectedTemplate,
         }),
       });
       if (!res.ok) throw new Error("Failed");

@@ -162,7 +162,7 @@ export function AddLeadModal({ isOpen, onClose, onLeadCreated }: AddLeadModalPro
                     <select
                       value={industry}
                       onChange={(e) => setIndustry(e.target.value)}
-                      className="w-full rounded-lg bg-bg-subtle border border-border-glass px-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold focus:ring-1 focus:ring-[var(--gold-base)]/30 transition-all duration-200"
+                      className="w-full rounded-lg bg-bg-subtle border border-border-glass px-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold focus:ring-1 focus:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color] duration-200"
                     >
                       {industryOptions.map((opt) => (
                         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -175,7 +175,7 @@ export function AddLeadModal({ isOpen, onClose, onLeadCreated }: AddLeadModalPro
                     <select
                       value={source}
                       onChange={(e) => setSource(e.target.value)}
-                      className="w-full rounded-lg bg-bg-subtle border border-border-glass px-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold focus:ring-1 focus:ring-[var(--gold-base)]/30 transition-all duration-200"
+                      className="w-full rounded-lg bg-bg-subtle border border-border-glass px-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold focus:ring-1 focus:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color] duration-200"
                     >
                       {sourceOptions.map((opt) => (
                         <option key={opt.value} value={opt.value}>{opt.label}</option>

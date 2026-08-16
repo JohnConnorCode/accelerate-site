@@ -6,45 +6,55 @@ import { motion } from "framer-motion";
 import {
   ArrowRight,
   BarChart3,
+  Bot,
   CalendarClock,
+  CalendarDays,
   Check,
   CheckCircle2,
   ChevronDown,
   CircleDashed,
   ExternalLink,
   FileCode2,
+  FolderOpen,
   Inbox,
   Loader2,
   MailCheck,
+  Megaphone,
+  PlugZap,
   RefreshCw,
   Rocket,
   Settings2,
   ShieldCheck,
-  Sparkles,
   Target,
   TriangleAlert,
   UserCheck,
-  Workflow,
 } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { cn } from "@/lib/utils";
 
-type SetupStatus = "ready" | "action" | "optional" | "disabled";
+type SetupStatus = "ready" | "action" | "degraded" | "optional" | "disabled";
+type SetupGroup = "core" | "email" | "google" | "ai" | "campaigns" | "proposals" | "analytics" | "booking" | "operations";
 
 interface SetupCheck {
   id: string;
+  group: SetupGroup;
   label: string;
-  detail: string;
+  description: string;
+  accomplishes: string;
   status: SetupStatus;
   required: boolean;
   keys?: string[];
+  lastSuccessAt?: string | null;
+  lastFailure?: string | null;
+  action?: { label: string; href: string; external?: boolean };
 }
 
 interface SetupResponse {
   checks: SetupCheck[];
   bookingMode: "manual" | "calendly";
+  google?: { accountEmail: string; connected: boolean; settings: { drive_folder_ids?: string[] }; scopes: string[] } | null;
   summary: {
     requiredReady: number;
     requiredTotal: number;
@@ -52,6 +62,7 @@ interface SetupResponse {
     optionalTotal: number;
     launchReady: boolean;
     percent: number;
+    degraded: number;
   };
 }
 
@@ -76,8 +87,18 @@ const setupGuides: Record<string, SetupGuide> = {
   schema: {
     steps: [
       "Open the Supabase SQL editor.",
-      "Paste and run migrations/roofing-booking-machine.sql after the existing business operating-system and UTM migrations.",
-      "Return here and refresh. The check reads the live opportunities table.",
+      "Run the existing business operating-system, UTM, and roofing migrations in their documented order.",
+      "Paste and run migrations/20260816-revenue-os.sql, then migrations/20260816-feature-board.sql.",
+      "Return here and refresh. The check reads the canonical action queue and pipeline schema.",
+    ],
+    href: "https://supabase.com/dashboard/project/skjypuwkceoiunyhhqlm/sql/new",
+    linkLabel: "Open the SQL editor",
+  },
+  feature_board: {
+    steps: [
+      "Apply migrations/20260816-revenue-os.sql first if it is not already active.",
+      "Paste and run migrations/20260816-feature-board.sql in the Supabase SQL editor.",
+      "Open Feature Board. The initial Revenue OS follow-up work is seeded once and future edits remain authoritative.",
     ],
     href: "https://supabase.com/dashboard/project/skjypuwkceoiunyhhqlm/sql/new",
     linkLabel: "Open the SQL editor",
@@ -91,7 +112,7 @@ const setupGuides: Record<string, SetupGuide> = {
     href: "https://resend.com/domains",
     linkLabel: "Open Resend domains",
   },
-  admin_email: {
+  founder_access: {
     steps: [
       "Choose the inbox John actively monitors.",
       "Set ADMIN_EMAIL to that exact address in Vercel and redeploy.",
@@ -118,12 +139,53 @@ const setupGuides: Record<string, SetupGuide> = {
     href: "https://plausible.io/settings/api-keys",
     linkLabel: "Open Plausible API keys",
   },
-  manual_mode: {
+  manual_booking: {
     steps: [
       "Leave CALENDLY_ENABLED unset or set it to false.",
       "John receives the audit request, reviews the company, and replies with meeting times.",
       "No calendar credentials or webhook are needed in this mode.",
     ],
+  },
+  google_oauth: {
+    steps: [
+      "Create a Google Cloud OAuth web application and enable Gmail, Calendar, and Drive APIs.",
+      "Add the production callback shown here to Authorized redirect URIs: https://www.acceleratewith.us/api/admin/google/callback.",
+      "Add GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and a long random GOOGLE_TOKEN_ENCRYPTION_KEY in Vercel, then redeploy.",
+    ],
+    href: "https://console.cloud.google.com/apis/credentials",
+    linkLabel: "Open Google Cloud credentials",
+  },
+  google_connection: {
+    steps: [
+      "Finish the Google OAuth application setup above.",
+      "Choose Connect Google Workspace and approve Gmail read/send, Calendar events, and Drive read-only access.",
+      "Return here and run a Workspace sync. The status turns ready only after usable scopes and credentials are stored.",
+    ],
+  },
+  ai: {
+    steps: [
+      "Create an Anthropic API key for the Revenue copilot.",
+      "Store ANTHROPIC_API_KEY in Vercel only; secret keys cannot be saved in the admin database.",
+      "Redeploy, then open the AI command bar. Writes will appear in Today for approval before execution.",
+    ],
+    href: vercelEnvironmentUrl,
+    linkLabel: "Open Vercel environment variables",
+  },
+  campaigns: {
+    steps: [
+      "Set a long random CRON_SECRET in Vercel and keep RESEND_API_KEY configured.",
+      "Apply the Revenue OS migration and deploy vercel.json with the scheduled executor.",
+      "Create a draft campaign, review its dry-run recipients, and activate one version. Material edits require reapproval.",
+    ],
+  },
+  operations: {
+    steps: [
+      "Set CRON_SECRET in Vercel and redeploy.",
+      "Confirm the Revenue campaigns and Google Workspace jobs appear in Vercel Cron Jobs.",
+      "Run each job once; this page reports terminal job and source receipts instead of relying on HTTP status alone.",
+    ],
+    href: vercelEnvironmentUrl,
+    linkLabel: "Open Vercel environment variables",
   },
   calendly: {
     steps: [
@@ -156,22 +218,23 @@ const setupGuides: Record<string, SetupGuide> = {
 };
 
 const flowSteps = [
-  { label: "Attract", detail: "Focused /roofing campaign", icon: Target },
-  { label: "Qualify", detail: "60-second operator fit gate", icon: UserCheck },
-  { label: "Capture", detail: "One attributed opportunity", icon: Inbox },
-  { label: "Follow up", detail: "Confirmation + owner alert", icon: MailCheck },
-  { label: "Measure", detail: "Stages, source, and revenue", icon: BarChart3 },
+  { label: "Attract", detail: "Inbound and approved outbound", icon: Target },
+  { label: "Convert", detail: "Replies, meetings, and follow-up", icon: UserCheck },
+  { label: "Propose", detail: "Auditable client decisions", icon: FileCode2 },
+  { label: "Operate", detail: "One prioritized founder queue", icon: Inbox },
+  { label: "Measure", detail: "Source through won revenue", icon: BarChart3 },
 ];
 
 const growthLayers = [
-  { title: "Founder outbound cockpit", detail: "Import target accounts, prioritize daily outreach, log touches, and track replies in one queue.", icon: Workflow },
-  { title: "Automatic call prep", detail: "Research each company and generate a concise leak hypothesis before John gets on the call.", icon: Sparkles },
-  { title: "Audit-to-proposal system", detail: "Turn call notes into a branded audit, scoped recommendation, proposal, and timed follow-up.", icon: FileCode2 },
+  { title: "Controlled campaigns", detail: "Approve one campaign version, then send just in time with reply, booking, bounce, unsubscribe, and pause stops.", icon: Megaphone },
+  { title: "Workspace intelligence", detail: "Connect Gmail conversations, Calendar meetings, and only the Drive folders you explicitly approve.", icon: PlugZap },
+  { title: "Safe Revenue copilot", detail: "Research, prioritize, draft, and propose actions from live records; external actions remain confirmation-gated.", icon: Bot },
 ];
 
 const statusMeta: Record<SetupStatus, { label: string; icon: typeof CheckCircle2; className: string }> = {
   ready: { label: "Ready", icon: CheckCircle2, className: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" },
   action: { label: "Action needed", icon: TriangleAlert, className: "bg-amber-500/12 text-amber-800 dark:text-amber-300" },
+  degraded: { label: "Degraded", icon: TriangleAlert, className: "bg-rose-500/10 text-rose-700 dark:text-rose-300" },
   optional: { label: "Optional", icon: CircleDashed, className: "bg-black/[0.055] text-[var(--admin-muted)] dark:bg-white/[0.07]" },
   disabled: { label: "Not enabled", icon: CircleDashed, className: "bg-black/[0.055] text-[var(--admin-muted)] dark:bg-white/[0.07]" },
 };
@@ -192,7 +255,16 @@ function SetupCheckCard({ check }: { check: SetupCheck }) {
             <h3 className="font-semibold tracking-[-0.015em] text-[var(--admin-ink)]">{check.label}</h3>
             <span className={cn("rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.09em]", meta.className)}>{meta.label}</span>
           </div>
-          <p className="admin-copy mt-1.5 text-sm leading-6">{check.detail}</p>
+          <p className="admin-copy mt-1.5 text-pretty text-sm leading-6">{check.description}</p>
+          <p className="mt-3 text-pretty text-xs leading-5 text-[var(--admin-ink)]/72">
+            <span className="font-semibold text-[var(--admin-ink)]">What it unlocks:</span> {check.accomplishes}
+          </p>
+          {(check.lastSuccessAt || check.lastFailure) && (
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[10px] text-[var(--admin-muted)]">
+              {check.lastSuccessAt && <span>Last success {new Date(check.lastSuccessAt).toLocaleString()}</span>}
+              {check.lastFailure && <span className="text-rose-700 dark:text-rose-300">Last failure: {check.lastFailure}</span>}
+            </div>
+          )}
           {check.keys && (
             <div className="mt-3 flex flex-wrap gap-1.5">
               {check.keys.map((key) => (
@@ -202,6 +274,19 @@ function SetupCheckCard({ check }: { check: SetupCheck }) {
           )}
         </div>
       </div>
+      {check.action && (
+        <div className="border-t border-[var(--admin-border)] px-4 py-3 sm:px-5">
+          {check.action.external ? (
+            <a href={check.action.href} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center gap-2 rounded-lg text-xs font-semibold text-[var(--admin-ink)] underline decoration-[var(--admin-border)] underline-offset-4 transition-[opacity,transform] duration-150 hover:opacity-65 active:scale-[0.96]">
+              {check.action.label} <ExternalLink className="size-3.5" aria-hidden="true" />
+            </a>
+          ) : (
+            <Link href={check.action.href} className="inline-flex min-h-10 items-center gap-2 rounded-lg text-xs font-semibold text-[var(--admin-ink)] underline decoration-[var(--admin-border)] underline-offset-4 transition-[opacity,transform] duration-150 hover:opacity-65 active:scale-[0.96]">
+              {check.action.label} <ArrowRight className="size-3.5" aria-hidden="true" />
+            </Link>
+          )}
+        </div>
+      )}
       {guide && (
         <details className="group border-t border-[var(--admin-border)]">
           <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 text-sm font-medium text-[var(--admin-ink)] transition-colors duration-150 hover:bg-black/[0.025] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--admin-ink)] dark:hover:bg-white/[0.035] sm:px-5">
@@ -233,12 +318,17 @@ export default function AdminSetupPage() {
   const [data, setData] = useState<SetupResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [googleSyncing, setGoogleSyncing] = useState(false);
+  const [driveFolders, setDriveFolders] = useState("");
+  const [googleMessage, setGoogleMessage] = useState<{ tone: "success" | "error"; text: string } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      setData(await fetchJson<SetupResponse>("/api/admin/setup"));
+      const next = await fetchJson<SetupResponse>("/api/admin/setup");
+      setData(next);
+      setDriveFolders((next.google?.settings.drive_folder_ids ?? []).join("\n"));
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Could not check the launch setup.");
     } finally {
@@ -248,14 +338,58 @@ export default function AdminSetupPage() {
 
   useEffect(() => { void load(); }, [load]);
 
-  const requiredChecks = useMemo(() => data?.checks.filter((check) => check.required) ?? [], [data]);
-  const optionalChecks = useMemo(() => data?.checks.filter((check) => !check.required) ?? [], [data]);
+  const groupedChecks = useMemo(() => {
+    const map = new Map<SetupGroup, SetupCheck[]>();
+    for (const check of data?.checks ?? []) map.set(check.group, [...(map.get(check.group) ?? []), check]);
+    return map;
+  }, [data]);
+
+  const syncGoogle = async (source: "all" | "gmail" | "calendar" | "drive") => {
+    setGoogleSyncing(true);
+    setGoogleMessage(null);
+    try {
+      await fetchJson("/api/admin/google/sync", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ source }) });
+      setGoogleMessage({ tone: "success", text: `${source === "all" ? "Workspace" : source} sync completed.` });
+      await load();
+    } catch (syncError) {
+      setGoogleMessage({ tone: "error", text: syncError instanceof Error ? syncError.message : "Google sync failed." });
+    } finally {
+      setGoogleSyncing(false);
+    }
+  };
+
+  const saveDriveFolders = async () => {
+    setGoogleSyncing(true);
+    setGoogleMessage(null);
+    try {
+      const driveFolderIds = driveFolders.split(/\n|,/).map((id) => id.trim()).filter(Boolean);
+      await fetchJson("/api/admin/google/sync", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ driveFolderIds }) });
+      setGoogleMessage({ tone: "success", text: "Drive folder access saved. Run Drive sync to verify it." });
+      await load();
+    } catch (saveError) {
+      setGoogleMessage({ tone: "error", text: saveError instanceof Error ? saveError.message : "Could not save Drive folders." });
+    } finally {
+      setGoogleSyncing(false);
+    }
+  };
+
+  const groupMeta: Array<{ id: SetupGroup; eyebrow: string; title: string; description: string; icon: typeof ShieldCheck }> = [
+    { id: "core", eyebrow: "Foundation", title: "Core system", description: "Identity, database, access, and the canonical production origin.", icon: ShieldCheck },
+    { id: "email", eyebrow: "Communication", title: "Email delivery", description: "Approved transactional and campaign delivery with provider receipts.", icon: MailCheck },
+    { id: "google", eyebrow: "Connection", title: "Google Workspace", description: "One encrypted connection for Gmail, Calendar, and selected Drive folders.", icon: PlugZap },
+    { id: "ai", eyebrow: "Intelligence", title: "Revenue copilot", description: "Grounded analysis and confirmation-gated action proposals.", icon: Bot },
+    { id: "campaigns", eyebrow: "Outbound", title: "Campaign automation", description: "Versioned approval, just-in-time sending, and immediate stop controls.", icon: Megaphone },
+    { id: "proposals", eyebrow: "Closing", title: "Proposal decisions", description: "Public view, acceptance, decline, and pipeline attribution without payment.", icon: FileCode2 },
+    { id: "analytics", eyebrow: "Measurement", title: "Revenue attribution", description: "Campaign and source performance through won revenue.", icon: BarChart3 },
+    { id: "booking", eyebrow: "Scheduling", title: "Booking mode", description: "Manual scheduling now, with Calendly preserved as an optional later channel.", icon: CalendarDays },
+    { id: "operations", eyebrow: "Reliability", title: "Operations health", description: "Protected jobs, terminal receipts, failures, and recovery evidence.", icon: Settings2 },
+  ];
 
   return (
     <div className="space-y-7 pb-8">
       <PageHeader
-        title="Launch Setup"
-        subtitle="The source of truth for launching and operating the roofing opportunity funnel. Checks reflect this running deployment; secret values are never displayed."
+        title="Setup Center"
+        subtitle="Connect, verify, and operate the complete Revenue OS. Every status reflects this deployment; secrets are never displayed or stored in the admin database."
         actions={(
           <>
             <Link href="/roofing" target="_blank" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-4 text-xs font-semibold text-[var(--admin-ink)] shadow-sm transition-[transform,background-color] duration-150 hover:bg-[var(--admin-surface-subtle)] active:scale-[0.96]">
@@ -353,34 +487,76 @@ export default function AdminSetupPage() {
             </AdminSurface>
           </section>
 
-          <section>
-            <div className="mb-3 flex items-end justify-between gap-4">
-              <div>
-                <p className="admin-eyebrow">Required to launch</p>
-                <h2 className="mt-1 text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">Core capture and follow-up</h2>
+          {data.google?.connected && (
+            <section id="google">
+              <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="admin-eyebrow">Workspace control</p>
+                  <h2 className="mt-1 text-balance text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">Connected as {data.google.accountEmail}</h2>
+                  <p className="admin-copy mt-1 text-pretty text-sm">Sync on demand, then let protected scheduled jobs keep conversations and meetings current.</p>
+                </div>
+                <button type="button" onClick={() => void syncGoogle("all")} disabled={googleSyncing} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--admin-ink)] pl-4 pr-3.5 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50">
+                  <RefreshCw className={cn("size-3.5", googleSyncing && "animate-spin")} /> Sync Workspace
+                </button>
               </div>
-              <p className="hidden text-xs tabular-nums text-[var(--admin-muted)] sm:block">{data.summary.requiredReady}/{data.summary.requiredTotal} ready</p>
-            </div>
-            <div className="grid gap-3 lg:grid-cols-2">
-              {requiredChecks.map((check) => <SetupCheckCard key={check.id} check={check} />)}
-            </div>
-          </section>
+              <AdminSurface padding="lg">
+                <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <span className="grid size-10 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] dark:bg-white/[0.06]"><FolderOpen className="size-[18px]" /></span>
+                      <div><h3 className="font-semibold text-[var(--admin-ink)]">Approved Drive folders</h3><p className="admin-copy mt-0.5 text-xs">One folder ID per line, maximum 10.</p></div>
+                    </div>
+                    <textarea value={driveFolders} onChange={(event) => setDriveFolders(event.target.value)} rows={4} placeholder="1AbCdEf..." className="mt-4 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 py-3 font-mono text-xs text-[var(--admin-ink)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[var(--admin-muted)]/60 focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10" />
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button type="button" onClick={() => void saveDriveFolders()} disabled={googleSyncing} className="min-h-10 rounded-lg bg-[var(--admin-ink)] px-3.5 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 active:scale-[0.96] disabled:opacity-50">Save folders</button>
+                      <button type="button" onClick={() => void syncGoogle("drive")} disabled={googleSyncing} className="min-h-10 rounded-lg px-3.5 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:opacity-50">Sync Drive</button>
+                    </div>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {[
+                      { label: "Gmail", detail: "Threads, unread work, replies, and campaign stops", source: "gmail" as const, icon: MailCheck },
+                      { label: "Calendar", detail: "Upcoming meetings and recent meeting history", source: "calendar" as const, icon: CalendarDays },
+                    ].map(({ label, detail, source, icon: Icon }) => (
+                      <div key={label} className="rounded-2xl bg-black/[0.025] p-2 dark:bg-white/[0.025]">
+                        <div className="rounded-xl bg-[var(--admin-surface)] p-4 shadow-[var(--admin-shadow-border)]">
+                          <Icon className="size-4 text-[var(--admin-ink)]" />
+                          <h3 className="mt-4 text-sm font-semibold text-[var(--admin-ink)]">{label}</h3>
+                          <p className="admin-copy mt-1 text-pretty text-xs leading-5">{detail}</p>
+                          <button type="button" onClick={() => void syncGoogle(source)} disabled={googleSyncing} className="mt-4 min-h-10 text-xs font-semibold text-[var(--admin-ink)] underline decoration-[var(--admin-border)] underline-offset-4 transition-[opacity,transform] duration-150 hover:opacity-65 active:scale-[0.96] disabled:opacity-50">Sync {label}</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {googleMessage && <p className={cn("mt-5 rounded-xl px-4 py-3 text-sm", googleMessage.tone === "success" ? "bg-emerald-500/10 text-emerald-800 dark:text-emerald-200" : "bg-rose-500/10 text-rose-800 dark:text-rose-200")}>{googleMessage.text}</p>}
+              </AdminSurface>
+            </section>
+          )}
+
+          {groupMeta.map(({ id, eyebrow, title, description, icon: Icon }) => {
+            const checks = groupedChecks.get(id) ?? [];
+            if (!checks.length) return null;
+            return (
+              <section key={id}>
+                <div className="mb-3 flex items-start gap-3">
+                  <span className="mt-0.5 grid size-10 shrink-0 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] dark:bg-white/[0.06]"><Icon className="size-[18px]" /></span>
+                  <div>
+                    <p className="admin-eyebrow">{eyebrow}</p>
+                    <h2 className="mt-1 text-balance text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">{title}</h2>
+                    <p className="admin-copy mt-1 text-pretty text-sm">{description}</p>
+                  </div>
+                </div>
+                <div className="grid gap-3 lg:grid-cols-2">
+                  {checks.map((check) => <SetupCheckCard key={check.id} check={check} />)}
+                </div>
+              </section>
+            );
+          })}
 
           <section>
             <div className="mb-3">
-              <p className="admin-eyebrow">Optional upgrades</p>
-              <h2 className="mt-1 text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">Add only when the channel needs them</h2>
-              <p className="admin-copy mt-1 text-sm">Manual review is intentionally first. Calendly, GA4, and Meta do not block launch.</p>
-            </div>
-            <div className="grid gap-3 lg:grid-cols-2">
-              {optionalChecks.map((check) => <SetupCheckCard key={check.id} check={check} />)}
-            </div>
-          </section>
-
-          <section>
-            <div className="mb-3">
-              <p className="admin-eyebrow">Next growth layers</p>
-              <h2 className="mt-1 text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">What I can build next</h2>
+              <p className="admin-eyebrow">Operating capabilities</p>
+              <h2 className="mt-1 text-balance text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">What the connected system now does</h2>
             </div>
             <div className="grid gap-3 lg:grid-cols-3">
               {growthLayers.map(({ title, detail, icon: Icon }) => (

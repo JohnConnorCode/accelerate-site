@@ -34,15 +34,24 @@ export function CommandCenterNav() {
   useEffect(() => {
     const onScroll = () => {
       const y = window.scrollY;
-      const doc = document.documentElement;
-      const nearBottom = y + window.innerHeight >= doc.scrollHeight - 220;
-      setVisible(y > window.innerHeight * 0.5 && !nearBottom);
+      // This is the page's primary utility navigation, not a promotional
+      // dock. Keep it available throughout the long page once the hero has
+      // started to clear instead of withdrawing it near the footer.
+      setVisible((current) => {
+        const next = y > 48;
+        return current === next ? current : next;
+      });
     };
     const raf = requestAnimationFrame(onScroll);
+    // Hash navigation can settle after the first animation frame without
+    // dispatching another scroll event. Recheck once so the utility bar does
+    // not remain hidden when someone lands directly on a deep section.
+    const settleTimer = window.setTimeout(onScroll, 500);
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll, { passive: true });
     return () => {
       cancelAnimationFrame(raf);
+      window.clearTimeout(settleTimer);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
@@ -85,7 +94,9 @@ export function CommandCenterNav() {
     const activeEl = rail?.querySelector<HTMLElement>(`[data-id="${active}"]`);
     if (!rail || !activeEl) return;
     const left = activeEl.offsetLeft - (rail.clientWidth - activeEl.offsetWidth) / 2;
-    rail.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+    // Keep scrollspy passive: moving a horizontal rail should never queue an
+    // animation while the reader is vertically scrolling the page.
+    rail.scrollTo({ left: Math.max(0, left), behavior: "auto" });
   }, [active]);
 
   return (

@@ -90,7 +90,7 @@ export default function ClientsPage() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-gold transition-all"
+          className="rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-gold transition-[border-color,box-shadow,background-color]"
         >
           {statusOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -103,7 +103,7 @@ export default function ClientsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search clients..."
-            className="w-full rounded-lg bg-bg-subtle border border-border-glass pl-9 pr-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-gold transition-all placeholder:text-white-muted"
+            className="w-full rounded-lg bg-bg-subtle border border-border-glass pl-9 pr-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-gold transition-[border-color,box-shadow,background-color] placeholder:text-white-muted"
           />
         </div>
       </div>

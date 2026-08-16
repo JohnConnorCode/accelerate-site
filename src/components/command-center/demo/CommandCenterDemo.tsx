@@ -100,7 +100,9 @@ export function CommandCenterDemo() {
   const rotateY = useTransform(smoothX, [-1, 1], [-1.5, 1.5]);
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!ref.current || reduced) return;
+    // A 3D tilt is a desktop affordance. Updating springs while a finger is
+    // dragging the document makes the demo feel attached to the scroll.
+    if (e.pointerType !== "mouse" || !ref.current || reduced) return;
     const rect = ref.current.getBoundingClientRect();
     const normX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     const normY = ((e.clientY - rect.top) / rect.height) * 2 - 1;
@@ -119,7 +121,7 @@ export function CommandCenterDemo() {
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       style={reduced ? undefined : { rotateX, rotateY, transformStyle: "preserve-3d" }}
-      className="cc overflow-hidden rounded-[14px] border border-white/10 bg-[#0B0B0B] shadow-[0_40px_90px_-40px_rgba(0,0,0,.55)] transition-all duration-300"
+      className="cc overflow-hidden rounded-[14px] border border-white/10 bg-[#0B0B0B] shadow-[0_40px_90px_-40px_rgba(0,0,0,.55)] transition-[box-shadow,transform] duration-300"
     >
       <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
         <div className="flex min-w-0 items-center gap-3">
@@ -137,10 +139,26 @@ export function CommandCenterDemo() {
         </span>
       </div>
 
+      <div className="border-b border-white/10 p-2 lg:hidden">
+        <label className="sr-only" htmlFor="command-center-demo-view">Demo view</label>
+        <select
+          id="command-center-demo-view"
+          value={view}
+          onChange={(event) => setView(event.target.value)}
+          className="min-h-10 w-full appearance-none rounded-[8px] bg-white/[0.07] bg-[linear-gradient(45deg,transparent_50%,rgba(255,255,255,.6)_50%),linear-gradient(135deg,rgba(255,255,255,.6)_50%,transparent_50%)] bg-[position:calc(100%-18px)_17px,calc(100%-13px)_17px] bg-[size:5px_5px,5px_5px] bg-no-repeat px-3 pr-9 font-mono text-[0.65rem] uppercase tracking-[0.13em] text-white outline-none transition-[background-color,box-shadow] focus:bg-white/[0.11] focus:shadow-[0_0_0_2px_rgba(255,255,255,.26)]"
+        >
+          {RAIL.map((group) => (
+            <optgroup key={group.label} label={group.label} className="bg-[#0B0B0B] text-white">
+              {group.items.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+            </optgroup>
+          ))}
+        </select>
+      </div>
+
       <div className="grid lg:grid-cols-[212px_1fr]">
         <nav
           aria-label="Command Center sections"
-          className="cc-rail flex gap-1 overflow-x-auto border-b border-white/10 p-2 lg:block lg:overflow-y-auto lg:border-b-0 lg:border-r lg:p-3"
+          className="cc-rail hidden border-r border-white/10 p-3 lg:block lg:overflow-y-auto"
         >
           {RAIL.map((group) => (
             <div key={group.label} className="contents lg:mb-3 lg:block lg:last:mb-0">
@@ -189,7 +207,7 @@ export function CommandCenterDemo() {
           ))}
         </nav>
 
-        <div className="min-h-[380px] min-w-0 sm:min-h-[600px]">
+        <div className="min-h-[420px] min-w-0 sm:min-h-[600px]">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={view}

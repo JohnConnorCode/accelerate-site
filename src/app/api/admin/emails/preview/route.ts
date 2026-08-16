@@ -6,7 +6,7 @@ import {
   roiReportEmail,
   adminLeadNotificationEmail,
   adminContactNotificationEmail,
-  emailWrapper,
+  textEmail,
 } from "@/lib/email/templates";
 import { emailSequences } from "@/content/email-sequences";
 
@@ -15,6 +15,7 @@ interface EmailEntry {
   name: string;
   category: string;
   subject: string;
+  delayDays?: number;
 }
 
 const SAMPLE = {
@@ -33,36 +34,12 @@ const SAMPLE = {
   downloadLink: "https://www.acceleratewith.us/resources/ai-playbook",
 };
 
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-function linkifyUrls(text: string): string {
-  return text.replace(
-    /(https?:\/\/[^\s<]+)/g,
-    '<a href="$1" style="color:#F5D060;text-decoration:underline;">$1</a>'
-  );
-}
-
 function replaceVars(template: string, vars: Record<string, string>): string {
   let result = template;
   for (const [key, value] of Object.entries(vars)) {
     result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), value);
   }
   return result;
-}
-
-function sequenceToHtml(body: string): string {
-  const escaped = escapeHtml(body);
-  const linked = linkifyUrls(escaped);
-  const lined = linked.replace(/\n/g, "<br>");
-  const content = `<div style="font-size:15px;color:rgba(255,255,255,0.65);line-height:1.6;">${lined}</div>`;
-  return emailWrapper(content);
 }
 
 const sequenceVars: Record<string, string> = {
@@ -110,22 +87,17 @@ function buildRegistry(): EmailEntry[] {
     },
   ];
 
-  const seqMap: Record<string, { prefix: string; category: string }> = {
-    plan_nurture: { prefix: "plan-nurture", category: "Sequences" },
-    resource_welcome: { prefix: "resource-welcome", category: "Sequences" },
-    grader_followup: { prefix: "grader-followup", category: "Sequences" },
-  };
-
   for (const [seqType, steps] of Object.entries(emailSequences)) {
-    const config = seqMap[seqType];
-    if (!config) continue;
+    const name = seqType.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+    const prefix = seqType.replace(/_/g, "-");
     for (const step of steps) {
       const subject = replaceVars(step.subject, sequenceVars);
       entries.push({
-        id: `${config.prefix}-${step.stepNumber}`,
-        name: `${config.prefix}-${step.stepNumber}`,
-        category: config.category,
+        id: `${prefix}-${step.stepNumber}`,
+        name: `${name} · Email ${step.stepNumber}`,
+        category: "Automated sequences",
         subject,
+        delayDays: step.delayDays,
       });
     }
   }
@@ -168,19 +140,11 @@ function renderEmail(id: string): string | null {
     default: {
       // Sequence emails
       for (const [seqType, steps] of Object.entries(emailSequences)) {
-        const prefix =
-          seqType === "plan_nurture"
-            ? "plan-nurture"
-            : seqType === "resource_welcome"
-              ? "resource-welcome"
-              : seqType === "grader_followup"
-                ? "grader-followup"
-                : null;
-        if (!prefix) continue;
+        const prefix = seqType.replace(/_/g, "-");
         for (const step of steps) {
           if (`${prefix}-${step.stepNumber}` === id) {
             const body = replaceVars(step.bodyTemplate, sequenceVars);
-            return sequenceToHtml(body);
+            return textEmail(body);
           }
         }
       }
@@ -212,5 +176,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Failed to render email" }, { status: 500 });
   }
 
-  return NextResponse.json({ id, subject: entry.subject, html });
+  return NextResponse.json({
+    id,
+    subject: entry.subject,
+    html,
+    name: entry.name,
+    category: entry.category,
+    delayDays: entry.delayDays,
+  });
 }

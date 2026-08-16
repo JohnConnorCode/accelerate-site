@@ -104,7 +104,7 @@ export default function ResourcesPage() {
           <select
             value={resourceFilter}
             onChange={(e) => setResourceFilter(e.target.value)}
-            className="rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-gold transition-all"
+            className="rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-gold transition-[border-color,box-shadow,background-color]"
           >
             <option value="all">All Resources</option>
             {resourceTypes.map((type) => (

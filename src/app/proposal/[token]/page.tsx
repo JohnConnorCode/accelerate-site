@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import { ProposalDecision } from "@/components/proposal/ProposalDecision";
 
 interface ProposalSection {
   title: string;
@@ -158,6 +159,8 @@ export default async function ProposalPage({
             </section>
           ))}
         </div>
+
+        <ProposalDecision token={token} status={proposal.status} />
 
         {/* Footer */}
         <footer className="mt-16 pt-8 border-t border-border-glass text-center">

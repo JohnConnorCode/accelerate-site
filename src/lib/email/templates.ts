@@ -43,6 +43,23 @@ function goldButton(text: string, href: string): string {
   return `<a href="${href}" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#D4AF37,#F5D060,#E8D5A3);color:#000000;font-weight:600;font-size:14px;text-decoration:none;border-radius:8px;margin:16px 0;">${text}</a>`;
 }
 
+/**
+ * Gives operator-written and scheduled plain-text messages the same reliable,
+ * responsive email shell as transactional templates while preserving the
+ * plain-text version that Resend exposes to recipients.
+ */
+export function textEmail(body: string): string {
+  const html = esc(body).replace(
+    /(https?:\/\/[^\s<]+)/g,
+    '<a href="$1" style="color:#F5D060;text-decoration:underline;word-break:break-word;">$1</a>',
+  );
+  const paragraphs = html
+    .split(/\n{2,}/)
+    .map((paragraph) => `<p style="margin:0 0 16px;font-size:15px;color:rgba(255,255,255,0.72);line-height:1.65;">${paragraph.replace(/\n/g, "<br>")}</p>`)
+    .join("");
+  return emailWrapper(`<div>${paragraphs}</div>`);
+}
+
 export function planConfirmationEmail(
   name: string,
   summary: string,

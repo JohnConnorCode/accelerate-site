@@ -1,2 +1,12 @@
 {
+  "crons": [
+    {
+      "path": "/api/cron/revenue-campaigns",
+      "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/google-workspace-sync",
+      "schedule": "0 * * * *"
+    }
+  ]
 }

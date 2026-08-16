@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { getResend, FROM_EMAIL } from "@/lib/email/resend";
+import { textEmail } from "@/lib/email/templates";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -56,6 +57,7 @@ export async function POST(request: NextRequest) {
       to,
       subject,
       text: body,
+      html: textEmail(body),
     });
   } catch (error) {
     return NextResponse.json(
