@@ -520,7 +520,7 @@ SELECT
   'solution_request',
   sr.id,
   COALESCE(sr.estimated_value, 0),
-  sr.next_action,
+  NULL,
   jsonb_build_object('legacy_status', sr.status, 'legacy_lead_status', sr.lead_status)
 FROM solution_requests sr
 LEFT JOIN contacts ct ON ct.source_record_type = 'solution_request' AND ct.source_record_id = sr.id
