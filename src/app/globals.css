@@ -2149,38 +2149,38 @@ summary:focus-visible {
    (transparent, floating) header, just without stealing a chunk of an
    already-short screen. */
 @media (max-width: 640px) {
-  /* The design intent: the hero band fills exactly the first mobile
-     screen (100dvh) with the marquee anchored to its bottom edge, and
-     the headline scales with SCREEN HEIGHT (dvh, not vw) so a tall phone
-     gets bigger type filling that extra room and a short phone gets
-     smaller type instead of overflowing — "dynamic, fills the space."
-     That part needs the flex-column-100dvh structure back.
-     What was actually broken: justify-content:space-between inside
-     .wrap stretched .hero-top and .hero-btm apart to consume whatever
-     height was left, dumping it all into ONE gap (under the CTA) —
-     center instead, so leftover room splits evenly above/below the
-     content block and the marquee still lands at the bottom via .hero's
-     own flex-grow. Font-size is dvh-driven for the same reason: on a
-     416px-wide/926px-tall phone, 4.6dvh ≈ 42px still wraps 2-3 words per
-     line (checked against real device dimensions, not width alone). */
+  /* The hero band fills exactly the first mobile screen (100dvh) with the
+     marquee anchored to its bottom edge. Content sits at the TOP of that
+     space (justify-content:flex-start) rather than centered — centering
+     split the leftover room into two separate empty zones (one above the
+     eyebrow label, one below the subtext) that read as an unexplained
+     hole in the layout. Flex-start collects all of it into a single gap
+     above the marquee, which reads as ordinary breathing room before the
+     next section instead of a bug. padding-top is a flat value, not
+     dvh-scaled: the fixed header is a constant height regardless of
+     screen size (measured ~92px), so the clearance it needs doesn't
+     change with viewport height either — a dvh-scaled floor was
+     occasionally computing below that and getting overlapped by the
+     header on shorter phones. */
   .hero-band { display: flex; flex-direction: column; min-height: 100dvh; }
   .hero-band .hero { flex: 1 0 auto; display: flex; flex-direction: column; overflow: hidden; }
-  .hero-band .hero .wrap { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; min-width: 0; max-width: 100%; }
+  .hero-band .hero .wrap { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; min-height: 0; min-width: 0; max-width: 100%; }
   .hero-band .hero-top { flex: 0 0 auto; min-width: 0; max-width: 100%; overflow: hidden; }
   .hero-band .hero-btm { flex: 0 0 auto; margin-top: clamp(24px, 4dvh, 40px); padding-top: clamp(14px, 2.1dvh, 26px); }
   .hero-band .hero-btm .lede { font-size: clamp(14px, 2.1dvh, 15.5px); line-height: 1.5; }
   .hero-band .mq { flex: 0 0 auto; }
 
-  .hero { padding-top: clamp(70px, 9dvh, 96px); padding-bottom: clamp(20px, 3dvh, 32px); }
+  .hero { padding-top: 108px; padding-bottom: clamp(20px, 3dvh, 32px); }
   .hero h1 { margin-top: clamp(10px, 1.6dvh, 20px); }
-  /* min(vw, dvh) — not dvh alone: a pure height-based size ignores width,
-     so on a normal tall-aspect phone (e.g. 390×844) it computes ~39px,
-     large enough that "deploy"/"intelligent"/"automation" each stop
-     fitting next to their neighbor and go one-per-line. Capping by
-     whichever dimension is smaller keeps wrap quality (2-3 words/line)
-     on every phone while still letting the height side take over and
-     grow the type on unusually wide/short viewports. */
-  .hero .h1 { font-size: clamp(24px, min(7vw, 4.6dvh), 44px); line-height: 1.1; letter-spacing: -.03em; }
+  /* min(vw, dvh) — not either alone: a pure height-based size ignores
+     width, computing large enough on a normal tall-aspect phone that
+     "deploy"/"intelligent"/"automation" stop fitting next to their
+     neighbor and go one-per-line. 8vw is the largest width-based value
+     that still holds 3-4 words/line on real device widths (checked
+     320-428px) — bigger than the words can comfortably share a line, and
+     it's the dvh side that would grow it further on an unusually
+     wide/short viewport. */
+  .hero .h1 { font-size: clamp(24px, min(8vw, 5dvh), 48px); line-height: 1.1; letter-spacing: -.03em; }
   .hero .eyebrow-anim { letter-spacing: .1em; }
   /* max-width:100% + overflow:hidden: the scramble text mid-flicker can
      briefly render wider glyphs than the settled word, which without
