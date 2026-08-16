@@ -1576,7 +1576,8 @@ summary:focus-visible {
 
 @keyframes marquee-l { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes marquee-r { from { transform: translateX(-50%); } to { transform: translateX(0); } }
-.marquee-track { display: inline-flex; white-space: nowrap; will-change: transform; animation: marquee-l 34s linear infinite; }
+@keyframes fade-in-marquee { from { opacity: 0; } to { opacity: 1; } }
+.marquee-track { display: inline-flex; white-space: nowrap; will-change: transform; animation: marquee-l 34s linear infinite, fade-in-marquee 1s ease-out 8.3s both; }
 .marquee-track.rev { animation-name: marquee-r; }
 .marquee-wrap:hover .marquee-track { animation-play-state: paused; }
 
@@ -2061,6 +2062,7 @@ summary:focus-visible {
   mask-image: linear-gradient(90deg, transparent 0, #000 64px, #000 calc(100% - 64px), transparent 100%);
   -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 64px, #000 calc(100% - 64px), transparent 100%);
 }
+.mq-track { animation: marquee-l 34s linear infinite, fade-in-marquee 1s ease-out 8.3s both; }
 .mq:hover .mq-track { animation-play-state: paused; }
 .mq-track span { font-family: var(--util); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; padding: 0 24px; color: #7E7E7A; white-space: nowrap; }
 .mq-track span b { color: var(--paper); font-weight: 400; }
