@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/revenue-campaigns",
-      "schedule": "*/10 * * * *"
+      "schedule": "0 * * * *"
     },
     {
       "path": "/api/cron/google-workspace-sync",
