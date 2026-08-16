@@ -80,9 +80,9 @@ export function TableOfContents() {
   if (headings.length === 0) return null;
 
   return (
-    <nav className="glass rounded-xl p-5">
+    <nav className="bg-[var(--surface-bg)] p-5 shadow-[var(--card-shadow)]">
       <div className="flex items-center gap-2 mb-4">
-        <div className="w-1 h-4 rounded-full bg-gold" />
+        <div className="h-4 w-0.5 bg-[var(--fg)]" />
         <h4 className="font-display text-sm font-semibold text-white-primary">
           On this page
         </h4>
@@ -93,10 +93,10 @@ export function TableOfContents() {
             <a
               href={`#${heading.id}`}
               className={cn(
-                "block text-sm transition-all duration-200 py-1.5 -ml-px border-l-2",
+                "-ml-px block border-l-2 py-1.5 text-sm transition-[color,border-color,transform] duration-200",
                 heading.level === 3 ? "pl-6" : "pl-4",
                 activeId === heading.id
-                  ? "text-gold-light font-medium border-l-[var(--gold-base)]"
+                  ? "translate-x-0.5 border-l-[var(--fg)] font-medium text-heading"
                   : "text-white-muted hover:text-white-secondary border-l-transparent"
               )}
             >

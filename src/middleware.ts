@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { isConfiguredAdmin } from "@/lib/admin/access";
 
 export async function middleware(request: NextRequest) {
   // Only protect /admin routes (except login and password reset)
@@ -41,8 +42,7 @@ export async function middleware(request: NextRequest) {
   // Fail closed: redirect to login unless a logged-in user matches ADMIN_EMAIL
   // exactly (mirrors requireAdmin() on the /api/admin routes so the page gate
   // and the API gate agree).
-  const adminEmail = process.env.ADMIN_EMAIL;
-  if (!user || !adminEmail || user.email !== adminEmail) {
+  if (!user || !isConfiguredAdmin(user.email)) {
     const loginUrl = new URL("/admin/login", request.url);
     loginUrl.searchParams.set("redirect", request.nextUrl.pathname);
     const redirectResponse = NextResponse.redirect(loginUrl);

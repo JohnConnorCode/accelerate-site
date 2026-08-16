@@ -1,4 +1,5 @@
 import { Fragment } from "react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { ChatMessage as ChatMessageType } from "@/lib/types";
 
@@ -54,7 +55,11 @@ export function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === "user";
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 8, filter: "blur(4px)" }}
+      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      transition={{ duration: 0.3, ease: [0.2, 0, 0, 1] }}
+      data-chat-role={message.role}
       className={cn(
         "flex",
         isUser ? "justify-end" : "justify-start"
@@ -62,14 +67,14 @@ export function ChatMessage({ message }: ChatMessageProps) {
     >
       <div
         className={cn(
-          "max-w-[80%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
+          "max-w-[86%] whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
           isUser
-            ? "bg-gold-gradient rounded-br-md font-medium"
+            ? "bg-gold-gradient rounded-br-md font-medium text-black"
             : "bg-bg-subtle border border-border-glass text-white-secondary rounded-bl-md"
         )}
       >
         {isUser ? message.content : linkify(message.content)}
       </div>
-    </div>
+    </motion.div>
   );
 }

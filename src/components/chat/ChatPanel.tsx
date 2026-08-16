@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { X, Send, Loader2, CalendarDays, ArrowRight } from "lucide-react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { usePathname } from "next/navigation";
+import { X, Send, Loader2, CalendarDays, ArrowRight, RotateCcw, Square, WifiOff } from "lucide-react";
 import { ChatMessage } from "./ChatMessage";
 import { ChatLeadCapture } from "./ChatLeadCapture";
 import type { ChatMessage as ChatMessageType } from "@/lib/types";
 import { trackConversion } from "@/lib/analytics";
 import { getUTMParams, clearUTMParams } from "@/lib/utm";
-import { BOOKING_PATH, CONTACT_EMAIL } from "@/lib/booking";
+import { BOOKING_PATH } from "@/lib/booking";
 import { ERROR_REPLY } from "@/lib/chat/fallbacks";
 import { homeFaqs } from "@/content/home-faq";
 
@@ -17,13 +18,20 @@ import { homeFaqs } from "@/content/home-faq";
 // live model is unconfigured (demo mode). Reuses the same FAQ copy already
 // approved for the homepage rather than writing new answers to keep in
 // sync by hand.
-const QUICK_QUESTION_TEXT = [
-  "What does this cost?",
-  "How soon would we see a result?",
-  "Is our data safe?",
-  "Who owns what you build?",
+const PAGE_QUESTIONS: { matches: (pathname: string) => boolean; questions: string[] }[] = [
+  {
+    matches: (pathname) => pathname.startsWith("/command-center"),
+    questions: ["Is our data safe?", "Who owns what you build?", "How soon would we see a result?"],
+  },
+  {
+    matches: (pathname) => pathname.startsWith("/services") || pathname.startsWith("/industries"),
+    questions: ["What does this cost?", "How soon would we see a result?", "Nobody here is technical. Is that a problem?"],
+  },
+  {
+    matches: () => true,
+    questions: ["What does this cost?", "How soon would we see a result?", "Is our data safe?"],
+  },
 ];
-const QUICK_QUESTIONS = homeFaqs.filter((faq) => QUICK_QUESTION_TEXT.includes(faq.question));
 
 interface ChatPanelProps {
   onClose: () => void;
@@ -44,6 +52,7 @@ interface StoredChatState {
   messages: ChatMessageType[];
   messageCount: number;
   leadCaptured: boolean;
+  leadCaptureDismissed: boolean;
 }
 
 function loadStoredState(): StoredChatState | null {
@@ -57,6 +66,7 @@ function loadStoredState(): StoredChatState | null {
       messages: parsed.messages.slice(-STORAGE_CAP),
       messageCount: typeof parsed.messageCount === "number" ? parsed.messageCount : 0,
       leadCaptured: !!parsed.leadCaptured,
+      leadCaptureDismissed: !!parsed.leadCaptureDismissed,
     };
   } catch {
     return null;
@@ -72,6 +82,7 @@ function persistState(state: StoredChatState) {
         messages: state.messages.slice(-STORAGE_CAP),
         messageCount: state.messageCount,
         leadCaptured: state.leadCaptured,
+        leadCaptureDismissed: state.leadCaptureDismissed,
       }),
     );
   } catch {
@@ -80,15 +91,25 @@ function persistState(state: StoredChatState) {
 }
 
 export function ChatPanel({ onClose }: ChatPanelProps) {
+  const pathname = usePathname();
+  const quickQuestions = useMemo(() => {
+    const selected = PAGE_QUESTIONS.find((group) => group.matches(pathname)) ?? PAGE_QUESTIONS[PAGE_QUESTIONS.length - 1];
+    return homeFaqs.filter((faq) => selected?.questions.includes(faq.question));
+  }, [pathname]);
   const [messages, setMessages] = useState<ChatMessageType[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showLeadCapture, setShowLeadCapture] = useState(false);
   const [leadCaptured, setLeadCaptured] = useState(false);
+  const [leadCaptureDismissed, setLeadCaptureDismissed] = useState(false);
   const [messageCount, setMessageCount] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
+  const [lastFailedPrompt, setLastFailedPrompt] = useState<string | null>(null);
+  const [isOnline, setIsOnline] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hydratedRef = useRef(false);
+  const requestControllerRef = useRef<AbortController | null>(null);
+  const quickReplyTimerRef = useRef<number | null>(null);
 
   // Hydrate from sessionStorage on mount (client-only).
   useEffect(() => {
@@ -99,48 +120,59 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
       setMessages(stored.messages);
       setMessageCount(stored.messageCount);
       setLeadCaptured(stored.leadCaptured);
+      setLeadCaptureDismissed(stored.leadCaptureDismissed);
     }
   }, []);
 
   // Persist on every change (after hydration).
   useEffect(() => {
     if (!hydratedRef.current) return;
-    persistState({ messages, messageCount, leadCaptured });
-  }, [messages, messageCount, leadCaptured]);
+    persistState({ messages, messageCount, leadCaptured, leadCaptureDismissed });
+  }, [messages, messageCount, leadCaptured, leadCaptureDismissed]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    messagesEndRef.current?.scrollIntoView({ behavior: isLoading ? "auto" : "smooth" });
+  }, [messages, isLoading]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading || isTyping) return;
-
-    const userMessage: ChatMessageType = {
-      id: `user-${Date.now()}`,
-      role: "user",
-      content: input.trim(),
-      timestamp: Date.now(),
+  useEffect(() => {
+    const syncOnlineState = () => setIsOnline(window.navigator.onLine);
+    syncOnlineState();
+    window.addEventListener("online", syncOnlineState);
+    window.addEventListener("offline", syncOnlineState);
+    return () => {
+      window.removeEventListener("online", syncOnlineState);
+      window.removeEventListener("offline", syncOnlineState);
     };
+  }, []);
 
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
+  useEffect(() => () => {
+    requestControllerRef.current?.abort();
+    if (quickReplyTimerRef.current) window.clearTimeout(quickReplyTimerRef.current);
+  }, []);
+
+  const requestReply = async (prompt: string, conversation: ChatMessageType[]) => {
+    if (!isOnline || isLoading || isTyping) return;
+
+    const controller = new AbortController();
+    requestControllerRef.current?.abort();
+    requestControllerRef.current = controller;
     setIsLoading(true);
-    const newCount = messageCount + 1;
-    setMessageCount(newCount);
+    setLastFailedPrompt(null);
 
-    if (newCount >= 3 && !leadCaptured) {
-      setShowLeadCapture(true);
-    }
+    let assistantId: string | null = null;
+    let assistantContent = "";
 
     try {
-      const context = [...messages, userMessage]
+      const context = conversation
+        .filter((message) => !message.id.startsWith("error-") && !message.id.startsWith("rate-"))
         .slice(-20)
-        .map((m) => ({ role: m.role, content: m.content }));
+        .map((message) => ({ role: message.role, content: message.content }));
 
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: context }),
+        signal: controller.signal,
       });
 
       if (res.status === 429) {
@@ -154,6 +186,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
             timestamp: Date.now(),
           },
         ]);
+        setLastFailedPrompt(prompt);
         return;
       }
 
@@ -162,13 +195,11 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
       const reader = res.body?.getReader();
       if (!reader) throw new Error("No response stream");
 
-      const assistantId = `assistant-${Date.now()}`;
-      let assistantContent = "";
-
+      assistantId = `assistant-${Date.now()}`;
       setMessages((prev) => [
         ...prev,
         {
-          id: assistantId,
+          id: assistantId!,
           role: "assistant",
           content: "",
           timestamp: Date.now(),
@@ -176,37 +207,82 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
       ]);
 
       const decoder = new TextDecoder();
-
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value, { stream: true });
-        assistantContent += chunk;
-
+        assistantContent += decoder.decode(value, { stream: true });
+        const content = assistantContent;
         setMessages((prev) =>
-          prev.map((m) =>
-            m.id === assistantId
-              ? { ...m, content: assistantContent }
-              : m,
+          prev.map((message) =>
+            message.id === assistantId ? { ...message, content } : message,
           ),
         );
       }
+
+      assistantContent += decoder.decode();
+      if (!assistantContent.trim()) throw new Error("Empty response stream");
     } catch (err) {
+      if (controller.signal.aborted) {
+        if (assistantId && !assistantContent.trim()) {
+          setMessages((prev) => prev.filter((message) => message.id !== assistantId));
+        }
+        return;
+      }
+
       console.error("[chat-panel] send error:", err);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `error-${Date.now()}`,
-          role: "assistant",
-          content: ERROR_REPLY,
-          timestamp: Date.now(),
-        },
-      ]);
+      setLastFailedPrompt(prompt);
+      setMessages((prev) => {
+        if (assistantId && !assistantContent.trim()) {
+          return prev.map((message) =>
+            message.id === assistantId
+              ? { ...message, id: `error-${Date.now()}`, content: ERROR_REPLY }
+              : message,
+          );
+        }
+        return [
+          ...prev,
+          {
+            id: `error-${Date.now()}`,
+            role: "assistant",
+            content: ERROR_REPLY,
+            timestamp: Date.now(),
+          },
+        ];
+      });
     } finally {
+      if (requestControllerRef.current === controller) requestControllerRef.current = null;
       setIsLoading(false);
     }
   };
+
+  const handleSend = async () => {
+    const content = input.trim();
+    if (!content || isLoading || isTyping || !isOnline) return;
+
+    const userMessage: ChatMessageType = {
+      id: `user-${Date.now()}`,
+      role: "user",
+      content,
+      timestamp: Date.now(),
+    };
+    const conversation = [...messages, userMessage];
+    setMessages(conversation);
+    setInput("");
+
+    const newCount = messageCount + 1;
+    setMessageCount(newCount);
+    if (newCount >= 3 && !leadCaptured && !leadCaptureDismissed) setShowLeadCapture(true);
+
+    await requestReply(content, conversation);
+  };
+
+  const handleRetry = () => {
+    if (!lastFailedPrompt) return;
+    void requestReply(lastFailedPrompt, messages);
+  };
+
+  const handleStop = () => requestControllerRef.current?.abort();
 
   // Quick-reply prompts skip the network entirely — the answer is already
   // known and vetted, so there's nothing to call the model for. A short
@@ -223,14 +299,15 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
     };
     setMessages((prev) => [...prev, userMessage]);
     setIsTyping(true);
+    setLastFailedPrompt(null);
 
     const newCount = messageCount + 1;
     setMessageCount(newCount);
-    if (newCount >= 3 && !leadCaptured) {
+    if (newCount >= 3 && !leadCaptured && !leadCaptureDismissed) {
       setShowLeadCapture(true);
     }
 
-    window.setTimeout(() => {
+    quickReplyTimerRef.current = window.setTimeout(() => {
       setMessages((prev) => [
         ...prev,
         {
@@ -241,16 +318,12 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
         },
       ]);
       setIsTyping(false);
+      quickReplyTimerRef.current = null;
     }, 550);
   };
 
-  const handleLeadSubmit = async (name: string, email: string) => {
-    trackConversion("Chat Lead Captured");
-    clearUTMParams();
-    setLeadCaptured(true);
-    setShowLeadCapture(false);
-
-    let saved = true;
+  const handleLeadSubmit = async (name: string, email: string): Promise<boolean> => {
+    const utm = getUTMParams();
     try {
       const res = await fetch("/api/chat", {
         method: "PUT",
@@ -259,43 +332,53 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
           name,
           email,
           conversation: messages,
-          utm: getUTMParams(),
+          utm,
         }),
       });
-      if (!res.ok) saved = false;
+      if (!res.ok) throw new Error(`Lead save failed (${res.status})`);
     } catch (err) {
       console.error("[chat-panel] lead save error:", err);
-      saved = false;
+      return false;
     }
 
-    const ackContent = saved
-      ? `Thanks, ${name}! I sent your note over to John, and he'll reply at ${email} within a business day. If you'd rather not wait, grab a time on his calendar with the link below: 30 minutes, free, no catch. Keep asking questions in the meantime.`
-      : `Thanks, ${name}! I had trouble saving that on my end, so email John directly at ${CONTACT_EMAIL} and he'll pick it up from there. You can also book a time with the link below.`;
+    trackConversion("Chat Lead Captured");
+    clearUTMParams();
+    setLeadCaptured(true);
+    setShowLeadCapture(false);
 
     setMessages((prev) => [
       ...prev,
       {
         id: `system-${Date.now()}`,
         role: "assistant",
-        content: ackContent,
+        content: `Thanks, ${name}! I sent your note over to John, and he'll reply at ${email} within a business day. If you'd rather not wait, grab a time on his calendar with the link below: 30 minutes, free, no catch. Keep asking questions in the meantime.`,
         timestamp: Date.now(),
       },
     ]);
+    return true;
   };
 
   return (
-    <div className="flex flex-col h-[min(600px,calc(100dvh-2rem))] w-[calc(100vw-2rem)] sm:w-[380px] max-w-[380px] rounded-2xl overflow-clip border border-border-glass bg-bg-elevated shadow-2xl">
+    <div className="flex h-[min(640px,calc(100dvh-2rem))] w-[calc(100vw-2rem)] max-w-[400px] flex-col overflow-clip rounded-2xl border border-border-glass bg-bg-elevated shadow-2xl sm:w-[400px]">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border-glass bg-bg-subtle">
         <div>
           <h3 className="text-sm font-display font-semibold text-white-primary">
             Accelerate AI
           </h3>
-          <p className="text-xs text-white-muted">Ask us anything</p>
+          <p className="mt-0.5 flex items-center gap-1.5 text-xs text-white-muted" aria-live="polite">
+            {!isOnline ? (
+              <><WifiOff className="h-3 w-3" /> Offline — reconnect to send</>
+            ) : isLoading || isTyping ? (
+              <><span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse" /> Drafting a response…</>
+            ) : (
+              <><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Ready when you are</>
+            )}
+          </p>
         </div>
         <button
           onClick={onClose}
-          className="text-white-muted hover:text-white-primary transition-colors cursor-pointer"
+          className="-mr-2 inline-flex h-10 w-10 items-center justify-center rounded-lg text-white-muted transition-colors hover:bg-white/5 hover:text-white-primary active:scale-[0.96] cursor-pointer"
           aria-label="Close chat"
         >
           <X className="h-4 w-4" />
@@ -304,32 +387,45 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3" role="log" aria-label="Chat messages" aria-live="polite">
-        {messages.map((msg) => (
-          <ChatMessage key={msg.id} message={msg} />
-        ))}
+        {messages.map((msg) => msg.content ? <ChatMessage key={msg.id} message={msg} /> : null)}
         {/* Quick-reply prompts — only while the conversation is still just
             the welcome message, so a visitor who doesn't know what to type
             has somewhere to start. Disappears the moment any message (typed
             or a quick reply) actually goes out. */}
         {messages.length === 1 && (
-          <div className="flex flex-wrap gap-2 pt-1">
-            {QUICK_QUESTIONS.map((faq) => (
+          <div className="pt-1">
+            <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-white-muted">Good places to start</p>
+            <div className="flex flex-wrap gap-2">
+            {quickQuestions.map((faq) => (
               <button
                 key={faq.question}
                 type="button"
                 onClick={() => handleQuickQuestion(faq)}
-                className="rounded-full border border-border-glass bg-bg-subtle px-3 py-1.5 text-xs text-white-secondary transition-colors hover:border-gold hover:text-white-primary cursor-pointer"
+                className="min-h-10 rounded-full border border-border-glass bg-bg-subtle px-3 py-2 text-left text-xs leading-4 text-white-secondary transition-[border-color,color,background-color,transform] hover:border-gold hover:bg-white/[0.04] hover:text-white-primary active:scale-[0.96] cursor-pointer"
               >
                 {faq.question}
               </button>
             ))}
+            </div>
           </div>
         )}
-        {(isLoading || isTyping) && messages[messages.length - 1]?.role !== "assistant" && (
+        {(isTyping || (isLoading && (!messages[messages.length - 1] || messages[messages.length - 1]?.role !== "assistant" || !messages[messages.length - 1]?.content))) && (
           <div className="flex justify-start">
-            <div className="rounded-2xl rounded-bl-md px-4 py-2.5 bg-bg-subtle border border-border-glass">
+            <div className="flex items-center gap-2 rounded-2xl rounded-bl-md px-4 py-2.5 bg-bg-subtle border border-border-glass">
               <Loader2 className="h-4 w-4 animate-spin text-white-muted" />
+              <span className="text-xs text-white-muted">Thinking through that</span>
             </div>
+          </div>
+        )}
+        {lastFailedPrompt && !isLoading && (
+          <div className="flex justify-start">
+            <button
+              type="button"
+              onClick={handleRetry}
+              className="inline-flex min-h-10 items-center gap-2 rounded-full border border-border-glass bg-bg-subtle px-3 py-2 text-xs font-medium text-white-secondary transition-[border-color,color,background-color,transform] hover:border-gold hover:text-white-primary active:scale-[0.96]"
+            >
+              <RotateCcw className="h-3.5 w-3.5" /> Retry that response
+            </button>
           </div>
         )}
         <div ref={messagesEndRef} />
@@ -337,7 +433,13 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
 
       {/* Lead Capture */}
       {showLeadCapture && !leadCaptured && (
-        <ChatLeadCapture onSubmit={handleLeadSubmit} />
+        <ChatLeadCapture
+          onSubmit={handleLeadSubmit}
+          onDismiss={() => {
+            setLeadCaptureDismissed(true);
+            setShowLeadCapture(false);
+          }}
+        />
       )}
 
       {/* The offer, always one click away. The bot points at the same page in
@@ -349,11 +451,10 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
         rel="noopener noreferrer"
         data-cursor="link"
         onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "chat" })}
-        className="group flex items-center justify-center gap-2 border-t border-border-glass bg-bg-subtle px-4 py-2.5 text-xs transition-colors hover:bg-bg-elevated"
+        className="group flex min-h-11 items-center justify-center gap-2 border-t border-border-glass bg-bg-subtle px-4 py-2.5 text-xs transition-colors hover:bg-bg-elevated"
       >
         <CalendarDays className="h-3.5 w-3.5 shrink-0 text-gold" strokeWidth={1.75} />
         <span className="font-medium text-white-primary">Book a free 30-minute strategy session</span>
-        <span className="text-white-muted">· no catch</span>
         <ArrowRight className="h-3 w-3 shrink-0 text-white-muted transition-transform group-hover:translate-x-0.5" />
       </a>
 
@@ -364,25 +465,45 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
             e.preventDefault();
             handleSend();
           }}
-          className="flex items-center gap-2"
+          className="flex items-end gap-2"
         >
-          <input
-            type="text"
+          <textarea
+            rows={1}
+            maxLength={2000}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type a message..."
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                void handleSend();
+              }
+            }}
+            placeholder={isOnline ? "Ask about your business…" : "Reconnect to keep chatting"}
             aria-label="Chat message"
-            className="flex-1 rounded-lg bg-bg-base border border-border-glass px-3 py-2 text-sm text-white-primary placeholder:text-white-muted focus:outline-none focus:border-gold transition-colors"
-            disabled={isLoading || isTyping}
+            className="min-h-10 max-h-24 flex-1 resize-none rounded-lg bg-bg-base border border-border-glass px-3 py-2.5 text-sm leading-5 text-white-primary placeholder:text-white-muted focus:outline-none focus:border-gold transition-colors"
+            disabled={isLoading || isTyping || !isOnline}
           />
-          <button
-            type="submit"
-            disabled={isLoading || isTyping || !input.trim()}
-            className="rounded-lg bg-gold-gradient p-2 hover:brightness-110 transition-all disabled:opacity-50 cursor-pointer"
-          >
-            <Send className="h-4 w-4" />
-          </button>
+          {isLoading ? (
+            <button
+              type="button"
+              onClick={handleStop}
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border-glass bg-bg-elevated text-white-secondary transition-[background-color,color,transform] hover:bg-white/5 hover:text-white-primary active:scale-[0.96]"
+              aria-label="Stop response"
+            >
+              <Square className="h-3.5 w-3.5 fill-current" />
+            </button>
+          ) : (
+            <button
+              type="submit"
+              disabled={isTyping || !isOnline || !input.trim()}
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gold-gradient text-black transition-[filter,transform,opacity] hover:brightness-110 active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-40"
+              aria-label="Send message"
+            >
+              <Send className="h-4 w-4" />
+            </button>
+          )}
         </form>
+        <p className="mt-1.5 px-0.5 text-[10px] text-white-muted">Enter to send · Shift + Enter for a new line</p>
       </div>
     </div>
   );

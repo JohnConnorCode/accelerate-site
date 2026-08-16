@@ -14,7 +14,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "", priority: 1, freq: "weekly", lastMod: LAST_CONTENT_UPDATE },
     { path: "/services", priority: 0.9, freq: "monthly", lastMod: "2026-02-15" },
     { path: "/command-center", priority: 0.9, freq: "monthly", lastMod: "2026-08-15" },
-    { path: "/packages", priority: 0.9, freq: "monthly", lastMod: "2026-02-15" },
     { path: "/resources", priority: 0.7, freq: "monthly", lastMod: "2026-02-01" },
     { path: "/industries", priority: 0.7, freq: "monthly", lastMod: LAST_CONTENT_UPDATE },
     { path: "/industries/home-services", priority: 0.8, freq: "monthly", lastMod: "2026-02-15" },

@@ -22,7 +22,8 @@ import {
 import { SectionDivider } from "@/components/ui/SectionDivider";
 import {
   AnimateOnScroll,
-  StaggerContainer,
+  EntranceGroup,
+  EntranceItem,
 } from "@/components/ui/AnimateOnScroll";
 import { Section, Eyebrow, Heading, BookCallButton, CallTerms } from "@/components/v2/studio/primitives";
 import { TableOfContents } from "@/components/mdx/TableOfContents";
@@ -206,16 +207,13 @@ export default async function ArticlePage({
       {/* ------------------------------------------------------------------ */}
       {/* Article Hero Header                                                 */}
       {/* ------------------------------------------------------------------ */}
-      <section className="relative pt-24 pb-12 bg-[var(--bg-section-warm)] overflow-hidden">
-        {/* Atmospheric glow */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full bg-radial from-[rgba(var(--accent-rgb),0.05)] to-transparent" />
-        </div>
+      <section className="relative overflow-hidden pb-16 pt-32 sm:pb-20 sm:pt-40">
+        <div className="pointer-events-none absolute inset-x-0 top-28 h-px bg-[var(--rule)]" aria-hidden="true" />
 
-        <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          {/* Breadcrumbs */}
-          <AnimateOnScroll>
-            <nav className="mb-8 flex items-center gap-1.5 text-sm text-white-muted">
+        <div className="relative z-10 mx-auto max-w-[80rem] px-6 lg:px-10">
+          <EntranceGroup className="max-w-4xl" delay={0.04}>
+            <EntranceItem>
+              <nav className="mb-10 flex min-h-10 items-center gap-1.5 overflow-hidden font-mono text-[0.64rem] uppercase tracking-[0.12em] text-white-muted">
               <Link
                 href="/learn"
                 className="hover:text-white-secondary transition-colors"
@@ -230,41 +228,38 @@ export default async function ArticlePage({
                 {CATEGORY_LABELS[frontmatter.category]}
               </Link>
               <ChevronRight className="h-3 w-3" />
-              <span className="text-white-secondary truncate max-w-[200px]">
+              <span className="max-w-[180px] truncate text-white-secondary sm:max-w-[320px]">
                 {frontmatter.title}
               </span>
-            </nav>
-          </AnimateOnScroll>
+              </nav>
+            </EntranceItem>
 
-          {/* Article Header — staggered entrance */}
-          <StaggerContainer className="max-w-3xl">
-            <AnimateOnScroll>
-              <p className="text-xs font-semibold uppercase tracking-wide text-gold mb-5">
+            <EntranceItem>
+              <p className="mb-6 font-mono text-[0.66rem] uppercase tracking-[0.2em] text-white-muted">
                 {CATEGORY_LABELS[frontmatter.category]}
               </p>
-            </AnimateOnScroll>
+            </EntranceItem>
 
-            <AnimateOnScroll>
-              <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-heading leading-[1.1] tracking-[-0.02em]">
+            <EntranceItem>
+              <h1 className="max-w-[19ch] text-balance font-display text-[clamp(2.65rem,6vw,5.75rem)] font-medium leading-[0.98] tracking-[-0.045em] text-heading">
                 {frontmatter.title}
               </h1>
-            </AnimateOnScroll>
+            </EntranceItem>
 
-            <AnimateOnScroll>
-              <p className="mt-5 text-lg sm:text-xl text-white-secondary leading-relaxed max-w-2xl">
+            <EntranceItem>
+              <p className="mt-7 max-w-2xl text-pretty text-lg leading-relaxed text-white-secondary sm:text-xl">
                 {frontmatter.excerpt}
               </p>
-            </AnimateOnScroll>
+            </EntranceItem>
 
-            {/* Author & Meta */}
-            <AnimateOnScroll>
-              <div className="mt-8 flex flex-wrap items-center gap-5 text-sm text-white-muted">
+            <EntranceItem>
+              <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-4 border-t border-[var(--rule)] pt-6 text-sm text-white-muted">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-full bg-[rgba(var(--accent-rgb),0.15)] border border-[rgba(var(--accent-rgb),0.3)] flex items-center justify-center">
-                    <User className="w-4 h-4 text-gold-light" />
+                  <div className="flex h-10 w-10 items-center justify-center bg-[var(--fg)] text-[var(--bg)]">
+                    <User className="h-4 w-4" aria-hidden="true" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-white-primary leading-tight">
+                    <p className="text-sm font-medium leading-tight text-white-primary">
                       {frontmatter.author}
                     </p>
                     {frontmatter.authorRole && (
@@ -274,9 +269,9 @@ export default async function ArticlePage({
                     )}
                   </div>
                 </div>
-                <span className="hidden sm:block w-px h-4 bg-[var(--border-glass)]" />
+                <span className="hidden h-5 w-px bg-[var(--rule)] sm:block" />
                 <span className="flex items-center gap-1.5">
-                  <Calendar className="h-4 w-4" />
+                  <Calendar className="h-4 w-4" aria-hidden="true" />
                   {new Date(frontmatter.date).toLocaleDateString("en-US", {
                     month: "long",
                     day: "numeric",
@@ -284,51 +279,37 @@ export default async function ArticlePage({
                   })}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <Clock className="h-4 w-4" />
+                  <Clock className="h-4 w-4" aria-hidden="true" />
                   {readingTime}
                 </span>
               </div>
-            </AnimateOnScroll>
+            </EntranceItem>
 
-            {/* Tags */}
-            <AnimateOnScroll>
+            <EntranceItem>
               <div className="mt-5 flex flex-wrap gap-2">
                 {frontmatter.tags.map((tag) => (
                   <Link
                     key={tag}
                     href={`/learn/tag/${encodeURIComponent(tag)}`}
-                    className="rounded-full glass px-3 py-1 text-xs text-white-muted hover:text-white-secondary hover:border-border-gold transition-colors"
+                    className="inline-flex min-h-10 items-center border border-[var(--rule)] px-3 font-mono text-[0.64rem] uppercase tracking-[0.1em] text-white-muted transition-[color,border-color,transform] duration-200 hover:border-[var(--fg)] hover:text-heading active:scale-[0.96]"
                   >
                     {tag}
                   </Link>
                 ))}
               </div>
-            </AnimateOnScroll>
-          </StaggerContainer>
+            </EntranceItem>
+          </EntranceGroup>
         </div>
-
-        {/* Bottom fade */}
-        <div
-          className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none"
-          style={{
-            background: "linear-gradient(to bottom, transparent, var(--bg-base))",
-          }}
-        />
       </section>
 
       {/* ------------------------------------------------------------------ */}
       {/* Article Content + Sidebar                                           */}
       {/* ------------------------------------------------------------------ */}
-      <article className="relative pb-8 bg-bg-base">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-12">
+      <article className="section-divide relative bg-bg-base pb-12 pt-12 sm:pt-16">
+        <div className="mx-auto max-w-[80rem] px-6 lg:px-10">
+          <div className="flex gap-16 xl:gap-24">
             {/* Main Content */}
-            <div className="flex-1 min-w-0 max-w-[720px]">
-              {/* Gold accent line */}
-              <AnimateOnScroll>
-                <div className="h-px w-16 bg-gold mb-10" />
-              </AnimateOnScroll>
-
+            <div className="min-w-0 max-w-[46rem] flex-1">
               <AnimateOnScroll>
                 <div
                   data-article-content
@@ -340,8 +321,8 @@ export default async function ArticlePage({
             </div>
 
             {/* Sidebar */}
-            <aside className="hidden lg:block w-64 shrink-0">
-              <AnimateOnScroll delay={0.2}>
+            <aside className="hidden w-72 shrink-0 lg:block">
+              <AnimateOnScroll delay={0.12}>
                 <div className="sticky top-28 space-y-6">
                   <TableOfContents />
 

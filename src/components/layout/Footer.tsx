@@ -56,7 +56,6 @@ const footerColumns = [
       { label: "Customer Engagement", href: "/services#engagement" },
       { label: "Content Creation", href: "/services#content" },
       { label: "Data & Reporting", href: "/services#reporting" },
-      { label: "Packages & Pricing", href: "/packages" },
     ],
   },
   {
@@ -231,7 +230,7 @@ export function Footer() {
                   <button
                     type="submit"
                     disabled={status === "loading"}
-                    className="bg-gold-gradient text-black px-4 py-2.5 text-sm font-semibold hover:brightness-110 transition-all inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-base)]"
+                    className="bg-gold-gradient text-black px-4 py-2.5 text-sm font-semibold hover:brightness-110 active:scale-[0.96] transition-[filter,transform] inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-base)]"
                   >
                     {status === "loading" ? (
                       <Loader2 className="w-4 h-4 animate-spin" />

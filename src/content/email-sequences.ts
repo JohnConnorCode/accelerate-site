@@ -190,7 +190,7 @@ Based on your website grade of {{score}}/100, here are three things you can fix 
 
 Want us to handle all of this for you? Our Launch package starts at $2,500 and includes a complete website built around conversion:
 
-https://www.acceleratewith.us/packages
+https://www.acceleratewith.us/services
 
 Talk soon,
 The Accelerate Team`,

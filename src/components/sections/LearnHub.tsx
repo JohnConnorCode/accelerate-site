@@ -3,9 +3,23 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { Clock, ArrowUpRight, Search, Mail, BookOpen } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  BookOpen,
+  CheckCircle2,
+  Clock,
+  Loader2,
+  Mail,
+  Search,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
+import { isValidEmail } from "@/lib/validation";
+import { getUTMParams, clearUTMParams } from "@/lib/utm";
+import { trackConversion } from "@/lib/analytics";
+import { EASE } from "@/lib/animations";
+import { AnimateOnScroll, EntranceGroup, EntranceItem } from "@/components/ui/AnimateOnScroll";
+import { ArticleCard } from "@/components/mdx/ArticleCard";
 import { Section, Container, Eyebrow, Heading } from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { HERO_HEADING } from "@/lib/type-recipes";
@@ -28,302 +42,353 @@ interface LearnHubProps {
   featuredArticle: Article | null;
 }
 
-const fmtDate = (date: string) =>
-  new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+const formatDate = (date: string) =>
+  new Date(date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+const gridVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.04 } },
+  exit: { transition: { staggerChildren: 0.025, staggerDirection: -1 } },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 12, filter: "blur(4px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.45, ease: EASE },
+  },
+  exit: {
+    opacity: 0,
+    y: -8,
+    filter: "blur(3px)",
+    transition: { duration: 0.14, ease: "easeIn" as const },
+  },
+};
 
 export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
   const [activeCategory, setActiveCategory] = useState<ArticleCategory | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
+  const [email, setEmail] = useState("");
+  const [subscribeStatus, setSubscribeStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [subscribeError, setSubscribeError] = useState("");
 
   const filtered = articles.filter((article) => {
     const matchesCategory =
       activeCategory === "all" || article.frontmatter.category === activeCategory;
-    const q = searchQuery.toLowerCase();
+    const query = searchQuery.trim().toLowerCase();
     const matchesSearch =
-      !q ||
-      article.frontmatter.title.toLowerCase().includes(q) ||
-      article.frontmatter.excerpt.toLowerCase().includes(q);
+      !query ||
+      article.frontmatter.title.toLowerCase().includes(query) ||
+      article.frontmatter.excerpt.toLowerCase().includes(query) ||
+      article.frontmatter.tags.some((tag) => tag.toLowerCase().includes(query));
     return matchesCategory && matchesSearch;
   });
 
   const totalPages = Math.ceil(filtered.length / ARTICLES_PER_PAGE);
   const paginated = filtered.slice((page - 1) * ARTICLES_PER_PAGE, page * ARTICLES_PER_PAGE);
 
+  async function handleSubscribe(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const trimmed = email.trim();
+    if (!isValidEmail(trimmed)) {
+      setSubscribeStatus("error");
+      setSubscribeError("Enter a valid email address.");
+      return;
+    }
+
+    setSubscribeStatus("loading");
+    setSubscribeError("");
+    try {
+      const response = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmed, utm: getUTMParams() }),
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Could not subscribe.");
+      }
+      trackConversion("Newsletter Subscribed", { location: "learning_hub" });
+      clearUTMParams();
+      setSubscribeStatus("success");
+      setEmail("");
+    } catch (error) {
+      setSubscribeStatus("error");
+      setSubscribeError(error instanceof Error ? error.message : "Could not subscribe. Try again.");
+    }
+  }
+
   return (
     <>
-      {/* hero — statement left, the featured guide (lead with your best) right */}
-      <section className="relative overflow-hidden pt-32 pb-24">
-        <Container width="wide">
-        <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
-          <div className="min-w-0">
-            <AnimateOnScroll><Eyebrow className="mb-7">the learning hub</Eyebrow></AnimateOnScroll>
-            <RevealHeading
-              as="h1"
-              className={HERO_HEADING}
-              lead="Practical AI for operators."
-              delay={0.1}
-            />
-            <AnimateOnScroll delay={0.3}>
-              <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                No filler. How to actually put AI into a business that already has customers. Written by someone who runs one.
-              </p>
-            </AnimateOnScroll>
+      <section className="relative overflow-hidden pb-24 pt-36 sm:pt-40">
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+          <div className="absolute left-[8%] top-28 h-px w-24 bg-[var(--rule)]" />
+          <div className="absolute right-[8%] top-28 font-mono text-[0.62rem] uppercase tracking-[0.2em] text-white-muted">
+            Field notes / 2026
           </div>
-
-          {featuredArticle && (
-            <AnimateOnScroll as="div" delay={0.2}>
-            <Link
-              href={`/learn/${featuredArticle.slug}`}
-              data-cursor="link"
-              className="group relative block overflow-hidden rounded-3xl border border-border-gold/50 bg-[color-mix(in_srgb,var(--gold-base)_5%,var(--bg-elevated))] p-7 backdrop-blur-md transition-colors hover:border-border-gold sm:p-8"
-            >
-              <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold to-transparent opacity-70" />
-              <p className="mb-4 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">
-                Featured · {CATEGORY_LABELS[featuredArticle.frontmatter.category]}
-              </p>
-              <h2 className="font-display text-2xl font-bold leading-tight tracking-[-0.02em] text-heading sm:text-3xl">
-                {featuredArticle.frontmatter.title}
-              </h2>
-              <p className="mt-4 leading-relaxed text-white-secondary line-clamp-3">
-                {featuredArticle.frontmatter.excerpt}
-              </p>
-              <div className="mt-6 flex flex-wrap items-center gap-5 border-t border-border-glass pt-5 text-sm text-white-muted">
-                <span className="flex items-center gap-1.5">
-                  <Clock className="h-4 w-4" />
-                  {featuredArticle.readingTime}
-                </span>
-                <span>{fmtDate(featuredArticle.frontmatter.date)}</span>
-                <span className="ml-auto inline-flex items-center gap-1.5 font-medium text-heading">
-                  <span className="ink-sweep">Read article</span>
-                  <ArrowUpRight className="h-4 w-4 text-gold transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                </span>
-              </div>
-            </Link>
-            </AnimateOnScroll>
-          )}
         </div>
+
+        <Container width="wide">
+          <div className="grid items-end gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-20">
+            <div className="min-w-0">
+              <EntranceGroup>
+                <EntranceItem>
+                  <Eyebrow className="mb-7">the learning hub</Eyebrow>
+                </EntranceItem>
+              </EntranceGroup>
+              <RevealHeading
+                as="h1"
+                className={`${HERO_HEADING} text-balance`}
+                lead="Practical AI for operators."
+              />
+              <EntranceGroup delay={0.18}>
+                <EntranceItem>
+                  <p className="mt-7 max-w-xl text-pretty text-lg leading-relaxed text-white-secondary">
+                    Clear field notes for putting AI into a business that already has customers, deadlines, and a reputation to protect.
+                  </p>
+                </EntranceItem>
+                <EntranceItem>
+                  <div className="mt-8 flex items-center gap-4 font-mono text-[0.66rem] uppercase tracking-[0.15em] text-white-muted">
+                    <span>{articles.length + (featuredArticle ? 1 : 0)} guides</span>
+                    <span className="h-px w-8 bg-[var(--rule)]" />
+                    <span>Built to use this week</span>
+                  </div>
+                </EntranceItem>
+              </EntranceGroup>
+            </div>
+
+            {featuredArticle && (
+              <AnimateOnScroll as="article" delay={0.14}>
+                <Link
+                  href={`/learn/${featuredArticle.slug}`}
+                  data-cursor="link"
+                  className="learning-feature group relative block p-7 sm:p-9"
+                >
+                  <div className="mb-12 flex items-start justify-between gap-5">
+                    <p className="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-heading">
+                      Featured guide
+                    </p>
+                    <span className="font-mono text-[0.62rem] uppercase tracking-[0.16em] text-white-muted">
+                      {CATEGORY_LABELS[featuredArticle.frontmatter.category]}
+                    </span>
+                  </div>
+                  <h2 className="max-w-[22ch] text-balance font-display text-2xl font-medium leading-[1.15] tracking-[-0.025em] text-heading sm:text-3xl">
+                    {featuredArticle.frontmatter.title}
+                  </h2>
+                  <p className="mt-5 line-clamp-3 text-pretty leading-relaxed text-white-secondary">
+                    {featuredArticle.frontmatter.excerpt}
+                  </p>
+                  <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-border-glass pt-5 font-mono text-[0.64rem] uppercase tracking-[0.12em] text-white-muted">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+                      {featuredArticle.readingTime}
+                    </span>
+                    <span>{formatDate(featuredArticle.frontmatter.date)}</span>
+                    <span className="ml-auto inline-flex items-center gap-2 text-heading">
+                      Read guide
+                      <ArrowUpRight className="h-4 w-4 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+                    </span>
+                  </div>
+                </Link>
+              </AnimateOnScroll>
+            )}
+          </div>
         </Container>
       </section>
 
-      {/* browse all */}
       <Section width="wide" divide>
-        <Eyebrow className="mb-6">browse all guides</Eyebrow>
-        <Heading size={2} as="h2" className="mb-3 max-w-3xl">
-          Filter by topic. Search by need.
-        </Heading>
-        <p className="mb-10 max-w-xl text-base leading-relaxed text-white-muted">
-          Pick a category, search, or just scroll. Every guide is written to
-          help you ship something useful this week.
-        </p>
-
-        <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              data-cursor="link"
-              onClick={() => { setActiveCategory("all"); setPage(1); }}
-              className={cn(
-                "rounded-full px-4 py-1.5 text-sm transition-colors",
-                activeCategory === "all"
-                  ? "border border-border-gold bg-[color-mix(in_srgb,var(--gold-base)_14%,transparent)] text-gold"
-                  : "border border-border-glass text-white-secondary hover:border-[var(--border-glass-hover)] hover:text-heading"
-              )}
-            >
-              All
-            </button>
-            {ALL_CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                data-cursor="link"
-                onClick={() => { setActiveCategory(cat); setPage(1); }}
-                className={cn(
-                  "rounded-full px-4 py-1.5 text-sm transition-colors",
-                  activeCategory === cat
-                    ? "border border-border-gold bg-[color-mix(in_srgb,var(--gold-base)_14%,transparent)] text-gold"
-                    : "border border-border-glass text-white-secondary hover:border-[var(--border-glass-hover)] hover:text-heading"
-                )}
-              >
-                {CATEGORY_LABELS[cat]}
-              </button>
-            ))}
+        <Eyebrow className="mb-6">browse the library</Eyebrow>
+        <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div>
+            <Heading size={2} as="h2" className="max-w-3xl text-balance">
+              Find the next useful move.
+            </Heading>
+            <p className="mt-4 max-w-xl text-pretty leading-relaxed text-white-secondary">
+              Search a problem or narrow the library by topic. Every guide favors practical decisions over trend watching.
+            </p>
           </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white-muted" />
-            <input
-              type="text"
-              placeholder="Search articles…"
-              value={searchQuery}
-              onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
-              className="w-full rounded-full border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_60%,transparent)] py-2 pl-10 pr-4 text-sm text-heading placeholder:text-white-muted focus:border-border-gold focus:outline-none sm:w-64"
-            />
+          <p className="font-mono text-xs tabular-nums uppercase tracking-[0.14em] text-white-muted" aria-live="polite">
+            {filtered.length} {filtered.length === 1 ? "result" : "results"}
+          </p>
+        </div>
+
+        <div className="mt-10 border-y border-[var(--rule)] py-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Filter articles by category">
+              <button
+                type="button"
+                onClick={() => { setActiveCategory("all"); setPage(1); }}
+                aria-pressed={activeCategory === "all"}
+                className={cn("topic-filter", activeCategory === "all" && "is-active")}
+              >
+                All topics
+              </button>
+              {ALL_CATEGORIES.map((category) => (
+                <button
+                  key={category}
+                  type="button"
+                  onClick={() => { setActiveCategory(category); setPage(1); }}
+                  aria-pressed={activeCategory === category}
+                  className={cn("topic-filter", activeCategory === category && "is-active")}
+                >
+                  {CATEGORY_LABELS[category]}
+                </button>
+              ))}
+            </div>
+
+            <label className="relative block w-full lg:w-72">
+              <span className="sr-only">Search the learning library</span>
+              <Search className="pointer-events-none absolute left-0 top-1/2 h-4 w-4 -translate-y-1/2 text-white-muted" aria-hidden="true" />
+              <input
+                type="search"
+                placeholder="Search the library"
+                value={searchQuery}
+                onChange={(event) => { setSearchQuery(event.target.value); setPage(1); }}
+                className="h-11 w-full border-b border-[var(--rule)] bg-transparent pl-7 pr-2 text-sm text-heading outline-none transition-[border-color] duration-200 placeholder:text-white-muted focus:border-[var(--fg)]"
+              />
+            </label>
           </div>
         </div>
 
-        <AnimatePresence mode="wait">
+        <AnimatePresence initial={false} mode="wait">
           {paginated.length === 0 ? (
             <motion.div
               key="empty"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="py-16 text-center"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8, transition: { duration: 0.14 } }}
+              className="py-24 text-center"
             >
-              <BookOpen className="mx-auto mb-4 h-12 w-12 text-white-muted opacity-30" />
-              <p className="text-white-muted">No articles found matching your criteria.</p>
+              <BookOpen className="mx-auto mb-5 h-10 w-10 text-white-muted" aria-hidden="true" />
+              <p className="text-heading">Nothing matches that search yet.</p>
+              <button
+                type="button"
+                className="mt-3 min-h-10 text-sm text-white-secondary underline underline-offset-4 transition-colors hover:text-heading"
+                onClick={() => { setSearchQuery(""); setActiveCategory("all"); setPage(1); }}
+              >
+                Clear the filters
+              </button>
             </motion.div>
           ) : (
             <motion.div
-              key={`${activeCategory}-${page}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="grid gap-5 md:grid-cols-2"
+              key={`${activeCategory}-${searchQuery}-${page}`}
+              variants={gridVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="mt-10 grid gap-5 md:grid-cols-2"
             >
-              {paginated.map((article, i) => (
-                <AnimateOnScroll key={article.slug} as="div" delay={(i % 4) * 0.05}>
-                  <Link
-                    href={`/learn/${article.slug}`}
-                    data-cursor="link"
-                    className="group flex h-full flex-col rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_88%,transparent)] p-6 backdrop-blur-md transition-colors hover:border-border-gold"
-                  >
-                    <div className="mb-3 flex flex-wrap items-center gap-3 font-mono text-[0.6rem] uppercase tracking-[0.18em]">
-                      <span className="text-gold">{CATEGORY_LABELS[article.frontmatter.category]}</span>
-                      <span className="text-white-muted">{fmtDate(article.frontmatter.date)}</span>
-                    </div>
-                    <h3 className="mb-2 line-clamp-2 font-display text-lg font-semibold tracking-[-0.01em] text-heading">
-                      {article.frontmatter.title}
-                    </h3>
-                    <p className="mb-4 line-clamp-2 flex-1 text-sm leading-relaxed text-white-secondary">
-                      {article.frontmatter.excerpt}
-                    </p>
-                    <div className="flex items-center justify-between border-t border-border-glass pt-4 text-xs text-white-muted">
-                      <span className="flex items-center gap-1.5">
-                        <Clock className="h-3 w-3" />
-                        {article.readingTime}
-                      </span>
-                      <span className="inline-flex items-center gap-1 font-medium text-heading">
-                        <span className="ink-sweep">Read</span>
-                        <ArrowUpRight className="h-3.5 w-3.5 text-gold transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                      </span>
-                    </div>
-                  </Link>
-                </AnimateOnScroll>
+              {paginated.map((article, index) => (
+                <motion.article key={article.slug} variants={cardVariants}>
+                  <ArticleCard article={article} index={(page - 1) * ARTICLES_PER_PAGE + index} />
+                </motion.article>
               ))}
             </motion.div>
           )}
         </AnimatePresence>
 
         {totalPages > 1 && (
-          <div className="mt-12 flex items-center justify-center gap-2">
-            {Array.from({ length: totalPages }, (_, i) => (
-              <button
-                key={i + 1}
-                type="button"
-                data-cursor="link"
-                onClick={() => setPage(i + 1)}
-                className={cn(
-                  "h-9 w-9 rounded-lg text-sm transition-colors",
-                  page === i + 1
-                    ? "border border-border-gold bg-[color-mix(in_srgb,var(--gold-base)_14%,transparent)] text-gold"
-                    : "border border-border-glass text-white-secondary hover:border-[var(--border-glass-hover)] hover:text-heading"
-                )}
-              >
-                {i + 1}
-              </button>
-            ))}
-          </div>
+          <nav className="mt-12 flex items-center justify-center gap-2" aria-label="Article pages">
+            {Array.from({ length: totalPages }, (_, index) => {
+              const pageNumber = index + 1;
+              return (
+                <button
+                  key={pageNumber}
+                  type="button"
+                  onClick={() => setPage(pageNumber)}
+                  aria-current={page === pageNumber ? "page" : undefined}
+                  className={cn("page-number", page === pageNumber && "is-active")}
+                >
+                  {pageNumber}
+                </button>
+              );
+            })}
+          </nav>
         )}
       </Section>
 
-      {/* done-for-you band — route from learning into the money pages */}
       <Section width="wide" divide>
-        <AnimateOnScroll>
-          <div className="overflow-hidden rounded-3xl border border-border-gold/50 bg-[color-mix(in_srgb,var(--gold-base)_5%,var(--bg-elevated))] p-8 backdrop-blur-md sm:p-12">
-            <span aria-hidden className="block h-px w-full bg-gradient-to-r from-transparent via-gold to-transparent opacity-70" />
-            <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
-              <div className="max-w-xl">
-                <p className="mb-3 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">
-                  Looking for done-for-you?
-                </p>
-                <h2 className="font-display text-2xl font-bold tracking-[-0.02em] text-heading sm:text-3xl">
-                  Skip the learning curve. We build it and run it.
-                </h2>
-                <p className="mt-4 leading-relaxed text-white-secondary">
-                  Reading gets you the theory. We build the thing. Custom systems, run by us, live in a week.
-                </p>
-              </div>
-              <div className="flex shrink-0 flex-col gap-3 sm:flex-row lg:flex-col">
-                <Link
-                  href="/services"
-                  data-cursor="link"
-                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-btn-text transition-opacity hover:opacity-90"
-                >
-                  See what we build
-                  <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                </Link>
-                <Link
-                  href="/industries"
-                  data-cursor="link"
-                  className="group inline-flex items-center justify-center gap-2 rounded-full border border-border-glass px-6 py-3 text-sm font-semibold text-heading transition-colors hover:border-border-gold hover:text-gold"
-                >
-                  Browse by industry
-                  <ArrowUpRight className="h-4 w-4 text-gold transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                </Link>
-              </div>
-            </div>
+        <div className="grid gap-10 bg-[var(--fg)] p-8 text-[var(--bg)] sm:p-12 lg:grid-cols-[1.2fr_auto] lg:items-end lg:p-14">
+          <div className="max-w-2xl">
+            <p className="mb-5 font-mono text-[0.66rem] uppercase tracking-[0.2em] opacity-60">
+              From insight to operating system
+            </p>
+            <h2 className="text-balance font-display text-3xl font-medium leading-tight tracking-[-0.025em] sm:text-4xl">
+              Skip the learning curve. We can build it with you.
+            </h2>
+            <p className="mt-5 max-w-xl text-pretty leading-relaxed opacity-70">
+              Use the guides to sharpen your thinking, then bring us the messy operational part. We design, ship, and run the system.
+            </p>
           </div>
-        </AnimateOnScroll>
-      </Section>
-
-      {/* newsletter */}
-      <Section width="text" divide className="bg-[var(--bg-section-warm)]">
-        <div className="rounded-2xl border border-border-gold/40 bg-[color-mix(in_srgb,var(--gold-base)_4%,var(--bg-elevated))] p-8 text-center backdrop-blur-md sm:p-12">
-          <span className="mx-auto mb-5 grid h-12 w-12 place-items-center rounded-xl border border-border-gold/40 bg-[color-mix(in_srgb,var(--gold-base)_8%,transparent)] text-gold">
-            <Mail className="h-6 w-6" />
-          </span>
-          <h2 className="mb-2 font-display text-2xl font-bold tracking-[-0.02em] text-heading">
-            Get new guides in your inbox
-          </h2>
-          <p className="mx-auto mb-7 max-w-md text-sm text-white-muted">
-            One email a week. One thing you can build in an hour. Unsubscribe anytime.
-          </p>
-          <form className="mx-auto flex max-w-md flex-col gap-3 sm:flex-row">
-            <input
-              type="email"
-              placeholder="you@company.com"
-              className="flex-1 rounded-full border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_60%,transparent)] px-4 py-3 text-sm text-heading placeholder:text-white-muted focus:border-border-gold focus:outline-none"
-            />
-            <button
-              type="submit"
-              data-cursor="link"
-              className="group inline-flex items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-btn-text transition-opacity hover:opacity-90"
-            >
-              Subscribe
-              <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </button>
-          </form>
+          <Link href="/services" className="btn btn-inv shrink-0">
+            See what we build <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
         </div>
       </Section>
 
-      {/* cross-promo */}
       <Section width="text" divide>
-        <div className="rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)] p-8 text-center backdrop-blur-md sm:p-10">
-          <h2 className="mb-3 font-display text-xl font-bold tracking-[-0.01em] text-heading">
-            Want something you can use right now?
-          </h2>
-          <p className="mx-auto mb-6 max-w-md text-sm text-white-muted">
-            Download free checklists, templates, and calculators built for small businesses.
-          </p>
-          <Link
-            href="/resources"
-            data-cursor="link"
-            className="group inline-flex items-center gap-2 rounded-full border border-border-glass px-6 py-3 text-sm font-semibold text-heading transition-colors hover:border-border-gold hover:text-gold"
-          >
-            Browse free resources
-            <ArrowUpRight className="h-4 w-4 text-gold transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </Link>
+        <div className="grid gap-8 md:grid-cols-[auto_1fr] md:items-start">
+          <span className="grid h-12 w-12 place-items-center bg-[var(--fg)] text-[var(--bg)]" aria-hidden="true">
+            <Mail className="h-5 w-5" />
+          </span>
+          <div>
+            <h2 className="text-balance font-display text-2xl font-medium tracking-[-0.02em] text-heading sm:text-3xl">
+              One useful guide, once a week.
+            </h2>
+            <p className="mt-3 max-w-xl text-pretty text-sm leading-relaxed text-white-secondary">
+              A practical idea you can test in an hour. No daily noise, no recycled AI headlines.
+            </p>
+
+            {subscribeStatus === "success" ? (
+              <div className="mt-7 flex min-h-12 items-center gap-2 text-sm text-[var(--success)]" role="status">
+                <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
+                You&rsquo;re on the list.
+              </div>
+            ) : (
+              <form onSubmit={handleSubscribe} className="mt-7 max-w-xl">
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <label className="flex-1">
+                    <span className="sr-only">Email address</span>
+                    <input
+                      type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      required
+                      value={email}
+                      onChange={(event) => {
+                        setEmail(event.target.value);
+                        if (subscribeStatus === "error") setSubscribeStatus("idle");
+                      }}
+                      placeholder="you@company.com"
+                      disabled={subscribeStatus === "loading"}
+                      className="h-12 w-full border border-[var(--rule)] bg-transparent px-4 text-sm text-heading outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-white-muted focus:border-[var(--fg)] focus:shadow-[0_0_0_1px_var(--fg)] disabled:opacity-50"
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    disabled={subscribeStatus === "loading"}
+                    className="btn min-h-12 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {subscribeStatus === "loading" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" aria-label="Subscribing" />
+                    ) : (
+                      <>Subscribe <ArrowRight className="h-4 w-4" aria-hidden="true" /></>
+                    )}
+                  </button>
+                </div>
+                {subscribeStatus === "error" && subscribeError && (
+                  <p className="mt-2 text-sm text-[var(--error)]" role="alert">{subscribeError}</p>
+                )}
+              </form>
+            )}
+          </div>
         </div>
       </Section>
     </>

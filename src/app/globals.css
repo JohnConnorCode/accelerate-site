@@ -31,6 +31,14 @@
   --surface-highlight: rgba(255, 255, 255, .65);
   --surface-shadow: 0 22px 44px -26px rgba(11, 11, 11, .2);
   --surface-blur: 20px;
+  --card-shadow:
+    0 0 0 1px rgba(0, 0, 0, .06),
+    0 1px 2px -1px rgba(0, 0, 0, .06),
+    0 8px 24px -18px rgba(0, 0, 0, .18);
+  --card-shadow-hover:
+    0 0 0 1px rgba(0, 0, 0, .1),
+    0 2px 4px -2px rgba(0, 0, 0, .08),
+    0 18px 38px -22px rgba(0, 0, 0, .24);
 
   /* Ambient floating atmosphere (AmbientField) — same monochrome-only
      rule as the surface tokens above, overridden inside .ink-panel. */
@@ -178,6 +186,8 @@
   --bg-overlay: rgba(0, 0, 0, 0.6);
 
   --btn-primary-text: var(--bg);
+  --card-shadow: 0 0 0 1px rgba(255, 255, 255, .08);
+  --card-shadow-hover: 0 0 0 1px rgba(255, 255, 255, .14);
 }
 
 @theme inline {
@@ -245,6 +255,8 @@ body {
 
 html {
   scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   /* Kill the default gray/blue tap-flash rectangle on iOS/Android — every
      tappable element gets its own deliberate :active state instead (see
      .btn/.tag/.efaq summary etc. below), so touch feedback is intentional,
@@ -261,6 +273,17 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .route-entry {
+    animation: route-entry .38s var(--ease) both;
+  }
+
+  @keyframes route-entry {
+    from { opacity: 0; filter: blur(3px); }
+    to { opacity: 1; filter: none; }
+  }
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -382,7 +405,7 @@ a.tag {
 }
 a.tag:hover, a.tag:active { color: var(--fg); }
 a.tag:hover { background: var(--surface-bg-strong); }
-a.tag:active { background: var(--surface-bg-strong); transform: scale(.95); transition-duration: .1s; }
+a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); transition-duration: .1s; }
 .ink-panel .tag { color: #8A8A86; }
 
 /* ─── Buttons ─── */
@@ -421,7 +444,7 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.95); tran
 }
 .btn:hover::before, .btn:active::before { transform: translateY(0); }
 .btn:hover, .btn:active { color: var(--fg); }
-.btn:active { transform: scale(.97); transition: transform .1s ease; }
+.btn:active { transform: scale(.96); transition: transform .1s ease; }
 .btn .arw { transition: transform .45s var(--ease); }
 .btn:hover .arw, .btn:active .arw { transform: translateX(5px); }
 .btn-sm { padding: 11px 18px; font-size: 10px; }
@@ -456,13 +479,13 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.95); tran
    it should declare ONLY its own interactive transitions (hover, press),
    never re-declare opacity/transform/filter timing to "protect" it. */
 @keyframes rv-in {
-  from { opacity: 0; transform: translateY(24px); filter: blur(9px); }
+  from { opacity: 0; transform: translateY(14px); filter: blur(4px); }
   to   { opacity: 1; transform: none; filter: none; }
 }
 /* Blur-in is the site's signature entrance — stronger blur than a plain
    fade, snappier duration so it reads as a deliberate "focus pull". */
-.rv { opacity: 0; transform: translateY(24px); filter: blur(9px); }
-.rv.in { animation: rv-in .7s var(--ease) var(--d, 0s) both; }
+.rv { opacity: 0; transform: translateY(14px); filter: blur(4px); }
+.rv.in { animation: rv-in .55s var(--ease) var(--d, 0s) both; }
 
 /* PlanDeck's card (.deck) has its own backdrop-filter for the frosted
    look. Animating `filter` on an ANCESTOR while a descendant uses
@@ -514,11 +537,11 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.95); tran
    multiple items into view within the same frame, not the primary
    reveal mechanism. */
 @keyframes item-in {
-  from { opacity: 0; transform: translateY(20px); filter: blur(8px); }
+  from { opacity: 0; transform: translateY(12px); filter: blur(4px); }
   to   { opacity: 1; transform: none; filter: none; }
 }
-.item-rv { opacity: 0; transform: translateY(20px); filter: blur(8px); }
-.item-rv.in { animation: item-in .5s var(--ease) var(--d, 0s) both; }
+.item-rv { opacity: 0; transform: translateY(12px); filter: blur(4px); }
+.item-rv.in { animation: item-in .48s var(--ease) var(--d, 0s) both; }
 
 @keyframes line-in {
   from { transform: translateY(112%); }
@@ -739,12 +762,12 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.95); tran
 @media (prefers-reduced-motion: no-preference) {
   [data-js="on"] .section-reveal .eyebrow {
     opacity: 0;
-    transform: translateX(-18px);
-    filter: blur(2px);
+    transform: translateY(10px);
+    filter: blur(4px);
     transition:
-      opacity 0.6s var(--ease-out),
-      transform 0.7s var(--ease-out),
-      filter 0.5s var(--ease-out);
+      opacity 0.48s var(--ease-out),
+      transform 0.48s var(--ease-out),
+      filter 0.42s var(--ease-out);
     transition-delay: 0ms;
     will-change: opacity, transform, filter;
   }
@@ -754,13 +777,13 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.95); tran
   [data-js="on"] .section-reveal .display-3,
   [data-js="on"] .section-reveal .page-heading {
     opacity: 0;
-    transform: translateY(40px);
-    filter: blur(6px);
+    transform: translateY(14px);
+    filter: blur(4px);
     transition:
-      opacity 1s var(--ease-out),
-      transform 1s var(--ease-out),
-      filter 0.9s var(--ease-out);
-    transition-delay: 120ms;
+      opacity 0.58s var(--ease-out),
+      transform 0.58s var(--ease-out),
+      filter 0.5s var(--ease-out);
+    transition-delay: 70ms;
     will-change: opacity, transform, filter;
   }
 
@@ -768,16 +791,18 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.95); tran
   [data-js="on"] .section-reveal > .page-shell--narrow > *,
   [data-js="on"] .section-reveal > .page-shell--text > * {
     opacity: 0;
-    transform: translateY(26px);
+    transform: translateY(14px);
+    filter: blur(4px);
     transition:
-      opacity 0.85s var(--ease-out),
-      transform 0.85s var(--ease-out);
+      opacity 0.55s var(--ease-out),
+      transform 0.55s var(--ease-out),
+      filter 0.5s var(--ease-out);
   }
-  [data-js="on"] .section-reveal > [class*="page-shell"] > *:nth-child(1) { transition-delay: 260ms; }
-  [data-js="on"] .section-reveal > [class*="page-shell"] > *:nth-child(2) { transition-delay: 340ms; }
-  [data-js="on"] .section-reveal > [class*="page-shell"] > *:nth-child(3) { transition-delay: 420ms; }
-  [data-js="on"] .section-reveal > [class*="page-shell"] > *:nth-child(4) { transition-delay: 500ms; }
-  [data-js="on"] .section-reveal > [class*="page-shell"] > *:nth-child(n+5) { transition-delay: 560ms; }
+  [data-js="on"] .section-reveal > [class*="page-shell"] > *:nth-child(1) { transition-delay: 140ms; }
+  [data-js="on"] .section-reveal > [class*="page-shell"] > *:nth-child(2) { transition-delay: 220ms; }
+  [data-js="on"] .section-reveal > [class*="page-shell"] > *:nth-child(3) { transition-delay: 300ms; }
+  [data-js="on"] .section-reveal > [class*="page-shell"] > *:nth-child(4) { transition-delay: 380ms; }
+  [data-js="on"] .section-reveal > [class*="page-shell"] > *:nth-child(n+5) { transition-delay: 440ms; }
 
   [data-js="on"] .section-reveal.is-revealed .eyebrow,
   [data-js="on"] .section-reveal.is-revealed .display-1,
@@ -1167,6 +1192,103 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.95); tran
 .card-outline:hover {
   border-color: var(--fg);
   background: transparent;
+}
+
+/* Learning cards use depth instead of a tinted outline so they remain crisp
+   over both paper and ink themes. */
+.learning-card {
+  position: relative;
+  background: color-mix(in srgb, var(--bg) 94%, var(--fg));
+  box-shadow: var(--card-shadow);
+  transition-property: transform, box-shadow, background-color;
+  transition-duration: 300ms;
+  transition-timing-function: var(--ease);
+}
+.learning-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: var(--fg);
+  transform: scaleY(0);
+  transform-origin: 50% 100%;
+  transition: transform 300ms var(--ease);
+}
+.learning-card:hover,
+.learning-card:focus-visible {
+  transform: translateY(-4px);
+  background: var(--bg);
+  box-shadow: var(--card-shadow-hover);
+}
+
+.learning-feature {
+  background: color-mix(in srgb, var(--bg) 94%, var(--fg));
+  box-shadow: var(--card-shadow);
+  transition-property: transform, box-shadow, background-color;
+  transition-duration: 350ms;
+  transition-timing-function: var(--ease);
+}
+.learning-feature::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: var(--fg);
+  transform: scaleX(.22);
+  transform-origin: 0 50%;
+  transition: transform 450ms var(--ease);
+}
+.learning-feature:hover,
+.learning-feature:focus-visible {
+  transform: translateY(-4px);
+  background: var(--bg);
+  box-shadow: var(--card-shadow-hover);
+}
+.learning-feature:hover::before,
+.learning-feature:focus-visible::before { transform: scaleX(1); }
+.learning-feature:focus-visible { outline: 2px solid var(--fg); outline-offset: 4px; }
+
+.topic-filter {
+  min-height: 40px;
+  padding: .55rem .85rem;
+  font-family: var(--font-mono-face), ui-monospace, monospace;
+  font-size: .66rem;
+  line-height: 1;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--mid);
+  box-shadow: inset 0 0 0 1px var(--rule);
+  transition-property: color, background-color, box-shadow, transform;
+  transition-duration: 180ms;
+  transition-timing-function: var(--ease);
+}
+.topic-filter:hover { color: var(--fg); box-shadow: inset 0 0 0 1px var(--fg); }
+.topic-filter:active { transform: scale(.96); }
+.topic-filter.is-active { color: var(--bg); background: var(--fg); box-shadow: inset 0 0 0 1px var(--fg); }
+.topic-filter:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
+
+.page-number {
+  width: 40px;
+  height: 40px;
+  font-family: var(--font-mono-face), ui-monospace, monospace;
+  font-size: .75rem;
+  color: var(--mid);
+  box-shadow: inset 0 0 0 1px var(--rule);
+  transition-property: color, background-color, box-shadow, transform;
+  transition-duration: 180ms;
+  transition-timing-function: var(--ease);
+}
+.page-number:hover { color: var(--fg); box-shadow: inset 0 0 0 1px var(--fg); }
+.page-number:active { transform: scale(.96); }
+.page-number.is-active { color: var(--bg); background: var(--fg); box-shadow: inset 0 0 0 1px var(--fg); }
+.page-number:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
+.learning-card:hover::before,
+.learning-card:focus-visible::before {
+  transform: scaleY(1);
+}
+.learning-card:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 4px;
 }
 
 /* ========================================
@@ -1783,24 +1905,32 @@ summary:focus-visible {
   margin-bottom: 1rem;
 }
 
+.prose-dark {
+  font-size: 1.0625rem;
+}
+
 .prose-dark h2 {
   font-family: var(--font-jost, 'Jost', sans-serif);
   font-weight: 600;
-  font-size: 1.5rem;
-  line-height: 1.3;
+  font-size: clamp(1.65rem, 3vw, 2.15rem);
+  line-height: 1.15;
   color: var(--fg);
-  margin-top: 2rem;
-  margin-bottom: 0.75rem;
+  margin-top: 3.75rem;
+  margin-bottom: 1rem;
+  scroll-margin-top: 7rem;
+  text-wrap: balance;
 }
 
 .prose-dark h3 {
   font-family: var(--font-jost, 'Jost', sans-serif);
   font-weight: 600;
-  font-size: 1.25rem;
-  line-height: 1.4;
+  font-size: 1.35rem;
+  line-height: 1.25;
   color: var(--fg);
-  margin-top: 1.75rem;
-  margin-bottom: 0.5rem;
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+  scroll-margin-top: 7rem;
+  text-wrap: balance;
 }
 
 .prose-dark h4,
@@ -1816,9 +1946,10 @@ summary:focus-visible {
 
 .prose-dark p {
   color: var(--mid);
-  line-height: 1.75;
+  line-height: 1.82;
   margin-top: 0;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.45rem;
+  text-wrap: pretty;
 }
 
 .prose-dark ul,
@@ -1834,9 +1965,9 @@ summary:focus-visible {
 .prose-dark li { margin-bottom: 0.5rem; }
 
 .prose-dark blockquote {
-  border-left: 3px solid var(--fg);
-  padding-left: 1rem;
-  margin: 1.5rem 0;
+  border-left: 2px solid var(--fg);
+  padding: .5rem 0 .5rem 1.5rem;
+  margin: 2.25rem 0;
   color: var(--mid);
   font-family: var(--font-editorial), Georgia, serif;
   font-style: italic;
@@ -1881,8 +2012,9 @@ summary:focus-visible {
 .prose-dark a {
   color: var(--fg);
   text-decoration: underline;
-  text-underline-offset: 2px;
-  transition: opacity 0.2s;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: opacity 0.2s ease;
 }
 .prose-dark a:hover {
   opacity: 0.6;
@@ -1897,13 +2029,18 @@ summary:focus-visible {
   border: none;
   height: 1px;
   background: var(--rule);
-  margin: 2rem 0;
+  margin: 3rem 0;
 }
 
 .prose-dark img {
   border-radius: 0;
-  margin: 1.5rem 0;
-  border: 1px solid var(--rule);
+  margin: 2.5rem 0;
+  outline: 1px solid rgba(0, 0, 0, 0.1);
+  outline-offset: -1px;
+}
+
+[data-theme="dark"] .prose-dark img {
+  outline-color: rgba(255, 255, 255, 0.1);
 }
 
 /* ========================================
@@ -2246,10 +2383,12 @@ summary:focus-visible {
   animation: hero-scan 30s ease-in-out infinite;
 }
 .hero-grid-lit.interactive {
-  /* Override the animation when mouse moves, snapping the mask directly to the cursor */
+  /* Homepage: one continuous position powers both the ambient orbit and the
+     pointer override, so control can hand off without restarting a keyframe. */
   animation: none;
-  -webkit-mask-position: calc(var(--mouse-x, 50%) - 190px) calc(var(--mouse-y, 50%) - 190px);
-  mask-position: calc(var(--mouse-x, 50%) - 190px) calc(var(--mouse-y, 50%) - 190px);
+  --spotlight-radius: 190px;
+  -webkit-mask-position: calc(var(--spotlight-x, 50%) - var(--spotlight-radius)) calc(var(--spotlight-y, 48%) - var(--spotlight-radius));
+  mask-position: calc(var(--spotlight-x, 50%) - var(--spotlight-radius)) calc(var(--spotlight-y, 48%) - var(--spotlight-radius));
 }
 @keyframes hero-scan {
   0%   { -webkit-mask-position: 80% 18%; mask-position: 80% 18%; }
@@ -2268,6 +2407,7 @@ summary:focus-visible {
 @media (max-width: 700px) {
   .hero-grid-base, .hero-grid-lit { background-size: 44px 44px; }
   .hero-grid-lit { -webkit-mask-size: 240px 240px; mask-size: 240px 240px; }
+  .hero-grid-lit.interactive { --spotlight-radius: 120px; }
   .hero-tick { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {

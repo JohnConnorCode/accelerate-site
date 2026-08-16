@@ -54,7 +54,7 @@ function ScrambleText({ text, delay = 0, trigger = true }: { text: string; delay
 
 export function Hero() {
   const [loaded, setLoaded] = useState(false);
-  const raf = useRef<number | undefined>(undefined);
+  const entranceRaf = useRef<number | undefined>(undefined);
   const sectionRef = useRef<HTMLElement>(null);
   const reduced = useReducedMotion();
 
@@ -82,24 +82,80 @@ export function Hero() {
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
-    raf.current = requestAnimationFrame(() => {
+    let spotlightRaf: number | undefined;
+    entranceRaf.current = requestAnimationFrame(() => {
       timer = setTimeout(() => setLoaded(true), 40);
     });
 
     const el = sectionRef.current;
     if (!el || reduced) return () => {
-      if (raf.current) cancelAnimationFrame(raf.current);
+      if (entranceRaf.current) cancelAnimationFrame(entranceRaf.current);
       if (timer) clearTimeout(timer);
     };
 
+    // The lit grid has one continuous position rather than separate idle and
+    // hover animations. At rest it follows a slow, asymmetric orbit. A fine
+    // pointer temporarily becomes the target; on leave, the same damped
+    // position catches up with wherever the orbit has progressed instead of
+    // restarting or snapping to a canned keyframe.
+    let pointerHasControl = false;
+    let currentX = 50;
+    let currentY = 48;
+    let targetX = currentX;
+    let targetY = currentY;
+    let previousTime = performance.now();
+
+    const idlePosition = (time: number) => {
+      const seconds = time / 1000;
+      return {
+        x: 50 + Math.sin(seconds * 0.13) * 24 + Math.sin(seconds * 0.043 + 0.8) * 6,
+        y: 48 + Math.sin(seconds * 0.103 + 1.2) * 18 + Math.cos(seconds * 0.057) * 6,
+      };
+    };
+
+    const animateSpotlight = (time: number) => {
+      const delta = Math.min(time - previousTime, 64);
+      previousTime = time;
+
+      if (!pointerHasControl) {
+        const idle = idlePosition(time);
+        targetX = idle.x;
+        targetY = idle.y;
+      }
+
+      // Hover should feel connected; the idle return is intentionally more
+      // languid so the handoff disappears into the ambient motion.
+      const response = pointerHasControl ? 85 : 1400;
+      const blend = 1 - Math.exp(-delta / response);
+      currentX += (targetX - currentX) * blend;
+      currentY += (targetY - currentY) * blend;
+
+      el.style.setProperty("--spotlight-x", `${currentX.toFixed(3)}%`);
+      el.style.setProperty("--spotlight-y", `${currentY.toFixed(3)}%`);
+      spotlightRaf = requestAnimationFrame(animateSpotlight);
+    };
+
+    const startSpotlight = () => {
+      if (spotlightRaf !== undefined) return;
+      previousTime = performance.now();
+      spotlightRaf = requestAnimationFrame(animateSpotlight);
+    };
+
+    const stopSpotlight = () => {
+      if (spotlightRaf === undefined) return;
+      cancelAnimationFrame(spotlightRaf);
+      spotlightRaf = undefined;
+    };
+
     const onPointerMove = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
       const rect = el.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      
-      // Update CSS vars for the flashlight
-      el.style.setProperty("--mouse-x", `${x}px`);
-      el.style.setProperty("--mouse-y", `${y}px`);
+
+      pointerHasControl = true;
+      targetX = Math.max(0, Math.min(100, (x / rect.width) * 100));
+      targetY = Math.max(0, Math.min(100, (y / rect.height) * 100));
 
       // Update MotionValues for the 3D tilt
       const normX = (x / rect.width) * 2 - 1;
@@ -109,19 +165,35 @@ export function Hero() {
     };
 
     const onPointerLeave = () => {
+      pointerHasControl = false;
       mouseX.set(0);
       mouseY.set(0);
-    }
+    };
 
     el.addEventListener("pointermove", onPointerMove);
     el.addEventListener("pointerleave", onPointerLeave);
+
+    // Do not spend animation frames on a hero that is several sections above
+    // the viewport. The orbit is time-based, so it still resumes at the point
+    // it would have reached rather than visibly starting over.
+    const visibilityObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) startSpotlight();
+        else stopSpotlight();
+      },
+      { rootMargin: "120px 0px" }
+    );
+    visibilityObserver.observe(el);
+    startSpotlight();
 
     const onPageShow = () => setLoaded(true);
     window.addEventListener("pageshow", onPageShow);
 
     return () => {
-      if (raf.current) cancelAnimationFrame(raf.current);
+      if (entranceRaf.current) cancelAnimationFrame(entranceRaf.current);
+      stopSpotlight();
       if (timer) clearTimeout(timer);
+      visibilityObserver.disconnect();
       el.removeEventListener("pointermove", onPointerMove);
       el.removeEventListener("pointerleave", onPointerLeave);
       window.removeEventListener("pageshow", onPageShow);

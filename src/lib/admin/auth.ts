@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { isConfiguredAdmin } from "./access";
 
 export async function requireAdmin(): Promise<
   { user: { id: string; email?: string } } | NextResponse
@@ -36,12 +37,11 @@ export async function requireAdmin(): Promise<
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const adminEmail = process.env.ADMIN_EMAIL;
-  if (!adminEmail) {
+  if (!process.env.ADMIN_EMAIL) {
     console.error("ADMIN_EMAIL environment variable is not configured");
     return NextResponse.json({ error: "Admin access not configured" }, { status: 503 });
   }
-  if (user.email !== adminEmail) {
+  if (!isConfiguredAdmin(user.email)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

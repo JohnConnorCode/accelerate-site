@@ -108,6 +108,7 @@ export default function AdminLayout({
   const [searchingPeople, setSearchingPeople] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<NodeJS.Timeout>(undefined);
+  const searchAbortRef = useRef<AbortController | null>(null);
 
   // Cmd+K shortcut to toggle search
   useEffect(() => {
@@ -125,19 +126,31 @@ export default function AdminLayout({
 
   // Debounced people search
   const searchForPeople = useCallback(async (query: string) => {
+    searchAbortRef.current?.abort();
     if (query.length < 3) {
       setSearchPeople([]);
+      setSearchingPeople(false);
       return;
     }
+    const controller = new AbortController();
+    searchAbortRef.current = controller;
     setSearchingPeople(true);
     try {
-      const res = await fetch(`/api/admin/search?q=${encodeURIComponent(query)}`);
+      const res = await fetch(`/api/admin/search?q=${encodeURIComponent(query)}`, {
+        signal: controller.signal,
+      });
+      if (!res.ok) throw new Error(`Search failed (${res.status})`);
       const data = await res.json();
       setSearchPeople(data.results || []);
-    } catch {
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      console.error("[admin-search] failed:", error);
       setSearchPeople([]);
     } finally {
-      setSearchingPeople(false);
+      if (searchAbortRef.current === controller) {
+        searchAbortRef.current = null;
+        setSearchingPeople(false);
+      }
     }
   }, []);
 
@@ -146,6 +159,11 @@ export default function AdminLayout({
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => searchForPeople(value), 300);
   };
+
+  useEffect(() => () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    searchAbortRef.current?.abort();
+  }, []);
 
   // Don't show sidebar on login page
   if (pathname === "/admin/login") {
@@ -192,13 +210,16 @@ export default function AdminLayout({
           <NotificationBell />
           <button
             onClick={() => setSearchOpen(true)}
-            className="text-white-muted p-1 cursor-pointer hover:text-white-primary"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-white-muted transition-[color,background-color,transform] cursor-pointer hover:bg-white/5 hover:text-white-primary active:scale-[0.96]"
+            aria-label="Search admin"
           >
             <Search className="h-5 w-5" />
           </button>
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="text-white-primary p-1 cursor-pointer"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-white-primary transition-[background-color,transform] cursor-pointer hover:bg-white/5 active:scale-[0.96]"
+            aria-label={mobileOpen ? "Close admin navigation" : "Open admin navigation"}
+            aria-expanded={mobileOpen}
           >
             {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
@@ -206,7 +227,7 @@ export default function AdminLayout({
       </div>
 
       {/* Mobile Sidebar Overlay */}
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {mobileOpen && (
           <div className="lg:hidden fixed inset-0 z-50">
             <motion.div
@@ -325,7 +346,7 @@ function SidebarContent({
                     href={link.href}
                     onClick={handleNavigate}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all relative",
+                      "flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm transition-[color,background-color,transform] relative active:scale-[0.96]",
                       active
                         ? "bg-gold-gradient text-black font-semibold"
                         : "text-white-secondary hover:text-white-primary hover:bg-white/5"
@@ -354,7 +375,7 @@ function SidebarContent({
         </Link>
         <button
           onClick={handleSignOutClick}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white-muted hover:text-white-primary hover:bg-white/5 transition-all cursor-pointer"
+          className="flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white-muted hover:text-white-primary hover:bg-white/5 transition-[color,background-color,transform] active:scale-[0.96] cursor-pointer"
         >
           <LogOut className="h-4 w-4" />
           Sign Out
@@ -392,7 +413,8 @@ function CmdKSearch({
 
   useEffect(() => {
     if (open) {
-      setTimeout(() => inputRef.current?.focus(), 50);
+      const timer = window.setTimeout(() => inputRef.current?.focus(), 50);
+      return () => window.clearTimeout(timer);
     }
   }, [open, inputRef]);
 
@@ -424,9 +446,9 @@ function CmdKSearch({
   };
 
   return (
-    <AnimatePresence>
+    <AnimatePresence initial={false}>
       {open && (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[20vh]">
+        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[20vh]" role="dialog" aria-modal="true" aria-label="Search admin">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

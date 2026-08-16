@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, type Variants } from "framer-motion";
-import { fadeUp } from "@/lib/animations";
+import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { EASE, fadeUp } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 
 const motionElements = {
@@ -29,9 +29,10 @@ export function AnimateOnScroll({
   delay = 0,
   as = "div",
   stagger = false,
-  staggerDelay = 0.12,
+  staggerDelay = 0.08,
 }: AnimateOnScrollProps) {
   const Component = motionElements[as] ?? motionElements.div;
+  const reducedMotion = useReducedMotion();
 
   const resolvedVariants: Variants = stagger
     ? {
@@ -40,7 +41,7 @@ export function AnimateOnScroll({
           opacity: 1,
           transition: {
             staggerChildren: staggerDelay,
-            delayChildren: delay || 0.1,
+            delayChildren: delay || 0.06,
           },
         },
       }
@@ -49,11 +50,11 @@ export function AnimateOnScroll({
   return (
     <Component
       variants={resolvedVariants}
-      initial="hidden"
+      initial={reducedMotion ? false : "hidden"}
       whileInView="visible"
-      viewport={{ once: true, margin: "0px 0px 40px 0px" }}
+      viewport={{ once: true, margin: "0px 0px -6% 0px" }}
       transition={!stagger && delay ? { delay } : undefined}
-      className={cn(className)}
+      className={cn("reveal-self", className)}
     >
       {children}
     </Component>
@@ -67,7 +68,7 @@ export function StaggerContainer({
   children,
   className,
   as = "div",
-  staggerDelay = 0.12,
+  staggerDelay = 0.08,
 }: {
   children: React.ReactNode;
   className?: string;
@@ -78,5 +79,58 @@ export function StaggerContainer({
     <AnimateOnScroll stagger staggerDelay={staggerDelay} as={as} className={className}>
       {children}
     </AnimateOnScroll>
+  );
+}
+
+const entryItem: Variants = {
+  hidden: { opacity: 0, y: 14, filter: "blur(4px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.52, ease: EASE },
+  },
+};
+
+/** A true parent/child stagger for page intros and other semantic groups. */
+export function EntranceGroup({
+  children,
+  className,
+  delay = 0.06,
+  stagger = 0.08,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+  stagger?: number;
+}) {
+  const reducedMotion = useReducedMotion();
+  return (
+    <motion.div
+      className={cn("reveal-self", className)}
+      initial={reducedMotion ? false : "hidden"}
+      whileInView="visible"
+      viewport={{ once: true, margin: "0px 0px -6% 0px" }}
+      variants={{
+        hidden: {},
+        visible: { transition: { staggerChildren: stagger, delayChildren: delay } },
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+export function EntranceItem({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <motion.div className={className} variants={entryItem}>
+      {children}
+    </motion.div>
   );
 }

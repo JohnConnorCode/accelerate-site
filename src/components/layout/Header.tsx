@@ -31,7 +31,6 @@ interface NavLink {
 const navLinks: NavLink[] = [
   { label: "Services", href: "/services" },
   { label: "Command Center", href: "/command-center" },
-  { label: "Packages", href: "/packages" },
   {
     label: "Industries",
     href: "#",
@@ -228,14 +227,14 @@ export function Header() {
           {/* Mobile Hamburger */}
           <motion.button
             variants={headerCtaReveal}
-            className="lg:hidden relative w-11 h-11 flex items-center justify-center -mr-2 cursor-pointer rounded-lg transition-transform duration-150 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+            className="lg:hidden relative w-11 h-11 flex items-center justify-center -mr-2 cursor-pointer rounded-lg transition-transform duration-150 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
             onClick={() => setMobileOpen(true)}
             aria-label="Open navigation menu"
           >
             <div className="flex flex-col items-end gap-[5px]">
-              <span className="block h-[2px] w-6 rounded-full bg-gold transition-all duration-300" />
-              <span className="block h-[2px] w-4 rounded-full bg-gold transition-all duration-300" />
-              <span className="block h-[2px] w-5 rounded-full bg-gold transition-all duration-300" />
+              <span className="block h-[2px] w-6 rounded-full bg-gold transition-transform duration-300" />
+              <span className="block h-[2px] w-4 rounded-full bg-gold transition-transform duration-300" />
+              <span className="block h-[2px] w-5 rounded-full bg-gold transition-transform duration-300" />
             </div>
           </motion.button>
         </div>

@@ -5,12 +5,12 @@ import type { Variants } from "framer-motion";
 export const EASE = [0.22, 1, 0.36, 1] as const;
 
 export const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 24, filter: "blur(4px)" },
+  hidden: { opacity: 0, y: 14, filter: "blur(4px)" },
   visible: {
     opacity: 1,
     y: 0,
     filter: "blur(0px)",
-    transition: { duration: 0.75, ease: EASE },
+    transition: { duration: 0.52, ease: EASE },
   },
 };
 
@@ -19,7 +19,7 @@ export const fadeIn: Variants = {
   visible: {
     opacity: 1,
     filter: "blur(0px)",
-    transition: { duration: 0.7, ease: EASE },
+    transition: { duration: 0.45, ease: EASE },
   },
 };
 
@@ -28,8 +28,8 @@ export const staggerContainer: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.12,
-      delayChildren: 0.1,
+      staggerChildren: 0.08,
+      delayChildren: 0.06,
     },
   },
 };
@@ -115,12 +115,12 @@ export const stepTransition: Variants = {
 // ========================================
 
 export const heroReveal: Variants = {
-  hidden: { opacity: 0, y: 40, filter: "blur(10px)" },
+  hidden: { opacity: 0, y: 14, filter: "blur(4px)" },
   visible: {
     opacity: 1,
     y: 0,
     filter: "blur(0px)",
-    transition: { duration: 0.9, ease: [0.25, 0.4, 0.25, 1] },
+    transition: { duration: 0.58, ease: EASE },
   },
 };
 
@@ -150,8 +150,8 @@ export const heroStaggerDramatic: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.18,
-      delayChildren: 0.5,
+      staggerChildren: 0.09,
+      delayChildren: 0.12,
     },
   },
 };
@@ -381,4 +381,3 @@ export const heroKineticUp: Variants = {
     transition: { duration: 0.7, ease: [0.25, 0.4, 0.25, 1] },
   },
 };
-

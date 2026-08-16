@@ -37,7 +37,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
               "bg-bg-subtle border border-border-glass",
               "text-white-primary",
               "focus:outline-none focus:border-gold focus:ring-1 focus:ring-[var(--gold-base)]/30",
-              "transition-all duration-200",
+              "transition-[border-color,box-shadow] duration-200",
               error && "border-[var(--error)]",
               className
             )}

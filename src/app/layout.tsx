@@ -8,6 +8,7 @@ import { TrackingScripts } from "@/components/layout/TrackingScripts";
 import { UTMCapture } from "@/components/layout/UTMCapture";
 import { ChatWidget } from "@/components/chat/ChatWidget";
 import { ScrollProgress } from "@/components/layout/ScrollProgress";
+import { PageTransition } from "@/components/layout/PageTransition";
 import { Dock } from "@/components/home/Dock";
 import "./globals.css";
 
@@ -188,7 +189,9 @@ export default function RootLayout({
           <UTMCapture />
           <ScrollProgress />
           <Header />
-          <main id="main-content" className="flex-1">{children}</main>
+          <main id="main-content" className="flex-1">
+            <PageTransition>{children}</PageTransition>
+          </main>
           <Footer />
           <ChatWidget />
           <Dock />

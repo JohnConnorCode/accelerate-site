@@ -148,7 +148,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
               <button
                 ref={closeButtonRef}
                 onClick={onClose}
-                className="relative w-11 h-11 flex items-center justify-center rounded-full border border-[var(--border-light)] hover:border-border-gold transition-all duration-150 active:scale-90 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+                className="relative w-11 h-11 flex items-center justify-center rounded-full border border-[var(--border-light)] hover:border-border-gold transition-[transform,border-color] duration-150 active:scale-[0.96] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
                 aria-label="Close navigation menu"
               >
                 <span

@@ -23,20 +23,23 @@ function LoginForm() {
     setError("");
 
     try {
-      const supabase = createClient();
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
+      const data = await response.json();
 
-      if (authError) {
-        setError(authError.message);
+      if (!response.ok) {
+        setError(data.error || "Sign-in failed. Please try again.");
         setLoading(false);
         return;
       }
 
-      // Force a hard navigation to ensure cookies are sent and middleware runs
-      window.location.href = redirect;
+      // The server endpoint writes the Supabase session cookies directly onto
+      // its response. A hard replace ensures the protected request carries
+      // them through middleware without leaving a stale login entry in history.
+      window.location.replace(redirect);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred.");
       setLoading(false);
@@ -86,11 +89,13 @@ function LoginForm() {
             {resetMode ? "Reset Password" : "Admin Dashboard"}
           </p>
 
+          <div aria-live="polite">
           {resetFailed && !error && !success && (
-            <p className="text-sm text-error mb-4">
+            <p className="text-sm text-error mb-4" role="alert">
               Password reset link expired or was invalid. Please try again.
             </p>
           )}
+          </div>
 
           {resetMode ? (
             <form onSubmit={handleResetPassword} className="space-y-4">
@@ -103,18 +108,19 @@ function LoginForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  autoComplete="email"
                   className="w-full rounded-lg bg-bg-subtle border border-border-glass px-4 py-2.5 text-sm text-white-primary placeholder:text-white-muted focus:outline-none focus:border-gold transition-colors"
                   placeholder="john@acceleratewith.us"
                 />
               </div>
 
-              {error && <p className="text-sm text-error">{error}</p>}
+              {error && <p className="text-sm text-error" role="alert">{error}</p>}
               {success && <p className="text-sm text-green-400">{success}</p>}
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-lg bg-gold-gradient px-4 py-2.5 text-sm font-semibold text-black transition-all hover:brightness-110 disabled:opacity-50 cursor-pointer"
+                className="min-h-11 w-full rounded-lg bg-gold-gradient px-4 py-2.5 text-sm font-semibold text-black transition-[filter,transform,opacity] hover:brightness-110 active:scale-[0.96] disabled:opacity-50 cursor-pointer"
               >
                 {loading ? "Sending..." : "Send Reset Link"}
               </button>
@@ -138,6 +144,7 @@ function LoginForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  autoComplete="email"
                   className="w-full rounded-lg bg-bg-subtle border border-border-glass px-4 py-2.5 text-sm text-white-primary placeholder:text-white-muted focus:outline-none focus:border-gold transition-colors"
                   placeholder="john@acceleratewith.us"
                 />
@@ -151,17 +158,18 @@ function LoginForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  autoComplete="current-password"
                   className="w-full rounded-lg bg-bg-subtle border border-border-glass px-4 py-2.5 text-sm text-white-primary placeholder:text-white-muted focus:outline-none focus:border-gold transition-colors"
                   placeholder="Enter password"
                 />
               </div>
 
-              {error && <p className="text-sm text-error">{error}</p>}
+              {error && <p className="text-sm text-error" role="alert">{error}</p>}
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-lg bg-gold-gradient px-4 py-2.5 text-sm font-semibold text-black transition-all hover:brightness-110 disabled:opacity-50 cursor-pointer"
+                className="min-h-11 w-full rounded-lg bg-gold-gradient px-4 py-2.5 text-sm font-semibold text-black transition-[filter,transform,opacity] hover:brightness-110 active:scale-[0.96] disabled:opacity-50 cursor-pointer"
               >
                 {loading ? "Signing in..." : "Sign In"}
               </button>

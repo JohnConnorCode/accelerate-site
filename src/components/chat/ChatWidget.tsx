@@ -25,12 +25,21 @@ export function ChatWidget() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isOpen]);
+
   // Hide on admin pages
   if (pathname.startsWith("/admin")) return null;
 
   return (
     <div className="chat-widget-root fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[80] transition-[bottom] duration-300">
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -44,7 +53,7 @@ export function ChatWidget() {
       </AnimatePresence>
 
       <div className="relative">
-        <AnimatePresence>
+        <AnimatePresence initial={false}>
           {isOpen && (
             <motion.div
               initial={{ opacity: 0, y: 30, scale: 0.95, filter: "blur(12px)" }}
