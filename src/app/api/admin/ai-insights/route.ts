@@ -1,3 +1,4 @@
+import { tenant } from "@/config/tenant";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { createServiceRoleClient } from "@/lib/supabase/server";
@@ -45,7 +46,7 @@ export async function POST() {
     industryCounts[l.industry] = (industryCounts[l.industry] || 0) + 1;
   });
 
-  const summaryText = `Last 30 days metrics for Accelerate (AI solutions agency):
+  const summaryText = `Last 30 days metrics for ${tenant.ai.businessDescriptor}:
 - Total new leads: ${leads.length}
 - Chat widget leads: ${chats.length}
 - Email sequences active: ${emails.filter((e: { status: string }) => e.status === "active").length}

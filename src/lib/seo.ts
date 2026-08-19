@@ -1,6 +1,7 @@
+import { siteUrl } from "@/config/tenant";
 import type { ArticleFrontmatter } from "./types";
 
-const BASE_URL = "https://www.acceleratewith.us";
+const BASE_URL = siteUrl();
 const ORG_ID = `${BASE_URL}/#organization`;
 
 export function generateArticleJsonLd(

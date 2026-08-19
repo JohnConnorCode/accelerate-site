@@ -1,3 +1,4 @@
+import { tenant } from "@/config/tenant";
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
@@ -7,7 +8,7 @@ import { isOpenRouterConfigured, openRouterJson } from "@/lib/ai/openrouter";
 const GENERATE_LIMIT = 30;
 const GENERATE_WINDOW_MS = 60 * 60 * 1000;
 
-const PROPOSAL_SYSTEM_PROMPT = `You generate JSON business proposals for Accelerate, an embedded AI operations team that builds and runs custom AI systems for small businesses.
+const PROPOSAL_SYSTEM_PROMPT = `You generate JSON business proposals for ${tenant.ai.businessDescriptor}, which builds and runs custom AI systems for small businesses.
 
 Style:
 - Confident, specific, revenue-first. Talk in jobs, clients, appointments, revenue, not "leads."

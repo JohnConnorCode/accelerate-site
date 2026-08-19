@@ -1,5 +1,6 @@
 "use client";
 
+import { tenant } from "@/config/tenant";
 import { useEffect, useState, Fragment } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -51,7 +52,7 @@ function relativeTime(dateString: string) {
 
 function transcriptFor(lead: ChatLead) {
   return (lead.conversation || [])
-    .map((message) => `${message.role === "user" ? lead.name : "Accelerate"}: ${message.content}`)
+    .map((message) => `${message.role === "user" ? lead.name : tenant.brand.name}: ${message.content}`)
     .join("\n\n");
 }
 
@@ -280,7 +281,7 @@ export default function ChatLeadsPage() {
                                     <div key={`${lead.id}-${messageIndex}`} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
                                       <div className={`max-w-[84%] rounded-xl px-3 py-2.5 text-sm leading-relaxed ${message.role === "user" ? "bg-white/10 text-white-primary" : "border border-border-glass bg-bg-subtle text-white-secondary"}`}>
                                         <p className="mb-1 text-[10px] uppercase tracking-[0.1em] text-white-muted">
-                                          {message.role === "user" ? lead.name : "Accelerate"}
+                                          {message.role === "user" ? lead.name : tenant.brand.name}
                                         </p>
                                         <p className="whitespace-pre-wrap break-words">{message.content}</p>
                                       </div>

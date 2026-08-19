@@ -1,4 +1,4 @@
-import { tenant } from "@/config/tenant";
+import { siteUrl, tenant } from "@/config/tenant";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getResend, FROM_EMAIL, ADMIN_EMAIL } from "@/lib/email/resend";
 import type { ChatMessage } from "@/lib/types";
@@ -38,10 +38,6 @@ function formatTranscript(conversation: ChatMessage[]): string {
       return `${label}: ${m.content}`;
     })
     .join("\n\n");
-}
-
-function siteUrl(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL || "https://www.acceleratewith.us";
 }
 
 async function insertAdminNotification(
@@ -119,17 +115,17 @@ async function sendWelcomeEmail(lead: ChatLeadInput): Promise<"ok" | "skipped" |
       from: FROM_EMAIL,
       to: lead.email,
       replyTo: ADMIN_EMAIL,
-      subject: "Thanks for reaching out, from John at Accelerate",
+      subject: `Thanks for reaching out, from ${tenant.founder.name} at ${tenant.brand.name}`,
       text: `Hey ${firstName},
 
-Thanks for jumping into the chat on acceleratewith.us. I saw your note come through and wanted to reach out personally.
+Thanks for jumping into the chat on ${tenant.brand.domain}. I saw your note come through and wanted to reach out personally.
 
 If you'd like a deeper look at where AI could plug into your business right now, grab a free strategy call. Thirty minutes, no pitch, and you leave with a plan: ${siteUrl()}/contact
 
 Otherwise, just hit reply on this email. I read every one.
 
 John
-Founder, Accelerate
+Founder, ${tenant.brand.name}
 ${siteUrl()}`,
     });
     return "ok";

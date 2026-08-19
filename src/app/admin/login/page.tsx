@@ -1,5 +1,6 @@
 "use client";
 
+import { tenant } from "@/config/tenant";
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
@@ -84,7 +85,7 @@ function LoginForm() {
     <div className="admin-shell grid min-h-screen lg:grid-cols-[minmax(360px,0.8fr)_minmax(520px,1.2fr)]">
       <aside className="relative hidden overflow-hidden bg-[#0b0b0b] p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
         <div className="relative z-10">
-          <p className="font-display text-lg font-semibold tracking-[-0.03em]">Accelerate</p>
+          <p className="font-display text-lg font-semibold tracking-[-0.03em]">{tenant.brand.name}</p>
           <p className="mt-1 font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-white/38">Private operations</p>
         </div>
         <motion.div className="relative z-10 max-w-md" initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.1 } } }}>
@@ -99,7 +100,7 @@ function LoginForm() {
 
       <main className="flex min-h-screen items-center justify-center px-4 py-10 sm:px-8">
         <motion.div className="w-full max-w-md" initial={{ opacity: 0, y: 12, filter: "blur(6px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} transition={{ duration: 0.48, ease: [0.16, 1, 0.3, 1] }}>
-          <div className="mb-7 lg:hidden"><p className="font-display text-lg font-semibold tracking-[-0.03em]">Accelerate</p><p className="mt-1 font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-[var(--admin-muted)]">Private operations</p></div>
+          <div className="mb-7 lg:hidden"><p className="font-display text-lg font-semibold tracking-[-0.03em]">{tenant.brand.name}</p><p className="mt-1 font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-[var(--admin-muted)]">Private operations</p></div>
           <AdminSurface padding="lg" className="admin-dialog-surface">
           <div className="mb-7 flex h-11 w-11 items-center justify-center rounded-[12px] bg-[#0b0b0b] text-white"><LockKeyhole className="h-4.5 w-4.5" /></div>
           <p className="admin-eyebrow">Secure access</p>
@@ -131,7 +132,7 @@ function LoginForm() {
                   required
                   autoComplete="email"
                   className="admin-field min-h-11"
-                  placeholder="john@acceleratewith.us"
+                  placeholder={tenant.founder.email}
                 />
               </div>
 
@@ -167,7 +168,7 @@ function LoginForm() {
                   required
                   autoComplete="email"
                   className="admin-field min-h-11"
-                  placeholder="john@acceleratewith.us"
+                  placeholder={tenant.founder.email}
                 />
               </div>
               <div>

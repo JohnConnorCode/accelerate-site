@@ -79,24 +79,9 @@ for (const card of featureBacklog) {
 const BRAND_LITERAL = /acceleratewith|Accelerate/;
 const BRAND_SCOPE = ["src/lib", "src/app/admin", "src/app/api/admin"];
 const BRAND_BUDGET = {
-  "src/app/admin/campaigns/page.tsx": 1,
-  "src/app/admin/chat-leads/page.tsx": 2,
-  "src/app/admin/layout.tsx": 3,
-  "src/app/admin/login/page.tsx": 4,
-  "src/app/admin/setup/page.tsx": 7,
-  "src/app/admin/update-password/page.tsx": 1,
-  "src/app/api/admin/ai-content-brief/route.ts": 1,
-  "src/app/api/admin/ai-insights/route.ts": 1,
-  "src/app/api/admin/password-reset/route.ts": 1,
-  "src/app/api/admin/proposals/generate/route.ts": 1,
-  "src/lib/ai/openrouter.ts": 2,
-  "src/lib/ai/prompts.ts": 1,
-  "src/lib/chat/guardrails.ts": 1,
-  "src/lib/chat/lead-capture.ts": 4,
-  "src/lib/chat/system-prompt.ts": 3,
-  "src/lib/email/registry.ts": 4,
-  "src/lib/og.ts": 3,
-  "src/lib/seo.ts": 1,
+  // Empty on purpose: every business fact in these directories now reads from
+  // src/config/tenant.ts. Adding an entry here means accepting a regression, so
+  // move the value into the tenant config instead.
 };
 
 function sourceFiles(dir) {

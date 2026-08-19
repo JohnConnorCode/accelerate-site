@@ -1,3 +1,4 @@
+import { tenant } from "@/config/tenant";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { isOpenRouterConfigured, openRouterJson } from "@/lib/ai/openrouter";
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const prompt = `You are a content strategist for Accelerate, an AI solutions agency for small businesses. Generate a content brief for the following article:
+    const prompt = `You are a content strategist for ${tenant.ai.businessDescriptor}. Generate a content brief for the following article:
 
 Title: ${title}
 ${keywords ? `Target Keywords: ${keywords}` : ""}

@@ -1,6 +1,7 @@
+import { siteUrl } from "@/config/tenant";
 import type { Metadata } from "next";
 
-const SITE_URL = "https://www.acceleratewith.us";
+const SITE_URL = siteUrl();
 
 function ogImageUrl(title: string, subtitle?: string): string {
   const params = new URLSearchParams({ title });
@@ -11,7 +12,7 @@ function ogImageUrl(title: string, subtitle?: string): string {
 /**
  * Build a complete Metadata object with OG image, Twitter card, and canonical URL.
  *
- * - `title` uses the layout template (`%s | Accelerate`) automatically.
+ * - `title` uses the layout template (`%s | <brand name>`) automatically.
  * - `description` is inherited into og:description and twitter:description by Next.js.
  * - `twitter.card` is inherited from layout (`summary_large_image`).
  * - Pass `openGraph` extras for article-specific fields (type, publishedTime, etc).
@@ -29,7 +30,7 @@ export function seoMetadata({
 }: {
   title: string;
   description: string;
-  /** Skip the "%s | Accelerate" layout template — for content pages (articles)
+  /** Skip the "%s | <brand name>" layout template — for content pages (articles)
       whose title is self-contained and would otherwise truncate in search. */
   absoluteTitle?: boolean;
   /** Title rendered on the OG image card (defaults to `title`) */

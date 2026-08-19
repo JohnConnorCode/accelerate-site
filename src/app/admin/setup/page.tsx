@@ -78,7 +78,7 @@ const vercelEnvironmentUrl = tenant.external.vercelProjectUrl ?? "https://vercel
 const setupGuides: Record<string, SetupGuide> = {
   supabase: {
     steps: [
-      "Open the Accelerate Supabase project settings and copy the project URL and anonymous key.",
+      `Open the ${tenant.brand.name} Supabase project settings and copy the project URL and anonymous key.`,
       "Copy the service-role key separately. It is server-only and must never use the NEXT_PUBLIC_ prefix.",
       "Add all three variables to Production, Preview, and Development in Vercel, then redeploy.",
     ],
@@ -116,9 +116,9 @@ const setupGuides: Record<string, SetupGuide> = {
   },
   email: {
     steps: [
-      "Verify acceleratewith.us (or the sender domain) in Resend.",
+      `Verify ${tenant.brand.domain} (or the sender domain) in Resend.`,
       "Create an API key and add RESEND_API_KEY in Vercel.",
-      "Set RESEND_FROM_EMAIL to a verified sender such as Accelerate <hello@acceleratewith.us>, then redeploy.",
+      `Set RESEND_FROM_EMAIL to a verified sender such as ${tenant.brand.name} <hello@${tenant.brand.domain}>, then redeploy.`,
     ],
     href: "https://resend.com/domains",
     linkLabel: "Open Resend domains",
@@ -134,7 +134,7 @@ const setupGuides: Record<string, SetupGuide> = {
   },
   site_url: {
     steps: [
-      "Set NEXT_PUBLIC_SITE_URL to https://www.acceleratewith.us without a trailing slash.",
+      `Set NEXT_PUBLIC_SITE_URL to ${tenant.brand.siteUrl} without a trailing slash.`,
       "Apply it to Production, Preview, and Development and redeploy.",
       "This keeps email resume links and webhook references on the correct origin.",
     ],
@@ -160,7 +160,7 @@ const setupGuides: Record<string, SetupGuide> = {
   google_oauth: {
     steps: [
       "Create a Google Cloud OAuth web application and enable Gmail, Calendar, and Drive APIs.",
-      "Add the production callback shown here to Authorized redirect URIs: https://www.acceleratewith.us/api/admin/google/callback.",
+      `Add the production callback shown here to Authorized redirect URIs: ${tenant.brand.siteUrl}/api/admin/google/callback.`,
       "Add GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and a long random GOOGLE_TOKEN_ENCRYPTION_KEY in Vercel, then redeploy.",
     ],
     href: "https://console.cloud.google.com/apis/credentials",
@@ -175,7 +175,7 @@ const setupGuides: Record<string, SetupGuide> = {
   },
   ai: {
     steps: [
-      "Create one OpenRouter API key. This is the only AI provider credential Accelerate uses.",
+      `Create one OpenRouter API key. This is the only AI provider credential ${tenant.brand.name} uses.`,
       "Store OPENROUTER_API_KEY in Vercel only. OPENROUTER_MODEL is optional; the app has a documented default.",
       "Redeploy, then open AI Operations or Contact Import. Writes remain behind their normal approval and service boundaries.",
     ],
@@ -220,7 +220,7 @@ const setupGuides: Record<string, SetupGuide> = {
   },
   google_analytics: {
     steps: [
-      "Create or select the GA4 web data stream for acceleratewith.us.",
+      `Create or select the GA4 web data stream for ${tenant.brand.domain}.`,
       "Add its measurement ID as NEXT_PUBLIC_GTAG_ID in Vercel and redeploy.",
       "Keep the built-in first-party Revenue OS analytics as the source of truth; add GA4 only when paid advertising compatibility needs it.",
     ],

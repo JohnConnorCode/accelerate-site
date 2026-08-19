@@ -1,5 +1,6 @@
 "use client";
 
+import { tenant } from "@/config/tenant";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import {
   Check,
@@ -568,7 +569,7 @@ export default function CampaignsPage() {
                   <input
                     name="senderEmail"
                     type="email"
-                    defaultValue="john@acceleratewith.us"
+                    defaultValue={tenant.founder.email}
                     required
                     className="mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal outline-none focus:border-[var(--admin-ink)]"
                   />

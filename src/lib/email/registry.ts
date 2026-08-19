@@ -1,4 +1,4 @@
-import { siteUrl } from "@/config/tenant";
+import { siteUrl, tenant } from "@/config/tenant";
 import { emailSequences } from "@/content/email-sequences";
 import {
   adminContactNotificationEmail,
@@ -51,15 +51,15 @@ const transactional: EmailTemplateDefinition[] = [
     key: "plan-confirmation", name: "Plan confirmation", category: "Transactional",
     description: "Delivers a generated action plan and gives the prospect a clear next step.",
     subjectTemplate: "Your growth plan is ready, {{name}}",
-    bodyTemplate: "Hi {{name}},\n\nYour growth plan is ready.\n\n{{planSummary}}\n\nReview the plan: {{planLink}}\n\nIf you want to talk through the first move, reply here and I’ll help you choose the right starting point.\n\nJohn\nAccelerate",
+    bodyTemplate: `Hi {{name}},\n\nYour growth plan is ready.\n\n{{planSummary}}\n\nReview the plan: {{planLink}}\n\nIf you want to talk through the first move, reply here and I’ll help you choose the right starting point.\n\n${tenant.founder.name}\n${tenant.brand.name}`,
     variables: ["name", "planSummary", "planLink"], sampleData: sample,
-    renderDefaultHtml: (v) => planConfirmationEmail(v.name || "there", v.planSummary || "Your recommendations are ready.", v.planLink || "https://www.acceleratewith.us/contact"),
+    renderDefaultHtml: (v) => planConfirmationEmail(v.name || "there", v.planSummary || "Your recommendations are ready.", v.planLink || `${siteUrl()}/contact`),
   },
   {
     key: "contact-confirmation", name: "Contact confirmation", category: "Transactional",
     description: "Confirms an inquiry and sets a clear, personal follow-up expectation.",
     subjectTemplate: "We received your request, {{name}}",
-    bodyTemplate: "Hi {{name}},\n\nThanks for reaching out. I’ve received your request and will review it personally.\n\nI’ll follow up within one business day with the clearest next step. If you already know when you’d like to talk, reply with two times that work for you.\n\nJohn\nAccelerate",
+    bodyTemplate: `Hi {{name}},\n\nThanks for reaching out. I’ve received your request and will review it personally.\n\nI’ll follow up within one business day with the clearest next step. If you already know when you’d like to talk, reply with two times that work for you.\n\n${tenant.founder.name}\n${tenant.brand.name}`,
     variables: ["name"], sampleData: sample,
     renderDefaultHtml: (v) => contactConfirmationEmail(v.name || "there"),
   },
@@ -67,7 +67,7 @@ const transactional: EmailTemplateDefinition[] = [
     key: "roi-report", name: "ROI report", category: "Transactional",
     description: "Delivers an ROI scenario with the assumptions supplied by the analysis.",
     subjectTemplate: "Your ROI scenario is ready, {{name}}",
-    bodyTemplate: "Hi {{name}},\n\nHere’s the ROI scenario from your analysis:\n\nProjected return: {{roiPercentage}}%\nAdditional monthly revenue: {{additionalMonthlyRevenue}}\nAnnual revenue impact: {{annualRevenueImpact}}\nTime saved each week: {{timeSavedPerWeek}} hours\nPayback period: {{paybackPeriodMonths}} months\n\nThese figures are a planning scenario, not a guarantee. Reply if you want to review the assumptions and implementation order.\n\nJohn\nAccelerate",
+    bodyTemplate: `Hi {{name}},\n\nHere’s the ROI scenario from your analysis:\n\nProjected return: {{roiPercentage}}%\nAdditional monthly revenue: {{additionalMonthlyRevenue}}\nAnnual revenue impact: {{annualRevenueImpact}}\nTime saved each week: {{timeSavedPerWeek}} hours\nPayback period: {{paybackPeriodMonths}} months\n\nThese figures are a planning scenario, not a guarantee. Reply if you want to review the assumptions and implementation order.\n\n${tenant.founder.name}\n${tenant.brand.name}`,
     variables: ["name", "roiPercentage", "additionalMonthlyRevenue", "annualRevenueImpact", "timeSavedPerWeek", "paybackPeriodMonths"], sampleData: sample,
     renderDefaultHtml: (v) => roiReportEmail({ name: v.name, roiPercentage: Number(v.roiPercentage || 0), additionalMonthlyRevenue: v.additionalMonthlyRevenue || "$0", annualRevenueImpact: v.annualRevenueImpact || "$0", timeSavedPerWeek: v.timeSavedPerWeek || "0", paybackPeriodMonths: v.paybackPeriodMonths || "0" }),
   },

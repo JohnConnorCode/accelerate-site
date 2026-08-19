@@ -1,5 +1,6 @@
 "use client";
 
+import { tenant } from "@/config/tenant";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -42,7 +43,7 @@ export default function UpdatePasswordPage() {
       <div className="w-full max-w-sm">
         <div className="glass-prominent rounded-xl p-8">
           <h1 className="font-display text-2xl font-bold text-gold-gradient text-center mb-2">
-            Accelerate
+            {tenant.brand.name}
           </h1>
           <p className="text-center text-sm text-white-muted mb-8">
             Set New Password

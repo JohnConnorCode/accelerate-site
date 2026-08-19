@@ -2,7 +2,9 @@
 // Returns a canned redirect string if the input should short-circuit,
 // otherwise null and the request proceeds to Anthropic.
 
-const REDIRECT = "I'm here to help with AI and automation for your business. For anything else, reach out to John at john@acceleratewith.us.";
+import { tenant } from "@/config/tenant";
+
+const REDIRECT = `I'm here to help with AI and automation for your business. For anything else, reach out to ${tenant.founder.name} at ${tenant.founder.email}.`;
 
 // Prompt-injection / jailbreak patterns. Keep these focused on the most
 // common low-effort attacks; sophisticated attacks are handled by the

@@ -1,3 +1,4 @@
+import { tenant } from "@/config/tenant";
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { isConfiguredAdmin } from "@/lib/admin/access";
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
     const { error: sendError } = await getResend().emails.send({
       from: FROM_EMAIL,
       to: normalizedEmail,
-      subject: "Reset your Accelerate admin password",
+      subject: `Reset your ${tenant.brand.name} admin password`,
       html: adminPasswordResetEmail(resetUrl.toString()),
     });
     if (sendError) throw sendError;

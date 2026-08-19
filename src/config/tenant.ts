@@ -39,8 +39,10 @@ export interface TenantBrand {
 }
 
 export interface TenantFounder {
-  /** Human name used in operator-facing copy. */
+  /** Short name used in operator-facing copy and signatures. */
   name: string;
+  /** Full name, used where the business introduces itself to a customer. */
+  fullName: string;
   /** Contact address shown to customers and used as a reply-to. */
   email: string;
   /**
@@ -71,6 +73,12 @@ export interface TenantConfig {
     businessDescriptor: string;
     /** One sentence of voice guidance appended to generative prompts. */
     voice: string;
+    /**
+     * How the business describes itself to a customer, in its own words. This is
+     * the substance a client installation must rewrite; the surrounding prompt
+     * rules about tone, grounding, and refusals are product behaviour and stay.
+     */
+    positioning: string;
   };
   booking: {
     /** Absolute booking URL handed out in chat and email copy. */
@@ -82,6 +90,15 @@ export interface TenantConfig {
      * explicitly activates it.
      */
     schedulerUrl: string | null;
+  };
+  pipeline: {
+    /**
+     * Renames pipeline stages for this business without changing the canonical
+     * stage keys, which are what the database, transition rules, and analytics
+     * are built on. A law firm can call `meeting` a Consultation; nothing else
+     * moves. Omit a stage to keep its default label.
+     */
+    stageLabels: Record<string, string>;
   };
   playbooks: TenantPlaybook[];
   /** Deep links to the infrastructure this deployment actually runs on. */
@@ -107,12 +124,15 @@ export const tenant: TenantConfig = {
   },
   founder: {
     name: "John",
+    fullName: "John Connor",
     email: "john@acceleratewith.us",
     systemActorEmail: "system@acceleratewith.us",
   },
   ai: {
     businessDescriptor: "Accelerate, an embedded AI operations team for small business",
     voice: "Be concise and operational. Never call the business an agency.",
+    positioning:
+      "Accelerate is an embedded AI operations team for small businesses. We do not call ourselves an agency. We are not software. We build custom AI systems for our clients AND run them alongside the team.",
   },
   booking: {
     // FIXME: this Calendly event belongs to a different business (john-superdebate)
@@ -122,6 +142,10 @@ export const tenant: TenantConfig = {
     schedulerUrl: "https://calendly.com/john-superdebate/30min",
     url: "https://acceleratewith.us/contact",
     path: "/contact",
+  },
+  pipeline: {
+    // Accelerate uses the default stage names.
+    stageLabels: {},
   },
   playbooks: [
     {

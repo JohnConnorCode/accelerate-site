@@ -1,3 +1,4 @@
+import { tenant } from "@/config/tenant";
 import "server-only";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
@@ -82,12 +83,12 @@ export function isOpenRouterConfigured(): boolean {
 function headers(): HeadersInit {
   const key = process.env.OPENROUTER_API_KEY?.trim();
   if (!key) throw new OpenRouterError("OpenRouter is not configured. Add OPENROUTER_API_KEY in Vercel.", 503);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://www.acceleratewith.us";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || tenant.brand.siteUrl;
   return {
     Authorization: `Bearer ${key}`,
     "Content-Type": "application/json",
     "HTTP-Referer": siteUrl,
-    "X-OpenRouter-Title": "Accelerate Revenue OS",
+    "X-OpenRouter-Title": `${tenant.brand.name} Revenue OS`,
   };
 }
 

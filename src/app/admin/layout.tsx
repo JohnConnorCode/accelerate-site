@@ -1,5 +1,6 @@
 "use client";
 
+import { tenant } from "@/config/tenant";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -212,7 +213,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     },
     {
       label: "View live site",
-      description: "Open acceleratewith.us in a new tab",
+      description: `Open ${tenant.brand.domain} in a new tab`,
       keywords: "website public open",
       icon: ArrowUpRight,
       run: () => window.open("/", "_blank", "noopener,noreferrer"),
@@ -241,7 +242,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       <header className="admin-mobile-header fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between px-4 lg:hidden">
         <Link href="/admin/today" className="font-display text-[15px] font-semibold tracking-[-0.02em] text-white">
-          Accelerate <span className="text-white/45">/ Revenue OS</span>
+          {tenant.brand.name} <span className="text-white/45">/ Revenue OS</span>
         </Link>
         <div className="flex items-center gap-1">
           <NotificationBell />
@@ -369,7 +370,7 @@ function SidebarContent({
     <>
       <div className={cn("mb-6 flex items-start gap-2", collapsed ? "flex-col items-center px-0" : "justify-between px-2")}>
         <Link href="/admin/today" onClick={onNavigate} className="group min-w-0">
-          <span className="block font-display text-lg font-semibold tracking-[-0.035em] text-white">{collapsed ? "A" : "Accelerate"}</span>
+          <span className="block font-display text-lg font-semibold tracking-[-0.035em] text-white">{collapsed ? tenant.brand.logoMark : tenant.brand.name}</span>
           {!collapsed && <span className="mt-0.5 block font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-white/38 group-hover:text-white/55">Revenue OS</span>}
         </Link>
         {!collapsed && <NotificationBell />}

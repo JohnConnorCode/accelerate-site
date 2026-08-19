@@ -1,3 +1,5 @@
+import { tenant } from "@/config/tenant";
+
 export const REVENUE_STAGES = [
   "new",
   "contacted",
@@ -12,7 +14,7 @@ export const REVENUE_STAGES = [
 
 export type RevenueStage = (typeof REVENUE_STAGES)[number];
 
-export const REVENUE_STAGE_META: Record<RevenueStage, {
+const DEFAULT_STAGE_META: Record<RevenueStage, {
   label: string;
   probability: number;
   tone: "neutral" | "info" | "attention" | "success" | "danger";
@@ -27,6 +29,19 @@ export const REVENUE_STAGE_META: Record<RevenueStage, {
   lost: { label: "Lost", probability: 0, tone: "danger" },
   nurture: { label: "Nurture", probability: 10, tone: "neutral" },
 };
+
+/**
+ * Stage keys are canonical and never configurable: the database constraint, the
+ * transition rules, and every analytics query are built on them. Only the label
+ * a human reads is per-tenant, so a different business can call `meeting` a
+ * Consultation without any of that moving.
+ */
+export const REVENUE_STAGE_META = Object.fromEntries(
+  Object.entries(DEFAULT_STAGE_META).map(([stage, meta]) => [
+    stage,
+    { ...meta, label: tenant.pipeline.stageLabels[stage] ?? meta.label },
+  ]),
+) as typeof DEFAULT_STAGE_META;
 
 export const LEGACY_STAGE_MAP: Record<string, RevenueStage> = {
   calendar_viewed: "qualified",
