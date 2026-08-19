@@ -48,7 +48,10 @@ export async function ingestInboundLead(supabase: SupabaseClient, input: Canonic
     opportunity = emailMatches?.[0] ?? null;
     existing = Boolean(opportunity);
   }
-  const nextAction = input.source === "chat" ? "Reply to new chat inquiry" : input.source === "solution_request" ? "Qualify manually created lead" : "Reply to audit request";
+  // "Reply to audit request" was left over from the roofing funnel and was being
+  // written onto every contact-form inquiry regardless of industry, so the queue
+  // told the founder a dental practice had asked for a roof audit.
+  const nextAction = input.source === "chat" ? "Reply to new chat inquiry" : input.source === "solution_request" ? "Qualify manually created lead" : "Reply to new inquiry";
   if (opportunity) {
     const { data, error } = await supabase.from("opportunities").update({
       contact_id: identity.contact.id, company_id: identity.company.id, source: attribution.utm_source || "website",
@@ -71,7 +74,7 @@ export async function ingestInboundLead(supabase: SupabaseClient, input: Canonic
   const externalId = `${input.source}:${input.sourceRecordId}`;
   const { data: activity } = await supabase.from("activities").select("id").eq("source", input.source).eq("external_id", externalId).maybeSingle();
   if (!activity) {
-    const title = input.source === "chat" ? "Chat inquiry captured" : input.source === "solution_request" ? "Manual lead captured" : "Audit request captured";
+    const title = input.source === "chat" ? "Chat inquiry captured" : input.source === "solution_request" ? "Manual lead captured" : "Website inquiry captured";
     const { error } = await supabase.from("activities").insert({ activity_type: "form_submission", title, summary: input.summary.slice(0, 1000), contact_id: identity.contact.id, company_id: identity.company.id, opportunity_id: opportunity.id, source: input.source, external_id: externalId, metadata: { attribution } });
     if (error) throw new Error(error.message);
   }

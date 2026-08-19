@@ -31,6 +31,17 @@ export async function loadRevenueAnalytics(supabase: SupabaseClient, days: numbe
   };
 }
 
+/**
+ * Passive engagement pings, which say a visitor kept reading, not that they
+ * asked for anything. Counting these as conversions inflated the rate from a
+ * believable 4% to 57%, which would have made the marketing view worse than
+ * useless for deciding anything.
+ */
+const ENGAGEMENT_EVENTS = /^(scroll_depth|time_on_page|article_read|article_scroll_\d+)$/;
+
+const isEngagement = (name: string) => ENGAGEMENT_EVENTS.test(name);
+const isConversion = (name: string) => name !== "page_view" && !isEngagement(name);
+
 /** First-party website analytics. This is intentionally separate from revenue truth. */
 export async function loadWebsiteAnalytics(supabase: SupabaseClient, days: number) {
   const since = new Date(Date.now() - days * 86400000).toISOString();
@@ -38,7 +49,8 @@ export async function loadWebsiteAnalytics(supabase: SupabaseClient, days: numbe
   if (error) throw new Error(error.message);
   const events = (data ?? []) as WebsiteEvent[];
   const pageViews = events.filter((event) => event.event_name === "page_view");
-  const conversions = events.filter((event) => event.event_name !== "page_view");
+  const conversions = events.filter((event) => isConversion(event.event_name));
+  const engagement = events.filter((event) => isEngagement(event.event_name));
   const pages = new Map<string, number>(), sources = new Map<string, number>(), conversionNames = new Map<string, number>();
   for (const event of pageViews) pages.set(event.path, (pages.get(event.path) || 0) + 1);
   for (const event of events) {
@@ -46,5 +58,5 @@ export async function loadWebsiteAnalytics(supabase: SupabaseClient, days: numbe
     sources.set(source, (sources.get(source) || 0) + 1);
   }
   for (const event of conversions) conversionNames.set(event.event_name.replaceAll("_", " "), (conversionNames.get(event.event_name.replaceAll("_", " ")) || 0) + 1);
-  return { status: "ready" as const, pageViews: pageViews.length, visitors: new Set(pageViews.map((event) => event.visitor_id)).size, conversions: conversions.length, conversionRate: percentage(conversions.length, pageViews.length), topPages: ranked(pages), sources: ranked(sources), conversionEvents: ranked(conversionNames), eventCount: events.length, lastCapturedAt: events.length ? new Date().toISOString() : null };
+  return { status: "ready" as const, pageViews: pageViews.length, visitors: new Set(pageViews.map((event) => event.visitor_id)).size, conversions: conversions.length, engagementEvents: engagement.length, conversionRate: percentage(conversions.length, pageViews.length), topPages: ranked(pages), sources: ranked(sources), conversionEvents: ranked(conversionNames), eventCount: events.length, lastCapturedAt: events.length ? new Date().toISOString() : null };
 }
