@@ -3,6 +3,7 @@ import { isOpenRouterConfigured, openRouterTextStream } from "@/lib/ai/openroute
 import { rateLimit } from "@/lib/rate-limit";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { ingestInboundLead } from "@/lib/revenue-os/inbound";
+import { recordAudit } from "@/lib/revenue-os/audit";
 import { isValidEmail } from "@/lib/validation";
 import { SYSTEM_PROMPT } from "@/lib/chat/system-prompt";
 import { preflightCheck } from "@/lib/chat/guardrails";
@@ -154,7 +155,21 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Failed to save lead" }, { status: 500 });
     }
 
-    const canonical = await ingestInboundLead(supabase, { name: name.trim(), email: email.trim(), source: "chat", sourceRecordId: inserted.id, summary: (conversation as ChatMessage[]).find((message) => message.role === "user")?.content || "Website chat inquiry", utm });
+    // The lead row is already saved. A canonical ingestion failure must not skip
+    // the side effects below, which are how anyone finds out the inquiry exists.
+    let canonicalOpportunityId: string | undefined;
+    try {
+      const canonical = await ingestInboundLead(supabase, { name: name.trim(), email: email.trim(), source: "chat", sourceRecordId: inserted.id, summary: (conversation as ChatMessage[]).find((message) => message.role === "user")?.content || "Website chat inquiry", utm });
+      canonicalOpportunityId = canonical.opportunity.id;
+    } catch (ingestError) {
+      const detail = ingestError instanceof Error ? ingestError.message : String(ingestError);
+      console.error("[chat] canonical inbound ingestion FAILED (lead preserved):", detail);
+      await recordAudit(supabase, {
+        actorEmail: "system", action: "inbound.canonical_failed", entityType: "chat_lead",
+        entityId: inserted.id, source: "webhook",
+        metadata: { inbound_source: "chat", error: detail },
+      });
+    }
 
     // Fire side effects. We don't await success of every one — the lead is
     // already saved, and each side effect logs its own outcome.
@@ -164,7 +179,7 @@ export async function PUT(request: NextRequest) {
       email: email.trim(),
       conversation: conversation as ChatMessage[],
       utm,
-      opportunityId: canonical.opportunity.id,
+      opportunityId: canonicalOpportunityId,
     });
 
     return NextResponse.json({ success: true, id: inserted.id, sideEffects });

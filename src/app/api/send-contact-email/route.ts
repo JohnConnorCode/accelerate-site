@@ -4,6 +4,7 @@ import { isValidEmail } from "@/lib/validation";
 import { sendContactEmail } from "@/lib/email/send";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { ingestInboundLead } from "@/lib/revenue-os/inbound";
+import { recordAudit } from "@/lib/revenue-os/audit";
 
 export async function POST(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
@@ -50,14 +51,30 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "We couldn't save your request yet. Please try again." }, { status: 500 });
       }
 
-      await ingestInboundLead(supabase, { name: name.trim(), email: email.trim(), companyName: companyName.trim(), website: companyWebsite.trim(), industry: businessType || null, source: "contact_form", sourceRecordId: submission.id, summary: `${primaryProblem}: ${message.trim()}`, utm });
+      // The inquiry is already persisted above. A canonical ingestion failure
+      // must not discard it, reject the visitor, or silence the notification —
+      // that combination strands a real customer in a table nobody watches. Fail
+      // loudly to the operator instead, and keep serving the visitor.
+      let canonicalFailure: string | null = null;
+      try {
+        await ingestInboundLead(supabase, { name: name.trim(), email: email.trim(), companyName: companyName.trim(), website: companyWebsite.trim(), industry: businessType || null, source: "contact_form", sourceRecordId: submission.id, summary: `${primaryProblem}: ${message.trim()}`, utm });
+      } catch (ingestError) {
+        canonicalFailure = ingestError instanceof Error ? ingestError.message : String(ingestError);
+        console.error("[contact] canonical inbound ingestion FAILED (submission preserved):", canonicalFailure);
+        await recordAudit(supabase, {
+          actorEmail: "system", action: "inbound.canonical_failed", entityType: "contact_submission",
+          entityId: submission.id, source: "webhook",
+          metadata: { inbound_source: "contact_form", error: canonicalFailure },
+        });
+      }
 
       // Create admin notification
       supabase.from("admin_notifications").insert({
         type: "new_contact",
-        title: `New contact from ${name}`,
-        description: message.substring(0, 100),
+        title: canonicalFailure ? `New contact from ${name} (needs manual entry)` : `New contact from ${name}`,
+        description: canonicalFailure ? `Canonical capture failed: ${canonicalFailure}`.slice(0, 200) : message.substring(0, 100),
         link: "/admin/today",
+        priority: canonicalFailure ? "urgent" : "info",
       }).then(() => {}, () => {});
     }
 
