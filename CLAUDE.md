@@ -1,7 +1,14 @@
 # Accelerate Agency - Project Instructions
 
+## Mandatory agent contract
+
+Read `AGENTS.md` first. The universal data, automation, and intelligence contract
+is `docs/REVENUE-OS-ENGINEERING-CONTRACT.md`; the exact ticket procedure is
+`docs/AGENT-TICKET-RUNBOOK.md`; authoritative domain ownership is indexed in
+`src/lib/revenue-os/README.md`. Run `npm run verify:agent-contract` before work.
+
 ## Project Structure
-- Next.js 14+ app in `accelerate-site/`
+- Next.js 16 app in `accelerate-site/`
 - TypeScript, Tailwind CSS, Framer Motion, GSAP, Three.js
 - Content data: `src/content/` | Components: `src/components/sections/` | Types: `src/lib/types.ts`
 
@@ -38,7 +45,24 @@ See detailed analysis: `.claude/projects/.../memory/competitor-references.md`
 ## Visual QA Rule
 After making visual/layout changes to components, always take a screenshot and review it before considering the work done. Check for empty space, broken layouts, alignment issues, and overall visual balance. Iterate until it looks right — don't ship blind.
 
-Use Playwright for local visual and interaction QA. If the in-app browser is unavailable, disconnected, or unauthenticated, that is not a blocker and is not worth reporting as one: immediately use the repository's Playwright installation instead. Capture desktop and mobile screenshots for substantial admin UI changes and exercise the primary interaction when practical.
+**Completion rule:** Never tell the user a design, layout, animation, or interaction is complete based on source code, computed values, or assumptions alone. Only say it is complete after reviewing a fresh screenshot of the running local app at the requested viewport and exercising the relevant interaction when applicable. If that verification is interrupted or unavailable, say it is unverified—never imply completion.
+
+Use Playwright for local visual and interaction QA. This repository rule is operational, not optional:
+
+- Run the repository Playwright scripts directly (`node scripts/shot.mjs ...`, `node scripts/film.mjs ...`, or a scoped `scripts/qa-*.mjs` journey).
+- If an in-app or connected browser is unavailable, disconnected, or unauthenticated, do not stop, ask about it, or report it as a blocker. Immediately run the repository Playwright installation from the shell.
+- For responsive work, capture the exact reported viewport plus representative short, standard, and tall mobile viewports. Review the PNGs with the image viewer; DOM measurements alone are not visual verification.
+- For animation or interaction work, capture timed frames or exercise the interaction in Playwright in addition to the final-state screenshot.
+- Do not hand off visual work until the screenshots have been opened and inspected and any visible regression has been corrected.
+
+## Revenue OS Backlog Contract
+
+- `/admin/features` is the execution source of truth. The authoritative managed-card manifest is `scripts/feature-backlog-data.mjs`.
+- Run `npm run seed:features` to validate it, `npm run seed:features -- --verify` to check live drift without writing, and `npm run seed:features -- --apply` only when intentionally reconciling the live board.
+- Before implementation, claim the relevant card by setting Owner and read its dependencies, starting points, guardrails, and acceptance criteria.
+- Keep work Planned until it actually starts, In progress only while the scoped outcome is incomplete, and Shipped only after all acceptance criteria have evidence.
+- Record commands, test results, production evidence, important decisions, and discovered follow-up work in the card’s Internal notes.
+- Do not maintain a competing roadmap. Add newly discovered Revenue OS work to the manifest with a stable key and agent-ready detail, then reconcile the board.
 
 ## Infrastructure
 
@@ -57,7 +81,8 @@ Use Playwright for local visual and interaction QA. If the in-app browser is una
 | `NEXT_PUBLIC_SITE_URL` | Canonical site URL |
 | `RESEND_FROM_EMAIL` | Outbound email sender |
 | `RESEND_API_KEY` | Resend API key (secret) |
-| `ANTHROPIC_API_KEY` | Claude API key for proposal generation (secret) |
+| `OPENROUTER_API_KEY` | Single server-only AI gateway key for every AI workflow (secret) |
+| `OPENROUTER_MODEL` | Optional default OpenRouter model override |
 | `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` | Plausible analytics domain |
 | `PLAUSIBLE_API_KEY` | Plausible Stats API key (server-only, secret) |
 | `NEXT_PUBLIC_GTAG_ID` | Google Analytics 4 measurement ID (public) |
@@ -100,17 +125,31 @@ If you're on the wrong Vercel account, `vercel logout && vercel login` and pick 
 9. `migrations/roofing-booking-machine.sql` — Legacy roofing qualifier and Calendly attribution compatibility
 10. `migrations/20260816-revenue-os.sql` — Canonical Revenue OS, conversations, campaigns, Google, approvals, health, and audit ledger
 11. `migrations/20260816-feature-board.sql` — Internal roadmap, durable drag ordering, labels, priorities, delivery details, and seeded Revenue OS follow-up work
+12. `migrations/20260816-first-party-analytics.sql` — Turn-key privacy-minimised site events
+13. `migrations/20260816-money-first-outreach.sql` — Idempotent sends and unsubscribe suppression
+14. `migrations/20260816-email-studio.sql` — Versioned draft/live email editing and publishing
+15. `migrations/20260816-contact-importer.sql` — Approval-gated AI contact import batches and receipts
 
 Revenue OS setup and verification: `docs/REVENUE-OS-SETUP.md`. Secret settings are environment-only; do not store API keys in `admin_settings`.
 
 All migrations are idempotent (`CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`).
 
+Run new migrations yourself with `npm run db:migrate -- <migration.sql>`. The
+command reads the Accelerate database password from macOS Keychain service
+`accelerate-supabase-db-password`, validates the fixed project target, and stops
+on the first SQL error. Never hand migration execution back to the founder.
+
 ### Auth Flow
 - Supabase Auth (email/password) → middleware (`src/middleware.ts`) checks session → `requireAdmin()` (`src/lib/admin/auth.ts`) verifies authenticated user
 - Admin email: `john@acceleratewith.us`
-- Any authenticated Supabase user can access `/admin` (no role-based check)
+- Admin pages and APIs fail closed unless the authenticated email matches the
+  configured `ADMIN_EMAIL`; middleware and `requireAdmin()` enforce the same rule.
 
 ## Pre-Commit Requirements
-1. `npx tsc --noEmit` — zero errors
-2. `npm run build` — production build succeeds
-3. No console errors at runtime
+1. `npm run verify:agent-contract` — architecture and managed-card handoff pass
+2. `npx tsc --noEmit` — zero errors
+3. `npm run lint` — zero errors
+4. The scoped service/API/Playwright journey passes
+5. `npm run build` — production build succeeds
+6. `git diff --check` — no whitespace errors
+7. No console errors at runtime

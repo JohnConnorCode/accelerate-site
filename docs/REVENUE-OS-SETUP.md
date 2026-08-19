@@ -15,8 +15,84 @@ The admin Setup Center at `/admin/setup` is the live source of truth. It checks 
 9. `migrations/roofing-booking-machine.sql`
 10. `migrations/20260816-revenue-os.sql`
 11. `migrations/20260816-feature-board.sql`
+12. `migrations/20260816-first-party-analytics.sql`
+13. `migrations/20260816-money-first-outreach.sql`
+14. `migrations/20260816-email-studio.sql`
+15. `migrations/20260816-contact-importer.sql`
+16. `migrations/20260817-schema-verification.sql`
+17. `migrations/20260817-atomic-job-claims.sql`
+18. `migrations/20260817-atomic-campaign-member-claims.sql`
+19. `migrations/20260817-resend-webhooks.sql`
+20. `migrations/20260817-campaign-stop-claims.sql`
+21. `migrations/20260817-campaign-stop-claims-lock-order.sql`
 
-Both new migrations are idempotent. The Revenue OS migration preserves legacy tables, extends the existing opportunity and proposal records, imports solution requests into the canonical model, and removes blanket authenticated access from business tables. The Feature Board migration creates the internal delivery roadmap and seeds the known follow-up work once.
+The Revenue OS migrations are idempotent. The core migration preserves legacy tables and creates the canonical operating model. The Feature Board migration creates the delivery roadmap. First-party analytics adds anonymous event storage. Money-first outreach adds campaign send idempotency and unguessable unsubscribe tokens. Email Studio adds protected draft and published template revisions. Contact Import adds review batches, row receipts, immutable events, and an atomic digest-bound execution claim.
+
+Agents apply migrations directly with `npm run db:migrate -- <migration.sql>` and
+verify the resulting objects through the service role. The command is fixed to
+the Accelerate Supabase project and reads its database password from macOS
+Keychain service `accelerate-supabase-db-password`; no database password belongs
+in `.env.local`, Vercel, documentation, or command output. Migration execution
+is part of delivery and must not be delegated to the founder.
+
+After the last migration, agents run `npm run db:verify-schema -- --record`.
+This read-only command verifies the versioned Revenue OS contract across required
+tables, columns, constraints, indexes, functions, and service-only policies. It
+prints a machine-readable result, exits non-zero for an unapplied migration,
+metadata drift, or connectivity failure, and writes an immutable verification
+receipt only when the receipt table itself is available. Setup Center reports the
+exact contract version and its last successful receipt; it does not treat a
+single queryable table as schema health.
+
+`migrations/20260817-atomic-job-claims.sql` adds the shared database claim used
+by Revenue OS cron and on-demand synchronization. A job key can have only one
+active owner; a repeated deterministic claim key returns its existing receipt
+instead of running again. New scheduled work must use `withJobRun` from
+`src/lib/revenue-os/runs.ts`, never a route-local lock or blind retry.
+
+## Approval-gated Contact Import
+
+`/admin/contact-imports` accepts bounded UTF-8 CSV, TSV, JSON, text files, or pasted notes. Deterministic parsing happens before OpenRouter extracts and normalizes only source-grounded facts. Analysis creates a review plan, not contacts. Low-confidence, invalid, and ambiguous identities default to excluded. Saving review reruns deterministic email/domain matching and invalidates any prior approval.
+
+Approval is bound to the exact selected and edited row digest. Execution claims that snapshot atomically, calls the canonical identity/import service, fills only blank fields on exact existing contacts, and records a terminal result per row plus batch events, activity, and audit provenance. It never creates an opportunity, task, campaign membership, or message. A partial batch retains failed rows for a safe replay; already imported rows resolve through the source-row idempotency key.
+
+Apply `migrations/20260816-contact-importer.sql`, configure the single AI credential `OPENROUTER_API_KEY`, redeploy, and verify the capability in Setup Center. `OPENROUTER_MODEL` is optional; workflow-specific model variables are optional server-side overrides. Raw secrets are never stored in import tables, and the full uploaded source is not logged.
+
+## Email Studio publishing
+
+`/admin/emails` is the operator workspace for transactional copy, automated-sequence copy, and sent history. Source-code templates remain the safe fallback. Saving in Email Studio creates a draft and does not affect recipients. A founder-only test send uses the configured Resend sender and can target only the authenticated founder. Publishing atomically replaces the prior live revision; real transactional and legacy sequence sends resolve the published revision through `src/lib/email/runtime-template.ts`.
+
+If the Email Studio tables are unavailable, runtime email continues with built-in content and the Setup Center reports the migration as needing action. Never store a Resend key or other secret in a template revision.
+
+## Money-first operating mode
+
+The contact form, roofing qualifier, and chat capture now feed the canonical identity, opportunity, activity, attribution, and same-day follow-up services. The public contact experience embeds the configured free Calendly event; Calendly API/webhook attribution remains an optional separate capability and must not be represented as connected until its credentials and booking/cancellation receipts pass production checks. Resend confirmation failures never discard an already stored inquiry.
+
+### Additional tools compatibility
+
+The specialized admin tools remain active during migration. Their APIs preserve the existing source-specific fields while `src/lib/revenue-os/legacy-adapter.ts` attaches canonical contact, company, opportunity, and stage identifiers when a deterministic source or email match exists. Leads, Contact Submissions, Chat Inquiries, Clients, Subscribers, Resource Downloads, Partners, and Website Grades use this one bridge. The Contact Timeline is the cross-source person view: it combines the original source history with canonical opportunities, activities, messages, tasks, and a filtered Pipeline handoff.
+
+Manual Lead creation enters the shared identity, inbound, activity, task, and audit services. A single Lead stage change uses the canonical transition service before updating its compatibility record. Bulk Lead stage changes and the legacy Bookings sub-stages remain explicitly tracked migration work because they need an atomic transition contract and a separate meeting-attendance model; do not retire their source tables until production field and row-count reconciliation passes.
+
+Until Gmail reply detection, bounce webhooks, cron, and immediate stop tests are complete, campaigns are limited server-side to one step and 10 sends per day. Campaign sends claim a deterministic idempotency key before provider execution and include one-click unsubscribe headers plus a visible unsubscribe link. Apply the money-first outreach migration before activating a pilot.
+
+### Resend delivery feedback
+
+The shared Revenue OS sender uses a stable provider idempotency key and carries
+canonical message, conversation, campaign, source, and template tags into
+Resend events. Do not add a second direct Resend path for campaigns or AI sends.
+
+To turn delivery feedback on, create one HTTPS webhook in Resend pointing to
+`https://www.acceleratewith.us/api/webhooks/resend`, subscribe to `email.sent`,
+`email.delivered`, `email.delivery_delayed`, `email.bounced`,
+`email.complained`, `email.failed`, `email.suppressed`, `email.opened`, and
+`email.clicked`, and save the signing secret only as `RESEND_WEBHOOK_SECRET`.
+The endpoint verifies the raw Svix signature, claims the provider replay ID
+before mutation, records a canonical receipt, and suppresses future campaign
+mail immediately for bounce, complaint, or suppression events. Opens and clicks
+are advisory engagement signals—not evidence of human intent. Setup Center will
+show this separately from basic Resend delivery so an API key is never mistaken
+for live feedback.
 
 ## Feature Board operating standard
 
@@ -25,6 +101,56 @@ Both new migrations are idempotent. The Revenue OS migration preserves legacy ta
 Every card should have a clear title, priority, useful labels, enough description to recover context, and a definition of done. Owner and target date are optional until work is committed. Dragging a card persists both its column and exact order in one database transaction. Filters intentionally pause dragging so hidden cards cannot be reordered accidentally. Archiving removes a card from the working board without erasing its audit history.
 
 The initial seed includes production migration, admin QA, unsubscribe handling, Google Workspace setup, provider webhooks, incremental Gmail sync, canonical attribution, test coverage, confirmation-gated calendar actions, Drive indexing, settings consolidation, and a 14-day operational burn-in. After migration, edit those cards in the admin rather than maintaining a second roadmap in documentation.
+
+### Master backlog and agent handoff
+
+The complete execution backlog is source-controlled in `scripts/feature-backlog-data.mjs`. It currently contains 90 dependency-ordered cards across foundation, admin, Google, Gmail, Calendar, Drive, campaigns, proposals, AI, setup, security, operations, QA, release, documentation, and client productization.
+
+The universal implementation framework is `docs/REVENUE-OS-ENGINEERING-CONTRACT.md`; the exact pickup/evidence/recovery procedure is `docs/AGENT-TICKET-RUNBOOK.md`; and `src/lib/revenue-os/README.md` maps every core service to its callers and invariants. Run `npm run verify:agent-contract` before claiming work. Managed card definitions are durable in the manifest and projected into `/admin/features`; changes that must survive reconciliation belong in the manifest first.
+
+After applying the Feature Board migration, validate the manifest without writing:
+
+`npm run seed:features`
+
+Reconcile the live board to the authoritative manifest:
+
+`npm run seed:features -- --apply`
+
+Verify live count, content, ordering, and outside-manifest drift without writing:
+
+`npm run seed:features -- --verify`
+
+The apply command upserts every managed card by stable `seed_key`, restores managed cards if they were archived, and recoverably archives active cards outside the manifest. It never hard-deletes backlog history.
+
+Every managed card includes:
+
+- A phase and workstream taxonomy.
+- A concrete outcome-oriented description.
+- Explicit dependency titles.
+- Likely code and documentation starting points.
+- Guardrails and stated non-goals.
+- Testable acceptance criteria.
+- A standard agent handoff protocol.
+
+Agents must claim a card by setting **Owner** before implementation. They should keep the card in **Planned** until work actually begins, move it to **In progress** while actively changing it, record test evidence and material decisions in **Internal notes**, and move it to **Shipped** only after every acceptance item is verified. A partially built foundation may be marked In progress when the remaining scope is explicitly described; this is not permission to call it shipped.
+
+## AI operating architecture
+
+The Revenue Copilot is a bounded tool-using system, not an autonomous database or browser agent. `src/lib/revenue-os/ai-tools.ts` is the single registry for every exposed tool, its JSON input schema, impact tier, confirmation requirement, and the validated service that executes it. Unknown tools fail closed. Each tool receipt records the registry version and impact metadata in the agent event ledger.
+
+Read tools can run directly against bounded live records. Internal writes and external actions only create an expiring `action_queue` proposal, then use the same validation and execution services as the normal UI after explicit founder approval. The agent never receives service credentials or raw database access.
+
+Learning is governed quality telemetry: a founder may rate a completed response once; the event and audit record are immutable. Future runs receive a 90-day aggregate per-tool helpful/not-helpful summary only. Raw prompts, model outputs, free-form feedback, customer documents, secrets, and external messages are never promoted into agent instructions. Outcome linkage, review/correction/disable controls, and retention policy remain tracked on the Feature Board before broader automation is enabled.
+
+## Turn-key first-party analytics
+
+Analytics does not require Plausible, Google Analytics, or any other analytics vendor. After applying `migrations/20260816-first-party-analytics.sql` and deploying, the public site records privacy-minimised page views and conversion events in `website_events`. It stores a per-session random identifier, event name, path, referring host, and UTM fields only—never IP addresses, user agents, email addresses, message content, or a persistent cross-site identifier.
+
+`/admin/analytics` keeps two things intentionally separate: website activity is context; canonical opportunities and won value are revenue truth. It labels the opportunity cohort as records created in the selected window and shows missing attribution rather than silently discarding it. If the event schema is unavailable, the page is visibly degraded while revenue metrics remain available.
+
+## Inbound revenue loop
+
+The live roofing qualifier uses `src/lib/revenue-os/inbound.ts` as its single ingestion path. A valid submission resolves a contact and company, creates or enriches one canonical opportunity, persists source attribution, records an immutable form-submission activity, moves the opportunity through the canonical stage-transition service when appropriate, and creates one deduplicated high-priority same-day follow-up task for qualified inquiries. The existing nurture email remains a non-blocking confirmation step; a delivery failure cannot discard the inbound record.
 
 ## Required production environment
 
@@ -36,8 +162,6 @@ The initial seed includes production migration, admin QA, unsubscribe handling, 
 - `RESEND_API_KEY`
 - `RESEND_FROM_EMAIL`
 - `CRON_SECRET`
-- `NEXT_PUBLIC_PLAUSIBLE_DOMAIN`
-- `PLAUSIBLE_API_KEY`
 
 Secrets are environment-only. The admin settings API refuses writes for recognized secret keys.
 
@@ -57,18 +181,21 @@ Then open Setup Center and choose **Connect Google Workspace**. The app requests
 
 ## Optional Revenue copilot
 
-Add `ANTHROPIC_API_KEY` in Vercel. The copilot can read live operating data directly. Email sends, Gmail replies, pipeline movements, task creation, and campaign activation must be confirmed through the action queue or an explicit final-send confirmation.
+Add `OPENROUTER_API_KEY` in Vercel. This is the only AI-provider key used by Contact Import, Revenue Copilot, website chat, plan generation, insights, content briefs, and proposal drafting. `OPENROUTER_MODEL` is optional because the gateway has a default; optional `OPENROUTER_*_MODEL` variables can tune a workflow without adding another provider. The copilot can read live operating data directly. Email sends, Gmail replies, pipeline movements, task creation, and campaign activation must be confirmed through the action queue or an explicit final-send confirmation.
 
 ## Booking mode
 
-Calendly remains disabled by default. Manual scheduling and Google Calendar are sufficient for launch. Set `CALENDLY_ENABLED=true` only after its token, webhook secret, booking, and cancellation flows pass production testing.
+The public Calendly embed is the active booking path when `CALENDLY_ENABLED` is not `false`; it does not require a Calendly API token. Manual scheduling remains available as a fallback. Set `CALENDLY_PERSONAL_ACCESS_TOKEN` and `CALENDLY_WEBHOOK_SECRET` only when enabling automatic booking/cancellation attribution, and keep that capability marked degraded/action until its signed production receipts pass.
 
 ## Verification
 
 1. Deploy after applying the migration and environment changes.
 2. Sign in with the exact `ADMIN_EMAIL`; verify another authenticated account is denied.
-3. Open Setup Center and refresh all checks, including Feature Board roadmap.
-4. Connect Google, save only approved Drive folder IDs, and run Workspace sync.
-5. Create a small campaign, inspect its dry run, activate the version, then pause it before a second step becomes due.
-6. Send a test proposal and verify view, accept, and decline receipts.
-7. Confirm the Vercel cron jobs have terminal `job_runs` and `source_runs` receipts.
+3. Run `npm run seed:features -- --apply`, then open Setup Center and refresh all checks, including the 90-card Feature Board roadmap.
+4. Open one public page and complete one safe test conversion; verify Analytics shows first-party activity and the canonical funnel shows the associated opportunity once it is created.
+5. Connect Google, save only approved Drive folder IDs, and run Workspace sync.
+6. Create a small campaign, inspect its dry run, activate the version, then pause it before a second step becomes due.
+7. Send a test proposal and verify view, accept, and decline receipts.
+8. Confirm the Vercel cron jobs have terminal `job_runs` and `source_runs` receipts.
+
+For local Command Center verification, run `npm run test:admin-recovery`, `npm run test:features`, `npm run test:contact-imports`, and `npm run test:admin-parity`. These authenticated Playwright journeys cover shared dialogs, Email Studio, Contact Import review/approval, collapsed/mobile navigation, Feature Board movement, and document-level overflow across every registered admin route. A source review or in-app browser check is not a substitute for these repository journeys.
