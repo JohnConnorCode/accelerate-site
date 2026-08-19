@@ -1,4 +1,6 @@
-const BASE_URL = "https://www.acceleratewith.us";
+import { siteUrl, tenant } from "@/config/tenant";
+
+const BASE_URL = siteUrl();
 
 const COLORS = {
   page: "#eef1ee",
@@ -26,12 +28,12 @@ function baseHead(): string {
   return `<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light">`;
 }
 
-function brandRow(label = "AI revenue systems, built and run for you"): string {
-  return `<tr><td style="padding:0 0 24px 0;"><a href="${BASE_URL}" style="color:${COLORS.ink};font-family:Arial,Helvetica,sans-serif;font-size:22px;font-weight:800;letter-spacing:-.04em;text-decoration:none;">Accelerate<span style="color:#78a91e;">.</span></a><p style="margin:7px 0 0;color:${COLORS.muted};font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:.08em;line-height:1.4;text-transform:uppercase;">${label}</p></td></tr>`;
+function brandRow(label = tenant.brand.tagline): string {
+  return `<tr><td style="padding:0 0 24px 0;"><a href="${BASE_URL}" style="color:${COLORS.ink};font-family:Arial,Helvetica,sans-serif;font-size:22px;font-weight:800;letter-spacing:-.04em;text-decoration:none;">${esc(tenant.brand.name)}<span style="color:${tenant.brand.accentColor};">.</span></a><p style="margin:7px 0 0;color:${COLORS.muted};font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:.08em;line-height:1.4;text-transform:uppercase;">${label}</p></td></tr>`;
 }
 
 export function emailWrapper(content: string): string {
-  return `<!DOCTYPE html><html lang="en"><head>${baseHead()}<title>Accelerate</title></head><body style="margin:0;padding:0;background-color:${COLORS.page};font-family:Arial,Helvetica,sans-serif;color:${COLORS.body};"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background-color:${COLORS.page};"><tr><td align="center" style="padding:32px 16px;"><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;"><tr><td>${brandRow()}</td></tr><tr><td style="background-color:${COLORS.surface};border:1px solid ${COLORS.line};border-radius:16px;padding:36px 36px 32px;">${content}</td></tr><tr><td style="padding:22px 4px 0;text-align:center;"><p style="margin:0;color:${COLORS.faint};font-size:11px;line-height:1.6;">Accelerate · AI revenue systems for small business<br><a href="${BASE_URL}" style="color:${COLORS.muted};text-decoration:underline;">acceleratewith.us</a></p></td></tr></table></td></tr></table></body></html>`;
+  return `<!DOCTYPE html><html lang="en"><head>${baseHead()}<title>${esc(tenant.brand.name)}</title></head><body style="margin:0;padding:0;background-color:${COLORS.page};font-family:Arial,Helvetica,sans-serif;color:${COLORS.body};"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background-color:${COLORS.page};"><tr><td align="center" style="padding:32px 16px;"><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;"><tr><td>${brandRow()}</td></tr><tr><td style="background-color:${COLORS.surface};border:1px solid ${COLORS.line};border-radius:16px;padding:36px 36px 32px;">${content}</td></tr><tr><td style="padding:22px 4px 0;text-align:center;"><p style="margin:0;color:${COLORS.faint};font-size:11px;line-height:1.6;">${esc(tenant.brand.emailFooter)}<br><a href="${BASE_URL}" style="color:${COLORS.muted};text-decoration:underline;">${esc(tenant.brand.domain)}</a></p></td></tr></table></td></tr></table></body></html>`;
 }
 
 function signalButton(text: string, href: string): string {
@@ -39,7 +41,7 @@ function signalButton(text: string, href: string): string {
 }
 
 function adminWrapper(content: string): string {
-  return `<!DOCTYPE html><html lang="en"><head>${baseHead()}<title>Accelerate Operations</title></head><body style="margin:0;padding:0;background-color:${COLORS.page};font-family:Arial,Helvetica,sans-serif;color:${COLORS.body};"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background-color:${COLORS.page};"><tr><td align="center" style="padding:32px 16px;"><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;"><tr><td>${brandRow("Founder operations")}</td></tr><tr><td style="background-color:${COLORS.surface};border:1px solid ${COLORS.line};border-radius:16px;padding:32px;">${content}</td></tr></table></td></tr></table></body></html>`;
+  return `<!DOCTYPE html><html lang="en"><head>${baseHead()}<title>${esc(tenant.brand.name)} Operations</title></head><body style="margin:0;padding:0;background-color:${COLORS.page};font-family:Arial,Helvetica,sans-serif;color:${COLORS.body};"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background-color:${COLORS.page};"><tr><td align="center" style="padding:32px 16px;"><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;"><tr><td>${brandRow("Founder operations")}</td></tr><tr><td style="background-color:${COLORS.surface};border:1px solid ${COLORS.line};border-radius:16px;padding:32px;">${content}</td></tr></table></td></tr></table></body></html>`;
 }
 
 /** Gives operator-written and scheduled plain-text messages the same reliable,
@@ -52,7 +54,7 @@ export function textEmail(body: string): string {
 
 /** A server-issued, one-time admin recovery link. */
 export function adminPasswordResetEmail(resetUrl: string): string {
-  return emailWrapper(`<p style="margin:0 0 9px;color:#5c8518;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Account security</p><h1 style="margin:0 0 16px;color:${COLORS.ink};font-size:24px;letter-spacing:-.03em;line-height:1.2;">Reset your admin password</h1><p style="margin:0 0 16px;color:${COLORS.body};font-size:15px;line-height:1.65;">Use this one-time link to choose a new password for your Accelerate operations account.</p>${signalButton("Reset password", resetUrl)}<p style="margin:20px 0 0;color:${COLORS.faint};font-size:12px;line-height:1.5;">If you did not request this, you can safely ignore this email.</p>`);
+  return emailWrapper(`<p style="margin:0 0 9px;color:#5c8518;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Account security</p><h1 style="margin:0 0 16px;color:${COLORS.ink};font-size:24px;letter-spacing:-.03em;line-height:1.2;">Reset your admin password</h1><p style="margin:0 0 16px;color:${COLORS.body};font-size:15px;line-height:1.65;">Use this one-time link to choose a new password for your ${esc(tenant.brand.name)} operations account.</p>${signalButton("Reset password", resetUrl)}<p style="margin:20px 0 0;color:${COLORS.faint};font-size:12px;line-height:1.5;">If you did not request this, you can safely ignore this email.</p>`);
 }
 
 export function planConfirmationEmail(name: string, summary: string, planUrl: string): string {

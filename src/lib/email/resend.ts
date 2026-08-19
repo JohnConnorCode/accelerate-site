@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { adminEmail, fromEmail } from "@/config/tenant";
 
 let _resend: Resend | null = null;
 
@@ -9,7 +10,5 @@ export function getResend(): Resend {
   return _resend;
 }
 
-export const FROM_EMAIL =
-  process.env.RESEND_FROM_EMAIL || "Accelerate <john@acceleratewith.us>";
-export const ADMIN_EMAIL =
-  process.env.ADMIN_EMAIL || "john@acceleratewith.us";
+export const FROM_EMAIL = fromEmail();
+export const ADMIN_EMAIL = adminEmail();

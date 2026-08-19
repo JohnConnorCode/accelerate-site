@@ -1,3 +1,4 @@
+import { siteUrl } from "@/config/tenant";
 import { getResend, FROM_EMAIL } from "./resend";
 import { emailSequences } from "@/content/email-sequences";
 import { resolveEmailTemplate } from "./runtime-template";
@@ -34,10 +35,10 @@ export async function scheduleEmailSequence(
     const variables = {
       name: "there",
       industry: "your business",
-      planLink: process.env.NEXT_PUBLIC_SITE_URL || "https://www.acceleratewith.us",
+      planLink: siteUrl(),
       planSummary: "the highest-impact next steps for your business",
       resourceTitle: "your requested resource",
-      downloadLink: process.env.NEXT_PUBLIC_SITE_URL || "https://www.acceleratewith.us/resources",
+      downloadLink: `${siteUrl()}/resources`,
       score: "your current",
       topIssues: "the clearest opportunities to improve response, follow-through, and conversion",
       ...metadata,

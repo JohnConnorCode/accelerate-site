@@ -1,5 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { tenant } from "@/config/tenant";
 import { safeAttribution } from "@/lib/opportunities";
 import type { UTMData } from "@/lib/utm";
 import { recordAudit } from "./audit";
@@ -74,8 +75,8 @@ export async function ingestInboundLead(supabase: SupabaseClient, input: Canonic
     const { error } = await supabase.from("activities").insert({ activity_type: "form_submission", title, summary: input.summary.slice(0, 1000), contact_id: identity.contact.id, company_id: identity.company.id, opportunity_id: opportunity.id, source: input.source, external_id: externalId, metadata: { attribution } });
     if (error) throw new Error(error.message);
   }
-  await createRevenueTask(supabase, { title: `${nextAction}: ${identity.company.name}`, description: input.summary.slice(0, 1000), dueDate: new Date().toISOString().slice(0, 10), priority: "high", relatedType: "opportunity", relatedId: opportunity.id, relatedName: identity.company.name, opportunityId: opportunity.id, source: input.source, dedupeKey: `inbound-follow-up:${opportunity.id}`, actorEmail: "system@acceleratewith.us" });
-  await recordAudit(supabase, { actorEmail: "system@acceleratewith.us", action: "inbound.captured", entityType: "opportunity", entityId: opportunity.id, source: "webhook", after: { stage: opportunity.stage, source: opportunity.source }, metadata: { inbound_source: input.source, source_record_id: input.sourceRecordId, existing } });
+  await createRevenueTask(supabase, { title: `${nextAction}: ${identity.company.name}`, description: input.summary.slice(0, 1000), dueDate: new Date().toISOString().slice(0, 10), priority: "high", relatedType: "opportunity", relatedId: opportunity.id, relatedName: identity.company.name, opportunityId: opportunity.id, source: input.source, dedupeKey: `inbound-follow-up:${opportunity.id}`, actorEmail: tenant.founder.systemActorEmail });
+  await recordAudit(supabase, { actorEmail: tenant.founder.systemActorEmail, action: "inbound.captured", entityType: "opportunity", entityId: opportunity.id, source: "webhook", after: { stage: opportunity.stage, source: opportunity.source }, metadata: { inbound_source: input.source, source_record_id: input.sourceRecordId, existing } });
   return { opportunity, identity, existing };
 }
 
@@ -130,7 +131,7 @@ export async function ingestRoofingQualification(supabase: SupabaseClient, input
 
   const currentStage = canonicalStage(opportunity.stage);
   if (currentStage && currentStage !== targetStage && canTransition(opportunity.stage, targetStage)) {
-    opportunity = await transitionOpportunity(supabase, { id: opportunity.id, to: targetStage, actorEmail: "system@acceleratewith.us", source: "roofing_qualifier", reason: input.qualification.reason }) as typeof opportunity;
+    opportunity = await transitionOpportunity(supabase, { id: opportunity.id, to: targetStage, actorEmail: tenant.founder.systemActorEmail, source: "roofing_qualifier", reason: input.qualification.reason }) as typeof opportunity;
   }
 
   const activityId = `roofing-qualifier:${opportunity.id}:${input.qualification.qualified ? "qualified" : "nurture"}`;
@@ -150,9 +151,9 @@ export async function ingestRoofingQualification(supabase: SupabaseClient, input
       title: `Respond to qualified roofing audit request: ${identity.company.name}`,
       description: `Review ${input.primaryLeak.replaceAll("_", " ")} and offer next steps to ${input.email}.`, dueDate, priority: "high",
       relatedType: "opportunity", relatedId: opportunity.id, relatedName: identity.company.name, opportunityId: opportunity.id,
-      source: "roofing_qualifier", dedupeKey: `inbound-follow-up:${opportunity.id}`, actorEmail: "system@acceleratewith.us",
+      source: "roofing_qualifier", dedupeKey: `inbound-follow-up:${opportunity.id}`, actorEmail: tenant.founder.systemActorEmail,
     });
   }
-  await recordAudit(supabase, { actorEmail: "system@acceleratewith.us", action: "inbound.roofing_qualified", entityType: "opportunity", entityId: opportunity.id, source: "webhook", after: { stage: opportunity.stage, contact_id: identity.contact.id, company_id: identity.company.id }, metadata: { existing: Boolean(existing), qualified: input.qualification.qualified } });
+  await recordAudit(supabase, { actorEmail: tenant.founder.systemActorEmail, action: "inbound.roofing_qualified", entityType: "opportunity", entityId: opportunity.id, source: "webhook", after: { stage: opportunity.stage, contact_id: identity.contact.id, company_id: identity.company.id }, metadata: { existing: Boolean(existing), qualified: input.qualification.qualified } });
   return { opportunity, existing: Boolean(existing), identity };
 }

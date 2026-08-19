@@ -1,3 +1,4 @@
+import { analyticsDomain } from "@/config/tenant";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 
@@ -6,7 +7,7 @@ export async function GET() {
   if (auth instanceof NextResponse) return auth;
 
   const apiKey = process.env.PLAUSIBLE_API_KEY;
-  const domain = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN || "acceleratewith.us";
+  const domain = analyticsDomain();
 
   if (!apiKey) {
     return NextResponse.json({ configured: false });

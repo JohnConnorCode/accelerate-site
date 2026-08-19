@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getResend, FROM_EMAIL } from "@/lib/email/resend";
+import { siteUrl } from "@/config/tenant";
 import { recordAudit } from "./audit";
 import { normalizeEmail } from "./db";
 
@@ -73,7 +74,7 @@ export async function sendRecordedEmail(supabase: SupabaseClient, input: {
   if (input.source === "campaign" && input.contactId) {
     const { data: contact } = await supabase.from("contacts").select("communication_status,unsubscribe_token").eq("id", input.contactId).maybeSingle();
     if (contact && contact.communication_status !== "active") throw new Error("Contact is suppressed from campaign email");
-    if (contact?.unsubscribe_token) unsubscribeUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.acceleratewith.us"}/api/unsubscribe/${contact.unsubscribe_token}`;
+    if (contact?.unsubscribe_token) unsubscribeUrl = `${siteUrl()}/api/unsubscribe/${contact.unsubscribe_token}`;
   }
 
   const claimId = crypto.randomUUID();

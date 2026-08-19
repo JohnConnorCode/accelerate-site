@@ -1,15 +1,18 @@
 // Single source of truth for "where do I book the call." The chat bot, the
 // contact page embed and any copy that hands out a link all read from here so
-// they can never drift apart.
+// they can never drift apart. The values themselves live in the tenant config,
+// so a client installation changes them in one place.
 
-/** Calendly event used for the free 30-minute strategy call. */
-export const CALENDLY_URL = "https://calendly.com/john-superdebate/30min";
+import { tenant } from "@/config/tenant";
+
+/** External scheduler event, when one is configured. */
+export const CALENDLY_URL = tenant.booking.schedulerUrl ?? "";
 
 /** On-site booking page. The calendar is embedded at the top of it. */
-export const BOOKING_PATH = "/contact";
+export const BOOKING_PATH = tenant.booking.path;
 
 /** Absolute booking URL, for copy that has to be readable outside the site
     (chat messages, emails). */
-export const BOOKING_URL = "https://acceleratewith.us/contact";
+export const BOOKING_URL = tenant.booking.url;
 
-export const CONTACT_EMAIL = "john@acceleratewith.us";
+export const CONTACT_EMAIL = tenant.founder.email;

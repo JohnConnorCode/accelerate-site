@@ -1,3 +1,4 @@
+import { siteUrl } from "@/config/tenant";
 import { emailSequences } from "@/content/email-sequences";
 import {
   adminContactNotificationEmail,
@@ -32,12 +33,12 @@ const sample = {
   primaryProblem: "Slow inquiry follow-up",
   message: "We need a better system for responding to and following up with new inquiries.",
   industry: "home services",
-  planLink: "https://www.acceleratewith.us/plan/example",
+  planLink: `${siteUrl()}/plan/example`,
   planSummary: "Prioritize response time, consistent follow-up, and clear pipeline ownership.",
   score: "62",
   topIssues: "Slow mobile performance and unclear conversion actions.",
   resourceTitle: "The AI Automation Playbook",
-  downloadLink: "https://www.acceleratewith.us/resources/ai-playbook",
+  downloadLink: `${siteUrl()}/resources/ai-playbook`,
   roiPercentage: "340",
   additionalMonthlyRevenue: "$8,400",
   annualRevenueImpact: "$100,800",

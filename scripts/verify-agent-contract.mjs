@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { featureBacklog, validateFeatureBacklog } from "./feature-backlog-data.mjs";
 
 const requiredFiles = [
@@ -64,6 +64,69 @@ for (const card of featureBacklog) {
     if (!cardTitles.has(dependency)) {
       failures.push(`[${card.seed_key}] depends on "${dependency}", which matches no card title`);
     }
+  }
+}
+
+// Cloneability ratchet. The Command Center is installed per client from this one
+// codebase (see the cloneable-command-center-contract card), so a business fact
+// hard-coded under these directories is a bug that only shows up on the second
+// installation. Business facts belong in src/config/tenant.ts.
+//
+// The budget below is the count of literals each file still carries. It may only
+// shrink: adding one fails, and removing them all should delete the entry.
+// src/content and the public marketing pages are deliberately out of scope, since
+// those are Accelerate's own website and stay single-brand.
+const BRAND_LITERAL = /acceleratewith|Accelerate/;
+const BRAND_SCOPE = ["src/lib", "src/app/admin", "src/app/api/admin"];
+const BRAND_BUDGET = {
+  "src/app/admin/campaigns/page.tsx": 1,
+  "src/app/admin/chat-leads/page.tsx": 2,
+  "src/app/admin/layout.tsx": 3,
+  "src/app/admin/login/page.tsx": 4,
+  "src/app/admin/setup/page.tsx": 7,
+  "src/app/admin/update-password/page.tsx": 1,
+  "src/app/api/admin/ai-content-brief/route.ts": 1,
+  "src/app/api/admin/ai-insights/route.ts": 1,
+  "src/app/api/admin/password-reset/route.ts": 1,
+  "src/app/api/admin/proposals/generate/route.ts": 1,
+  "src/lib/ai/openrouter.ts": 2,
+  "src/lib/ai/prompts.ts": 1,
+  "src/lib/chat/guardrails.ts": 1,
+  "src/lib/chat/lead-capture.ts": 4,
+  "src/lib/chat/system-prompt.ts": 3,
+  "src/lib/email/registry.ts": 4,
+  "src/lib/og.ts": 3,
+  "src/lib/seo.ts": 1,
+};
+
+function sourceFiles(dir) {
+  const found = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = `${dir}/${entry.name}`;
+    if (entry.isDirectory()) found.push(...sourceFiles(full));
+    else if (/\.tsx?$/.test(entry.name)) found.push(full);
+  }
+  return found;
+}
+
+const brandCounts = new Map();
+for (const dir of BRAND_SCOPE) {
+  if (!existsSync(dir)) continue;
+  for (const file of sourceFiles(dir)) {
+    const hits = readFileSync(file, "utf8").split("\n").filter((line) => BRAND_LITERAL.test(line)).length;
+    if (hits) brandCounts.set(file, hits);
+  }
+}
+for (const [file, hits] of brandCounts) {
+  const budget = BRAND_BUDGET[file] ?? 0;
+  if (hits > budget) {
+    failures.push(`${file} has ${hits} hard-coded business literal(s) but a budget of ${budget}. Move the value into src/config/tenant.ts, or lower the budget if you removed some.`);
+  }
+}
+for (const [file, budget] of Object.entries(BRAND_BUDGET)) {
+  const hits = brandCounts.get(file) ?? 0;
+  if (hits < budget) {
+    failures.push(`${file} now has ${hits} business literal(s), below its budget of ${budget}. Lower the budget in verify-agent-contract.mjs so the ratchet holds.`);
   }
 }
 

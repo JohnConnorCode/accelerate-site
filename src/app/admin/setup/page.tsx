@@ -1,5 +1,6 @@
 "use client";
 
+import { supabaseDashboard, tenant } from "@/config/tenant";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -72,7 +73,7 @@ interface SetupGuide {
   linkLabel?: string;
 }
 
-const vercelEnvironmentUrl = "https://vercel.com/robert-farrells-projects/accelerate-site/settings/environment-variables";
+const vercelEnvironmentUrl = tenant.external.vercelProjectUrl ?? "https://vercel.com/dashboard";
 
 const setupGuides: Record<string, SetupGuide> = {
   supabase: {
@@ -81,7 +82,7 @@ const setupGuides: Record<string, SetupGuide> = {
       "Copy the service-role key separately. It is server-only and must never use the NEXT_PUBLIC_ prefix.",
       "Add all three variables to Production, Preview, and Development in Vercel, then redeploy.",
     ],
-    href: "https://supabase.com/dashboard/project/skjypuwkceoiunyhhqlm/settings/api",
+    href: supabaseDashboard("/settings/api"),
     linkLabel: "Open Supabase API settings",
   },
   schema: {
@@ -101,7 +102,7 @@ const setupGuides: Record<string, SetupGuide> = {
       "Run npm run seed:features -- --apply from the project to reconcile the entire active board to the agent-ready master backlog.",
       "Open Feature Board and verify the managed count, phases, workstreams, dependencies, acceptance criteria, and handoff notes.",
     ],
-    href: "https://supabase.com/dashboard/project/skjypuwkceoiunyhhqlm/sql/new",
+    href: supabaseDashboard("/sql/new"),
     linkLabel: "Open the SQL editor",
   },
   email_studio: {

@@ -1,3 +1,4 @@
+import { siteUrl } from "@/config/tenant";
 import { getResend, FROM_EMAIL, ADMIN_EMAIL } from "./resend";
 import { resolveEmailTemplate } from "./runtime-template";
 
@@ -7,7 +8,7 @@ export async function sendPlanEmail(
   summary: string,
   shareToken: string
 ) {
-  const planUrl = `https://www.acceleratewith.us/plan/${shareToken}`;
+  const planUrl = `${siteUrl()}/plan/${shareToken}`;
   const [prospectEmail, adminEmail] = await Promise.all([
     resolveEmailTemplate("plan-confirmation", { name, planSummary: summary, planLink: planUrl }),
     resolveEmailTemplate("admin-lead", { name, email, industry: "via Solution Generator", phone: "", business: "" }),

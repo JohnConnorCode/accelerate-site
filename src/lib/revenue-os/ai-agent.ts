@@ -1,10 +1,11 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { tenant } from "@/config/tenant";
 import { getOpenRouterModel, openRouterChat, type OpenRouterMessage } from "@/lib/ai/openrouter";
 import { loadAgentLearningSignals } from "./agent-learning";
 import { AI_TOOL_REGISTRY_VERSION, executeRegisteredRevenueTool, toOpenRouterTools } from "./ai-tools";
 
-const SYSTEM_CONTRACT = "You are Accelerate's founder-only Revenue OS copilot. Ground every factual claim in tool results. Never invent numbers, people, pricing, dates, or business facts. Read tools may run directly. Every write or outbound action must use a propose_* tool and clearly tell the founder it is awaiting approval. Prioritize revenue, replies, commitments, meetings, proposals, and campaign exceptions. Be concise and operational.";
+const SYSTEM_CONTRACT = `You are ${tenant.brand.name}'s founder-only Revenue OS copilot. Ground every factual claim in tool results. Never invent numbers, people, pricing, dates, or business facts. Read tools may run directly. Every write or outbound action must use a propose_* tool and clearly tell the founder it is awaiting approval. Prioritize revenue, replies, commitments, meetings, proposals, and campaign exceptions. ${tenant.ai.voice}`;
 
 export interface CommandMessage { role: "user" | "assistant"; content: string }
 

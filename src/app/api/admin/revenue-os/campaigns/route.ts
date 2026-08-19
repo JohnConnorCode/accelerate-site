@@ -1,3 +1,4 @@
+import { tenant } from "@/config/tenant";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { createServiceRoleClient } from "@/lib/supabase/server";
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
   const { data: campaign, error } = await supabase.from("campaigns").insert({
     name,
     status: "draft",
-    sender_name: typeof body.senderName === "string" ? body.senderName.trim() : "Accelerate",
+    sender_name: typeof body.senderName === "string" ? body.senderName.trim() : tenant.brand.name,
     sender_email: normalizeEmail(typeof body.senderEmail === "string" ? body.senderEmail : process.env.ADMIN_EMAIL),
     audience_definition: body.audience && typeof body.audience === "object" ? body.audience : {},
     policy: normalizeCampaignPolicy(body.policy),

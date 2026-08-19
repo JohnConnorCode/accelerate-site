@@ -1,4 +1,8 @@
+import { siteUrl, tenant } from "@/config/tenant";
 import { getResend, FROM_EMAIL } from "@/lib/email/resend";
+
+/** Path of the vertical playbook these booking emails belong to. */
+const roofingPath = () => tenant.playbooks.find((playbook) => playbook.key === "roofing")?.path ?? "/";
 
 export async function scheduleAuditPrepEmail(input: {
   email: string;
@@ -20,8 +24,8 @@ That gives me enough context to spend the call on the highest-value gap instead 
 
 You'll leave with the first fix, the implementation order, and the finding in writing within two business days.
 
-John
-Accelerate`,
+${tenant.founder.name}
+${tenant.brand.name}`,
   };
   if (preferred.getTime() > now + 10 * 60 * 1000) options.scheduledAt = preferred.toISOString();
 
@@ -38,9 +42,9 @@ export async function sendNoShowRebookEmail(input: { email: string; opportunityI
     text: `It looks like we missed each other. No problem.
 
 If the revenue leak audit is still useful, choose another time here:
-https://www.acceleratewith.us/roofing?resume=${input.token}#book
+${siteUrl()}${roofingPath()}?resume=${input.token}#book
 
-John
-Accelerate`,
+${tenant.founder.name}
+${tenant.brand.name}`,
   }, { idempotencyKey: `roofing-no-show/${input.opportunityId}` });
 }

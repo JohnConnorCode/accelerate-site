@@ -1,3 +1,4 @@
+import { supabaseDashboard } from "@/config/tenant";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { createServiceRoleClient } from "@/lib/supabase/server";
@@ -90,7 +91,7 @@ export async function GET() {
       status: supabaseConfigured ? "ready" : "action",
       required: true,
       keys: ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY"],
-      action: { label: "Open Supabase API settings", href: "https://supabase.com/dashboard/project/skjypuwkceoiunyhhqlm/settings/api", external: true },
+      action: { label: "Open Supabase API settings", href: supabaseDashboard("/settings/api"), external: true },
     },
     {
       id: "schema",
@@ -131,7 +132,7 @@ export async function GET() {
       status: featureBoardReady ? "ready" : "action",
       required: false,
       keys: ["migrations/20260816-feature-board.sql", "npm run seed:features -- --apply"],
-      action: { label: featureBoardReady ? "Open Feature Board" : featureBoardResult.error ? "Open Supabase SQL editor" : "Review backlog instructions", href: featureBoardReady ? "/admin/features" : featureBoardResult.error ? "https://supabase.com/dashboard/project/skjypuwkceoiunyhhqlm/sql/new" : "/admin/setup#feature_board", external: Boolean(featureBoardResult.error) },
+      action: { label: featureBoardReady ? "Open Feature Board" : featureBoardResult.error ? "Open Supabase SQL editor" : "Review backlog instructions", href: featureBoardReady ? "/admin/features" : featureBoardResult.error ? supabaseDashboard("/sql/new") : "/admin/setup#feature_board", external: Boolean(featureBoardResult.error) },
     },
     {
       id: "site_url",
@@ -174,7 +175,7 @@ export async function GET() {
       status: emailStudioReady ? "ready" : "action",
       required: false,
       keys: ["migrations/20260816-email-studio.sql"],
-      action: { label: emailStudioReady ? "Open Email Studio" : "Open Supabase SQL editor", href: emailStudioReady ? "/admin/emails" : "https://supabase.com/dashboard/project/skjypuwkceoiunyhhqlm/sql/new", external: !emailStudioReady },
+      action: { label: emailStudioReady ? "Open Email Studio" : "Open Supabase SQL editor", href: emailStudioReady ? "/admin/emails" : supabaseDashboard("/sql/new"), external: !emailStudioReady },
     },
     {
       id: "google_oauth",
@@ -253,7 +254,7 @@ export async function GET() {
       status: !contactImporterReady ? "action" : configured("OPENROUTER_API_KEY") ? "ready" : "degraded",
       required: false,
       keys: ["migrations/20260816-contact-importer.sql", "OPENROUTER_API_KEY"],
-      action: { label: contactImporterReady ? "Open Contact Import" : "Open Supabase SQL editor", href: contactImporterReady ? "/admin/contact-imports" : "https://supabase.com/dashboard/project/skjypuwkceoiunyhhqlm/sql/new", external: !contactImporterReady },
+      action: { label: contactImporterReady ? "Open Contact Import" : "Open Supabase SQL editor", href: contactImporterReady ? "/admin/contact-imports" : supabaseDashboard("/sql/new"), external: !contactImporterReady },
     },
     {
       id: "campaigns",
@@ -286,7 +287,7 @@ export async function GET() {
       status: firstPartyAnalyticsReady ? "ready" : "action",
       required: true,
       keys: ["migrations/20260816-first-party-analytics.sql"],
-      action: firstPartyAnalyticsReady ? { label: "Open Analytics", href: "/admin/analytics" } : { label: "Open Supabase SQL editor", href: "https://supabase.com/dashboard/project/skjypuwkceoiunyhhqlm/sql/new", external: true },
+      action: firstPartyAnalyticsReady ? { label: "Open Analytics", href: "/admin/analytics" } : { label: "Open Supabase SQL editor", href: supabaseDashboard("/sql/new"), external: true },
     },
     {
       id: "manual_booking",
