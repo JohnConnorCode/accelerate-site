@@ -21,6 +21,7 @@ import { createServiceRoleClient } from "../src/lib/supabase/server";
 
 const TEST_EMAIL_PREFIX = "revenue-os-verify";
 const keep = process.argv.includes("--keep");
+const cleanupOnly = process.argv.includes("--cleanup");
 
 const runId = randomUUID().slice(0, 8);
 const email = `${TEST_EMAIL_PREFIX}+${runId}@example.invalid`;
@@ -34,8 +35,40 @@ function check(label: string, condition: boolean, detail?: unknown) {
   return condition;
 }
 
+/**
+ * Remove every row this script can create, in foreign-key-safe order. Used both
+ * by the normal run and by --cleanup, which exists so a --keep run left in place
+ * for manual inspection can be torn down without hand-written SQL.
+ */
+async function purge(supabase: ReturnType<typeof createServiceRoleClient>, companyId?: string) {
+  const { data: opportunities } = await supabase.from("opportunities").select("id").like("email", `${TEST_EMAIL_PREFIX}%`);
+  for (const opportunity of opportunities ?? []) {
+    for (const table of ["tasks", "activities", "stage_events"]) {
+      const { error } = await supabase.from(table).delete().eq("opportunity_id", opportunity.id);
+      if (error) throw new Error(`cleanup ${table}: ${error.message}`);
+    }
+  }
+  for (const [table, column, pattern] of [["opportunities", "email", `${TEST_EMAIL_PREFIX}%`], ["contacts", "primary_email", `${TEST_EMAIL_PREFIX}%`]] as const) {
+    const { error } = await supabase.from(table).delete().like(column, pattern);
+    if (error) throw new Error(`cleanup ${table}: ${error.message}`);
+  }
+  const { error: companyError } = companyId
+    ? await supabase.from("companies").delete().eq("id", companyId)
+    : await supabase.from("companies").delete().ilike("name", "Verification Co %");
+  if (companyError) throw new Error(`cleanup companies: ${companyError.message}`);
+  await supabase.from("admin_notifications").delete().like("title", "Verification %");
+}
+
 async function main() {
   const supabase = createServiceRoleClient();
+
+  if (cleanupOnly) {
+    await purge(supabase);
+    const { data: leftover } = await supabase.from("contacts").select("id").like("primary_email", `${TEST_EMAIL_PREFIX}%`);
+    console.log(JSON.stringify({ mode: "cleanup", leftoverContacts: leftover?.length ?? 0, result: (leftover?.length ?? 0) === 0 ? "clean" : "incomplete" }, null, 2));
+    if (leftover?.length) process.exit(1);
+    return;
+  }
 
   // Refuse to touch a database where this reserved address already has history:
   // that would mean a previous run failed to clean up, and deleting now could
@@ -154,22 +187,9 @@ async function main() {
   check("the degraded-capture operator notification is accepted", !degradedNoticeError, degradedNoticeError?.message);
 
   // --- Cleanup -------------------------------------------------------------
-  let cleanup = "skipped (--keep)";
+  let cleanup = `skipped (--keep). Opportunity ${opportunityId} is left in place; run npm run verify:inbound-canonical -- --cleanup to remove it.`;
   if (!keep) {
-    // Child rows first: they carry foreign keys to the opportunity.
-    for (const table of ["tasks", "activities", "stage_events"]) {
-      const { error } = await supabase.from(table).delete().eq("opportunity_id", opportunityId);
-      if (error) throw new Error(`cleanup ${table}: ${error.message}`);
-    }
-    // Delete by the reserved prefix rather than by collected ids: identity
-    // resolution runs before the ambiguity check, so the failing probe leaves a
-    // contact behind that no id list would know about.
-    const { error: oppError } = await supabase.from("opportunities").delete().like("email", `${TEST_EMAIL_PREFIX}%`);
-    if (oppError) throw new Error(`cleanup opportunities: ${oppError.message}`);
-    const { error: contactError } = await supabase.from("contacts").delete().like("primary_email", `${TEST_EMAIL_PREFIX}%`);
-    if (contactError) throw new Error(`cleanup contacts: ${contactError.message}`);
-    const { error: companyError } = await supabase.from("companies").delete().eq("id", companyId);
-    if (companyError) throw new Error(`cleanup companies: ${companyError.message}`);
+    await purge(supabase, companyId);
     if (degradedNotice?.id) await supabase.from("admin_notifications").delete().eq("id", degradedNotice.id);
 
     const { count: strayOpportunities } = await supabase.from("opportunities").select("*", { count: "exact", head: true }).like("email", `${TEST_EMAIL_PREFIX}%`);
