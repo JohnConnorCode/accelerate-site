@@ -60,6 +60,10 @@ import { cn } from "@/lib/utils";
 
 interface BoardResponse { schemaReady: boolean; features: FeatureRequest[] }
 
+// Cards on the current milestone carry this label from the managed manifest
+// (scripts/feature-backlog-data.mjs). Everything else is labelled `horizon`.
+const DEFAULT_LABEL_FILTER = "loop-one";
+
 const priorityMeta: Record<FeaturePriority, { label: string; tone: string; dot: string }> = {
   urgent: { label: "Urgent", tone: "bg-rose-500/10 text-rose-700 dark:text-rose-300", dot: "bg-rose-500" },
   high: { label: "High", tone: "bg-orange-500/10 text-orange-700 dark:text-orange-300", dot: "bg-orange-500" },
@@ -253,7 +257,11 @@ export default function FeaturesPage() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [priority, setPriority] = useState<"all" | FeaturePriority>("all");
-  const [label, setLabel] = useState("all");
+  // The board opens on the active milestone rather than all 90+ managed cards.
+  // This is the ordinary label filter, not a hidden view, so the selection is
+  // visible in the dropdown, one click clears it, and the existing rule that
+  // disables reordering while cards are hidden still applies.
+  const [label, setLabel] = useState(DEFAULT_LABEL_FILTER);
   const [openFeature, setOpenFeature] = useState<FeatureRequest | null | undefined>(undefined);
   const [newStatus, setNewStatus] = useState<FeatureStatus>("backlog");
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -274,6 +282,10 @@ export default function FeaturesPage() {
 
   const features = useMemo(() => data?.features ?? [], [data?.features]);
   const labels = useMemo(() => [...new Set(features.flatMap((feature) => feature.labels))].sort(), [features]);
+  // Never open onto an empty board: if the milestone label is not in use, show everything.
+  useEffect(() => {
+    if (features.length && label === DEFAULT_LABEL_FILTER && !labels.includes(DEFAULT_LABEL_FILTER)) setLabel("all");
+  }, [features.length, label, labels]);
   const filtered = useMemo(() => features.filter((feature) => {
     if (priority !== "all" && feature.priority !== priority) return false;
     if (label !== "all" && !feature.labels.includes(label)) return false;
