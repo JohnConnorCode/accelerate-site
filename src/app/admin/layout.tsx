@@ -5,26 +5,18 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import {
-  Activity,
   ArrowUpRight,
-  BarChart3,
   ChevronDown,
   CheckSquare,
   Command,
-  DollarSign,
   Download,
-  FileCheck,
-  Inbox,
-  KanbanSquare,
-  LayoutDashboard,
-  ListChecks,
   LogOut,
   Mail,
   Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
   Plus,
   Search,
-  Settings,
-  Target,
   User,
   X,
 } from "lucide-react";
@@ -37,48 +29,13 @@ import { AdminErrorBoundary } from "@/components/admin/AdminErrorBoundary";
 import { AdminShortcuts } from "@/components/admin/AdminShortcuts";
 import { AdminCreateTaskModal } from "@/components/admin/AdminCreateTaskModal";
 import { EmailComposeModal } from "@/components/admin/EmailComposeModal";
-import { adminDialogTransition, adminPageVariants } from "@/lib/admin/motion";
-
-interface NavLink {
-  label: string;
-  href: string;
-  icon: LucideIcon;
-}
-
-const sidebarSections: { label: string; links: NavLink[] }[] = [
-  {
-    label: "Operate",
-    links: [
-      { label: "Today", href: "/admin/today", icon: LayoutDashboard },
-      { label: "Pipeline", href: "/admin/pipeline", icon: Target },
-      { label: "Conversations", href: "/admin/conversations", icon: Inbox },
-      { label: "Campaigns", href: "/admin/campaigns", icon: Mail },
-      { label: "Proposals", href: "/admin/proposals", icon: FileCheck },
-      { label: "Feature Board", href: "/admin/features", icon: KanbanSquare },
-    ],
-  },
-  {
-    label: "Measure",
-    links: [
-      { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
-      { label: "Revenue", href: "/admin/revenue", icon: DollarSign },
-      { label: "Activity", href: "/admin/activity", icon: Activity },
-    ],
-  },
-  {
-    label: "System",
-    links: [
-      { label: "Setup Center", href: "/admin/setup", icon: ListChecks },
-      { label: "Settings", href: "/admin/settings", icon: Settings },
-    ],
-  },
-];
-
-const allLinks: NavLink[] = sidebarSections.flatMap((section) => section.links);
+import { AdminDialog } from "@/components/admin/AdminDialog";
+import { adminPageVariants } from "@/lib/admin/motion";
+import { adminNavLinks, adminNavSections, type AdminNavLink } from "@/lib/admin/navigation";
 
 function getBreadcrumbs(pathname: string): { label: string; href: string }[] {
   const crumbs = [{ label: "Today", href: "/admin/today" }];
-  const active = allLinks.find(
+  const active = adminNavLinks.find(
     (link) => link.href !== "/admin/today" && pathname.startsWith(link.href),
   );
   if (active) crumbs.push({ label: active.label, href: active.href });
@@ -114,6 +71,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [searchPeople, setSearchPeople] = useState<SearchPerson[]>([]);
   const [searchingPeople, setSearchingPeople] = useState(false);
   const [composeOpen, setComposeOpen] = useState(false);
+  const [composeDraft, setComposeDraft] = useState({ subject: "", body: "" });
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const searchAbortRef = useRef<AbortController | null>(null);
@@ -181,7 +140,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => setMobileOpen(false), [pathname]);
 
   useEffect(() => {
-    const openComposer = () => setComposeOpen(true);
+    setSidebarCollapsed(window.localStorage.getItem("accelerate:admin-sidebar") === "collapsed");
+  }, []);
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed((current) => {
+      const next = !current;
+      window.localStorage.setItem("accelerate:admin-sidebar", next ? "collapsed" : "expanded");
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    const openComposer = (event: Event) => {
+      const detail = (event as CustomEvent<{ subject?: string; body?: string }>).detail;
+      setComposeDraft({ subject: detail?.subject || "", body: detail?.body || "" });
+      setComposeOpen(true);
+    };
     window.addEventListener("admin:compose-email", openComposer);
     return () => window.removeEventListener("admin:compose-email", openComposer);
   }, []);
@@ -219,7 +194,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       description: "Write a direct follow-up",
       keywords: "send reply follow up message",
       icon: Mail,
-      run: () => setComposeOpen(true),
+      run: () => { setComposeDraft({ subject: "", body: "" }); setComposeOpen(true); },
     },
     {
       label: "Add task",
@@ -246,8 +221,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const normalizedQuery = searchQuery.trim().toLowerCase();
   const filteredLinks = normalizedQuery
-    ? allLinks.filter((link) => link.label.toLowerCase().includes(normalizedQuery))
-    : allLinks.slice(0, 7);
+    ? adminNavLinks.filter((link) => `${link.label} ${link.description} ${link.keywords || ""}`.toLowerCase().includes(normalizedQuery))
+    : adminNavLinks.slice(0, 7);
   const filteredActions = normalizedQuery
     ? commandActions.filter((action) =>
         `${action.label} ${action.description} ${action.keywords}`.toLowerCase().includes(normalizedQuery),
@@ -258,9 +233,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <MotionConfig reducedMotion="user">
     <div className="admin-shell flex min-h-screen">
-      <aside className="admin-sidebar hidden w-[272px] shrink-0 lg:block" data-admin-sidebar>
+      <aside className={cn("admin-sidebar hidden shrink-0 transition-[width] duration-300 lg:block", sidebarCollapsed ? "w-[80px]" : "w-[272px]")} data-admin-sidebar>
         <div className="sticky top-0 flex h-screen flex-col px-4 py-5">
-          <SidebarContent isActive={isActive} onSignOut={handleSignOut} />
+          <SidebarContent isActive={isActive} onSignOut={handleSignOut} collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebar} />
         </div>
       </aside>
 
@@ -273,7 +248,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <button type="button" onClick={() => setSearchOpen(true)} className="inline-flex h-10 w-10 items-center justify-center rounded-[10px] text-white/60 transition-[color,background-color,transform] duration-150 hover:bg-white/8 hover:text-white active:scale-[0.96]" aria-label="Open command palette">
             <Search className="h-4.5 w-4.5" />
           </button>
-          <button type="button" onClick={() => setMobileOpen((current) => !current)} className="inline-flex h-10 w-10 items-center justify-center rounded-[10px] text-white/75 transition-[color,background-color,transform] duration-150 hover:bg-white/8 hover:text-white active:scale-[0.96]" aria-label={mobileOpen ? "Close navigation" : "Open navigation"} aria-expanded={mobileOpen}>
+          <button type="button" onClick={() => setMobileOpen((current) => !current)} className="inline-flex h-10 w-10 items-center justify-center rounded-[10px] text-white/75 transition-[color,background-color,transform] duration-150 hover:bg-white/8 hover:text-white active:scale-[0.96]" aria-label={mobileOpen ? "Navigation open" : "Open navigation"} aria-expanded={mobileOpen}>
             <AnimatePresence initial={false} mode="popLayout">
               <motion.span
                 key={mobileOpen ? "close" : "menu"}
@@ -292,7 +267,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <AnimatePresence initial={false}>
         {mobileOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
-            <motion.button type="button" aria-label="Close navigation" className="absolute inset-0 bg-black/55" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileOpen(false)} />
+            <motion.button type="button" aria-label="Dismiss navigation" className="absolute inset-0 bg-black/55" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileOpen(false)} />
+            <motion.button
+              type="button"
+              aria-label="Close navigation"
+              className="absolute right-3 top-3 z-10 grid size-11 place-items-center rounded-full bg-white text-black shadow-[0_8px_30px_rgba(0,0,0,0.28)] transition-transform active:scale-[0.94]"
+              initial={{ opacity: 0, scale: 0.88 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.88 }}
+              onClick={() => setMobileOpen(false)}
+            >
+              <X className="size-5" />
+            </motion.button>
             <motion.aside className="admin-sidebar absolute inset-y-0 left-0 flex w-[286px] flex-col px-4 py-5" initial={{ x: -286 }} animate={{ x: 0 }} exit={{ x: -286 }} transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}>
               <SidebarContent isActive={isActive} onSignOut={handleSignOut} onNavigate={() => setMobileOpen(false)} />
             </motion.aside>
@@ -335,15 +321,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </button>
           </div>
 
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div key={pathname} variants={adminPageVariants} initial="hidden" animate="visible" exit="exit">
-              <AdminErrorBoundary key={pathname}>{children}</AdminErrorBoundary>
-            </motion.div>
-          </AnimatePresence>
+          {/* New route content enters immediately. Waiting for an exiting tree
+              leaves the operating surface blank and makes navigation feel like
+              a reload; the surrounding shell intentionally remains mounted. */}
+          <motion.div key={pathname} variants={adminPageVariants} initial="hidden" animate="visible">
+            <AdminErrorBoundary key={pathname}>{children}</AdminErrorBoundary>
+          </motion.div>
         </div>
       </main>
 
-      <EmailComposeModal isOpen={composeOpen} onClose={() => setComposeOpen(false)} recipientEmail="" />
+      <EmailComposeModal isOpen={composeOpen} onClose={() => setComposeOpen(false)} recipientEmail="" initialSubject={composeDraft.subject} initialBody={composeDraft.body} />
       <AdminCreateTaskModal />
       <Toaster />
       <AdminShortcuts />
@@ -356,12 +343,16 @@ function SidebarContent({
   isActive,
   onSignOut,
   onNavigate,
+  collapsed = false,
+  onToggleCollapse,
 }: {
   isActive: (href: string) => boolean;
   onSignOut: () => Promise<void> | void;
   onNavigate?: () => void;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }) {
-  const activeSection = sidebarSections.find((section) =>
+  const activeSection = adminNavSections.find((section) =>
     section.links.some((link) => isActive(link.href)),
   )?.label;
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
@@ -376,22 +367,23 @@ function SidebarContent({
 
   return (
     <>
-      <div className="mb-6 flex items-start justify-between gap-3 px-2">
+      <div className={cn("mb-6 flex items-start gap-2", collapsed ? "flex-col items-center px-0" : "justify-between px-2")}>
         <Link href="/admin/today" onClick={onNavigate} className="group min-w-0">
-          <span className="block font-display text-lg font-semibold tracking-[-0.035em] text-white">Accelerate</span>
-          <span className="mt-0.5 block font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-white/38 group-hover:text-white/55">Revenue OS</span>
+          <span className="block font-display text-lg font-semibold tracking-[-0.035em] text-white">{collapsed ? "A" : "Accelerate"}</span>
+          {!collapsed && <span className="mt-0.5 block font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-white/38 group-hover:text-white/55">Revenue OS</span>}
         </Link>
-        <NotificationBell />
+        {!collapsed && <NotificationBell />}
+        {onToggleCollapse && <button type="button" onClick={onToggleCollapse} className="grid size-10 place-items-center rounded-[10px] text-white/42 transition-[background-color,color,transform] duration-150 hover:bg-white/7 hover:text-white active:scale-[0.96]" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}</button>}
       </div>
 
       <nav className="admin-nav-scroll flex-1 space-y-1.5 overflow-y-auto overscroll-contain" aria-label="Admin navigation">
-        {sidebarSections.map((section, sectionIndex) => (
+        {adminNavSections.map((section, sectionIndex) => (
           <motion.section key={section.label} initial={{ opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: sectionIndex * 0.055, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}>
             {(() => {
-              const expanded = section.label === activeSection || expandedSections.includes(section.label);
+              const expanded = collapsed || section.label === activeSection || expandedSections.includes(section.label);
               const panelId = `admin-nav-${section.label.toLowerCase()}`;
               return <>
-                <button
+                {!collapsed ? <button
                   type="button"
                   onClick={() => toggleSection(section.label)}
                   className="group flex min-h-10 w-full items-center justify-between rounded-[10px] px-2.5 text-left font-mono text-[9px] font-semibold uppercase tracking-[0.15em] text-white/38 transition-[background-color,color,transform] duration-150 hover:bg-white/[0.055] hover:text-white/70 active:scale-[0.96]"
@@ -400,7 +392,7 @@ function SidebarContent({
                 >
                   <span>{section.label}</span>
                   <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-200", expanded && "rotate-180")} />
-                </button>
+                </button> : <div className="mx-2 my-2 h-px bg-white/8" aria-hidden="true" />}
                 <AnimatePresence initial={false}>
                   {expanded && (
                     <motion.div
@@ -415,9 +407,9 @@ function SidebarContent({
                         {section.links.map((link) => {
                 const active = isActive(link.href);
                 return (
-                  <Link key={link.href} href={link.href} onClick={onNavigate} className={cn("group relative flex min-h-10 items-center gap-3 rounded-[10px] px-2.5 text-[13px] transition-[color,background-color,transform] duration-150 active:scale-[0.96]", active ? "bg-white text-black shadow-[0_1px_2px_rgba(0,0,0,0.18)]" : "text-white/58 hover:bg-white/7 hover:text-white")} aria-current={active ? "page" : undefined}>
+                  <Link key={link.href} href={link.href} onClick={onNavigate} title={collapsed ? link.label : undefined} className={cn("group relative flex min-h-10 items-center rounded-[10px] text-[13px] transition-[color,background-color,transform] duration-150 active:scale-[0.96]", collapsed ? "justify-center px-0" : "gap-3 px-2.5", active ? "bg-white text-black shadow-[0_1px_2px_rgba(0,0,0,0.18)]" : "text-white/58 hover:bg-white/7 hover:text-white")} aria-current={active ? "page" : undefined}>
                     <link.icon className={cn("h-4 w-4 shrink-0 transition-colors duration-150", active ? "text-black" : "text-white/38 group-hover:text-white/75")} />
-                    <span className="min-w-0 truncate">{link.label}</span>
+                    {!collapsed && <span className="min-w-0 truncate">{link.label}</span>}
                     {active && <motion.span layoutId="admin-nav-active" className="absolute inset-y-2 -left-4 w-0.5 rounded-r bg-white" transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }} />}
                   </Link>
                 );
@@ -433,11 +425,11 @@ function SidebarContent({
       </nav>
 
       <div className="mt-4 border-t border-white/10 pt-3">
-        <Link href="/" target="_blank" onClick={onNavigate} className="flex min-h-10 items-center gap-3 rounded-[10px] px-2.5 text-xs text-white/42 transition-[color,background-color,transform] duration-150 hover:bg-white/7 hover:text-white active:scale-[0.96]">
-          <ArrowUpRight className="h-4 w-4" /> View live site
+        <Link href="/" target="_blank" onClick={onNavigate} title={collapsed ? "View live site" : undefined} className={cn("flex min-h-10 items-center rounded-[10px] text-xs text-white/42 transition-[color,background-color,transform] duration-150 hover:bg-white/7 hover:text-white active:scale-[0.96]", collapsed ? "justify-center" : "gap-3 px-2.5")}>
+          <ArrowUpRight className="h-4 w-4" /> {!collapsed && "View live site"}
         </Link>
-        <button type="button" onClick={async () => { onNavigate?.(); await onSignOut(); }} className="flex min-h-10 w-full items-center gap-3 rounded-[10px] px-2.5 text-xs text-white/42 transition-[color,background-color,transform] duration-150 hover:bg-white/7 hover:text-white active:scale-[0.96]">
-          <LogOut className="h-4 w-4" /> Sign out
+        <button type="button" onClick={async () => { onNavigate?.(); await onSignOut(); }} title={collapsed ? "Sign out" : undefined} className={cn("flex min-h-10 w-full items-center rounded-[10px] text-xs text-white/42 transition-[color,background-color,transform] duration-150 hover:bg-white/7 hover:text-white active:scale-[0.96]", collapsed ? "justify-center" : "gap-3 px-2.5")}>
+          <LogOut className="h-4 w-4" /> {!collapsed && "Sign out"}
         </button>
       </div>
     </>
@@ -463,7 +455,7 @@ function CmdKSearch({
   query: string;
   onQueryChange: (query: string) => void;
   actions: CommandAction[];
-  pageResults: NavLink[];
+  pageResults: AdminNavLink[];
   peopleResults: SearchPerson[];
   searchingPeople: boolean;
   onSelectPage: (href: string) => void;
@@ -496,11 +488,8 @@ function CmdKSearch({
   };
 
   return (
-    <AnimatePresence initial={false}>
-      {open && (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[12vh] sm:pt-[18vh]" role="dialog" aria-modal="true" aria-label="Admin command palette">
-          <motion.button type="button" aria-label="Close command palette" className="absolute inset-0 bg-black/55" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={adminDialogTransition} onClick={onClose} />
-          <motion.div className="relative w-full max-w-xl overflow-hidden rounded-[18px] bg-[#fbfbfa] text-[#0b0b0b] shadow-[0_30px_90px_-25px_rgba(0,0,0,0.58)]" initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8, scale: 0.98 }} transition={adminDialogTransition}>
+    <AdminDialog open={open} onClose={onClose} title="Admin command palette" ariaLabel="Admin command palette" align="top" maxWidth="lg">
+          <div className="relative w-full max-w-xl overflow-hidden rounded-[18px] bg-[#fbfbfa] text-[#0b0b0b] shadow-[0_30px_90px_-25px_rgba(0,0,0,0.58)]">
             <div className="flex min-h-14 items-center gap-3 border-b border-black/8 px-4">
               <Search className="h-4 w-4 shrink-0 text-black/38" />
               <input ref={inputRef} value={query} onChange={(event) => { setSelectedIndex(0); onQueryChange(event.target.value); }} onKeyDown={(event) => {
@@ -519,7 +508,7 @@ function CmdKSearch({
               {pageResults.length > 0 && <ResultSection label="Pages">
                 {pageResults.map((page, index) => {
                   const itemIndex = actions.length + index;
-                  return <CommandRow key={page.href} icon={page.icon} label={page.label} description="Open admin page" selected={selectedIndex === itemIndex} onClick={() => onSelectPage(page.href)} />;
+                  return <CommandRow key={page.href} icon={page.icon} label={page.label} description={page.description} selected={selectedIndex === itemIndex} onClick={() => onSelectPage(page.href)} />;
                 })}
               </ResultSection>}
               {peopleResults.length > 0 && <ResultSection label="People">
@@ -535,10 +524,8 @@ function CmdKSearch({
               <span className="flex items-center gap-1.5"><Command className="h-3 w-3" /> Command Center</span>
               <span>↑↓ navigate · ↵ open</span>
             </div>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+          </div>
+    </AdminDialog>
   );
 }
 

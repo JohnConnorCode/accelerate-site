@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { cancelScheduledSequences } from "@/lib/email/sequences";
 import { scheduleAuditPrepEmail } from "@/lib/email/booking";
+import { rateLimit } from "@/lib/rate-limit";
+import { transitionOpportunity } from "@/lib/revenue-os/pipeline";
 
 interface CalendlyWebhookPayload {
   event?: "invitee.created" | "invitee.canceled";
@@ -43,11 +45,25 @@ function signatureMatches(raw: string, supplied: string, secret: string): boolea
   return values.some((candidate) => candidate.length === digest.length && timingSafeEqual(candidate, digest));
 }
 
+const MAX_CALENDLY_WEBHOOK_PAYLOAD_BYTES = 100_000;
+const CALENDLY_WEBHOOK_RATE_LIMIT_PER_MIN = 120;
+const CALENDLY_WEBHOOK_RATE_WINDOW_MS = 60_000;
+
 export async function POST(request: NextRequest) {
   const secret = process.env.CALENDLY_WEBHOOK_SECRET;
   if (!secret) return NextResponse.json({ error: "Webhook is not configured" }, { status: 503 });
 
   const raw = await request.text();
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (!rateLimit(`calendly-webhook:${ip}`, CALENDLY_WEBHOOK_RATE_LIMIT_PER_MIN, CALENDLY_WEBHOOK_RATE_WINDOW_MS).success) {
+    return NextResponse.json({ error: "Webhook rate limit exceeded" }, { status: 429 });
+  }
+
+  const payloadBytes = Buffer.byteLength(raw, "utf8");
+  if (payloadBytes > MAX_CALENDLY_WEBHOOK_PAYLOAD_BYTES) {
+    return NextResponse.json({ error: "Webhook payload too large" }, { status: 413 });
+  }
+
   const querySecret = new URL(request.url).searchParams.get("secret");
   const signature = request.headers.get("x-calendly-webhook-signature") || request.headers.get("calendly-webhook-signature");
   const authorized = querySecret === secret || Boolean(signature && signatureMatches(raw, signature, secret));
@@ -96,8 +112,21 @@ export async function POST(request: NextRequest) {
 
   if (body.event === "invitee.created") {
     const scheduledAt = body.payload.scheduled_event?.start_time || null;
+    try {
+      await transitionOpportunity(supabase, {
+        id: opportunity.id,
+        to: "booked",
+        actorEmail: "calendly",
+        source: "calendly_webhook",
+        reason: "Calendly booking created",
+      });
+    } catch (error) {
+      return NextResponse.json({
+        error: error instanceof Error ? error.message : "Calendar transition blocked by pipeline state",
+      }, { status: 409 });
+    }
+
     const { error } = await supabase.from("opportunities").update({
-      stage: "booked",
       calendly_invitee_uri: body.payload.uri,
       calendly_event_uri: body.payload.scheduled_event?.uri || body.payload.event || null,
       scheduled_at: scheduledAt,
@@ -112,13 +141,6 @@ export async function POST(request: NextRequest) {
     if (error) return NextResponse.json({ error: "Booking could not be stored" }, { status: 500 });
 
     await Promise.all([
-      supabase.from("opportunity_stage_events").insert({
-        opportunity_id: opportunity.id,
-        from_stage: opportunity.stage,
-        to_stage: "booked",
-        source: "calendly_webhook",
-        metadata: { invitee_uri: body.payload.uri, scheduled_at: scheduledAt },
-      }),
       supabase.from("admin_notifications").insert({
         type: "new_lead",
         title: "Roofing revenue audit booked",
@@ -145,24 +167,25 @@ export async function POST(request: NextRequest) {
     // clear the current booking if this cancellation still points at it.
     const isCurrentInvitee = !opportunity.calendly_invitee_uri || opportunity.calendly_invitee_uri === body.payload.uri;
     if (isCurrentInvitee) {
+      try {
+        await transitionOpportunity(supabase, {
+          id: opportunity.id,
+          to: "qualified",
+          actorEmail: "calendly",
+          source: "calendly_webhook",
+          reason: "Calendly invitee canceled",
+        });
+      } catch (error) {
+        return NextResponse.json({
+          error: error instanceof Error ? error.message : "Calendar transition blocked by pipeline state",
+        }, { status: 409 });
+      }
+
       const { error } = await supabase.from("opportunities").update({
-        stage: "qualified",
         canceled_at: body.created_at || new Date().toISOString(),
         scheduled_at: null,
       }).eq("id", opportunity.id).eq("calendly_invitee_uri", body.payload.uri);
       if (error) return NextResponse.json({ error: "Cancellation could not be stored" }, { status: 500 });
-
-      await supabase.from("opportunity_stage_events").insert({
-        opportunity_id: opportunity.id,
-        from_stage: opportunity.stage,
-        to_stage: "qualified",
-        source: "calendly_webhook",
-        metadata: {
-          rescheduled: Boolean(body.payload.rescheduled),
-          canceled_by: body.payload.cancellation?.canceled_by || null,
-          reason: body.payload.cancellation?.reason || null,
-        },
-      });
     }
   }
 

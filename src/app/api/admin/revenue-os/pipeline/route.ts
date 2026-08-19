@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import { resolveOrCreateIdentity } from "@/lib/revenue-os/identity";
 import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
-import { canonicalStage, transitionOpportunity } from "@/lib/revenue-os/pipeline";
+import { canonicalStage, createOpportunity, transitionOpportunity, transitionStatusFromError, updateOpportunityDetails } from "@/lib/revenue-os/pipeline";
 import { REVENUE_STAGES, type RevenueStage } from "@/lib/revenue-os/types";
-import { recordAudit } from "@/lib/revenue-os/audit";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
@@ -47,29 +45,19 @@ export async function POST(request: NextRequest) {
   if (!name || !email) return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
   const supabase = createServiceRoleClient();
   try {
-    const identity = await resolveOrCreateIdentity(supabase, {
+    const data = await createOpportunity(supabase, {
+      actorEmail: auth.user.email || "founder",
       name,
       email,
       phone: typeof body.phone === "string" ? body.phone : null,
       companyName: typeof body.companyName === "string" ? body.companyName : null,
       website: typeof body.website === "string" ? body.website : null,
       industry: typeof body.industry === "string" ? body.industry : null,
-      source: "manual",
+      opportunityName: typeof body.opportunityName === "string" ? body.opportunityName : null,
+      estimatedValue: Number.isFinite(Number(body.estimatedValue)) ? Number(body.estimatedValue) : null,
+      nextAction: typeof body.nextAction === "string" ? body.nextAction : null,
+      nextActionAt: typeof body.nextActionAt === "string" ? body.nextActionAt : null,
     });
-    const { data, error } = await supabase.from("opportunities").insert({
-      name: typeof body.opportunityName === "string" && body.opportunityName.trim() ? body.opportunityName.trim() : identity.company.name,
-      contact_id: identity.contact.id,
-      company_id: identity.company.id,
-      email,
-      stage: "new",
-      source: "manual",
-      estimated_value: Math.max(0, Number(body.estimatedValue) || 0),
-      next_action: typeof body.nextAction === "string" ? body.nextAction : null,
-      next_action_at: typeof body.nextActionAt === "string" ? body.nextActionAt : null,
-      owner_email: auth.user.email,
-    }).select("*").single();
-    if (error) throw new Error(error.message);
-    await recordAudit(supabase, { actorEmail: auth.user.email, action: "opportunity.created", entityType: "opportunity", entityId: data.id, after: data });
     return NextResponse.json({ opportunity: data }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Could not create the opportunity" }, { status: 400 });
@@ -86,25 +74,25 @@ export async function PATCH(request: NextRequest) {
   try {
     if (typeof body.stage === "string") {
       if (!REVENUE_STAGES.includes(body.stage as RevenueStage)) return NextResponse.json({ error: "Invalid pipeline stage" }, { status: 400 });
-      const data = await transitionOpportunity(supabase, {
-        id,
-        to: body.stage as RevenueStage,
-        actorEmail: auth.user.email || "founder",
-        reason: typeof body.reason === "string" ? body.reason : undefined,
-        lossReason: typeof body.lossReason === "string" ? body.lossReason : undefined,
-      });
-      return NextResponse.json({ opportunity: data });
+      try {
+        const data = await transitionOpportunity(supabase, {
+          id,
+          to: body.stage as RevenueStage,
+          actorEmail: auth.user.email || "founder",
+          reason: typeof body.reason === "string" ? body.reason : undefined,
+          lossReason: typeof body.lossReason === "string" ? body.lossReason : undefined,
+        });
+        return NextResponse.json({ opportunity: data });
+      } catch (error) {
+        return NextResponse.json({ error: error instanceof Error ? error.message : "Could not update the opportunity" }, { status: transitionStatusFromError(error) });
+      }
     }
 
-    const allowed: Record<string, unknown> = {};
-    if (typeof body.nextAction === "string" || body.nextAction === null) allowed.next_action = body.nextAction;
-    if (typeof body.nextActionAt === "string" || body.nextActionAt === null) allowed.next_action_at = body.nextActionAt;
-    if (Number.isFinite(Number(body.estimatedValue))) allowed.estimated_value = Math.max(0, Number(body.estimatedValue));
-    if (!Object.keys(allowed).length) return NextResponse.json({ error: "No valid updates supplied" }, { status: 400 });
-    const { data: before } = await supabase.from("opportunities").select("*").eq("id", id).maybeSingle();
-    const { data, error } = await supabase.from("opportunities").update(allowed).eq("id", id).select("*").single();
-    if (error) throw new Error(error.message);
-    await recordAudit(supabase, { actorEmail: auth.user.email, action: "opportunity.updated", entityType: "opportunity", entityId: id, before, after: data });
+    const detailInput: { id: string; actorEmail: string; nextAction?: string | null; nextActionAt?: string | null; estimatedValue?: number | null } = { id, actorEmail: auth.user.email || "founder" };
+    if (typeof body.nextAction === "string" || body.nextAction === null) detailInput.nextAction = body.nextAction;
+    if (typeof body.nextActionAt === "string" || body.nextActionAt === null) detailInput.nextActionAt = body.nextActionAt;
+    if (Number.isFinite(Number(body.estimatedValue))) detailInput.estimatedValue = Number(body.estimatedValue);
+    const data = await updateOpportunityDetails(supabase, detailInput);
     return NextResponse.json({ opportunity: data });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Could not update the opportunity" }, { status: 400 });

@@ -3,9 +3,17 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import type { SetupCapability } from "@/lib/revenue-os/types";
 import { GOOGLE_SCOPES } from "@/lib/revenue-os/google";
+import { isGoogleTokenEncryptionKeyConfigured } from "@/lib/revenue-os/encryption";
+import {
+  REVENUE_SCHEMA_CONTRACT_VERSION,
+  type SchemaVerificationRun,
+  computeSchemaCenterStatus,
+  verifyRevenueSchemaDataAccess,
+} from "@/lib/revenue-os/schema-contract";
 
 interface SourceRunRow { source_key: string; status: string; summary: unknown; error: string | null; finished_at: string | null }
 interface JobRunRow { job_key: string; status: string; summary: unknown; error: string | null; finished_at: string | null; claimed_at: string }
+const MANAGED_FEATURE_BACKLOG_COUNT = 90;
 
 function configured(...keys: string[]) {
   return keys.every((key) => Boolean(process.env[key]?.trim()));
@@ -15,29 +23,53 @@ export async function GET() {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
   const supabase = createServiceRoleClient();
-  const calendlyEnabled = process.env.CALENDLY_ENABLED === "true";
+  // Keep Setup Center truthful with the public qualified-lead flow: Calendly is
+  // active by default and only turns off during an explicit emergency pause.
+  const calendlyEnabled = process.env.CALENDLY_ENABLED !== "false";
   const supabaseConfigured = configured("NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY");
-  const googleConfigured = configured("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET") && Boolean(process.env.GOOGLE_TOKEN_ENCRYPTION_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY);
+  const googleConfigured = configured("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET") && isGoogleTokenEncryptionKeyConfigured();
 
-  const [schemaResult, featureBoardResult, googleResult, sourceRunsResult, jobRunsResult, proposalResult] = supabaseConfigured
+  const runtimeSchema = supabaseConfigured
+    ? await verifyRevenueSchemaDataAccess(supabase)
+    : { status: "connectivity_failure" as const, issues: [], checkedAt: new Date().toISOString() };
+  const [featureBoardResult, googleResult, sourceRunsResult, jobRunsResult, proposalResult, analyticsResult, emailStudioResult, contactImporterResult, schemaVerificationResult] = supabaseConfigured
     ? await Promise.all([
-        supabase.from("action_queue").select("id", { count: "exact", head: true }).limit(1),
-        supabase.from("feature_requests").select("id", { count: "exact", head: true }).limit(1),
+        supabase.from("feature_requests").select("id", { count: "exact" }).eq("source", "revenue-os-master-plan").is("archived_at", null).limit(1),
         supabase.from("integration_connections").select("account_email,status,scopes,last_success_at,last_error,settings").eq("provider", "google").maybeSingle(),
         supabase.from("source_runs").select("source_key,status,summary,error,finished_at").order("started_at", { ascending: false }).limit(40),
         supabase.from("job_runs").select("job_key,status,summary,error,finished_at,claimed_at").order("claimed_at", { ascending: false }).limit(40),
-        supabase.from("proposals").select("id", { count: "exact", head: true }).limit(1),
+        supabase.from("proposals").select("id").limit(1),
+        supabase.from("website_events").select("id").limit(1),
+        supabase.from("email_template_versions").select("id", { count: "exact" }).limit(1),
+        supabase.from("contact_import_batches").select("id,status,review_digest,approval_digest,ai_provider", { count: "exact" }).limit(1),
+        supabase.from("schema_verification_runs").select("contract_version,status,failure_detail,checked_at").order("checked_at", { ascending: false }).limit(1).maybeSingle(),
       ])
     : [
+        { error: new Error("Supabase is not configured"), count: null },
         { error: new Error("Supabase is not configured"), count: null },
         { error: new Error("Supabase is not configured"), count: null },
         { data: null, error: null },
         { data: [], error: null },
         { data: [], error: null },
         { error: new Error("Supabase is not configured"), count: null },
+        { error: new Error("Supabase is not configured"), count: null },
+        { error: new Error("Supabase is not configured"), data: null },
       ];
 
-  const schemaReady = !schemaResult.error;
+  const latestSchemaVerification = schemaVerificationResult.data as SchemaVerificationRun | null;
+  const schemaCenter = computeSchemaCenterStatus({
+    runtimeStatus: runtimeSchema.status,
+    latestVerification: latestSchemaVerification
+      ? latestSchemaVerification.contract_version === REVENUE_SCHEMA_CONTRACT_VERSION && latestSchemaVerification.status === "success"
+        ? latestSchemaVerification
+        : null
+      : null,
+  });
+  const schemaReady = schemaCenter.ready;
+  const firstPartyAnalyticsReady = !analyticsResult.error;
+  const emailStudioReady = !emailStudioResult.error;
+  const contactImporterReady = !contactImporterResult.error;
+  const featureBoardReady = !featureBoardResult.error && (featureBoardResult.count ?? 0) >= MANAGED_FEATURE_BACKLOG_COUNT;
   const google = googleResult.data;
   const scopes: string[] = google?.scopes ?? [];
   const requiredGoogleScopes = GOOGLE_SCOPES.filter((scope) => !["openid", "email"].includes(scope));
@@ -64,12 +96,21 @@ export async function GET() {
       id: "schema",
       group: "core",
       label: "Revenue OS schema",
-      description: schemaReady ? "Canonical pipeline and operating ledgers are available." : "Apply migrations/20260816-revenue-os.sql after the existing migrations.",
+      description: schemaReady
+        ? `Contract ${REVENUE_SCHEMA_CONTRACT_VERSION} is live and metadata-verified across tables, columns, constraints, indexes, functions, and access policies.`
+        : runtimeSchema.status === "connectivity_failure"
+          ? "The runtime database connection could not be verified. Check Supabase credentials and retry."
+          : runtimeSchema.status === "unapplied_migration"
+            ? "A required migration is not applied. Run the ordered agent-owned migration command, then record a fresh schema verification."
+            : latestSchemaVerification?.status === "drift"
+              ? "The last metadata verification found incompatible database drift. Review its receipt before shipping."
+              : "The runtime schema is reachable but has no current full metadata-verification receipt. Run the read-only verifier and record it.",
       accomplishes: "Replaces split lead and booking silos with one auditable revenue model.",
-      status: schemaReady ? "ready" : "action",
+      status: schemaCenter.status,
       required: true,
-      keys: ["migrations/20260816-revenue-os.sql"],
-      action: { label: "Open Supabase SQL editor", href: "https://supabase.com/dashboard/project/skjypuwkceoiunyhhqlm/sql/new", external: true },
+      keys: ["migrations/20260816-revenue-os.sql", "migrations/20260817-schema-verification.sql", "npm run db:verify-schema -- --record"],
+      lastSuccessAt: latestSchemaVerification?.status === "success" ? latestSchemaVerification.checked_at : null,
+      lastFailure: schemaCenter.ready ? null : (latestSchemaVerification?.failure_detail ?? runtimeSchema.issues[0]?.message ?? schemaCenter.reason),
     },
     {
       id: "founder_access",
@@ -85,12 +126,12 @@ export async function GET() {
       id: "feature_board",
       group: "operations",
       label: "Feature Board roadmap",
-      description: !featureBoardResult.error ? "The prioritized internal roadmap is available and keeps drag order durably." : "Apply migrations/20260816-feature-board.sql after the Revenue OS migration.",
+      description: featureBoardReady ? `${featureBoardResult.count} agent-ready Revenue OS work items are loaded and ordered.` : !featureBoardResult.error ? `${featureBoardResult.count ?? 0} of ${MANAGED_FEATURE_BACKLOG_COUNT} managed work items are loaded. Run npm run seed:features -- --apply.` : "Apply migrations/20260816-feature-board.sql, then seed the managed backlog.",
       accomplishes: "Turns upcoming work into one owned, labeled, prioritized delivery queue instead of scattered notes.",
-      status: !featureBoardResult.error ? "ready" : "action",
+      status: featureBoardReady ? "ready" : "action",
       required: false,
-      keys: ["migrations/20260816-feature-board.sql"],
-      action: { label: !featureBoardResult.error ? "Open Feature Board" : "Open Supabase SQL editor", href: !featureBoardResult.error ? "/admin/features" : "https://supabase.com/dashboard/project/skjypuwkceoiunyhhqlm/sql/new", external: Boolean(featureBoardResult.error) },
+      keys: ["migrations/20260816-feature-board.sql", "npm run seed:features -- --apply"],
+      action: { label: featureBoardReady ? "Open Feature Board" : featureBoardResult.error ? "Open Supabase SQL editor" : "Review backlog instructions", href: featureBoardReady ? "/admin/features" : featureBoardResult.error ? "https://supabase.com/dashboard/project/skjypuwkceoiunyhhqlm/sql/new" : "/admin/setup#feature_board", external: Boolean(featureBoardResult.error) },
     },
     {
       id: "site_url",
@@ -112,6 +153,28 @@ export async function GET() {
       required: true,
       keys: ["RESEND_API_KEY", "RESEND_FROM_EMAIL"],
       action: { label: "Open Resend domains", href: "https://resend.com/domains", external: true },
+    },
+    {
+      id: "resend_webhooks",
+      group: "email",
+      label: "Resend delivery feedback",
+      description: configured("RESEND_WEBHOOK_SECRET") ? "Signed Resend delivery, bounce, complaint, and engagement receipts can update the canonical message and suppression ledger." : "Add a signed Resend webhook for /api/webhooks/resend, then save its secret as RESEND_WEBHOOK_SECRET.",
+      accomplishes: "Turns real delivery failures and spam complaints into immediate campaign suppression instead of assuming every API acceptance reached an inbox.",
+      status: configured("RESEND_WEBHOOK_SECRET") ? "ready" : "action",
+      required: false,
+      keys: ["RESEND_WEBHOOK_SECRET", "/api/webhooks/resend"],
+      action: { label: "Open Resend webhooks", href: "https://resend.com/webhooks", external: true },
+    },
+    {
+      id: "email_studio",
+      group: "email",
+      label: "Email Studio publishing",
+      description: emailStudioReady ? `${emailStudioResult.count ?? 0} editable email revision${emailStudioResult.count === 1 ? " is" : "s are"} stored. Built-in copy remains the fallback.` : "Apply the Email Studio migration to edit, test, and publish the copy used by real sends.",
+      accomplishes: "Provides safe draft/live email editing, rendered previews, founder-only test sends, and an auditable revision history without another provider key.",
+      status: emailStudioReady ? "ready" : "action",
+      required: false,
+      keys: ["migrations/20260816-email-studio.sql"],
+      action: { label: emailStudioReady ? "Open Email Studio" : "Open Supabase SQL editor", href: emailStudioReady ? "/admin/emails" : "https://supabase.com/dashboard/project/skjypuwkceoiunyhhqlm/sql/new", external: !emailStudioReady },
     },
     {
       id: "google_oauth",
@@ -173,12 +236,24 @@ export async function GET() {
     {
       id: "ai",
       group: "ai",
-      label: "Revenue copilot",
-      description: configured("ANTHROPIC_API_KEY") ? "The command agent can read live records and stage approved actions." : "Add ANTHROPIC_API_KEY to enable the Revenue copilot.",
-      accomplishes: "Researches, prioritizes, drafts, summarizes, and proposes actions without bypassing confirmation gates.",
-      status: configured("ANTHROPIC_API_KEY") ? "ready" : "action",
+      label: "OpenRouter intelligence gateway",
+      description: configured("OPENROUTER_API_KEY") ? `All AI workflows use OpenRouter${process.env.OPENROUTER_MODEL ? ` with ${process.env.OPENROUTER_MODEL}` : " with the documented default model"}.` : "Add one OpenRouter API key to activate every AI workflow.",
+      accomplishes: "Runs contact cleanup, Revenue Copilot, website chat, plan generation, insights, briefs, and drafts through one governed provider gateway.",
+      status: configured("OPENROUTER_API_KEY") ? "ready" : "action",
       required: false,
-      keys: ["ANTHROPIC_API_KEY"],
+      keys: ["OPENROUTER_API_KEY", "OPENROUTER_MODEL (optional)"],
+      action: { label: configured("OPENROUTER_API_KEY") ? "Open AI Operations" : "Create OpenRouter key", href: configured("OPENROUTER_API_KEY") ? "/admin/ai-operations" : "https://openrouter.ai/settings/keys", external: !configured("OPENROUTER_API_KEY") },
+    },
+    {
+      id: "contact_importer",
+      group: "ai",
+      label: "Approval-gated Contact Import",
+      description: !contactImporterReady ? "Apply the Contact Import migration." : configured("OPENROUTER_API_KEY") ? `${contactImporterResult.count ?? 0} import batch${contactImporterResult.count === 1 ? " is" : "es are"} stored with review and execution receipts.` : "The import ledger is ready; OpenRouter is still needed for cleanup and mapping.",
+      accomplishes: "Cleans pasted lists, CSV, TSV, JSON, and notes into reviewed canonical contacts without sending messages or creating opportunities.",
+      status: !contactImporterReady ? "action" : configured("OPENROUTER_API_KEY") ? "ready" : "degraded",
+      required: false,
+      keys: ["migrations/20260816-contact-importer.sql", "OPENROUTER_API_KEY"],
+      action: { label: contactImporterReady ? "Open Contact Import" : "Open Supabase SQL editor", href: contactImporterReady ? "/admin/contact-imports" : "https://supabase.com/dashboard/project/skjypuwkceoiunyhhqlm/sql/new", external: !contactImporterReady },
     },
     {
       id: "campaigns",
@@ -203,23 +278,23 @@ export async function GET() {
       keys: ["NEXT_PUBLIC_SITE_URL"],
     },
     {
-      id: "plausible",
+      id: "first_party_analytics",
       group: "analytics",
-      label: "Plausible attribution",
-      description: configured("NEXT_PUBLIC_PLAUSIBLE_DOMAIN", "PLAUSIBLE_API_KEY") ? "Funnel events and admin reports can use Plausible." : "Add the domain and server-side Stats API key.",
-      accomplishes: "Measures the path from campaign or page visit through qualified opportunity and revenue.",
-      status: configured("NEXT_PUBLIC_PLAUSIBLE_DOMAIN", "PLAUSIBLE_API_KEY") ? "ready" : "action",
+      label: "First-party website analytics",
+      description: firstPartyAnalyticsReady ? "Page views and conversion events are captured by this site and reported beside canonical revenue—no analytics vendor account or API key required." : "Apply migrations/20260816-first-party-analytics.sql to enable turn-key website measurement.",
+      accomplishes: "Measures the path from page visit and conversion signal through qualified opportunity and revenue without a third-party analytics dependency.",
+      status: firstPartyAnalyticsReady ? "ready" : "action",
       required: true,
-      keys: ["NEXT_PUBLIC_PLAUSIBLE_DOMAIN", "PLAUSIBLE_API_KEY"],
-      action: { label: "Open Plausible API keys", href: "https://plausible.io/settings/api-keys", external: true },
+      keys: ["migrations/20260816-first-party-analytics.sql"],
+      action: firstPartyAnalyticsReady ? { label: "Open Analytics", href: "/admin/analytics" } : { label: "Open Supabase SQL editor", href: "https://supabase.com/dashboard/project/skjypuwkceoiunyhhqlm/sql/new", external: true },
     },
     {
       id: "manual_booking",
       group: "booking",
-      label: calendlyEnabled ? "Calendly booking mode" : "Manual scheduling mode",
-      description: calendlyEnabled ? "Qualified opportunities may self-book through Calendly." : "Calendly is off. The founder reviews opportunities and schedules through direct email or Google Calendar.",
+      label: calendlyEnabled ? "Public Calendly booking" : "Manual scheduling mode",
+      description: calendlyEnabled ? "The public contact page embeds the configured free Calendly event for self-booking. API attribution is tracked separately." : "Calendly is off. The founder reviews opportunities and schedules through direct email or Google Calendar.",
       accomplishes: "Keeps calendar activation optional without blocking the revenue workflow.",
-      status: calendlyEnabled ? configured("CALENDLY_PERSONAL_ACCESS_TOKEN", "CALENDLY_WEBHOOK_SECRET") ? "ready" : "degraded" : "ready",
+      status: "ready",
       required: false,
       keys: ["CALENDLY_ENABLED"],
     },
@@ -227,7 +302,7 @@ export async function GET() {
       id: "calendly",
       group: "booking",
       label: "Calendly attribution",
-      description: calendlyEnabled ? "Webhook credentials must remain valid." : "Optional and intentionally disabled until self-booking is activated.",
+      description: calendlyEnabled ? "Public booking is active; Calendly API/webhook credentials are optional and required only for automatic booking and cancellation attribution." : "Optional and intentionally disabled until self-booking is activated.",
       accomplishes: "Adds self-booking and cancellation attribution through the canonical opportunity service.",
       status: calendlyEnabled ? configured("CALENDLY_PERSONAL_ACCESS_TOKEN", "CALENDLY_WEBHOOK_SECRET") ? "ready" : "action" : "disabled",
       required: false,

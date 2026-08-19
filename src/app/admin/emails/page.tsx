@@ -1,180 +1,212 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Copy, Mail } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  ArrowLeft,
+  Check,
+  Edit3,
+  Eye,
+  History,
+  Loader2,
+  Mail,
+  Monitor,
+  RefreshCw,
+  RotateCcw,
+  Save,
+  Search,
+  Send,
+  Smartphone,
+  TestTube2,
+  TriangleAlert,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { PageHeader } from "@/components/admin/PageHeader";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { AdminSurface } from "@/components/admin/AdminSurface";
+import { AdminDialog } from "@/components/admin/AdminDialog";
+import { fetchJson } from "@/lib/admin/fetchJson";
+import { toast } from "@/lib/admin/useToast";
 import { cn } from "@/lib/utils";
 
 interface EmailEntry {
   id: string;
   name: string;
+  description: string;
   category: string;
   subject: string;
   delayDays?: number;
+  variables: string[];
+  hasDraft: boolean;
+  source: "published" | "built_in";
+  updatedAt: string | null;
 }
 
-interface EmailPreview {
+interface EmailDetail {
+  schemaReady: boolean;
   id: string;
+  name: string;
+  description: string;
+  category: string;
+  variables: string[];
+  subjectTemplate: string;
+  bodyTemplate: string;
+  previewText: string;
   subject: string;
   html: string;
-  name: string;
-  category: string;
-  delayDays?: number;
+  source: "draft" | "published" | "built_in";
+  hasDraft: boolean;
+  updatedAt: string | null;
 }
 
-export default function EmailsPage() {
-  const [emails, setEmails] = useState<EmailEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [preview, setPreview] = useState<EmailPreview | null>(null);
-  const [previewLoading, setPreviewLoading] = useState(false);
+interface HistoryItem {
+  id: string;
+  to: string;
+  toName: string | null;
+  subject: string | null;
+  body: string | null;
+  status: string;
+  providerId: string | null;
+  template: string | null;
+  sentAt: string;
+  source: string;
+}
 
-  useEffect(() => {
-    fetch("/api/admin/emails/preview")
-      .then((r) => r.json())
-      .then(async (data) => {
-        const nextEmails = data.emails || [];
-        setEmails(nextEmails);
-        const first = nextEmails[0] as EmailEntry | undefined;
-        if (!first) return;
-        setSelectedId(first.id);
-        setPreviewLoading(true);
-        const previewResponse = await fetch(`/api/admin/emails/preview?id=${first.id}`);
-        if (previewResponse.ok) setPreview(await previewResponse.json());
-        setPreviewLoading(false);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+type StudioTab = "templates" | "history";
+
+export default function EmailsPage() {
+  const [tab, setTab] = useState<StudioTab>("templates");
+  const [emails, setEmails] = useState<EmailEntry[]>([]);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedHistory, setSelectedHistory] = useState<HistoryItem | null>(null);
+  const [detail, setDetail] = useState<EmailDetail | null>(null);
+  const [query, setQuery] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [previewWidth, setPreviewWidth] = useState<"desktop" | "mobile">("desktop");
+  const [loading, setLoading] = useState(true);
+  const [working, setWorking] = useState(false);
+  const [confirmPublish, setConfirmPublish] = useState(false);
+  const [error, setError] = useState("");
+
+  const loadList = useCallback(async () => {
+    setError("");
+    try {
+      const result = await fetchJson<{ schemaReady: boolean; emails: EmailEntry[] }>("/api/admin/emails/preview");
+      setEmails(result.emails);
+      setSelectedId((current) => current || result.emails[0]?.id || null);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "Could not load Email Studio.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const handleSelect = async (id: string) => {
-    setSelectedId(id);
-    setPreviewLoading(true);
+  const loadDetail = useCallback(async (id: string) => {
+    setError("");
     try {
-      const res = await fetch(`/api/admin/emails/preview?id=${id}`);
-      const data = await res.json();
-      setPreview(data);
-    } catch {
-      setPreview(null);
-    } finally {
-      setPreviewLoading(false);
+      const result = await fetchJson<EmailDetail>(`/api/admin/emails/preview?id=${encodeURIComponent(id)}`);
+      setDetail(result);
+      setSubject(result.subjectTemplate);
+      setBody(result.bodyTemplate);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "Could not load this email.");
     }
+  }, []);
+
+  const loadHistory = useCallback(async () => {
+    try {
+      const result = await fetchJson<{ history: HistoryItem[] }>("/api/admin/emails/history");
+      setHistory(result.history);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "Could not load sent history.");
+    }
+  }, []);
+
+  useEffect(() => { void loadList(); void loadHistory(); }, [loadHistory, loadList]);
+  useEffect(() => { if (selectedId) void loadDetail(selectedId); }, [loadDetail, selectedId]);
+
+  const filteredEmails = useMemo(() => emails.filter((email) => !query.trim() || `${email.name} ${email.description} ${email.category} ${email.subject}`.toLowerCase().includes(query.toLowerCase())), [emails, query]);
+  const filteredHistory = useMemo(() => history.filter((item) => !query.trim() || `${item.to} ${item.subject || ""} ${item.template || ""}`.toLowerCase().includes(query.toLowerCase())), [history, query]);
+  const dirty = Boolean(detail && (subject !== detail.subjectTemplate || body !== detail.bodyTemplate));
+
+  const saveDraft = async () => {
+    if (!detail) return;
+    setWorking(true);
+    try {
+      await fetchJson("/api/admin/emails/preview", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: detail.id, subjectTemplate: subject, bodyTemplate: body, previewText: detail.previewText }) });
+      await Promise.all([loadList(), loadDetail(detail.id)]);
+      setEditing(false);
+      toast.success("Draft saved. Live email is unchanged until you publish.");
+    } catch (saveError) { toast.error(saveError instanceof Error ? saveError.message : "Could not save the draft."); }
+    finally { setWorking(false); }
   };
 
-  const grouped = emails.reduce<Record<string, EmailEntry[]>>((acc, email) => {
-    if (!acc[email.category]) acc[email.category] = [];
-    acc[email.category]!.push(email);
-    return acc;
-  }, {});
+  const templateAction = async (action: "publish" | "test") => {
+    if (!detail) return;
+    setWorking(true);
+    try {
+      const result = await fetchJson<{ to?: string }>("/api/admin/emails/preview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: detail.id, action }) });
+      setConfirmPublish(false);
+      await Promise.all([loadList(), loadDetail(detail.id)]);
+      toast.success(action === "publish" ? "Draft published to the live sending system." : `Test sent to ${result.to}.`);
+    } catch (actionError) { toast.error(actionError instanceof Error ? actionError.message : `Could not ${action} this template.`); }
+    finally { setWorking(false); }
+  };
 
-  if (loading) {
-    return (
-      <>
-        <PageHeader title="Email Previews" subtitle="Preview all outbound emails" />
-        <LoadingSkeleton />
-      </>
-    );
-  }
+  const resetDraft = async () => {
+    if (!detail) return;
+    setWorking(true);
+    try {
+      await fetchJson(`/api/admin/emails/preview?id=${encodeURIComponent(detail.id)}`, { method: "DELETE" });
+      await Promise.all([loadList(), loadDetail(detail.id)]);
+      setEditing(false);
+      toast.success("Draft discarded. The published or built-in email remains live.");
+    } catch (resetError) { toast.error(resetError instanceof Error ? resetError.message : "Could not discard the draft."); }
+    finally { setWorking(false); }
+  };
 
-  return (
-    <>
-      <PageHeader
-        title="Email Studio"
-        subtitle={`${emails.length} live templates across transactional, operator, and automated email.`}
-      />
+  const compose = () => {
+    if (!detail) return;
+    window.dispatchEvent(new CustomEvent("admin:compose-email", { detail: { subject: detail.subject, body: detail.bodyTemplate } }));
+  };
 
-      <div className="flex flex-col lg:flex-row gap-4">
-        {/* Left panel — email list */}
-        <GlassCard padding="none" className="lg:w-[320px] shrink-0">
-          <div className="divide-y divide-border-glass">
-            {Object.entries(grouped).map(([category, items]) => (
-              <div key={category}>
-                <p className="px-4 py-2 text-[10px] font-semibold text-white-muted uppercase tracking-wider bg-white/[0.02]">
-                  {category}
-                </p>
-                {items.map((email) => (
-                  <button
-                    key={email.id}
-                    onClick={() => handleSelect(email.id)}
-                    className={cn(
-                      "w-full min-h-14 text-left px-4 py-3 text-sm transition-[background-color,color,transform] active:scale-[0.99] cursor-pointer",
-                      selectedId === email.id
-                        ? "bg-gold-gradient text-black font-semibold"
-                        : "text-white-secondary hover:bg-white/5"
-                    )}
-                  >
-                    <p className="truncate text-pretty">{email.name}</p>
-                    <p
-                      className={cn(
-                        "text-xs truncate mt-0.5",
-                        selectedId === email.id
-                          ? "text-black/60"
-                          : "text-white-muted"
-                      )}
-                    >
-                      {email.subject}
-                    </p>
-                    {email.delayDays != null && (
-                      <p className={cn("mt-1 font-mono text-[9px] uppercase tracking-[0.12em]", selectedId === email.id ? "text-black/50" : "text-white/35")}>
-                        {email.delayDays === 0 ? "Sends immediately" : `Sends after ${email.delayDays}d`}
-                      </p>
-                    )}
-                  </button>
-                ))}
-              </div>
-            ))}
-          </div>
-        </GlassCard>
+  const currentListHidden = (tab === "templates" && selectedId) || (tab === "history" && selectedHistory);
 
-        {/* Right panel — preview */}
-        <GlassCard padding="none" className="flex-1 min-h-[600px] overflow-hidden">
-          {previewLoading ? (
-            <div className="p-6">
-              <LoadingSkeleton />
-            </div>
-          ) : preview ? (
-            <motion.div
-              key={preview.id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.2 }}
-            >
-              <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border-glass px-5 py-4 sm:px-6">
-                <div className="min-w-0">
-                  <p className="admin-eyebrow">{preview.category}{preview.delayDays != null ? ` · ${preview.delayDays === 0 ? "Immediate" : `Day ${preview.delayDays}`}` : ""}</p>
-                  <p className="text-pretty text-sm font-medium text-white-primary">{preview.subject}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => navigator.clipboard.writeText(preview.subject)}
-                  className="admin-icon-button shrink-0"
-                  aria-label="Copy subject"
-                  title="Copy subject"
-                >
-                  <Copy className="h-4 w-4" />
-                </button>
-              </div>
-              <div className="p-3 sm:p-4" style={{ backgroundColor: "#0A0A0A" }}>
-                <iframe
-                  srcDoc={preview.html}
-                  sandbox=""
-                  className="w-full rounded-[10px] border-0 bg-[#0A0A0A] outline outline-1 -outline-offset-1 outline-white/10"
-                  style={{ height: 600, backgroundColor: "#0A0A0A" }}
-                  title={`Email preview: ${preview.subject}`}
-                />
-              </div>
-            </motion.div>
-          ) : (
-            <div className="flex min-h-[400px] h-full flex-col items-center justify-center text-white-muted">
-              <Mail className="h-10 w-10 mb-3 opacity-30" />
-              <p className="text-sm">Preparing the email workspace…</p>
-            </div>
-          )}
-        </GlassCard>
+  return <div className="space-y-6 pb-10">
+    <PageHeader title="Email Studio" subtitle="Edit live email copy safely, inspect what was sent, and compose a direct follow-up from one workspace." actions={<button type="button" onClick={() => { void loadList(); void loadHistory(); }} disabled={loading} className="admin-icon-button shadow-[var(--admin-shadow-border)]" aria-label="Refresh Email Studio"><RefreshCw className={cn("size-4", loading && "animate-spin")} /></button>} />
+
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="inline-flex rounded-xl bg-black/[0.04] p-1 dark:bg-white/[0.055]" role="tablist" aria-label="Email Studio views">
+        {[{ id: "templates" as const, label: "Templates", icon: Mail }, { id: "history" as const, label: "Sent history", icon: History }].map(({ id, label, icon: Icon }) => <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => { setTab(id); setQuery(""); }} className={cn("inline-flex min-h-10 items-center gap-2 rounded-lg px-3.5 text-xs font-semibold transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.96]", tab === id ? "bg-[var(--admin-surface)] text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]" : "text-[var(--admin-muted)] hover:text-[var(--admin-ink)]")}><Icon className="size-3.5" />{label}</button>)}
       </div>
-    </>
-  );
+      <div className="relative min-w-[240px] flex-1 sm:max-w-sm"><Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-[var(--admin-muted)]" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={tab === "templates" ? "Search templates" : "Search recipients or subjects"} className="admin-field pl-10" /></div>
+    </div>
+
+    {error && <AdminSurface tone="attention" className="flex items-center gap-3"><TriangleAlert className="size-5 shrink-0 text-rose-600" /><p className="text-sm text-[var(--admin-ink)]">{error}</p></AdminSurface>}
+
+    <AdminSurface padding="none" className="min-h-[680px] overflow-hidden">
+      <div className="grid min-h-[680px] lg:grid-cols-[320px_minmax(0,1fr)]">
+        <aside className={cn("border-r border-[var(--admin-border)]", currentListHidden && "hidden lg:block")}>
+          <div className="border-b border-[var(--admin-border)] px-4 py-3"><p className="admin-eyebrow mb-0">{tab === "templates" ? `${filteredEmails.length} messages` : `${filteredHistory.length} deliveries`}</p></div>
+          <div className="max-h-[635px] divide-y divide-[var(--admin-border)] overflow-y-auto">
+            {tab === "templates" ? filteredEmails.map((email) => <button key={email.id} type="button" onClick={() => { setSelectedId(email.id); setEditing(false); }} className={cn("group w-full px-4 py-3.5 text-left transition-[background-color] duration-150 hover:bg-black/[0.022] dark:hover:bg-white/[0.025]", selectedId === email.id && "bg-black/[0.035] dark:bg-white/[0.04]")}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate text-sm font-semibold text-[var(--admin-ink)]">{email.name}</p><p className="admin-copy mt-1 line-clamp-2 text-[11px] leading-4">{email.description}</p></div><span className={cn("mt-0.5 size-2 shrink-0 rounded-full", email.hasDraft ? "bg-amber-500" : email.source === "published" ? "bg-emerald-500" : "bg-slate-400")} /></div><div className="mt-2 flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.08em] text-[var(--admin-muted)]"><span>{email.category}</span>{email.delayDays != null && <span>· {email.delayDays ? `Day ${email.delayDays}` : "Immediate"}</span>}</div></button>) : filteredHistory.map((item) => <button key={item.id} type="button" onClick={() => setSelectedHistory(item)} className={cn("w-full px-4 py-3.5 text-left transition-[background-color] duration-150 hover:bg-black/[0.022] dark:hover:bg-white/[0.025]", selectedHistory?.id === item.id && "bg-black/[0.035] dark:bg-white/[0.04]")}><div className="flex items-center justify-between gap-2"><p className="truncate text-sm font-semibold text-[var(--admin-ink)]">{item.to}</p><span className={cn("size-2 shrink-0 rounded-full", item.status === "sent" || item.status === "delivered" ? "bg-emerald-500" : item.status === "failed" ? "bg-rose-500" : "bg-amber-500")} /></div><p className="mt-1 truncate text-xs text-[var(--admin-ink)]">{item.subject || "(No subject)"}</p><p className="admin-copy mt-1 font-mono text-[9px] tabular-nums">{new Date(item.sentAt).toLocaleString()}</p></button>)}
+          </div>
+        </aside>
+
+        <main className={cn("min-w-0", !currentListHidden && "hidden lg:block")}>
+          {tab === "templates" && detail ? <motion.div key={detail.id} initial={{ opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}>
+            <header className="flex flex-wrap items-start gap-3 border-b border-[var(--admin-border)] px-4 py-4 sm:px-6"><button type="button" onClick={() => setSelectedId(null)} className="admin-icon-button lg:hidden" aria-label="Back to templates"><ArrowLeft className="size-4" /></button><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h2 className="text-balance text-lg font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">{detail.name}</h2><span className={cn("rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em]", detail.source === "draft" ? "bg-amber-500/10 text-amber-700 dark:text-amber-300" : detail.source === "published" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-black/[0.05] text-[var(--admin-muted)] dark:bg-white/[0.06]")}>{detail.source === "built_in" ? "Built-in live" : detail.source}</span></div><p className="admin-copy mt-1 text-xs">{detail.description}</p></div><div className="flex flex-wrap items-center gap-2"><button type="button" onClick={compose} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"><Send className="size-3.5" /> Compose</button><button type="button" onClick={() => setEditing((current) => !current)} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[var(--admin-ink)] px-3.5 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]">{editing ? <Eye className="size-3.5" /> : <Edit3 className="size-3.5" />}{editing ? "Preview" : "Edit"}</button></div></header>
+            {editing ? <div className="grid min-h-[590px] xl:grid-cols-[minmax(0,0.9fr)_minmax(420px,1.1fr)]"><section className="space-y-5 border-r border-[var(--admin-border)] p-4 sm:p-6"><label className="admin-field-label"><span>Subject</span><input value={subject} onChange={(event) => setSubject(event.target.value)} className="admin-field" /></label><label className="admin-field-label"><span>Message body</span><textarea value={body} onChange={(event) => setBody(event.target.value)} rows={16} className="admin-field min-h-[360px] resize-y py-3 font-mono text-xs leading-6" /></label><div><p className="admin-eyebrow">Available variables</p><div className="flex flex-wrap gap-1.5">{detail.variables.map((variable) => <button key={variable} type="button" onClick={() => setBody((current) => `${current}{{${variable}}}`)} className="min-h-8 rounded-lg bg-black/[0.045] px-2 font-mono text-[10px] text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-black/[0.08] hover:text-[var(--admin-ink)] active:scale-[0.96] dark:bg-white/[0.06]">{`{{${variable}}}`}</button>)}</div></div><div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--admin-border)] pt-4"><button type="button" onClick={() => void resetDraft()} disabled={working || !detail.hasDraft} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-xs font-semibold text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:scale-[0.96] disabled:opacity-35"><RotateCcw className="size-3.5" /> Discard draft</button><button type="button" onClick={() => void saveDraft()} disabled={working || !dirty} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[var(--admin-ink)] px-3.5 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 active:scale-[0.96] disabled:opacity-35">{working ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />} Save draft</button></div></section><PreviewPanel detail={detail} width={previewWidth} onWidth={setPreviewWidth} /></div> : <div><div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--admin-border)] px-4 py-3 sm:px-6"><p className="text-sm font-medium text-[var(--admin-ink)]">{detail.subject}</p><div className="flex items-center gap-2">{detail.hasDraft && <><button type="button" onClick={() => void templateAction("test")} disabled={working} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-xs font-semibold text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)] active:scale-[0.96]"><TestTube2 className="size-3.5" /> Test</button><button type="button" onClick={() => setConfirmPublish(true)} disabled={working} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-emerald-700 px-3.5 text-xs font-semibold text-white transition-[opacity,transform] active:scale-[0.96]"><Check className="size-3.5" /> Publish</button></>}</div></div><PreviewPanel detail={detail} width={previewWidth} onWidth={setPreviewWidth} /></div>}
+          </motion.div> : tab === "history" && selectedHistory ? <div><header className="flex items-start gap-3 border-b border-[var(--admin-border)] px-4 py-4 sm:px-6"><button type="button" onClick={() => setSelectedHistory(null)} className="admin-icon-button lg:hidden" aria-label="Back to sent history"><ArrowLeft className="size-4" /></button><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h2 className="truncate text-lg font-semibold text-[var(--admin-ink)]">{selectedHistory.subject || "(No subject)"}</h2><span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-emerald-700 dark:text-emerald-300">{selectedHistory.status}</span></div><p className="admin-copy mt-1 text-xs">To {selectedHistory.to}</p></div></header><div className="p-4 sm:p-6"><div className="mx-auto max-w-3xl rounded-2xl bg-[var(--admin-surface-subtle)] p-2"><div className="rounded-xl bg-[var(--admin-surface)] p-5 shadow-[var(--admin-shadow-border)]"><div className="flex flex-wrap justify-between gap-3 border-b border-[var(--admin-border)] pb-4 text-xs text-[var(--admin-muted)]"><span>{selectedHistory.template || "Direct message"}</span><span className="tabular-nums">{new Date(selectedHistory.sentAt).toLocaleString()}</span></div><p className="mt-5 whitespace-pre-wrap text-pretty text-sm leading-7 text-[var(--admin-ink)]">{selectedHistory.body || "Message body was not recorded."}</p>{selectedHistory.providerId && <p className="mt-6 font-mono text-[9px] text-[var(--admin-muted)]">Provider receipt {selectedHistory.providerId}</p>}</div></div></div></div> : <div className="grid min-h-[650px] place-items-center text-center"><div><Mail className="mx-auto size-6 text-[var(--admin-muted)]" /><h2 className="mt-4 text-lg font-semibold text-[var(--admin-ink)]">Choose an email</h2><p className="admin-copy mt-1 text-sm">View the exact copy, delivery, and available actions.</p></div></div>}
+        </main>
+      </div>
+    </AdminSurface>
+
+    <AdminDialog open={confirmPublish} onClose={() => setConfirmPublish(false)} title="Publish this email draft?" labelledBy="publish-email-title" maxWidth="sm"><AdminSurface padding="lg" className="admin-dialog-surface"><p className="admin-eyebrow">External behavior change</p><h2 id="publish-email-title" className="admin-dialog-title">Publish this email draft?</h2><p className="admin-copy mt-2 text-pretty text-sm">New sends will use this exact subject and body. Previously sent email will not change.</p><div className="mt-6 flex justify-end gap-2"><button type="button" onClick={() => setConfirmPublish(false)} className="min-h-10 rounded-lg px-3 text-xs font-semibold text-[var(--admin-muted)] active:scale-[0.96]">Cancel</button><button type="button" onClick={() => void templateAction("publish")} disabled={working} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[var(--admin-ink)] px-3.5 text-xs font-semibold text-[var(--admin-surface)] active:scale-[0.96] disabled:opacity-50">{working ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />} Publish live</button></div></AdminSurface></AdminDialog>
+  </div>;
+}
+
+function PreviewPanel({ detail, width, onWidth }: { detail: EmailDetail; width: "desktop" | "mobile"; onWidth: (width: "desktop" | "mobile") => void }) {
+  return <section className="min-w-0 bg-black/[0.018] p-3 dark:bg-white/[0.018] sm:p-5"><div className="mb-3 flex items-center justify-between gap-3"><p className="admin-eyebrow mb-0">Rendered preview</p><div className="inline-flex rounded-lg bg-[var(--admin-surface)] p-1 shadow-[var(--admin-shadow-border)]"><button type="button" onClick={() => onWidth("desktop")} className={cn("grid size-9 place-items-center rounded-md transition-[background-color,color,transform] active:scale-[0.96]", width === "desktop" ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]" : "text-[var(--admin-muted)]")} aria-label="Desktop preview"><Monitor className="size-3.5" /></button><button type="button" onClick={() => onWidth("mobile")} className={cn("grid size-9 place-items-center rounded-md transition-[background-color,color,transform] active:scale-[0.96]", width === "mobile" ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]" : "text-[var(--admin-muted)]")} aria-label="Mobile preview"><Smartphone className="size-3.5" /></button></div></div><div className={cn("mx-auto overflow-hidden rounded-2xl bg-[#0a0a0a] p-1 shadow-[0_22px_60px_-30px_rgba(0,0,0,0.45)] transition-[max-width] duration-300", width === "mobile" ? "max-w-[390px]" : "max-w-[760px]")}><iframe srcDoc={detail.html} sandbox="" className="h-[560px] w-full rounded-[12px] border-0 bg-[#0a0a0a] outline outline-1 -outline-offset-1 outline-white/10" title={`Email preview: ${detail.name}`} /></div></section>;
 }

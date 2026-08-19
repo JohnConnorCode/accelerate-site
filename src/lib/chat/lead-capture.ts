@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getResend, FROM_EMAIL, ADMIN_EMAIL } from "@/lib/email/resend";
 import type { ChatMessage } from "@/lib/types";
+import { createRevenueTask } from "@/lib/revenue-os/tasks";
 
 interface ChatLeadInput {
   id: string;
@@ -12,6 +13,7 @@ interface ChatLeadInput {
     utm_medium?: string | null;
     utm_campaign?: string | null;
   };
+  opportunityId?: string;
 }
 
 interface SideEffectResult {
@@ -65,21 +67,10 @@ async function insertFollowUpTask(
   supabase: SupabaseClient,
   lead: ChatLeadInput,
 ): Promise<"ok" | "failed"> {
-  const due = new Date();
-  due.setDate(due.getDate() + 1);
-  const due_date = due.toISOString().slice(0, 10);
-  const { error } = await supabase.from("tasks").insert({
-    title: `Follow up with chat lead: ${lead.name}`,
-    description: `Visitor opened chat and shared their email (${lead.email}). First message: "${firstUserMessageSnippet(lead.conversation)}"`,
-    due_date,
-    priority: "high",
-    status: "pending",
-    related_type: "contact",
-    related_id: lead.id,
-    related_name: `${lead.name} (chat)`,
-  });
-  if (error) {
-    console.error("[chat-lead-capture] tasks insert failed:", error.message);
+  try {
+    await createRevenueTask(supabase, { title: `Reply to new chat inquiry: ${lead.name}`, description: `Visitor shared ${lead.email}. First message: "${firstUserMessageSnippet(lead.conversation)}"`, dueDate: new Date().toISOString().slice(0, 10), priority: "high", relatedType: "opportunity", relatedId: lead.opportunityId || null, relatedName: `${lead.name} (chat)`, opportunityId: lead.opportunityId || null, source: "chat", dedupeKey: lead.opportunityId ? `inbound-follow-up:${lead.opportunityId}` : `chat-follow-up:${lead.id}`, actorEmail: "system@acceleratewith.us" });
+  } catch (error) {
+    console.error("[chat-lead-capture] task service failed:", error);
     return "failed";
   }
   return "ok";

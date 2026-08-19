@@ -1,7 +1,7 @@
 import { chromium } from "playwright";
 import { mkdirSync } from "fs";
 
-// Usage: node scripts/film.mjs <path> <frames> <mode> [theme]
+// Usage: node scripts/film.mjs <path> <frames> <mode> [theme] [width] [height]
 //   mode = "scroll" (filmstrip across scroll) | "time" (entrance at top)
 const path = process.argv[2] || "/v2";
 const frames = Number(process.argv[3] || 16);
@@ -11,7 +11,9 @@ const base = process.env.SHOT_BASE || "http://localhost:3000";
 const out = "/tmp/accel-film";
 mkdirSync(out, { recursive: true });
 
-const W = 1440, H = 900;
+const W = Number(process.argv[6] || 1440);
+const H = Number(process.argv[7] || 900);
+const frameInterval = Number(process.env.FILM_INTERVAL || 90);
 const browser = await chromium.launch();
 const ctx = await browser.newContext({
   viewport: { width: W, height: H },
@@ -33,7 +35,7 @@ if (mode === "time") {
   await page.goto(`${base}${path}`, { waitUntil: "domcontentloaded" });
   for (let i = 0; i < frames; i++) {
     await page.screenshot({ path: `${out}/t-${pad(i)}.png` });
-    await page.waitForTimeout(90);
+    await page.waitForTimeout(frameInterval);
   }
   console.log(`${out}/t-00.png .. t-${pad(frames - 1)}.png`);
 } else {

@@ -6,7 +6,7 @@ import { Section, Container, Eyebrow, Heading } from "@/components/v2/studio/pri
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { HERO_HEADING } from "@/lib/type-recipes";
 import { ContactForm } from "@/components/sections/ContactForm";
-import { CalendlyEmbed } from "@/components/sections/CalendlyEmbed";
+import { CALENDLY_URL } from "@/lib/booking";
 
 const INFO_CARDS = [
   {
@@ -22,8 +22,8 @@ const INFO_CARDS = [
   },
   {
     icon: Zap,
-    label: "Strategy call",
-    value: "Free · 30 minutes",
+    label: "Revenue-leak audit",
+    value: "Free · directly with John",
   },
 ] as const;
 
@@ -83,34 +83,29 @@ export function ContactPageContent() {
             </div>
           </div>
 
-          {/* right: book directly on the calendar — the primary conversion path */}
+          {/* right: the active campaign booking path. Keep the manual form below
+              as a fallback for visitors who prefer to send context first. */}
           <AnimateOnScroll as="div" delay={0.3} className="lg:sticky lg:top-32">
             <div className="rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_20px_60px_rgba(0,0,0,0.25)] backdrop-blur-md sm:p-6">
               <p className="mb-1 px-2 font-mono text-[0.6rem] uppercase tracking-[0.22em] text-white-muted">
                 Start here
               </p>
-              <h2 className="mb-4 px-2 font-display text-2xl font-bold tracking-[-0.02em] text-heading">
-                Book a free 30-minute strategy session
+              <h2 className="mb-2 px-2 font-display text-2xl font-bold tracking-[-0.02em] text-heading">
+                Book your free revenue-leak audit
               </h2>
-              <CalendlyEmbed />
+              <p className="mb-5 px-2 text-pretty text-sm leading-6 text-white-secondary">Choose a time directly on John’s calendar.</p>
+              <iframe
+                src={`${CALENDLY_URL}?hide_gdpr_banner=1&embed_domain=acceleratewith.us&embed_type=Inline`}
+                title="Book your free revenue-leak audit with John"
+                className="h-[700px] w-full rounded-xl border-0 bg-white"
+              />
+              <details className="mt-5 rounded-xl border border-border-glass px-4 py-3">
+                <summary className="cursor-pointer text-sm font-medium text-heading">Prefer to send context first?</summary>
+                <div className="pt-4"><ContactForm /></div>
+              </details>
             </div>
           </AnimateOnScroll>
         </div>
-        </Container>
-      </section>
-
-      {/* secondary path: a message instead of a call */}
-      <section className="pb-8">
-        <Container width="wide">
-          <div className="mx-auto max-w-xl">
-            <p className="mb-1 font-mono text-[0.6rem] uppercase tracking-[0.22em] text-white-muted">
-              Prefer email
-            </p>
-            <h2 className="mb-5 font-display text-2xl font-bold tracking-[-0.02em] text-heading">
-              Send a message instead
-            </h2>
-            <ContactForm />
-          </div>
         </Container>
       </section>
 

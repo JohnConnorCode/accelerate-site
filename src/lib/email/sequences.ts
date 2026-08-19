@@ -1,6 +1,6 @@
 import { getResend, FROM_EMAIL } from "./resend";
-import { textEmail } from "./templates";
 import { emailSequences } from "@/content/email-sequences";
+import { resolveEmailTemplate } from "./runtime-template";
 import type { EmailSequenceType } from "@/lib/types";
 
 interface SequenceEnrollment {
@@ -30,19 +30,29 @@ export async function scheduleEmailSequence(
   const sequenceId = crypto.randomUUID();
 
   for (const step of steps) {
-    const { subject, bodyTemplate, delayDays } = step;
-
-    const resolvedSubject = replaceTemplateVars(subject, metadata, email);
-    const resolvedBody = replaceTemplateVars(bodyTemplate, metadata, email);
+    const { delayDays } = step;
+    const variables = {
+      name: "there",
+      industry: "your business",
+      planLink: process.env.NEXT_PUBLIC_SITE_URL || "https://www.acceleratewith.us",
+      planSummary: "the highest-impact next steps for your business",
+      resourceTitle: "your requested resource",
+      downloadLink: process.env.NEXT_PUBLIC_SITE_URL || "https://www.acceleratewith.us/resources",
+      score: "your current",
+      topIssues: "the clearest opportunities to improve response, follow-through, and conversion",
+      ...metadata,
+      email,
+    };
+    const resolved = await resolveEmailTemplate(`${sequenceType.replaceAll("_", "-")}-${step.stepNumber}`, variables);
 
     const idempotencyKey = `${sequenceType}/${email}/${step.stepNumber}/${sequenceId}`;
 
     const sendOptions: Parameters<typeof resend.emails.send>[0] = {
       from: FROM_EMAIL,
       to: email,
-      subject: resolvedSubject,
-      text: resolvedBody,
-      html: textEmail(resolvedBody),
+      subject: resolved.subject,
+      text: resolved.text,
+      html: resolved.html,
     };
 
     // Schedule future emails; send step 0 immediately
@@ -110,37 +120,6 @@ export async function cancelScheduledSequences(
     await Promise.allSettled(ids.map((id: string) => resend.emails.cancel(id)));
     await supabase.from("email_sequences").update({ status: "paused" }).eq("id", sequence.id);
   }
-}
-
-function replaceTemplateVars(
-  template: string,
-  metadata: Record<string, string>,
-  email: string
-): string {
-  const replacements: Record<string, string> = {
-    "{{name}}": metadata.name || "there",
-    "{{email}}": email,
-    "{{industry}}": metadata.industry || "your",
-    "{{planLink}}":
-      metadata.planLink || "https://www.acceleratewith.us/contact",
-    "{{planSummary}}":
-      metadata.planSummary ||
-      "Your personalized recommendations are ready.",
-    "{{resourceTitle}}": metadata.resourceTitle || "your resource",
-    "{{downloadLink}}": metadata.downloadLink || "#",
-    "{{score}}": metadata.score || "N/A",
-    "{{topIssues}}":
-      metadata.topIssues || "See your full report for details.",
-  };
-
-  let result = template;
-  for (const [key, value] of Object.entries(replacements)) {
-    result = result.replace(
-      new RegExp(key.replace(/[{}]/g, "\\$&"), "g"),
-      value
-    );
-  }
-  return result;
 }
 
 async function saveSequenceRecord(

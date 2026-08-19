@@ -3,11 +3,11 @@ import type { Variants } from "framer-motion";
 export const adminEase = [0.16, 1, 0.3, 1] as const;
 
 export const adminPageVariants: Variants = {
-  hidden: { opacity: 0, y: 10, filter: "blur(5px)" },
+  hidden: { opacity: 0, y: 14, scale: 0.997 },
   visible: {
     opacity: 1,
     y: 0,
-    filter: "blur(0px)",
+    scale: 1,
     transition: {
       duration: 0.38,
       ease: adminEase,
@@ -15,40 +15,31 @@ export const adminPageVariants: Variants = {
       delayChildren: 0.035,
     },
   },
-  exit: {
-    opacity: 0,
-    y: -6,
-    filter: "blur(3px)",
-    transition: { duration: 0.15, ease: "easeIn" },
-  },
 };
 
 export const adminSectionVariants: Variants = {
-  hidden: { opacity: 0, y: 10, filter: "blur(4px)" },
+  hidden: { opacity: 0, y: 10 },
   visible: {
     opacity: 1,
     y: 0,
-    filter: "blur(0px)",
     transition: { duration: 0.36, ease: adminEase },
   },
 };
 
 export const adminHeaderVariants: Variants = {
-  hidden: { opacity: 0, y: 10, filter: "blur(4px)" },
+  hidden: { opacity: 0, y: 10 },
   visible: {
     opacity: 1,
     y: 0,
-    filter: "blur(0px)",
     transition: { duration: 0.36, ease: adminEase, staggerChildren: 0.055 },
   },
 };
 
 export const adminHeaderItemVariants: Variants = {
-  hidden: { opacity: 0, y: 7, filter: "blur(3px)" },
+  hidden: { opacity: 0, y: 7 },
   visible: {
     opacity: 1,
     y: 0,
-    filter: "blur(0px)",
     transition: { duration: 0.3, ease: adminEase },
   },
 };

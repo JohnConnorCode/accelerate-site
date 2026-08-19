@@ -1,15 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { Calendar, Flag, X } from "lucide-react";
 import { AdminSurface } from "./AdminSurface";
+import { AdminDialog } from "./AdminDialog";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { toast } from "@/lib/admin/useToast";
-import { adminDialogTransition } from "@/lib/admin/motion";
-import { useModalDismiss } from "@/lib/admin/useModalDismiss";
 
 export function AdminCreateTaskModal() {
   const [open, setOpen] = useState(false);
@@ -27,7 +25,6 @@ export function AdminCreateTaskModal() {
   const close = () => {
     if (!saving) setOpen(false);
   };
-  useModalDismiss(open, close);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -57,29 +54,7 @@ export function AdminCreateTaskModal() {
   };
 
   return (
-    <AnimatePresence initial={false}>
-      {open && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center px-4">
-          <motion.button
-            type="button"
-            aria-label="Close task dialog"
-            className="absolute inset-0 bg-black/55"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={adminDialogTransition}
-            onClick={close}
-          />
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="admin-task-title"
-            className="relative w-full max-w-md"
-            initial={{ opacity: 0, y: 12, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.98 }}
-            transition={adminDialogTransition}
-          >
+    <AdminDialog open={open} onClose={close} title="Create task" labelledBy="admin-task-title" maxWidth="sm">
             <AdminSurface padding="lg" className="admin-dialog-surface">
               <div className="mb-5 flex items-start justify-between gap-4">
                 <div>
@@ -134,9 +109,6 @@ export function AdminCreateTaskModal() {
                 </div>
               </form>
             </AdminSurface>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+    </AdminDialog>
   );
 }

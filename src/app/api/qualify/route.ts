@@ -2,14 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { scheduleEmailSequence } from "@/lib/email/sequences";
-import {
-  isValidWorkEmail,
-  normalizeEmail,
-  normalizeWebsite,
-  qualifyRoofingOpportunity,
-  safeAttribution,
-  type RoofingQualifierInput,
-} from "@/lib/opportunities";
+import { isValidWorkEmail, normalizeEmail, normalizeWebsite, qualifyRoofingOpportunity, type RoofingQualifierInput } from "@/lib/opportunities";
+import { ingestRoofingQualification } from "@/lib/revenue-os/inbound";
 
 const ALLOWED_ROLES = new Set([
   "owner", "founder", "president", "general_manager", "operations", "marketing", "team_member", "vendor",
@@ -42,65 +36,30 @@ export async function POST(request: NextRequest) {
   }
 
   const qualification = qualifyRoofingOpportunity(body.role, body.revenueBand);
-  const calendlyEnabled = process.env.CALENDLY_ENABLED === "true";
+  // Public self-booking is the active campaign path. Set CALENDLY_ENABLED=false
+  // only for an intentional emergency pause; the free Calendly event needs no API token to embed.
+  const calendlyEnabled = process.env.CALENDLY_ENABLED !== "false";
   const supabase = createServiceRoleClient();
-  const token = nanoid(24);
-  const attribution = safeAttribution(body.utm);
-
-  const { data: existing } = await supabase
-    .from("opportunities")
-    .select("id, qualifier_token, qualified, stage")
-    .eq("email", email)
-    .maybeSingle();
-
-  const nextStage = qualification.qualified
-    ? existing?.stage === "booked" || existing?.stage === "showed" || existing?.stage === "proposal" || existing?.stage === "won"
-      ? existing.stage
-      : "qualified"
-    : "nurture";
-
-  const record = {
-    email,
-    company_website: companyWebsite,
-    role: body.role,
-    revenue_band: body.revenueBand,
-    primary_leak: body.primaryLeak,
-    qualified: qualification.qualified,
-    qualification_reason: qualification.reason,
-    qualifier_token: existing?.qualifier_token || token,
-    stage: nextStage,
-    message_variant: body.messageVariant?.slice(0, 80) || null,
-    ...attribution,
-  };
-
-  const query = existing
-    ? supabase.from("opportunities").update(record).eq("id", existing.id)
-    : supabase.from("opportunities").insert(record);
-  const { data: opportunity, error } = await query.select("id, qualifier_token, qualified, stage").single();
-
-  if (error || !opportunity) {
-    console.error("[qualify] opportunity write failed:", error?.message);
+  let ingestion;
+  try {
+    ingestion = await ingestRoofingQualification(supabase, { email, companyWebsite, role: body.role, revenueBand: body.revenueBand, primaryLeak: body.primaryLeak, messageVariant: body.messageVariant, qualifierToken: nanoid(24), utm: body.utm, qualification });
+  } catch (error) {
+    console.error("[qualify] canonical inbound ingestion failed:", error instanceof Error ? error.message : error);
     return NextResponse.json({ error: "We couldn't save this yet. Please try again." }, { status: 500 });
   }
+  const opportunity = ingestion.opportunity;
 
-  if (!existing || existing.stage !== opportunity.stage) {
-    await supabase.from("opportunity_stage_events").insert({
-      opportunity_id: opportunity.id,
-      from_stage: existing?.stage || null,
-      to_stage: opportunity.stage,
-      source: "roofing_qualifier",
-      metadata: { qualified: opportunity.qualified },
-    });
-  }
-
-  if (!existing) {
-    await supabase.from("admin_notifications").insert({
+  if (!ingestion.existing) {
+    const { error: notificationError } = await supabase.from("admin_notifications").insert({
       type: "new_lead",
       title: qualification.qualified ? "Qualified roofing audit request" : "Roofing nurture signup",
       message: `${email} · ${companyWebsite}`,
       link: "/admin/bookings",
       priority: qualification.qualified ? "urgent" : "info",
     });
+    if (notificationError) {
+      console.error("[qualify] failed to create admin notification:", notificationError.message);
+    }
 
     // Email is useful but should never make the qualifier feel broken.
     try {
@@ -110,7 +69,7 @@ export async function POST(request: NextRequest) {
           ? calendlyEnabled ? "booking_nurture" : "manual_audit_followup"
           : "roofing_nurture",
         metadata: {
-          planLink: `https://www.acceleratewith.us/roofing?resume=${opportunity.qualifier_token}#book`,
+          planLink: `https://www.acceleratewith.us/roofing?resume=${opportunity.qualifier_token || ""}#book`,
           industry: "roofing",
         },
       });
@@ -121,7 +80,7 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     accepted: true,
-    qualified: opportunity.qualified,
+    qualified: qualification.qualified,
     token: opportunity.qualifier_token,
     email,
     bookingMode: calendlyEnabled ? "calendly" : "manual",

@@ -1,16 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Mail, X, DollarSign, FileCheck, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { ArrowUpRight, Mail, DollarSign, FileCheck, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { calculateLeadScore, getScoreColor, getScoreLabel } from "@/lib/admin/lead-scoring";
-import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Toast } from "@/components/ui/Toast";
 import { TaskQuickAdd } from "./TaskQuickAdd";
+import { EmailComposeModal } from "./EmailComposeModal";
 
 interface Lead {
   id: string;
@@ -25,6 +24,7 @@ interface Lead {
   notes?: string;
   view_count?: number;
   estimated_value?: number;
+  revenue_os?: { opportunity_id: string | null; contact_id: string | null; stage: string | null };
 }
 
 interface LeadDetailProps {
@@ -40,9 +40,6 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
   const [dealValue, setDealValue] = useState(lead.estimated_value?.toString() || "");
   const [saving, setSaving] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
-  const [emailSubject, setEmailSubject] = useState("");
-  const [emailBody, setEmailBody] = useState("");
-  const [sendingEmail, setSendingEmail] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [generatingProposal, setGeneratingProposal] = useState(false);
 
@@ -66,36 +63,10 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
     setSaving(false);
   };
 
-  const handleSendEmail = async () => {
-    if (!emailSubject || !emailBody) return;
-    setSendingEmail(true);
-    try {
-      const res = await fetch("/api/admin/send-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          to: lead.contact_email,
-          subject: emailSubject,
-          body: emailBody,
-          leadId: lead.id,
-        }),
-      });
-      if (!res.ok) throw new Error("Failed");
-      setToast({ message: "Email sent successfully", type: "success" });
-      setShowEmailModal(false);
-      setEmailSubject("");
-      setEmailBody("");
-    } catch {
-      setToast({ message: "Failed to send email", type: "error" });
-    } finally {
-      setSendingEmail(false);
-    }
-  };
-
   return (
     <div className="space-y-4">
       {/* AI Score Badge */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <span
           className={cn(
             "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold",
@@ -112,6 +83,15 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
           <Mail className="h-3.5 w-3.5 mr-1.5" />
           Send Email
         </Button>
+        {lead.revenue_os?.opportunity_id && (
+          <Link
+            href={`/admin/pipeline?search=${encodeURIComponent(lead.contact_email)}`}
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border-glass px-3 text-xs font-medium text-white-secondary transition-[border-color,color,transform] hover:border-white/20 hover:text-white-primary active:scale-[0.97]"
+          >
+            Pipeline · {lead.revenue_os.stage || "linked"}
+            <ArrowUpRight className="h-3.5 w-3.5" />
+          </Link>
+        )}
         {(status === "proposal" || status === "qualified") && (
           <Button
             variant="secondary"
@@ -266,70 +246,14 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
         relatedName={lead.contact_name}
       />
 
-      {/* Email Modal */}
-      <AnimatePresence>
-        {showEmailModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/60"
-              onClick={() => setShowEmailModal(false)}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-lg mx-4"
-            >
-              <GlassCard variant="prominent" padding="lg">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-display text-lg font-semibold text-white-primary">
-                    Send Email
-                  </h3>
-                  <button
-                    onClick={() => setShowEmailModal(false)}
-                    className="text-white-muted hover:text-white-primary cursor-pointer"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-
-                <div className="space-y-3">
-                  <Input
-                    label="To"
-                    type="text"
-                    value={lead.contact_email}
-                    disabled
-                  />
-                  <Input
-                    label="Subject"
-                    type="text"
-                    value={emailSubject}
-                    onChange={(e) => setEmailSubject(e.target.value)}
-                    placeholder="Email subject..."
-                  />
-                  <Textarea
-                    label="Body"
-                    value={emailBody}
-                    onChange={(e) => setEmailBody(e.target.value)}
-                    placeholder="Write your email..."
-                  />
-                  <Button
-                    variant="primary"
-                    onClick={handleSendEmail}
-                    disabled={sendingEmail || !emailSubject || !emailBody}
-                    className="w-full"
-                  >
-                    {sendingEmail ? "Sending..." : "Send Email"}
-                  </Button>
-                </div>
-              </GlassCard>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <EmailComposeModal
+        isOpen={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        recipientEmail={lead.contact_email}
+        recipientName={lead.contact_name}
+        businessName={lead.business_name}
+        leadId={lead.id}
+      />
 
       {toast && (
         <Toast

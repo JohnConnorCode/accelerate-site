@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
+import { attachRevenueLinkage } from "@/lib/revenue-os/legacy-adapter";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
@@ -23,8 +24,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
 
+  const linked = await attachRevenueLinkage(supabase, data || [], {
+    sourceRecordType: "website_grade",
+  });
+
   return NextResponse.json({
-    grades: data,
+    grades: linked.records,
+    canonicalSchemaReady: linked.schemaReady,
     total: count || 0,
     page,
     totalPages: Math.ceil((count || 0) / limit),

@@ -4,9 +4,14 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:
 const VERSION = "v1";
 
 function key(): Buffer {
-  const secret = process.env.GOOGLE_TOKEN_ENCRYPTION_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const rawKey = process.env.GOOGLE_TOKEN_ENCRYPTION_KEY;
+  const secret = rawKey ? rawKey.trim() : "";
   if (!secret) throw new Error("GOOGLE_TOKEN_ENCRYPTION_KEY is not configured");
   return createHash("sha256").update(secret).digest();
+}
+
+export function isGoogleTokenEncryptionKeyConfigured(): boolean {
+  return Boolean(process.env.GOOGLE_TOKEN_ENCRYPTION_KEY?.trim());
 }
 
 export function encryptSecret(value: string): string {

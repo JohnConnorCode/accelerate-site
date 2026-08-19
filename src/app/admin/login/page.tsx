@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { Suspense } from "react";
 import { MotionConfig, motion } from "framer-motion";
 import { ArrowRight, LockKeyhole, ShieldCheck } from "lucide-react";
@@ -62,16 +61,15 @@ function LoginForm() {
     }
 
     try {
-      const supabase = createClient();
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-        email,
-        {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        }
-      );
+      const response = await fetch("/api/admin/password-reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await response.json();
 
-      if (resetError) {
-        setError(resetError.message);
+      if (!response.ok) {
+        setError(data.error || "We could not send a reset email. Please try again shortly.");
       } else {
         setSuccess("Check your email for a password reset link.");
       }

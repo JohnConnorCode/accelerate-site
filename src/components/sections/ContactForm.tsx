@@ -14,7 +14,10 @@ import { getUTMParams, clearUTMParams } from "@/lib/utm";
 interface FormData {
   name: string;
   email: string;
+  companyName: string;
+  companyWebsite: string;
   businessType: string;
+  primaryProblem: string;
   message: string;
 }
 
@@ -22,7 +25,10 @@ export function ContactForm() {
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
+    companyName: "",
+    companyWebsite: "",
     businessType: "",
+    primaryProblem: "",
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -89,9 +95,8 @@ export function ContactForm() {
             On its way to John
           </h3>
           <p className="text-white-secondary max-w-md mx-auto">
-            John reads every message and replies within one business day. On the
-            first call we map where AI moves the needle for your business, and
-            the roadmap is yours to keep.
+            John will review the company and reply personally within one business day.
+            Reply with two times that work for you and he will schedule the call directly.
           </p>
         </div>
       </GlassCard>
@@ -114,6 +119,22 @@ export function ContactForm() {
             onChange={handleChange}
             placeholder="Your name"
           />
+        </div>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label htmlFor="companyName" className="mb-1.5 block text-sm font-medium text-white-secondary">Company</label>
+            <Input type="text" id="companyName" name="companyName" required value={formData.companyName} onChange={handleChange} placeholder="Company name" />
+          </div>
+          <div>
+            <label htmlFor="companyWebsite" className="mb-1.5 block text-sm font-medium text-white-secondary">Website</label>
+            <Input type="text" id="companyWebsite" name="companyWebsite" required value={formData.companyWebsite} onChange={handleChange} placeholder="company.com" />
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="primaryProblem" className="block text-sm font-medium text-white-secondary mb-1.5">Biggest revenue constraint</label>
+          <Select id="primaryProblem" name="primaryProblem" required value={formData.primaryProblem} onChange={handleChange} placeholder="Choose the biggest constraint" options={[{ value: "lead_response", label: "Slow response to new inquiries" }, { value: "follow_up", label: "Follow-up is inconsistent" }, { value: "scheduling", label: "Scheduling takes too much back-and-forth" }, { value: "visibility", label: "No clear pipeline or source visibility" }, { value: "other", label: "Something else" }]} />
         </div>
 
         <div>
@@ -163,7 +184,7 @@ export function ContactForm() {
             rows={4}
             value={formData.message}
             onChange={handleChange}
-            placeholder="Tell us about your business and what you're looking for..."
+            placeholder="A little context helps John prepare. What is happening now?"
           />
         </div>
 
@@ -177,7 +198,7 @@ export function ContactForm() {
           type="submit"
           variant="primary"
           size="lg"
-          className="w-full"
+          className="w-full transition-transform active:scale-[0.96]"
           disabled={isSubmitting}
         >
           {isSubmitting ? (
@@ -187,7 +208,7 @@ export function ContactForm() {
             </>
           ) : (
             <>
-              Send to John
+              Request the revenue-leak audit
               <Send className="w-4 h-4 ml-2" />
             </>
           )}

@@ -1,7 +1,7 @@
 import { createServiceRoleClient } from "@/lib/supabase/server";
 
 export const SERVER_ONLY_SECRET_KEYS = new Set([
-  "ANTHROPIC_API_KEY",
+  "OPENROUTER_API_KEY",
   "RESEND_API_KEY",
   "CRON_SECRET",
   "SUPABASE_SERVICE_ROLE_KEY",

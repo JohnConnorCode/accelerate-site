@@ -6,6 +6,7 @@ import { transitionOpportunity } from "./pipeline";
 import { activateCampaign } from "./campaigns";
 import { sendGmailReply } from "./google";
 import { REVENUE_STAGES, type RevenueStage } from "./types";
+import { createRevenueTask } from "./tasks";
 
 function stringValue(payload: Record<string, unknown>, key: string, required = true): string | undefined {
   const value = typeof payload[key] === "string" ? payload[key].trim() : "";
@@ -53,17 +54,7 @@ export async function approveAndExecuteAction(supabase: SupabaseClient, id: stri
         break;
       }
       case "create_task": {
-        const { data, error } = await supabase.from("tasks").insert({
-          title: stringValue(payload, "title")!,
-          description: stringValue(payload, "description", false) ?? null,
-          due_date: stringValue(payload, "dueDate", false) ?? null,
-          priority: ["high", "medium", "low"].includes(String(payload.priority)) ? payload.priority : "medium",
-          opportunity_id: stringValue(payload, "opportunityId", false) ?? null,
-          source: "ai",
-          dedupe_key: stringValue(payload, "dedupeKey", false) ?? null,
-        }).select("id").single();
-        if (error) throw new Error(error.message);
-        result = data;
+        result = await createRevenueTask(supabase, { title: stringValue(payload, "title")!, description: stringValue(payload, "description", false), dueDate: stringValue(payload, "dueDate", false), priority: ["high", "medium", "low"].includes(String(payload.priority)) ? payload.priority as "high" | "medium" | "low" : "medium", opportunityId: stringValue(payload, "opportunityId", false), source: "ai", dedupeKey: stringValue(payload, "dedupeKey", false), actorEmail });
         break;
       }
       case "update_next_action": {

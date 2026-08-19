@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
       summary.drive = await syncDrive(supabase);
       return { value: summary, summary };
     });
-    return NextResponse.json(result);
+    return NextResponse.json(result.claimed ? result.value : { skipped: true, reason: `A ${result.existingStatus || "previous"} run already owns this job`, runId: result.runId });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Google sync failed" }, { status: 500 });
   }

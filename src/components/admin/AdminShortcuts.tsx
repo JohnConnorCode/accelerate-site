@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
-import { useModalDismiss } from "@/lib/admin/useModalDismiss";
+import { AdminDialog } from "@/components/admin/AdminDialog";
+import { AdminSurface } from "@/components/admin/AdminSurface";
 
 /** How long a `g`-prefix chord stays "armed" waiting for the second key. */
 const CHORD_TIMEOUT_MS = 1200;
@@ -49,7 +49,6 @@ export function AdminShortcuts() {
   const chordTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const closeHelp = useCallback(() => setHelpOpen(false), []);
-  useModalDismiss(helpOpen, closeHelp);
 
   useEffect(() => {
     const disarmChord = () => {
@@ -121,34 +120,16 @@ export function AdminShortcuts() {
   }, [router, pathname, helpOpen]);
 
   return (
-    <AnimatePresence>
-      {helpOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/60"
-            onClick={closeHelp}
-          />
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            aria-label="Keyboard shortcuts"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-            className="relative w-full max-w-sm mx-4 glass-prominent rounded-xl border border-border-glass p-5 shadow-2xl"
-          >
+    <AdminDialog open={helpOpen} onClose={closeHelp} title="Keyboard shortcuts" ariaLabel="Keyboard shortcuts" maxWidth="sm">
+          <AdminSurface padding="lg" className="admin-dialog-surface rounded-[20px]">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-display text-base font-semibold text-white-primary">
+              <h2 className="text-base font-semibold text-[var(--admin-ink)]">
                 Keyboard Shortcuts
               </h2>
               <button
                 onClick={closeHelp}
                 aria-label="Close shortcuts"
-                className="text-white-muted transition-colors hover:text-white-primary cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] rounded"
+                className="admin-icon-button"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -156,12 +137,12 @@ export function AdminShortcuts() {
             <ul className="space-y-2">
               {SHORTCUT_HELP.map((s) => (
                 <li key={s.label} className="flex items-center justify-between gap-4">
-                  <span className="text-sm text-white-secondary">{s.label}</span>
+                  <span className="text-sm text-[var(--admin-muted)]">{s.label}</span>
                   <span className="flex items-center gap-1">
                     {s.keys.map((k) => (
                       <kbd
                         key={k}
-                        className="inline-flex min-w-[1.5rem] justify-center rounded border border-border-glass bg-bg-subtle px-1.5 py-0.5 text-[11px] font-medium text-white-primary"
+                        className="inline-flex min-w-[1.5rem] justify-center rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-0.5 font-mono text-[11px] font-medium text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]"
                       >
                         {k}
                       </kbd>
@@ -170,9 +151,7 @@ export function AdminShortcuts() {
                 </li>
               ))}
             </ul>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+          </AdminSurface>
+    </AdminDialog>
   );
 }

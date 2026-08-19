@@ -3,6 +3,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { decryptSecret, encryptSecret } from "./encryption";
 import { normalizeEmail, safeErrorMessage } from "./db";
 import { recordSourceRun } from "./runs";
+import { findCanonicalContactByEmail } from "./identity";
+import { stopCampaignMemberships } from "./campaign-stops";
+import { planGmailThreadSync, type GmailHistoryPage, type GmailThreadListPage } from "./gmail-sync-plan";
 
 export const GOOGLE_SCOPES = [
   "openid",
@@ -104,6 +107,7 @@ export async function getGoogleAccessToken(supabase: SupabaseClient): Promise<{ 
 interface GmailHeader { name: string; value: string }
 interface GmailPart { mimeType?: string; body?: { data?: string }; parts?: GmailPart[] }
 interface GmailMessage { id: string; threadId: string; labelIds?: string[]; internalDate?: string; snippet?: string; payload?: GmailPart & { headers?: GmailHeader[] } }
+interface GmailProfile { emailAddress: string; historyId: string }
 
 function header(message: GmailMessage, name: string) {
   return message.payload?.headers?.find((item) => item.name.toLowerCase() === name.toLowerCase())?.value || null;
@@ -126,8 +130,27 @@ function parseAddress(value: string | null): string | null {
 
 export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
   const { token, connection } = await getGoogleAccessToken(supabase);
-  const list = await googleFetch<{ threads?: Array<{ id: string }>; resultSizeEstimate?: number }>(`https://gmail.googleapis.com/gmail/v1/users/me/threads?maxResults=${Math.min(100, maxThreads)}&q=${encodeURIComponent("newer_than:30d")}`, { headers: { Authorization: `Bearer ${token}` } });
-  const threadIds = (list.threads ?? []).map((thread) => thread.id).reverse();
+  const profile = await googleFetch<GmailProfile>("https://gmail.googleapis.com/gmail/v1/users/me/profile", { headers: { Authorization: `Bearer ${token}` } });
+  const settings = (connection.settings ?? {}) as { gmail_history_id?: string };
+  let history: GmailHistoryPage | null = null;
+  let list: GmailThreadListPage | null = null;
+  let cursorExpired = false;
+  if (settings.gmail_history_id) {
+    try {
+      const params = new URLSearchParams({ startHistoryId: settings.gmail_history_id, historyTypes: "messageAdded", maxResults: String(Math.min(100, maxThreads)) });
+      history = await googleFetch<GmailHistoryPage>(`https://gmail.googleapis.com/gmail/v1/users/me/history?${params}`, { headers: { Authorization: `Bearer ${token}` } });
+    } catch (error) {
+      // Gmail expires old cursors. Fall back to the bounded reconciliation path
+      // and never advance the cursor while that reconciliation is incomplete.
+      if (!/history|not found|404/i.test(safeErrorMessage(error))) throw error;
+      cursorExpired = true;
+    }
+  }
+  if (!history) {
+    list = await googleFetch<GmailThreadListPage>(`https://gmail.googleapis.com/gmail/v1/users/me/threads?maxResults=${Math.min(100, maxThreads)}&q=${encodeURIComponent("newer_than:30d")}`, { headers: { Authorization: `Bearer ${token}` } });
+  }
+  const plan = planGmailThreadSync({ cursor: settings.gmail_history_id, history, list, cursorExpired, maxThreads });
+  const threadIds = plan.threadIds;
   let stored = 0;
   let failed = 0;
   const ownerEmail = normalizeEmail(connection.account_email as string);
@@ -143,7 +166,7 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
       let contactId: string | null = null;
       let opportunityId: string | null = null;
       if (contactEmail) {
-        const { data: contact } = await supabase.from("contacts").select("id").ilike("primary_email", contactEmail).maybeSingle();
+        const contact = await findCanonicalContactByEmail(supabase, contactEmail);
         contactId = contact?.id ?? null;
         if (contactId) {
           const { data: opportunity } = await supabase.from("opportunities").select("id").eq("contact_id", contactId).not("stage", "in", "(won,lost)").order("created_at", { ascending: false }).limit(1).maybeSingle();
@@ -183,10 +206,18 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
           metadata: { labels: message.labelIds ?? [], gmail_thread_id: thread.id },
         };
       });
+      const inboundRows = rows.filter((row) => row.direction === "inbound");
+      const { data: priorInbound, error: priorError } = inboundRows.length
+        ? await supabase.from("messages").select("external_id").eq("conversation_id", conversation.id).in("external_id", inboundRows.map((row) => row.external_id))
+        : { data: [], error: null };
+      if (priorError) throw new Error(priorError.message);
       const { error: messageError } = await supabase.from("messages").upsert(rows, { onConflict: "conversation_id,external_id", ignoreDuplicates: false });
       if (messageError) throw new Error(messageError.message);
-      if (contactEmail && messages.some((message) => parseAddress(header(message, "From")) === contactEmail)) {
-        await supabase.from("campaign_members").update({ status: "replied", stop_reason: "gmail_reply", next_send_at: null }).eq("email", contactEmail).in("status", ["queued", "active"]);
+      const priorIds = new Set((priorInbound ?? []).map((message) => message.external_id));
+      const newInbound = inboundRows.filter((row) => !priorIds.has(row.external_id));
+      if (contactId && newInbound.length) {
+        const reply = newInbound[0]!;
+        await stopCampaignMemberships(supabase, { contactId, reason: "gmail_reply", source: "automation", sourceReceiptId: `gmail:${thread.id}:${reply.external_id}` });
       }
       stored++;
     } catch (error) {
@@ -195,9 +226,11 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
     }
   }
   const status = failed && stored ? "partial" : failed ? "failed" : "success";
-  await recordSourceRun(supabase, { sourceKey: "gmail", status, summary: { listed: threadIds.length, stored, failed, deferred: Math.max(0, Number(list.resultSizeEstimate || 0) - threadIds.length) } });
-  await supabase.from("integration_connections").update({ last_sync_at: new Date().toISOString(), last_success_at: stored || !failed ? new Date().toISOString() : undefined, last_error: failed ? `${failed} Gmail threads failed` : null, status: failed && !stored ? "degraded" : "connected" }).eq("provider", "google");
-  return { listed: threadIds.length, stored, failed, deferred: Math.max(0, Number(list.resultSizeEstimate || 0) - threadIds.length) };
+  const cursorAdvanced = status === "success" && plan.cursorAdvanceSafe;
+  const nextSettings = cursorAdvanced ? { ...settings, gmail_history_id: profile.historyId } : settings;
+  await recordSourceRun(supabase, { sourceKey: "gmail", status, summary: { mode: plan.mode, listed: threadIds.length, stored, failed, deferred: Number(plan.deferred), deferred_reason: plan.deferReason, cursor_advanced: cursorAdvanced, cursor_present: Boolean(settings.gmail_history_id) } });
+  await supabase.from("integration_connections").update({ settings: nextSettings, last_sync_at: new Date().toISOString(), last_success_at: stored || !failed ? new Date().toISOString() : undefined, last_error: failed ? `${failed} Gmail threads failed` : plan.deferred ? "Gmail backlog remains; cursor intentionally not advanced" : null, status: failed && !stored ? "degraded" : "connected" }).eq("provider", "google");
+  return { mode: plan.mode, listed: threadIds.length, stored, failed, deferred: Number(plan.deferred), cursorAdvanced };
 }
 
 export async function syncCalendar(supabase: SupabaseClient) {
@@ -207,12 +240,31 @@ export async function syncCalendar(supabase: SupabaseClient) {
   const params = new URLSearchParams({ timeMin, timeMax, singleEvents: "true", orderBy: "startTime", maxResults: "500" });
   try {
     const data = await googleFetch<{ items?: Array<Record<string, unknown>> }>(`https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`, { headers: { Authorization: `Bearer ${token}` } });
-    const rows = (data.items ?? []).map((event) => {
+    const externalIds = (data.items ?? []).map((event) => String(event.id)).filter(Boolean);
+    const { data: existingEvents, error: existingError } = externalIds.length
+      ? await supabase.from("calendar_events").select("id,external_id,metadata").eq("provider", "google").in("external_id", externalIds)
+      : { data: [], error: null };
+    if (existingError) throw new Error(existingError.message);
+    const existingByExternalId = new Map((existingEvents ?? []).map((event) => [event.external_id, event]));
+    const rows = await Promise.all((data.items ?? []).map(async (event) => {
       const start = event.start as { dateTime?: string; date?: string } | undefined;
       const end = event.end as { dateTime?: string; date?: string } | undefined;
+      const attendees = Array.isArray(event.attendees) ? event.attendees : [];
+      const attendeeEmails = attendees.map((attendee) => attendee && typeof attendee === "object" && typeof (attendee as { email?: unknown }).email === "string" ? normalizeEmail((attendee as { email: string }).email) : null).filter((email): email is string => Boolean(email));
+      const matches = await Promise.all(attendeeEmails.map((email) => findCanonicalContactByEmail(supabase, email)));
+      const contactMatches = new Map(matches.filter((match): match is NonNullable<typeof match> => Boolean(match)).map((match) => [match.id, match]));
+      const contact = contactMatches.size === 1 ? [...contactMatches.values()][0]! : null;
+      let opportunityId: string | null = null;
+      if (contact) {
+        const { data: opportunity, error: opportunityError } = await supabase.from("opportunities").select("id").eq("contact_id", contact.id).not("stage", "in", "(won,lost)").order("created_at", { ascending: false }).limit(1).maybeSingle();
+        if (opportunityError) throw new Error(opportunityError.message);
+        opportunityId = opportunity?.id ?? null;
+      }
+      const externalId = String(event.id);
+      const existingMetadata = (existingByExternalId.get(externalId)?.metadata ?? {}) as Record<string, unknown>;
       return {
         provider: "google",
-        external_id: String(event.id),
+        external_id: externalId,
         calendar_id: "primary",
         title: String(event.summary || "Untitled event"),
         description: typeof event.description === "string" ? event.description : null,
@@ -222,13 +274,25 @@ export async function syncCalendar(supabase: SupabaseClient) {
         all_day: Boolean(start?.date && !start.dateTime),
         status: typeof event.status === "string" ? event.status : null,
         html_link: typeof event.htmlLink === "string" ? event.htmlLink : null,
-        attendees: Array.isArray(event.attendees) ? event.attendees : [],
-        metadata: { organizer: event.organizer ?? null, hangout_link: event.hangoutLink ?? null },
+        attendees,
+        contact_id: contact?.id ?? null,
+        opportunity_id: opportunityId,
+        metadata: { organizer: event.organizer ?? null, hangout_link: event.hangoutLink ?? null, attendee_emails: attendeeEmails, identity_resolution: contactMatches.size > 1 ? "ambiguous" : contact ? "matched" : "unmatched", campaign_stop_receipt: existingMetadata.campaign_stop_receipt ?? null },
         synced_at: new Date().toISOString(),
       };
-    });
+    }));
     const { error } = rows.length ? await supabase.from("calendar_events").upsert(rows, { onConflict: "provider,external_id" }) : { error: null };
     if (error) throw new Error(error.message);
+    const now = Date.now();
+    for (const row of rows) {
+      const metadata = row.metadata as { campaign_stop_receipt?: string | null };
+      const upcomingConfirmedMeeting = row.contact_id && row.status === "confirmed" && row.start_at && new Date(row.start_at).getTime() >= now;
+      if (upcomingConfirmedMeeting && !metadata.campaign_stop_receipt) {
+        const receipt = `google-calendar:${row.external_id}`;
+        await stopCampaignMemberships(supabase, { contactId: row.contact_id!, reason: "calendar_booking", source: "automation", sourceReceiptId: receipt });
+        await supabase.from("calendar_events").update({ metadata: { ...metadata, campaign_stop_receipt: receipt } }).eq("provider", "google").eq("external_id", row.external_id);
+      }
+    }
     await recordSourceRun(supabase, { sourceKey: "google_calendar", status: "success", summary: { stored: rows.length } });
     return { stored: rows.length };
   } catch (error) {

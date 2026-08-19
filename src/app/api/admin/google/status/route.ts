@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { GOOGLE_SCOPES, getGoogleAccessToken } from "@/lib/revenue-os/google";
 import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
+import { isGoogleTokenEncryptionKeyConfigured } from "@/lib/revenue-os/encryption";
 
 export async function GET() {
   const auth = await requireAdmin();
@@ -10,13 +11,13 @@ export async function GET() {
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase.from("integration_connections").select("provider,account_email,token_expires_at,scopes,status,settings,last_sync_at,last_success_at,last_error,connected_at").eq("provider", "google").maybeSingle();
   if (error) {
-    if (isMissingRevenueSchema(error)) return NextResponse.json({ schemaReady: false, configured: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET), connected: false });
+    if (isMissingRevenueSchema(error)) return NextResponse.json({ schemaReady: false, configured: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && isGoogleTokenEncryptionKeyConfigured()), connected: false });
     return NextResponse.json({ error: "Could not read Google status" }, { status: 500 });
   }
   const scopes: string[] = data?.scopes ?? [];
   return NextResponse.json({
     schemaReady: true,
-    configured: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && (process.env.GOOGLE_TOKEN_ENCRYPTION_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY)),
+    configured: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && isGoogleTokenEncryptionKeyConfigured()),
     connected: data?.status === "connected" && Boolean(data.account_email) && scopes.length > 0,
     connection: data ? { ...data, requiredScopesGranted: GOOGLE_SCOPES.filter((scope) => !["openid", "email"].includes(scope)).every((scope) => scopes.includes(scope)) } : null,
   });

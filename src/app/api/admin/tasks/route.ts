@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
+import { createRevenueTask } from "@/lib/revenue-os/tasks";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
@@ -60,27 +61,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Title is required" }, { status: 400 });
   }
 
-  const { data, error } = await supabase
-    .from("tasks")
-    .insert({
-      title,
-      description: description || null,
-      due_date: due_date || null,
-      due_time: due_time || null,
-      priority: priority || "medium",
-      related_type: related_type || null,
-      related_id: related_id || null,
-      related_name: related_name || null,
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Database error:", error.message);
-    return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
+  try {
+    const result = await createRevenueTask(supabase, { title, description, dueDate: due_date, dueTime: due_time, priority: ["high", "medium", "low"].includes(priority) ? priority : "medium", relatedType: related_type, relatedId: related_id, relatedName: related_name, source: "manual", actorEmail: auth.user.email || "founder" });
+    return NextResponse.json(result);
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Database operation failed" }, { status: 400 });
   }
-
-  return NextResponse.json({ task: data });
 }
 
 export async function PATCH(request: NextRequest) {

@@ -1,12 +1,12 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { Bot, CheckCircle2, Loader2, Send, Sparkles } from "lucide-react";
+import { Bot, CheckCircle2, Loader2, Send, Sparkles, ThumbsDown, ThumbsUp } from "lucide-react";
 import { AdminSurface } from "./AdminSurface";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { cn } from "@/lib/utils";
 
-interface Message { role: "user" | "assistant"; content: string }
+interface Message { role: "user" | "assistant"; content: string; runId?: string }
 
 const starters = ["What should I do next?", "Show pipeline risk", "Draft follow-up ideas"];
 
@@ -15,6 +15,8 @@ export function RevenueAICommand({ compact = false, onProposed }: { compact?: bo
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [feedback, setFeedback] = useState<Record<string, "helpful" | "not_helpful">>({});
+  const [feedbacking, setFeedbacking] = useState<string | null>(null);
 
   const submit = async (event?: FormEvent, suggested?: string) => {
     event?.preventDefault();
@@ -26,17 +28,29 @@ export function RevenueAICommand({ compact = false, onProposed }: { compact?: bo
     setLoading(true);
     setError("");
     try {
-      const result = await fetchJson<{ text: string; proposedActions?: string[] }>("/api/admin/revenue-os/ai", {
+      const result = await fetchJson<{ text: string; runId?: string; proposedActions?: string[] }>("/api/admin/revenue-os/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: next }),
       });
-      setMessages([...next, { role: "assistant", content: result.text }]);
+      setMessages([...next, { role: "assistant", content: result.text, runId: result.runId }]);
       if (result.proposedActions?.length) onProposed?.();
     } catch (commandError) {
       setError(commandError instanceof Error ? commandError.message : "Revenue copilot failed.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const submitFeedback = async (runId: string, rating: "helpful" | "not_helpful") => {
+    setFeedbacking(runId);
+    try {
+      await fetchJson("/api/admin/revenue-os/ai/feedback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ runId, rating }) });
+      setFeedback((current) => ({ ...current, [runId]: rating }));
+    } catch (feedbackError) {
+      setError(feedbackError instanceof Error ? feedbackError.message : "Could not record feedback.");
+    } finally {
+      setFeedbacking(null);
     }
   };
 
@@ -54,6 +68,7 @@ export function RevenueAICommand({ compact = false, onProposed }: { compact?: bo
           {messages.map((message, index) => (
             <div key={`${message.role}-${index}`} className={cn("max-w-[92%] rounded-2xl px-4 py-3 text-sm leading-6 shadow-[var(--admin-shadow-border)]", message.role === "user" ? "ml-auto rounded-br-md bg-[var(--admin-ink)] text-[var(--admin-surface)]" : "rounded-bl-md bg-[var(--admin-surface)] text-[var(--admin-ink)]")}>
               <p className="whitespace-pre-wrap text-pretty">{message.content}</p>
+              {message.role === "assistant" && message.runId && <div className="mt-3 flex items-center gap-1 border-t border-[var(--admin-border)] pt-2"><span className="mr-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">Useful?</span><button type="button" aria-label="Mark response helpful" disabled={feedbacking === message.runId || Boolean(feedback[message.runId])} onClick={() => void submitFeedback(message.runId!, "helpful")} className={cn("grid size-10 place-items-center rounded-lg transition-[background-color,scale,opacity] duration-150 active:scale-[0.96] disabled:opacity-60", feedback[message.runId] === "helpful" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "text-[var(--admin-muted)] hover:bg-black/[0.045] hover:text-[var(--admin-ink)] dark:hover:bg-white/[0.06]")}>{feedbacking === message.runId ? <Loader2 className="size-3.5 animate-spin" /> : <ThumbsUp className="size-3.5" />}</button><button type="button" aria-label="Mark response not helpful" disabled={feedbacking === message.runId || Boolean(feedback[message.runId])} onClick={() => void submitFeedback(message.runId!, "not_helpful")} className={cn("grid size-10 place-items-center rounded-lg transition-[background-color,scale,opacity] duration-150 active:scale-[0.96] disabled:opacity-60", feedback[message.runId] === "not_helpful" ? "bg-rose-500/10 text-rose-700 dark:text-rose-300" : "text-[var(--admin-muted)] hover:bg-black/[0.045] hover:text-[var(--admin-ink)] dark:hover:bg-white/[0.06]")}><ThumbsDown className="size-3.5" /></button></div>}
             </div>
           ))}
           {loading && <div className="flex items-center gap-2 text-xs text-[var(--admin-muted)]"><Loader2 className="size-3.5 animate-spin" /> Reading live Revenue OS data…</div>}

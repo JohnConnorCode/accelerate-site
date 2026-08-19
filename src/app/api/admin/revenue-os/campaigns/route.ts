@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import { activateCampaign, normalizeCampaignPolicy, pauseCampaign } from "@/lib/revenue-os/campaigns";
+import { activateCampaign, executeDueCampaignMembers, normalizeCampaignPolicy, pauseCampaign } from "@/lib/revenue-os/campaigns";
 import { isMissingRevenueSchema, normalizeEmail } from "@/lib/revenue-os/db";
 import { recordAudit } from "@/lib/revenue-os/audit";
 
@@ -69,6 +69,7 @@ export async function PATCH(request: NextRequest) {
   try {
     if (action === "activate") return NextResponse.json({ campaign: await activateCampaign(supabase, id, auth.user.email || "founder") });
     if (action === "pause") return NextResponse.json({ campaign: await pauseCampaign(supabase, id, auth.user.email || "founder") });
+    if (action === "run") return NextResponse.json({ result: await executeDueCampaignMembers(supabase, new Date(), id) });
 
     const { data: current, error: currentError } = await supabase.from("campaigns").select("*").eq("id", id).maybeSingle();
     if (currentError || !current) throw new Error(currentError?.message || "Campaign not found");

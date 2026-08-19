@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef } from "react";
+import { forwardRef, useId } from "react";
 import { cn } from "@/lib/utils";
 
 interface TextareaProps
@@ -11,11 +11,14 @@ interface TextareaProps
 
 const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ label, error, className, id, ...props }, ref) => {
+    const generatedId = useId();
+    const controlId = id || `textarea-${generatedId}`;
+    const errorId = `${controlId}-error`;
     return (
       <div className="w-full">
         {label && (
           <label
-            htmlFor={id}
+            htmlFor={controlId}
             className="block text-sm text-white-secondary mb-2"
           >
             {label}
@@ -23,7 +26,8 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         )}
         <textarea
           ref={ref}
-          id={id}
+          id={controlId}
+          aria-describedby={error ? errorId : props["aria-describedby"]}
           className={cn(
             "w-full px-4 py-3 rounded-lg min-h-[120px] resize-y",
             "bg-bg-subtle border border-border-glass",
@@ -36,7 +40,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           {...props}
         />
         {error && (
-          <p className="mt-1.5 text-sm text-[var(--error)]">{error}</p>
+          <p id={errorId} className="mt-1.5 text-sm text-[var(--error)]">{error}</p>
         )}
       </div>
     );

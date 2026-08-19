@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { isValidEmail } from "@/lib/validation";
 import { sendContactEmail } from "@/lib/email/send";
+import { createServiceRoleClient } from "@/lib/supabase/server";
+import { ingestInboundLead } from "@/lib/revenue-os/inbound";
 
 export async function POST(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
@@ -12,9 +14,9 @@ export async function POST(request: NextRequest) {
 
   try {
     const formData = await request.json();
-    const { name, email, message, businessType, utm } = formData;
+    const { name, email, message, businessType, companyName, companyWebsite, primaryProblem, utm } = formData;
 
-    if (typeof name !== "string" || !name.trim() || typeof email !== "string" || typeof message !== "string" || !message.trim()) {
+    if (typeof name !== "string" || !name.trim() || typeof email !== "string" || typeof message !== "string" || !message.trim() || typeof companyName !== "string" || !companyName.trim() || typeof companyWebsite !== "string" || !companyWebsite.trim() || typeof primaryProblem !== "string" || !primaryProblem.trim()) {
       return NextResponse.json(
         { error: "Name, email, and message are required" },
         { status: 400 }
@@ -30,13 +32,9 @@ export async function POST(request: NextRequest) {
 
     // Save to Supabase
     if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      const { createClient } = await import("@supabase/supabase-js");
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.SUPABASE_SERVICE_ROLE_KEY
-      );
+      const supabase = createServiceRoleClient();
 
-      const { error: dbError } = await supabase.from("contact_submissions").insert({
+      const { data: submission, error: dbError } = await supabase.from("contact_submissions").insert({
         name,
         email,
         business_type: businessType || null,
@@ -44,19 +42,22 @@ export async function POST(request: NextRequest) {
         utm_source: utm?.utm_source || null,
         utm_medium: utm?.utm_medium || null,
         utm_campaign: utm?.utm_campaign || null,
-      });
+      }).select("id").single();
       // Surface insert failures instead of swallowing them (a missing column or
       // dead project would otherwise look like a successful submission).
       if (dbError) {
         console.error("contact_submissions insert FAILED:", dbError.message);
+        return NextResponse.json({ error: "We couldn't save your request yet. Please try again." }, { status: 500 });
       }
+
+      await ingestInboundLead(supabase, { name: name.trim(), email: email.trim(), companyName: companyName.trim(), website: companyWebsite.trim(), industry: businessType || null, source: "contact_form", sourceRecordId: submission.id, summary: `${primaryProblem}: ${message.trim()}`, utm });
 
       // Create admin notification
       supabase.from("admin_notifications").insert({
         type: "new_contact",
         title: `New contact from ${name}`,
         description: message.substring(0, 100),
-        link: "/admin/contacts",
+        link: "/admin/today",
       }).then(() => {}, () => {});
     }
 

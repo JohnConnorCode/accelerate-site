@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { AdminSurface } from "@/components/admin/AdminSurface";
+import { AdminDialog } from "@/components/admin/AdminDialog";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Toast } from "@/components/ui/Toast";
-import { useModalDismiss } from "@/lib/admin/useModalDismiss";
 
 interface EmailTemplate {
   label: string;
@@ -68,6 +67,8 @@ interface EmailComposeModalProps {
   recipientName?: string;
   businessName?: string;
   leadId?: string;
+  initialSubject?: string;
+  initialBody?: string;
 }
 
 export function EmailComposeModal({
@@ -77,6 +78,8 @@ export function EmailComposeModal({
   recipientName,
   businessName,
   leadId,
+  initialSubject = "",
+  initialBody = "",
 }: EmailComposeModalProps) {
   const [recipient, setRecipient] = useState(recipientEmail);
   const [selectedTemplate, setSelectedTemplate] = useState("Custom");
@@ -86,10 +89,12 @@ export function EmailComposeModal({
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   useEffect(() => {
-    if (isOpen) setRecipient(recipientEmail);
-  }, [isOpen, recipientEmail]);
-
-  useModalDismiss(isOpen, onClose);
+    if (!isOpen) return;
+    setRecipient(recipientEmail);
+    setSubject(initialSubject);
+    setBody(initialBody);
+    setSelectedTemplate(initialSubject || initialBody ? "Custom" : "Custom");
+  }, [initialBody, initialSubject, isOpen, recipientEmail]);
 
   const applyTemplate = (templateLabel: string) => {
     setSelectedTemplate(templateLabel);
@@ -138,30 +143,15 @@ export function EmailComposeModal({
 
   return (
     <>
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/60"
-              onClick={onClose}
-            />
-            <motion.div
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="email-compose-title"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-lg mx-4"
-            >
-              <AdminSurface padding="lg" className="admin-dialog-surface">
+      <AdminDialog open={isOpen} onClose={onClose} title="Compose email" labelledBy="email-compose-title" maxWidth="md">
+              <AdminSurface padding="lg" className="admin-dialog-surface max-h-[92dvh] overflow-y-auto rounded-[20px]">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 id="email-compose-title" className="font-display text-lg font-semibold text-white-primary">
-                    Send Email
+                  <div>
+                    <p className="admin-eyebrow">Direct follow-up</p>
+                    <h3 id="email-compose-title" className="admin-dialog-title">
+                    Compose email
                   </h3>
+                  </div>
                   <button
                     onClick={onClose}
                     aria-label="Close dialog"
@@ -184,11 +174,11 @@ export function EmailComposeModal({
 
                   {/* Template selector */}
                   <div>
-                    <label className="block text-xs text-white-muted mb-1">Template</label>
+                    <label className="admin-field-label mb-1">Template</label>
                     <select
                       value={selectedTemplate}
                       onChange={(e) => applyTemplate(e.target.value)}
-                      className="w-full rounded-lg bg-bg-subtle border border-border-glass px-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold transition-[border-color,box-shadow,background-color]"
+                      className="admin-field"
                     >
                       {templates.map((t) => (
                         <option key={t.label} value={t.label}>{t.label}</option>
@@ -220,10 +210,7 @@ export function EmailComposeModal({
                   </Button>
                 </div>
               </AdminSurface>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      </AdminDialog>
 
       {toast && (
         <Toast

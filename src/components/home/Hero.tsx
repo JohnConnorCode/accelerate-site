@@ -57,6 +57,7 @@ export function Hero() {
   const entranceRaf = useRef<number | undefined>(undefined);
   const sectionRef = useRef<HTMLElement>(null);
   const reduced = useReducedMotion();
+  const [finePointer, setFinePointer] = useState(false);
 
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end start"] });
   const fade = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
@@ -79,6 +80,17 @@ export function Hero() {
   // Text tilts the opposite way for intense spatial parallax
   const textRotateX = useTransform(smoothY, [-1, 1], [-2, 2]);
   const textRotateY = useTransform(smoothX, [-1, 1], [2, -2]);
+
+  // 3D transforms are a desktop detail, not a mobile requirement. Touch
+  // retains the responsive spotlight below without paying to composite a
+  // tilted full-screen grid while the user scrolls.
+  useEffect(() => {
+    const media = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const sync = () => setFinePointer(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -105,6 +117,7 @@ export function Hero() {
     let targetY = currentY;
     let previousTime = performance.now();
     let touchReleaseTimer: ReturnType<typeof setTimeout> | undefined;
+    let heroIsVisible = true;
 
     const idlePosition = (time: number) => {
       const seconds = time / 1000;
@@ -183,7 +196,7 @@ export function Hero() {
       // A tap becomes the mobile equivalent of hover. It does not prevent the
       // native gesture, capture the pointer, or alter focus, so links and
       // vertical scrolling remain fully native.
-      pointSpotlightAt(e.clientX, e.clientY, true);
+      pointSpotlightAt(e.clientX, e.clientY, false);
       touchReleaseTimer = setTimeout(releasePointerControl, 1050);
     };
 
@@ -201,13 +214,20 @@ export function Hero() {
     // it would have reached rather than visibly starting over.
     const visibilityObserver = new IntersectionObserver(
       ([entry]) => {
-        if (entry?.isIntersecting) startSpotlight();
+        heroIsVisible = Boolean(entry?.isIntersecting);
+        if (heroIsVisible && !document.hidden) startSpotlight();
         else stopSpotlight();
       },
       { rootMargin: "120px 0px" }
     );
     visibilityObserver.observe(el);
-    startSpotlight();
+
+    const onVisibilityChange = () => {
+      if (document.hidden || !heroIsVisible) stopSpotlight();
+      else startSpotlight();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    if (!document.hidden) startSpotlight();
 
     const onPageShow = () => setLoaded(true);
     window.addEventListener("pageshow", onPageShow);
@@ -218,6 +238,7 @@ export function Hero() {
       if (timer) clearTimeout(timer);
       if (touchReleaseTimer) clearTimeout(touchReleaseTimer);
       visibilityObserver.disconnect();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       el.removeEventListener("pointermove", onPointerMove);
       el.removeEventListener("pointerdown", onPointerDown);
       el.removeEventListener("pointerleave", onPointerLeave);
@@ -225,18 +246,20 @@ export function Hero() {
     };
   }, [reduced, mouseX, mouseY]);
 
+  const spatialMotion = !reduced && finePointer;
+
   return (
-    <section ref={sectionRef} className={`hero${loaded ? " loaded" : ""}`} id="hero" style={{ perspective: "1200px" }}>
+    <section ref={sectionRef} className={`hero${loaded ? " loaded" : ""}`} id="hero" style={spatialMotion ? { perspective: "1200px" } : undefined}>
       <motion.div
         className="hero-field"
         aria-hidden="true"
-        style={reduced ? undefined : { 
+        style={spatialMotion ? {
           y: gridDrift,
           rotateX: gridRotateX,
           rotateY: gridRotateY,
           scale: 1.05, // Prevent edges from showing when tilted
           transformStyle: "preserve-3d"
-        }}
+        } : undefined}
       >
         <div className="hero-grid-base" />
         <div className="hero-grid-lit interactive" />
@@ -245,13 +268,13 @@ export function Hero() {
       </motion.div>
       <motion.div 
         className="wrap" 
-        style={reduced ? undefined : { 
+        style={spatialMotion ? {
           opacity: fade, 
           y: lift,
           rotateX: textRotateX,
           rotateY: textRotateY,
           transformStyle: "preserve-3d"
-        }}
+        } : undefined}
       >
         <div className="hero-top">
           <p className={`label eyebrow-anim rv${loaded ? " in" : ""}`}>

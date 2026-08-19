@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef } from "react";
+import { forwardRef, useId } from "react";
 import { cn } from "@/lib/utils";
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -10,11 +10,14 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, className, id, ...props }, ref) => {
+    const generatedId = useId();
+    const controlId = id || `input-${generatedId}`;
+    const errorId = `${controlId}-error`;
     return (
       <div className="w-full">
         {label && (
           <label
-            htmlFor={id}
+            htmlFor={controlId}
             className="block text-sm text-white-secondary mb-2"
           >
             {label}
@@ -22,7 +25,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
         <input
           ref={ref}
-          id={id}
+          id={controlId}
+          aria-describedby={error ? errorId : props["aria-describedby"]}
           className={cn(
             "w-full px-4 py-3 rounded-lg",
             "bg-bg-subtle border border-border-glass",
@@ -35,7 +39,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           {...props}
         />
         {error && (
-          <p className="mt-1.5 text-sm text-[var(--error)]">{error}</p>
+          <p id={errorId} className="mt-1.5 text-sm text-[var(--error)]">{error}</p>
         )}
       </div>
     );

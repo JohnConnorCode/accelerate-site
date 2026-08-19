@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { getSetting } from "@/lib/admin/settings";
 import { createServiceRoleClient } from "@/lib/supabase/server";
+import { isOpenRouterConfigured, openRouterChat } from "@/lib/ai/openrouter";
 
 export async function POST() {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const apiKey = await getSetting("ANTHROPIC_API_KEY");
-  if (!apiKey) {
+  if (!isOpenRouterConfigured()) {
     return NextResponse.json(
-      { insights: ["AI insights require an Anthropic API key. Add one in Settings."] }
+      { insights: ["AI insights require OpenRouter. Add OPENROUTER_API_KEY in Setup Center."] }
     );
   }
 
@@ -57,12 +56,9 @@ export async function POST() {
 Today's date: ${now.toISOString().split("T")[0]}`;
 
   try {
-    const Anthropic = (await import("@anthropic-ai/sdk")).default;
-    const client = new Anthropic({ apiKey });
-
-    const response = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 400,
+    const response = await openRouterChat({
+      model: process.env.OPENROUTER_INSIGHTS_MODEL,
+      maxTokens: 400,
       messages: [
         {
           role: "user",
@@ -71,8 +67,7 @@ Today's date: ${now.toISOString().split("T")[0]}`;
       ],
     });
 
-    const text =
-      response.content[0]?.type === "text" ? response.content[0].text : "";
+    const text = response.choices[0]?.message.content || "";
     const insights = text
       .split("\n")
       .map((line) => line.replace(/^[-*]\s*/, "").trim())
@@ -81,7 +76,7 @@ Today's date: ${now.toISOString().split("T")[0]}`;
     return NextResponse.json({ insights });
   } catch {
     return NextResponse.json({
-      insights: ["Unable to generate AI insights. Check your Anthropic API key in Settings."],
+      insights: ["Unable to generate AI insights. Check OpenRouter in Setup Center."],
     });
   }
 }

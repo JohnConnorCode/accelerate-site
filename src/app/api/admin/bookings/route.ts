@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { createServiceRoleClient } from "@/lib/supabase/server";
+import { canonicalStage, transitionOpportunity, transitionStatusFromError } from "@/lib/revenue-os/pipeline";
 import { OPPORTUNITY_STAGES } from "@/lib/opportunities";
 import { sendNoShowRebookEmail } from "@/lib/email/booking";
 
@@ -56,21 +57,40 @@ export async function PATCH(request: NextRequest) {
   const { data: current } = await supabase.from("opportunities").select("stage, email, qualifier_token").eq("id", body.id).maybeSingle();
   if (!current) return NextResponse.json({ error: "Opportunity not found" }, { status: 404 });
 
-  const update: Record<string, unknown> = { stage: body.stage };
-  if (Number.isFinite(body.estimatedValue)) update.estimated_value = Math.max(0, Number(body.estimatedValue));
-  if (Number.isFinite(body.wonValue)) update.won_value = Math.max(0, Number(body.wonValue));
-  if (body.stage === "showed") update.showed_at = new Date().toISOString();
+  const updatePatch: Record<string, unknown> = {};
+  if (Number.isFinite(body.estimatedValue)) updatePatch.estimated_value = Math.max(0, Number(body.estimatedValue));
+  if (Number.isFinite(body.wonValue)) updatePatch.won_value = Math.max(0, Number(body.wonValue));
+  if (body.stage === "showed") updatePatch.showed_at = new Date().toISOString();
 
-  const { data, error } = await supabase.from("opportunities").update(update).eq("id", body.id).select().single();
-  if (error) return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
+  let finalData: Record<string, unknown> = current;
+  if (typeof body.stage === "string") {
+    const targetStage = canonicalStage(body.stage);
+    if (!targetStage) return NextResponse.json({ error: "Invalid opportunity update" }, { status: 400 });
+    try {
+      finalData = await transitionOpportunity(supabase, {
+        id: body.id,
+        to: body.stage,
+        actorEmail: auth.user.email || "founder",
+        source: "admin_bookings",
+        reason: `Booking stage moved from ${current.stage} to ${body.stage}`,
+        lossReason: body.stage === "lost" ? "Admin booking pipeline adjustment" : undefined,
+      }) as Record<string, unknown>;
+    } catch (error) {
+      return NextResponse.json({ error: error instanceof Error ? error.message : "Could not update opportunity" }, { status: transitionStatusFromError(error) });
+    }
+  }
 
-  await supabase.from("opportunity_stage_events").insert({
-    opportunity_id: body.id,
-    from_stage: current.stage,
-    to_stage: body.stage,
-    source: "admin",
-    metadata: { estimated_value: body.estimatedValue, won_value: body.wonValue },
-  });
+  let data = finalData as Record<string, unknown> | null;
+  if (Object.keys(updatePatch).length > 0) {
+    const { data: patched, error: patchError } = await supabase
+      .from("opportunities")
+      .update(updatePatch)
+      .eq("id", body.id)
+      .select()
+      .single();
+    if (patchError) return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
+    data = patched;
+  }
 
   if (body.stage === "no_show" && current.stage !== "no_show") {
     try {

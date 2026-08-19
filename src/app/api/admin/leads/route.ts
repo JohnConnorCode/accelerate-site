@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { PIPELINE_STAGES } from "@/lib/admin/pipeline-stages";
+import { attachRevenueLinkage } from "@/lib/revenue-os/legacy-adapter";
+import { ingestInboundLead } from "@/lib/revenue-os/inbound";
+import { canonicalStage, transitionOpportunity } from "@/lib/revenue-os/pipeline";
+import type { RevenueStage } from "@/lib/revenue-os/types";
 
 // Statuses a lead can be set to: canonical pipeline stages plus "lost".
 const VALID_LEAD_STATUSES = new Set<string>([
@@ -79,8 +83,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
 
+  const linked = await attachRevenueLinkage(supabase, data || [], {
+    sourceRecordType: "solution_request",
+    emailField: "contact_email",
+  });
+
   return NextResponse.json({
-    leads: data,
+    leads: linked.records,
+    canonicalSchemaReady: linked.schemaReady,
     total: count || 0,
     page,
     limit,
@@ -127,7 +137,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
 
-  return NextResponse.json({ lead: data });
+  let canonicalLinked = false;
+  try {
+    await ingestInboundLead(supabase, {
+      name: contact_name,
+      email: contact_email,
+      phone: contact_phone || null,
+      companyName: business_name || null,
+      industry: industry || "other",
+      source: "solution_request",
+      sourceRecordId: data.id,
+      summary: notes || `Manual lead created by ${auth.user.email || "founder"}`,
+    });
+    canonicalLinked = true;
+  } catch (canonicalError) {
+    console.error("[admin-leads] canonical ingestion failed:", canonicalError);
+  }
+
+  return NextResponse.json({ lead: data, canonicalLinked });
 }
 
 export async function PATCH(request: NextRequest) {
@@ -177,6 +204,35 @@ export async function PATCH(request: NextRequest) {
   if (notes !== undefined) updateData.notes = notes;
   if (estimated_value !== undefined) updateData.estimated_value = estimated_value;
   if (lead_status === "contacted") updateData.contacted_at = new Date().toISOString();
+
+  if (lead_status) {
+    const target = canonicalStage(lead_status);
+    const { data: linkedOpportunity, error: linkageError } = await supabase
+      .from("opportunities")
+      .select("id,stage")
+      .eq("source_record_type", "solution_request")
+      .eq("source_record_id", id)
+      .maybeSingle();
+    if (linkageError) {
+      console.error("[admin-leads] canonical linkage failed:", linkageError.message);
+    } else if (linkedOpportunity && target && canonicalStage(linkedOpportunity.stage) !== target) {
+      try {
+        await transitionOpportunity(supabase, {
+          id: linkedOpportunity.id,
+          to: target as RevenueStage,
+          actorEmail: auth.user.email || "founder",
+          source: "admin_leads",
+          reason: "Updated from Leads compatibility workspace",
+          lossReason: target === "lost" ? "Closed from Leads compatibility workspace" : undefined,
+        });
+      } catch (transitionError) {
+        return NextResponse.json(
+          { error: transitionError instanceof Error ? transitionError.message : "Could not update canonical pipeline" },
+          { status: 409 },
+        );
+      }
+    }
+  }
 
   const { data, error } = await supabase
     .from("solution_requests")

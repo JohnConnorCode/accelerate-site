@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { createServiceRoleClient } from "@/lib/supabase/server";
+import { attachRevenueLinkage } from "@/lib/revenue-os/legacy-adapter";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
@@ -32,8 +33,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
 
+  const linked = await attachRevenueLinkage(supabase, data || [], {
+    sourceRecordType: "resource_download",
+  });
+
   return NextResponse.json({
-    downloads: data || [],
+    downloads: linked.records,
+    canonicalSchemaReady: linked.schemaReady,
     total: count || 0,
     totalPages: Math.ceil((count || 0) / pageSize),
     page,

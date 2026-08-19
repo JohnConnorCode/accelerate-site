@@ -19,10 +19,9 @@ import { FinalCta } from "@/components/home/FinalCta";
 export function Studio() {
   return (
     <>
-      {/* Grouped so the marquee band can sit pinned to the bottom of the
-          initial mobile viewport (see `.hero-band` in globals.css) — that
-          only works if hero + band share one flex parent, since a single
-          section can't reserve space for a sibling's height on its own. */}
+      {/* Grouped so the mobile hero can reserve a stable first fold for the
+          headline and booking action while the proof copy and marquee continue
+          directly below it (see `.hero-band` in globals.css). */}
       <div className="hero-band">
         <Hero />
         <Marquee />

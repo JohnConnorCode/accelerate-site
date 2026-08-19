@@ -130,6 +130,7 @@ export default function ChatLeadsPage() {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
+      className="min-w-0 max-w-full overflow-x-hidden"
     >
       <PageHeader
         title="Chat Leads"
@@ -166,7 +167,7 @@ export default function ChatLeadsPage() {
         )}
       </div>
 
-      <GlassCard padding="none" hover="none" className="overflow-clip">
+      <GlassCard padding="none" hover="none" className="w-full min-w-0 max-w-full overflow-hidden">
         {error ? (
           <div className="flex min-h-56 flex-col items-center justify-center px-6 text-center">
             <AlertCircle className="mb-3 h-6 w-6 text-red-300" />
@@ -181,14 +182,14 @@ export default function ChatLeadsPage() {
             </button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-sm">
+          <div className="w-[calc(100vw-2rem)] max-w-full overflow-x-auto overscroll-x-contain sm:w-full">
+            <table className="w-full table-fixed text-sm md:min-w-[720px] md:table-auto">
               <thead>
                 <tr className="border-b border-border-glass">
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-white-muted">Contact</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-white-muted">Conversation</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-white-muted">Source</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-white-muted">Received</th>
+                  <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase text-white-muted md:table-cell">Source</th>
+                  <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase text-white-muted md:table-cell">Received</th>
                   <th className="w-12 px-4 py-3"><span className="sr-only">Expand</span></th>
                 </tr>
               </thead>
@@ -213,17 +214,17 @@ export default function ChatLeadsPage() {
                             className="text-left"
                           >
                             <span className="block font-medium text-white-primary">{lead.name}</span>
-                            <span className="mt-0.5 block text-xs text-white-muted">{lead.email}</span>
+                            <span className="mt-0.5 block break-all text-xs text-white-muted">{lead.email}</span>
                           </button>
                         </td>
                         <td className="px-4 py-3 text-white-secondary">
                           {lead.conversation?.length || 0} messages
                         </td>
-                        <td className="px-4 py-3 text-xs text-white-muted">
+                        <td className="hidden px-4 py-3 text-xs text-white-muted md:table-cell">
                           {lead.utm_source || "Direct"}
                           {lead.utm_campaign && <span className="block text-[10px] opacity-70">{lead.utm_campaign}</span>}
                         </td>
-                        <td className="px-4 py-3 text-xs text-white-muted" title={new Date(lead.created_at).toLocaleString()}>
+                        <td className="hidden px-4 py-3 text-xs text-white-muted md:table-cell" title={new Date(lead.created_at).toLocaleString()}>
                           {relativeTime(lead.created_at)}
                         </td>
                         <td className="px-4 py-3">

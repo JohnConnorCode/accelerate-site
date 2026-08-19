@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { X, Sparkles, Trash2, Loader2 } from "lucide-react";
-import { GlassCard } from "@/components/ui/GlassCard";
+import { AdminDialog } from "@/components/admin/AdminDialog";
+import { AdminSurface } from "@/components/admin/AdminSurface";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -156,21 +156,8 @@ export function ContentItemForm({ item, onSave, onDelete, onClose }: ContentItem
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-end">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-black/60"
-        onClick={onClose}
-      />
-      <motion.div
-        initial={{ opacity: 0, x: 100 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: 100 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
-        className="relative h-full w-full max-w-md overflow-y-auto glass-prominent border-l border-border-glass p-6"
-      >
+    <AdminDialog open onClose={onClose} title={item ? "Edit content" : "New content"} align="right" maxWidth="md" className="h-full">
+      <div className="h-full w-full overflow-y-auto bg-[var(--admin-surface)] p-5 shadow-[-24px_0_70px_-34px_rgba(0,0,0,0.6)] sm:p-6">
         <div className="flex items-center justify-between mb-6">
           <h3 className="font-display text-lg font-semibold text-white-primary">
             {item ? "Edit Content" : "New Content"}
@@ -338,22 +325,8 @@ export function ContentItemForm({ item, onSave, onDelete, onClose }: ContentItem
         </form>
 
         {/* Delete confirmation */}
-        <AnimatePresence>
-          {showDeleteConfirm && (
-            <div className="fixed inset-0 z-[60] flex items-center justify-center">
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-black/60"
-                onClick={() => setShowDeleteConfirm(false)}
-              />
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-              >
-                <GlassCard variant="prominent" padding="lg" className="max-w-sm mx-4">
+        <AdminDialog open={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)} title="Delete content?" maxWidth="sm">
+                <AdminSurface padding="lg" className="admin-dialog-surface">
                   <h4 className="font-display text-white-primary font-semibold mb-2">Delete Content?</h4>
                   <p className="text-sm text-white-muted mb-4">
                     This action cannot be undone. The content item will be permanently deleted.
@@ -376,11 +349,8 @@ export function ContentItemForm({ item, onSave, onDelete, onClose }: ContentItem
                       Delete
                     </Button>
                   </div>
-                </GlassCard>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
+                </AdminSurface>
+        </AdminDialog>
 
         {toast && (
           <Toast
@@ -390,7 +360,7 @@ export function ContentItemForm({ item, onSave, onDelete, onClose }: ContentItem
             onClose={() => setToast(null)}
           />
         )}
-      </motion.div>
-    </div>
+      </div>
+    </AdminDialog>
   );
 }

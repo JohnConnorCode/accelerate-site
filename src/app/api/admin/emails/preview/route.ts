@@ -1,187 +1,199 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import {
-  planConfirmationEmail,
-  contactConfirmationEmail,
-  roiReportEmail,
-  adminLeadNotificationEmail,
-  adminContactNotificationEmail,
-  textEmail,
-} from "@/lib/email/templates";
-import { emailSequences } from "@/content/email-sequences";
+import { createServiceRoleClient } from "@/lib/supabase/server";
+import { getResend, FROM_EMAIL, ADMIN_EMAIL } from "@/lib/email/resend";
+import { EMAIL_TEMPLATE_DEFINITIONS, getEmailTemplateDefinition, renderDefinition, replaceEmailVariables } from "@/lib/email/registry";
+import { textEmail } from "@/lib/email/templates";
+import { recordAudit } from "@/lib/revenue-os/audit";
 
-interface EmailEntry {
+interface StoredVersion {
   id: string;
-  name: string;
-  category: string;
-  subject: string;
-  delayDays?: number;
+  template_key: string;
+  state: "draft" | "published" | "archived";
+  subject_template: string;
+  preview_text: string | null;
+  body_template: string;
+  sample_data: Record<string, string> | null;
+  updated_at: string;
+  published_at: string | null;
 }
 
-const SAMPLE = {
-  name: "Sarah Mitchell",
-  email: "sarah@mitchellhvac.com",
-  phone: "(555) 234-5678",
-  business: "Mitchell HVAC Services",
-  industry: "home_services",
-  planUrl: "https://www.acceleratewith.us/plan/abc123",
-  planSummary:
-    "AI-powered website with 24/7 chat, automated follow-up sequences, and review management system.",
-  score: "62",
-  topIssues:
-    "- Mobile page speed: 2.8s (target: <1.5s)\n- No SSL certificate detected\n- Missing meta descriptions on 4 pages",
-  resourceTitle: "The Small Business AI Automation Playbook",
-  downloadLink: "https://www.acceleratewith.us/resources/ai-playbook",
-};
+const missingSchema = (code?: string) => code === "42P01" || code === "PGRST205";
 
-function replaceVars(template: string, vars: Record<string, string>): string {
-  let result = template;
-  for (const [key, value] of Object.entries(vars)) {
-    result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), value);
-  }
-  return result;
+function usedVariables(subject: string, body: string) {
+  return [...new Set(`${subject} ${body}`.match(/\{\{([A-Za-z0-9_]+)\}\}/g)?.map((token) => token.slice(2, -2)) || [])];
 }
 
-const sequenceVars: Record<string, string> = {
-  name: SAMPLE.name,
-  industry: "home services",
-  planLink: SAMPLE.planUrl,
-  planSummary: SAMPLE.planSummary,
-  score: SAMPLE.score,
-  topIssues: SAMPLE.topIssues,
-  resourceTitle: SAMPLE.resourceTitle,
-  downloadLink: SAMPLE.downloadLink,
-};
-
-function buildRegistry(): EmailEntry[] {
-  const entries: EmailEntry[] = [
-    {
-      id: "plan-confirmation",
-      name: "Plan Confirmation",
-      category: "User Emails",
-      subject: "Your Growth Plan Is Ready",
-    },
-    {
-      id: "contact-confirmation",
-      name: "Contact Confirmation",
-      category: "User Emails",
-      subject: "We Got Your Message",
-    },
-    {
-      id: "roi-report",
-      name: "ROI Report",
-      category: "User Emails",
-      subject: "Your AI Automation ROI Analysis",
-    },
-    {
-      id: "admin-lead",
-      name: "Admin Lead Alert",
-      category: "Admin Alerts",
-      subject: "New Lead Submitted",
-    },
-    {
-      id: "admin-contact",
-      name: "Admin Contact Alert",
-      category: "Admin Alerts",
-      subject: "New Contact Form Submission",
-    },
-  ];
-
-  for (const [seqType, steps] of Object.entries(emailSequences)) {
-    const name = seqType.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
-    const prefix = seqType.replace(/_/g, "-");
-    for (const step of steps) {
-      const subject = replaceVars(step.subject, sequenceVars);
-      entries.push({
-        id: `${prefix}-${step.stepNumber}`,
-        name: `${name} · Email ${step.stepNumber}`,
-        category: "Automated sequences",
-        subject,
-        delayDays: step.delayDays,
-      });
-    }
-  }
-
-  return entries;
+function validateDraft(definition: NonNullable<ReturnType<typeof getEmailTemplateDefinition>>, subject: unknown, body: unknown) {
+  if (typeof subject !== "string" || !subject.trim() || subject.length > 300) return "Subject is required and must be under 300 characters.";
+  if (typeof body !== "string" || !body.trim() || body.length > 20_000) return "Body is required and must be under 20,000 characters.";
+  const invalid = usedVariables(subject, body).filter((variable) => !definition.variables.includes(variable));
+  return invalid.length ? `Unsupported variables: ${invalid.map((value) => `{{${value}}}`).join(", ")}` : null;
 }
 
-function renderEmail(id: string): string | null {
-  switch (id) {
-    case "plan-confirmation":
-      return planConfirmationEmail(SAMPLE.name, SAMPLE.planSummary, SAMPLE.planUrl);
-    case "contact-confirmation":
-      return contactConfirmationEmail(SAMPLE.name);
-    case "roi-report":
-      return roiReportEmail({
-        name: SAMPLE.name,
-        roiPercentage: 340,
-        additionalMonthlyRevenue: "$8,400",
-        annualRevenueImpact: "$100,800",
-        timeSavedPerWeek: "12",
-        paybackPeriodMonths: "2.1",
-      });
-    case "admin-lead":
-      return adminLeadNotificationEmail({
-        name: SAMPLE.name,
-        email: SAMPLE.email,
-        phone: SAMPLE.phone,
-        business: SAMPLE.business,
-        industry: SAMPLE.industry,
-      });
-    case "admin-contact":
-      return adminContactNotificationEmail({
-        name: SAMPLE.name,
-        email: SAMPLE.email,
-        phone: SAMPLE.phone,
-        businessType: SAMPLE.business,
-        message:
-          "Hi, I'm interested in learning more about your AI automation services for my HVAC company. We currently handle about 200 service calls per month and I think there's a lot of room for improvement in our follow-up process.",
-      });
-    default: {
-      // Sequence emails
-      for (const [seqType, steps] of Object.entries(emailSequences)) {
-        const prefix = seqType.replace(/_/g, "-");
-        for (const step of steps) {
-          if (`${prefix}-${step.stepNumber}` === id) {
-            const body = replaceVars(step.bodyTemplate, sequenceVars);
-            return textEmail(body);
-          }
-        }
-      }
-      return null;
-    }
-  }
+async function versionsFor(key: string) {
+  const supabase = createServiceRoleClient();
+  const { data, error } = await supabase
+    .from("email_template_versions")
+    .select("id, template_key, state, subject_template, preview_text, body_template, sample_data, updated_at, published_at")
+    .eq("template_key", key)
+    .in("state", ["draft", "published"])
+    .order("updated_at", { ascending: false });
+  return { versions: (data || []) as StoredVersion[], error };
 }
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
-
-  const { searchParams } = request.nextUrl;
-  const id = searchParams.get("id");
+  const id = request.nextUrl.searchParams.get("id");
 
   if (!id) {
-    const emails = buildRegistry();
-    return NextResponse.json({ emails });
+    const supabase = createServiceRoleClient();
+    const { data, error } = await supabase
+      .from("email_template_versions")
+      .select("template_key, state, updated_at")
+      .in("state", ["draft", "published"])
+      .order("updated_at", { ascending: false });
+    const states = new Map<string, { hasDraft: boolean; published: boolean; updatedAt: string | null }>();
+    for (const row of data || []) {
+      const current = states.get(row.template_key) || { hasDraft: false, published: false, updatedAt: null };
+      states.set(row.template_key, {
+        hasDraft: current.hasDraft || row.state === "draft",
+        published: current.published || row.state === "published",
+        updatedAt: current.updatedAt || row.updated_at,
+      });
+    }
+    return NextResponse.json({
+      schemaReady: !error || !missingSchema(error.code),
+      emails: EMAIL_TEMPLATE_DEFINITIONS.map((definition) => ({
+        id: definition.key,
+        name: definition.name,
+        description: definition.description,
+        category: definition.category,
+        subject: definition.subjectTemplate,
+        delayDays: definition.delayDays,
+        variables: definition.variables,
+        hasDraft: states.get(definition.key)?.hasDraft || false,
+        source: states.get(definition.key)?.published ? "published" : "built_in",
+        updatedAt: states.get(definition.key)?.updatedAt || null,
+      })),
+    });
   }
 
-  const registry = buildRegistry();
-  const entry = registry.find((e) => e.id === id);
-  if (!entry) {
-    return NextResponse.json({ error: "Email not found" }, { status: 404 });
-  }
-
-  const html = renderEmail(id);
-  if (!html) {
-    return NextResponse.json({ error: "Failed to render email" }, { status: 500 });
-  }
+  const definition = getEmailTemplateDefinition(id);
+  if (!definition) return NextResponse.json({ error: "Email template not found" }, { status: 404 });
+  const { versions, error } = await versionsFor(id);
+  const draft = versions.find((version) => version.state === "draft") || null;
+  const published = versions.find((version) => version.state === "published") || null;
+  const requestedMode = request.nextUrl.searchParams.get("mode");
+  const selected = requestedMode === "live" ? published : draft || published;
+  const variables = { ...definition.sampleData, ...(selected?.sample_data || {}) };
+  const subjectTemplate = selected?.subject_template || definition.subjectTemplate;
+  const bodyTemplate = selected?.body_template || definition.bodyTemplate;
+  const rendered = selected
+    ? { subject: replaceEmailVariables(subjectTemplate, variables), text: replaceEmailVariables(bodyTemplate, variables), html: textEmail(replaceEmailVariables(bodyTemplate, variables)) }
+    : renderDefinition(definition, variables);
 
   return NextResponse.json({
+    schemaReady: !error || !missingSchema(error.code),
     id,
-    subject: entry.subject,
-    html,
-    name: entry.name,
-    category: entry.category,
-    delayDays: entry.delayDays,
+    name: definition.name,
+    description: definition.description,
+    category: definition.category,
+    delayDays: definition.delayDays,
+    variables: definition.variables,
+    sampleData: variables,
+    subjectTemplate,
+    bodyTemplate,
+    previewText: selected?.preview_text || "",
+    subject: rendered.subject,
+    html: rendered.html,
+    source: selected?.state || "built_in",
+    hasDraft: Boolean(draft),
+    draftId: draft?.id || null,
+    publishedId: published?.id || null,
+    updatedAt: selected?.updated_at || null,
   });
+}
+
+export async function PATCH(request: NextRequest) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+  const body = await request.json();
+  const definition = getEmailTemplateDefinition(body.id);
+  if (!definition) return NextResponse.json({ error: "Email template not found" }, { status: 404 });
+  const validation = validateDraft(definition, body.subjectTemplate, body.bodyTemplate);
+  if (validation) return NextResponse.json({ error: validation }, { status: 400 });
+
+  const supabase = createServiceRoleClient();
+  const { error: templateError } = await supabase.from("email_templates").upsert({
+    template_key: definition.key,
+    name: definition.name,
+    description: definition.description,
+    category: definition.category,
+    built_in: true,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: "template_key" });
+  if (templateError) return NextResponse.json({ error: missingSchema(templateError.code) ? "Apply the Email Studio migration in Setup Center first." : templateError.message }, { status: 409 });
+
+  const payload = {
+    template_key: definition.key,
+    state: "draft",
+    subject_template: body.subjectTemplate.trim(),
+    preview_text: typeof body.previewText === "string" ? body.previewText.trim().slice(0, 300) : null,
+    body_template: body.bodyTemplate.trim(),
+    sample_data: definition.sampleData,
+    created_by: auth.user.email,
+    updated_at: new Date().toISOString(),
+  };
+  const { versions } = await versionsFor(definition.key);
+  const existing = versions.find((version) => version.state === "draft");
+  const result = existing
+    ? await supabase.from("email_template_versions").update(payload).eq("id", existing.id).select().single()
+    : await supabase.from("email_template_versions").insert(payload).select().single();
+  if (result.error) return NextResponse.json({ error: result.error.message }, { status: 500 });
+  await recordAudit(supabase, { actorEmail: auth.user.email, action: "email_template.draft_saved", entityType: "email_template", entityId: definition.key, after: { versionId: result.data.id } });
+  return NextResponse.json({ success: true, version: result.data });
+}
+
+export async function POST(request: NextRequest) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+  const body = await request.json();
+  const definition = getEmailTemplateDefinition(body.id);
+  if (!definition) return NextResponse.json({ error: "Email template not found" }, { status: 404 });
+  const supabase = createServiceRoleClient();
+  const { versions, error } = await versionsFor(definition.key);
+  if (error) return NextResponse.json({ error: missingSchema(error.code) ? "Apply the Email Studio migration in Setup Center first." : error.message }, { status: 409 });
+  const draft = versions.find((version) => version.state === "draft");
+  if (!draft) return NextResponse.json({ error: "Save a draft before continuing." }, { status: 409 });
+
+  if (body.action === "test") {
+    const variables = { ...definition.sampleData, ...(draft.sample_data || {}) };
+    const subject = replaceEmailVariables(draft.subject_template, variables);
+    const text = replaceEmailVariables(draft.body_template, variables);
+    const to = auth.user.email || ADMIN_EMAIL;
+    const result = await getResend().emails.send({ from: FROM_EMAIL, to, subject: `[TEST] ${subject}`, text, html: textEmail(text) });
+    if (result.error) return NextResponse.json({ error: result.error.message }, { status: 502 });
+    await recordAudit(supabase, { actorEmail: auth.user.email, action: "email_template.test_sent", entityType: "email_template", entityId: definition.key, metadata: { versionId: draft.id, providerId: result.data?.id, to } });
+    return NextResponse.json({ success: true, to });
+  }
+
+  if (body.action !== "publish") return NextResponse.json({ error: "Unsupported action" }, { status: 400 });
+  const { data: versionId, error: publishError } = await supabase.rpc("publish_email_template", { p_template_key: definition.key, p_actor: auth.user.email || null });
+  if (publishError) return NextResponse.json({ error: publishError.message }, { status: 500 });
+  await recordAudit(supabase, { actorEmail: auth.user.email, action: "email_template.published", entityType: "email_template", entityId: definition.key, after: { versionId } });
+  return NextResponse.json({ success: true, versionId });
+}
+
+export async function DELETE(request: NextRequest) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+  const id = request.nextUrl.searchParams.get("id");
+  if (!id || !getEmailTemplateDefinition(id)) return NextResponse.json({ error: "Email template not found" }, { status: 404 });
+  const supabase = createServiceRoleClient();
+  const { error } = await supabase.from("email_template_versions").delete().eq("template_key", id).eq("state", "draft");
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  await recordAudit(supabase, { actorEmail: auth.user.email, action: "email_template.draft_reset", entityType: "email_template", entityId: id });
+  return NextResponse.json({ success: true });
 }

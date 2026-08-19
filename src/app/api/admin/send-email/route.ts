@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { getResend, FROM_EMAIL } from "@/lib/email/resend";
-import { textEmail } from "@/lib/email/templates";
+import { sendRecordedEmail } from "@/lib/revenue-os/communications";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -38,7 +37,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { to, subject, body, leadId, recipientName, template } = await request.json();
+  const { to, subject, body, leadId, template } = await request.json();
 
   if (!to || !subject || !body) {
     return NextResponse.json({ error: "Missing to, subject, or body" }, { status: 400 });
@@ -49,15 +48,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
   }
 
-  // Step 1: send. If this fails the whole request fails.
+  const supabase = createServiceRoleClient();
+  const warnings: string[] = [];
+
+  // Every founder send uses the canonical Resend receipt path. Legacy lead
+  // notes below remain a compatibility projection, never the source of truth.
   try {
-    const resend = getResend();
-    await resend.emails.send({
-      from: FROM_EMAIL,
+    await sendRecordedEmail(supabase, {
       to,
       subject,
       text: body,
-      html: textEmail(body),
+      actorEmail: auth.user.email ?? undefined,
+      template: template || undefined,
+      source: "admin",
+      idempotencyKey: request.headers.get("idempotency-key") || undefined,
     });
   } catch (error) {
     return NextResponse.json(
@@ -65,27 +69,6 @@ export async function POST(request: NextRequest) {
       { status: 500 },
     );
   }
-
-  // Step 2+3: audit log. Failures here are non-fatal — email already sent —
-  // but they raise a warning the UI can surface so the admin knows to add a note.
-  const supabase = createServiceRoleClient();
-  const warnings: string[] = [];
-
-  const sentEmailsOk = await tryAuditLog(async () => {
-    const { error } = await supabase
-      .from("sent_emails")
-      .insert({
-        to_email: to,
-        to_name: recipientName || null,
-        subject,
-        body,
-        related_type: leadId ? "lead" : null,
-        related_id: leadId || null,
-        template_used: template || null,
-      });
-    return { error: error ? { message: error.message } : null };
-  }, "sent_emails insert");
-  if (!sentEmailsOk) warnings.push("Email was sent but couldn't be saved to sent history.");
 
   if (leadId) {
     try {

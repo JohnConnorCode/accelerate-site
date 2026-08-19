@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       if (source === "all" || source === "drive") summary.drive = await syncDrive(supabase);
       return { value: summary, summary };
     });
-    return NextResponse.json({ success: true, result });
+    return NextResponse.json({ success: true, result: result.value, skipped: !result.claimed, runId: result.runId, existingStatus: result.existingStatus ?? null });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Google sync failed" }, { status: 400 });
   }

@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3010";
 const outDir = "/tmp/accel-shots";
+const liveBoard = process.argv.includes("--live");
 mkdirSync(outDir, { recursive: true });
 
 for (const key of ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "ADMIN_EMAIL"]) {
@@ -69,11 +70,22 @@ const desktop = await authenticatedContext({ width: 1440, height: 1000 });
 const desktopPage = await desktop.newPage();
 desktopPage.on("console", (message) => { if (message.type() === "error") consoleErrors.push(message.text()); });
 await mockBoard(desktopPage);
+if (liveBoard) await desktopPage.unroute("**/api/admin/features**");
 await desktopPage.goto(`${base}/admin/features`, { waitUntil: "networkidle", timeout: 60_000 });
-await desktopPage.getByRole("heading", { name: "Feature Board" }).waitFor();
+await desktopPage.getByRole("heading", { name: "Feature Board", exact: true }).waitFor();
 for (const heading of ["Backlog", "Planned", "In progress", "Blocked", "Shipped"]) await desktopPage.getByRole("heading", { name: heading, exact: true }).waitFor();
-await desktopPage.screenshot({ path: `${outDir}/feature-board-desktop.png`, fullPage: true });
+await desktopPage.waitForTimeout(650);
+const pageTitleState = await desktopPage.getByRole("heading", { name: "Feature Board", exact: true }).evaluate((node) => ({ box: node.getBoundingClientRect().toJSON(), opacity: getComputedStyle(node).opacity, visibility: getComputedStyle(node).visibility }));
+if (pageTitleState.visibility !== "visible" || Number(pageTitleState.opacity) < 0.99 || pageTitleState.box.bottom <= 0) throw new Error(`Feature Board title did not settle visibly: ${JSON.stringify(pageTitleState)}`);
+if (liveBoard) {
+  await desktopPage.getByLabel("Filter by label").selectOption("phase-0");
+  await desktopPage.getByText("Verify the production Revenue OS schema", { exact: true }).waitFor();
+  await desktopPage.screenshot({ path: `${outDir}/feature-board-live-desktop.png`, fullPage: true });
+} else {
+  await desktopPage.screenshot({ path: `${outDir}/feature-board-desktop.png`, fullPage: true });
+}
 
+if (!liveBoard) {
 const dragHandle = desktopPage.getByRole("button", { name: "Drag Complete campaign unsubscribe handling" });
 const plannedDropzone = desktopPage.locator('section[aria-labelledby="column-planned"] > div').nth(1);
 const dragBox = await dragHandle.boundingBox();
@@ -88,26 +100,42 @@ await desktopPage.waitForTimeout(350);
 await desktopPage.mouse.up();
 await desktopPage.locator('section[aria-labelledby]:not([aria-labelledby="column-backlog"])').getByText("Complete campaign unsubscribe handling", { exact: true }).waitFor({ timeout: 5_000 });
 if (await desktopPage.locator('section[aria-labelledby="column-backlog"]').getByText("Complete campaign unsubscribe handling", { exact: true }).count()) throw new Error("Dragged card remained in Backlog");
+await desktopPage.waitForTimeout(320);
 
-await desktopPage.getByRole("button", { name: "Edit Complete campaign unsubscribe handling" }).click();
+await desktopPage.locator('section[aria-labelledby="column-planned"]').getByRole("button", { name: "Edit Complete campaign unsubscribe handling", exact: true }).click();
 await desktopPage.getByRole("heading", { name: "Feature details" }).waitFor();
 await desktopPage.screenshot({ path: `${outDir}/feature-board-details.png`, fullPage: true });
 await desktopPage.getByRole("button", { name: "Close feature details" }).click();
+}
 
 const mobile = await authenticatedContext({ width: 390, height: 844 });
 const mobilePage = await mobile.newPage();
 mobilePage.on("console", (message) => { if (message.type() === "error") consoleErrors.push(message.text()); });
 await mockBoard(mobilePage);
+if (liveBoard) await mobilePage.unroute("**/api/admin/features**");
 await mobilePage.goto(`${base}/admin/features`, { waitUntil: "networkidle", timeout: 60_000 });
-await mobilePage.getByRole("heading", { name: "Feature Board" }).waitFor();
-await mobilePage.screenshot({ path: `${outDir}/feature-board-mobile.png`, fullPage: true });
+await mobilePage.getByRole("heading", { name: "Feature Board", exact: true }).waitFor();
+await mobilePage.waitForTimeout(650);
+if (liveBoard) {
+  await mobilePage.getByLabel("Filter by label").selectOption("phase-0");
+  await mobilePage.getByText("Verify the production Revenue OS schema", { exact: true }).waitFor();
+  await mobilePage.screenshot({ path: `${outDir}/feature-board-live-mobile.png`, fullPage: true });
+} else {
+  await mobilePage.screenshot({ path: `${outDir}/feature-board-mobile.png`, fullPage: true });
+}
 
 await desktop.close();
 await mobile.close();
 await browser.close();
 
 if (consoleErrors.length) throw new Error(`Console errors during Feature Board QA:\n${consoleErrors.join("\n")}`);
-console.log(`${outDir}/feature-board-desktop.png`);
-console.log(`${outDir}/feature-board-details.png`);
-console.log(`${outDir}/feature-board-mobile.png`);
-console.log("Feature Board desktop/mobile render, drag reorder, and details interaction passed.");
+if (liveBoard) {
+  console.log(`${outDir}/feature-board-live-desktop.png`);
+  console.log(`${outDir}/feature-board-live-mobile.png`);
+  console.log("Live managed Feature Board desktop/mobile render passed without writes.");
+} else {
+  console.log(`${outDir}/feature-board-desktop.png`);
+  console.log(`${outDir}/feature-board-details.png`);
+  console.log(`${outDir}/feature-board-mobile.png`);
+  console.log("Feature Board desktop/mobile render, drag reorder, and details interaction passed.");
+}

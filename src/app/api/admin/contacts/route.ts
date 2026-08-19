@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { createServiceRoleClient } from "@/lib/supabase/server";
+import { attachRevenueLinkage } from "@/lib/revenue-os/legacy-adapter";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
@@ -40,8 +41,13 @@ export async function GET(request: NextRequest) {
       .then(() => {}, (err: unknown) => console.error("Failed to mark contacts read:", err));
   }
 
+  const linked = await attachRevenueLinkage(supabase, data || [], {
+    sourceRecordType: "contact_form",
+  });
+
   return NextResponse.json({
-    contacts: data || [],
+    contacts: linked.records,
+    canonicalSchemaReady: linked.schemaReady,
     total: count || 0,
     totalPages: Math.ceil((count || 0) / pageSize),
     page,
@@ -96,4 +102,3 @@ export async function DELETE(request: NextRequest) {
 
   return NextResponse.json({ success: true });
 }
-

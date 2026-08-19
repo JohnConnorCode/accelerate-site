@@ -13,6 +13,8 @@ import {
   ArrowRight,
   CheckSquare,
   Send,
+  Target,
+  MessageSquareText,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -41,6 +43,10 @@ const typeConfig: Record<string, { icon: LucideIcon; color: string }> = {
   grade: { icon: Globe, color: "text-emerald-400 bg-emerald-500/20" },
   task: { icon: CheckSquare, color: "text-pink-400 bg-pink-500/20" },
   email_sent: { icon: Send, color: "text-amber-400 bg-amber-500/20" },
+  opportunity: { icon: Target, color: "text-blue-400 bg-blue-500/20" },
+  activity: { icon: CheckSquare, color: "text-violet-400 bg-violet-500/20" },
+  message_inbound: { icon: MessageSquareText, color: "text-emerald-400 bg-emerald-500/20" },
+  message_outbound: { icon: Send, color: "text-cyan-400 bg-cyan-500/20" },
 };
 
 export function ContactTimeline({ items }: ContactTimelineProps) {
@@ -65,16 +71,14 @@ export function ContactTimeline({ items }: ContactTimelineProps) {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.04 }}
             >
-              <Link href={item.link}>
-                <GlassCard hover="glow" padding="sm" className="ml-10 group">
+              <Link href={item.link} className="relative block">
+                <div className={`absolute left-2.5 top-4 z-10 flex h-5 w-5 items-center justify-center rounded-full ${config.color}`}>
+                  <Icon className="h-3 w-3" />
+                </div>
+                <GlassCard hover="glow" padding="sm" className="group ml-10">
                   <div className="flex items-start gap-3">
-                    {/* Icon circle */}
-                    <div className={`absolute left-2.5 mt-1 h-5 w-5 rounded-full flex items-center justify-center ${config.color}`}>
-                      <Icon className="h-3 w-3" />
-                    </div>
-
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                         <span className="text-[10px] uppercase font-semibold text-white-muted">
                           {item.type}
                         </span>
@@ -88,10 +92,10 @@ export function ContactTimeline({ items }: ContactTimelineProps) {
                           })}
                         </span>
                       </div>
-                      <p className="text-sm text-white-primary font-medium mt-0.5 truncate">
+                      <p className="mt-1 text-sm font-medium leading-snug text-white-primary">
                         {item.title}
                       </p>
-                      <p className="text-xs text-white-muted mt-0.5 truncate">
+                      <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-white-muted">
                         {item.description}
                       </p>
                     </div>

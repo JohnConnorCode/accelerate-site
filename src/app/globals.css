@@ -2298,55 +2298,114 @@ summary:focus-visible {
    (transparent, floating) header, just without stealing a chunk of an
    already-short screen. */
 @media (max-width: 640px) {
-  /* The hero band fills exactly the first mobile screen (100dvh) with the
-     marquee anchored to its bottom edge. Content sits at the TOP of that
-     space (justify-content:flex-start) rather than centered — centering
-     split the leftover room into two separate empty zones (one above the
-     eyebrow label, one below the subtext) that read as an unexplained
-     hole in the layout. Flex-start collects all of it into a single gap
-     above the marquee, which reads as ordinary breathing room before the
-     next section instead of a bug. padding-top is a flat value, not
-     dvh-scaled: the fixed header is a constant height regardless of
-     screen size (measured ~92px), so the clearance it needs doesn't
-     change with viewport height either — a dvh-scaled floor was
-     occasionally computing below that and getting overlapped by the
-     header on shorter phones. */
-  /* A first-screen composition, not an endlessly expanding canvas. The band
-     stays stable on tall phones, but can grow when a short device needs the
-     room so no headline or CTA is clipped. */
-  .hero-band { display: flex; flex-direction: column; min-height: min(100dvh, 680px); }
-  .hero-band .hero { flex: 1 0 auto; display: flex; flex-direction: column; overflow: hidden; }
-  .hero-band .hero .wrap { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; min-height: 0; min-width: 0; max-width: 100%; }
-  .hero-band .hero-top { flex: 0 0 auto; min-width: 0; max-width: 100%; overflow: hidden; }
-  /* Keep the supporting proof statement attached to the CTA with a bounded,
-     fluid rhythm. The marquee remains the lower edge of the hero band. */
-  .hero-band .hero-btm { flex: 0 0 auto; margin-top: clamp(22px, 3.5dvh, 34px); padding-top: clamp(14px, 2.1dvh, 26px); }
+  /* The opening mobile composition is one stable small viewport high. `svh`
+     is deliberate: unlike `dvh`, it does not resize the stage while Safari's
+     browser chrome expands and collapses, so the CTA cannot jump during the
+     first scroll. The proof and marquee remain ordinary content after it. */
+  .hero-band { display: block; }
+  .hero-band .hero {
+    --hero-mobile-top: clamp(98px, 14svh, 112px);
+    --hero-mobile-bottom: clamp(22px, 3.8svh, 32px);
+    display: block;
+    overflow: hidden;
+    padding-top: var(--hero-mobile-top);
+    padding-bottom: 30px;
+  }
+  .hero-band .hero .wrap { display: block; min-width: 0; max-width: 100%; }
+  .hero-band .hero-top {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    max-width: 100%;
+    min-height: calc(100svh - var(--hero-mobile-top) - var(--hero-mobile-bottom));
+    overflow: hidden;
+  }
+  /* The proof statement begins just below the opening screen. This margin is
+     the same bottom breathing room reserved inside the fold, not a spacer:
+     the CTA is the last visible element and the proof starts at the fold. */
+  .hero-band .hero-btm { margin-top: clamp(30px, 4dvh, 40px); padding-top: clamp(16px, 2.2dvh, 22px); }
   .hero-band .hero-btm .lede { font-size: clamp(14px, 2.1dvh, 15.5px); line-height: 1.5; }
-  .hero-band .mq { flex: 0 0 auto; }
+  .hero-band .mq { display: block; }
 
-  .hero { padding-top: 108px; padding-bottom: clamp(20px, 3dvh, 32px); --word-blur: 9px; }
-  .hero h1 { margin-top: clamp(10px, 1.6dvh, 20px); }
-  /* Make PROFIT a deliberate half-line anchor on phones. The CTA still
-     owns its own full-width line below, so this increases emphasis without
-     competing with the conversion action. */
-  .hero-profit-slot { width: 50%; }
-  .hero-profit { font-size: clamp(4rem, 16vw, 5rem); letter-spacing: -0.05em; line-height: 0.9 !important; }
-  .hero-inline-cta { margin-top: clamp(14px, 2dvh, 18px); }
-  /* min(vw, dvh) — not either alone: a pure height-based size ignores
-     width, computing large enough on a normal tall-aspect phone that
-     "deploy"/"intelligent"/"automation" stop fitting next to their
-     neighbor and go one-per-line. 8vw is the largest width-based value
-     that still holds 3-4 words/line on real device widths (checked
-     320-428px) — bigger than the words can comfortably share a line, and
-     it's the dvh side that would grow it further on an unusually
-     wide/short viewport. */
-  .hero .h1 { font-size: clamp(24px, min(8vw, 5dvh), 48px); line-height: 1.1; letter-spacing: -.03em; }
-  .hero .eyebrow-anim { letter-spacing: .1em; }
+  .hero { --word-blur: 9px; }
+  .hero h1 {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    margin-top: clamp(12px, 2.2svh, 18px);
+  }
+  /* Keep the headline attached to the eyebrow. The closing group below owns
+     the elastic height, allowing PROFIT to become the middle pivot and the
+     booking action to stay fixed as the last beat instead of pushing the
+     whole headline downward on tall phones. */
+  .hero .h1-word-row {
+    flex: 0 0 auto;
+  }
+  /* PROFIT is the visual pivot; the full-width booking action closes the
+     opening viewport. A grid makes that sequence unambiguous on every phone. */
+  .hero-profit-slot { width: 50%; align-self: center; justify-self: start; }
+  .hero-profit {
+    font-size: clamp(3.5rem, min(21vw, 10svh), 5.75rem);
+    letter-spacing: -0.05em;
+    line-height: 0.9 !important;
+  }
+  .hero-row-cta {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(min-content, 1fr) auto;
+    flex: 1 1 auto;
+    row-gap: clamp(12px, 2svh, 18px);
+    margin-top: clamp(8px, 1.6svh, 14px);
+  }
+  .hero-inline-cta { width: 100%; margin: 0; }
+  .hero-inline-cta .btn {
+    width: 100%;
+    min-height: 58px;
+    gap: clamp(9px, 3vw, 13px);
+    padding-inline: clamp(18px, 7vw, 28px);
+    font-size: clamp(10px, 2.8vw, 11px);
+    letter-spacing: clamp(0.1em, 0.4vw, 0.14em);
+    white-space: nowrap;
+  }
+  /* Width controls wrapping; stable viewport height controls how aggressively
+     the type can fill the stage. Short phones tighten both size and leading,
+     while tall phones approach the requested 48–52px headline. */
+  .hero .h1 {
+    font-size: clamp(2.3rem, min(14.5vw, 7svh), 4rem);
+    line-height: 1.02;
+    letter-spacing: -0.045em;
+  }
+  .hero .eyebrow-anim {
+    font-size: clamp(11.5px, min(3.35vw, 2.1svh), 14px);
+    line-height: 1.45;
+    letter-spacing: .11em;
+  }
   /* max-width:100% + overflow:hidden: the scramble text mid-flicker can
      briefly render wider glyphs than the settled word, which without
      this pushes .hero-top — and the whole viewport — wider instead of
      wrapping/clipping. */
   .hero-top { max-width: 100%; overflow: hidden; }
+}
+
+@media (max-width: 640px) and (max-height: 620px) {
+  .hero-band .hero {
+    --hero-mobile-top: 94px;
+    --hero-mobile-bottom: 18px;
+  }
+  .hero h1 { margin-top: 8px; }
+  .hero .h1 { font-size: clamp(2.2rem, min(13vw, 6.5svh), 2.8rem); line-height: 0.96; }
+  .hero-profit { font-size: clamp(3.25rem, min(15vw, 8.4svh), 4rem); }
+  .hero-row-cta { row-gap: 10px; margin-top: 6px; }
+  .hero-inline-cta .btn { min-height: 54px; }
+}
+
+@media (max-width: 640px) and (min-height: 800px) {
+  .hero .h1 { line-height: 1.08; }
+}
+
+@media (max-width: 640px) and (min-height: 900px) {
+  .hero .h1 { line-height: 1.25; }
 }
 
 /* hero backdrop — a fine drafting grid in hairline rule color (no blur, so
@@ -2746,13 +2805,23 @@ body.modal-open [data-dock] { visibility: hidden; pointer-events: none; }
    Opaque, high-clarity surfaces for dense operational work. These are scoped
    away from the public-site glass material on purpose.
    ======================================== */
-.admin-shell {
+.admin-shell,
+body.admin-dialog-open {
   --admin-canvas: #f3f3f0;
   --admin-surface: #fbfbfa;
   --admin-surface-subtle: #f7f7f4;
   --admin-ink: #0b0b0b;
   --admin-muted: #6e6e68;
   --admin-rule: rgba(11, 11, 11, 0.09);
+  --admin-border: rgba(11, 11, 11, 0.09);
+  --admin-shadow-border:
+    0 0 0 1px rgba(0, 0, 0, 0.06),
+    0 1px 2px -1px rgba(0, 0, 0, 0.06),
+    0 3px 8px -4px rgba(0, 0, 0, 0.09);
+  --admin-shadow-border-hover:
+    0 0 0 1px rgba(0, 0, 0, 0.085),
+    0 2px 4px -2px rgba(0, 0, 0, 0.09),
+    0 10px 24px -14px rgba(0, 0, 0, 0.2);
   --admin-shadow:
     0 0 0 1px rgba(11, 11, 11, 0.055),
     0 1px 2px -1px rgba(11, 11, 11, 0.08),
@@ -2761,30 +2830,34 @@ body.modal-open [data-dock] { visibility: hidden; pointer-events: none; }
     0 0 0 1px rgba(11, 11, 11, 0.09),
     0 2px 5px -2px rgba(11, 11, 11, 0.1),
     0 22px 42px -26px rgba(11, 11, 11, 0.28);
+}
+
+.admin-shell {
   min-height: 100vh;
   color: var(--admin-ink);
   background:
-    linear-gradient(var(--admin-rule) 1px, transparent 1px),
-    linear-gradient(90deg, var(--admin-rule) 1px, transparent 1px),
+    radial-gradient(circle at 88% -8%, rgba(184, 134, 11, 0.075), transparent 32rem),
     var(--admin-canvas);
-  background-size: 48px 48px;
-  background-position: -1px -1px;
 }
 
-[data-theme="dark"] .admin-shell {
+[data-theme="dark"] .admin-shell,
+[data-theme="dark"] body.admin-dialog-open {
   --admin-canvas: #10100f;
   --admin-surface: #171716;
   --admin-surface-subtle: #1c1c1a;
   --admin-ink: #fbfbfa;
   --admin-muted: #a8a8a4;
   --admin-rule: rgba(255, 255, 255, 0.045);
+  --admin-border: rgba(255, 255, 255, 0.085);
+  --admin-shadow-border: 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --admin-shadow-border-hover: 0 0 0 1px rgba(255, 255, 255, 0.13);
   --admin-shadow: 0 0 0 1px rgba(255, 255, 255, 0.075);
   --admin-shadow-hover: 0 0 0 1px rgba(255, 255, 255, 0.13);
 }
 
 .admin-main {
   min-width: 0;
-  background: color-mix(in srgb, var(--admin-canvas) 96%, transparent);
+  background: transparent;
 }
 
 .admin-sidebar {
@@ -2793,7 +2866,7 @@ body.modal-open [data-dock] { visibility: hidden; pointer-events: none; }
   opacity: 1;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.09), 18px 0 42px -34px rgba(0, 0, 0, 0.85);
+  box-shadow: 18px 0 42px -34px rgba(0, 0, 0, 0.85);
 }
 
 .admin-mobile-header {
@@ -2920,6 +2993,20 @@ body.modal-open [data-dock] { visibility: hidden; pointer-events: none; }
 .admin-field:focus { border-color: var(--admin-ink); box-shadow: 0 0 0 3px color-mix(in srgb, var(--admin-ink) 10%, transparent); background: var(--admin-surface); }
 
 .admin-route-frame { width: 100%; max-width: 1500px; margin-inline: auto; }
+
+body.admin-dialog-open [data-admin-sidebar] { pointer-events: none; }
+body.admin-dialog-open [data-contact-import-actions] { visibility: hidden; }
+body.admin-dialog-open iframe {
+  visibility: hidden !important;
+}
+
+body.admin-dialog-open .admin-route-frame div:has(> iframe) {
+  visibility: hidden !important;
+}
+
+.admin-field.pl-10 {
+  padding-left: 2.5rem;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .admin-shell *,

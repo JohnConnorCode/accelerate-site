@@ -37,6 +37,7 @@ interface Lead {
   notes?: string;
   view_count?: number;
   estimated_value?: number;
+  revenue_os?: { opportunity_id: string | null; contact_id: string | null; stage: string | null };
 }
 
 interface LeadsTableProps {

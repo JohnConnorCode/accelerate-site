@@ -2,14 +2,17 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { safeErrorMessage } from "./db";
 
-export async function startJobRun(supabase: SupabaseClient, jobKey: string, idempotencyKey?: string) {
-  const { data, error } = await supabase.from("job_runs").insert({
-    job_key: jobKey,
-    status: "running",
-    idempotency_key: idempotencyKey ?? null,
-  }).select("id").single();
+export interface JobRunClaim { runId: string; claimed: boolean; existingStatus: string }
+export interface JobRunOutcome<T> { value: T | null; claimed: boolean; runId: string; existingStatus?: string }
+
+export async function startJobRun(supabase: SupabaseClient, jobKey: string, idempotencyKey?: string): Promise<JobRunClaim> {
+  const { data, error } = await supabase.rpc("claim_revenue_job_run", {
+    p_job_key: jobKey,
+    p_claim_key: idempotencyKey ?? null,
+  }).single();
   if (error) throw new Error(error.message);
-  return data.id as string;
+  const claim = data as { run_id: string; claimed: boolean; existing_status: string };
+  return { runId: claim.run_id, claimed: Boolean(claim.claimed), existingStatus: claim.existing_status };
 }
 
 export async function finishJobRun(supabase: SupabaseClient, id: string, summary: Record<string, unknown>, status: "success" | "partial" | "skipped" = "success") {
@@ -21,14 +24,15 @@ export async function failJobRun(supabase: SupabaseClient, id: string, error: un
   await supabase.from("job_runs").update({ status: "failed", error: safeErrorMessage(error), finished_at: new Date().toISOString() }).eq("id", id).eq("status", "running");
 }
 
-export async function withJobRun<T>(supabase: SupabaseClient, jobKey: string, work: () => Promise<{ value: T; summary: Record<string, unknown>; status?: "success" | "partial" | "skipped" }>, idempotencyKey?: string): Promise<T> {
-  const id = await startJobRun(supabase, jobKey, idempotencyKey);
+export async function withJobRun<T>(supabase: SupabaseClient, jobKey: string, work: () => Promise<{ value: T; summary: Record<string, unknown>; status?: "success" | "partial" | "skipped" }>, idempotencyKey?: string): Promise<JobRunOutcome<T>> {
+  const claim = await startJobRun(supabase, jobKey, idempotencyKey);
+  if (!claim.claimed) return { value: null, claimed: false, runId: claim.runId, existingStatus: claim.existingStatus };
   try {
     const result = await work();
-    await finishJobRun(supabase, id, result.summary, result.status);
-    return result.value;
+    await finishJobRun(supabase, claim.runId, result.summary, result.status);
+    return { value: result.value, claimed: true, runId: claim.runId };
   } catch (error) {
-    await failJobRun(supabase, id, error);
+    await failJobRun(supabase, claim.runId, error);
     throw error;
   }
 }

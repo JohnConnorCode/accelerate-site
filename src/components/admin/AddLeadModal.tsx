@@ -1,14 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
-import { GlassCard } from "@/components/ui/GlassCard";
+import { AdminDialog } from "@/components/admin/AdminDialog";
+import { AdminSurface } from "@/components/admin/AdminSurface";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Toast } from "@/components/ui/Toast";
-import { useModalDismiss } from "@/lib/admin/useModalDismiss";
 
 interface AddLeadModalProps {
   isOpen: boolean;
@@ -47,8 +46,6 @@ export function AddLeadModal({ isOpen, onClose, onLeadCreated }: AddLeadModalPro
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-
-  useModalDismiss(isOpen, onClose);
 
   const handleSubmit = async () => {
     if (!contactName || !contactEmail) return;
@@ -94,34 +91,16 @@ export function AddLeadModal({ isOpen, onClose, onLeadCreated }: AddLeadModalPro
 
   return (
     <>
-      <AnimatePresence>
-        {isOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/60"
-              onClick={onClose}
-            />
-            <motion.div
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="add-lead-title"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto"
-            >
-              <GlassCard variant="prominent" padding="lg">
+      <AdminDialog open={isOpen} onClose={onClose} title="Add new lead" labelledBy="add-lead-title" maxWidth="md">
+              <AdminSurface padding="lg" className="admin-dialog-surface max-h-[92dvh] overflow-y-auto rounded-[20px]">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 id="add-lead-title" className="font-display text-lg font-semibold text-white-primary">
+                  <h3 id="add-lead-title" className="admin-dialog-title">
                     Add New Lead
                   </h3>
                   <button
                     onClick={onClose}
                     aria-label="Close dialog"
-                    className="text-white-muted hover:text-white-primary cursor-pointer"
+                    className="admin-icon-button"
                   >
                     <X className="h-5 w-5" />
                   </button>
@@ -158,11 +137,11 @@ export function AddLeadModal({ isOpen, onClose, onLeadCreated }: AddLeadModalPro
                   />
 
                   <div>
-                    <label className="block text-xs text-white-muted mb-1">Industry</label>
+                    <label className="admin-field-label mb-1">Industry</label>
                     <select
                       value={industry}
                       onChange={(e) => setIndustry(e.target.value)}
-                      className="w-full rounded-lg bg-bg-subtle border border-border-glass px-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold focus:ring-1 focus:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color] duration-200"
+                      className="admin-field"
                     >
                       {industryOptions.map((opt) => (
                         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -171,11 +150,11 @@ export function AddLeadModal({ isOpen, onClose, onLeadCreated }: AddLeadModalPro
                   </div>
 
                   <div>
-                    <label className="block text-xs text-white-muted mb-1">Source</label>
+                    <label className="admin-field-label mb-1">Source</label>
                     <select
                       value={source}
                       onChange={(e) => setSource(e.target.value)}
-                      className="w-full rounded-lg bg-bg-subtle border border-border-glass px-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold focus:ring-1 focus:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color] duration-200"
+                      className="admin-field"
                     >
                       {sourceOptions.map((opt) => (
                         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -200,11 +179,8 @@ export function AddLeadModal({ isOpen, onClose, onLeadCreated }: AddLeadModalPro
                     {saving ? "Creating..." : "Create Lead"}
                   </Button>
                 </div>
-              </GlassCard>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+              </AdminSurface>
+      </AdminDialog>
 
       {toast && (
         <Toast

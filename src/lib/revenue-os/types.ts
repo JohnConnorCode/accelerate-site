@@ -83,6 +83,8 @@ export interface OperatorQueueItem {
   summary: string;
   urgency: "critical" | "high" | "normal" | "low";
   dueAt: string | null;
+  /** A concise, evidence-based explanation for why this item is ranked here. */
+  priorityReason: string;
   href: string;
   entityType?: string;
   entityId?: string;

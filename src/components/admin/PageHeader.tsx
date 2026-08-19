@@ -16,7 +16,7 @@ export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
   }, [title]);
 
   return (
-    <motion.div variants={adminHeaderVariants} className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+    <motion.div variants={adminHeaderVariants} initial="hidden" animate="visible" className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
       <div className="min-w-0">
         <motion.p variants={adminHeaderItemVariants} className="admin-eyebrow">Accelerate operations</motion.p>
         <motion.h1 variants={adminHeaderItemVariants} className="admin-page-title">

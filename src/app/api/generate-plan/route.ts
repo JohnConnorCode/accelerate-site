@@ -1,12 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
 import { nanoid } from "nanoid";
+import { getOpenRouterModel, isOpenRouterConfigured, openRouterJson } from "@/lib/ai/openrouter";
 import { PLAN_SYSTEM_PROMPT, buildUserPrompt } from "@/lib/ai/prompts";
 import { rateLimit } from "@/lib/rate-limit";
 import type { IntakeFormData, DigitalGrowthPlan } from "@/lib/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendPlanEmail as sendPlanEmailNotification } from "@/lib/email/send";
 import { scheduleEmailSequence } from "@/lib/email/sequences";
+
+const stringArray = { type: "array", items: { type: "string", maxLength: 500 }, maxItems: 20 } as const;
+const PLAN_SCHEMA = {
+  type: "object", additionalProperties: false,
+  required: ["executiveSummary", "recommendations", "implementationRoadmap", "roiProjection", "investmentSummary", "nextSteps"],
+  properties: {
+    executiveSummary: { type: "string", maxLength: 5000 },
+    recommendations: { type: "array", maxItems: 8, items: { type: "object", additionalProperties: false, required: ["name", "description", "whyItMatters", "features", "estimatedImpact", "timeline", "pricingOneTime", "pricingMonthly", "pricingDisplay", "priority"], properties: { name: { type: "string" }, description: { type: "string" }, whyItMatters: { type: "string" }, features: stringArray, estimatedImpact: { type: "string" }, timeline: { type: "string" }, pricingOneTime: { type: ["number", "null"], minimum: 0 }, pricingMonthly: { type: ["number", "null"], minimum: 0 }, pricingDisplay: { type: "string" }, priority: { type: "integer", minimum: 1, maximum: 20 } } } },
+    implementationRoadmap: { type: "array", maxItems: 8, items: { type: "object", additionalProperties: false, required: ["phase", "name", "description", "duration", "solutions"], properties: { phase: { type: "integer" }, name: { type: "string" }, description: { type: "string" }, duration: { type: "string" }, solutions: stringArray } } },
+    roiProjection: { type: "object", additionalProperties: false, required: ["ninetyDay", "twelveMonth", "disclaimer"], properties: { ninetyDay: { type: "object", additionalProperties: false, required: ["estimatedLeadIncrease", "estimatedTimeSaved", "estimatedRevenueImpact"], properties: { estimatedLeadIncrease: { type: "string" }, estimatedTimeSaved: { type: "string" }, estimatedRevenueImpact: { type: "string" } } }, twelveMonth: { type: "object", additionalProperties: false, required: ["estimatedLeadIncrease", "estimatedTimeSaved", "estimatedRevenueImpact"], properties: { estimatedLeadIncrease: { type: "string" }, estimatedTimeSaved: { type: "string" }, estimatedRevenueImpact: { type: "string" } } }, disclaimer: { type: "string" } } },
+    investmentSummary: { type: "object", additionalProperties: false, required: ["oneTimeCosts", "monthlyCosts", "totalOneTime", "totalMonthly", "budgetNotes"], properties: { oneTimeCosts: { type: "array", items: { type: "object", additionalProperties: false, required: ["item", "amount"], properties: { item: { type: "string" }, amount: { type: "number", minimum: 0 } } } }, monthlyCosts: { type: "array", items: { type: "object", additionalProperties: false, required: ["item", "amount"], properties: { item: { type: "string" }, amount: { type: "number", minimum: 0 } } } }, totalOneTime: { type: "number", minimum: 0 }, totalMonthly: { type: "number", minimum: 0 }, budgetNotes: { type: ["string", "null"] } } },
+    nextSteps: stringArray,
+  },
+} as const;
+
+function validatePlan(value: unknown): DigitalGrowthPlan {
+  if (!value || typeof value !== "object") throw new Error("OpenRouter returned an invalid growth plan");
+  const plan = value as DigitalGrowthPlan & { investmentSummary?: { budgetNotes?: string | null }; recommendations?: Array<Record<string, unknown>> };
+  if (typeof plan.executiveSummary !== "string" || !Array.isArray(plan.recommendations) || !Array.isArray(plan.implementationRoadmap) || !plan.roiProjection || !plan.investmentSummary || !Array.isArray(plan.nextSteps)) throw new Error("OpenRouter returned an incomplete growth plan");
+  for (const recommendation of plan.recommendations) {
+    if (recommendation.pricingOneTime === null) delete recommendation.pricingOneTime;
+    if (recommendation.pricingMonthly === null) delete recommendation.pricingMonthly;
+  }
+  if (plan.investmentSummary.budgetNotes === null) delete plan.investmentSummary.budgetNotes;
+  return plan;
+}
 
 function validateIntakeData(data: Partial<IntakeFormData>): data is IntakeFormData {
   return !!(
@@ -84,25 +110,25 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Call Claude API (or fallback)
-    if (!process.env.ANTHROPIC_API_KEY) {
+    // Use the deterministic fallback when the optional OpenRouter connection is
+    // not active. No alternate AI provider is called.
+    if (!isOpenRouterConfigured()) {
       const fallbackPlan = generateFallbackPlan(formData);
       await savePlan(supabase, shareToken, fallbackPlan, "fallback");
       return NextResponse.json({ plan: fallbackPlan, shareToken });
     }
 
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const userPrompt = buildUserPrompt(formData);
-    const modelUsed = "claude-sonnet-4-20250514";
+    const modelUsed = getOpenRouterModel(process.env.OPENROUTER_PLAN_MODEL);
 
     let plan: DigitalGrowthPlan;
 
     try {
-      plan = await callClaude(anthropic, modelUsed, userPrompt);
+      plan = await callOpenRouter(modelUsed, userPrompt);
     } catch (firstError) {
       console.error("First Claude call failed, retrying:", firstError);
       try {
-        plan = await callClaude(anthropic, modelUsed, userPrompt);
+        plan = await callOpenRouter(modelUsed, userPrompt);
       } catch (retryError) {
         console.error("Retry also failed:", retryError);
         if (supabase) {
@@ -153,25 +179,20 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function callClaude(
-  anthropic: Anthropic,
+async function callOpenRouter(
   model: string,
   userPrompt: string
 ): Promise<DigitalGrowthPlan> {
-  const message = await anthropic.messages.create({
+  const response = await openRouterJson({
     model,
-    max_tokens: 4096,
+    maxTokens: 4096,
     temperature: 0.7,
-    system: PLAN_SYSTEM_PROMPT,
-    messages: [{ role: "user", content: userPrompt }],
+    schemaName: "digital_growth_plan",
+    schema: PLAN_SCHEMA,
+    validate: validatePlan,
+    messages: [{ role: "system", content: PLAN_SYSTEM_PROMPT }, { role: "user", content: userPrompt }],
   });
-
-  const textContent = message.content.find((c) => c.type === "text");
-  if (!textContent || textContent.type !== "text") {
-    throw new Error("No text response from Claude");
-  }
-
-  return JSON.parse(textContent.text) as DigitalGrowthPlan;
+  return response.data;
 }
 
 async function savePlan(

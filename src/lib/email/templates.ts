@@ -1,5 +1,18 @@
 const BASE_URL = "https://www.acceleratewith.us";
 
+const COLORS = {
+  page: "#eef1ee",
+  surface: "#ffffff",
+  ink: "#151611",
+  body: "#3f4744",
+  muted: "#68736e",
+  faint: "#8a9690",
+  line: "#dfe5df",
+  signal: "#c8ef58",
+  signalSoft: "#eff9d7",
+  dark: "#1b211e",
+};
+
 function esc(text: string): string {
   return text
     .replace(/&/g, "&amp;")
@@ -9,185 +22,70 @@ function esc(text: string): string {
     .replace(/'/g, "&#039;");
 }
 
+function baseHead(): string {
+  return `<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light">`;
+}
+
+function brandRow(label = "AI revenue systems, built and run for you"): string {
+  return `<tr><td style="padding:0 0 24px 0;"><a href="${BASE_URL}" style="color:${COLORS.ink};font-family:Arial,Helvetica,sans-serif;font-size:22px;font-weight:800;letter-spacing:-.04em;text-decoration:none;">Accelerate<span style="color:#78a91e;">.</span></a><p style="margin:7px 0 0;color:${COLORS.muted};font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:.08em;line-height:1.4;text-transform:uppercase;">${label}</p></td></tr>`;
+}
+
 export function emailWrapper(content: string): string {
-  return `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background-color:#0A0A0A;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0A0A0A;padding:40px 20px;">
-    <tr><td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
-        <!-- Header -->
-        <tr><td style="padding:0 0 30px 0;">
-          <a href="${BASE_URL}" style="font-size:24px;font-weight:bold;background:linear-gradient(135deg,#D4AF37,#F5D060,#E8D5A3);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;">Accelerate</a>
-        </td></tr>
-        <!-- Content -->
-        <tr><td style="background-color:#111111;border-radius:12px;padding:32px;border:1px solid rgba(255,255,255,0.08);">
-          ${content}
-        </td></tr>
-        <!-- Footer -->
-        <tr><td style="padding:30px 0 0 0;text-align:center;">
-          <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.38);">
-            Accelerate | AI Strategy &amp; Systems for Small Business<br>
-            <a href="${BASE_URL}" style="color:rgba(255,255,255,0.38);">acceleratewith.us</a>
-          </p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
+  return `<!DOCTYPE html><html lang="en"><head>${baseHead()}<title>Accelerate</title></head><body style="margin:0;padding:0;background-color:${COLORS.page};font-family:Arial,Helvetica,sans-serif;color:${COLORS.body};"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background-color:${COLORS.page};"><tr><td align="center" style="padding:32px 16px;"><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;"><tr><td>${brandRow()}</td></tr><tr><td style="background-color:${COLORS.surface};border:1px solid ${COLORS.line};border-radius:16px;padding:36px 36px 32px;">${content}</td></tr><tr><td style="padding:22px 4px 0;text-align:center;"><p style="margin:0;color:${COLORS.faint};font-size:11px;line-height:1.6;">Accelerate · AI revenue systems for small business<br><a href="${BASE_URL}" style="color:${COLORS.muted};text-decoration:underline;">acceleratewith.us</a></p></td></tr></table></td></tr></table></body></html>`;
 }
 
-function goldButton(text: string, href: string): string {
-  return `<a href="${href}" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#D4AF37,#F5D060,#E8D5A3);color:#000000;font-weight:600;font-size:14px;text-decoration:none;border-radius:8px;margin:16px 0;">${text}</a>`;
+function signalButton(text: string, href: string): string {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:22px 0 4px;"><tr><td style="border-radius:7px;background-color:${COLORS.dark};"><a href="${esc(href)}" style="display:inline-block;border:1px solid ${COLORS.dark};border-radius:7px;padding:13px 20px;color:${COLORS.signal};font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;line-height:1;text-decoration:none;">${esc(text)} <span aria-hidden="true" style="font-size:16px;">&nbsp;→</span></a></td></tr></table>`;
 }
 
-/**
- * Gives operator-written and scheduled plain-text messages the same reliable,
- * responsive email shell as transactional templates while preserving the
- * plain-text version that Resend exposes to recipients.
- */
+function adminWrapper(content: string): string {
+  return `<!DOCTYPE html><html lang="en"><head>${baseHead()}<title>Accelerate Operations</title></head><body style="margin:0;padding:0;background-color:${COLORS.page};font-family:Arial,Helvetica,sans-serif;color:${COLORS.body};"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background-color:${COLORS.page};"><tr><td align="center" style="padding:32px 16px;"><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;"><tr><td>${brandRow("Founder operations")}</td></tr><tr><td style="background-color:${COLORS.surface};border:1px solid ${COLORS.line};border-radius:16px;padding:32px;">${content}</td></tr></table></td></tr></table></body></html>`;
+}
+
+/** Gives operator-written and scheduled plain-text messages the same reliable,
+ * responsive email shell as transactional templates while preserving content. */
 export function textEmail(body: string): string {
-  const html = esc(body).replace(
-    /(https?:\/\/[^\s<]+)/g,
-    '<a href="$1" style="color:#F5D060;text-decoration:underline;word-break:break-word;">$1</a>',
-  );
-  const paragraphs = html
-    .split(/\n{2,}/)
-    .map((paragraph) => `<p style="margin:0 0 16px;font-size:15px;color:rgba(255,255,255,0.72);line-height:1.65;">${paragraph.replace(/\n/g, "<br>")}</p>`)
-    .join("");
+  const html = esc(body).replace(/(https?:\/\/[^\s<]+)/g, `<a href="$1" style="color:#5c8518;text-decoration:underline;word-break:break-word;">$1</a>`);
+  const paragraphs = html.split(/\n{2,}/).map((paragraph) => `<p style="margin:0 0 16px;color:${COLORS.body};font-size:15px;line-height:1.65;">${paragraph.replace(/\n/g, "<br>")}</p>`).join("");
   return emailWrapper(`<div>${paragraphs}</div>`);
 }
 
-export function planConfirmationEmail(
-  name: string,
-  summary: string,
-  planUrl: string
-): string {
-  return emailWrapper(`
-    <h1 style="margin:0 0 16px 0;font-size:22px;color:rgba(255,255,255,0.93);">Your Growth Plan Is Ready</h1>
-    <p style="margin:0 0 16px 0;font-size:15px;color:rgba(255,255,255,0.65);line-height:1.6;">
-      Hi ${esc(name)},
-    </p>
-    <p style="margin:0 0 16px 0;font-size:15px;color:rgba(255,255,255,0.65);line-height:1.6;">
-      Your personalized AI growth plan has been generated. Here is a quick summary:
-    </p>
-    <div style="background-color:#0A0A0A;border-radius:8px;padding:16px;margin:16px 0;border-left:3px solid #D4AF37;">
-      <p style="margin:0;font-size:14px;color:rgba(255,255,255,0.65);line-height:1.6;">${esc(summary)}</p>
-    </div>
-    <p style="margin:0 0 8px 0;font-size:15px;color:rgba(255,255,255,0.65);line-height:1.6;">
-      View your full plan with detailed recommendations, implementation roadmap, and ROI projections:
-    </p>
-    ${goldButton("View Your Growth Plan", planUrl)}
-    <p style="margin:24px 0 0 0;font-size:13px;color:rgba(255,255,255,0.38);">
-      This link is unique to you and can be shared with your team.
-    </p>
-  `);
+/** A server-issued, one-time admin recovery link. */
+export function adminPasswordResetEmail(resetUrl: string): string {
+  return emailWrapper(`<p style="margin:0 0 9px;color:#5c8518;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Account security</p><h1 style="margin:0 0 16px;color:${COLORS.ink};font-size:24px;letter-spacing:-.03em;line-height:1.2;">Reset your admin password</h1><p style="margin:0 0 16px;color:${COLORS.body};font-size:15px;line-height:1.65;">Use this one-time link to choose a new password for your Accelerate operations account.</p>${signalButton("Reset password", resetUrl)}<p style="margin:20px 0 0;color:${COLORS.faint};font-size:12px;line-height:1.5;">If you did not request this, you can safely ignore this email.</p>`);
 }
 
-export function adminLeadNotificationEmail(leadData: {
-  name: string;
-  email: string;
-  phone?: string;
-  business?: string;
-  industry: string;
-}): string {
-  return emailWrapper(`
-    <h1 style="margin:0 0 16px 0;font-size:22px;color:rgba(255,255,255,0.93);">New Lead Submitted</h1>
-    <table style="width:100%;font-size:14px;color:rgba(255,255,255,0.65);" cellpadding="4">
-      <tr><td style="color:rgba(255,255,255,0.38);width:100px;">Name</td><td>${esc(leadData.name)}</td></tr>
-      <tr><td style="color:rgba(255,255,255,0.38);">Email</td><td><a href="mailto:${esc(leadData.email)}" style="color:#F5D060;">${esc(leadData.email)}</a></td></tr>
-      ${leadData.phone ? `<tr><td style="color:rgba(255,255,255,0.38);">Phone</td><td>${esc(leadData.phone)}</td></tr>` : ""}
-      ${leadData.business ? `<tr><td style="color:rgba(255,255,255,0.38);">Business</td><td>${esc(leadData.business)}</td></tr>` : ""}
-      <tr><td style="color:rgba(255,255,255,0.38);">Industry</td><td style="text-transform:capitalize;">${esc(leadData.industry.replace(/_/g, " "))}</td></tr>
-    </table>
-    ${goldButton("View in Admin Dashboard", `${BASE_URL}/admin/leads`)}
-  `);
+export function planConfirmationEmail(name: string, summary: string, planUrl: string): string {
+  return emailWrapper(`<p style="margin:0 0 9px;color:#5c8518;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Your growth plan</p><h1 style="margin:0 0 16px;color:${COLORS.ink};font-size:24px;letter-spacing:-.03em;line-height:1.2;">Your Growth Plan Is Ready</h1><p style="margin:0 0 16px;color:${COLORS.body};font-size:15px;line-height:1.65;">Hi ${esc(name)},</p><p style="margin:0 0 16px;color:${COLORS.body};font-size:15px;line-height:1.65;">Your personalized AI growth plan has been generated. Here is a quick summary:</p><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:20px 0;"><tr><td style="border-left:4px solid #a8d936;background-color:${COLORS.signalSoft};padding:16px 18px;color:${COLORS.body};font-size:14px;line-height:1.6;">${esc(summary)}</td></tr></table><p style="margin:0 0 8px;color:${COLORS.body};font-size:15px;line-height:1.65;">View your full plan with detailed recommendations, implementation roadmap, and ROI projections:</p>${signalButton("View your growth plan", planUrl)}<p style="margin:20px 0 0;color:${COLORS.faint};font-size:12px;line-height:1.5;">This link is unique to you and can be shared with your team.</p>`);
+}
+
+function infoRows(rows: Array<[string, string]>): string {
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;color:${COLORS.body};font-size:14px;line-height:1.45;">${rows.map(([label, value]) => `<tr><td style="border-bottom:1px solid ${COLORS.line};padding:11px 8px 11px 0;color:${COLORS.muted};width:112px;vertical-align:top;">${label}</td><td style="border-bottom:1px solid ${COLORS.line};padding:11px 0;color:${COLORS.ink};vertical-align:top;word-break:break-word;">${value}</td></tr>`).join("")}</table>`;
+}
+
+export function adminLeadNotificationEmail(leadData: { name: string; email: string; phone?: string; business?: string; industry: string }): string {
+  const rows: Array<[string, string]> = [["Name", esc(leadData.name)], ["Email", `<a href="mailto:${esc(leadData.email)}" style="color:#5c8518;">${esc(leadData.email)}</a>`]];
+  if (leadData.phone) rows.push(["Phone", esc(leadData.phone)]);
+  if (leadData.business) rows.push(["Business", esc(leadData.business)]);
+  rows.push(["Industry", esc(leadData.industry.replace(/_/g, " "))]);
+  return adminWrapper(`<p style="margin:0 0 9px;color:#5c8518;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Lead intake</p><h1 style="margin:0 0 20px;color:${COLORS.ink};font-size:24px;letter-spacing:-.03em;line-height:1.2;">New lead, ready to qualify</h1>${infoRows(rows)}${signalButton("View in admin dashboard", `${BASE_URL}/admin/leads`)}`);
 }
 
 export function contactConfirmationEmail(name: string): string {
-  return emailWrapper(`
-    <h1 style="margin:0 0 16px 0;font-size:22px;color:rgba(255,255,255,0.93);">We Got Your Message</h1>
-    <p style="margin:0 0 16px 0;font-size:15px;color:rgba(255,255,255,0.65);line-height:1.6;">
-      Hi ${esc(name)},
-    </p>
-    <p style="margin:0 0 16px 0;font-size:15px;color:rgba(255,255,255,0.65);line-height:1.6;">
-      Thanks for reaching out to Accelerate. We have received your message and will get back to you within 24 hours.
-    </p>
-    <p style="margin:0 0 16px 0;font-size:15px;color:rgba(255,255,255,0.65);line-height:1.6;">
-      In the meantime, take a look at what we build and run for businesses like yours:
-    </p>
-    ${goldButton("See What We Build", `${BASE_URL}/services`)}
-  `);
+  return emailWrapper(`<p style="margin:0 0 9px;color:#5c8518;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Request received</p><h1 style="margin:0 0 16px;color:${COLORS.ink};font-size:24px;letter-spacing:-.03em;line-height:1.2;">Your audit request is with John</h1><p style="margin:0 0 16px;color:${COLORS.body};font-size:15px;line-height:1.65;">Hi ${esc(name)},</p><p style="margin:0 0 16px;color:${COLORS.body};font-size:15px;line-height:1.65;">Thanks for reaching out. John will review the company and reply personally within one business day with the best next step.</p><p style="margin:0 0 16px;color:${COLORS.body};font-size:15px;line-height:1.65;">When he replies, send back two times that work for you and he will schedule the conversation directly. You can also reply to this email now with anything else he should know.</p>${signalButton("See what we build", `${BASE_URL}/services`)}`);
 }
 
-export function roiReportEmail(data: {
-  name?: string;
-  roiPercentage: number;
-  additionalMonthlyRevenue: string;
-  annualRevenueImpact: string;
-  timeSavedPerWeek: string;
-  paybackPeriodMonths: string;
-}): string {
-  return emailWrapper(`
-    <h1 style="margin:0 0 16px 0;font-size:22px;color:rgba(255,255,255,0.93);">Your AI Automation ROI Analysis</h1>
-    <p style="margin:0 0 16px 0;font-size:15px;color:rgba(255,255,255,0.65);line-height:1.6;">
-      ${data.name ? `Hi ${esc(data.name)},` : "Hi there,"}
-    </p>
-    <p style="margin:0 0 24px 0;font-size:15px;color:rgba(255,255,255,0.65);line-height:1.6;">
-      Here is a summary of your projected ROI with AI-powered automation:
-    </p>
-    <table style="width:100%;font-size:14px;color:rgba(255,255,255,0.65);border-collapse:collapse;" cellpadding="0">
-      <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
-        <td style="padding:12px 0;color:rgba(255,255,255,0.38);">Projected ROI</td>
-        <td style="padding:12px 0;text-align:right;font-weight:bold;color:#F5D060;">${Math.round(data.roiPercentage)}%</td>
-      </tr>
-      <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
-        <td style="padding:12px 0;color:rgba(255,255,255,0.38);">Additional Monthly Revenue</td>
-        <td style="padding:12px 0;text-align:right;font-weight:bold;color:rgba(255,255,255,0.93);">${data.additionalMonthlyRevenue}</td>
-      </tr>
-      <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
-        <td style="padding:12px 0;color:rgba(255,255,255,0.38);">Annual Revenue Impact</td>
-        <td style="padding:12px 0;text-align:right;font-weight:bold;color:rgba(255,255,255,0.93);">${data.annualRevenueImpact}</td>
-      </tr>
-      <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
-        <td style="padding:12px 0;color:rgba(255,255,255,0.38);">Time Saved / Week</td>
-        <td style="padding:12px 0;text-align:right;font-weight:bold;color:rgba(255,255,255,0.93);">${data.timeSavedPerWeek} hours</td>
-      </tr>
-      <tr>
-        <td style="padding:12px 0;color:rgba(255,255,255,0.38);">Payback Period</td>
-        <td style="padding:12px 0;text-align:right;font-weight:bold;color:rgba(255,255,255,0.93);">${data.paybackPeriodMonths} months</td>
-      </tr>
-    </table>
-    <p style="margin:24px 0 8px 0;font-size:15px;color:rgba(255,255,255,0.65);line-height:1.6;">
-      Want to see exactly how we would implement this for your business?
-    </p>
-    ${goldButton("Book a Free Strategy Call", `${BASE_URL}/contact`)}
-    <p style="margin:24px 0 0 0;font-size:12px;color:rgba(255,255,255,0.38);line-height:1.5;">
-      These projections are estimates based on industry averages and the inputs you provided. Actual results vary depending on your market, competition, and execution.
-    </p>
-  `);
+export function roiReportEmail(data: { name?: string; roiPercentage: number; additionalMonthlyRevenue: string; annualRevenueImpact: string; timeSavedPerWeek: string; paybackPeriodMonths: string }): string {
+  const metricRows: Array<[string, string]> = [["Projected ROI", `<strong>${Math.round(data.roiPercentage)}%</strong>`], ["Additional monthly revenue", `<strong>${esc(data.additionalMonthlyRevenue)}</strong>`], ["Annual revenue impact", `<strong>${esc(data.annualRevenueImpact)}</strong>`], ["Time saved / week", `<strong>${esc(data.timeSavedPerWeek)} hours</strong>`], ["Payback period", `<strong>${esc(data.paybackPeriodMonths)} months</strong>`]];
+  return emailWrapper(`<p style="margin:0 0 9px;color:#5c8518;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Revenue analysis</p><h1 style="margin:0 0 16px;color:${COLORS.ink};font-size:24px;letter-spacing:-.03em;line-height:1.2;">Your AI Automation ROI Analysis</h1><p style="margin:0 0 16px;color:${COLORS.body};font-size:15px;line-height:1.65;">${data.name ? `Hi ${esc(data.name)},` : "Hi there,"}</p><p style="margin:0 0 20px;color:${COLORS.body};font-size:15px;line-height:1.65;">Here is a summary of your projected ROI with AI-powered automation:</p>${infoRows(metricRows)}<p style="margin:22px 0 8px;color:${COLORS.body};font-size:15px;line-height:1.65;">Want to see exactly how we would implement this for your business?</p>${signalButton("Book a free strategy call", `${BASE_URL}/contact`)}<p style="margin:20px 0 0;color:${COLORS.faint};font-size:12px;line-height:1.5;">These projections are estimates based on industry averages and the inputs you provided. Actual results vary depending on your market, competition, and execution.</p>`);
 }
 
-export function adminContactNotificationEmail(formData: {
-  name: string;
-  email: string;
-  phone?: string;
-  businessType?: string;
-  message: string;
-}): string {
-  return emailWrapper(`
-    <h1 style="margin:0 0 16px 0;font-size:22px;color:rgba(255,255,255,0.93);">New Contact Form Submission</h1>
-    <table style="width:100%;font-size:14px;color:rgba(255,255,255,0.65);" cellpadding="4">
-      <tr><td style="color:rgba(255,255,255,0.38);width:100px;">Name</td><td>${esc(formData.name)}</td></tr>
-      <tr><td style="color:rgba(255,255,255,0.38);">Email</td><td><a href="mailto:${esc(formData.email)}" style="color:#F5D060;">${esc(formData.email)}</a></td></tr>
-      ${formData.phone ? `<tr><td style="color:rgba(255,255,255,0.38);">Phone</td><td>${esc(formData.phone)}</td></tr>` : ""}
-      ${formData.businessType ? `<tr><td style="color:rgba(255,255,255,0.38);">Business</td><td>${esc(formData.businessType)}</td></tr>` : ""}
-    </table>
-    <div style="background-color:#0A0A0A;border-radius:8px;padding:16px;margin:16px 0;border-left:3px solid #D4AF37;">
-      <p style="margin:0;font-size:14px;color:rgba(255,255,255,0.65);line-height:1.6;">${esc(formData.message)}</p>
-    </div>
-    ${goldButton("Reply to Lead", `mailto:${esc(formData.email)}`)}
-  `);
+export function adminContactNotificationEmail(formData: { name: string; email: string; phone?: string; businessType?: string; companyName?: string; companyWebsite?: string; primaryProblem?: string; message: string }): string {
+  const rows: Array<[string, string]> = [["Name", esc(formData.name)], ["Email", `<a href="mailto:${esc(formData.email)}" style="color:#5c8518;">${esc(formData.email)}</a>`]];
+  if (formData.phone) rows.push(["Phone", esc(formData.phone)]);
+  if (formData.companyName) rows.push(["Company", esc(formData.companyName)]);
+  if (formData.companyWebsite) rows.push(["Website", esc(formData.companyWebsite)]);
+  if (formData.businessType) rows.push(["Business", esc(formData.businessType)]);
+  if (formData.primaryProblem) rows.push(["Constraint", esc(formData.primaryProblem)]);
+  return adminWrapper(`<p style="margin:0 0 9px;color:#5c8518;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Contact request</p><h1 style="margin:0 0 20px;color:${COLORS.ink};font-size:24px;letter-spacing:-.03em;line-height:1.2;">A prospect sent a message</h1>${infoRows(rows)}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:20px 0;"><tr><td style="border-left:4px solid #a8d936;background-color:${COLORS.signalSoft};padding:16px 18px;color:${COLORS.body};font-size:14px;line-height:1.6;">${esc(formData.message).replace(/\n/g, "<br>")}</td></tr></table>${signalButton("Reply to lead", `mailto:${formData.email}`)}`);
 }

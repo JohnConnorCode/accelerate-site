@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { TrackingScripts } from "@/components/layout/TrackingScripts";
 import { UTMCapture } from "@/components/layout/UTMCapture";
+import { RevenueAnalyticsTracker } from "@/components/layout/RevenueAnalyticsTracker";
 import { ChatWidget } from "@/components/chat/ChatWidget";
 import { ScrollProgress } from "@/components/layout/ScrollProgress";
 import { PageTransition } from "@/components/layout/PageTransition";
@@ -146,13 +147,6 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${sans.variable} ${display.variable} ${editorial.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
-        {/* Warm the connection for Calendly (embedded on /contact, the
-            destination of every "Book a call" CTA site-wide) so the widget's
-            DNS/TLS handshake is already done by the time someone lands there. */}
-        <link rel="preconnect" href="https://calendly.com" />
-        <link rel="preconnect" href="https://assets.calendly.com" crossOrigin="" />
-        <link rel="dns-prefetch" href="https://calendly.com" />
-        <link rel="dns-prefetch" href="https://assets.calendly.com" />
         {/* progressive-enhancement flag — section-reveal CSS only hides content
             when JS is actually available, so no-JS users still see everything.
             Rendered via next/script (not a raw JSX <script>) so Next injects it
@@ -168,14 +162,6 @@ export default function RootLayout({
         <Script id="org-jsonld" type="application/ld+json" strategy="beforeInteractive">
           {JSON.stringify(organizationJsonLd)}
         </Script>
-        <Script
-          id="plausible"
-          strategy="beforeInteractive"
-          defer
-          data-domain={process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN || "acceleratewith.us"}
-          data-api="/api/event"
-          src="/js/script.js"
-        />
       </head>
       <body className="noise-overlay min-h-screen flex flex-col">
         <ThemeProvider>
@@ -187,6 +173,7 @@ export default function RootLayout({
           </a>
           <TrackingScripts />
           <UTMCapture />
+          <RevenueAnalyticsTracker />
           <ScrollProgress />
           <Header />
           <main id="main-content" className="flex-1">

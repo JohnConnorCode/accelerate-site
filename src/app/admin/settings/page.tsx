@@ -22,7 +22,7 @@ const settingSections = [
   {
     title: "API Keys",
     icon: Key,
-    keys: ["ANTHROPIC_API_KEY", "RESEND_API_KEY", "CRON_SECRET"],
+    keys: ["OPENROUTER_API_KEY", "RESEND_API_KEY", "CRON_SECRET"],
   },
   {
     title: "Email Configuration",
@@ -242,7 +242,7 @@ export default function SettingsPage() {
                   const setting = getSetting(key);
                   const isEditing = editingKey === key;
                   const testResult = testResults[key];
-                  const isTestable = key === "ANTHROPIC_API_KEY" || key === "RESEND_API_KEY";
+                  const isTestable = key === "OPENROUTER_API_KEY" || key === "RESEND_API_KEY";
 
                   return (
                     <div

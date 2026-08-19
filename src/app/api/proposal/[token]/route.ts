@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
+import { transitionOpportunity, transitionStatusFromError } from "@/lib/revenue-os/pipeline";
 
 export async function GET(
   request: NextRequest,
@@ -87,8 +88,18 @@ export async function POST(
     const nextStage = body.decision === "accepted" ? "negotiation" : "lost";
     const { data: opportunity } = await supabase.from("opportunities").select("stage").eq("id", proposal.opportunity_id).maybeSingle();
     if (opportunity && !["won", "lost"].includes(opportunity.stage)) {
-      await supabase.from("opportunities").update({ stage: nextStage, probability: body.decision === "accepted" ? 85 : 0, loss_reason: body.decision === "declined" ? body.reason!.trim().slice(0, 1000) : null, closed_at: body.decision === "declined" ? now : null, last_activity_at: now }).eq("id", proposal.opportunity_id).eq("stage", opportunity.stage);
-      await supabase.from("stage_events").insert({ opportunity_id: proposal.opportunity_id, from_stage: opportunity.stage, to_stage: nextStage, source: "proposal_response", reason: body.reason?.trim() || "Client accepted proposal" });
+      try {
+        await transitionOpportunity(supabase, {
+          id: proposal.opportunity_id,
+          to: nextStage,
+          actorEmail: "public_link",
+          source: "proposal_response",
+          reason: body.decision === "accepted" ? "Client accepted proposal" : "Client declined proposal",
+          lossReason: body.decision === "declined" ? body.reason!.trim().slice(0, 1000) : undefined,
+        });
+      } catch (error) {
+        return NextResponse.json({ error: error instanceof Error ? error.message : "Transition blocked by current stage" }, { status: transitionStatusFromError(error) });
+      }
     }
   }
   return NextResponse.json({ success: true, status: body.decision });

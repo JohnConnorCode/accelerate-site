@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { rateLimit } from "@/lib/rate-limit";
-import Anthropic from "@anthropic-ai/sdk";
+import { isOpenRouterConfigured, openRouterJson } from "@/lib/ai/openrouter";
 
-const PROPOSAL_MODEL = process.env.PROPOSAL_MODEL || "claude-sonnet-4-20250514";
 const GENERATE_LIMIT = 30;
 const GENERATE_WINDOW_MS = 60 * 60 * 1000;
 
@@ -30,6 +29,48 @@ You always return ONLY a valid JSON object with exactly this shape:
 }
 
 No commentary outside the JSON. No markdown fences.`;
+
+const PROPOSAL_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["sections"],
+  properties: {
+    sections: {
+      type: "array",
+      minItems: 5,
+      maxItems: 10,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["title", "content", "items", "pricing"],
+        properties: {
+          title: { type: "string", maxLength: 120 },
+          content: { type: ["string", "null"], maxLength: 5000 },
+          items: { type: ["array", "null"], maxItems: 30, items: { type: "string", maxLength: 500 } },
+          pricing: {
+            type: ["array", "null"],
+            maxItems: 20,
+            items: {
+              type: "object",
+              additionalProperties: false,
+              required: ["item", "monthly", "oneTime"],
+              properties: {
+                item: { type: "string", maxLength: 240 },
+                monthly: { type: "number", minimum: 0, maximum: 1000000 },
+                oneTime: { type: "number", minimum: 0, maximum: 1000000 },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+} as const;
+
+function validateProposal(value: unknown) {
+  if (!value || typeof value !== "object" || !Array.isArray((value as { sections?: unknown }).sections)) throw new Error("OpenRouter returned an invalid proposal draft");
+  return value as { sections: Array<{ title: string; content?: string | null; items?: string[] | null; pricing?: Array<{ item: string; monthly: number; oneTime: number }> | null }> };
+}
 
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin();
@@ -62,21 +103,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Lead not found" }, { status: 404 });
   }
 
-  const { data: apiKeySetting } = await supabase
-    .from("admin_settings")
-    .select("value")
-    .eq("key", "ANTHROPIC_API_KEY")
-    .single();
-
-  const apiKey = apiKeySetting?.value || process.env.ANTHROPIC_API_KEY;
-
-  if (!apiKey) {
-    return NextResponse.json({ error: "Anthropic API key not configured" }, { status: 500 });
+  if (!isOpenRouterConfigured()) {
+    return NextResponse.json({ error: "OpenRouter is not configured. Add OPENROUTER_API_KEY in Setup Center." }, { status: 503 });
   }
 
   try {
-    const anthropic = new Anthropic({ apiKey });
-
     const intakeStr = lead.intake_data
       ? JSON.stringify(lead.intake_data, null, 2)
       : "No intake data available";
@@ -85,17 +116,15 @@ export async function POST(request: NextRequest) {
       ? JSON.stringify(lead.ai_plan, null, 2).substring(0, 3000)
       : "No AI plan generated";
 
-    const message = await anthropic.messages.create({
-      model: PROPOSAL_MODEL,
-      max_tokens: 2000,
-      system: [
-        {
-          type: "text",
-          text: PROPOSAL_SYSTEM_PROMPT,
-          cache_control: { type: "ephemeral" },
-        },
-      ],
+    const response = await openRouterJson({
+      model: process.env.OPENROUTER_PROPOSAL_MODEL,
+      maxTokens: 2000,
+      temperature: 0.2,
+      schemaName: "proposal_draft",
+      schema: PROPOSAL_SCHEMA,
+      validate: validateProposal,
       messages: [
+        { role: "system", content: PROPOSAL_SYSTEM_PROMPT },
         {
           role: "user",
           content: `Client details:
@@ -115,17 +144,7 @@ Generate the proposal JSON for this client now. Make it specific to their indust
       ],
     });
 
-    const textContent = message.content.find((c) => c.type === "text");
-    if (!textContent || textContent.type !== "text") {
-      throw new Error("No text response from AI");
-    }
-
-    const jsonMatch = textContent.text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error("Could not parse proposal JSON");
-    }
-
-    const proposalContent = JSON.parse(jsonMatch[0]);
+    const proposalContent = response.data;
 
     let totalMonthly = 0;
     let totalOneTime = 0;
@@ -145,6 +164,9 @@ Generate the proposal JSON for this client now. Make it specific to their indust
       totalOneTime,
       clientName: lead.contact_name,
       businessName: lead.business_name,
+      provider: "openrouter",
+      model: response.model,
+      requestId: response.requestId,
     });
   } catch (error) {
     console.error("[proposals/generate] error:", error);

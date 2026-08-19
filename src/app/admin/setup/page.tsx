@@ -86,22 +86,32 @@ const setupGuides: Record<string, SetupGuide> = {
   },
   schema: {
     steps: [
-      "Open the Supabase SQL editor.",
-      "Run the existing business operating-system, UTM, and roofing migrations in their documented order.",
-      "Paste and run migrations/20260816-revenue-os.sql, then migrations/20260816-feature-board.sql.",
-      "Return here and refresh. The check reads the canonical action queue and pipeline schema.",
+      "Use the agent-owned migration command in the documented order; agents run it directly and never require dashboard SQL pasting.",
+      "Apply migrations/20260817-schema-verification.sql after the existing Revenue OS migrations.",
+      "Run npm run db:verify-schema -- --record. It reads only database metadata and records a receipt for the exact deployed contract version.",
+      "Return here and refresh. Ready means runtime access and the latest complete metadata receipt agree; it does not claim external integrations are healthy.",
     ],
-    href: "https://supabase.com/dashboard/project/skjypuwkceoiunyhhqlm/sql/new",
-    linkLabel: "Open the SQL editor",
+    href: "/admin/setup#schema",
+    linkLabel: "Review verification status",
   },
   feature_board: {
     steps: [
       "Apply migrations/20260816-revenue-os.sql first if it is not already active.",
       "Paste and run migrations/20260816-feature-board.sql in the Supabase SQL editor.",
-      "Open Feature Board. The initial Revenue OS follow-up work is seeded once and future edits remain authoritative.",
+      "Run npm run seed:features -- --apply from the project to reconcile the entire active board to the agent-ready master backlog.",
+      "Open Feature Board and verify the managed count, phases, workstreams, dependencies, acceptance criteria, and handoff notes.",
     ],
     href: "https://supabase.com/dashboard/project/skjypuwkceoiunyhhqlm/sql/new",
     linkLabel: "Open the SQL editor",
+  },
+  email_studio: {
+    steps: [
+      "Apply migrations/20260816-email-studio.sql in the Supabase SQL editor.",
+      "Open Email Studio, choose a template, save a draft, and send a test to the founder account.",
+      "Review the rendered desktop and mobile preview, then publish only when the exact copy is ready for recipients.",
+    ],
+    href: "/admin/emails",
+    linkLabel: "Open Email Studio",
   },
   email: {
     steps: [
@@ -130,14 +140,14 @@ const setupGuides: Record<string, SetupGuide> = {
     href: vercelEnvironmentUrl,
     linkLabel: "Open Vercel environment variables",
   },
-  plausible: {
+  first_party_analytics: {
     steps: [
-      "Add acceleratewith.us as a Plausible site if it is not already present.",
-      "Set NEXT_PUBLIC_PLAUSIBLE_DOMAIN=acceleratewith.us and create a Stats API key for PLAUSIBLE_API_KEY.",
-      "Redeploy, then complete one test qualifier to confirm events appear.",
+      "Apply migrations/20260816-first-party-analytics.sql after the Revenue OS migration.",
+      "Deploy the site. Page views and conversion events begin capturing automatically; no vendor account or API key is needed.",
+      "Visit a public page and submit a test inquiry, then use Analytics to confirm the website activity and canonical revenue funnel update.",
     ],
-    href: "https://plausible.io/settings/api-keys",
-    linkLabel: "Open Plausible API keys",
+    href: "#analytics",
+    linkLabel: "Open Analytics",
   },
   manual_booking: {
     steps: [
@@ -164,12 +174,22 @@ const setupGuides: Record<string, SetupGuide> = {
   },
   ai: {
     steps: [
-      "Create an Anthropic API key for the Revenue copilot.",
-      "Store ANTHROPIC_API_KEY in Vercel only; secret keys cannot be saved in the admin database.",
-      "Redeploy, then open the AI command bar. Writes will appear in Today for approval before execution.",
+      "Create one OpenRouter API key. This is the only AI provider credential Accelerate uses.",
+      "Store OPENROUTER_API_KEY in Vercel only. OPENROUTER_MODEL is optional; the app has a documented default.",
+      "Redeploy, then open AI Operations or Contact Import. Writes remain behind their normal approval and service boundaries.",
     ],
-    href: vercelEnvironmentUrl,
-    linkLabel: "Open Vercel environment variables",
+    href: "https://openrouter.ai/settings/keys",
+    linkLabel: "Create OpenRouter key",
+  },
+  contact_importer: {
+    steps: [
+      "Apply migrations/20260816-contact-importer.sql after the Revenue OS migration.",
+      "Configure OPENROUTER_API_KEY once in Vercel and redeploy.",
+      "Open Contact Import, analyze a safe sample, edit the preview, and approve only the exact reviewed snapshot.",
+      "Verify the completed batch reports row receipts. Analysis never imports, and execution never sends or creates opportunities.",
+    ],
+    href: "/admin/contact-imports",
+    linkLabel: "Open Contact Import",
   },
   campaigns: {
     steps: [
@@ -201,7 +221,7 @@ const setupGuides: Record<string, SetupGuide> = {
     steps: [
       "Create or select the GA4 web data stream for acceleratewith.us.",
       "Add its measurement ID as NEXT_PUBLIC_GTAG_ID in Vercel and redeploy.",
-      "Keep Plausible as the primary source of truth; use GA4 for campaign and ads compatibility.",
+      "Keep the built-in first-party Revenue OS analytics as the source of truth; add GA4 only when paid advertising compatibility needs it.",
     ],
     href: "https://analytics.google.com/analytics/web/",
     linkLabel: "Open Google Analytics",
@@ -245,7 +265,7 @@ function SetupCheckCard({ check }: { check: SetupCheck }) {
   const guide = setupGuides[check.id];
 
   return (
-    <AdminSurface padding="none" className="overflow-hidden">
+    <AdminSurface id={check.id} padding="none" className="scroll-mt-24 overflow-hidden">
       <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:p-5">
         <span className={cn("grid size-10 shrink-0 place-items-center rounded-xl", meta.className)}>
           <StatusIcon className="size-[18px]" aria-hidden="true" />

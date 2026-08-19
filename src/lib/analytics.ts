@@ -4,6 +4,7 @@
 // ========================================
 
 import type { CookiePreferences } from "@/lib/types";
+import { getUTMParams } from "@/lib/utm";
 
 // ========================================
 // Cookie Consent Helpers
@@ -73,10 +74,6 @@ const metaEventMap: Record<string, string> = {
 
 declare global {
   interface Window {
-    plausible?: (
-      event: string,
-      options?: { props?: Record<string, string | number> }
-    ) => void;
     gtag?: (...args: unknown[]) => void;
     fbq?: (...args: unknown[]) => void;
     dataLayer?: unknown[];
@@ -91,9 +88,31 @@ export function trackEvent(
   name: string,
   props?: Record<string, string | number>
 ) {
-  if (typeof window !== "undefined" && window.plausible) {
-    window.plausible(name, props ? { props } : undefined);
-  }
+  sendFirstPartyEvent(name, props);
+}
+
+function visitorId(): string {
+  const key = "accelerate_analytics_visitor";
+  try {
+    const existing = sessionStorage.getItem(key);
+    if (existing) return existing;
+    const value = crypto.randomUUID();
+    sessionStorage.setItem(key, value);
+    return value;
+  } catch { return crypto.randomUUID(); }
+}
+
+function safeEventName(name: string) {
+  return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 80) || "event";
+}
+
+function sendFirstPartyEvent(name: string, props?: Record<string, string | number>) {
+  if (typeof window === "undefined" || window.location.pathname.startsWith("/admin")) return;
+  const attribution = getUTMParams() || undefined;
+  const referrerHost = (() => { try { return document.referrer ? new URL(document.referrer).host : undefined; } catch { return undefined; } })();
+  const properties = Object.fromEntries(Object.entries(props || {}).filter(([key, value]) => key !== "page" && typeof value !== "undefined").slice(0, 12));
+  const payload = { eventId: crypto.randomUUID(), visitorId: visitorId(), name: safeEventName(name), path: window.location.pathname, referrerHost, attribution, properties };
+  void fetch("/api/analytics/events", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload), keepalive: true, credentials: "same-origin" }).catch(() => undefined);
 }
 
 export function trackConversion(
@@ -105,19 +124,10 @@ export function trackConversion(
   const page = window.location.pathname;
   const allProps: Record<string, string | number> = { ...props, page };
 
-  // Auto-attach UTM params to Plausible events
-  try {
-    const stored = localStorage.getItem("accelerate_utm");
-    if (stored) {
-      const utm = JSON.parse(stored);
-      if (utm.utm_source) allProps.utm_source = utm.utm_source;
-      if (utm.utm_medium) allProps.utm_medium = utm.utm_medium;
-    }
-  } catch {
-    // ignore parse errors
-  }
+  const attribution = getUTMParams();
+  if (attribution) Object.assign(allProps, Object.fromEntries(Object.entries(attribution).filter(([, value]) => typeof value === "string")));
 
-  // Plausible — always fires (first-party, no consent needed)
+  // First-party Revenue OS collection is always attempted; it is non-blocking.
   trackEvent(name, allProps);
 
   // Google Analytics

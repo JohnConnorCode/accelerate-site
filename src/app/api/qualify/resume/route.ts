@@ -16,6 +16,6 @@ export async function GET(request: NextRequest) {
     email: data.email,
     qualified: true,
     stage: data.stage,
-    bookingMode: process.env.CALENDLY_ENABLED === "true" ? "calendly" : "manual",
+    bookingMode: process.env.CALENDLY_ENABLED !== "false" ? "calendly" : "manual",
   });
 }

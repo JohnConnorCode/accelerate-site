@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendRecordedEmail } from "./communications";
 import { recordAudit } from "./audit";
+import { campaignMemberMaySend, stopCampaignMemberships } from "./campaign-stops";
 
 interface CampaignPolicy {
   daily_limit?: number;
@@ -12,7 +13,7 @@ interface CampaignPolicy {
 }
 
 const DEFAULT_POLICY: Required<CampaignPolicy> = {
-  daily_limit: 25,
+  daily_limit: 10,
   stop_on_reply: true,
   stop_on_booking: true,
   stop_on_bounce: true,
@@ -22,7 +23,7 @@ const DEFAULT_POLICY: Required<CampaignPolicy> = {
 export function normalizeCampaignPolicy(value: unknown): Required<CampaignPolicy> {
   const input = value && typeof value === "object" ? value as CampaignPolicy : {};
   return {
-    daily_limit: Math.min(200, Math.max(1, Number(input.daily_limit) || DEFAULT_POLICY.daily_limit)),
+    daily_limit: Math.min(process.env.CAMPAIGN_AUTOMATION_ENABLED === "true" ? 200 : 10, Math.max(1, Number(input.daily_limit) || DEFAULT_POLICY.daily_limit)),
     stop_on_reply: input.stop_on_reply !== false,
     stop_on_booking: input.stop_on_booking !== false,
     stop_on_bounce: input.stop_on_bounce !== false,
@@ -34,6 +35,12 @@ export function renderCampaignTemplate(template: string, values: Record<string, 
   return template.replace(/{{\s*([a-zA-Z0-9_]+)\s*}}/g, (_, key: string) => values[key]?.trim() || "");
 }
 
+async function claimCampaignMemberSend(supabase: SupabaseClient, memberId: string, claimKey: string) {
+  const { data, error } = await supabase.rpc("claim_campaign_member_send", { p_member_id: memberId, p_claim_key: claimKey }).maybeSingle();
+  if (error) throw new Error(error.message);
+  return Boolean((data as { claimed?: boolean } | null)?.claimed);
+}
+
 export async function activateCampaign(supabase: SupabaseClient, id: string, actorEmail: string) {
   const { data: campaign, error } = await supabase.from("campaigns").select("id,status,version,approved_version,name").eq("id", id).maybeSingle();
   if (error) throw new Error(error.message);
@@ -41,6 +48,7 @@ export async function activateCampaign(supabase: SupabaseClient, id: string, act
   const { count, error: stepError } = await supabase.from("campaign_steps").select("id", { count: "exact", head: true }).eq("campaign_id", id).eq("active", true);
   if (stepError) throw new Error(stepError.message);
   if (!count) throw new Error("Add at least one active step before launching this campaign");
+  if (count > 1 && process.env.CAMPAIGN_AUTOMATION_ENABLED !== "true") throw new Error("The money-first pilot is limited to one email step until automated reply and bounce stops are enabled");
 
   const now = new Date().toISOString();
   const { data, error: updateError } = await supabase.from("campaigns").update({
@@ -64,9 +72,11 @@ export async function pauseCampaign(supabase: SupabaseClient, id: string, actorE
   return data;
 }
 
-export async function executeDueCampaignMembers(supabase: SupabaseClient, now = new Date()) {
+export async function executeDueCampaignMembers(supabase: SupabaseClient, now = new Date(), campaignId?: string) {
   const dayStart = new Date(now); dayStart.setUTCHours(0, 0, 0, 0);
-  const { data: campaigns, error } = await supabase.from("campaigns").select("id,name,status,version,approved_version,policy,sender_email").eq("status", "active");
+  let campaignQuery = supabase.from("campaigns").select("id,name,status,version,approved_version,policy,sender_email").eq("status", "active");
+  if (campaignId) campaignQuery = campaignQuery.eq("id", campaignId);
+  const { data: campaigns, error } = await campaignQuery;
   if (error) throw new Error(error.message);
   let sent = 0;
   let failed = 0;
@@ -95,7 +105,7 @@ export async function executeDueCampaignMembers(supabase: SupabaseClient, now = 
     for (const member of members ?? []) {
       const opportunity = Array.isArray(member.opportunities) ? member.opportunities[0] : member.opportunities;
       if (opportunity && ["meeting", "proposal", "negotiation", "won", "lost", "booked", "showed"].includes(opportunity.stage)) {
-        await supabase.from("campaign_members").update({ status: opportunity.stage === "won" ? "converted" : "stopped", stop_reason: `opportunity_${opportunity.stage}`, next_send_at: null }).eq("id", member.id);
+        await stopCampaignMemberships(supabase, { contactId: member.contact_id, campaignId: campaign.id, reason: opportunity.stage === "won" ? "opportunity_converted" : "opportunity_progressed", source: "automation" });
         stopped++;
         continue;
       }
@@ -106,7 +116,14 @@ export async function executeDueCampaignMembers(supabase: SupabaseClient, now = 
       }
       const contact = Array.isArray(member.contacts) ? member.contacts[0] : member.contacts;
       const values = { first_name: contact?.full_name?.split(" ")[0] ?? "", full_name: contact?.full_name ?? "", company: opportunity?.name ?? "" };
+      const idempotencyKey = `campaign:${campaign.id}:member:${member.id}:step:${step.step_order}`;
+      if (!await claimCampaignMemberSend(supabase, member.id, idempotencyKey)) continue;
       try {
+        if (!await campaignMemberMaySend(supabase, { memberId: member.id, campaignId: campaign.id })) {
+          await supabase.from("campaign_members").update({ status: "stopped", stop_reason: "pre_send_policy_check", next_send_at: null }).eq("id", member.id).eq("status", "sending");
+          stopped++;
+          continue;
+        }
         await sendRecordedEmail(supabase, {
           to: member.email,
           subject: renderCampaignTemplate(step.subject_template, values),
@@ -116,6 +133,7 @@ export async function executeDueCampaignMembers(supabase: SupabaseClient, now = 
           campaignId: campaign.id,
           template: `campaign:${campaign.id}:step:${step.step_order}`,
           source: "campaign",
+          idempotencyKey,
         });
         const nextStep = (steps ?? [])[member.current_step + 1];
         const nextAt = nextStep ? new Date(now.getTime() + nextStep.delay_days * 86400000).toISOString() : null;
@@ -124,10 +142,15 @@ export async function executeDueCampaignMembers(supabase: SupabaseClient, now = 
           status: nextStep ? "active" : "completed",
           last_sent_at: now.toISOString(),
           next_send_at: nextAt,
-        }).eq("id", member.id).in("status", ["queued", "active"]);
+        }).eq("id", member.id).eq("status", "sending");
         sent++;
       } catch (sendError) {
         console.error("[campaign-executor]", sendError);
+        await supabase.from("campaign_members").update({
+          status: "stopped",
+          stop_reason: "send_failed_requires_reconciliation",
+          next_send_at: null,
+        }).eq("id", member.id).eq("status", "sending");
         failed++;
       }
     }

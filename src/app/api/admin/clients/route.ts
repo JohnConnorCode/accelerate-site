@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
+import { attachRevenueLinkage } from "@/lib/revenue-os/legacy-adapter";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
@@ -22,9 +23,16 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error("Database error:", error.message);
-    return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
+      return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
     }
-    return NextResponse.json({ client: data });
+    const linked = await attachRevenueLinkage(supabase, data ? [data] : [], {
+      sourceRecordType: "client",
+      emailField: "contact_email",
+    });
+    return NextResponse.json({
+      client: linked.records[0] ?? data,
+      canonicalSchemaReady: linked.schemaReady,
+    });
   }
 
   let query = supabase
@@ -53,8 +61,14 @@ export async function GET(request: NextRequest) {
   const activeClients = (data || []).filter((c: { status?: string }) => c.status === "active");
   const totalMRR = activeClients.reduce((sum: number, c: { monthly_value?: number }) => sum + (c.monthly_value || 0), 0);
 
+  const linked = await attachRevenueLinkage(supabase, data || [], {
+    sourceRecordType: "client",
+    emailField: "contact_email",
+  });
+
   return NextResponse.json({
-    clients: data || [],
+    clients: linked.records,
+    canonicalSchemaReady: linked.schemaReady,
     totalMRR,
     activeCount: activeClients.length,
   });

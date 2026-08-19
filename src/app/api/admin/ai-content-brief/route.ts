@@ -1,6 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { getSetting } from "@/lib/admin/settings";
+import { isOpenRouterConfigured, openRouterJson } from "@/lib/ai/openrouter";
+
+const CONTENT_BRIEF_SCHEMA = {
+  type: "object", additionalProperties: false,
+  required: ["outline", "seoTitle", "seoDescription", "wordCount", "keyTakeaways"],
+  properties: {
+    outline: { type: "array", minItems: 3, maxItems: 12, items: { type: "string", maxLength: 240 } },
+    seoTitle: { type: "string", maxLength: 60 }, seoDescription: { type: "string", maxLength: 160 },
+    wordCount: { type: "integer", minimum: 500, maximum: 5000 },
+    keyTakeaways: { type: "array", minItems: 3, maxItems: 8, items: { type: "string", maxLength: 300 } },
+  },
+} as const;
+
+function validateBrief(value: unknown) {
+  if (!value || typeof value !== "object") throw new Error("OpenRouter returned an invalid content brief");
+  const row = value as Record<string, unknown>;
+  if (!Array.isArray(row.outline) || !Array.isArray(row.keyTakeaways) || typeof row.seoTitle !== "string" || typeof row.seoDescription !== "string" || !Number.isFinite(row.wordCount)) throw new Error("OpenRouter returned an incomplete content brief");
+  return row;
+}
 
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin();
@@ -12,18 +30,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Title is required" }, { status: 400 });
   }
 
-  const apiKey = await getSetting("ANTHROPIC_API_KEY");
-  if (!apiKey) {
+  if (!isOpenRouterConfigured()) {
     return NextResponse.json(
-      { error: "Anthropic API key not configured. Add it in Settings." },
+      { error: "OpenRouter is not configured. Add OPENROUTER_API_KEY in Setup Center." },
       { status: 400 }
     );
   }
 
   try {
-    const Anthropic = (await import("@anthropic-ai/sdk")).default;
-    const client = new Anthropic({ apiKey });
-
     const prompt = `You are a content strategist for Accelerate, an AI solutions agency for small businesses. Generate a content brief for the following article:
 
 Title: ${title}
@@ -39,22 +53,16 @@ Respond in this exact JSON format (no markdown, just JSON):
   "keyTakeaways": ["Takeaway 1", "Takeaway 2", "Takeaway 3"]
 }`;
 
-    const response = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 600,
+    const response = await openRouterJson({
+      model: process.env.OPENROUTER_CONTENT_MODEL,
+      maxTokens: 600,
+      temperature: 0.2,
+      schemaName: "content_brief",
+      schema: CONTENT_BRIEF_SCHEMA,
+      validate: validateBrief,
       messages: [{ role: "user", content: prompt }],
     });
-
-    const text = response.content[0]?.type === "text" ? response.content[0].text : "{}";
-
-    // Parse JSON from response
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      return NextResponse.json({ error: "Failed to parse AI response" }, { status: 500 });
-    }
-
-    const brief = JSON.parse(jsonMatch[0]);
-    return NextResponse.json({ brief });
+    return NextResponse.json({ brief: response.data, provider: "openrouter", model: response.model, requestId: response.requestId });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to generate brief" },

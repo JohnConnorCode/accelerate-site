@@ -1,173 +1,37 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { motion } from "framer-motion";
-import { Clock, Users, TrendingUp } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { AlertTriangle, BarChart3, CircleDollarSign, Eye, Loader2, RefreshCw, Target, Users } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
-import { StatCard } from "@/components/admin/StatCard";
-import { ChannelBreakdown } from "@/components/admin/ChannelBreakdown";
-import { ConversionFunnel } from "@/components/admin/ConversionFunnel";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { AdminSurface } from "@/components/admin/AdminSurface";
+import { fetchJson } from "@/lib/admin/fetchJson";
 
-interface Channel {
-  name: string;
-  count: number;
+type Rank = { label: string; count: number };
+type Data = { schemaReady: boolean; windowDays: number; cohort: string; funnel: { opportunities: number; qualified: number; meetings: number; proposals: number; won: number; wonRevenue: number; pipelineValue: number }; rates: { qualified: number | null; meeting: number | null; proposal: number | null; win: number | null; inquiryToWin: number | null }; attribution: { missing: number }; sources: { source: string; opportunities: number; won: number; revenue: number }[]; web: null | { status: "ready" | "degraded"; reason?: string; pageViews: number | null; visitors: number | null; conversions: number | null; conversionRate: number | null; topPages: Rank[]; sources: Rank[]; conversionEvents: Rank[]; eventCount: number | null; lastCapturedAt: string | null } };
+const money = (value: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+const rate = (value: number | null) => value === null ? "—" : `${value}%`;
+
+function Metric({ label, value, icon: Icon }: { label: string; value: string | number; icon: typeof Users }) {
+  return <AdminSurface padding="lg"><div className="flex justify-between gap-3"><div><p className="admin-eyebrow">{label}</p><p className="mt-3 text-3xl font-semibold tabular-nums text-[var(--admin-ink)]">{value}</p></div><Icon className="mt-0.5 size-4 text-[var(--admin-muted)]" /></div></AdminSurface>;
 }
 
-interface IndustryItem {
-  name: string;
-  count: number;
-}
-
-interface AnalyticsData {
-  channels: Channel[];
-  industryBreakdown: IndustryItem[];
-  funnel: Record<string, number>;
-  avgTimeToContact: number | null;
-  totalLeads: number;
-  days: number;
+function RankedList({ title, rows, suffix = "" }: { title: string; rows: Rank[]; suffix?: string }) {
+  return <AdminSurface padding="none" className="overflow-hidden"><div className="p-5"><p className="admin-eyebrow">First-party web data</p><h2 className="mt-1 text-base font-semibold text-balance">{title}</h2></div><div className="divide-y border-t border-[var(--admin-border)]">{rows.length ? rows.map((row) => <div key={row.label} className="flex items-center justify-between gap-4 px-5 py-3.5 text-sm"><span className="min-w-0 truncate font-medium">{row.label}</span><span className="shrink-0 tabular-nums text-[var(--admin-muted)]">{row.count}{suffix}</span></div>) : <p className="p-5 text-sm text-[var(--admin-muted)]">No data in this window yet.</p>}</div></AdminSurface>;
 }
 
 export default function AnalyticsPage() {
-  const [data, setData] = useState<AnalyticsData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [days, setDays] = useState(30);
-
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/admin/analytics?days=${days}`);
-      const json = await res.json();
-      setData(json);
-    } catch {
-      // silent
-    } finally {
-      setLoading(false);
-    }
-  }, [days]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  if (loading) {
-    return (
-      <div>
-        <PageHeader title="Analytics" />
-        <LoadingSkeleton variant="page" />
-      </div>
-    );
-  }
-
-  if (!data) {
-    return (
-      <div>
-        <PageHeader title="Analytics" />
-        <p className="text-white-muted text-sm">Failed to load analytics data.</p>
-      </div>
-    );
-  }
-
-  const totalChannelLeads = data.channels.reduce((sum, c) => sum + c.count, 0);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <PageHeader title="Analytics" subtitle="What's working, what's not" />
-
-      {/* Date range selector */}
-      <div className="flex gap-2 mb-6">
-        {[7, 30, 90].map((d) => (
-          <button
-            key={d}
-            onClick={() => setDays(d)}
-            className={`px-3 py-1.5 rounded-lg text-sm transition-[background-color,color,transform] cursor-pointer ${
-              days === d
-                ? "bg-gold-gradient text-black font-semibold"
-                : "glass text-white-secondary hover:text-white-primary"
-            }`}
-          >
-            {d}d
-          </button>
-        ))}
-      </div>
-
-      {/* Summary stats */}
-      <div className="grid gap-4 sm:grid-cols-3 mb-6">
-        <StatCard
-          label={`Leads (${days}d)`}
-          value={data.totalLeads}
-          icon={Users}
-          index={0}
-        />
-        <StatCard
-          label="Total Touchpoints"
-          value={totalChannelLeads}
-          icon={TrendingUp}
-          index={1}
-        />
-        <StatCard
-          label="Avg Time to Contact"
-          value={data.avgTimeToContact !== null ? `${data.avgTimeToContact}h` : "N/A"}
-          icon={Clock}
-          index={2}
-          change={data.avgTimeToContact !== null && data.avgTimeToContact < 24 ? "Under 24h" : undefined}
-          trend={data.avgTimeToContact !== null && data.avgTimeToContact < 24 ? "up" : undefined}
-        />
-      </div>
-
-      {/* Charts grid */}
-      <div className="grid gap-6 lg:grid-cols-2 mb-6">
-        <ChannelBreakdown channels={data.channels} />
-        <ConversionFunnel funnel={data.funnel} />
-      </div>
-
-      {/* Industry breakdown */}
-      <GlassCard hover="none">
-        <h3 className="font-display text-sm font-semibold text-white-primary mb-4">
-          Industry Breakdown
-        </h3>
-        {data.industryBreakdown.length === 0 ? (
-          <p className="text-sm text-white-muted">No industry data for this period</p>
-        ) : (
-          <div className="space-y-2">
-            {data.industryBreakdown.map((item, i) => {
-              const maxCount = data.industryBreakdown[0]?.count || 1;
-              const width = (item.count / maxCount) * 100;
-
-              return (
-                <motion.div
-                  key={item.name}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.04 }}
-                  className="flex items-center gap-3"
-                >
-                  <span className="text-xs text-white-secondary w-36 shrink-0 capitalize truncate">
-                    {item.name}
-                  </span>
-                  <div className="flex-1 h-5 rounded bg-white/5 overflow-hidden relative">
-                    <motion.div
-                      className="h-full bg-gold rounded"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${Math.max(width, item.count > 0 ? 3 : 0)}%` }}
-                      transition={{ duration: 0.6, delay: 0.1 + i * 0.04, ease: "easeOut" }}
-                      style={{ opacity: 0.5 }}
-                    />
-                    <span className="absolute inset-0 flex items-center px-2 text-[11px] font-medium text-white-primary">
-                      {item.count}
-                    </span>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        )}
-      </GlassCard>
-    </motion.div>
-  );
+  const [days, setDays] = useState(30); const [data, setData] = useState<Data | null>(null); const [loading, setLoading] = useState(true); const [error, setError] = useState("");
+  const load = useCallback(async () => { setLoading(true); try { setData(await fetchJson<Data>(`/api/admin/revenue-os/analytics?days=${days}`)); setError(""); } catch (caught) { setError(caught instanceof Error ? caught.message : "Could not load analytics."); } finally { setLoading(false); } }, [days]);
+  useEffect(() => { void load(); }, [load]);
+  if (loading && !data) return <div className="grid min-h-[55vh] place-items-center"><Loader2 className="size-6 animate-spin text-[var(--admin-muted)]" /></div>;
+  const funnel = data?.funnel; const web = data?.web;
+  return <div className="space-y-7 pb-10">
+    <PageHeader title="Analytics" subtitle="A first-party, source-to-revenue operating view. It works without a separate analytics account or API key." actions={<button onClick={() => void load()} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-xs font-semibold shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"><RefreshCw className="size-3.5" />Refresh</button>} />
+    {error && <AdminSurface tone="attention">{error}</AdminSurface>}
+    <div className="flex gap-2">{[7, 30, 90].map((value) => <button key={value} onClick={() => setDays(value)} className={`min-h-10 rounded-lg px-3 text-xs font-semibold transition-[background-color,transform] duration-150 active:scale-[0.96] ${days === value ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]" : "shadow-[var(--admin-shadow-border)]"}`}>{value} days</button>)}</div>
+    {web?.status === "degraded" && <AdminSurface tone="attention" className="flex gap-3"><AlertTriangle className="mt-0.5 size-4 shrink-0" /><div><p className="font-semibold">Website measurement needs one database migration</p><p className="mt-1 text-sm text-[var(--admin-muted)]">{web.reason} Once applied, page views and conversion events begin collecting automatically from this site.</p></div></AdminSurface>}
+    {web?.status === "ready" && <section><div className="mb-3 flex items-end justify-between gap-4"><div><p className="admin-eyebrow">Website activity</p><h2 className="mt-1 text-xl font-semibold text-balance">Traffic and conversion signals</h2></div><p className="text-xs text-[var(--admin-muted)]">Privacy-minimised, first-party capture</p></div><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><Metric label="Visitors" value={web.visitors ?? "—"} icon={Users} /><Metric label="Page views" value={web.pageViews ?? "—"} icon={Eye} /><Metric label="Conversion events" value={web.conversions ?? "—"} icon={Target} /><Metric label="Event conversion rate" value={rate(web.conversionRate)} icon={BarChart3} /></div></section>}
+    {funnel && <><section><div className="mb-3"><p className="admin-eyebrow">Revenue truth</p><h2 className="mt-1 text-xl font-semibold text-balance">Canonical opportunity funnel</h2><p className="mt-1 text-sm text-[var(--admin-muted)]">{data?.cohort}</p></div><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><Metric label="Opportunities" value={funnel.opportunities} icon={Users} /><Metric label="Pipeline value" value={money(funnel.pipelineValue)} icon={CircleDollarSign} /><Metric label="Won revenue" value={money(funnel.wonRevenue)} icon={BarChart3} /><Metric label="Inquiry-to-win" value={rate(data?.rates.inquiryToWin ?? null)} icon={Target} /></div></section><AdminSurface padding="none" className="overflow-hidden"><div className="p-5"><p className="admin-eyebrow">Funnel progression</p><h2 className="mt-1 text-lg font-semibold text-balance">What the selected cohort has reached</h2></div><div className="grid border-t border-[var(--admin-border)] sm:grid-cols-5">{[["Qualified", funnel.qualified, data?.rates.qualified], ["Meetings", funnel.meetings, data?.rates.meeting], ["Proposals", funnel.proposals, data?.rates.proposal], ["Won", funnel.won, data?.rates.win], ["Revenue", money(funnel.wonRevenue), null]].map(([label, value, conversion]) => <div key={String(label)} className="border-b border-[var(--admin-border)] p-5 sm:border-b-0 sm:border-r last:border-r-0"><p className="admin-eyebrow">{label}</p><p className="mt-2 text-2xl font-semibold tabular-nums">{value}</p>{conversion !== null && <p className="mt-1 text-xs tabular-nums text-[var(--admin-muted)]">{rate(conversion as number | null)} from prior stage</p>}</div>)}</div></AdminSurface><div className="grid gap-4 xl:grid-cols-2"><AdminSurface padding="none" className="overflow-hidden"><div className="flex items-start justify-between gap-3 p-5"><div><p className="admin-eyebrow">Revenue attribution</p><h2 className="mt-1 text-lg font-semibold text-balance">Source to revenue</h2></div>{data?.attribution.missing ? <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-700">{data.attribution.missing} unassigned</span> : null}</div><div className="divide-y border-t border-[var(--admin-border)]">{data?.sources.map((source) => <div key={source.source} className="grid grid-cols-[1fr_auto_auto] gap-4 px-5 py-3.5 text-sm"><span className="min-w-0 truncate font-semibold">{source.source}</span><span className="tabular-nums text-[var(--admin-muted)]">{source.opportunities} opps</span><span className="tabular-nums font-semibold">{money(source.revenue)}</span></div>)}{!data?.sources.length && <p className="p-5 text-sm text-[var(--admin-muted)]">No canonical opportunities in this window yet.</p>}</div></AdminSurface>{web?.status === "ready" && <RankedList title="Top conversion events" rows={web.conversionEvents} />}</div></>}
+    {web?.status === "ready" && <div className="grid gap-4 xl:grid-cols-2"><RankedList title="Top landing pages" rows={web.topPages} suffix=" views" /><RankedList title="Traffic sources" rows={web.sources} suffix=" events" /></div>}
+  </div>;
 }

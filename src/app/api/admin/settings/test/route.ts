@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { getSetting } from "@/lib/admin/settings";
 import { rateLimit } from "@/lib/rate-limit";
+import { openRouterChat } from "@/lib/ai/openrouter";
 
 const TEST_LIMIT = 10;
 const TEST_WINDOW_MS = 60 * 60 * 1000;
@@ -44,19 +45,12 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  if (key === "ANTHROPIC_API_KEY") {
+  if (key === "OPENROUTER_API_KEY") {
     try {
-      const apiKey = await getSetting("ANTHROPIC_API_KEY");
-      if (!apiKey) {
+      if (!process.env.OPENROUTER_API_KEY) {
         return NextResponse.json({ success: false, error: "API key not set" });
       }
-      const Anthropic = (await import("@anthropic-ai/sdk")).default;
-      const client = new Anthropic({ apiKey });
-      await client.messages.create({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 10,
-        messages: [{ role: "user", content: "Hi" }],
-      });
+      await openRouterChat({ maxTokens: 5, temperature: 0, messages: [{ role: "user", content: "Reply with OK." }] });
       return NextResponse.json({ success: true });
     } catch {
       return NextResponse.json({ success: false, error: "Invalid API key or connection failed" });

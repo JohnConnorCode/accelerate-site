@@ -23,12 +23,19 @@ export function sortOperatorQueue(items: OperatorQueueItem[]): OperatorQueueItem
   });
 }
 
+function taskPriorityReason(priority: string, dueDate: string | null, today: string): string {
+  if (dueDate && dueDate < today) return "Overdue commitment";
+  if (priority === "high") return "High-priority commitment";
+  if (dueDate) return `Due ${dueDate}`;
+  return "Open operator commitment";
+}
+
 export async function loadOperatorQueue(supabase: SupabaseClient): Promise<OperatorQueueItem[]> {
   const now = new Date().toISOString();
   const inSevenDays = new Date(Date.now() + 7 * 86400000).toISOString();
   const [actions, tasks, conversations, proposals] = await Promise.all([
     supabase.from("action_queue").select("id,title,description,urgency,entity_type,entity_id,created_at").eq("status", "pending").limit(50),
-    supabase.from("tasks").select("id,title,description,priority,due_date,related_type,related_id").in("status", ["pending", "snoozed"]).lte("due_date", inSevenDays.slice(0, 10)).limit(50),
+    supabase.from("tasks").select("id,title,description,priority,due_date,snoozed_until,related_type,related_id").in("status", ["pending", "snoozed"]).lte("due_date", inSevenDays.slice(0, 10)).limit(50),
     supabase.from("conversations").select("id,subject,unread_count,last_message_at,intent").gt("unread_count", 0).order("last_message_at", { ascending: false }).limit(30),
     supabase.from("proposals").select("id,title,status,expires_at,updated_at").in("status", ["sent", "viewed"]).limit(30),
   ]);
@@ -43,21 +50,26 @@ export async function loadOperatorQueue(supabase: SupabaseClient): Promise<Opera
     summary: action.description || "Review the proposed action before it runs.",
     urgency: action.urgency,
     dueAt: action.created_at,
+    priorityReason: "Approval required before execution",
     href: "/admin/today?focus=approvals",
     entityType: action.entity_type || undefined,
     entityId: action.entity_id || undefined,
   });
-  for (const task of tasks.data ?? []) items.push({
+  for (const task of tasks.data ?? []) {
+    if (task.snoozed_until && task.snoozed_until > now.slice(0, 10)) continue;
+    items.push({
     id: `task:${task.id}`,
     kind: task.related_type === "lead" ? "follow_up" : "task",
     title: task.title,
     summary: task.description || "An operator task is due.",
     urgency: task.priority === "high" ? "high" : task.due_date && task.due_date < now.slice(0, 10) ? "critical" : "normal",
     dueAt: task.due_date,
+    priorityReason: taskPriorityReason(task.priority, task.due_date, now.slice(0, 10)),
     href: task.related_id ? `/admin/pipeline?opportunity=${task.related_id}` : "/admin/today",
     entityType: task.related_type || undefined,
     entityId: task.related_id || undefined,
-  });
+    });
+  }
   for (const conversation of conversations.data ?? []) items.push({
     id: `conversation:${conversation.id}`,
     kind: "reply",
@@ -65,6 +77,7 @@ export async function loadOperatorQueue(supabase: SupabaseClient): Promise<Opera
     summary: `${conversation.unread_count} unread message${conversation.unread_count === 1 ? "" : "s"}${conversation.intent ? ` · ${conversation.intent}` : ""}`,
     urgency: conversation.intent === "buying" || conversation.intent === "complaint" ? "high" : "normal",
     dueAt: conversation.last_message_at,
+    priorityReason: conversation.intent === "buying" ? "Buying signal needs a reply" : conversation.intent === "complaint" ? "Complaint needs a reply" : "Unread customer reply",
     href: `/admin/conversations?thread=${conversation.id}`,
     entityType: "conversation",
     entityId: conversation.id,
@@ -76,6 +89,7 @@ export async function loadOperatorQueue(supabase: SupabaseClient): Promise<Opera
     summary: proposal.status === "viewed" ? "Viewed and awaiting a response." : "Sent and awaiting a response.",
     urgency: proposal.expires_at && proposal.expires_at < inSevenDays ? "high" : "normal",
     dueAt: proposal.expires_at || proposal.updated_at,
+    priorityReason: proposal.expires_at && proposal.expires_at < inSevenDays ? "Proposal expires within seven days" : proposal.status === "viewed" ? "Client viewed; follow up deliberately" : "Proposal is awaiting a response",
     href: "/admin/proposals",
     entityType: "proposal",
     entityId: proposal.id,

@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       const summary = await executeDueCampaignMembers(supabase);
       return { value: summary, summary, status: summary.failed ? "partial" as const : "success" as const };
     });
-    return NextResponse.json(result);
+    return NextResponse.json(result.claimed ? result.value : { skipped: true, reason: `A ${result.existingStatus || "previous"} run already owns this job`, runId: result.runId });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Campaign job failed" }, { status: 500 });
   }

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { isOpenRouterConfigured, openRouterTextStream } from "@/lib/ai/openrouter";
 import { rateLimit } from "@/lib/rate-limit";
 import { createServiceRoleClient } from "@/lib/supabase/server";
+import { ingestInboundLead } from "@/lib/revenue-os/inbound";
 import { isValidEmail } from "@/lib/validation";
 import { SYSTEM_PROMPT } from "@/lib/chat/system-prompt";
 import { preflightCheck } from "@/lib/chat/guardrails";
@@ -9,7 +10,6 @@ import { DEMO_MODE_REPLY, ERROR_REPLY } from "@/lib/chat/fallbacks";
 import { handleChatLeadCapture } from "@/lib/chat/lead-capture";
 import type { ChatMessage } from "@/lib/types";
 
-const CHAT_MODEL = process.env.CHAT_MODEL || "claude-haiku-4-5-20251001";
 const MAX_TOKENS = 500;
 const TEMPERATURE = 0.6;
 const MAX_CONVERSATION_MESSAGES = 20;
@@ -72,44 +72,18 @@ export async function POST(request: NextRequest) {
       if (redirect) return plainText(redirect);
     }
 
-    if (!process.env.ANTHROPIC_API_KEY) {
+    if (!isOpenRouterConfigured()) {
       return plainText(DEMO_MODE_REPLY);
     }
 
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-    const stream = anthropic.messages.stream({
-      model: CHAT_MODEL,
-      max_tokens: MAX_TOKENS,
+    const readableStream = await openRouterTextStream({
+      model: process.env.OPENROUTER_CHAT_MODEL,
+      maxTokens: MAX_TOKENS,
       temperature: TEMPERATURE,
-      system: [
-        {
-          type: "text",
-          text: SYSTEM_PROMPT,
-          cache_control: { type: "ephemeral" },
-        },
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        ...messages.slice(-MAX_CONVERSATION_MESSAGES),
       ],
-      messages: messages.slice(-MAX_CONVERSATION_MESSAGES),
-    });
-
-    const encoder = new TextEncoder();
-    const readableStream = new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const event of stream) {
-            if (
-              event.type === "content_block_delta" &&
-              event.delta.type === "text_delta"
-            ) {
-              controller.enqueue(encoder.encode(event.delta.text));
-            }
-          }
-        } catch (err) {
-          console.error("[chat] stream error:", err);
-        } finally {
-          controller.close();
-        }
-      },
     });
 
     return new Response(readableStream, {
@@ -180,6 +154,8 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Failed to save lead" }, { status: 500 });
     }
 
+    const canonical = await ingestInboundLead(supabase, { name: name.trim(), email: email.trim(), source: "chat", sourceRecordId: inserted.id, summary: (conversation as ChatMessage[]).find((message) => message.role === "user")?.content || "Website chat inquiry", utm });
+
     // Fire side effects. We don't await success of every one — the lead is
     // already saved, and each side effect logs its own outcome.
     const sideEffects = await handleChatLeadCapture(supabase, {
@@ -188,6 +164,7 @@ export async function PUT(request: NextRequest) {
       email: email.trim(),
       conversation: conversation as ChatMessage[],
       utm,
+      opportunityId: canonical.opportunity.id,
     });
 
     return NextResponse.json({ success: true, id: inserted.id, sideEffects });
