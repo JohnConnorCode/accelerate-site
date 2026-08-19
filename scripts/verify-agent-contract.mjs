@@ -47,6 +47,26 @@ for (const card of featureBacklog) {
   }
 }
 
+// Dependencies are declared as card titles and flattened into the notes block by
+// card(). Nothing previously checked that those strings resolve, so renaming a
+// title silently broke the dependency graph. Parse them back and require a match.
+const NO_DEPENDENCY_SENTINEL = "None —";
+const cardTitles = new Set(featureBacklog.map((card) => card.title));
+
+for (const card of featureBacklog) {
+  const line = card.notes
+    .split("\n\n")
+    .find((section) => section.startsWith("Dependencies: "));
+  if (!line) continue;
+  const declared = line.slice("Dependencies: ".length).trim();
+  if (declared.startsWith(NO_DEPENDENCY_SENTINEL)) continue;
+  for (const dependency of declared.split(";").map((item) => item.trim()).filter(Boolean)) {
+    if (!cardTitles.has(dependency)) {
+      failures.push(`[${card.seed_key}] depends on "${dependency}", which matches no card title`);
+    }
+  }
+}
+
 if (existsSync("CLAUDE.md")) {
   const claude = readFileSync("CLAUDE.md", "utf8");
   if (/Any authenticated Supabase user can access/i.test(claude)) {

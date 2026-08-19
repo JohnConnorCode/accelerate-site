@@ -25,6 +25,7 @@
     "test:contact-import-production": "node --env-file=.env.local scripts/qa-contact-import-production.mjs",
     "test:contact-import-service": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-contact-imports.ts",
     "test:identity-resolution": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-identity-resolution.ts",
+    "test:pipeline-transition": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-pipeline-transition.ts",
     "test:schema-verification": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-schema-verification.ts",
     "test:secret-storage": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-secret-storage.ts",
     "test:founder-access": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-founder-access.ts",
