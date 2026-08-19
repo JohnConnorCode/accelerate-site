@@ -32,6 +32,7 @@ import {
   GripVertical,
   KanbanSquare,
   Loader2,
+  Lock,
   Pencil,
   Plus,
   RefreshCw,
@@ -136,6 +137,7 @@ function FeatureCard({ feature, disabled, onOpen, overlay = false }: { feature: 
         <span className={cn("inline-flex min-h-6 items-center gap-1.5 rounded-full px-2 text-[10px] font-semibold", priorityMeta[feature.priority].tone)}>
           <span className={cn("size-1.5 rounded-full", priorityMeta[feature.priority].dot)} />{priorityMeta[feature.priority].label}
         </span>
+        {feature.seed_key && <span title="Managed by scripts/feature-backlog-data.mjs" className="inline-flex min-h-6 items-center gap-1 rounded-full bg-black/[0.045] px-2 text-[10px] font-medium text-[var(--admin-muted)] dark:bg-white/[0.06]"><Lock className="size-2.5" />Managed</span>}
         {feature.labels.slice(0, 3).map((label) => <span key={label} className="inline-flex min-h-6 items-center rounded-full bg-black/[0.045] px-2 text-[10px] font-medium text-[var(--admin-muted)] dark:bg-white/[0.06]">{label}</span>)}
         {feature.labels.length > 3 && <span className="font-mono text-[10px] tabular-nums text-[var(--admin-muted)]">+{feature.labels.length - 3}</span>}
       </div>
@@ -182,6 +184,17 @@ function FeatureDialog({ feature, defaultStatus, saving, onClose, onSave, onArch
         <div><p className="admin-eyebrow">Feature board</p><h2 id="feature-dialog-title" className="mt-1 text-balance text-xl font-semibold tracking-[-0.03em] text-[var(--admin-ink)]">{feature ? "Feature details" : "Add feature"}</h2></div>
         <button type="button" onClick={onClose} aria-label="Close feature details" className="grid size-10 place-items-center rounded-xl text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:scale-[0.96] dark:hover:bg-white/[0.05]"><X className="size-4" /></button>
       </div>
+      {feature?.seed_key && <div className="mx-5 mt-5 flex items-start gap-2.5 rounded-xl border border-amber-500/25 bg-amber-500/[0.07] px-3.5 py-3 sm:mx-6">
+        <TriangleAlert className="mt-px size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+        <p className="admin-copy text-[11px] leading-5">
+          <span className="font-semibold text-[var(--admin-ink)]">Managed card ({feature.seed_key}).</span>{" "}
+          Edits saved here are overwritten the next time the backlog is reconciled. Change it in <span className="font-mono">scripts/feature-backlog-data.mjs</span>, then run <span className="font-mono">npm run seed:features -- --apply</span>. Status and Owner are the exception only while a card is actively claimed.
+        </p>
+      </div>}
+      {!feature && <div className="mx-5 mt-5 flex items-start gap-2.5 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 py-3 sm:mx-6">
+        <TriangleAlert className="mt-px size-4 shrink-0 text-[var(--admin-muted)]" />
+        <p className="admin-copy text-[11px] leading-5">Cards added here are not in the managed manifest and are archived the next time the backlog is reconciled. For work that should persist, add it to <span className="font-mono">scripts/feature-backlog-data.mjs</span> with a stable key.</p>
+      </div>}
       <div className="grid gap-5 px-5 py-5 sm:grid-cols-2 sm:px-6 sm:py-6">
         <label className="text-xs font-semibold text-[var(--admin-ink)] sm:col-span-2">Title<input autoFocus required maxLength={180} value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} className={inputClass} placeholder="What should we build?" /></label>
         <label className="text-xs font-semibold text-[var(--admin-ink)] sm:col-span-2">Description<textarea rows={3} value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} className={cn(inputClass, "min-h-24 py-3 leading-6")} placeholder="Why it matters and what should change" /></label>
