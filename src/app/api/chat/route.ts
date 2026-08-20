@@ -10,6 +10,7 @@ import { SYSTEM_PROMPT } from "@/lib/chat/system-prompt";
 import { preflightCheck } from "@/lib/chat/guardrails";
 import { DEMO_MODE_REPLY, ERROR_REPLY } from "@/lib/chat/fallbacks";
 import { handleChatLeadCapture } from "@/lib/chat/lead-capture";
+import { enforceHouseStyle } from "@/lib/chat/sanitize";
 import type { ChatMessage } from "@/lib/types";
 
 // Hobby functions default to a 10s ceiling, and a streamed reply routinely runs
@@ -116,7 +117,11 @@ export async function POST(request: NextRequest) {
       throw error;
     }
 
-    return new Response(traceTextStream(readableStream, supabase, run), {
+    // House style is enforced on the way out, because a prompt rule is not a
+    // guarantee and an em dash reaching a prospect is the clearest possible tell
+    // that nobody wrote this. Tracing wraps the sanitised stream so the ledger
+    // records what was actually sent, not what the model first produced.
+    return new Response(traceTextStream(enforceHouseStyle(readableStream), supabase, run), {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
         "Transfer-Encoding": "chunked",
