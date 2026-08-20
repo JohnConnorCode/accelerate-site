@@ -2,8 +2,8 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { safeErrorMessage } from "./db";
 
-export interface JobRunClaim { runId: string; claimed: boolean; existingStatus: string }
-export interface JobRunOutcome<T> { value: T | null; claimed: boolean; runId: string; existingStatus?: string }
+export interface JobRunClaim { runId: string; claimed: boolean; existingStatus: string; recoveredStale: boolean }
+export interface JobRunOutcome<T> { value: T | null; claimed: boolean; runId: string; existingStatus?: string; recoveredStale?: boolean }
 
 export async function startJobRun(supabase: SupabaseClient, jobKey: string, idempotencyKey?: string): Promise<JobRunClaim> {
   const { data, error } = await supabase.rpc("claim_revenue_job_run", {
@@ -11,8 +11,16 @@ export async function startJobRun(supabase: SupabaseClient, jobKey: string, idem
     p_claim_key: idempotencyKey ?? null,
   }).single();
   if (error) throw new Error(error.message);
-  const claim = data as { run_id: string; claimed: boolean; existing_status: string };
-  return { runId: claim.run_id, claimed: Boolean(claim.claimed), existingStatus: claim.existing_status };
+  const claim = data as { run_id: string; claimed: boolean; existing_status: string; recovered_stale?: boolean };
+  // recovered_stale means this claim took over a run that died without ever
+  // reporting a terminal state. It is surfaced rather than absorbed, because a
+  // job that keeps needing recovery is a failing job, not a healthy one.
+  return {
+    runId: claim.run_id,
+    claimed: Boolean(claim.claimed),
+    existingStatus: claim.existing_status,
+    recoveredStale: Boolean(claim.recovered_stale),
+  };
 }
 
 export async function finishJobRun(supabase: SupabaseClient, id: string, summary: Record<string, unknown>, status: "success" | "partial" | "skipped" = "success") {
@@ -26,11 +34,13 @@ export async function failJobRun(supabase: SupabaseClient, id: string, error: un
 
 export async function withJobRun<T>(supabase: SupabaseClient, jobKey: string, work: () => Promise<{ value: T; summary: Record<string, unknown>; status?: "success" | "partial" | "skipped" }>, idempotencyKey?: string): Promise<JobRunOutcome<T>> {
   const claim = await startJobRun(supabase, jobKey, idempotencyKey);
-  if (!claim.claimed) return { value: null, claimed: false, runId: claim.runId, existingStatus: claim.existingStatus };
+  if (!claim.claimed) {
+    return { value: null, claimed: false, runId: claim.runId, existingStatus: claim.existingStatus, recoveredStale: false };
+  }
   try {
     const result = await work();
     await finishJobRun(supabase, claim.runId, result.summary, result.status);
-    return { value: result.value, claimed: true, runId: claim.runId };
+    return { value: result.value, claimed: true, runId: claim.runId, recoveredStale: claim.recoveredStale };
   } catch (error) {
     await failJobRun(supabase, claim.runId, error);
     throw error;

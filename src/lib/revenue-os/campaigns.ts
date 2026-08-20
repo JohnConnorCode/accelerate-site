@@ -46,6 +46,27 @@ export function globalDailySendCap(): number {
 /** How many times a failed send is retried before the member is stopped. */
 export const MAX_SEND_ATTEMPTS = 3;
 
+/**
+ * A member is flipped to `sending` by the claim, and every path out of that
+ * state runs inside the same process. If that process dies the member stays
+ * `sending` forever: the executor only selects queued and active members, so
+ * nothing ever looks at it again. Releasing stale claims at the top of a run
+ * is the recovery, bounded by age so a send genuinely in flight is never
+ * duplicated.
+ */
+const SEND_CLAIM_STALE_MINUTES = 30;
+
+async function releaseStaleSendClaims(supabase: SupabaseClient, now: Date): Promise<number> {
+  const staleBefore = new Date(now.getTime() - SEND_CLAIM_STALE_MINUTES * 60_000).toISOString();
+  const { data, error } = await supabase.from("campaign_members")
+    .update({ status: "active", next_send_at: now.toISOString(), updated_at: now.toISOString() })
+    .eq("status", "sending")
+    .lt("send_claimed_at", staleBefore)
+    .select("id");
+  if (error) throw new Error(`releasing stale send claims: ${error.message}`);
+  return data?.length ?? 0;
+}
+
 export function renderCampaignTemplate(template: string, values: Record<string, string | null | undefined>) {
   return template.replace(/{{\s*([a-zA-Z0-9_]+)\s*}}/g, (_, key: string) => values[key]?.trim() || "");
 }
@@ -97,6 +118,7 @@ export async function executeDueCampaignMembers(supabase: SupabaseClient, now = 
   let failed = 0;
   let stopped = 0;
   let unclaimed = 0;
+  const recoveredSends = await releaseStaleSendClaims(supabase, now);
 
   // One account-wide budget, shared across every active campaign.
   const { count: sentTodayAllCampaigns } = await supabase.from("messages")
@@ -195,5 +217,5 @@ export async function executeDueCampaignMembers(supabase: SupabaseClient, now = 
       }
     }
   }
-  return { sent, failed, stopped, unclaimed, campaigns: campaigns?.length ?? 0 };
+  return { sent, failed, stopped, unclaimed, recoveredSends, campaigns: campaigns?.length ?? 0 };
 }
