@@ -81,7 +81,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unsupported payload" }, { status: 400 });
   }
 
-  const receiptId = `${body.event}:${body.payload.uri}:${body.created_at || "unknown"}`;
+  // The invitee URI is unique per booking and a cancel-then-rebook produces a
+  // new one, so event + URI is the true idempotency key. `created_at` used to be
+  // part of it, which only weakened it: any redelivery carrying a different
+  // timestamp keyed to a fresh receipt and processed the same booking twice,
+  // notifying the founder twice for one meeting. Receipts written under the old
+  // three-part key will not match this one, so a booking already processed
+  // before this change could notify once more; there were no real bookings at
+  // the time it shipped.
+  const receiptId = `${body.event}:${body.payload.uri}`;
   const supabase = createServiceRoleClient();
   const { data: existingReceipt } = await supabase
     .from("calendly_webhook_receipts")
@@ -98,16 +106,30 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   if (!opportunity) {
-    await Promise.all([
-      supabase.from("admin_notifications").insert({
-        type: "new_contact",
-        title: "Calendly booking without a qualifier",
-        description: `${body.payload.name || email} · ${email}`,
-        link: "/admin/bookings",
-        priority: "important",
-      }),
-      supabase.from("calendly_webhook_receipts").insert({ id: receiptId, event_type: body.event }),
-    ]);
+    // A booking nobody can trace to an inquiry is the case where the
+    // notification IS the entire record of it, so a failed insert cannot be
+    // discarded inside a Promise.all the way it used to be. The receipt is
+    // written first and separately: if the notification then fails, the founder
+    // gets a 500 and Calendly retries, which is the outcome that recovers a
+    // booking rather than losing one.
+    const { error: receiptError } = await supabase
+      .from("calendly_webhook_receipts")
+      .insert({ id: receiptId, event_type: body.event });
+    if (receiptError) {
+      console.error("[calendly] receipt insert failed for unmatched booking:", receiptError.message);
+    }
+
+    const { error: notificationError } = await supabase.from("admin_notifications").insert({
+      type: "new_contact",
+      title: "Calendly booking without a qualifier",
+      description: `${body.payload.name || email} · ${email}`,
+      link: "/admin/bookings",
+      priority: "important",
+    });
+    if (notificationError) {
+      console.error("[calendly] booking notification failed:", notificationError.message);
+      return NextResponse.json({ error: "Booking recorded but the operator could not be notified" }, { status: 500 });
+    }
     return NextResponse.json({ success: true, unmatched: true });
   }
 
