@@ -20,11 +20,10 @@ than the contents.
 
 ### 1. It is nearly blind
 
-It sees only what arrives through its own forms. Gmail and Calendar sync exist
-in code but Google has never been connected, so both cards sit `blocked`. There
-are no call transcripts, no documents, no meeting notes, none of what you
-actually know. A brain whose only sensory input is a contact form cannot be a
-second one.
+It sees only what arrives through its own forms. Gmail and Calendar sync exist in
+code and are not yet switched on. There are no call transcripts, no documents, no
+meeting notes, none of what the founder actually knows. A brain whose only sensory
+input is a contact form cannot be a second one.
 
 ### 2. It has no memory, only records
 
@@ -86,11 +85,10 @@ calendar events become canonical activity against existing contacts, using the
 resolver that already exists. Add a plain capture surface for your own notes, so
 what you know can enter the system at all.
 
-**Done when:** a meeting you took shows up against the right opportunity without
-you typing anything, and a note you write is retrievable later.
+**Done when:** a meeting shows up against the right opportunity with nothing typed,
+and a note written today is retrievable later.
 
-**Cost to you:** one OAuth consent. This is the cheapest phase and it unblocks
-everything after it.
+This is the cheapest phase and everything after it depends on it.
 
 ### Phase B: Remember
 
