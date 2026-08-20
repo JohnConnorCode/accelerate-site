@@ -4,6 +4,7 @@ import { createServiceRoleClient } from "@/lib/supabase/server";
 import { cancelScheduledSequences } from "@/lib/email/sequences";
 import { scheduleAuditPrepEmail } from "@/lib/email/booking";
 import { rateLimit } from "@/lib/rate-limit";
+import { recordAudit } from "@/lib/revenue-os/audit";
 import { transitionOpportunity } from "@/lib/revenue-os/pipeline";
 
 interface CalendlyWebhookPayload {
@@ -101,7 +102,7 @@ export async function POST(request: NextRequest) {
       supabase.from("admin_notifications").insert({
         type: "new_contact",
         title: "Calendly booking without a qualifier",
-        message: `${body.payload.name || email} · ${email}`,
+        description: `${body.payload.name || email} · ${email}`,
         link: "/admin/bookings",
         priority: "important",
       }),
@@ -140,11 +141,15 @@ export async function POST(request: NextRequest) {
     }).eq("id", opportunity.id);
     if (error) return NextResponse.json({ error: "Booking could not be stored" }, { status: 500 });
 
-    await Promise.all([
+    // A booking that lands without telling anyone is the worst failure this
+    // endpoint has, so the notification result is inspected rather than
+    // discarded inside Promise.all. A silent insert failure here is how a real
+    // meeting goes unnoticed.
+    const [notification] = await Promise.all([
       supabase.from("admin_notifications").insert({
         type: "new_lead",
         title: "Roofing revenue audit booked",
-        message: `${body.payload.name || email}${scheduledAt ? ` · ${new Date(scheduledAt).toLocaleString("en-US", { timeZone: "America/Chicago" })}` : ""}`,
+        description: `${body.payload.name || email}${scheduledAt ? ` · ${new Date(scheduledAt).toLocaleString("en-US", { timeZone: "America/Chicago" })}` : ""}`,
         link: "/admin/bookings",
         priority: "urgent",
       }),
@@ -162,6 +167,14 @@ export async function POST(request: NextRequest) {
         ? scheduleAuditPrepEmail({ email, scheduledAt, eventKey: body.payload.uri })
         : Promise.resolve(),
     ]);
+    if (notification.error) {
+      console.error("[calendly] booking notification FAILED (booking stored):", notification.error.message);
+      await recordAudit(supabase, {
+        actorEmail: "calendly", action: "notification.failed", entityType: "opportunity",
+        entityId: opportunity.id, source: "webhook",
+        metadata: { surface: "calendly_booking", error: notification.error.message },
+      });
+    }
   } else {
     // A reschedule produces a canceled event plus a new created event. Only
     // clear the current booking if this cancellation still points at it.

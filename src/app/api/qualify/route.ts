@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     const { error: notificationError } = await supabase.from("admin_notifications").insert({
       type: "new_lead",
       title: qualification.qualified ? "Qualified roofing audit request" : "Roofing nurture signup",
-      message: `${email} · ${companyWebsite}`,
+      description: `${email} · ${companyWebsite}`,
       link: "/admin/bookings",
       priority: qualification.qualified ? "urgent" : "info",
     });
