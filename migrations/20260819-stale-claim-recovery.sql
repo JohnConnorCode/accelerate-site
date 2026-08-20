@@ -22,7 +22,11 @@
 
 ALTER TABLE public.job_runs ADD COLUMN IF NOT EXISTS recovered_from UUID;
 
+-- Drop both signatures: the original two-argument form, and the three-argument
+-- form this migration creates, so a rerun replaces rather than colliding with
+-- its own previous result.
 DROP FUNCTION IF EXISTS public.claim_revenue_job_run(TEXT, TEXT);
+DROP FUNCTION IF EXISTS public.claim_revenue_job_run(TEXT, TEXT, INTERVAL);
 
 CREATE FUNCTION public.claim_revenue_job_run(
   p_job_key TEXT,
