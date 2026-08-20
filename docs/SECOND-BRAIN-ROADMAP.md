@@ -186,13 +186,23 @@ is where it becomes load-bearing.
 
 ---
 
+## Where this lives on the board
+
+Every phase is a card, and each one's dependencies are the concrete cards that
+deliver it, so `verify:agent-contract` fails if the roadmap and the board drift
+apart again. Phase A and B implementation work is now on the circuit rather than
+shelved: Google OAuth and first sync, Gmail incremental import, threading and
+idempotency, thread association, Calendar association, Drive folder boundaries,
+Drive indexing, Drive provenance retrieval, bounded AI context, founder note
+capture, and the scheduling substrate decision.
+
 ## Sequencing against everything else
 
-This roadmap does not replace the backlog. It orders it. Most Phase A and B work
-already has cards, currently shelved behind the `horizon` label: Drive indexing,
-Gmail Pub/Sub, meeting intelligence, company research. They were shelved because
-the system could not be trusted to send an email. That is no longer the reason,
-so they move back onto the circuit in the order above rather than by topic.
+This roadmap does not replace the backlog. It orders it. Most Phase A and B work already had cards, shelved behind the `horizon` label.
+They were shelved because the system could not be trusted to send an email. That
+is no longer the reason, so they are back on the circuit in the order above
+rather than by topic. Later-phase work stays shelved until its phase is reached:
+Gmail Pub/Sub, meeting intelligence, company research, proposal audits.
 
 Two things stay explicitly out of scope: multi-tenancy, which is not needed until
 there is a second installation, and self-improving prompts, which the contract
