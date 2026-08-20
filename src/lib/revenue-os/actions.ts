@@ -5,6 +5,40 @@ import { recordAudit } from "./audit";
 export const ACTION_URGENCY_ORDER = ["critical", "high", "normal", "low"] as const;
 export type ActionUrgency = (typeof ACTION_URGENCY_ORDER)[number];
 
+/**
+ * Retire proposals that are past their expiry.
+ *
+ * `expired` was a valid status from the start and nothing ever wrote it, so a
+ * proposal past `expires_at` sat `pending` forever. That is not cosmetic: the
+ * dedupe unique index is scoped to `status = 'pending'`, so a dead proposal
+ * held its dedupe key permanently. The next time the agent proposed the same
+ * follow-up it hit a 23505, fell back to returning the existing pending row,
+ * and reported success — handing back a proposal the approval path refuses as
+ * expired and the operator queue hides. The action could then never be staged
+ * again for that key. Silent, permanent, and exactly the class of failure that
+ * loses a lead.
+ *
+ * Vercel Hobby has two cron slots and both are spoken for, so this runs inline
+ * on the paths that care, in the same spirit as the stale job-claim recovery.
+ * Best-effort: expiring old rows must never be the reason a new proposal fails.
+ */
+export async function sweepExpiredActions(supabase: SupabaseClient): Promise<number> {
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("action_queue")
+    .update({ status: "expired", updated_at: now })
+    .eq("status", "pending")
+    .not("expires_at", "is", null)
+    .lt("expires_at", now)
+    .select("id");
+
+  if (error) {
+    console.error("[actions] expiry sweep failed:", error.message);
+    return 0;
+  }
+  return data?.length ?? 0;
+}
+
 export async function proposeAction(supabase: SupabaseClient, input: {
   actionType: string;
   title: string;
@@ -19,7 +53,7 @@ export async function proposeAction(supabase: SupabaseClient, input: {
   proposedBy?: string;
   expiresAt?: string;
 }) {
-  const { data, error } = await supabase.from("action_queue").insert({
+  const row = {
     action_type: input.actionType,
     title: input.title,
     description: input.description ?? null,
@@ -32,9 +66,17 @@ export async function proposeAction(supabase: SupabaseClient, input: {
     dedupe_key: input.dedupeKey ?? null,
     proposed_by: input.proposedBy ?? null,
     expires_at: input.expiresAt ?? null,
-  }).select("*").single();
+  };
+  const { data, error } = await supabase.from("action_queue").insert(row).select("*").single();
   if (error) {
     if (error.code === "23505" && input.dedupeKey) {
+      // The colliding row may be an expired proposal squatting on the key. Retire
+      // it and retry once, so a stale proposal cannot permanently block a live
+      // one. Only then treat a surviving row as a genuine duplicate.
+      if (await sweepExpiredActions(supabase)) {
+        const retried = await supabase.from("action_queue").insert(row).select("*").single();
+        if (!retried.error && retried.data) return retried.data;
+      }
       const { data: existing } = await supabase.from("action_queue").select("*").eq("dedupe_key", input.dedupeKey).eq("status", "pending").maybeSingle();
       if (existing) return existing;
     }

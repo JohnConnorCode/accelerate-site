@@ -2,13 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { approveAndExecuteAction } from "@/lib/revenue-os/action-executor";
-import { rejectAction } from "@/lib/revenue-os/actions";
+import { rejectAction, sweepExpiredActions } from "@/lib/revenue-os/actions";
 import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
 
 export async function GET() {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
-  const { data, error } = await createServiceRoleClient().from("action_queue").select("*").order("created_at", { ascending: false }).limit(100);
+  const supabase = createServiceRoleClient();
+  // Retire anything past its expiry before listing. Nothing else wrote the
+  // `expired` status, so dead proposals stayed `pending` and kept their dedupe
+  // key, permanently blocking the same action from ever being staged again.
+  await sweepExpiredActions(supabase);
+  const { data, error } = await supabase.from("action_queue").select("*").order("created_at", { ascending: false }).limit(100);
   if (error) {
     if (isMissingRevenueSchema(error)) return NextResponse.json({ schemaReady: false, actions: [] });
     return NextResponse.json({ error: "Could not load actions" }, { status: 500 });

@@ -34,7 +34,7 @@ export async function loadOperatorQueue(supabase: SupabaseClient): Promise<Opera
   const now = new Date().toISOString();
   const inSevenDays = new Date(Date.now() + 7 * 86400000).toISOString();
   const [actions, tasks, conversations, proposals] = await Promise.all([
-    supabase.from("action_queue").select("id,title,description,urgency,entity_type,entity_id,created_at").eq("status", "pending").limit(50),
+    supabase.from("action_queue").select("id,title,description,urgency,entity_type,entity_id,created_at").eq("status", "pending").or(`expires_at.is.null,expires_at.gt.${now}`).limit(50),
     supabase.from("tasks").select("id,title,description,priority,due_date,snoozed_until,related_type,related_id").in("status", ["pending", "snoozed"]).lte("due_date", inSevenDays.slice(0, 10)).limit(50),
     supabase.from("conversations").select("id,subject,unread_count,last_message_at,intent").gt("unread_count", 0).order("last_message_at", { ascending: false }).limit(30),
     supabase.from("proposals").select("id,title,status,expires_at,updated_at").in("status", ["sent", "viewed"]).limit(30),

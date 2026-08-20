@@ -3,6 +3,11 @@ import { createServiceRoleClient } from "@/lib/supabase/server";
 import { executeDueCampaignMembers } from "@/lib/revenue-os/campaigns";
 import { withJobRun } from "@/lib/revenue-os/runs";
 
+// A campaign run sends real email one recipient at a time. At the 10s Hobby
+// default it is killed partway through, which the job ledger then has to
+// recover as a stale claim. 60s is the Hobby maximum.
+export const maxDuration = 60;
+
 export async function GET(request: NextRequest) {
   const auth = request.headers.get("authorization");
   const expected = process.env.CRON_SECRET;

@@ -4,6 +4,7 @@ import { tenant } from "@/config/tenant";
 import { getOpenRouterModel, openRouterChat, type OpenRouterMessage } from "@/lib/ai/openrouter";
 import { loadAgentLearningSignals } from "./agent-learning";
 import { AI_TOOL_REGISTRY_VERSION, executeRegisteredRevenueTool, toOpenRouterTools } from "./ai-tools";
+import { finishAgentRun, recordAgentRunEvent, startAgentRun } from "./agent-trace";
 
 /** Tool steps allowed before the run reports what it has and stops. */
 const MAX_TOOL_TURNS = 5;
@@ -35,8 +36,7 @@ export async function runRevenueCommandAgent(supabase: SupabaseClient, actorEmai
   const lastMessage = safeMessages.at(-1);
   if (!lastMessage || lastMessage.role !== "user") throw new Error("A user command is required");
   const model = getOpenRouterModel(process.env.OPENROUTER_AGENT_MODEL);
-  const { data: run, error: runError } = await supabase.from("agent_runs").insert({ surface: "admin_command", actor_email: actorEmail, model, prompt_preview: lastMessage.content.slice(0, 500) }).select("id").single();
-  if (runError) throw new Error(runError.message);
+  const run = await startAgentRun(supabase, { surface: "admin_command", actorEmail, model, promptPreview: lastMessage.content });
 
   const transcript: OpenRouterMessage[] = safeMessages.map((message) => ({ role: message.role, content: message.content }));
   const toolNames: string[] = [];
@@ -55,11 +55,11 @@ export async function runRevenueCommandAgent(supabase: SupabaseClient, actorEmai
       const assistant = response.choices[0]?.message;
       if (!assistant) throw new Error("OpenRouter returned no assistant response");
       transcript.push(assistant);
-      await supabase.from("agent_run_events").insert({ run_id: run.id, event_type: "model_response", output: { provider: "openrouter", request_id: response.id, model: response.model, usage: response.usage ?? {}, turn } });
+      await recordAgentRunEvent(supabase, run, { eventType: "model_response", output: { provider: "openrouter", request_id: response.id, model: response.model, usage: response.usage ?? {}, turn } });
       const uses = assistant.tool_calls ?? [];
       if (!uses.length) {
         const text = assistant.content?.trim() || "";
-        await supabase.from("agent_runs").update({ status: "completed", tool_names: [...new Set(toolNames)], input_tokens: inputTokens, output_tokens: outputTokens, result_preview: text.slice(0, 1000), finished_at: new Date().toISOString() }).eq("id", run.id);
+        await finishAgentRun(supabase, run, "completed", { toolNames, inputTokens, outputTokens, resultPreview: text });
         return { text, runId: run.id, proposedActions: toolNames.filter((name) => name.startsWith("propose_")) };
       }
       for (const use of uses) {
@@ -70,11 +70,11 @@ export async function runRevenueCommandAgent(supabase: SupabaseClient, actorEmai
         catch { toolInput = {}; }
         try {
           const { output, tool } = await executeRegisteredRevenueTool({ supabase, actorEmail }, name, toolInput);
-          await supabase.from("agent_run_events").insert({ run_id: run.id, event_type: "tool_result", tool_name: name, input: toolInput, output: { result: output, impact: tool.impact, confirmation_required: tool.confirmationRequired, registry_version: AI_TOOL_REGISTRY_VERSION } });
+          await recordAgentRunEvent(supabase, run, { eventType: "tool_result", toolName: name, input: toolInput, output: { result: output, impact: tool.impact, confirmation_required: tool.confirmationRequired, registry_version: AI_TOOL_REGISTRY_VERSION } });
           transcript.push({ role: "tool", tool_call_id: use.id, content: boundedToolContent(output) });
         } catch (error) {
           const message = error instanceof Error ? error.message : "Tool failed";
-          await supabase.from("agent_run_events").insert({ run_id: run.id, event_type: "tool_error", tool_name: name, input: toolInput, output: { error: message, registry_version: AI_TOOL_REGISTRY_VERSION } });
+          await recordAgentRunEvent(supabase, run, { eventType: "tool_error", toolName: name, input: toolInput, output: { error: message, registry_version: AI_TOOL_REGISTRY_VERSION } });
           transcript.push({ role: "tool", tool_call_id: use.id, content: JSON.stringify({ error: message }) });
         }
       }
@@ -90,18 +90,10 @@ export async function runRevenueCommandAgent(supabase: SupabaseClient, actorEmai
       staged.length ? `Already staged for your approval: ${staged.join(", ")}. Review them in the approval queue, or reject them if this run went off track.` : "",
     ].filter(Boolean).join("\n\n");
 
-    await supabase.from("agent_runs").update({
-      status: "partial",
-      tool_names: [...new Set(toolNames)],
-      input_tokens: inputTokens,
-      output_tokens: outputTokens,
-      result_preview: partial.slice(0, 1000),
-      error: `Stopped after ${MAX_TOOL_TURNS} tool turns without a final answer`,
-      finished_at: new Date().toISOString(),
-    }).eq("id", run.id);
+    await finishAgentRun(supabase, run, "partial", { toolNames, inputTokens, outputTokens, resultPreview: partial, error: `Stopped after ${MAX_TOOL_TURNS} tool turns without a final answer` });
     return { text: partial, runId: run.id, proposedActions: staged };
   } catch (error) {
-    await supabase.from("agent_runs").update({ status: "failed", tool_names: [...new Set(toolNames)], input_tokens: inputTokens, output_tokens: outputTokens, error: error instanceof Error ? error.message : "AI run failed", finished_at: new Date().toISOString() }).eq("id", run.id);
+    await finishAgentRun(supabase, run, "failed", { toolNames, inputTokens, outputTokens, error: error instanceof Error ? error.message : "AI run failed" });
     throw error;
   }
 }

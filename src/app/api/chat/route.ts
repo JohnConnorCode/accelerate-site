@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isOpenRouterConfigured, openRouterTextStream } from "@/lib/ai/openrouter";
+import { getOpenRouterModel, isOpenRouterConfigured, openRouterTextStream } from "@/lib/ai/openrouter";
+import { finishAgentRun, startAgentRun, traceTextStream } from "@/lib/revenue-os/agent-trace";
 import { rateLimit } from "@/lib/rate-limit";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { ingestInboundLead } from "@/lib/revenue-os/inbound";
@@ -10,6 +11,11 @@ import { preflightCheck } from "@/lib/chat/guardrails";
 import { DEMO_MODE_REPLY, ERROR_REPLY } from "@/lib/chat/fallbacks";
 import { handleChatLeadCapture } from "@/lib/chat/lead-capture";
 import type { ChatMessage } from "@/lib/types";
+
+// Hobby functions default to a 10s ceiling, and a streamed reply routinely runs
+// longer than that. Without this the visitor's answer is cut off mid-sentence.
+// 60s is the Hobby maximum.
+export const maxDuration = 60;
 
 const MAX_TOKENS = 500;
 const TEMPERATURE = 0.6;
@@ -77,17 +83,40 @@ export async function POST(request: NextRequest) {
       return plainText(DEMO_MODE_REPLY);
     }
 
-    const readableStream = await openRouterTextStream({
-      model: process.env.OPENROUTER_CHAT_MODEL,
-      maxTokens: MAX_TOKENS,
-      temperature: TEMPERATURE,
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        ...messages.slice(-MAX_CONVERSATION_MESSAGES),
-      ],
+    // This is the only fully autonomous AI we run that talks to prospects, and
+    // until now it wrote no trace at all: nobody could see what it had said to
+    // anyone. It joins the same agent_runs ledger as the admin copilot rather
+    // than getting a second one.
+    const supabase = createServiceRoleClient();
+    const model = getOpenRouterModel(process.env.OPENROUTER_CHAT_MODEL);
+    const run = await startAgentRun(supabase, {
+      surface: "public_chat",
+      model,
+      promptPreview: lastUser?.content,
     });
 
-    return new Response(readableStream, {
+    let readableStream: ReadableStream<Uint8Array>;
+    try {
+      readableStream = await openRouterTextStream({
+        model: process.env.OPENROUTER_CHAT_MODEL,
+        maxTokens: MAX_TOKENS,
+        temperature: TEMPERATURE,
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          ...messages.slice(-MAX_CONVERSATION_MESSAGES),
+        ],
+      });
+    } catch (error) {
+      // The outer catch would return ERROR_REPLY but leave this run `running`
+      // forever, which is exactly the stuck-row problem the ledger is meant to
+      // make visible.
+      await finishAgentRun(supabase, run, "failed", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
+
+    return new Response(traceTextStream(readableStream, supabase, run), {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
         "Transfer-Encoding": "chunked",

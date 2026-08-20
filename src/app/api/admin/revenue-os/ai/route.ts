@@ -4,6 +4,11 @@ import { createServiceRoleClient } from "@/lib/supabase/server";
 import { runRevenueCommandAgent, type CommandMessage } from "@/lib/revenue-os/ai-agent";
 import { rateLimit } from "@/lib/rate-limit";
 
+// Hobby functions default to a 10s ceiling. This route can make several model
+// calls in sequence, so without this it is killed mid-run and leaves the ledger
+// row `running` with no result. 60s is the Hobby maximum.
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;

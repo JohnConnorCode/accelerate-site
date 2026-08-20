@@ -3,6 +3,10 @@ import { createServiceRoleClient } from "@/lib/supabase/server";
 import { syncCalendar, syncDrive, syncGmail } from "@/lib/revenue-os/google";
 import { withJobRun } from "@/lib/revenue-os/runs";
 
+// A workspace sync pages through Gmail and Calendar. At the 10s Hobby default
+// it is killed partway through. 60s is the Hobby maximum.
+export const maxDuration = 60;
+
 export async function GET(request: NextRequest) {
   if (!process.env.CRON_SECRET || request.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const supabase = createServiceRoleClient();
