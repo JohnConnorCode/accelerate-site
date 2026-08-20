@@ -49,6 +49,8 @@ interface Campaign {
     status: string;
     current_step: number;
     next_send_at: string | null;
+    stop_reason: string | null;
+    send_attempts: number | null;
   }>;
   created_at: string;
 }

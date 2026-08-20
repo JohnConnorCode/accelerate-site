@@ -10,7 +10,7 @@ export async function GET() {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
   const supabase = createServiceRoleClient();
-  const { data, error } = await supabase.from("campaigns").select("*,campaign_steps(*),campaign_members(id,status,current_step,next_send_at)").order("created_at", { ascending: false });
+  const { data, error } = await supabase.from("campaigns").select("*,campaign_steps(*),campaign_members(id,status,current_step,next_send_at,stop_reason,send_attempts)").order("created_at", { ascending: false });
   if (error) {
     if (isMissingRevenueSchema(error)) return NextResponse.json({ schemaReady: false, campaigns: [] });
     return NextResponse.json({ error: "Could not load campaigns" }, { status: 500 });

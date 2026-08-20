@@ -7,8 +7,19 @@ import { normalizeEmail } from "./db";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/**
+ * Resend rejects any tag value containing characters outside ASCII letters,
+ * numbers, underscores and dashes, and rejects the whole send when one does.
+ * Campaign templates are named `campaign:<id>:step:<n>`, so every campaign send
+ * failed at the provider with "Tags should only contain ASCII letters, numbers,
+ * underscores, or dashes" before a single message left the building.
+ */
+function safeTagValue(value: string): string {
+  return value.replace(/[^A-Za-z0-9_-]/g, "-").slice(0, 256);
+}
+
 function resendTags(input: { messageId: string; conversationId: string; campaignId?: string; source?: string; template?: string }) {
-  const tag = (name: string, value?: string) => value ? { name, value: value.slice(0, 256) } : null;
+  const tag = (name: string, value?: string) => value ? { name, value: safeTagValue(value) } : null;
   return [
     tag("revenue_message_id", input.messageId),
     tag("revenue_conversation_id", input.conversationId),

@@ -31,6 +31,21 @@ export function normalizeCampaignPolicy(value: unknown): Required<CampaignPolicy
   };
 }
 
+/**
+ * The account-wide ceiling. The per-campaign daily limit alone let N active
+ * campaigns each send their own cap from the same sending domain, so the real
+ * exposure was N x limit with nothing watching the total. Defaults to the same
+ * ceiling as a single campaign, which is deliberately conservative.
+ */
+export function globalDailySendCap(): number {
+  const automationCeiling = process.env.CAMPAIGN_AUTOMATION_ENABLED === "true" ? 200 : 10;
+  const override = Number(process.env.CAMPAIGN_GLOBAL_DAILY_LIMIT);
+  return Number.isFinite(override) && override > 0 ? Math.min(override, automationCeiling * 10) : automationCeiling;
+}
+
+/** How many times a failed send is retried before the member is stopped. */
+export const MAX_SEND_ATTEMPTS = 3;
+
 export function renderCampaignTemplate(template: string, values: Record<string, string | null | undefined>) {
   return template.replace(/{{\s*([a-zA-Z0-9_]+)\s*}}/g, (_, key: string) => values[key]?.trim() || "");
 }
@@ -81,6 +96,14 @@ export async function executeDueCampaignMembers(supabase: SupabaseClient, now = 
   let sent = 0;
   let failed = 0;
   let stopped = 0;
+  let unclaimed = 0;
+
+  // One account-wide budget, shared across every active campaign.
+  const { count: sentTodayAllCampaigns } = await supabase.from("messages")
+    .select("id", { count: "exact", head: true })
+    .eq("metadata->>source", "campaign")
+    .gte("sent_at", dayStart.toISOString());
+  let globalRemaining = Math.max(0, globalDailySendCap() - (sentTodayAllCampaigns ?? 0));
 
   for (const campaign of campaigns ?? []) {
     if (campaign.version !== campaign.approved_version) {
@@ -90,11 +113,12 @@ export async function executeDueCampaignMembers(supabase: SupabaseClient, now = 
     }
     const policy = normalizeCampaignPolicy(campaign.policy);
     const { count: sentToday } = await supabase.from("messages").select("id", { count: "exact", head: true }).eq("metadata->>source", "campaign").eq("metadata->>campaign_id", campaign.id).gte("sent_at", dayStart.toISOString());
-    const remaining = Math.max(0, policy.daily_limit - (sentToday ?? 0));
+    if (!globalRemaining) break;
+    const remaining = Math.min(globalRemaining, Math.max(0, policy.daily_limit - (sentToday ?? 0)));
     if (!remaining) continue;
 
     const { data: members, error: memberError } = await supabase.from("campaign_members")
-      .select("id,email,current_step,contact_id,opportunity_id,contacts(full_name),opportunities(name,stage)")
+      .select("id,email,current_step,contact_id,opportunity_id,send_attempts,contacts(full_name),opportunities(name,stage)")
       .eq("campaign_id", campaign.id).in("status", ["queued", "active"]).lte("next_send_at", now.toISOString())
       .order("next_send_at", { ascending: true }).limit(remaining);
     if (memberError) throw new Error(memberError.message);
@@ -117,7 +141,14 @@ export async function executeDueCampaignMembers(supabase: SupabaseClient, now = 
       const contact = Array.isArray(member.contacts) ? member.contacts[0] : member.contacts;
       const values = { first_name: contact?.full_name?.split(" ")[0] ?? "", full_name: contact?.full_name ?? "", company: opportunity?.name ?? "" };
       const idempotencyKey = `campaign:${campaign.id}:member:${member.id}:step:${step.step_order}`;
-      if (!await claimCampaignMemberSend(supabase, member.id, idempotencyKey)) continue;
+      // A member that cannot be claimed is not a no-op worth hiding: it means
+      // suppressed, paused, version-drifted, not due, or missing a canonical
+      // contact. Counting it is what turns "the campaign sent nothing" from an
+      // invisible success into a reportable outcome.
+      if (!await claimCampaignMemberSend(supabase, member.id, idempotencyKey)) {
+        unclaimed++;
+        continue;
+      }
       try {
         if (!await campaignMemberMaySend(supabase, { memberId: member.id, campaignId: campaign.id })) {
           await supabase.from("campaign_members").update({ status: "stopped", stop_reason: "pre_send_policy_check", next_send_at: null }).eq("id", member.id).eq("status", "sending");
@@ -142,18 +173,27 @@ export async function executeDueCampaignMembers(supabase: SupabaseClient, now = 
           status: nextStep ? "active" : "completed",
           last_sent_at: now.toISOString(),
           next_send_at: nextAt,
+          // A delivered step clears the retry budget for the next one.
+          send_attempts: 0,
         }).eq("id", member.id).eq("status", "sending");
         sent++;
+        globalRemaining--;
       } catch (sendError) {
         console.error("[campaign-executor]", sendError);
+        // A transient provider failure used to end the member permanently:
+        // status stopped with next_send_at null could only be undone by hand.
+        // Retry with backoff a bounded number of times, then stop for real.
+        const attempts = (member.send_attempts ?? 0) + 1;
+        const exhausted = attempts >= MAX_SEND_ATTEMPTS;
         await supabase.from("campaign_members").update({
-          status: "stopped",
-          stop_reason: "send_failed_requires_reconciliation",
-          next_send_at: null,
+          status: exhausted ? "stopped" : "active",
+          stop_reason: exhausted ? "send_failed_requires_reconciliation" : null,
+          send_attempts: attempts,
+          next_send_at: exhausted ? null : new Date(now.getTime() + attempts * 3600000).toISOString(),
         }).eq("id", member.id).eq("status", "sending");
         failed++;
       }
     }
   }
-  return { sent, failed, stopped, campaigns: campaigns?.length ?? 0 };
+  return { sent, failed, stopped, unclaimed, campaigns: campaigns?.length ?? 0 };
 }
