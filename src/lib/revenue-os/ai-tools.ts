@@ -22,6 +22,30 @@ function value(input: Record<string, unknown>, key: string): string | undefined 
   return result || undefined;
 }
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * The queue card shows a preview; the full body lives in `payload` and is what
+ * the approval dialog renders. Marking it as truncated stops the preview from
+ * reading like the whole message.
+ */
+function previewOf(body: string): string {
+  const collapsed = body.replace(/\s+/g, " ").trim();
+  return collapsed.length > 240 ? `${collapsed.slice(0, 237)}...` : collapsed;
+}
+
+/**
+ * Reject a malformed recipient when the proposal is made, not when it executes.
+ * The model sees the error and can correct itself; otherwise an unapprovable
+ * proposal sits in the founder's queue looking legitimate.
+ */
+function requireEmail(candidate: string | undefined): string {
+  if (!candidate || !EMAIL_PATTERN.test(candidate)) {
+    throw new Error("A valid recipient email address is required before an email can be staged");
+  }
+  return candidate;
+}
+
 const registry: AiToolRegistration[] = [
   { name: "get_today_snapshot", description: "Read the founder's prioritized operator queue and current revenue metrics.", inputSchema: { type: "object", properties: {}, additionalProperties: false }, impact: "read", confirmationRequired: false, execute: async ({ supabase }) => {
     const [queue, opportunities, conversations, campaigns, proposals] = await Promise.all([loadOperatorQueue(supabase), supabase.from("opportunities").select("id,name,stage,estimated_value,won_value,next_action,next_action_at").limit(250), supabase.from("conversations").select("id,unread_count,status").limit(250), supabase.from("campaigns").select("id,name,status,version,approved_version").limit(100), supabase.from("proposals").select("id,title,status,total_one_time,total_monthly").limit(100)]);
@@ -36,7 +60,7 @@ const registry: AiToolRegistration[] = [
     if (error) throw new Error(error.message);
     return data ?? [];
   } },
-  { name: "propose_send_email", description: "Stage an outbound email for founder approval. This never sends directly.", inputSchema: { type: "object", properties: { to: { type: "string" }, subject: { type: "string" }, body: { type: "string" }, opportunityId: { type: "string" }, contactId: { type: "string" }, reasoning: { type: "string" } }, required: ["to", "subject", "body", "reasoning"], additionalProperties: false }, impact: "external_action", confirmationRequired: true, execute: async ({ supabase, actorEmail }, input) => proposeAction(supabase, { actionType: "send_email", title: `Send email: ${value(input, "subject") || "Untitled"}`, description: String(input.body || "").slice(0, 240), urgency: "normal", payload: input, reasoning: value(input, "reasoning") || "", sourceContext: "admin_ai", entityType: "opportunity", entityId: value(input, "opportunityId"), dedupeKey: `ai-email:${value(input, "to")}:${value(input, "subject")}`.slice(0, 220), proposedBy: actorEmail, expiresAt: new Date(Date.now() + 86400000).toISOString() }) },
+  { name: "propose_send_email", description: "Stage an outbound email for founder approval. This never sends directly.", inputSchema: { type: "object", properties: { to: { type: "string" }, subject: { type: "string" }, body: { type: "string" }, opportunityId: { type: "string" }, contactId: { type: "string" }, reasoning: { type: "string" } }, required: ["to", "subject", "body", "reasoning"], additionalProperties: false }, impact: "external_action", confirmationRequired: true, execute: async ({ supabase, actorEmail }, input) => { requireEmail(value(input, "to")); return proposeAction(supabase, { actionType: "send_email", title: `Send email: ${value(input, "subject") || "Untitled"}`, description: previewOf(String(input.body || "")), urgency: "normal", payload: input, reasoning: value(input, "reasoning") || "", sourceContext: "admin_ai", entityType: "opportunity", entityId: value(input, "opportunityId"), dedupeKey: `ai-email:${value(input, "to")}:${value(input, "subject")}`.slice(0, 220), proposedBy: actorEmail, expiresAt: new Date(Date.now() + 86400000).toISOString() }); } },
   { name: "propose_stage_change", description: "Stage a pipeline movement for founder approval. Evidence must be included.", inputSchema: { type: "object", properties: { opportunityId: { type: "string" }, stage: { type: "string", enum: [...REVENUE_STAGES] }, reason: { type: "string" }, lossReason: { type: "string" } }, required: ["opportunityId", "stage", "reason"], additionalProperties: false }, impact: "internal_write", confirmationRequired: true, execute: async ({ supabase, actorEmail }, input) => proposeAction(supabase, { actionType: "transition_opportunity", title: `Move opportunity to ${value(input, "stage")}`, description: value(input, "reason") || "", urgency: "normal", payload: input, reasoning: value(input, "reason") || "", sourceContext: "admin_ai", entityType: "opportunity", entityId: value(input, "opportunityId"), dedupeKey: `ai-stage:${value(input, "opportunityId")}:${value(input, "stage")}`, proposedBy: actorEmail, expiresAt: new Date(Date.now() + 86400000).toISOString() }) },
   { name: "propose_task", description: "Stage a concrete operator task for approval.", inputSchema: { type: "object", properties: { title: { type: "string" }, description: { type: "string" }, dueDate: { type: "string" }, priority: { type: "string", enum: ["high", "medium", "low"] }, opportunityId: { type: "string" } }, required: ["title", "priority"], additionalProperties: false }, impact: "internal_write", confirmationRequired: true, execute: async ({ supabase, actorEmail }, input) => {
     const dedupeKey = `ai-task:${value(input, "opportunityId") || "general"}:${value(input, "title")}`.slice(0, 220);
