@@ -88,7 +88,9 @@ export class MemorySupabase {
   private query(table: string) {
     this.tables[table] ??= [];
     const filters: Array<(row: Row) => boolean> = [];
-    let op: "read" | "insert" | "update" = "read";
+    let op: "read" | "insert" | "update" | "upsert" | "delete" = "read";
+    let conflictColumns: string[] = [];
+    let ignoreDuplicates = false;
     let payload: Row = {};
     let one = false;
     let sort: { column: string; ascending: boolean } | null = null;
@@ -118,13 +120,51 @@ export class MemorySupabase {
       return self;
     };
     self.or = (expression: string) => { filters.push(orPredicate(expression)); return self; };
+    // Array containment, as used for `recipient_emails`.
+    self.contains = (column: string, values: unknown[]) => {
+      filters.push((row) => {
+        const actual = Array.isArray(row[column]) ? (row[column] as unknown[]) : [];
+        return values.every((value) => actual.includes(value));
+      });
+      return self;
+    };
 
     self.insert = (next: Row) => { op = "insert"; payload = next; return self; };
     self.update = (next: Row) => { op = "update"; payload = next; return self; };
+    self.delete = () => { op = "delete"; return self; };
+    /**
+     * Upsert on a composite conflict target, as the communication sender uses
+     * to make an idempotent retry reuse its conversation. `ignoreDuplicates`
+     * returns no row on a conflict, which the caller then re-reads, so that
+     * branch has to be reproduced faithfully or the retry path goes untested.
+     */
+    self.upsert = (next: Row, options?: { onConflict?: string; ignoreDuplicates?: boolean }) => {
+      op = "upsert";
+      payload = next;
+      conflictColumns = (options?.onConflict ?? "").split(",").map((column) => column.trim()).filter(Boolean);
+      ignoreDuplicates = Boolean(options?.ignoreDuplicates);
+      return self;
+    };
 
     self.then = (resolve: (result: { data: unknown; error: unknown }) => unknown) => {
       const failure = this.failures[table];
       if (failure) return resolve({ data: null, error: failure });
+
+      if (op === "upsert") {
+        const existing = conflictColumns.length
+          ? this.tables[table]!.find((row) => conflictColumns.every((column) => row[column] === payload[column]))
+          : undefined;
+        if (existing) {
+          // Postgres returns nothing for an ignored duplicate, and the caller
+          // re-reads. Reproducing that is the point.
+          if (ignoreDuplicates) return resolve({ data: one ? null : [], error: null });
+          Object.assign(existing, payload);
+          return resolve({ data: one ? existing : [existing], error: null });
+        }
+        const created: Row = { id: `row-${++this.sequence}`, ...payload };
+        this.tables[table]!.push(created);
+        return resolve({ data: one ? created : [created], error: null });
+      }
 
       if (op === "insert") {
         // Honour the partial unique index the real action_queue carries: one
@@ -140,6 +180,10 @@ export class MemorySupabase {
 
       let matched = this.tables[table]!.filter((row) => filters.every((keep) => keep(row)));
       if (op === "update") for (const row of matched) Object.assign(row, payload);
+      if (op === "delete") {
+        const removing = new Set(matched);
+        this.tables[table] = this.tables[table]!.filter((row) => !removing.has(row));
+      }
       if (sort) {
         const { column, ascending } = sort;
         matched = [...matched].sort((a, b) => (String(a[column]) < String(b[column]) ? -1 : 1) * (ascending ? 1 : -1));

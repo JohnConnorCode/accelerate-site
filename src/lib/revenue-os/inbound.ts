@@ -7,6 +7,7 @@ import { recordAudit } from "./audit";
 import { resolveOrCreateIdentity } from "./identity";
 import { canTransition, canonicalStage, transitionOpportunity } from "./pipeline";
 import { createRevenueTask } from "./tasks";
+import { RESPONDER_POLICY_VERSION, respondToInbound, type ResponderDecision } from "./auto-responder";
 
 type Qualification = { qualified: boolean; reason: string };
 
@@ -80,7 +81,37 @@ export async function ingestInboundLead(supabase: SupabaseClient, input: Canonic
   }
   await createRevenueTask(supabase, { title: `${nextAction}: ${identity.company.name}`, description: input.summary.slice(0, 1000), dueDate: new Date().toISOString().slice(0, 10), priority: "high", relatedType: "opportunity", relatedId: opportunity.id, relatedName: identity.company.name, opportunityId: opportunity.id, source: input.source, dedupeKey: `inbound-follow-up:${opportunity.id}`, actorEmail: tenant.founder.systemActorEmail });
   await recordAudit(supabase, { actorEmail: tenant.founder.systemActorEmail, action: "inbound.captured", entityType: "opportunity", entityId: opportunity.id, source: "webhook", after: { stage: opportunity.stage, source: opportunity.source }, metadata: { inbound_source: input.source, source_record_id: input.sourceRecordId, existing } });
-  return { opportunity, identity, existing };
+
+  // Acknowledge the inquiry, last and defensively.
+  //
+  // Everything above is what stops the lead being lost: the row, the canonical
+  // record, the activity, the operator task, the audit entry. The responder runs
+  // only after all of it, and its failure is recorded and swallowed, so a model
+  // outage or a provider error can never turn into a dropped inquiry. The
+  // responder declines by default and records why; see auto-responder.ts for the
+  // approved policy version it executes inside.
+  let responder: ResponderDecision;
+  try {
+    responder = await respondToInbound(supabase, {
+      opportunityId: opportunity.id,
+      contactId: identity.contact.id,
+      companyName: identity.company.name,
+      contactName: input.name,
+      email,
+      inquiry: input.summary,
+      existingOpportunity: existing,
+    });
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    console.error("[revenue-os/inbound] responder threw (inquiry preserved):", detail);
+    await recordAudit(supabase, {
+      actorEmail: tenant.founder.systemActorEmail, action: "responder.errored", entityType: "opportunity",
+      entityId: opportunity.id, source: "automation", metadata: { error: detail },
+    }).catch(() => undefined);
+    responder = { sent: false, reason: "generation_failed", detail, policyVersion: RESPONDER_POLICY_VERSION };
+  }
+
+  return { opportunity, identity, existing, responder };
 }
 
 /**
