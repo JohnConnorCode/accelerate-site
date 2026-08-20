@@ -58,6 +58,9 @@ async function expectStatus(responsePromise: Promise<Response>, expected: number
 
 (async () => {
   const checks: string[] = [];
+  // Anything this run could not cover, or a configuration gap it discovered.
+  // Reporting only passes would let an unconfigured endpoint read as healthy.
+  const notes: string[] = [];
 
   const cronRoutes = ["/api/cron/google-workspace-sync", "/api/cron/revenue-campaigns"];
   for (const cronRoute of cronRoutes) {
@@ -77,16 +80,31 @@ async function expectStatus(responsePromise: Promise<Response>, expected: number
 
   const calendlySecret = process.env.CALENDLY_WEBHOOK_SECRET?.trim();
   const calendlyRoute = "/api/webhooks/calendly";
+  // Refusing an unsecured booking payload is invariant, so it is probed against
+  // whatever server we were pointed at rather than inferred from this machine's
+  // environment: 503 when the route is unconfigured, 401 when it is configured
+  // and the secret is wrong or absent.
+  checks.push("calendly webhook refuses an unsecured payload (503 unconfigured / 401 configured)");
+  const unsecured = await expectStatus(
+    post(`${calendlyRoute}`, {
+      body: "{}",
+      headers: { "content-type": "application/json" },
+    }),
+    [401, 503],
+    `${calendlyRoute} without calendly secret`,
+  );
+  // A 503 means the target has no CALENDLY_WEBHOOK_SECRET at all, so every
+  // booking Calendly sends it is rejected and no booking is ever ingested. That
+  // is a configuration gap, not a test failure, and it must be said out loud
+  // rather than passing quietly as "fail-closed, good".
+  if (unsecured === 503) {
+    notes.push(`${BASE_URL} has no CALENDLY_WEBHOOK_SECRET configured: the booking webhook rejects everything, so no booking reaches the system`);
+  }
+
   if (!calendlySecret) {
-    checks.push("calendly webhook returns 503 when CALENDLY_WEBHOOK_SECRET is missing");
-    await expectStatus(
-      post(`${calendlyRoute}`, {
-        body: "{}",
-        headers: { "content-type": "application/json" },
-      }),
-      503,
-      `${calendlyRoute} without calendly secret`,
-    );
+    // The checks below post a real signed payload, so they need the same secret
+    // the target uses. Say what was not covered instead of reporting a pass.
+    notes.push("skipped calendly signed-payload coverage (invalid-secret, malformed body, replay idempotency, oversize) because CALENDLY_WEBHOOK_SECRET is not set locally");
   } else {
     checks.push("calendly webhook rejects invalid query secret (401)");
     await expectStatus(
@@ -162,30 +180,32 @@ async function expectStatus(responsePromise: Promise<Response>, expected: number
     );
   }
 
-  const resendSecret = process.env.RESEND_WEBHOOK_SECRET?.trim();
   const resendRoute = "/api/webhooks/resend";
-  if (!resendSecret) {
-    checks.push("resend webhook returns 503 when RESEND_WEBHOOK_SECRET is missing");
-    await expectStatus(
-      post(resendRoute, {
-        body: "{}",
-        headers: { "content-type": "application/json" },
-      }),
-      503,
-      `${resendRoute} without resend secret`,
-    );
-  } else {
-    checks.push("resend webhook rejects missing signature fields (401)");
-    await expectStatus(
+  {
+    // This used to branch on the LOCAL RESEND_WEBHOOK_SECRET while probing a
+    // REMOTE server, so it passed or failed depending on which machine ran it
+    // rather than on whether the server was correct. Running it from a laptop
+    // with no secret against production, which does have one, failed on a
+    // route that was behaving perfectly.
+    //
+    // What is actually invariant is that an unsigned webhook is never accepted:
+    // 503 when the route is unconfigured, 401 when it is configured and the
+    // signature is missing or wrong. Both are fail-closed. Anything else,
+    // especially a 200, is the defect worth catching.
+    checks.push("resend webhook refuses an unsigned payload (503 unconfigured / 401 configured)");
+    const unsigned = await expectStatus(
       post(resendRoute, {
         body: JSON.stringify({ type: "email.delivered" }),
         headers: { "content-type": "application/json" },
       }),
-      401,
+      [401, 503],
       `${resendRoute} missing signature`,
     );
+    if (unsigned === 503) {
+      notes.push(`${BASE_URL} has no RESEND_WEBHOOK_SECRET configured: delivery, bounce, and complaint events are all rejected, so suppression never fires`);
+    }
 
-    checks.push("resend webhook rejects invalid signature (401)");
+    checks.push("resend webhook refuses a forged signature (503 unconfigured / 401 configured)");
     await expectStatus(
       post(resendRoute, {
         body: JSON.stringify({ type: "email.delivered" }),
@@ -196,7 +216,7 @@ async function expectStatus(responsePromise: Promise<Response>, expected: number
           "svix-signature": "v1=bogus",
         },
       }),
-      401,
+      [401, 503],
       `${resendRoute} invalid signature`,
     );
 
@@ -211,15 +231,19 @@ async function expectStatus(responsePromise: Promise<Response>, expected: number
         "svix-signature": "v1=bogus",
       },
     });
+    // The route checks the secret before it checks the payload size, so an
+    // unconfigured deployment answers 503 and never reaches the size guard.
+    // Both refuse the payload, which is the property under test.
     assert.ok(
-      oversizedResult.status === 413,
-      `resend webhook oversized payload expected 413, got ${oversizedResult.status}`,
+      [413, 503].includes(oversizedResult.status),
+      `resend webhook oversized payload expected 413 (or 503 if unconfigured), got ${oversizedResult.status}`,
     );
   }
 
   console.log(JSON.stringify({
     result: "webhook-cron-defense focused security checks covered",
     checks,
+    notes,
     baseUrl: BASE_URL,
   }));
 })();
