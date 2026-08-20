@@ -47,8 +47,43 @@ export class MemorySupabase {
   recover(table: string) { delete this.failures[table]; }
   rows(table: string): Row[] { return this.tables[table] ?? []; }
 
+  /**
+   * Stub a Postgres function. The atomic claims live in RPCs, so anything
+   * testing recovery or single-shot behaviour needs to drive them.
+   */
+  rpc(name: string, handler: (args: Record<string, unknown>) => unknown) {
+    this.procedures[name] = handler;
+  }
+
+  /** Every rpc() call made, in order, for asserting what was invoked. */
+  readonly rpcCalls: Array<{ name: string; args: Record<string, unknown> }> = [];
+  private readonly procedures: Record<string, (args: Record<string, unknown>) => unknown> = {};
+
   /** The object to hand to code expecting a SupabaseClient. */
-  get client() { return { from: (table: string) => this.query(table) } as never; }
+  get client() {
+    return {
+      from: (table: string) => this.query(table),
+      rpc: (name: string, args: Record<string, unknown>) => {
+        this.rpcCalls.push({ name, args });
+        const handler = this.procedures[name];
+        const settle = (resolve: (result: { data: unknown; error: unknown }) => unknown) => {
+          if (!handler) return resolve({ data: null, error: { message: `memory-supabase: no stub registered for rpc "${name}"` } });
+          try {
+            const value = handler(args);
+            // A handler may return `{ error }` to simulate a failing function.
+            if (value && typeof value === "object" && "error" in (value as Row)) return resolve(value as { data: unknown; error: unknown });
+            return resolve({ data: value, error: null });
+          } catch (error) {
+            return resolve({ data: null, error: { message: error instanceof Error ? error.message : String(error) } });
+          }
+        };
+        const self: Record<string, unknown> = {};
+        self.single = self.maybeSingle = () => self;
+        self.then = settle;
+        return self;
+      },
+    } as never;
+  }
 
   private query(table: string) {
     this.tables[table] ??= [];
