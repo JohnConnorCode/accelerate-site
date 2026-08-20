@@ -37,7 +37,7 @@ export const services: Service[] = [
     id: "automation",
     name: "Workflow Automation",
     description:
-      "Total integration of your operational tech stack. We build autonomous engines that completely absorb manual data entry, handoffs, and routine processes—so your talent can focus on high-leverage work.",
+      "Total integration of your operational tech stack. We build autonomous engines that completely absorb manual data entry, handoffs, and routine processes, so your talent can focus on high-leverage work.",
     shortDescription:
       "Automated follow-ups, scheduling, invoicing, and internal workflows that keep your business moving.",
     icon: "Workflow",

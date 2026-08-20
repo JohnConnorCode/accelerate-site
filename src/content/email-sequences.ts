@@ -29,7 +29,7 @@ Based on what you shared, your company is a fit for a free Roofing Revenue Leak 
 
 Pick a time here: {{planLink}}
 
-In 30 minutes, we'll identify the highest-cost gap between a new inquiry and booked work. Within two business days, you'll get the finding, the fix, and the likely implementation sequence in writing—whether we work together or not.
+In 30 minutes, we'll identify the highest-cost gap between a new inquiry and booked work. Within two business days, you'll get the finding, the fix, and the likely implementation sequence in writing, whether we work together or not.
 
 John
 Accelerate`,
