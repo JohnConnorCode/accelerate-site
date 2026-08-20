@@ -98,6 +98,26 @@ const JOURNEY = [
   { when: "Always", what: "Escalated when human", detail: "A major gift signal, a complaint, or anything ambiguous stops the automation and goes to a person with the full history attached." },
 ];
 
+/* ── Client work, described as scope rather than invented outcomes ───────── */
+const WORKSHELTER_WORK = [
+  {
+    title: "A custom command center",
+    body: "One place to run the whole operation end to end, instead of the work living across separate tools that never agreed with each other.",
+  },
+  {
+    title: "Automation across the operation",
+    body: "The follow-ups, handoffs, and updates that used to depend on somebody remembering now happen on their own, including on the weeks nobody has an evening spare.",
+  },
+  {
+    title: "Design work",
+    body: "How the organization presents itself, so the public face matches the seriousness of the work behind it.",
+  },
+  {
+    title: "Operating strategy",
+    body: "What to run, in what order, and what to stop doing. The hardest part is rarely the tooling.",
+  },
+];
+
 /* ── Objections this audience actually has ──────────────────────────────── */
 const OBJECTIONS = [
   {
@@ -272,6 +292,90 @@ export function NonprofitLanding() {
                 </AnimateOnScroll>
               ))}
             </ol>
+          </div>
+        </Container>
+      </section>
+
+      {/* ── Proof ────────────────────────────────────────────────────────── */}
+      <section className="section-divide relative border-t border-[color-mix(in_srgb,var(--fg)_12%,transparent)] py-[clamp(4.5rem,8vw,7rem)]">
+        <Container width="wide">
+          <AnimateOnScroll>
+            <Eyebrow className="mb-6">who we do this for</Eyebrow>
+          </AnimateOnScroll>
+
+          <div className="grid gap-[clamp(2.5rem,5vw,4.5rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)]">
+            <div className="min-w-0">
+              <AnimateOnScroll>
+                <p className="font-display text-[clamp(2rem,3.6vw,3.1rem)] font-extrabold leading-[1.05] tracking-[-0.035em] text-heading">
+                  WORK+SHELTER
+                </p>
+                <p className="mt-4 font-mono text-[0.68rem] uppercase tracking-[0.16em] text-white-muted">
+                  Delhi, India
+                  <span className="mx-3 text-white-muted/40">/</span>
+                  Nonprofit with a manufacturing arm
+                  <span className="mx-3 text-white-muted/40">/</span>
+                  All-volunteer staff
+                </p>
+              </AnimateOnScroll>
+
+              <AnimateOnScroll delay={0.12}>
+                <p className="mt-9 max-w-[52ch] text-[0.98rem] leading-[1.75] text-white-secondary">
+                  WORK+SHELTER employs and trains women in Delhi living in poverty,
+                  many of them survivors of domestic abuse. Paid work at fair wages,
+                  savings programs and interest-free loans, family counseling, English
+                  classes, and computer training. The nonprofit runs on volunteers,
+                  alongside a manufacturing business producing apparel, accessories,
+                  and reusable packaging.
+                </p>
+              </AnimateOnScroll>
+
+              <AnimateOnScroll delay={0.2}>
+                <p className="mt-7 max-w-[52ch] border-l border-[color-mix(in_srgb,var(--fg)_25%,transparent)] pl-6 font-serif text-[clamp(1.05rem,1.7vw,1.32rem)] italic leading-[1.6] text-white-secondary">
+                  Two organizations sharing one operation. Donors and customers,
+                  program outcomes and production orders, volunteers and staff, all
+                  tracked in different places by people giving their evenings to it.
+                </p>
+              </AnimateOnScroll>
+
+              <AnimateOnScroll delay={0.28}>
+                <a
+                  href="https://workshelter.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-9 inline-flex items-center gap-2 font-mono text-[0.7rem] uppercase tracking-[0.16em] text-white-muted underline decoration-[color-mix(in_srgb,var(--fg)_30%,transparent)] underline-offset-[6px] transition-colors duration-150 hover:text-heading"
+                >
+                  workshelter.org
+                </a>
+              </AnimateOnScroll>
+            </div>
+
+            <div className="min-w-0">
+              <AnimateOnScroll delay={0.15}>
+                <p className="border-b border-[color-mix(in_srgb,var(--fg)_16%,transparent)] pb-4 font-mono text-[0.66rem] uppercase tracking-[0.18em] text-white-muted">
+                  What we built and run for them
+                </p>
+              </AnimateOnScroll>
+              <dl>
+                {WORKSHELTER_WORK.map((item, i) => (
+                  <AnimateOnScroll key={item.title} delay={0.2 + i * 0.06}>
+                    <div className="border-b border-[color-mix(in_srgb,var(--fg)_10%,transparent)] py-6">
+                      <dt className="font-display text-[1.08rem] font-semibold leading-[1.3] tracking-[-0.015em] text-heading">
+                        {item.title}
+                      </dt>
+                      <dd className="mt-2.5 max-w-[46ch] text-[0.93rem] leading-[1.7] text-white-secondary">
+                        {item.body}
+                      </dd>
+                    </div>
+                  </AnimateOnScroll>
+                ))}
+              </dl>
+              <AnimateOnScroll delay={0.5}>
+                <p className="mt-7 max-w-[46ch] text-[0.93rem] leading-[1.7] text-white-muted">
+                  Built for a team with no spare capacity at all, which is the
+                  condition this whole page is really about.
+                </p>
+              </AnimateOnScroll>
+            </div>
           </div>
         </Container>
       </section>
