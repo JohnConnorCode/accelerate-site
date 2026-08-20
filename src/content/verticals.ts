@@ -814,4 +814,94 @@ export const verticals: Vertical[] = [
     ctaText: "Book the session",
     ctaLink: "/contact",
   },
+  {
+    id: "nonprofits",
+    slug: "nonprofits",
+    name: "Nonprofits",
+    icon: "HeartHandshake",
+    shortDescription:
+      "Custom AI systems for nonprofits that turn first-time donors into second-time donors, keep every supporter followed up with, and give a stretched team its hours back. Built and run by us.",
+    heroHeadlineWhite: "Your donors did not lose interest.",
+    heroHeadlineGold: "They just never heard from you again.",
+    heroSubheadline:
+      "Fewer than one in five first-time donors ever gives a second gift. That is rarely about generosity. It is capacity: the thank-you and the second ask land on a team already at its limit. We build custom AI systems that steward every donor on time and in your voice, then run them for you.",
+    painPoints: [
+      {
+        icon: "RefreshCw",
+        title: "The second gift almost never happens",
+        description:
+          "Sector-wide, first-time donor retention sits at about 19 percent. But donors who give a second time retain at nearly 60 percent. That one conversion is the highest-value moment in your entire fundraising year, and it is usually lost to a follow-up nobody had time to send.",
+      },
+      {
+        icon: "Monitor",
+        title: "You have AI. You do not have outcomes.",
+        description:
+          "Around 92 percent of nonprofits now use AI somewhere, and only about 7 percent report it meaningfully changing what their team can get done. Tools were never the missing piece. Somebody has to design the workflow, connect it to your donor data, and keep it running.",
+      },
+      {
+        icon: "Users",
+        title: "The team is past capacity, not underperforming",
+        description:
+          "Most nonprofit staff report carrying more responsibility than they have support for, and many organizations have cut headcount while demand went up. Stewardship is always the first thing to slip, because it is the only work with no immediate deadline attached to it.",
+      },
+      {
+        icon: "FileText",
+        title: "Reporting eats the time meant for the mission",
+        description:
+          "Board packets, grant reports, and funder updates get rebuilt by hand every cycle from spreadsheets that disagree with each other. It is hours of skilled work that produces no new support, and it comes straight out of program time.",
+      },
+    ],
+    solutions: [
+      {
+        title: "Every Donor Thanked and Stewarded On Time",
+        description:
+          "The moment a gift arrives, the thank-you goes out, the donor record updates, and the second-gift sequence begins. Your team writes the voice once and approves it. After that it runs whether or not anyone has capacity that week.",
+        features: [
+          "Immediate, personal thank-you on every gift",
+          "A second-gift journey built specifically for first-time donors",
+          "Lapsed and at-risk supporters surfaced before they are gone",
+          "Recurring giving invitations timed to donor behavior, not the calendar",
+          "Every message reviewed against your voice, never sent from a generic template",
+        ],
+      },
+      {
+        title: "Every Inquiry Answered, In Your Voice",
+        description:
+          "Website questions, volunteer sign-ups, program referrals, and partnership requests all get a real answer quickly, then reach the right person with the context already attached. Nothing sits in a shared inbox over a weekend.",
+        features: [
+          "Web, form, chat, and email inquiries captured in one place",
+          "Answers grounded in your actual programs and eligibility, not invented",
+          "Routing to the right staff member with full history attached",
+          "Volunteer and partner interest captured and followed up automatically",
+          "Anything sensitive or unclear handed to a person instead of guessed at",
+        ],
+      },
+      {
+        title: "One Clean Donor Record",
+        description:
+          "Households, workplace gifts, event attendees, and volunteers stop living as four separate half-records. We resolve them into one supporter with a full history, and refuse to merge anything ambiguous rather than guessing.",
+        features: [
+          "Duplicate supporters resolved into one record with full giving history",
+          "Ambiguous matches sent for human review instead of silently merged",
+          "Giving, volunteering, and event attendance visible on one timeline",
+          "Works alongside your existing CRM rather than replacing it",
+          "Every change auditable, so you can always see what moved and why",
+        ],
+      },
+      {
+        title: "Board and Funder Reporting That Builds Itself",
+        description:
+          "Retention, acquisition, recurring revenue, and campaign performance calculated from the same underlying records every time, so the number in the board packet matches the number in the system.",
+        features: [
+          "Donor retention and lapse rates tracked continuously",
+          "Revenue by source, campaign, and appeal without manual reconciliation",
+          "Board-ready summaries generated from live data",
+          "Grant and funder reporting assembled from the same source of truth",
+          "Gaps and data quality problems shown rather than quietly averaged away",
+        ],
+      },
+    ],
+    ctaText: "Book a 20-minute call",
+    ctaLink: "/contact",
+  },
 ];

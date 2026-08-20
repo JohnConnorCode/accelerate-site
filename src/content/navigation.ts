@@ -11,6 +11,7 @@ export const navItems: NavItem[] = [
       { label: "Law Firms", href: "/industries/law-firms" },
       { label: "Professional Services", href: "/industries/professional-services" },
       { label: "Real Estate", href: "/industries/real-estate" },
+      { label: "Nonprofits", href: "/industries/nonprofits" },
     ],
   },
   { label: "Learn", href: "/learn" },
@@ -40,6 +41,7 @@ export const footerLinks: {
       { label: "Law Firms", href: "/industries/law-firms" },
       { label: "Professional Services", href: "/industries/professional-services" },
       { label: "Real Estate", href: "/industries/real-estate" },
+      { label: "Nonprofits", href: "/industries/nonprofits" },
     ],
   },
   {
