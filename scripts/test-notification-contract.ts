@@ -18,8 +18,12 @@ import assert from "node:assert/strict";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
-/** Columns that actually exist, from supabase/migration-prompt5.sql plus the priority ALTER. */
-const COLUMNS = new Set(["id", "type", "title", "description", "link", "read", "created_at", "priority"]);
+/**
+ * Columns that actually exist: supabase/migration-prompt5.sql, plus the
+ * priority ALTER in migrations/business-operating-system.sql, plus the
+ * dedupe_key ALTER in migrations/20260820-notification-dedupe.sql.
+ */
+const COLUMNS = new Set(["id", "type", "title", "description", "link", "read", "created_at", "priority", "dedupe_key"]);
 const PRIORITIES = new Set(["urgent", "important", "info"]);
 
 function sourceFiles(dir: string): string[] {
