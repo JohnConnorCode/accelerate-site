@@ -5,7 +5,12 @@ import { proposeAction } from "./actions";
 import { loadOperatorQueue } from "./queue";
 import { REVENUE_STAGES } from "./types";
 
-export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v1";
+export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v2";
+
+/** How many rows any single snapshot query may read. */
+const SNAPSHOT_ROW_LIMIT = 50;
+/** How many of those are returned in full to the model. */
+const SNAPSHOT_DETAIL_LIMIT = 10;
 export type AiToolImpact = "read" | "internal_write" | "external_action" | "destructive";
 type AiToolContext = { supabase: SupabaseClient; actorEmail: string };
 type AiToolRegistration = {
@@ -46,10 +51,118 @@ function requireEmail(candidate: string | undefined): string {
   return candidate;
 }
 
+/**
+ * Validate model output against the tool's declared schema.
+ *
+ * The schemas were advertised to the model and enforced nowhere: whatever the
+ * model produced was handed straight to `execute`. A missing recipient became
+ * `undefined` inside a dedupe key, and an unknown field was silently accepted.
+ * Only the small JSON Schema subset the registry actually uses is supported,
+ * deliberately, so this stays readable and has no dependency.
+ *
+ * Messages are written for the model, because the agent feeds tool errors back
+ * into the transcript and a good message is what lets it correct itself.
+ */
+export function validateToolInput(
+  toolName: string,
+  schema: Record<string, unknown>,
+  input: Record<string, unknown>,
+): void {
+  const properties = (schema.properties ?? {}) as Record<string, { type?: string; enum?: unknown[] }>;
+  const required = Array.isArray(schema.required) ? (schema.required as string[]) : [];
+  const allowExtra = schema.additionalProperties !== false;
+
+  for (const key of required) {
+    const supplied = input[key];
+    const missing = supplied === undefined || supplied === null || (typeof supplied === "string" && !supplied.trim());
+    if (missing) {
+      throw new Error(`${toolName} requires "${key}". Supply it and call the tool again.`);
+    }
+  }
+
+  for (const [key, raw] of Object.entries(input)) {
+    const spec = properties[key];
+    if (!spec) {
+      if (allowExtra) continue;
+      throw new Error(`${toolName} does not accept "${key}". Allowed fields: ${Object.keys(properties).join(", ") || "none"}.`);
+    }
+    if (raw === undefined || raw === null) continue;
+    if (spec.type === "string" && typeof raw !== "string") {
+      throw new Error(`${toolName} expects "${key}" to be a string.`);
+    }
+    if (spec.type === "number" && typeof raw !== "number") {
+      throw new Error(`${toolName} expects "${key}" to be a number.`);
+    }
+    if (spec.type === "boolean" && typeof raw !== "boolean") {
+      throw new Error(`${toolName} expects "${key}" to be true or false.`);
+    }
+    if (Array.isArray(spec.enum) && !spec.enum.includes(raw)) {
+      throw new Error(`${toolName} expects "${key}" to be one of: ${spec.enum.join(", ")}.`);
+    }
+  }
+}
+
+/**
+ * The impact tier has to mean something.
+ *
+ * It was declared on every tool and read in exactly one place, a trace log
+ * line, so nothing ever branched on it. The system was safe only because every
+ * mutating tool happened to call proposeAction; a future tool tagged `read`
+ * could have written directly and nothing would have objected.
+ *
+ * A mutating tool must come back with a queued proposal, and a read tool must
+ * not. That is checkable from the result and catches the mislabelling case in
+ * both directions.
+ */
+export function assertImpactHonoured(tool: AiToolRegistration, output: unknown): void {
+  const proposalId = (output as { id?: unknown } | null)?.id;
+  const staged = typeof proposalId === "string" && proposalId.length > 0;
+
+  if (tool.impact === "read" && staged) {
+    throw new Error(`${tool.name} is registered as a read tool but produced a queued action. Re-register it with the correct impact before using it.`);
+  }
+  if ((tool.impact === "internal_write" || tool.impact === "external_action") && !staged) {
+    throw new Error(`${tool.name} is registered as ${tool.impact} but did not stage an action for approval. Mutating tools must propose; they never act directly.`);
+  }
+}
+
 const registry: AiToolRegistration[] = [
-  { name: "get_today_snapshot", description: "Read the founder's prioritized operator queue and current revenue metrics.", inputSchema: { type: "object", properties: {}, additionalProperties: false }, impact: "read", confirmationRequired: false, execute: async ({ supabase }) => {
-    const [queue, opportunities, conversations, campaigns, proposals] = await Promise.all([loadOperatorQueue(supabase), supabase.from("opportunities").select("id,name,stage,estimated_value,won_value,next_action,next_action_at").limit(250), supabase.from("conversations").select("id,unread_count,status").limit(250), supabase.from("campaigns").select("id,name,status,version,approved_version").limit(100), supabase.from("proposals").select("id,title,status,total_one_time,total_monthly").limit(100)]);
-    return { queue: queue.slice(0, 20), opportunities: opportunities.data ?? [], conversations: conversations.data ?? [], campaigns: campaigns.data ?? [], proposals: proposals.data ?? [] };
+  { name: "get_today_snapshot", description: "Read the founder's prioritized operator queue and a summary of current revenue state. Returns counts and the top items, not the full database.", inputSchema: { type: "object", properties: {}, additionalProperties: false }, impact: "read", confirmationRequired: false, execute: async ({ supabase }) => {
+    // This used to pull 250 opportunities and 250 conversations and stringify
+    // them whole into a transcript that is re-sent on every turn, which on a
+    // real dataset alone can exhaust the context window. It also swallowed
+    // every query error with `?? []`, so a failed read became a confident
+    // "you have no opportunities": hallucination by omission, invisible to
+    // everyone. Summarise, cap, and report failures honestly instead.
+    const [queue, opportunities, conversations, campaigns, proposals] = await Promise.all([
+      loadOperatorQueue(supabase),
+      supabase.from("opportunities").select("id,name,stage,estimated_value,won_value,next_action,next_action_at").not("stage", "in", "(won,lost)").order("next_action_at", { ascending: true, nullsFirst: false }).limit(SNAPSHOT_ROW_LIMIT),
+      supabase.from("conversations").select("id,unread_count,status").gt("unread_count", 0).limit(SNAPSHOT_ROW_LIMIT),
+      supabase.from("campaigns").select("id,name,status,version,approved_version").limit(SNAPSHOT_ROW_LIMIT),
+      supabase.from("proposals").select("id,title,status,total_one_time,total_monthly").in("status", ["sent", "viewed"]).limit(SNAPSHOT_ROW_LIMIT),
+    ]);
+
+    const unreadable = [
+      opportunities.error && "opportunities",
+      conversations.error && "conversations",
+      campaigns.error && "campaigns",
+      proposals.error && "proposals",
+    ].filter(Boolean) as string[];
+
+    const openOpportunities = opportunities.data ?? [];
+    return {
+      // Anything that could not be read is named, so the model says "I could
+      // not check that" instead of reporting an empty result as a fact.
+      unreadable,
+      queue: queue.slice(0, 15),
+      openOpportunityCount: openOpportunities.length,
+      openPipelineValue: openOpportunities.reduce((sum, item) => sum + Number(item.estimated_value || 0), 0),
+      topOpportunities: openOpportunities.slice(0, SNAPSHOT_DETAIL_LIMIT),
+      unreadConversationCount: (conversations.data ?? []).reduce((sum, item) => sum + Number(item.unread_count || 0), 0),
+      activeCampaigns: (campaigns.data ?? []).filter((item) => item.status === "active").map((item) => ({ id: item.id, name: item.name, awaitingReapproval: item.version !== item.approved_version })),
+      openProposals: (proposals.data ?? []).slice(0, SNAPSHOT_DETAIL_LIMIT),
+      truncated: openOpportunities.length >= SNAPSHOT_ROW_LIMIT,
+    };
   } },
   { name: "search_pipeline", description: "Search live opportunities by company or email. Never invent a record or metric.", inputSchema: { type: "object", properties: { query: { type: "string" }, stage: { type: "string", enum: [...REVENUE_STAGES] } }, additionalProperties: false }, impact: "read", confirmationRequired: false, execute: async ({ supabase }, input) => {
     const query = (value(input, "query") || "").replace(/[,%]/g, "");
@@ -74,5 +187,13 @@ export function toOpenRouterTools(): OpenRouterTool[] { return registry.map(({ n
 export async function executeRegisteredRevenueTool(context: AiToolContext, name: string, input: Record<string, unknown>) {
   const tool = registry.find((candidate) => candidate.name === name);
   if (!tool) throw new Error(`Tool ${name} is not registered`);
-  return { output: await tool.execute(context, input), tool };
+  // Destructive work has no reviewed tool or recovery policy yet, so it fails
+  // closed at dispatch rather than relying on nobody having written one.
+  if (tool.impact === "destructive") {
+    throw new Error(`${tool.name} is a destructive tool and is not available. Destructive actions require a reviewed tool and a recovery policy.`);
+  }
+  validateToolInput(tool.name, tool.inputSchema, input);
+  const output = await tool.execute(context, input);
+  assertImpactHonoured(tool, output);
+  return { output, tool };
 }
