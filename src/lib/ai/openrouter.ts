@@ -76,6 +76,48 @@ export function getOpenRouterModel(preferred?: string): string {
   return preferred?.trim() || process.env.OPENROUTER_MODEL?.trim() || DEFAULT_OPENROUTER_MODEL;
 }
 
+/**
+ * A second model OpenRouter routes to when the primary is unavailable or
+ * rate-limited. Optional: with none configured the behaviour is exactly as
+ * before, a single-model request.
+ */
+export function getOpenRouterFallbackModel(): string | null {
+  return process.env.OPENROUTER_FALLBACK_MODEL?.trim() || null;
+}
+
+/**
+ * The 45s timeout must apply even when a caller supplies its own signal.
+ * Previously `input.signal ?? controller.signal` meant a caller-provided signal
+ * detached the timeout entirely: the timer still fired, but it aborted a
+ * controller nobody was listening to, so the request could hang until the
+ * platform killed it.
+ */
+function combineSignals(timeoutSignal: AbortSignal, caller?: AbortSignal): AbortSignal {
+  if (!caller) return timeoutSignal;
+  const merge = (AbortSignal as { any?: (signals: AbortSignal[]) => AbortSignal }).any;
+  if (typeof merge === "function") return merge([timeoutSignal, caller]);
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  if (timeoutSignal.aborted || caller.aborted) controller.abort();
+  timeoutSignal.addEventListener("abort", abort, { once: true });
+  caller.addEventListener("abort", abort, { once: true });
+  return controller.signal;
+}
+
+/** Transient provider conditions worth a second attempt. */
+function isRetryableStatus(status: number): boolean {
+  return status === 408 || status === 409 || status === 429 || (status >= 500 && status <= 599);
+}
+
+const MAX_ATTEMPTS = 3;
+const BASE_BACKOFF_MS = 400;
+
+async function backoff(attempt: number): Promise<void> {
+  // Exponential with jitter, so concurrent callers do not retry in lockstep.
+  const ceiling = BASE_BACKOFF_MS * 2 ** (attempt - 1);
+  await new Promise((resolve) => setTimeout(resolve, ceiling / 2 + Math.random() * (ceiling / 2)));
+}
+
 export function isOpenRouterConfigured(): boolean {
   return Boolean(process.env.OPENROUTER_API_KEY?.trim());
 }
@@ -103,17 +145,20 @@ function boundedProviderMessage(payload: unknown): string {
   return message.replace(/(?:sk-or-v1-|Bearer\s+)[A-Za-z0-9._-]+/gi, "[redacted]").slice(0, 500);
 }
 
-export async function openRouterChat(input: OpenRouterRequest): Promise<OpenRouterResponse> {
+async function attemptChat(input: OpenRouterRequest, model: string): Promise<OpenRouterResponse> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 45_000);
   const startedAt = Date.now();
-  const model = getOpenRouterModel(input.model);
+  const fallbackModel = getOpenRouterFallbackModel();
   try {
     const response = await fetch(OPENROUTER_URL, {
       method: "POST",
       headers: headers(),
       body: JSON.stringify({
         model,
+        // Provider-side failover: OpenRouter tries the fallback itself if the
+        // primary is down, which recovers faster than our own retry loop.
+        ...(fallbackModel && fallbackModel !== model ? { models: [model, fallbackModel], route: "fallback" } : {}),
         messages: input.messages,
         max_tokens: Math.min(Math.max(input.maxTokens ?? 1200, 1), 8000),
         temperature: input.temperature ?? 0.2,
@@ -123,7 +168,7 @@ export async function openRouterChat(input: OpenRouterRequest): Promise<OpenRout
           provider: { require_parameters: true },
         } : {}),
       }),
-      signal: input.signal ?? controller.signal,
+      signal: combineSignals(controller.signal, input.signal),
     });
     const requestId = response.headers.get("x-request-id");
     const payload = await response.json().catch(() => null) as OpenRouterResponse | null;
@@ -137,12 +182,31 @@ export async function openRouterChat(input: OpenRouterRequest): Promise<OpenRout
   } catch (error) {
     if (error instanceof OpenRouterError) throw error;
     if (error instanceof Error && error.name === "AbortError") {
+      // A caller-cancelled request is not a provider failure and must not retry.
+      if (input.signal?.aborted) throw new OpenRouterError("OpenRouter request was cancelled", 499);
       throw new OpenRouterError(`OpenRouter timed out after ${Date.now() - startedAt}ms`, 504);
     }
     throw new OpenRouterError(error instanceof Error ? error.message.slice(0, 500) : "OpenRouter request failed", 502);
   } finally {
     clearTimeout(timeout);
   }
+}
+
+export async function openRouterChat(input: OpenRouterRequest): Promise<OpenRouterResponse> {
+  const model = getOpenRouterModel(input.model);
+  let lastError: OpenRouterError | null = null;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+    try {
+      return await attemptChat(input, model);
+    } catch (error) {
+      if (!(error instanceof OpenRouterError)) throw error;
+      lastError = error;
+      const recoverable = isRetryableStatus(error.status) && attempt < MAX_ATTEMPTS && !input.signal?.aborted;
+      if (!recoverable) throw error;
+      await backoff(attempt);
+    }
+  }
+  throw lastError ?? new OpenRouterError("OpenRouter request failed", 502);
 }
 
 export async function openRouterJson<T>(input: OpenRouterRequest & {
@@ -190,7 +254,7 @@ export async function openRouterTextStream(input: Omit<OpenRouterRequest, "respo
       temperature: input.temperature ?? 0.6,
       stream: true,
     }),
-    signal: input.signal ?? controller.signal,
+    signal: combineSignals(controller.signal, input.signal),
   });
   if (!response.ok || !response.body) {
     clearTimeout(timeout);
