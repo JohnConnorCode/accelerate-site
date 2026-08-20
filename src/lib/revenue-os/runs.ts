@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { safeErrorMessage } from "./db";
+import { alertJobFailure, alertStaleRecovery } from "./alerts";
 
 export interface JobRunClaim { runId: string; claimed: boolean; existingStatus: string; recoveredStale: boolean }
 export interface JobRunOutcome<T> { value: T | null; claimed: boolean; runId: string; existingStatus?: string; recoveredStale?: boolean }
@@ -37,12 +38,19 @@ export async function withJobRun<T>(supabase: SupabaseClient, jobKey: string, wo
   if (!claim.claimed) {
     return { value: null, claimed: false, runId: claim.runId, existingStatus: claim.existingStatus, recoveredStale: false };
   }
+  // A takeover means the previous run died partway through. Report it before
+  // doing the work, so the signal survives even if this run also fails.
+  if (claim.recoveredStale) await alertStaleRecovery(supabase, jobKey);
   try {
     const result = await work();
     await finishJobRun(supabase, claim.runId, result.summary, result.status);
     return { value: result.value, claimed: true, runId: claim.runId, recoveredStale: claim.recoveredStale };
   } catch (error) {
     await failJobRun(supabase, claim.runId, error);
+    // This is the one place every scheduled job's failure passes through, which
+    // makes it the natural interception point. Alerting must never replace the
+    // original error, so it is best-effort and the throw still wins.
+    await alertJobFailure(supabase, jobKey, error).catch(() => undefined);
     throw error;
   }
 }
