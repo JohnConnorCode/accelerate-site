@@ -1,6 +1,7 @@
 import { supabaseDashboard } from "@/config/tenant";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
+import { STALLED_JOB_MINUTES } from "@/lib/revenue-os/health";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import type { SetupCapability } from "@/lib/revenue-os/types";
 import { GOOGLE_SCOPES } from "@/lib/revenue-os/google";
@@ -14,7 +15,6 @@ import {
 
 interface SourceRunRow { source_key: string; status: string; summary: unknown; error: string | null; finished_at: string | null }
 interface JobRunRow { job_key: string; status: string; summary: unknown; error: string | null; finished_at: string | null; claimed_at: string }
-const MANAGED_FEATURE_BACKLOG_COUNT = 90;
 
 function configured(...keys: string[]) {
   return keys.every((key) => Boolean(process.env[key]?.trim()));
@@ -70,7 +70,10 @@ export async function GET() {
   const firstPartyAnalyticsReady = !analyticsResult.error;
   const emailStudioReady = !emailStudioResult.error;
   const contactImporterReady = !contactImporterResult.error;
-  const featureBoardReady = !featureBoardResult.error && (featureBoardResult.count ?? 0) >= MANAGED_FEATURE_BACKLOG_COUNT;
+  // Presence, not an exact count. A hardcoded expected total drifts every time
+  // the manifest changes, and detecting drift is what
+  // `npm run seed:features -- --verify` is for.
+  const featureBoardReady = !featureBoardResult.error && (featureBoardResult.count ?? 0) > 0;
   const google = googleResult.data;
   const scopes: string[] = google?.scopes ?? [];
   const requiredGoogleScopes = GOOGLE_SCOPES.filter((scope) => !["openid", "email"].includes(scope));
@@ -80,6 +83,12 @@ export async function GET() {
   for (const run of sourceRunsResult.data ?? []) if (!latestSource.has(run.source_key)) latestSource.set(run.source_key, run);
   const latestJob = new Map<string, JobRunRow>();
   for (const run of jobRunsResult.data ?? []) if (!latestJob.has(run.job_key)) latestJob.set(run.job_key, run);
+
+  // Same rule the claim function and the health service use: a run claimed
+  // longer ago than the recovery window and never closed means the process died.
+  const stalledJobs = [...latestJob.values()]
+    .filter((run) => run.status === "running" && (!run.claimed_at || Date.now() - Date.parse(run.claimed_at) > STALLED_JOB_MINUTES * 60_000))
+    .map((run) => ({ key: run.job_key }));
 
   const checks: SetupCapability[] = [
     {
@@ -127,7 +136,7 @@ export async function GET() {
       id: "feature_board",
       group: "operations",
       label: "Feature Board roadmap",
-      description: featureBoardReady ? `${featureBoardResult.count} agent-ready Revenue OS work items are loaded and ordered.` : !featureBoardResult.error ? `${featureBoardResult.count ?? 0} of ${MANAGED_FEATURE_BACKLOG_COUNT} managed work items are loaded. Run npm run seed:features -- --apply.` : "Apply migrations/20260816-feature-board.sql, then seed the managed backlog.",
+      description: featureBoardReady ? `${featureBoardResult.count} agent-ready Revenue OS work items are loaded and ordered.` : !featureBoardResult.error ? "No managed work items are loaded. Run npm run seed:features -- --apply." : "Apply migrations/20260816-feature-board.sql, then seed the managed backlog.",
       accomplishes: "Turns upcoming work into one owned, labeled, prioritized delivery queue instead of scattered notes.",
       status: featureBoardReady ? "ready" : "action",
       required: false,
@@ -315,11 +324,15 @@ export async function GET() {
       label: "Scheduled operations and receipts",
       description: configured("CRON_SECRET") ? "Cron endpoints are protected and record terminal job receipts." : "Set a long random CRON_SECRET before scheduling jobs.",
       accomplishes: "Makes automation health, failures, retries, and last successful work visible instead of silently returning 200.",
-      status: configured("CRON_SECRET") ? "ready" : "action",
+      // A job stuck `running` is the state a crashed process leaves behind. It
+      // must not read as ready just because nothing said "failed".
+      status: !configured("CRON_SECRET") ? "action" : stalledJobs.length ? "degraded" : "ready",
       required: true,
       keys: ["CRON_SECRET"],
       lastSuccessAt: [...latestJob.values()].find((run) => run.status === "success")?.finished_at ?? null,
-      lastFailure: [...latestJob.values()].find((run) => run.status === "failed")?.error ?? null,
+      lastFailure: stalledJobs.length
+        ? `${stalledJobs.map((run) => run.key).join(", ")} claimed a run and never reported a result. The next run takes the claim over.`
+        : [...latestJob.values()].find((run) => run.status === "failed")?.error ?? null,
     },
   ];
 
