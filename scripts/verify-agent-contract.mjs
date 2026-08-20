@@ -50,7 +50,11 @@ for (const card of featureBacklog) {
 // Dependencies are declared as card titles and flattened into the notes block by
 // card(). Nothing previously checked that those strings resolve, so renaming a
 // title silently broke the dependency graph. Parse them back and require a match.
-const NO_DEPENDENCY_SENTINEL = "None —";
+// The sentinel that marks a card as having no dependencies. It used to be
+// "None —", which put an em dash into every dependency-free card's notes and
+// broke the house rule the moment those notes were read. Keyed on the word
+// instead, so the wording can carry punctuation without breaking the check.
+const NO_DEPENDENCY_SENTINEL = "None";
 const cardTitles = new Set(featureBacklog.map((card) => card.title));
 
 for (const card of featureBacklog) {
