@@ -8,6 +8,11 @@ import { tenant } from "@/config/tenant";
 /** External scheduler event, when one is configured. */
 export const CALENDLY_URL = tenant.booking.schedulerUrl ?? "";
 
+/** Whether to render a scheduler embed at all. With no event configured the
+ *  booking surfaces fall back to the contact form rather than embedding an
+ *  empty or foreign calendar. */
+export const HAS_SCHEDULER = Boolean(tenant.booking.schedulerUrl);
+
 /** On-site booking page. The calendar is embedded at the top of it. */
 export const BOOKING_PATH = tenant.booking.path;
 

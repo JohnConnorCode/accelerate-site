@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
+import { HAS_SCHEDULER } from "@/lib/booking";
 
 export async function GET(request: NextRequest) {
   const token = new URL(request.url).searchParams.get("token");
@@ -16,6 +17,6 @@ export async function GET(request: NextRequest) {
     email: data.email,
     qualified: true,
     stage: data.stage,
-    bookingMode: process.env.CALENDLY_ENABLED !== "false" ? "calendly" : "manual",
+    bookingMode: HAS_SCHEDULER && process.env.CALENDLY_ENABLED !== "false" ? "calendly" : "manual",
   });
 }

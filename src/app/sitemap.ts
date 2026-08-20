@@ -2,6 +2,7 @@ export const revalidate = 3600;
 
 import type { MetadataRoute } from "next";
 import { getAllArticles, getAllCategories, getAllTags } from "@/lib/mdx";
+import { verticals } from "@/content/verticals";
 
 const BASE_URL = "https://www.acceleratewith.us";
 
@@ -17,15 +18,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/roofing", priority: 0.9, freq: "monthly", lastMod: "2026-08-16" },
     { path: "/resources", priority: 0.7, freq: "monthly", lastMod: "2026-02-01" },
     { path: "/industries", priority: 0.7, freq: "monthly", lastMod: LAST_CONTENT_UPDATE },
-    { path: "/industries/home-services", priority: 0.8, freq: "monthly", lastMod: "2026-02-15" },
-    { path: "/industries/law-firms", priority: 0.8, freq: "monthly", lastMod: "2026-02-15" },
-    { path: "/industries/professional-services", priority: 0.8, freq: "monthly", lastMod: "2026-02-15" },
-    { path: "/industries/real-estate", priority: 0.8, freq: "monthly", lastMod: "2026-02-15" },
-    { path: "/industries/manufacturing", priority: 0.8, freq: "monthly", lastMod: "2026-08-15" },
-    { path: "/industries/startups", priority: 0.8, freq: "monthly", lastMod: "2026-08-15" },
-    { path: "/industries/medical-dental", priority: 0.8, freq: "monthly", lastMod: "2026-08-15" },
-    { path: "/industries/insurance-agencies", priority: 0.8, freq: "monthly", lastMod: "2026-08-15" },
-    { path: "/industries/auto-dealers", priority: 0.8, freq: "monthly", lastMod: "2026-08-15" },
+    // Derived from the vertical manifest rather than listed by hand. The
+    // hardcoded version silently omitted a live landing page, so a new
+    // industry could ship and never be discoverable.
+    ...verticals.map((vertical) => ({
+      path: `/industries/${vertical.slug}`,
+      priority: 0.8,
+      freq: "monthly" as const,
+      lastMod: LAST_CONTENT_UPDATE,
+    })),
     { path: "/about", priority: 0.7, freq: "monthly", lastMod: "2026-02-01" },
     { path: "/contact", priority: 0.7, freq: "monthly", lastMod: "2026-01-15" },
     { path: "/learn", priority: 0.8, freq: "weekly", lastMod: LAST_CONTENT_UPDATE },

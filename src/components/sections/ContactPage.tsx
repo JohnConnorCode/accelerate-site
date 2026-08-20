@@ -6,7 +6,7 @@ import { Section, Container, Eyebrow, Heading } from "@/components/v2/studio/pri
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { HERO_HEADING } from "@/lib/type-recipes";
 import { ContactForm } from "@/components/sections/ContactForm";
-import { CALENDLY_URL } from "@/lib/booking";
+import { CALENDLY_URL, HAS_SCHEDULER } from "@/lib/booking";
 
 const INFO_CARDS = [
   {
@@ -93,16 +93,27 @@ export function ContactPageContent() {
               <h2 className="mb-2 px-2 font-display text-2xl font-bold tracking-[-0.02em] text-heading">
                 Book your free revenue-leak audit
               </h2>
-              <p className="mb-5 px-2 text-pretty text-sm leading-6 text-white-secondary">Choose a time directly on John’s calendar.</p>
-              <iframe
-                src={`${CALENDLY_URL}?hide_gdpr_banner=1&embed_domain=acceleratewith.us&embed_type=Inline`}
-                title="Book your free revenue-leak audit with John"
-                className="h-[700px] w-full rounded-xl border-0 bg-white"
-              />
-              <details className="mt-5 rounded-xl border border-border-glass px-4 py-3">
-                <summary className="cursor-pointer text-sm font-medium text-heading">Prefer to send context first?</summary>
-                <div className="pt-4"><ContactForm /></div>
-              </details>
+              {HAS_SCHEDULER ? (
+                <>
+                  <p className="mb-5 px-2 text-pretty text-sm leading-6 text-white-secondary">Choose a time directly on John’s calendar.</p>
+                  <iframe
+                    src={`${CALENDLY_URL}?hide_gdpr_banner=1&embed_domain=acceleratewith.us&embed_type=Inline`}
+                    title="Book your free revenue-leak audit with John"
+                    className="h-[700px] w-full rounded-xl border-0 bg-white"
+                  />
+                  <details className="mt-5 rounded-xl border border-border-glass px-4 py-3">
+                    <summary className="cursor-pointer text-sm font-medium text-heading">Prefer to send context first?</summary>
+                    <div className="pt-4"><ContactForm /></div>
+                  </details>
+                </>
+              ) : (
+                <>
+                  <p className="mb-5 px-2 text-pretty text-sm leading-6 text-white-secondary">
+                    Tell us what is going on and John comes back with times that work, usually the same day.
+                  </p>
+                  <div className="px-2 pb-2"><ContactForm /></div>
+                </>
+              )}
             </div>
           </AnimateOnScroll>
         </div>

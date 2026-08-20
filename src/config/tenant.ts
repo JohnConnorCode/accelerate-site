@@ -135,11 +135,14 @@ export const tenant: TenantConfig = {
       "Accelerate is an embedded AI operations team for small businesses. We do not call ourselves an agency. We are not software. We build custom AI systems for our clients AND run them alongside the team.",
   },
   booking: {
-    // FIXME: this Calendly event belongs to a different business (john-superdebate)
-    // and was reachable from the public chat prompt. Left as-is so behaviour does
-    // not change silently; replace with the correct event or set to null to stop
-    // handing it out. Tracked on the tenant-config-seam card.
-    schedulerUrl: "https://calendly.com/john-superdebate/30min",
+    // Disabled until a correct event is supplied. This previously pointed at
+    // calendly.com/john-superdebate, a different business, and it was embedded
+    // on /contact under "Choose a time directly on John's calendar" as well as
+    // handed out by the public chat. Every Book a call CTA on the site led
+    // there. AGENTS.md already states Calendly stays disabled unless a card
+    // explicitly activates it, so null is the documented default, not a
+    // regression. Set the real event URL here to turn booking back on.
+    schedulerUrl: null,
     url: "https://acceleratewith.us/contact",
     path: "/contact",
   },
