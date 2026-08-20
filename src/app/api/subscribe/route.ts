@@ -38,7 +38,12 @@ export async function POST(request: NextRequest) {
         },
         { onConflict: "email" }
       );
-      if (dbError) console.error("subscribers upsert FAILED:", dbError.message);
+      // Telling someone they are subscribed when the row was never written
+      // loses them silently: they never hear from us and never try again.
+      if (dbError) {
+        console.error("subscribers upsert FAILED:", dbError.message);
+        return NextResponse.json({ error: "We could not save your subscription. Please try again." }, { status: 500 });
+      }
     }
 
     return NextResponse.json({ success: true });

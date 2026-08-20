@@ -62,7 +62,11 @@ export async function POST(request: NextRequest) {
           utm_medium: utm?.utm_medium || null,
           utm_campaign: utm?.utm_campaign || null,
         });
-        if (dbError) console.error("partner_applications insert FAILED:", dbError.message);
+        // An application we never stored is an application we never received.
+        if (dbError) {
+          console.error("partner_applications insert FAILED:", dbError.message);
+          return NextResponse.json({ error: "We could not save your application. Please try again." }, { status: 500 });
+        }
 
         // Create admin notification (fire and forget)
         Promise.resolve(supabase.from("admin_notifications").insert({

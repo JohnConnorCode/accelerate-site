@@ -3,6 +3,7 @@ import { nanoid } from "nanoid";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { scheduleEmailSequence } from "@/lib/email/sequences";
 import { isValidWorkEmail, normalizeEmail, normalizeWebsite, qualifyRoofingOpportunity, type RoofingQualifierInput } from "@/lib/opportunities";
+import { recordAudit } from "@/lib/revenue-os/audit";
 import { ingestRoofingQualification } from "@/lib/revenue-os/inbound";
 
 const ALLOWED_ROLES = new Set([
@@ -57,8 +58,16 @@ export async function POST(request: NextRequest) {
       link: "/admin/bookings",
       priority: qualification.qualified ? "urgent" : "info",
     });
+    // The inquiry itself is safely stored, so the visitor is not failed. But a
+    // qualified lead nobody is told about is a lead that goes cold, so the
+    // miss is recorded where it can be found later.
     if (notificationError) {
       console.error("[qualify] failed to create admin notification:", notificationError.message);
+      await recordAudit(supabase, {
+        actorEmail: "system", action: "notification.failed", entityType: "opportunity",
+        entityId: opportunity.id, source: "webhook",
+        metadata: { surface: "roofing_qualifier", qualified: qualification.qualified, error: notificationError.message },
+      });
     }
 
     // Email is useful but should never make the qualifier feel broken.

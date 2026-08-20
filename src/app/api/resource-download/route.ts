@@ -44,7 +44,20 @@ export async function POST(request: NextRequest) {
           utm_medium: utm?.utm_medium || null,
           utm_campaign: utm?.utm_campaign || null,
         });
-        if (dbError) console.error("resource_downloads insert FAILED:", dbError.message);
+        // The visitor still gets the resource, so failing their request over a
+        // CRM write would punish them for our fault. But the lead would be lost
+        // with nobody knowing, so the operator is told with the details needed
+        // to recover it by hand.
+        if (dbError) {
+          console.error("resource_downloads insert FAILED:", dbError.message);
+          await supabase.from("admin_notifications").insert({
+            type: "new_lead",
+            title: `Resource download not recorded: ${name}`,
+            description: `${email} requested ${resourceId}. The database write failed, so this lead exists only in this notification.`,
+            link: "/admin/resources",
+            priority: "urgent",
+          });
+        }
       } catch (e) {
         console.warn("Supabase save failed:", e);
       }

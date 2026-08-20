@@ -96,7 +96,19 @@ export async function POST(request: NextRequest) {
           utm_medium: utm?.utm_medium || null,
           utm_campaign: utm?.utm_campaign || null,
         });
-        if (dbError) console.error("solution_requests insert FAILED:", dbError.message);
+        // The visitor still receives their plan, so a 500 would deny them the
+        // thing they came for. But the lead must not vanish, so it is escalated
+        // with everything needed to recover it by hand.
+        if (dbError) {
+          console.error("solution_requests insert FAILED:", dbError.message);
+          await supabase.from("admin_notifications").insert({
+            type: "new_lead",
+            title: `Plan request not recorded: ${formData.contactName}`,
+            description: `${formData.contactEmail} requested a plan for ${formData.businessName || "an unnamed business"}. The database write failed, so this lead exists only in this notification.`,
+            link: "/admin/leads",
+            priority: "urgent",
+          });
+        }
 
         // Create admin notification (fire and forget)
         Promise.resolve(supabase.from("admin_notifications").insert({
@@ -202,19 +214,29 @@ async function savePlan(
   modelUsed: string
 ) {
   if (!supabase) return;
-  try {
-    await supabase
-      .from("solution_requests")
-      .update({
-        status: "completed",
-        ai_plan: plan,
-        ai_model_used: modelUsed,
-        estimated_value: plan.investmentSummary.totalOneTime + plan.investmentSummary.totalMonthly * 12,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("share_token", shareToken);
-  } catch (e) {
-    console.warn("Failed to save plan to Supabase:", e);
+  // supabase-js resolves with an error rather than throwing, so the previous
+  // try/catch here caught nothing: a failed update left the row stuck in
+  // `generating` while the caller handed the visitor a share token pointing at
+  // a plan that would never appear.
+  const { error } = await supabase
+    .from("solution_requests")
+    .update({
+      status: "completed",
+      ai_plan: plan,
+      ai_model_used: modelUsed,
+      estimated_value: plan.investmentSummary.totalOneTime + plan.investmentSummary.totalMonthly * 12,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("share_token", shareToken);
+  if (error) {
+    console.error("[generate-plan] saving the completed plan FAILED:", error.message);
+    await supabase.from("admin_notifications").insert({
+      type: "new_lead",
+      title: "Generated plan could not be saved",
+      description: `Share token ${shareToken} is stranded: the plan was generated but the row was never completed. ${error.message}`,
+      link: "/admin/leads",
+      priority: "urgent",
+    });
   }
 }
 
