@@ -106,9 +106,46 @@ bounded JSON schema, impact tier, confirmation requirement, and executor.
 - **Internal write:** proposes an `action_queue` item unless a policy explicitly
   permits the exact deterministic operation.
 - **External action:** always shows exact recipient/record/content/timing and
-  requires founder confirmation unless it is inside an approved campaign version.
+  requires founder confirmation unless it is inside an approved policy version
+  (see below).
 - **Destructive:** fail closed until a specific reviewed tool and recovery policy
   exist.
+
+Tool schemas and impact tiers are enforced at dispatch, not advertised and
+ignored. A tool call is validated against its declared schema before the executor
+runs; a `read` tool that stages an action, and a mutating tool that does not, are
+both refused.
+
+### Approved policy versions
+
+An external action may run without per-instance confirmation only from inside an
+**approved policy version**: a versioned, founder-signed record that fixes the
+trigger, the envelope, the guardrails, the message template, and the model. This
+generalises the rule campaigns already follow, where `activateCampaign` suspends
+sending whenever `version` moves past `approved_version`. The founder approves a
+policy once, not a message at a time, and any material edit bumps the version and
+suspends the policy until it is re-approved.
+
+A policy version is only a legitimate substitute for confirmation when all of the
+following hold:
+
+1. **Bounded trigger.** A named event, not a model's judgement that it is time.
+2. **Bounded envelope.** Explicit per-run, per-day, and per-contact caps; an
+   allowed time window; and an eligibility rule that names who is excluded.
+3. **Re-read stop conditions immediately before the side effect**, matching the
+   automation contract. Suppression, an existing client, and a human who has
+   already replied all stop it.
+4. **One kill switch**, checked at execution rather than at scheduling, that
+   halts sending mid-flight.
+5. **Grounded content.** The message is generated only from the inbound text and
+   the canonical record. No invented pricing, availability, dates, commitments,
+   or capabilities.
+6. **A recorded decision either way.** Declining to act is written down with its
+   reason, exactly like acting. A policy that only records what it did cannot be
+   audited for what it wrongly skipped.
+
+Anything outside the approved envelope falls back to `action_queue` and founder
+confirmation. It never widens itself, and the model never edits the policy.
 
 Approved actions execute through `action-executor.ts`, which calls the same
 pipeline, task, communication, Google, or campaign service as the UI. Tool runs
