@@ -3,8 +3,9 @@
 import { Hero } from "@/components/home/Hero";
 import { Marquee } from "@/components/home/Marquee";
 import { Evidence } from "@/components/home/Evidence";
+import { Week } from "@/components/home/Week";
 import { CommandCenter } from "@/components/home/CommandCenter";
-import { Outcomes } from "@/components/home/Outcomes";
+import { Trades } from "@/components/home/Trades";
 import { HowWeWork } from "@/components/home/HowWeWork";
 import { Plan } from "@/components/home/Plan";
 import { Who } from "@/components/home/Who";
@@ -12,9 +13,10 @@ import { Faq } from "@/components/home/Faq";
 import { FinalCta } from "@/components/home/FinalCta";
 
 /**
- * Accelerate homepage. Most traffic here has already talked to John, not
- * cold — so the page confirms and closes rather than re-pitching (Evidence
- * is a single compact beat, not a discovery-stage sales case).
+ * Accelerate homepage. The arc below the hero: the problem with proof
+ * (Evidence), the concrete transformation (Week), the product artifact
+ * (CommandCenter), the photography beat showing where it runs (Trades),
+ * then process, plan, firm, questions, close.
  */
 export function Studio() {
   return (
@@ -27,8 +29,9 @@ export function Studio() {
         <Marquee />
       </div>
       <Evidence />
-      <Outcomes />
+      <Week />
       <CommandCenter />
+      <Trades />
       <HowWeWork />
       <Plan />
       <Who />

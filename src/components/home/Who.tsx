@@ -22,7 +22,7 @@ export function Who() {
         </div>
         <div className="who">
           {/* Asymmetric split instead of the symmetric two-column pattern
-              Evidence/Outcomes already use — pulls the "fifteen years"
+              Evidence/Week already use — pulls the "fifteen years"
               line (already-approved copy, not a new personal detail) into
               a large editorial numeral so this section has a genuinely
               different composition/rhythm than its neighbors, not just
