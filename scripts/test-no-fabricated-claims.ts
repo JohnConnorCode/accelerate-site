@@ -22,6 +22,29 @@ import { readFileSync } from "node:fs";
 /** Files that must contain no statistic of any kind. */
 const NO_STATISTICS = ["src/components/sections/NonprofitLanding.tsx"];
 
+/**
+ * Files that must contain no "not X, it's Y" antithesis.
+ *
+ * The construction tells the reader what they are or what they think before it
+ * makes its point, and it fakes insight by setting up a strawman to knock down.
+ * It had become a reflex across the whole page: "You are not short on people
+ * who care. You are short on hours.", "The mission is not the hard part.",
+ * "Not another platform to learn.", "The donor does not decide to leave."
+ *
+ * Say the true thing and let it stand.
+ */
+const NO_ANTITHESIS = ["src/components/sections/NonprofitLanding.tsx"];
+
+const ANTITHESIS_PATTERNS: Array<{ pattern: RegExp; why: string }> = [
+  // "X is not Y. It is Z." across a sentence boundary.
+  { pattern: /\b(?:is|are|was|were|do|does|did)\s+n[o']t\b[^.!?]{2,70}[.!?]\s+(?:It|That|They|The|We|You|Its)\b/i, why: 'a "not X. Y." antithesis' },
+  // "It's not X, it's Y" in one sentence.
+  { pattern: /\b(?:is|are|was|were)\s+n[o']t\s+[^.,;!?]{2,60},\s*(?:it|they|that|we|you)\s+(?:is|are|was|were)\b/i, why: 'an "it is not X, it is Y" antithesis' },
+  // A fragment opening: "Not another platform. An operations team."
+  { pattern: /(?:^|[.!?]\s+)Not\s+(?:a|an|another|just|only)\b[^.!?]{2,70}[.!?]/, why: 'a "Not X. Y." fragment antithesis' },
+  { pattern: /\bnever\s+the\s+(?:missing piece|point|problem|issue)\b/i, why: "a strawman dismissal" },
+];
+
 /** Patterns that assert a measured fact. */
 const CLAIM_PATTERNS: Array<{ pattern: RegExp; why: string }> = [
   { pattern: /\d+(\.\d+)?\s?%/, why: "a percentage" },
@@ -87,13 +110,25 @@ for (const file of NO_STATISTICS) {
   }
 }
 
+for (const file of NO_ANTITHESIS) {
+  const source = readFileSync(file, "utf8");
+  for (const literal of stringLiterals(source)) {
+    if (!isCopy(literal)) continue;
+    for (const rule of ANTITHESIS_PATTERNS) {
+      if (rule.pattern.test(literal)) {
+        failures.push(`${file}: uses ${rule.why}. State the point directly:\n    "${literal.slice(0, 130)}"`);
+      }
+    }
+  }
+}
+
 assert.ok(inspected > 10, `only inspected ${inspected} copy strings, so this guard is probably not looking at the right thing`);
 
 if (failures.length) {
   console.error(`Fabricated-claim guard failed with ${failures.length} issue(s).`);
-  console.error("These pages carry no measured data, so they carry no statistics. Describe the problem instead.\n");
+  console.error("These pages carry no measured data, so they carry no statistics, and they state points directly rather than by contrast.\n");
   for (const failure of failures) console.error(`- ${failure}`);
   process.exitCode = 1;
 } else {
-  console.log(JSON.stringify({ filesGuarded: NO_STATISTICS.length, copyStringsInspected: inspected, result: "passed" }, null, 2));
+  console.log(JSON.stringify({ statisticsGuarded: NO_STATISTICS.length, antithesisGuarded: NO_ANTITHESIS.length, copyStringsInspected: inspected, result: "passed" }, null, 2));
 }

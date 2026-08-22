@@ -19,6 +19,12 @@
  * That is a stronger claim than a number, and it has the advantage of being
  * true.
  *
+ * SECOND HARD RULE: no "not X, it's Y" antithesis anywhere. No "it is not the
+ * hard part", no "not another platform", no "the donor does not decide to
+ * leave". That construction tells the reader what they are or what they think
+ * before it makes its point, and it manufactures insight by knocking down a
+ * strawman. Say the true thing and let it stand.
+ *
  * The photography is real documentary work under the Unsplash License, stored
  * locally rather than hotlinked. The page is about people, so it shows people.
  */
@@ -34,23 +40,23 @@ import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 const BREAKS = [
   {
     n: "01",
-    title: "The second gift is never asked for",
-    body: "A first gift arrives on a Thursday. The thank-you goes out late, the note about what it paid for never gets written, and the second ask waits for a quarter that never has a spare week in it. The donor does not decide to leave. They are simply never spoken to again.",
+    title: "The second gift never gets asked for",
+    body: "A first gift arrives on a Thursday. The thank-you goes out late, the note about what it paid for never gets written, and the second ask waits for a quarter with a spare week in it. The supporter simply stops hearing from you.",
   },
   {
     n: "02",
-    title: "You bought the tool. Nobody had time to set it up.",
-    body: "There is a platform in the stack with AI in the name and a login nobody has used since the demo. Software was never the missing piece. Somebody has to design the workflow, wire it to your donor data, and keep it running through the weeks your team is underwater.",
+    title: "The platform nobody had time to configure",
+    body: "There is a tool in the stack with AI in the name and a login nobody has opened since the demo. Someone has to design the workflow, wire it to your donor data, and keep it running through the weeks your team is underwater.",
   },
   {
     n: "03",
     title: "Stewardship loses to whatever has a deadline",
-    body: "Grant reports have dates. Board packets have dates. Thanking a donor properly does not, so it is the work that slips first, every single time, on teams already carrying more than they have support for.",
+    body: "Grant reports have dates. Board packets have dates. Thanking a donor properly has none, so it slips first, every time, on teams already carrying more than they have support for.",
   },
   {
     n: "04",
-    title: "The numbers in the board packet get argued with",
-    body: "Figures get rebuilt by hand from spreadsheets that disagree with the database. The meeting turns into a conversation about where the data came from instead of what to do next.",
+    title: "The board packet gets argued with",
+    body: "Figures get rebuilt by hand from spreadsheets that disagree with the database. The meeting turns into a conversation about where the numbers came from.",
   },
 ];
 
@@ -60,23 +66,23 @@ const BREAKS = [
 const SEQUENCE = [
   {
     what: "The moment a gift lands",
-    detail: "It is matched to the right supporter and thanked in your voice, not with a receipt. Nobody has to notice it first.",
+    detail: "It is matched to the right supporter and thanked in your voice, straight away, while the decision to give is still fresh.",
   },
   {
-    what: "Before the ask comes back",
-    detail: "One short note about what the money actually did, with nothing attached to it. This is the message almost nobody sends, and it is the one that earns the next gift.",
+    what: "Before the next ask",
+    detail: "A short note about what the money paid for, with nothing attached to it. This is the message that earns the gift after it.",
   },
   {
     what: "When they are ready to give again",
-    detail: "A second ask that references the program they already funded, rather than a mailing that treats them like a stranger.",
+    detail: "A second ask that references the program they already funded, in language your team approved once.",
   },
   {
-    what: "When a one-time giver could become a monthly one",
-    detail: "The recurring path gets offered to the people whose behaviour says they would take it, instead of to everyone at once.",
+    what: "When a one-time gift could become monthly",
+    detail: "The recurring path goes to the supporters whose giving pattern suggests they would take it.",
   },
   {
     what: "The moment something needs a person",
-    detail: "A major gift signal, a complaint, anything ambiguous: the automation stops and it goes to a human with the full history attached. It never guesses at a fact about your programs.",
+    detail: "A major gift signal, a complaint, anything ambiguous: the automation stops and hands it to a human with the full history attached.",
   },
 ];
 
@@ -96,7 +102,7 @@ const WORKSHELTER_WORK = [
   },
   {
     title: "Operating strategy",
-    body: "What to run, in what order, and what to stop doing. The hardest part is rarely the tooling.",
+    body: "What to run, in what order, and what to stop doing. Most of the difficulty sits in the sequencing.",
   },
 ];
 
@@ -128,22 +134,21 @@ export function NonprofitLanding() {
           <Container className="relative flex min-h-[min(80svh,46rem)] items-center py-[clamp(4.5rem,9vw,7rem)]">
           <div className="max-w-[54rem]">
             <AnimateOnScroll>
-              <Eyebrow className="mb-7 text-white/70">For nonprofits</Eyebrow>
+              <Eyebrow className="mb-7 !text-white/85">For nonprofits</Eyebrow>
             </AnimateOnScroll>
 
             <RevealHeading
               as="h1"
-              className="font-display font-extrabold leading-[1.02] tracking-[-0.038em] text-[clamp(2.4rem,5.4vw,4.8rem)] text-white"
-              lead="You are not short on people who care."
-              accent="You are short on hours."
+              className="max-w-[17ch] font-display font-extrabold leading-[1.0] tracking-[-0.04em] text-[clamp(2.5rem,5.6vw,5rem)] text-white"
+              lead="Every supporter thanked, followed up,"
+              accent="and invited back."
             />
 
             <AnimateOnScroll delay={0.18}>
-              <p className="mt-8 max-w-[50ch] text-[1.08rem] leading-[1.75] text-white/80">
-                The mission is not the hard part. Keeping up with it is. We build the
-                systems that thank every donor, answer every inquiry, and keep the
-                follow-up moving, and then we run them alongside your team. Not another
-                platform to learn. An operations team you did not have to hire.
+              <p className="mt-9 max-w-[46ch] text-[1.08rem] leading-[1.8] text-white/75">
+                We build the systems that keep your supporter relationships moving, and
+                then we run them alongside your team. Your voice, your data, your
+                approvals. The remembering becomes ours.
               </p>
             </AnimateOnScroll>
 
@@ -166,30 +171,34 @@ export function NonprofitLanding() {
           <RevealHeading
             as="h2"
             className="max-w-[24ch] font-display font-extrabold leading-[1.06] tracking-[-0.03em] text-[clamp(1.9rem,3.6vw,3.1rem)] text-heading"
-            lead="None of this is a"
-            accent="generosity problem."
+            lead="The work that slips first,"
+            accent="every single time."
           />
           <AnimateOnScroll delay={0.12}>
             <p className="mt-7 max-w-[58ch] text-[1.02rem] leading-[1.75] text-white-secondary">
-              It is a capacity problem wearing a fundraising costume. Every one of these
-              is fixable, and none of them get fixed by asking an already stretched team
-              to try harder.
+              Every one of these comes down to capacity, and every one of them is
+              fixable. Asking a stretched team to try harder fixes none of them.
             </p>
           </AnimateOnScroll>
 
           <div className="mt-16 grid gap-x-14 gap-y-12 md:grid-cols-2">
             {BREAKS.map((item, i) => (
               <AnimateOnScroll key={item.n} delay={0.06 * i}>
-                <div className="border-t border-[color-mix(in_srgb,var(--fg)_16%,transparent)] pt-6">
-                  <span className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-white-muted">
+                <div className="group grid grid-cols-[auto_minmax(0,1fr)] gap-x-6 border-t border-[color-mix(in_srgb,var(--fg)_18%,transparent)] pt-7">
+                  <span
+                    aria-hidden="true"
+                    className="font-serif text-[2.1rem] font-medium leading-none tracking-[-0.02em] text-[color-mix(in_srgb,var(--fg)_28%,transparent)] transition-colors duration-500 group-hover:text-[color-mix(in_srgb,var(--fg)_55%,transparent)]"
+                  >
                     {item.n}
                   </span>
-                  <h3 className="mt-4 max-w-[26ch] font-display text-[1.3rem] font-bold leading-[1.25] tracking-[-0.015em] text-heading">
-                    {item.title}
-                  </h3>
-                  <p className="mt-4 max-w-[46ch] text-[0.97rem] leading-[1.7] text-white-secondary">
-                    {item.body}
-                  </p>
+                  <div>
+                    <h3 className="max-w-[30ch] text-balance font-display text-[1.32rem] font-bold leading-[1.24] tracking-[-0.018em] text-heading">
+                      {item.title}
+                    </h3>
+                    <p className="mt-4 max-w-[44ch] text-[0.97rem] leading-[1.72] text-white-secondary">
+                      {item.body}
+                    </p>
+                  </div>
                 </div>
               </AnimateOnScroll>
             ))}
@@ -199,7 +208,7 @@ export function NonprofitLanding() {
 
       {/* ── Photographic interlude: the register the whole page sits in ─── */}
       <section className="relative">
-        <div className="grid gap-2 sm:grid-cols-3">
+        <div className="grid gap-px bg-[color-mix(in_srgb,var(--fg)_14%,transparent)] sm:grid-cols-3">
           {[
             { src: "/images/nonprofits/packing.jpg", alt: "A volunteer packing food into bags for distribution" },
             { src: "/images/nonprofits/supplies.jpg", alt: "Volunteers in branded shirts serving food under an outdoor canopy" },
@@ -231,14 +240,14 @@ export function NonprofitLanding() {
               <RevealHeading
                 as="h2"
                 className="max-w-[18ch] font-display font-extrabold leading-[1.06] tracking-[-0.03em] text-[clamp(1.9rem,3.6vw,3.1rem)] text-heading"
-                lead="Every supporter, handled properly,"
-                accent="without anyone remembering to."
+                lead="What your supporters"
+                accent="actually experience."
               />
               <AnimateOnScroll delay={0.14}>
                 <p className="mt-7 max-w-[42ch] text-[1.02rem] leading-[1.75] text-white-secondary">
-                  Your team writes the voice and approves the templates once. After that
-                  the remembering, the matching, and the timing stop being somebody&apos;s
-                  job. The words stay yours.
+                  Your team writes the voice and approves the templates once. After that,
+                  the remembering, the matching, and the timing run on their own. The
+                  words stay yours throughout.
                 </p>
               </AnimateOnScroll>
             </div>
@@ -246,9 +255,9 @@ export function NonprofitLanding() {
             <ol className="relative">
               {SEQUENCE.map((step, i) => (
                 <AnimateOnScroll key={step.what} delay={0.06 * i}>
-                  <li className="relative flex gap-6 pb-11 last:pb-0">
+                  <li className="relative flex gap-7 pb-12 last:pb-0">
                     <div className="relative flex flex-col items-center">
-                      <span className="mt-[7px] size-2.5 shrink-0 rounded-full bg-[var(--fg)]" />
+                      <span className="mt-[9px] size-2 shrink-0 rounded-full bg-[var(--fg)] ring-4 ring-[color-mix(in_srgb,var(--fg)_10%,transparent)]" />
                       {i < SEQUENCE.length - 1 && (
                         <span className="mt-2 w-px flex-1 bg-[color-mix(in_srgb,var(--fg)_18%,transparent)]" />
                       )}
@@ -285,9 +294,8 @@ export function NonprofitLanding() {
               <AnimateOnScroll delay={0.12}>
                 <p className="mt-7 max-w-[46ch] text-[1.02rem] leading-[1.75] text-white-secondary">
                   We built and now run the system that organizes their operations end to
-                  end. What follows is the scope of that work. We are not going to put a
-                  percentage next to it, because the honest version is more useful to you
-                  than a number you cannot check.
+                  end. Below is the scope of that work, described plainly, so you can
+                  judge whether it resembles yours.
                 </p>
               </AnimateOnScroll>
               <AnimateOnScroll delay={0.2}>
@@ -368,7 +376,7 @@ export function NonprofitLanding() {
               </div>
             </AnimateOnScroll>
             <AnimateOnScroll delay={0.32}>
-              <CallTerms className="mt-12 max-w-[40rem]" />
+              <CallTerms className="mt-12 max-w-[40rem] !border-white/20 [&_*]:!text-white/70" />
             </AnimateOnScroll>
           </div>
         </Container>
