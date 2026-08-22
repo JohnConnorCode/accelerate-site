@@ -16,7 +16,7 @@ funnelStage: "consideration"
 
 A vendor invoice lands in the inbox as a PDF. Someone on your team opens it, reads the amount, the line items, the PO number, and the due date, then opens QuickBooks in another window and types all of it back in by hand. Five minutes per invoice. Forty invoices a week. That is three and a half hours a week spent moving numbers from one screen to another, plus the occasional transposed digit that turns a $1,240 bill into a $12,400 payment.
 
-This is the most expensive kind of work a business does: skilled people doing the job of a scanner. It feels productive because someone is typing. It is not productive. It is copy and paste with extra steps.
+This is the most expensive kind of work a business does: skilled people doing the job of a scanner. It feels productive because someone is typing. It is copy and paste with extra steps.
 
 AI document processing fixes this. Not the version where you upload a file and hope, but a real pipeline that reads the document, pulls out the fields you actually need, checks its own confidence, routes the uncertain ones to a human, and writes the clean data straight into the system you already use. This is the playbook to build it.
 
@@ -92,7 +92,7 @@ The confidence routing in step 4 is the whole game. It is the difference between
 <Callout type="important" title="The confidence-threshold trap that burns people">
 Here is the failure mode that turns document automation into a disaster: you set the system to auto-approve everything, the AI hits 96% accuracy, and you call it done. That sounds great until you do the math. At 96%, one in every 25 documents has a silent error. Process 500 invoices a month and that is 20 wrong payments, due dates, or amounts flowing into your books with nobody looking. The 4% you ignored is exactly where the expensive mistakes hide, because hard-to-read documents are both the ones the AI gets wrong AND the ones a human would have caught.
 
-The fix is not chasing 100% accuracy, which you will never reach. The fix is the confidence threshold. Set it high (we usually start at 0.90 per field), auto-approve only what clears it, and send everything below it to a person. You are not trying to make the AI perfect. You are using it to handle the 80 to 90% it is genuinely certain about, so humans spend their time only on the handful that actually need judgment.
+The fix is the confidence threshold, because 100% accuracy stays out of reach. Set it high (we usually start at 0.90 per field), auto-approve only what clears it, and send everything below it to a person. You are not trying to make the AI perfect. You are using it to handle the 80 to 90% it is genuinely certain about, so humans spend their time only on the handful that actually need judgment.
 </Callout>
 
 ## What most people get wrong

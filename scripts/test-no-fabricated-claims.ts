@@ -17,7 +17,11 @@
  * claims about the world: the length of a call is a promise, not a measurement.
  */
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
+
+/** The guard itself has to quote the constructions it bans. */
+const ALLOWED_FILES: string[] = [];
 
 /** Files that must contain no statistic of any kind. */
 const NO_STATISTICS = ["src/components/sections/NonprofitLanding.tsx"];
@@ -33,16 +37,40 @@ const NO_STATISTICS = ["src/components/sections/NonprofitLanding.tsx"];
  *
  * Say the true thing and let it stand.
  */
-const NO_ANTITHESIS = ["src/components/sections/NonprofitLanding.tsx"];
+const NO_ANTITHESIS_DIRS = ["src/content", "src/components/sections", "src/lib/chat"];
+
+/**
+ * Ordinary negation that the patterns below would otherwise flag. A condition
+ * ("if we are not delivering, you leave") and a plain statement of fact
+ * ("most prospects are not ready to buy the day they find you") are not the
+ * construction being banned. Each entry is a sentence that was reviewed and
+ * kept, so the list stays short and is not a place to hide new offences.
+ */
+const REVIEWED_NEGATIONS = [
+  "If we are not delivering, you leave",
+  "If we are not delivering results, you can walk",
+  "AI is not going away",
+  "They are not comparison-shopping",
+  "Most prospects are not ready to buy",
+  "their quote was not low enough",
+  "the phone is not ringing any more than before",
+  "that is not you, because you are on a roof",
+];
 
 const ANTITHESIS_PATTERNS: Array<{ pattern: RegExp; why: string }> = [
-  // "X is not Y. It is Z." across a sentence boundary.
-  { pattern: /\b(?:is|are|was|were|do|does|did)\s+n[o']t\b[^.!?]{2,70}[.!?]\s+(?:It|That|They|The|We|You|Its)\b/i, why: 'a "not X. Y." antithesis' },
-  // "It's not X, it's Y" in one sentence.
+  // "X is not Y. It is Z." The second sentence must itself be a copula, which
+  // is what makes this a redefinition rather than an ordinary sequence of
+  // events. Without that requirement it flags narration like "They do not leave
+  // a voicemail. They hit the back button.", which is fine writing.
+  { pattern: /\b(?:is|are|was|were)\s+n[o']t\b[^.!?]{2,80}[.!?]\s+(?:It|That|They|Its)\s+(?:is|are|was|were)\b/i, why: 'a "not X. It is Y." antithesis' },
+  // Same shape where the second sentence repeats the subject: "The fix is not
+  // a chart. The fix is a text message."
+  { pattern: /\bThe\s+(\w+)\s+(?:is|are|was|were)\s+n[o']t\b[^.!?]{2,80}[.!?]\s+The\s+\1\s+(?:is|are|was|were)\b/i, why: 'a "The X is not A. The X is B." antithesis' },
+  // "It's not X, it's Y" inside one sentence.
   { pattern: /\b(?:is|are|was|were)\s+n[o']t\s+[^.,;!?]{2,60},\s*(?:it|they|that|we|you)\s+(?:is|are|was|were)\b/i, why: 'an "it is not X, it is Y" antithesis' },
-  // A fragment opening: "Not another platform. An operations team."
-  { pattern: /(?:^|[.!?]\s+)Not\s+(?:a|an|another|just|only)\b[^.!?]{2,70}[.!?]/, why: 'a "Not X. Y." fragment antithesis' },
-  { pattern: /\bnever\s+the\s+(?:missing piece|point|problem|issue)\b/i, why: "a strawman dismissal" },
+  // Punchy fragment: "Not a template." "Not another platform to learn."
+  { pattern: /(?:^|[.!?]\s+|\*\*)Not\s+(?:a|an|another|just|only)\b[^.!?]{2,70}[.!?]/, why: 'a "Not X." fragment antithesis' },
+  { pattern: /\bnever\s+the\s+(?:missing piece|point|problem|issue|answer)\b/i, why: "a strawman dismissal" },
 ];
 
 /** Patterns that assert a measured fact. */
@@ -110,13 +138,42 @@ for (const file of NO_STATISTICS) {
   }
 }
 
-for (const file of NO_ANTITHESIS) {
-  const source = readFileSync(file, "utf8");
-  for (const literal of stringLiterals(source)) {
-    if (!isCopy(literal)) continue;
-    for (const rule of ANTITHESIS_PATTERNS) {
-      if (rule.pattern.test(literal)) {
-        failures.push(`${file}: uses ${rule.why}. State the point directly:\n    "${literal.slice(0, 130)}"`);
+/** Prose files: markdown is copy in its entirety, TSX only inside literals. */
+function copyChunks(file: string, source: string): string[] {
+  if (/\.mdx?$/.test(file)) {
+    return source
+      .replace(/^---[\s\S]*?^---/m, " ")   // frontmatter
+      .replace(/```[\s\S]*?```/g, " ")      // code fences
+      .split(/\n{2,}/);
+  }
+  return stringLiterals(source).filter(isCopy);
+}
+
+function walk(dir: string): string[] {
+  const found: string[] = [];
+  let entries: string[];
+  try { entries = readdirSync(dir); } catch { return found; }
+  for (const entry of entries) {
+    const full = join(dir, entry);
+    if (statSync(full).isDirectory()) found.push(...walk(full));
+    else if (/\.(tsx?|mdx?)$/.test(entry)) found.push(full);
+  }
+  return found;
+}
+
+let antithesisScanned = 0;
+for (const dir of NO_ANTITHESIS_DIRS) {
+  for (const file of walk(dir)) {
+    if (ALLOWED_FILES.includes(file)) continue;
+    const source = readFileSync(file, "utf8");
+    for (const chunk of copyChunks(file, source)) {
+      antithesisScanned += 1;
+      if (REVIEWED_NEGATIONS.some((kept) => chunk.includes(kept))) continue;
+      for (const rule of ANTITHESIS_PATTERNS) {
+        const match = rule.pattern.exec(chunk);
+        if (match) {
+          failures.push(`${file}: uses ${rule.why}. State the point directly:\n    "${match[0].trim().slice(0, 140)}"`);
+        }
       }
     }
   }
@@ -130,5 +187,5 @@ if (failures.length) {
   for (const failure of failures) console.error(`- ${failure}`);
   process.exitCode = 1;
 } else {
-  console.log(JSON.stringify({ statisticsGuarded: NO_STATISTICS.length, antithesisGuarded: NO_ANTITHESIS.length, copyStringsInspected: inspected, result: "passed" }, null, 2));
+  console.log(JSON.stringify({ statisticsGuarded: NO_STATISTICS.length, antithesisChunksScanned: antithesisScanned, copyStringsInspected: inspected, result: "passed" }, null, 2));
 }

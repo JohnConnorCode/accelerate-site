@@ -155,7 +155,7 @@ export const capabilities: Capability[] = [
     title: "Email drafted off your own sent mail",
     gated: true,
     detail:
-      "Not a template. It reads the thread and how you have written to that person before, then produces the reply you would have written at your desk.",
+      "It reads the thread and how you have written to that person before, then produces the reply you would have written at your desk.",
   },
   {
     id: "followups",
@@ -332,7 +332,7 @@ export const capabilities: Capability[] = [
     category: "govern",
     title: "Your own database",
     detail:
-      "Not a shared table with other companies' records sitting next to yours.",
+      "Your records live in a database of your own, separate from every other client.",
   },
   {
     id: "roles",

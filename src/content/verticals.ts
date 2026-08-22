@@ -834,9 +834,9 @@ export const verticals: Vertical[] = [
       },
       {
         icon: "Monitor",
-        title: "You have AI. You do not have outcomes.",
+        title: "The platform nobody had time to configure",
         description:
-          "Around 92 percent of nonprofits now use AI somewhere, and only about 7 percent report it meaningfully changing what their team can get done. Tools were never the missing piece. Somebody has to design the workflow, connect it to your donor data, and keep it running.",
+          "There is a tool in the stack with AI in the name and a login nobody has opened since the demo. Somebody has to design the workflow, connect it to your donor data, and keep it running through the weeks your team is underwater.",
       },
       {
         icon: "Users",
