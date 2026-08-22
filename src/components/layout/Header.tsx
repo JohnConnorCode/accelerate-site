@@ -1,15 +1,17 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { trackConversion } from "@/lib/analytics";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "./MobileNav";
 import { Logo } from "@/components/ui/Logo";
+import { verticals } from "@/content/verticals";
+import { SearchDialog, useSearchShortcut } from "@/components/search/SearchDialog";
 import {
   headerEntrance,
   headerLogoReveal,
@@ -28,23 +30,22 @@ interface NavLink {
   children?: NavChild[];
 }
 
+// Derived from the vertical content, never hand-listed. The nonprofits page
+// shipped and stayed invisible for a day because this was a literal list of nine
+// that nobody remembered to extend, which is the same drift that had left
+// nonprofits out of the sitemap.
+const INDUSTRY_LINKS: NavChild[] = verticals.map((vertical) => ({
+  label: vertical.name,
+  href: `/industries/${vertical.slug}`,
+}));
+
 const navLinks: NavLink[] = [
   { label: "Services", href: "/services" },
   { label: "Command Center", href: "/command-center" },
   {
     label: "Industries",
     href: "#",
-    children: [
-      { label: "Home Services", href: "/industries/home-services" },
-      { label: "Law Firms", href: "/industries/law-firms" },
-      { label: "Professional Services", href: "/industries/professional-services" },
-      { label: "Real Estate", href: "/industries/real-estate" },
-      { label: "Manufacturing", href: "/industries/manufacturing" },
-      { label: "Startups", href: "/industries/startups" },
-      { label: "Medical & Dental", href: "/industries/medical-dental" },
-      { label: "Insurance Agencies", href: "/industries/insurance-agencies" },
-      { label: "Auto Dealers", href: "/industries/auto-dealers" },
-    ],
+    children: INDUSTRY_LINKS,
   },
   { label: "Learn", href: "/learn" },
   { label: "Contact", href: "/contact" },
@@ -59,6 +60,8 @@ const navUnderline =
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  useSearchShortcut(useCallback(() => setSearchOpen(true), []));
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const headerRef = useRef<HTMLElement>(null);
   const pathname = usePathname();
@@ -214,6 +217,15 @@ export function Header() {
 
           {/* Desktop CTA + Theme Toggle — same flat mono .btn as the hero CTA */}
           <motion.div variants={headerCtaReveal} className="hidden lg:flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setSearchOpen(true)}
+              aria-label="Search the site"
+              title="Search (press / or Cmd K)"
+              className="grid size-9 place-items-center rounded-lg text-[var(--text-nav)] transition-colors hover:text-[var(--text-nav-hover)] hover:bg-[var(--bg-hover-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] cursor-pointer"
+            >
+              <Search className="size-[18px]" />
+            </button>
             <ThemeToggle />
             <Link
               href="/contact"
@@ -223,6 +235,17 @@ export function Header() {
               Book a free strategy session <span className="arw" aria-hidden="true">→</span>
             </Link>
           </motion.div>
+
+          {/* Mobile: search sits outside the menu, so it is one tap rather than two */}
+          <motion.button
+            variants={headerCtaReveal}
+            type="button"
+            onClick={() => setSearchOpen(true)}
+            aria-label="Search the site"
+            className="lg:hidden relative w-11 h-11 flex items-center justify-center cursor-pointer rounded-lg transition-transform duration-150 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+          >
+            <Search className="size-[19px] text-[var(--text-nav)]" />
+          </motion.button>
 
           {/* Mobile Hamburger */}
           <motion.button
@@ -254,6 +277,8 @@ export function Header() {
         onClose={() => setMobileOpen(false)}
         navLinks={navLinks}
       />
+
+      <SearchDialog open={searchOpen} onOpenChangeAction={setSearchOpen} />
     </>
   );
 }

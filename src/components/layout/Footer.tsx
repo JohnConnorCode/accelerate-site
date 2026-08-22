@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { verticals } from "@/content/verticals";
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -46,6 +47,15 @@ function FooterSection({
   );
 }
 
+// Derived from the vertical content, never hand-listed. The nonprofits page
+// shipped and stayed invisible for a day because this was a literal list of nine
+// that nobody remembered to extend, which is the same drift that had left
+// nonprofits out of the sitemap.
+const INDUSTRY_LINKS = verticals.map((vertical) => ({
+  label: vertical.name,
+  href: `/industries/${vertical.slug}`,
+}));
+
 const footerColumns = [
   {
     title: "Services",
@@ -61,15 +71,7 @@ const footerColumns = [
   {
     title: "Industries",
     links: [
-      { label: "Home Services", href: "/industries/home-services" },
-      { label: "Law Firms", href: "/industries/law-firms" },
-      { label: "Professional Services", href: "/industries/professional-services" },
-      { label: "Real Estate", href: "/industries/real-estate" },
-      { label: "Manufacturing", href: "/industries/manufacturing" },
-      { label: "Startups", href: "/industries/startups" },
-      { label: "Medical & Dental", href: "/industries/medical-dental" },
-      { label: "Insurance Agencies", href: "/industries/insurance-agencies" },
-      { label: "Auto Dealers", href: "/industries/auto-dealers" },
+      ...INDUSTRY_LINKS,
     ],
   },
   {
