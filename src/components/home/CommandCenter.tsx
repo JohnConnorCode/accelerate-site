@@ -36,12 +36,15 @@ export function CommandCenter() {
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              The machine that
+              A custom operational engine
               <br />
-              runs the rest.
+              for your <span className="it">entire business.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              Inquiries, follow-up, and scheduling move in here. You approve what needs a person. Try the sandbox.
+              The Command Center is your firm&apos;s operational core. It captures communications, drafts quotes, advances your pipeline, and orchestrates follow-ups, surfacing to you only for final approval.
+            </Reveal>
+            <Reveal rv as="p" className="lede" delay={0.18} style={{ marginTop: 16 }}>
+              Test drive the live sandbox below. Try clearing the approval queue, inspecting a workflow, or querying intelligence records in real time.
             </Reveal>
           </div>
         </div>

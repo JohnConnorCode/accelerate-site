@@ -58,6 +58,7 @@ export function WordMask({
 }) {
   const prefersReduced = useReducedMotion();
   const [hydrated, setHydrated] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setHydrated(true), []);
   const reduced = hydrated && !!prefersReduced;
   const MotionTag = motion[as];

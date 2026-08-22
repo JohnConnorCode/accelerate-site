@@ -352,7 +352,7 @@ export function Hero() {
               simultaneously with it — a deliberate trailing beat. */}
           <div style={{ "--d": "7.30s" } as CSSProperties}>
             <p className="lede">
-              We take intake, follow-up, and scheduling off them. Owners typically get something like 10 hours a week per person back. That time goes to the work that actually makes the business.
+              We identify the bottlenecks choking your margins and engineer them out of existence. Seamless CRM integrations, voice-to-text workflows, and fully autonomous lead capture.
             </p>
           </div>
         </div>

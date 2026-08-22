@@ -42,7 +42,7 @@ export function RoofingCampaignPage() {
               Your next job may already be in the pipeline.
             </motion.h1>
             <motion.p variants={reveal} className="mt-8 max-w-2xl text-pretty text-lg leading-8 text-[#151611]/64 sm:text-xl">
-              We find where new inquiries, open estimates, and follow-up are leaking booked work—then build and run the AI system that closes those gaps.
+              We find where new inquiries, open estimates, and follow-up are leaking booked work, then build and run the AI system that closes those gaps.
             </motion.p>
             <motion.div variants={reveal} className="mt-9 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
               <button onClick={() => goToAudit("hero")} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#151611] pl-5 pr-[18px] font-mono text-[11px] uppercase tracking-[0.13em] text-white shadow-[0_10px_28px_rgba(0,0,0,0.2)] transition-[scale,background-color] duration-150 hover:bg-black active:scale-[0.96]">

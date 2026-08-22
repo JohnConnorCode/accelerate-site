@@ -35,6 +35,8 @@ export function AnimateOnScroll({
   const Component = motionElements[as] ?? motionElements.div;
   const prefersReduced = useReducedMotion();
   const [hydrated, setHydrated] = useState(false);
+  // SSR hydration gate so reduced-motion does not fork the first paint.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setHydrated(true), []);
   const reducedMotion = hydrated && !!prefersReduced;
 
@@ -111,6 +113,7 @@ export function EntranceGroup({
 }) {
   const prefersReduced = useReducedMotion();
   const [hydrated, setHydrated] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setHydrated(true), []);
   const reducedMotion = hydrated && !!prefersReduced;
   return (

@@ -8,11 +8,11 @@ import { PlanDeck } from "./PlanDeck";
 import { AmbientField } from "./AmbientField";
 
 const ITEMS = [
-  "Where the team is losing hours, named in their language",
-  "What to automate first so people get back to the real work",
-  "The tools you already have, and what has to connect",
-  "Who on your side touches the system after it is live",
-  "A transition plan the team can actually run",
+  "Comprehensive diagnostic of your current bottlenecks",
+  "A phased roadmap sequenced by what unblocks the most work first",
+  "The hours each phase takes off your team",
+  "Detailed technical requirements and CRM integrations",
+  "A complete transition plan for your team",
 ];
 
 export function Plan() {
@@ -32,12 +32,10 @@ export function Plan() {
               delay={0.06}
               style={{ marginTop: 18, lineHeight: 1.15 }}
             >
-              You leave the first session with something usable.
+              You leave the first session with a master plan.
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 18 }}>
-              Most firms hold the analysis back until you sign. We hand it
-              over after the first session. If the thinking is good, you will
-              want the people who did it.
+              Thirty minutes. We map the bottlenecks, sequence what to automate first, and hand you the master plan: the diagnostic, the roadmap, and the order we would build it in. Yours to keep either way. If the plan is right, you will want the people who wrote it to build it.
             </Reveal>
             <ul className="plan-list">
               {/* Each item gets its own <Reveal> — its own scroll trigger —

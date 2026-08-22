@@ -5,27 +5,27 @@ import { AmbientField } from "./AmbientField";
 const STEPS = [
   {
     n: "01",
-    title: "Diagnostic",
+    title: "Diagnostic Audit",
     tag: "30 min · free",
-    body: "We map where hours disappear: unanswered inquiries, stale follow-up, work that should not need a person.",
+    body: "We map exactly where your team loses hours and where leads fall through the cracks.",
   },
   {
     n: "02",
-    title: "The plan",
+    title: "ROI Blueprint",
     tag: "yours to keep",
-    body: "A phased sequence of what to automate first, so the team gets the week back where it counts.",
+    body: "A detailed, phased automation roadmap prioritized strictly by the fastest path to positive ROI.",
   },
   {
     n: "03",
-    title: "Build",
+    title: "Build & Integrate",
     tag: "fixed scope",
-    body: "We put the systems into the tools you already use. Phase one is live in under two weeks.",
+    body: "We engineer and deploy the systems into your existing CRM. Phase one is live in under two weeks.",
   },
   {
     n: "04",
-    title: "Run",
-    tag: "alongside you",
-    body: "We train the people who touch it, then keep the machine running so they can stay on the work only they can do.",
+    title: "Train & Scale",
+    tag: "ongoing support",
+    body: "We train your team and continuously monitor the agents to ensure they exceed human performance baselines.",
   },
 ];
 
@@ -40,14 +40,14 @@ export function HowWeWork() {
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              We take the work
+              Solving constraints,
               <br />
-              your people should
+              not selling
               <br />
-              not be doing.
+              software.
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              No generic licenses. We diagnose, build, and run the layer that is trapping the team.
+              No generic licenses. No hidden upsells. Just custom engineering that directly attacks your operational bottlenecks.
             </Reveal>
           </div>
         </div>

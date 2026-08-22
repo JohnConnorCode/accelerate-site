@@ -484,16 +484,16 @@ function Closing() {
           </Reveal>
           <h2 ref={headingRef} className="h2 line-h">
             <span className="line">
-              <span style={{ "--d": ".05s" } as CSSProperties}>Give them the week</span>
+              <span style={{ "--d": ".05s" } as CSSProperties}>Get your custom</span>
             </span>
             <span className="line">
               <span className="it" style={{ "--d": ".12s" } as CSSProperties}>
-                back.
+                automation roadmap.
               </span>
             </span>
           </h2>
           <Reveal rv as="p" className="lede" delay={0.1}>
-            Thirty minutes. We look at where the hours go. You leave with a plan, yours to keep either way.
+            A free 30-minute operational consultation to pinpoint your bottlenecks. You leave with a master plan showing exactly how to automate your core workflows, yours to keep whether we work together or not.
           </Reveal>
           <Reveal rv as="div" delay={0.16}>
             <BookCallButton variant="inverse" location="command_center_closing" />

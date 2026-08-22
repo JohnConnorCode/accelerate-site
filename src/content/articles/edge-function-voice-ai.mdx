@@ -14,7 +14,7 @@ targetKeywords: ["voice ai architecture", "edge function ai", "ai call classific
 funnelStage: "decision"
 ---
 
-When a potential client calls your business, the difference between a booked appointment and a hang-up is measured in milliseconds. If an AI receptionist takes 3.5 seconds to reply to a caller's question, the illusion of a seamless conversation shatters. The caller realizes they are talking to a bot, their patience drops, and the conversion rate plummets. 
+When a potential client calls your business, the difference between a booked appointment and a hang-up is measured in milliseconds. If an AI receptionist takes 3.5 seconds to reply to a caller's question, the illusion of a seamless conversation shatters. The caller realizes they are talking to a bot, their patience drops, and the conversion rate plummets.
 
 For the past year, most of the industry has settled for this "good enough" latency. The standard Voice AI pipeline has been a multi-hop relay race: audio streams to a transcription service (like Whisper), the transcript is forwarded to a large language model (like GPT-4 or Claude) for intent classification and response generation, and the text is finally sent to a text-to-speech engine (like ElevenLabs). Every network hop adds latency. Every separate API call introduces a point of failure.
 
@@ -39,13 +39,13 @@ When transcription and classification are handled as two separate steps, the tra
   ]}
 />
 
-Furthermore, the sequential nature of this architecture forces the AI to wait. It waits for the transcription to finish. It waits for the CRM to return the user's project context. It waits for the classification model to decide the intent. This waiting manifests as dead air on the phone—the silent killer of voice conversions.
+Furthermore, the sequential nature of this architecture forces the AI to wait. It waits for the transcription to finish. It waits for the CRM to return the user's project context. It waits for the classification model to decide the intent. This waiting manifests as dead air on the phone, the silent killer of voice conversions.
 
 ## Merging the Pipeline at the Edge
 
-To solve this, we collapsed the pipeline. We merged transcription and classification into a single, unified Edge Function call. 
+To solve this, we collapsed the pipeline. We merged transcription and classification into a single, unified Edge Function call.
 
-By pushing this logic to the edge—executing code physically closer to the caller and removing intermediate network hops—we bypassed the standard API relay race. But the real breakthrough was not just speed; it was the ability to inject user context directly into the single multimodal call.
+By pushing this logic to the edge, executing code physically closer to the caller and removing intermediate network hops, we bypassed the standard API relay race. But the real breakthrough was not just speed; it was the ability to inject user context directly into the single multimodal call.
 
 <StepByStep>
   <Step number={1} title="The Call Connects">
@@ -64,17 +64,17 @@ By pushing this logic to the edge—executing code physically closer to the call
 
 ## Why Context Injection Raises the Bar
 
-Speed is only half the battle. Accuracy is what actually closes deals. 
+Speed is only half the battle. Accuracy is what actually closes deals.
 
 By injecting real-time user context (projects, past conversations, contact details) into the edge layer, we fundamentally improved the model's ability to classify intent. It no longer operates in a vacuum. It operates with the full memory of an experienced human receptionist.
 
-This architectural shift allowed us to raise our internal confidence threshold for automated actions from a shaky 0.65 to a strict **0.85**. 
+This architectural shift allowed us to raise our internal confidence threshold for automated actions from a shaky 0.65 to a strict **0.85**.
 
 <Callout type="important" title="The 0.85 Confidence Threshold">
 In machine learning, confidence scores dictate whether an AI takes an action autonomously or escalates to a human. At a 0.65 threshold, the AI frequently makes "best guesses" that lead to misrouted calls or incorrect calendar bookings. By injecting context, our model now hits 0.85+ confidence on over 92% of standard inquiries, virtually eliminating hallucinated actions while maintaining full automation.
 </Callout>
 
-When an AI receptionist confidently knows who is calling and why, it can execute complex workflows—like updating a specific project scope in your CRM or scheduling a follow-up for a pending invoice—without second-guessing itself. 
+When an AI receptionist confidently knows who is calling and why, it can execute complex workflows, like updating a specific project scope in your CRM or scheduling a follow-up for a pending invoice, without second-guessing itself.
 
 ## What This Means for Your Operations
 

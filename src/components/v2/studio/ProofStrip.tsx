@@ -1,28 +1,56 @@
 "use client";
 
+import { motion, useReducedMotion } from "framer-motion";
+import { EASE } from "@/lib/animations";
+import { Eyebrow } from "./primitives";
 import { stats } from "@/content/stats";
-import { Container, Eyebrow } from "./primitives";
 
+/* Compact, generic proof for the money pages (Services / Packages): the numbers
+   our systems are built to move. No named clients, no testimonials -- figures are
+   illustrative of typical outcomes, single-sourced from stats.ts. */
 export function ProofStrip() {
+  const reduced = useReducedMotion();
+  const rv = (delay = 0) =>
+    reduced
+      ? {}
+      : {
+          initial: { opacity: 0, y: 20 },
+          whileInView: { opacity: 1, y: 0 },
+          viewport: { once: true, margin: "-80px" as const },
+          transition: { duration: 0.6, ease: EASE, delay },
+        };
+
   return (
-    <section className="relative border-t border-[color-mix(in_srgb,var(--fg)_12%,transparent)] py-[clamp(4.5rem,8vw,7rem)]">
-      <Container>
-        <Eyebrow className="mb-6">what we build toward</Eyebrow>
-        <h2 className="h2 max-w-[16ch]">Hours back. Work redirected.</h2>
-        <div className="week-stats" style={{ marginTop: "clamp(36px,5vw,64px)" }}>
+    <section className="section-y section-divide relative">
+      <div className="page-shell page-shell--narrow text-center">
+        <motion.div {...rv()}>
+          <Eyebrow className="mb-6">The numbers</Eyebrow>
+          <h2 className="display-3 mx-auto max-w-2xl">The numbers we build against.</h2>
+        </motion.div>
+
+        <motion.div
+          {...rv(0.1)}
+          className="mx-auto mt-12 grid max-w-3xl grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4"
+        >
           {stats.map((s) => (
-            <div key={s.label} className="week-stat">
-              <span className="week-n">
+            <div key={s.label}>
+              <p className="font-display text-4xl font-extrabold tracking-[-0.02em] text-heading sm:text-5xl">
                 {s.value}
-                {s.suffix}
-              </span>
-              <span className="week-n-label">
-                {s.label}. {s.detail}
-              </span>
+                <span className="text-gold">{s.suffix}</span>
+              </p>
+              <p className="mt-2 text-sm font-semibold text-white-secondary">{s.label}</p>
+              <p className="mt-0.5 text-xs leading-snug text-white-muted">{s.detail}</p>
             </div>
           ))}
-        </div>
-      </Container>
+        </motion.div>
+
+        <motion.p
+          {...rv(0.15)}
+          className="mt-10 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-white-muted"
+        >
+          Targets, not averages. Measured on your dashboard from week one.
+        </motion.p>
+      </div>
     </section>
   );
 }

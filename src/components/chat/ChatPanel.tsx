@@ -368,7 +368,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
           </h3>
           <p className="mt-0.5 flex items-center gap-1.5 text-xs text-white-muted" aria-live="polite">
             {!isOnline ? (
-              <><WifiOff className="h-3 w-3" /> Offline — reconnect to send</>
+              <><WifiOff className="h-3 w-3" /> Offline. Reconnect to send</>
             ) : isLoading || isTyping ? (
               <><span className="h-1.5 w-1.5 rounded-full bg-[var(--fg)] animate-pulse" /> Drafting a response…</>
             ) : (

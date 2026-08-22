@@ -615,7 +615,7 @@ export default function CampaignsPage() {
                   <input
                     name="subject1"
                     required
-                    placeholder="Subject — supports {{first_name}} and {{company}}"
+                    placeholder="Subject (supports {{first_name}} and {{company}})"
                     className="mt-2 min-h-11 w-full rounded-xl border border-[var(--admin-border)] px-3.5 text-sm outline-none focus:border-[var(--admin-ink)]"
                   />
                   <textarea

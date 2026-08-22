@@ -39,7 +39,7 @@ I wanted to make sure the plan for {{business}} did not get buried.
 
 The fastest wins are usually response time, follow-through, and the handoffs that depend on someone remembering. If one of those is a priority right now, I can show you the cleanest place to begin.
 
-No pressure either way—just reply if you want to talk it through.
+No pressure either way. Just reply if you want to talk it through.
 
 John`,
   },
@@ -50,7 +50,7 @@ John`,
 
 I put together the proposal for {{business}} around the priorities we discussed.
 
-It covers the operating system, the implementation sequence, and what we will own after launch—so the work does not fall back on your team.
+It covers the operating system, the implementation sequence, and what we will own after launch, so the work does not fall back on your team.
 
 Reply with any questions, or send a few times that work and we will walk through it together.
 
