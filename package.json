@@ -44,6 +44,7 @@
     "test:responder-envelope": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-responder-envelope.ts",
     "test:search": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-search.ts",
     "test:route-coverage": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-route-coverage.ts",
+    "test:no-fabricated-claims": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-no-fabricated-claims.ts",
     "test:house-style-copy": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-house-style-copy.ts",
     "test:chat-house-style": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-chat-house-style.ts",
     "test:agent-trace": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-agent-trace.ts",
