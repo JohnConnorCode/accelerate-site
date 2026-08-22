@@ -5,27 +5,27 @@ import { AmbientField } from "./AmbientField";
 const STEPS = [
   {
     n: "01",
-    title: "Diagnostic Audit",
+    title: "The session",
     tag: "30 min · free",
-    body: "We map exactly where your team loses hours and where leads fall through the cracks.",
+    body: "We map where your team loses hours and where inquiries go unanswered.",
   },
   {
     n: "02",
-    title: "ROI Blueprint",
+    title: "The plan",
     tag: "yours to keep",
-    body: "A detailed, phased automation roadmap prioritized strictly by the fastest path to positive ROI.",
+    body: "A written plan: what we would build, in what order, and the hours each phase returns.",
   },
   {
     n: "03",
-    title: "Build & Integrate",
+    title: "The build",
     tag: "fixed scope",
-    body: "We engineer and deploy the systems into your existing CRM. Phase one is live in under two weeks.",
+    body: "We build the systems and connect them to your existing CRM. Phase one is live in under two weeks.",
   },
   {
     n: "04",
-    title: "Train & Scale",
+    title: "The run",
     tag: "ongoing support",
-    body: "We train your team and continuously monitor the agents to ensure they exceed human performance baselines.",
+    body: "We train your team, watch the system in production, and keep tuning it as the business changes.",
   },
 ];
 
@@ -40,14 +40,14 @@ export function HowWeWork() {
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              Solving constraints,
+              Four steps to
               <br />
-              not selling
+              a system
               <br />
-              software.
+              that runs.
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              No generic licenses. No hidden upsells. Just custom engineering that directly attacks your operational bottlenecks.
+              Everything is built around how your business already works, priced as a fixed scope, and run by the people who built it.
             </Reveal>
           </div>
         </div>

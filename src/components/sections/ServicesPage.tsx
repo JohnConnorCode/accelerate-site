@@ -25,7 +25,7 @@ const iconMap: Record<string, LucideIcon> = {
 const MICRO_FEEDS: Record<string, { time: string; glyph: string; rgb: string; label: string }[]> = {
   strategy: [
     { time: "09:02", glyph: "◆", rgb: "96,165,250", label: "Opportunity map delivered" },
-    { time: "09:15", glyph: "↗", rgb: "163,230,53", label: "ROI projection updated" },
+    { time: "09:15", glyph: "↗", rgb: "163,230,53", label: "Estimate follow-up sent" },
     { time: "11:40", glyph: "✓", rgb: "190,242,100", label: "Quarter roadmap approved" },
   ],
   automation: [
@@ -155,10 +155,10 @@ function ServiceBand({
 }
 
 const STEPS = [
-  { n: "01", t: "Discovery & Diagnostics", d: "A rigorous analysis of your operation to pinpoint exactly where automation will drive immediate ROI." },
-  { n: "02", t: "Architecture & Blueprint", d: "A comprehensive deployment roadmap detailing exact capabilities, timelines, and projected financial impact." },
-  { n: "03", t: "Engineering & Deployment", d: "Full-stack integration, rigorous testing, and seamless handover. Your system goes live." },
-  { n: "04", t: "Optimization & Scale", d: "Continuous refinement against KPIs. We expand capabilities as your operation accelerates." },
+  { n: "01", t: "The session", d: "Thirty minutes on how the business runs today: where inquiries land, who touches them, and where the hours go." },
+  { n: "02", t: "The plan", d: "A written plan: the systems we would build, the order we would build them in, and the hours each phase returns." },
+  { n: "03", t: "The build", d: "We build against your existing CRM and tools, test on real workflows, and document everything. Phase one is live in under two weeks." },
+  { n: "04", t: "The run", d: "We run the system in production, train your team on anything they touch, and keep tuning it as the business changes." },
 ];
 
 export function ServicesPageContent() {
@@ -199,7 +199,7 @@ export function ServicesPageContent() {
               />
               <AnimateOnScroll delay={0.25}>
                 <p className="mt-7 max-w-md text-base leading-relaxed text-white-secondary">
-                  We don&apos;t sell SaaS subscriptions. We architect custom automation engines and run them for you. Full-stack workflows deployed across your operation, measured entirely by the revenue they generate.
+                  We build custom systems around how your business already works, then run them for you. Workflows deployed across the whole operation, measured by the revenue they produce and the hours they return.
                 </p>
               </AnimateOnScroll>
               <AnimateOnScroll delay={0.35}>
@@ -288,12 +288,12 @@ export function ServicesPageContent() {
           <div>
             <Eyebrow className="mb-7">start</Eyebrow>
             <Heading size={1} as="h2">
-              Architect your deployment
+              Book the session. Keep the plan.
             </Heading>
           </div>
           <div className="flex flex-col gap-7">
             <p className="text-lg leading-relaxed text-white-secondary">
-              Book a rigorous consultation with our engineers to analyze your organizational bottlenecks. You receive a complete automation blueprint, yours to keep.
+              A free strategy session with the engineers who would do the work. You leave with a written plan. Yours to keep either way.
             </p>
             <BookCallButton location="services_closing" />
             <CallTerms />

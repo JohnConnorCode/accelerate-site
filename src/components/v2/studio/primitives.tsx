@@ -228,10 +228,10 @@ export function Stack({
    every article page, so changing a term meant eight edits and there was no
    way to be sure they still agreed. One string now.
 
-   "Direct to the founder" became "You talk to John, not a rep": the first is a
-   vibe, the second is checkable against the calendar you land on. */
+   "Direct to the founder" became "You talk to John": the first is a vibe, the
+   second is checkable against the calendar you land on. */
 export function CallTerms({ className }: { className?: string }) {
-  const terms = ["Free", "30 minutes", "You keep the written plan", "You talk to John, not a rep"];
+  const terms = ["Free", "30 min", "You keep the written plan", "You talk to John"];
   return (
     <div
       className={`flex flex-wrap gap-x-8 gap-y-3 border-t border-border-glass pt-6 font-mono text-xs uppercase tracking-[0.15em] text-white-muted ${className ?? ""}`}

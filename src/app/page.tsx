@@ -4,11 +4,11 @@ import { homeFaqs } from "@/content/home-faq";
 import { Studio } from "@/components/v2/studio/Studio";
 
 export const metadata = seoMetadata({
-  title: "Accelerate | AI Strategy & Systems for Small Businesses",
+  title: "Accelerate | AI Systems Built and Run for Your Business",
   description:
-    "We help small businesses figure out where AI fits, then build and manage the systems that make it happen. Free strategy call.",
-  ogTitle: "AI Strategy & Systems for Small Businesses",
-  ogSubtitle: "Operate like you're ten times your size.",
+    "We find where your team loses the week, then build and run the AI systems that take that work over. Free 30-minute strategy session. The plan is yours to keep.",
+  ogTitle: "AI Systems, Built and Run for You",
+  ogSubtitle: "Your team keeps the judgment calls. We run the rest.",
   path: "/",
 });
 
@@ -19,7 +19,7 @@ const websiteJsonLd = {
   name: "Accelerate",
   url: "https://www.acceleratewith.us",
   description:
-    "Custom business solutions powered by AI, built and run by Accelerate. Book more jobs, sign more clients, reclaim hours. We deliver the results and stand behind them.",
+    "Custom business solutions powered by AI, built and run by Accelerate. We take over routine intake, follow-up, and quoting so your team gets its week back.",
   publisher: { "@id": "https://www.acceleratewith.us/#organization" },
   potentialAction: {
     "@type": "SearchAction",
@@ -36,7 +36,7 @@ const serviceJsonLd = {
   "@id": "https://www.acceleratewith.us/#service",
   name: "AI Strategy & Systems for Small Business",
   description:
-    "Custom business solutions powered by AI, built and run by Accelerate. Book more jobs, sign more clients, reclaim hours. We deliver the results and stand behind them.",
+    "Custom business solutions powered by AI, built and run by Accelerate. We take over routine intake, follow-up, and quoting so your team gets its week back.",
   provider: { "@id": "https://www.acceleratewith.us/#organization" },
   serviceType: [
     "AI Strategy & Roadmap",

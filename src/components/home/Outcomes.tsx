@@ -12,11 +12,11 @@ export function Outcomes() {
             What you get
           </Reveal>
           <Reveal rv as="h2" className="h2" delay={0.06}>
-            Measured purely
+            Measured in
             <br />
-            by revenue and
+            revenue and
             <br />
-            reclaimed hours.
+            hours returned.
           </Reveal>
         </div>
 
@@ -24,24 +24,24 @@ export function Outcomes() {
           <ScrollParallax speed={-0.18} className="oc-col">
             <Reveal rv>
               <p className="oc-big">
-                Accelerated
+                Answered
                 <br />
-                <span className="it">revenue capture</span>
+                <span className="it">in minutes</span>
               </p>
               <p className="body-c">
-                Instant inbound response. Flawless follow-up. A compressed timeline from first contact to closed deal. Companies lose more revenue to delay than to competition.
+                First response while the inquiry is still warm, any hour of the day. Follow-up runs on schedule instead of memory. Quotes go out while the customer is still deciding.
               </p>
             </Reveal>
           </ScrollParallax>
           <ScrollParallax speed={0.18} className="oc-col">
             <Reveal rv delay={0.14}>
               <p className="oc-big">
-                Infinite
+                One role
                 <br />
-                <span className="it">operational scale</span>
+                <span className="it">absorbed</span>
               </p>
               <p className="body-c">
-                Routine workflows are absorbed by automation. Your team retains the complex judgment, the high-value relationships, and the nuanced exceptions.
+                The routine work runs without adding headcount. Your team keeps the decisions, the relationships, and the exceptions.
               </p>
             </Reveal>
           </ScrollParallax>

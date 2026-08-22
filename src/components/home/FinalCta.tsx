@@ -22,14 +22,14 @@ export function FinalCta() {
         </Reveal>
         <h2 ref={headingRef} className="h2 line-h">
           <span className="line">
-            <span style={{ "--d": ".05s" } as CSSProperties}>Architect the future</span>
+            <span style={{ "--d": ".05s" } as CSSProperties}>Book the session.</span>
           </span>
           <span className="line">
-            <span style={{ "--d": ".16s" } as CSSProperties}>of your operation.</span>
+            <span style={{ "--d": ".16s" } as CSSProperties}>Keep the plan.</span>
           </span>
         </h2>
         <Reveal rv as="p" className="lede" delay={0.13}>
-          A rigorous thirty-minute consultation to analyze your bottlenecks. You leave with a master plan: the diagnostic, the roadmap, and the order we would build it in. Yours to keep either way.
+          Thirty minutes with the people who would build it. You leave with the plan in writing. Yours to keep either way.
         </Reveal>
         <Reveal rv delay={0.19}>
           <Link

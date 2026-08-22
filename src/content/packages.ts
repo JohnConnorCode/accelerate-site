@@ -78,7 +78,7 @@ export const packages: ServicePackage[] = [
       { name: "Automated follow-ups", included: true, detail: "Full nurture sequences" },
       { name: "AI phone agent", included: true, detail: "Answers on the second ring, any hour" },
       { name: "CRM integration", included: true, detail: "Deep bi-directional sync" },
-      { name: "Monthly reporting", included: true, detail: "ROI tracking and optimization" },
+      { name: "Monthly reporting", included: true, detail: "Hours returned and revenue moved, from your books" },
     ],
     highlighted: false,
     ctaText: "Start with Accelerate",

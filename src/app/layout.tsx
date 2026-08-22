@@ -54,11 +54,11 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.acceleratewith.us"),
   title: {
-    default: "Accelerate | Custom AI Solutions, Built & Run for You",
+    default: "Accelerate | Custom AI Systems, Built and Run for You",
     template: "%s | Accelerate",
   },
   description:
-    "Custom business solutions powered by AI, built and run by Accelerate. Book more jobs, sign more clients, reclaim hours. We deliver the results and stand behind them.",
+    "Custom business solutions powered by AI, built and run by Accelerate. We take over routine intake, follow-up, and quoting so your team gets its week back.",
   applicationName: "Accelerate",
   authors: [{ name: "Accelerate", url: "https://www.acceleratewith.us" }],
   creator: "Accelerate",
@@ -68,17 +68,17 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://www.acceleratewith.us",
     siteName: "Accelerate",
-    title: "Accelerate | Custom AI Solutions, Built & Run for You",
+    title: "Accelerate | Custom AI Systems, Built and Run for You",
     description:
-      "Custom business solutions powered by AI, built and run by Accelerate. Book more jobs, sign more clients, reclaim hours. We deliver the results and stand behind them.",
+      "Custom business solutions powered by AI, built and run by Accelerate. We take over routine intake, follow-up, and quoting so your team gets its week back.",
   },
   twitter: {
     card: "summary_large_image",
     site: "@accelerateAIops",
     creator: "@accelerateAIops",
-    title: "Accelerate | Custom AI Solutions, Built & Run for You",
+    title: "Accelerate | Custom AI Systems, Built and Run for You",
     description:
-      "Custom business solutions powered by AI, built and run by Accelerate. Book more jobs, sign more clients, reclaim hours. We deliver the results and stand behind them.",
+      "Custom business solutions powered by AI, built and run by Accelerate. We take over routine intake, follow-up, and quoting so your team gets its week back.",
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GSC_VERIFICATION || undefined,
@@ -109,7 +109,7 @@ const organizationJsonLd = {
     height: 512,
   },
   description:
-    "Custom business solutions powered by AI, built and run by Accelerate. Book more jobs, sign more clients, reclaim hours. We deliver the results and stand behind them.",
+    "Custom business solutions powered by AI, built and run by Accelerate. We take over routine intake, follow-up, and quoting so your team gets its week back.",
   founder: {
     "@type": "Person",
     name: "John Connor",

@@ -53,7 +53,7 @@ export default function IndustriesPage() {
               as="h1"
               className={HERO_HEADING}
               lead="Built for your trade,"
-              accent="not the average one."
+              accent="the way it actually runs."
               delay={0.1}
             />
             <AnimateOnScroll delay={0.3}>

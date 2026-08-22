@@ -21,7 +21,7 @@ export const services: Service[] = [
     pricingDisplay: "from $1,500",
     href: "/services#strategy",
     problemStatement:
-      "You know you need to automate, but deploying capital without a rigorous architectural plan is just guessing.",
+      "You know you need to automate. Spending on it before you know what to build first is guessing.",
     keyMetrics: [
       { value: "Day one", label: "Clarity before you build" },
       { value: "Custom", label: "Tailored to you" },
@@ -130,7 +130,7 @@ export const services: Service[] = [
     pricingDisplay: "from $1,500 + $300/mo",
     href: "/services#engagement",
     problemStatement:
-      "Inbound volume outpaces your capacity to respond instantly, resulting in abandoned leads and degraded customer experience.",
+      "Inquiries come in faster than anyone can answer them, so people wait, and some of them stop waiting.",
     keyMetrics: [
       { value: "After hours", label: "Intake still covered" },
       { value: "Same people", label: "On the work only they can do" },

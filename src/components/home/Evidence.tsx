@@ -29,9 +29,9 @@ export function Evidence() {
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              You don&apos;t have a growth problem.
+              The week runs out
               <br />
-              You have a <span className="it">capacity</span> problem.
+              before the <span className="it">work</span> does.
             </Reveal>
           </div>
         </div>
@@ -46,9 +46,9 @@ export function Evidence() {
           </ScrollParallax>
           <ScrollParallax speed={0.15} className="ev-c">
             <Reveal rv delay={0.12}>
-              <CountUp target="2×" className="ev-n" />
-              <p>The production rate for companies that bring in outside help.</p>
-              <span className="ev-src">67% partnered vs 33% internal</span>
+              <CountUp target="~10" className="ev-n" />
+              <p>Hours back per person, per week, once routine intake, follow-up, and scheduling stop needing a person.</p>
+              <span className="ev-src">Typical on the workflows we take on</span>
             </Reveal>
           </ScrollParallax>
         </Reveal>
