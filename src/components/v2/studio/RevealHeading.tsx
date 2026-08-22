@@ -1,6 +1,6 @@
 "use client";
 
-import { Children, Fragment, isValidElement } from "react";
+import { Children, Fragment, isValidElement, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { EASE } from "@/lib/animations";
@@ -56,10 +56,18 @@ export function WordMask({
   stagger?: number;
   delay?: number;
 }) {
-  const reduced = useReducedMotion();
+  const prefersReduced = useReducedMotion();
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
+  const reduced = hydrated && !!prefersReduced;
   const MotionTag = motion[as];
 
-  if (reduced || tokens.length === 0) {
+  if (tokens.length === 0) {
+    const Tag = as;
+    return <Tag className={`reveal-self ${className}`}>{renderPlain(tokens)}</Tag>;
+  }
+
+  if (reduced) {
     const Tag = as;
     return <Tag className={`reveal-self ${className}`}>{renderPlain(tokens)}</Tag>;
   }

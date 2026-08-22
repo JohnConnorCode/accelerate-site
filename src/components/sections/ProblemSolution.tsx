@@ -24,8 +24,8 @@ const comparisons = [
     label: "Your Revenue",
     before: "Inquiries slip through the cracks. Follow-ups get missed. You're losing jobs every week.",
     after: "Every inquiry answered in minutes. Every follow-up automatic. Revenue captured, not lost.",
-    metric: "38%",
-    metricLabel: "more jobs booked",
+    metric: "10",
+    metricLabel: "hours back per person, per week",
   },
   {
     label: "Your Team",

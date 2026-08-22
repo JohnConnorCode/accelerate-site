@@ -5,15 +5,15 @@ export const services: Service[] = [
     id: "strategy",
     name: "AI Strategy & Roadmap",
     description:
-      "We audit your operation, identify the bottlenecks, and engineer a precise automation blueprint. You receive the exact toolchain architecture, hard ROI projections, and a phased deployment sequence. No guesswork. Just execution.",
+      "We audit your operation, name where the hours go, and write the sequence of what to automate first. You leave with the toolchain, the order of work, and a plan the team can actually run.",
     shortDescription:
-      "A full audit of your operations with a prioritized AI roadmap, tool recommendations, and ROI projections.",
+      "A full audit of your operations with a prioritized AI roadmap, tool recommendations, and a sequence the team can run.",
     icon: "Compass",
     deliverables: [
       "Full business process audit",
       "AI opportunity assessment",
       "Tool and platform recommendations",
-      "ROI projections per initiative",
+      "What each initiative gives the team back",
       "Prioritized implementation roadmap",
       "Risk assessment and mitigation plan",
     ],
@@ -25,12 +25,12 @@ export const services: Service[] = [
     keyMetrics: [
       { value: "Day one", label: "Clarity before you build" },
       { value: "Custom", label: "Tailored to you" },
-      { value: "Clear", label: "ROI before you spend" },
+      { value: "Clear", label: "Sequence before you spend" },
     ],
     process: [
       { step: "Discovery", description: "We learn your business, tools, team, and goals in a deep-dive session." },
       { step: "Audit", description: "We map every process and identify the highest-impact AI opportunities." },
-      { step: "Deliver", description: "You receive a detailed roadmap with priorities, tools, timelines, and projected ROI." },
+      { step: "Deliver", description: "You receive a detailed roadmap with priorities, tools, timelines, and what the team gets back." },
     ],
   },
   {
@@ -95,9 +95,9 @@ export const services: Service[] = [
     problemStatement:
       "Your pipeline suffers from velocity leaks because follow-up is manual, inconsistent, and reliant on human memory.",
     keyMetrics: [
-      { value: "+38%", label: "More jobs booked" },
+      { value: "10+", label: "Hours back / week" },
       { value: "0", label: "Follow-ups missed" },
-      { value: "< 5 min", label: "Response time" },
+      { value: "< 5 min", label: "Response time we build toward" },
     ],
     process: [
       { step: "Pipeline Audit", description: "We map your current sales process and identify where opportunities are falling through." },
@@ -132,9 +132,9 @@ export const services: Service[] = [
     problemStatement:
       "Inbound volume outpaces your capacity to respond instantly, resulting in abandoned leads and degraded customer experience.",
     keyMetrics: [
-      { value: "60%", label: "Inquiries handled by AI" },
-      { value: "+40%", label: "More bookings" },
-      { value: "$0", label: "Additional labor cost" },
+      { value: "After hours", label: "Intake still covered" },
+      { value: "Same people", label: "On the work only they can do" },
+      { value: "0", label: "Extra headcount to answer the phone" },
     ],
     process: [
       { step: "Knowledge Training", description: "We train the agent on your services, pricing, FAQs, and conversation style." },
@@ -164,9 +164,9 @@ export const services: Service[] = [
     problemStatement:
       "Your market presence is erratic because content creation is relegated to whatever time remains after operational duties.",
     keyMetrics: [
-      { value: "4x", label: "Content output" },
-      { value: "Weekly", label: "Consistent schedule" },
-      { value: "12", label: "Pieces per month" },
+      { value: "Weekly", label: "Cadence without a marketing hire" },
+      { value: "Your voice", label: "Approved once, then it runs" },
+      { value: "12", label: "Pieces per month, typical" },
     ],
     process: [
       { step: "Voice & Strategy", description: "We learn your tone, audience, and goals to build an editorial calendar." },
@@ -187,7 +187,7 @@ export const services: Service[] = [
       "Weekly performance digests",
       "Pipeline and revenue tracking",
       "Trend analysis and forecasting",
-      "ROI reporting per initiative",
+      "Capacity reporting per initiative",
       "Competitive benchmarking",
     ],
     pricingMonthly: "$500/mo",
@@ -198,7 +198,7 @@ export const services: Service[] = [
     keyMetrics: [
       { value: "1", label: "Dashboard" },
       { value: "Weekly", label: "Insights delivered" },
-      { value: "Clear", label: "ROI visibility" },
+      { value: "Clear", label: "One view of the operation" },
     ],
     process: [
       { step: "Audit & Connect", description: "We map your data sources and connect everything into a unified view." },

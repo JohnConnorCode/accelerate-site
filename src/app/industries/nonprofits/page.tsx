@@ -9,9 +9,9 @@ const vertical = verticals.find((v) => v.slug === "nonprofits")!;
 export const metadata = seoMetadata({
   title: "AI for Nonprofits",
   description:
-    "Fewer than one in five first-time donors ever gives a second gift. We build custom AI systems that thank, steward, and re-engage every donor on time, then run them for you. Trusted by WORK+SHELTER.",
+    "We build the systems that thank, steward, and invite supporters back, then we run them alongside your team. Your voice, your data, your approvals.",
   ogTitle: "AI for Nonprofits",
-  ogSubtitle: "Turn first-time donors into second-time donors. Built and run for you.",
+  ogSubtitle: "Every supporter thanked, followed up, and invited back.",
   path: "/industries/nonprofits",
 });
 

@@ -33,7 +33,7 @@ export function ChangelogPage() {
   const months = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
   return (
-    <Section width="wide" className="pt-32">
+    <Section width="wide" className="page-offset-roomy">
       <div className="grid gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:gap-16">
         {/* sticky left rail — the page identity travels with you */}
         <div className="lg:sticky lg:top-32 lg:self-start">

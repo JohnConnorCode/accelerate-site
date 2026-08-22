@@ -127,7 +127,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
 
   return (
     <>
-      <section className="relative overflow-hidden pb-24 pt-36 sm:pt-40">
+      <section className="page-offset-roomy relative overflow-hidden pb-24">
         <div className="pointer-events-none absolute inset-0" aria-hidden="true">
           <div className="absolute left-[8%] top-28 h-px w-24 bg-[var(--rule)]" />
           <div className="absolute right-[8%] top-28 font-mono text-[0.62rem] uppercase tracking-[0.2em] text-white-muted">
@@ -185,7 +185,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                   <p className="mt-5 line-clamp-3 text-pretty leading-relaxed text-white-secondary">
                     {featuredArticle.frontmatter.excerpt}
                   </p>
-                  <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-border-glass pt-5 font-mono text-[0.64rem] uppercase tracking-[0.12em] text-white-muted">
+                  <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-[var(--rule)] pt-5 font-mono text-[0.64rem] uppercase tracking-[0.12em] text-white-muted">
                     <span className="inline-flex items-center gap-1.5">
                       <Clock className="h-3.5 w-3.5" aria-hidden="true" />
                       {featuredArticle.readingTime}

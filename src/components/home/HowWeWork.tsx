@@ -5,27 +5,27 @@ import { AmbientField } from "./AmbientField";
 const STEPS = [
   {
     n: "01",
-    title: "Diagnostic Audit",
+    title: "Diagnostic",
     tag: "30 min · free",
-    body: "We map exactly where your team loses hours and where leads fall through the cracks.",
+    body: "We map where hours disappear: unanswered inquiries, stale follow-up, work that should not need a person.",
   },
   {
     n: "02",
-    title: "ROI Blueprint",
+    title: "The plan",
     tag: "yours to keep",
-    body: "A detailed, phased automation roadmap prioritized strictly by the fastest path to positive ROI.",
+    body: "A phased sequence of what to automate first, so the team gets the week back where it counts.",
   },
   {
     n: "03",
-    title: "Build & Integrate",
+    title: "Build",
     tag: "fixed scope",
-    body: "We engineer and deploy the systems into your existing CRM. Phase one is live in under two weeks.",
+    body: "We put the systems into the tools you already use. Phase one is live in under two weeks.",
   },
   {
     n: "04",
-    title: "Train & Scale",
-    tag: "ongoing support",
-    body: "We train your team and continuously monitor the agents to ensure they exceed human performance baselines.",
+    title: "Run",
+    tag: "alongside you",
+    body: "We train the people who touch it, then keep the machine running so they can stay on the work only they can do.",
   },
 ];
 
@@ -40,14 +40,14 @@ export function HowWeWork() {
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              Solving constraints,
+              We take the work
               <br />
-              not selling
+              your people should
               <br />
-              software.
+              not be doing.
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              No generic licenses. No hidden upsells. Just custom engineering that directly attacks your operational bottlenecks.
+              No generic licenses. We diagnose, build, and run the layer that is trapping the team.
             </Reveal>
           </div>
         </div>

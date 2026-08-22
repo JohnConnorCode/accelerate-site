@@ -76,26 +76,18 @@ const NARRATIVE = [
 
 function FounderCard() {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] p-8 text-center shadow-2xl shadow-black/40 backdrop-blur-md">
-      {/* thin gold top-rule — the only portrait on the whole site */}
-      <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold to-transparent opacity-70" />
-      <div className="relative mx-auto mb-5 h-44 w-44 overflow-hidden rounded-2xl border border-border-gold bg-bg-subtle">
-        <span
-          aria-hidden
-          className="absolute inset-0 flex items-center justify-center text-4xl font-bold text-gold-light"
-        >
-          JC
-        </span>
+    <div className="border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] p-7 text-center">
+      <div className="relative mx-auto mb-5 h-44 w-44 overflow-hidden bg-[var(--bg-subtle)]">
         <Image
           src="/images/john.jpg"
           alt="John Connor, Founder of Accelerate"
           width={176}
           height={176}
-          className="relative z-10 h-full w-full object-cover"
+          className="h-full w-full object-cover"
         />
       </div>
-      <h2 className="font-display text-2xl font-bold text-heading">John Connor</h2>
-      <p className="mt-1 font-mono text-xs uppercase tracking-[0.2em] text-gold">Founder</p>
+      <h2 className="font-display text-2xl font-bold tracking-[-0.03em] text-heading">John Connor</h2>
+      <p className="mt-1 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-white-muted">Founder</p>
       <p className="mt-3 text-sm leading-relaxed text-white-muted">
         Tech builder. Business owner. Operator.
       </p>
@@ -108,7 +100,7 @@ export function AboutPageContent() {
     <>
       {/* hero — portrait-led split: the founder's face is the signature visual,
           unique to this page (every other page leads with the ops console). */}
-      <section className="relative overflow-hidden pt-32 pb-24">
+      <section className="page-offset-roomy relative overflow-hidden pb-24">
         <Container width="wide">
           <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
             <div className="min-w-0">
@@ -142,8 +134,8 @@ export function AboutPageContent() {
         <div className="flex flex-col gap-12">
           {NARRATIVE.map((seg, i) => (
             <AnimateOnScroll key={seg.label} delay={i * 0.06}>
-              <div className="border-l-2 border-border-gold pl-6">
-                <p className="mb-3 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">{seg.label}</p>
+              <div className="border-l border-[color-mix(in_srgb,var(--fg)_18%,transparent)] pl-6">
+                <p className="mb-3 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white-muted">{seg.label}</p>
                 <div className="flex flex-col gap-4 text-base leading-relaxed text-white-secondary">
                   {seg.body}
                 </div>
@@ -156,7 +148,7 @@ export function AboutPageContent() {
       {/* mission — single statement card */}
       <Section width="text" divide>
         <AnimateOnScroll>
-          <div className="rounded-2xl border border-border-gold/40 bg-[color-mix(in_srgb,var(--gold-base)_5%,var(--bg-elevated))] p-8 text-center backdrop-blur-md sm:p-12">
+          <div className="border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] p-8 text-center sm:p-12">
             <Eyebrow className="mb-6 inline-block">our mission</Eyebrow>
             <p className="font-display text-2xl leading-relaxed text-white-primary sm:text-3xl">
               Small businesses lose money in the same three places every time. Slow replies, dropped follow-up, and a website that does nothing. We fix those, then we run them. No 47-slide deck.
@@ -179,9 +171,9 @@ export function AboutPageContent() {
                 key={v.title}
                 delay={i * 0.08}
                 as="div"
-                className="flex h-full flex-col gap-4 rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)] p-6 backdrop-blur-md"
+                className="flex h-full flex-col gap-4 border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] p-6"
               >
-                <span className="grid h-11 w-11 place-items-center rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_60%,transparent)] text-gold">
+                <span className="grid h-11 w-11 place-items-center border border-[color-mix(in_srgb,var(--fg)_14%,transparent)]">
                   <Icon className="h-5 w-5" strokeWidth={1.75} />
                 </span>
                 <h3 className="font-display text-xl font-bold tracking-[-0.01em] text-heading">

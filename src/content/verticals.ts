@@ -17,7 +17,7 @@ export const verticals: Vertical[] = [
         icon: "DollarSign",
         title: "Slow response is killing your revenue",
         description:
-          "You're on a roof or under a sink when a new job comes in. By the time you get back to them, that homeowner already hired someone else. Every inquiry that sits is $500 to $5,000 walking out the door.",
+          "You're on a roof or under a sink when a new job comes in. By the time you get back to them, that homeowner already hired someone else. Every inquiry that sits is a job walking to whoever answered.",
       },
       {
         icon: "Clock",

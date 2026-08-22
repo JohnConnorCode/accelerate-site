@@ -359,9 +359,9 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
   };
 
   return (
-    <div className="flex h-[min(640px,calc(100dvh-2rem))] w-[calc(100vw-2rem)] max-w-[400px] flex-col overflow-clip rounded-2xl border border-border-glass bg-bg-elevated shadow-2xl sm:w-[400px]">
+    <div className="chat-panel">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border-glass bg-bg-subtle">
+      <div className="flex items-center justify-between border-b border-border-glass bg-bg-subtle px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <div>
           <h3 className="text-sm font-display font-semibold text-white-primary">
             Accelerate AI
@@ -370,7 +370,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
             {!isOnline ? (
               <><WifiOff className="h-3 w-3" /> Offline — reconnect to send</>
             ) : isLoading || isTyping ? (
-              <><span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse" /> Drafting a response…</>
+              <><span className="h-1.5 w-1.5 rounded-full bg-[var(--fg)] animate-pulse" /> Drafting a response…</>
             ) : (
               <><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Ready when you are</>
             )}
@@ -401,7 +401,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
                 key={faq.question}
                 type="button"
                 onClick={() => handleQuickQuestion(faq)}
-                className="min-h-10 rounded-full border border-border-glass bg-bg-subtle px-3 py-2 text-left text-xs leading-4 text-white-secondary transition-[border-color,color,background-color,transform] hover:border-gold hover:bg-white/[0.04] hover:text-white-primary active:scale-[0.96] cursor-pointer"
+                className="min-h-10 border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] bg-bg-subtle px-3 py-2 text-left text-xs leading-4 text-white-secondary transition-[border-color,color,background-color,transform] hover:border-[var(--fg)] hover:text-white-primary active:scale-[0.96] cursor-pointer"
               >
                 {faq.question}
               </button>
@@ -422,7 +422,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
             <button
               type="button"
               onClick={handleRetry}
-              className="inline-flex min-h-10 items-center gap-2 rounded-full border border-border-glass bg-bg-subtle px-3 py-2 text-xs font-medium text-white-secondary transition-[border-color,color,background-color,transform] hover:border-gold hover:text-white-primary active:scale-[0.96]"
+              className="inline-flex min-h-10 items-center gap-2 border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] bg-bg-subtle px-3 py-2 text-xs font-medium text-white-secondary transition-[border-color,color,background-color,transform] hover:border-[var(--fg)] hover:text-white-primary active:scale-[0.96]"
             >
               <RotateCcw className="h-3.5 w-3.5" /> Retry that response
             </button>
@@ -453,13 +453,13 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
         onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "chat" })}
         className="group flex min-h-11 items-center justify-center gap-2 border-t border-border-glass bg-bg-subtle px-4 py-2.5 text-xs transition-colors hover:bg-bg-elevated"
       >
-        <CalendarDays className="h-3.5 w-3.5 shrink-0 text-gold" strokeWidth={1.75} />
+        <CalendarDays className="h-3.5 w-3.5 shrink-0 text-[var(--fg)]" strokeWidth={1.75} />
         <span className="font-medium text-white-primary">Book a free 30-minute strategy session</span>
         <ArrowRight className="h-3 w-3 shrink-0 text-white-muted transition-transform group-hover:translate-x-0.5" />
       </a>
 
       {/* Input */}
-      <div className="border-t border-border-glass p-3 bg-bg-subtle">
+      <div className="border-t border-border-glass bg-bg-subtle p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -480,7 +480,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
             }}
             placeholder={isOnline ? "Ask about your business…" : "Reconnect to keep chatting"}
             aria-label="Chat message"
-            className="min-h-10 max-h-24 flex-1 resize-none rounded-lg bg-bg-base border border-border-glass px-3 py-2.5 text-sm leading-5 text-white-primary placeholder:text-white-muted focus:outline-none focus:border-gold transition-colors"
+            className="min-h-10 max-h-24 flex-1 resize-none rounded-lg bg-bg-base border border-border-glass px-3 py-2.5 text-sm leading-5 text-white-primary placeholder:text-white-muted focus:outline-none focus:border-[var(--fg)] transition-colors"
             disabled={isLoading || isTyping || !isOnline}
           />
           {isLoading ? (
@@ -496,7 +496,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
             <button
               type="submit"
               disabled={isTyping || !isOnline || !input.trim()}
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gold-gradient text-black transition-[filter,transform,opacity] hover:brightness-110 active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center bg-[var(--fg)] text-[var(--bg)] transition-[opacity,transform] hover:opacity-90 active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="Send message"
             >
               <Send className="h-4 w-4" />

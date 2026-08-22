@@ -4,10 +4,9 @@ import { useRef } from "react";
 import {
   Wrench,
   Briefcase,
-  HeartPulse,
-  Store,
-  Rocket,
-  GraduationCap,
+  Scale,
+  Building2,
+  HeartHandshake,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useGSAP } from "@gsap/react";
@@ -20,10 +19,9 @@ import { audiences } from "@/content/who-this-is-for";
 const iconMap: Record<string, LucideIcon> = {
   Wrench,
   Briefcase,
-  HeartPulse,
-  Store,
-  Rocket,
-  GraduationCap,
+  Scale,
+  Building2,
+  HeartHandshake,
 };
 
 export function WhoThisIsFor() {

@@ -20,48 +20,36 @@ interface MobileNavProps {
   navLinks: NavLink[];
 }
 
-const overlayVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.3 } },
-  exit: { opacity: 0, transition: { duration: 0.25, delay: 0.1 } },
-};
+const coverEase = [0.22, 1, 0.36, 1] as const;
 
-const panelVariants = {
-  hidden: { x: "100%" },
-  visible: {
-    x: 0,
-    transition: { type: "spring" as const, damping: 30, stiffness: 300, mass: 0.8 },
-  },
-  exit: {
-    x: "100%",
-    transition: { type: "spring" as const, damping: 35, stiffness: 400, mass: 0.6 },
-  },
+const coverVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.28, ease: coverEase } },
+  exit: { opacity: 0, transition: { duration: 0.2, ease: coverEase } },
 };
 
 const linkVariants = {
-  hidden: { opacity: 0, x: 30 },
+  hidden: { opacity: 0, y: 14 },
   visible: (i: number) => ({
     opacity: 1,
-    x: 0,
-    transition: {
-      type: "spring" as const,
-      damping: 20,
-      stiffness: 200,
-      delay: 0.15 + i * 0.06,
-    },
+    y: 0,
+    transition: { duration: 0.38, ease: coverEase, delay: 0.06 + i * 0.045 },
   }),
-  exit: { opacity: 0, x: 20, transition: { duration: 0.15 } },
+  exit: { opacity: 0, transition: { duration: 0.12 } },
 };
 
 const ctaVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 12 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { type: "spring" as const, damping: 20, stiffness: 200, delay: 0.55 },
+    transition: { duration: 0.4, ease: coverEase, delay: 0.32 },
   },
-  exit: { opacity: 0, y: 10, transition: { duration: 0.15 } },
+  exit: { opacity: 0, transition: { duration: 0.12 } },
 };
+
+const focusRing =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--fg)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]";
 
 export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
@@ -69,9 +57,10 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
 
   useEffect(() => {
     if (isOpen) {
-      const timer = setTimeout(() => closeButtonRef.current?.focus(), 200);
+      const timer = setTimeout(() => closeButtonRef.current?.focus(), 180);
       return () => clearTimeout(timer);
     }
+    setExpandedItem(null);
   }, [isOpen]);
 
   useEffect(() => {
@@ -107,73 +96,32 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          variants={overlayVariants}
+          variants={coverVariants}
           initial="hidden"
           animate="visible"
           exit="exit"
           className="fixed inset-0 z-[100] lg:hidden"
+          style={{ backgroundColor: "var(--bg)" }}
         >
-          {/* Backdrop */}
-          <motion.div
-            className="absolute inset-0 bg-black/60"
-            style={{ backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" }}
-            onClick={onClose}
-          />
-
-          {/* Panel */}
-          <motion.nav
-            variants={panelVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className="absolute right-0 top-0 bottom-0 w-[85vw] max-w-[400px] flex flex-col overflow-y-auto"
-            style={{
-              backgroundColor: "var(--mobile-nav-bg)",
-              backdropFilter: "blur(40px) saturate(180%)",
-              WebkitBackdropFilter: "blur(40px) saturate(180%)",
-            }}
+          <nav
+            className="mobile-nav flex h-full flex-col overflow-y-auto overscroll-contain"
+            aria-label="Mobile"
           >
-            {/* Gold accent edge */}
-            <div
-              className="absolute left-0 top-0 bottom-0 w-px"
-              style={{
-                background:
-                  "linear-gradient(180deg, transparent 0%, rgba(var(--accent-rgb), 0.5) 20%, rgba(var(--accent-rgb), 0.3) 80%, transparent 100%)",
-              }}
-            />
-
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 pt-6 pb-4">
+            <div className="flex items-center justify-between pb-6">
               <Logo size="sm" />
               <button
                 ref={closeButtonRef}
                 onClick={onClose}
-                className="relative w-11 h-11 flex items-center justify-center rounded-full border border-[var(--border-light)] hover:border-border-gold transition-[transform,border-color] duration-150 active:scale-[0.96] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+                className={`relative flex h-11 w-11 items-center justify-center rounded-full border border-[var(--rule)] transition-transform duration-150 active:scale-[0.96] cursor-pointer ${focusRing}`}
                 aria-label="Close navigation menu"
               >
-                <span
-                  className="absolute w-5 h-px rotate-45"
-                  style={{ backgroundColor: "var(--text-nav)" }}
-                />
-                <span
-                  className="absolute w-5 h-px -rotate-45"
-                  style={{ backgroundColor: "var(--text-nav)" }}
-                />
+                <span className="absolute h-px w-4 rotate-45 bg-[var(--fg)]" />
+                <span className="absolute h-px w-4 -rotate-45 bg-[var(--fg)]" />
               </button>
             </div>
 
-            {/* Divider */}
-            <div
-              className="mx-6 h-px"
-              style={{
-                background:
-                  "linear-gradient(90deg, rgba(var(--accent-rgb), 0.4), rgba(var(--accent-rgb), 0.1), transparent)",
-              }}
-            />
-
-            {/* Nav Links */}
-            <div className="flex-1 px-6 pt-6 pb-4">
-              <div className="flex flex-col gap-1">
+            <div className="flex flex-1 flex-col justify-center py-2">
+              <div className="flex flex-col">
                 {navLinks.map((link) => {
                   const currentIndex = linkIndex++;
                   return link.children ? (
@@ -181,6 +129,9 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                       key={link.label}
                       variants={linkVariants}
                       custom={currentIndex}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
                     >
                       <button
                         onClick={() =>
@@ -189,27 +140,22 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                           )
                         }
                         aria-expanded={expandedItem === link.label}
-                        className="w-full flex items-center justify-between py-3.5 px-2 -mx-2 group cursor-pointer rounded-lg transition-[background-color] duration-150 active:bg-[var(--bg-hover-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+                        className={`group flex w-full items-center justify-between py-3.5 cursor-pointer ${focusRing}`}
                       >
-                        <div className="flex items-center gap-4">
-                          <span
-                            className="text-xs font-mono tabular-nums"
-                            style={{ color: "rgba(var(--accent-rgb), 0.5)" }}
-                          >
+                        <span className="flex items-baseline gap-4">
+                          <span className="font-mono text-[10px] tabular-nums tracking-[0.14em] text-[var(--soft)]">
                             {String(currentIndex + 1).padStart(2, "0")}
                           </span>
-                          <span className="text-lg font-medium text-[var(--text-nav)] group-hover:text-[var(--text-nav-hover)] transition-colors">
+                          <span className="font-display text-[1.7rem] font-medium leading-none tracking-[-0.03em] text-[var(--fg)]">
                             {link.label}
                           </span>
-                        </div>
-                        <motion.div
+                        </span>
+                        <motion.span
                           animate={{ rotate: expandedItem === link.label ? 90 : 0 }}
                           transition={{ duration: 0.2 }}
                         >
-                          <ChevronRight
-                            className="w-4 h-4 text-[var(--text-nav)] group-hover:text-gold transition-colors"
-                          />
-                        </motion.div>
+                          <ChevronRight className="h-4 w-4 text-[var(--mid)]" />
+                        </motion.span>
                       </button>
                       <AnimatePresence>
                         {expandedItem === link.label && (
@@ -217,29 +163,24 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+                            transition={{ duration: 0.28, ease: coverEase }}
                             className="overflow-hidden"
                           >
-                            <div
-                              className="ml-10 pl-4 mb-2 border-l"
-                              style={{
-                                borderColor: "rgba(var(--accent-rgb), 0.2)",
-                              }}
-                            >
+                            <div className="mb-3 ml-[2.65rem] border-l border-[var(--rule)] pl-4">
                               {link.children.map((child, ci) => (
                                 <motion.div
                                   key={child.href}
-                                  initial={{ opacity: 0, x: 10 }}
+                                  initial={{ opacity: 0, y: 6 }}
                                   animate={{
                                     opacity: 1,
-                                    x: 0,
-                                    transition: { delay: ci * 0.05 },
+                                    y: 0,
+                                    transition: { delay: ci * 0.04 },
                                   }}
                                 >
                                   <Link
                                     href={child.href}
                                     onClick={onClose}
-                                    className="block py-2.5 px-2 -mx-2 text-[15px] text-white-muted hover:text-[var(--text-nav-hover)] active:text-[var(--text-nav-hover)] active:bg-[var(--bg-hover-subtle)] transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+                                    className={`block py-2.5 text-[1.02rem] text-[var(--mid)] transition-colors active:text-[var(--fg)] ${focusRing}`}
                                   >
                                     {child.label}
                                   </Link>
@@ -255,19 +196,19 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                       key={link.href}
                       variants={linkVariants}
                       custom={currentIndex}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
                     >
                       <Link
                         href={link.href}
                         onClick={onClose}
-                        className="flex items-center gap-4 py-3.5 px-2 -mx-2 group rounded-lg transition-[background-color] duration-150 active:bg-[var(--bg-hover-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+                        className={`group flex items-baseline gap-4 py-3.5 ${focusRing}`}
                       >
-                        <span
-                          className="text-xs font-mono tabular-nums"
-                          style={{ color: "rgba(var(--accent-rgb), 0.5)" }}
-                        >
+                        <span className="font-mono text-[10px] tabular-nums tracking-[0.14em] text-[var(--soft)]">
                           {String(currentIndex + 1).padStart(2, "0")}
                         </span>
-                        <span className="text-lg font-medium text-[var(--text-nav)] group-hover:text-[var(--text-nav-hover)] transition-colors">
+                        <span className="font-display text-[1.7rem] font-medium leading-none tracking-[-0.03em] text-[var(--fg)]">
                           {link.label}
                         </span>
                       </Link>
@@ -277,43 +218,25 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
               </div>
             </div>
 
-            {/* Bottom section */}
-            <div className="mt-auto px-6 pb-8">
-              {/* Divider */}
-              <div
-                className="h-px mb-6"
-                style={{
-                  background:
-                    "linear-gradient(90deg, rgba(var(--accent-rgb), 0.3), rgba(var(--accent-rgb), 0.1), transparent)",
+            <motion.div variants={ctaVariants} initial="hidden" animate="visible" exit="exit">
+              <Link
+                href="/contact"
+                onClick={() => {
+                  trackConversion("Strategy Call CTA Clicked", { location: "mobile_nav" });
+                  onClose();
                 }}
-              />
-
-              {/* CTA — same flat mono .btn as the hero CTA */}
-              <motion.div variants={ctaVariants}>
-                <Link
-                  href="/contact"
-                  onClick={() => { trackConversion("Strategy Call CTA Clicked", { location: "mobile_nav" }); onClose(); }}
-                  className="btn w-full"
-                >
-                  Book a free strategy session <span className="arw" aria-hidden="true">→</span>
-                </Link>
-              </motion.div>
-
-              {/* Theme toggle + copyright */}
-              <motion.div
-                variants={ctaVariants}
-                className="flex items-center justify-between mt-6"
+                className="btn w-full"
               >
+                Book a free strategy session <span className="arw" aria-hidden="true">→</span>
+              </Link>
+              <div className="mt-5 flex items-center justify-between">
                 <ThemeToggle />
-                <span
-                  className="text-xs"
-                  style={{ color: "rgba(var(--accent-rgb), 0.4)" }}
-                >
-                  Accelerate Agency
+                <span className="font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--soft)]">
+                  Accelerate
                 </span>
-              </motion.div>
-            </div>
-          </motion.nav>
+              </div>
+            </motion.div>
+          </nav>
         </motion.div>
       )}
     </AnimatePresence>

@@ -12,7 +12,7 @@ To add an article:
 
 1. Create `src/content/articles/your-slug.mdx`
 2. Add frontmatter (see spec below)
-3. Check `src/content/proof-points.ts` for which case study to cite (every article needs at least one)
+3. Do not invent a client, a percentage, or a dollar return to sound specific. If the article needs a number, use time, capacity, a commitment we control, or a cited study whose finding you have actually read.
 4. Write the article using MDX components
 5. Run `npm run verify:articles` to check all quality gates automatically
 6. Run the editorial checklist (bottom of this doc) for subjective quality checks
@@ -164,7 +164,7 @@ Every article must pass ALL of these before publishing. These are not suggestion
 
 1. **Original insight requirement.** The article must contain at least one insight, observation, or recommendation that is not found in the top 10 Google results for the target keyword. This can be: a specific result from Accelerate's work, a contrarian take backed by experience, a unique framework, or a connection between ideas that other articles miss.
 
-2. **Proof point requirement.** Every article must reference at least one specific result from Accelerate's work with real numbers. "We set up an AI receptionist for a plumbing company and they captured 23 additional after-hours calls in the first month" — not "AI receptionists can help you capture more calls." If you don't have a directly relevant case study, reference the closest one and explain the connection. See `src/content/proof-points.ts` for the full mapping of case studies to article categories, with ready-to-use proof points and metrics.
+2. **Proof point requirement.** Specific is good. Invented is not. Describe the Tuesday the reader already lives (missed calls, stale estimates, after-hours silence) or use a result we will stand behind (about 10 hours a week per person on the workflows we take on). Do not mint a client, a 78% tattoo, or a monthly recovered-revenue figure.
 
 3. **Industry specificity requirement (for industry articles only).** Industry-specific articles must demonstrate real domain knowledge. Test: could you change the industry name and have the article still make sense? If yes, it fails. The article must reference industry-specific tools, workflows, regulations, seasonal patterns, or client expectations that only apply to that industry.
 
@@ -176,8 +176,8 @@ Every article must pass ALL of these before publishing. These are not suggestion
 
 Follow the Accelerate voice:
 
-- **Revenue-first**: Frame everything in terms of business outcomes — jobs booked, clients signed, revenue generated. Not abstract "efficiency."
-- **Specific, not vague**: Use dollar amounts, percentages, timeframes. "Save 12 hours per week" not "save time."
+- **Capacity-first**: Frame outcomes as hours returned and work the team can do again. Jobs, cases, and clients follow from that. Do not invent a dollar return.
+- **Specific, not vague**: Time and capacity are fair ("about 10 hours a week per person"). Dollar ROI and unsourced percentages are not. If you do not have the books, do not write the number.
 - **AI as team member**: "Your AI receptionist answers every call" not "the software processes inbound calls."
 - **No "leads"**: Use jobs, clients, consultations, appointments, inquiries, revenue.
 - **Authoritative but approachable**: Write like an experienced operator explaining to a peer, not a marketer selling.
@@ -187,7 +187,7 @@ Follow the Accelerate voice:
 
 These separate good content from generic content:
 
-**Proof points over claims.** Replace generic advice with specific results from Accelerate's work. Instead of "AI chatbots can increase conversion rates," write "We installed an AI chatbot for a personal injury firm that qualified 34% more consultations in 60 days — here's how we configured it."
+**Recognition over fake stats.** Replace generic advice with a Tuesday the reader already lives, or with a capacity result we will stand behind. Instead of "AI chatbots increase conversion 34%," write how the bot asks the screening questions and only books the cases that fit.
 
 **Contrarian sections.** Every consideration and decision stage article needs at least one "what most people get wrong" section. Identify the bad advice that's common in the space and explain why it fails. This builds more trust than any amount of success stories.
 
@@ -471,7 +471,7 @@ src/content/articles/{slug}.mdx
 | Tool | Command / Path | Purpose |
 |------|---------------|---------|
 | Article verifier | `npm run verify:articles` | Automated pass/fail check for all articles (frontmatter, components, proof points, internal links, "leads" detection) |
-| Proof points reference | `src/content/proof-points.ts` | Maps each case study (Farrell Roofing, SparkBlox, Montoya Capital) to relevant article categories with ready-to-use metrics and one-liner proof points |
+| Claims | `scripts/test-no-fabricated-claims.ts` | Bans dollar ROI theater, invented clients, recycled 78% first-responder copy, and the antithesis construction |
 | ArticleCTA component | `src/components/ArticleCTA.tsx` | Tracked page-level CTA — wraps Link+Button with Plausible `Page CTA Click` event |
 
 Run `npm run verify:articles` before pushing any article. All 34 articles (published and scheduled) must pass.

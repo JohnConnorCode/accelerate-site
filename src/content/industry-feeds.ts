@@ -18,20 +18,20 @@ export const CHANNEL: Record<Channel, { glyph: string; rgb: string }> = {
   paid:    { glyph: "＄", rgb: "52,211,153" },  // emerald — money in
 };
 
-export type FeedEvent = { time: string; channel: Channel; label: string; value?: string };
+export type FeedEvent = { time: string; channel: Channel; label: string };
 export type IndustryFeed = { metric: string; feed: FeedEvent[] };
 
 // Static timestamps keep the feed deterministic (no hydration drift) while
 // still reading like a real, time-stamped operations log.
 export const INDUSTRY_FEEDS: Record<string, IndustryFeed> = {
   "home-services": {
-    metric: "+38% booked jobs",
+    metric: "Hours back to the crew",
     feed: [
       { time: "07:12:04", channel: "capture", label: "After-hours job request captured" },
       { time: "08:03:41", channel: "book", label: "Dispatch scheduled for Tue 9:00" },
       { time: "08:31:18", channel: "text", label: "“On my way” text sent to homeowner" },
       { time: "14:52:09", channel: "review", label: "5★ review request sent" },
-      { time: "16:20:55", channel: "paid", label: "Invoice paid", value: "+$1,240" },
+      { time: "16:20:55", channel: "paid", label: "Invoice marked paid" },
     ],
   },
   "law-firms": {
@@ -41,7 +41,7 @@ export const INDUSTRY_FEEDS: Record<string, IndustryFeed> = {
       { time: "09:06:50", channel: "follow", label: "Conflict check: clear" },
       { time: "09:18:33", channel: "book", label: "Consultation scheduled for Thu 2:00" },
       { time: "11:47:01", channel: "text", label: "Intake docs requested" },
-      { time: "15:33:40", channel: "won", label: "Engagement signed", value: "+$6,500" },
+      { time: "15:33:40", channel: "won", label: "Engagement signed" },
     ],
   },
   "real-estate": {
@@ -51,7 +51,7 @@ export const INDUSTRY_FEEDS: Record<string, IndustryFeed> = {
       { time: "10:15:07", channel: "book", label: "Showing booked for Sat 11:00" },
       { time: "12:30:44", channel: "follow", label: "Post-showing follow-up sent" },
       { time: "13:58:19", channel: "text", label: "Offer status update to client" },
-      { time: "17:02:36", channel: "won", label: "Offer accepted, closing on track", value: "+$11,400" },
+      { time: "17:02:36", channel: "won", label: "Offer accepted, closing on track" },
     ],
   },
   "professional-services": {
@@ -61,7 +61,7 @@ export const INDUSTRY_FEEDS: Record<string, IndustryFeed> = {
       { time: "09:48:14", channel: "book", label: "Consult scheduled for Wed 10:30" },
       { time: "11:05:38", channel: "follow", label: "Proposal sent & tracked" },
       { time: "14:19:27", channel: "review", label: "Referral request sent" },
-      { time: "16:44:03", channel: "paid", label: "Monthly retainer", value: "+$3,500" },
+      { time: "16:44:03", channel: "paid", label: "Monthly retainer confirmed" },
     ],
   },
   manufacturing: {
@@ -70,7 +70,7 @@ export const INDUSTRY_FEEDS: Record<string, IndustryFeed> = {
       { time: "07:48:15", channel: "capture", label: "New RFQ captured from portal" },
       { time: "08:02:40", channel: "text", label: "Quote acknowledgment sent to buyer" },
       { time: "10:15:22", channel: "follow", label: "Quote follow-up sent, no response yet" },
-      { time: "13:40:07", channel: "won", label: "PO received, job scheduled", value: "+$18,200" },
+      { time: "13:40:07", channel: "won", label: "PO received, job scheduled" },
       { time: "16:05:51", channel: "follow", label: "Supplier ship-date check sent" },
     ],
   },
@@ -81,7 +81,7 @@ export const INDUSTRY_FEEDS: Record<string, IndustryFeed> = {
       { time: "09:32:14", channel: "text", label: "Day-3 check-in sent to new customer" },
       { time: "11:05:47", channel: "follow", label: "Support ticket routed to product" },
       { time: "14:20:03", channel: "book", label: "Investor update drafted for review" },
-      { time: "16:48:29", channel: "won", label: "Renewal confirmed", value: "+$2,400" },
+      { time: "16:48:29", channel: "won", label: "Renewal confirmed" },
     ],
   },
   "medical-dental": {
@@ -100,7 +100,7 @@ export const INDUSTRY_FEEDS: Record<string, IndustryFeed> = {
       { time: "08:05:22", channel: "capture", label: "New quote request captured" },
       { time: "08:40:15", channel: "text", label: "Quote sent to prospect" },
       { time: "11:12:48", channel: "follow", label: "Renewal reminder sent, 30 days out" },
-      { time: "14:05:36", channel: "won", label: "Policy bound", value: "+$1,850" },
+      { time: "14:05:36", channel: "won", label: "Policy bound" },
       { time: "16:22:09", channel: "follow", label: "Coverage-gap outreach sent" },
     ],
   },
@@ -111,7 +111,7 @@ export const INDUSTRY_FEEDS: Record<string, IndustryFeed> = {
       { time: "08:14:50", channel: "text", label: "Response sent, appointment offered" },
       { time: "10:30:27", channel: "book", label: "Service appointment booked for Fri 9:00" },
       { time: "13:15:44", channel: "follow", label: "Unclosed deal follow-up sent" },
-      { time: "16:40:19", channel: "won", label: "Vehicle sold", value: "+$32,400" },
+      { time: "16:40:19", channel: "won", label: "Vehicle sold" },
     ],
   },
 };

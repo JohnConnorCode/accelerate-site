@@ -50,7 +50,7 @@ export function ArticleCard({
         {article.frontmatter.excerpt}
       </p>
 
-      <div className="mt-8 flex items-center justify-between border-t border-border-glass pt-4 font-mono text-[0.66rem] uppercase tracking-[0.12em] text-white-muted">
+      <div className="mt-8 flex items-center justify-between border-t border-[var(--rule)] pt-4 font-mono text-[0.66rem] uppercase tracking-[0.12em] text-white-muted">
         <span className="inline-flex items-center gap-1.5">
           <Clock className="h-3.5 w-3.5" aria-hidden="true" />
           {article.readingTime}

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Send, Loader2 } from "lucide-react";
-import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -80,10 +79,10 @@ export function ContactForm() {
 
   if (submitted) {
     return (
-      <GlassCard variant="prominent" padding="lg" className="text-center">
+      <div className="border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] p-8 text-center">
         <div className="py-8 space-y-4">
-          <div className="w-16 h-16 rounded-full bg-gold-gradient mx-auto flex items-center justify-center">
-            <Send className="w-8 h-8 text-black" />
+          <div className="mx-auto flex h-16 w-16 items-center justify-center bg-[var(--fg)] text-[var(--bg)]">
+            <Send className="h-7 w-7" />
           </div>
           <h3
             className="text-2xl font-bold text-heading"
@@ -99,12 +98,12 @@ export function ContactForm() {
             Reply with two times that work for you and he will schedule the call directly.
           </p>
         </div>
-      </GlassCard>
+      </div>
     );
   }
 
   return (
-    <GlassCard variant="prominent" padding="lg">
+    <div className="border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] p-6 sm:p-8">
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-white-secondary mb-1.5">
@@ -214,6 +213,6 @@ export function ContactForm() {
           )}
         </Button>
       </form>
-    </GlassCard>
+    </div>
   );
 }

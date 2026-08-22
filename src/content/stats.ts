@@ -2,25 +2,18 @@ import type { Stat } from "@/lib/types";
 
 export const stats: Stat[] = [
   {
-    value: "45",
-    numericValue: 45,
-    suffix: "s",
-    label: "Avg. first response time",
-    detail: "Down from 8+ minutes",
-  },
-  {
-    value: "38",
-    numericValue: 38,
-    suffix: "%",
-    label: "More jobs booked",
-    detail: "What we build against",
-  },
-  {
     value: "10",
     numericValue: 10,
-    suffix: "+",
-    label: "Hours reclaimed per week",
-    detail: "What we build against",
+    suffix: "",
+    label: "Hours back per person, per week",
+    detail: "Typical on the workflows we take on",
+  },
+  {
+    value: "1",
+    numericValue: 1,
+    suffix: "",
+    label: "Role of routine work absorbed",
+    detail: "Labor moves to higher-precision work",
   },
   {
     // Replaced a "94% client retention, year over year" claim. The company

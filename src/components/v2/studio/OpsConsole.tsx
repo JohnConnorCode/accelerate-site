@@ -47,7 +47,6 @@ export function OpsConsole({
       >
         {feed.map((e, i) => {
           const c = CHANNEL[e.channel];
-          const money = e.channel === "won" || e.channel === "paid";
           return (
             <motion.li
               key={`${name}-${i}`}
@@ -55,14 +54,11 @@ export function OpsConsole({
                 hidden: { opacity: 0, x: -12 },
                 show: { opacity: 1, x: 0, transition: { duration: 0.45, ease: EASE } },
               }}
-              className={`flex items-center gap-3 py-3 ${money ? "rounded-lg bg-[rgba(var(--accent-rgb),0.06)] px-2" : ""}`}
+              className="flex items-center gap-3 py-3"
             >
               <span className="font-mono text-[0.62rem] tabular-nums text-white-muted">{e.time}</span>
               <span className="font-mono text-sm leading-none" style={{ color: `rgb(${c.rgb})` }}>{c.glyph}</span>
               <span className="min-w-0 flex-1 truncate font-mono text-[0.78rem] text-white-secondary">{e.label}</span>
-              {e.value && (
-                <span className="font-mono text-[0.78rem] font-bold" style={{ color: `rgb(${c.rgb})` }}>{e.value}</span>
-              )}
             </motion.li>
           );
         })}

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Check, X, ArrowUpRight, Sparkles } from "lucide-react";
+import { Check, X, ArrowUpRight } from "lucide-react";
 import {
   Accordion, AccordionItem, AccordionTrigger, AccordionContent,
 } from "@/components/ui/Accordion";
@@ -41,18 +41,17 @@ function PricingCard({ pkg }: { pkg: ServicePackage }) {
       )}
     >
       {featured && (
-        <p className="mb-3 flex items-center justify-center gap-1.5 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">
-          <Sparkles className="h-3 w-3" />
+        <p className="mb-3 text-center font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white-muted">
           Most popular
         </p>
       )}
       <div
         id={pkg.slug}
         className={cn(
-          "flex h-full flex-1 flex-col rounded-2xl border bg-[color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] p-6 backdrop-blur-md sm:p-8",
+          "flex h-full flex-1 flex-col border p-6 sm:p-8",
           featured
-            ? "border-border-gold shadow-[0_0_0_1px_var(--border-gold),inset_0_1px_0_rgba(255,255,255,0.06),0_20px_60px_rgba(0,0,0,0.25)]"
-            : "border-border-glass shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+            ? "border-[var(--fg)]"
+            : "border-[color-mix(in_srgb,var(--fg)_14%,transparent)]"
         )}
       >
         <div className="mb-6">
@@ -64,7 +63,7 @@ function PricingCard({ pkg }: { pkg: ServicePackage }) {
         </div>
         <div className="mb-6">
           <div className="flex items-baseline gap-2">
-            <span className={cn("font-display text-4xl font-bold tracking-tight", featured ? "text-gold" : "text-heading")}>
+            <span className="font-display text-4xl font-bold tracking-tight text-heading">
               {formatCurrency(pkg.priceOneTime)}
             </span>
             <span className="text-sm text-white-muted">one-time</span>
@@ -75,12 +74,12 @@ function PricingCard({ pkg }: { pkg: ServicePackage }) {
             </p>
           )}
         </div>
-        <div className="mb-6 border-t border-border-glass" />
+        <div className="mb-6 border-t border-[color-mix(in_srgb,var(--fg)_12%,transparent)]" />
         <ul className="mb-8 flex flex-1 flex-col gap-3" role="list">
           {pkg.features.map((feature) => (
             <li key={feature.name} className="flex items-start gap-3">
               {feature.included ? (
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" strokeWidth={2.5} aria-hidden />
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-heading" strokeWidth={2.5} aria-hidden />
               ) : (
                 <X className="mt-0.5 h-4 w-4 shrink-0 text-white-muted opacity-50" aria-hidden />
               )}
@@ -98,8 +97,8 @@ function PricingCard({ pkg }: { pkg: ServicePackage }) {
           data-cursor="link"
           onClick={() => trackConversion("Package Selected", { package_name: pkg.name })}
           className={cn(
-            "group mt-auto inline-flex items-center justify-center gap-2.5 rounded-full px-7 py-3.5 text-sm font-semibold transition-colors",
-            featured ? "bg-gold text-btn-text hover:opacity-90" : "border border-border-glass text-heading hover:border-border-gold hover:text-gold"
+            "btn w-full justify-center",
+            featured ? "" : ""
           )}
         >
           {pkg.ctaText}
@@ -122,7 +121,7 @@ function ComparisonTable() {
       <table className="w-full min-w-[640px] border-collapse" role="table">
         <thead>
           <tr>
-            <th scope="col" className="sticky top-[72px] z-10 bg-[color-mix(in_srgb,var(--bg-base)_94%,transparent)] py-4 pl-4 pr-4 text-left font-mono text-[0.62rem] uppercase tracking-[0.2em] text-white-muted backdrop-blur-md sm:pl-0">
+            <th scope="col" className="sticky top-[calc(var(--site-header-h)+var(--safe-top))] z-10 bg-[color-mix(in_srgb,var(--bg-base)_94%,transparent)] py-4 pl-4 pr-4 text-left font-mono text-[0.62rem] uppercase tracking-[0.2em] text-white-muted backdrop-blur-md sm:pl-0">
               Feature
             </th>
             {packages.map((pkg) => (
@@ -130,8 +129,8 @@ function ComparisonTable() {
                 key={pkg.id}
                 scope="col"
                 className={cn(
-                  "sticky top-[72px] z-10 bg-[color-mix(in_srgb,var(--bg-base)_94%,transparent)] px-4 py-4 text-center font-display text-sm font-semibold backdrop-blur-md",
-                  pkg.highlighted ? "text-gold" : "text-heading"
+                  "sticky top-[calc(var(--site-header-h)+var(--safe-top))] z-10 bg-[color-mix(in_srgb,var(--bg-base)_94%,transparent)] px-4 py-4 text-center font-display text-sm font-semibold backdrop-blur-md",
+                  "text-heading"
                 )}
               >
                 {pkg.name}
@@ -146,15 +145,15 @@ function ComparisonTable() {
         </thead>
         <tbody>
           {featureNames.map((name, idx) => (
-            <tr key={name} className={cn("border-t border-border-glass transition-colors hover:bg-white/[0.045]", idx % 2 === 0 && "bg-white/[0.02]")}>
+            <tr key={name} className={cn("border-t border-[color-mix(in_srgb,var(--fg)_10%,transparent)]", idx % 2 === 0 && "bg-[color-mix(in_srgb,var(--fg)_3%,transparent)]")}>
               <td className="py-3 pl-4 pr-4 text-sm text-white-secondary sm:pl-0">{name}</td>
               {packages.map((pkg) => {
                 const feature = pkg.features.find((f) => f.name === name);
                 const included = feature?.included ?? false;
                 return (
-                  <td key={pkg.id} className={cn("px-4 py-3 text-center", pkg.highlighted && "bg-[color-mix(in_srgb,var(--gold-base)_4%,transparent)]")}>
+                  <td key={pkg.id} className="px-4 py-3 text-center">
                     {included ? (
-                      <Check className="mx-auto h-4 w-4 text-gold" strokeWidth={2.5} aria-label={`${name} included in ${pkg.name}`} />
+                      <Check className="mx-auto h-4 w-4 text-heading" strokeWidth={2.5} aria-label={`${name} included in ${pkg.name}`} />
                     ) : (
                       <span className="mx-auto block h-[2px] w-4 rounded bg-white/15">
                         <span className="sr-only">Not included</span>
@@ -176,7 +175,7 @@ export function PackagesPageContent() {
     <>
       {/* hero — pricing statement + the guarantee that every package shares,
           right where price anxiety peaks */}
-      <section className="relative overflow-hidden pt-32 pb-24">
+      <section className="page-offset-roomy relative overflow-hidden pb-24">
         <Container width="wide">
         <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
           <div className="min-w-0">
@@ -197,9 +196,8 @@ export function PackagesPageContent() {
             </AnimateOnScroll>
           </div>
           <AnimateOnScroll as="div" delay={0.2} className="mx-auto w-full max-w-sm">
-            <div className="relative overflow-hidden rounded-3xl border border-border-gold/50 bg-[color-mix(in_srgb,var(--gold-base)_5%,var(--bg-elevated))] p-7 backdrop-blur-md">
-              <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold to-transparent opacity-70" />
-              <p className="mb-5 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">
+            <div className="relative overflow-hidden border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] p-7">
+              <p className="mb-5 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white-muted">
                 In every package
               </p>
               <ul className="flex flex-col gap-3.5">
@@ -210,7 +208,7 @@ export function PackagesPageContent() {
                   "A direct line to the founder",
                 ].map((g) => (
                   <li key={g} className="flex items-start gap-3 text-sm leading-relaxed text-white-secondary">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" strokeWidth={2.5} />
+                    <Check className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2.5} />
                     <span>{g}</span>
                   </li>
                 ))}
@@ -246,7 +244,7 @@ export function PackagesPageContent() {
           See exactly what&apos;s included in each package so you can choose
           with confidence.
         </p>
-        <p className="mb-4 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-gold sm:hidden">
+        <p className="mb-4 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-white-muted sm:hidden">
           Swipe the table to compare all three →
         </p>
         {/* fade-only reveal: a y-transform here would make this card a containing
@@ -255,7 +253,7 @@ export function PackagesPageContent() {
           as="div"
           delay={0.1}
           variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 0.7 } } }}
-          className="rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] p-6 sm:p-8"
+          className="border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] p-6 sm:p-8"
         >
           <ComparisonTable />
         </AnimateOnScroll>
@@ -285,7 +283,7 @@ export function PackagesPageContent() {
           <a
             href="mailto:john@acceleratewith.us"
             data-cursor="link"
-            className="text-gold transition-colors hover:text-gold-light"
+            className="underline underline-offset-4"
           >
             john@acceleratewith.us
           </a>

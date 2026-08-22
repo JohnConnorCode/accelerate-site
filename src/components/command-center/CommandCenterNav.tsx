@@ -109,7 +109,7 @@ export function CommandCenterNav() {
           transition={{ type: "spring", damping: 26, stiffness: 260, mass: 0.7 }}
           data-dock
           aria-label="Command Center sections"
-          className="fixed inset-x-3.5 bottom-5 z-[950] flex items-center gap-1 border border-white/[0.16] py-2 pl-2 pr-2 shadow-[0_20px_60px_rgba(0,0,0,0.34)] sm:inset-x-auto sm:left-1/2 sm:max-w-[calc(100vw-28px)] sm:-translate-x-1/2"
+          className="fixed inset-x-0 bottom-0 z-[950] flex items-center gap-1 border-t border-white/10 py-2 pl-2 pr-2 sm:inset-x-auto sm:bottom-5 sm:left-1/2 sm:max-w-[calc(100vw-28px)] sm:-translate-x-1/2 sm:border sm:border-white/[0.16] sm:shadow-[0_20px_60px_rgba(0,0,0,0.34)]"
           style={{
             paddingBottom: "max(8px, env(safe-area-inset-bottom))",
             backgroundColor: "rgba(14,14,13,0.62)",

@@ -41,7 +41,7 @@ function linkify(text: string) {
           target={isEmail ? undefined : "_blank"}
           rel={isEmail ? undefined : "noopener noreferrer"}
           data-cursor="link"
-          className="font-medium text-gold underline decoration-gold/40 underline-offset-2 transition-colors hover:decoration-gold"
+          className="font-medium underline underline-offset-2 decoration-[color-mix(in_srgb,var(--fg)_40%,transparent)] hover:decoration-[var(--fg)]"
         >
           {target}
         </a>
@@ -67,10 +67,10 @@ export function ChatMessage({ message }: ChatMessageProps) {
     >
       <div
         className={cn(
-          "max-w-[86%] whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
+          "max-w-[86%] whitespace-pre-wrap break-words px-4 py-2.5 text-sm leading-relaxed",
           isUser
-            ? "bg-gold-gradient rounded-br-md font-medium text-black"
-            : "bg-bg-subtle border border-border-glass text-white-secondary rounded-bl-md"
+            ? "bg-[var(--fg)] font-medium text-[var(--bg)]"
+            : "border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] text-white-secondary"
         )}
       >
         {isUser ? message.content : linkify(message.content)}

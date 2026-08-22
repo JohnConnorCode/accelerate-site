@@ -47,6 +47,7 @@ const mono = JetBrains_Mono({
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
   themeColor: "#FBFBFA",
 };
 
@@ -57,7 +58,7 @@ export const metadata: Metadata = {
     template: "%s | Accelerate",
   },
   description:
-    "Custom business solutions powered by AI, built and run by Accelerate. Book more jobs, sign more clients, reclaim hours. We deliver the results and stand behind them.",
+    "We take intake, follow-up, and scheduling off your team so they can do the work only they can do. Free strategy session.",
   applicationName: "Accelerate",
   authors: [{ name: "Accelerate", url: "https://www.acceleratewith.us" }],
   creator: "Accelerate",
@@ -69,7 +70,7 @@ export const metadata: Metadata = {
     siteName: "Accelerate",
     title: "Accelerate | Custom AI Solutions, Built & Run for You",
     description:
-      "Custom business solutions powered by AI, built and run by Accelerate. Book more jobs, sign more clients, reclaim hours. We deliver the results and stand behind them.",
+      "We take intake, follow-up, and scheduling off your team so they can do the work only they can do. Free strategy session.",
   },
   twitter: {
     card: "summary_large_image",
@@ -77,7 +78,7 @@ export const metadata: Metadata = {
     creator: "@accelerateAIops",
     title: "Accelerate | Custom AI Solutions, Built & Run for You",
     description:
-      "Custom business solutions powered by AI, built and run by Accelerate. Book more jobs, sign more clients, reclaim hours. We deliver the results and stand behind them.",
+      "We take intake, follow-up, and scheduling off your team so they can do the work only they can do. Free strategy session.",
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GSC_VERIFICATION || undefined,
@@ -108,7 +109,7 @@ const organizationJsonLd = {
     height: 512,
   },
   description:
-    "Custom business solutions powered by AI, built and run by Accelerate. Book more jobs, sign more clients, reclaim hours. We deliver the results and stand behind them.",
+    "We take intake, follow-up, and scheduling off your team so they can do the work only they can do. Free strategy session.",
   founder: {
     "@type": "Person",
     name: "John Connor",

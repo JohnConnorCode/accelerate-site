@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { MobileNav } from "./MobileNav";
 import { Logo } from "@/components/ui/Logo";
 import { verticals } from "@/content/verticals";
+import { FEATURED_INDUSTRY_SLUGS } from "@/content/industry-visuals";
 import { SearchDialog, useSearchShortcut } from "@/components/search/SearchDialog";
 import {
   headerEntrance,
@@ -34,10 +35,13 @@ interface NavLink {
 // shipped and stayed invisible for a day because this was a literal list of nine
 // that nobody remembered to extend, which is the same drift that had left
 // nonprofits out of the sitemap.
-const INDUSTRY_LINKS: NavChild[] = verticals.map((vertical) => ({
-  label: vertical.name,
-  href: `/industries/${vertical.slug}`,
-}));
+const INDUSTRY_LINKS: NavChild[] = FEATURED_INDUSTRY_SLUGS.map((slug) => {
+  const vertical = verticals.find((item) => item.slug === slug);
+  return {
+    label: vertical?.name ?? slug,
+    href: `/industries/${slug}`,
+  };
+});
 
 const navLinks: NavLink[] = [
   { label: "Services", href: "/services" },
@@ -55,7 +59,10 @@ const navLinks: NavLink[] = [
 // stays full-width for the current route. The single source of the nav's
 // "where am I" + hover feedback.
 const navUnderline =
-  "pointer-events-none absolute -bottom-1 left-0 h-px w-full origin-left bg-gold transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]";
+  "pointer-events-none absolute -bottom-1 left-0 h-px w-full origin-left bg-[var(--fg)] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]";
+
+const focusRing =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--fg)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent";
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -69,7 +76,7 @@ export function Header() {
   const isActive = (href: string) =>
     href !== "#" && (pathname === href || pathname.startsWith(href + "/"));
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
+    const handleScroll = () => setScrolled(window.scrollY > 8);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -96,10 +103,8 @@ export function Header() {
         initial="hidden"
         animate="visible"
         className={cn(
-          "fixed top-0 left-0 right-0 z-[90] transition-[background-color,backdrop-filter,padding,box-shadow] duration-500",
-          scrolled
-            ? "py-3 shadow-[0_20px_70px_rgba(0,0,0,0.45)]"
-            : "py-6 lg:py-8"
+          "site-header fixed top-0 left-0 right-0 z-[90] transition-[background-color,backdrop-filter,box-shadow] duration-300",
+          scrolled && "is-scrolled shadow-[0_12px_40px_rgba(11,11,11,0.08)]"
         )}
         style={{
           backgroundColor: scrolled ? "var(--header-bg-scrolled)" : "transparent",
@@ -131,7 +136,8 @@ export function Header() {
                 >
                   <button
                     className={cn(
-                      "group/nav relative inline-flex items-center gap-1 text-sm transition-colors cursor-pointer rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
+                      "group/nav relative inline-flex items-center gap-1 text-sm transition-colors cursor-pointer rounded-sm",
+                      focusRing,
                       pathname.startsWith("/industries")
                         ? "text-[var(--text-nav-hover)]"
                         : "text-[var(--text-nav)] hover:text-[var(--text-nav-hover)]"
@@ -180,7 +186,7 @@ export function Header() {
                               key={child.href}
                               href={child.href}
                               role="menuitem"
-                              className="block px-4 py-2.5 text-sm text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] hover:bg-[var(--bg-hover-subtle)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--gold-base)]"
+                              className="block px-4 py-2.5 text-sm text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] hover:bg-[var(--bg-hover-subtle)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--fg)]"
                             >
                               {child.label}
                             </Link>
@@ -196,7 +202,8 @@ export function Header() {
                     href={link.href}
                     aria-current={isActive(link.href) ? "page" : undefined}
                     className={cn(
-                      "group/nav relative inline-flex text-sm transition-colors rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
+                      "group/nav relative inline-flex text-sm transition-colors rounded-sm",
+                      focusRing,
                       isActive(link.href)
                         ? "text-[var(--text-nav-hover)]"
                         : "text-[var(--text-nav)] hover:text-[var(--text-nav-hover)]"
@@ -222,7 +229,7 @@ export function Header() {
               onClick={() => setSearchOpen(true)}
               aria-label="Search the site"
               title="Search (press / or Cmd K)"
-              className="grid size-9 place-items-center rounded-lg text-[var(--text-nav)] transition-colors hover:text-[var(--text-nav-hover)] hover:bg-[var(--bg-hover-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] cursor-pointer"
+              className={cn("grid size-9 place-items-center rounded-lg text-[var(--text-nav)] transition-colors hover:text-[var(--text-nav-hover)] hover:bg-[var(--bg-hover-subtle)] cursor-pointer", focusRing)}
             >
               <Search className="size-[18px]" />
             </button>
@@ -236,39 +243,31 @@ export function Header() {
             </Link>
           </motion.div>
 
-          {/* Mobile: search sits outside the menu, so it is one tap rather than two */}
-          <motion.button
-            variants={headerCtaReveal}
-            type="button"
-            onClick={() => setSearchOpen(true)}
-            aria-label="Search the site"
-            className="lg:hidden relative w-11 h-11 flex items-center justify-center cursor-pointer rounded-lg transition-transform duration-150 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
-          >
-            <Search className="size-[19px] text-[var(--text-nav)]" />
-          </motion.button>
-
-          {/* Mobile Hamburger */}
-          <motion.button
-            variants={headerCtaReveal}
-            className="lg:hidden relative w-11 h-11 flex items-center justify-center -mr-2 cursor-pointer rounded-lg transition-transform duration-150 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
-            onClick={() => setMobileOpen(true)}
-            aria-label="Open navigation menu"
-          >
-            <div className="flex flex-col items-end gap-[5px]">
-              <span className="block h-[2px] w-6 rounded-full bg-gold transition-transform duration-300" />
-              <span className="block h-[2px] w-4 rounded-full bg-gold transition-transform duration-300" />
-              <span className="block h-[2px] w-5 rounded-full bg-gold transition-transform duration-300" />
-            </div>
-          </motion.button>
+          <div className="flex items-center lg:hidden">
+            <motion.button
+              variants={headerCtaReveal}
+              type="button"
+              onClick={() => setSearchOpen(true)}
+              aria-label="Search the site"
+              className={cn("relative flex h-11 w-11 items-center justify-center cursor-pointer rounded-lg transition-transform duration-150 active:scale-[0.96]", focusRing)}
+            >
+              <Search className="size-[19px] text-[var(--text-nav)]" />
+            </motion.button>
+            <motion.button
+              variants={headerCtaReveal}
+              className={cn("relative flex h-11 w-11 items-center justify-center cursor-pointer rounded-lg transition-transform duration-150 active:scale-[0.96]", focusRing)}
+              onClick={() => setMobileOpen(true)}
+              aria-label="Open navigation menu"
+            >
+              <div className="flex flex-col items-end gap-[5px]">
+                <span className="block h-[1.5px] w-5 bg-[var(--fg)]" />
+                <span className="block h-[1.5px] w-3.5 bg-[var(--fg)]" />
+                <span className="block h-[1.5px] w-4 bg-[var(--fg)]" />
+              </div>
+            </motion.button>
+          </div>
         </div>
-        {/* Animated gold gradient bottom border */}
-        <div
-          className="absolute bottom-0 left-0 right-0 h-px transition-opacity duration-500"
-          style={{
-            opacity: scrolled ? 1 : 0,
-            background: "linear-gradient(90deg, transparent, rgba(var(--accent-rgb),0.4), rgba(var(--accent-rgb),0.3), rgba(var(--accent-rgb),0.4), transparent)",
-          }}
-        />
+        <div className="site-header-rule" />
       </motion.header>
 
       {/* Mobile Nav Overlay */}

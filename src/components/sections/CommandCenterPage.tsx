@@ -116,10 +116,10 @@ function Hero() {
             </h1>
             <div className={`rv${loaded ? " in" : ""} flex flex-col gap-5`} style={{ "--d": ".5s", marginTop: 26 } as CSSProperties}>
               <p className="lede text-balance">
-                A custom operational solution that captures your communications, advances your pipeline, drafts your follow-ups, and files your meeting notes — before you&apos;ve opened your laptop.
+                It captures communications, advances the pipeline, drafts follow-ups, and files meeting notes before you have opened the laptop.
               </p>
               <p className="lede text-balance hidden sm:block">
-                Every action stages in one queue for your final call. Nothing leaves without your approval. We build the exact system your business needs and install it running.
+                Every action waits in one queue. Nothing leaves without you. We build the system your business actually needs and install it running.
               </p>
             </div>
             <div className={`rv${loaded ? " in" : ""}`} style={{ "--d": ".62s", marginTop: 32 } as CSSProperties}>
@@ -173,7 +173,7 @@ function Problem() {
               you become <span className="it">the ceiling.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              The constraint on scaling is rarely demand—it&apos;s the hours lost to admin, scattered notes, forgotten follow-ups, and manual coordination. A custom operational system captures every detail and does the heavy lifting, giving you back 15+ hours every week without hiring overhead.
+              The constraint is rarely demand. It is the hours lost to admin, scattered notes, forgotten follow-ups, and coordination. The system takes that layer. Typical is 10 hours a week per person, back.
             </Reveal>
           </div>
         </div>
@@ -195,14 +195,14 @@ function Built() {
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              A custom solution,
+              Built for how
               <br />
-              built for your
+              your business
               <br />
-              <span className="it">exact business.</span>
+              <span className="it">already runs.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              Off-the-shelf software forces you to change how you work. We engineer custom operational solutions that fit directly into your existing tools, communication channels, and workflows. From day one, your system knows your clients, speaks your industry language, and executes your specific business rules.
+              Off-the-shelf software asks you to change how you work. We put the system into the tools, channels, and rules you already have. From day one it knows your clients and speaks the trade.
             </Reveal>
           </div>
         </div>
@@ -305,7 +305,7 @@ function TrustLadder() {
               Automation at <span className="it">your pace.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              You start with 100% control—every outbound message, record change, and follow-up waits for your review. As the system learns your voice and processes, you decide what runs autonomously and what requires your sign-off. You stay in total control at all times.
+              You start with full control. Every outbound message, record change, and follow-up waits for review. As it learns your voice, you decide what runs on its own and what still needs a sign-off.
             </Reveal>
           </div>
         </div>
@@ -342,7 +342,7 @@ function Catalog() {
               for your <span className="it">entire operation.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              A cross-section of what we build into your Command Center. We start by eliminating the biggest friction points in your client intake, sales pipeline, and delivery, then expand capabilities as your operation scales.
+              What we put in first is whatever is trapping the team: intake, the pipeline, follow-up. Then we expand as the week actually comes back.
             </Reveal>
           </div>
         </div>
@@ -370,7 +370,7 @@ function Proof() {
               <span className="it">own business.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              We run our own agency on this exact system every day—client intake, call notes, pipeline follow-ups, and proposals. On our strategy call, we will screen-share our live production system so you can see how it runs in real time.
+              We run our own agency on this system every day: intake, call notes, follow-ups, proposals. On the strategy call we will screen-share the live production system so you can see how it actually runs.
             </Reveal>
           </div>
         </div>
@@ -410,7 +410,7 @@ function WhoItsFor() {
               ))}
             </ul>
             <Reveal rv as="p" className="lede" delay={0.1}>
-              A full operations team gets more out of this, not less—the routine work runs itself, so your people spend their time on what actually needs a person.
+              A full operations team gets more out of this, not less. The routine work runs itself, so people spend the week on what actually needs a person.
             </Reveal>
           </div>
         </div>
@@ -484,16 +484,16 @@ function Closing() {
           </Reveal>
           <h2 ref={headingRef} className="h2 line-h">
             <span className="line">
-              <span style={{ "--d": ".05s" } as CSSProperties}>Get your custom</span>
+              <span style={{ "--d": ".05s" } as CSSProperties}>Give them the week</span>
             </span>
             <span className="line">
               <span className="it" style={{ "--d": ".12s" } as CSSProperties}>
-                automation roadmap.
+                back.
               </span>
             </span>
           </h2>
           <Reveal rv as="p" className="lede" delay={0.1}>
-            A free 30-minute operational consultation to pinpoint your bottlenecks. You will receive a tailored action plan showing exactly how to automate your core workflows—yours to keep whether we work together or not.
+            Thirty minutes. We look at where the hours go. You leave with a plan, yours to keep either way.
           </Reveal>
           <Reveal rv as="div" delay={0.16}>
             <BookCallButton variant="inverse" location="command_center_closing" />

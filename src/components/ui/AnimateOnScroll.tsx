@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { EASE, fadeUp } from "@/lib/animations";
 import { cn } from "@/lib/utils";
@@ -32,7 +33,10 @@ export function AnimateOnScroll({
   staggerDelay = 0.08,
 }: AnimateOnScrollProps) {
   const Component = motionElements[as] ?? motionElements.div;
-  const reducedMotion = useReducedMotion();
+  const prefersReduced = useReducedMotion();
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
+  const reducedMotion = hydrated && !!prefersReduced;
 
   const resolvedVariants: Variants = stagger
     ? {
@@ -50,8 +54,9 @@ export function AnimateOnScroll({
   return (
     <Component
       variants={resolvedVariants}
-      initial={reducedMotion ? false : "hidden"}
-      whileInView="visible"
+      initial="hidden"
+      animate={reducedMotion ? "visible" : undefined}
+      whileInView={reducedMotion ? undefined : "visible"}
       viewport={{ once: true, margin: "0px 0px -6% 0px" }}
       transition={!stagger && delay ? { delay } : undefined}
       className={cn("reveal-self", className)}
@@ -104,12 +109,16 @@ export function EntranceGroup({
   delay?: number;
   stagger?: number;
 }) {
-  const reducedMotion = useReducedMotion();
+  const prefersReduced = useReducedMotion();
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
+  const reducedMotion = hydrated && !!prefersReduced;
   return (
     <motion.div
       className={cn("reveal-self", className)}
-      initial={reducedMotion ? false : "hidden"}
-      whileInView="visible"
+      initial="hidden"
+      animate={reducedMotion ? "visible" : undefined}
+      whileInView={reducedMotion ? undefined : "visible"}
       viewport={{ once: true, margin: "0px 0px -6% 0px" }}
       variants={{
         hidden: {},

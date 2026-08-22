@@ -37,7 +37,26 @@ const NO_STATISTICS = ["src/components/sections/NonprofitLanding.tsx"];
  *
  * Say the true thing and let it stand.
  */
-const NO_ANTITHESIS_DIRS = ["src/content", "src/components/sections", "src/lib/chat"];
+const NO_ANTITHESIS_DIRS = ["src/content", "src/components/sections", "src/lib/chat", "src/components/home"];
+
+/**
+ * Hard ROI theater. Time and capacity are allowed. Dollar recoveries,
+ * recycled first-responder percentages, and invented clients are not.
+ */
+const NO_ROI_THEATER_DIRS = ["src/content", "src/components/home", "src/components/sections", "src/components/v2"];
+
+const ROI_THEATER_PATTERNS: Array<{ pattern: RegExp; why: string }> = [
+  { pattern: /78%\s+of\s+(customers|buyers|consumers|personal injury)/i, why: "a recycled first-responder percentage" },
+  { pattern: /\+?38%\s*(more jobs|booked)/i, why: "an unmeasured jobs-booked percentage" },
+  { pattern: /Michigan Avenue/i, why: "an invented named client" },
+  { pattern: /\$\d[\d,]*(?:\+|\/month|\/mo)?[^.!?]{0,40}(recovered|additional) revenue/i, why: "dollar ROI presented as typical" },
+  { pattern: /First-year ROI/i, why: "a headline ROI" },
+  { pattern: /\b340%\b/, why: "an invented ROI percentage" },
+  { pattern: /value:\s*"\+\$/, why: "fake money on an operations feed" },
+  { pattern: /National Association of Realtors reports that 74%/i, why: "a misquoted NAR finding" },
+  { pattern: /<StatHighlight\s+value="[^"]*%/, why: "an unsourced percentage StatHighlight" },
+  { pattern: /<StatHighlight\s+value="\$/, why: "a dollar StatHighlight" },
+];
 
 /**
  * Ordinary negation that the patterns below would otherwise flag. A condition
@@ -179,13 +198,30 @@ for (const dir of NO_ANTITHESIS_DIRS) {
   }
 }
 
+let roiScanned = 0;
+for (const dir of NO_ROI_THEATER_DIRS) {
+  for (const file of walk(dir)) {
+    if (ALLOWED_FILES.includes(file)) continue;
+    const source = readFileSync(file, "utf8");
+    for (const chunk of copyChunks(file, source)) {
+      roiScanned += 1;
+      for (const rule of ROI_THEATER_PATTERNS) {
+        const match = rule.pattern.exec(chunk);
+        if (match) {
+          failures.push(`${file}: uses ${rule.why}:\n    "${match[0].trim().slice(0, 140)}"`);
+        }
+      }
+    }
+  }
+}
+
 assert.ok(inspected > 10, `only inspected ${inspected} copy strings, so this guard is probably not looking at the right thing`);
 
 if (failures.length) {
   console.error(`Fabricated-claim guard failed with ${failures.length} issue(s).`);
-  console.error("These pages carry no measured data, so they carry no statistics, and they state points directly rather than by contrast.\n");
+  console.error("These pages carry no measured books, so they carry no dollar ROI, no invented clients, and they state points directly rather than by contrast.\n");
   for (const failure of failures) console.error(`- ${failure}`);
   process.exitCode = 1;
 } else {
-  console.log(JSON.stringify({ statisticsGuarded: NO_STATISTICS.length, antithesisChunksScanned: antithesisScanned, copyStringsInspected: inspected, result: "passed" }, null, 2));
+  console.log(JSON.stringify({ statisticsGuarded: NO_STATISTICS.length, antithesisChunksScanned: antithesisScanned, roiChunksScanned: roiScanned, copyStringsInspected: inspected, result: "passed" }, null, 2));
 }

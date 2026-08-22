@@ -110,7 +110,7 @@ After analyzing hundreds of {{industry}} businesses, there's one pattern we see 
 
 The businesses that grow fastest aren't the ones with the biggest ad budget. They're the ones that respond to inquiries first.
 
-80% of deals go to whoever responds first. If your average response time is measured in hours (or days), you're leaving money on the table.
+The first business to respond usually wins the conversation. If your average response time is measured in hours (or days), the inquiry has already moved on.
 
 Your growth plan includes a solution for this. If you haven't reviewed it yet, here's the link:
 

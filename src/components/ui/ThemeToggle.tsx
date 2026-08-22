@@ -22,7 +22,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={() => setTheme(isLight ? "dark" : "light")}
-      className="relative w-9 h-9 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg border border-border-glass hover:border-[var(--border-glass-hover)] bg-[var(--glass-default-bg)] hover:bg-[var(--glass-default-hover)] active:bg-[var(--glass-default-hover)] active:scale-[0.96] transition-[transform,background-color,border-color] duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+      className="relative w-9 h-9 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg border border-border-glass hover:border-[var(--border-glass-hover)] bg-[var(--glass-default-bg)] hover:bg-[var(--glass-default-hover)] active:bg-[var(--glass-default-hover)] active:scale-[0.96] transition-[transform,background-color,border-color] duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--fg)]"
       aria-label={`Switch to ${isLight ? "dark" : "light"} mode`}
     >
       <AnimatePresence initial={false} mode="popLayout">
@@ -37,7 +37,7 @@ export function ThemeToggle() {
           {isLight ? (
             <Moon className="h-4 w-4 text-white-primary" />
           ) : (
-            <Sun className="h-4 w-4 text-gold" />
+            <Sun className="h-4 w-4 text-[var(--fg)]" />
           )}
         </motion.span>
       </AnimatePresence>

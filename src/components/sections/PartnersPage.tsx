@@ -73,7 +73,7 @@ export function PartnersPage() {
   return (
     <>
       {/* hero — statement + the financial hook front and center */}
-      <section className="relative overflow-hidden pt-32 pb-24">
+      <section className="page-offset-roomy relative overflow-hidden pb-24">
         <Container width="wide">
         <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
           <div className="min-w-0">
@@ -94,18 +94,17 @@ export function PartnersPage() {
             </AnimateOnScroll>
           </div>
           <AnimateOnScroll as="div" delay={0.2} className="mx-auto w-full max-w-sm">
-            <div className="relative overflow-hidden rounded-3xl border border-border-gold/50 bg-[color-mix(in_srgb,var(--gold-base)_5%,var(--bg-elevated))] p-8 backdrop-blur-md">
-              <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold to-transparent opacity-70" />
-              <p className="mb-4 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">Partner earnings</p>
+            <div className="relative overflow-hidden border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] p-8">
+              <p className="mb-4 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white-muted">Partner earnings</p>
               <div className="flex items-baseline gap-3">
-                <span className="font-display text-6xl font-extrabold leading-none tracking-[-0.03em] text-gold">20%</span>
+                <span className="font-display text-6xl font-extrabold leading-none tracking-[-0.03em] text-heading">20%</span>
                 <span className="font-display text-lg font-semibold leading-tight text-heading">recurring<br />commission</span>
               </div>
               <p className="mt-5 text-sm leading-relaxed text-white-secondary">
                 On every client you refer, paid monthly, for as long as they
                 stay with us.
               </p>
-              <div className="mt-6 border-t border-border-glass pt-4 font-mono text-[0.6rem] uppercase tracking-[0.16em] text-white-muted">
+              <div className="mt-6 border-t border-[color-mix(in_srgb,var(--fg)_12%,transparent)] pt-4 font-mono text-[0.6rem] uppercase tracking-[0.16em] text-white-muted">
                 Referral · Agency · White-label · Technology
               </div>
             </div>

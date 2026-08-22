@@ -15,6 +15,9 @@ import { AnimatePresence, motion } from "framer-motion";
  *
  * Coordinates with the chat bubble via `document.body[data-mcta]` — a CSS rule
  * in globals.css lifts the bubble above the dock on mobile while it's showing.
+ *
+ * Mobile: full-bleed bottom bar (native tab-bar language). Desktop: centered
+ * pill so it does not interrupt the editorial layout.
  */
 export function Dock() {
   const pathname = usePathname();
@@ -59,17 +62,17 @@ export function Dock() {
           initial={{ y: "150%", opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: "150%", opacity: 0 }}
-          transition={{ type: "spring", damping: 26, stiffness: 260, mass: 0.7 }}
+          transition={{ type: "spring", damping: 28, stiffness: 280, mass: 0.65 }}
           data-dock
-          className="fixed inset-x-3.5 bottom-5 z-[950] flex items-center gap-3 border border-white/[0.16] py-2.5 pl-4 pr-2.5 shadow-[0_20px_60px_rgba(0,0,0,0.34)] sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:gap-4.5 sm:pl-5.5"
+          className="fixed inset-x-0 bottom-0 z-[950] flex items-center gap-3 border-t border-white/10 py-3 pl-5 pr-3 sm:inset-x-auto sm:bottom-5 sm:left-1/2 sm:w-max sm:-translate-x-1/2 sm:gap-4.5 sm:border sm:border-white/[0.16] sm:py-2.5 sm:pl-5.5 sm:pr-2.5 sm:shadow-[0_20px_60px_rgba(0,0,0,0.34)]"
           style={{
-            paddingBottom: "max(10px, env(safe-area-inset-bottom))",
-            backgroundColor: "rgba(14,14,13,0.62)",
-            backdropFilter: "blur(20px) saturate(1.7)",
-            WebkitBackdropFilter: "blur(20px) saturate(1.7)",
+            paddingBottom: "max(12px, env(safe-area-inset-bottom))",
+            backgroundColor: "rgba(11,11,11,0.94)",
+            backdropFilter: "blur(22px) saturate(1.6)",
+            WebkitBackdropFilter: "blur(22px) saturate(1.6)",
           }}
         >
-          <div className="flex flex-col gap-0.5 leading-tight">
+          <div className="flex min-w-0 flex-col gap-0.5 leading-tight">
             <b className="font-display text-[13.5px] font-medium tracking-[-0.01em] text-[var(--paper)]">
               Free 30-minute strategy session
             </b>

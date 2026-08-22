@@ -207,7 +207,7 @@ export default async function ArticlePage({
       {/* ------------------------------------------------------------------ */}
       {/* Article Hero Header                                                 */}
       {/* ------------------------------------------------------------------ */}
-      <section className="relative overflow-hidden pb-16 pt-32 sm:pb-20 sm:pt-40">
+      <section className="page-offset-roomy relative overflow-hidden pb-16 sm:pb-20">
         <div className="pointer-events-none absolute inset-x-0 top-28 h-px bg-[var(--rule)]" aria-hidden="true" />
 
         <div className="relative z-10 mx-auto max-w-[80rem] px-6 lg:px-10">

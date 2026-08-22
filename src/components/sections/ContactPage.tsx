@@ -37,7 +37,7 @@ export function ContactPageContent() {
   return (
     <>
       {/* hero — eyebrow + display heading + info cards in dark-glass tiles */}
-      <section className="relative overflow-hidden pt-32 pb-24">
+      <section className="page-offset-roomy relative overflow-hidden pb-24">
         <Container width="wide">
         <div className="grid items-start gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
           {/* left: statement */}
@@ -56,10 +56,10 @@ export function ContactPageContent() {
                 const Icon = card.icon;
                 const href = "href" in card ? card.href : undefined;
                 const shell =
-                  "group flex items-center gap-4 rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_60%,transparent)] p-4 backdrop-blur-sm transition-colors hover:border-border-gold";
+                  "group flex items-center gap-4 border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] p-4";
                 const inner = (
                   <>
-                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)] text-gold">
+                    <span className="grid h-10 w-10 shrink-0 place-items-center border border-[color-mix(in_srgb,var(--fg)_14%,transparent)]">
                       <Icon className="h-5 w-5" strokeWidth={1.75} />
                     </span>
                     <span className="flex flex-col">
@@ -86,7 +86,7 @@ export function ContactPageContent() {
           {/* right: the active campaign booking path. Keep the manual form below
               as a fallback for visitors who prefer to send context first. */}
           <AnimateOnScroll as="div" delay={0.3} className="lg:sticky lg:top-32">
-            <div className="rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_20px_60px_rgba(0,0,0,0.25)] backdrop-blur-md sm:p-6">
+            <div className="border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] p-4 sm:p-6">
               <p className="mb-1 px-2 font-mono text-[0.6rem] uppercase tracking-[0.22em] text-white-muted">
                 Start here
               </p>
@@ -101,7 +101,7 @@ export function ContactPageContent() {
                     title="Book your free revenue-leak audit with John"
                     className="h-[700px] w-full rounded-xl border-0 bg-white"
                   />
-                  <details className="mt-5 rounded-xl border border-border-glass px-4 py-3">
+                  <details className="mt-5 border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] px-4 py-3">
                     <summary className="cursor-pointer text-sm font-medium text-heading">Prefer to send context first?</summary>
                     <div className="pt-4"><ContactForm /></div>
                   </details>
@@ -135,9 +135,9 @@ export function ContactPageContent() {
                 as="div"
                 key={item}
                 delay={i * 0.12}
-                className="flex items-start gap-3 border-t border-border-glass pt-4 text-base text-white-secondary"
+                className="flex items-start gap-3 border-t border-[color-mix(in_srgb,var(--fg)_12%,transparent)] pt-4 text-base text-white-secondary"
               >
-                <Check className="mt-1 h-5 w-5 shrink-0 text-gold" strokeWidth={2.5} />
+                <Check className="mt-1 h-5 w-5 shrink-0" strokeWidth={2.5} />
                 <span>{item}</span>
               </AnimateOnScroll>
             ))}

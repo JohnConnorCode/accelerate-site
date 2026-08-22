@@ -111,12 +111,12 @@ export function NonprofitLanding() {
     <>
       {/* ── Hero: full-bleed documentary photograph. The page is about people,
              so the first thing on it is people doing the work. ───────────── */}
-      <section className="relative pt-[clamp(5rem,7vw,6.5rem)]">
+      <section className="page-offset relative">
         {/* The photo starts BELOW the header rather than behind it. The nav takes
             its colour from the theme, not from whatever is under it, so a
             full-bleed dark image behind it renders dark type on a dark
             photograph. Insetting solves that properly instead of fighting it. */}
-        <div className="relative min-h-[min(80svh,46rem)] overflow-hidden [&_.display-italic]:!text-white">
+        <div className="photo-hero relative overflow-hidden [&_.display-italic]:!text-white">
           <div className="absolute inset-0">
           <Image
             src="/images/nonprofits/hero.jpg"
@@ -126,12 +126,10 @@ export function NonprofitLanding() {
             sizes="100vw"
             className="object-cover object-center"
           />
-          {/* Two gradients rather than a flat scrim: the image keeps its depth
-              on the right, the type keeps its contrast on the left. */}
-          <div className="absolute inset-0 bg-[linear-gradient(100deg,rgba(6,6,6,0.95)_0%,rgba(6,6,6,0.88)_40%,rgba(6,6,6,0.5)_70%,rgba(6,6,6,0.34)_100%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,6,6,0.4)_0%,rgba(6,6,6,0.18)_36%,rgba(6,6,6,0.82)_100%)] lg:bg-[linear-gradient(100deg,rgba(6,6,6,0.95)_0%,rgba(6,6,6,0.88)_40%,rgba(6,6,6,0.5)_70%,rgba(6,6,6,0.34)_100%)]" />
           </div>
 
-          <Container className="relative flex min-h-[min(80svh,46rem)] items-center py-[clamp(4.5rem,9vw,7rem)]">
+          <Container className="photo-hero-inner relative">
           <div className="max-w-[54rem]">
             <AnimateOnScroll>
               <Eyebrow className="mb-7 !text-white/85">For nonprofits</Eyebrow>
@@ -145,7 +143,7 @@ export function NonprofitLanding() {
             />
 
             <AnimateOnScroll delay={0.18}>
-              <p className="mt-9 max-w-[46ch] text-[1.08rem] leading-[1.8] text-white/75">
+              <p className="mt-6 max-w-[46ch] text-[1.02rem] leading-[1.7] text-white/75 lg:mt-9 lg:text-[1.08rem] lg:leading-[1.8]">
                 We build the systems that keep your supporter relationships moving, and
                 then we run them alongside your team. Your voice, your data, your
                 approvals. The remembering becomes ours.
@@ -153,7 +151,7 @@ export function NonprofitLanding() {
             </AnimateOnScroll>
 
             <AnimateOnScroll delay={0.3}>
-              <div className="mt-10">
+              <div className="mt-8 lg:mt-10">
                 <BookCallButton variant="inverse" location="nonprofit_hero" label="Book a 20-minute call" />
               </div>
             </AnimateOnScroll>

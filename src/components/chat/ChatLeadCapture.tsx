@@ -69,7 +69,7 @@ export function ChatLeadCapture({ onSubmit, onDismiss }: ChatLeadCaptureProps) {
         <button
           type="submit"
           disabled={submitting}
-          className="flex min-h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-gold-gradient px-3 py-2 text-xs font-semibold text-black transition-[filter,transform,opacity] hover:brightness-110 active:scale-[0.96] disabled:cursor-wait disabled:opacity-60"
+          className="flex min-h-10 w-full items-center justify-center gap-1.5 bg-[var(--fg)] px-3 py-2 text-xs font-semibold text-[var(--bg)] transition-[opacity,transform] hover:opacity-90 active:scale-[0.96] disabled:cursor-wait disabled:opacity-60"
         >
           {submitting ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Sending securely…</> : <>Send to John <ArrowRight className="h-3 w-3" /></>}
         </button>

@@ -6,9 +6,9 @@ import { Studio } from "@/components/v2/studio/Studio";
 export const metadata = seoMetadata({
   title: "Accelerate | AI Strategy & Systems for Small Businesses",
   description:
-    "We help small businesses figure out where AI fits, then build and manage the systems that make it happen. Free strategy call.",
-  ogTitle: "AI Strategy & Systems for Small Businesses",
-  ogSubtitle: "Operate like you're ten times your size.",
+    "We take intake, follow-up, and scheduling off your team so they can do the work only they can do. Free strategy session.",
+  ogTitle: "Your team should be doing the work only they can do",
+  ogSubtitle: "AI systems, built and run for operators",
   path: "/",
 });
 
@@ -19,7 +19,7 @@ const websiteJsonLd = {
   name: "Accelerate",
   url: "https://www.acceleratewith.us",
   description:
-    "Custom business solutions powered by AI, built and run by Accelerate. Book more jobs, sign more clients, reclaim hours. We deliver the results and stand behind them.",
+    "Custom business solutions powered by AI, built and run by Accelerate. We absorb the work your people should not be doing, so they can spend the week on jobs, cases, and clients.",
   publisher: { "@id": "https://www.acceleratewith.us/#organization" },
   potentialAction: {
     "@type": "SearchAction",
@@ -36,7 +36,7 @@ const serviceJsonLd = {
   "@id": "https://www.acceleratewith.us/#service",
   name: "AI Strategy & Systems for Small Business",
   description:
-    "Custom business solutions powered by AI, built and run by Accelerate. Book more jobs, sign more clients, reclaim hours. We deliver the results and stand behind them.",
+    "Custom business solutions powered by AI, built and run by Accelerate. We absorb the work your people should not be doing, so they can spend the week on jobs, cases, and clients.",
   provider: { "@id": "https://www.acceleratewith.us/#organization" },
   serviceType: [
     "AI Strategy & Roadmap",

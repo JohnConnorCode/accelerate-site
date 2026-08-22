@@ -11,7 +11,6 @@ interface Event {
   time: string;
   kind: Kind;
   label: string;
-  value?: string;
 }
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -43,21 +42,14 @@ const OPS: { kind: Kind; label: string }[] = [
   { kind: "capture", label: "Web form routed to owner" },
 ];
 
-const DEAL_AMOUNTS = [2400, 3200, 4800, 5600, 7200, 8900];
-const PAY_AMOUNTS = [450, 850, 1250, 1800, 2400, 3100];
-const money = (n: number) => `+$${n.toLocaleString("en-US")}`;
 const pick = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)]!;
-const isValue = (k: Kind) => k === "won" || k === "paid";
 
 function clockFrom(base: number) {
   return new Date(base).toTimeString().slice(0, 8);
 }
 
 let counter = 7; // INITIAL_EVENTS occupies ids 0-6
-function makeEvent(base: number, kind?: Kind, avoid?: string): Event {
-  if (kind === "won") return { id: counter++, time: clockFrom(base), kind, label: "Deal closed", value: money(pick(DEAL_AMOUNTS)) };
-  if (kind === "paid") return { id: counter++, time: clockFrom(base), kind, label: "Payment received", value: money(pick(PAY_AMOUNTS)) };
-  // never repeat the previous line — a live feed that echoes itself reads as fake
+function makeEvent(base: number, avoid?: string): Event {
   let op = pick(OPS);
   for (let g = 0; op.label === avoid && g < 8; g++) op = pick(OPS);
   return { id: counter++, time: clockFrom(base), kind: op.kind, label: op.label };
@@ -70,12 +62,12 @@ const MAX = 7;
 // clock on mount. Must stay in sync with counter's start value below.
 const INITIAL_EVENTS: Event[] = [
   { id: 6, time: "09:41:12", kind: "call", label: "New inquiry → answered in 40s" },
-  { id: 5, time: "09:41:04", kind: "won", label: "Deal closed", value: "+$4,800" },
-  { id: 4, time: "09:40:57", kind: "book", label: "Consultation booked" },
-  { id: 3, time: "09:40:49", kind: "follow", label: "Follow-up delivered" },
-  { id: 2, time: "09:40:41", kind: "paid", label: "Payment received", value: "+$1,250" },
-  { id: 1, time: "09:40:33", kind: "capture", label: "After-hours inquiry captured" },
-  { id: 0, time: "09:40:26", kind: "review", label: "Review request sent" },
+  { id: 5, time: "09:41:04", kind: "book", label: "Consultation booked" },
+  { id: 4, time: "09:40:57", kind: "follow", label: "Follow-up delivered" },
+  { id: 3, time: "09:40:49", kind: "text", label: "Quote drafted → sent same day" },
+  { id: 2, time: "09:40:41", kind: "capture", label: "After-hours inquiry captured" },
+  { id: 1, time: "09:40:33", kind: "review", label: "Review request sent" },
+  { id: 0, time: "09:40:26", kind: "book", label: "Appointment confirmed" },
 ];
 
 export function OpsFeed({ className }: { className?: string }) {
@@ -123,12 +115,7 @@ export function OpsFeed({ className }: { className?: string }) {
         clock.current += 2400 + Math.random() * 2400;
         setCount((c) => c + 1);
         setEvents((prev) => {
-          // Guarantee a deal AND a payment always survive the next push, so the
-          // feed never stops reading as revenue.
-          const surviving = prev.slice(0, MAX - 1);
-          const needWon = !surviving.some((e) => e.kind === "won");
-          const needPaid = !surviving.some((e) => e.kind === "paid");
-          const next = makeEvent(clock.current, needWon ? "won" : needPaid ? "paid" : undefined, prev[0]?.label);
+          const next = makeEvent(clock.current, prev[0]?.label);
           return [next, ...prev].slice(0, MAX);
         });
       }
@@ -203,7 +190,6 @@ export function OpsFeed({ className }: { className?: string }) {
       >
         <AnimatePresence initial={false} mode="popLayout">
           {events.map((e) => {
-            const value = isValue(e.kind);
             const c = KIND[e.kind].rgb;
             return (
               <motion.li
@@ -217,13 +203,13 @@ export function OpsFeed({ className }: { className?: string }) {
                 initial={mounted && !reduced ? { y: -14, backgroundColor: `rgba(${c},0.24)` } : false}
                 animate={{
                   y: 0,
-                  backgroundColor: value ? `rgba(${c},0.12)` : "rgba(0,0,0,0)",
+                  backgroundColor: "rgba(0,0,0,0)",
                 }}
                 exit={{ opacity: 0, y: 6, height: 0, marginTop: 0, transition: { duration: 0.25, ease: "easeIn" } }}
                 transition={{ duration: 0.55, ease: EASE, backgroundColor: { duration: 1.2, ease: "easeOut" } }}
                 whileHover={{ x: 5, backgroundColor: `rgba(${c},0.16)` }}
                 className="group flex cursor-pointer items-center gap-2 rounded-lg border px-2 py-1.5 sm:gap-3 sm:px-3 sm:py-2.5"
-                style={{ borderColor: value ? `rgba(${c},0.42)` : "transparent" }}
+                style={{ borderColor: "transparent" }}
               >
                 <span className="text-[0.68rem] tabular-nums text-[var(--white-muted)]">{e.time}</span>
                 <span
@@ -232,24 +218,12 @@ export function OpsFeed({ className }: { className?: string }) {
                 >
                   {KIND[e.kind].glyph}
                 </span>
-                <span className={`flex-1 truncate ${value ? "font-semibold text-[var(--heading-color)]" : "text-[var(--white-secondary)]"}`}>
+                <span className="flex-1 truncate text-[var(--white-secondary)]">
                   {e.label}
                 </span>
-                {e.value ? (
-                  <motion.span
-                    initial={{ opacity: 0, scale: 0.85 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.15, duration: 0.4, ease: EASE }}
-                    className="shrink-0 font-bold tabular-nums"
-                    style={{ color: `rgb(${c})` }}
-                  >
-                    {e.value}
-                  </motion.span>
-                ) : (
-                  <span className="shrink-0 text-[var(--white-muted)] opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                    ›
-                  </span>
-                )}
+                <span className="shrink-0 text-[var(--white-muted)] opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                  ›
+                </span>
               </motion.li>
             );
           })}

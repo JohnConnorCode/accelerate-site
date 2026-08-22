@@ -9,10 +9,10 @@ const icons = {
 };
 
 const colors = {
-  info: "border-l-blue-400",
-  warning: "border-l-amber-400",
-  tip: "border-l-[var(--gold-base)]",
-  important: "border-l-red-400",
+  info: "border-l-[var(--fg)]",
+  warning: "border-l-[var(--fg)]",
+  tip: "border-l-[var(--fg)]",
+  important: "border-l-[var(--fg)]",
 };
 
 interface CalloutProps {
@@ -27,7 +27,7 @@ export function Callout({ type = "info", title, children }: CalloutProps) {
   return (
     <div
       className={cn(
-        "my-6 rounded-lg border-l-4 glass p-5",
+        "my-6 border border-[color-mix(in_srgb,var(--fg)_12%,transparent)] border-l-4 p-5",
         colors[type]
       )}
     >

@@ -25,7 +25,7 @@ export function ResourcesPage() {
   return (
     <>
       {/* hero — statement left, the featured resource (lead with your best) right */}
-      <section className="relative overflow-hidden pt-32 pb-24">
+      <section className="page-offset-roomy relative overflow-hidden pb-24">
         <Container width="wide">
         <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
           <div className="min-w-0">

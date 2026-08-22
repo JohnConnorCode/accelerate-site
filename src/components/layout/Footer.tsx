@@ -137,8 +137,7 @@ export function Footer() {
   if (pathname.startsWith("/admin") || pathname.startsWith("/roofing")) return null;
 
   return (
-    <footer className="relative bg-bg-base">
-      {/* Gold top line */}
+    <footer className="relative bg-bg-base pb-[var(--safe-bottom)]">
       <SectionDivider variant="glow" />
 
       <div className="page-shell py-16">
