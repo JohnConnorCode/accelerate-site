@@ -6,6 +6,52 @@ import Link from "next/link";
 import { motion, useScroll, useTransform, useReducedMotion, useMotionValue, useSpring } from "framer-motion";
 import { trackConversion } from "@/lib/analytics";
 
+// Original scramble effect, restored verbatim from the last version that
+// shipped — same 30ms constant cadence, same simple "flip through random
+// glyphs until it locks left-to-right" mechanic. Later attempts to make
+// this "smoother" (per-letter blur, eased cadence, splitting the phrase
+// into two independently-timed words) made it worse, not better; this is
+// what was actually working.
+function ScrambleText({ text, delay = 0, trigger = true }: { text: string; delay?: number; trigger?: boolean }) {
+  const [display, setDisplay] = useState(text.replace(/./g, " ")); // Non-breaking spaces for layout stability
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
+
+  useEffect(() => {
+    if (!trigger) return;
+
+    let interval: ReturnType<typeof setInterval>;
+    const timeout = setTimeout(() => {
+      let iteration = 0;
+      interval = setInterval(() => {
+        setDisplay(
+          text
+            .split("")
+            .map((letter, index) => {
+              if (index < iteration) {
+                return letter;
+              }
+              return chars[Math.floor(Math.random() * chars.length)];
+            })
+            .join("")
+        );
+
+        if (iteration >= text.length) {
+          clearInterval(interval);
+        }
+
+        iteration += 1;
+      }, 30);
+    }, delay);
+
+    return () => {
+      clearTimeout(timeout);
+      if (interval) clearInterval(interval);
+    };
+  }, [text, delay, trigger]);
+
+  return <span className="inline-block max-w-full">{display}</span>;
+}
+
 export function Hero() {
   const [loaded, setLoaded] = useState(false);
   const entranceRaf = useRef<number | undefined>(undefined);
@@ -235,37 +281,76 @@ export function Hero() {
             AI systems, built and run for operators
           </p>
           <h1 className="h1">
+            {/* "We architect and deploy intelligent automation to scale
+                your productivity" flows as ONE continuous flex-wrap row —
+                not split into separate containers per "sentence," which is
+                what forced awkward line breaks regardless of how much room
+                was actually left (e.g. "deploy" stranded alone with empty
+                space beside it). Each word still carries its own --d so
+                the reveal cascade reads identically to before; only the
+                line-break decision is now the browser's, based on real
+                available width. */}
             <span className="h1-word-row">
-              {["Your", "team", "should", "be", "doing", "the", "work"].map((w, i) => (
-                <span key={`${w}-${i}`} className="word">
-                  <span style={{ "--d": `${0.16 + i * 0.1}s` } as CSSProperties}>{w}</span>
-                </span>
-              ))}
-            </span>
-            <span className="h1-word-row hero-accent-row">
-              {["only", "they", "can", "do."].map((w, i) => (
+              {["We", "architect", "and", "deploy"].map((w, i) => (
                 <span key={w} className="word">
-                  <span className="it" style={{ "--d": `${0.92 + i * 0.1}s` } as CSSProperties}>{w}</span>
+                  <span style={{ "--d": `${0.20 + i * 0.20}s` } as CSSProperties}>{w}</span>
                 </span>
               ))}
+              {/* "intelligent automation" — the original single combined
+                  scramble (ScrambleText below), restored verbatim. This is
+                  the effect and speed that was actually working. */}
+              <span className="word">
+                <span style={{ "--d": "1.00s" } as CSSProperties}>
+                  <ScrambleText text="intelligent automation" delay={1250} trigger={loaded} />
+                </span>
+              </span>
+              {["to", "scale", "your"].map((w, i) => (
+                <span key={w} className="word">
+                  <span style={{ "--d": `${2.20 + i * 0.20}s` } as CSSProperties}>{w}</span>
+                </span>
+              ))}
+              <span className="word">
+                <span style={{ "--d": "2.80s" } as CSSProperties}>
+                  <span className="strike">productivity</span>
+                </span>
+              </span>
+            </span>
+            {/* PROFIT + CTA are a deliberate second row, always starting
+                below the paragraph above regardless of viewport width —
+                not part of the natural reflow. PROFIT stays OUT of the
+                .word system: plain text, pure opacity/blur fade (.swap),
+                no scramble and no slide-up. The CTA gets the same pure
+                blur-in treatment and reveals once the underline finishes
+                drawing. */}
+            <span className="hero-row-cta">
+              <span className="hero-profit-slot" style={{ overflow: "visible", display: "inline-block" }}>
+                <span
+                  className="swap it rev-ul hero-profit"
+                  style={{ position: "relative", zIndex: 10, display: "inline-block", transform: "translateY(0.12em)", lineHeight: 1.25, paddingTop: "0.1em" } as CSSProperties}
+                >
+                  PROFIT
+                </span>
+              </span>
+              <span
+                className="hero-inline-cta"
+                style={{ "--d": "6.10s" } as CSSProperties}
+              >
+                <Link
+                  href="/contact"
+                  onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "hero" })}
+                  className="btn"
+                >
+                  Book a free strategy session <span className="arw" aria-hidden="true">→</span>
+                </Link>
+              </span>
             </span>
           </h1>
-          <div
-            className="hero-inline-cta"
-            style={{ "--d": "1.50s" } as CSSProperties}
-          >
-            <Link
-              href="/contact"
-              onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "hero" })}
-              className="btn"
-            >
-              Book a free strategy session <span className="arw" aria-hidden="true">→</span>
-            </Link>
-          </div>
         </div>
 
         <div className={`hero-btm st${loaded ? " in" : ""}`}>
-          <div style={{ "--d": "1.90s" } as CSSProperties}>
+          {/* Fades in over a second after the CTA (6.10s), not
+              simultaneously with it — a deliberate trailing beat. */}
+          <div style={{ "--d": "7.30s" } as CSSProperties}>
             <p className="lede">
               We take intake, follow-up, and scheduling off them. Owners typically get something like 10 hours a week per person back. That time goes to the work that actually makes the business.
             </p>
