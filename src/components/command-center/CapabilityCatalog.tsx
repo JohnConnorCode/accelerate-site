@@ -165,7 +165,7 @@ export function CapabilityCatalog() {
                         <div>
                           <p>
                             {cap.detail}
-                            {cap.gated && <span className="cc-chip cc-chip-inline">Waits for your approval</span>}
+                            {cap.gated && <span className="cc-chip cc-chip-inline">Smart approval</span>}
                           </p>
                         </div>
                       </div>
