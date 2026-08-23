@@ -107,7 +107,7 @@ function Hero() {
                 ))}
               </span>
               <span className="h1-word-row">
-                {["Just", "approve."].map((w, i) => (
+                {["More", "every", "month."].map((w, i) => (
                   <span key={w} className="word">
                     <span className="it" style={{ "--d": `${0.46 + i * 0.08}s` } as CSSProperties}>{w}</span>
                   </span>
@@ -119,7 +119,7 @@ function Hero() {
                 It captures communications, advances the pipeline, drafts follow-ups, and files meeting notes before you have opened the laptop.
               </p>
               <p className="lede text-balance hidden sm:block">
-                Every action waits in one queue. Nothing leaves without you. We build the system your business actually needs and install it running.
+                Smart approvals route the judgment calls to you and let the routine earn the right to run itself. We build it around your business and install it running.
               </p>
             </div>
             <div className={`rv${loaded ? " in" : ""}`} style={{ "--d": ".62s", marginTop: 32 } as CSSProperties}>
@@ -164,7 +164,7 @@ function Problem() {
       <div className="wrap">
         <div className="shead">
           <Reveal rv as="p" className="label eyebrow-anim">
-            The bottleneck
+            The ceiling
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
@@ -296,16 +296,16 @@ function TrustLadder() {
       <div className="wrap">
         <div className="shead">
           <Reveal rv as="p" className="label eyebrow-anim">
-            Control & Autonomy
+            Smart approvals
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              Complete oversight on day one.
+              Approvals that learn.
               <br />
-              Automation at <span className="it">your pace.</span>
+              Autonomy that <span className="it">compounds.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              You start with full control. Every outbound message, record change, and follow-up waits for review. As it learns your voice, you decide what runs on its own and what still needs a sign-off.
+              The queue starts strict and gets smarter. As the system nails your voice and your calls, whole categories of routine work graduate to running on their own, and your attention goes only where it is genuinely worth attention.
             </Reveal>
           </div>
         </div>

@@ -6,7 +6,7 @@ import { Studio } from "@/components/v2/studio/Studio";
 export const metadata = seoMetadata({
   title: "Accelerate | AI Systems Built and Run for Your Business",
   description:
-    "We build and run the system that runs your business: it reads email and meetings, keeps one record per client, drafts the work, and waits for your yes. Free 30-minute strategy session.",
+    "We build and run the system that runs your business: it reads email and meetings, keeps one record per client, and runs the routine work itself. Free 30-minute strategy session.",
   ogTitle: "AI Systems, Built and Run for You",
   ogSubtitle: "Your team keeps the judgment calls. We run the rest.",
   path: "/",

@@ -2398,35 +2398,60 @@ summary:focus-visible {
 .who-copy p { margin-bottom: 17px; font-size: 16.5px; line-height: 1.62; max-width: 50ch; color: var(--mid); }
 .who-copy p.lead-p { color: var(--fg); }
 
-/* systems index — magazine index rows on paper. Big display names carry the
-   section; hairlines do the structure; no cards, no fills, so it cannot go
-   dark-on-dark in either theme. */
-.sysidx { margin-top: clamp(36px, 5vw, 64px); border-top: 1px solid var(--rule); }
-.sysrow {
-  display: grid;
-  grid-template-columns: 56px minmax(0, 1.05fr) minmax(0, 1fr) 32px;
-  column-gap: clamp(18px, 3vw, 48px);
-  align-items: baseline;
-  padding: clamp(22px, 2.8vw, 36px) clamp(4px, 0.8vw, 12px);
-  border-bottom: 1px solid var(--rule);
+/* value pillars — six designed panels on paper. Each carries the product's
+   glyph-and-color language, a mono key, an oversized ghost index numeral,
+   and a mono "moment" line under a hairline, so the section reads as an
+   artifact of the system rather than bare text. Hairline borders and tint
+   fills keep contrast safe in both themes. */
+.pillars { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: clamp(36px, 5vw, 64px); }
+@media (max-width: 860px) { .pillars { grid-template-columns: 1fr; gap: 10px; } }
+.pillar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: clamp(24px, 2.8vw, 38px) clamp(22px, 2.6vw, 34px);
+  border: 1px solid var(--rule);
+  background: color-mix(in oklab, var(--fg) 2.5%, transparent);
   color: var(--fg);
-  transition: background .25s var(--ease);
+  transition: border-color .3s var(--ease), background .3s var(--ease);
 }
-.sysrow:hover, .sysrow:focus-visible { background: color-mix(in oklab, var(--fg) 4%, transparent); }
-.sysrow-n { font-family: var(--util); font-size: 11px; letter-spacing: .14em; color: var(--soft); }
-.sysrow-name { font-family: var(--display); font-weight: 600; font-size: clamp(26px, 3.2vw, 44px); letter-spacing: -.03em; line-height: 1.05; }
-.sysrow-d { font-size: 15.5px; line-height: 1.55; color: var(--mid); max-width: 44ch; }
-.sysrow-arw { font-size: 20px; color: var(--soft); justify-self: end; transition: transform .3s var(--ease), color .3s var(--ease); }
-.sysrow:hover .sysrow-arw, .sysrow:focus-visible .sysrow-arw { transform: translateX(6px); color: var(--fg); }
-@media (max-width: 760px) {
-  .sysrow { grid-template-columns: 36px 1fr 24px; row-gap: 8px; }
-  .sysrow-name { grid-column: 2 / 3; }
-  .sysrow-arw { grid-row: 1; grid-column: 3; }
-  .sysrow-d { grid-column: 2 / 4; }
+.pillar:hover, .pillar:focus-visible {
+  border-color: color-mix(in oklab, var(--fg) 45%, transparent);
+  background: color-mix(in oklab, var(--fg) 4.5%, transparent);
 }
+.pillar-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: clamp(16px, 2vw, 24px); }
+.pillar-glyph { font-size: 13px; line-height: 1; }
+.pillar-k { font-family: var(--util); font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--soft); }
+.pillar-n {
+  margin-left: auto;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(28px, 3vw, 44px);
+  line-height: .8;
+  letter-spacing: -.04em;
+  color: color-mix(in oklab, var(--fg) 14%, transparent);
+}
+.pillar-name { font-family: var(--display); font-weight: 600; font-size: clamp(23px, 2.3vw, 31px); letter-spacing: -.025em; line-height: 1.08; margin-bottom: 10px; }
+.pillar-d { font-size: 15px; line-height: 1.55; color: var(--mid); max-width: 46ch; margin-bottom: clamp(18px, 2.2vw, 26px); }
+.pillar-eg {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin-top: auto;
+  padding-top: clamp(14px, 1.8vw, 20px);
+  border-top: 1px solid var(--rule);
+  font-family: var(--util);
+  font-size: 11px;
+  letter-spacing: .04em;
+  color: var(--soft);
+}
+.pillar-eg-glyph { font-size: 10px; }
+.pillar-arw { margin-left: auto; font-size: 16px; color: var(--soft); transition: transform .3s var(--ease), color .3s var(--ease); }
+.pillar:hover .pillar-arw, .pillar:focus-visible .pillar-arw { transform: translateX(5px); color: var(--fg); }
 @media (prefers-reduced-motion: reduce) {
-  .sysrow, .sysrow-arw { transition: none; }
-  .sysrow:hover .sysrow-arw { transform: none; }
+  .pillar, .pillar-arw { transition: none; }
+  .pillar:hover .pillar-arw { transform: none; }
 }
 
 /* week we give back */

@@ -26,7 +26,7 @@ export const CATEGORY_META: CategoryMeta[] = [
   { id: "act", label: "Act", blurb: "It does the work and waits.", glyph: "✦", rgb: "163,230,53" },
   { id: "learn", label: "Learn", blurb: "It gets better at your business.", glyph: "↻", rgb: "34,211,238" },
   { id: "connect", label: "Connect", blurb: "You reach it from anywhere.", glyph: "⌘", rgb: "251,191,36" },
-  { id: "govern", label: "Govern", blurb: "Nothing irreversible happens without you.", glyph: "✓", rgb: "52,211,153" },
+  { id: "govern", label: "Govern", blurb: "Autonomy you dial up, fully audited.", glyph: "✓", rgb: "52,211,153" },
 ];
 
 export interface Capability {
@@ -205,10 +205,10 @@ export const capabilities: Capability[] = [
   {
     id: "queue",
     category: "act",
-    title: "Nothing leaves without your yes",
+    title: "Smart approvals",
     gated: true,
     detail:
-      "Every outbound action waits in one queue. Approve, edit, or reject. That is the setting on day one, and you decide when to loosen it.",
+      "Outbound actions route through one queue. Approve, edit, or reject, and every decision teaches it. Categories you trust graduate to running on their own.",
   },
 
   // Learn
@@ -412,7 +412,7 @@ export const MARQUEE_ITEMS = [
   "Flags the cooling client",
   "Answers what you agreed",
   "Briefs you before the session",
-  "Waits for your yes",
+  "Earns more autonomy",
 ];
 
 export const WHO_ITS_FOR = [

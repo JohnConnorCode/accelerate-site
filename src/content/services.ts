@@ -37,7 +37,7 @@ export const services: Service[] = [
     id: "automation",
     name: "Workflow Automation",
     description:
-      "Total integration of your operational tech stack. We build autonomous engines that completely absorb manual data entry, handoffs, and routine processes, so your talent can focus on high-leverage work.",
+      "We connect the tools you already use and build the workflows between them: data entry, handoffs, reminders, invoicing, the steps that always happen next. Set up once, running around the clock, tuned every month.",
     shortDescription:
       "Automated follow-ups, scheduling, invoicing, and internal workflows that keep your business moving.",
     icon: "Workflow",
@@ -58,7 +58,7 @@ export const services: Service[] = [
     pricingDisplay: "from $2,500 + $300/mo",
     href: "/services#automation",
     problemStatement:
-      "Your most expensive personnel are burning hours executing repetitive digital tasks that software should handle instantly.",
+      "Your most expensive people spend hours on steps a system should run: copying data between tools, sending the same reminders, moving the same records.",
     keyMetrics: [
       { value: "10+", label: "Hours saved / week" },
       { value: "< 60s", label: "First response time" },
@@ -74,7 +74,7 @@ export const services: Service[] = [
     id: "sales",
     name: "Sales & Marketing Automation",
     description:
-      "Autonomous lead qualification, dynamic routing, and relentless follow-up sequences. We construct a pipeline engine that sustains engagement and advances deals while your team focuses exclusively on closing.",
+      "A pipeline that works every deal: inquiries scored and routed, follow-up sequences that run to the end, campaigns that ship on schedule. Your team spends its time closing, because everything before that is handled.",
     shortDescription:
       "Automated pipeline management, email campaigns, social scheduling, and follow-up sequences.",
     icon: "TrendingUp",
@@ -93,7 +93,7 @@ export const services: Service[] = [
     pricingDisplay: "from $2,500 + $300/mo",
     href: "/services#sales",
     problemStatement:
-      "Your pipeline suffers from velocity leaks because follow-up is manual, inconsistent, and reliant on human memory.",
+      "Deals stall for a simple reason: follow-up lives in someone's head, and heads get busy.",
     keyMetrics: [
       { value: "10+", label: "Hours back / week" },
       { value: "0", label: "Follow-ups missed" },
@@ -109,7 +109,7 @@ export const services: Service[] = [
     id: "engagement",
     name: "Customer Engagement",
     description:
-      "Intelligent, zero-latency response architecture. We deploy custom language models across your channels to handle inquiries, orchestrate bookings, and execute retention campaigns 24/7.",
+      "A custom AI agent trained on your business, working web, SMS, and email around the clock: it qualifies the inquiry, books the appointment, and hands off to a person the moment one is needed.",
     shortDescription:
       "AI-powered chat, automated booking, review management, and re-engagement campaigns.",
     icon: "MessageCircle",
@@ -134,7 +134,7 @@ export const services: Service[] = [
     keyMetrics: [
       { value: "After hours", label: "Intake still covered" },
       { value: "Same people", label: "On the work only they can do" },
-      { value: "0", label: "Extra headcount to answer the phone" },
+      { value: "0", label: "Extra headcount to cover intake" },
     ],
     process: [
       { step: "Knowledge Training", description: "We train the agent on your services, pricing, FAQs, and conversation style." },
@@ -146,7 +146,7 @@ export const services: Service[] = [
     id: "content",
     name: "Content Creation",
     description:
-      "Automated content engines calibrated to your exact brand voice. From strategic scheduling to generation and distribution, we deploy systems that maintain a relentless cadence without requiring a marketing hire.",
+      "Content in your voice, on a calendar you approve monthly: posts, pages, and newsletters written, scheduled, and published without a marketing hire. It learns your tone from what you have already written.",
     shortDescription:
       "Blog posts, social media, and email newsletters, published on a calendar you approve monthly.",
     icon: "PenTool",
@@ -162,7 +162,7 @@ export const services: Service[] = [
     pricingDisplay: "from $1,500/mo",
     href: "/services#content",
     problemStatement:
-      "Your market presence is erratic because content creation is relegated to whatever time remains after operational duties.",
+      "Content only happens when someone finds a spare afternoon, so it mostly does not happen.",
     keyMetrics: [
       { value: "Weekly", label: "Cadence without a marketing hire" },
       { value: "Your voice", label: "Approved once, then it runs" },
@@ -178,7 +178,7 @@ export const services: Service[] = [
     id: "reporting",
     name: "Data & Reporting",
     description:
-      "Unified operational intelligence. We aggregate your fragmented data sources into real-time, deterministic dashboards that deliver unvarnished truth about your pipeline, revenue, and system performance.",
+      "All your numbers in one live view: pipeline, revenue, hours returned, and what each system is doing. A weekly digest tells you what changed and what needs a decision.",
     shortDescription:
       "Custom dashboards, weekly digests, pipeline tracking, and trend analysis in one place.",
     icon: "BarChart3",
@@ -194,7 +194,7 @@ export const services: Service[] = [
     pricingDisplay: "from $500/mo",
     href: "/services#reporting",
     problemStatement:
-      "You are navigating complex operational decisions based on delayed, fragmented data rather than real-time telemetry.",
+      "The numbers you run the business on live in five tools and a spreadsheet, and by the time they are assembled they are old.",
     keyMetrics: [
       { value: "1", label: "Dashboard" },
       { value: "Weekly", label: "Insights delivered" },

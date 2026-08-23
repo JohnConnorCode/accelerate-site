@@ -41,7 +41,7 @@ export function CommandCenter() {
               on <span className="it">one screen.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              The Command Center reads the inbox, writes up the meetings, drafts the follow-ups, moves the pipeline, and chases the invoice. Anything that needs a decision comes to you first.
+              The Command Center reads the inbox, writes up the meetings, drafts the follow-ups, moves the pipeline, and chases the invoice. The routine runs itself. Your attention goes only to the calls that need you.
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.18} style={{ marginTop: 16 }}>
               Try the live sandbox below. Clear the approval queue, open a workflow, or search the records.
