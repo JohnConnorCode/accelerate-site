@@ -8,10 +8,10 @@ export const verticals: Vertical[] = [
     icon: "Wrench",
     shortDescription:
       "AI systems built for contractors, plumbers, roofers, HVAC techs, and home service pros who want the office running at the crew's standard.",
-    heroHeadlineWhite: "Your best estimator",
-    heroHeadlineGold: "is in a truck right now.",
+    heroHeadlineWhite: "One system that runs",
+    heroHeadlineGold: "the whole shop.",
     heroSubheadline:
-      "A trade business runs on judgment that lives in two or three heads: how to price the job, which inquiry is worth the drive, when to chase the estimate. We encode that judgment into systems that run around the clock, so the office holds your standard while the crew builds.",
+      "It reads the 7am voicemail, books the crew, sends the estimate, and chases it until the job is won. It flags the builder who went quiet and briefs you before the walkthrough. Built around how your company runs, operated by us, owned by you.",
     painPoints: [
       {
         icon: "DollarSign",
@@ -98,10 +98,10 @@ export const verticals: Vertical[] = [
     icon: "Scale",
     shortDescription:
       "AI-powered intake, follow-up, and client communication systems built for law firms that want to sign more clients without adding more admin staff.",
-    heroHeadlineWhite: "You bill for judgment.",
-    heroHeadlineGold: "The week goes to process.",
+    heroHeadlineWhite: "One system that runs",
+    heroHeadlineGold: "the whole firm.",
     heroSubheadline:
-      "Intake, conflict checks, engagement letters, status calls: process fills a firm's week, and lawyers end up running it at lawyer rates. We build systems around how your firm actually practices, run them for you, and return the hours to the work that bills.",
+      "It reads the intake, checks the conflict, drafts the engagement letter, and files the meeting notes to the matter. It flags the client who has gone quiet and briefs you before every call. Built around how your firm practices, run by us, owned by the firm.",
     painPoints: [
       {
         icon: "Clock",
@@ -188,10 +188,10 @@ export const verticals: Vertical[] = [
     icon: "Briefcase",
     shortDescription:
       "AI intake, scheduling, and follow-up for accountants, consultants, and financial advisors who want a pipeline that does not depend on referrals.",
-    heroHeadlineWhite: "Your method is the firm.",
-    heroHeadlineGold: "It lives in three calendars.",
+    heroHeadlineWhite: "One system that runs",
+    heroHeadlineGold: "the whole practice.",
     heroSubheadline:
-      "How your best people scope, price, and deliver is the firm's real asset, and it usually exists nowhere but their heads and inboxes. We turn that method into systems: intake that qualifies the way they would, follow-through that never waits on a busy partner, records that stay current on their own.",
+      "It reads the thread, drafts the proposal follow-up, files what was agreed, and keeps every client record current on its own. It warns you when an account cools and briefs you before the quarterly call. Built around how your practice works, run by us, owned by you.",
     painPoints: [
       {
         icon: "Users",
@@ -278,10 +278,10 @@ export const verticals: Vertical[] = [
     icon: "Building2",
     shortDescription:
       "Client capture, nurture, and long-memory pipeline systems for agents and brokerages that want every relationship worked, not just the hot ones.",
-    heroHeadlineWhite: "The deal you close in June",
-    heroHeadlineGold: "was built in February.",
+    heroHeadlineWhite: "One system that runs",
+    heroHeadlineGold: "the whole book.",
     heroSubheadline:
-      "A real estate business is a long memory: who is about to list, which buyer went quiet, whose lease ends in the spring. We build systems that keep that memory working, so every relationship stays warm and every showing is followed all the way through while you are in the rooms where deals happen.",
+      "It captures the buyer at 11pm, books the showing, follows up after, and keeps every contact's history on one timeline. It resurfaces the seller from last spring and briefs you before the listing appointment. Built around how you work, run by us, owned by you.",
     painPoints: [
       {
         icon: "Thermometer",
@@ -369,10 +369,10 @@ export const verticals: Vertical[] = [
     opsLabel: "a manufacturer",
     shortDescription:
       "AI systems for manufacturers and industrial shops that want the estimator's knowledge in every quote and every open order visible to the whole floor.",
-    heroHeadlineWhite: "Your quotes carry",
-    heroHeadlineGold: "thirty years of scar tissue.",
+    heroHeadlineWhite: "One system that runs",
+    heroHeadlineGold: "the whole front office.",
     heroSubheadline:
-      "Estimating draws on everything the shop has learned: material quirks, machine capacity, the tolerances that bite. We encode that knowledge into quoting and order tracking, so every RFQ gets the shop's full intelligence and every open order lives where the whole floor can see it.",
+      "It reads the RFQ, drafts the quote from your own history, chases the PO, and keeps every open order visible to the floor. It flags the supplier commitment that slipped and the customer who stopped ordering. Built around how your shop runs, operated by us, owned by you.",
     painPoints: [
       {
         icon: "DollarSign",
@@ -459,10 +459,10 @@ export const verticals: Vertical[] = [
     icon: "Rocket",
     shortDescription:
       "AI systems for early-stage teams that need investor updates, user onboarding, and support running without a full ops team to run them.",
-    heroHeadlineWhite: "Ops debt compounds",
-    heroHeadlineGold: "faster than tech debt.",
+    heroHeadlineWhite: "One system that runs",
+    heroHeadlineGold: "the whole company.",
     heroSubheadline:
-      "Every early company runs on a heroic spreadsheet and three people's memories, and it works right up until the moment it matters most. We build the operating layer underneath: investor updates, onboarding, support, the systems of record, so founder hours go to product and customers while the company stays coherent as it grows.",
+      "It reads support, files the feedback, onboards the new user, drafts the investor update, and keeps one record of every customer and conversation. It flags the account going quiet and briefs you before the pitch. Built for how your team works, run by us, owned by you.",
     painPoints: [
       {
         icon: "Clock",
@@ -549,10 +549,10 @@ export const verticals: Vertical[] = [
     icon: "Stethoscope",
     shortDescription:
       "AI intake, scheduling, and recall systems for medical and dental practices that want the appointment book solid and the front desk out of the paperwork.",
-    heroHeadlineWhite: "Your entire P&L",
-    heroHeadlineGold: "is the appointment book.",
+    heroHeadlineWhite: "One system that runs",
+    heroHeadlineGold: "the whole office.",
     heroSubheadline:
-      "Chair time, recalls, and insurance friction decide a practice's year more than anything clinical. We build the systems that keep the book solid: verification and intake handled before the visit, recalls that actually land, reminders tuned to the patients who miss, and records the front desk no longer has to carry.",
+      "It answers the new patient, verifies the insurance, fills the cancellation, and sends the recall that actually lands. It flags the patient overdue for a visit and has the history ready before they arrive. Built around how your office runs, operated by us, owned by you.",
     painPoints: [
       {
         icon: "PhoneMissed",
@@ -640,10 +640,10 @@ export const verticals: Vertical[] = [
     opsLabel: "an insurance agency",
     shortDescription:
       "AI quoting, renewal, and follow-up systems for independent agencies that want the whole book worked on time instead of from memory.",
-    heroHeadlineWhite: "The book pays you",
-    heroHeadlineGold: "for remembering.",
+    heroHeadlineWhite: "One system that runs",
+    heroHeadlineGold: "the whole agency.",
     heroSubheadline:
-      "An agency's product is attention: the renewal worked sixty days out, the life event that changes a policy, the coverage gap nobody asked about. We build systems that hold the whole book in working memory, so every renewal is early, every quote is followed through, and every client hears from you before they have a reason to shop.",
+      "It reads the quote request, drafts from the client's history, works every renewal sixty days out, and keeps the whole book on one timeline. It flags the policyholder gone quiet and the coverage gap nobody asked about. Built around how your agency runs, run by us, owned by you.",
     painPoints: [
       {
         icon: "Clock",
@@ -731,10 +731,10 @@ export const verticals: Vertical[] = [
     opsLabel: "an auto dealer",
     shortDescription:
       "AI systems for dealerships and service centers that want both sides of the store connected, the bays full, and every open deal worked to a close.",
-    heroHeadlineWhite: "The service lane knows",
-    heroHeadlineGold: "who buys next.",
+    heroHeadlineWhite: "One system that runs",
+    heroHeadlineGold: "the whole store.",
     heroSubheadline:
-      "A dealership already holds everything it needs to sell the next car: service history, lease timelines, the customer sitting in the waiting room right now. We build the systems that connect both sides of the store, keep the bays full, and start the right conversation with the right customer at the right time.",
+      "It answers the internet inquiry, books the test drive, fills the service bays, and keeps one record per customer across sales and service. It flags the lease ending in ninety days and the deal that stalled. Built around how your store runs, operated by us, owned by you.",
     painPoints: [
       {
         icon: "Thermometer",

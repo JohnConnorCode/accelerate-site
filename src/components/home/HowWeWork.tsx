@@ -25,7 +25,7 @@ const STEPS = [
     n: "04",
     title: "The run",
     tag: "ongoing support",
-    body: "We train your team, watch the system in production, and keep tuning it as the business changes.",
+    body: "We run the system in production, train your team, and keep tuning it. Month to month, and you own everything.",
   },
 ];
 

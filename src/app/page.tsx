@@ -6,7 +6,7 @@ import { Studio } from "@/components/v2/studio/Studio";
 export const metadata = seoMetadata({
   title: "Accelerate | AI Systems Built and Run for Your Business",
   description:
-    "We find where your team loses the week, then build and run the AI systems that take that work over. Free 30-minute strategy session. The plan is yours to keep.",
+    "We build and run the system that runs your business: it reads email and meetings, keeps one record per client, drafts the work, and waits for your yes. Free 30-minute strategy session.",
   ogTitle: "AI Systems, Built and Run for You",
   ogSubtitle: "Your team keeps the judgment calls. We run the rest.",
   path: "/",
@@ -19,7 +19,7 @@ const websiteJsonLd = {
   name: "Accelerate",
   url: "https://www.acceleratewith.us",
   description:
-    "Custom business solutions powered by AI, built and run by Accelerate. We take over routine intake, follow-up, and quoting so your team gets its week back.",
+    "Custom business solutions powered by AI, built and run by Accelerate. One system that sees everything, remembers everything, and does the routine work itself. You own all of it.",
   publisher: { "@id": "https://www.acceleratewith.us/#organization" },
   potentialAction: {
     "@type": "SearchAction",
@@ -36,7 +36,7 @@ const serviceJsonLd = {
   "@id": "https://www.acceleratewith.us/#service",
   name: "AI Strategy & Systems for Small Business",
   description:
-    "Custom business solutions powered by AI, built and run by Accelerate. We take over routine intake, follow-up, and quoting so your team gets its week back.",
+    "Custom business solutions powered by AI, built and run by Accelerate. One system that sees everything, remembers everything, and does the routine work itself. You own all of it.",
   provider: { "@id": "https://www.acceleratewith.us/#organization" },
   serviceType: [
     "AI Strategy & Roadmap",

@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     template: "%s | Accelerate",
   },
   description:
-    "Custom business solutions powered by AI, built and run by Accelerate. We take over routine intake, follow-up, and quoting so your team gets its week back.",
+    "Custom business solutions powered by AI, built and run by Accelerate. One system that sees everything, remembers everything, and does the routine work itself. You own all of it.",
   applicationName: "Accelerate",
   authors: [{ name: "Accelerate", url: "https://www.acceleratewith.us" }],
   creator: "Accelerate",
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     siteName: "Accelerate",
     title: "Accelerate | Custom AI Systems, Built and Run for You",
     description:
-      "Custom business solutions powered by AI, built and run by Accelerate. We take over routine intake, follow-up, and quoting so your team gets its week back.",
+      "Custom business solutions powered by AI, built and run by Accelerate. One system that sees everything, remembers everything, and does the routine work itself. You own all of it.",
   },
   twitter: {
     card: "summary_large_image",
@@ -78,7 +78,7 @@ export const metadata: Metadata = {
     creator: "@accelerateAIops",
     title: "Accelerate | Custom AI Systems, Built and Run for You",
     description:
-      "Custom business solutions powered by AI, built and run by Accelerate. We take over routine intake, follow-up, and quoting so your team gets its week back.",
+      "Custom business solutions powered by AI, built and run by Accelerate. One system that sees everything, remembers everything, and does the routine work itself. You own all of it.",
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GSC_VERIFICATION || undefined,
@@ -109,7 +109,7 @@ const organizationJsonLd = {
     height: 512,
   },
   description:
-    "Custom business solutions powered by AI, built and run by Accelerate. We take over routine intake, follow-up, and quoting so your team gets its week back.",
+    "Custom business solutions powered by AI, built and run by Accelerate. One system that sees everything, remembers everything, and does the routine work itself. You own all of it.",
   founder: {
     "@type": "Person",
     name: "John Connor",
