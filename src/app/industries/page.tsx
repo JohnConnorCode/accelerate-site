@@ -74,7 +74,7 @@ export default function IndustriesPage() {
                 <span aria-hidden className="absolute bottom-2 left-[15px] top-2 w-px bg-border-gold" />
                 {[
                   { n: "Find", d: "Every inquiry captured: call, text, form, after hours." },
-                  { n: "Win", d: "Answered in seconds, followed up until they book." },
+                  { n: "Win", d: "Qualified like you would, followed through until it books." },
                   { n: "Keep", d: "Clients retained, reviews requested, nothing dropped." },
                   { n: "Grow", d: "Every job compounds into the next one." },
                 ].map((s, i) => (

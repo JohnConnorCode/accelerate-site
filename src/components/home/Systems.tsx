@@ -57,7 +57,7 @@ export function Systems() {
               built around <span className="it">your business.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              You describe how the business runs. We build the systems that run it, then stay to operate them. Everything we build, you own.
+              We have been inside hundreds of businesses, and the pattern repeats: the company runs on judgment that lives in a few heads. We encode yours into systems, run them with you, and you own everything we build.
             </Reveal>
           </div>
         </div>

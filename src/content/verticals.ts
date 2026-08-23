@@ -7,17 +7,17 @@ export const verticals: Vertical[] = [
     name: "Home Services",
     icon: "Wrench",
     shortDescription:
-      "AI systems built for contractors, plumbers, roofers, HVAC techs, and home service pros who are tired of losing jobs to whoever responds first.",
-    heroHeadlineWhite: "Stop losing jobs to whoever",
-    heroHeadlineGold: "moves first.",
+      "AI systems built for contractors, plumbers, roofers, HVAC techs, and home service pros who want the office running at the crew's standard.",
+    heroHeadlineWhite: "Your best estimator",
+    heroHeadlineGold: "is in a truck right now.",
     heroSubheadline:
-      "The homeowner books whoever answers. Most of the time that is not you, because you are on a roof. We capture every inquiry across every channel, send estimates instantly, and follow up on autopilot, so you book more jobs without hiring more office staff.",
+      "A trade business runs on judgment that lives in two or three heads: how to price the job, which inquiry is worth the drive, when to chase the estimate. We encode that judgment into systems that run around the clock, so the office holds your standard while the crew builds.",
     painPoints: [
       {
         icon: "DollarSign",
         title: "Slow response is killing your revenue",
         description:
-          "You're on a roof or under a sink when a new job comes in. By the time you get back to them, that homeowner already hired someone else. Every inquiry that sits is a job walking to whoever answered.",
+          "You're on a roof or under a sink when a new job comes in, and everything about it waits for you: the callback, the price, the schedule. The business moves at the speed of your free hands.",
       },
       {
         icon: "Clock",
@@ -98,10 +98,10 @@ export const verticals: Vertical[] = [
     icon: "Scale",
     shortDescription:
       "AI-powered intake, follow-up, and client communication systems built for law firms that want to sign more clients without adding more admin staff.",
-    heroHeadlineWhite: "Your next client reached out.",
-    heroHeadlineGold: "Someone else replied first.",
+    heroHeadlineWhite: "You bill for judgment.",
+    heroHeadlineGold: "The week goes to process.",
     heroSubheadline:
-      "Clients reach out after hours and hire the first firm to respond. Our AI intake responds instantly across every channel, qualifies the case, and gets retainers signed faster, so you sign more clients without adding admin staff.",
+      "Intake, conflict checks, engagement letters, status calls: process fills a firm's week, and lawyers end up running it at lawyer rates. We build systems around how your firm actually practices, run them for you, and return the hours to the work that bills.",
     painPoints: [
       {
         icon: "Clock",
@@ -188,10 +188,10 @@ export const verticals: Vertical[] = [
     icon: "Briefcase",
     shortDescription:
       "AI intake, scheduling, and follow-up for accountants, consultants, and financial advisors who want a pipeline that does not depend on referrals.",
-    heroHeadlineWhite: "Stop waiting for the phone",
-    heroHeadlineGold: "to ring.",
+    heroHeadlineWhite: "Your method is the firm.",
+    heroHeadlineGold: "It lives in three calendars.",
     heroSubheadline:
-      "Referrals built your practice, but they're a ceiling. We turn your expertise into a steady, predictable client pipeline, so growth stops depending on who happens to mention your name.",
+      "How your best people scope, price, and deliver is the firm's real asset, and it usually exists nowhere but their heads and inboxes. We turn that method into systems: intake that qualifies the way they would, follow-through that never waits on a busy partner, records that stay current on their own.",
     painPoints: [
       {
         icon: "Users",
@@ -277,11 +277,11 @@ export const verticals: Vertical[] = [
     name: "Real Estate",
     icon: "Building2",
     shortDescription:
-      "Client capture, nurture, and conversion systems for real estate agents and brokerages who are tired of paying for inquiries that never convert.",
-    heroHeadlineWhite: "Every slow reply is a",
-    heroHeadlineGold: "lost commission.",
+      "Client capture, nurture, and long-memory pipeline systems for agents and brokerages that want every relationship worked, not just the hot ones.",
+    heroHeadlineWhite: "The deal you close in June",
+    heroHeadlineGold: "was built in February.",
     heroSubheadline:
-      "You spend thousands on Zillow, Realtor.com, and Facebook ads, then lose those inquiries to slow follow-up. We capture, qualify, and convert prospects before they go cold, so less chasing means more closings.",
+      "A real estate business is a long memory: who is about to list, which buyer went quiet, whose lease ends in the spring. We build systems that keep that memory working, so every relationship stays warm and every showing is followed all the way through while you are in the rooms where deals happen.",
     painPoints: [
       {
         icon: "Thermometer",
@@ -368,11 +368,11 @@ export const verticals: Vertical[] = [
     icon: "Factory",
     opsLabel: "a manufacturer",
     shortDescription:
-      "AI systems built for manufacturers and industrial shops that lose orders to slow quote turnaround and let supplier and customer follow-up fall through the cracks.",
-    heroHeadlineWhite: "The RFQ sat in your inbox.",
-    heroHeadlineGold: "The order went to whoever quoted first.",
+      "AI systems for manufacturers and industrial shops that want the estimator's knowledge in every quote and every open order visible to the whole floor.",
+    heroHeadlineWhite: "Your quotes carry",
+    heroHeadlineGold: "thirty years of scar tissue.",
     heroSubheadline:
-      "A buyer sends the same RFQ to four shops. The first accurate quote back usually wins the order, and yours is stuck behind a purchasing agent's morning. We capture every inquiry the moment it lands, get a quote number in front of the buyer fast, and keep every open order, every follow-up, and every supplier commitment somewhere your team can actually see it.",
+      "Estimating draws on everything the shop has learned: material quirks, machine capacity, the tolerances that bite. We encode that knowledge into quoting and order tracking, so every RFQ gets the shop's full intelligence and every open order lives where the whole floor can see it.",
     painPoints: [
       {
         icon: "DollarSign",
@@ -459,10 +459,10 @@ export const verticals: Vertical[] = [
     icon: "Rocket",
     shortDescription:
       "AI systems for early-stage teams that need investor updates, user onboarding, and support running without a full ops team to run them.",
-    heroHeadlineWhite: "You didn't raise money",
-    heroHeadlineGold: "to spend it on admin.",
+    heroHeadlineWhite: "Ops debt compounds",
+    heroHeadlineGold: "faster than tech debt.",
     heroSubheadline:
-      "Small teams end up doing the operations work themselves: investor updates, onboarding new users, support tickets, the internal spreadsheet that tracks everything because there is no system for it yet. We build the operating layer a five-person team needs, so the founders spend their hours on the product and the customers, not on keeping the business's own information straight.",
+      "Every early company runs on a heroic spreadsheet and three people's memories, and it works right up until the moment it matters most. We build the operating layer underneath: investor updates, onboarding, support, the systems of record, so founder hours go to product and customers while the company stays coherent as it grows.",
     painPoints: [
       {
         icon: "Clock",
@@ -548,11 +548,11 @@ export const verticals: Vertical[] = [
     name: "Medical & Dental Practices",
     icon: "Stethoscope",
     shortDescription:
-      "AI intake, scheduling, and follow-up for medical and dental practices that lose patients to slow response and empty chairs to no-shows.",
-    heroHeadlineWhite: "The patient called.",
-    heroHeadlineGold: "Your front desk was with someone else.",
+      "AI intake, scheduling, and recall systems for medical and dental practices that want the appointment book solid and the front desk out of the paperwork.",
+    heroHeadlineWhite: "Your entire P&L",
+    heroHeadlineGold: "is the appointment book.",
     heroSubheadline:
-      "A new patient calling to book usually tries the next practice on the list if nobody picks up. We answer every inquiry the moment it comes in, fill the schedule with reminders that actually cut no-shows, and handle the insurance and intake paperwork before the patient ever sits in the chair.",
+      "Chair time, recalls, and insurance friction decide a practice's year more than anything clinical. We build the systems that keep the book solid: verification and intake handled before the visit, recalls that actually land, reminders tuned to the patients who miss, and records the front desk no longer has to carry.",
     painPoints: [
       {
         icon: "PhoneMissed",
@@ -639,11 +639,11 @@ export const verticals: Vertical[] = [
     icon: "ShieldCheck",
     opsLabel: "an insurance agency",
     shortDescription:
-      "AI intake, quoting, and renewal follow-up for independent insurance agencies that lose quote requests to slow response and let renewals slip.",
-    heroHeadlineWhite: "The quote request came in.",
-    heroHeadlineGold: "It sat until Monday.",
+      "AI quoting, renewal, and follow-up systems for independent agencies that want the whole book worked on time instead of from memory.",
+    heroHeadlineWhite: "The book pays you",
+    heroHeadlineGold: "for remembering.",
     heroSubheadline:
-      "A quote request submitted Friday afternoon usually gets an answer from whichever agency responds first, not whichever agency is best. We capture every inquiry the moment it lands, get a quote moving immediately, and keep renewals from slipping past the date a client stops being covered.",
+      "An agency's product is attention: the renewal worked sixty days out, the life event that changes a policy, the coverage gap nobody asked about. We build systems that hold the whole book in working memory, so every renewal is early, every quote is followed through, and every client hears from you before they have a reason to shop.",
     painPoints: [
       {
         icon: "Clock",
@@ -730,11 +730,11 @@ export const verticals: Vertical[] = [
     icon: "Car",
     opsLabel: "an auto dealer",
     shortDescription:
-      "AI intake, scheduling, and follow-up for auto dealerships and service centers that lose deals to slow response and let the service bay sit empty.",
-    heroHeadlineWhite: "They filled out the form",
-    heroHeadlineGold: "for three dealers, not just yours.",
+      "AI systems for dealerships and service centers that want both sides of the store connected, the bays full, and every open deal worked to a close.",
+    heroHeadlineWhite: "The service lane knows",
+    heroHeadlineGold: "who buys next.",
     heroSubheadline:
-      "A shopper filling out a form online is talking to whichever dealer replies first, and a car owner who needs service will book with whoever picks up. We answer every inquiry in seconds, keep the service bay full with reminders that actually get answered, and follow up on every deal that didn't close yet instead of letting it go cold.",
+      "A dealership already holds everything it needs to sell the next car: service history, lease timelines, the customer sitting in the waiting room right now. We build the systems that connect both sides of the store, keep the bays full, and start the right conversation with the right customer at the right time.",
     painPoints: [
       {
         icon: "Thermometer",
@@ -765,7 +765,7 @@ export const verticals: Vertical[] = [
       {
         title: "Instant Inquiry Response",
         description:
-          "Every internet inquiry, call, and walk-in visit answered within seconds and moved toward an appointment, so speed stops costing you deals to the lot down the street.",
+          "Every internet inquiry, call, and walk-in visit answered and qualified the way your best salesperson would, then moved toward an appointment with the history attached.",
         features: [
           "Sub-60-second response on web, text, and phone inquiries",
           "Trade-in and financing pre-qualification before the visit",

@@ -130,7 +130,7 @@ The Accelerate Team`,
 
 Most small businesses we talk to are losing customers for the same reason: slow follow-up and a website that doesn't convert.
 
-It usually looks like this. An inquiry comes in while you're busy with a customer. By the time you get back to them, they've already hired whoever answered first. The work was there. The response time wasn't.
+It usually looks like this. An inquiry comes in while you're busy with a customer, and everything about it waits for you: the reply, the price, the schedule. The work was there. The hours were not.
 
 That's exactly what we build and run for you: instant response across every channel, automated follow-up, and a website that turns visitors into booked work. So nothing slips while you're heads-down running the business.
 

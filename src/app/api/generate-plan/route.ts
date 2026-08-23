@@ -272,7 +272,7 @@ function generateFallbackPlan(data: IntakeFormData): DigitalGrowthPlan {
       : "Automated email and SMS sequences that follow up with every inquiry within minutes, not days. Keeps prospects engaged until they are ready to buy.",
     whyItMatters: isLawFirm
       ? "Every unanswered inquiry could be a case worth thousands. This system ensures no potential client falls through the cracks."
-      : "80% of deals go to whoever responds first. Automated follow-up ensures you are always first, even when you are on a job site.",
+      : "Follow-up is where sold work leaks away. Running it on a system instead of memory means every open estimate is worked until it closes, even when you are on a job site.",
     features: [
       "Instant response to new inquiries (under 2 minutes)",
       "Multi-step nurture sequences via email and SMS",

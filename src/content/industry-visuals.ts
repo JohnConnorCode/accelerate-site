@@ -18,7 +18,7 @@ export const FEATURED_INDUSTRY_SLUGS = [
 /** Documentary stills for the five industries we actually sell. */
 export const INDUSTRY_VISUALS = {
   "home-services": {
-    promise: "The homeowner books whoever answers.",
+    promise: "The office runs while the crew builds.",
     hero: {
       src: "/images/home-services/hero.jpg",
       alt: "A construction crew working on a roof against an open sky",
@@ -28,7 +28,7 @@ export const INDUSTRY_VISUALS = {
     ],
   },
   "law-firms": {
-    promise: "Intake that does not wait for Monday.",
+    promise: "The week back from process.",
     hero: {
       src: "/images/law-firms/hero.jpg",
       alt: "Law books and a gavel on a wooden desk",
@@ -50,7 +50,7 @@ export const INDUSTRY_VISUALS = {
     ],
   },
   "real-estate": {
-    promise: "First response while you are in a showing.",
+    promise: "A pipeline with a long memory.",
     hero: {
       src: "/images/real-estate/hero.jpg",
       alt: "A row of houses along a quiet residential street",
