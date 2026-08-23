@@ -2,8 +2,7 @@
 
 import { Hero } from "@/components/home/Hero";
 import { Marquee } from "@/components/home/Marquee";
-import { Evidence } from "@/components/home/Evidence";
-import { Week } from "@/components/home/Week";
+import { Systems } from "@/components/home/Systems";
 import { CommandCenter } from "@/components/home/CommandCenter";
 import { Trades } from "@/components/home/Trades";
 import { HowWeWork } from "@/components/home/HowWeWork";
@@ -13,10 +12,11 @@ import { Faq } from "@/components/home/Faq";
 import { FinalCta } from "@/components/home/FinalCta";
 
 /**
- * Accelerate homepage. The arc below the hero: the problem with proof
- * (Evidence), the concrete transformation (Week), the product artifact
- * (CommandCenter), the photography beat showing where it runs (Trades),
- * then process, plan, firm, questions, close.
+ * Accelerate homepage. The arc below the hero: what we build (Systems, an
+ * editorial index of named machines), the product artifact (CommandCenter),
+ * the photography beat showing where it runs (Trades), then process, plan,
+ * firm, questions, close. No statistics lead a section; the numbers live in
+ * the sample plan deck where they are framed as a plan, not a pitch.
  */
 export function Studio() {
   return (
@@ -28,8 +28,7 @@ export function Studio() {
         <Hero />
         <Marquee />
       </div>
-      <Evidence />
-      <Week />
+      <Systems />
       <CommandCenter />
       <Trades />
       <HowWeWork />

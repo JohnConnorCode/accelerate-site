@@ -66,7 +66,7 @@ export function Plan() {
             </Reveal>
           </div>
 
-          {/* No ScrollParallax wrapper here (unlike Evidence) —
+          {/* No ScrollParallax wrapper here —
               it continuously writes `transform` on this element's parent
               via direct DOM mutation on every scroll frame, which is
               exactly when the blur-in reveal below is supposed to be
