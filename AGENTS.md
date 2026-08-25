@@ -19,6 +19,8 @@ rediscovering architecture or inventing new write paths.
    health, or production activation.
 7. `docs/MARKETING-POSITIONING-CONTRACT.md` before changing any public marketing
    copy, metadata, search description, public assistant positioning, or CTA.
+8. `docs/ADMIN-DEMO-CONTRACT.md` before changing either demo, the admin runtime,
+   admin navigation, demo fixtures, or demo QA.
 
 Run `npm run verify:agent-contract` before implementation. If it fails, repair
 the contract or card detail before changing product behavior.

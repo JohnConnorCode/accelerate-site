@@ -3111,6 +3111,11 @@ body.admin-dialog-open {
   --admin-surface-subtle: #f7f7f4;
   --admin-ink: #0b0b0b;
   --admin-muted: #6e6e68;
+  --admin-accent: #0b0b0b;
+  --admin-accent-soft: rgba(11, 11, 11, 0.07);
+  --admin-sidebar: #0b0b0b;
+  --admin-action: #0b0b0b;
+  --admin-action-ink: #fbfbfa;
   --admin-rule: rgba(11, 11, 11, 0.09);
   --admin-border: rgba(11, 11, 11, 0.09);
   --admin-shadow-border:
@@ -3135,7 +3140,7 @@ body.admin-dialog-open {
   min-height: 100vh;
   color: var(--admin-ink);
   background:
-    radial-gradient(circle at 88% -8%, rgba(184, 134, 11, 0.075), transparent 32rem),
+    radial-gradient(circle at 88% -8%, var(--admin-accent-soft), transparent 32rem),
     var(--admin-canvas);
 }
 
@@ -3146,6 +3151,11 @@ body.admin-dialog-open {
   --admin-surface-subtle: #1c1c1a;
   --admin-ink: #fbfbfa;
   --admin-muted: #a8a8a4;
+  --admin-accent: #fbfbfa;
+  --admin-accent-soft: rgba(255, 255, 255, 0.045);
+  --admin-sidebar: #0b0b0b;
+  --admin-action: #fbfbfa;
+  --admin-action-ink: #10100f;
   --admin-rule: rgba(255, 255, 255, 0.045);
   --admin-border: rgba(255, 255, 255, 0.085);
   --admin-shadow-border: 0 0 0 1px rgba(255, 255, 255, 0.08);
@@ -3154,13 +3164,58 @@ body.admin-dialog-open {
   --admin-shadow-hover: 0 0 0 1px rgba(255, 255, 255, 0.13);
 }
 
+/* Signal is the dense, high-focus dashboard treatment: violet lives in the
+   system tokens, so every retained work surface changes together rather than
+   becoming a one-off purple page. */
+[data-theme="signal"] .admin-shell,
+[data-theme="signal"] body.admin-dialog-open {
+  --admin-canvas: #12101d;
+  --admin-surface: #1b1829;
+  --admin-surface-subtle: #221e33;
+  --admin-ink: #f5f1ff;
+  --admin-muted: #b8b0c8;
+  --admin-accent: #9b7bff;
+  --admin-accent-soft: rgba(125, 92, 255, 0.22);
+  --admin-sidebar: #141020;
+  --admin-action: #9b7bff;
+  --admin-action-ink: #171225;
+  --admin-rule: rgba(244, 239, 255, 0.055);
+  --admin-border: rgba(244, 239, 255, 0.11);
+  --admin-shadow-border: 0 0 0 1px rgba(183, 161, 255, 0.12), 0 16px 34px -28px rgba(0, 0, 0, 0.7);
+  --admin-shadow-border-hover: 0 0 0 1px rgba(183, 161, 255, 0.24), 0 20px 44px -26px rgba(0, 0, 0, 0.78);
+  --admin-shadow: 0 0 0 1px rgba(183, 161, 255, 0.105), 0 18px 42px -30px rgba(0, 0, 0, 0.78);
+  --admin-shadow-hover: 0 0 0 1px rgba(183, 161, 255, 0.25), 0 25px 50px -30px rgba(0, 0, 0, 0.85);
+}
+
+/* Studio keeps the operational density but borrows the calm, project-focused
+   light canvas and blue signal from a modern work board. */
+[data-theme="studio"] .admin-shell,
+[data-theme="studio"] body.admin-dialog-open {
+  --admin-canvas: #f3f6fc;
+  --admin-surface: #ffffff;
+  --admin-surface-subtle: #f5f7fd;
+  --admin-ink: #19233a;
+  --admin-muted: #67728b;
+  --admin-accent: #356df3;
+  --admin-accent-soft: rgba(53, 109, 243, 0.13);
+  --admin-sidebar: #18223b;
+  --admin-action: #356df3;
+  --admin-action-ink: #ffffff;
+  --admin-rule: rgba(25, 35, 58, 0.075);
+  --admin-border: rgba(25, 35, 58, 0.105);
+  --admin-shadow-border: 0 0 0 1px rgba(38, 71, 134, 0.07), 0 2px 4px -2px rgba(25, 35, 58, 0.06), 0 16px 34px -25px rgba(35, 72, 145, 0.19);
+  --admin-shadow-border-hover: 0 0 0 1px rgba(53, 109, 243, 0.16), 0 5px 10px -5px rgba(25, 35, 58, 0.09), 0 24px 44px -28px rgba(35, 72, 145, 0.28);
+  --admin-shadow: 0 0 0 1px rgba(38, 71, 134, 0.065), 0 2px 5px -2px rgba(25, 35, 58, 0.055), 0 18px 38px -28px rgba(35, 72, 145, 0.22);
+  --admin-shadow-hover: 0 0 0 1px rgba(53, 109, 243, 0.15), 0 5px 11px -5px rgba(25, 35, 58, 0.08), 0 26px 48px -30px rgba(35, 72, 145, 0.28);
+}
+
 .admin-main {
   min-width: 0;
   background: transparent;
 }
 
 .admin-sidebar {
-  background: #0b0b0b;
+  background: var(--admin-sidebar);
   color: #fbfbfa;
   opacity: 1;
   -webkit-backdrop-filter: none;
@@ -3169,7 +3224,7 @@ body.admin-dialog-open {
 }
 
 .admin-mobile-header {
-  background: #0b0b0b;
+  background: var(--admin-sidebar);
   color: #fbfbfa;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08), 0 14px 34px -28px rgba(0, 0, 0, 0.8);
 }
@@ -3196,10 +3251,10 @@ body.admin-dialog-open {
 }
 
 .admin-surface-subtle { background: var(--admin-surface-subtle); }
-.admin-surface-ink { background: #0b0b0b; color: #fbfbfa; }
+.admin-surface-ink { background: var(--admin-sidebar); color: #fbfbfa; }
 .admin-surface-attention {
-  background: color-mix(in srgb, var(--admin-surface) 94%, #b8860b 6%);
-  box-shadow: 0 0 0 1px rgba(146, 104, 17, 0.18), 0 16px 36px -28px rgba(90, 60, 0, 0.4);
+  background: color-mix(in srgb, var(--admin-surface) 94%, var(--admin-accent) 6%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-accent) 23%, transparent), 0 16px 36px -28px color-mix(in srgb, var(--admin-accent) 35%, transparent);
 }
 .admin-surface-interactive {
   transition-property: box-shadow, transform;
@@ -3221,8 +3276,62 @@ body.admin-dialog-open {
   backdrop-filter: none;
 }
 .admin-shell .glass-gold {
-  background: color-mix(in srgb, var(--admin-surface) 94%, #b8860b 6%);
+  background: color-mix(in srgb, var(--admin-surface) 94%, var(--admin-accent) 6%);
 }
+
+/* Transitional route compatibility. Some retained admin pages still carry
+   neutral Tailwind utilities from before the shared operations palette. Keep
+   those routes on the centralized token contract until their local components
+   are individually simplified; this intentionally excludes status colors. */
+:is(.admin-shell, body.admin-dialog-open) [class~="bg-[#0b0b0b]"],
+:is(.admin-shell, body.admin-dialog-open) [class~="bg-[#0a0a0a]"],
+:is(.admin-shell, body.admin-dialog-open) [class~="bg-black"] {
+  background-color: var(--admin-action);
+  color: var(--admin-action-ink);
+}
+:is(.admin-shell, body.admin-dialog-open) [class~="hover:bg-[#252525]"]:hover {
+  background-color: color-mix(in srgb, var(--admin-action) 86%, var(--admin-action-ink));
+}
+:is(.admin-shell, body.admin-dialog-open) [class*="bg-black/"] {
+  background-color: color-mix(in srgb, var(--admin-ink) 4.5%, transparent);
+}
+:is(.admin-shell, body.admin-dialog-open) [class*="hover:bg-black/"]:hover {
+  background-color: color-mix(in srgb, var(--admin-ink) 7.5%, transparent);
+}
+:is(.admin-shell, body.admin-dialog-open) [class*="border-black/"] {
+  border-color: color-mix(in srgb, var(--admin-ink) 12%, transparent);
+}
+:is(.admin-shell, body.admin-dialog-open) [class~="bg-[#fbfbfa]"] {
+  background-color: var(--admin-surface);
+  color: var(--admin-ink);
+}
+:is(.admin-shell, body.admin-dialog-open) [class~="text-[#0b0b0b]"] {
+  color: var(--admin-ink);
+}
+[data-theme="signal"] :is(.admin-shell, body.admin-dialog-open) [class~="bg-[#d7ff5f]"],
+[data-theme="studio"] :is(.admin-shell, body.admin-dialog-open) [class~="bg-[#d7ff5f]"] {
+  background-color: var(--admin-accent);
+}
+[data-theme="signal"] :is(.admin-shell, body.admin-dialog-open) [class~="text-[#d7ff5f]"],
+[data-theme="studio"] :is(.admin-shell, body.admin-dialog-open) [class~="text-[#d7ff5f]"] {
+  color: var(--admin-accent);
+}
+
+[data-theme="signal"] .admin-sidebar a[aria-current="page"] {
+  background: var(--admin-accent);
+  color: #171225;
+  box-shadow: 0 8px 20px -12px rgba(155, 123, 255, 0.85);
+}
+[data-theme="signal"] .admin-sidebar a[aria-current="page"] svg { color: #171225; }
+[data-theme="signal"] .admin-sidebar a[aria-current="page"] [class*="bg-black/8"] { background: rgba(23, 18, 37, 0.12); color: #171225; }
+
+[data-theme="studio"] .admin-sidebar a[aria-current="page"] {
+  background: var(--admin-accent);
+  color: #ffffff;
+  box-shadow: 0 8px 20px -12px rgba(53, 109, 243, 0.9);
+}
+[data-theme="studio"] .admin-sidebar a[aria-current="page"] svg { color: #ffffff; }
+[data-theme="studio"] .admin-sidebar a[aria-current="page"] [class*="bg-black/8"] { background: rgba(255, 255, 255, 0.16); color: #ffffff; }
 
 .admin-dialog-surface { box-shadow: 0 0 0 1px rgba(11, 11, 11, 0.08), 0 30px 80px -28px rgba(0, 0, 0, 0.5); }
 [data-theme="dark"] .admin-dialog-surface { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.11), 0 30px 80px -28px #000; }

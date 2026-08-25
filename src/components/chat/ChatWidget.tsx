@@ -51,7 +51,7 @@ export function ChatWidget() {
   }, [isOpen]);
 
   // Hide on admin pages
-  if (pathname.startsWith("/admin") || pathname.startsWith("/roofing") || pathname === "/command-center/demo") return null;
+  if (pathname.startsWith("/admin") || pathname.startsWith("/demo/command-center") || pathname.startsWith("/roofing") || pathname === "/command-center/demo") return null;
 
   return (
     <div

@@ -4,6 +4,23 @@ import { createServerClient } from "@supabase/ssr";
 import { isConfiguredAdmin } from "@/lib/admin/access";
 
 export async function middleware(request: NextRequest) {
+  const demoMatch = request.nextUrl.pathname.match(
+    /^\/demo\/command-center\/([a-z0-9-]+)(?:\/(.*))?$/,
+  );
+  if (demoMatch) {
+    const scenario = demoMatch[1]!;
+    const requestedRoute = demoMatch[2];
+    const destination = request.nextUrl.clone();
+    destination.pathname = `/admin/${requestedRoute || "today"}`;
+    destination.searchParams.set("__demoScenario", scenario);
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-accelerate-admin-runtime", "demo");
+    requestHeaders.set("x-accelerate-demo-scenario", scenario);
+    const response = NextResponse.rewrite(destination, { request: { headers: requestHeaders } });
+    response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+    return response;
+  }
+
   // Only protect /admin routes (except login and password reset)
   if (
     !request.nextUrl.pathname.startsWith("/admin") ||
@@ -57,5 +74,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/demo/command-center/:path*"],
 };

@@ -1,7 +1,10 @@
 import { chromium } from "playwright";
 import { createClient } from "@supabase/supabase-js";
+import { mkdirSync } from "node:fs";
 
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3011";
+const shellOutput = "/tmp/accelerate-admin-shell-qa";
+mkdirSync(shellOutput, { recursive: true });
 const allRoutes = [
   "/admin/today", "/admin/pipeline", "/admin/conversations", "/admin/emails",
   "/admin/campaigns", "/admin/proposals", "/admin/email-sequences", "/admin/analytics",
@@ -19,6 +22,7 @@ const routes = process.argv.includes("--chat")
   : process.argv.includes("--integrations")
     ? ["/admin/integrations"]
     : allRoutes;
+const appearanceThemes = process.argv.includes("--appearances") ? ["dark", "signal", "studio"] : [null];
 
 for (const key of ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "ADMIN_EMAIL"]) {
   if (!process.env[key]) throw new Error(`${key} is required for authenticated admin parity QA`);
@@ -40,32 +44,59 @@ const cookies = cookieValue.length <= 3180
 const browser = await chromium.launch({ headless: true });
 const failures = new Set();
 
-async function verifyRoutes(viewport, label) {
+function channelToLinear(channel) {
+  const normalized = channel / 255;
+  return normalized <= 0.04045
+    ? normalized / 12.92
+    : ((normalized + 0.055) / 1.055) ** 2.4;
+}
+
+function relativeLuminance(cssColor) {
+  const channels = cssColor.match(/[\d.]+/g)?.slice(0, 3).map(Number);
+  if (!channels || channels.length !== 3) return null;
+  const [red, green, blue] = channels.map(channelToLinear);
+  return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+}
+
+function contrastRatio(foreground, background) {
+  const foregroundLuminance = relativeLuminance(foreground);
+  const backgroundLuminance = relativeLuminance(background);
+  if (foregroundLuminance === null || backgroundLuminance === null) return null;
+  return (Math.max(foregroundLuminance, backgroundLuminance) + 0.05) / (Math.min(foregroundLuminance, backgroundLuminance) + 0.05);
+}
+
+async function verifyRoutes(viewport, label, appearance = null) {
+  const runLabel = appearance ? `${label}-${appearance}` : label;
   const context = await browser.newContext({ viewport, colorScheme: "light", reducedMotion: "reduce" });
   const origin = new URL(base);
   await context.addCookies(cookies.map((cookie) => ({ ...cookie, domain: origin.hostname, path: "/", httpOnly: false, secure: origin.protocol === "https:", sameSite: "Lax" })));
+  // The appearance picker persists through next-themes. Set it before any app
+  // script runs so this sweep proves every retained route against the exact
+  // Signal and Studio rendering path, not a one-off post-hydration preview.
+  if (appearance) await context.addInitScript((theme) => window.localStorage.setItem("theme", theme), appearance);
   const page = await context.newPage();
-  await page.route("**/api/admin/notifications**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ notifications: [], unreadCount: 0 }) }));
+  await page.route("**/api/admin/notifications**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ notifications: [], unreadCount: 3, urgentCount: 1, priority: { status: "ready", summary: { total: 0, urgent: 0, critical: 0 }, items: [] } }) }));
   // Route parity validates shell/layout behavior independently of an unapplied
   // feature-batch migration. Runtime persistence has its own service and QA
   // contract; an empty conversation list keeps every admin route deterministic.
   await page.route("**/api/admin/revenue-os/ai/conversations**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ schemaReady: true, conversations: [] }) }));
   let activeRoute = "";
   page.on("console", (message) => {
-    if (message.type() === "error") failures.add(`${label} ${activeRoute}: console ${message.text().split("\n")[0]}`);
+    if (message.type() === "error") failures.add(`${runLabel} ${activeRoute}: console ${message.text().split("\n")[0]}`);
   });
-  page.on("pageerror", (error) => failures.add(`${label} ${activeRoute}: page ${error.message.split("\n")[0]}`));
+  page.on("pageerror", (error) => failures.add(`${runLabel} ${activeRoute}: page ${error.message.split("\n")[0]}`));
 
   for (const route of routes) {
     activeRoute = route;
     const response = await page.goto(`${base}${route}`, { waitUntil: "domcontentloaded", timeout: 60_000 });
-    if (!response || response.status() >= 500) failures.add(`${label} ${route}: HTTP ${response?.status() ?? "none"}`);
+    if (!response || response.status() >= 500) failures.add(`${runLabel} ${route}: HTTP ${response?.status() ?? "none"}`);
     await page.locator(".admin-shell").waitFor({ state: "visible", timeout: 30_000 });
     await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => undefined);
     await page.waitForTimeout(120);
     const portalText = await page.locator("nextjs-portal").allTextContents();
-    if (portalText.some((text) => /Build Error|Unhandled Runtime Error|Runtime TypeError|Compilation failed/i.test(text))) failures.add(`${label} ${route}: Next.js error overlay is present`);
+    if (portalText.some((text) => /Build Error|Unhandled Runtime Error|Runtime TypeError|Compilation failed/i.test(text))) failures.add(`${runLabel} ${route}: Next.js error overlay is present`);
     const state = await page.evaluate(() => ({
+      theme: document.documentElement.dataset.theme,
       width: document.documentElement.scrollWidth,
       viewport: window.innerWidth,
       dialogs: document.querySelectorAll('[role="dialog"]').length,
@@ -84,19 +115,75 @@ async function verifyRoutes(viewport, label) {
         }
         return chain;
       })(),
+      activeNavigation: (() => {
+        const link = document.querySelector(".admin-sidebar a[aria-current='page']");
+        if (!link) return null;
+        const style = getComputedStyle(link);
+        return { color: style.color, backgroundColor: style.backgroundColor };
+      })(),
     }));
-    if (!state.mainVisible) failures.add(`${label} ${route}: admin main region is missing`);
-    if (state.width > state.viewport + 2) failures.add(`${label} ${route}: document overflow ${state.width}px > ${state.viewport}px; ${JSON.stringify(state.overflowers)}; chain ${JSON.stringify(state.overflowChain)}`);
-    if (state.dialogs) failures.add(`${label} ${route}: ${state.dialogs} dialog(s) opened without an operator action`);
+    if (appearance && state.theme !== appearance) failures.add(`${runLabel} ${route}: expected ${appearance} theme, found ${state.theme || "none"}`);
+    if (!state.mainVisible) failures.add(`${runLabel} ${route}: admin main region is missing`);
+    if (state.width > state.viewport + 2) failures.add(`${runLabel} ${route}: document overflow ${state.width}px > ${state.viewport}px; ${JSON.stringify(state.overflowers)}; chain ${JSON.stringify(state.overflowChain)}`);
+    if (state.dialogs) failures.add(`${runLabel} ${route}: ${state.dialogs} dialog(s) opened without an operator action`);
+    if (state.activeNavigation) {
+      const ratio = contrastRatio(state.activeNavigation.color, state.activeNavigation.backgroundColor);
+      if (ratio !== null && ratio < 4.5) failures.add(`${runLabel} ${route}: active navigation contrast ${ratio.toFixed(2)}:1 is below 4.5:1 (${state.activeNavigation.color} on ${state.activeNavigation.backgroundColor})`);
+    }
+
+    if (route === routes[0]) {
+      const demoLink = page.locator("[data-admin-demo-link]");
+      if (await demoLink.count() !== 1) failures.add(`${runLabel} ${route}: shared demo workspace link is missing`);
+      else {
+        const href = await demoLink.getAttribute("href");
+        const target = await demoLink.getAttribute("target");
+        if (href !== "/demo/command-center" || target !== "_blank") failures.add(`${runLabel} ${route}: demo workspace link is not safely routed`);
+      }
+
+      if (viewport.width >= 1024) {
+        await page.waitForTimeout(450);
+        const containment = await page.evaluate(() => {
+          const sidebar = document.querySelector("[data-admin-sidebar]")?.getBoundingClientRect();
+          const controls = document.querySelector("[data-admin-sidebar-controls]")?.getBoundingClientRect();
+          const badge = document.querySelector(".admin-notification-trigger span");
+          return {
+            contained: Boolean(sidebar && controls && controls.left >= sidebar.left && controls.right <= sidebar.right),
+            pulsing: badge?.classList.contains("animate-pulse") ?? false,
+          };
+        });
+        if (!containment.contained) failures.add(`${runLabel} ${route}: expanded notification/collapse controls overflow the sidebar`);
+        if (containment.pulsing) failures.add(`${runLabel} ${route}: notification badge still flashes`);
+        await page.screenshot({ path: `${shellOutput}/expanded-${runLabel}.png`, fullPage: true });
+
+        await page.getByRole("button", { name: "Collapse sidebar" }).click();
+        await page.waitForTimeout(360);
+        const collapsedContainment = await page.evaluate(() => {
+          const sidebar = document.querySelector("[data-admin-sidebar]")?.getBoundingClientRect();
+          const controls = document.querySelector("[data-admin-sidebar-controls]")?.getBoundingClientRect();
+          return Boolean(sidebar && controls && controls.left >= sidebar.left && controls.right <= sidebar.right);
+        });
+        if (!collapsedContainment) failures.add(`${runLabel} ${route}: collapsed controls overflow the sidebar`);
+        if (!await page.getByRole("link", { name: "Open demo workspace" }).isVisible()) failures.add(`${runLabel} ${route}: demo workspace is unavailable in collapsed navigation`);
+        await page.screenshot({ path: `${shellOutput}/collapsed-${runLabel}.png`, fullPage: true });
+        await page.getByRole("button", { name: "Expand sidebar" }).click();
+      } else {
+        await page.getByRole("button", { name: "Open navigation" }).click();
+        await page.getByRole("link", { name: "Open demo workspace" }).waitFor({ state: "visible" });
+        await page.screenshot({ path: `${shellOutput}/navigation-${runLabel}.png`, fullPage: true });
+        await page.getByRole("button", { name: "Close navigation" }).click();
+      }
+    }
   }
   await context.close();
 }
 
 const onlyDesktop = process.argv.includes("--desktop");
 const onlyMobile = process.argv.includes("--mobile");
-if (!onlyMobile) await verifyRoutes({ width: 1440, height: 1000 }, "desktop");
-if (!onlyDesktop) await verifyRoutes({ width: 390, height: 844 }, "mobile");
+for (const appearance of appearanceThemes) {
+  if (!onlyMobile) await verifyRoutes({ width: 1440, height: 1000 }, "desktop", appearance);
+  if (!onlyDesktop) await verifyRoutes({ width: 390, height: 844 }, "mobile", appearance);
+}
 await browser.close();
 
 if (failures.size) throw new Error(`Admin route parity failures:\n${[...failures].join("\n")}`);
-console.log(`Admin route parity passed for ${routes.length} registered routes on ${onlyDesktop ? "desktop" : onlyMobile ? "mobile" : "desktop and mobile"}.`);
+console.log(`Admin route parity passed for ${routes.length} registered routes on ${onlyDesktop ? "desktop" : onlyMobile ? "mobile" : "desktop and mobile"}${appearanceThemes[0] ? " across Night, Signal, and Studio" : ""}.`);

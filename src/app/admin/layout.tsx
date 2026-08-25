@@ -15,6 +15,7 @@ import {
   LogOut,
   Mail,
   Menu,
+  MonitorPlay,
   NotebookPen,
   PanelLeftClose,
   PanelLeftOpen,
@@ -36,11 +37,13 @@ import { AdminAIProvider } from "@/components/admin/AdminAIProvider";
 import { AdminAIPanel } from "@/components/admin/AdminAIPanel";
 import { EmailComposeModal } from "@/components/admin/EmailComposeModal";
 import { AdminDialog } from "@/components/admin/AdminDialog";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { AdminAppearancePicker } from "@/components/admin/AdminAppearancePicker";
 import { Logo } from "@/components/ui/Logo";
 import { LogoMark } from "@/components/ui/LogoMark";
 import { adminPageVariants } from "@/lib/admin/motion";
 import { adminNavLinks, adminNavSections, type AdminNavLink } from "@/lib/admin/navigation";
+import { AdminDemoBoundary } from "@/components/admin/AdminDemoBoundary";
+import { isDemoScenarioId, type DemoScenarioId } from "@/lib/admin/demo/scenarios";
 
 function getBreadcrumbs(pathname: string): { label: string; href: string }[] {
   const crumbs = [{ label: "Today", href: "/admin/today" }];
@@ -73,6 +76,9 @@ interface CommandAction {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const demoMatch = pathname.match(/^\/demo\/command-center\/([^/]+)(?:\/(.*))?$/);
+  const scenarioId: DemoScenarioId | null = demoMatch && isDemoScenarioId(demoMatch[1] || "") ? demoMatch[1] as DemoScenarioId : null;
+  const effectivePathname = scenarioId ? `/admin/${demoMatch?.[2] || "today"}` : pathname;
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -147,7 +153,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     searchAbortRef.current?.abort();
   }, []);
 
-  useEffect(() => setMobileOpen(false), [pathname]);
+  useEffect(() => setMobileOpen(false), [effectivePathname]);
 
   useEffect(() => {
     let cancelled = false;
@@ -216,7 +222,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   const isActive = (href: string) =>
-    pathname === href || (href !== "/admin" && pathname.startsWith(href));
+    effectivePathname === href || (href !== "/admin" && effectivePathname.startsWith(href));
 
   const commandActions: CommandAction[] = [
     {
@@ -274,22 +280,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         `${action.label} ${action.description} ${action.keywords}`.toLowerCase().includes(normalizedQuery),
       )
     : commandActions;
-  const breadcrumbs = getBreadcrumbs(pathname);
+  const breadcrumbs = getBreadcrumbs(effectivePathname);
 
   return (
+    <AdminDemoBoundary scenarioId={scenarioId}>
     <AdminAIProvider>
     <MotionConfig reducedMotion="user">
     <div className="admin-shell flex min-h-screen">
       <aside className={cn("admin-sidebar hidden shrink-0 transition-[width] duration-300 lg:block", sidebarCollapsed ? "w-[80px]" : "w-[272px]")} data-admin-sidebar>
         <div className="sticky top-0 flex h-screen flex-col px-4 py-5">
-          <SidebarContent isActive={isActive} onSignOut={handleSignOut} collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebar} priorityCount={priorityCount} />
+          <SidebarContent isActive={isActive} onSignOut={handleSignOut} collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebar} priorityCount={priorityCount} demoMode={Boolean(scenarioId)} />
         </div>
       </aside>
 
       <header className="admin-mobile-header fixed inset-x-0 top-0 z-40 flex min-h-16 items-center justify-between gap-2 px-4 pt-[env(safe-area-inset-top)] lg:hidden">
         <Logo
           href="/admin/today"
-          ariaLabel="Accelerate Revenue OS home"
+          ariaLabel={`${tenant.brand.name} Revenue OS home`}
           size="sm"
           className="shrink-0 [--gold-base:#fff] [--heading-color:#fff]"
         />
@@ -331,7 +338,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <X className="size-5" />
             </motion.button>
             <motion.aside className="admin-sidebar absolute inset-y-0 left-0 flex w-[286px] flex-col px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))]" initial={{ x: -286 }} animate={{ x: 0 }} exit={{ x: -286 }} transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}>
-              <SidebarContent isActive={isActive} onSignOut={handleSignOut} onNavigate={() => setMobileOpen(false)} priorityCount={priorityCount} />
+              <SidebarContent isActive={isActive} onSignOut={handleSignOut} onNavigate={() => setMobileOpen(false)} priorityCount={priorityCount} demoMode={Boolean(scenarioId)} />
             </motion.aside>
           </div>
         )}
@@ -358,7 +365,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         inputRef={searchInputRef}
       />
 
-      <main className="admin-main min-w-0 flex-1 px-4 pb-[max(3rem,calc(3rem+env(safe-area-inset-bottom)))] pt-[calc(76px+env(safe-area-inset-top))] sm:px-6 lg:px-8 lg:pb-12 lg:pt-6 xl:px-10">
+      <main className={cn("admin-main min-w-0 flex-1 px-4 pt-[calc(76px+env(safe-area-inset-top))] sm:px-6 lg:px-8 lg:pt-6 xl:px-10", scenarioId ? "pb-[calc(8rem+env(safe-area-inset-bottom))] sm:pb-12" : "pb-[max(3rem,calc(3rem+env(safe-area-inset-bottom)))] lg:pb-12")}>
         <div className="admin-route-frame">
           <div className="mb-5 flex min-h-10 items-center justify-between gap-4">
             <nav className="flex min-w-0 items-center gap-1.5 text-xs text-[var(--admin-muted)]" aria-label="Breadcrumb">
@@ -377,8 +384,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {/* New route content enters immediately. Waiting for an exiting tree
               leaves the operating surface blank and makes navigation feel like
               a reload; the surrounding shell intentionally remains mounted. */}
-          <motion.div key={pathname} variants={adminPageVariants} initial="hidden" animate="visible">
-            <AdminErrorBoundary key={pathname}>{children}</AdminErrorBoundary>
+          <motion.div key={effectivePathname} variants={adminPageVariants} initial="hidden" animate="visible">
+            <AdminErrorBoundary key={effectivePathname}>{children}</AdminErrorBoundary>
           </motion.div>
         </div>
       </main>
@@ -392,6 +399,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     </div>
     </MotionConfig>
     </AdminAIProvider>
+    </AdminDemoBoundary>
   );
 }
 
@@ -402,6 +410,7 @@ function SidebarContent({
   collapsed = false,
   onToggleCollapse,
   priorityCount = 0,
+  demoMode = false,
 }: {
   isActive: (href: string) => boolean;
   onSignOut: () => Promise<void> | void;
@@ -409,6 +418,7 @@ function SidebarContent({
   collapsed?: boolean;
   onToggleCollapse?: () => void;
   priorityCount?: number;
+  demoMode?: boolean;
 }) {
   const activeSection = adminNavSections.find((section) =>
     section.links.some((link) => isActive(link.href)),
@@ -425,12 +435,12 @@ function SidebarContent({
 
   return (
     <>
-      <div className={cn("mb-6 flex items-start gap-2", collapsed ? "flex-col items-center px-0" : "justify-between px-2")}>
+      <div className={cn("mb-6", collapsed ? "flex flex-col items-center gap-2 px-0" : "px-1")}>
         {collapsed ? (
           <Link
             href="/admin/today"
             onClick={onNavigate}
-            aria-label="Accelerate Revenue OS home"
+            aria-label={`${tenant.brand.name} Revenue OS home`}
             className="logo-link grid size-10 place-items-center rounded-[10px] [--gold-base:#fff] transition-[background-color,transform] duration-150 hover:bg-white/7 active:scale-[0.96]"
           >
             <LogoMark className="h-4 w-8" />
@@ -438,14 +448,16 @@ function SidebarContent({
         ) : (
           <Logo
             href="/admin/today"
-            ariaLabel="Accelerate Revenue OS home"
+            ariaLabel={`${tenant.brand.name} Revenue OS home`}
             onClick={onNavigate}
             size="sm"
-            className="shrink-0 [--gold-base:#fff] [--heading-color:#fff]"
+            className="[--gold-base:#fff] [--heading-color:#fff]"
           />
         )}
-        {!collapsed && <NotificationBell placement="sidebar" />}
-        {onToggleCollapse && <button type="button" onClick={onToggleCollapse} className="grid size-10 place-items-center rounded-[10px] text-white/42 transition-[background-color,color,transform] duration-150 hover:bg-white/7 hover:text-white active:scale-[0.96]" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}</button>}
+        <div className={cn("flex shrink-0", collapsed ? "flex-col items-center gap-1" : "mt-3 items-center justify-end gap-0.5")} data-admin-sidebar-controls>
+          {!collapsed && <NotificationBell placement="sidebar" />}
+          {onToggleCollapse && <button type="button" onClick={onToggleCollapse} className="grid size-10 shrink-0 place-items-center rounded-[10px] text-white/58 transition-[background-color,color,transform] duration-150 hover:bg-white/8 hover:text-white active:scale-[0.96]" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <PanelLeftOpen className="size-[17px]" /> : <PanelLeftClose className="size-[17px]" />}</button>}
+        </div>
       </div>
 
       <nav className="admin-nav-scroll flex-1 space-y-1.5 overflow-y-auto overscroll-contain" aria-label="Admin navigation">
@@ -458,7 +470,7 @@ function SidebarContent({
                 {!collapsed ? <button
                   type="button"
                   onClick={() => toggleSection(section.label)}
-                  className="group flex min-h-10 w-full items-center justify-between rounded-[10px] px-2.5 text-left font-mono text-[9px] font-semibold uppercase tracking-[0.15em] text-white/38 transition-[background-color,color,transform] duration-150 hover:bg-white/[0.055] hover:text-white/70 active:scale-[0.96]"
+                  className="group flex min-h-10 w-full items-center justify-between rounded-[10px] px-2.5 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.13em] text-white/55 transition-[background-color,color,transform] duration-150 hover:bg-white/[0.055] hover:text-white/82 active:scale-[0.96]"
                   aria-expanded={expanded}
                   aria-controls={panelId}
                 >
@@ -479,8 +491,8 @@ function SidebarContent({
                         {section.links.map((link) => {
                 const active = isActive(link.href);
                 return (
-                  <Link key={link.href} href={link.href} onClick={onNavigate} title={collapsed ? link.label : undefined} className={cn("group relative flex min-h-10 items-center rounded-[10px] text-[13px] transition-[color,background-color,transform] duration-150 active:scale-[0.96]", collapsed ? "justify-center px-0" : "gap-3 px-2.5", active ? "bg-white text-black shadow-[0_1px_2px_rgba(0,0,0,0.18)]" : "text-white/58 hover:bg-white/7 hover:text-white")} aria-current={active ? "page" : undefined}>
-                    <link.icon className={cn("h-4 w-4 shrink-0 transition-colors duration-150", active ? "text-black" : "text-white/38 group-hover:text-white/75")} />
+                  <Link key={link.href} href={link.href} onClick={onNavigate} title={collapsed ? link.label : undefined} className={cn("group relative flex min-h-10 items-center rounded-[10px] text-[13.5px] font-medium transition-[color,background-color,transform] duration-150 active:scale-[0.96]", collapsed ? "justify-center px-0" : "gap-3 px-2.5", active ? "bg-white text-black shadow-[0_1px_2px_rgba(0,0,0,0.18)]" : "text-white/72 hover:bg-white/7 hover:text-white")} aria-current={active ? "page" : undefined}>
+                    <link.icon className={cn("h-4 w-4 shrink-0 transition-colors duration-150", active ? "text-black" : "text-white/52 group-hover:text-white/85")} />
                     {!collapsed && <span className="min-w-0 truncate">{link.label}</span>}
                     {link.href === "/admin/today" && priorityCount > 0 && (collapsed
                       ? <span className={cn("absolute right-2 top-2 size-2 rounded-full", active ? "bg-rose-600" : "bg-rose-400")} aria-label={`${priorityCount} urgent priorities`} />
@@ -500,13 +512,18 @@ function SidebarContent({
       </nav>
 
       <div className="mt-4 border-t border-white/10 pt-3">
-        <ThemeToggle variant="admin-sidebar" collapsed={collapsed} />
-        <Link href="/" target="_blank" onClick={onNavigate} title={collapsed ? "View live site" : undefined} className={cn("flex min-h-10 items-center rounded-[10px] text-xs text-white/42 transition-[color,background-color,transform] duration-150 hover:bg-white/7 hover:text-white active:scale-[0.96]", collapsed ? "justify-center" : "gap-3 px-2.5")}>
-          <ArrowUpRight className="h-4 w-4" /> {!collapsed && "View live site"}
+        <Link href="/demo/command-center" target="_blank" onClick={onNavigate} aria-label={demoMode ? "Choose another fictional workspace" : "Open demo workspace"} title={collapsed ? (demoMode ? "Choose demo" : "Open demo workspace") : undefined} data-admin-demo-link className={cn("mb-1 flex min-h-10 items-center rounded-[10px] bg-white/[0.075] text-xs font-semibold text-white/82 shadow-[0_0_0_1px_rgba(255,255,255,.08)] transition-[background-color,color,transform] duration-150 hover:bg-white/[0.12] hover:text-white active:scale-[0.96]", collapsed ? "justify-center" : "gap-3 px-2.5")}>
+          <MonitorPlay className="h-4 w-4 shrink-0" /> {!collapsed && <><span>{demoMode ? "Choose demo" : "Demo workspace"}</span><ArrowUpRight className="ml-auto h-3.5 w-3.5 text-white/52" /></>}
         </Link>
-        <button type="button" onClick={async () => { onNavigate?.(); await onSignOut(); }} title={collapsed ? "Sign out" : undefined} className={cn("flex min-h-10 w-full items-center rounded-[10px] text-xs text-white/42 transition-[color,background-color,transform] duration-150 hover:bg-white/7 hover:text-white active:scale-[0.96]", collapsed ? "justify-center" : "gap-3 px-2.5")}>
-          <LogOut className="h-4 w-4" /> {!collapsed && "Sign out"}
-        </button>
+        <AdminAppearancePicker collapsed={collapsed} />
+        {!demoMode && <>
+          <Link href="/" target="_blank" onClick={onNavigate} title={collapsed ? "View live site" : undefined} className={cn("flex min-h-10 items-center rounded-[10px] text-xs text-white/58 transition-[color,background-color,transform] duration-150 hover:bg-white/7 hover:text-white active:scale-[0.96]", collapsed ? "justify-center" : "gap-3 px-2.5")}>
+            <ArrowUpRight className="h-4 w-4" /> {!collapsed && "View live site"}
+          </Link>
+          <button type="button" onClick={async () => { onNavigate?.(); await onSignOut(); }} title={collapsed ? "Sign out" : undefined} className={cn("flex min-h-10 w-full items-center rounded-[10px] text-xs text-white/58 transition-[color,background-color,transform] duration-150 hover:bg-white/7 hover:text-white active:scale-[0.96]", collapsed ? "justify-center" : "gap-3 px-2.5")}>
+            <LogOut className="h-4 w-4" /> {!collapsed && "Sign out"}
+          </button>
+        </>}
       </div>
     </>
   );

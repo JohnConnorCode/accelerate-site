@@ -9,6 +9,7 @@ const requiredFiles = [
   "docs/REVENUE-OS-SETUP.md",
   "docs/FEATURE-BOARD-TAXONOMY.md",
   "docs/MARKETING-POSITIONING-CONTRACT.md",
+  "docs/ADMIN-DEMO-CONTRACT.md",
   "src/lib/revenue-os/README.md",
 ];
 const failures = [];

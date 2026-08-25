@@ -227,16 +227,16 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
         ref={triggerRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="admin-notification-trigger relative inline-flex size-11 items-center justify-center rounded-[10px] text-white-muted transition-[color,background-color,transform] duration-150 hover:bg-black/5 hover:text-white-primary active:scale-[0.96]"
+        className={cn("admin-notification-trigger relative inline-flex items-center justify-center rounded-[10px] text-white-muted transition-[color,background-color,transform] duration-150 hover:bg-black/5 hover:text-white-primary active:scale-[0.96]", placement === "mobile" ? "size-11" : "size-10")}
         aria-label={isOpen ? "Close command center alerts" : `Open command center alerts${signalCount ? `, ${signalCount} need attention` : ""}`}
         aria-expanded={isOpen}
         aria-controls="admin-alerts-panel"
       >
-        <Bell className="h-4.5 w-4.5" />
+        <Bell className="size-[17px]" />
         {signalCount > 0 && (
           <span className={cn(
-            "absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full font-mono text-[9px] font-bold tabular-nums text-white",
-            hasCriticalSignal ? "bg-red-500 animate-pulse" : "bg-[var(--error)]"
+            "absolute right-0 top-0 flex size-[15px] items-center justify-center rounded-full font-mono text-[8px] font-bold tabular-nums text-white shadow-[0_0_0_2px_#0b0b0b]",
+            hasCriticalSignal ? "bg-rose-500" : "bg-[var(--error)]"
           )}>
             {signalCount > 9 ? "9+" : signalCount}
           </span>
