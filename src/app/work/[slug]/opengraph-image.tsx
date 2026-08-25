@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { getWorkBySlug } from "@/content/work";
 
 export const runtime = "edge";
-export const alt = "Selected work by the people behind Accelerate";
+export const alt = "Accelerate selected work and operating systems";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

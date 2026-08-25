@@ -26,9 +26,15 @@ for (const project of workProjects) {
   assert.ok(!copy.includes("—"), `${project.slug} includes an em dash`);
   const media = [project.cardMedia, project.heroMedia, ...project.visualBlocks.flatMap((block) => block.media)];
   for (const item of media) {
-    if (item.kind === "image") assert.ok(existsSync(join(process.cwd(), "public", item.src)), `${project.slug} is missing ${item.src}`);
+    if (item.kind === "image") {
+      assert.ok(existsSync(join(process.cwd(), "public", item.src)), `${project.slug} is missing ${item.src}`);
+      assert.ok(item.width > 0 && item.height > 0, `${project.slug} image ${item.src} needs intrinsic dimensions`);
+      assert.ok(item.presentation, `${project.slug} image ${item.src} needs a presentation role`);
+    }
     if (item.kind === "youtube") assert.ok(existsSync(join(process.cwd(), "public", item.poster)), `${project.slug} is missing video poster ${item.poster}`);
   }
+  const detailKeys = [project.heroMedia, ...project.visualBlocks.flatMap((block) => block.media)].map((item) => item.kind === "image" ? item.src : item.kind === "diagram" ? item.variant : item.youtubeId);
+  assert.equal(new Set(detailKeys).size, detailKeys.length, `${project.slug} must not repeat media within its case-study page`);
 }
 
 for (const project of publicWorkProjects) {
@@ -58,14 +64,16 @@ const expectedWorkShelterScreens = [
   "catalog-experience.webp",
   "brand-partners.webp",
   "quote-flow-overview.webp",
-  "quote-flow-detail.webp",
   "command-center-dashboard.webp",
   "orders-workspace.webp",
   "products-inventory.webp",
   "campaign-admin-help.webp",
 ];
-const workShelterMedia = JSON.stringify(getWorkBySlug("work-shelter")?.visualBlocks);
+const workShelter = getWorkBySlug("work-shelter");
+const workShelterMedia = JSON.stringify([workShelter?.cardMedia, workShelter?.heroMedia, workShelter?.visualBlocks]);
 for (const screen of expectedWorkShelterScreens) assert.ok(workShelterMedia.includes(screen), `WORK+SHELTER must use supplied screen ${screen}`);
+assert.ok(!workShelterMedia.includes("quote-flow-detail.webp"), "WORK+SHELTER must not render the redundant quote detail capture");
+assert.equal(workShelter?.cardMedia.kind === "image" ? workShelter.cardMedia.src : undefined, "/work/work-shelter/customer-site-hero.webp", "WORK+SHELTER must use the customer experience as its canonical cover");
 
 const expectedSuperDebateScreens = [
   "product-home.webp",

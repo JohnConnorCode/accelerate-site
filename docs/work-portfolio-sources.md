@@ -9,7 +9,7 @@ Replacement media requests are maintained in
 
 | Project | Claim / approved wording | Source | Public | Notes |
 | --- | --- | --- | --- | --- |
-| WORK+SHELTER | "80% reduction in U.S. client-management hours" | Theresa VanderMeer public About material and internal operating context | Yes | Capacity result only. Do not infer revenue. |
+| WORK+SHELTER | Fractional CTO role; website, quote experience, custom command center, and ongoing technology and business systems; "80% reduction in U.S. client-management hours" | Founder-confirmed scope, Theresa VanderMeer public About material, and internal operating context | Yes | Capacity result only. Do not infer revenue. |
 | Healthcare Real Estate Platform | "40% faster inquiry-to-close" | Original Nice Right healthcare case and project material | Yes | Keep the wording scoped to inquiry-to-close. |
 | SuperDebate | Current product, operations, and founder-built attribution | SuperDebate product and internal operating context | Yes | Approx. 50 accepted professor/expert invitations is HOLD. Do not publish without John approval. |
 | Sparkblox | "$1M+ raised" | Founder company records and archived company material | Yes | Founder-built company, never an Accelerate client. Do not restore the old 30% satisfaction claim. |

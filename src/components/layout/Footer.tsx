@@ -135,10 +135,10 @@ export function Footer() {
   };
 
   // the admin app has its own chrome; the marketing footer doesn't belong there
-  if (pathname.startsWith("/admin") || pathname.startsWith("/roofing") || pathname === "/command-center/demo") return null;
+  if (pathname.startsWith("/admin") || pathname.startsWith("/demo/command-center") || pathname.startsWith("/roofing") || pathname === "/command-center/demo") return null;
 
   return (
-    <footer className="relative bg-bg-base pb-[var(--safe-bottom)] [--white-muted:var(--mid)]">
+    <footer className="relative bg-bg-base pb-[var(--safe-bottom)] [--white-primary:var(--fg)] [--white-secondary:color-mix(in_srgb,var(--fg)_84%,var(--bg))] [--white-muted:color-mix(in_srgb,var(--fg)_72%,var(--bg))]">
       <SectionDivider variant="glow" />
 
       <div className="page-shell py-16">

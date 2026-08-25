@@ -4,10 +4,10 @@ import { BookCallButton, Container, Eyebrow } from "@/components/v2/studio/primi
 import type { WorkProject, WorkServiceId, WorkVisualBlock } from "@/content/work";
 import { getWorkBySlug } from "@/content/work";
 import { services } from "@/content/services";
-import { CaseMedia } from "./CaseMedia";
+import { CaseGallery } from "./CaseGallery";
 import { WorkCard } from "./WorkCard";
 import { WorkReveal } from "./WorkMotion";
-import { heroAspectByArtDirection, workAccentClasses, workWorldClasses } from "./workRecipes";
+import { workAccentClasses, workWorldClasses } from "./workRecipes";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 
 const heroWidthClasses: Record<WorkProject["artDirection"]["hero"], string> = {
@@ -19,14 +19,6 @@ const heroWidthClasses: Record<WorkProject["artDirection"]["hero"], string> = {
 };
 
 function VisualBreak({ block, project }: { block: WorkVisualBlock; project: WorkProject }) {
-  const gridClass = block.layout === "single"
-    ? "grid-cols-1"
-    : block.layout === "interface-grid"
-      ? "lg:grid-cols-12"
-    : block.layout === "triptych" || block.layout === "filmstrip"
-      ? "lg:grid-cols-3"
-      : "lg:grid-cols-2";
-
   const tone = block.tone ?? (project.composition === "motion" ? "ink" : "paper");
   const inverted = tone === "ink";
   const toneClass = inverted
@@ -36,9 +28,9 @@ function VisualBreak({ block, project }: { block: WorkVisualBlock; project: Work
       : "bg-[var(--bg)] text-[var(--fg)]";
 
   return (
-    <section className={`${toneClass} relative border-y border-[var(--rule)] py-[clamp(3rem,5vw,5rem)]`} data-visual-layout={block.layout} data-visual-tone={tone}>
-      <div className="absolute inset-x-0 top-0 h-0.5 bg-[var(--case-accent)]" aria-hidden="true" />
-      <Container>
+    <section className={`${toneClass} relative py-[clamp(3.5rem,6vw,6.5rem)]`} data-visual-layout={block.layout} data-visual-tone={tone} data-visual-width={block.width ?? "wide"}>
+      {tone !== "paper" ? <div className="absolute inset-x-0 top-0 h-px bg-[var(--case-accent)] opacity-70" aria-hidden="true" /> : null}
+      <Container width={block.width === "contained" ? "narrow" : "wide"}>
         {(block.eyebrow || block.title || block.intro) ? (
           <WorkReveal className="mb-9 grid gap-5 lg:grid-cols-[minmax(0,.48fr)_minmax(0,1fr)] lg:items-end">
             <div>{block.eyebrow ? <Eyebrow className={inverted ? "!text-white/65" : undefined}>{block.eyebrow}</Eyebrow> : null}</div>
@@ -48,22 +40,7 @@ function VisualBreak({ block, project }: { block: WorkVisualBlock; project: Work
             </div>
           </WorkReveal>
         ) : null}
-        <div className={`grid gap-6 ${gridClass}`}>
-          {block.media.map((media, index) => {
-            const interfaceSpan = block.layout !== "interface-grid"
-              ? ""
-              : index === 0
-                ? "lg:col-span-12"
-                : block.media.length === 4
-                  ? "lg:col-span-4"
-                  : "lg:col-span-6";
-            return (
-              <div key={`${media.kind}-${index}`} className={interfaceSpan}>
-                <CaseMedia media={media} inverted={inverted} frame={block.frame ?? project.artDirection.mediaFrame} aspect={block.layout === "filmstrip" ? "portrait" : "wide"} revealDelay={Math.min(index * 0.07, 0.21)} />
-              </div>
-            );
-          })}
-        </div>
+        <CaseGallery media={[...block.media]} layout={block.layout} inverted={inverted} frame={block.frame ?? project.artDirection.mediaFrame} groupLabel={block.eyebrow ?? block.title ?? project.name} />
       </Container>
     </section>
   );
@@ -117,7 +94,7 @@ export function CaseStudy({ project }: { project: WorkProject }) {
 
       <Container className="py-[clamp(2rem,5vw,5rem)]">
         <div className={heroWidthClasses[project.artDirection.hero]} data-case-hero={project.artDirection.hero}>
-          <CaseMedia media={project.heroMedia} priority frame={project.artDirection.mediaFrame} aspect={heroAspectByArtDirection[project.artDirection.hero]} />
+          <CaseGallery media={[project.heroMedia]} priority frame={project.artDirection.mediaFrame} groupLabel={`${project.name} overview`} />
         </div>
       </Container>
 

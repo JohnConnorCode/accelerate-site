@@ -32,17 +32,28 @@ export function useRv<T extends HTMLElement = HTMLElement>(
       return () => cancelAnimationFrame(raf);
     }
 
+    let revealed = false;
+    const reveal = () => {
+      if (revealed) return;
+      revealed = true;
+      el.classList.add("in");
+      observer.disconnect();
+      window.removeEventListener("scroll", revealIfPassed);
+      window.removeEventListener("resize", revealIfPassed);
+    };
+    const revealIfPassed = () => {
+      if (el.getBoundingClientRect().top < window.innerHeight + 40) reveal();
+    };
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
-        if (entry?.isIntersecting) {
-          el.classList.add("in");
-          observer.disconnect();
-        }
+        if (entry?.isIntersecting) reveal();
       },
       { rootMargin, threshold }
     );
     observer.observe(el);
+    window.addEventListener("scroll", revealIfPassed, { passive: true });
+    window.addEventListener("resize", revealIfPassed);
 
     const onPageShow = (e: PageTransitionEvent) => {
       if (e.persisted) {
@@ -53,6 +64,8 @@ export function useRv<T extends HTMLElement = HTMLElement>(
 
     return () => {
       observer.disconnect();
+      window.removeEventListener("scroll", revealIfPassed);
+      window.removeEventListener("resize", revealIfPassed);
       window.removeEventListener("pageshow", onPageShow);
     };
   }, [threshold, rootMargin]);

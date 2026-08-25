@@ -24,6 +24,9 @@ export type WorkImage = {
   src: string;
   alt: string;
   caption: string;
+  width: number;
+  height: number;
+  presentation: "interface" | "photo" | "slide";
   fit?: "cover" | "contain";
   canvas?: "paper" | "ink";
   objectPosition?: string;
@@ -60,6 +63,7 @@ export type WorkVisualBlock = {
   title?: string;
   intro?: string;
   layout: "single" | "duo" | "triptych" | "filmstrip" | "interface-grid";
+  width?: "contained" | "wide" | "bleed";
   tone?: "paper" | "ink" | "accent";
   frame?: WorkArtDirection["mediaFrame"];
   media: WorkMedia[];
@@ -106,8 +110,55 @@ const image = (
   src: string,
   alt: string,
   caption: string,
-  options: Pick<WorkImage, "fit" | "canvas" | "objectPosition"> = {},
-): WorkImage => ({ kind: "image", src, alt, caption, ...options });
+  options: Pick<WorkImage, "fit" | "canvas" | "objectPosition"> & { presentation?: WorkImage["presentation"] } = {},
+): WorkImage => {
+  const dimensions = workImageDimensions[src];
+  if (!dimensions) throw new Error(`Missing portfolio image dimensions for ${src}`);
+  return { kind: "image", src, alt, caption, presentation: options.presentation ?? "interface", ...dimensions, ...options };
+};
+
+const workImageDimensions: Record<string, { width: number; height: number }> = {
+  "/work/work-shelter/brand-partners.webp": { width: 2122, height: 1444 },
+  "/work/work-shelter/campaign-admin-help.webp": { width: 2776, height: 1638 },
+  "/work/work-shelter/catalog-experience.webp": { width: 2786, height: 1630 },
+  "/work/work-shelter/command-center-dashboard.webp": { width: 2776, height: 1628 },
+  "/work/work-shelter/customer-site-hero.webp": { width: 2770, height: 1632 },
+  "/work/work-shelter/factory-floor.jpg": { width: 1800, height: 1441 },
+  "/work/work-shelter/factory-team.jpg": { width: 1600, height: 1025 },
+  "/work/work-shelter/orders-workspace.webp": { width: 2794, height: 1636 },
+  "/work/work-shelter/products-inventory.webp": { width: 2784, height: 1626 },
+  "/work/work-shelter/quote-flow-overview.webp": { width: 2100, height: 1424 },
+  "/work/work-shelter/quote-flow-detail.webp": { width: 2582, height: 1406 },
+  "/work/work-shelter/sewing-work.jpg": { width: 1800, height: 1441 },
+  "/work/superdebate/admin-dashboard.webp": { width: 2792, height: 1638 },
+  "/work/superdebate/admin-email.webp": { width: 2778, height: 1634 },
+  "/work/superdebate/admin-events.webp": { width: 2776, height: 1618 },
+  "/work/superdebate/admin-roadmap.webp": { width: 2790, height: 1622 },
+  "/work/superdebate/club-crowd.webp": { width: 900, height: 1125 },
+  "/work/superdebate/debate-judging.webp": { width: 2880, height: 1800 },
+  "/work/superdebate/featured-debate-podium.webp": { width: 1024, height: 1536 },
+  "/work/superdebate/online-debate.webp": { width: 1536, height: 1024 },
+  "/work/superdebate/online-product.webp": { width: 2784, height: 1614 },
+  "/work/superdebate/product-home.webp": { width: 2792, height: 1622 },
+  "/work/sparkblox/analytics.webp": { width: 1768, height: 857 },
+  "/work/sparkblox/configure.webp": { width: 2056, height: 1002 },
+  "/work/sparkblox/create.webp": { width: 2056, height: 1002 },
+  "/work/sparkblox/manage.webp": { width: 1768, height: 857 },
+  "/work/sparkblox/no-code-platform.webp": { width: 1920, height: 1080 },
+  "/work/sparkblox/product-thesis.webp": { width: 1920, height: 1080 },
+  "/work/sparkblox/unlimited-canvas.webp": { width: 1920, height: 1080 },
+  "/work/thrive-protocol/verification-hero.webp": { width: 2760, height: 1588 },
+  "/work/thrive-protocol/verification-pipeline.webp": { width: 2400, height: 1454 },
+  "/work/thrive-protocol/xion-program.jpg": { width: 800, height: 487 },
+  "/work/green-goods/field-methodology.webp": { width: 1920, height: 1358 },
+  "/work/green-goods/product-screens.webp": { width: 1440, height: 900 },
+  "/work/green-goods/project-context.webp": { width: 2400, height: 1200 },
+  "/work/northern-trust/7IIi7cutMzY.webp": { width: 480, height: 360 },
+  "/work/northern-trust/DKmFuTVYvj4.webp": { width: 480, height: 360 },
+  "/work/northern-trust/NWuMI7CY1Cc.webp": { width: 480, height: 360 },
+  "/work/northern-trust/ahSfTIIveBI.webp": { width: 480, height: 360 },
+  "/work/northern-trust/impact-return-matrix.webp": { width: 800, height: 789 },
+};
 
 const diagram = (variant: WorkDiagram["variant"], title: string, caption: string): WorkDiagram => ({
   kind: "diagram",
@@ -126,37 +177,35 @@ export const workProjects: readonly WorkProject[] = [
     cardDescription: "Rebuilding client, production, communication, and reporting workflows around the moments that actually require human judgment.",
     proof: "80% reduction in U.S. client-management hours",
     industry: "International manufacturing",
-    role: "Strategic advisor",
+    role: "Fractional CTO",
     relationship: "Ongoing operating work by Accelerate",
     timeline: "2024–present",
-    description: "An international manufacturer coordinating clients and production across Chicago and Delhi.",
-    capabilities: ["Operating analysis", "Custom systems", "AI-enabled workflows", "Reporting & optimization"],
+    description: "Ongoing technology leadership for an international manufacturer coordinating clients and production across Chicago and Delhi.",
+    capabilities: ["Fractional technology leadership", "Customer website", "Custom command center", "AI-enabled operations"],
     serviceIds: ["automation", "reporting"],
     accent: "red",
     composition: "operations",
     artDirection: { world: "workshop", hero: "wide", rhythm: "editorial", mediaFrame: "edge" },
-    cardMedia: image("/work/work-shelter/factory-team.jpg", "WORK+SHELTER team members with products made by the Delhi manufacturing operation", "WORK+SHELTER production team", { objectPosition: "50% 42%" }),
-    heroMedia: image("/work/work-shelter/factory-team.jpg", "WORK+SHELTER team members with products made by the Delhi manufacturing operation", "The people and production work behind WORK+SHELTER", { objectPosition: "50% 38%" }),
+    cardMedia: image("/work/work-shelter/customer-site-hero.webp", "WORK+SHELTER customer website introducing its ethical made-to-order manufacturing offer over a row of colorful workwear", "WORK+SHELTER customer experience", { fit: "cover", objectPosition: "50% 46%" }),
+    heroMedia: image("/work/work-shelter/customer-site-hero.webp", "WORK+SHELTER customer website introducing its ethical made-to-order manufacturing offer over a row of colorful workwear", "Customer website · manufacturing proposition", { fit: "contain" }),
     sections: [
       { label: "Context", title: "Growth had created a coordination problem.", body: "WORK+SHELTER has operated across Delhi and the United States since 2011. Every client relationship crosses briefs, sampling, production, approvals, logistics, and a distributed team. The business was working, but too much context still had to pass through the founder." },
       { label: "Analysis", title: "The relationship was not the thing to automate.", body: "Client trust and production judgment were part of the value. The useful distinction was between routine information movement, production decisions, and moments that genuinely needed founder attention." },
-      { label: "Intervention", title: "Route the work before it reaches the founder.", body: "The operating layer combines AI-assisted classification, internal tools, CRM infrastructure, reporting, and automation. Routine work is prepared by the system, production questions reach the Delhi team, and high-judgment decisions remain with the founder." },
+      { label: "Intervention", title: "Build one technology layer across customer and operating work.", body: "As fractional CTO, the work spans the customer website and quote journey, the custom command center, AI-assisted classification, CRM infrastructure, reporting, and automation. Each release is shaped by the data the operation generates, so routine work is prepared by the system while production and relationship judgment remain with the right people." },
       { label: "Impact", title: "Less administration. The same human relationship.", body: "The resulting AI-enabled operating model has reduced U.S. client-management hours by 80%. This is a documented capacity result, not a revenue estimate, and it came from redesigning the operating model rather than installing a single automation." },
     ],
     visualBlocks: [
       { afterSection: 0, eyebrow: "Inside the operation", title: "Real work, spread across people and places.", layout: "duo", tone: "paper", media: [
-        image("/work/work-shelter/sewing-work.jpg", "WORK+SHELTER garments arranged inside the production facility", "Production at WORK+SHELTER"),
-        image("/work/work-shelter/factory-floor.jpg", "WORK+SHELTER products and materials from the manufacturing operation", "Work produced by the Delhi team"),
+        image("/work/work-shelter/sewing-work.jpg", "WORK+SHELTER garments arranged inside the production facility", "Production at WORK+SHELTER", { presentation: "photo" }),
+        image("/work/work-shelter/factory-floor.jpg", "WORK+SHELTER products and materials from the manufacturing operation", "Work produced by the Delhi team", { presentation: "photo" }),
       ] },
-      { afterSection: 0, eyebrow: "Customer experience", title: "The operating promise is visible before a quote begins.", intro: "The current customer experience connects the manufacturing story, a clear product catalog, and evidence of the brands the team has produced for. These are current WORK+SHELTER website screens.", layout: "interface-grid", tone: "paper", frame: "window", media: [
-        image("/work/work-shelter/customer-site-hero.webp", "WORK+SHELTER customer website introducing its ethical made-to-order manufacturing offer over a row of colorful workwear", "Customer website · manufacturing proposition", { fit: "contain" }),
+      { afterSection: 0, eyebrow: "Customer experience", title: "The operating promise is visible before a quote begins.", intro: "The current customer experience connects a clear product catalog with evidence of the brands the team has produced for. These are current WORK+SHELTER website screens.", layout: "duo", width: "wide", tone: "paper", frame: "window", media: [
         image("/work/work-shelter/catalog-experience.webp", "WORK+SHELTER product catalog showing totes, aprons, bandanas, and workwear with minimum quantities", "Customer website · product catalog", { fit: "contain" }),
         image("/work/work-shelter/brand-partners.webp", "WORK+SHELTER brand-partner section showing produced goods for Clay AI, Resy, and Northwestern University", "Customer website · examples of produced work", { fit: "contain" }),
       ] },
       { afterSection: 1, eyebrow: "Simplified operating model", title: "Judgment stays human. The routing does not have to.", intro: "A public abstraction of the operating logic. It is a process diagram, not a screenshot of a private internal system.", layout: "single", tone: "ink", media: [diagram("work-shelter-routing", "Client work routed by the kind of judgment it requires", "Accelerate case-study diagram · simplified operating model")] },
-      { afterSection: 1, eyebrow: "Structured intake", title: "The handoff begins with a quote the operation can use.", intro: "Two views of the same customer quote experience show how product, quantity, customization, files, and contact details are gathered before a person reviews the request. The form supports the relationship; it does not pretend to replace the account manager.", layout: "duo", tone: "paper", frame: "window", media: [
+      { afterSection: 1, eyebrow: "Structured intake", title: "The handoff begins with a quote the operation can use.", intro: "The quote experience gathers product, quantity, customization, files, and contact details before a person reviews the request. The form supports the relationship; it does not pretend to replace the account manager.", layout: "single", width: "contained", tone: "paper", frame: "window", media: [
         image("/work/work-shelter/quote-flow-overview.webp", "WORK+SHELTER quote experience showing its three-step process and first product request", "Customer quote flow · overview", { fit: "contain" }),
-        image("/work/work-shelter/quote-flow-detail.webp", "WORK+SHELTER quote experience showing product search, quantities, and customization choices", "Customer quote flow · product detail", { fit: "contain" }),
       ] },
       { afterSection: 2, eyebrow: "The operating layer", title: "One command center for the work around the order.", intro: "The custom command center connects the daily check-in, approvals, customer conversations, orders, products, inventory, campaigns, and operational assistance. These screens show a controlled demo state; visible customer names and email addresses are fictional records.", layout: "interface-grid", tone: "paper", frame: "window", media: [
         image("/work/work-shelter/command-center-dashboard.webp", "WORK+SHELTER command center dashboard showing approvals, unanswered leads, pipeline, inventory attention, and operating metrics", "WORK+SHELTER command center · daily operating view", { fit: "contain" }),
@@ -168,7 +217,7 @@ export const workProjects: readonly WorkProject[] = [
     carryForward: "AI is most useful when you understand what should remain human.",
     related: ["superdebate", "healthcare-real-estate"],
     seoTitle: "WORK+SHELTER AI Operations Case Study",
-    seoDescription: "How an AI-enabled operating model reduced U.S. client-management hours by 80% while preserving human judgment and client relationships.",
+    seoDescription: "Fractional CTO work spanning WORK+SHELTER's website, custom command center, and AI-enabled operating model, reducing U.S. client-management hours by 80%.",
   },
   {
     slug: "healthcare-real-estate",
@@ -221,7 +270,7 @@ export const workProjects: readonly WorkProject[] = [
     serviceIds: ["automation", "content"],
     accent: "violet",
     composition: "company",
-    artDirection: { world: "stage", hero: "portrait", rhythm: "cinematic", mediaFrame: "film" },
+    artDirection: { world: "stage", hero: "wide", rhythm: "cinematic", mediaFrame: "film" },
     cardMedia: image("/work/superdebate/online-product.webp", "SuperDebate live online product showing debate setup, audience scoring, and a mobile debate configuration", "SuperDebate online debate product", { fit: "contain", canvas: "ink" }),
     heroMedia: image("/work/superdebate/product-home.webp", "SuperDebate website showing featured debate, club, online, and private AI practice entry points", "SuperDebate public product", { fit: "contain", canvas: "ink" }),
     sections: [
@@ -231,14 +280,13 @@ export const workProjects: readonly WorkProject[] = [
       { label: "Impact", title: "A small team can operate a much larger surface area.", body: "The evidence here is the breadth and continuity of a working company, not an unapproved growth number. Product and operations evolve together, so each repeated event leaves behind a better system for the next one." },
     ],
     visualBlocks: [
-      { afterSection: 0, eyebrow: "Operating architecture", title: "The experience begins before anyone reaches the stage.", layout: "single", tone: "ink", media: [diagram("superdebate-operating-loop", "From expert research to a reusable debate asset", "Accelerate case-study diagram · simplified SuperDebate operating loop")] },
-      { afterSection: 1, eyebrow: "The product", title: "One debate system, from watching to practice.", intro: "The architecture explains how the surfaces belong together. The judging screen is genuine product evidence, while the model keeps the wider experience legible without inventing interface screens.", layout: "duo", tone: "accent", media: [
+      { afterSection: 0, eyebrow: "Operating architecture", title: "The experience begins before anyone reaches the stage.", layout: "single", width: "wide", tone: "accent", media: [diagram("superdebate-operating-loop", "From expert research to a reusable debate asset", "Accelerate case-study diagram · simplified SuperDebate operating loop")] },
+      { afterSection: 1, eyebrow: "The product", title: "One debate system, from watching to practice.", intro: "The architecture keeps the wider experience legible. The genuine product screens then show configurable online debate, live audience scoring, and judging without inventing interface evidence.", layout: "single", width: "wide", tone: "accent", media: [
         diagram("superdebate-product-system", "A connected product for watching, organizing, debating, judging, and practicing", "Accelerate case-study diagram · current SuperDebate product system"),
-        image("/work/superdebate/debate-judging.webp", "SuperDebate judging interface showing comparative scoring across debate rounds", "Live debate judging and scoring", { fit: "contain" }),
       ] },
-      { afterSection: 1, eyebrow: "Public product", title: "Live debate and private practice belong to the same learning loop.", intro: "The public product moves from discovery into a configurable online debate, live audience scoring, and private practice against an AI that pushes back. These are current product screens, not concept art.", layout: "duo", tone: "ink", frame: "film", media: [
-        image("/work/superdebate/product-home.webp", "SuperDebate public website presenting featured debates, clubs, online debate, and private AI practice", "Public product · discovery and AI practice", { fit: "contain", canvas: "ink" }),
+      { afterSection: 1, eyebrow: "Product evidence", title: "Live debate and clear judging belong to the same learning loop.", intro: "These are current product screens, not concept art.", layout: "duo", width: "wide", tone: "paper", frame: "film", media: [
         image("/work/superdebate/online-product.webp", "SuperDebate online debate interface showing mobile setup and live audience judging", "Public product · online debate and scoring", { fit: "contain", canvas: "ink" }),
+        image("/work/superdebate/debate-judging.webp", "SuperDebate judging interface showing comparative scoring across debate rounds", "Live debate judging and scoring", { fit: "contain", canvas: "ink" }),
       ] },
       { afterSection: 2, eyebrow: "SuperDebate command center", title: "The company runs through the same system it keeps improving.", intro: "The black-and-yellow command center coordinates analytics, events, the product roadmap, email, applications, leads, support, clubs, and content. Counts and dates visible in these screens are interface state, not portfolio outcome claims.", layout: "interface-grid", tone: "ink", frame: "film", media: [
         image("/work/superdebate/admin-dashboard.webp", "SuperDebate command center dashboard showing event signups, membership, club joins, debates, and operating analytics", "Command center · operating dashboard", { fit: "contain", canvas: "ink" }),
@@ -246,10 +294,10 @@ export const workProjects: readonly WorkProject[] = [
         image("/work/superdebate/admin-roadmap.webp", "SuperDebate command center roadmap showing ideas, planned work, work in progress, blockers, and shipped items", "Command center · product roadmap", { fit: "contain", canvas: "ink" }),
         image("/work/superdebate/admin-email.webp", "SuperDebate command center email workspace showing production templates, previews, tests, and delivery controls", "Command center · email operations", { fit: "contain", canvas: "ink" }),
       ] },
-      { afterSection: 2, eyebrow: "Debate in practice", title: "Product, people, and place reinforce each other.", layout: "filmstrip", tone: "ink", media: [
-        image("/work/superdebate/featured-debate-podium.webp", "A SuperDebate featured-debate visual with two speakers at a podium", "Featured Debates", { objectPosition: "50% 43%" }),
-        image("/work/superdebate/online-debate.webp", "Two participants shown in the SuperDebate live online debate experience", "SuperDebate Online"),
-        image("/work/superdebate/club-crowd.webp", "A live SuperDebate club gathering with a speaker and audience", "A SuperDebate community gathering", { objectPosition: "50% 55%" }),
+      { afterSection: 2, eyebrow: "Debate in practice", title: "Product, people, and place reinforce each other.", layout: "filmstrip", width: "wide", tone: "paper", media: [
+        image("/work/superdebate/featured-debate-podium.webp", "A SuperDebate featured-debate visual with two speakers at a podium", "Featured Debates", { objectPosition: "50% 43%", presentation: "photo" }),
+        image("/work/superdebate/online-debate.webp", "Two participants shown in the SuperDebate live online debate experience", "SuperDebate Online", { presentation: "photo" }),
+        image("/work/superdebate/club-crowd.webp", "A live SuperDebate club gathering with a speaker and audience", "A SuperDebate community gathering", { objectPosition: "50% 55%", presentation: "photo" }),
       ] },
     ],
     carryForward: "The best AI system may be the company architecture itself.",
@@ -275,8 +323,8 @@ export const workProjects: readonly WorkProject[] = [
     accent: "gold",
     composition: "company",
     artDirection: { world: "archive", hero: "window", rhythm: "stacked", mediaFrame: "window" },
-    cardMedia: image("/work/sparkblox/create.webp", "Archived Sparkblox product screen showing an NFT collection creation workflow", "Archived Sparkblox product interface · 2022", { fit: "contain" }),
-    heroMedia: image("/work/sparkblox/create.webp", "Archived Sparkblox product screen showing an NFT collection creation workflow", "Archived Sparkblox product interface · 2022", { fit: "contain" }),
+    cardMedia: image("/work/sparkblox/no-code-platform.webp", "Original Sparkblox product presentation combining the no-code proposition with collection, embed, management, and 3D editing interfaces", "Sparkblox no-code product · archived presentation", { fit: "contain", presentation: "slide" }),
+    heroMedia: image("/work/sparkblox/no-code-platform.webp", "Original Sparkblox product presentation combining the no-code proposition with collection, embed, management, and 3D editing interfaces", "Sparkblox no-code product · archived presentation", { fit: "contain", presentation: "slide" }),
     sections: [
       { label: "Product problem", title: "No code is easy to say and difficult to design.", body: "Creating a digital asset involved contract selection, deployment, metadata, networks, wallets, mint mechanics, and decisions after launch. The interface had to remove technical burden without removing the control that made the platform useful." },
       { label: "Intervention", title: "A launchpad instead of a developer toolkit.", body: "Sparkblox translated the stack into a guided product for collection creation, launch configuration, dynamic assets, embeddable minting, campaign management, and analytics. The user made product decisions while the platform handled the smart-contract mechanics." },
@@ -284,13 +332,18 @@ export const workProjects: readonly WorkProject[] = [
       { label: "Impact", title: "From idea to funded platform.", body: "Sparkblox raised more than $1 million, developed partnerships with Chainlink and Algorand, worked with more than 20 artists, and supported multiple six-figure Web3 art initiatives. This is founder experience behind Accelerate, not a former agency engagement." },
     ],
     visualBlocks: [
-      { afterSection: 0, eyebrow: "Archived product", title: "Real controls for creation, minting, and management.", intro: "Sparkblox is no longer live. These are genuine product screens retained from the original company archive.", layout: "duo", tone: "paper", media: [
-        image("/work/sparkblox/configure.webp", "Archived Sparkblox interface for configuring the appearance of an embeddable mint experience", "Archived Sparkblox embed configuration · 2022", { fit: "contain" }),
-        image("/work/sparkblox/manage.webp", "Archived Sparkblox interface showing digital assets within a collection", "Archived Sparkblox collection management · 2022", { fit: "contain" }),
+      { afterSection: 0, eyebrow: "Archived product", title: "One workflow from collection setup to public launch.", intro: "Sparkblox is no longer live. These genuine 2022 screens show the collection workspace, the public mint experience, and the confirmation path after a successful transaction.", layout: "interface-grid", tone: "paper", frame: "window", media: [
+        image("/work/sparkblox/manage.webp", "Archived Sparkblox collection workspace showing generated assets, property groups, file types, and launch configuration", "Collection workspace · archived 2022 product", { fit: "contain" }),
+        image("/work/sparkblox/create.webp", "Archived Sparkblox public mint experience showing collection information, network, quantity, price, and mint action", "Public mint experience · archived 2022 product", { fit: "contain" }),
+        image("/work/sparkblox/configure.webp", "Archived Sparkblox post-mint experience showing newly created assets, marketplace links, sharing, and transaction confirmation", "Post-mint confirmation · archived 2022 product", { fit: "contain" }),
       ] },
       { afterSection: 1, eyebrow: "Product architecture", title: "Hide complexity, not capability.", layout: "duo", tone: "ink", media: [
         diagram("sparkblox-product-stack", "Product decisions above, infrastructure below", "Accelerate case-study diagram · simplified product stack"),
-        image("/work/sparkblox/analytics.webp", "Archived Sparkblox mint interface showing an asset, quantity, price, and mint action", "Archived Sparkblox mint experience · 2022", { fit: "contain" }),
+        image("/work/sparkblox/analytics.webp", "Archived Sparkblox embed editor showing a live product preview alongside theme, color, and typography controls", "Embeddable mint editor · archived 2022 product", { fit: "contain" }),
+      ] },
+      { afterSection: 2, eyebrow: "Original product thesis", title: "The platform was designed around assets that could keep changing.", intro: "These original company presentations are included as archived strategy artifacts. Their terminology and forward-looking language reflect Sparkblox's 2022 positioning, not current Accelerate market claims.", layout: "duo", tone: "ink", frame: "film", media: [
+        image("/work/sparkblox/unlimited-canvas.webp", "Archived Sparkblox presentation showing generative artworks and positioning dynamic assets as a configurable creative canvas", "Creative product vision · archived 2022 presentation", { fit: "contain", canvas: "ink", presentation: "slide" }),
+        image("/work/sparkblox/product-thesis.webp", "Archived Sparkblox presentation explaining the company's thesis for dynamic and evolving digital assets", "Dynamic-asset thesis · archived 2022 presentation", { fit: "contain", presentation: "slide" }),
       ] },
     ],
     carryForward: "Hide complexity, not capability.",
@@ -329,8 +382,7 @@ export const workProjects: readonly WorkProject[] = [
     ],
     visualBlocks: [
       { afterSection: 1, eyebrow: "Builder acquisition", title: "The program needed a route, not a louder announcement.", intro: "A case-study diagram of the work. It does not represent proprietary Thrive software.", layout: "single", tone: "ink", media: [diagram("thrive-builder-loop", "From ecosystem program to qualified builder", "Accelerate case-study diagram · builder-acquisition loop")] },
-      { afterSection: 3, eyebrow: "Thrive today", title: "The company now frames its product around verified truth.", intro: "These current website screens establish Thrive's present company and product direction. They are context only and are not represented as interface work from the January–June 2025 ecosystem engagement.", layout: "duo", tone: "ink", frame: "film", media: [
-        image("/work/thrive-protocol/verification-hero.webp", "Current Thrive website showing an investor-facing verification summary and request-access experience", "Thrive today · current company context", { fit: "contain", canvas: "ink" }),
+      { afterSection: 3, eyebrow: "Thrive today", title: "The company now frames its product around verified truth.", intro: "This current website screen establishes Thrive's present product direction. It is context only and is not represented as interface work from the January–June 2025 ecosystem engagement.", layout: "single", width: "wide", tone: "ink", frame: "film", media: [
         image("/work/thrive-protocol/verification-pipeline.webp", "Current Thrive website diagram showing connected data, verification, intelligence, and decision-ready outputs", "Thrive today · current verification-product context", { fit: "contain", canvas: "ink" }),
       ] },
     ],

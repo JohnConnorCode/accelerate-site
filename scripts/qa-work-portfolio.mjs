@@ -59,8 +59,9 @@ for (const viewport of viewports) {
       else if (await contextGraphic.evaluate((image) => getComputedStyle(image).objectFit) !== "contain") failures.push(`${viewport.name} ${route}: Green Goods context graphic is cropped instead of contained`);
     }
     if (route === "/work/work-shelter") {
-      const suppliedScreens = ["customer-site-hero", "catalog-experience", "brand-partners", "quote-flow-overview", "quote-flow-detail", "command-center-dashboard", "orders-workspace", "products-inventory", "campaign-admin-help"];
+      const suppliedScreens = ["customer-site-hero", "catalog-experience", "brand-partners", "quote-flow-overview", "command-center-dashboard", "orders-workspace", "products-inventory", "campaign-admin-help"];
       for (const screen of suppliedScreens) if (await page.locator(`img[src*="${screen}"]`).count() !== 1) failures.push(`${viewport.name} ${route}: supplied screen ${screen} is missing or duplicated`);
+      if (await page.locator('img[src*="quote-flow-detail"]').count()) failures.push(`${viewport.name} ${route}: redundant quote-flow detail is still rendered`);
     }
     if (route === "/work/superdebate") {
       const suppliedScreens = ["admin-dashboard", "admin-events", "admin-roadmap", "admin-email"];
@@ -68,16 +69,64 @@ for (const viewport of viewports) {
       if (await page.getByText("SuperDebate command center", { exact: true }).count() !== 1) failures.push(`${viewport.name} ${route}: command-center labeling is missing`);
     }
 
-    const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
-    const materialViolations = axe.violations.filter((violation) => violation.impact === "serious" || violation.impact === "critical");
-    if (materialViolations.length) failures.push(`${viewport.name} ${route}: axe ${materialViolations.map((violation) => `${violation.id} (${violation.nodes.length})`).join(", ")}`);
+    if (route !== "/work") {
+      const repeatedMedia = await page.locator("main [data-case-gallery] [data-case-media]").evaluateAll((nodes) => {
+        const keys = nodes.map((node) => node.getAttribute("data-case-media")).filter(Boolean);
+        return [...new Set(keys.filter((key, index) => keys.indexOf(key) !== index))];
+      });
+      if (repeatedMedia.length) failures.push(`${viewport.name} ${route}: repeated case media ${repeatedMedia.join(", ")}`);
+
+      const ratioMismatches = await page.locator('main [data-case-gallery] [data-media-kind="image"][data-media-fit="contain"][data-media-compact="false"]').evaluateAll((nodes) => nodes.flatMap((node) => {
+        const frame = node.getBoundingClientRect();
+        const ratioNode = node.querySelector("[data-media-width][data-media-height]");
+        if (!ratioNode || frame.width < 1 || frame.height < 1) return [];
+        const sourceRatio = Number(ratioNode.getAttribute("data-media-width")) / Number(ratioNode.getAttribute("data-media-height"));
+        const frameRatio = frame.width / frame.height;
+        return Math.abs(sourceRatio - frameRatio) / sourceRatio > 0.035 ? [{ sourceRatio, frameRatio }] : [];
+      }));
+      if (ratioMismatches.length) failures.push(`${viewport.name} ${route}: ${ratioMismatches.length} contained images have letterboxing-prone aspect ratios`);
+
+      const eligibleMedia = page.locator('main [data-case-gallery] [data-case-media]:not([data-case-media="video"])');
+      const openButtons = page.locator('main [data-case-gallery] button[aria-label^="Open "]');
+      if (await openButtons.count() !== await eligibleMedia.count()) failures.push(`${viewport.name} ${route}: not every case image or diagram is lightbox-enabled`);
+
+      const firstTrigger = openButtons.first();
+      if (await firstTrigger.count()) {
+        await firstTrigger.scrollIntoViewIfNeeded();
+        await firstTrigger.focus();
+        await firstTrigger.press("Enter");
+        const lightbox = page.locator("[data-media-lightbox]");
+        if (await lightbox.count() !== 1) failures.push(`${viewport.name} ${route}: lightbox did not open`);
+        if (await page.evaluate(() => document.body.style.overflow) !== "hidden") failures.push(`${viewport.name} ${route}: lightbox did not lock background scroll`);
+        if (viewport.name === "desktop" && route === "/work/superdebate") await page.screenshot({ path: `${output}/desktop-superdebate-lightbox.png` });
+        if (viewport.name === "mobile-small" && route === "/work/work-shelter") await page.screenshot({ path: `${output}/mobile-work-shelter-lightbox.png` });
+        await page.keyboard.press("Escape");
+        await lightbox.waitFor({ state: "detached" });
+        const focusReturned = await firstTrigger.evaluate((node) => document.activeElement === node);
+        if (!focusReturned) failures.push(`${viewport.name} ${route}: lightbox did not return focus to its trigger`);
+      }
+
+      const galleries = page.locator("main [data-case-gallery]");
+      for (let galleryIndex = 0; galleryIndex < await galleries.count(); galleryIndex += 1) {
+        const triggers = galleries.nth(galleryIndex).locator('button[aria-label^="Open "]');
+        if (await triggers.count() < 2) continue;
+        await triggers.first().scrollIntoViewIfNeeded();
+        await triggers.first().click();
+        const activeBefore = await page.locator("[data-media-lightbox-active]").getAttribute("data-media-lightbox-active");
+        await page.getByRole("button", { name: "Next image" }).click();
+        const activeAfter = await page.locator("[data-media-lightbox-active]").getAttribute("data-media-lightbox-active");
+        if (!activeBefore || activeBefore === activeAfter) failures.push(`${viewport.name} ${route}: section lightbox navigation did not advance`);
+        await page.getByRole("button", { name: "Close image viewer" }).click();
+        break;
+      }
+    }
 
     if (viewport.name !== "tablet") {
       await page.evaluate(async () => {
         const sleep = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
-        for (let y = 0; y < document.body.scrollHeight; y += 360) {
+        for (let y = 0; y < document.body.scrollHeight; y += 260) {
           window.scrollTo(0, y);
-          await sleep(120);
+          await sleep(110);
         }
         window.scrollTo(0, document.body.scrollHeight);
         await sleep(800);
@@ -89,6 +138,10 @@ for (const viewport of viewports) {
       const name = route === "/work" ? "index" : route.split("/").at(-1);
       await page.screenshot({ path: `${output}/${viewport.name}-${name}.png`, fullPage: true });
     }
+
+    const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
+    const materialViolations = axe.violations.filter((violation) => violation.impact === "serious" || violation.impact === "critical");
+    if (materialViolations.length) failures.push(`${viewport.name} ${route}: axe ${materialViolations.map((violation) => `${violation.id} (${violation.nodes.length})`).join(", ")}`);
   }
 
   await page.goto(`${baseUrl}/work`, { waitUntil: "networkidle" });
@@ -97,6 +150,7 @@ for (const viewport of viewports) {
   if (JSON.stringify(cardOrder) !== JSON.stringify(expectedOrder)) failures.push(`${viewport.name}: incorrect public card order ${cardOrder.join(", ")}`);
   const flagshipOrder = await page.locator('[data-work-tier="flagship"] [data-work-card]').evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-work-card")));
   if (JSON.stringify(flagshipOrder) !== JSON.stringify(["work-shelter", "superdebate"])) failures.push(`${viewport.name}: WORK+SHELTER and SuperDebate are not the dedicated flagships`);
+  if (await page.locator('[data-work-card="work-shelter"] img[src*="customer-site-hero"]').count() !== 1) failures.push(`${viewport.name}: WORK+SHELTER card is not using the customer-experience cover`);
   if (await page.locator('[data-work-card="superdebate"] img[src*="online-product"]').count() !== 1) failures.push(`${viewport.name}: SuperDebate card is not using the supplied product screen`);
   if (await page.locator('[data-work-card="thrive-protocol"] img[src*="xion"]').count()) failures.push(`${viewport.name}: Thrive card still uses XION imagery`);
   if (await page.getByText("Northern Trust", { exact: true }).count()) failures.push(`${viewport.name}: archived Northern Trust case appeared on /work`);

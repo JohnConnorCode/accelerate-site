@@ -1,7 +1,6 @@
 "use client";
 
 import type { WorkDiagram as WorkDiagramData } from "@/content/work";
-import { Reveal } from "@/components/home/reveal";
 
 type DiagramSpec = {
   label: string;
@@ -124,21 +123,16 @@ export function WorkDiagram({ media, compact = false, inverted = false }: { medi
         ) : null}
         <div className={`${inverted ? "bg-white/20" : "bg-[var(--rule)]"} grid gap-px border ${inverted ? "border-white/20" : "border-[var(--rule)]"} ${compact ? "grid-cols-2 sm:grid-cols-3" : fiveAcross ? "sm:grid-cols-2 lg:grid-cols-5" : "sm:grid-cols-2 lg:grid-cols-3"}`}>
           {spec.nodes.map((node, index) => (
-            <Reveal
-              rv
-              as="div"
+            <div
               key={`${node.title}-${index}`}
               className={`${inverted ? node.emphasis ? "bg-[#fbfbfa] text-[#0b0b0b]" : "bg-[#111] text-[#fbfbfa]" : node.emphasis ? "bg-[var(--case-accent)] text-[var(--case-accent-ink)]" : "bg-[var(--bg)] text-[var(--fg)]"} relative min-w-0 ${compact ? "p-3" : "p-5 sm:min-h-40"}`}
               data-diagram-node="true"
-              delay={index * 0.055}
-              threshold={0.02}
-              rootMargin="0px 0px 40px 0px"
             >
               <span className={`font-mono text-[9px] tabular-nums tracking-[0.14em] ${node.emphasis ? "opacity-100" : inverted ? "text-white/65" : "text-[var(--mid)]"}`}>{String(index + 1).padStart(2, "0")}</span>
               <p className={`${compact ? "mt-3 text-[0.82rem]" : "mt-8 text-[clamp(1rem,1.7vw,1.35rem)]"} text-balance font-display font-medium leading-tight tracking-[-0.025em]`}>{node.title}</p>
               {!compact && node.detail ? <p className={`mt-2 text-xs leading-5 ${node.emphasis ? "opacity-100" : inverted ? "text-white/55" : "text-[var(--mid)]"}`}>{node.detail}</p> : null}
               {index < spec.nodes.length - 1 ? <span aria-hidden="true" className={`${compact ? "hidden" : ""} absolute right-4 top-4 font-mono text-sm ${node.emphasis ? "opacity-35" : inverted ? "text-white/30" : "text-[var(--soft)]"}`}>→</span> : null}
-            </Reveal>
+            </div>
           ))}
         </div>
         {!compact && spec.footer ? <p className={`${inverted ? "text-white/70" : "text-[var(--mid)]"} mt-7 max-w-[68ch] text-pretty text-sm leading-6`}>{spec.footer}</p> : null}

@@ -1,48 +1,98 @@
+"use client";
+
 import Image from "next/image";
+import { Maximize2 } from "lucide-react";
 import type { WorkMedia } from "@/content/work";
 import { LazyYouTube } from "./LazyYouTube";
 import { WorkDiagram } from "./WorkDiagram";
 import { WorkMediaReveal } from "./WorkMotion";
 
-type MediaFrame = "edge" | "film" | "window" | "paper";
-type MediaAspect = "wide" | "editorial" | "portrait" | "cinematic" | "square";
+export type MediaFrame = "edge" | "film" | "window" | "paper";
+export type MediaAspect = "wide" | "editorial" | "portrait" | "cinematic" | "square";
 
-const aspectClasses: Record<MediaAspect, string> = {
-  wide: "aspect-[16/10]",
-  editorial: "aspect-[4/3]",
-  portrait: "aspect-[4/5]",
-  cinematic: "aspect-[21/11]",
-  square: "aspect-square",
+const aspectRatios: Record<MediaAspect, string> = {
+  wide: "16 / 10",
+  editorial: "4 / 3",
+  portrait: "4 / 5",
+  cinematic: "21 / 11",
+  square: "1 / 1",
 };
 
 const frameClasses: Record<MediaFrame, string> = {
   edge: "rounded-[2px]",
-  film: "rounded-xl shadow-[0_18px_60px_rgba(0,0,0,.18),0_2px_8px_rgba(0,0,0,.12)]",
-  window: "rounded-lg shadow-[0_16px_50px_rgba(0,0,0,.14),0_2px_8px_rgba(0,0,0,.10)]",
-  paper: "rounded-[3px] shadow-[0_12px_40px_rgba(0,0,0,.10)]",
+  film: "rounded-[14px] shadow-[0_1px_2px_rgba(0,0,0,.04),0_16px_38px_-20px_rgba(0,0,0,.20)]",
+  window: "rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,.04),0_16px_38px_-20px_rgba(0,0,0,.18)]",
+  paper: "rounded-[4px] shadow-[0_1px_2px_rgba(0,0,0,.035),0_14px_34px_-20px_rgba(0,0,0,.16)]",
 };
 
-export function CaseMedia({ media, priority = false, compact = false, inverted = false, frame = "edge", aspect = "wide", revealDelay = 0 }: { media: WorkMedia; priority?: boolean; compact?: boolean; inverted?: boolean; frame?: MediaFrame; aspect?: MediaAspect; revealDelay?: number }) {
+export function MediaSurface({ media, priority = false, compact = false, inverted = false, frame = "edge", aspect, lightbox = false }: { media: WorkMedia; priority?: boolean; compact?: boolean; inverted?: boolean; frame?: MediaFrame; aspect?: MediaAspect; lightbox?: boolean }) {
   const usesInkCanvas = media.kind === "image" && media.canvas === "ink";
-  const content = (
-    <figure className="min-w-0">
-      <div className={`${inverted || usesInkCanvas ? "bg-[#0b0b0b] outline-white/10" : "bg-[var(--paper)] outline-black/10 dark:outline-white/10"} ${frameClasses[frame]} overflow-hidden outline outline-1 -outline-offset-1`}>
-        {media.kind === "image" ? (
-          <div className={`${aspectClasses[aspect]} ${compact ? "" : aspect === "wide" || aspect === "cinematic" ? "min-h-[17rem]" : ""} relative`}>
+  const ratio = media.kind === "image"
+    ? lightbox ? undefined : aspect ? aspectRatios[aspect] : `${media.width} / ${media.height}`
+    : undefined;
+  const surfaceClass = inverted || usesInkCanvas
+    ? "bg-[#0b0b0b] outline-white/10"
+    : "bg-[var(--paper)] outline-black/10 dark:outline-white/10";
+
+  return (
+    <div
+      className={`${surfaceClass} ${lightbox ? "rounded-[12px]" : frameClasses[frame]} relative overflow-hidden outline outline-1 -outline-offset-1`}
+      data-media-surface
+      data-media-kind={media.kind}
+      data-media-fit={media.kind === "image" ? media.fit ?? "cover" : undefined}
+      data-media-presentation={media.kind === "image" ? media.presentation : undefined}
+      data-media-compact={compact ? "true" : "false"}
+    >
+      {media.kind === "image" ? (
+        lightbox ? (
+          <Image
+            src={media.src}
+            alt={media.alt}
+            width={media.width}
+            height={media.height}
+            priority
+            sizes="100vw"
+            className="max-h-[calc(100dvh-9rem)] w-auto max-w-[min(92vw,88rem)] object-contain"
+          />
+        ) : (
+          <div className="relative w-full" style={{ aspectRatio: ratio }} data-media-width={media.width} data-media-height={media.height}>
             <Image
               src={media.src}
               alt={media.alt}
               fill
               priority={priority}
               sizes={compact ? "(min-width: 1024px) 50vw, 100vw" : "(min-width: 1280px) 1180px, 100vw"}
-              className={`work-media-image ${media.fit === "contain" ? "object-contain p-3 sm:p-6" : "object-cover"}`}
+              className={`work-media-image ${media.fit === "contain" ? "object-contain" : "object-cover"}`}
               style={media.objectPosition ? { objectPosition: media.objectPosition } : undefined}
             />
           </div>
-        ) : null}
-        {media.kind === "diagram" ? <WorkDiagram media={media} compact={compact} inverted={inverted} /> : null}
-        {media.kind === "youtube" ? <LazyYouTube media={media} priority={priority} /> : null}
-      </div>
+        )
+      ) : null}
+      {media.kind === "diagram" ? <WorkDiagram media={media} compact={compact && !lightbox} inverted={inverted || lightbox} /> : null}
+      {media.kind === "youtube" ? <LazyYouTube media={media} priority={priority} /> : null}
+    </div>
+  );
+}
+
+export function CaseMedia({ media, priority = false, compact = false, inverted = false, frame = "edge", aspect, revealDelay = 0, onOpen }: { media: WorkMedia; priority?: boolean; compact?: boolean; inverted?: boolean; frame?: MediaFrame; aspect?: MediaAspect; revealDelay?: number; onOpen?: () => void }) {
+  const eligible = Boolean(onOpen) && media.kind !== "youtube";
+  const visual = <MediaSurface media={media} priority={priority} compact={compact} inverted={inverted} frame={frame} aspect={aspect} />;
+
+  const content = (
+    <figure className="min-w-0" data-case-media={media.kind === "image" ? media.src : media.kind === "diagram" ? media.variant : "video"}>
+      {eligible ? (
+        <button
+          type="button"
+          onClick={onOpen}
+          className="group/media relative block w-full cursor-zoom-in text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--case-accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg)]"
+          aria-label={`Open ${media.caption}`}
+        >
+          {visual}
+          <span className="pointer-events-none absolute right-3 top-3 grid size-10 place-items-center rounded-full bg-black/70 text-white opacity-0 shadow-[0_8px_24px_-12px_rgba(0,0,0,.6)] backdrop-blur-sm transition-[opacity,transform] duration-200 group-hover/media:opacity-100 group-focus-visible/media:opacity-100 motion-reduce:transition-none sm:right-4 sm:top-4" aria-hidden="true">
+            <Maximize2 className="size-4" />
+          </span>
+        </button>
+      ) : visual}
       {!compact ? <figcaption className={`${inverted ? "text-white/65" : "text-[var(--mid)]"} mt-3 text-pretty font-mono text-[9px] uppercase leading-5 tracking-[0.12em]`}>{media.caption}</figcaption> : null}
     </figure>
   );
