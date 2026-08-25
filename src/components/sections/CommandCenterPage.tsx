@@ -239,8 +239,9 @@ function Demo() {
         </div>
         <Reveal rv as="div" delay={0.1} style={{ marginTop: "clamp(32px,4vw,54px)" }}>
           <CommandCenterDemo />
-          <div className="mt-4 flex justify-end">
-            <Link href="/command-center/demo" className="inline-flex min-h-11 items-center rounded-xl bg-[var(--fg)] px-4 text-xs font-semibold text-[var(--bg)] transition-[opacity,transform] hover:opacity-80 active:scale-[0.96]">Open the full-screen demo</Link>
+          <div className="mt-4 flex flex-wrap justify-end gap-2">
+            <Link href="/command-center/demo" className="inline-flex min-h-11 items-center rounded-xl border border-[var(--rule)] px-4 text-xs font-semibold text-[var(--fg)] transition-[opacity,transform] hover:opacity-70 active:scale-[0.96]">Open interactive preview</Link>
+            <Link href="/demo/command-center" className="inline-flex min-h-11 items-center rounded-xl bg-[var(--fg)] px-4 text-xs font-semibold text-[var(--bg)] transition-[opacity,transform] hover:opacity-80 active:scale-[0.96]">Explore the full admin demo</Link>
           </div>
         </Reveal>
       </div>

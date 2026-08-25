@@ -54,9 +54,13 @@ export function CommandCenter() {
           <CommandCenterDemo />
         </Reveal>
 
-        <Reveal rv as="p" delay={0.16} style={{ marginTop: "clamp(22px,2.6vw,32px)" }}>
+        <Reveal rv as="div" delay={0.16} className="flex flex-wrap gap-x-6 gap-y-3" style={{ marginTop: "clamp(22px,2.6vw,32px)" }}>
           <Link href="/command-center" className="ink-sweep text-[15.5px] text-[var(--fg)]">
             Explore the Command Center{" "}
+            <span aria-hidden="true">&rarr;</span>
+          </Link>
+          <Link href="/demo/command-center" className="ink-sweep text-[15.5px] text-[var(--fg)]">
+            Try the full admin demo{" "}
             <span aria-hidden="true">&rarr;</span>
           </Link>
         </Reveal>

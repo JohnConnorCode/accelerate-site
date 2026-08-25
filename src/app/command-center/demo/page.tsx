@@ -25,7 +25,10 @@ export default function CommandCenterDemoPage() {
         <CommandCenterDemo standalone />
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-black/[0.045] px-4 py-3 text-xs text-black/55">
           <p className="text-pretty">Demo state is stored only in session storage and disappears when the browser tab closes.</p>
-          <Link href="/command-center" className="inline-flex min-h-10 items-center font-semibold text-black transition-[opacity,transform] hover:opacity-65 active:scale-[0.96]">See what a real implementation includes <ArrowUpRight className="ml-2 size-4" /></Link>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <Link href="/demo/command-center" className="inline-flex min-h-10 items-center font-semibold text-black transition-[opacity,transform] hover:opacity-65 active:scale-[0.96]">Explore the full admin demo <ArrowUpRight className="ml-2 size-4" /></Link>
+            <Link href="/command-center" className="inline-flex min-h-10 items-center font-semibold text-black/65 transition-[opacity,transform] hover:opacity-65 active:scale-[0.96]">See what a real implementation includes <ArrowUpRight className="ml-2 size-4" /></Link>
+          </div>
         </div>
       </div>
     </main>

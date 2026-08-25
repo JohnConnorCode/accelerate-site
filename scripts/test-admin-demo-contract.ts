@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { DEMO_SCENARIOS, DEMO_SCENARIO_SUMMARIES } from "../src/lib/admin/demo/scenarios";
 
 assert.equal(DEMO_SCENARIO_SUMMARIES.length, 3, "The professional launcher must offer three distinct businesses");
@@ -26,5 +27,9 @@ for (const [scenarioId, pack] of Object.entries(DEMO_SCENARIOS)) {
 
 const categoryCount = new Set(DEMO_SCENARIO_SUMMARIES.map((scenario) => scenario.category)).size;
 assert.equal(categoryCount, DEMO_SCENARIO_SUMMARIES.length, "Scenarios must demonstrate distinct business models");
+
+for (const file of ["src/components/home/CommandCenter.tsx", "src/components/sections/CommandCenterPage.tsx", "src/app/command-center/demo/page.tsx"]) {
+  assert.match(readFileSync(file, "utf8"), /href="\/demo\/command-center"/, `${file}: public full-admin demo link is missing`);
+}
 
 console.log(JSON.stringify({ result: "passed", scenarios: DEMO_SCENARIO_SUMMARIES.map((scenario) => scenario.id) }, null, 2));
