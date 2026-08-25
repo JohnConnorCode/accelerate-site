@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { isConfiguredAdmin } from "@/lib/admin/access";
+import { isDemoScenarioId } from "@/lib/admin/demo/scenarios";
 
 export async function middleware(request: NextRequest) {
   const demoMatch = request.nextUrl.pathname.match(
@@ -9,6 +10,9 @@ export async function middleware(request: NextRequest) {
   );
   if (demoMatch) {
     const scenario = demoMatch[1]!;
+    if (!isDemoScenarioId(scenario)) {
+      return NextResponse.redirect(new URL("/demo/command-center", request.url));
+    }
     const requestedRoute = demoMatch[2];
     const destination = request.nextUrl.clone();
     destination.pathname = `/admin/${requestedRoute || "today"}`;
@@ -16,6 +20,7 @@ export async function middleware(request: NextRequest) {
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set("x-accelerate-admin-runtime", "demo");
     requestHeaders.set("x-accelerate-demo-scenario", scenario);
+    requestHeaders.set("x-accelerate-demo-route", requestedRoute || "today");
     const response = NextResponse.rewrite(destination, { request: { headers: requestHeaders } });
     response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
     return response;

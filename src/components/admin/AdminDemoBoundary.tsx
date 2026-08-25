@@ -16,14 +16,14 @@ export function AdminDemoBoundary({ scenarioId, children }: { scenarioId: DemoSc
     if (!scenarioId) return;
     const runtime = installAdminDemoRuntime(scenarioId);
     resetRef.current = runtime.reset;
-    document.documentElement.dataset.adminDemoRuntime = scenarioId;
+    (window as Window & { __accelerateAdminDemoRuntime?: string }).__accelerateAdminDemoRuntime = scenarioId;
     const capture = (event: MouseEvent) => {
       const anchor = (event.target as Element | null)?.closest("a"); const href = anchor?.getAttribute("href");
       if (!href?.startsWith("/admin")) return;
       event.preventDefault(); const suffix = href.replace(/^\/admin\/?/, ""); router.push(`/demo/command-center/${scenarioId}/${suffix || "today"}`);
     };
     document.addEventListener("click", capture, true);
-    return () => { document.removeEventListener("click", capture, true); delete document.documentElement.dataset.adminDemoRuntime; resetRef.current = null; runtime.restore(); };
+    return () => { document.removeEventListener("click", capture, true); delete (window as Window & { __accelerateAdminDemoRuntime?: string }).__accelerateAdminDemoRuntime; resetRef.current = null; runtime.restore(); };
   }, [router, scenarioId]);
   if (!scenarioId) return <>{children}</>;
   const scenario = DEMO_SCENARIOS[scenarioId];

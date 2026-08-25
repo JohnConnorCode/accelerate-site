@@ -35,7 +35,7 @@ for (const scenario of scenarios) {
       await page.goto(`${base}/demo/command-center/${scenario}/${route}`, { waitUntil: "domcontentloaded", timeout: 60_000 });
       await page.locator(".admin-shell").waitFor({ timeout: 30_000 });
       await page.locator("[data-admin-demo-bar]").waitFor({ timeout: 30_000 });
-      await page.waitForFunction((expected) => document.documentElement.dataset.adminDemoRuntime === expected, scenario, { timeout: 30_000 });
+      await page.waitForFunction((expected) => window.__accelerateAdminDemoRuntime === expected, scenario, { timeout: 30_000 });
       await page.waitForTimeout(350);
       const state = await page.evaluate(() => ({ width: document.documentElement.scrollWidth, viewport: innerWidth, overlay: document.querySelector("nextjs-portal")?.textContent || "", mainText: document.querySelector("main")?.textContent?.replace(/\s+/g, " ").trim().length || 0, logo: Boolean(document.querySelector(".logo-link, [aria-label*='Revenue OS home']")) }));
       if (state.width > state.viewport + 2) failures.push(`${scenario} ${label} ${route}: overflow ${state.width} > ${state.viewport}`);
@@ -70,14 +70,14 @@ for (const scenario of scenarios) {
       if (mutation.after !== mutation.before - 1 || !mutation.stored) failures.push("sprout-and-spark desktop: simulated approval did not persist coherently");
       if (!mutation.aiFinal || !mutation.aiDisclosure) failures.push("sprout-and-spark desktop: simulated AI stream is incomplete or unsafe");
       await page.goto(`${base}/demo/command-center/northline-roofing/today`, { waitUntil: "domcontentloaded" });
-      await page.waitForFunction(() => document.documentElement.dataset.adminDemoRuntime === "northline-roofing");
+      await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "northline-roofing");
       const isolated = await page.evaluate(async () => (await fetch("/api/admin/revenue-os/priority").then((response) => response.json())).summary.total);
       if (isolated !== mutation.before) failures.push("scenario switch: fictional workspace state leaked between businesses");
       await page.goto(`${base}/demo/command-center/sprout-and-spark/today`, { waitUntil: "domcontentloaded" });
-      await page.waitForFunction(() => document.documentElement.dataset.adminDemoRuntime === "sprout-and-spark");
+      await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "sprout-and-spark");
       await page.reload({ waitUntil: "domcontentloaded" });
       await page.locator("[data-admin-demo-bar]").waitFor();
-      await page.waitForFunction(() => document.documentElement.dataset.adminDemoRuntime === "sprout-and-spark");
+      await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "sprout-and-spark");
       const persisted = await page.evaluate(async () => (await fetch("/api/admin/revenue-os/priority").then((response) => response.json())).summary.total);
       if (persisted !== mutation.after) failures.push("sprout-and-spark desktop: demo mutation did not survive refresh");
       await Promise.all([
@@ -85,7 +85,7 @@ for (const scenario of scenarios) {
         page.getByRole("button", { name: "Reset this demo" }).click(),
       ]);
       await page.locator("[data-admin-demo-bar]").waitFor();
-      await page.waitForFunction(() => document.documentElement.dataset.adminDemoRuntime === "sprout-and-spark");
+      await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "sprout-and-spark");
       const reset = await page.evaluate(() => sessionStorage.getItem("accelerate:admin-demo:sprout-and-spark:v1"));
       if (reset !== null) failures.push("sprout-and-spark desktop: reset did not restore clean scenario state");
       await page.getByRole("button", { name: "Open guided demo" }).click();
@@ -104,7 +104,7 @@ for (const appearance of ["light", "dark", "signal", "studio"]) {
     const page = await context.newPage();
     page.on("pageerror", (error) => failures.push(`appearance ${appearance} ${label}: ${error.message.split("\n")[0]}`));
     await page.goto(`${base}/demo/command-center/sprout-and-spark/today`, { waitUntil: "domcontentloaded", timeout: 60_000 });
-    await page.waitForFunction((expected) => document.documentElement.dataset.adminDemoRuntime === expected, "sprout-and-spark");
+    await page.waitForFunction((expected) => window.__accelerateAdminDemoRuntime === expected, "sprout-and-spark");
     await page.waitForFunction((expected) => document.documentElement.dataset.theme === expected, appearance);
     const tokens = await page.evaluate(() => {
       const styles = getComputedStyle(document.querySelector(".admin-shell"));
