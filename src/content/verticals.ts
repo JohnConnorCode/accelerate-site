@@ -8,10 +8,10 @@ export const verticals: Vertical[] = [
     icon: "Wrench",
     shortDescription:
       "AI systems built for contractors, plumbers, roofers, HVAC techs, and home service pros who want the office running at the crew's standard.",
-    heroHeadlineWhite: "One system that runs",
-    heroHeadlineGold: "the whole shop.",
+    heroHeadlineWhite: "Give the office work a system.",
+    heroHeadlineGold: "Keep the crew on the work.",
     heroSubheadline:
-      "It reads the 7am voicemail, books the crew, sends the estimate, and chases it until the job is won. It flags the builder who went quiet and briefs you before the walkthrough. Built around how your company runs, operated by us, owned by you.",
+      "We learn how jobs move from the first inquiry through scheduling, estimating, field work, payment, and follow-up. Then we build and run the AI, automation, or custom tools that remove the most office work without disrupting the crew.",
     painPoints: [
       {
         icon: "DollarSign",
@@ -98,10 +98,10 @@ export const verticals: Vertical[] = [
     icon: "Scale",
     shortDescription:
       "AI-powered intake, follow-up, and client communication systems built for law firms that want to sign more clients without adding more admin staff.",
-    heroHeadlineWhite: "One system that runs",
-    heroHeadlineGold: "the whole firm.",
+    heroHeadlineWhite: "Use AI where it saves the firm time.",
+    heroHeadlineGold: "Keep legal judgment with the lawyers.",
     heroSubheadline:
-      "It reads the intake, checks the conflict, drafts the engagement letter, and files the meeting notes to the matter. It flags the client who has gone quiet and briefs you before every call. Built around how your firm practices, run by us, owned by the firm.",
+      "We map intake, matter administration, client communication, drafting, and reporting, then build the right mix of automation, AI assistance, integrations, training, and ongoing execution around the firm's actual practice.",
     painPoints: [
       {
         icon: "Clock",
@@ -188,10 +188,10 @@ export const verticals: Vertical[] = [
     icon: "Briefcase",
     shortDescription:
       "AI intake, scheduling, and follow-up for accountants, consultants, and financial advisors who want a pipeline that does not depend on referrals.",
-    heroHeadlineWhite: "One system that runs",
-    heroHeadlineGold: "the whole practice.",
+    heroHeadlineWhite: "Turn repeatable client work",
+    heroHeadlineGold: "into a reliable operation.",
     heroSubheadline:
-      "It reads the thread, drafts the proposal follow-up, files what was agreed, and keeps every client record current on its own. It warns you when an account cools and briefs you before the quarterly call. Built around how your practice works, run by us, owned by you.",
+      "We find where proposals, scheduling, onboarding, delivery, follow-up, and reporting consume the team, then build and run the focused AI and automation that gives that time back.",
     painPoints: [
       {
         icon: "Users",
@@ -278,10 +278,10 @@ export const verticals: Vertical[] = [
     icon: "Building2",
     shortDescription:
       "Client capture, nurture, and long-memory pipeline systems for agents and brokerages that want every relationship worked, not just the hot ones.",
-    heroHeadlineWhite: "One system that runs",
-    heroHeadlineGold: "the whole book.",
+    heroHeadlineWhite: "Keep every relationship moving",
+    heroHeadlineGold: "without living in the CRM.",
     heroSubheadline:
-      "It captures the buyer at 11pm, books the showing, follows up after, and keeps every contact's history on one timeline. It resurfaces the seller from last spring and briefs you before the listing appointment. Built around how you work, run by us, owned by you.",
+      "We map how buyers, sellers, listings, showings, follow-up, and referrals move through your business, then build the right AI, automation, integrations, or managed execution around that process.",
     painPoints: [
       {
         icon: "Thermometer",
@@ -369,10 +369,10 @@ export const verticals: Vertical[] = [
     opsLabel: "a manufacturer",
     shortDescription:
       "AI systems for manufacturers and industrial shops that want the estimator's knowledge in every quote and every open order visible to the whole floor.",
-    heroHeadlineWhite: "One system that runs",
-    heroHeadlineGold: "the whole front office.",
+    heroHeadlineWhite: "Put the estimator's knowledge",
+    heroHeadlineGold: "into the quoting process.",
     heroSubheadline:
-      "It reads the RFQ, drafts the quote from your own history, chases the PO, and keeps every open order visible to the floor. It flags the supplier commitment that slipped and the customer who stopped ordering. Built around how your shop runs, operated by us, owned by you.",
+      "We learn how RFQs, quotes, orders, suppliers, schedules, and reporting move through the shop, then build the focused tools, integrations, and automation that improve the work without replacing what already works.",
     painPoints: [
       {
         icon: "DollarSign",
@@ -459,10 +459,10 @@ export const verticals: Vertical[] = [
     icon: "Rocket",
     shortDescription:
       "AI systems for early-stage teams that need investor updates, user onboarding, and support running without a full ops team to run them.",
-    heroHeadlineWhite: "One system that runs",
-    heroHeadlineGold: "the whole company.",
+    heroHeadlineWhite: "Build the operating support",
+    heroHeadlineGold: "the team has not hired yet.",
     heroSubheadline:
-      "It reads support, files the feedback, onboards the new user, drafts the investor update, and keeps one record of every customer and conversation. It flags the account going quiet and briefs you before the pitch. Built for how your team works, run by us, owned by you.",
+      "We identify the operational work pulling founders and early employees away from customers and product, then build and run the AI, internal tools, integrations, or reporting the company needs next.",
     painPoints: [
       {
         icon: "Clock",
@@ -549,10 +549,10 @@ export const verticals: Vertical[] = [
     icon: "Stethoscope",
     shortDescription:
       "AI intake, scheduling, and recall systems for medical and dental practices that want the appointment book solid and the front desk out of the paperwork.",
-    heroHeadlineWhite: "One system that runs",
-    heroHeadlineGold: "the whole office.",
+    heroHeadlineWhite: "Give the front desk",
+    heroHeadlineGold: "more room for patients.",
     heroSubheadline:
-      "It answers the new patient, verifies the insurance, fills the cancellation, and sends the recall that actually lands. It flags the patient overdue for a visit and has the history ready before they arrive. Built around how your office runs, operated by us, owned by you.",
+      "We map scheduling, intake, reminders, recalls, insurance work, and patient communication, then build the appropriate automation, AI assistance, integrations, and staff training around the practice's requirements.",
     painPoints: [
       {
         icon: "PhoneMissed",
@@ -640,10 +640,10 @@ export const verticals: Vertical[] = [
     opsLabel: "an insurance agency",
     shortDescription:
       "AI quoting, renewal, and follow-up systems for independent agencies that want the whole book worked on time instead of from memory.",
-    heroHeadlineWhite: "One system that runs",
-    heroHeadlineGold: "the whole agency.",
+    heroHeadlineWhite: "Work the whole book",
+    heroHeadlineGold: "with better timing and context.",
     heroSubheadline:
-      "It reads the quote request, drafts from the client's history, works every renewal sixty days out, and keeps the whole book on one timeline. It flags the policyholder gone quiet and the coverage gap nobody asked about. Built around how your agency runs, run by us, owned by you.",
+      "We learn how quoting, renewals, service, claims follow-up, and account rounding work in your agency, then build and run the AI, automation, and reporting that supports producers and service staff.",
     painPoints: [
       {
         icon: "Clock",
@@ -731,10 +731,10 @@ export const verticals: Vertical[] = [
     opsLabel: "an auto dealer",
     shortDescription:
       "AI systems for dealerships and service centers that want both sides of the store connected, the bays full, and every open deal worked to a close.",
-    heroHeadlineWhite: "One system that runs",
-    heroHeadlineGold: "the whole store.",
+    heroHeadlineWhite: "Connect the work across",
+    heroHeadlineGold: "sales and service.",
     heroSubheadline:
-      "It answers the internet inquiry, books the test drive, fills the service bays, and keeps one record per customer across sales and service. It flags the lease ending in ninety days and the deal that stalled. Built around how your store runs, operated by us, owned by you.",
+      "We map how inquiries, appointments, deals, repair orders, reminders, and customer history move across the store, then build the right automation, integrations, AI assistance, and managed follow-up.",
     painPoints: [
       {
         icon: "Thermometer",
@@ -821,10 +821,10 @@ export const verticals: Vertical[] = [
     icon: "HeartHandshake",
     shortDescription:
       "Custom AI systems for nonprofits that turn first-time donors into second-time donors, keep every supporter followed up with, and give a stretched team its hours back. Built and run by us.",
-    heroHeadlineWhite: "Your donors did not lose interest.",
-    heroHeadlineGold: "They just never heard from you again.",
+    heroHeadlineWhite: "Give a stretched team",
+    heroHeadlineGold: "more time for the mission.",
     heroSubheadline:
-      "Fewer than one in five first-time donors ever gives a second gift. That is rarely about generosity. It is capacity: the thank-you and the second ask land on a team already at its limit. We build custom AI systems that steward every donor on time and in your voice, then run them for you.",
+      "We learn where donor stewardship, volunteer coordination, program communication, grant work, and reporting consume limited staff time, then build and run the right automation, AI assistance, integrations, or training.",
     painPoints: [
       {
         icon: "RefreshCw",

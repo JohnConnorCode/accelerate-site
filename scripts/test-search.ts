@@ -89,6 +89,7 @@ async function main() {
   // Case study detail pages redirect to the homepage, so indexing them would
   // send people somewhere they did not ask for.
   assert.equal(index.filter((entry) => entry.href.startsWith("/results/")).length, 0, "no entry may point at a redirecting results detail page");
+  assert.equal(index.some((entry) => entry.href === "/work/northern-trust"), false, "the Northern Trust archive must stay out of public search");
 
   // ---- Normalisation -----------------------------------------------------
 

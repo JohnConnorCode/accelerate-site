@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
+import { loadOperatorQueue, summarizeOperatorQueue } from "@/lib/revenue-os/queue";
 
 export async function GET() {
   const auth = await requireAdmin();
@@ -8,7 +9,7 @@ export async function GET() {
 
   const supabase = createServiceRoleClient();
 
-  const [notificationsRes, unreadRes, urgentRes] = await Promise.all([
+  const [notificationsRes, unreadRes, urgentRes, priorityItems] = await Promise.all([
     supabase
       .from("admin_notifications")
       .select("*")
@@ -23,12 +24,27 @@ export async function GET() {
       .select("id", { count: "exact", head: true })
       .eq("read", false)
       .eq("priority", "urgent"),
+    loadOperatorQueue(supabase).catch((error) => {
+      console.error("[admin/notifications/priority]", error);
+      return null;
+    }),
   ]);
+
+  const firstError = [notificationsRes.error, unreadRes.error, urgentRes.error].find(Boolean);
+  if (firstError) {
+    console.error("[admin/notifications]", firstError.message);
+    return NextResponse.json({ error: "Could not load notifications." }, { status: 500 });
+  }
 
   return NextResponse.json({
     notifications: notificationsRes.data || [],
     unreadCount: unreadRes.count || 0,
     urgentCount: urgentRes.count || 0,
+    priority: {
+      status: priorityItems ? "ready" : "degraded",
+      summary: summarizeOperatorQueue(priorityItems ?? []),
+      items: (priorityItems ?? []).slice(0, 5),
+    },
   });
 }
 

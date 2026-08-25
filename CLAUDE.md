@@ -14,21 +14,33 @@ is `docs/REVENUE-OS-ENGINEERING-CONTRACT.md`; the exact ticket procedure is
 
 ## Positioning & Voice
 
-**Core identity:** Accelerate is your embedded AI operations team. Not an agency. Not a SaaS platform. We build custom systems AND run them alongside you.
+The canonical copy contract is `docs/MARKETING-POSITIONING-CONTRACT.md`. Read it
+before changing public copy. The summary below cannot override it.
+
+**Core identity:** Accelerate learns how a business works, identifies where AI
+and automation can free time or increase revenue, then advises, builds,
+integrates, executes, trains, and improves the right custom solution.
+
+**Permanent product rule:** The Command Center is one integrated solution, not
+the company, the default deliverable, or the organizing idea for the homepage.
+Other valid answers include a focused workflow, AI agent, integration, internal
+tool, training, or managed execution.
 
 **Voice pillars:**
 1. Revenue, not leads — "Book more jobs" / "Sign more clients" / "Close more deals"
-2. The team you never had to hire — AI framed as team members, not software
-3. Full lifecycle: Find > Win > Keep > Grow — not just top-of-funnel
-4. Time as currency — specific hours reclaimed
-5. Peace of mind — "Every inquiry answered. Every follow-up sent." (NEVER call-centric: "every call answered", "missed calls", "answer every call" are banned in positioning copy — Accelerate is channel-agnostic, phone answering is one feature of one service, not the identity)
-6. Built and run for you — the differentiator vs software/agencies
+2. Custom by default: start with the business and recommend the right-sized answer
+3. Full engagement: advise, build, integrate, execute, train, and improve
+4. Time as currency: name the work and hours returned when the claim is grounded
+5. Revenue as an outcome: explain the mechanism instead of inventing a return
+6. Built and run for you: implementation and execution remain part of the offer
 
 **Vocabulary rules:**
 - Avoid "leads" — use: jobs, clients, consultations, appointments, inquiries, revenue
 - Avoid "all-in-one" — overused by every competitor
 - Always mention AI prominently in hero/headline copy
-- Be specific (dollar amounts, percentages, timeframes) not vague
+- Be specific, but never invent dollar amounts, percentages, clients, or history
+- Never use `Same machine. Different Tuesday.` or any `Same X. Different Y.` variant
+- Avoid punchline fragments, formulaic contrast copy, and consultant filler
 
 ## Top 5 Competitor References (Copy & Strategy)
 
@@ -102,12 +114,14 @@ npm run deploy        # runs: vercel pull → vercel build --prod → vercel dep
 
 **Verify the account is right BEFORE deploying:**
 ```bash
-npm run deploy:check  # must print "farrellroofingco-4693" and "robert-farrells-projects"
+npm run deploy:check  # must print "johnconnorcode" and "john-connors-projects-d9df1dfe"
 ```
 
-If you're on the wrong Vercel account, `vercel logout && vercel login` and pick the right one. **Never deploy via `git push`** — the project has Commit-Author Verification on Robert Farrell's team, so non-Robert commits get auto-blocked (`readyState: BLOCKED`, hidden behind `UNKNOWN` in CLI). CLI `--prebuilt` deploys bypass this entirely (no source, no `.git` read).
+If you're on the wrong Vercel account, `vercel logout && vercel login` and pick the right one. Deploy with CLI `--prebuilt` (what `npm run deploy` does) regardless — no Git repository is connected to this project, so there's nothing for `git push` to trigger anyway.
 
-**Never run `vercel link`** — the project is already linked via `.vercel/project.json` (`prj_JDk6HGWB7lcgeJlusvWZmYxIIrfj` / `team_qHBO9P2V9uF31MH4k6s4mz8F`). Running `link` without `--project` while authed against the wrong team creates a phantom project on that team.
+**Never run `vercel link`** — the project is already linked via `.vercel/project.json` (`prj_w46n3AgV4L4IGEJZ0WzCBCZhDTot` / `team_aoXdtupaCmY2LDwBtCd4d7If`). Running `link` without `--project` while authed against the wrong team creates a phantom project on that team.
+
+**Migrated 2026-08-24** off Robert Farrell's team to John Connor's personal account — see `DEPLOY.md` reference card for the full account/project IDs and what moved.
 
 **Rollback:** `npm run deploy:rollback` (interactive picker, re-aliases prod to a previous Ready deploy).
 

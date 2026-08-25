@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion as useFramerReducedMotion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import type { Variants } from "framer-motion";
 import {
   MessageSquareWarning,
@@ -26,7 +26,10 @@ import {
   History,
   Workflow,
   Plug,
+  RotateCcw,
+  ShieldCheck,
   Settings,
+  ArrowUpRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { EASE } from "@/lib/animations";
@@ -44,6 +47,13 @@ import {
   STUBS,
   type DemoAction,
 } from "./demo-data";
+import {
+  DEMO_INTEGRATIONS,
+  DEMO_SCENARIOS,
+  type DemoOutcome,
+  type DemoScenarioId,
+} from "./demo-contract";
+import { resetDemoSession, useDemoSessionState } from "./demo-session";
 
 /* An interactive mock of the Command Center, with invented data.
 
@@ -67,6 +77,18 @@ const MONO = "font-mono text-[0.62rem] uppercase tracking-[0.16em]";
    "here is where this came from" into shouting. */
 const CITE = "font-mono text-[0.68rem] tracking-[0.01em]";
 
+// Framer resolves the media query during client hydration while SSR has no
+// preference. Deferring that preference by one paint avoids a style mismatch
+// (and a dev overlay) for people who explicitly prefer reduced motion.
+function useDemoReducedMotion() {
+  const preference = useFramerReducedMotion();
+  const [mounted, setMounted] = useState(false);
+  // The client-only media preference intentionally follows the SSR-safe first paint.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => setMounted(true), []);
+  return mounted && preference;
+}
+
 /* One motion vocabulary, shared by every view. */
 const VIEW: Variants = {
   hidden: { opacity: 0, y: 10 },
@@ -82,12 +104,46 @@ const ITEM: Variants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.38, ease: EASE } },
 };
 
-export function CommandCenterDemo() {
-  const [view, setView] = useState<string>("approvals");
-  const [approved, setApproved] = useState(11);
-  const [pending, setPending] = useState(DEMO_ACTIONS.length);
-  const reduced = useReducedMotion();
+const CORE_DEMO_VIEWS = new Set(["today", "approvals", "people", "ask", "meeting"]);
+
+export function CommandCenterDemo({ standalone = false }: { standalone?: boolean }) {
+  const [view, setView] = useDemoSessionState<string>("view", "approvals");
+  const [approved, setApproved] = useDemoSessionState("approved", 11);
+  const [pending, setPending] = useDemoSessionState("pending", DEMO_ACTIONS.length);
+  const [visited, setVisited] = useDemoSessionState<string[]>("visited", ["approvals"]);
+  const [scenarioId, setScenarioId] = useDemoSessionState<DemoScenarioId>("scenario", "revenue-recovery");
+  const [scenarioStep, setScenarioStep] = useDemoSessionState("scenario-step", 0);
+  const [outcomes, setOutcomes] = useDemoSessionState<DemoOutcome[]>("outcomes", []);
+  const reduced = useDemoReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
+  const scenario = DEMO_SCENARIOS.find((candidate) => candidate.id === scenarioId) ?? DEMO_SCENARIOS[0]!;
+
+  const selectView = (next: string) => {
+    setView(next);
+    if (CORE_DEMO_VIEWS.has(next)) setVisited((current) => current.includes(next) ? current : [...current, next]);
+  };
+
+  const reset = () => {
+    resetDemoSession();
+    setView("approvals");
+  };
+
+  const selectScenario = (next: DemoScenarioId) => {
+    const nextScenario = DEMO_SCENARIOS.find((candidate) => candidate.id === next) ?? DEMO_SCENARIOS[0]!;
+    setScenarioId(nextScenario.id);
+    setScenarioStep(0);
+    selectView(nextScenario.steps[0]!.view);
+  };
+
+  const advanceScenario = () => {
+    const nextStep = Math.min(scenarioStep + 1, scenario.steps.length - 1);
+    setScenarioStep(nextStep);
+    selectView(scenario.steps[nextStep]!.view);
+  };
+
+  const recordOutcome = (outcome: DemoOutcome) => {
+    setOutcomes((current) => current.some((item) => item.key === outcome.key) ? current : [outcome, ...current]);
+  };
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -121,9 +177,9 @@ export function CommandCenterDemo() {
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       style={reduced ? undefined : { rotateX, rotateY, transformStyle: "preserve-3d" }}
-      className="cc overflow-hidden rounded-[14px] border border-white/10 bg-[#0B0B0B] shadow-[0_40px_90px_-40px_rgba(0,0,0,.55)] transition-[box-shadow,transform] duration-300"
+      className={`cc overflow-hidden rounded-[14px] border border-white/10 bg-[#0B0B0B] shadow-[0_40px_90px_-40px_rgba(0,0,0,.55)] transition-[box-shadow,transform] duration-300 ${standalone ? "min-h-[min(720px,calc(100vh-120px))] sm:min-h-[min(780px,calc(100vh-180px))]" : ""}`}
     >
-      <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
         <div className="flex min-w-0 items-center gap-3">
           <span className="flex shrink-0 gap-1.5" aria-hidden="true">
             <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
@@ -131,21 +187,46 @@ export function CommandCenterDemo() {
             <span className="h-2.5 w-2.5 rounded-full bg-white/25" />
           </span>
           <span className={`${MONO} truncate text-white/45`}>
-            <span className="text-white/75">Command Center</span> / your workspace
+            <span className="text-white/75 sm:hidden">Workspace</span><span className="hidden sm:inline"><span className="text-white/75">Command Center</span> / your workspace</span>
           </span>
         </div>
-        <span className={`${MONO} shrink-0 border border-white/15 px-2 py-1 text-white/40`}>
-          Sample data
-        </span>
+        <div className="flex items-center gap-2">
+          <span className={`${MONO} inline-flex min-h-11 items-center gap-1.5 rounded-[8px] bg-[rgb(163,230,53)]/10 px-2.5 text-[rgb(190,242,100)]`}>
+            <ShieldCheck className="size-3.5" /> Safe demo
+          </span>
+          <button type="button" onClick={reset} className={`${MONO} inline-flex min-h-11 items-center gap-1.5 rounded-[8px] border border-white/15 px-2.5 text-white/55 transition-[border-color,color,transform] hover:border-white/35 hover:text-white active:scale-[0.96]`}>
+            <RotateCcw className="size-3.5" /> Reset
+          </button>
+        </div>
       </div>
+
+      <div className="grid gap-2 border-b border-white/10 bg-white/[0.025] px-3 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:px-4 sm:items-center">
+        <p className="text-pretty text-[0.76rem] leading-relaxed text-white/55">
+          Fictional sample data. Every approval, message, calendar change, and record update is simulated in this browser only.
+        </p>
+        <div className="flex items-center gap-2" aria-label={`${Math.min(visited.length, 5)} of 5 core demo views explored`}>
+          <span className={`${MONO} tabular-nums text-white/40`}>{Math.min(visited.length, 5)} / 5 explored</span>
+          <span className="flex gap-1" aria-hidden="true">{Array.from({ length: 5 }, (_, index) => <span key={index} className={`h-1.5 w-5 rounded-full transition-colors duration-200 ${index < visited.length ? "bg-[rgb(163,230,53)]" : "bg-white/12"}`} />)}</span>
+        </div>
+      </div>
+
+      {standalone && (
+        <DemoGuide
+          scenario={scenario}
+          scenarioStep={scenarioStep}
+          outcomes={outcomes}
+          onScenario={selectScenario}
+          onAdvance={advanceScenario}
+        />
+      )}
 
       <div className="border-b border-white/10 p-2 lg:hidden">
         <label className="sr-only" htmlFor="command-center-demo-view">Demo view</label>
         <select
           id="command-center-demo-view"
           value={view}
-          onChange={(event) => setView(event.target.value)}
-          className="min-h-10 w-full appearance-none rounded-[8px] bg-white/[0.07] bg-[linear-gradient(45deg,transparent_50%,rgba(255,255,255,.6)_50%),linear-gradient(135deg,rgba(255,255,255,.6)_50%,transparent_50%)] bg-[position:calc(100%-18px)_17px,calc(100%-13px)_17px] bg-[size:5px_5px,5px_5px] bg-no-repeat px-3 pr-9 font-mono text-[0.65rem] uppercase tracking-[0.13em] text-white outline-none transition-[background-color,box-shadow] focus:bg-white/[0.11] focus:shadow-[0_0_0_2px_rgba(255,255,255,.26)]"
+          onChange={(event) => selectView(event.target.value)}
+          className="min-h-11 w-full appearance-none rounded-[10px] bg-white/[0.07] bg-[linear-gradient(45deg,transparent_50%,rgba(255,255,255,.6)_50%),linear-gradient(135deg,rgba(255,255,255,.6)_50%,transparent_50%)] bg-[position:calc(100%-18px)_20px,calc(100%-13px)_20px] bg-[size:5px_5px,5px_5px] bg-no-repeat px-3 pr-9 font-mono text-[0.65rem] uppercase tracking-[0.13em] text-white outline-none transition-[background-color,box-shadow] focus:bg-white/[0.11] focus:shadow-[0_0_0_2px_rgba(255,255,255,.26)]"
         >
           {RAIL.map((group) => (
             <optgroup key={group.label} label={group.label} className="bg-[#0B0B0B] text-white">
@@ -173,7 +254,7 @@ export function CommandCenterDemo() {
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => setView(item.id)}
+                    onClick={() => selectView(item.id)}
                     aria-current={on ? "page" : undefined}
                     className={`relative flex shrink-0 items-center gap-2.5 px-3 py-[7px] text-left text-[0.78rem] transition-colors duration-200 lg:w-full ${
                       on ? "text-white" : "text-white/45 hover:text-white/85"
@@ -216,19 +297,24 @@ export function CommandCenterDemo() {
               animate="show"
               exit="exit"
             >
-              {view === "today" && <Today />}
+              {view === "today" && <Today pending={pending} outcomes={outcomes} onNavigate={selectView} />}
               {view === "approvals" && (
                 <Approvals
                   approved={approved}
                   setApproved={setApproved}
                   setPending={setPending}
+                  onOutcome={recordOutcome}
                 />
               )}
-              {view === "people" && <People />}
-              {view === "pipeline" && <Pipeline />}
+              {view === "people" && <People outcomes={outcomes} />}
+              {view === "pipeline" && <Pipeline outcomes={outcomes} />}
               {view === "ask" && <Ask />}
-              {view === "meeting" && <Meeting />}
-              {view !== "today" && STUBS[view] && <Stub id={view} />}
+              {view === "meeting" && <Meeting onOutcome={recordOutcome} />}
+              {view === "tasks" && <TasksWorkspace outcomes={outcomes} onOutcome={recordOutcome} />}
+              {view === "brief" && <DailyBrief outcomes={outcomes} onOutcome={recordOutcome} />}
+              {view === "activity" && <ActivityLog outcomes={outcomes} />}
+              {view === "integrations" && <IntegrationWorkspace onOutcome={recordOutcome} />}
+              {view !== "today" && view !== "tasks" && view !== "brief" && view !== "activity" && view !== "integrations" && STUBS[view] && <Stub id={view} outcomes={outcomes} onOutcome={recordOutcome} />}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -237,10 +323,79 @@ export function CommandCenterDemo() {
   );
 }
 
+function DemoGuide({
+  scenario,
+  scenarioStep,
+  outcomes,
+  onScenario,
+  onAdvance,
+}: {
+  scenario: (typeof DEMO_SCENARIOS)[number];
+  scenarioStep: number;
+  outcomes: DemoOutcome[];
+  onScenario: (id: DemoScenarioId) => void;
+  onAdvance: () => void;
+}) {
+  const step = scenario.steps[scenarioStep] ?? scenario.steps[0]!;
+  const lastStep = scenarioStep === scenario.steps.length - 1;
+  const completionKeys = scenario.steps.flatMap((candidate) => candidate.completionKey ? [candidate.completionKey] : []);
+  const complete = completionKeys.length > 0 && completionKeys.every((key) => outcomes.some((outcome) => key.endsWith("*") ? outcome.key.startsWith(key.slice(0, -1)) : outcome.key === key));
+  return (
+    <section className="border-b border-white/10 bg-[rgb(163,230,53)]/[0.045] px-4 py-3 sm:px-5" aria-label="Guided demo controls">
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <p className={`${MONO} text-[rgb(190,242,100)]`}>{scenario.eyebrow}</p>
+            <span className={`${CITE} tabular-nums text-white/35`}>{scenarioStep + 1} / {scenario.steps.length}</span>
+            {outcomes.length > 0 && <span className={`${CITE} text-white/45`}>{outcomes.length} simulated receipt{outcomes.length === 1 ? "" : "s"}</span>}
+          </div>
+          <p className="mt-1.5 text-[0.88rem] font-medium text-white">{step.title}</p>
+          <p className="mt-1 text-[0.78rem] leading-relaxed text-white/55">{step.detail}</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="sr-only" htmlFor="command-center-demo-scenario">Demo scenario</label>
+          <select
+            id="command-center-demo-scenario"
+            aria-label="Demo scenario"
+            value={scenario.id}
+            onChange={(event) => onScenario(event.target.value as DemoScenarioId)}
+            className="min-h-10 rounded-[8px] border border-white/14 bg-black/20 px-3 font-mono text-[0.62rem] uppercase tracking-[0.11em] text-white outline-none transition-[border-color,background-color] focus:border-white/45 focus:bg-black/35"
+          >
+            {DEMO_SCENARIOS.map((candidate) => <option key={candidate.id} value={candidate.id} className="bg-[#0B0B0B]">{candidate.label}</option>)}
+          </select>
+          <button
+            type="button"
+            onClick={onAdvance}
+            disabled={lastStep}
+            className="min-h-10 rounded-[8px] border border-[rgb(190,242,100)]/45 bg-[rgb(163,230,53)]/12 px-3 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-[rgb(220,252,160)] transition-[border-color,background-color,transform] hover:border-[rgb(190,242,100)] hover:bg-[rgb(163,230,53)]/20 active:scale-[0.96] disabled:cursor-default disabled:opacity-45"
+          >
+            {lastStep ? "Story complete" : "Next step"}
+          </button>
+        </div>
+      </div>
+      {complete && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.28, ease: EASE }}
+          className="mt-3 grid gap-3 rounded-[12px] bg-[rgb(163,230,53)]/[0.09] p-3.5 shadow-[inset_0_0_0_1px_rgba(190,242,100,0.16)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"
+        >
+          <div className="min-w-0">
+            <p className={`${MONO} text-[rgb(190,242,100)]`}>Simulated outcome recorded</p>
+            <p className="mt-1.5 text-[0.88rem] font-medium text-white">{scenario.outcome}</p>
+            <p className="mt-1.5 max-w-3xl text-[0.78rem] leading-relaxed text-white/60">{scenario.buyerTakeaway}</p>
+          </div>
+          <a href="/contact" className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-[8px] border border-[rgb(190,242,100)]/45 bg-black/25 px-3 font-mono text-[0.62rem] uppercase tracking-[0.11em] text-[rgb(220,252,160)] transition-[border-color,background-color,transform] hover:border-[rgb(190,242,100)] hover:bg-black/40 active:scale-[0.96]">Discuss your operation <ArrowUpRight className="size-3.5" /></a>
+        </motion.div>
+      )}
+    </section>
+  );
+}
+
 /* ── today ─────────────────────────────────────────────────────────────── */
 
-function Today() {
-  const reduced = useReducedMotion();
+function Today({ pending, outcomes, onNavigate }: { pending: number; outcomes: DemoOutcome[]; onNavigate: (view: string) => void }) {
+  const reduced = useDemoReducedMotion();
   
   return (
     <div className="flex h-full flex-col">
@@ -260,7 +415,7 @@ function Today() {
           </div>
           <div className="border border-[rgb(163,230,53)]/30 bg-[rgb(163,230,53)]/[0.05] p-3 transition-colors">
             <p className={`${MONO} text-white/35`}>Needs Approval</p>
-            <p className="mt-2 text-2xl font-light text-white">6</p>
+            <p className="mt-2 text-2xl font-light text-white tabular-nums">{pending}</p>
             <p className="mt-1 text-[0.7rem] text-[rgb(163,230,53)]">Drafts ready to review</p>
           </div>
           <div className="border border-white/10 bg-white/[0.03] p-3 transition-colors hover:bg-white/[0.05]">
@@ -279,22 +434,33 @@ function Today() {
         <motion.div variants={reduced ? undefined : ITEM}>
           <Sub>High Priority Context</Sub>
           <div className="space-y-3">
-            <div className="flex gap-4 border-l-2 border-[rgb(163,230,53)] bg-white/[0.03] p-3.5">
+          <button type="button" onClick={() => onNavigate("approvals")} className="flex w-full gap-4 border-l-2 border-[rgb(163,230,53)] bg-white/[0.03] p-3.5 text-left transition-colors hover:bg-white/[0.07]">
               <div className="mt-0.5 text-[rgb(163,230,53)]"><Sparkles className="h-4 w-4" /></div>
               <div>
                 <p className="text-[0.88rem] font-medium text-white">Northwind Proposal Ready</p>
                 <p className="mt-1 text-[0.82rem] leading-relaxed text-white/60">I&apos;ve generated the revised scope based on yesterday&apos;s kickoff call. The reporting section is split out as requested. It is waiting in your Approvals queue.</p>
               </div>
-            </div>
-            <div className="flex gap-4 border-l-2 border-[#F87171] bg-white/[0.03] p-3.5">
+          </button>
+          <button type="button" onClick={() => onNavigate("people")} className="flex w-full gap-4 border-l-2 border-[#F87171] bg-white/[0.03] p-3.5 text-left transition-colors hover:bg-white/[0.07]">
               <div className="mt-0.5 text-[#F87171]"><MessageSquareWarning className="h-4 w-4" /></div>
               <div>
                 <p className="text-[0.88rem] font-medium text-white">Ray Atwell is going cold</p>
                 <p className="mt-1 text-[0.82rem] leading-relaxed text-white/60">Invoice 2043 is 18 days overdue. Two automated emails have gone unanswered. I have drafted a direct escalation email for you.</p>
               </div>
-            </div>
+          </button>
+        </div>
+      </motion.div>
+
+      {outcomes.length > 0 && (
+        <motion.div variants={reduced ? undefined : ITEM}>
+          <Sub>Latest simulated receipt</Sub>
+          <div className="border border-[rgb(163,230,53)]/20 bg-[rgb(163,230,53)]/[0.045] p-3.5">
+            <p className="text-[0.84rem] text-white">{outcomes[0]!.title}</p>
+            <p className="mt-1 text-[0.78rem] leading-relaxed text-white/55">{outcomes[0]!.detail}</p>
+            <button type="button" onClick={() => onNavigate("activity")} className={`${CITE} mt-2 text-[rgb(190,242,100)] underline underline-offset-4`}>Inspect receipt</button>
           </div>
         </motion.div>
+      )}
 
         {/* Schedule */}
         <motion.div variants={reduced ? undefined : ITEM}>
@@ -333,19 +499,21 @@ function Approvals({
   approved,
   setApproved,
   setPending,
+  onOutcome,
 }: {
   approved: number;
   setApproved: (fn: (n: number) => number) => void;
   setPending: (n: number) => void;
+  onOutcome: (outcome: DemoOutcome) => void;
 }) {
-  const [queue, setQueue] = useState<DemoAction[]>(DEMO_ACTIONS);
+  const [queue, setQueue] = useDemoSessionState<DemoAction[]>("approval-queue", DEMO_ACTIONS);
   const [openId, setOpenId] = useState<string | null>(null);
   const [mode, setMode] = useState<"detail" | "feedback">("detail");
-  const [taught, setTaught] = useState(0);
-  const [bodies, setBodies] = useState<Record<string, string>>({});
-  const [edited, setEdited] = useState<string[]>([]);
-  const [last, setLast] = useState<string | null>(null);
-  const reduced = useReducedMotion();
+  const [taught, setTaught] = useDemoSessionState("approval-taught", 0);
+  const [bodies, setBodies] = useDemoSessionState<Record<string, string>>("approval-bodies", {});
+  const [edited, setEdited] = useDemoSessionState<string[]>("approval-edited", []);
+  const [last, setLast] = useDemoSessionState<string | null>("approval-last", null);
+  const reduced = useDemoReducedMotion();
 
   useEffect(() => setPending(queue.length), [queue.length, setPending]);
 
@@ -354,7 +522,18 @@ function Approvals({
     setOpenId(null);
     setMode("detail");
     setLast(`${how === "approved" ? "Approved" : "Skipped"}: ${item.title}`);
-    if (how === "approved") setApproved((n) => n + 1);
+    if (how === "approved") {
+      setApproved((n) => n + 1);
+      onOutcome({
+        key: `approved:${item.id}`,
+        title: `Approved: ${item.title}`,
+        detail: item.id === "act-3"
+          ? "Northwind moved to Proposal Sent using the buyer signal attached to the recommendation."
+          : "The proposed work was approved in this fictional workspace. No external message, calendar change, or live record was touched.",
+        source: item.source,
+        at: "09:14",
+      });
+    }
   };
 
   const approveRoutine = () => {
@@ -363,6 +542,13 @@ function Approvals({
     setQueue((q) => q.filter((x) => !x.routine));
     setApproved((n) => n + routine.length);
     setLast(`Approved ${routine.length} routine items in one go`);
+    routine.forEach((item) => onOutcome({
+      key: `approved:${item.id}`,
+      title: `Approved routine work: ${item.title}`,
+      detail: "The action was accepted in this fictional workspace and is visible as a simulated receipt.",
+      source: item.source,
+      at: "09:16",
+    }));
   };
 
   const routineLeft = queue.filter((q) => q.routine).length;
@@ -564,10 +750,10 @@ const TL_ICON: Record<string, string> = {
   ai: "✦",
 };
 
-function People() {
-  const [sel, setSel] = useState(DEMO_PEOPLE[0]!.id);
+function People({ outcomes }: { outcomes: DemoOutcome[] }) {
+  const [sel, setSel] = useDemoSessionState("selected-person", DEMO_PEOPLE[0]!.id);
   const person = DEMO_PEOPLE.find((p) => p.id === sel)!;
-  const reduced = useReducedMotion();
+  const reduced = useDemoReducedMotion();
 
   return (
     <div>
@@ -664,6 +850,13 @@ function People() {
             <motion.div variants={reduced ? undefined : ITEM}>
               <Sub>History</Sub>
               <ul className="space-y-2.5">
+                {person.id === "p1" && outcomes.filter((outcome) => outcome.key.startsWith("approved:")).map((outcome) => (
+                  <li key={outcome.key} className="grid grid-cols-[62px_16px_1fr] gap-2">
+                    <span className={`${CITE} pt-0.5 text-white/30`}>{outcome.at}</span>
+                    <span className="pt-0.5 font-mono text-[0.7rem] text-[rgb(163,230,53)]" aria-hidden="true">✦</span>
+                    <span className="text-[0.82rem] leading-snug italic text-white/65">{outcome.title}. {outcome.detail}</span>
+                  </li>
+                ))}
                 {person.timeline.map((e, i) => (
                   <li key={i} className="grid grid-cols-[62px_16px_1fr] gap-2">
                     <span className={`${CITE} pt-0.5 text-white/30`}>{e.when}</span>
@@ -695,8 +888,19 @@ function People() {
 
 /* ── pipeline ──────────────────────────────────────────────────────────── */
 
-function Pipeline() {
-  const reduced = useReducedMotion();
+function Pipeline({ outcomes }: { outcomes: DemoOutcome[] }) {
+  const reduced = useDemoReducedMotion();
+  const northwindMoved = outcomes.some((outcome) => outcome.key === "approved:act-3");
+  const columns = DEMO_PIPELINE.map((column) => ({ ...column, deals: [...column.deals] }));
+  if (northwindMoved) {
+    const source = columns.find((column) => column.stage === "In conversation");
+    const destination = columns.find((column) => column.stage === "Proposal sent");
+    const moved = source?.deals.find((deal) => deal.id === "d1");
+    if (moved && source && destination) {
+      source.deals = source.deals.filter((deal) => deal.id !== moved.id);
+      destination.deals = [{ ...moved, age: "just moved" }, ...destination.deals];
+    }
+  }
   return (
     <div>
       <Head
@@ -704,7 +908,7 @@ function Pipeline() {
         sub="Moved by what people actually said, not by you remembering to drag a card."
       />
       <div className="cc-scroll flex gap-3 overflow-x-auto p-4 sm:p-5">
-        {DEMO_PIPELINE.map((col) => (
+        {columns.map((col) => (
           <motion.div
             key={col.stage}
             variants={reduced ? undefined : ITEM}
@@ -736,6 +940,7 @@ function Pipeline() {
                       {d.flag}
                     </p>
                   )}
+                  {northwindMoved && d.id === "d1" && <p className={`${CITE} mt-2 text-[rgb(190,242,100)]`}>✦ Moved from approved buyer signal</p>}
                 </motion.div>
               ))}
             </div>
@@ -755,10 +960,10 @@ interface Turn {
 }
 
 function Ask() {
-  const [turns, setTurns] = useState<Turn[]>([]);
+  const [turns, setTurns] = useDemoSessionState<Turn[]>("ask-turns", []);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
-  const reduced = useReducedMotion();
+  const reduced = useDemoReducedMotion();
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
@@ -768,7 +973,7 @@ function Ask() {
 
   const send = (q: string) => {
     if (!q.trim() || thinking) return;
-    const hit = DEMO_ANSWERS.find((a) => a.q.toLowerCase() === q.trim().toLowerCase());
+    const hit = findDemoAnswer(q);
     setTurns((t) => [...t, { role: "you", text: q.trim() }]);
     setInput("");
     setThinking(true);
@@ -883,6 +1088,16 @@ function Ask() {
   );
 }
 
+function findDemoAnswer(question: string) {
+  const normalized = question.toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+  const exact = DEMO_ANSWERS.find((answer) => answer.q.toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim() === normalized);
+  if (exact) return exact;
+  if (normalized.includes("northwind") && /(agree|agreed|commit|promise|scope|start)/.test(normalized)) return DEMO_ANSWERS[0];
+  if (/(cold|risk|quiet|at risk|follow up)/.test(normalized)) return DEMO_ANSWERS[1];
+  if (normalized.includes("dana") && /(draft|follow|reply|email)/.test(normalized)) return DEMO_ANSWERS[2];
+  return undefined;
+}
+
 /** Answers arrive word by word. An answer that appears all at once reads as a
  *  lookup; one that streams reads as something working. */
 function Streamed({ text, reduced }: { text: string; reduced: boolean }) {
@@ -924,10 +1139,10 @@ function Thinking({ reduced }: { reduced: boolean }) {
 
 /* ── meeting extraction ────────────────────────────────────────────────── */
 
-function Meeting() {
-  const [checked, setChecked] = useState<string[]>(DEMO_EXTRACTED.map((e) => e.id));
-  const [applied, setApplied] = useState(false);
-  const reduced = useReducedMotion();
+function Meeting({ onOutcome }: { onOutcome: (outcome: DemoOutcome) => void }) {
+  const [checked, setChecked] = useDemoSessionState<string[]>("meeting-checked", DEMO_EXTRACTED.map((e) => e.id));
+  const [applied, setApplied] = useDemoSessionState("meeting-applied", false);
+  const reduced = useDemoReducedMotion();
 
   const toggle = (id: string) =>
     setChecked((c) => (c.includes(id) ? c.filter((x) => x !== id) : [...c, id]));
@@ -1009,7 +1224,18 @@ function Meeting() {
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <button
               type="button"
-              onClick={() => setApplied(true)}
+              onClick={() => {
+                if (!applied) {
+                  onOutcome({
+                    key: "meeting:applied",
+                    title: `Applied ${checked.length} reviewed meeting item${checked.length === 1 ? "" : "s"}`,
+                    detail: "The selected facts, tasks, dates, and questions are now represented across the fictional workspace. Nothing outside this browser changed.",
+                    source: "Northwind kickoff call, Tue 10:02",
+                    at: "10:48",
+                  });
+                }
+                setApplied(true);
+              }}
               disabled={applied || checked.length === 0}
               className="border border-white/25 bg-white/10 px-3.5 py-2 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-white transition-colors hover:border-white/45 disabled:opacity-40"
             >
@@ -1034,19 +1260,170 @@ function Meeting() {
   );
 }
 
-/* ── the rest of the system ────────────────────────────────────────────────
-   Every rail item resolves to something real. The five core surfaces get a
-   purpose-built view; the other fourteen render here from a small data map.
-   The alternative was a rail full of dead links, which would say the opposite
-   of what the rail is there to say. */
+/* ── scenario workspaces, receipts, and integration truth ───────────────── */
 
-function Stub({ id }: { id: string }) {
-  const v = STUBS[id];
-  const reduced = useReducedMotion();
-  if (!v) return null;
+function TasksWorkspace({ outcomes, onOutcome }: { outcomes: DemoOutcome[]; onOutcome: (outcome: DemoOutcome) => void }) {
+  const [reviewed, setReviewed] = useDemoSessionState<string[]>("task-review", []);
+  const meetingApplied = outcomes.some((outcome) => outcome.key === "meeting:applied");
+  const tasks = [
+    { id: "split-reporting", title: "Split reporting into its own line", source: "Northwind kickoff call", due: "Fri", evidence: "Marcus personally approves the reporting line." },
+    { id: "training-week", title: "Confirm the training week", source: "Northwind kickoff call", due: "Fri", evidence: "Training day was intentionally left open for confirmation." },
+    { id: "cedar-photos", title: "Send Cedar site photos", source: "Brightwater site visit", due: "Mon", evidence: "Captured during the site walkthrough." },
+    ...(meetingApplied ? [{ id: "meeting-review", title: "Review Northwind kickoff commitments", source: "Northwind meeting review", due: "Today", evidence: "Created from the accepted transcript extraction." }] : []),
+  ];
   return (
     <div>
-      <Head title={v.title} sub={v.sub} right="Sample data" />
+      <Head title="Tasks" sub="Commitments stay linked to the conversation that created them." right={`${tasks.length - reviewed.length} open`} />
+      <div className="divide-y divide-white/[0.07]">
+        {tasks.map((task) => {
+          const complete = reviewed.includes(task.id);
+          return <article key={task.id} className={`px-4 py-4 transition-colors sm:px-5 ${complete ? "bg-[rgb(163,230,53)]/[0.035]" : "hover:bg-white/[0.025]"}`}>
+            <div className="flex flex-wrap items-start gap-3">
+              <button type="button" aria-pressed={complete} onClick={() => {
+                if (complete) return;
+                setReviewed((current) => [...current, task.id]);
+                onOutcome({ key: `task:${task.id}`, title: `Reviewed task: ${task.title}`, detail: "The operator reviewed this fictional commitment without changing a live task or contacting anyone.", source: task.source, at: "11:08" });
+              }} className={`mt-0.5 grid size-6 shrink-0 place-items-center rounded-full border transition-[background-color,border-color,transform] active:scale-[0.96] ${complete ? "border-[rgb(190,242,100)] bg-[rgb(163,230,53)]/20 text-[rgb(220,252,160)]" : "border-white/30 text-transparent hover:border-white/65"}`} aria-label={complete ? `Reviewed ${task.title}` : `Mark ${task.title} reviewed`}>{complete ? "✓" : "·"}</button>
+              <div className="min-w-0 flex-1"><div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1"><h5 className="text-[0.86rem] text-white">{task.title}</h5><span className={`${CITE} tabular-nums ${task.due === "Today" ? "text-amber-200" : "text-white/35"}`}>{task.due}</span></div><p className="mt-1 text-[0.79rem] leading-relaxed text-white/52">{task.evidence}</p><p className={`${CITE} mt-2 text-white/35`}>{task.source}</p></div>
+            </div>
+          </article>;
+        })}
+      </div>
+      <p className={`${CITE} border-t border-white/10 px-4 py-3 text-white/35 sm:px-5`}>Tasks are reviewable work, not proof that anything was sent or changed outside this demo.</p>
+    </div>
+  );
+}
+
+function DailyBrief({ outcomes, onOutcome }: { outcomes: DemoOutcome[]; onOutcome: (outcome: DemoOutcome) => void }) {
+  const [acknowledged, setAcknowledged] = useDemoSessionState("brief-acknowledged", false);
+  const meetingApplied = outcomes.some((outcome) => outcome.key === "meeting:applied");
+  const lines = [
+    { label: "Overnight", detail: "14 emails read, 3 meetings written up, 6 actions drafted", tone: "text-[rgb(190,242,100)]" },
+    { label: "Owed by you", detail: meetingApplied ? "Sarah Chen (revised scope and training week), Dana Whitfield (intro)" : "Sarah Chen (scope, Friday), Dana Whitfield (intro)", tone: "text-white" },
+    { label: "Revenue to protect", detail: "Northwind is ready for a reviewed scope; Atwell’s unpaid invoice needs attention.", tone: "text-amber-200" },
+    { label: "New from meeting review", detail: meetingApplied ? "Northwind commitments are now visible in Tasks, Documents, and Activity." : "Review the Northwind meeting to decide what should become operating work.", tone: meetingApplied ? "text-[rgb(190,242,100)]" : "text-white/65" },
+  ];
+  return (
+    <div>
+      <Head title="Daily brief" sub="What changed, what is owed, and what deserves a human decision." right={acknowledged ? "Acknowledged" : "Ready"} />
+      <div className="space-y-3 p-4 sm:p-5">{lines.map((line) => <article key={line.label} className="rounded-[10px] border border-white/[0.09] bg-white/[0.025] p-3.5"><p className={`${MONO} ${line.tone}`}>{line.label}</p><p className="mt-2 text-[0.84rem] leading-relaxed text-white/72">{line.detail}</p></article>)}</div>
+      <div className="flex flex-wrap items-center gap-3 border-t border-white/10 px-4 py-3 sm:px-5"><button type="button" onClick={() => { if (!acknowledged) { setAcknowledged(true); onOutcome({ key: "brief:acknowledged", title: "Daily brief acknowledged", detail: "The operator reviewed the fictional brief. No live reminder, task, or message was created.", source: "Daily operating summary", at: "11:10" }); } }} disabled={acknowledged} className="min-h-10 rounded-[8px] border border-white/20 bg-white/[0.06] px-3 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-white transition-[border-color,background-color,transform] hover:border-white/45 hover:bg-white/[0.12] active:scale-[0.96] disabled:border-[rgb(163,230,53)]/40 disabled:bg-[rgb(163,230,53)]/10 disabled:text-[rgb(190,242,100)]">{acknowledged ? "Saved in this demo" : "Acknowledge brief"}</button>{acknowledged && <span className={`${CITE} text-[rgb(190,242,100)]`}>Receipt added to Activity</span>}</div>
+    </div>
+  );
+}
+
+function ActivityLog({ outcomes }: { outcomes: DemoOutcome[] }) {
+  const reduced = useDemoReducedMotion();
+  return (
+    <div>
+      <Head title="Activity log" sub="Every simulated material decision carries a source and receipt." right={`${outcomes.length} new receipt${outcomes.length === 1 ? "" : "s"}`} />
+      <div className="divide-y divide-white/[0.07]">
+        {outcomes.length === 0 ? (
+          <div className="px-5 py-14 text-center">
+            <p className="text-[0.92rem] text-white/80">No new simulated receipts yet.</p>
+            <p className="mx-auto mt-2 max-w-md text-[0.8rem] leading-relaxed text-white/45">Approve an action or apply reviewed meeting work to see the resulting operating record here.</p>
+          </div>
+        ) : outcomes.map((outcome) => (
+          <motion.article key={outcome.key} variants={reduced ? undefined : ITEM} className="px-4 py-4 sm:px-5">
+            <div className="flex gap-3">
+              <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-[rgb(163,230,53)]/12 font-mono text-[0.7rem] text-[rgb(190,242,100)]" aria-hidden="true">✦</span>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1"><h5 className="text-[0.86rem] text-white">{outcome.title}</h5><span className={`${CITE} text-white/30`}>{outcome.at}</span></div>
+                <p className="mt-1 text-[0.8rem] leading-relaxed text-white/55">{outcome.detail}</p>
+                <p className={`${CITE} mt-2 text-white/35`}>Source: {outcome.source}</p>
+              </div>
+            </div>
+          </motion.article>
+        ))}
+      </div>
+      <p className={`${CITE} border-t border-white/10 px-4 py-3 text-white/35 sm:px-5`}>These are fictional, browser-only receipts that demonstrate the operating trail a real implementation retains.</p>
+    </div>
+  );
+}
+
+function IntegrationWorkspace({ onOutcome }: { onOutcome: (outcome: DemoOutcome) => void }) {
+  const [selected, setSelected] = useDemoSessionState("integration-selected", "google");
+  const [inspected, setInspected] = useDemoSessionState<string[]>("integration-inspected", []);
+  const provider = DEMO_INTEGRATIONS.find((candidate) => candidate.id === selected) ?? DEMO_INTEGRATIONS[0]!;
+  const reviewed = inspected.includes(provider.id);
+  const labels: Record<string, string> = {
+    sample_connected: "Sample connected",
+    available: "Available",
+    next: "Next",
+    planned: "Planned",
+  };
+  const colors: Record<string, string> = {
+    sample_connected: "text-[rgb(190,242,100)] bg-[rgb(163,230,53)]/12",
+    available: "text-sky-200 bg-sky-400/10",
+    next: "text-amber-200 bg-amber-400/10",
+    planned: "text-white/55 bg-white/8",
+  };
+  return (
+    <div>
+      <Head title="Integrations" sub="Capability, provider maturity, and guardrails shown separately from a live connection claim." right="Sample workspace" />
+      <div className="grid border-b border-white/10 lg:grid-cols-[240px_1fr]">
+        <div className="border-b border-white/10 p-3 lg:border-b-0 lg:border-r">
+          {DEMO_INTEGRATIONS.map((item) => {
+            const active = item.id === provider.id;
+            return <button key={item.id} type="button" onClick={() => setSelected(item.id)} aria-pressed={active} className={`flex min-h-10 w-full items-center justify-between gap-2 rounded-[8px] px-3 text-left transition-colors ${active ? "bg-white/10 text-white" : "text-white/52 hover:bg-white/[0.05] hover:text-white"}`}>
+              <span className="text-[0.8rem]">{item.name}</span><span className={`${CITE} shrink-0 ${active ? "text-[rgb(190,242,100)]" : "text-white/30"}`}>{labels[item.state]}</span>
+            </button>;
+          })}
+        </div>
+        <div className="p-4 sm:p-5">
+          <div className="flex flex-wrap items-center gap-2"><h5 className="text-[1rem] font-medium text-white">{provider.name}</h5><span className={`${CITE} rounded-full px-2 py-1 ${colors[provider.state]}`}>{labels[provider.state]}</span></div>
+          <p className="mt-2 max-w-2xl text-[0.82rem] leading-relaxed text-white/55">{provider.description}</p>
+          <Sub>What this sample demonstrates</Sub>
+          <ul className="grid gap-2 sm:grid-cols-2">{provider.capabilities.map((capability) => <li key={capability} className="rounded-[8px] bg-white/[0.045] px-3 py-2.5 text-[0.8rem] text-white/72">{capability}</li>)}</ul>
+          <Sub>Boundary</Sub>
+          <p className="text-[0.8rem] leading-relaxed text-white/55">{provider.guardrail}</p>
+          <button type="button" onClick={() => {
+            if (reviewed) return;
+            setInspected((current) => [...current, provider.id]);
+            onOutcome({ key: `integration:${provider.id}`, title: `Inspected ${provider.name} capability boundary`, detail: "The fictional workspace recorded the provider's capability, maturity, and guardrail without connecting an account or making a provider request.", source: "Integration catalog", at: "11:14" });
+          }} disabled={reviewed} className="mt-5 inline-flex min-h-10 items-center rounded-[8px] border border-white/20 bg-white/[0.06] px-3 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-white transition-[border-color,background-color,transform] hover:border-white/45 hover:bg-white/[0.12] active:scale-[0.96] disabled:border-[rgb(163,230,53)]/40 disabled:bg-[rgb(163,230,53)]/10 disabled:text-[rgb(190,242,100)]">{reviewed ? "Saved in this demo" : "Inspect connection"}</button>
+        </div>
+      </div>
+      <p className={`${CITE} px-4 py-3 text-white/35 sm:px-5`}>“Sample connected” demonstrates a fictional configured workspace. It is never a claim about this visitor’s accounts.</p>
+    </div>
+  );
+}
+
+/* ── connected workspace views ─────────────────────────────────────────────
+   The rail is deliberately not a collection of decorative links. The focused
+   workflows above get purpose-built interaction; every other workspace view
+   still lets a visitor inspect a record, see the evidence behind it, and take
+   one contextual simulated action. That gives the demo complete coverage
+   while keeping the state boundary honest and entirely in this browser. */
+
+function Stub({
+  id,
+  outcomes,
+  onOutcome,
+}: {
+  id: string;
+  outcomes: DemoOutcome[];
+  onOutcome: (outcome: DemoOutcome) => void;
+}) {
+  const v = STUBS[id];
+  const reduced = useDemoReducedMotion();
+  const [selected, setSelected] = useDemoSessionState<number>(`workspace-${id}-selected`, 0);
+  const [reviewed, setReviewed] = useDemoSessionState<number[]>(`workspace-${id}-reviewed`, []);
+  if (!v) return null;
+  const meetingApplied = outcomes.some((outcome) => outcome.key === "meeting:applied");
+  const rows = [
+    ...v.rows,
+    ...(meetingApplied && id === "tasks" ? [{ a: "Review Northwind kickoff commitments", b: "Northwind kickoff call", c: "Today", ai: true }] : []),
+    ...(meetingApplied && id === "brief" ? [{ a: "Meeting review applied", b: "Northwind commitments are now tracked as reviewable work", ai: true }] : []),
+    ...(meetingApplied && id === "documents" ? [{ a: "Northwind kickoff extraction receipt", b: "Northwind Group", c: "Just now", ai: true }] : []),
+  ];
+  const row = rows[Math.min(selected, rows.length - 1)] ?? rows[0];
+  const selectedReviewed = reviewed.includes(selected);
+  const action = workspaceAction(id, selectedReviewed);
+
+  return (
+    <div>
+      <Head title={v.title} sub={v.sub} right={`${reviewed.length} reviewed`} />
       <motion.div variants={reduced ? undefined : ITEM} className="cc-scroll overflow-x-auto">
         <table className="w-full min-w-[520px] border-collapse">
           <thead>
@@ -1065,46 +1442,97 @@ function Stub({ id }: { id: string }) {
             </tr>
           </thead>
           <tbody>
-            {v.rows.map((r, i) => (
+            {rows.map((r, i) => {
+              const isSelected = i === selected;
+              const isReviewed = reviewed.includes(i);
+              return (
               <motion.tr
                 key={i}
                 initial={reduced ? false : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, ease: EASE, delay: reduced ? 0 : 0.04 * i }}
-                className="border-b border-white/[0.06] transition-colors hover:bg-white/[0.03]"
+                className={`border-b border-white/[0.06] transition-colors ${isSelected ? "bg-white/[0.065]" : "hover:bg-white/[0.03]"}`}
               >
                 <td className="px-4 py-3 align-top text-[0.84rem] leading-snug text-white sm:px-5">
-                  <span className="flex items-start gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelected(i)}
+                    className="flex min-h-10 w-full items-start gap-2 rounded-[7px] text-left outline-none transition-[color,transform] focus-visible:ring-2 focus-visible:ring-white/45 active:scale-[0.99]"
+                    aria-pressed={isSelected}
+                    aria-label={`Open ${r.a}`}
+                  >
                     {r.ai && (
                       <span className="mt-[3px] shrink-0 text-[0.7rem] text-[rgb(163,230,53)]" aria-label="Done by the AI">
                         ✦
                       </span>
                     )}
-                    {r.a}
-                  </span>
+                    <span className="min-w-0">{r.a}{isReviewed && <span className="ml-2 font-mono text-[0.58rem] uppercase tracking-[0.12em] text-[rgb(190,242,100)]">reviewed</span>}</span>
+                  </button>
                 </td>
                 <td className="px-4 py-3 align-top text-[0.8rem] leading-snug text-white/50 sm:px-5">{r.b}</td>
                 <td className={`${CITE} px-4 py-3 align-top text-white/35 sm:px-5`}>{r.c ?? ""}</td>
               </motion.tr>
-            ))}
+            );
+            })}
           </tbody>
         </table>
       </motion.div>
-      <motion.p
-        variants={reduced ? undefined : ITEM}
-        className={`${CITE} border-t border-white/10 px-4 py-3 text-white/30 sm:px-5`}
-      >
-        <span className="text-[rgb(163,230,53)]" aria-hidden="true">✦</span> marks work the system did on
-        its own. Approvals, People, Pipeline, Ask and Meetings are the five built out in full here.
-      </motion.p>
+      {row && <motion.div variants={reduced ? undefined : ITEM} className="border-t border-white/10 bg-white/[0.025] px-4 py-4 sm:px-5">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+          <div className="min-w-0">
+            <p className={MONO}>Selected record / fictional data</p>
+            <h5 className="mt-1.5 text-[0.95rem] font-medium text-white">{row.a}</h5>
+            <p className="mt-1.5 max-w-2xl text-[0.8rem] leading-relaxed text-white/55">{row.b}{row.c ? ` · ${row.c}` : ""}</p>
+            <p className={`${CITE} mt-3 text-white/32`}><span className="text-[rgb(163,230,53)]" aria-hidden="true">✦</span> {row.ai ? "This record was prepared by the system and remains reviewable." : "This record is linked to the same fictional operating history shown across the workspace."}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (!row || selectedReviewed) return;
+              setReviewed((current) => current.includes(selected) ? current : [...current, selected]);
+              onOutcome({
+                key: `workspace:${id}:${selected}`,
+                title: `${workspaceAction(id, false)}: ${row.a}`,
+                detail: "This contextual action was staged inside the fictional workspace and is available as a simulated receipt.",
+                source: row.c ? `${row.b} · ${row.c}` : row.b,
+                at: "11:02",
+              });
+            }}
+            disabled={selectedReviewed}
+            className="inline-flex min-h-10 items-center justify-center rounded-[8px] border border-white/20 bg-white/[0.07] px-3 font-mono text-[0.62rem] uppercase tracking-[0.13em] text-white transition-[border-color,background-color,transform] hover:border-white/45 hover:bg-white/[0.13] active:scale-[0.96] disabled:border-[rgb(163,230,53)]/40 disabled:bg-[rgb(163,230,53)]/10 disabled:text-[rgb(190,242,100)]"
+          >
+            {action}
+          </button>
+        </div>
+      </motion.div>}
     </div>
   );
+}
+
+function workspaceAction(id: string, reviewed: boolean) {
+  if (reviewed) return "Saved in this demo";
+  const actions: Record<string, string> = {
+    inbox: "Stage a reply",
+    companies: "Open company context",
+    referrals: "Record follow-up",
+    projects: "Open delivery plan",
+    tasks: "Mark task reviewed",
+    documents: "Open linked document",
+    brief: "Acknowledge brief",
+    questions: "Mark for next call",
+    reports: "Run simulated report",
+    activity: "Inspect receipt",
+    automations: "Review automation",
+    integrations: "Inspect connection",
+    settings: "Review setting",
+  };
+  return actions[id] ?? "Mark reviewed";
 }
 
 /* ── shared bits ───────────────────────────────────────────────────────── */
 
 function Head({ title, sub, right }: { title: string; sub: string; right?: string }) {
-  const reduced = useReducedMotion();
+  const reduced = useDemoReducedMotion();
   return (
     <motion.div
       variants={reduced ? undefined : ITEM}
@@ -1140,7 +1568,7 @@ function Btn({
     <button
       type="button"
       onClick={onClick}
-      className={`flex min-h-[34px] items-center gap-1.5 whitespace-nowrap border px-2.5 py-1.5 font-mono text-[0.6rem] uppercase tracking-[0.12em] transition-colors duration-200 ${
+      className={`flex min-h-10 items-center gap-1.5 whitespace-nowrap border px-2.5 py-1.5 font-mono text-[0.6rem] uppercase tracking-[0.12em] transition-[background-color,border-color,color,transform] duration-200 active:scale-[0.96] ${
         tone === "solid"
           ? "border-white/35 bg-white/10 text-white hover:bg-white/25"
           : "border-white/12 text-white/50 hover:border-white/35 hover:text-white/90"

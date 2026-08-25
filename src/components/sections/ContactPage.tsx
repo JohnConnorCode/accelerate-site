@@ -22,15 +22,15 @@ const INFO_CARDS = [
   },
   {
     icon: Zap,
-    label: "Revenue-leak audit",
+    label: "AI strategy session",
     value: "Free · directly with John",
   },
 ] as const;
 
 const RISK_REVERSAL = [
-  "The one constraint costing you the most, named",
-  "What it costs to fix, and how long it takes",
-  "In writing within two business days, hire us or not",
+  "Where AI or automation may be useful",
+  "Whether the right next step is advice, a build, training, or execution",
+  "A written recommendation you can use either way",
 ];
 
 export function ContactPageContent() {
@@ -91,14 +91,14 @@ export function ContactPageContent() {
                 Start here
               </p>
               <h2 className="mb-2 px-2 font-display text-2xl font-bold tracking-[-0.02em] text-heading">
-                Book your free revenue-leak audit
+                Book your free AI strategy session
               </h2>
               {HAS_SCHEDULER ? (
                 <>
                   <p className="mb-5 px-2 text-pretty text-sm leading-6 text-white-secondary">Choose a time directly on John’s calendar.</p>
                   <iframe
                     src={`${CALENDLY_URL}?hide_gdpr_banner=1&embed_domain=acceleratewith.us&embed_type=Inline`}
-                    title="Book your free revenue-leak audit with John"
+                    title="Book your free AI strategy session with John"
                     className="h-[700px] w-full rounded-xl border-0 bg-white"
                   />
                   <details className="mt-5 border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] px-4 py-3">
@@ -126,7 +126,7 @@ export function ContactPageContent() {
           <div>
             <Eyebrow className="mb-7">what you walk away with</Eyebrow>
             <Heading size={2} as="h2" className="max-w-md">
-              A free plan, yours to keep.
+              A useful next step, in writing.
             </Heading>
           </div>
           <div className="flex flex-col gap-4 lg:mt-3">

@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { Inbox } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { Button } from "@/components/ui/Button";
 
 interface EmptyStateProps {
+  title?: string;
   message?: string;
+  description?: string;
   icon?: LucideIcon;
   actionLabel?: string;
   actionHref?: string;
@@ -12,27 +13,31 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({
+  title,
   message = "No data found",
+  description,
   icon: Icon = Inbox,
   actionLabel,
   actionHref,
   onAction,
 }: EmptyStateProps) {
+  const actionClass = "inline-flex min-h-11 items-center justify-center rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]";
   return (
-    <div className="flex flex-col items-center justify-center py-12 px-4">
-      <Icon className="h-10 w-10 text-white-muted mb-3" />
-      <p className="text-sm text-white-muted text-center">{message}</p>
+    <div className="flex flex-col items-center justify-center px-5 py-14 text-center sm:px-8" role="status">
+      <span className="grid size-11 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)] dark:bg-white/[0.06]" aria-hidden="true">
+        <Icon className="size-5" />
+      </span>
+      <p className="mt-4 text-sm font-semibold text-[var(--admin-ink)]">{title || message}</p>
+      {(description || title) && <p className="admin-copy mt-1.5 max-w-md text-pretty text-xs leading-5">{description || message}</p>}
       {actionLabel && actionHref && (
-        <Link href={actionHref}>
-          <Button variant="secondary" size="sm" className="mt-4">
-            {actionLabel}
-          </Button>
+        <Link href={actionHref} className={`mt-5 ${actionClass}`}>
+          {actionLabel}
         </Link>
       )}
       {actionLabel && onAction && !actionHref && (
-        <Button variant="secondary" size="sm" onClick={onAction} className="mt-4">
+        <button type="button" onClick={onAction} className={`mt-5 ${actionClass}`}>
           {actionLabel}
-        </Button>
+        </button>
       )}
     </div>
   );

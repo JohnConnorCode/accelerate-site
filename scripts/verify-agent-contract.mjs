@@ -7,6 +7,8 @@ const requiredFiles = [
   "docs/AGENT-TICKET-RUNBOOK.md",
   "docs/REVENUE-OS-ENGINEERING-CONTRACT.md",
   "docs/REVENUE-OS-SETUP.md",
+  "docs/FEATURE-BOARD-TAXONOMY.md",
+  "docs/MARKETING-POSITIONING-CONTRACT.md",
   "src/lib/revenue-os/README.md",
 ];
 const failures = [];
@@ -30,9 +32,11 @@ for (const card of featureBacklog) {
   const prefix = `[${card.seed_key}]`;
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(card.seed_key)) failures.push(`${prefix} seed key is not stable kebab-case`);
   if (card.description.trim().length < 60) failures.push(`${prefix} description is too thin for independent pickup`);
-  if (!card.labels.includes("agent-ready")) failures.push(`${prefix} is missing the agent-ready label`);
-  if (!card.labels.some((label) => /^phase-\d+$/.test(label))) failures.push(`${prefix} is missing a phase label`);
-  if (card.labels.length < 4) failures.push(`${prefix} is missing workstream taxonomy`);
+  if (card.labels.filter((label) => label.startsWith("category:")).length !== 1) failures.push(`${prefix} needs exactly one category label`);
+  if (card.labels.filter((label) => label.startsWith("milestone:")).length !== 1) failures.push(`${prefix} needs exactly one milestone label`);
+  if (card.labels.filter((label) => /^phase:\d+$/.test(label)).length !== 1) failures.push(`${prefix} needs exactly one phase label`);
+  if (card.labels.filter((label) => label.startsWith("capability:")).length < 1 || card.labels.filter((label) => label.startsWith("capability:")).length > 2) failures.push(`${prefix} needs one or two capability labels`);
+  if (card.labels.length > 5) failures.push(`${prefix} has label sprawl (${card.labels.length})`);
   const acceptanceItems = card.acceptance_criteria.split("\n").filter((line) => /^-\s+\S/.test(line));
   if (acceptanceItems.length < 2) failures.push(`${prefix} needs at least two observable acceptance items`);
   for (const section of requiredNoteSections) {

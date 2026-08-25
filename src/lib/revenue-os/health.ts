@@ -36,6 +36,7 @@ export interface HealthConcern {
   kind: "integration" | "job" | "source" | "webhook";
   key: string;
   detail: string;
+  observedAt: string | null;
 }
 
 export interface OperationalHealth {
@@ -68,11 +69,13 @@ function isStalled(status: string, startedAt: string | null): boolean {
 export async function loadOperationalHealth(supabase: SupabaseClient): Promise<OperationalHealth> {
   const webhookSince = new Date(Date.now() - WEBHOOK_FAILURE_LOOKBACK_HOURS * 3_600_000).toISOString();
   const [integrationResult, sourceRunsResult, jobRunsResult, webhookResult] = await Promise.all([
-    supabase.from("integration_connections").select("provider,status,last_success_at,last_error"),
+    supabase.from("integration_connections").select("provider,status,last_success_at,last_error,updated_at"),
     supabase.from("source_runs").select("source_key,status,started_at,finished_at,error").order("started_at", { ascending: false }).limit(30),
     supabase.from("job_runs").select("job_key,status,claimed_at,finished_at,error").order("claimed_at", { ascending: false }).limit(30),
     supabase.from("webhook_receipts").select("id,provider,event_type,error,received_at").eq("status", "failed").gte("received_at", webhookSince).order("received_at", { ascending: false }).limit(20),
   ]);
+  const firstError = [integrationResult.error, sourceRunsResult.error, jobRunsResult.error, webhookResult.error].find(Boolean);
+  if (firstError) throw new Error(firstError.message);
 
   const integrations = integrationResult.data ?? [];
   const sourceRows = latestByKey(sourceRunsResult.data ?? [], "source_key");
@@ -109,12 +112,13 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
         kind: "integration",
         key: String(integration.provider),
         detail: integration.last_error || `Connection is ${integration.status}`,
+        observedAt: integration.updated_at ?? integration.last_success_at ?? null,
       });
     }
   }
   for (const run of sourceRuns) {
     if (run.status === "failed" || run.status === "partial") {
-      concerns.push({ kind: "source", key: run.key, detail: run.error || `Last sync reported ${run.status}` });
+      concerns.push({ kind: "source", key: run.key, detail: run.error || `Last sync reported ${run.status}`, observedAt: run.finishedAt || run.startedAt });
     }
   }
   for (const run of jobRuns) {
@@ -123,9 +127,10 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
         kind: "job",
         key: run.key,
         detail: `Claimed at ${run.startedAt ?? "an unknown time"} and never reported a result. The next run will take the claim over.`,
+        observedAt: run.startedAt,
       });
     } else if (run.status === "failed" || run.status === "partial") {
-      concerns.push({ kind: "job", key: run.key, detail: run.error || `Last run reported ${run.status}` });
+      concerns.push({ kind: "job", key: run.key, detail: run.error || `Last run reported ${run.status}`, observedAt: run.finishedAt || run.startedAt });
     }
   }
   for (const failure of webhookFailures) {
@@ -133,6 +138,7 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
       kind: "webhook",
       key: `${failure.provider}:${failure.eventType ?? "event"}`,
       detail: failure.error || "Webhook was received but could not be processed",
+      observedAt: failure.receivedAt,
     });
   }
 

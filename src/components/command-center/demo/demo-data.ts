@@ -312,16 +312,16 @@ export const DEMO_EXTRACTED: ExtractedItem[] = [
 
 /* ── navigation ────────────────────────────────────────────────────────────
    The rail is the fastest read of how much this thing actually covers, so it
-   carries the real shape of the system rather than only the five surfaces the
-   demo builds out in full. Every item resolves to something: the five core
-   ones to their own view, the rest to a compact but real-looking stub. */
+   carries the real shape of the system rather than only the five guided
+   workflows. Every item resolves to an inspectable, stateful workspace view;
+   the guided workflows add deeper purpose-built interactions on top. */
 
 export interface RailItem {
   id: string;
   label: string;
   icon: string;
   badge?: string;
-  /** Has a fully built view rather than a stub. */
+  /** Has a deeper guided workflow in addition to the shared record behavior. */
   core?: boolean;
 }
 

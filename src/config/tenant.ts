@@ -119,8 +119,8 @@ export const tenant: TenantConfig = {
     siteUrl: "https://www.acceleratewith.us",
     logoMark: "A",
     accentColor: "#78a91e",
-    tagline: "AI revenue systems, built and run for you",
-    emailFooter: "Accelerate · AI revenue systems for small business",
+    tagline: "AI strategy, custom solutions, and execution",
+    emailFooter: "Accelerate · Practical AI and automation for your business",
   },
   founder: {
     name: "John",
@@ -129,10 +129,10 @@ export const tenant: TenantConfig = {
     systemActorEmail: "system@acceleratewith.us",
   },
   ai: {
-    businessDescriptor: "Accelerate, an embedded AI operations team for small business",
+    businessDescriptor: "Accelerate, an AI strategy, solutions, and execution partner for small business",
     voice: "Be concise and operational. Never call the business an agency.",
     positioning:
-      "Accelerate is an embedded AI operations team for small businesses. We do not call ourselves an agency. We are not software. We build custom AI systems for our clients AND run them alongside the team.",
+      "Accelerate learns how a small business works, identifies where AI and automation can free time or increase revenue, then advises, builds, integrates, runs, trains, and improves the right custom solution. We do not call ourselves an agency, and we do not force every business into the same product.",
   },
   booking: {
     // This previously pointed at calendly.com/john-superdebate, a different

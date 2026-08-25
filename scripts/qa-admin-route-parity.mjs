@@ -5,12 +5,20 @@ const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3011";
 const allRoutes = [
   "/admin/today", "/admin/pipeline", "/admin/conversations", "/admin/emails",
   "/admin/campaigns", "/admin/proposals", "/admin/email-sequences", "/admin/analytics",
-  "/admin/revenue", "/admin/activity", "/admin/features", "/admin/ai-operations",
-  "/admin/setup", "/admin/settings", "/admin/leads", "/admin/contacts", "/admin/inbox",
+  "/admin/revenue", "/admin/activity", "/admin/features", "/admin/ai", "/admin/ai-operations",
+  "/admin/integrations", "/admin/setup", "/admin/settings", "/admin/leads", "/admin/contacts", "/admin/inbox",
   "/admin/bookings", "/admin/clients", "/admin/chat-leads", "/admin/subscribers",
   "/admin/content", "/admin/resources", "/admin/partners", "/admin/website-grades",
 ];
-const routes = process.argv.includes("--chat") ? ["/admin/chat-leads"] : allRoutes;
+const routes = process.argv.includes("--chat")
+  ? ["/admin/chat-leads"]
+  : process.argv.includes("--ai")
+    ? ["/admin/ai", "/admin/ai-operations"]
+  : process.argv.includes("--today")
+    ? ["/admin/today"]
+  : process.argv.includes("--integrations")
+    ? ["/admin/integrations"]
+    : allRoutes;
 
 for (const key of ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "ADMIN_EMAIL"]) {
   if (!process.env[key]) throw new Error(`${key} is required for authenticated admin parity QA`);
@@ -38,6 +46,10 @@ async function verifyRoutes(viewport, label) {
   await context.addCookies(cookies.map((cookie) => ({ ...cookie, domain: origin.hostname, path: "/", httpOnly: false, secure: origin.protocol === "https:", sameSite: "Lax" })));
   const page = await context.newPage();
   await page.route("**/api/admin/notifications**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ notifications: [], unreadCount: 0 }) }));
+  // Route parity validates shell/layout behavior independently of an unapplied
+  // feature-batch migration. Runtime persistence has its own service and QA
+  // contract; an empty conversation list keeps every admin route deterministic.
+  await page.route("**/api/admin/revenue-os/ai/conversations**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ schemaReady: true, conversations: [] }) }));
   let activeRoute = "";
   page.on("console", (message) => {
     if (message.type() === "error") failures.add(`${label} ${activeRoute}: console ${message.text().split("\n")[0]}`);

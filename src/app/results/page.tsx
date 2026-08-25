@@ -1,7 +1,6 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 
-// Results page removed. Redirect any traffic (incl. legacy internal/external
-// links) to the homepage so nothing 404s.
+// Results became Selected Work. Preserve the useful legacy entrypoint.
 export default function ResultsPage() {
-  redirect("/");
+  permanentRedirect("/work");
 }

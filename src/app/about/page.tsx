@@ -3,11 +3,11 @@ import { generateBreadcrumbJsonLd } from "@/lib/seo";
 import { AboutPageContent } from "@/components/sections/AboutPage";
 
 export const metadata = seoMetadata({
-  title: "About Us: Built by a Business Owner",
+  title: "About Accelerate",
   description:
-    "John Connor. Twelve years building software companies, now running AI operations for small businesses. A short client list, on purpose.",
+    "Accelerate helps businesses choose, build, and run useful AI and automation through direct strategy, engineering, execution, and support.",
   ogTitle: "About Accelerate",
-  ogSubtitle: "Built by a business owner, for business owners",
+  ogSubtitle: "Practical AI strategy, engineering, and execution",
   path: "/about",
 });
 

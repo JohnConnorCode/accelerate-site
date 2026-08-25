@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-08-17.5";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-08-24.1";
 
 export const REVENUE_SCHEMA_TABLES = [
   { table: "contacts", columns: ["id", "full_name", "primary_email", "alternate_emails", "company_id", "communication_status", "unsubscribe_token"] },
@@ -35,6 +35,10 @@ export const REVENUE_SCHEMA_TABLES = [
   { table: "contact_import_events", columns: ["id", "batch_id", "event_type", "created_at"] },
   { table: "feature_requests", columns: ["id", "seed_key", "status", "sort_order", "source"] },
   { table: "schema_verification_runs", columns: ["id", "contract_version", "status", "summary", "checked_at"] },
+  { table: "agent_runs", columns: ["id", "surface", "provider", "model", "tool_pack", "conversation_id", "status", "tool_names", "duration_ms", "started_at", "finished_at"] },
+  { table: "agent_run_events", columns: ["id", "run_id", "event_type", "tool_name", "output", "created_at"] },
+  { table: "ai_conversations", columns: ["id", "actor_email", "title", "status", "last_message_at", "created_at", "updated_at"] },
+  { table: "ai_messages", columns: ["id", "conversation_id", "role", "content", "run_id", "client_message_id", "metadata", "created_at"] },
 ] as const;
 
 export const REVENUE_SCHEMA_CONSTRAINTS = [
@@ -56,15 +60,22 @@ export const REVENUE_SCHEMA_INDEXES = [
   "idx_job_runs_one_active_per_job",
   "idx_messages_provider_id",
   "idx_webhook_receipts_provider_received",
+  "idx_ai_conversations_actor_recent",
+  "idx_ai_messages_client_replay",
+  "idx_ai_messages_conversation_order",
+  "idx_agent_runs_conversation",
 ] as const;
 
 export const REVENUE_SCHEMA_FUNCTIONS = [
   "public.revenue_os_touch_updated_at()",
   "public.publish_email_template(text,text)",
   "public.claim_contact_import_batch(uuid,text)",
-  "public.claim_revenue_job_run(text,text)",
+  "public.claim_revenue_job_run(text,text,interval)",
   "public.claim_campaign_member_send(uuid,text)",
   "public.stop_campaign_memberships(uuid,uuid,text)",
+  "public.configure_command_center_scheduler(text,text)",
+  "public.wake_command_center_health()",
+  "public.command_center_scheduler_status()",
 ] as const;
 
 export const REVENUE_SCHEMA_POLICIES = [

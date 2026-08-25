@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { domainFromEmailOrWebsite, normalizeEmail } from "./db";
 import { recordAudit } from "./audit";
 import { isConfiguredAdmin } from "@/lib/admin/access";
+import { recordActivity } from "./activities";
 
 export interface ResolveIdentityInput {
   name: string;
@@ -220,13 +221,12 @@ export async function importApprovedContact(
   const replay = await supabase.from("contacts").select("id,company_id").eq("source_record_type", "contact_import_row").eq("source_record_id", input.rowId).maybeSingle();
   if (replay.error) throw new Error(replay.error.message);
   if (replay.data) {
-    const activity = await supabase.from("activities").insert({
-      activity_type: "contact_imported", title: `Imported contact: ${input.data.fullName}`,
-      summary: "Approved contact import replay reconciled", contact_id: replay.data.id,
-      company_id: replay.data.company_id, source: "contact_import", actor_email: input.actorEmail,
-      external_id: `row:${input.rowId}`, metadata: { batch_id: input.batchId, row_id: input.rowId, action: input.action, replayed: true },
+    await recordActivity(supabase, {
+      activityType: "contact_imported", title: `Imported contact: ${input.data.fullName}`,
+      summary: "Approved contact import replay reconciled", contactId: replay.data.id,
+      companyId: replay.data.company_id, source: "contact_import", actorEmail: input.actorEmail,
+      externalId: `row:${input.rowId}`, metadata: { batch_id: input.batchId, row_id: input.rowId, action: input.action, replayed: true },
     });
-    if (activity.error && activity.error.code !== "23505") throw new Error(activity.error.message);
     await recordAudit(supabase, { actorEmail: input.actorEmail, action: "contact.import_reconciled", entityType: "contact", entityId: replay.data.id, source: "admin", metadata: { import_batch_id: input.batchId, import_row_id: input.rowId } });
     return { contactId: replay.data.id, companyId: replay.data.company_id, replayed: true, changedFields: [] as string[] };
   }
@@ -341,18 +341,17 @@ export async function importApprovedContact(
     changedFields.push("created");
   }
 
-  const activity = await supabase.from("activities").insert({
-    activity_type: "contact_imported",
+  await recordActivity(supabase, {
+    activityType: "contact_imported",
     title: `${input.action === "create" ? "Imported" : "Enriched"} contact: ${input.data.fullName}`,
     summary: input.data.source ? `Approved contact import · ${input.data.source}` : "Approved contact import",
-    contact_id: contactId,
-    company_id: company?.id ?? null,
+    contactId,
+    companyId: company?.id ?? null,
     source: "contact_import",
-    actor_email: input.actorEmail,
-    external_id: `row:${input.rowId}`,
+    actorEmail: input.actorEmail,
+    externalId: `row:${input.rowId}`,
     metadata: { batch_id: input.batchId, row_id: input.rowId, action: input.action, changed_fields: changedFields },
   });
-  if (activity.error && activity.error.code !== "23505") throw new Error(activity.error.message);
 
   await recordAudit(supabase, {
     actorEmail: input.actorEmail,

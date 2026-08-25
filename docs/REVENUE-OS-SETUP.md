@@ -25,8 +25,18 @@ The admin Setup Center at `/admin/setup` is the live source of truth. It checks 
 19. `migrations/20260817-resend-webhooks.sql`
 20. `migrations/20260817-campaign-stop-claims.sql`
 21. `migrations/20260817-campaign-stop-claims-lock-order.sql`
+22. `migrations/20260819-campaign-send-attempts.sql`
+23. `migrations/20260819-stale-claim-recovery.sql`
+24. `migrations/20260820-agent-run-partial.sql`
+25. `migrations/20260820-notification-dedupe.sql`
+26. `migrations/20260820-responder-policy.sql`
+27. `migrations/20260823-command-center-scheduler.sql`
+28. `migrations/20260823-remove-legacy-job-claim-overload.sql`
+29. `migrations/20260824-ai-command-runtime.sql`
 
 The Revenue OS migrations are idempotent. The core migration preserves legacy tables and creates the canonical operating model. The Feature Board migration creates the delivery roadmap. First-party analytics adds anonymous event storage. Money-first outreach adds campaign send idempotency and unguessable unsubscribe tokens. Email Studio adds protected draft and published template revisions. Contact Import adds review batches, row receipts, immutable events, and an atomic digest-bound execution claim.
+
+The AI command runtime migration adds founder-owned conversation history, replay-safe client message IDs, and run linkage for provider, tool-pack, duration, and conversation observability. Apply it before enabling `/admin/ai`; until then the command UI fails closed with a setup message and no schema is created from a request path.
 
 Agents apply migrations directly with `npm run db:migrate -- <migration.sql>` and
 verify the resulting objects through the service role. The command is fixed to
@@ -49,6 +59,21 @@ by Revenue OS cron and on-demand synchronization. A job key can have only one
 active owner; a repeated deterministic claim key returns its existing receipt
 instead of running again. New scheduled work must use `withJobRun` from
 `src/lib/revenue-os/runs.ts`, never a route-local lock or blind retry.
+
+`migrations/20260823-command-center-scheduler.sql` enables Supabase Cron and
+`pg_net` as a cadence and wake-up adapter. It schedules a read-only system-health
+snapshot every 15 minutes. The database never owns health rules or automation
+logic: it calls `/api/cron/system-health-snapshot`, which authenticates with the
+same `CRON_SECRET`, claims through `withJobRun`, calls the shared health service,
+and writes the normal job receipt. After deploying that route and applying the
+migration, run `npm run scheduler:configure`; the command stores the endpoint and
+bearer credential encrypted in Supabase Vault and never prints either value.
+The configurator resolves the public canonical host before storing the endpoint.
+This is required because `pg_net` must not carry the bearer credential across a
+bare-domain redirect. The follow-up overload migration also removes the obsolete
+two-argument job-claim RPC so PostgREST has one unambiguous function to call.
+Setup remains Action or Degraded until a fresh application receipt proves the
+complete wake-up path.
 
 ## Approval-gated Contact Import
 
@@ -178,6 +203,24 @@ Add:
 - `GOOGLE_TOKEN_ENCRYPTION_KEY` — a long independent random value
 
 Then open Setup Center and choose **Connect Google Workspace**. The app requests Gmail read/send, Calendar event, and Drive read-only capabilities. Drive synchronization remains disabled until specific folder IDs are saved in Setup Center.
+
+## Integration capability catalog
+
+`/admin/integrations` is the authoritative map of live, available, planned, and
+optional-edge providers. The versioned registry in
+`src/lib/revenue-os/integration-registry.ts` declares each provider's bounded
+capabilities, minimum authentication posture, data classes, transports, cost
+envelope, operating limits, and ownership guardrail. The read model in
+`src/lib/revenue-os/integrations.ts` combines that policy with live connection,
+source-run, job-run, webhook, schema-verification, message, analytics, and AI-run
+receipts.
+
+An environment variable or connected OAuth row can make a capability available
+for testing, but cannot make it Ready. Ready requires successful behavioral
+evidence within the capability's freshness window. Missing receipt tables,
+missing scopes, revoked connections, failed events, or stale evidence remain
+visible as degraded. Providers labeled Planned or Edge are roadmap contracts,
+not installed integrations and not permission to connect a new external system.
 
 ## Optional Revenue copilot
 

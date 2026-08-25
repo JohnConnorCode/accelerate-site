@@ -209,6 +209,137 @@ export async function openRouterChat(input: OpenRouterRequest): Promise<OpenRout
   throw lastError ?? new OpenRouterError("OpenRouter request failed", 502);
 }
 
+type OpenRouterStreamChunk = {
+  id?: string;
+  model?: string;
+  choices?: Array<{
+    finish_reason?: string | null;
+    delta?: {
+      content?: string | null;
+      tool_calls?: Array<{
+        index: number;
+        id?: string;
+        type?: "function";
+        function?: { name?: string; arguments?: string };
+      }>;
+    };
+  }>;
+  usage?: OpenRouterUsage;
+};
+
+/**
+ * Stream a tool-capable chat completion while reconstructing the same response
+ * shape consumed by the bounded agent loop. Text deltas are observable, but
+ * tool arguments stay server-side until the complete validated call exists.
+ */
+export async function openRouterChatStream(
+  input: OpenRouterRequest,
+  onTextDelta: (delta: string) => void,
+): Promise<OpenRouterResponse> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 45_000);
+  const model = getOpenRouterModel(input.model);
+  const fallbackModel = getOpenRouterFallbackModel();
+  const startedAt = Date.now();
+  try {
+    const response = await fetch(OPENROUTER_URL, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({
+        model,
+        ...(fallbackModel && fallbackModel !== model ? { models: [model, fallbackModel], route: "fallback" } : {}),
+        messages: input.messages,
+        max_tokens: Math.min(Math.max(input.maxTokens ?? 1200, 1), 8000),
+        temperature: input.temperature ?? 0.2,
+        ...(input.tools?.length ? { tools: input.tools, tool_choice: "auto" } : {}),
+        stream: true,
+        stream_options: { include_usage: true },
+      }),
+      signal: combineSignals(controller.signal, input.signal),
+    });
+    const requestId = response.headers.get("x-request-id");
+    if (!response.ok || !response.body) {
+      const payload = await response.json().catch(() => null);
+      throw new OpenRouterError(boundedProviderMessage(payload), response.status || 502, requestId);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let id = requestId || "streamed-openrouter-response";
+    let resolvedModel = model;
+    let content = "";
+    let finishReason: string | null = null;
+    let usage: OpenRouterUsage = {};
+    const calls = new Map<number, OpenRouterToolCall>();
+
+    const consume = (block: string) => {
+      for (const line of block.split(/\r?\n/)) {
+        if (!line.startsWith("data:")) continue;
+        const raw = line.slice(5).trim();
+        if (!raw || raw === "[DONE]") continue;
+        let chunk: OpenRouterStreamChunk;
+        try { chunk = JSON.parse(raw) as OpenRouterStreamChunk; }
+        catch { continue; }
+        if (chunk.id) id = chunk.id;
+        if (chunk.model) resolvedModel = chunk.model;
+        if (chunk.usage) usage = chunk.usage;
+        const choice = chunk.choices?.[0];
+        if (choice?.finish_reason) finishReason = choice.finish_reason;
+        const delta = choice?.delta;
+        if (delta?.content) {
+          content += delta.content;
+          onTextDelta(delta.content);
+        }
+        for (const piece of delta?.tool_calls ?? []) {
+          const current = calls.get(piece.index) ?? {
+            id: piece.id || `tool-${piece.index}`,
+            type: "function" as const,
+            function: { name: "", arguments: "" },
+          };
+          if (piece.id) current.id = piece.id;
+          if (piece.function?.name) current.function.name += piece.function.name;
+          if (piece.function?.arguments) current.function.arguments += piece.function.arguments;
+          calls.set(piece.index, current);
+        }
+      }
+    };
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const blocks = buffer.split(/\r?\n\r?\n/);
+      buffer = blocks.pop() ?? "";
+      for (const block of blocks) consume(block);
+    }
+    if (buffer.trim()) consume(buffer);
+
+    return {
+      id,
+      model: resolvedModel,
+      usage,
+      choices: [{
+        finish_reason: finishReason,
+        message: {
+          role: "assistant",
+          content: content || null,
+          ...(calls.size ? { tool_calls: [...calls.entries()].sort(([a], [b]) => a - b).map(([, call]) => call) } : {}),
+        },
+      }],
+    };
+  } catch (error) {
+    if (error instanceof OpenRouterError) throw error;
+    if (error instanceof Error && error.name === "AbortError") {
+      if (input.signal?.aborted) throw new OpenRouterError("OpenRouter request was cancelled", 499);
+      throw new OpenRouterError(`OpenRouter timed out after ${Date.now() - startedAt}ms`, 504);
+    }
+    throw new OpenRouterError(error instanceof Error ? error.message.slice(0, 500) : "OpenRouter stream failed", 502);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 export async function openRouterJson<T>(input: OpenRouterRequest & {
   schemaName: string;
   schema: Record<string, unknown>;

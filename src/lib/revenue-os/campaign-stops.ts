@@ -1,6 +1,8 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { createHash } from "node:crypto";
 import { recordAudit } from "./audit";
+import { recordActivity } from "./activities";
 
 export type CampaignStopReason =
   | "public_unsubscribe"
@@ -76,19 +78,20 @@ export async function stopCampaignMemberships(supabase: SupabaseClient, input: {
   const stopped = (data ?? []) as Array<{ member_id: string; campaign_id: string }>;
 
   const occurredAt = new Date().toISOString();
-  const activityKey = input.sourceReceiptId ? `campaign-stop:${input.sourceReceiptId}` : null;
+  const stoppedKey = createHash("sha256").update(stopped.map((member) => member.member_id).sort().join(",")).digest("hex").slice(0, 20);
+  const activityKey = input.sourceReceiptId ? `campaign-stop:${input.sourceReceiptId}` : `campaign-stop:${input.contactId}:${input.campaignId ?? "all"}:${input.reason}:${stoppedKey}`;
   if (stopped.length) {
-    const { error: activityError } = await supabase.from("activities").insert({
-      activity_type: "campaign_stopped",
+    await recordActivity(supabase, {
+      activityType: "campaign_stopped",
       title: "Campaign follow-up stopped",
       summary: `${stopped.length} pending campaign membership${stopped.length === 1 ? "" : "s"} stopped: ${input.reason.replaceAll("_", " ")}.`,
-      contact_id: input.contactId,
-      campaign_id: input.campaignId ?? null,
+      contactId: input.contactId,
+      campaignId: input.campaignId ?? null,
       source: input.source,
-      external_id: activityKey,
-      occurred_at: occurredAt,
+      externalId: activityKey,
+      occurredAt,
+      metadata: { reason: input.reason, stopped_member_ids: stopped.map((member) => member.member_id) },
     });
-    if (activityError && activityError.code !== "23505") throw new Error(activityError.message);
   }
   await recordAudit(supabase, {
     actorEmail: input.actorEmail,

@@ -24,12 +24,14 @@ export type AgentRunOutcome = "completed" | "partial" | "failed" | "cancelled";
 export interface AgentRunHandle {
   /** Null when the ledger write failed; every helper below then no-ops. */
   id: string | null;
+  startedAt: number;
 }
 
 export async function startAgentRun(
   supabase: SupabaseClient,
-  input: { surface: string; model: string; actorEmail?: string | null; promptPreview?: string },
+  input: { surface: string; model: string; actorEmail?: string | null; promptPreview?: string; conversationId?: string | null; provider?: string; toolPack?: string },
 ): Promise<AgentRunHandle> {
+  const startedAt = Date.now();
   const { data, error } = await supabase
     .from("agent_runs")
     .insert({
@@ -37,15 +39,18 @@ export async function startAgentRun(
       actor_email: input.actorEmail ?? null,
       model: input.model,
       prompt_preview: input.promptPreview?.slice(0, 500) ?? null,
+      ...(input.conversationId ? { conversation_id: input.conversationId } : {}),
+      ...(input.provider ? { provider: input.provider } : {}),
+      ...(input.toolPack ? { tool_pack: input.toolPack } : {}),
     })
     .select("id")
     .single();
 
   if (error || !data) {
     console.error(`[agent-trace] could not open a run for ${input.surface}:`, error?.message);
-    return { id: null };
+    return { id: null, startedAt };
   }
-  return { id: data.id as string };
+  return { id: data.id as string, startedAt };
 }
 
 export async function finishAgentRun(
@@ -64,6 +69,7 @@ export async function finishAgentRun(
       input_tokens: detail.inputTokens ?? null,
       output_tokens: detail.outputTokens ?? null,
       ...(detail.toolNames ? { tool_names: [...new Set(detail.toolNames)] } : {}),
+      duration_ms: Math.max(0, Date.now() - run.startedAt),
       finished_at: new Date().toISOString(),
     })
     .eq("id", run.id);

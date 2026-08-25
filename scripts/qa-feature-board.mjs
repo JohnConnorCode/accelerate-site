@@ -78,8 +78,9 @@ await desktopPage.waitForTimeout(650);
 const pageTitleState = await desktopPage.getByRole("heading", { name: "Feature Board", exact: true }).evaluate((node) => ({ box: node.getBoundingClientRect().toJSON(), opacity: getComputedStyle(node).opacity, visibility: getComputedStyle(node).visibility }));
 if (pageTitleState.visibility !== "visible" || Number(pageTitleState.opacity) < 0.99 || pageTitleState.box.bottom <= 0) throw new Error(`Feature Board title did not settle visibly: ${JSON.stringify(pageTitleState)}`);
 if (liveBoard) {
-  await desktopPage.getByLabel("Filter by label").selectOption("phase-0");
-  await desktopPage.getByText("Verify the production Revenue OS schema", { exact: true }).waitFor();
+  await desktopPage.getByLabel("Filter by milestone").selectOption("milestone:now");
+  await desktopPage.getByLabel("Filter by category").selectOption("category:platform");
+  await desktopPage.getByText("Finish Setup Center as the operational control plane", { exact: true }).waitFor();
   await desktopPage.screenshot({ path: `${outDir}/feature-board-live-desktop.png`, fullPage: true });
 } else {
   await desktopPage.screenshot({ path: `${outDir}/feature-board-desktop.png`, fullPage: true });
@@ -117,8 +118,9 @@ await mobilePage.goto(`${base}/admin/features`, { waitUntil: "networkidle", time
 await mobilePage.getByRole("heading", { name: "Feature Board", exact: true }).waitFor();
 await mobilePage.waitForTimeout(650);
 if (liveBoard) {
-  await mobilePage.getByLabel("Filter by label").selectOption("phase-0");
-  await mobilePage.getByText("Verify the production Revenue OS schema", { exact: true }).waitFor();
+  await mobilePage.getByLabel("Filter by milestone").selectOption("milestone:now");
+  await mobilePage.getByLabel("Filter by category").selectOption("category:platform");
+  await mobilePage.getByText("Finish Setup Center as the operational control plane", { exact: true }).waitFor();
   await mobilePage.screenshot({ path: `${outDir}/feature-board-live-mobile.png`, fullPage: true });
 } else {
   await mobilePage.screenshot({ path: `${outDir}/feature-board-mobile.png`, fullPage: true });

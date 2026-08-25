@@ -3,6 +3,7 @@ export const revalidate = 3600;
 import type { MetadataRoute } from "next";
 import { getAllArticles, getAllCategories, getAllTags } from "@/lib/mdx";
 import { verticals } from "@/content/verticals";
+import { publicWorkProjects } from "@/content/work";
 
 const BASE_URL = "https://www.acceleratewith.us";
 
@@ -18,6 +19,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/roofing", priority: 0.9, freq: "monthly", lastMod: "2026-08-16" },
     { path: "/resources", priority: 0.7, freq: "monthly", lastMod: "2026-02-01" },
     { path: "/industries", priority: 0.7, freq: "monthly", lastMod: LAST_CONTENT_UPDATE },
+    { path: "/work", priority: 0.85, freq: "monthly", lastMod: LAST_CONTENT_UPDATE },
+    ...publicWorkProjects.map((project) => ({ path: `/work/${project.slug}`, priority: 0.75, freq: "monthly" as const, lastMod: LAST_CONTENT_UPDATE })),
     // Derived from the vertical manifest rather than listed by hand. The
     // hardcoded version silently omitted a live landing page, so a new
     // industry could ship and never be discoverable.

@@ -7,9 +7,9 @@ import { generateFaqJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 export const metadata = seoMetadata({
   title: "Command Center",
   description:
-    "A custom AI system that reads your calls, email, and calendar, then drafts the follow-ups, updates your pipeline, and books the next step. Nothing leaves until you approve it. Built around your business and installed running.",
+    "One integrated solution Accelerate can build when your business needs shared context, connected workflows, and one operating layer.",
   ogTitle: "Command Center",
-  ogSubtitle: "It runs your business. You approve the work.",
+  ogSubtitle: "An integrated operating layer, when that is the right solution",
   path: "/command-center",
 });
 

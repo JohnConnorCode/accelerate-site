@@ -1,7 +1,7 @@
 "use client";
 
 import { tenant } from "@/config/tenant";
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import {
   Check,
   ChevronDown,
@@ -87,6 +87,7 @@ export default function CampaignsPage() {
   const [saving, setSaving] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [error, setError] = useState("");
+  const deepLinkHandled = useRef(false);
 
   const load = useCallback(async () => {
     setError("");
@@ -106,7 +107,7 @@ export default function CampaignsPage() {
     void load();
   }, [load]);
 
-  const loadPreview = async (id: string) => {
+  const loadPreview = useCallback(async (id: string) => {
     setSaving(true);
     setError("");
     try {
@@ -124,7 +125,15 @@ export default function CampaignsPage() {
     } finally {
       setSaving(false);
     }
-  };
+  }, []);
+  useEffect(() => {
+    const requestedCampaign = new URLSearchParams(window.location.search).get("campaign")?.trim();
+    if (!requestedCampaign || !data || deepLinkHandled.current) return;
+    if (data.campaigns.some((campaign) => campaign.id === requestedCampaign)) {
+      deepLinkHandled.current = true;
+      void loadPreview(requestedCampaign);
+    }
+  }, [data, loadPreview]);
   const campaignAction = async (
     id: string,
     action: "activate" | "pause" | "run",

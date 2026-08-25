@@ -98,8 +98,12 @@ export interface OperatorQueueItem {
   summary: string;
   urgency: "critical" | "high" | "normal" | "low";
   dueAt: string | null;
+  /** When the source fact was last observed; never inferred from the deadline. */
+  sourceTimestamp: string;
   /** A concise, evidence-based explanation for why this item is ranked here. */
   priorityReason: string;
+  /** The concrete, safe action the operator can take from this item. */
+  recommendedNextAction: string;
   href: string;
   entityType?: string;
   entityId?: string;

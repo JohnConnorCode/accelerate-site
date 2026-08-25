@@ -29,7 +29,7 @@ export function FinalCta() {
           </span>
         </h2>
         <Reveal rv as="p" className="lede" delay={0.13}>
-          Thirty minutes with the people who would build it. You leave with the plan in writing. Yours to keep either way.
+          Thirty minutes with the people who would advise, build, or run the work. You leave with the recommendation in writing. Yours to keep either way.
         </Reveal>
         <Reveal rv delay={0.19}>
           <Link

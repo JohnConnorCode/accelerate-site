@@ -10,32 +10,32 @@ export default function robots(): MetadataRoute.Robots {
       },
       {
         userAgent: "GPTBot",
-        allow: ["/learn/", "/services", "/industries/", "/about"],
+        allow: ["/learn/", "/services", "/industries/", "/work", "/about"],
         disallow: "/packages",
       },
       {
         userAgent: "Claude-Web",
-        allow: ["/learn/", "/services", "/industries/", "/about"],
+        allow: ["/learn/", "/services", "/industries/", "/work", "/about"],
         disallow: "/packages",
       },
       {
         userAgent: "PerplexityBot",
-        allow: ["/learn/", "/services", "/industries/", "/about"],
+        allow: ["/learn/", "/services", "/industries/", "/work", "/about"],
         disallow: "/packages",
       },
       {
         userAgent: "GoogleOther",
-        allow: ["/learn/", "/services", "/industries/", "/about"],
+        allow: ["/learn/", "/services", "/industries/", "/work", "/about"],
         disallow: "/packages",
       },
       {
         userAgent: "Applebot-Extended",
-        allow: ["/learn/", "/services", "/industries/", "/about"],
+        allow: ["/learn/", "/services", "/industries/", "/work", "/about"],
         disallow: "/packages",
       },
       {
         userAgent: "ClaudeBot",
-        allow: ["/learn/", "/services", "/industries/", "/about"],
+        allow: ["/learn/", "/services", "/industries/", "/work", "/about"],
         disallow: "/packages",
       },
     ],

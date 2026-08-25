@@ -2,14 +2,13 @@ import { seoMetadata } from "@/lib/og";
 import { RoofingCampaignPage } from "@/components/roofing/RoofingCampaignPage";
 
 export const metadata = seoMetadata({
-  title: "Roofing Revenue Leak Audit | Accelerate",
-  description: "Find where roofing inquiries, estimates, and follow-up are leaking booked work. Free 30-minute audit for established roofing and exterior companies.",
+  title: "AI Strategy for Roofing Operations | Accelerate",
+  description: "Find where AI and automation can improve inquiry handling, estimates, scheduling, follow-up, reporting, and office operations for a roofing company.",
   ogTitle: "Your next roofing job may already be in the pipeline",
-  ogSubtitle: "A free revenue leak audit for roofing and exterior operators",
+  ogSubtitle: "A focused AI strategy session for roofing and exterior operators",
   path: "/roofing",
 });
 
 export default function RoofingPage() {
   return <RoofingCampaignPage />;
 }
-

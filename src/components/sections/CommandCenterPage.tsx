@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
+import Link from "next/link";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import { BookCallButton } from "@/components/v2/studio/primitives";
 import { Reveal, useRv } from "@/components/home/reveal";
@@ -116,6 +117,9 @@ function Hero() {
             </h1>
             <div className={`rv${loaded ? " in" : ""} flex flex-col gap-5`} style={{ "--d": ".5s", marginTop: 26 } as CSSProperties}>
               <p className="lede text-balance">
+                The Command Center is one integrated solution we build for businesses that need shared context and connected execution. It is not a required starting point or the right answer for every team.
+              </p>
+              <p className="lede text-balance">
                 It captures communications, advances the pipeline, drafts follow-ups, and files meeting notes before you have opened the laptop.
               </p>
               <p className="lede text-balance hidden sm:block">
@@ -164,16 +168,16 @@ function Problem() {
       <div className="wrap">
         <div className="shead">
           <Reveal rv as="p" className="label eyebrow-anim">
-            The ceiling
+            When it fits
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              When everything relies on you,
+              Use one operating layer
               <br />
-              you become <span className="it">the ceiling.</span>
+              when the work <span className="it">needs one.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              The constraint is rarely demand. It is the hours lost to admin, scattered notes, forgotten follow-ups, and coordination. The system takes that layer. Typical is 10 hours a week per person, back.
+              A focused workflow is enough for many teams. The Command Center fits when communications, records, approvals, and recurring work need durable context across the operation.
             </Reveal>
           </div>
         </div>
@@ -235,6 +239,9 @@ function Demo() {
         </div>
         <Reveal rv as="div" delay={0.1} style={{ marginTop: "clamp(32px,4vw,54px)" }}>
           <CommandCenterDemo />
+          <div className="mt-4 flex justify-end">
+            <Link href="/command-center/demo" className="inline-flex min-h-11 items-center rounded-xl bg-[var(--fg)] px-4 text-xs font-semibold text-[var(--bg)] transition-[opacity,transform] hover:opacity-80 active:scale-[0.96]">Open the full-screen demo</Link>
+          </div>
         </Reveal>
       </div>
     </section>

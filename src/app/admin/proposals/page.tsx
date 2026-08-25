@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -53,6 +53,7 @@ export default function ProposalsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
   const [generating] = useState(false);
+  const deepLinkHandled = useRef(false);
 
   const fetchProposals = useCallback(async () => {
     try {
@@ -75,6 +76,16 @@ export default function ProposalsPage() {
   useEffect(() => {
     fetchProposals();
   }, [fetchProposals]);
+
+  useEffect(() => {
+    const requestedId = new URLSearchParams(window.location.search).get("proposal");
+    if (!requestedId || deepLinkHandled.current) return;
+    const requested = proposals.find((proposal) => proposal.id === requestedId);
+    if (requested) {
+      deepLinkHandled.current = true;
+      setSelectedProposal(requested);
+    }
+  }, [proposals]);
 
   const handleSave = async (updates: Record<string, unknown>) => {
     try {

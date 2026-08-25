@@ -5,6 +5,7 @@ import { verticals } from "@/content/verticals";
 import { services } from "@/content/services";
 import { packages } from "@/content/packages";
 import { changelogEntries } from "@/content/changelog";
+import { publicWorkProjects } from "@/content/work";
 
 /**
  * One index for site search.
@@ -14,7 +15,7 @@ import { changelogEntries } from "@/content/changelog";
  * for a day while being reachable from nowhere, because three separate hand
  * written lists all had to be remembered. Nothing here is hand written.
  */
-export type SearchGroup = "Articles" | "Industries" | "Services" | "Packages" | "Pages" | "Changelog";
+export type SearchGroup = "Articles" | "Industries" | "Services" | "Packages" | "Work" | "Pages" | "Changelog";
 
 export interface SearchEntry {
   id: string;
@@ -30,11 +31,11 @@ export interface SearchEntry {
 
 /** Pages with no content collection behind them. */
 const STATIC_PAGES: Array<Omit<SearchEntry, "group">> = [
-  { id: "page-home", title: "Home", description: "The embedded AI operations team that books more work and keeps every customer followed up.", href: "/", keywords: ["home", "start", "accelerate"] },
-  { id: "page-services", title: "Services", description: "What we build and run for you across the full revenue lifecycle.", href: "/services", keywords: ["what you do", "offering", "capabilities"] },
-  { id: "page-command-center", title: "Command Center", description: "The operating surface we build and run alongside your team.", href: "/command-center", keywords: ["dashboard", "admin", "operations", "software"] },
+  { id: "page-home", title: "Home", description: "AI strategy, custom solutions, managed execution, training, and optimization built around your business.", href: "/", keywords: ["home", "start", "accelerate"] },
+  { id: "page-services", title: "Services", description: "Consulting, custom systems, integrations, execution, training, and ongoing improvement.", href: "/services", keywords: ["what you do", "offering", "capabilities"] },
+  { id: "page-command-center", title: "Command Center", description: "One integrated operating solution for businesses that need shared context and connected workflows.", href: "/command-center", keywords: ["dashboard", "admin", "operations", "software"] },
   { id: "page-packages", title: "Packages", description: "How engagements are scoped and what each level includes.", href: "/packages", keywords: ["pricing", "cost", "how much", "plans", "tiers"] },
-  { id: "page-results", title: "Results", description: "Work we have done and what it changed.", href: "/results", keywords: ["case studies", "clients", "proof", "portfolio"] },
+  { id: "page-work", title: "Selected Work", description: "Systems, products, operations, and growth work by the team behind this site.", href: "/work", keywords: ["case studies", "proof", "portfolio", "projects"] },
   { id: "page-learn", title: "Learn", description: "Guides on AI operations, automation, and revenue systems.", href: "/learn", keywords: ["blog", "articles", "guides", "library", "resources"] },
   { id: "page-about", title: "About", description: "Who we are and how we work.", href: "/about", keywords: ["team", "founder", "story", "who"] },
   { id: "page-contact", title: "Contact", description: "Book a free strategy session or send us a note.", href: "/contact", keywords: ["book", "call", "demo", "talk", "get in touch", "schedule", "meeting"] },
@@ -99,6 +100,10 @@ export function buildSearchIndex(): SearchEntry[] {
       group: "Packages",
       keywords: ["package", "pricing", "plan", pkg.tagline, pkg.name],
     });
+  }
+
+  for (const project of publicWorkProjects) {
+    entries.push({ id: `work-${project.slug}`, title: project.name, description: project.cardDescription, href: `/work/${project.slug}`, group: "Work", keywords: ["work", "case study", "portfolio", project.category, ...project.capabilities] });
   }
 
   for (const page of STATIC_PAGES) {

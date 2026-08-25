@@ -7,7 +7,7 @@ export async function GET() {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
   const supabase = createServiceRoleClient();
-  const { data: runs, error } = await supabase.from("agent_runs").select("id,surface,model,status,tool_names,input_tokens,output_tokens,result_preview,error,started_at,finished_at").order("started_at", { ascending: false }).limit(50);
+  const { data: runs, error } = await supabase.from("agent_runs").select("id,surface,provider,model,tool_pack,conversation_id,status,tool_names,input_tokens,output_tokens,duration_ms,result_preview,error,started_at,finished_at").order("started_at", { ascending: false }).limit(50);
   if (error) {
     if (isMissingRevenueSchema(error)) return NextResponse.json({ schemaReady: false, runs: [], feedback: { helpful: 0, notHelpful: 0 } });
     return NextResponse.json({ error: "Could not load AI operations" }, { status: 500 });

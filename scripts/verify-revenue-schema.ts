@@ -10,6 +10,10 @@ const shouldRecord = process.argv.includes("--record");
 const checkedAt = new Date().toISOString();
 const migrationFor = (table: string) => table === "schema_verification_runs"
   ? "migrations/20260817-schema-verification.sql"
+  : table === "ai_conversations" || table === "ai_messages" || table === "agent_runs"
+    ? "migrations/20260824-ai-command-runtime.sql"
+    : table === "agent_run_events"
+      ? "migrations/20260816-revenue-os.sql"
   : table === "job_runs"
     ? "migrations/20260817-atomic-job-claims.sql"
     : table === "campaign_members"
@@ -21,8 +25,8 @@ const requirements: Requirement[] = [
     ...columns.map((column) => ({ kind: "column" as const, label: `public.${table}.${column}`, migration: migrationFor(table), sql: `SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '${table}' AND column_name = '${column}')` })),
   ]),
   ...REVENUE_SCHEMA_CONSTRAINTS.map(({ table, name }) => ({ kind: "constraint" as const, label: `public.${table}.${name}`, migration: migrationFor(table), sql: `SELECT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = '${name}' AND conrelid = 'public.${table}'::regclass)` })),
-  ...REVENUE_SCHEMA_INDEXES.map((name) => ({ kind: "index" as const, label: `public.${name}`, migration: "migrations/20260816-revenue-os.sql", sql: `SELECT to_regclass('public.${name}') IS NOT NULL` })),
-  ...REVENUE_SCHEMA_FUNCTIONS.map((name) => ({ kind: "function" as const, label: name, migration: name.includes("stop_campaign") ? "migrations/20260817-campaign-stop-claims.sql" : name.includes("claim_campaign_member") ? "migrations/20260817-atomic-campaign-member-claims.sql" : name.includes("claim_revenue_job") ? "migrations/20260817-atomic-job-claims.sql" : "migrations/20260816-revenue-os.sql", sql: `SELECT to_regprocedure('${name}') IS NOT NULL` })),
+  ...REVENUE_SCHEMA_INDEXES.map((name) => ({ kind: "index" as const, label: `public.${name}`, migration: name.includes("ai_") || name === "idx_agent_runs_conversation" ? "migrations/20260824-ai-command-runtime.sql" : "migrations/20260816-revenue-os.sql", sql: `SELECT to_regclass('public.${name}') IS NOT NULL` })),
+  ...REVENUE_SCHEMA_FUNCTIONS.map((name) => ({ kind: "function" as const, label: name, migration: name.includes("stop_campaign") ? "migrations/20260817-campaign-stop-claims.sql" : name.includes("claim_campaign_member") ? "migrations/20260817-atomic-campaign-member-claims.sql" : name.includes("claim_revenue_job") ? "migrations/20260819-stale-claim-recovery.sql" : "migrations/20260816-revenue-os.sql", sql: `SELECT to_regprocedure('${name}') IS NOT NULL` })),
   ...REVENUE_SCHEMA_POLICIES.map(({ table, name }) => ({ kind: "policy" as const, label: `public.${table}.${name}`, migration: "migrations/20260816-revenue-os.sql", sql: `SELECT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = '${table}' AND policyname = '${name}')` })),
 ];
 

@@ -4,6 +4,7 @@ import { recordAudit } from "./audit";
 import { resolveOrCreateIdentity } from "./identity";
 import { LEGACY_STAGE_MAP, REVENUE_STAGE_META, REVENUE_STAGES, type RevenueStage } from "./types";
 import { normalizeEmail } from "./db";
+import { recordActivity } from "./activities";
 
 const TRANSITIONS: Record<RevenueStage, readonly RevenueStage[]> = {
   new: ["contacted", "qualified", "nurture", "lost"],
@@ -93,26 +94,40 @@ export async function createOpportunity(
   await Promise.all([
     recordAudit(supabase, { actorEmail: input.actorEmail, action: "opportunity.created", entityType: "opportunity", entityId: data.id, after: data }),
     supabase.from("stage_events").insert({ opportunity_id: data.id, from_stage: null, to_stage: "new", source, actor_email: input.actorEmail, reason: "Opportunity created" }),
-    supabase.from("activities").insert({ activity_type: "opportunity_created", title: `Opportunity created: ${data.name || identity.company.name}`, opportunity_id: data.id, contact_id: identity.contact.id, company_id: identity.company.id, source, actor_email: input.actorEmail, external_id: `opportunity:${data.id}:created`, metadata: { stage: "new", estimated_value: data.estimated_value } }),
+    recordActivity(supabase, { activityType: "opportunity_created", title: `Opportunity created: ${data.name || identity.company.name}`, opportunityId: data.id, contactId: identity.contact.id, companyId: identity.company.id, source, actorEmail: input.actorEmail, externalId: `opportunity:${data.id}:created`, metadata: { stage: "new", estimated_value: data.estimated_value } }),
   ]);
   return data;
 }
 
 export async function updateOpportunityDetails(
   supabase: SupabaseClient,
-  input: { id: string; actorEmail: string; nextAction?: string | null; nextActionAt?: string | null; estimatedValue?: number | null },
+  input: { id: string; actorEmail: string; nextAction?: string | null; nextActionAt?: string | null; estimatedValue?: number | null; expectedUpdatedAt?: string },
 ) {
   const allowed: Record<string, unknown> = {};
-  if (input.nextAction !== undefined) allowed.next_action = input.nextAction;
-  if (input.nextActionAt !== undefined) allowed.next_action_at = input.nextActionAt;
-  if (input.estimatedValue !== undefined) allowed.estimated_value = Math.max(0, input.estimatedValue || 0);
+  if (input.nextAction !== undefined) {
+    const value = input.nextAction?.trim() || null;
+    if (value && value.length > 500) throw new Error("Next action is limited to 500 characters");
+    allowed.next_action = value;
+  }
+  if (input.nextActionAt !== undefined) {
+    if (input.nextActionAt && Number.isNaN(Date.parse(input.nextActionAt))) throw new Error("Next action time is invalid");
+    allowed.next_action_at = input.nextActionAt ? new Date(input.nextActionAt).toISOString() : null;
+  }
+  if (input.estimatedValue !== undefined) {
+    const value = input.estimatedValue ?? 0;
+    if (!Number.isFinite(value) || value < 0 || value > 1_000_000_000) throw new Error("Estimated value must be between 0 and 1,000,000,000");
+    allowed.estimated_value = value;
+  }
   if (!Object.keys(allowed).length) throw new Error("No valid updates supplied");
 
   const { data: before, error: beforeError } = await supabase.from("opportunities").select("*").eq("id", input.id).maybeSingle();
   if (beforeError) throw new Error(beforeError.message);
   if (!before) throw new Error("Opportunity not found");
-  const { data, error } = await supabase.from("opportunities").update(allowed).eq("id", input.id).select("*").single();
+  let update = supabase.from("opportunities").update(allowed).eq("id", input.id);
+  if (input.expectedUpdatedAt) update = update.eq("updated_at", input.expectedUpdatedAt);
+  const { data, error } = await update.select("*").maybeSingle();
   if (error) throw new Error(error.message);
+  if (!data) throw new Error("The opportunity changed while you were editing it. Refresh and try again.");
   await recordAudit(supabase, { actorEmail: input.actorEmail, action: "opportunity.updated", entityType: "opportunity", entityId: input.id, before, after: data });
   return data;
 }
@@ -179,6 +194,17 @@ export async function transitionOpportunity(
       before: current,
       after: updated,
       metadata: { reason: input.reason ?? null },
+    }),
+    recordActivity(supabase, {
+      activityType: "opportunity_stage_changed",
+      title: `Opportunity moved to ${REVENUE_STAGE_META[canonicalTo].label}`,
+      summary: input.reason?.trim() || null,
+      opportunityId: input.id,
+      source: input.source ?? "admin",
+      actorEmail: input.actorEmail,
+      externalId: `opportunity:${input.id}:stage:${canonicalFrom}:${canonicalTo}:${now}`,
+      metadata: { from_stage: canonicalFrom, to_stage: canonicalTo, loss_reason: input.lossReason?.trim() || null },
+      occurredAt: now,
     }),
   ]);
 

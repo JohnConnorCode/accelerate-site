@@ -60,9 +60,15 @@ import { cn } from "@/lib/utils";
 
 interface BoardResponse { schemaReady: boolean; features: FeatureRequest[] }
 
-// Cards on the current milestone carry this label from the managed manifest
-// (scripts/feature-backlog-data.mjs). Everything else is labelled `horizon`.
-const DEFAULT_LABEL_FILTER = "loop-one";
+const DEFAULT_MILESTONE_FILTER = "milestone:now";
+const MILESTONE_OPTIONS = ["milestone:now", "milestone:next", "milestone:later", "milestone:done"] as const;
+
+function taxonomyLabel(label: string) {
+  const [dimension, value] = label.split(":", 2);
+  if (!value) return label.replaceAll("-", " ");
+  if (dimension === "milestone") return value.charAt(0).toUpperCase() + value.slice(1);
+  return value.replaceAll("-", " ");
+}
 
 const priorityMeta: Record<FeaturePriority, { label: string; tone: string; dot: string }> = {
   urgent: { label: "Urgent", tone: "bg-rose-500/10 text-rose-700 dark:text-rose-300", dot: "bg-rose-500" },
@@ -142,8 +148,7 @@ function FeatureCard({ feature, disabled, onOpen, overlay = false }: { feature: 
           <span className={cn("size-1.5 rounded-full", priorityMeta[feature.priority].dot)} />{priorityMeta[feature.priority].label}
         </span>
         {feature.seed_key && <span title="Managed by scripts/feature-backlog-data.mjs" className="inline-flex min-h-6 items-center gap-1 rounded-full bg-black/[0.045] px-2 text-[10px] font-medium text-[var(--admin-muted)] dark:bg-white/[0.06]"><Lock className="size-2.5" />Managed</span>}
-        {feature.labels.slice(0, 3).map((label) => <span key={label} className="inline-flex min-h-6 items-center rounded-full bg-black/[0.045] px-2 text-[10px] font-medium text-[var(--admin-muted)] dark:bg-white/[0.06]">{label}</span>)}
-        {feature.labels.length > 3 && <span className="font-mono text-[10px] tabular-nums text-[var(--admin-muted)]">+{feature.labels.length - 3}</span>}
+        {feature.labels.filter((label) => label.startsWith("category:") || label.startsWith("capability:")).map((label) => <span key={label} title={label} className="inline-flex min-h-6 items-center rounded-full bg-black/[0.045] px-2 text-[10px] font-medium capitalize text-[var(--admin-muted)] dark:bg-white/[0.06]">{taxonomyLabel(label)}</span>)}
       </div>
       {(feature.owner || feature.target_date) && <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-[var(--admin-border)] pt-2.5 pl-[50px] text-[10px] text-[var(--admin-muted)]">
         {feature.owner && <span className="inline-flex items-center gap-1.5"><UserRound className="size-3" />{feature.owner}</span>}
@@ -206,7 +211,7 @@ function FeatureDialog({ feature, defaultStatus, saving, onClose, onSave, onArch
         <label className="text-xs font-semibold text-[var(--admin-ink)]">Priority<select value={form.priority} onChange={(event) => setForm({ ...form, priority: event.target.value as FeaturePriority })} className={inputClass}>{FEATURE_PRIORITIES.map((priority) => <option key={priority} value={priority}>{priorityMeta[priority].label}</option>)}</select></label>
         <label className="text-xs font-semibold text-[var(--admin-ink)]">Owner<input value={form.owner} onChange={(event) => setForm({ ...form, owner: event.target.value })} className={inputClass} placeholder="John" /></label>
         <label className="text-xs font-semibold text-[var(--admin-ink)]">Target date<input type="date" value={form.target_date} onChange={(event) => setForm({ ...form, target_date: event.target.value })} className={inputClass} /></label>
-        <label className="text-xs font-semibold text-[var(--admin-ink)] sm:col-span-2">Labels<input value={form.labels} onChange={(event) => setForm({ ...form, labels: event.target.value })} className={inputClass} placeholder="admin, revenue, integration" /><span className="admin-copy mt-1.5 block text-[10px]">Separate labels with commas. They are normalized when saved.</span></label>
+        <label className="text-xs font-semibold text-[var(--admin-ink)] sm:col-span-2">Labels<input value={form.labels} onChange={(event) => setForm({ ...form, labels: event.target.value })} className={inputClass} placeholder="category:operator, milestone:later, phase:2, capability:admin-ux" /><span className="admin-copy mt-1.5 block text-[10px]">Use the controlled category, milestone, phase, and capability dimensions. Managed-card labels come from the manifest.</span></label>
         <label className="text-xs font-semibold text-[var(--admin-ink)] sm:col-span-2">Definition of done<textarea rows={3} value={form.acceptance_criteria} onChange={(event) => setForm({ ...form, acceptance_criteria: event.target.value })} className={cn(inputClass, "min-h-24 py-3 leading-6")} placeholder="The observable result that proves this is shipped" /></label>
         <label className="text-xs font-semibold text-[var(--admin-ink)] sm:col-span-2">Internal notes<textarea rows={3} value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} className={cn(inputClass, "min-h-24 py-3 leading-6")} placeholder="Dependencies, decisions, links, or implementation notes" /></label>
       </div>
@@ -257,11 +262,9 @@ export default function FeaturesPage() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [priority, setPriority] = useState<"all" | FeaturePriority>("all");
-  // The board opens on the active milestone rather than all 90+ managed cards.
-  // This is the ordinary label filter, not a hidden view, so the selection is
-  // visible in the dropdown, one click clears it, and the existing rule that
-  // disables reordering while cards are hidden still applies.
-  const [label, setLabel] = useState(DEFAULT_LABEL_FILTER);
+  const [milestone, setMilestone] = useState<string>(DEFAULT_MILESTONE_FILTER);
+  const [category, setCategory] = useState("all");
+  const [capability, setCapability] = useState("all");
   const [openFeature, setOpenFeature] = useState<FeatureRequest | null | undefined>(undefined);
   const [newStatus, setNewStatus] = useState<FeatureStatus>("backlog");
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -282,17 +285,21 @@ export default function FeaturesPage() {
 
   const features = useMemo(() => data?.features ?? [], [data?.features]);
   const labels = useMemo(() => [...new Set(features.flatMap((feature) => feature.labels))].sort(), [features]);
+  const categories = useMemo(() => labels.filter((label) => label.startsWith("category:")), [labels]);
+  const capabilities = useMemo(() => labels.filter((label) => label.startsWith("capability:")), [labels]);
   // Never open onto an empty board: if the milestone label is not in use, show everything.
   useEffect(() => {
-    if (features.length && label === DEFAULT_LABEL_FILTER && !labels.includes(DEFAULT_LABEL_FILTER)) setLabel("all");
-  }, [features.length, label, labels]);
+    if (features.length && milestone === DEFAULT_MILESTONE_FILTER && !labels.includes(DEFAULT_MILESTONE_FILTER)) setMilestone("all");
+  }, [features.length, labels, milestone]);
   const filtered = useMemo(() => features.filter((feature) => {
     if (priority !== "all" && feature.priority !== priority) return false;
-    if (label !== "all" && !feature.labels.includes(label)) return false;
+    if (milestone !== "all" && !feature.labels.includes(milestone)) return false;
+    if (category !== "all" && !feature.labels.includes(category)) return false;
+    if (capability !== "all" && !feature.labels.includes(capability)) return false;
     const term = search.trim().toLowerCase();
     return !term || [feature.title, feature.description, feature.owner, ...feature.labels].filter(Boolean).join(" ").toLowerCase().includes(term);
-  }), [features, label, priority, search]);
-  const filtersActive = Boolean(search.trim() || priority !== "all" || label !== "all");
+  }), [capability, category, features, milestone, priority, search]);
+  const filtersActive = Boolean(search.trim() || priority !== "all" || milestone !== "all" || category !== "all" || capability !== "all");
   const activeFeature = activeId ? features.find((feature) => feature.id === activeId) ?? null : null;
 
   const byStatus = (status: FeatureStatus) => sortFeatures(filtered.filter((feature) => feature.status === status));
@@ -375,7 +382,7 @@ export default function FeaturesPage() {
 
   if (loading && !data) return <div className="grid min-h-[55vh] place-items-center"><Loader2 className="size-6 animate-spin text-[var(--admin-muted)]" /></div>;
   return <div className="space-y-6 pb-10">
-    <PageHeader title="Feature Board" subtitle="The working roadmap for what we build next. Prioritize, label, document, and drag work from backlog through verified delivery." actions={<><button type="button" onClick={() => void load()} disabled={loading} aria-label="Refresh feature board" className="grid size-11 place-items-center rounded-xl text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"><RefreshCw className={cn("size-4", loading && "animate-spin")} /></button><button type="button" onClick={() => { setNewStatus("backlog"); setOpenFeature(null); }} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]"><Plus className="size-3.5" /> New feature</button></>} />
+    <PageHeader title="Feature Board" subtitle="A dependency-ordered execution queue. Milestone says when, category says who owns it, and capability says what it changes." actions={<><button type="button" onClick={() => void load()} disabled={loading} aria-label="Refresh feature board" className="grid size-11 place-items-center rounded-xl text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"><RefreshCw className={cn("size-4", loading && "animate-spin")} /></button><button type="button" onClick={() => { setNewStatus("backlog"); setOpenFeature(null); }} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]"><Plus className="size-3.5" /> New feature</button></>} />
     {error && <AdminSurface tone="attention" className="flex items-center gap-3"><TriangleAlert className="size-5 shrink-0 text-rose-600" /><p className="text-sm text-[var(--admin-ink)]">{error}</p></AdminSurface>}
     {data && !data.schemaReady ? <RevenueSetupGate title="Activate the Feature Board" migration="migrations/20260816-feature-board.sql" detail="The migration seeds the known Revenue OS roadmap without overwriting future edits." /> : data && <>
       <section className="grid gap-3 sm:grid-cols-3">
@@ -383,8 +390,8 @@ export default function FeaturesPage() {
       </section>
       <AdminSurface padding="sm">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          <div className="relative min-w-0 flex-1"><Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-[var(--admin-muted)]" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search title, details, owner, or label" className="min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] pl-10 pr-3.5 text-sm text-[var(--admin-ink)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[var(--admin-muted)]/70 focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10" /></div>
-          <div className="flex flex-wrap items-center gap-2"><Filter className="size-4 text-[var(--admin-muted)]" /><select value={priority} onChange={(event) => setPriority(event.target.value as "all" | FeaturePriority)} aria-label="Filter by priority" className="min-h-11 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)]"><option value="all">All priorities</option>{FEATURE_PRIORITIES.map((value) => <option key={value} value={value}>{priorityMeta[value].label}</option>)}</select><select value={label} onChange={(event) => setLabel(event.target.value)} aria-label="Filter by label" className="min-h-11 max-w-48 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)]"><option value="all">All labels</option>{labels.map((value) => <option key={value} value={value}>{value}</option>)}</select><span className="rounded-full bg-black/[0.045] px-2.5 py-1 font-mono text-[10px] tabular-nums text-[var(--admin-muted)] dark:bg-white/[0.06]">{filtered.length}</span></div>
+          <div className="relative min-w-0 flex-1"><Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-[var(--admin-muted)]" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search title, outcome, owner, or capability" className="min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] pl-10 pr-3.5 text-sm text-[var(--admin-ink)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[var(--admin-muted)]/70 focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10" /></div>
+          <div className="flex flex-wrap items-center gap-2"><Filter className="size-4 text-[var(--admin-muted)]" /><select value={milestone} onChange={(event) => setMilestone(event.target.value)} aria-label="Filter by milestone" className="min-h-11 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)]"><option value="all">All milestones</option>{MILESTONE_OPTIONS.filter((value) => labels.includes(value)).map((value) => <option key={value} value={value}>{taxonomyLabel(value)}</option>)}</select><select value={category} onChange={(event) => setCategory(event.target.value)} aria-label="Filter by category" className="min-h-11 max-w-48 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold capitalize text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)]"><option value="all">All categories</option>{categories.map((value) => <option key={value} value={value}>{taxonomyLabel(value)}</option>)}</select><select value={capability} onChange={(event) => setCapability(event.target.value)} aria-label="Filter by capability" className="min-h-11 max-w-48 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold capitalize text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)]"><option value="all">All capabilities</option>{capabilities.map((value) => <option key={value} value={value}>{taxonomyLabel(value)}</option>)}</select><select value={priority} onChange={(event) => setPriority(event.target.value as "all" | FeaturePriority)} aria-label="Filter by priority" className="min-h-11 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)]"><option value="all">All priorities</option>{FEATURE_PRIORITIES.map((value) => <option key={value} value={value}>{priorityMeta[value].label}</option>)}</select><span className="rounded-full bg-black/[0.045] px-2.5 py-1 font-mono text-[10px] tabular-nums text-[var(--admin-muted)] dark:bg-white/[0.06]">{filtered.length}</span></div>
         </div>
         {filtersActive && <p className="admin-copy mt-2 flex items-center gap-1.5 px-1 text-[10px]"><Tag className="size-3" />Reordering is paused while filters are active so hidden cards keep their exact priority.</p>}
       </AdminSurface>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Reveal } from "./reveal";
 import { AmbientField } from "./AmbientField";
+import { marketingPositioning } from "@/content/marketing-positioning";
 
 /* The home page's only piece of real product interface.
 
@@ -32,19 +33,19 @@ export function CommandCenter() {
       <div className="wrap">
         <div className="shead">
           <Reveal rv as="p" className="label eyebrow-anim">
-            The Command Center
+            {marketingPositioning.commandCenter.label}
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              The whole business
+              When the work needs
               <br />
-              on <span className="it">one screen.</span>
+              <span className="it">one place to run.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              The Command Center reads the inbox, writes up the meetings, drafts the follow-ups, moves the pipeline, and chases the invoice. The routine runs itself. Your attention goes only to the calls that need you.
+              {marketingPositioning.commandCenter.description}
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.18} style={{ marginTop: 16 }}>
-              Try the live sandbox below. Clear the approval queue, open a workflow, or search the records.
+              The live sandbox shows that integrated option. Clear the approval queue, open a workflow, or search the records.
             </Reveal>
           </div>
         </div>
@@ -55,7 +56,7 @@ export function CommandCenter() {
 
         <Reveal rv as="p" delay={0.16} style={{ marginTop: "clamp(22px,2.6vw,32px)" }}>
           <Link href="/command-center" className="ink-sweep text-[15.5px] text-[var(--fg)]">
-            See everything it can run{" "}
+            Explore the Command Center{" "}
             <span aria-hidden="true">&rarr;</span>
           </Link>
         </Reveal>

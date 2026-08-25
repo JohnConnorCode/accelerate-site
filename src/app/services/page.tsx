@@ -6,11 +6,11 @@ import { faqs } from "@/content/faqs";
 import { generateServiceListJsonLd, generateFaqJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 
 export const metadata = seoMetadata({
-  title: "AI Services We Build and Run",
+  title: "AI Strategy, Custom Solutions & Execution",
   description:
-    "We build the AI systems, then we run them. Intake, follow-up, content, reporting. Six services, priced from $500 a month.",
-  ogTitle: "Our Services",
-  ogSubtitle: "AI strategy, automation, and ongoing management",
+    "AI consulting, custom systems, integrations, managed execution, training, and ongoing optimization built around your business.",
+  ogTitle: "AI Services Built Around Your Business",
+  ogSubtitle: "Strategy, custom builds, execution, training, and improvement",
   path: "/services",
 });
 

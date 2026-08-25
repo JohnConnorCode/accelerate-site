@@ -42,10 +42,12 @@ notices that a deal has gone quiet, that a promise was made and not kept, that
 three inquiries this week are the same company, that a client who always pays
 early has not.
 
-Noticing without being asked is the whole point, and there is currently no place
-for it to happen. Vercel Hobby gives exactly two cron slots, both already spoken
-for, at daily granularity. **This is a hard architectural ceiling, not a
-backlog item.** See "The one decision only you can make" below.
+Noticing without being asked is the whole point. Vercel Hobby still provides
+only daily cron cadence, but the Command Center now has a free-first scheduling
+path: Supabase Cron wakes one authenticated application adapter and all actual
+work still claims and executes through Revenue OS services. The first 15-minute
+workload is a read-only health snapshot; proactive policies remain separately
+approval- and evidence-gated.
 
 ### 4. Initiative is one bespoke policy
 
@@ -111,8 +113,9 @@ what changed, what it means, what is at risk, what needs you. Not a digest of
 row counts. A short piece of prose you would actually read, with the three things
 that matter and why.
 
-This is where the infrastructure decision lands. It cannot run usefully once a
-day on a Hobby cron.
+This is where the new sub-daily scheduling path becomes useful. Brief generation
+will use the same authenticated adapter, claim, receipt, failure, and recovery
+contract as the read-only health proof before it.
 
 **Done when:** you open the morning brief before you open the pipeline, because
 it tells you something you did not already know.
@@ -160,27 +163,20 @@ table.
 
 ---
 
-## The one decision only you can make
+## Scheduling decision
 
-Phases C through F need something to run when nobody is asking. Vercel Hobby
-gives two cron slots at daily granularity, both used
-(`/api/cron/revenue-campaigns`, `/api/cron/google-workspace-sync`).
+The selected substrate is **Supabase Cron plus `pg_net` as a wake-up adapter**.
+This is free-first and does not split business logic: Postgres owns only cadence
+and the encrypted destination, while the authenticated Vercel route calls the
+same domain services and `withJobRun` ledger as UI, cron, webhook, and AI
+entrypoints. Missing Vault configuration produces no outbound request, repeated
+wakes share a deterministic 15-minute claim key, and Setup requires a fresh
+application receipt rather than treating a successful database cron as proof of
+completed work.
 
-Three honest options:
-
-| Option | What it buys | What it costs |
-|---|---|---|
-| **Vercel Pro** | Cron on a real schedule, longer function limits, no new infrastructure | Monthly cost, on Robert's team |
-| **Supabase scheduler** | `pg_cron` plus edge functions, already inside our own project, no new vendor | Work now lives in two places, which the engineering contract exists to prevent |
-| **External worker** | Full freedom, minute-level cadence | A second deployment to run and monitor, on a system whose whole point is that failures are visible |
-
-**Recommendation: Vercel Pro.** Not because it is best in the abstract, but
-because the contract's central rule is one operating path, and it is the only
-option that does not fork one. Supabase scheduling is the credible alternative if
-the cost matters more than the split.
-
-Until this is decided, Phase A and Phase B are still fully deliverable. Phase C
-is where it becomes load-bearing.
+Vercel Pro remains the scale-up option when function duration, throughput, or
+contractual reliability—not product fashion—requires it. An external worker is
+not part of the current architecture.
 
 ---
 

@@ -1,7 +1,11 @@
 export function isMissingRevenueSchema(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
   const candidate = error as { code?: string; message?: string };
-  return candidate.code === "42P01" || candidate.code === "PGRST205" || /relation .* does not exist/i.test(candidate.message || "");
+  return candidate.code === "42P01"
+    || candidate.code === "42703"
+    || candidate.code === "PGRST204"
+    || candidate.code === "PGRST205"
+    || /relation .* does not exist|column .* does not exist|could not find .* column/i.test(candidate.message || "");
 }
 
 export function normalizeEmail(value: string | null | undefined): string | null {

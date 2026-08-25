@@ -20,7 +20,12 @@ export async function GET(request: NextRequest) {
   const supabase = createServiceRoleClient();
   const pattern = `%${q}%`;
 
-  const [leadsRes, contactsRes, subscribersRes, chatRes] = await Promise.all([
+  const [canonicalRes, leadsRes, contactsRes, subscribersRes, chatRes] = await Promise.all([
+    supabase
+      .from("contacts")
+      .select("full_name, primary_email")
+      .or(`full_name.ilike.${pattern},primary_email.ilike.${pattern}`)
+      .limit(5),
     supabase
       .from("solution_requests")
       .select("contact_name, contact_email, industry")
@@ -59,6 +64,10 @@ export async function GET(request: NextRequest) {
     }
   };
 
+  // Canonical results win deduplication so quick actions never attach to a
+  // legacy-only person when the shared identity already exists.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (canonicalRes.data || []).forEach((r: any) => { if (r.primary_email) addResult(r.full_name, r.primary_email, "Canonical contact"); });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (leadsRes.data || []).forEach((r: any) => addResult(r.contact_name, r.contact_email, "Lead"));
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

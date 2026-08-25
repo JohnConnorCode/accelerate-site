@@ -26,9 +26,9 @@ export function Trades() {
             Where it lands
           </Reveal>
           <Reveal rv as="h2" className="h2" delay={0.06}>
-            Same machine.
+            Built around the work
             <br />
-            Different <span className="it">Tuesday.</span>
+            your team <span className="it">actually does.</span>
           </Reveal>
         </div>
 

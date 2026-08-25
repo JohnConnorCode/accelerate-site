@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
+import { loadActivityTimeline } from "@/lib/revenue-os/activities";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
           ? supabase.from("companies").select("id,name,domain,industry,website").eq("id", canonicalContact.company_id).maybeSingle()
           : Promise.resolve({ data: null, error: null }),
         supabase.from("opportunities").select("id,name,stage,estimated_value,won_value,next_action,next_action_at,source,created_at").eq("contact_id", canonicalContact.id).order("created_at", { ascending: false }),
-        supabase.from("activities").select("id,activity_type,title,summary,source,occurred_at,opportunity_id").eq("contact_id", canonicalContact.id).order("occurred_at", { ascending: false }).limit(200),
+        loadActivityTimeline(supabase, { contactId: canonicalContact.id, limit: 200 }).then((data) => ({ data, error: null })).catch((error) => ({ data: [], error })),
         supabase.from("conversations").select("id,channel,subject,status,last_message_at,opportunity_id").eq("contact_id", canonicalContact.id).order("last_message_at", { ascending: false }).limit(100),
         supabase.from("tasks").select("id,title,description,status,due_date,priority,created_at,opportunity_id").eq("contact_id", canonicalContact.id).order("created_at", { ascending: false }).limit(100),
       ])
@@ -41,6 +42,10 @@ export async function GET(request: NextRequest) {
         { data: [], error: null },
         { data: [], error: null },
       ];
+
+  if (canonicalActivityResult.error) {
+    return NextResponse.json({ error: "The canonical activity timeline could not be loaded" }, { status: 500 });
+  }
 
   const conversationIds = (canonicalConversationResult.data || []).map((conversation) => conversation.id);
   const canonicalMessageResult = conversationIds.length

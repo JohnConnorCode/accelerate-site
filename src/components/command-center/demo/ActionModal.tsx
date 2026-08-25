@@ -117,8 +117,9 @@ export function ActionModal({
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={reduced ? undefined : { y: 16, opacity: 0 }}
             transition={{ duration: 0.3, ease: EASE }}
-            className="relative flex max-h-[88vh] w-full max-w-[620px] flex-col overflow-hidden border border-white/15 bg-[#0B0B0B] shadow-[0_50px_120px_-40px_rgba(0,0,0,.8)]"
+            className="relative flex max-h-[calc(100dvh-12px)] w-full max-w-[620px] flex-col overflow-hidden rounded-t-[20px] border border-white/15 bg-[#0B0B0B] pb-[env(safe-area-inset-bottom)] shadow-[0_50px_120px_-40px_rgba(0,0,0,.8)] sm:max-h-[88vh] sm:rounded-[16px] sm:pb-0"
           >
+            <div className="mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-white/25 sm:hidden" aria-hidden="true" />
             <Header action={action} edited={edited} mode={mode} onClose={onClose} />
 
             {mode === "detail" ? (
@@ -174,7 +175,7 @@ export function ActionModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className={`${MONO} ml-auto px-2 py-2 text-white/40 transition-colors hover:text-white/80`}
+                  className={`${MONO} ml-auto min-h-10 px-2 py-2 text-white/40 transition-[color,transform] hover:text-white/80 active:scale-[0.96]`}
                 >
                   Close
                 </button>
@@ -222,7 +223,7 @@ function Header({
         type="button"
         onClick={onClose}
         aria-label="Close details"
-        className="-mr-1 shrink-0 p-1 text-white/40 transition-colors hover:text-white"
+        className="-mr-2 -mt-1 grid size-10 shrink-0 place-items-center rounded-full text-white/40 transition-[background-color,color,transform] hover:bg-white/10 hover:text-white active:scale-[0.96]"
       >
         <X className="h-4 w-4" />
       </button>
@@ -281,7 +282,7 @@ function Action({
     <button
       type="button"
       onClick={onClick}
-      className={`flex min-h-[38px] items-center gap-2 border px-3.5 py-2 font-mono text-[0.62rem] uppercase tracking-[0.14em] transition-colors ${
+      className={`flex min-h-11 items-center gap-2 border px-3.5 py-2 font-mono text-[0.62rem] uppercase tracking-[0.14em] transition-[background-color,border-color,color,transform] active:scale-[0.96] ${
         tone === "solid"
           ? "border-white/35 bg-white/10 text-white hover:bg-white/25"
           : "border-white/12 text-white/55 hover:border-white/35 hover:text-white/90"
@@ -320,7 +321,7 @@ function FeedbackPanel({
                 type="button"
                 onClick={() => setReason(r.id)}
                 aria-pressed={reason === r.id}
-                className={`rounded-full border px-3 py-1.5 text-[0.8rem] transition-colors ${
+                className={`min-h-10 rounded-full border px-3 py-1.5 text-[0.8rem] transition-[background-color,border-color,color,transform] active:scale-[0.96] ${
                   reason === r.id
                     ? "border-white/60 bg-white/15 text-white"
                     : "border-white/15 text-white/55 hover:border-white/40 hover:text-white"
@@ -357,7 +358,7 @@ function FeedbackPanel({
           type="button"
           disabled={!picked}
           onClick={() => picked && onSubmit(picked.label, picked.learned.replace("{who}", action.who))}
-          className="flex min-h-[38px] items-center gap-2 border border-white/35 bg-white/10 px-3.5 py-2 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-white transition-colors hover:bg-white/25 disabled:opacity-35"
+          className="flex min-h-11 items-center gap-2 border border-white/35 bg-white/10 px-3.5 py-2 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-white transition-[background-color,border-color,color,transform] hover:bg-white/25 active:scale-[0.96] disabled:opacity-35"
         >
           <Check className="h-3.5 w-3.5" strokeWidth={2} />
           Send feedback and reject
@@ -365,7 +366,7 @@ function FeedbackPanel({
         <button
           type="button"
           onClick={onCancel}
-          className={`${MONO} ml-auto px-2 py-2 text-white/40 transition-colors hover:text-white/80`}
+          className={`${MONO} ml-auto min-h-10 px-2 py-2 text-white/40 transition-[color,transform] hover:text-white/80 active:scale-[0.96]`}
         >
           Close
         </button>

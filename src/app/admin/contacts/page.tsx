@@ -54,6 +54,11 @@ export default function ContactsPage() {
     fetchData();
   }, [fetchData]);
 
+  useEffect(() => {
+    const requestedContact = new URLSearchParams(window.location.search).get("contact")?.trim();
+    if (requestedContact) setExpandedId(requestedContact);
+  }, []);
+
   const filtered = useMemo(() => {
     return contacts.filter((c) => {
       if (searchQuery) {

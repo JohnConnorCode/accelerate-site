@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { transitionOpportunity, transitionStatusFromError } from "@/lib/revenue-os/pipeline";
+import { recordActivity } from "@/lib/revenue-os/activities";
 
 export async function GET(
   request: NextRequest,
@@ -80,7 +81,7 @@ export async function POST(
   if (!updated) return NextResponse.json({ error: "This proposal was already updated. Refresh the page." }, { status: 409 });
   await Promise.all([
     supabase.from("proposal_events").insert({ proposal_id: proposal.id, event_type: body.decision, source: "public_link", metadata: { reason: body.reason?.trim() || null } }),
-    supabase.from("activities").insert({ activity_type: `proposal_${body.decision}`, title: `${proposal.client_name} ${body.decision} ${proposal.title}`, summary: body.reason?.trim() || null, opportunity_id: proposal.opportunity_id, proposal_id: proposal.id, source: "public_link", occurred_at: now }),
+    recordActivity(supabase, { activityType: `proposal_${body.decision}`, title: `${proposal.client_name} ${body.decision} ${proposal.title}`, summary: body.reason?.trim() || null, opportunityId: proposal.opportunity_id, proposalId: proposal.id, source: "public_link", externalId: `proposal:${proposal.id}:decision:${body.decision}`, occurredAt: now }),
     supabase.from("admin_notifications").insert({ type: "proposal_response", title: `Proposal ${body.decision}: ${proposal.title}`, description: body.reason?.trim() || `${proposal.client_name} ${body.decision} the proposal`, link: "/admin/proposals", read: false, priority: "urgent" }),
     supabase.from("tasks").insert({ title: `${body.decision === "accepted" ? "Start next steps with" : "Review decline from"} ${proposal.client_name}`, description: body.reason?.trim() || `Proposal ${body.decision}. Follow up personally.`, due_date: new Date(Date.now() + 86400000).toISOString().slice(0, 10), priority: "high", opportunity_id: proposal.opportunity_id, related_type: "proposal", related_id: proposal.id, related_name: proposal.client_name, source: "proposal_response", dedupe_key: `proposal-response:${proposal.id}` }),
   ]);

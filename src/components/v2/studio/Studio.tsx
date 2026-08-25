@@ -7,6 +7,7 @@ import { CommandCenter } from "@/components/home/CommandCenter";
 import { Trades } from "@/components/home/Trades";
 import { HowWeWork } from "@/components/home/HowWeWork";
 import { Plan } from "@/components/home/Plan";
+import { HomeSelectedWork } from "@/components/home/HomeSelectedWork";
 import { Who } from "@/components/home/Who";
 import { Faq } from "@/components/home/Faq";
 import { FinalCta } from "@/components/home/FinalCta";
@@ -21,18 +22,18 @@ import { FinalCta } from "@/components/home/FinalCta";
 export function Studio() {
   return (
     <>
-      {/* Grouped so the mobile hero can reserve a stable first fold for the
-          headline and booking action while the proof copy and marquee continue
-          directly below it (see `.hero-band` in globals.css). */}
+      {/* Grouped so the mobile hero, proof copy, and marquee can share one
+          continuous opening composition (see `.hero-band` in globals.css). */}
       <div className="hero-band">
         <Hero />
         <Marquee />
       </div>
       <Systems />
-      <CommandCenter />
       <Trades />
+      <CommandCenter />
       <HowWeWork />
       <Plan />
+      <HomeSelectedWork />
       <Who />
       <Faq />
       <FinalCta />

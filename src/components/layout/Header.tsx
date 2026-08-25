@@ -51,8 +51,8 @@ const navLinks: NavLink[] = [
     href: "#",
     children: INDUSTRY_LINKS,
   },
+  { label: "Work", href: "/work" },
   { label: "Learn", href: "/learn" },
-  { label: "Contact", href: "/contact" },
 ];
 
 // Shared underline used by every nav item — grows from the left on hover and
@@ -72,7 +72,7 @@ export function Header() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const headerRef = useRef<HTMLElement>(null);
   const pathname = usePathname();
-  // active when on the exact route or any child route (e.g. /results/[slug])
+  // active when on the exact route or any child route (e.g. /work/[slug])
   const isActive = (href: string) =>
     href !== "#" && (pathname === href || pathname.startsWith(href + "/"));
   useEffect(() => {
@@ -93,7 +93,7 @@ export function Header() {
   }, [mobileOpen]);
 
   // the admin app has its own chrome; the marketing header doesn't belong there
-  if (pathname.startsWith("/admin") || pathname.startsWith("/roofing")) return null;
+  if (pathname.startsWith("/admin") || pathname.startsWith("/roofing") || pathname === "/command-center/demo") return null;
 
   return (
     <>

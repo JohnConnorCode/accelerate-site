@@ -8,11 +8,11 @@ import { PlanDeck } from "./PlanDeck";
 import { AmbientField } from "./AmbientField";
 
 const ITEMS = [
-  "Where the hours actually go, named in your team's language",
-  "A build order sequenced by what unblocks the most work first",
-  "The hours each phase takes off your team",
-  "The technical requirements and CRM connections each phase needs",
-  "How the handover works and who approves what",
+  "Where AI or automation is genuinely useful",
+  "Whether the answer is advice, a workflow, an agent, an integration, training, or execution",
+  "What should happen first and why",
+  "The tools, access, people, and approvals the work needs",
+  "A clear scope, ownership model, and way to measure progress",
 ];
 
 export function Plan() {
@@ -35,7 +35,7 @@ export function Plan() {
               You leave the first session with a written plan.
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 18 }}>
-              Thirty minutes. You describe how the business runs. We map where the hours go, sequence what to automate first, and write it up: the findings, the build order, and what each phase returns. Yours to keep either way. If the plan is right, you will want the people who wrote it to build it.
+              Thirty minutes. You describe how the business runs and what you want to change. We identify where AI or automation fits, recommend the right kind of solution, and put the next steps in writing. Yours to keep either way.
             </Reveal>
             <ul className="plan-list">
               {/* Each item gets its own <Reveal> — its own scroll trigger —

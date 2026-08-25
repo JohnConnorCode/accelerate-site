@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { recordAudit } from "./audit";
+import { recordActivity } from "./activities";
 
 type OperatorTask = {
   id: string;
@@ -9,6 +10,7 @@ type OperatorTask = {
   due_date: string | null;
   snoozed_until: string | null;
   completed_at: string | null;
+  opportunity_id: string | null;
 };
 
 export async function createRevenueTask(supabase: SupabaseClient, input: {
@@ -26,15 +28,15 @@ export async function createRevenueTask(supabase: SupabaseClient, input: {
   const { data: task, error } = await supabase.from("tasks").insert({ title, description: input.description || null, due_date: input.dueDate || null, due_time: input.dueTime || null, priority: input.priority || "medium", related_type: input.relatedType || null, related_id: input.relatedId || null, related_name: input.relatedName || null, opportunity_id: input.opportunityId || null, source: input.source, dedupe_key: input.dedupeKey || null }).select("*").single();
   if (error) throw new Error(error.message);
   await recordAudit(supabase, { actorEmail: input.actorEmail, action: "task.created", entityType: "task", entityId: task.id, after: task, metadata: { source: input.source, dedupe_key: input.dedupeKey || null } });
-  const { error: activityError } = await supabase.from("activities").insert({ activity_type: "task_created", title: `Task created: ${title}`, summary: input.description || null, opportunity_id: input.opportunityId || null, source: input.source, actor_email: input.actorEmail, external_id: `task:${task.id}:created`, metadata: { task_id: task.id, priority: task.priority } });
-  if (activityError) console.error("[revenue-os/tasks] activity receipt failed", activityError.message);
+  await recordActivity(supabase, { activityType: "task_created", title: `Task created: ${title}`, summary: input.description || null, opportunityId: input.opportunityId || null, source: input.source, actorEmail: input.actorEmail, externalId: `task:${task.id}:created`, metadata: { task_id: task.id, priority: task.priority } })
+    .catch((error) => console.error("[revenue-os/tasks] activity receipt failed", error instanceof Error ? error.message : error));
   return { task, deduplicated: false };
 }
 
 async function loadOpenTask(supabase: SupabaseClient, id: string): Promise<OperatorTask> {
   const { data, error } = await supabase
     .from("tasks")
-    .select("id,title,status,due_date,snoozed_until,completed_at")
+    .select("id,title,status,due_date,snoozed_until,completed_at,opportunity_id")
     .eq("id", id)
     .in("status", ["pending", "snoozed"])
     .maybeSingle();
@@ -51,12 +53,13 @@ export async function completeOperatorTask(supabase: SupabaseClient, input: { id
     .update({ status: "completed", completed_at: completedAt, snoozed_until: null })
     .eq("id", input.id)
     .eq("status", before.status)
-    .select("id,title,status,due_date,snoozed_until,completed_at")
+    .select("id,title,status,due_date,snoozed_until,completed_at,opportunity_id")
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!task) throw new Error("This task changed while you were working. Refresh and try again.");
   await recordAudit(supabase, { actorEmail: input.actorEmail, action: "task.completed", entityType: "task", entityId: input.id, before, after: task });
-  await supabase.from("activities").insert({ activity_type: "task_completed", title: `Task completed: ${task.title}`, source: "admin", actor_email: input.actorEmail, external_id: `task:${task.id}:completed`, metadata: { task_id: task.id } });
+  await recordActivity(supabase, { activityType: "task_completed", title: `Task completed: ${task.title}`, opportunityId: task.opportunity_id, source: "admin", actorEmail: input.actorEmail, externalId: `task:${task.id}:completed`, metadata: { task_id: task.id } })
+    .catch((error) => console.error("[revenue-os/tasks] completion activity receipt failed", error instanceof Error ? error.message : error));
   return task;
 }
 
@@ -70,11 +73,12 @@ export async function snoozeOperatorTask(supabase: SupabaseClient, input: { id: 
     .update({ status: "snoozed", snoozed_until: input.until })
     .eq("id", input.id)
     .eq("status", before.status)
-    .select("id,title,status,due_date,snoozed_until,completed_at")
+    .select("id,title,status,due_date,snoozed_until,completed_at,opportunity_id")
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!task) throw new Error("This task changed while you were working. Refresh and try again.");
   await recordAudit(supabase, { actorEmail: input.actorEmail, action: "task.snoozed", entityType: "task", entityId: input.id, before, after: task, metadata: { until: input.until } });
-  await supabase.from("activities").insert({ activity_type: "task_snoozed", title: `Task snoozed: ${task.title}`, source: "admin", actor_email: input.actorEmail, external_id: `task:${task.id}:snoozed:${input.until}`, metadata: { task_id: task.id, until: input.until } });
+  await recordActivity(supabase, { activityType: "task_snoozed", title: `Task snoozed: ${task.title}`, opportunityId: task.opportunity_id, source: "admin", actorEmail: input.actorEmail, externalId: `task:${task.id}:snoozed:${input.until}`, metadata: { task_id: task.id, until: input.until } })
+    .catch((error) => console.error("[revenue-os/tasks] snooze activity receipt failed", error instanceof Error ? error.message : error));
   return task;
 }

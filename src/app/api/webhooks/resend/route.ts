@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getResend } from "@/lib/email/resend";
 import { recordAudit } from "@/lib/revenue-os/audit";
 import { suppressContactFromCampaignEmail } from "@/lib/revenue-os/campaign-stops";
+import { recordActivity } from "@/lib/revenue-os/activities";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -106,18 +107,18 @@ export async function POST(request: NextRequest) {
     }
 
     if (message) {
-      const activity = await supabase.from("activities").insert({
-        activity_type: `resend_${event.type.replace("email.", "")}`,
+      await recordActivity(supabase, {
+        activityType: `resend_${event.type.replace("email.", "").replaceAll(".", "_")}`,
         title: `Email ${event.type.replace("email.", "")}`,
         summary: details ? JSON.stringify(details).slice(0, 700) : `Resend ${event.type} receipt`,
-        contact_id: contactId,
-        conversation_id: message.conversation_id,
-        campaign_id: campaignId,
+        contactId,
+        conversationId: message.conversation_id,
+        campaignId,
         source: "webhook",
-        external_id: `resend:${headers.id}`,
-        occurred_at: occurredAt,
+        externalId: `resend:${headers.id}`,
+        occurredAt,
+        metadata: { provider_event_type: event.type, provider_id: providerId ?? null },
       });
-      if (activity.error && activity.error.code !== "23505") throw new Error(activity.error.message);
     }
     await recordAudit(supabase, { action: "resend.webhook_processed", entityType: "webhook_receipt", entityId: headers.id, source: "webhook", metadata: { event_type: event.type, provider_id: providerId ?? null, message_id: message?.id ?? null, hard_failure: hardFailure } });
     const { error: completeError } = await supabase.from("webhook_receipts").update({ status: "processed", processed_at: new Date().toISOString() }).eq("id", headers.id);

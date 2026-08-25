@@ -132,8 +132,8 @@ export function ContactForm() {
         </div>
 
         <div>
-          <label htmlFor="primaryProblem" className="block text-sm font-medium text-white-secondary mb-1.5">Biggest revenue constraint</label>
-          <Select id="primaryProblem" name="primaryProblem" required value={formData.primaryProblem} onChange={handleChange} placeholder="Choose the biggest constraint" options={[{ value: "lead_response", label: "Slow response to new inquiries" }, { value: "follow_up", label: "Follow-up is inconsistent" }, { value: "scheduling", label: "Scheduling takes too much back-and-forth" }, { value: "visibility", label: "No clear pipeline or source visibility" }, { value: "other", label: "Something else" }]} />
+          <label htmlFor="primaryProblem" className="block text-sm font-medium text-white-secondary mb-1.5">Where would help matter most?</label>
+          <Select id="primaryProblem" name="primaryProblem" required value={formData.primaryProblem} onChange={handleChange} placeholder="Choose the closest fit" options={[{ value: "strategy", label: "Figuring out where AI fits" }, { value: "automation", label: "Automating or connecting workflows" }, { value: "custom_solution", label: "Building a custom AI tool or agent" }, { value: "execution", label: "Getting ongoing work executed" }, { value: "training", label: "Training and enabling the team" }, { value: "other", label: "Something else" }]} />
         </div>
 
         <div>
@@ -207,7 +207,7 @@ export function ContactForm() {
             </>
           ) : (
             <>
-              Request the revenue-leak audit
+              Request a strategy session
               <Send className="w-4 h-4 ml-2" />
             </>
           )}

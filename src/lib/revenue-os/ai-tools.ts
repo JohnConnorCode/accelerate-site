@@ -4,8 +4,11 @@ import type { OpenRouterTool } from "@/lib/ai/openrouter";
 import { proposeAction } from "./actions";
 import { loadOperatorQueue } from "./queue";
 import { REVENUE_STAGES } from "./types";
+import { loadActivityTimeline } from "./activities";
 
 export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v2";
+export const REVENUE_TOOL_PACKS = ["core", "pipeline", "outreach"] as const;
+export type RevenueToolPackId = (typeof REVENUE_TOOL_PACKS)[number];
 
 /** How many rows any single snapshot query may read. */
 const SNAPSHOT_ROW_LIMIT = 50;
@@ -173,6 +176,12 @@ const registry: AiToolRegistration[] = [
     if (error) throw new Error(error.message);
     return data ?? [];
   } },
+  { name: "get_record_timeline", description: "Read the bounded canonical activity timeline for one contact, company, or opportunity. Every item includes its source receipt and occurrence time.", inputSchema: { type: "object", properties: { contactId: { type: "string" }, companyId: { type: "string" }, opportunityId: { type: "string" } }, additionalProperties: false }, impact: "read", confirmationRequired: false, execute: async ({ supabase }, input) => {
+    const ids = { contactId: value(input, "contactId"), companyId: value(input, "companyId"), opportunityId: value(input, "opportunityId") };
+    if (Object.values(ids).filter(Boolean).length !== 1) throw new Error("Supply exactly one canonical contactId, companyId, or opportunityId");
+    const activities = await loadActivityTimeline(supabase, { ...ids, limit: 25 });
+    return { activities: activities.map((activity) => ({ id: activity.id, type: activity.activity_type, title: activity.title, summary: activity.summary, source: activity.source, sourceReceipt: activity.external_id, occurredAt: activity.occurred_at })), truncated: activities.length === 25 };
+  } },
   { name: "propose_send_email", description: "Stage an outbound email for founder approval. This never sends directly.", inputSchema: { type: "object", properties: { to: { type: "string" }, subject: { type: "string" }, body: { type: "string" }, opportunityId: { type: "string" }, contactId: { type: "string" }, reasoning: { type: "string" } }, required: ["to", "subject", "body", "reasoning"], additionalProperties: false }, impact: "external_action", confirmationRequired: true, execute: async ({ supabase, actorEmail }, input) => { requireEmail(value(input, "to")); return proposeAction(supabase, { actionType: "send_email", title: `Send email: ${value(input, "subject") || "Untitled"}`, description: previewOf(String(input.body || "")), urgency: "normal", payload: input, reasoning: value(input, "reasoning") || "", sourceContext: "admin_ai", entityType: "opportunity", entityId: value(input, "opportunityId"), dedupeKey: `ai-email:${value(input, "to")}:${value(input, "subject")}`.slice(0, 220), proposedBy: actorEmail, expiresAt: new Date(Date.now() + 86400000).toISOString() }); } },
   { name: "propose_stage_change", description: "Stage a pipeline movement for founder approval. Evidence must be included.", inputSchema: { type: "object", properties: { opportunityId: { type: "string" }, stage: { type: "string", enum: [...REVENUE_STAGES] }, reason: { type: "string" }, lossReason: { type: "string" } }, required: ["opportunityId", "stage", "reason"], additionalProperties: false }, impact: "internal_write", confirmationRequired: true, execute: async ({ supabase, actorEmail }, input) => proposeAction(supabase, { actionType: "transition_opportunity", title: `Move opportunity to ${value(input, "stage")}`, description: value(input, "reason") || "", urgency: "normal", payload: input, reasoning: value(input, "reason") || "", sourceContext: "admin_ai", entityType: "opportunity", entityId: value(input, "opportunityId"), dedupeKey: `ai-stage:${value(input, "opportunityId")}:${value(input, "stage")}`, proposedBy: actorEmail, expiresAt: new Date(Date.now() + 86400000).toISOString() }) },
   { name: "propose_task", description: "Stage a concrete operator task for approval.", inputSchema: { type: "object", properties: { title: { type: "string" }, description: { type: "string" }, dueDate: { type: "string" }, priority: { type: "string", enum: ["high", "medium", "low"] }, opportunityId: { type: "string" } }, required: ["title", "priority"], additionalProperties: false }, impact: "internal_write", confirmationRequired: true, execute: async ({ supabase, actorEmail }, input) => {
@@ -182,8 +191,25 @@ const registry: AiToolRegistration[] = [
   { name: "propose_campaign_activation", description: "Stage activation of a reviewed campaign version for founder approval.", inputSchema: { type: "object", properties: { campaignId: { type: "string" }, reasoning: { type: "string" } }, required: ["campaignId", "reasoning"], additionalProperties: false }, impact: "external_action", confirmationRequired: true, execute: async ({ supabase, actorEmail }, input) => proposeAction(supabase, { actionType: "activate_campaign", title: "Activate reviewed campaign", description: value(input, "reasoning") || "", urgency: "normal", payload: input, reasoning: value(input, "reasoning") || "", sourceContext: "admin_ai", entityType: "campaign", entityId: value(input, "campaignId"), dedupeKey: `ai-campaign-activate:${value(input, "campaignId")}`, proposedBy: actorEmail, expiresAt: new Date(Date.now() + 86400000).toISOString() }) },
 ];
 
-export function getRevenueAiTools(): AiToolRegistration[] { return registry; }
-export function toOpenRouterTools(): OpenRouterTool[] { return registry.map(({ name, description, inputSchema }) => ({ type: "function", function: { name, description, parameters: inputSchema } })); }
+const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
+  core: ["get_today_snapshot", "search_pipeline", "get_record_timeline", "propose_task"],
+  pipeline: ["get_today_snapshot", "search_pipeline", "get_record_timeline", "propose_task", "propose_stage_change"],
+  outreach: ["get_today_snapshot", "search_pipeline", "get_record_timeline", "propose_task", "propose_send_email", "propose_campaign_activation"],
+};
+
+export function selectRevenueToolPack(command: string): RevenueToolPackId {
+  const normalized = command.toLowerCase();
+  if (/\b(email|reply|message|campaign|outreach|follow[ -]?up|send|draft)\b/.test(normalized)) return "outreach";
+  if (/\b(pipeline|opportunit|deal|stage|move|advance|won|lost|risk)\b/.test(normalized)) return "pipeline";
+  return "core";
+}
+
+export function getRevenueAiTools(pack?: RevenueToolPackId): AiToolRegistration[] {
+  if (!pack) return registry;
+  const names = new Set(PACK_TOOL_NAMES[pack]);
+  return registry.filter((tool) => names.has(tool.name));
+}
+export function toOpenRouterTools(pack?: RevenueToolPackId): OpenRouterTool[] { return getRevenueAiTools(pack).map(({ name, description, inputSchema }) => ({ type: "function", function: { name, description, parameters: inputSchema } })); }
 export async function executeRegisteredRevenueTool(context: AiToolContext, name: string, input: Record<string, unknown>) {
   const tool = registry.find((candidate) => candidate.name === name);
   if (!tool) throw new Error(`Tool ${name} is not registered`);

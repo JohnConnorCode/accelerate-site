@@ -11,6 +11,7 @@ import { ChatWidget } from "@/components/chat/ChatWidget";
 import { ScrollProgress } from "@/components/layout/ScrollProgress";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { Dock } from "@/components/home/Dock";
+import { marketingPositioning } from "@/content/marketing-positioning";
 import "./globals.css";
 
 // High-contrast editorial type system: Inter Tight (display), Inter (body),
@@ -54,11 +55,10 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.acceleratewith.us"),
   title: {
-    default: "Accelerate | Custom AI Systems, Built and Run for You",
+    default: "Accelerate | Custom AI Strategy, Solutions & Execution",
     template: "%s | Accelerate",
   },
-  description:
-    "Custom business solutions powered by AI, built and run by Accelerate. One system that sees everything, remembers everything, and does the routine work itself. You own all of it.",
+  description: marketingPositioning.shortOffer,
   applicationName: "Accelerate",
   authors: [{ name: "Accelerate", url: "https://www.acceleratewith.us" }],
   creator: "Accelerate",
@@ -68,17 +68,15 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://www.acceleratewith.us",
     siteName: "Accelerate",
-    title: "Accelerate | Custom AI Systems, Built and Run for You",
-    description:
-      "Custom business solutions powered by AI, built and run by Accelerate. One system that sees everything, remembers everything, and does the routine work itself. You own all of it.",
+    title: "Accelerate | Custom AI Strategy, Solutions & Execution",
+    description: marketingPositioning.shortOffer,
   },
   twitter: {
     card: "summary_large_image",
     site: "@accelerateAIops",
     creator: "@accelerateAIops",
-    title: "Accelerate | Custom AI Systems, Built and Run for You",
-    description:
-      "Custom business solutions powered by AI, built and run by Accelerate. One system that sees everything, remembers everything, and does the routine work itself. You own all of it.",
+    title: "Accelerate | Custom AI Strategy, Solutions & Execution",
+    description: marketingPositioning.shortOffer,
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GSC_VERIFICATION || undefined,
@@ -108,8 +106,7 @@ const organizationJsonLd = {
     width: 512,
     height: 512,
   },
-  description:
-    "Custom business solutions powered by AI, built and run by Accelerate. One system that sees everything, remembers everything, and does the routine work itself. You own all of it.",
+  description: marketingPositioning.coreOffer,
   founder: {
     "@type": "Person",
     name: "John Connor",

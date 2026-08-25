@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { Bell, Check, Inbox, Users, MessageCircle, Handshake, FileCheck, CheckSquare, AlertCircle, Eye } from "lucide-react";
+import { Bell, Check, Inbox, Users, MessageCircle, Handshake, FileCheck, CheckSquare, AlertCircle, Eye, ArrowRight, CalendarClock, Sparkles, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/admin/useToast";
@@ -22,6 +22,23 @@ interface Notification {
   created_at: string;
 }
 
+interface PriorityItem {
+  id: string;
+  kind: "reply" | "task" | "follow_up" | "proposal" | "meeting" | "approval" | "system";
+  title: string;
+  urgency: "critical" | "high" | "normal" | "low";
+  sourceTimestamp: string;
+  priorityReason: string;
+  recommendedNextAction: string;
+  href: string;
+}
+
+interface PrioritySnapshot {
+  status: "ready" | "degraded";
+  summary: { total: number; urgent: number; critical: number };
+  items: PriorityItem[];
+}
+
 const typeIcons: Record<string, LucideIcon> = {
   new_lead: Users,
   new_contact: Inbox,
@@ -33,18 +50,30 @@ const typeIcons: Record<string, LucideIcon> = {
   proposal_accepted: FileCheck,
 };
 
+const priorityIcons: Record<PriorityItem["kind"], LucideIcon> = {
+  reply: MessageCircle,
+  task: CheckSquare,
+  follow_up: CheckSquare,
+  proposal: FileCheck,
+  meeting: CalendarClock,
+  approval: Sparkles,
+  system: AlertCircle,
+};
+
 const priorityColors: Record<string, string> = {
   urgent: "border-l-2 border-l-red-500",
   important: "border-l-2 border-l-yellow-500",
   info: "",
 };
 
-export function NotificationBell() {
+export function NotificationBell({ placement = "sidebar" }: { placement?: "sidebar" | "mobile" }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [urgentCount, setUrgentCount] = useState(0);
+  const [priority, setPriority] = useState<PrioritySnapshot>({ status: "ready", summary: { total: 0, urgent: 0, critical: 0 }, items: [] });
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const fetchAbortRef = useRef<AbortController | null>(null);
 
   const fetchErrorCount = useRef(0);
@@ -70,6 +99,7 @@ export function NotificationBell() {
       setNotifications(data.notifications || []);
       setUnreadCount(data.unreadCount || 0);
       setUrgentCount(data.urgentCount || 0);
+      setPriority(data.priority || { status: "degraded", summary: { total: 0, urgent: 0, critical: 0 }, items: [] });
     } catch (err) {
       if (controller.signal.aborted) return;
       console.error("[NotificationBell] fetch failed:", err);
@@ -129,6 +159,21 @@ export function NotificationBell() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  // A popover should never strand keyboard users. This is intentionally not a
+  // focus trap: desktop alerts are a contextual menu, while the mobile sheet
+  // has a visible close control and backdrop.
+  useEffect(() => {
+    if (!isOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      setIsOpen(false);
+      triggerRef.current?.focus();
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [isOpen]);
+
   const handleMarkAllRead = async () => {
     try {
       const res = await fetch("/api/admin/notifications", {
@@ -173,50 +218,84 @@ export function NotificationBell() {
     return `${Math.floor(hours / 24)}d`;
   };
 
+  const signalCount = unreadCount + priority.summary.urgent;
+  const hasCriticalSignal = urgentCount > 0 || priority.summary.critical > 0;
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button
+        ref={triggerRef}
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="admin-notification-trigger relative inline-flex h-10 w-10 items-center justify-center rounded-[10px] text-white-muted transition-[color,background-color,transform] duration-150 hover:bg-black/5 hover:text-white-primary active:scale-[0.96] cursor-pointer"
-        aria-label={isOpen ? "Close notifications" : `Open notifications${unreadCount ? `, ${unreadCount} unread` : ""}`}
+        className="admin-notification-trigger relative inline-flex size-11 items-center justify-center rounded-[10px] text-white-muted transition-[color,background-color,transform] duration-150 hover:bg-black/5 hover:text-white-primary active:scale-[0.96]"
+        aria-label={isOpen ? "Close command center alerts" : `Open command center alerts${signalCount ? `, ${signalCount} need attention` : ""}`}
         aria-expanded={isOpen}
+        aria-controls="admin-alerts-panel"
       >
         <Bell className="h-4.5 w-4.5" />
-        {unreadCount > 0 && (
+        {signalCount > 0 && (
           <span className={cn(
-            "absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full text-[10px] font-bold text-white flex items-center justify-center",
-            urgentCount > 0 ? "bg-red-500 animate-pulse" : "bg-[var(--error)]"
+            "absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full font-mono text-[9px] font-bold tabular-nums text-white",
+            hasCriticalSignal ? "bg-red-500 animate-pulse" : "bg-[var(--error)]"
           )}>
-            {unreadCount > 9 ? "9+" : unreadCount}
+            {signalCount > 9 ? "9+" : signalCount}
           </span>
         )}
       </button>
 
       <AnimatePresence initial={false}>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -4, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -4, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full z-50 mt-2 w-80 overflow-clip rounded-[14px] bg-[var(--admin-surface,#fbfbfa)] text-[var(--admin-ink,#0b0b0b)] shadow-2xl"
-          >
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border-glass">
-              <h4 className="text-sm font-semibold text-white-primary">Notifications</h4>
+          <>
+            {placement === "mobile" && <motion.button type="button" aria-label="Dismiss command center alerts" onClick={() => setIsOpen(false)} className="fixed inset-0 z-[59] bg-black/35 backdrop-blur-[2px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }} />}
+            <motion.div
+              id="admin-alerts-panel"
+              role="dialog"
+              aria-label="Command Center attention"
+              initial={placement === "mobile" ? { opacity: 0, y: 18 } : { opacity: 0, y: -4, scale: 0.95 }}
+              animate={placement === "mobile" ? { opacity: 1, y: 0 } : { opacity: 1, y: 0, scale: 1 }}
+              exit={placement === "mobile" ? { opacity: 0, y: 10 } : { opacity: 0, y: -4, scale: 0.95 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className={cn(
+                "z-[60] overflow-hidden bg-[var(--admin-surface,#fbfbfa)] text-[var(--admin-ink,#0b0b0b)] shadow-[0_24px_64px_-28px_rgba(0,0,0,0.5)]",
+                placement === "mobile" ? "fixed inset-x-0 bottom-0 max-h-[min(78dvh,42rem)] rounded-t-[24px] pb-[env(safe-area-inset-bottom)]" : "absolute left-0 top-full mt-2 w-[min(22rem,calc(100vw-1.5rem))] rounded-[16px] shadow-[var(--admin-shadow-border),0_22px_56px_-28px_rgba(0,0,0,0.45)]",
+              )}
+            >
+            {placement === "mobile" && <span className="mx-auto mt-2 block h-1 w-9 rounded-full bg-[var(--admin-ink)]/20" aria-hidden="true" />}
+            <div className="flex items-center justify-between border-b border-[var(--admin-border)] px-4 py-3">
+              <div><p className="admin-eyebrow">Command Center</p><h4 className="mt-0.5 text-sm font-semibold text-[var(--admin-ink)]">Attention</h4></div>
+              <div className="flex items-center gap-1">
               {unreadCount > 0 && (
                 <button
+                  type="button"
                   onClick={handleMarkAllRead}
-                  className="flex items-center gap-1 text-xs text-white-muted hover:text-white-secondary transition-colors cursor-pointer"
+                  className="flex min-h-10 items-center gap-1 rounded-lg px-2 text-xs font-semibold text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:scale-[0.96] dark:hover:bg-white/[0.05]"
                 >
                   <Check className="h-3 w-3" />
                   Mark all read
                 </button>
               )}
+              <button type="button" onClick={() => setIsOpen(false)} className="grid size-10 place-items-center rounded-lg text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:scale-[0.96] dark:hover:bg-white/[0.05]" aria-label="Close command center alerts"><X className="size-4" /></button>
+              </div>
             </div>
 
-            <div className="max-h-80 overflow-y-auto">
+            <div className="max-h-[min(32rem,calc(78dvh-4.5rem))] overflow-y-auto overscroll-contain">
+              {priority.items.length > 0 && <section aria-label="Priority work">
+                <div className="flex items-center justify-between px-4 pb-2 pt-3"><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)]">Priority work</p><Link href="/admin/today" onClick={() => setIsOpen(false)} className="inline-flex min-h-10 items-center gap-1 rounded-md px-1.5 text-[10px] font-semibold text-[var(--admin-ink)] transition-[background-color,transform] duration-150 hover:bg-black/[0.04] active:scale-[0.96] dark:hover:bg-white/[0.05]">All {priority.summary.total}<ArrowRight className="size-3" /></Link></div>
+                <div className="divide-y divide-[var(--admin-border)] border-y border-[var(--admin-border)]">
+                  {priority.items.slice(0, 3).map((item) => {
+                    const Icon = priorityIcons[item.kind];
+                    return <Link key={item.id} href={item.href} onClick={() => setIsOpen(false)} className="group flex min-h-[68px] items-start gap-3 px-4 py-3 transition-[background-color,transform] duration-150 hover:bg-black/[0.025] active:scale-[0.99] dark:hover:bg-white/[0.03]">
+                      <span className={cn("mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg", item.urgency === "critical" ? "bg-rose-500/10 text-rose-700 dark:text-rose-300" : item.urgency === "high" ? "bg-amber-500/12 text-amber-800 dark:text-amber-300" : "bg-black/[0.045] text-[var(--admin-muted)] dark:bg-white/[0.06]")}><Icon className="size-3.5" /></span>
+                      <span className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold text-[var(--admin-ink)]">{item.title}</span><span className="mt-0.5 block text-[11px] leading-4 text-[var(--admin-muted)]">{item.priorityReason}</span><span className="mt-1 block line-clamp-2 text-[10px] leading-4 text-[var(--admin-muted)]">Next: {item.recommendedNextAction}</span></span>
+                      <ArrowRight className="mt-2 size-3.5 shrink-0 text-[var(--admin-muted)] transition-transform duration-150 group-hover:translate-x-0.5" />
+                    </Link>;
+                  })}
+                </div>
+              </section>}
+              {priority.status === "degraded" && <div className="border-b border-[var(--admin-border)] bg-amber-500/[0.07] px-4 py-3 text-[11px] leading-4 text-amber-800 dark:text-amber-300">Priority work could not be refreshed. Notifications remain available; open Today to retry the live queue.</div>}
+              <div className="flex items-center justify-between px-4 pb-2 pt-3"><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)]">Notifications</p>{unreadCount > 0 && <span className="font-mono text-[10px] tabular-nums text-[var(--admin-muted)]">{unreadCount} unread</span>}</div>
               {notifications.length === 0 ? (
-                <p className="px-4 py-8 text-sm text-white-muted text-center">
+                <p className="px-4 pb-7 pt-3 text-center text-xs text-[var(--admin-muted)]">
                   No notifications yet
                 </p>
               ) : (
@@ -225,51 +304,54 @@ export function NotificationBell() {
                   const content = (
                     <div
                       className={cn(
-                        "flex items-start gap-3 px-4 py-3 hover:bg-white/5 transition-colors",
-                        !notification.read && "bg-white/[0.03]",
+                        "flex items-start gap-3 px-4 py-3 transition-colors hover:bg-black/[0.025] dark:hover:bg-white/[0.03]",
+                        !notification.read && "bg-black/[0.018] dark:bg-white/[0.025]",
                         priorityColors[notification.priority || "info"]
                       )}
-                      onClick={() => {
-                        if (!notification.read) handleMarkRead(notification.id);
-                        setIsOpen(false);
-                      }}
                     >
-                      <Icon className="h-4 w-4 text-white-muted shrink-0 mt-0.5" />
+                      <Icon className="h-4 w-4 text-[var(--admin-muted)] shrink-0 mt-0.5" />
                       <div className="flex-1 min-w-0">
                         <p className={cn(
                           "text-sm truncate",
-                          notification.read ? "text-white-secondary" : "text-white-primary font-medium"
+                          notification.read ? "text-[var(--admin-muted)]" : "text-[var(--admin-ink)] font-medium"
                         )}>
                           {notification.title}
                         </p>
                         {notification.description && (
-                          <p className="text-xs text-white-muted truncate mt-0.5">
+                          <p className="mt-0.5 truncate text-xs text-[var(--admin-muted)]">
                             {notification.description}
                           </p>
                         )}
-                        <p className="text-[10px] text-white-muted mt-1">
+                        <p className="mt-1 text-[10px] text-[var(--admin-muted)]">
                           {timeAgo(notification.created_at)} ago
                         </p>
                       </div>
                       {!notification.read && (
-                        <span className="h-2 w-2 rounded-full bg-[var(--gold-light)] shrink-0 mt-1.5" />
+                        <span className="mt-1.5 size-2 shrink-0 rounded-full bg-[var(--admin-ink)]" />
                       )}
                     </div>
                   );
 
                   if (notification.link) {
                     return (
-                      <Link key={notification.id} href={notification.link}>
+                      <Link key={notification.id} href={notification.link} onClick={() => {
+                        if (!notification.read) void handleMarkRead(notification.id);
+                        setIsOpen(false);
+                      }}>
                         {content}
                       </Link>
                     );
                   }
 
-                  return <div key={notification.id}>{content}</div>;
+                  return <button key={notification.id} type="button" className="block w-full text-left" onClick={() => {
+                    if (!notification.read) void handleMarkRead(notification.id);
+                    setIsOpen(false);
+                  }}>{content}</button>;
                 })
               )}
             </div>
           </motion.div>
+          </>
         )}
       </AnimatePresence>
     </div>

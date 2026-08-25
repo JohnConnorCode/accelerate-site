@@ -155,10 +155,10 @@ function ServiceBand({
 }
 
 const STEPS = [
-  { n: "01", t: "The session", d: "Thirty minutes on how the business runs today: where inquiries land, who touches them, and where the hours go." },
-  { n: "02", t: "The plan", d: "A written plan: the systems we would build, the order we would build them in, and the hours each phase returns." },
-  { n: "03", t: "The build", d: "We build against your existing CRM and tools, test on real workflows, and document everything. Phase one is live in under two weeks." },
-  { n: "04", t: "The run", d: "We run the system in production, train your team on anything they touch, and keep tuning it as the business changes." },
+  { n: "01", t: "The session", d: "Thirty minutes on how the business works, what the team wants to change, and where time or revenue is being lost." },
+  { n: "02", t: "The recommendation", d: "A written view of where AI fits, the right type of solution, what should happen first, and why." },
+  { n: "03", t: "The delivery", d: "We provide the agreed consulting, custom build, integrations, training, or managed execution against a clear scope." },
+  { n: "04", t: "The improvement", d: "When ongoing help makes sense, we operate the work, support the team, measure what changes, and keep improving it." },
 ];
 
 export function ServicesPageContent() {
@@ -193,13 +193,13 @@ export function ServicesPageContent() {
               <RevealHeading
                 as="h1"
                 className={HERO_HEADING}
-                lead="Enterprise automation."
-            accent="Engineered for you."
+                lead="AI strategy and solutions."
+                accent="Built around your business."
                 delay={0.1}
               />
               <AnimateOnScroll delay={0.25}>
                 <p className="mt-7 max-w-md text-base leading-relaxed text-white-secondary">
-                  We build custom systems around how your business already works, then run them for you. Workflows deployed across the whole operation, measured by the revenue they produce and the hours they return.
+                  We help you decide where AI belongs, build the right workflows, agents, tools, and integrations, and stay involved through execution, training, and improvement.
                 </p>
               </AnimateOnScroll>
               <AnimateOnScroll delay={0.35}>
@@ -210,7 +210,7 @@ export function ServicesPageContent() {
                     data-cursor="link"
                     className="text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-gold hover:underline"
                   >
-                    See the systems
+                    See how we help
                   </Link>
                 </div>
               </AnimateOnScroll>
@@ -264,7 +264,7 @@ export function ServicesPageContent() {
       <Section width="wide" className="bg-[var(--bg-section-warm)]">
         <Eyebrow className="mb-6">the process</Eyebrow>
         <Heading size={2} as="h2" className="mb-12 max-w-3xl">
-          Deployment Protocol
+          How an engagement works
         </Heading>
         <div className="relative mx-auto max-w-2xl">
           <div className="absolute bottom-12 left-[18px] top-3 w-px bg-[color-mix(in_srgb,var(--gold-base)_40%,transparent)]" aria-hidden />

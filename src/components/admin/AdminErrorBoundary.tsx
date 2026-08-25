@@ -35,32 +35,34 @@ export class AdminErrorBoundary extends Component<Props, State> {
     if (!this.state.hasError) return this.props.children;
 
     return (
-      <div className="flex min-h-[60vh] items-center justify-center px-6">
-        <div className="max-w-md w-full rounded-xl border border-border-glass bg-bg-elevated p-6 text-center shadow-xl">
-          <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-500/10">
-            <AlertTriangle className="h-5 w-5 text-red-400" />
+      <div className="flex min-h-[60vh] items-center justify-center px-4 sm:px-6">
+        <div className="w-full max-w-md rounded-[20px] bg-[var(--admin-surface)] p-5 text-center shadow-[var(--admin-shadow-border),0_28px_64px_-38px_rgba(0,0,0,0.42)] sm:p-6">
+          <div className="mx-auto grid size-11 place-items-center rounded-xl bg-rose-500/10 text-rose-700 dark:text-rose-300">
+            <AlertTriangle className="size-5" />
           </div>
-          <h2 className="text-lg font-display font-semibold text-white-primary">
+          <h2 className="mt-4 text-balance text-lg font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">
             Something went wrong in this section
           </h2>
-          <p className="mt-1 text-sm text-white-muted">
+          <p className="admin-copy mt-2 text-pretty text-sm">
             {this.state.message}
           </p>
-          <p className="mt-3 text-xs text-white-muted">
-            Try again. If it keeps happening, reach out to John at john@acceleratewith.us.
+          <p className="admin-copy mt-3 text-xs">
+            No work was changed. Try the route again; if the issue persists, inspect Setup Center for a degraded dependency.
           </p>
           <div className="mt-4 flex justify-center gap-2">
             <button
+              type="button"
               onClick={this.handleReset}
-              className="rounded-lg border border-border-glass px-3 py-1.5 text-sm text-white-primary transition-colors hover:bg-white/5 cursor-pointer"
+              className="min-h-11 rounded-xl px-4 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"
             >
               Try again
             </button>
             <button
+              type="button"
               onClick={this.handleReload}
-              className="flex items-center gap-1.5 rounded-lg bg-gold-gradient px-3 py-1.5 text-sm font-semibold text-black hover:brightness-110 transition-[filter,transform] cursor-pointer"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]"
             >
-              <RefreshCw className="h-3.5 w-3.5" />
+              <RefreshCw className="size-3.5" />
               Reload
             </button>
           </div>

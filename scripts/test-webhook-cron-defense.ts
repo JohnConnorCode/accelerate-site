@@ -78,6 +78,14 @@ async function expectStatus(responsePromise: Promise<Response>, expected: number
     await expectStatus(post(cronRoute, {}), 405, `${cronRoute} method not allowed`);
   }
 
+  const healthCronRoute = "/api/cron/system-health-snapshot";
+  checks.push(`${healthCronRoute} rejects missing Bearer secret (401)`);
+  await expectStatus(post(healthCronRoute, { headers: { "content-type": "application/json" }, body: "{}" }), 401, `${healthCronRoute} missing authorization`);
+  checks.push(`${healthCronRoute} rejects invalid Bearer secret (401)`);
+  await expectStatus(post(healthCronRoute, { headers: { authorization: "Bearer invalid-secret", "content-type": "application/json" }, body: "{}" }), 401, `${healthCronRoute} invalid authorization`);
+  checks.push(`${healthCronRoute} rejects GET method`);
+  await expectStatus(get(healthCronRoute), 405, `${healthCronRoute} method not allowed`);
+
   const calendlySecret = process.env.CALENDLY_WEBHOOK_SECRET?.trim();
   const calendlyRoute = "/api/webhooks/calendly";
   // Refusing an unsecured booking payload is invariant, so it is probed against
@@ -116,25 +124,27 @@ async function expectStatus(responsePromise: Promise<Response>, expected: number
       `${calendlyRoute}?secret=wrong`,
     );
 
-    checks.push("calendly webhook rejects malformed JSON (400) with valid secret");
+    const calendlySecretHeaders = { "content-type": "application/json", "x-accelerate-webhook-secret": calendlySecret };
+
+    checks.push("calendly webhook rejects malformed JSON (400) with valid secret header");
     const malformedBody = "{ this-is-not-json }";
     await expectStatus(
-      post(`${calendlyRoute}?secret=${encodeURIComponent(calendlySecret)}`, {
+      post(calendlyRoute, {
         body: malformedBody,
-        headers: { "content-type": "application/json" },
+        headers: calendlySecretHeaders,
       }),
       400,
-      `${calendlyRoute}?secret=valid (malformed JSON)`,
+      `${calendlyRoute} valid secret header (malformed JSON)`,
     );
 
     checks.push("calendly webhook rejects unsupported payload (400) with valid secret");
     await expectStatus(
-      post(`${calendlyRoute}?secret=${encodeURIComponent(calendlySecret)}`, {
+      post(calendlyRoute, {
         body: "{}",
-        headers: { "content-type": "application/json" },
+        headers: calendlySecretHeaders,
       }),
       400,
-      `${calendlyRoute}?secret=valid (unsupported payload)`,
+      `${calendlyRoute} valid secret header (unsupported payload)`,
     );
 
     checks.push("calendly webhook ignores replayed payload after first receipt");
@@ -154,29 +164,28 @@ async function expectStatus(responsePromise: Promise<Response>, expected: number
     });
     const replayBody = {
       body: replayPayload,
-      headers: { "content-type": "application/json" },
+      headers: calendlySecretHeaders,
     };
-    const replaySecretUrl = `${calendlyRoute}?secret=${encodeURIComponent(calendlySecret)}`;
-    const firstReplay = await post(replaySecretUrl, replayBody);
-    assert.equal(firstReplay.status, 200, `${replaySecretUrl} first replay attempt`);
-    const secondReplay = await post(replaySecretUrl, replayBody);
-    assert.equal(secondReplay.status, 200, `${replaySecretUrl} repeated replay`);
+    const firstReplay = await post(calendlyRoute, replayBody);
+    assert.equal(firstReplay.status, 200, `${calendlyRoute} first replay attempt`);
+    const secondReplay = await post(calendlyRoute, replayBody);
+    assert.equal(secondReplay.status, 200, `${calendlyRoute} repeated replay`);
     const secondReplayBody = await secondReplay.json();
     assert.equal(
       secondReplayBody.duplicate,
       true,
-      `${replaySecretUrl} should report duplicate=true on replay`,
+      `${calendlyRoute} should report duplicate=true on replay`,
     );
 
     checks.push("calendly webhook rejects oversized payload (413) with valid secret");
     const oversizedPayload = JSON.stringify({ event: "invitee.created", payload: { marker: "x".repeat(120_000) } });
     await expectStatus(
-      post(`${calendlyRoute}?secret=${encodeURIComponent(calendlySecret)}`, {
+      post(calendlyRoute, {
         body: oversizedPayload,
-        headers: { "content-type": "application/json" },
+        headers: calendlySecretHeaders,
       }),
       413,
-      `${calendlyRoute}?secret=valid (oversize payload)`,
+      `${calendlyRoute} valid secret header (oversize payload)`,
     );
   }
 

@@ -35,14 +35,15 @@ export const services: Service[] = [
   },
   {
     id: "automation",
-    name: "Workflow Automation",
+    name: "Custom Systems & Automation",
     description:
-      "We connect the tools you already use and build the workflows between them: data entry, handoffs, reminders, invoicing, the steps that always happen next. Set up once, running around the clock, tuned every month.",
+      "We build the workflows, AI agents, internal tools, and integrations your operation needs. They connect the tools you already use, handle the repeatable work, and are tuned as the business changes.",
     shortDescription:
-      "Automated follow-ups, scheduling, invoicing, and internal workflows that keep your business moving.",
+      "Custom workflows, AI agents, internal tools, and integrations built around how your team works.",
     icon: "Workflow",
     deliverables: [
       "Workflow audit and automation roadmap",
+      "Custom AI agents and internal tools",
       "CRM integration and pipeline setup",
       "Automated follow-up sequences",
       "Appointment scheduling automation",
@@ -72,9 +73,9 @@ export const services: Service[] = [
   },
   {
     id: "sales",
-    name: "Sales & Marketing Automation",
+    name: "Sales & Marketing Execution",
     description:
-      "A pipeline that works every deal: inquiries scored and routed, follow-up sequences that run to the end, campaigns that ship on schedule. Your team spends its time closing, because everything before that is handled.",
+      "We build and run the systems behind pipeline management, follow-up, campaigns, and reporting. Your team gets consistent execution without having to assemble another internal function first.",
     shortDescription:
       "Automated pipeline management, email campaigns, social scheduling, and follow-up sequences.",
     icon: "TrendingUp",
@@ -107,9 +108,9 @@ export const services: Service[] = [
   },
   {
     id: "engagement",
-    name: "Customer Engagement",
+    name: "Customer Experience Systems",
     description:
-      "A custom AI agent trained on your business, working web, SMS, and email around the clock: it qualifies the inquiry, books the appointment, and hands off to a person the moment one is needed.",
+      "We build customer-facing AI and automation around your real policies, channels, and handoff rules, from intake and booking to service updates, reviews, and retention.",
     shortDescription:
       "AI-powered chat, automated booking, review management, and re-engagement campaigns.",
     icon: "MessageCircle",
@@ -144,9 +145,9 @@ export const services: Service[] = [
   },
   {
     id: "content",
-    name: "Content Creation",
+    name: "Content Operations",
     description:
-      "Content in your voice, on a calendar you approve monthly: posts, pages, and newsletters written, scheduled, and published without a marketing hire. It learns your tone from what you have already written.",
+      "We build and run a repeatable content operation in your voice: research, planning, writing, review, publishing, distribution, and reporting on an approved calendar.",
     shortDescription:
       "Blog posts, social media, and email newsletters, published on a calendar you approve monthly.",
     icon: "PenTool",
@@ -176,9 +177,9 @@ export const services: Service[] = [
   },
   {
     id: "reporting",
-    name: "Data & Reporting",
+    name: "Data, Reporting & Optimization",
     description:
-      "All your numbers in one live view: pipeline, revenue, hours returned, and what each system is doing. A weekly digest tells you what changed and what needs a decision.",
+      "We connect the numbers your team already relies on, build useful reporting, explain what changed, and use the evidence to improve the work over time.",
     shortDescription:
       "Custom dashboards, weekly digests, pipeline tracking, and trend analysis in one place.",
     icon: "BarChart3",

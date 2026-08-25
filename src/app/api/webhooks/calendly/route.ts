@@ -66,8 +66,12 @@ export async function POST(request: NextRequest) {
   }
 
   const querySecret = new URL(request.url).searchParams.get("secret");
+  // Prefer a header so credentials never appear in access logs or copied URLs.
+  // Keep the query parameter temporarily for existing Calendly subscriptions;
+  // Setup must migrate them before that compatibility path can be removed.
+  const headerSecret = request.headers.get("x-accelerate-webhook-secret");
   const signature = request.headers.get("x-calendly-webhook-signature") || request.headers.get("calendly-webhook-signature");
-  const authorized = querySecret === secret || Boolean(signature && signatureMatches(raw, signature, secret));
+  const authorized = headerSecret === secret || querySecret === secret || Boolean(signature && signatureMatches(raw, signature, secret));
   if (!authorized) return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
 
   let body: CalendlyWebhookPayload;

@@ -10,11 +10,15 @@ rediscovering architecture or inventing new write paths.
    `scripts/feature-backlog-data.mjs`.
 2. `docs/AGENT-TICKET-RUNBOOK.md` for the pickup, execution, evidence, and handoff
    procedure.
-3. `docs/REVENUE-OS-ENGINEERING-CONTRACT.md` for data, automation, AI, security,
+3. `docs/FEATURE-BOARD-TAXONOMY.md` before adding, relabeling, promoting, or
+   reorganizing backlog cards.
+4. `docs/REVENUE-OS-ENGINEERING-CONTRACT.md` for data, automation, AI, security,
    and failure invariants.
-4. `src/lib/revenue-os/README.md` for authoritative modules and callers.
-5. `docs/REVENUE-OS-SETUP.md` when the ticket touches schema, providers, secrets,
+5. `src/lib/revenue-os/README.md` for authoritative modules and callers.
+6. `docs/REVENUE-OS-SETUP.md` when the ticket touches schema, providers, secrets,
    health, or production activation.
+7. `docs/MARKETING-POSITIONING-CONTRACT.md` before changing any public marketing
+   copy, metadata, search description, public assistant positioning, or CTA.
 
 Run `npm run verify:agent-contract` before implementation. If it fails, repair
 the contract or card detail before changing product behavior.
@@ -49,6 +53,8 @@ Every capability follows this sequence:
 - Do not create a second roadmap. Newly discovered work becomes a detailed card
   with a stable key, dependencies, starting points, guardrails, acceptance, and
   verification evidence.
+- Keep managed labels inside `docs/FEATURE-BOARD-TAXONOMY.md`: one milestone,
+  category, phase, and one or two reusable capabilities. Never add one-off labels.
 - Do not mark a card `shipped` until every acceptance item has attached evidence.
   Local success cannot satisfy an acceptance item that explicitly requires
   production proof.

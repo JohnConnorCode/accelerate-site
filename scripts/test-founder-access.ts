@@ -35,6 +35,9 @@ const representativePages = [
   "/admin/today",
   "/admin/contacts",
   "/admin/pipeline",
+  "/admin/pipeline/founder-access-probe",
+  "/admin/ai",
+  "/admin/ai-operations",
   "/admin/settings",
   "/admin/campaigns",
 ];
@@ -46,6 +49,10 @@ const representativeApis = [
   "/api/admin/analytics",
   "/api/admin/revenue-os/overview",
   "/api/admin/revenue-os/campaigns",
+  "/api/admin/revenue-os/activity?opportunityId=founder-access-probe",
+  "/api/admin/revenue-os/records/opportunity/founder-access-probe",
+  "/api/admin/revenue-os/ai/conversations",
+  "/api/admin/revenue-os/ai/runs",
 ];
 const CANONICAL_ADMIN_MUTATION_TABLES = [
   "contacts",

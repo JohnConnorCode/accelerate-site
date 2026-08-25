@@ -1,8 +1,13 @@
-import { redirect } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 
-// Results / case-study detail pages removed. Redirect every slug (incl. the
-// links still embedded in blog articles, e.g. /results/<slug>) to the
-// homepage so nothing 404s.
-export default function CaseStudyPage() {
-  redirect("/");
+const legacyRedirects: Record<string, string> = {
+  sparkblox: "/work/sparkblox",
+  "farrell-roofing": "/work",
+  "montoya-capital": "/work",
+};
+
+export default async function CaseStudyPage({ params }: { params: Promise<{ slug: string }> }) {
+  const destination = legacyRedirects[(await params).slug];
+  if (!destination) notFound();
+  permanentRedirect(destination);
 }

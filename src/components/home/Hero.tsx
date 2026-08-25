@@ -278,7 +278,7 @@ export function Hero() {
       >
         <div className="hero-top">
           <p className={`label eyebrow-anim rv${loaded ? " in" : ""}`}>
-            AI strategy, automation, and implementation
+            AI systems, built and run for operators
           </p>
           <h1 className="h1">
             {/* "We architect and deploy intelligent automation to scale
@@ -352,7 +352,7 @@ export function Hero() {
               simultaneously with it — a deliberate trailing beat. */}
           <div style={{ "--d": "7.30s" } as CSSProperties}>
             <p className="lede">
-              We identify the bottlenecks choking your margins and engineer them out of existence. Seamless CRM integrations, voice-to-text workflows, and fully autonomous lead capture.
+              We identify where work is slow or revenue is missed, then build and improve the smallest useful system. That can include CRM connections, voice-to-text workflows, or better inquiry capture.
             </p>
           </div>
         </div>

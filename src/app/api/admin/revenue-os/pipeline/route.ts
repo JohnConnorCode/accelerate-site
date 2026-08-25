@@ -24,15 +24,24 @@ export async function GET(request: NextRequest) {
 
   const contactIds = [...new Set((result.data ?? []).map((item) => item.contact_id).filter(Boolean))];
   const companyIds = [...new Set((result.data ?? []).map((item) => item.company_id).filter(Boolean))];
-  const [contacts, companies] = await Promise.all([
+  const opportunityIds = (result.data ?? []).map((item) => item.id);
+  const [contacts, companies, meetings] = await Promise.all([
     contactIds.length ? supabase.from("contacts").select("*").in("id", contactIds) : Promise.resolve({ data: [], error: null }),
     companyIds.length ? supabase.from("companies").select("*").in("id", companyIds) : Promise.resolve({ data: [], error: null }),
+    opportunityIds.length
+      ? supabase.from("calendar_events").select("opportunity_id,start_at,status").in("opportunity_id", opportunityIds).gte("start_at", new Date().toISOString()).neq("status", "cancelled").order("start_at", { ascending: true }).limit(500)
+      : Promise.resolve({ data: [], error: null }),
   ]);
   const contactMap = new Map((contacts.data ?? []).map((item) => [item.id, item]));
   const companyMap = new Map((companies.data ?? []).map((item) => [item.id, item]));
+  const meetingMap = new Map<string, string>();
+  for (const meeting of meetings.data ?? []) {
+    if (meeting.opportunity_id && !meetingMap.has(meeting.opportunity_id)) meetingMap.set(meeting.opportunity_id, meeting.start_at);
+  }
   return NextResponse.json({
     schemaReady: true,
-    opportunities: (result.data ?? []).map((item) => ({ ...item, canonical_stage: canonicalStage(item.stage), contact: contactMap.get(item.contact_id) ?? null, company: companyMap.get(item.company_id) ?? null })),
+    signalsReady: { calendar: !meetings.error },
+    opportunities: (result.data ?? []).map((item) => ({ ...item, canonical_stage: canonicalStage(item.stage), next_meeting_at: meetingMap.get(item.id) ?? null, contact: contactMap.get(item.contact_id) ?? null, company: companyMap.get(item.company_id) ?? null })),
   });
 }
 

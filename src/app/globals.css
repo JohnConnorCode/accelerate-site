@@ -199,6 +199,15 @@
   --card-shadow-hover: 0 0 0 1px rgba(255, 255, 255, .14);
 }
 
+.work-media-image {
+  outline: 1px solid rgba(0, 0, 0, 0.1);
+  outline-offset: -1px;
+}
+
+[data-theme="dark"] .work-media-image {
+  outline-color: rgba(255, 255, 255, 0.1);
+}
+
 @theme inline {
   --color-bg-base: var(--bg-base);
   --color-bg-elevated: var(--bg-elevated);

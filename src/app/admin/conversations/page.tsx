@@ -15,7 +15,7 @@ export default function ConversationsPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [schemaReady, setSchemaReady] = useState(true);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(() => typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("thread")?.trim() || null);
   const [search, setSearch] = useState("");
   const [reply, setReply] = useState("");
   const [reviewing, setReviewing] = useState(false);

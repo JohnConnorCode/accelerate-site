@@ -1,0 +1,160 @@
+import AxeBuilder from "@axe-core/playwright";
+import { chromium } from "playwright";
+import { mkdirSync } from "node:fs";
+
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3010";
+const routes = ["/work", "/work/work-shelter", "/work/healthcare-real-estate", "/work/superdebate", "/work/sparkblox", "/work/thrive-protocol", "/work/green-goods"];
+const output = "/tmp/accelerate-work-portfolio-qa";
+mkdirSync(output, { recursive: true });
+
+const browser = await chromium.launch({ headless: true });
+const failures = [];
+const viewports = [
+  { name: "desktop", width: 1440, height: 900, colorScheme: "light", reducedMotion: "no-preference" },
+  { name: "tablet", width: 834, height: 1112, colorScheme: "light", reducedMotion: "reduce" },
+  { name: "mobile", width: 430, height: 932, colorScheme: "dark", reducedMotion: "no-preference" },
+  { name: "mobile-small", width: 390, height: 844, colorScheme: "dark", reducedMotion: "reduce" },
+];
+
+for (const viewport of viewports) {
+  const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height }, colorScheme: viewport.colorScheme, reducedMotion: viewport.reducedMotion });
+  await context.addInitScript((theme) => window.localStorage.setItem("theme", theme), viewport.colorScheme);
+  const page = await context.newPage();
+  const consoleErrors = [];
+  page.on("console", (message) => { if (message.type() === "error") consoleErrors.push(message.text()); });
+  page.on("pageerror", (error) => consoleErrors.push(error.message));
+
+  for (const route of routes) {
+    const response = await page.goto(`${baseUrl}${route}`, { waitUntil: "networkidle" });
+    await page.waitForTimeout(1100);
+    if (!response || response.status() >= 400) failures.push(`${viewport.name} ${route}: HTTP ${response?.status() ?? "no response"}`);
+
+    const pageFacts = await page.evaluate(() => ({
+      overflow: document.documentElement.scrollWidth > window.innerWidth + 1,
+      h1Count: document.querySelectorAll("h1").length,
+      missingImages: [...document.images].filter((image) => image.complete && image.naturalWidth === 0).map((image) => image.currentSrc || image.src),
+      hiddenReveals: [...document.querySelectorAll("[data-work-reveal]")].filter((node) => Number.parseFloat(getComputedStyle(node).opacity) < 0.99).length,
+      workRevealCount: document.querySelectorAll("[data-work-reveal]").length,
+      canonicalRevealCount: document.querySelectorAll("[data-work-reveal].rv").length,
+      mediaCount: document.querySelectorAll("main figure").length,
+      mediaRevealCount: document.querySelectorAll("main [data-work-media-reveal].rv").length,
+      sharedHeadingCount: document.querySelectorAll("h1.reveal-self").length,
+    }));
+    if (pageFacts.overflow) failures.push(`${viewport.name} ${route}: horizontal overflow`);
+    if (pageFacts.h1Count !== 1) failures.push(`${viewport.name} ${route}: expected one h1, found ${pageFacts.h1Count}`);
+    if (pageFacts.missingImages.length) failures.push(`${viewport.name} ${route}: broken images ${pageFacts.missingImages.join(", ")}`);
+    if (!pageFacts.workRevealCount) failures.push(`${viewport.name} ${route}: portfolio motion hooks are missing`);
+    if (pageFacts.canonicalRevealCount !== pageFacts.workRevealCount) failures.push(`${viewport.name} ${route}: portfolio reveals are not using the canonical homepage primitive`);
+    if (pageFacts.mediaRevealCount !== pageFacts.mediaCount) failures.push(`${viewport.name} ${route}: ${pageFacts.mediaCount - pageFacts.mediaRevealCount} portfolio media items lack the canonical reveal`);
+    if (pageFacts.sharedHeadingCount !== 1) failures.push(`${viewport.name} ${route}: expected one shared word-mask hero heading, found ${pageFacts.sharedHeadingCount}`);
+    if (viewport.reducedMotion === "reduce" && pageFacts.hiddenReveals) failures.push(`${viewport.name} ${route}: ${pageFacts.hiddenReveals} reduced-motion reveals remained hidden`);
+    const undersizedTargets = await page.locator("main a, main button").evaluateAll((nodes) => nodes.map((node) => {
+      const rect = node.getBoundingClientRect();
+      return { label: (node.textContent || node.getAttribute("aria-label") || node.tagName).trim().slice(0, 40), width: rect.width, height: rect.height };
+    }).filter((target) => target.width < 40 || target.height < 40));
+    if (undersizedTargets.length) failures.push(`${viewport.name} ${route}: undersized targets ${JSON.stringify(undersizedTargets)}`);
+    if (route === "/work/green-goods") {
+      const contextGraphic = page.locator('img[src*="project-context"]');
+      if (await contextGraphic.count() !== 1) failures.push(`${viewport.name} ${route}: Green Goods context graphic is missing`);
+      else if (await contextGraphic.evaluate((image) => getComputedStyle(image).objectFit) !== "contain") failures.push(`${viewport.name} ${route}: Green Goods context graphic is cropped instead of contained`);
+    }
+    if (route === "/work/work-shelter") {
+      const suppliedScreens = ["customer-site-hero", "catalog-experience", "brand-partners", "quote-flow-overview", "quote-flow-detail", "command-center-dashboard", "orders-workspace", "products-inventory", "campaign-admin-help"];
+      for (const screen of suppliedScreens) if (await page.locator(`img[src*="${screen}"]`).count() !== 1) failures.push(`${viewport.name} ${route}: supplied screen ${screen} is missing or duplicated`);
+    }
+    if (route === "/work/superdebate") {
+      const suppliedScreens = ["admin-dashboard", "admin-events", "admin-roadmap", "admin-email"];
+      for (const screen of suppliedScreens) if (await page.locator(`img[src*="${screen}"]`).count() !== 1) failures.push(`${viewport.name} ${route}: supplied command-center screen ${screen} is missing or duplicated`);
+      if (await page.getByText("SuperDebate command center", { exact: true }).count() !== 1) failures.push(`${viewport.name} ${route}: command-center labeling is missing`);
+    }
+
+    const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
+    const materialViolations = axe.violations.filter((violation) => violation.impact === "serious" || violation.impact === "critical");
+    if (materialViolations.length) failures.push(`${viewport.name} ${route}: axe ${materialViolations.map((violation) => `${violation.id} (${violation.nodes.length})`).join(", ")}`);
+
+    if (viewport.name !== "tablet") {
+      await page.evaluate(async () => {
+        const sleep = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+        for (let y = 0; y < document.body.scrollHeight; y += 360) {
+          window.scrollTo(0, y);
+          await sleep(120);
+        }
+        window.scrollTo(0, document.body.scrollHeight);
+        await sleep(800);
+      });
+      const missingAfterScroll = await page.evaluate(() => [...document.images].filter((image) => image.complete && image.naturalWidth === 0).map((image) => image.currentSrc || image.src));
+      if (missingAfterScroll.length) failures.push(`${viewport.name} ${route}: broken images after scroll ${missingAfterScroll.join(", ")}`);
+      const hiddenAfterScroll = await page.evaluate(() => [...document.querySelectorAll("[data-work-reveal], [data-work-media-reveal], [data-diagram-node]")].filter((node) => Number.parseFloat(getComputedStyle(node).opacity) < 0.99).length);
+      if (hiddenAfterScroll) failures.push(`${viewport.name} ${route}: ${hiddenAfterScroll} motion elements remained hidden after traversal`);
+      const name = route === "/work" ? "index" : route.split("/").at(-1);
+      await page.screenshot({ path: `${output}/${viewport.name}-${name}.png`, fullPage: true });
+    }
+  }
+
+  await page.goto(`${baseUrl}/work`, { waitUntil: "networkidle" });
+  const cardOrder = await page.locator("[data-work-card]").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-work-card")));
+  const expectedOrder = ["work-shelter", "superdebate", "healthcare-real-estate", "sparkblox", "thrive-protocol", "green-goods"];
+  if (JSON.stringify(cardOrder) !== JSON.stringify(expectedOrder)) failures.push(`${viewport.name}: incorrect public card order ${cardOrder.join(", ")}`);
+  const flagshipOrder = await page.locator('[data-work-tier="flagship"] [data-work-card]').evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-work-card")));
+  if (JSON.stringify(flagshipOrder) !== JSON.stringify(["work-shelter", "superdebate"])) failures.push(`${viewport.name}: WORK+SHELTER and SuperDebate are not the dedicated flagships`);
+  if (await page.locator('[data-work-card="superdebate"] img[src*="online-product"]').count() !== 1) failures.push(`${viewport.name}: SuperDebate card is not using the supplied product screen`);
+  if (await page.locator('[data-work-card="thrive-protocol"] img[src*="xion"]').count()) failures.push(`${viewport.name}: Thrive card still uses XION imagery`);
+  if (await page.getByText("Northern Trust", { exact: true }).count()) failures.push(`${viewport.name}: archived Northern Trust case appeared on /work`);
+  const imagePreloads = await page.locator('link[rel="preload"][as="image"]').count();
+  if (imagePreloads > 1) failures.push(`${viewport.name}: /work preloaded ${imagePreloads} images; expected at most one`);
+  await page.keyboard.press("Tab");
+  const focusedTag = await page.evaluate(() => document.activeElement?.tagName);
+  if (focusedTag === "BODY" || !focusedTag) failures.push(`${viewport.name}: keyboard navigation did not reach an interactive element`);
+  if (consoleErrors.length) failures.push(`${viewport.name}: console/page errors: ${consoleErrors.join(" | ")}`);
+  await context.close();
+}
+
+const distinctContext = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: "reduce" });
+const distinctPage = await distinctContext.newPage();
+const worlds = new Set();
+const accents = new Set();
+for (const route of routes.slice(1)) {
+  await distinctPage.goto(`${baseUrl}${route}`, { waitUntil: "networkidle" });
+  const facts = await distinctPage.locator("[data-case-world]").evaluate((node) => ({ world: node.getAttribute("data-case-world"), accent: node.getAttribute("data-case-accent") }));
+  worlds.add(facts.world);
+  accents.add(facts.accent);
+}
+if (worlds.size !== routes.length - 1) failures.push(`public case art direction is not distinct: ${[...worlds].join(", ")}`);
+if (accents.size < 5) failures.push(`public case accent system is too repetitive: ${[...accents].join(", ")}`);
+await distinctContext.close();
+
+const videoContext = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: "reduce" });
+const videoPage = await videoContext.newPage();
+const thirdPartyVideoRequests = [];
+videoPage.on("request", (request) => {
+  if (/youtube|googlevideo/i.test(request.url())) thirdPartyVideoRequests.push(request.url());
+});
+await videoPage.goto(`${baseUrl}/work/northern-trust`, { waitUntil: "networkidle" });
+const archiveRobots = await videoPage.locator('meta[name="robots"]').getAttribute("content");
+if (!archiveRobots?.includes("noindex") || !archiveRobots.includes("follow")) failures.push("Northern Trust archive metadata must be noindex, follow");
+if (await videoPage.locator('[data-work-visibility="archived"]').count() !== 1) failures.push("Northern Trust must render with archive visibility");
+if (await videoPage.getByText("Portfolio archive", { exact: true }).count() !== 1) failures.push("Northern Trust archive note is missing");
+if (thirdPartyVideoRequests.length) failures.push("Northern Trust requested YouTube before interaction");
+const playButton = videoPage.getByRole("button", { name: /Play Northern Trust homepage scroll motion experiment/i });
+await playButton.focus();
+await playButton.press("Enter");
+await videoPage.waitForSelector('iframe[src*="youtube-nocookie.com"]');
+if (await videoPage.locator('iframe[src*="youtube-nocookie.com"]').count() !== 1) failures.push("Northern Trust did not load exactly one selected motion study");
+await videoContext.close();
+
+const redirectContext = await browser.newContext();
+const redirectPage = await redirectContext.newPage();
+const sitemapResponse = await redirectPage.goto(`${baseUrl}/sitemap.xml`, { waitUntil: "networkidle" });
+const sitemapText = await sitemapResponse?.text();
+if (sitemapText?.includes("/work/northern-trust")) failures.push("Northern Trust archive appeared in the public sitemap");
+await redirectPage.goto(`${baseUrl}/results/sparkblox`, { waitUntil: "networkidle" });
+if (redirectPage.url() !== `${baseUrl}/work/sparkblox`) failures.push("legacy Sparkblox redirect is not truthful");
+await redirectContext.close();
+await browser.close();
+
+if (failures.length) {
+  console.error(failures.join("\n"));
+  process.exit(1);
+}
+
+console.log(JSON.stringify({ publicRoutes: routes.length, archivedRoutes: 1, viewports: viewports.length, motionModes: ["normal", "reduced"], themes: ["light", "dark"], accessibility: "axe wcag2a/wcag2aa", screenshots: output, result: "passed" }, null, 2));

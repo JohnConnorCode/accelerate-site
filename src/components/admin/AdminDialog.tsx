@@ -43,6 +43,9 @@ export function AdminDialog({
   maxWidth = "md",
   align = "center",
 }: AdminDialogProps) {
+  // Centered forms become bottom sheets on phones. The command palette and
+  // right-side editors keep their deliberate desktop/mobile layouts.
+  const mobileSheet = align === "center";
   useEffect(() => {
     if (!open) return;
     openDialogCount += 1;
@@ -81,12 +84,18 @@ export function AdminDialog({
                 <motion.div
                   aria-labelledby={labelledBy}
                   aria-label={ariaLabel}
-                  className={cn("pointer-events-auto relative w-full", widths[maxWidth], className)}
+                  className={cn(
+                    "pointer-events-auto relative w-full",
+                    widths[maxWidth],
+                    mobileSheet && "max-h-[calc(100dvh-12px)] overflow-y-auto rounded-t-[24px] bg-[var(--admin-surface)] pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-20px_60px_-28px_rgba(0,0,0,0.34)] sm:max-h-[90dvh] sm:rounded-none sm:bg-transparent sm:pb-0 sm:pt-0 sm:shadow-none",
+                    className,
+                  )}
                   initial={align === "right" ? { opacity: 0, x: 32 } : { opacity: 0, y: 18, scale: 0.975 }}
                   animate={align === "right" ? { opacity: 1, x: 0 } : { opacity: 1, y: 0, scale: 1 }}
                   exit={align === "right" ? { opacity: 0, x: 20 } : { opacity: 0, y: 10, scale: 0.985 }}
                   transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
                 >
+                  {mobileSheet && <span className="mx-auto mb-2 block h-1 w-9 rounded-full bg-[var(--admin-ink)]/20 sm:hidden" aria-hidden="true" />}
                   <Dialog.Title asChild>
                     <span className="sr-only">{title}</span>
                   </Dialog.Title>

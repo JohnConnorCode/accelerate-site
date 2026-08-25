@@ -413,6 +413,9 @@ export default function AdminSetupPage() {
         subtitle="Connect, verify, and operate the complete Revenue OS. Every status reflects this deployment; secrets are never displayed or stored in the admin database."
         actions={(
           <>
+            <Link href="/admin/integrations" className="inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]">
+              Integration map <PlugZap className="size-3.5" aria-hidden="true" />
+            </Link>
             <Link href="/roofing" target="_blank" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-4 text-xs font-semibold text-[var(--admin-ink)] shadow-sm transition-[transform,background-color] duration-150 hover:bg-[var(--admin-surface-subtle)] active:scale-[0.96]">
               View funnel <ArrowRight className="size-3.5" aria-hidden="true" />
             </Link>

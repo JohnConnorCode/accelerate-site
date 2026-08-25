@@ -7,16 +7,29 @@ interface LogoProps {
   size?: "sm" | "md";
   className?: string;
   onClick?: () => void;
+  /**
+   * The mark is also used inside authenticated products. Keep its animation
+   * and letter treatment in this shared component while letting that product
+   * choose its own home destination.
+   */
+  href?: string;
+  ariaLabel?: string;
 }
 
 const WORD = "ACCELERATE";
 
-export function Logo({ size = "md", className, onClick }: LogoProps) {
+export function Logo({
+  size = "md",
+  className,
+  onClick,
+  href = "/",
+  ariaLabel = "Accelerate home",
+}: LogoProps) {
   return (
     <Link
-      href="/"
+      href={href}
       onClick={onClick}
-      aria-label="Accelerate home"
+      aria-label={ariaLabel}
       className={cn("logo-link group inline-flex items-center gap-2.5", className)}
     >
       <LogoMark className={size === "sm" ? "h-[14px] w-7" : "h-4 w-8"} />

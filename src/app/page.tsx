@@ -2,13 +2,13 @@ import { seoMetadata } from "@/lib/og";
 import { generateFaqJsonLd } from "@/lib/seo";
 import { homeFaqs } from "@/content/home-faq";
 import { Studio } from "@/components/v2/studio/Studio";
+import { marketingPositioning } from "@/content/marketing-positioning";
 
 export const metadata = seoMetadata({
-  title: "Accelerate | AI Systems Built and Run for Your Business",
-  description:
-    "We build and run the system that runs your business: it reads email and meetings, keeps one record per client, and runs the routine work itself. Free 30-minute strategy session.",
-  ogTitle: "AI Systems, Built and Run for You",
-  ogSubtitle: "Your team keeps the judgment calls. We run the rest.",
+  title: "Accelerate | Custom AI Strategy, Solutions & Execution",
+  description: marketingPositioning.shortOffer,
+  ogTitle: "The Right AI Solution for Your Business",
+  ogSubtitle: "Strategy, custom builds, execution, training, and ongoing improvement",
   path: "/",
 });
 
@@ -19,7 +19,7 @@ const websiteJsonLd = {
   name: "Accelerate",
   url: "https://www.acceleratewith.us",
   description:
-    "Custom business solutions powered by AI, built and run by Accelerate. One system that sees everything, remembers everything, and does the routine work itself. You own all of it.",
+    marketingPositioning.coreOffer,
   publisher: { "@id": "https://www.acceleratewith.us/#organization" },
   potentialAction: {
     "@type": "SearchAction",
@@ -36,7 +36,7 @@ const serviceJsonLd = {
   "@id": "https://www.acceleratewith.us/#service",
   name: "AI Strategy & Systems for Small Business",
   description:
-    "Custom business solutions powered by AI, built and run by Accelerate. One system that sees everything, remembers everything, and does the routine work itself. You own all of it.",
+    marketingPositioning.coreOffer,
   provider: { "@id": "https://www.acceleratewith.us/#organization" },
   serviceType: [
     "AI Strategy & Roadmap",

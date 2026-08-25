@@ -15,6 +15,7 @@ import {
 
 interface SourceRunRow { source_key: string; status: string; summary: unknown; error: string | null; finished_at: string | null }
 interface JobRunRow { job_key: string; status: string; summary: unknown; error: string | null; finished_at: string | null; claimed_at: string }
+interface SchedulerStatus { configured: boolean; active: boolean; schedule: string; last_run_status: string | null; last_run_at: string | null }
 
 function configured(...keys: string[]) {
   return keys.every((key) => Boolean(process.env[key]?.trim()));
@@ -33,7 +34,7 @@ export async function GET() {
   const runtimeSchema = supabaseConfigured
     ? await verifyRevenueSchemaDataAccess(supabase)
     : { status: "connectivity_failure" as const, issues: [], checkedAt: new Date().toISOString() };
-  const [featureBoardResult, googleResult, sourceRunsResult, jobRunsResult, proposalResult, analyticsResult, emailStudioResult, contactImporterResult, schemaVerificationResult] = supabaseConfigured
+  const [featureBoardResult, googleResult, sourceRunsResult, jobRunsResult, proposalResult, analyticsResult, emailStudioResult, contactImporterResult, schemaVerificationResult, schedulerResult] = supabaseConfigured
     ? await Promise.all([
         supabase.from("feature_requests").select("id", { count: "exact" }).eq("source", "revenue-os-master-plan").is("archived_at", null).limit(1),
         supabase.from("integration_connections").select("account_email,status,scopes,last_success_at,last_error,settings").eq("provider", "google").maybeSingle(),
@@ -44,6 +45,7 @@ export async function GET() {
         supabase.from("email_template_versions").select("id", { count: "exact" }).limit(1),
         supabase.from("contact_import_batches").select("id,status,review_digest,approval_digest,ai_provider", { count: "exact" }).limit(1),
         supabase.from("schema_verification_runs").select("contract_version,status,failure_detail,checked_at").order("checked_at", { ascending: false }).limit(1).maybeSingle(),
+        supabase.rpc("command_center_scheduler_status"),
       ])
     : [
         { error: new Error("Supabase is not configured"), count: null },
@@ -54,6 +56,7 @@ export async function GET() {
         { data: [], error: null },
         { error: new Error("Supabase is not configured"), count: null },
         { error: new Error("Supabase is not configured"), count: null },
+        { error: new Error("Supabase is not configured"), data: null },
         { error: new Error("Supabase is not configured"), data: null },
       ];
 
@@ -83,6 +86,11 @@ export async function GET() {
   for (const run of sourceRunsResult.data ?? []) if (!latestSource.has(run.source_key)) latestSource.set(run.source_key, run);
   const latestJob = new Map<string, JobRunRow>();
   for (const run of jobRunsResult.data ?? []) if (!latestJob.has(run.job_key)) latestJob.set(run.job_key, run);
+  const scheduler = schedulerResult.data as SchedulerStatus | null;
+  const healthSnapshotRun = latestJob.get("system-health-snapshot");
+  const healthSnapshotFresh = healthSnapshotRun?.status === "success"
+    && Boolean(healthSnapshotRun.finished_at)
+    && Date.now() - Date.parse(healthSnapshotRun.finished_at as string) <= 30 * 60_000;
 
   // Same rule the claim function and the health service use: a run claimed
   // longer ago than the recovery window and never closed means the process died.
@@ -317,6 +325,31 @@ export async function GET() {
       status: calendlyEnabled ? configured("CALENDLY_PERSONAL_ACCESS_TOKEN", "CALENDLY_WEBHOOK_SECRET") ? "ready" : "action" : "disabled",
       required: false,
       keys: ["CALENDLY_PERSONAL_ACCESS_TOKEN", "CALENDLY_WEBHOOK_SECRET"],
+    },
+    {
+      id: "continuous_scheduler",
+      group: "operations",
+      label: "Continuous scheduler",
+      description: schedulerResult.error
+        ? "Apply the Command Center scheduler migration before enabling sub-daily operations."
+        : !scheduler?.configured
+          ? "The 15-minute Supabase Cron wake-up is installed but its encrypted production endpoint is not configured."
+          : healthSnapshotFresh
+            ? "Supabase Cron is waking the authenticated health adapter every 15 minutes and the latest Revenue OS receipt is fresh."
+            : "The scheduler is configured, but no fresh successful application receipt proves the wake-up completed.",
+      accomplishes: "Removes the daily-only ceiling for proactive intelligence without moving business rules out of Revenue OS services.",
+      status: schedulerResult.error || !scheduler?.configured
+        ? "action"
+        : !scheduler.active || scheduler.last_run_status === "failed" || !healthSnapshotFresh
+          ? "degraded"
+          : "ready",
+      required: false,
+      keys: ["migrations/20260823-command-center-scheduler.sql", "npm run scheduler:configure", "/api/cron/system-health-snapshot"],
+      lastSuccessAt: healthSnapshotFresh ? healthSnapshotRun?.finished_at ?? null : null,
+      lastFailure: scheduler?.last_run_status === "failed"
+        ? "The latest Supabase Cron wake-up failed. Review Cron history and the system-health job receipt."
+        : healthSnapshotRun?.status === "failed" ? healthSnapshotRun.error : null,
+      action: { label: "Review integration health", href: "/admin/integrations" },
     },
     {
       id: "operations",

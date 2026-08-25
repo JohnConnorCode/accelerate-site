@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getResend, FROM_EMAIL } from "@/lib/email/resend";
 import { siteUrl } from "@/config/tenant";
 import { recordAudit } from "./audit";
+import { recordActivity } from "./activities";
 import { normalizeEmail } from "./db";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -138,18 +139,18 @@ export async function sendRecordedEmail(supabase: SupabaseClient, input: {
       related_id: input.opportunityId ?? null,
       template_used: input.template ?? null,
     }),
-    supabase.from("activities").insert({
-      activity_type: "email_sent",
+    recordActivity(supabase, {
+      activityType: "email_sent",
       title: input.subject.trim(),
       summary: `Email sent to ${to}`,
-      contact_id: input.contactId ?? null,
-      opportunity_id: input.opportunityId ?? null,
-      conversation_id: conversationId,
-      campaign_id: input.campaignId ?? null,
+      contactId: input.contactId ?? null,
+      opportunityId: input.opportunityId ?? null,
+      conversationId,
+      campaignId: input.campaignId ?? null,
       source: input.source ?? "admin",
-      actor_email: input.actorEmail ?? null,
-      external_id: providerId,
-      occurred_at: now,
+      actorEmail: input.actorEmail ?? null,
+      externalId: providerId || `message:${message.id}`,
+      occurredAt: now,
     }),
     supabase.from("conversations").update({ last_message_at: now, status: "waiting" }).eq("id", conversationId),
     recordAudit(supabase, {

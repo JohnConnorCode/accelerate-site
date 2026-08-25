@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import {
   ArrowUpRight,
+  Bot,
   ChevronDown,
   CheckSquare,
   Command,
@@ -14,6 +15,7 @@ import {
   LogOut,
   Mail,
   Menu,
+  NotebookPen,
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
@@ -29,8 +31,14 @@ import { Toaster } from "@/components/admin/Toaster";
 import { AdminErrorBoundary } from "@/components/admin/AdminErrorBoundary";
 import { AdminShortcuts } from "@/components/admin/AdminShortcuts";
 import { AdminCreateTaskModal } from "@/components/admin/AdminCreateTaskModal";
+import { AdminFounderNoteModal } from "@/components/admin/AdminFounderNoteModal";
+import { AdminAIProvider } from "@/components/admin/AdminAIProvider";
+import { AdminAIPanel } from "@/components/admin/AdminAIPanel";
 import { EmailComposeModal } from "@/components/admin/EmailComposeModal";
 import { AdminDialog } from "@/components/admin/AdminDialog";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { Logo } from "@/components/ui/Logo";
+import { LogoMark } from "@/components/ui/LogoMark";
 import { adminPageVariants } from "@/lib/admin/motion";
 import { adminNavLinks, adminNavSections, type AdminNavLink } from "@/lib/admin/navigation";
 
@@ -74,6 +82,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [composeOpen, setComposeOpen] = useState(false);
   const [composeDraft, setComposeDraft] = useState({ subject: "", body: "" });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [priorityCount, setPriorityCount] = useState(0);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const searchAbortRef = useRef<AbortController | null>(null);
@@ -141,6 +150,35 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => setMobileOpen(false), [pathname]);
 
   useEffect(() => {
+    let cancelled = false;
+    let controller: AbortController | null = null;
+    const refresh = async () => {
+      controller?.abort();
+      controller = new AbortController();
+      try {
+        const response = await fetch("/api/admin/revenue-os/priority", { signal: controller.signal });
+        if (!response.ok) return;
+        const data = await response.json() as { summary?: { urgent?: number } };
+        if (!cancelled) setPriorityCount(Number(data.summary?.urgent || 0));
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === "AbortError")) console.error("[admin-priority-count]", error);
+      }
+    };
+    void refresh();
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") void refresh();
+    }, 30_000);
+    const onRefresh = () => void refresh();
+    window.addEventListener("admin:priority-refresh", onRefresh);
+    return () => {
+      cancelled = true;
+      controller?.abort();
+      window.clearInterval(interval);
+      window.removeEventListener("admin:priority-refresh", onRefresh);
+    };
+  }, []);
+
+  useEffect(() => {
     setSidebarCollapsed(window.localStorage.getItem("accelerate:admin-sidebar") === "collapsed");
   }, []);
 
@@ -205,6 +243,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       run: () => window.dispatchEvent(new CustomEvent("admin:add-task")),
     },
     {
+      label: "Capture note",
+      description: "Add what you know to operating memory",
+      keywords: "note remember decision context knowledge memory",
+      icon: NotebookPen,
+      run: () => window.dispatchEvent(new CustomEvent("admin:add-note")),
+    },
+    {
       label: "Export leads",
       description: "Download the current lead database",
       keywords: "csv download backup",
@@ -232,24 +277,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const breadcrumbs = getBreadcrumbs(pathname);
 
   return (
+    <AdminAIProvider>
     <MotionConfig reducedMotion="user">
     <div className="admin-shell flex min-h-screen">
       <aside className={cn("admin-sidebar hidden shrink-0 transition-[width] duration-300 lg:block", sidebarCollapsed ? "w-[80px]" : "w-[272px]")} data-admin-sidebar>
         <div className="sticky top-0 flex h-screen flex-col px-4 py-5">
-          <SidebarContent isActive={isActive} onSignOut={handleSignOut} collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebar} />
+          <SidebarContent isActive={isActive} onSignOut={handleSignOut} collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebar} priorityCount={priorityCount} />
         </div>
       </aside>
 
-      <header className="admin-mobile-header fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between px-4 lg:hidden">
-        <Link href="/admin/today" className="font-display text-[15px] font-semibold tracking-[-0.02em] text-white">
-          {tenant.brand.name} <span className="text-white/45">/ Revenue OS</span>
-        </Link>
+      <header className="admin-mobile-header fixed inset-x-0 top-0 z-40 flex min-h-16 items-center justify-between gap-2 px-4 pt-[env(safe-area-inset-top)] lg:hidden">
+        <Logo
+          href="/admin/today"
+          ariaLabel="Accelerate Revenue OS home"
+          size="sm"
+          className="shrink-0 [--gold-base:#fff] [--heading-color:#fff]"
+        />
         <div className="flex items-center gap-1">
-          <NotificationBell />
-          <button type="button" onClick={() => setSearchOpen(true)} className="inline-flex h-10 w-10 items-center justify-center rounded-[10px] text-white/60 transition-[color,background-color,transform] duration-150 hover:bg-white/8 hover:text-white active:scale-[0.96]" aria-label="Open command palette">
+          <NotificationBell placement="mobile" />
+          <button type="button" onClick={() => window.dispatchEvent(new CustomEvent("admin:open-ai"))} className="inline-flex size-11 items-center justify-center rounded-[10px] text-white/60 transition-[color,background-color,transform] duration-150 hover:bg-white/8 hover:text-white active:scale-[0.96]" aria-label="Open AI command center"><Bot className="size-4" /></button>
+          <button type="button" onClick={() => setSearchOpen(true)} className="inline-flex size-11 items-center justify-center rounded-[10px] text-white/60 transition-[color,background-color,transform] duration-150 hover:bg-white/8 hover:text-white active:scale-[0.96]" aria-label="Open command palette">
             <Search className="h-4.5 w-4.5" />
           </button>
-          <button type="button" onClick={() => setMobileOpen((current) => !current)} className="inline-flex h-10 w-10 items-center justify-center rounded-[10px] text-white/75 transition-[color,background-color,transform] duration-150 hover:bg-white/8 hover:text-white active:scale-[0.96]" aria-label={mobileOpen ? "Navigation open" : "Open navigation"} aria-expanded={mobileOpen}>
+          <button type="button" onClick={() => setMobileOpen((current) => !current)} className="inline-flex size-11 items-center justify-center rounded-[10px] text-white/75 transition-[color,background-color,transform] duration-150 hover:bg-white/8 hover:text-white active:scale-[0.96]" aria-label={mobileOpen ? "Navigation open" : "Open navigation"} aria-expanded={mobileOpen}>
             <AnimatePresence initial={false} mode="popLayout">
               <motion.span
                 key={mobileOpen ? "close" : "menu"}
@@ -272,7 +322,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <motion.button
               type="button"
               aria-label="Close navigation"
-              className="absolute right-3 top-3 z-10 grid size-11 place-items-center rounded-full bg-white text-black shadow-[0_8px_30px_rgba(0,0,0,0.28)] transition-transform active:scale-[0.94]"
+              className="absolute right-3 top-[calc(0.75rem+env(safe-area-inset-top))] z-10 grid size-11 place-items-center rounded-full bg-white text-black shadow-[0_8px_30px_rgba(0,0,0,0.28)] transition-transform active:scale-[0.96]"
               initial={{ opacity: 0, scale: 0.88 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.88 }}
@@ -280,8 +330,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             >
               <X className="size-5" />
             </motion.button>
-            <motion.aside className="admin-sidebar absolute inset-y-0 left-0 flex w-[286px] flex-col px-4 py-5" initial={{ x: -286 }} animate={{ x: 0 }} exit={{ x: -286 }} transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}>
-              <SidebarContent isActive={isActive} onSignOut={handleSignOut} onNavigate={() => setMobileOpen(false)} />
+            <motion.aside className="admin-sidebar absolute inset-y-0 left-0 flex w-[286px] flex-col px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))]" initial={{ x: -286 }} animate={{ x: 0 }} exit={{ x: -286 }} transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}>
+              <SidebarContent isActive={isActive} onSignOut={handleSignOut} onNavigate={() => setMobileOpen(false)} priorityCount={priorityCount} />
             </motion.aside>
           </div>
         )}
@@ -298,11 +348,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         searchingPeople={searchingPeople}
         onSelectPage={(href) => { router.push(href); closeSearch(); }}
         onSelectPerson={(email) => { router.push(`/admin/contacts/${encodeURIComponent(email)}`); closeSearch(); }}
-        onSelectAction={(action) => { closeSearch(); action.run(); }}
+        onSelectAction={(action) => {
+          closeSearch();
+          // Let the command surface finish leaving before opening another
+          // modal or route. Overlapping focus traps and backdrops make a fast
+          // command feel like two stacked applications.
+          window.setTimeout(action.run, 260);
+        }}
         inputRef={searchInputRef}
       />
 
-      <main className="admin-main min-w-0 flex-1 px-4 pb-12 pt-[76px] sm:px-6 lg:px-8 lg:pt-6 xl:px-10">
+      <main className="admin-main min-w-0 flex-1 px-4 pb-[max(3rem,calc(3rem+env(safe-area-inset-bottom)))] pt-[calc(76px+env(safe-area-inset-top))] sm:px-6 lg:px-8 lg:pb-12 lg:pt-6 xl:px-10">
         <div className="admin-route-frame">
           <div className="mb-5 flex min-h-10 items-center justify-between gap-4">
             <nav className="flex min-w-0 items-center gap-1.5 text-xs text-[var(--admin-muted)]" aria-label="Breadcrumb">
@@ -315,11 +371,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </span>
               ))}
             </nav>
-            <button type="button" onClick={() => setSearchOpen(true)} className="hidden min-h-10 items-center gap-3 rounded-[11px] bg-[var(--admin-surface)] px-3 text-xs text-[var(--admin-muted)] shadow-[var(--admin-shadow)] transition-[box-shadow,color,transform] duration-150 hover:text-[var(--admin-ink)] hover:shadow-[var(--admin-shadow-hover)] active:scale-[0.96] sm:flex">
-              <Search className="h-3.5 w-3.5" />
-              Search or run a command
-              <kbd className="ml-2 rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-0.5 font-mono text-[10px]">⌘K</kbd>
-            </button>
+            <div className="hidden items-center gap-2 sm:flex"><button type="button" onClick={() => window.dispatchEvent(new CustomEvent("admin:open-ai"))} className="inline-flex min-h-10 items-center gap-2 rounded-[11px] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow)] transition-[box-shadow,transform] hover:shadow-[var(--admin-shadow-hover)] active:scale-[0.96]"><Bot className="size-3.5" />Ask AI<kbd className="ml-1 rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--admin-muted)]">⌘J</kbd></button><button type="button" onClick={() => setSearchOpen(true)} className="inline-flex min-h-10 items-center gap-3 rounded-[11px] bg-[var(--admin-surface)] px-3 text-xs text-[var(--admin-muted)] shadow-[var(--admin-shadow)] transition-[box-shadow,color,transform] duration-150 hover:text-[var(--admin-ink)] hover:shadow-[var(--admin-shadow-hover)] active:scale-[0.96]"><Search className="h-3.5 w-3.5" />Search<kbd className="ml-1 rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-0.5 font-mono text-[10px]">⌘K</kbd></button></div>
           </div>
 
           {/* New route content enters immediately. Waiting for an exiting tree
@@ -333,10 +385,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       <EmailComposeModal isOpen={composeOpen} onClose={() => setComposeOpen(false)} recipientEmail="" initialSubject={composeDraft.subject} initialBody={composeDraft.body} />
       <AdminCreateTaskModal />
+      <AdminFounderNoteModal />
+      <AdminAIPanel />
       <Toaster />
       <AdminShortcuts />
     </div>
     </MotionConfig>
+    </AdminAIProvider>
   );
 }
 
@@ -346,12 +401,14 @@ function SidebarContent({
   onNavigate,
   collapsed = false,
   onToggleCollapse,
+  priorityCount = 0,
 }: {
   isActive: (href: string) => boolean;
   onSignOut: () => Promise<void> | void;
   onNavigate?: () => void;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
+  priorityCount?: number;
 }) {
   const activeSection = adminNavSections.find((section) =>
     section.links.some((link) => isActive(link.href)),
@@ -369,11 +426,25 @@ function SidebarContent({
   return (
     <>
       <div className={cn("mb-6 flex items-start gap-2", collapsed ? "flex-col items-center px-0" : "justify-between px-2")}>
-        <Link href="/admin/today" onClick={onNavigate} className="group min-w-0">
-          <span className="block font-display text-lg font-semibold tracking-[-0.035em] text-white">{collapsed ? tenant.brand.logoMark : tenant.brand.name}</span>
-          {!collapsed && <span className="mt-0.5 block font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-white/38 group-hover:text-white/55">Revenue OS</span>}
-        </Link>
-        {!collapsed && <NotificationBell />}
+        {collapsed ? (
+          <Link
+            href="/admin/today"
+            onClick={onNavigate}
+            aria-label="Accelerate Revenue OS home"
+            className="logo-link grid size-10 place-items-center rounded-[10px] [--gold-base:#fff] transition-[background-color,transform] duration-150 hover:bg-white/7 active:scale-[0.96]"
+          >
+            <LogoMark className="h-4 w-8" />
+          </Link>
+        ) : (
+          <Logo
+            href="/admin/today"
+            ariaLabel="Accelerate Revenue OS home"
+            onClick={onNavigate}
+            size="sm"
+            className="shrink-0 [--gold-base:#fff] [--heading-color:#fff]"
+          />
+        )}
+        {!collapsed && <NotificationBell placement="sidebar" />}
         {onToggleCollapse && <button type="button" onClick={onToggleCollapse} className="grid size-10 place-items-center rounded-[10px] text-white/42 transition-[background-color,color,transform] duration-150 hover:bg-white/7 hover:text-white active:scale-[0.96]" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}</button>}
       </div>
 
@@ -411,6 +482,9 @@ function SidebarContent({
                   <Link key={link.href} href={link.href} onClick={onNavigate} title={collapsed ? link.label : undefined} className={cn("group relative flex min-h-10 items-center rounded-[10px] text-[13px] transition-[color,background-color,transform] duration-150 active:scale-[0.96]", collapsed ? "justify-center px-0" : "gap-3 px-2.5", active ? "bg-white text-black shadow-[0_1px_2px_rgba(0,0,0,0.18)]" : "text-white/58 hover:bg-white/7 hover:text-white")} aria-current={active ? "page" : undefined}>
                     <link.icon className={cn("h-4 w-4 shrink-0 transition-colors duration-150", active ? "text-black" : "text-white/38 group-hover:text-white/75")} />
                     {!collapsed && <span className="min-w-0 truncate">{link.label}</span>}
+                    {link.href === "/admin/today" && priorityCount > 0 && (collapsed
+                      ? <span className={cn("absolute right-2 top-2 size-2 rounded-full", active ? "bg-rose-600" : "bg-rose-400")} aria-label={`${priorityCount} urgent priorities`} />
+                      : <span className={cn("ml-auto min-w-5 rounded-full px-1.5 py-0.5 text-center font-mono text-[9px] font-semibold tabular-nums", active ? "bg-black/8 text-black" : "bg-rose-500/18 text-rose-200")} aria-label={`${priorityCount} urgent priorities`}>{priorityCount > 99 ? "99+" : priorityCount}</span>)}
                     {active && <motion.span layoutId="admin-nav-active" className="absolute inset-y-2 -left-4 w-0.5 rounded-r bg-white" transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }} />}
                   </Link>
                 );
@@ -426,6 +500,7 @@ function SidebarContent({
       </nav>
 
       <div className="mt-4 border-t border-white/10 pt-3">
+        <ThemeToggle variant="admin-sidebar" collapsed={collapsed} />
         <Link href="/" target="_blank" onClick={onNavigate} title={collapsed ? "View live site" : undefined} className={cn("flex min-h-10 items-center rounded-[10px] text-xs text-white/42 transition-[color,background-color,transform] duration-150 hover:bg-white/7 hover:text-white active:scale-[0.96]", collapsed ? "justify-center" : "gap-3 px-2.5")}>
           <ArrowUpRight className="h-4 w-4" /> {!collapsed && "View live site"}
         </Link>

@@ -17,7 +17,7 @@ export function Toaster() {
 
   return (
     <div
-      className="pointer-events-none fixed bottom-4 right-4 z-[100] flex w-full max-w-sm flex-col gap-2"
+      className="pointer-events-none fixed inset-x-4 bottom-4 z-[300] flex w-auto max-w-sm flex-col gap-2 sm:left-auto sm:w-full"
       aria-live="polite"
       aria-atomic="false"
     >

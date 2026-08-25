@@ -8,6 +8,7 @@ import { resolveOrCreateIdentity } from "./identity";
 import { canTransition, canonicalStage, transitionOpportunity } from "./pipeline";
 import { createRevenueTask } from "./tasks";
 import { RESPONDER_POLICY_VERSION, respondToInbound, type ResponderDecision } from "./auto-responder";
+import { recordActivity } from "./activities";
 
 type Qualification = { qualified: boolean; reason: string };
 
@@ -73,12 +74,8 @@ export async function ingestInboundLead(supabase: SupabaseClient, input: Canonic
     await supabase.from("stage_events").insert({ opportunity_id: opportunity.id, from_stage: null, to_stage: "new", source: input.source, reason: "Inbound inquiry created" });
   }
   const externalId = `${input.source}:${input.sourceRecordId}`;
-  const { data: activity } = await supabase.from("activities").select("id").eq("source", input.source).eq("external_id", externalId).maybeSingle();
-  if (!activity) {
-    const title = input.source === "chat" ? "Chat inquiry captured" : input.source === "solution_request" ? "Manual lead captured" : "Website inquiry captured";
-    const { error } = await supabase.from("activities").insert({ activity_type: "form_submission", title, summary: input.summary.slice(0, 1000), contact_id: identity.contact.id, company_id: identity.company.id, opportunity_id: opportunity.id, source: input.source, external_id: externalId, metadata: { attribution } });
-    if (error) throw new Error(error.message);
-  }
+  const title = input.source === "chat" ? "Chat inquiry captured" : input.source === "solution_request" ? "Manual lead captured" : "Website inquiry captured";
+  await recordActivity(supabase, { activityType: "form_submission", title, summary: input.summary.slice(0, 1000), contactId: identity.contact.id, companyId: identity.company.id, opportunityId: opportunity.id, source: input.source, externalId, metadata: { attribution } });
   await createRevenueTask(supabase, { title: `${nextAction}: ${identity.company.name}`, description: input.summary.slice(0, 1000), dueDate: new Date().toISOString().slice(0, 10), priority: "high", relatedType: "opportunity", relatedId: opportunity.id, relatedName: identity.company.name, opportunityId: opportunity.id, source: input.source, dedupeKey: `inbound-follow-up:${opportunity.id}`, actorEmail: tenant.founder.systemActorEmail });
   await recordAudit(supabase, { actorEmail: tenant.founder.systemActorEmail, action: "inbound.captured", entityType: "opportunity", entityId: opportunity.id, source: "webhook", after: { stage: opportunity.stage, source: opportunity.source }, metadata: { inbound_source: input.source, source_record_id: input.sourceRecordId, existing } });
 
@@ -169,15 +166,11 @@ export async function ingestRoofingQualification(supabase: SupabaseClient, input
   }
 
   const activityId = `roofing-qualifier:${opportunity.id}:${input.qualification.qualified ? "qualified" : "nurture"}`;
-  const { data: existingActivity, error: activityReadError } = await supabase.from("activities").select("id")
-    .eq("source", "roofing_qualifier").eq("external_id", activityId).maybeSingle();
-  if (activityReadError) throw new Error(activityReadError.message);
-  const { error: activityError } = existingActivity ? { error: null } : await supabase.from("activities").insert({
-    activity_type: "form_submission", title: input.qualification.qualified ? "Qualified roofing audit request" : "Roofing nurture inquiry",
-    summary: input.qualification.reason, contact_id: identity.contact.id, company_id: identity.company.id, opportunity_id: opportunity.id,
-    source: "roofing_qualifier", external_id: activityId, metadata: { role: input.role, revenue_band: input.revenueBand, primary_leak: input.primaryLeak, attribution },
+  await recordActivity(supabase, {
+    activityType: "form_submission", title: input.qualification.qualified ? "Qualified roofing audit request" : "Roofing nurture inquiry",
+    summary: input.qualification.reason, contactId: identity.contact.id, companyId: identity.company.id, opportunityId: opportunity.id,
+    source: "roofing_qualifier", externalId: activityId, metadata: { role: input.role, revenue_band: input.revenueBand, primary_leak: input.primaryLeak, attribution },
   });
-  if (activityError) throw new Error(activityError.message);
 
   if (input.qualification.qualified) {
     const dueDate = new Date().toISOString().slice(0, 10);

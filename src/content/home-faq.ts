@@ -9,7 +9,7 @@ export const homeFaqs: FAQ[] = [
   {
     question: "How soon would we see a result?",
     answer:
-      "Weeks, not quarters. We start with one constraint that has a clear before and after, so the work can be judged before anyone commits to more.",
+      "It depends on the recommendation. A training or workflow engagement can move quickly; a custom build or broader execution scope takes longer. We define the first useful result before work begins.",
   },
   {
     question: "Nobody here is technical. Is that a problem?",
@@ -24,7 +24,7 @@ export const homeFaqs: FAQ[] = [
   {
     question: "We bought an AI tool and nobody uses it.",
     answer:
-      "Common, and the tool is usually fine. What is missing is a rule for when to use it and a standard for what good output looks like. Sometimes that is training and a few guardrails rather than anything new, and we would rather tell you than sell you a build.",
+      "Common. Sometimes the right answer is training, clearer rules, or a better workflow around the tool rather than another purchase. We recommend that when it is the smallest useful fix.",
   },
   {
     question: "Is our data safe?",

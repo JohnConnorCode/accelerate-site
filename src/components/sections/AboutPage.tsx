@@ -10,21 +10,21 @@ import { HERO_HEADING } from "@/lib/type-recipes";
 const VALUES = [
   {
     icon: Rocket,
-    title: "Live in a week",
+    title: "Start with the right problem",
     description:
-      "First system goes live inside a week. We tune it on your real data, not on a plan we wrote before we met you.",
+      "We learn the operation before recommending a tool, workflow, agent, training program, or integrated system.",
   },
   {
     icon: TrendingUp,
-    title: "One number per project",
+    title: "Build for the real business",
     description:
-      "Every project gets one number it has to move, agreed before we build. You see it on a dashboard. If it does not move, we say so first.",
+      "The work fits the tools, language, approvals, and people already in place, with documentation the team can use.",
   },
   {
     icon: Handshake,
-    title: "Earn it every month",
+    title: "Stay through execution",
     description:
-      "No vanity metrics. No overblown promises. Month to month, cancel anytime. The results show up in the bank account or we have not earned the month.",
+      "We can train the team, run the agreed work, measure what changes, and improve the solution after launch.",
   },
 ];
 
@@ -108,16 +108,15 @@ export function AboutPageContent() {
               <RevealHeading
                 as="h1"
                 className={HERO_HEADING}
-                lead="Built by a business owner,"
-                accent="for business owners."
+                lead="AI should fit the business,"
+                accent="not the other way around."
                 delay={0.1}
               />
               <AnimateOnScroll delay={0.3}>
                 <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                  We&apos;re not a software company that sells to small
-                  businesses. We&apos;re operators who build and run custom AI
-                  systems, the same way we&apos;d run them inside our own
-                  business. So when it breaks, it is our problem, not a support ticket.
+                  We combine strategy, engineering, and hands-on execution. We
+                  help a team decide where AI belongs, build the right custom
+                  solution, and stay involved until it works in the real operation.
                 </p>
               </AnimateOnScroll>
             </div>
@@ -151,7 +150,7 @@ export function AboutPageContent() {
           <div className="border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] p-8 text-center sm:p-12">
             <Eyebrow className="mb-6 inline-block">our mission</Eyebrow>
             <p className="font-display text-2xl leading-relaxed text-white-primary sm:text-3xl">
-              Small businesses lose money in the same three places every time. Slow replies, dropped follow-up, and a website that does nothing. We fix those, then we run them. No 47-slide deck.
+              Useful AI starts with understanding the work. We find where time is being consumed or revenue is being missed, then choose the smallest solution that can make a meaningful difference.
             </p>
           </div>
         </AnimateOnScroll>
@@ -199,8 +198,8 @@ export function AboutPageContent() {
           </div>
           <div className="flex flex-col gap-7">
             <p className="text-lg leading-relaxed text-white-secondary">
-              No pitch deck. No 12-email sequence. Just a 30-minute conversation
-              about your business.
+              Thirty minutes about how the business works, what the team wants
+              to change, and where AI or automation may be useful.
             </p>
             <BookCallButton location="about" />
             <CallTerms />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { AlarmClock, ArrowRight, BarChart3, CalendarClock, Check, CheckCircle2, CircleDollarSign, Inbox, Loader2, Mail, Megaphone, RefreshCw, ServerCog, ShieldCheck, Sparkles, Target, TriangleAlert, X } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -11,7 +11,7 @@ import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { cn } from "@/lib/utils";
 
-interface QueueItem { id: string; kind: "reply" | "task" | "follow_up" | "proposal" | "meeting" | "approval" | "system"; title: string; summary: string; urgency: "critical" | "high" | "normal" | "low"; dueAt: string | null; priorityReason: string; href: string }
+interface QueueItem { id: string; kind: "reply" | "task" | "follow_up" | "proposal" | "meeting" | "approval" | "system"; title: string; summary: string; urgency: "critical" | "high" | "normal" | "low"; dueAt: string | null; sourceTimestamp: string; priorityReason: string; recommendedNextAction: string; href: string }
 interface HealthRun { key: string; status: string; startedAt: string | null; finishedAt: string | null; error: string | null }
 interface Overview { schemaReady: boolean; generatedAt: string; metrics: { openOpportunities: number; pipelineValue: number; weightedValue: number; wonRevenue: number; unreadConversations: number; activeCampaigns: number; pendingProposals: number }; queue: QueueItem[]; integrations: Array<{ provider: string; status: string; last_success_at: string | null; last_error: string | null }>; health: { status: "ready" | "attention" | "not_configured"; attentionCount: number; integrations: Array<{ provider: string; status: string; lastSuccessAt: string | null; lastError: string | null }>; sourceRuns: HealthRun[]; jobRuns: HealthRun[] } }
 interface ActionRow { id: string; action_type: string; title: string; description: string | null; urgency: string; reasoning: string | null; status: string; created_at: string; expires_at: string | null; payload: Record<string, unknown> | null }
@@ -149,6 +149,16 @@ function relativeTime(value: string | null) {
   return `Due in ${Math.ceil(absoluteHours / 24)}d`;
 }
 
+function observedTime(value: string) {
+  if (value === "unknown" || Number.isNaN(Date.parse(value))) return "Source time unavailable";
+  const minutes = Math.max(0, Math.floor((Date.now() - Date.parse(value)) / 60_000));
+  if (minutes < 1) return "Observed just now";
+  if (minutes < 60) return `Observed ${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `Observed ${hours}h ago`;
+  return `Observed ${Math.floor(hours / 24)}d ago`;
+}
+
 function queueIcon(kind: QueueItem["kind"]) {
   if (kind === "reply") return Mail;
   if (kind === "meeting") return CalendarClock;
@@ -157,44 +167,96 @@ function queueIcon(kind: QueueItem["kind"]) {
   return Inbox;
 }
 
+function TodayLoadingState() {
+  return <div className="space-y-7 pb-10" aria-busy="true" aria-label="Loading Today">
+    <PageHeader title="Today" subtitle="Building the current operator queue from live revenue and system signals." />
+    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, index) => <AdminSurface key={index} padding="lg" className="animate-pulse"><div className="h-2.5 w-24 rounded-full bg-black/[0.07] dark:bg-white/[0.08]" /><div className="mt-5 h-8 w-20 rounded-lg bg-black/[0.07] dark:bg-white/[0.08]" /><div className="mt-3 h-2.5 w-32 rounded-full bg-black/[0.05] dark:bg-white/[0.06]" /></AdminSurface>)}
+    </section>
+    <section className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
+      {[6, 4].map((count) => <AdminSurface key={count} padding="none" className="overflow-hidden"><div className="px-6 py-5"><div className="h-3 w-28 animate-pulse rounded-full bg-black/[0.07] dark:bg-white/[0.08]" /></div><div className="divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)]">{Array.from({ length: count }).map((_, index) => <div key={index} className="flex min-h-[84px] animate-pulse items-center gap-3 px-6 py-4"><div className="size-9 rounded-xl bg-black/[0.06] dark:bg-white/[0.07]" /><div className="flex-1"><div className="h-3 w-2/5 rounded-full bg-black/[0.07] dark:bg-white/[0.08]" /><div className="mt-3 h-2.5 w-4/5 rounded-full bg-black/[0.05] dark:bg-white/[0.06]" /></div></div>)}</div></AdminSurface>)}
+    </section>
+  </div>;
+}
+
 export default function TodayPage() {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [actions, setActions] = useState<ActionRow[]>([]);
   const [reviewing, setReviewing] = useState<ActionRow | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
   const [acting, setActing] = useState<string | null>(null);
   const [taskActioning, setTaskActioning] = useState<string | null>(null);
   const [focus, setFocus] = useState<(typeof focusOptions)[number]["id"]>("all");
+  const requestIdRef = useRef(0);
+  const abortRef = useRef<AbortController | null>(null);
+  const hasOverviewRef = useRef(false);
+  const approvalDeepLinkHandled = useRef(false);
 
   const load = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    if (hasOverviewRef.current) setRefreshing(true);
+    else setLoading(true);
     setError("");
     try {
       const [nextOverview, nextActions] = await Promise.all([
-        fetchJson<Overview>("/api/admin/revenue-os/overview"),
-        fetchJson<{ actions: ActionRow[] }>("/api/admin/revenue-os/actions"),
+        fetchJson<Overview>("/api/admin/revenue-os/overview", { signal: controller.signal }),
+        fetchJson<{ actions: ActionRow[] }>("/api/admin/revenue-os/actions", { signal: controller.signal }),
       ]);
+      if (requestId !== requestIdRef.current) return;
       setOverview(nextOverview);
+      hasOverviewRef.current = true;
+      setLastUpdatedAt(nextOverview.generatedAt || new Date().toISOString());
       // An expired proposal can never be approved: claimApprovedAction rejects it.
       // Rendering one is an invitation to click a button that always fails.
       const now = Date.now();
       setActions(nextActions.actions.filter((action) =>
         action.status === "pending" && (!action.expires_at || Date.parse(action.expires_at) > now)));
     } catch (loadError) {
+      if (controller.signal.aborted || requestId !== requestIdRef.current) return;
       setError(loadError instanceof Error ? loadError.message : "Could not load Today.");
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestedFocus = params.get("focus");
+    if (requestedFocus === "approvals") setFocus("approval");
+    else if (focusOptions.some((option) => option.id === requestedFocus)) setFocus(requestedFocus as (typeof focusOptions)[number]["id"]);
+    void load();
+    return () => abortRef.current?.abort();
+  }, [load]);
+
+  useEffect(() => {
+    if (approvalDeepLinkHandled.current) return;
+    const actionId = new URLSearchParams(window.location.search).get("action");
+    if (!actionId) return;
+    const requested = actions.find((action) => action.id === actionId);
+    if (requested) {
+      approvalDeepLinkHandled.current = true;
+      setReviewing(requested);
+    }
+  }, [actions]);
 
   const decide = async (id: string, decision: "approve" | "reject") => {
     setActing(id);
     try {
       await fetchJson("/api/admin/revenue-os/actions", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, decision }) });
       setReviewing(null);
+      setActions((current) => current.filter((action) => action.id !== id));
+      setOverview((current) => current ? { ...current, queue: current.queue.filter((item) => item.id !== `action:${id}`) } : current);
       await load();
+      window.dispatchEvent(new Event("admin:priority-refresh"));
     } catch (decisionError) {
       setError(decisionError instanceof Error ? decisionError.message : "Could not handle the action.");
     } finally {
@@ -212,7 +274,9 @@ export default function TodayPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, action, ...(action === "snooze" ? { until: tomorrow.toISOString().slice(0, 10) } : {}) }),
       });
+      setOverview((current) => current ? { ...current, queue: current.queue.filter((item) => item.id !== `task:${id}`) } : current);
       await load();
+      window.dispatchEvent(new Event("admin:priority-refresh"));
     } catch (taskError) {
       setError(taskError instanceof Error ? taskError.message : "Could not update task.");
     } finally {
@@ -236,12 +300,20 @@ export default function TodayPage() {
     ].slice(0, 5);
   }, [overview]);
 
-  if (loading && !overview) return <div className="grid min-h-[55vh] place-items-center"><Loader2 className="size-6 animate-spin text-[var(--admin-muted)]" /></div>;
+  if (loading && !overview) return <TodayLoadingState />;
+
+  if (!overview && error) return <div className="space-y-7 pb-10">
+    <PageHeader title="Today" subtitle="The founder queue could not be assembled yet." />
+    <AdminSurface tone="attention" className="mx-auto flex max-w-2xl flex-col items-start gap-4 p-6 sm:flex-row sm:items-center">
+      <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-rose-500/10 text-rose-700 dark:text-rose-300"><TriangleAlert className="size-5" /></span>
+      <div className="min-w-0 flex-1"><h2 className="text-sm font-semibold text-[var(--admin-ink)]">Today is temporarily unavailable</h2><p className="admin-copy mt-1 text-sm">{error} No work was hidden or changed. Retry the live read, or open Setup Center to inspect system health.</p><div className="mt-4 flex flex-wrap gap-2"><button type="button" onClick={() => void load()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)]"><RefreshCw className="size-3.5" /> Retry</button><Link href="/admin/setup" className="inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]">Open Setup <ArrowRight className="size-3.5" /></Link></div></div>
+    </AdminSurface>
+  </div>;
 
   return (
     <div className="space-y-7 pb-10">
-      <PageHeader title="Today" subtitle="The founder queue: replies, commitments, meetings, proposals, approvals, and system exceptions in revenue order." actions={<button type="button" onClick={() => void load()} disabled={loading} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"><RefreshCw className={cn("size-3.5", loading && "animate-spin")} /> Refresh</button>} />
-      {error && <AdminSurface tone="attention" className="flex items-center gap-3"><TriangleAlert className="size-5 shrink-0 text-rose-600" /><p className="text-sm text-[var(--admin-ink)]">{error}</p></AdminSurface>}
+      <PageHeader title="Today" subtitle="The founder queue: replies, commitments, meetings, proposals, approvals, and system exceptions in revenue order." actions={<div className="flex items-center gap-3"><span className="hidden text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)] sm:inline">{lastUpdatedAt ? `Updated ${observedTime(lastUpdatedAt).replace(/^Observed /, "")}` : "Live read"}</span><button type="button" onClick={() => void load()} disabled={refreshing} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:opacity-60"><RefreshCw className={cn("size-3.5", refreshing && "animate-spin")} /> {refreshing ? "Refreshing" : "Refresh"}</button></div>} />
+      {error && overview && <AdminSurface tone="attention" className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center"><TriangleAlert className="size-5 shrink-0 text-amber-600" /><div className="min-w-0 flex-1"><p className="text-sm font-semibold text-[var(--admin-ink)]">Showing the last successful snapshot</p><p className="admin-copy mt-0.5 text-xs">{error} Existing data remains visible and no counters were reset.</p></div><button type="button" onClick={() => void load()} disabled={refreshing} className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-lg px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]"><RefreshCw className={cn("size-3.5", refreshing && "animate-spin")} /> Retry live read</button></AdminSurface>}
       {overview && !overview.schemaReady ? <RevenueSetupGate /> : overview && (
         <>
           <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -276,11 +348,11 @@ export default function TodayPage() {
                   const taskId = item.kind === "task" || item.kind === "follow_up" ? item.id.replace(/^task:/, "") : null;
                   return <div key={item.id} className="group flex min-h-[84px] items-start gap-3 px-5 py-4 transition-[background-color] duration-150 hover:bg-black/[0.022] dark:hover:bg-white/[0.025] sm:px-6">
                     <span className={cn("mt-0.5 grid size-9 shrink-0 place-items-center rounded-xl", urgencyClass[item.urgency])}><Icon className="size-4" /></span>
-                    <Link href={item.href} className="min-w-0 flex-1 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)] focus-visible:ring-offset-2"><div className="flex flex-wrap items-center gap-2"><h3 className="truncate text-sm font-semibold text-[var(--admin-ink)]">{item.title}</h3>{item.urgency !== "normal" && <span className={cn("rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em]", urgencyClass[item.urgency])}>{item.urgency}</span>}</div><p className="admin-copy mt-1 line-clamp-2 text-pretty text-xs leading-5">{item.summary}</p><p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">{item.priorityReason} <span className="mx-1 text-[var(--admin-border)]">·</span> {relativeTime(item.dueAt)}</p></Link>
+                    <Link href={item.href} className="min-w-0 flex-1 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)] focus-visible:ring-offset-2"><div className="flex flex-wrap items-center gap-2"><h3 className="truncate text-sm font-semibold text-[var(--admin-ink)]">{item.title}</h3>{item.urgency !== "normal" && <span className={cn("rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em]", urgencyClass[item.urgency])}>{item.urgency}</span>}</div><p className="admin-copy mt-1 line-clamp-2 text-pretty text-xs leading-5">{item.summary}</p><p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">{item.priorityReason} <span className="mx-1 text-[var(--admin-border)]">·</span> {relativeTime(item.dueAt)} <span className="mx-1 text-[var(--admin-border)]">·</span> {observedTime(item.sourceTimestamp)}</p><p className="admin-copy mt-1.5 line-clamp-2 text-[11px] leading-4"><span className="font-semibold text-[var(--admin-ink)]">Next:</span> {item.recommendedNextAction}</p></Link>
                     {taskId ? <div className="flex shrink-0 items-center gap-1"><button type="button" aria-label={`Complete ${item.title}`} title="Complete task" disabled={Boolean(taskActioning)} onClick={() => void updateTask(taskId, "complete")} className="grid size-10 place-items-center rounded-lg text-emerald-700 transition-[background-color,scale,opacity] duration-150 hover:bg-emerald-500/10 active:scale-[0.96] disabled:opacity-50 dark:text-emerald-300">{taskActioning === `${taskId}:complete` ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}</button><button type="button" aria-label={`Snooze ${item.title} until tomorrow`} title="Snooze until tomorrow" disabled={Boolean(taskActioning)} onClick={() => void updateTask(taskId, "snooze")} className="grid size-10 place-items-center rounded-lg text-[var(--admin-muted)] transition-[background-color,scale,opacity] duration-150 hover:bg-black/[0.045] hover:text-[var(--admin-ink)] active:scale-[0.96] disabled:opacity-50 dark:hover:bg-white/[0.06]">{taskActioning === `${taskId}:snooze` ? <Loader2 className="size-4 animate-spin" /> : <AlarmClock className="size-4" />}</button></div> : <Link href={item.href} aria-label={`Open ${item.title}`} className="mt-2 grid size-10 shrink-0 place-items-center rounded-lg text-[var(--admin-muted)] transition-[background-color,transform] duration-150 hover:bg-black/[0.045] hover:text-[var(--admin-ink)] dark:hover:bg-white/[0.06]"><ArrowRight className="size-4 transition-transform duration-150 group-hover:translate-x-0.5" /></Link>}
                   </div>;
                 })}
-                {!visibleQueue.length && <div className="px-6 py-14 text-center"><Check className="mx-auto size-5 text-emerald-600" /><p className="mt-3 text-sm font-semibold text-[var(--admin-ink)]">{overview.queue.length ? "Nothing in this focus" : "Queue clear"}</p><p className="admin-copy mt-1 text-xs">{overview.queue.length ? "Try another work category to see what is next." : "No current replies, approvals, or due commitments."}</p></div>}
+                {!visibleQueue.length && <div className="px-6 py-14 text-center"><Check className="mx-auto size-5 text-emerald-600" /><p className="mt-3 text-sm font-semibold text-[var(--admin-ink)]">{overview.queue.length ? "Nothing in this focus" : "Queue clear"}</p><p className="admin-copy mx-auto mt-1 max-w-sm text-xs">{overview.queue.length ? "This category is clear. Return to the full queue for the next highest-priority item." : "No current replies, approvals, due commitments, or system exceptions. You can develop pipeline or verify operations without inventing busywork."}</p><div className="mt-4 flex flex-wrap justify-center gap-2">{overview.queue.length ? <button type="button" onClick={() => setFocus("all")} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[var(--admin-ink)] px-3 text-xs font-semibold text-[var(--admin-surface)]">Show all work <ArrowRight className="size-3.5" /></button> : <><Link href="/admin/pipeline" className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[var(--admin-ink)] px-3 text-xs font-semibold text-[var(--admin-surface)]">Open pipeline <ArrowRight className="size-3.5" /></Link><Link href="/admin/setup" className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]">Verify systems</Link></>}</div></div>}
               </div>
             </AdminSurface>
 
@@ -290,7 +362,7 @@ export default function TodayPage() {
                 {actions.slice(0, 8).map((action) => (
                   <div key={action.id} className="px-5 py-4 sm:px-6"><div className="flex items-start gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-xl bg-violet-500/10 text-violet-700 dark:text-violet-300"><Sparkles className="size-4" /></span><div className="min-w-0 flex-1"><h3 className="text-sm font-semibold text-[var(--admin-ink)]">{action.title}</h3><p className="admin-copy mt-1 line-clamp-3 text-pretty text-xs leading-5">{action.description || action.reasoning || "Review before execution."}</p><div className="mt-3 flex gap-2"><button type="button" onClick={() => setReviewing(action)} disabled={acting === action.id} className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-[var(--admin-ink)] px-3 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 active:scale-[0.96] disabled:opacity-50">{acting === action.id ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />} Review</button><button type="button" onClick={() => void decide(action.id, "reject")} disabled={acting === action.id} className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:opacity-50"><X className="size-3.5" /> Reject</button></div></div></div></div>
                 ))}
-                {!actions.length && <div className="px-6 py-12 text-center"><Check className="mx-auto size-5 text-emerald-600" /><p className="mt-3 text-sm font-semibold text-[var(--admin-ink)]">No decisions waiting</p><p className="admin-copy mt-1 text-xs">The copilot will stage external actions here.</p></div>}
+                {!actions.length && <div className="px-6 py-12 text-center"><Check className="mx-auto size-5 text-emerald-600" /><p className="mt-3 text-sm font-semibold text-[var(--admin-ink)]">No decisions waiting</p><p className="admin-copy mx-auto mt-1 max-w-xs text-xs">Nothing consequential will run without approval. Ask the copilot to prepare work when you have a concrete outcome.</p><a href="#revenue-copilot" className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]">Open copilot <ArrowRight className="size-3.5" /></a></div>}
               </div>
             </AdminSurface>
           </section>
@@ -300,7 +372,7 @@ export default function TodayPage() {
             <div className="grid divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)] sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-5">{healthItems.map((item) => <div key={`${item.label}-${item.status}`} className="min-h-[96px] px-5 py-4"><div className="flex items-center gap-2"><span className={cn("size-2 rounded-full", item.status === "success" || item.status === "connected" ? "bg-emerald-500" : item.status === "failed" || item.status === "partial" || item.status === "degraded" || item.status === "revoked" ? "bg-amber-500" : "bg-[var(--admin-muted)]")} /><p className="truncate text-xs font-semibold text-[var(--admin-ink)]">{item.label}</p></div><p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">{item.status.replace(/_/g, " ")}</p><p className="admin-copy mt-1 line-clamp-2 text-xs">{item.error || (item.at ? `Last activity ${relativeTime(item.at)}` : "No run recorded yet")}</p></div>)}{!healthItems.length && <div className="px-6 py-8 text-sm text-[var(--admin-muted)] sm:col-span-2 lg:col-span-5">No connections or job receipts have been recorded. Setup Center will show exactly what needs configuration.</div>}</div>
           </AdminSurface>
 
-          <RevenueAICommand onProposed={() => void load()} />
+          <div id="revenue-copilot" className="scroll-mt-24"><RevenueAICommand onProposed={() => void load()} /></div>
 
           {reviewing && <ActionReviewDialog
             action={reviewing}

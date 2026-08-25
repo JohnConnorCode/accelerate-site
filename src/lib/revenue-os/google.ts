@@ -6,6 +6,7 @@ import { recordSourceRun } from "./runs";
 import { findCanonicalContactByEmail } from "./identity";
 import { stopCampaignMemberships } from "./campaign-stops";
 import { planGmailThreadSync, type GmailHistoryPage, type GmailThreadListPage } from "./gmail-sync-plan";
+import { recordActivity } from "./activities";
 
 export const GOOGLE_SCOPES = [
   "openid",
@@ -384,17 +385,17 @@ export async function sendGmailReply(supabase: SupabaseClient, input: { conversa
   if (saveError) console.error("[google/gmail-send] sent but local receipt failed", saveError.message);
   await Promise.all([
     supabase.from("conversations").update({ status: "waiting", unread_count: 0, last_message_at: now }).eq("id", conversation.id),
-    supabase.from("activities").insert({
-      activity_type: "email_sent",
+    recordActivity(supabase, {
+      activityType: "email_sent",
       title: subject,
       summary: `Gmail reply sent to ${recipient}`,
-      contact_id: conversation.contact_id,
-      opportunity_id: conversation.opportunity_id,
-      conversation_id: conversation.id,
+      contactId: conversation.contact_id,
+      opportunityId: conversation.opportunity_id,
+      conversationId: conversation.id,
       source: "admin",
-      actor_email: input.actorEmail,
-      external_id: sent.id,
-      occurred_at: now,
+      actorEmail: input.actorEmail,
+      externalId: sent.id,
+      occurredAt: now,
     }),
   ]);
   return { providerId: sent.id, messageId: message?.id ?? null };

@@ -28,9 +28,10 @@ const GROUP_PRIORITY: Record<SearchGroup, number> = {
   Pages: 6,
   Industries: 5,
   Services: 4,
-  Packages: 3,
-  Articles: 2,
-  Changelog: 1,
+  Work: 3,
+  Packages: 2,
+  Articles: 1,
+  Changelog: 0,
 };
 
 export function normalize(value: string): string {

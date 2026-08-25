@@ -7,25 +7,25 @@ const STEPS = [
     n: "01",
     title: "The session",
     tag: "30 min · free",
-    body: "We map where your team loses hours and where inquiries go unanswered.",
+    body: "We learn how the business works, what the team wants to change, and where time or revenue is being lost.",
   },
   {
     n: "02",
     title: "The plan",
     tag: "yours to keep",
-    body: "A written plan: what we would build, in what order, and the hours each phase returns.",
+    body: "A written recommendation: where AI fits, the right type of solution, what should happen first, and why.",
   },
   {
     n: "03",
-    title: "The build",
+    title: "The delivery",
     tag: "fixed scope",
-    body: "We build the systems and connect them to your existing CRM. Phase one is live in under two weeks.",
+    body: "We provide the agreed consulting, custom build, integrations, training, or managed execution against a clear scope.",
   },
   {
     n: "04",
-    title: "The run",
+    title: "The improvement",
     tag: "ongoing support",
-    body: "We run the system in production, train your team, and keep tuning it. Month to month, and you own everything.",
+    body: "When ongoing help makes sense, we run the work, support the team, measure what changes, and keep improving it.",
   },
 ];
 
@@ -40,14 +40,14 @@ export function HowWeWork() {
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              Four steps to
+              From understanding
               <br />
-              a system
+              the business to
               <br />
-              that runs.
+              <span className="it">making it better.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              Everything is built around how your business already works, priced as a fixed scope, and run by the people who built it.
+              The shape of the engagement follows the problem. The solution may be advice, a focused build, training, ongoing execution, or a combination.
             </Reveal>
           </div>
         </div>

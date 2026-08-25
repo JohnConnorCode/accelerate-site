@@ -96,8 +96,8 @@ export function RoofingQualifier() {
           >
             <div className="mb-7">
               <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-[#d7ff5f]">Check fit · about 60 seconds</p>
-              <h2 className="text-balance font-display text-3xl font-medium tracking-[-0.035em] text-white sm:text-4xl">See if the audit fits your operation.</h2>
-              <p className="mt-3 max-w-xl text-pretty text-sm leading-6 text-white/58">We keep the calendar for established roofing and exterior operators where a managed system can create measurable ROI.</p>
+              <h2 className="text-balance font-display text-3xl font-medium tracking-[-0.035em] text-white sm:text-4xl">Tell us where the operation needs help.</h2>
+              <p className="mt-3 max-w-xl text-pretty text-sm leading-6 text-white/58">We review established roofing and exterior businesses to identify the most useful first application of AI, automation, or managed execution.</p>
             </div>
 
             <div className="grid gap-5 sm:grid-cols-2">
@@ -150,9 +150,9 @@ export function RoofingQualifier() {
                 </select>
               </label>
               <label className="sm:col-span-2">
-                <span className="mb-2 block text-sm text-white/72">Where does revenue leak most?</span>
+                <span className="mb-2 block text-sm text-white/72">Where would help matter most?</span>
                 <select value={form.primaryLeak} onChange={(event) => update("primaryLeak", event.target.value)} required className={selectClass}>
-                  <option value="">Choose the biggest constraint</option>
+                  <option value="">Choose the closest fit</option>
                   <option value="slow_response">Slow response to new inquiries</option>
                   <option value="estimate_followup">Estimates and quotes go quiet</option>
                   <option value="after_hours">After-hours inquiries slip through</option>
@@ -176,7 +176,7 @@ export function RoofingQualifier() {
               disabled={status === "submitting"}
               className="mt-7 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#d7ff5f] pl-5 pr-[18px] font-mono text-[11px] font-medium uppercase tracking-[0.13em] text-[#11120f] transition-[scale,background-color,opacity] duration-150 hover:bg-[#e1ff83] active:scale-[0.96] disabled:cursor-wait disabled:opacity-65 sm:w-auto"
             >
-              {status === "submitting" ? <><Loader2 className="size-4 animate-spin" /> Checking fit</> : <>Request the audit <ArrowRight className="size-4" /></>}
+              {status === "submitting" ? <><Loader2 className="size-4 animate-spin" /> Checking fit</> : <>Request the session <ArrowRight className="size-4" /></>}
             </button>
             <p className="mt-4 flex items-center gap-2 text-xs text-white/42"><ShieldCheck className="size-4" /> No sales reps. Your information stays with Accelerate.</p>
           </motion.form>
@@ -192,7 +192,7 @@ export function RoofingQualifier() {
             <div className="mb-5 flex items-start gap-3 rounded-2xl bg-[#d7ff5f]/24 p-4 shadow-[0_0_0_1px_rgba(114,139,24,0.22)]">
               <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[#d7ff5f] text-[#11120f]"><Check className="size-5" /></span>
               <div>
-                <p className="font-medium text-[#11120f]">You’re a fit for the audit.</p>
+                <p className="font-medium text-[#11120f]">You’re a fit for the strategy session.</p>
                 <p className="mt-1 text-sm text-[#11120f]/62">
                   {bookingMode === "calendly"
                     ? "Choose a time below. The session is directly with John."

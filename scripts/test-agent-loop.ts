@@ -144,7 +144,19 @@ async function main() {
   // A snapshot big enough to blow the context window if it were re-sent whole on
   // every turn. The queue read is what the model asked for; the size is the
   // point.
-  const huge = Array.from({ length: 400 }, (_, index) => ({ id: `task-${index}`, title: `A task with a fairly long title so the payload is genuinely large ${index}`, description: "x".repeat(200) }));
+  const huge = Array.from({ length: 400 }, (_, index) => ({
+    id: `task-${index}`,
+    title: `A task with a fairly long title so the payload is genuinely large ${index}`,
+    description: "x".repeat(200),
+    priority: "high",
+    due_date: "2026-08-24",
+    snoozed_until: null,
+    related_type: "opportunity",
+    related_id: `related-${index}`,
+    opportunity_id: `opportunity-${index}`,
+    created_at: "2026-08-24T12:00:00.000Z",
+    status: "pending",
+  }));
   sent = [];
   stubOpenRouter(toolCallTurn);
   await runRevenueCommandAgent(stubSupabase({ tasks: huge, opportunities: huge }).client, "test@acceleratewith.us", ask);

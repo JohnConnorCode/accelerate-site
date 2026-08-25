@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Key, Mail, Globe, Building2, Loader2, CheckCircle, XCircle, Bell } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
-import { GlassCard } from "@/components/ui/GlassCard";
+import { AdminSurface } from "@/components/admin/AdminSurface";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Toast } from "@/components/ui/Toast";
@@ -147,11 +147,12 @@ export default function SettingsPage() {
     setNotifyPrefs((prev) => ({ ...prev, [key]: newValue }));
 
     try {
-      await fetch("/api/admin/settings", {
+      const response = await fetch("/api/admin/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ key, value: String(newValue) }),
       });
+      if (!response.ok) throw new Error("Preference update failed");
     } catch {
       // Revert on failure
       setNotifyPrefs((prev) => ({ ...prev, [key]: !newValue }));
@@ -178,7 +179,7 @@ export default function SettingsPage() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <PageHeader title="Settings" subtitle="Manage API keys and configuration" />
+      <PageHeader title="Settings" subtitle="Control notification preferences and the configuration that powers the operating system." />
 
       <div className="space-y-6">
         {/* Notification Preferences */}
@@ -186,40 +187,43 @@ export default function SettingsPage() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <GlassCard hover="none">
+          <AdminSurface padding="lg">
             <div className="flex items-center gap-3 mb-5">
-              <Bell className="h-5 w-5 text-gold-light" />
-              <h2 className="font-display text-lg font-semibold text-white-primary">
+              <span className="grid size-10 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] dark:bg-white/[0.06]"><Bell className="size-4" /></span>
+              <div><p className="admin-eyebrow">Operating preferences</p><h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">
                 Notifications
-              </h2>
+              </h2></div>
             </div>
 
-            <div className="space-y-4">
+            <div className="divide-y divide-[var(--admin-border)] overflow-hidden rounded-xl bg-[var(--admin-surface-subtle)] shadow-[var(--admin-shadow-border)]">
               {notificationSettings.map((pref) => (
                 <div
                   key={pref.key}
-                  className="flex items-center justify-between border border-border-glass rounded-lg p-4"
+                  className="flex items-center justify-between gap-4 px-4 py-4"
                 >
-                  <div>
-                    <p className="text-sm font-medium text-white-primary">{pref.label}</p>
-                    <p className="text-xs text-white-muted mt-0.5">{pref.description}</p>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-[var(--admin-ink)]">{pref.label}</p>
+                    <p className="admin-copy mt-1 text-pretty text-xs">{pref.description}</p>
                   </div>
                   <button
+                    type="button"
                     onClick={() => handleNotifyToggle(pref.key)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
-                      notifyPrefs[pref.key] ? "bg-gold" : "bg-white/20"
+                    aria-pressed={Boolean(notifyPrefs[pref.key])}
+                    aria-label={`${notifyPrefs[pref.key] ? "Disable" : "Enable"} ${pref.label} notification`}
+                    className={`relative inline-flex size-11 shrink-0 items-center rounded-full p-1 transition-[background-color,transform] duration-150 active:scale-[0.96] ${
+                      notifyPrefs[pref.key] ? "bg-[var(--admin-ink)]" : "bg-black/15 dark:bg-white/15"
                     }`}
                   >
                     <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        notifyPrefs[pref.key] ? "translate-x-6" : "translate-x-1"
+                      className={`inline-block size-5 rounded-full bg-[var(--admin-surface)] shadow-[0_1px_2px_rgba(0,0,0,0.2)] transition-transform duration-150 ${
+                        notifyPrefs[pref.key] ? "translate-x-5" : "translate-x-0"
                       }`}
                     />
                   </button>
                 </div>
               ))}
             </div>
-          </GlassCard>
+          </AdminSurface>
         </motion.div>
 
         {settingSections.map((section, sectionIdx) => (
@@ -229,15 +233,15 @@ export default function SettingsPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: (sectionIdx + 1) * 0.1 }}
           >
-            <GlassCard hover="none">
+            <AdminSurface padding="lg">
               <div className="flex items-center gap-3 mb-5">
-                <section.icon className="h-5 w-5 text-gold-light" />
-                <h2 className="font-display text-lg font-semibold text-white-primary">
+                <span className="grid size-10 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] dark:bg-white/[0.06]"><section.icon className="size-4" /></span>
+                <div><p className="admin-eyebrow">Configuration</p><h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">
                   {section.title}
-                </h2>
+                </h2></div>
               </div>
 
-              <div className="space-y-4">
+              <div className="divide-y divide-[var(--admin-border)] overflow-hidden rounded-xl bg-[var(--admin-surface-subtle)] shadow-[var(--admin-shadow-border)]">
                 {section.keys.map((key) => {
                   const setting = getSetting(key);
                   const isEditing = editingKey === key;
@@ -247,16 +251,16 @@ export default function SettingsPage() {
                   return (
                     <div
                       key={key}
-                      className="border border-border-glass rounded-lg p-4"
+                      className="px-4 py-4"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium text-white-primary">
+                            <p className="font-mono text-xs font-semibold text-[var(--admin-ink)]">
                               {key}
                             </p>
                             {setting?.is_secret && (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-white-muted">
+                              <span className="rounded-md bg-black/[0.055] px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)] dark:bg-white/[0.07]">
                                 SECRET
                               </span>
                             )}
@@ -270,7 +274,7 @@ export default function SettingsPage() {
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-white-muted mt-0.5">
+                          <p className="admin-copy mt-1 text-pretty text-xs">
                             {setting?.description || key}
                           </p>
 
@@ -303,9 +307,9 @@ export default function SettingsPage() {
                               </Button>
                             </div>
                           ) : (
-                            <p className="mt-1 text-sm text-white-secondary font-mono">
+                            <p className="mt-2 break-all font-mono text-xs text-[var(--admin-ink)]">
                               {setting?.value || (
-                                <span className="text-white-muted italic">
+                                <span className="text-[var(--admin-muted)] italic">
                                   Not set
                                 </span>
                               )}
@@ -346,7 +350,7 @@ export default function SettingsPage() {
                   );
                 })}
               </div>
-            </GlassCard>
+            </AdminSurface>
           </motion.div>
         ))}
       </div>

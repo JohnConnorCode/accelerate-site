@@ -3,11 +3,11 @@ import { generateBreadcrumbJsonLd } from "@/lib/seo";
 import { ContactPageContent } from "@/components/sections/ContactPage";
 
 export const metadata = seoMetadata({
-  title: "Contact Accelerate: Book a Free AI Consultation",
+  title: "Book a Free AI Strategy Session",
   description:
-    "Book 30 minutes with John. You leave with the one constraint costing you the most, in writing, whether you hire us or not.",
+    "Talk through how your business works and where AI, automation, training, or managed execution could free time or increase revenue.",
   ogTitle: "Contact Us",
-  ogSubtitle: "Book a free consultation about your business growth goals",
+  ogSubtitle: "Find the most useful place for AI in your business",
   path: "/contact",
 });
 

@@ -11,7 +11,7 @@ import { HERO_HEADING } from "@/lib/type-recipes";
 export const metadata = seoMetadata({
   title: "Industries We Serve",
   description:
-    "Home services, law firms, professional services, real estate. Same lifecycle, different intake. We build for the trade, then we run it.",
+    "Custom AI strategy, automation, and execution built around the workflows, tools, and goals of your specific business.",
   ogTitle: "Industries We Serve",
   ogSubtitle: "AI systems built for your industry",
   path: "/industries",
@@ -52,15 +52,15 @@ export default function IndustriesPage() {
             <RevealHeading
               as="h1"
               className={HERO_HEADING}
-              lead="Built for your trade,"
-              accent="the way it actually runs."
+              lead="Your business is specific."
+              accent="The solution should be too."
               delay={0.1}
             />
             <AnimateOnScroll delay={0.3}>
               <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                Generic software doesn&apos;t cut it. We design, build, and run
-                automation around the real workflows and revenue drivers of your
-                industry, and we run it alongside you.
+                We learn the workflows, constraints, tools, and opportunities
+                that are specific to your business, then recommend and deliver
+                the AI, automation, training, or execution that fits.
               </p>
             </AnimateOnScroll>
           </div>
@@ -68,15 +68,15 @@ export default function IndustriesPage() {
             <div className="relative overflow-hidden rounded-3xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] p-7 backdrop-blur-md sm:p-8">
               <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold to-transparent opacity-70" />
               <p className="mb-6 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">
-                Same lifecycle, every trade
+                What we look for in every business
               </p>
               <ol className="relative flex flex-col gap-5">
                 <span aria-hidden className="absolute bottom-2 left-[15px] top-2 w-px bg-border-gold" />
                 {[
-                  { n: "Find", d: "Every inquiry captured: call, text, form, after hours." },
-                  { n: "Win", d: "Qualified like you would, followed through until it books." },
-                  { n: "Keep", d: "Clients retained, reviews requested, nothing dropped." },
-                  { n: "Grow", d: "Every job compounds into the next one." },
+                  { n: "Time", d: "Work that should stop consuming skilled people." },
+                  { n: "Revenue", d: "Opportunities the current process leaves behind." },
+                  { n: "Tools", d: "Systems worth connecting instead of replacing." },
+                  { n: "Fit", d: "The smallest useful solution for this team." },
                 ].map((s, i) => (
                   <li key={s.n} className="relative flex items-start gap-4">
                     <span className="relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border-gold bg-bg-base font-mono text-[0.6rem] font-bold text-gold">
@@ -131,13 +131,14 @@ export default function IndustriesPage() {
           <div>
             <Eyebrow className="mb-7">don&apos;t see yours?</Eyebrow>
             <Heading size={1} as="h2">
-              If you have customers, we can help.
+              Tell us how your business works.
             </Heading>
           </div>
           <div className="flex flex-col gap-7">
             <p className="text-lg leading-relaxed text-white-secondary">
-              We work with any service-based business. 30 minutes on the phone
-              and we&apos;ll tell you exactly where AI can move the needle.
+              In thirty minutes, we can identify where AI or automation may be
+              useful and whether consulting, a focused build, training, managed
+              execution, or a larger integrated solution makes sense.
             </p>
             <BookCallButton location="industries_index" />
             <CallTerms />

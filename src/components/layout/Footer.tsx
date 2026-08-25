@@ -84,6 +84,7 @@ const footerColumns = [
   {
     title: "Company",
     links: [
+      { label: "Work", href: "/work" },
       { label: "About", href: "/about" },
       { label: "Partners", href: "/partners" },
       { label: "Changelog", href: "/changelog" },
@@ -134,10 +135,10 @@ export function Footer() {
   };
 
   // the admin app has its own chrome; the marketing footer doesn't belong there
-  if (pathname.startsWith("/admin") || pathname.startsWith("/roofing")) return null;
+  if (pathname.startsWith("/admin") || pathname.startsWith("/roofing") || pathname === "/command-center/demo") return null;
 
   return (
-    <footer className="relative bg-bg-base pb-[var(--safe-bottom)]">
+    <footer className="relative bg-bg-base pb-[var(--safe-bottom)] [--white-muted:var(--mid)]">
       <SectionDivider variant="glow" />
 
       <div className="page-shell py-16">

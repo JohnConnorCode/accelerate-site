@@ -42,11 +42,11 @@ export function RoofingCampaignPage() {
               Your next job may already be in the pipeline.
             </motion.h1>
             <motion.p variants={reveal} className="mt-8 max-w-2xl text-pretty text-lg leading-8 text-[#151611]/64 sm:text-xl">
-              We find where new inquiries, open estimates, and follow-up are leaking booked work, then build and run the AI system that closes those gaps.
+              We learn how the roofing operation works, identify where AI or automation can free office time or increase booked work, then build and run the right solution.
             </motion.p>
             <motion.div variants={reveal} className="mt-9 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
               <button onClick={() => goToAudit("hero")} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#151611] pl-5 pr-[18px] font-mono text-[11px] uppercase tracking-[0.13em] text-white shadow-[0_10px_28px_rgba(0,0,0,0.2)] transition-[scale,background-color] duration-150 hover:bg-black active:scale-[0.96]">
-                Find the revenue leak <ArrowRight className="size-4" />
+                Find the best first use <ArrowRight className="size-4" />
               </button>
               <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#151611]/48">Free · 30 minutes · written findings</span>
             </motion.div>
@@ -109,7 +109,7 @@ export function RoofingCampaignPage() {
       <section id="qualify" className="scroll-mt-0 bg-[#ebeae4] py-24 sm:py-32">
         <div className="mx-auto grid max-w-[1180px] gap-10 px-5 sm:px-8 lg:grid-cols-[.72fr_1.28fr] lg:items-start">
           <div className="lg:sticky lg:top-8">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#151611]/46">Free Roofing Revenue Leak Audit</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#151611]/46">Free Roofing AI Strategy Session</p>
             <h2 className="mt-5 text-balance font-display text-5xl font-medium leading-[0.96] tracking-[-0.055em]">Leave with the first fix in writing.</h2>
             <div className="mt-8 space-y-4">
               {["The highest-cost handoff or follow-up gap", "What it would take to fix", "A practical implementation order within two business days"].map((item) => <p key={item} className="flex gap-3 text-pretty text-sm leading-6 text-[#151611]/62"><Check className="mt-1 size-4 shrink-0 text-[#536d00]" />{item}</p>)}
@@ -122,14 +122,14 @@ export function RoofingCampaignPage() {
 
       <section className="bg-[#d7ff5f] py-20">
         <div className="mx-auto flex max-w-[1180px] flex-col items-start justify-between gap-7 px-5 sm:px-8 lg:flex-row lg:items-center">
-          <div><p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#151611]/48">One useful conversation</p><h2 className="mt-3 text-balance font-display text-4xl font-medium tracking-[-0.045em] sm:text-5xl">Find the leak before buying the system.</h2></div>
+          <div><p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#151611]/48">One useful conversation</p><h2 className="mt-3 text-balance font-display text-4xl font-medium tracking-[-0.045em] sm:text-5xl">Choose the right first use before buying anything.</h2></div>
           <button onClick={() => goToAudit("closing")} className="inline-flex min-h-12 shrink-0 items-center gap-2 rounded-xl bg-[#151611] pl-5 pr-[18px] font-mono text-[11px] uppercase tracking-[0.13em] text-white transition-[scale,background-color] duration-150 hover:bg-black active:scale-[0.96]">Check fit <ArrowRight className="size-4" /></button>
         </div>
       </section>
 
       <footer className="bg-[#151611] py-8 text-white">
         <div className="mx-auto flex max-w-[1180px] flex-col gap-3 px-5 font-mono text-[9px] uppercase tracking-[0.14em] text-white/36 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-          <span>Accelerate · AI revenue systems, built and run for you</span>
+          <span>Accelerate · custom AI strategy, solutions, and execution</span>
           <a href="mailto:john@acceleratewith.us" className="min-h-10 content-center transition-colors hover:text-white">john@acceleratewith.us</a>
         </div>
       </footer>
