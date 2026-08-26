@@ -19,6 +19,11 @@ const failures = [];
   const entrances = await page.locator(".admin-demo-enter").evaluateAll((nodes) => nodes.map((node) => ({ name: getComputedStyle(node).animationName, delay: getComputedStyle(node).animationDelay })));
   if (entrances.length < 9 || entrances.some((item) => !item.name.includes("admin-demo-enter")) || new Set(entrances.map((item) => item.delay)).size < 6) failures.push("launcher: hero and scenario cards do not use a complete staggered entrance sequence");
   await page.waitForTimeout(1_300);
+  const firstCard = page.locator('a[href^="/demo/command-center/"][href$="/today"]').first();
+  await firstCard.hover();
+  await page.waitForTimeout(180);
+  const hoverState = await firstCard.evaluate((node) => ({ translate: getComputedStyle(node).translate, transition: getComputedStyle(node).transitionProperty }));
+  if (hoverState.translate === "none" || !hoverState.transition.includes("translate") || !hoverState.transition.includes("box-shadow")) failures.push("launcher: scenario card hover is not a smooth compositor-led transition");
   await page.screenshot({ path: `${output}/launcher-desktop.png`, fullPage: true });
   await context.close();
 }
@@ -57,19 +62,43 @@ for (const scenario of scenarios) {
       if (/Build Error|Unhandled Runtime Error|Runtime TypeError|Compilation failed/i.test(state.overlay)) failures.push(`${scenario} ${label} ${route}: Next error overlay`);
       if (state.mainText < 120) failures.push(`${scenario} ${label} ${route}: view is not credibly populated`);
       if (!state.logo) failures.push(`${scenario} ${label} ${route}: shared animated logo is missing`);
+      if (route === "contacts") {
+        const toggles = page.locator("[data-contact-row-toggle]");
+        const contactCount = await toggles.count();
+        if (!contactCount) {
+          failures.push(`${scenario} ${label} contacts: demo has no populated contact rows`);
+        } else {
+          await toggles.first().click();
+          await page.getByText("Full message", { exact: true }).first().waitFor();
+          const profile = await page.evaluate(async () => {
+            const contacts = await fetch("/api/admin/contacts").then((response) => response.json());
+            const email = contacts.contacts?.[0]?.email;
+            return fetch(`/api/admin/contacts/timeline?email=${encodeURIComponent(email)}`).then((response) => response.json());
+          });
+          if ((profile.timeline?.length || 0) < 4 || profile.canonical?.status !== "connected") failures.push(`${scenario} ${label} contacts: relationship data is incomplete`);
+        }
+      }
       if (route === "today") {
         await page.screenshot({ path: `${output}/${scenario}-${label}.png`, fullPage: true });
+        if (await page.locator("[data-admin-demo-link]").count()) failures.push(`${scenario} ${label}: duplicate demo chooser remains in shared navigation`);
+        if (await page.locator('[data-admin-demo-bar][data-state="collapsed"]').count() !== 1) failures.push(`${scenario} ${label}: demo controls do not start collapsed`);
+        await page.getByRole("button", { name: "Open demo controls" }).click();
+        await page.locator('[data-admin-demo-bar][data-state="open"]').waitFor();
         if (label === "desktop") {
           await page.getByRole("button", { name: "Open guided demo" }).click();
           await page.locator("[data-admin-demo-guide]").waitFor();
           for (const [index, guidedRoute] of ["today", "conversations", "pipeline", "revenue", "analytics"].entries()) {
             if (!await page.locator("[data-admin-demo-guide]").count()) {
+              if (await page.getByRole("button", { name: "Open demo controls" }).count()) await page.getByRole("button", { name: "Open demo controls" }).click();
               await page.getByRole("button", { name: "Open guided demo" }).click();
               await page.locator("[data-admin-demo-guide]").waitFor();
             }
             await page.getByRole("button", { name: `Open story step ${index + 1}` }).click();
             await page.waitForURL(new RegExp(`/${scenario}/${guidedRoute}$`));
           }
+        } else {
+          await page.getByRole("button", { name: "Hide demo controls" }).click();
+          await page.locator('[data-admin-demo-bar][data-state="collapsed"]').waitFor();
         }
       }
     }
@@ -102,6 +131,7 @@ for (const scenario of scenarios) {
       await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "sprout-and-spark");
       const persisted = await page.evaluate(async () => (await fetch("/api/admin/revenue-os/priority").then((response) => response.json())).summary.total);
       if (persisted !== mutation.after) failures.push("sprout-and-spark desktop: demo mutation did not survive refresh");
+      await page.getByRole("button", { name: "Open demo controls" }).click();
       await Promise.all([
         page.waitForNavigation({ waitUntil: "domcontentloaded" }),
         page.getByRole("button", { name: "Reset this demo" }).click(),
@@ -110,6 +140,7 @@ for (const scenario of scenarios) {
       await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "sprout-and-spark");
       const reset = await page.evaluate(() => sessionStorage.getItem("accelerate:admin-demo:sprout-and-spark:v1"));
       if (reset !== null) failures.push("sprout-and-spark desktop: reset did not restore clean scenario state");
+      await page.getByRole("button", { name: "Open demo controls" }).click();
       await page.getByRole("button", { name: "Open guided demo" }).click();
       await page.locator("[data-admin-demo-guide]").waitFor();
       await page.getByRole("button", { name: "Next", exact: true }).click();
@@ -119,7 +150,7 @@ for (const scenario of scenarios) {
   }
 }
 
-for (const appearance of ["light", "dark", "signal", "studio"]) {
+for (const appearance of ["light", "dark", "signal", "studio", "frost"]) {
   for (const [label, viewport] of [["desktop", { width: 1280, height: 900 }], ["mobile", { width: 390, height: 844 }]]) {
     const context = await browser.newContext({ viewport });
     await context.addInitScript((theme) => localStorage.setItem("theme", theme), appearance);

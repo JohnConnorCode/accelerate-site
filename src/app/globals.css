@@ -3354,6 +3354,28 @@ body.admin-dialog-open {
   --admin-shadow-hover: 0 0 0 1px rgba(53, 109, 243, 0.15), 0 5px 11px -5px rgba(25, 35, 58, 0.08), 0 26px 48px -30px rgba(35, 72, 145, 0.28);
 }
 
+/* Frost mirrors the cool, high-contrast executive treatment used by the demo
+   chrome: an ice canvas, ink navigation, white work surfaces, and mint status. */
+[data-theme="frost"] .admin-shell,
+[data-theme="frost"] body.admin-dialog-open {
+  --admin-canvas: #edf2fa;
+  --admin-surface: #fbfcff;
+  --admin-surface-subtle: #f3f6fb;
+  --admin-ink: #172033;
+  --admin-muted: #68748b;
+  --admin-accent: #24b994;
+  --admin-accent-soft: rgba(36, 185, 148, 0.1);
+  --admin-sidebar: #171918;
+  --admin-action: #172033;
+  --admin-action-ink: #ffffff;
+  --admin-rule: rgba(23, 32, 51, 0.075);
+  --admin-border: rgba(23, 32, 51, 0.1);
+  --admin-shadow-border: 0 0 0 1px rgba(23, 32, 51, 0.06), 0 2px 5px -2px rgba(23, 32, 51, 0.06), 0 18px 38px -26px rgba(45, 65, 104, 0.22);
+  --admin-shadow-border-hover: 0 0 0 1px rgba(36, 185, 148, 0.16), 0 5px 11px -5px rgba(23, 32, 51, 0.08), 0 26px 50px -28px rgba(45, 65, 104, 0.28);
+  --admin-shadow: 0 0 0 1px rgba(23, 32, 51, 0.055), 0 2px 5px -2px rgba(23, 32, 51, 0.05), 0 20px 42px -30px rgba(45, 65, 104, 0.24);
+  --admin-shadow-hover: 0 0 0 1px rgba(36, 185, 148, 0.15), 0 5px 12px -5px rgba(23, 32, 51, 0.08), 0 28px 52px -30px rgba(45, 65, 104, 0.3);
+}
+
 .admin-main {
   min-width: 0;
   background: transparent;
@@ -3454,11 +3476,13 @@ body.admin-dialog-open {
   color: var(--admin-ink);
 }
 [data-theme="signal"] :is(.admin-shell, body.admin-dialog-open) [class~="bg-[#d7ff5f]"],
-[data-theme="studio"] :is(.admin-shell, body.admin-dialog-open) [class~="bg-[#d7ff5f]"] {
+[data-theme="studio"] :is(.admin-shell, body.admin-dialog-open) [class~="bg-[#d7ff5f]"],
+[data-theme="frost"] :is(.admin-shell, body.admin-dialog-open) [class~="bg-[#d7ff5f]"] {
   background-color: var(--admin-accent);
 }
 [data-theme="signal"] :is(.admin-shell, body.admin-dialog-open) [class~="text-[#d7ff5f]"],
-[data-theme="studio"] :is(.admin-shell, body.admin-dialog-open) [class~="text-[#d7ff5f]"] {
+[data-theme="studio"] :is(.admin-shell, body.admin-dialog-open) [class~="text-[#d7ff5f]"],
+[data-theme="frost"] :is(.admin-shell, body.admin-dialog-open) [class~="text-[#d7ff5f]"] {
   color: var(--admin-accent);
 }
 
@@ -3477,6 +3501,14 @@ body.admin-dialog-open {
 }
 [data-theme="studio"] .admin-sidebar a[aria-current="page"] svg { color: #ffffff; }
 [data-theme="studio"] .admin-sidebar a[aria-current="page"] [class*="bg-black/8"] { background: rgba(255, 255, 255, 0.16); color: #ffffff; }
+
+[data-theme="frost"] .admin-sidebar a[aria-current="page"] {
+  background: #ffffff;
+  color: #172033;
+  box-shadow: 0 8px 22px -13px rgba(0, 0, 0, 0.75);
+}
+[data-theme="frost"] .admin-sidebar a[aria-current="page"] svg { color: #24b994; }
+[data-theme="frost"] .admin-sidebar a[aria-current="page"] [class*="bg-black/8"] { background: rgba(23, 32, 51, 0.08); color: #172033; }
 
 .admin-dialog-surface { box-shadow: 0 0 0 1px rgba(11, 11, 11, 0.08), 0 30px 80px -28px rgba(0, 0, 0, 0.5); }
 [data-theme="dark"] .admin-dialog-surface { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.11), 0 30px 80px -28px #000; }

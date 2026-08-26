@@ -7,7 +7,7 @@ import { ArrowLeft, ArrowUpRight, Building2, CircleAlert, CircleCheckBig, User }
 import Link from "next/link";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { ContactTimeline } from "@/components/admin/ContactTimeline";
-import { GlassCard } from "@/components/ui/GlassCard";
+import { AdminSurface } from "@/components/admin/AdminSurface";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 
 interface TimelineItem {
@@ -54,7 +54,7 @@ export default function ContactTimelinePage() {
   if (loading) {
     return (
       <div>
-        <PageHeader title="Contact Timeline" />
+        <PageHeader title="Contact relationship" />
         <LoadingSkeleton variant="page" />
       </div>
     );
@@ -69,41 +69,41 @@ export default function ContactTimelinePage() {
       <div className="mb-4">
         <Link
           href="/admin/contacts"
-          className="inline-flex items-center gap-1.5 text-xs text-white-muted hover:text-white-secondary transition-colors"
+          className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-[var(--admin-muted)] transition-[background-color,color,scale] hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:scale-[0.97] dark:hover:bg-white/[0.06]"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Back to Contacts
+          Back to contact intake
         </Link>
       </div>
 
-      <PageHeader title="Contact Timeline" subtitle={email} />
+      <PageHeader title="Contact relationship" subtitle="A unified record of the conversations, opportunities, and work connected to this person." />
 
-      <GlassCard hover="none" className="mb-6">
+      <AdminSurface padding="md" className="mb-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center">
-            <User className="h-5 w-5 text-white-muted" />
+          <div className="grid size-10 shrink-0 place-items-center rounded-full bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]">
+            <User className="size-4" />
           </div>
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-white-primary">{canonical?.contact?.full_name || email}</p>
-            {canonical?.contact && <p className="truncate text-xs text-white-muted">{email}</p>}
-            <p className="text-xs text-white-muted">
+            <p className="truncate text-sm font-semibold text-[var(--admin-ink)]">{canonical?.contact?.full_name || email}</p>
+            {canonical?.contact && <p className="admin-copy truncate text-xs">{email}</p>}
+            <p className="admin-copy text-xs">
               {timeline.length} interaction{timeline.length !== 1 ? "s" : ""} found
             </p>
           </div>
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:justify-end">
             {canonical?.status === "connected" ? (
-              <span className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 text-xs font-medium text-emerald-300">
+              <span className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
                 <CircleCheckBig className="h-3.5 w-3.5" /> Revenue OS connected
               </span>
             ) : (
-              <span className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-amber-500/10 px-3 text-xs font-medium text-amber-300">
+              <span className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-amber-500/10 px-3 text-xs font-semibold text-amber-800 dark:text-amber-300">
                 <CircleAlert className="h-3.5 w-3.5" /> {canonical?.status === "ambiguous" ? "Identity review needed" : canonical?.status === "degraded" ? "Revenue OS unavailable" : "Not linked yet"}
               </span>
             )}
             {canonical?.company && (
-              <span className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border-glass px-3 text-xs text-white-secondary">
+              <span className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-[var(--admin-surface-subtle)] px-3 text-xs font-medium text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]">
                 <Building2 className="h-3.5 w-3.5" /> {canonical.company.name}
               </span>
             )}
@@ -117,7 +117,7 @@ export default function ContactTimelinePage() {
             ) : null}
           </div>
         </div>
-      </GlassCard>
+      </AdminSurface>
 
       <ContactTimeline items={timeline} />
     </motion.div>

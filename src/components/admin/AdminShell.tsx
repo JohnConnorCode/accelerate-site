@@ -522,9 +522,9 @@ function SidebarContent({
       </nav>
 
       <div className="mt-4 border-t border-white/10 pt-3">
-        <Link href="/demo/command-center" target="_blank" onClick={onNavigate} aria-label={demoMode ? "Choose another fictional workspace" : "Open demo workspace"} title={collapsed ? (demoMode ? "Choose demo" : "Open demo workspace") : undefined} data-admin-demo-link className={cn("mb-1 flex min-h-10 items-center rounded-[10px] bg-white/[0.075] text-xs font-semibold text-white/82 shadow-[0_0_0_1px_rgba(255,255,255,.08)] transition-[background-color,color,transform] duration-150 hover:bg-white/[0.12] hover:text-white active:scale-[0.96]", collapsed ? "justify-center" : "gap-3 px-2.5")}>
-          <MonitorPlay className="h-4 w-4 shrink-0" /> {!collapsed && <><span>{demoMode ? "Choose demo" : "Demo workspace"}</span><ArrowUpRight className="ml-auto h-3.5 w-3.5 text-white/52" /></>}
-        </Link>
+        {!demoMode && <Link href="/demo/command-center" target="_blank" onClick={onNavigate} aria-label="Open demo workspace" title={collapsed ? "Open demo workspace" : undefined} data-admin-demo-link className={cn("mb-1 flex min-h-10 items-center rounded-[10px] bg-white/[0.075] text-xs font-semibold text-white/82 shadow-[0_0_0_1px_rgba(255,255,255,.08)] transition-[background-color,color,transform] duration-150 hover:bg-white/[0.12] hover:text-white active:scale-[0.96]", collapsed ? "justify-center" : "gap-3 px-2.5")}>
+          <MonitorPlay className="h-4 w-4 shrink-0" /> {!collapsed && <><span>Demo workspace</span><ArrowUpRight className="ml-auto h-3.5 w-3.5 text-white/52" /></>}
+        </Link>}
         <AdminAppearancePicker collapsed={collapsed} />
         {!demoMode && <>
           <Link href="/" target="_blank" onClick={onNavigate} title={collapsed ? "View live site" : undefined} className={cn("flex min-h-10 items-center rounded-[10px] text-xs text-white/58 transition-[color,background-color,transform] duration-150 hover:bg-white/7 hover:text-white active:scale-[0.96]", collapsed ? "justify-center" : "gap-3 px-2.5")}>

@@ -25,6 +25,7 @@ export function Dock() {
 
   const hiddenRoute =
     pathname.startsWith("/admin") ||
+    pathname.startsWith("/demo/command-center") ||
     pathname.startsWith("/contact") ||
     pathname.startsWith("/roofing") ||
     pathname.startsWith("/command-center");

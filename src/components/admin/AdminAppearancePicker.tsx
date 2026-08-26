@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
-import { Check, ChevronUp, Moon, Palette, Sparkles, Sun } from "lucide-react";
+import { Check, ChevronUp, Moon, Palette, Snowflake, Sparkles, Sun } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-type AdminAppearance = "light" | "dark" | "signal" | "studio";
+type AdminAppearance = "light" | "dark" | "signal" | "studio" | "frost";
 
 const appearances: Array<{
   id: AdminAppearance;
@@ -19,6 +19,7 @@ const appearances: Array<{
   { id: "dark", label: "Night", description: "Low-light operating view", icon: Moon, previewClass: "bg-[#10100f] text-[#fbfbfa]" },
   { id: "signal", label: "Signal", description: "Focused violet operations", icon: Sparkles, previewClass: "bg-[#171225] text-[#f3edff]" },
   { id: "studio", label: "Studio", description: "Bright project workspace", icon: Palette, previewClass: "bg-[#f4f7fc] text-[#18233c]" },
+  { id: "frost", label: "Frost", description: "Cool executive workspace", icon: Snowflake, previewClass: "bg-[#edf2fa] text-[#172033]" },
 ];
 
 function isAdminAppearance(theme: string | undefined): theme is AdminAppearance {
@@ -94,7 +95,7 @@ export function AdminAppearancePicker({ collapsed = false }: { collapsed?: boole
           >
             <div className="px-2 pb-2 pt-1">
               <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.14em] text-white/42">Appearance</p>
-              <p className="mt-1 text-[11px] leading-4 text-white/58">One operating system, four focused working environments.</p>
+              <p className="mt-1 text-[11px] leading-4 text-white/58">One operating system, five focused working environments.</p>
             </div>
             <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="Admin appearance">
               {appearances.map((appearance) => {

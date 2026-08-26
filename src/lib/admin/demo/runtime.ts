@@ -261,6 +261,20 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     if (path === "/api/admin/revenue-os/pipeline") return jsonResponse({ schemaReady: true, signalsReady: { calendar: true }, opportunities: opportunityRows(pack, state) });
     if (path === "/api/admin/revenue-os/conversations") return jsonResponse(conversations(pack, state, url.searchParams.get("id")));
     if (path === "/api/admin/revenue-os/analytics") return jsonResponse(analytics(pack, state));
+    if (path === "/api/admin/contacts/timeline") {
+      const requestedEmail = (url.searchParams.get("email") || "").toLowerCase();
+      const contact = pack.people.find((item) => item.email.toLowerCase() === requestedEmail) || pack.people[0]!;
+      const opportunity = pack.opportunities.find((item) => item.personId === contact.id) || pack.opportunities[0]!;
+      const conversation = pack.conversations.find((item) => item.personId === contact.id) || pack.conversations[0]!;
+      const contactTasks = pack.tasks.filter((item) => item.personId === contact.id).slice(0, 3);
+      const timeline = [
+        { type: "contact", title: `Website inquiry from ${contact.name}`, description: conversation.messages[0]!.body, timestamp: conversation.messages[0]!.at, sourceId: `submission-${contact.id}`, link: "/admin/contacts" },
+        ...conversation.messages.map((message) => ({ type: message.direction === "inbound" ? "message_inbound" : "message_outbound", title: `${message.direction === "inbound" ? "Received" : "Sent"}: ${conversation.subject}`, description: message.body, timestamp: message.at, sourceId: message.id, link: "/admin/conversations" })),
+        { type: "opportunity", title: `Pipeline: ${opportunity.name}`, description: `Stage: ${opportunity.stage.replace(/_/g, " ")} · $${opportunity.value.toLocaleString()} · Next: ${opportunity.nextAction}`, timestamp: conversation.messages[0]!.at, sourceId: opportunity.id, link: `/admin/pipeline?search=${encodeURIComponent(contact.email)}` },
+        ...contactTasks.map((task, index) => ({ type: "task", title: `Task: ${task.title}`, description: `${task.status} · ${task.priority} priority`, timestamp: ago(index + 2), sourceId: task.id, link: "/admin/today" })),
+      ].sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp));
+      return jsonResponse({ timeline, canonical: { schemaReady: true, status: "connected", contact: { id: contact.id, full_name: contact.name, lifecycle_stage: opportunity.stage, communication_status: "active", next_action: opportunity.nextAction, next_action_at: dateOffset(1) }, company: { id: `company-${contact.id}`, name: contact.company, domain: `${contact.company.toLowerCase().replace(/[^a-z0-9]+/g, "")}.example`, industry: pack.category }, opportunities: [{ id: opportunity.id, stage: opportunity.stage, estimated_value: opportunity.value, won_value: opportunity.stage === "won" ? opportunity.value : 0 }] } });
+    }
     if (path === "/api/admin/revenue") { const rows = opportunityRows(pack, state); return jsonResponse({ totalMRR: 18400, totalOneTime: rows.reduce((sum, item) => sum + item.won_value, 0), activeCount: 6, churnRate: 4, avgClientValue: 3067, industryBreakdown: [{ name: pack.category, value: 100 }], byClient: pack.people.slice(0, 6).map((item, index) => ({ name: `${item.company} · ${item.name}`, monthly: 1800 + index * 425, oneTime: index * 900 })), mrrTimeline: ["Apr", "May", "Jun", "Jul", "Aug"].map((date, index) => ({ date, mrr: 11200 + index * 1800 })), proposalRevenue: 24600 }); }
     if (path === "/api/admin/activity") return jsonResponse({ activities: Array.from({ length: 30 }, (_, index) => ({ id: `activity-${index}`, type: ["lead", "email", "task", "proposal"][index % 4], description: `${pack.people[index % pack.people.length]!.name}: ${["record created", "email linked", "task completed", "proposal viewed"][index % 4]}`, timestamp: ago(index * 3 + 1) })) });
     if (path === "/api/admin/revenue-os/ai/conversations") return jsonResponse({ schemaReady: true, conversations: [{ id: `ai-${scenarioId}`, title: `Morning review for ${pack.name}`, lastMessageAt: ago(1) }] });

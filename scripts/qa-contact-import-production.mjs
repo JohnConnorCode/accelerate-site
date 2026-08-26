@@ -112,7 +112,7 @@ try {
   await page.screenshot({ path: `${outputDirectory}/production-setup-ready.png`, fullPage: true });
 
   await page.goto(`${base}/admin/contact-imports`, { waitUntil: "domcontentloaded", timeout: 60_000 });
-  await page.getByRole("heading", { name: "Contact Import", exact: true }).waitFor();
+  await page.getByRole("heading", { name: "Contact intake", exact: true }).waitFor();
   const importerRead = await page.evaluate(async () => {
     const response = await fetch("/api/admin/revenue-os/contact-imports");
     return { status: response.status, body: await response.json() };

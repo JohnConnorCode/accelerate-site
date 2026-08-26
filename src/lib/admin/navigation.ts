@@ -6,7 +6,6 @@ import {
   CalendarCheck,
   FileText,
   FileCheck,
-  FileUp,
   Globe2,
   Handshake,
   Inbox,
@@ -48,8 +47,7 @@ export const adminNavSections: AdminNavSection[] = [
     { label: "Inbox", href: "/admin/inbox", icon: Inbox, description: "Operator messages and follow-up" },
   ] },
   { label: "Revenue", links: [
-    { label: "Contacts", href: "/admin/contacts", icon: UsersRound, description: "People and relationship records" },
-    { label: "Contact Import", href: "/admin/contact-imports", icon: FileUp, description: "Clean, review, and approve ad hoc contacts", keywords: "csv json paste ai dedupe" },
+    { label: "Contact intake", href: "/admin/contacts", icon: UsersRound, description: "Website submissions and reviewed list imports", keywords: "contacts submissions csv json paste ai dedupe import" },
     { label: "Email Studio", href: "/admin/emails", icon: MessageSquareText, description: "View and edit live email copy", keywords: "templates preview editor" },
     { label: "Campaigns", href: "/admin/campaigns", icon: Mail, description: "Controlled outbound" },
     { label: "Proposals", href: "/admin/proposals", icon: FileCheck, description: "Drafts, decisions, and follow-up" },

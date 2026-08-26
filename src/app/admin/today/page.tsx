@@ -159,6 +159,14 @@ function observedTime(value: string) {
   return `Observed ${Math.floor(hours / 24)}d ago`;
 }
 
+function isRepeatedQueueCopy(summary: string, priorityReason: string) {
+  const normalize = (value: string) => value
+    .toLocaleLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+  return normalize(summary) === normalize(priorityReason);
+}
+
 function queueIcon(kind: QueueItem["kind"]) {
   if (kind === "reply") return Mail;
   if (kind === "meeting") return CalendarClock;
@@ -173,7 +181,7 @@ function TodayLoadingState() {
     <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {Array.from({ length: 4 }).map((_, index) => <AdminSurface key={index} padding="lg" className="animate-pulse"><div className="h-2.5 w-24 rounded-full bg-black/[0.07] dark:bg-white/[0.08]" /><div className="mt-5 h-8 w-20 rounded-lg bg-black/[0.07] dark:bg-white/[0.08]" /><div className="mt-3 h-2.5 w-32 rounded-full bg-black/[0.05] dark:bg-white/[0.06]" /></AdminSurface>)}
     </section>
-    <section className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
+    <section className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
       {[6, 4].map((count) => <AdminSurface key={count} padding="none" className="overflow-hidden"><div className="px-6 py-5"><div className="h-3 w-28 animate-pulse rounded-full bg-black/[0.07] dark:bg-white/[0.08]" /></div><div className="divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)]">{Array.from({ length: count }).map((_, index) => <div key={index} className="flex min-h-[84px] animate-pulse items-center gap-3 px-6 py-4"><div className="size-9 rounded-xl bg-black/[0.06] dark:bg-white/[0.07]" /><div className="flex-1"><div className="h-3 w-2/5 rounded-full bg-black/[0.07] dark:bg-white/[0.08]" /><div className="mt-3 h-2.5 w-4/5 rounded-full bg-black/[0.05] dark:bg-white/[0.06]" /></div></div>)}</div></AdminSurface>)}
     </section>
   </div>;
@@ -190,6 +198,7 @@ export default function TodayPage() {
   const [acting, setActing] = useState<string | null>(null);
   const [taskActioning, setTaskActioning] = useState<string | null>(null);
   const [focus, setFocus] = useState<(typeof focusOptions)[number]["id"]>("all");
+  const [showAllApprovals, setShowAllApprovals] = useState(false);
   const requestIdRef = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
   const hasOverviewRef = useRef(false);
@@ -231,7 +240,7 @@ export default function TodayPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const requestedFocus = params.get("focus");
-    if (requestedFocus === "approvals") setFocus("approval");
+    if (requestedFocus === "approvals") { setFocus("approval"); setShowAllApprovals(true); }
     else if (focusOptions.some((option) => option.id === requestedFocus)) setFocus(requestedFocus as (typeof focusOptions)[number]["id"]);
     void load();
     return () => abortRef.current?.abort();
@@ -329,9 +338,16 @@ export default function TodayPage() {
             ))}
           </section>
 
-          <AdminSurface tone={overview.health.status === "attention" ? "attention" : "default"} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <AdminSurface
+            tone="default"
+            className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5"
+            style={overview.health.status === "attention" ? {
+              background: "color-mix(in srgb, var(--admin-surface) 86%, #f59e0b 14%)",
+              boxShadow: "inset 3px 0 0 rgba(245,158,11,.72), var(--admin-shadow)",
+            } : undefined}
+          >
             <div className="flex min-w-0 items-center gap-3">
-              <span className={cn("grid size-10 shrink-0 place-items-center rounded-xl", overview.health.status === "attention" ? "bg-amber-500/12 text-amber-700 dark:text-amber-300" : overview.health.status === "ready" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-black/[0.045] text-[var(--admin-muted)] dark:bg-white/[0.06]")}>
+              <span className={cn("grid size-10 shrink-0 place-items-center rounded-full", overview.health.status === "attention" ? "bg-amber-500/10 text-amber-700 ring-1 ring-amber-500/15 dark:text-amber-300" : overview.health.status === "ready" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-black/[0.045] text-[var(--admin-muted)] dark:bg-white/[0.06]")}>
                 {overview.health.status === "attention" ? <TriangleAlert className="size-4" /> : overview.health.status === "ready" ? <ShieldCheck className="size-4" /> : <ServerCog className="size-4" />}
               </span>
               <div className="min-w-0"><p className="text-sm font-semibold text-[var(--admin-ink)]">{overview.health.status === "attention" ? `${overview.health.attentionCount} operational item${overview.health.attentionCount === 1 ? "" : "s"} need attention` : overview.health.status === "ready" ? "Revenue operations are reporting normally" : "Revenue integrations are not configured yet"}</p><p className="admin-copy mt-0.5 text-xs">{overview.health.status === "attention" ? "Review failures before they silently delay customer work." : overview.health.status === "ready" ? "Recent connections and job runs are healthy." : "Setup Center verifies live behavior once connections are enabled."}</p></div>
@@ -339,16 +355,17 @@ export default function TodayPage() {
             <Link href="/admin/setup" className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.98]">Open Setup <ArrowRight className="size-3.5" /></Link>
           </AdminSurface>
 
-          <section className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
+          <section className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_22rem] 2xl:grid-cols-[minmax(0,1fr)_24rem]" data-today-workspace>
             <AdminSurface padding="none" className="overflow-hidden">
               <div className="flex flex-col gap-4 px-5 py-4 sm:px-6"><div className="flex items-center justify-between gap-3"><div><p className="admin-eyebrow">Priority queue</p><h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">What needs your attention</h2></div><span className="rounded-full bg-black/[0.045] px-2.5 py-1 font-mono text-[10px] tabular-nums text-[var(--admin-muted)] dark:bg-white/[0.06]">{visibleQueue.length}</span></div><div className="-mx-1 flex gap-1 overflow-x-auto pb-1 [scrollbar-width:none]">{focusOptions.map((option) => <button key={option.id} type="button" onClick={() => setFocus(option.id)} className={cn("min-h-10 shrink-0 rounded-lg px-3 text-xs font-semibold transition-[background-color,color,box-shadow] duration-150", focus === option.id ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]" : "text-[var(--admin-muted)] hover:bg-black/[0.045] hover:text-[var(--admin-ink)] dark:hover:bg-white/[0.06]")}>{option.label}</button>)}</div></div>
               <div className="divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)]">
                 {visibleQueue.slice(0, 15).map((item) => {
                   const Icon = queueIcon(item.kind);
                   const taskId = item.kind === "task" || item.kind === "follow_up" ? item.id.replace(/^task:/, "") : null;
+                  const repeatsReason = isRepeatedQueueCopy(item.summary, item.priorityReason);
                   return <div key={item.id} className="group flex min-h-[84px] items-start gap-3 px-5 py-4 transition-[background-color] duration-150 hover:bg-black/[0.022] dark:hover:bg-white/[0.025] sm:px-6">
-                    <span className={cn("mt-0.5 grid size-9 shrink-0 place-items-center rounded-xl", urgencyClass[item.urgency])}><Icon className="size-4" /></span>
-                    <Link href={item.href} className="min-w-0 flex-1 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)] focus-visible:ring-offset-2"><div className="flex flex-wrap items-center gap-2"><h3 className="truncate text-sm font-semibold text-[var(--admin-ink)]">{item.title}</h3>{item.urgency !== "normal" && <span className={cn("rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em]", urgencyClass[item.urgency])}>{item.urgency}</span>}</div><p className="admin-copy mt-1 line-clamp-2 text-pretty text-xs leading-5">{item.summary}</p><p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">{item.priorityReason} <span className="mx-1 text-[var(--admin-border)]">·</span> {relativeTime(item.dueAt)} <span className="mx-1 text-[var(--admin-border)]">·</span> {observedTime(item.sourceTimestamp)}</p><p className="admin-copy mt-1.5 line-clamp-2 text-[11px] leading-4"><span className="font-semibold text-[var(--admin-ink)]">Next:</span> {item.recommendedNextAction}</p></Link>
+                    <span className="mt-0.5 grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]"><Icon className="size-4" /></span>
+                    <Link href={item.href} className="min-w-0 flex-1 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)] focus-visible:ring-offset-2"><div className="flex flex-wrap items-center gap-2"><h3 className="truncate text-sm font-semibold text-[var(--admin-ink)]">{item.title}</h3>{item.urgency !== "normal" && <span className={cn("rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em]", urgencyClass[item.urgency])}>{item.urgency}</span>}</div>{!repeatsReason && <p className="admin-copy mt-1 line-clamp-2 text-pretty text-xs leading-5">{item.summary}</p>}<p className={cn("text-pretty text-xs leading-5 text-[var(--admin-muted)]", repeatsReason ? "mt-1" : "mt-2")}>{item.priorityReason}</p><p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[9px] font-medium uppercase tracking-[0.07em] text-[var(--admin-muted)]"><span>{relativeTime(item.dueAt)}</span><span className="size-0.5 rounded-full bg-[var(--admin-border)]" aria-hidden="true" /><span>{observedTime(item.sourceTimestamp)}</span></p><p className="admin-copy mt-1.5 line-clamp-2 text-[11px] leading-4"><span className="font-semibold text-[var(--admin-ink)]">Next:</span> {item.recommendedNextAction}</p></Link>
                     {taskId ? <div className="flex shrink-0 items-center gap-1"><button type="button" aria-label={`Complete ${item.title}`} title="Complete task" disabled={Boolean(taskActioning)} onClick={() => void updateTask(taskId, "complete")} className="grid size-10 place-items-center rounded-lg text-emerald-700 transition-[background-color,scale,opacity] duration-150 hover:bg-emerald-500/10 active:scale-[0.96] disabled:opacity-50 dark:text-emerald-300">{taskActioning === `${taskId}:complete` ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}</button><button type="button" aria-label={`Snooze ${item.title} until tomorrow`} title="Snooze until tomorrow" disabled={Boolean(taskActioning)} onClick={() => void updateTask(taskId, "snooze")} className="grid size-10 place-items-center rounded-lg text-[var(--admin-muted)] transition-[background-color,scale,opacity] duration-150 hover:bg-black/[0.045] hover:text-[var(--admin-ink)] active:scale-[0.96] disabled:opacity-50 dark:hover:bg-white/[0.06]">{taskActioning === `${taskId}:snooze` ? <Loader2 className="size-4 animate-spin" /> : <AlarmClock className="size-4" />}</button></div> : <Link href={item.href} aria-label={`Open ${item.title}`} className="mt-2 grid size-10 shrink-0 place-items-center rounded-lg text-[var(--admin-muted)] transition-[background-color,transform] duration-150 hover:bg-black/[0.045] hover:text-[var(--admin-ink)] dark:hover:bg-white/[0.06]"><ArrowRight className="size-4 transition-transform duration-150 group-hover:translate-x-0.5" /></Link>}
                   </div>;
                 })}
@@ -356,12 +373,13 @@ export default function TodayPage() {
               </div>
             </AdminSurface>
 
-            <AdminSurface padding="none" className="overflow-hidden">
-              <div className="px-5 py-4 sm:px-6"><p className="admin-eyebrow">Decisions</p><h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">Approval queue</h2><p className="admin-copy mt-1 text-pretty text-xs">AI and automations stage consequential actions here.</p></div>
+            <AdminSurface padding="none" className="self-start overflow-hidden xl:sticky xl:top-24" data-today-approval-rail>
+              <div className="flex items-start justify-between gap-3 px-5 py-4"><div><p className="admin-eyebrow">Decisions</p><h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">Approval queue</h2><p className="admin-copy mt-1 text-pretty text-xs">Review exact changes before anything consequential runs.</p></div><span className="mt-0.5 rounded-full bg-black/[0.045] px-2.5 py-1 font-mono text-[10px] tabular-nums text-[var(--admin-muted)] dark:bg-white/[0.06]" aria-label={`${actions.length} pending approvals`}>{actions.length}</span></div>
               <div className="divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)]">
-                {actions.slice(0, 8).map((action) => (
-                  <div key={action.id} className="px-5 py-4 sm:px-6"><div className="flex items-start gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-xl bg-violet-500/10 text-violet-700 dark:text-violet-300"><Sparkles className="size-4" /></span><div className="min-w-0 flex-1"><h3 className="text-sm font-semibold text-[var(--admin-ink)]">{action.title}</h3><p className="admin-copy mt-1 line-clamp-3 text-pretty text-xs leading-5">{action.description || action.reasoning || "Review before execution."}</p><div className="mt-3 flex gap-2"><button type="button" onClick={() => setReviewing(action)} disabled={acting === action.id} className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-[var(--admin-ink)] px-3 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 active:scale-[0.96] disabled:opacity-50">{acting === action.id ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />} Review</button><button type="button" onClick={() => void decide(action.id, "reject")} disabled={acting === action.id} className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:opacity-50"><X className="size-3.5" /> Reject</button></div></div></div></div>
+                {actions.slice(0, showAllApprovals ? 8 : 3).map((action) => (
+                  <div key={action.id} className="px-5 py-4"><div className="flex items-start gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]"><Sparkles className="size-4" /></span><div className="min-w-0 flex-1"><h3 className="text-pretty text-sm font-semibold leading-5 text-[var(--admin-ink)]">{action.title}</h3><p className="admin-copy mt-1 line-clamp-2 text-pretty text-xs leading-5">{action.description || action.reasoning || "Review before execution."}</p><div className="mt-3 flex items-center gap-2"><button type="button" onClick={() => setReviewing(action)} disabled={acting === action.id} className="inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[var(--admin-ink)] px-3 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96] disabled:opacity-50">{acting === action.id ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />} Review</button><button type="button" onClick={() => void decide(action.id, "reject")} disabled={acting === action.id} aria-label={`Reject ${action.title}`} title="Reject proposal" className="grid size-10 shrink-0 place-items-center rounded-lg text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)] transition-[color,box-shadow,transform] duration-150 hover:text-rose-700 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:opacity-50 dark:hover:text-rose-300"><X className="size-3.5" /></button></div></div></div></div>
                 ))}
+                {actions.length > 3 && <button type="button" onClick={() => setShowAllApprovals((current) => !current)} className="flex min-h-11 w-full items-center justify-between px-5 text-xs font-semibold text-[var(--admin-ink)] transition-[background-color,transform] duration-150 hover:bg-black/[0.025] active:scale-[0.96] dark:hover:bg-white/[0.03]" aria-expanded={showAllApprovals}>{showAllApprovals ? "Show fewer decisions" : `Review all ${actions.length} decisions`} <ArrowRight className={cn("size-3.5 transition-transform duration-150", showAllApprovals && "rotate-90")} /></button>}
                 {!actions.length && <div className="px-6 py-12 text-center"><Check className="mx-auto size-5 text-emerald-600" /><p className="mt-3 text-sm font-semibold text-[var(--admin-ink)]">No decisions waiting</p><p className="admin-copy mx-auto mt-1 max-w-xs text-xs">Nothing consequential will run without approval. Ask the copilot to prepare work when you have a concrete outcome.</p><a href="#revenue-copilot" className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]">Open copilot <ArrowRight className="size-3.5" /></a></div>}
               </div>
             </AdminSurface>

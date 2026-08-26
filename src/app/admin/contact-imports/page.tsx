@@ -10,6 +10,7 @@ import {
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { ContactIntakeNav } from "@/components/admin/ContactIntakeNav";
 import { adminListItemVariants, adminListVariants, adminSectionVariants } from "@/lib/admin/motion";
 import { cn } from "@/lib/utils";
 
@@ -31,7 +32,7 @@ type ImportBatch = {
   approved_at: string | null; completed_at: string | null; created_at: string; updated_at: string; rows?: ImportRow[];
 };
 
-const EMPTY_SAMPLE = `Jane Martinez, jane@martinezroofing.com, 512-555-0142, Martinez Roofing, Owner\n+Sam Lee — Operations Director at Northstar HVAC — sam@northstarhvac.com\n+Priya Shah | priya@example.com | met at Austin builders meetup; interested in faster estimate follow-up`;
+const EMPTY_SAMPLE = `Jane Martinez, jane@martinezroofing.com, 512-555-0142, Martinez Roofing, Owner\nSam Lee — Operations Director at Northstar HVAC — sam@northstarhvac.com\nPriya Shah | priya@example.com | met at Austin builders meetup; interested in faster estimate follow-up`;
 
 function statusTone(status: string) {
   if (["completed", "imported"].includes(status)) return "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300";
@@ -158,10 +159,11 @@ export default function ContactImportsPage() {
   return (
     <div>
       <PageHeader
-        title="Contact Import"
-        subtitle="Turn copied lists, notes, CSV, TSV, or JSON into clean canonical contacts—reviewed by you before anything is written."
+        title="Contact intake"
+        subtitle="Review website inquiries and bring external contact lists into the same controlled intake workflow."
         actions={batch && !finished ? <button type="button" onClick={() => { setBatch(null); setSourceText(""); setFilename(null); setError(null); }} className="inline-flex min-h-10 items-center gap-2 rounded-xl px-3.5 text-sm font-semibold text-[var(--admin-muted)] transition-[background-color,color,scale] duration-150 hover:bg-black/[0.045] hover:text-[var(--admin-ink)] active:scale-[0.96] dark:hover:bg-white/[0.06]"><X className="size-4" /> Start over</button> : undefined}
       />
+      <ContactIntakeNav active="import" />
 
       <AnimatePresence initial={false} mode="wait">
         {!batch ? (
@@ -174,7 +176,7 @@ export default function ContactImportsPage() {
                 </div>
                 <label className="admin-field-label">
                   <span>Paste names, notes, rows, or exported data</span>
-                  <textarea value={sourceText} onChange={(event) => { setSourceText(event.target.value); setFilename(null); }} placeholder={EMPTY_SAMPLE} className="admin-field min-h-[280px] resize-y py-3 font-mono text-[12px] leading-6" data-testid="contact-import-source" />
+                  <textarea value={sourceText} onChange={(event) => { setSourceText(event.target.value); setFilename(null); }} placeholder={EMPTY_SAMPLE} className="admin-field !min-h-40 resize-y py-3 font-mono text-[12px] leading-6" data-testid="contact-import-source" />
                 </label>
                 <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                   <label className="admin-field-label"><span>Optional context for the cleanup</span><input value={instructions} onChange={(event) => setInstructions(event.target.value)} placeholder="Example: these came from the Austin builders meetup" className="admin-field" /></label>
@@ -188,7 +190,7 @@ export default function ContactImportsPage() {
               </div>
             </AdminSurface>
             <div className="space-y-5">
-              <AdminSurface tone="attention" padding="lg"><ShieldCheck className="size-5 text-amber-700 dark:text-amber-300" /><h2 className="mt-4 text-balance font-display text-lg font-semibold text-[var(--admin-ink)]">Nothing imports on analysis</h2><ul className="admin-copy mt-3 space-y-2 text-pretty text-sm"><li>AI can propose fields; it cannot approve or write contacts.</li><li>Low-confidence and ambiguous rows start excluded.</li><li>You approve the exact edited snapshot.</li><li>No opportunities, campaigns, or messages are created.</li></ul></AdminSurface>
+              <AdminSurface tone="subtle" padding="lg"><span className="grid size-10 place-items-center rounded-full bg-[var(--admin-surface)] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]"><ShieldCheck className="size-4" /></span><h2 className="mt-4 text-balance font-display text-lg font-semibold text-[var(--admin-ink)]">Nothing imports on analysis</h2><ul className="admin-copy mt-3 space-y-2 text-pretty text-sm"><li>AI can propose fields; it cannot approve or write contacts.</li><li>Low-confidence and ambiguous rows start excluded.</li><li>You approve the exact edited snapshot.</li><li>No opportunities, campaigns, or messages are created.</li></ul></AdminSurface>
               <ImportHistory history={history} busy={busy === "history"} onOpen={(id) => void openBatch(id)} />
             </div>
           </motion.div>

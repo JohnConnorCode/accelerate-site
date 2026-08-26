@@ -68,7 +68,7 @@ async function assertFits(page, viewport) {
 
 const desktop = await contextFor({ width: 1440, height: 1000 });
 await desktop.page.goto(`${base}/admin/contact-imports`, { waitUntil: "networkidle", timeout: 60_000 });
-await desktop.page.getByRole("heading", { name: "Contact Import", exact: true }).waitFor();
+await desktop.page.getByRole("heading", { name: "Contact intake", exact: true }).waitFor();
 await desktop.page.getByTestId("contact-import-source").fill("Jane Martinez, jane@martinezroofing.com\nSam Lee, sam@northstarhvac.com");
 await desktop.page.getByTestId("contact-import-analyze").click();
 await desktop.page.getByRole("heading", { name: "Review rows" }).waitFor();
@@ -101,7 +101,7 @@ await mobile.page.screenshot({ path: `${outDir}/contact-import-approval-mobile.p
 
 const reduced = await contextFor({ width: 1280, height: 800 }, "reduce");
 await reduced.page.goto(`${base}/admin/contact-imports`, { waitUntil: "networkidle", timeout: 60_000 });
-await reduced.page.getByRole("heading", { name: "Contact Import", exact: true }).waitFor();
+await reduced.page.getByRole("heading", { name: "Contact intake", exact: true }).waitFor();
 
 await desktop.context.close(); await mobile.context.close(); await reduced.context.close(); await browser.close();
 if (failures.length) throw new Error(`Contact Import console errors:\n${failures.join("\n")}`);
