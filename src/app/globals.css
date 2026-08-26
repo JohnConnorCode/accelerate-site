@@ -561,6 +561,55 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
 .item-rv.rv-ready:not(.in) { opacity: 0; transform: translateY(12px); filter: blur(4px); }
 .item-rv.in:not(.reveal-immediate) { animation: item-in .42s var(--ease) var(--d, 0s) both; }
 
+/* Work owns a dedicated viewport lifecycle. The class is added only after
+   hydration, so server, delayed-JS, and no-JS output remains fully readable. */
+@keyframes work-reveal-in {
+  from { opacity: 0; transform: translateY(20px); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+@keyframes work-media-in {
+  from { opacity: 0; transform: translateY(26px) scale(.985); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+.work-reveal { opacity: 1; transform: none; filter: none; }
+.work-reveal.work-reveal-ready:not(.in):not([data-motion-role="group"]) {
+  opacity: 0;
+  transform: translateY(20px);
+  filter: blur(6px);
+}
+.work-reveal.work-reveal-ready:not(.in)[data-motion-role="media"] { transform: translateY(26px) scale(.985); }
+.work-reveal.work-reveal-ready:not(.in)[data-motion-role="group"] > * {
+  opacity: 0;
+  transform: translateY(18px);
+  filter: blur(5px);
+}
+.work-reveal.in:not(.reveal-immediate):not([data-motion-role="group"]) {
+  animation: work-reveal-in .62s var(--ease) var(--work-delay, 0s) both;
+}
+.work-reveal.in:not(.reveal-immediate)[data-motion-role="media"] {
+  animation-name: work-media-in;
+  animation-duration: .72s;
+}
+.work-reveal.in:not(.reveal-immediate)[data-motion-role="group"] > * {
+  animation: work-reveal-in .58s var(--ease) var(--work-delay, 0s) both;
+}
+.work-reveal.in:not(.reveal-immediate)[data-motion-role="group"] > *:nth-child(2) { animation-delay: calc(var(--work-delay, 0s) + 90ms); }
+.work-reveal.in:not(.reveal-immediate)[data-motion-role="group"] > *:nth-child(3) { animation-delay: calc(var(--work-delay, 0s) + 180ms); }
+.work-reveal.in:not(.reveal-immediate)[data-motion-role="group"] > *:nth-child(n+4) { animation-delay: calc(var(--work-delay, 0s) + 270ms); }
+
+@media (max-width: 640px) and (prefers-reduced-motion: no-preference) {
+  .work-reveal.work-reveal-ready:not(.in):not([data-motion-role="group"]) { transform: translateY(12px); filter: blur(3px); }
+  .work-reveal.work-reveal-ready:not(.in)[data-motion-role="media"] { transform: translateY(16px) scale(.99); }
+  .work-reveal.work-reveal-ready:not(.in)[data-motion-role="group"] > * { transform: translateY(12px); filter: blur(3px); }
+  .work-reveal.in:not(.reveal-immediate):not([data-motion-role="group"]),
+  .work-reveal.in:not(.reveal-immediate)[data-motion-role="group"] > * { animation-duration: .5s; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .work-reveal,
+  .work-reveal > * { opacity: 1 !important; transform: none !important; filter: none !important; animation: none !important; }
+}
+
 @keyframes line-in {
   from { transform: translateY(112%); }
   to   { transform: translateY(0); }

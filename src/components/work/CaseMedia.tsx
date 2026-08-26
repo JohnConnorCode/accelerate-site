@@ -74,7 +74,7 @@ export function MediaSurface({ media, priority = false, compact = false, inverte
   );
 }
 
-export function CaseMedia({ media, priority = false, compact = false, inverted = false, frame = "edge", aspect, revealDelay = 0, onOpen }: { media: WorkMedia; priority?: boolean; compact?: boolean; inverted?: boolean; frame?: MediaFrame; aspect?: MediaAspect; revealDelay?: number; onOpen?: () => void }) {
+export function CaseMedia({ media, priority = false, compact = false, inverted = false, frame = "edge", aspect, reveal = true, revealDelay = 0, onOpen }: { media: WorkMedia; priority?: boolean; compact?: boolean; inverted?: boolean; frame?: MediaFrame; aspect?: MediaAspect; reveal?: boolean; revealDelay?: number; onOpen?: () => void }) {
   const eligible = Boolean(onOpen) && media.kind !== "youtube";
   const visual = <MediaSurface media={media} priority={priority} compact={compact} inverted={inverted} frame={frame} aspect={aspect} />;
 
@@ -97,5 +97,5 @@ export function CaseMedia({ media, priority = false, compact = false, inverted =
     </figure>
   );
 
-  return <WorkMediaReveal delay={revealDelay}>{content}</WorkMediaReveal>;
+  return reveal ? <WorkMediaReveal delay={revealDelay}>{content}</WorkMediaReveal> : content;
 }

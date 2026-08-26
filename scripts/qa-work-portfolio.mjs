@@ -35,19 +35,35 @@ for (const viewport of viewports) {
       missingImages: [...document.images].filter((image) => image.complete && image.naturalWidth === 0).map((image) => image.currentSrc || image.src),
       hiddenReveals: [...document.querySelectorAll("[data-work-reveal]")].filter((node) => Number.parseFloat(getComputedStyle(node).opacity) < 0.99).length,
       workRevealCount: document.querySelectorAll("[data-work-reveal]").length,
-      canonicalRevealCount: document.querySelectorAll("[data-work-reveal].rv").length,
+      canonicalRevealCount: document.querySelectorAll("[data-work-reveal].work-reveal.rv").length,
       mediaCount: document.querySelectorAll("main figure").length,
-      mediaRevealCount: document.querySelectorAll("main [data-work-media-reveal].rv").length,
+      mediaRevealCount: [...document.querySelectorAll("main figure")].filter((node) => node.closest("[data-work-media-reveal].work-reveal, [data-motion-role='card'].work-reveal")).length,
       sharedHeadingCount: document.querySelectorAll("h1.reveal-self").length,
     }));
     if (pageFacts.overflow) failures.push(`${viewport.name} ${route}: horizontal overflow`);
     if (pageFacts.h1Count !== 1) failures.push(`${viewport.name} ${route}: expected one h1, found ${pageFacts.h1Count}`);
     if (pageFacts.missingImages.length) failures.push(`${viewport.name} ${route}: broken images ${pageFacts.missingImages.join(", ")}`);
     if (!pageFacts.workRevealCount) failures.push(`${viewport.name} ${route}: portfolio motion hooks are missing`);
-    if (pageFacts.canonicalRevealCount !== pageFacts.workRevealCount) failures.push(`${viewport.name} ${route}: portfolio reveals are not using the canonical homepage primitive`);
-    if (pageFacts.mediaRevealCount !== pageFacts.mediaCount) failures.push(`${viewport.name} ${route}: ${pageFacts.mediaCount - pageFacts.mediaRevealCount} portfolio media items lack the canonical reveal`);
+    if (pageFacts.canonicalRevealCount !== pageFacts.workRevealCount) failures.push(`${viewport.name} ${route}: portfolio reveals are not using the shared Work motion primitive`);
+    if (pageFacts.mediaRevealCount !== pageFacts.mediaCount) failures.push(`${viewport.name} ${route}: ${pageFacts.mediaCount - pageFacts.mediaRevealCount} portfolio media items lack Work motion coverage`);
     if (pageFacts.sharedHeadingCount !== 1) failures.push(`${viewport.name} ${route}: expected one shared word-mask hero heading, found ${pageFacts.sharedHeadingCount}`);
     if (viewport.reducedMotion === "reduce" && pageFacts.hiddenReveals) failures.push(`${viewport.name} ${route}: ${pageFacts.hiddenReveals} reduced-motion reveals remained hidden`);
+    if (viewport.reducedMotion === "no-preference" && ["/work", "/work/work-shelter"].includes(route)) {
+      const pendingReveal = page.locator(".work-reveal.work-reveal-ready:not(.in)").first();
+      if (!(await pendingReveal.count())) failures.push(`${viewport.name} ${route}: no below-fold Work entrance remained armed`);
+      else {
+        const pendingElement = await pendingReveal.elementHandle();
+        for (let attempt = 0; attempt < 20 && await pendingElement?.evaluate((node) => node.getAttribute("data-reveal-state")) !== "visible"; attempt += 1) {
+          await page.mouse.wheel(0, 500);
+          await page.waitForTimeout(140);
+        }
+        const entry = await pendingElement?.evaluate((node) => {
+          const animationTarget = node.getAttribute("data-motion-role") === "group" ? node.firstElementChild : node;
+          return { state: node.getAttribute("data-reveal-state"), animation: animationTarget ? getComputedStyle(animationTarget).animationName : "none" };
+        }) ?? { state: "missing", animation: "none" };
+        if (entry.state !== "visible" || !entry.animation.startsWith("work-")) failures.push(`${viewport.name} ${route}: Work entrance did not trigger at viewport entry (${entry.state}/${entry.animation})`);
+      }
+    }
     const undersizedTargets = await page.locator("main a, main button").evaluateAll((nodes) => nodes.map((node) => {
       const rect = node.getBoundingClientRect();
       return { label: (node.textContent || node.getAttribute("aria-label") || node.tagName).trim().slice(0, 40), width: rect.width, height: rect.height };
@@ -142,6 +158,14 @@ for (const viewport of viewports) {
       if (missingAfterScroll.length) failures.push(`${viewport.name} ${route}: broken images after scroll ${missingAfterScroll.join(", ")}`);
       const hiddenAfterScroll = await page.evaluate(() => [...document.querySelectorAll("[data-work-reveal], [data-work-media-reveal], [data-diagram-node]")].filter((node) => Number.parseFloat(getComputedStyle(node).opacity) < 0.99).length);
       if (hiddenAfterScroll) failures.push(`${viewport.name} ${route}: ${hiddenAfterScroll} motion elements remained hidden after traversal`);
+      if (viewport.reducedMotion === "no-preference") {
+        const unanimatedWork = await page.evaluate(() => [...document.querySelectorAll("[data-work-reveal], [data-work-media-reveal]")].filter((node) => {
+          if (!node.classList.contains("in") || node.getAttribute("data-reveal-state") !== "visible") return true;
+          const animationTarget = node.getAttribute("data-motion-role") === "group" ? node.firstElementChild : node;
+          return !animationTarget || !getComputedStyle(animationTarget).animationName.startsWith("work-");
+        }).length);
+        if (unanimatedWork) failures.push(`${viewport.name} ${route}: ${unanimatedWork} Work elements completed without a Work entrance animation`);
+      }
       const name = route === "/work" ? "index" : route.split("/").at(-1);
       await page.screenshot({ path: `${output}/${viewport.name}-${name}.png`, fullPage: true });
     }
@@ -151,7 +175,7 @@ for (const viewport of viewports) {
     if (materialViolations.length) failures.push(`${viewport.name} ${route}: axe ${materialViolations.map((violation) => `${violation.id} (${violation.nodes.length})`).join(", ")}`);
   }
 
-  await page.goto(`${baseUrl}/work`, { waitUntil: "networkidle" });
+  await page.goto(`${baseUrl}/work`, { waitUntil: "domcontentloaded" });
   const cardOrder = await page.locator("[data-work-card]").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-work-card")));
   const expectedOrder = ["work-shelter", "superdebate", "healthcare-real-estate", "sparkblox", "thrive-protocol", "green-goods"];
   if (JSON.stringify(cardOrder) !== JSON.stringify(expectedOrder)) failures.push(`${viewport.name}: incorrect public card order ${cardOrder.join(", ")}`);

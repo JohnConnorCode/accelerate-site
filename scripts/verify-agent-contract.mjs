@@ -10,6 +10,7 @@ const requiredFiles = [
   "docs/FEATURE-BOARD-TAXONOMY.md",
   "docs/MARKETING-POSITIONING-CONTRACT.md",
   "docs/ADMIN-DEMO-CONTRACT.md",
+  "docs/WORK-MOTION-CONTRACT.md",
   "src/lib/revenue-os/README.md",
 ];
 const failures = [];

@@ -1,11 +1,22 @@
 import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { archivedWorkProjects, featuredWork, getWorkBySlug, publicWorkProjects, workProjects } from "../src/content/work";
 
 const expectedPublicSlugs = ["work-shelter", "superdebate", "healthcare-real-estate", "sparkblox", "thrive-protocol", "green-goods"];
 const expectedSlugs = ["work-shelter", "healthcare-real-estate", "superdebate", "sparkblox", "thrive-protocol", "green-goods", "northern-trust"];
 const prohibited = ["290%", "12x", "12×", "30% satisfaction", "31 live platform features", "~50 accepted"];
+const workMotionSource = readFileSync(join(process.cwd(), "src/components/work/WorkMotion.tsx"), "utf8");
+const workCardSource = readFileSync(join(process.cwd(), "src/components/work/WorkCard.tsx"), "utf8");
+const workMotionContract = join(process.cwd(), "docs/WORK-MOTION-CONTRACT.md");
+
+assert.ok(existsSync(workMotionContract), "Work motion needs a durable ownership contract");
+assert.ok(!workMotionSource.includes("@/components/home/reveal"), "Work motion must not depend on the homepage reveal lifecycle");
+assert.ok(!workMotionSource.includes("whileInView"), "Work scroll entrances must have one Work-owned observer lifecycle");
+assert.ok(workMotionSource.includes("@/components/motion/useReveal"), "Work must use the shared public reveal lifecycle");
+assert.ok(workMotionSource.includes("work-reveal-ready"), "Work motion must arm only after hydration");
+assert.ok(workMotionSource.includes('initialViewport: "animate"'), "Work must explicitly animate its initial viewport instead of inheriting homepage timing");
+assert.ok(workCardSource.includes("reveal={false}"), "Work cards must not double-animate nested cover media");
 
 assert.deepEqual(workProjects.map((project) => project.slug), expectedSlugs, "work order must remain editorially intentional");
 assert.deepEqual(publicWorkProjects.map((project) => project.slug), expectedPublicSlugs, "public work must contain the six aligned cases");

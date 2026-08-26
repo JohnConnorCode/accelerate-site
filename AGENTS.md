@@ -21,6 +21,8 @@ rediscovering architecture or inventing new write paths.
    copy, metadata, search description, public assistant positioning, or CTA.
 8. `docs/ADMIN-DEMO-CONTRACT.md` before changing either demo, the admin runtime,
    admin navigation, demo fixtures, or demo QA.
+9. `docs/WORK-MOTION-CONTRACT.md` before changing Work pages, public reveal
+   primitives, scroll behavior, or portfolio animation QA.
 
 Run `npm run verify:agent-contract` before implementation. If it fails, repair
 the contract or card detail before changing product behavior.

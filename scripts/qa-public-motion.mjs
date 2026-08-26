@@ -92,12 +92,16 @@ for (const config of [
   if (config.reducedMotion === "no-preference") {
     const headingAnimation = await page.locator(".word-mask-word > span").first().evaluate((node) => getComputedStyle(node).animationName);
     if (!headingAnimation.includes("word-mask-entry")) failures.push(`${config.label}: heading entrance animation is not active`);
-    const pending = await page.locator(".rv.rv-ready:not(.in)").first().elementHandle();
+    const pendingLocator = page.locator(".work-reveal.work-reveal-ready:not(.in)").first();
+    const pending = await pendingLocator.count() ? await pendingLocator.elementHandle() : null;
     if (pending) {
-      await pending.scrollIntoViewIfNeeded();
+      for (let attempt = 0; attempt < 20 && await pending.evaluate((node) => node.getAttribute("data-reveal-state")) !== "visible"; attempt += 1) {
+        await page.mouse.wheel(0, 500);
+        await page.waitForTimeout(140);
+      }
       await page.waitForTimeout(100);
-      const revealFacts = await pending.evaluate((node) => ({ state: node.getAttribute("data-reveal-state"), animation: getComputedStyle(node).animationName }));
-      if (revealFacts.state !== "visible" || !revealFacts.animation.includes("rv-in")) failures.push(`${config.label}: below-fold content did not animate at viewport entry`);
+      const revealFacts = await pending.evaluate((node) => ({ state: node.getAttribute("data-reveal-state"), animation: getComputedStyle(node.getAttribute("data-motion-role") === "group" ? node.firstElementChild : node).animationName }));
+      if (revealFacts.state !== "visible" || !revealFacts.animation.startsWith("work-")) failures.push(`${config.label}: below-fold Work content did not animate at viewport entry`);
     } else failures.push(`${config.label}: no below-fold reveal remained armed for viewport entry`);
   }
   const firstCard = page.locator('[data-work-card="work-shelter"] a').first();
