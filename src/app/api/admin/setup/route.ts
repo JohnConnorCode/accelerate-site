@@ -260,7 +260,7 @@ export async function GET() {
       status: configured("OPENROUTER_API_KEY") ? "ready" : "action",
       required: false,
       keys: ["OPENROUTER_API_KEY", "OPENROUTER_MODEL (optional)"],
-      action: { label: configured("OPENROUTER_API_KEY") ? "Open AI Operations" : "Create OpenRouter key", href: configured("OPENROUTER_API_KEY") ? "/admin/ai-operations" : "https://openrouter.ai/settings/keys", external: !configured("OPENROUTER_API_KEY") },
+      action: { label: configured("OPENROUTER_API_KEY") ? "Open AI Workspace" : "Create OpenRouter key", href: configured("OPENROUTER_API_KEY") ? "/admin/ai?view=runs" : "https://openrouter.ai/settings/keys", external: !configured("OPENROUTER_API_KEY") },
     },
     {
       id: "contact_importer",

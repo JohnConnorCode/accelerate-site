@@ -177,7 +177,7 @@ const setupGuides: Record<string, SetupGuide> = {
     steps: [
       `Create one OpenRouter API key. This is the only AI provider credential ${tenant.brand.name} uses.`,
       "Store OPENROUTER_API_KEY in Vercel only. OPENROUTER_MODEL is optional; the app has a documented default.",
-      "Redeploy, then open AI Operations or Contact Import. Writes remain behind their normal approval and service boundaries.",
+      "Redeploy, then open AI Workspace or Contact Import. Writes remain behind their normal approval and service boundaries.",
     ],
     href: "https://openrouter.ai/settings/keys",
     linkLabel: "Create OpenRouter key",

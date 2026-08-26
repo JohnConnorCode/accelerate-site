@@ -100,7 +100,7 @@ export function Header() {
       <motion.header
         ref={headerRef}
         variants={headerEntrance}
-        initial="hidden"
+        initial={false}
         animate="visible"
         className={cn(
           "site-header fixed top-0 left-0 right-0 z-[90] transition-[background-color,backdrop-filter,box-shadow] duration-300",

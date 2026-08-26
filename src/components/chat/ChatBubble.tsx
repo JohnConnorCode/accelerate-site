@@ -6,7 +6,7 @@ export function ChatBubble({ onClick }: ChatBubbleProps) {
   return (
     <button
       onClick={onClick}
-      className="relative flex h-14 w-14 items-center justify-center rounded-full bg-[var(--fg)] text-[var(--bg)] shadow-[0_10px_28px_-12px_rgba(11,11,11,0.55)] transition-[transform,opacity] duration-200 hover:opacity-90 active:scale-[0.94] cursor-pointer"
+      className="relative flex h-14 w-14 items-center justify-center rounded-full bg-[var(--fg)] text-[var(--bg)] shadow-[0_10px_28px_-12px_rgba(11,11,11,0.55)] transition-[transform,opacity] duration-200 hover:opacity-90 active:scale-[0.96] cursor-pointer"
       aria-label="Open chat"
     >
       <svg viewBox="0 0 24 24" className="h-[22px] w-[22px]" fill="none" aria-hidden="true">

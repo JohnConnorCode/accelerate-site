@@ -19,17 +19,18 @@ export function useRv<T extends HTMLElement = HTMLElement>(
     if (!el) return;
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
     if (reduced) {
-      el.classList.add("in");
+      el.classList.add("in", "reveal-immediate");
+      el.dataset.revealState = "visible";
       return;
     }
 
-    // If element is already within viewport on mount, trigger reveal
+    // Fail open above the fold. Prerendered content must never disappear while
+    // waiting for hydration; the route/hero entrance owns first-viewport motion.
     const rect = el.getBoundingClientRect();
     if (rect.top < window.innerHeight + 40 && rect.bottom > -40) {
-      const raf = requestAnimationFrame(() => {
-        el.classList.add("in");
-      });
-      return () => cancelAnimationFrame(raf);
+      el.classList.add("in", "reveal-immediate");
+      el.dataset.revealState = "visible";
+      return;
     }
 
     let revealed = false;
@@ -37,6 +38,7 @@ export function useRv<T extends HTMLElement = HTMLElement>(
       if (revealed) return;
       revealed = true;
       el.classList.add("in");
+      el.dataset.revealState = "visible";
       observer.disconnect();
       window.removeEventListener("scroll", revealIfPassed);
       window.removeEventListener("resize", revealIfPassed);
@@ -51,21 +53,34 @@ export function useRv<T extends HTMLElement = HTMLElement>(
       },
       { rootMargin, threshold }
     );
+    // Only below-fold content is armed. With no JavaScript, slow JavaScript, or
+    // a hydration failure, this attribute is never set and content stays visible.
+    el.classList.add("rv-ready");
+    el.dataset.revealState = "pending";
     observer.observe(el);
     window.addEventListener("scroll", revealIfPassed, { passive: true });
+    window.addEventListener("scrollend", revealIfPassed);
     window.addEventListener("resize", revealIfPassed);
-
+    window.addEventListener("load", revealIfPassed);
+    // Re-check only the visitor's current/passed viewport while fonts, images,
+    // and restored scroll positions settle. Unlike the former global timer,
+    // this never consumes the entrance of content that is still below-fold.
+    const settleTimers = [250, 750, 1500].map((delay) => window.setTimeout(revealIfPassed, delay));
     const onPageShow = (e: PageTransitionEvent) => {
       if (e.persisted) {
-        el.classList.add("in");
+        el.classList.add("in", "reveal-immediate");
+        el.dataset.revealState = "visible";
       }
     };
     window.addEventListener("pageshow", onPageShow);
 
     return () => {
       observer.disconnect();
+      settleTimers.forEach((timer) => window.clearTimeout(timer));
       window.removeEventListener("scroll", revealIfPassed);
+      window.removeEventListener("scrollend", revealIfPassed);
       window.removeEventListener("resize", revealIfPassed);
+      window.removeEventListener("load", revealIfPassed);
       window.removeEventListener("pageshow", onPageShow);
     };
   }, [threshold, rootMargin]);
@@ -109,7 +124,7 @@ export function Reveal({
   const cls = [rv ? "rv" : "", className].filter(Boolean).join(" ");
   const mergedStyle = { ...(delay != null ? delayStyle(delay) : null), ...style };
   return (
-    <Tag ref={ref} className={cls} style={mergedStyle} {...rest}>
+    <Tag ref={ref} className={cls} style={mergedStyle} data-motion-role={rv ? "group" : undefined} {...rest}>
       {children}
     </Tag>
   );

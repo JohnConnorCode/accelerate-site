@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import type { ReactNode, HTMLAttributes } from "react";
 import Link from "next/link";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 import { WordMask, childrenToTokens } from "./RevealHeading";
 import { trackConversion } from "@/lib/analytics";
+import { useRv } from "@/components/home/reveal";
 
 /* ──────────────────────────────────────────────────────────────────────────────
    Design-system primitives for /v2 sections.
@@ -21,54 +21,11 @@ function widthClass(w?: Width) {
   return "page-shell"; // default = wide
 }
 
-/* ─── useReveal ─── single IntersectionObserver hook that flips `is-revealed`
-   on its target element when it enters the viewport. Pair with the CSS rules
-   in globals.css and the `section-reveal` class to opt any element into the
-   universal entrance pattern (used by Section + per-service bands etc.). */
+/* ─── useReveal ─── shared fail-open IntersectionObserver hook. Pair with the
+   CSS rules in globals.css and `section-reveal`; content remains visible until
+   an off-screen element is safely armed for its entrance. */
 export function useReveal<T extends HTMLElement = HTMLElement>() {
-  const ref = useRef<T>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-    if (reduced) {
-      el.classList.add("is-revealed");
-      return;
-    }
-
-    const rect = el.getBoundingClientRect();
-    if (rect.top < window.innerHeight + 40 && rect.bottom > -40) {
-      const raf = requestAnimationFrame(() => {
-        el.classList.add("is-revealed");
-      });
-      return () => cancelAnimationFrame(raf);
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        if (entry?.isIntersecting) {
-          el.classList.add("is-revealed");
-          observer.disconnect();
-        }
-      },
-      { rootMargin: "0px 0px 40px 0px", threshold: 0.02 }
-    );
-    observer.observe(el);
-
-    const onPageShow = (e: PageTransitionEvent) => {
-      if (e.persisted) {
-        el.classList.add("is-revealed");
-      }
-    };
-    window.addEventListener("pageshow", onPageShow);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("pageshow", onPageShow);
-    };
-  }, []);
-  return ref;
+  return useRv<T>();
 }
 
 /* ─── Container ─── shared content frame; same gutters everywhere, three caps */
@@ -90,8 +47,8 @@ export function Container({
    <Section> by default just provides section-y + a default Container around children.
    <Section bleed> opts OUT of the Container (caller controls full-bleed bands).
 
-   Every Section is also a UNIVERSAL ENTRANCE: a single IntersectionObserver
-   flips an `is-revealed` class when the section enters the viewport, and a CSS
+   Every Section is also a UNIVERSAL ENTRANCE: the shared observer flips its
+   `in` class when the section enters the viewport, and a CSS
    rule in globals.css fades + lifts the eyebrow, heading, and direct content
    blocks in with a staggered cadence. Zero per-page animation code. */
 export function Section({
@@ -114,7 +71,7 @@ export function Section({
   const ref = useReveal<HTMLElement>();
   const root = `section-y section-reveal relative ${divide ? "section-divide" : ""} ${className ?? ""}`;
   return (
-    <section ref={ref} className={root} {...rest}>
+    <section ref={ref} className={root} data-motion-role="section" {...rest}>
       {bleed ? children : <Container width={width}>{children}</Container>}
     </section>
   );

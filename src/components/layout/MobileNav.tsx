@@ -93,7 +93,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
   let linkIndex = 0;
 
   return (
-    <AnimatePresence>
+    <AnimatePresence initial={false}>
       {isOpen && (
         <motion.div
           variants={coverVariants}

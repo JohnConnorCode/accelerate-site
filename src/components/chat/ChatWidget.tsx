@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChatBubble } from "./ChatBubble";
@@ -16,6 +16,19 @@ export function ChatWidget() {
   // toggling back off if they scroll back up).
   const [hasScrolled, setHasScrolled] = useState(false);
   const pathname = usePathname();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+  const shouldRestoreFocusRef = useRef(false);
+
+  const closeChat = useCallback(() => {
+    shouldRestoreFocusRef.current = true;
+    setIsOpen(false);
+  }, []);
+
+  const openChat = useCallback(() => {
+    returnFocusRef.current = document.activeElement as HTMLElement | null;
+    setIsOpen(true);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => {
@@ -29,11 +42,31 @@ export function ChatWidget() {
   useEffect(() => {
     if (!isOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsOpen(false);
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeChat();
+      }
+      if (event.key !== "Tab") return;
+      const focusable = rootRef.current?.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), a[href], textarea:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (!focusable?.length) return;
+      const first = focusable[0]!;
+      const last = focusable[focusable.length - 1]!;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
+    rootRef.current?.querySelector<HTMLElement>("[data-chat-close]")?.focus();
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isOpen]);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [closeChat, isOpen]);
 
   useEffect(() => {
     if (isOpen) document.body.classList.add("modal-open");
@@ -42,11 +75,38 @@ export function ChatWidget() {
   }, [isOpen]);
 
   useEffect(() => {
+    if (isOpen || !shouldRestoreFocusRef.current) return;
+    const timeout = window.setTimeout(() => {
+      const fallback = rootRef.current?.querySelector<HTMLElement>('[aria-label="Open chat"]');
+      (returnFocusRef.current?.isConnected ? returnFocusRef.current : fallback)?.focus();
+      shouldRestoreFocusRef.current = false;
+    }, 420);
+    return () => window.clearTimeout(timeout);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen) closeChat();
+    // Route changes must never leave a full-screen chat stranded over the next page.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  useEffect(() => {
     if (!isOpen) return;
     const prev = document.body.style.overflow;
+    const background = Array.from(document.querySelectorAll<HTMLElement>("body > header, body > main, body > footer, body > * > header, body > * > main, body > * > footer, .mobile-dock"));
+    const prior = background.map((node) => ({ node, inert: node.inert, ariaHidden: node.getAttribute("aria-hidden") }));
+    for (const { node } of prior) {
+      node.inert = true;
+      node.setAttribute("aria-hidden", "true");
+    }
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prev;
+      for (const { node, inert, ariaHidden } of prior) {
+        node.inert = inert;
+        if (ariaHidden == null) node.removeAttribute("aria-hidden");
+        else node.setAttribute("aria-hidden", ariaHidden);
+      }
     };
   }, [isOpen]);
 
@@ -55,9 +115,10 @@ export function ChatWidget() {
 
   return (
     <div
+      ref={rootRef}
       className={cn(
         "chat-widget-root fixed z-[80] transition-[bottom,right] duration-300",
-        isOpen && "is-open"
+        isOpen && "is-open !z-[1000]"
       )}
     >
       <AnimatePresence initial={false}>
@@ -68,7 +129,7 @@ export function ChatWidget() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.28 }}
             className="fixed inset-0 z-[-1] hidden bg-black/5 backdrop-blur-md sm:block"
-            onClick={() => setIsOpen(false)}
+            onClick={closeChat}
           />
         )}
       </AnimatePresence>
@@ -83,7 +144,7 @@ export function ChatWidget() {
               transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
               className="h-full w-full origin-bottom-right sm:h-auto sm:w-auto"
             >
-              <ChatPanel onClose={() => setIsOpen(false)} />
+              <ChatPanel onClose={closeChat} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -97,7 +158,7 @@ export function ChatWidget() {
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
               className="origin-bottom-right"
             >
-              <ChatBubble onClick={() => setIsOpen(true)} />
+              <ChatBubble onClick={openChat} />
             </motion.div>
           )}
         </AnimatePresence>

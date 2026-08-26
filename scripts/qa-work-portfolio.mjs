@@ -112,7 +112,14 @@ for (const viewport of viewports) {
         if (await triggers.count() < 2) continue;
         await triggers.first().scrollIntoViewIfNeeded();
         await triggers.first().click();
-        const activeBefore = await page.locator("[data-media-lightbox-active]").getAttribute("data-media-lightbox-active");
+        const activeMedia = page.locator("[data-media-lightbox-active]");
+        try {
+          await activeMedia.waitFor({ state: "visible", timeout: 5_000 });
+        } catch {
+          failures.push(`${viewport.name} ${route}: section lightbox did not reopen for navigation`);
+          break;
+        }
+        const activeBefore = await activeMedia.getAttribute("data-media-lightbox-active");
         await page.getByRole("button", { name: "Next image" }).click();
         const activeAfter = await page.locator("[data-media-lightbox-active]").getAttribute("data-media-lightbox-active");
         if (!activeBefore || activeBefore === activeAfter) failures.push(`${viewport.name} ${route}: section lightbox navigation did not advance`);

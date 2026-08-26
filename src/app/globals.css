@@ -500,8 +500,9 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
 }
 /* Blur-in is the site's signature entrance — stronger blur than a plain
    fade, snappier duration so it reads as a deliberate "focus pull". */
-.rv { opacity: 0; transform: translateY(14px); filter: blur(4px); }
-.rv.in { animation: rv-in .55s var(--ease) var(--d, 0s) both; }
+.rv { opacity: 1; transform: none; filter: none; }
+.rv.rv-ready:not(.in) { opacity: 0; transform: translateY(14px); filter: blur(4px); }
+.rv.in:not(.reveal-immediate) { animation: rv-in .48s var(--ease) var(--d, 0s) both; }
 
 /* PlanDeck's card (.deck) has its own backdrop-filter for the frosted
    look. Animating `filter` on an ANCESTOR while a descendant uses
@@ -515,18 +516,18 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
   from { opacity: 0; transform: translateY(36px) scale(.97); }
   to   { opacity: 1; transform: none; }
 }
-.rv:has(> .deck) { opacity: 0; transform: translateY(36px) scale(.97); filter: none; }
-.rv.in:has(> .deck) { animation: deck-wrap-in 1s ease var(--d, 0s) both; }
+.rv.rv-ready:not(.in):has(> .deck) { opacity: 0; transform: translateY(36px) scale(.97); filter: none; }
+.rv.in:not(.reveal-immediate):has(> .deck) { animation: deck-wrap-in 1s ease var(--d, 0s) both; }
 @keyframes deck-blur-in {
   from { filter: blur(16px); }
   to   { filter: none; }
 }
-.rv:has(> .deck) > .deck { filter: blur(16px); }
+.rv.rv-ready:not(.in):has(> .deck) > .deck { filter: blur(16px); }
 /* .deck also runs `animation: float-gentle` (its idle bob, infinite) —
    the `animation` shorthand has the exact same "whole list, one winner"
    rule as `transition`, so this MUST list float-gentle alongside its own
    blur-in or the idle bob would stop dead the moment this rule applies. */
-.rv.in:has(> .deck) > .deck {
+.rv.in:not(.reveal-immediate):has(> .deck) > .deck {
   animation: deck-blur-in 1s ease var(--d, 0s) both, float-gentle 7s ease-in-out infinite;
 }
 
@@ -556,8 +557,9 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
   from { opacity: 0; transform: translateY(12px); filter: blur(4px); }
   to   { opacity: 1; transform: none; filter: none; }
 }
-.item-rv { opacity: 0; transform: translateY(12px); filter: blur(4px); }
-.item-rv.in { animation: item-in .48s var(--ease) var(--d, 0s) both; }
+.item-rv { opacity: 1; transform: none; filter: none; }
+.item-rv.rv-ready:not(.in) { opacity: 0; transform: translateY(12px); filter: blur(4px); }
+.item-rv.in:not(.reveal-immediate) { animation: item-in .42s var(--ease) var(--d, 0s) both; }
 
 @keyframes line-in {
   from { transform: translateY(112%); }
@@ -856,15 +858,22 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
 }
 .chat-widget-root.is-open {
   inset: 0;
+  z-index: 1000;
+}
+body.modal-open .site-header,
+body.modal-open .mobile-nav,
+body.modal-open [data-dock] {
+  visibility: hidden;
 }
 .chat-panel {
   display: flex;
   width: 100%;
-  height: 100%;
+  height: 100dvh;
   max-width: none;
   flex-direction: column;
   overflow: clip;
   background: var(--bg);
+  isolation: isolate;
   border: 0;
 }
 @media (min-width: 640px) {
@@ -890,67 +899,93 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
 /* ──────────────────────────────────────────────────────────────────────────
    UNIVERSAL SECTION ENTRANCE REVEAL
    ────────────────────────────────────────────────────────────────────────── */
+@keyframes route-entry-in {
+  from { opacity: 0.94; }
+  to { opacity: 1; }
+}
+
+@keyframes word-mask-entry {
+  from { transform: translateY(112%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes section-item-in {
+  from { opacity: 0; transform: translateY(14px); filter: blur(4px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+
 @media (prefers-reduced-motion: no-preference) {
-  [data-js="on"] .section-reveal .eyebrow {
+  .route-entry { animation: route-entry-in 180ms var(--ease-out) both; }
+  .word-mask-word > span {
+    animation: word-mask-entry .62s var(--ease) var(--word-delay, 0s) both;
+  }
+
+  .section-reveal.rv-ready:not(.in) .eyebrow {
     opacity: 0;
     transform: translateY(10px);
     filter: blur(4px);
-    transition:
-      opacity 0.48s var(--ease-out),
-      transform 0.48s var(--ease-out),
-      filter 0.42s var(--ease-out);
-    transition-delay: 0ms;
-    will-change: opacity, transform, filter;
   }
 
-  [data-js="on"] .section-reveal .display-1,
-  [data-js="on"] .section-reveal .display-2,
-  [data-js="on"] .section-reveal .display-3,
-  [data-js="on"] .section-reveal .page-heading {
+  .section-reveal.rv-ready:not(.in) .display-1,
+  .section-reveal.rv-ready:not(.in) .display-2,
+  .section-reveal.rv-ready:not(.in) .display-3,
+  .section-reveal.rv-ready:not(.in) .page-heading {
     opacity: 0;
     transform: translateY(14px);
     filter: blur(4px);
-    transition:
-      opacity 0.58s var(--ease-out),
-      transform 0.58s var(--ease-out),
-      filter 0.5s var(--ease-out);
-    transition-delay: 70ms;
-    will-change: opacity, transform, filter;
   }
 
-  [data-js="on"] .section-reveal > .page-shell > *,
-  [data-js="on"] .section-reveal > .page-shell--narrow > *,
-  [data-js="on"] .section-reveal > .page-shell--text > * {
+  .section-reveal.rv-ready:not(.in) > .page-shell > *,
+  .section-reveal.rv-ready:not(.in) > .page-shell--narrow > *,
+  .section-reveal.rv-ready:not(.in) > .page-shell--text > * {
     opacity: 0;
     transform: translateY(14px);
     filter: blur(4px);
-    transition:
-      opacity 0.55s var(--ease-out),
-      transform 0.55s var(--ease-out),
-      filter 0.5s var(--ease-out);
   }
-  [data-js="on"] .section-reveal > [class*="page-shell"] > *:nth-child(1) { transition-delay: 140ms; }
-  [data-js="on"] .section-reveal > [class*="page-shell"] > *:nth-child(2) { transition-delay: 220ms; }
-  [data-js="on"] .section-reveal > [class*="page-shell"] > *:nth-child(3) { transition-delay: 300ms; }
-  [data-js="on"] .section-reveal > [class*="page-shell"] > *:nth-child(4) { transition-delay: 380ms; }
-  [data-js="on"] .section-reveal > [class*="page-shell"] > *:nth-child(n+5) { transition-delay: 440ms; }
 
-  [data-js="on"] .section-reveal.is-revealed .eyebrow,
-  [data-js="on"] .section-reveal.is-revealed .display-1,
-  [data-js="on"] .section-reveal.is-revealed .display-2,
-  [data-js="on"] .section-reveal.is-revealed .display-3,
-  [data-js="on"] .section-reveal.is-revealed .page-heading,
-  [data-js="on"] .section-reveal.is-revealed > [class*="page-shell"] > * {
+  .section-reveal.in:not(.reveal-immediate) .eyebrow,
+  .section-reveal.in:not(.reveal-immediate) .display-1,
+  .section-reveal.in:not(.reveal-immediate) .display-2,
+  .section-reveal.in:not(.reveal-immediate) .display-3,
+  .section-reveal.in:not(.reveal-immediate) .page-heading,
+  .section-reveal.in:not(.reveal-immediate) > [class*="page-shell"] > * {
+    animation: section-item-in .5s var(--ease-out) both;
+  }
+  .section-reveal.in:not(.reveal-immediate) > [class*="page-shell"] > *:nth-child(1) { animation-delay: 60ms; }
+  .section-reveal.in:not(.reveal-immediate) > [class*="page-shell"] > *:nth-child(2) { animation-delay: 120ms; }
+  .section-reveal.in:not(.reveal-immediate) > [class*="page-shell"] > *:nth-child(3) { animation-delay: 180ms; }
+  .section-reveal.in:not(.reveal-immediate) > [class*="page-shell"] > *:nth-child(4) { animation-delay: 240ms; }
+  .section-reveal.in:not(.reveal-immediate) > [class*="page-shell"] > *:nth-child(n+5) { animation-delay: 300ms; }
+
+  .section-reveal .reveal-self {
     opacity: 1;
     transform: none;
     filter: none;
+    animation: none;
   }
+}
 
-  [data-js="on"] .section-reveal .reveal-self {
-    opacity: 1;
-    transform: none;
+@media (max-width: 640px) and (prefers-reduced-motion: no-preference) {
+  .rv.rv-ready:not(.in),
+  .item-rv.rv-ready:not(.in),
+  .section-reveal.rv-ready:not(.in) .eyebrow,
+  .section-reveal.rv-ready:not(.in) .display-1,
+  .section-reveal.rv-ready:not(.in) .display-2,
+  .section-reveal.rv-ready:not(.in) .display-3,
+  .section-reveal.rv-ready:not(.in) .page-heading,
+  .section-reveal.rv-ready:not(.in) > [class*="page-shell"] > * {
+    transform: translateY(8px);
     filter: none;
-    transition: none;
+  }
+  .rv.in:not(.reveal-immediate),
+  .item-rv.in:not(.reveal-immediate),
+  .section-reveal.in:not(.reveal-immediate) .eyebrow,
+  .section-reveal.in:not(.reveal-immediate) .display-1,
+  .section-reveal.in:not(.reveal-immediate) .display-2,
+  .section-reveal.in:not(.reveal-immediate) .display-3,
+  .section-reveal.in:not(.reveal-immediate) .page-heading,
+  .section-reveal.in:not(.reveal-immediate) > [class*="page-shell"] > * {
+    animation-duration: .36s;
   }
 }
 

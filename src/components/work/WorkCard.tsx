@@ -20,7 +20,7 @@ export function WorkVisual({ project, priority = false, aspect = "wide" }: { pro
 
 export function WorkCard({ project, featured = false, priority = false, index, aspect = "wide" }: { project: WorkProject; featured?: boolean; priority?: boolean; index?: number; aspect?: CardAspect }) {
   return (
-    <WorkReveal className={`${workAccentClasses[project.accent]} h-full`} delay={typeof index === "number" ? (index % 2) * 0.08 : 0}>
+    <WorkReveal className={`${workAccentClasses[project.accent]} h-full`} delay={typeof index === "number" ? (index % 2) * 0.08 : 0} role="card">
       <article className="group h-full border-t border-[var(--rule)] pt-5" data-work-card={project.slug} data-work-accent={project.accent}>
         <Link href={`/work/${project.slug}`} className="flex h-full min-h-11 flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--case-accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg)]" aria-label={`View ${project.name} case study`}>
           <div className="origin-center transition-transform duration-300 ease-out group-hover:-translate-y-0.5 group-focus-visible:-translate-y-0.5 group-active:scale-[0.96] motion-reduce:transition-none">

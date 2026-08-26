@@ -2,14 +2,34 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Archive, Bot, Check, CircleAlert, Copy, History, Loader2, MessageSquarePlus, NotebookPen, Octagon, RotateCcw, Send, Sparkles, ThumbsDown, ThumbsUp, Wrench } from "lucide-react";
+import { Archive, Bot, Check, CircleAlert, Copy, ExternalLink, History, Loader2, MessageSquarePlus, NotebookPen, Octagon, RotateCcw, Send, Sparkles, ThumbsDown, ThumbsUp, Wrench } from "lucide-react";
 import { useAdminAI, type AdminAIMessage } from "./AdminAIProvider";
 import { cn } from "@/lib/utils";
 
-const starters = ["What needs my attention today?", "Show me pipeline risk and explain why", "What follow-ups should I prepare?"];
+const starters = [
+  { label: "Attention", prompt: "What needs my attention today?" },
+  { label: "Prepare", prompt: "What follow-ups should I prepare?" },
+  { label: "Analyze", prompt: "Show me pipeline risk and explain why." },
+];
 
 function toolLabel(name: string) {
   return name.replace(/^get_/, "Read ").replace(/^search_/, "Search ").replace(/^propose_/, "Stage ").replace(/_/g, " ");
+}
+
+function InlineText({ value }: { value: string }) {
+  return <>{value.split(/(`[^`]+`|\*\*[^*]+\*\*)/g).filter(Boolean).map((part, index) => part.startsWith("`") && part.endsWith("`") ? <code key={index} className="rounded bg-black/[0.055] px-1 py-0.5 font-mono text-[0.9em] dark:bg-white/[0.08]">{part.slice(1, -1)}</code> : part.startsWith("**") && part.endsWith("**") ? <strong key={index} className="font-semibold">{part.slice(2, -2)}</strong> : <span key={index}>{part}</span>)}</>;
+}
+
+function StructuredAnswer({ value }: { value: string }) {
+  const blocks = value.trim().split(/\n{2,}/).filter(Boolean);
+  return <div className="space-y-3 text-pretty">{blocks.map((block, index) => {
+    const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
+    if (lines.every((line) => /^[-*]\s+/.test(line))) return <ul key={index} className="space-y-1.5 pl-4">{lines.map((line, item) => <li key={item} className="list-disc pl-1"><InlineText value={line.replace(/^[-*]\s+/, "")} /></li>)}</ul>;
+    if (lines.every((line) => /^\d+[.)]\s+/.test(line))) return <ol key={index} className="space-y-1.5 pl-4">{lines.map((line, item) => <li key={item} className="list-decimal pl-1"><InlineText value={line.replace(/^\d+[.)]\s+/, "")} /></li>)}</ol>;
+    if (lines[0]?.startsWith("### ")) return <h3 key={index} className="pt-1 text-sm font-semibold"><InlineText value={lines.join(" ").slice(4)} /></h3>;
+    if (lines[0]?.startsWith("## ")) return <h3 key={index} className="pt-1 text-base font-semibold tracking-[-0.02em]"><InlineText value={lines.join(" ").slice(3)} /></h3>;
+    return <p key={index}><InlineText value={lines.join(" ")} /></p>;
+  })}</div>;
 }
 
 function MessageActions({ message, onRetry }: { message: AdminAIMessage; onRetry?: () => void }) {
@@ -29,6 +49,7 @@ function MessageActions({ message, onRetry }: { message: AdminAIMessage; onRetry
   return <div className="mt-2 flex flex-wrap items-center gap-1 border-t border-[var(--admin-border)] pt-2">
     <button type="button" onClick={async () => { await navigator.clipboard.writeText(message.content); setCopied(true); window.setTimeout(() => setCopied(false), 1200); }} className="admin-icon-button" aria-label="Copy answer" title="Copy answer">{copied ? <Check className="size-3.5 text-emerald-600" /> : <Copy className="size-3.5" />}</button>
     <button type="button" onClick={() => window.dispatchEvent(new CustomEvent("admin:add-note", { detail: { initialNote: message.content } }))} className="admin-icon-button" aria-label="Save answer as founder note" title="Save as note"><NotebookPen className="size-3.5" /></button>
+    <Link href={`/admin/ai?view=runs&run=${encodeURIComponent(message.runId)}`} className="admin-icon-button" aria-label="Inspect this AI run" title="Inspect run"><ExternalLink className="size-3.5" /></Link>
     {onRetry && <button type="button" onClick={onRetry} className="admin-icon-button" aria-label="Retry this command" title="Retry command"><RotateCcw className="size-3.5" /></button>}
     <span className="mx-1 h-4 w-px bg-[var(--admin-border)]" />
     <button type="button" disabled={busy || Boolean(rating)} onClick={() => void rate("helpful")} className={cn("admin-icon-button", rating === "helpful" && "bg-emerald-500/10 text-emerald-700")} aria-label="Mark answer helpful"><ThumbsUp className="size-3.5" /></button>
@@ -66,19 +87,14 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
         <span className="grid size-12 place-items-center rounded-2xl bg-[var(--admin-ink)] text-[var(--admin-surface)]"><Bot className="size-5" /></span>
         <h2 className="mt-4 text-xl font-semibold tracking-[-0.035em] text-[var(--admin-ink)]">Ask the operating system</h2>
         <p className="admin-copy mt-2 max-w-md text-sm">It reads bounded live records, shows its work, and stages consequential changes for your approval.</p>
-        <div className="mt-5 flex flex-wrap justify-center gap-2">{starters.map((starter) => <button key={starter} type="button" disabled={ai.schemaReady === false} onClick={() => void ai.send(starter)} className="min-h-10 rounded-full px-3 text-xs font-medium text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)] hover:text-[var(--admin-ink)] hover:shadow-[var(--admin-shadow-border-hover)] disabled:opacity-40">{starter}</button>)}</div>
+        <div className="mt-5 grid w-full gap-2 sm:grid-cols-3">{starters.map((starter) => <button key={starter.label} type="button" disabled={ai.schemaReady === false} onClick={() => void ai.send(starter.prompt)} className="min-h-12 rounded-xl px-3 py-2 text-left shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.98] disabled:opacity-40"><span className="block text-[9px] font-semibold uppercase tracking-[0.09em] text-[var(--admin-muted)]">{starter.label}</span><span className="mt-0.5 block text-xs font-medium text-[var(--admin-ink)]">{starter.prompt}</span></button>)}</div>
       </div>}
-      <div className="space-y-4">{ai.messages.map((message, index) => <article key={message.id} className={cn("max-w-[92%] rounded-2xl px-4 py-3 text-sm leading-6 shadow-[var(--admin-shadow-border)]", message.role === "user" ? "ml-auto rounded-br-md bg-[var(--admin-ink)] text-[var(--admin-surface)]" : "rounded-bl-md bg-[var(--admin-surface)] text-[var(--admin-ink)]")}>
-        {message.role === "assistant" && !message.content && ai.running ? <span className="inline-flex items-center gap-2 text-xs text-[var(--admin-muted)]"><Loader2 className="size-3.5 animate-spin" />Reading live data</span> : <p className="whitespace-pre-wrap text-pretty">{message.content}</p>}
+      <div className="space-y-4">{ai.messages.map((message, index) => { const isLatestAssistant = message.role === "assistant" && !ai.messages.slice(index + 1).some((item) => item.role === "assistant"); return <article key={message.id} className={cn("max-w-[92%] rounded-2xl px-4 py-3 text-sm leading-6 shadow-[var(--admin-shadow-border)]", message.role === "user" ? "ml-auto rounded-br-md bg-[var(--admin-ink)] text-[var(--admin-surface)]" : "rounded-bl-md bg-[var(--admin-surface)] text-[var(--admin-ink)]")}>
+        {message.role === "assistant" && !message.content && ai.running ? <span className="inline-flex items-center gap-2 text-xs text-[var(--admin-muted)]"><Loader2 className="size-3.5 animate-spin" />Reading live data</span> : message.role === "assistant" ? <StructuredAnswer value={message.content} /> : <p className="whitespace-pre-wrap text-pretty">{message.content}</p>}
+        {isLatestAssistant && (ai.tools.length > 0 || ai.model) && <div className="mt-3 rounded-xl bg-black/[0.025] p-3 shadow-[var(--admin-shadow-border)] dark:bg-white/[0.035]"><div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]"><Wrench className="size-3.5" />{ai.running ? "Working" : "Run evidence"}{ai.model && <span className="ml-auto max-w-[55%] truncate normal-case tracking-normal" title={ai.model}>{ai.pack || "core"} · {ai.model}</span>}</div><ol className="mt-2 space-y-1">{ai.tools.map((tool) => <li key={`${tool.index}-${tool.name}`} className="flex items-start gap-2 rounded-lg px-2 py-1.5 text-xs"><span className="mt-0.5 text-[var(--admin-muted)]">{tool.status === "running" ? <Loader2 className="size-3 animate-spin" /> : tool.status === "failed" ? <CircleAlert className="size-3 text-rose-600" /> : <Check className="size-3 text-emerald-600" />}</span><span className="min-w-0"><span className="font-semibold capitalize text-[var(--admin-ink)]">{toolLabel(tool.name)}</span>{tool.summary && <span className="ml-2 text-[var(--admin-muted)]">{tool.summary}</span>}</span></li>)}</ol></div>}
+        {isLatestAssistant && ai.proposals.length > 0 && <div className="mt-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] p-3"><p className="text-xs font-semibold text-[var(--admin-ink)]">{ai.proposals.length} change{ai.proposals.length === 1 ? "" : "s"} staged. Nothing has executed.</p><ul className="mt-2 space-y-1">{ai.proposals.map((proposal) => <li key={proposal.id} className="rounded-lg bg-[var(--admin-surface)] px-3 py-2 text-xs shadow-[var(--admin-shadow-border)]"><span className="block truncate font-semibold">{proposal.title}</span><span className="text-[10px] uppercase tracking-[0.07em] text-[var(--admin-muted)]">{proposal.impact.replace(/_/g, " ")}</span></li>)}</ul><Link href="/admin/today?focus=approvals" className="mt-3 inline-flex min-h-10 items-center rounded-lg bg-[var(--admin-ink)] px-3 text-xs font-semibold text-[var(--admin-surface)]">Review exact changes</Link></div>}
         {message.role === "assistant" && message.content && <MessageActions message={message} onRetry={!ai.running && ai.messages[index - 1]?.role === "user" ? () => void ai.send(ai.messages[index - 1]!.content) : undefined} />}
-      </article>)}</div>
-
-      {(ai.tools.length > 0 || ai.model) && <div className="mt-4 rounded-xl bg-black/[0.025] p-3 shadow-[var(--admin-shadow-border)] dark:bg-white/[0.035]">
-        <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]"><Wrench className="size-3.5" />{ai.running ? "Working" : "Run evidence"}{ai.model && <span className="ml-auto max-w-[55%] truncate normal-case tracking-normal" title={ai.model}>{ai.pack || "core"} · {ai.model}</span>}</div>
-        <ol className="mt-2 space-y-1">{ai.tools.map((tool) => <li key={`${tool.index}-${tool.name}`} className="flex items-start gap-2 rounded-lg px-2 py-1.5 text-xs"><span className="mt-0.5 text-[var(--admin-muted)]">{tool.status === "running" ? <Loader2 className="size-3 animate-spin" /> : tool.status === "failed" ? <CircleAlert className="size-3 text-rose-600" /> : <Check className="size-3 text-emerald-600" />}</span><span className="min-w-0"><span className="font-semibold capitalize text-[var(--admin-ink)]">{toolLabel(tool.name)}</span>{tool.summary && <span className="ml-2 text-[var(--admin-muted)]">{tool.summary}</span>}</span></li>)}</ol>
-      </div>}
-
-      {ai.proposals.length > 0 && <div className="mt-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] p-3"><p className="text-xs font-semibold text-[var(--admin-ink)]">{ai.proposals.length} change{ai.proposals.length === 1 ? "" : "s"} staged. Nothing has executed.</p><ul className="mt-2 space-y-1">{ai.proposals.map((proposal) => <li key={proposal.id} className="flex items-center justify-between gap-3 rounded-lg bg-[var(--admin-surface)] px-3 py-2 text-xs shadow-[var(--admin-shadow-border)]"><span className="min-w-0"><span className="block truncate font-semibold">{proposal.title}</span><span className="text-[10px] uppercase tracking-[0.07em] text-[var(--admin-muted)]">{proposal.impact.replace(/_/g, " ")}</span></span></li>)}</ul><Link href="/admin/today?focus=approvals" className="mt-3 inline-flex min-h-10 items-center rounded-lg bg-[var(--admin-ink)] px-3 text-xs font-semibold text-[var(--admin-surface)]">Review exact changes</Link></div>}
+      </article>; })}</div>
     </div>
 
     <form onSubmit={submit} className="border-t border-[var(--admin-border)] p-3 sm:p-4">

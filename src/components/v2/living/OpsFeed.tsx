@@ -162,13 +162,11 @@ export function OpsFeed({ className }: { className?: string }) {
       {/* processing strip — a scanning line + a live tally make it feel alive */}
       <div className="flex items-center justify-between gap-4 border-b border-[var(--border-glass)] px-5 py-2.5">
         <div className="relative h-[3px] w-full max-w-[55%] overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--white-muted)_25%,transparent)]">
-          {!reduced && (
-            <motion.span
-              className="absolute inset-y-0 w-1/3 rounded-full bg-[var(--gold-base)]"
-              animate={{ x: ["-120%", "330%"] }}
-              transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-            />
-          )}
+          <motion.span
+            className="absolute inset-y-0 w-1/3 rounded-full bg-[var(--gold-base)] motion-reduce:hidden"
+            animate={{ x: ["-120%", "330%"] }}
+            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+          />
         </div>
         <span className="flex items-center gap-1.5 font-mono text-[0.66rem] tabular-nums tracking-wide text-[var(--white-muted)]">
           <span className="text-[var(--gold-base)]">↑</span>

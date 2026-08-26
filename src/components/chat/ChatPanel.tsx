@@ -359,14 +359,14 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
   };
 
   return (
-    <div className="chat-panel">
+    <div className="chat-panel" role="dialog" aria-modal="true" aria-labelledby="public-chat-title">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-border-glass bg-bg-subtle px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+      <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-border-glass bg-bg-subtle px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <div>
-          <h3 className="text-sm font-display font-semibold text-white-primary">
+          <h3 id="public-chat-title" className="text-sm font-display font-semibold text-white-primary">
             Accelerate AI
           </h3>
-          <p className="mt-0.5 flex items-center gap-1.5 text-xs text-white-muted" aria-live="polite">
+          <p className="mt-0.5 flex items-center gap-1.5 text-xs text-white-secondary" aria-live="polite">
             {!isOnline ? (
               <><WifiOff className="h-3 w-3" /> Offline. Reconnect to send</>
             ) : isLoading || isTyping ? (
@@ -378,7 +378,8 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
         </div>
         <button
           onClick={onClose}
-          className="-mr-2 inline-flex h-10 w-10 items-center justify-center rounded-lg text-white-muted transition-colors hover:bg-white/5 hover:text-white-primary active:scale-[0.96] cursor-pointer"
+          data-chat-close
+          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-white-muted transition-[background-color,color,transform] hover:bg-white/5 hover:text-white-primary active:scale-[0.96] cursor-pointer"
           aria-label="Close chat"
         >
           <X className="h-4 w-4" />
@@ -394,7 +395,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
             or a quick reply) actually goes out. */}
         {messages.length === 1 && (
           <div className="pt-1">
-            <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-white-muted">Good places to start</p>
+            <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-white-secondary">Good places to start</p>
             <div className="flex flex-wrap gap-2">
             {quickQuestions.map((faq) => (
               <button
@@ -413,7 +414,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
           <div className="flex justify-start">
             <div className="flex items-center gap-2 rounded-2xl rounded-bl-md px-4 py-2.5 bg-bg-subtle border border-border-glass">
               <Loader2 className="h-4 w-4 animate-spin text-white-muted" />
-              <span className="text-xs text-white-muted">Thinking through that</span>
+              <span className="text-xs text-white-secondary">Thinking through that</span>
             </div>
           </div>
         )}
@@ -503,7 +504,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
             </button>
           )}
         </form>
-        <p className="mt-1.5 px-0.5 text-[10px] text-white-muted">Enter to send · Shift + Enter for a new line</p>
+        <p className="mt-1.5 px-0.5 text-[10px] text-white-secondary">Enter to send · Shift + Enter for a new line</p>
       </div>
     </div>
   );

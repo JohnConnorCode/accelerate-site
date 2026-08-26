@@ -59,6 +59,13 @@ for (const scenario of scenarios) {
       }
     }
     if (scenario === "sprout-and-spark" && label === "desktop") {
+      await page.goto(`${base}/demo/command-center/sprout-and-spark/ai?view=runs`, { waitUntil: "domcontentloaded" });
+      await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "sprout-and-spark");
+      await page.getByText("Trace ledger", { exact: true }).waitFor();
+      await page.getByText("Ordered trace", { exact: true }).waitFor();
+      await page.getByRole("button", { name: /Capabilities Understand tools and safeguards/ }).click();
+      await page.getByText("Registered policy", { exact: true }).first().waitFor();
+      if (!page.url().includes("/demo/command-center/sprout-and-spark/ai?view=capabilities")) failures.push("AI workspace: tab navigation escaped the public demo URL");
       const mutation = await page.evaluate(async () => {
         const before = await fetch("/api/admin/revenue-os/priority").then((response) => response.json());
         const actions = await fetch("/api/admin/revenue-os/actions").then((response) => response.json());

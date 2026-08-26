@@ -49,7 +49,7 @@ const failures = [];
 
 async function createPage(viewport, label, colorScheme = "light") {
   const context = await browser.newContext({ viewport, colorScheme, reducedMotion: "reduce" });
-  if (colorScheme === "dark") await context.addInitScript(() => localStorage.setItem("theme", "dark"));
+  await context.addInitScript(({ conversationId }) => localStorage.setItem("accelerate:admin-ai-conversation", conversationId), { conversationId: ids.conversation });
   const origin = new URL(base);
   await context.addCookies(cookies.map((cookie) => ({ ...cookie, domain: origin.hostname, path: "/", httpOnly: false, secure: origin.protocol === "https:", sameSite: "Lax" })));
   const page = await context.newPage();
@@ -60,11 +60,15 @@ async function createPage(viewport, label, colorScheme = "light") {
   await page.route("**/api/admin/revenue-os/ai/conversations**", (route) => {
     const url = new URL(route.request().url());
     if (url.pathname.endsWith(`/${ids.conversation}`)) {
-      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ conversation: { id: ids.conversation, title: "What needs my attention?", lastMessageAt: new Date().toISOString() }, messages: [] }) });
+      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ conversation: { id: ids.conversation, title: "What needs my attention?", lastMessageAt: new Date().toISOString() }, messages: [{ id: ids.user, role: "user", content: "What needs my attention today?", runId: null, createdAt: new Date().toISOString() }, { id: ids.answer, role: "assistant", content: answer, runId: ids.run, createdAt: new Date().toISOString() }] }) });
     }
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ schemaReady: true, conversations: [{ id: ids.conversation, title: "What needs my attention?", lastMessageAt: new Date().toISOString() }] }) });
   });
   await page.route("**/api/admin/revenue-os/ai/stream", (route) => route.fulfill({ status: 200, contentType: "text/event-stream; charset=utf-8", headers: { "Cache-Control": "no-cache" }, body: streamBody }));
+  const run = { id: ids.run, surface: "command_center", provider: "openrouter", model: "openai/gpt-5-mini", toolPack: "pipeline", conversationId: ids.conversation, status: "completed", toolNames: ["get_today_snapshot", "propose_task"], inputTokens: 740, outputTokens: 286, durationMs: 1480, promptPreview: "What needs my attention today?", resultPreview: answer, error: null, startedAt: new Date().toISOString(), finishedAt: new Date().toISOString(), feedback: "helpful" };
+  await page.route("**/api/admin/revenue-os/ai/runs?**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ schemaReady: true, degraded: false, degradationReasons: [], runs: [run], metrics: { runs: 1, completed: 1, partial: 0, failed: 0, cancelled: 0, successRate: 100, totalTokens: 1026, medianDurationMs: 1480, feedbackCoverage: 100 }, facets: { surfaces: ["command_center"], models: [run.model], packs: ["pipeline"], tools: run.toolNames }, nextCursor: null, summaryTruncated: false, generatedAt: new Date().toISOString() }) }));
+  await page.route(`**/api/admin/revenue-os/ai/runs/${ids.run}`, (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ schemaReady: true, degraded: false, degradationReasons: [], run, events: [{ id: "event-1", type: "tool_result", label: "today snapshot", summary: "Read 7 prioritized items", toolName: "get_today_snapshot", status: "completed", createdAt: run.startedAt }, { id: "event-2", type: "model_response", label: "Model response", summary: "Bounded response recorded", toolName: null, status: "recorded", createdAt: run.finishedAt }], eventsTruncated: false, affectedRecords: [] }) }));
+  await page.route("**/api/admin/revenue-os/ai/capabilities", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ registryVersion: "revenue-os-tools.v2", scope: "registry_policy", readinessEvaluated: false, capabilities: [{ name: "get_today_snapshot", label: "Read today snapshot", description: "Read the prioritized operator queue and current revenue summary.", impact: "read", confirmationRequired: false, packs: ["core"], state: "registered_policy", operationalReadiness: "not_evaluated" }, { name: "propose_task", label: "Stage task", description: "Prepare an operator task for founder review.", impact: "internal_write", confirmationRequired: true, packs: ["core"], state: "registered_policy", operationalReadiness: "not_evaluated" }], safety: { registeredReads: 1, registeredInternalWrites: 1, registeredExternalActions: 0, registeredDestructiveActions: 0, readsMayExecuteDirectly: true, writesRequireApproval: true, externalActionsRequireApproval: true, destructiveActionsAvailable: false } }) }));
   return { context, page };
 }
 
@@ -74,42 +78,64 @@ async function assertNoOverflow(page, label) {
 }
 
 const desktop = await createPage({ width: 1440, height: 1000 }, "desktop");
-await desktop.page.goto(`${base}/admin/ai`, { waitUntil: "domcontentloaded", timeout: 60_000 });
-await desktop.page.getByRole("heading", { name: "AI Command Center" }).waitFor();
-await desktop.page.getByPlaceholder(/Ask about priorities/).fill("What needs my attention today?");
-await desktop.page.getByRole("button", { name: "Send AI command" }).click();
-await desktop.page.getByText(answer, { exact: true }).waitFor();
-await desktop.page.getByText("2 changes staged. Nothing has executed.").waitFor().catch(async () => desktop.page.getByText("1 change staged. Nothing has executed.").waitFor());
+const desktopResponse = await desktop.page.goto(`${base}/admin/ai`, { waitUntil: "domcontentloaded", timeout: 60_000 });
+if (!desktopResponse?.ok()) throw new Error(`AI workspace returned ${desktopResponse?.status() ?? "no response"}`);
+await desktop.page.getByRole("heading", { name: "AI Workspace" }).waitFor().catch(async (error) => {
+  console.error(JSON.stringify({ url: desktop.page.url(), title: await desktop.page.title(), body: (await desktop.page.locator("body").innerText()).slice(0, 800) }));
+  throw error;
+});
+await desktop.page.getByText(/The highest-leverage next step/).waitFor();
+await desktop.page.getByRole("link", { name: "Inspect this AI run" }).waitFor();
 await desktop.page.screenshot({ path: `${outDir}/workspace-desktop.png`, fullPage: true });
 await assertNoOverflow(desktop.page, "desktop workspace");
+await desktop.page.getByRole("button", { name: /Run history/ }).click();
+await desktop.page.getByText("Trace ledger").waitFor();
+await desktop.page.getByText("Ordered trace").waitFor();
+await desktop.page.screenshot({ path: `${outDir}/run-history-desktop.png`, fullPage: true });
+await desktop.page.getByRole("button", { name: /Capabilities/ }).click();
+await desktop.page.getByText("Useful by default. Controlled where it matters.").waitFor();
+await desktop.page.screenshot({ path: `${outDir}/capabilities-desktop.png`, fullPage: true });
+await assertNoOverflow(desktop.page, "desktop capabilities");
 await desktop.page.keyboard.press("Meta+J");
-await desktop.page.getByRole("dialog", { name: "AI command center" }).waitFor();
-await desktop.page.waitForFunction(() => (document.querySelector('[role="dialog"][aria-label="AI command center"]')?.getBoundingClientRect().left ?? 9999) < window.innerWidth - 400);
+await desktop.page.getByRole("dialog", { name: "Ask AI" }).waitFor();
+await desktop.page.waitForFunction(() => (document.querySelector('[role="dialog"][aria-label="Ask AI"]')?.getBoundingClientRect().left ?? 9999) < window.innerWidth - 400);
 await desktop.page.screenshot({ path: `${outDir}/global-panel-desktop.png` });
 await desktop.page.keyboard.press("Escape");
 await desktop.context.close();
 
 const mobile = await createPage({ width: 390, height: 844 }, "mobile");
 await mobile.page.goto(`${base}/admin/ai`, { waitUntil: "domcontentloaded", timeout: 60_000 });
-await mobile.page.getByRole("heading", { name: "AI Command Center" }).waitFor();
+await mobile.page.getByRole("heading", { name: "AI Workspace" }).waitFor();
 await mobile.page.getByRole("button", { name: "Open AI command center" }).click();
-await mobile.page.getByRole("dialog", { name: "AI command center" }).waitFor();
-await mobile.page.waitForFunction(() => (document.querySelector('[role="dialog"][aria-label="AI command center"]')?.getBoundingClientRect().left ?? 9999) < 2);
+await mobile.page.getByRole("dialog", { name: "Ask AI" }).waitFor();
+await mobile.page.waitForFunction(() => (document.querySelector('[role="dialog"][aria-label="Ask AI"]')?.getBoundingClientRect().left ?? 9999) < 2);
 await mobile.page.screenshot({ path: `${outDir}/global-panel-mobile.png` });
 await assertNoOverflow(mobile.page, "mobile panel");
 await mobile.page.getByRole("button", { name: "Close AI panel" }).click();
-await mobile.page.getByRole("dialog", { name: "AI command center" }).waitFor({ state: "detached" });
+await mobile.page.getByRole("dialog", { name: "Ask AI" }).waitFor({ state: "detached" });
 await mobile.page.screenshot({ path: `${outDir}/workspace-mobile.png` });
 await assertNoOverflow(mobile.page, "mobile workspace");
+await mobile.page.getByRole("button", { name: /Run history/ }).click();
+await mobile.page.getByText("Ordered trace").waitFor();
+await mobile.page.screenshot({ path: `${outDir}/run-history-mobile.png`, fullPage: true });
+await assertNoOverflow(mobile.page, "mobile run history");
+await mobile.page.getByRole("button", { name: /Capabilities/ }).click();
+await mobile.page.getByText("Useful by default. Controlled where it matters.").waitFor();
+await mobile.page.screenshot({ path: `${outDir}/capabilities-mobile.png`, fullPage: true });
+await assertNoOverflow(mobile.page, "mobile capabilities");
 await mobile.context.close();
 
-const dark = await createPage({ width: 1280, height: 900 }, "dark", "dark");
+const dark = await createPage({ width: 1280, height: 900 }, "dark", "light");
 await dark.page.goto(`${base}/admin/ai`, { waitUntil: "domcontentloaded", timeout: 60_000 });
-await dark.page.getByRole("heading", { name: "AI Command Center" }).waitFor();
+await dark.page.getByRole("heading", { name: "AI Workspace" }).waitFor();
+await dark.page.getByText(/The highest-leverage next step/).waitFor();
+await dark.page.getByRole("button", { name: /Appearance:/ }).click();
+await dark.page.getByRole("radio", { name: /Night/ }).click();
+await dark.page.waitForTimeout(300);
 await dark.page.screenshot({ path: `${outDir}/workspace-dark.png`, fullPage: true });
 await assertNoOverflow(dark.page, "dark workspace");
 await dark.context.close();
 
 await browser.close();
 if (failures.length) throw new Error(`AI command QA failures:\n${failures.join("\n")}`);
-console.log(JSON.stringify({ result: "passed", screenshots: [`${outDir}/workspace-desktop.png`, `${outDir}/global-panel-desktop.png`, `${outDir}/global-panel-mobile.png`, `${outDir}/workspace-mobile.png`, `${outDir}/workspace-dark.png`], checks: ["founder auth", "shared stream", "tool evidence", "approval proposal", "Cmd+J", "focusable dialog", "desktop/mobile overflow", "dark", "reduced motion", "console"] }, null, 2));
+console.log(JSON.stringify({ result: "passed", screenshots: [`${outDir}/workspace-desktop.png`, `${outDir}/run-history-desktop.png`, `${outDir}/capabilities-desktop.png`, `${outDir}/global-panel-desktop.png`, `${outDir}/global-panel-mobile.png`, `${outDir}/workspace-mobile.png`, `${outDir}/run-history-mobile.png`, `${outDir}/capabilities-mobile.png`, `${outDir}/workspace-dark.png`], checks: ["founder auth", "shared conversation", "message actions", "run detail", "capability policy", "Cmd+J", "focusable dialog", "desktop/mobile overflow", "dark", "reduced motion", "console"] }, null, 2));

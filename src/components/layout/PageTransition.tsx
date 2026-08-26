@@ -1,9 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { motion, useReducedMotion } from "framer-motion";
-
-const routeEase = [0.16, 1, 0.3, 1] as const;
 
 /**
  * The single, public route-entry contract. A route must never wait for its
@@ -15,7 +12,6 @@ const routeEase = [0.16, 1, 0.3, 1] as const;
  */
 export function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const reduced = useReducedMotion();
 
   // The Admin layout is its own persistent application shell. Keying this
   // root-level transition by pathname would remount that shell on every admin
@@ -24,14 +20,12 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
   if (pathname.startsWith("/admin")) return <>{children}</>;
 
   return (
-    <motion.div
+    <div
       key={pathname}
       className="route-entry"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: reduced ? 0 : 0.34, ease: routeEase }}
+      data-route-entry={pathname}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }

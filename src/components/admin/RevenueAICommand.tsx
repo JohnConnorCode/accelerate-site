@@ -27,7 +27,7 @@ export function RevenueAICommand({ compact = false, onProposed }: { compact?: bo
 
   return <AdminSurface padding="none" className="overflow-hidden">
     <div className="flex items-start justify-between gap-4 p-5 sm:p-6">
-      <div className="flex items-start gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[var(--admin-ink)] text-[var(--admin-surface)]"><Bot className="size-[18px]" /></span><div><p className="admin-eyebrow">AI Command Center</p><h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">Ask the business. Inspect the evidence.</h2><p className="admin-copy mt-1 text-pretty text-xs">Your command opens the shared conversation. Reads run directly; consequential changes remain staged for approval.</p></div></div>
+      <div className="flex items-start gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[var(--admin-ink)] text-[var(--admin-surface)]"><Bot className="size-[18px]" /></span><div><p className="admin-eyebrow">AI Workspace</p><h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">Ask the business. Inspect the evidence.</h2><p className="admin-copy mt-1 text-pretty text-xs">Your question opens the shared conversation. Reads run directly; consequential changes remain staged for approval.</p></div></div>
       <span className="hidden items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-emerald-700 dark:text-emerald-300 sm:flex"><CheckCircle2 className="size-3" />Gated</span>
     </div>
     <form onSubmit={(event) => submit(event)} className="p-4 pt-0 sm:p-5 sm:pt-0">

@@ -25,6 +25,14 @@ type AiToolRegistration = {
   execute: (context: AiToolContext, input: Record<string, unknown>) => Promise<unknown>;
 };
 
+export interface RevenueAiCapabilityDescriptor {
+  name: string;
+  description: string;
+  impact: AiToolImpact;
+  confirmationRequired: boolean;
+  packs: RevenueToolPackId[];
+}
+
 function value(input: Record<string, unknown>, key: string): string | undefined {
   const result = typeof input[key] === "string" ? input[key].trim() : "";
   return result || undefined;
@@ -208,6 +216,15 @@ export function getRevenueAiTools(pack?: RevenueToolPackId): AiToolRegistration[
   if (!pack) return registry;
   const names = new Set(PACK_TOOL_NAMES[pack]);
   return registry.filter((tool) => names.has(tool.name));
+}
+export function listRevenueAiCapabilities(): RevenueAiCapabilityDescriptor[] {
+  return registry.map((tool) => ({
+    name: tool.name,
+    description: tool.description,
+    impact: tool.impact,
+    confirmationRequired: tool.confirmationRequired,
+    packs: REVENUE_TOOL_PACKS.filter((pack) => PACK_TOOL_NAMES[pack].includes(tool.name)),
+  }));
 }
 export function toOpenRouterTools(pack?: RevenueToolPackId): OpenRouterTool[] { return getRevenueAiTools(pack).map(({ name, description, inputSchema }) => ({ type: "function", function: { name, description, parameters: inputSchema } })); }
 export async function executeRegisteredRevenueTool(context: AiToolContext, name: string, input: Record<string, unknown>) {

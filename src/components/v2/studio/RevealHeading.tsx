@@ -1,9 +1,5 @@
-"use client";
-
-import { Children, Fragment, isValidElement, useEffect, useState } from "react";
-import type { ReactNode } from "react";
-import { motion, useReducedMotion } from "framer-motion";
-import { EASE } from "@/lib/animations";
+import { Children, Fragment, isValidElement } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Word-by-word heading reveal — the single source of truth for animated
@@ -28,11 +24,6 @@ export interface WordToken {
   italic?: boolean;
 }
 
-const wordVariants = {
-  hidden: { y: "115%" },
-  visible: { y: 0, transition: { duration: 0.65, ease: EASE } },
-};
-
 /** Rebuild readable markup from tokens (reduced-motion / no-anim fallback). */
 function renderPlain(tokens: WordToken[]): ReactNode {
   return tokens.map((t, i) => (
@@ -56,51 +47,31 @@ export function WordMask({
   stagger?: number;
   delay?: number;
 }) {
-  const prefersReduced = useReducedMotion();
-  const [hydrated, setHydrated] = useState(false);
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => setHydrated(true), []);
-  const reduced = hydrated && !!prefersReduced;
-  const MotionTag = motion[as];
+  const Tag = as;
 
   if (tokens.length === 0) {
-    const Tag = as;
-    return <Tag className={`reveal-self ${className}`}>{renderPlain(tokens)}</Tag>;
-  }
-
-  if (reduced) {
-    const Tag = as;
     return <Tag className={`reveal-self ${className}`}>{renderPlain(tokens)}</Tag>;
   }
 
   return (
-    <MotionTag
-      className={`reveal-self ${className}`}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "0px 0px 40px 0px" }}
-      variants={{
-        hidden: {},
-        visible: { transition: { staggerChildren: stagger, delayChildren: delay } },
-      }}
-    >
+    <Tag className={`reveal-self word-mask-heading ${className}`} data-motion-role="heading">
       {tokens.map((t, i) => (
         <Fragment key={i}>
           {/* mask: clip-path preserves the true text baseline (unlike overflow-hidden
               which forces baseline to bottom margin edge). inset prevents clipping italics
               tails horizontally but hides it vertically. */}
-          <span className="inline-block pb-[0.18em] -mb-[0.18em]" style={{ clipPath: "inset(-10% -10% 0 -10%)" }}>
-            <motion.span
-              className={`inline-block ${t.italic ? "display-italic" : ""}`}
-              variants={wordVariants}
-            >
+          <span
+            className="word-mask-word inline-block pb-[0.18em] -mb-[0.18em]"
+            style={{ clipPath: "inset(-10% -10% 0 -10%)", "--word-delay": `${delay + i * stagger}s` } as CSSProperties}
+          >
+            <span className={`inline-block ${t.italic ? "display-italic" : ""}`}>
               {t.w}
-            </motion.span>
+            </span>
           </span>
           {i < tokens.length - 1 ? " " : null}
         </Fragment>
       ))}
-    </MotionTag>
+    </Tag>
   );
 }
 

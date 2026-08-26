@@ -105,8 +105,32 @@ function bookings(pack: DemoScenarioPack) {
 }
 
 function aiRuns(pack: DemoScenarioPack) {
-  const runs = Array.from({ length: 8 }, (_, index) => ({ id: `ai-run-${index}`, surface: ["command_center", "conversation_brief", "pipeline_review"][index % 3]!, provider: "openrouter", model: "bounded-demo-model", tool_pack: index % 2 ? "revenue_read" : "operator_brief", conversation_id: pack.conversations[index % pack.conversations.length]!.id, status: index === 6 ? "failed" : "completed", tool_names: index % 2 ? ["search_contacts", "read_pipeline"] : ["build_priority_brief"], input_tokens: 680 + index * 91, output_tokens: 210 + index * 37, duration_ms: 1200 + index * 180, result_preview: `Reviewed the relevant fictional records and prepared a grounded next step for ${pack.people[index]!.name}.`, error: index === 6 ? "Simulated provider timeout; no external action occurred." : null, started_at: ago(index * 8 + 1), finished_at: ago(index * 8 + .9), feedback: index % 4 === 0 ? "helpful" : null }));
-  return { schemaReady: true, runs, feedback: { helpful: 2, notHelpful: 0 } };
+  const runs = Array.from({ length: 8 }, (_, index) => ({ id: `ai-run-${index}`, surface: ["command_center", "conversation_brief", "pipeline_review"][index % 3]!, provider: "openrouter", model: "bounded-demo-model", toolPack: index % 2 ? "pipeline" : "core", conversationId: pack.conversations[index % pack.conversations.length]!.id, status: index === 6 ? "failed" : "completed", toolNames: index % 2 ? ["search_pipeline", "get_record_timeline"] : ["get_today_snapshot"], inputTokens: 680 + index * 91, outputTokens: 210 + index * 37, durationMs: 1200 + index * 180, promptPreview: `Review the next best action for ${pack.people[index]!.company}.`, resultPreview: `Reviewed the relevant fictional records and prepared a grounded next step for ${pack.people[index]!.name}.`, error: index === 6 ? "Simulated provider timeout; no external action occurred." : null, startedAt: ago(index * 8 + 1), finishedAt: ago(index * 8 + .9), feedback: index % 4 === 0 ? "helpful" : null }));
+  const completed = runs.filter((run) => run.status === "completed").length;
+  return { schemaReady: true, degraded: false, degradationReasons: [], runs, metrics: { runs: runs.length, completed, partial: 0, failed: runs.length - completed, cancelled: 0, successRate: Math.round(completed / runs.length * 100), totalTokens: runs.reduce((sum, run) => sum + run.inputTokens + run.outputTokens, 0), medianDurationMs: 1830, feedbackCoverage: 25 }, facets: { surfaces: [...new Set(runs.map((run) => run.surface))], models: ["bounded-demo-model"], packs: ["core", "pipeline"], tools: [...new Set(runs.flatMap((run) => run.toolNames))] }, nextCursor: null, summaryTruncated: false, generatedAt: new Date().toISOString() };
+}
+
+function aiRunDetail(pack: DemoScenarioPack, runId: string) {
+  const run = aiRuns(pack).runs.find((item) => item.id === runId) || aiRuns(pack).runs[0]!;
+  const opportunity = pack.opportunities[Number(run.id.split("-").at(-1) || 0) % pack.opportunities.length]!;
+  return { schemaReady: true, degraded: false, degradationReasons: [], run, events: [
+    { id: `${run.id}-context`, type: "context_loaded", label: "Business context", summary: "Loaded a bounded fictional priority and pipeline snapshot.", toolName: null, status: "recorded", createdAt: run.startedAt },
+    { id: `${run.id}-tool`, type: run.status === "failed" ? "tool_error" : "tool_result", label: run.toolNames[0]!.replace(/_/g, " "), summary: run.status === "failed" ? "The simulated provider timed out without changing data." : "Completed with bounded fictional evidence.", toolName: run.toolNames[0], status: run.status === "failed" ? "failed" : "completed", createdAt: run.finishedAt || run.startedAt },
+    { id: `${run.id}-response`, type: "model_response", label: "Model response", summary: "Recorded a bounded answer and its operating metadata.", toolName: null, status: "recorded", createdAt: run.finishedAt || run.startedAt },
+  ], eventsTruncated: false, affectedRecords: [{ type: "opportunity", id: opportunity.id, href: `/admin/pipeline/${opportunity.id}` }] };
+}
+
+function aiCapabilities() {
+  const rows = [
+    ["get_today_snapshot", "Read today snapshot", "Read the prioritized operator queue and current revenue summary.", "read", false, ["core"]],
+    ["search_pipeline", "Search pipeline", "Find canonical opportunities by company, stage, or contact.", "read", false, ["pipeline"]],
+    ["get_record_timeline", "Read record timeline", "Inspect bounded activity evidence for one canonical record.", "read", false, ["core", "pipeline"]],
+    ["propose_task", "Stage task", "Prepare an operator task for founder review.", "internal_write", true, ["core"]],
+    ["propose_stage_change", "Stage pipeline change", "Prepare an evidence-backed pipeline movement for review.", "internal_write", true, ["pipeline"]],
+    ["propose_send_email", "Stage email", "Prepare an outbound email without sending it directly.", "external_action", true, ["outreach"]],
+    ["propose_campaign_activation", "Stage campaign activation", "Prepare activation of a reviewed campaign version.", "external_action", true, ["outreach"]],
+  ].map(([name, label, description, impact, confirmationRequired, packs]) => ({ name, label, description, impact, confirmationRequired, packs, state: "registered_policy", operationalReadiness: "not_evaluated" }));
+  return { registryVersion: "revenue-os-tools.v2", scope: "registry_policy", readinessEvaluated: false, capabilities: rows, safety: { registeredReads: 3, registeredInternalWrites: 2, registeredExternalActions: 2, registeredDestructiveActions: 0, readsMayExecuteDirectly: true, writesRequireApproval: true, externalActionsRequireApproval: true, destructiveActionsAvailable: false } };
 }
 
 function integrationCatalog(pack: DemoScenarioPack) {
@@ -202,6 +226,8 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     }
     if (method === "GET" && path === "/api/admin/bookings") return jsonResponse(bookings(pack));
     if (method === "GET" && path === "/api/admin/revenue-os/ai/runs") return jsonResponse(aiRuns(pack));
+    if (method === "GET" && path.startsWith("/api/admin/revenue-os/ai/runs/")) return jsonResponse(aiRunDetail(pack, decodeURIComponent(path.split("/").at(-1) || "")));
+    if (method === "GET" && path === "/api/admin/revenue-os/ai/capabilities") return jsonResponse(aiCapabilities());
     if (method === "GET" && path === "/api/admin/integrations") return jsonResponse(integrationCatalog(pack));
     if (method === "GET" && path === "/api/admin/setup") return jsonResponse(setup(pack));
     if (method === "GET" && path === "/api/admin/proposals") { const rows = proposals(pack); const requested = url.searchParams.get("id"); return jsonResponse(requested ? { proposal: rows.find((item) => item.id === requested) || rows[0] } : { proposals: rows, totalOneTime: rows.reduce((sum, item) => sum + item.total_one_time, 0), totalMonthly: rows.reduce((sum, item) => sum + item.total_monthly, 0) }); }
