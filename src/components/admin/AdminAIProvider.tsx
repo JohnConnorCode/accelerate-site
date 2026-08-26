@@ -155,8 +155,10 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "j") {
+      const isCommandJ = event.code === "KeyJ" || event.key.toLowerCase() === "j";
+      if (!event.repeat && (event.metaKey || event.ctrlKey) && isCommandJ) {
         event.preventDefault();
+        event.stopPropagation();
         setOpen((current) => !current);
       }
     };

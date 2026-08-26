@@ -25,6 +25,7 @@ import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { HERO_HEADING } from "@/lib/type-recipes";
 import type { Article, ArticleCategory } from "@/lib/types";
 import { CATEGORY_LABELS } from "@/lib/constants";
+import { formatDateOnly } from "@/lib/date-format";
 
 const ARTICLES_PER_PAGE = 8;
 
@@ -43,7 +44,7 @@ interface LearnHubProps {
 }
 
 const formatDate = (date: string) =>
-  new Date(date).toLocaleDateString("en-US", {
+  formatDateOnly(date, {
     month: "short",
     day: "numeric",
     year: "numeric",

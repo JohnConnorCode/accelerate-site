@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight, Clock } from "lucide-react";
 import type { Article } from "@/lib/types";
 import { CATEGORY_LABELS } from "@/lib/constants";
+import { formatDateOnly } from "@/lib/date-format";
 
 interface ArticleCardProps {
   article: Article;
@@ -10,7 +11,7 @@ interface ArticleCardProps {
 }
 
 const formatDate = (date: string) =>
-  new Date(date).toLocaleDateString("en-US", {
+  formatDateOnly(date, {
     month: "short",
     day: "numeric",
     year: "numeric",

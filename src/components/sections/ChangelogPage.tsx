@@ -8,6 +8,7 @@ import { Section, Eyebrow, Heading } from "@/components/v2/studio/primitives";
 import { cn } from "@/lib/utils";
 import { changelogEntries } from "@/content/changelog";
 import type { ChangelogEntry } from "@/lib/types";
+import { formatDateOnly, getUtcMonthKey } from "@/lib/date-format";
 
 const categoryConfig: Record<
   ChangelogEntry["category"],
@@ -20,12 +21,11 @@ const categoryConfig: Record<
 };
 
 const fmtDate = (s: string) =>
-  new Date(s).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  formatDateOnly(s, { year: "numeric", month: "long", day: "numeric" });
 
 export function ChangelogPage() {
   const grouped = changelogEntries.reduce<Record<string, ChangelogEntry[]>>((acc, entry) => {
-    const d = new Date(entry.publishedAt);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const key = getUtcMonthKey(entry.publishedAt);
     if (!acc[key]) acc[key] = [];
     acc[key].push(entry);
     return acc;
@@ -59,8 +59,7 @@ export function ChangelogPage() {
         <div className="relative flex flex-col gap-12 border-l border-border-glass pl-8 sm:pl-10">
           {months.map((monthKey) => {
             const entries = grouped[monthKey] ?? [];
-            const monthLabel = new Date(monthKey + "-01")
-              .toLocaleDateString("en-US", { year: "numeric", month: "long" });
+            const monthLabel = formatDateOnly(monthKey + "-01", { year: "numeric", month: "long" });
             return (
               <div key={monthKey} className="relative">
                 {/* month node on the rail */}

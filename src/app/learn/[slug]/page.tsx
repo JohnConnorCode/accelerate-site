@@ -19,6 +19,7 @@ import {
   generateArticleJsonLd,
   generateBreadcrumbJsonLd,
 } from "@/lib/seo";
+import { formatDateOnly } from "@/lib/date-format";
 import { SectionDivider } from "@/components/ui/SectionDivider";
 import {
   AnimateOnScroll,
@@ -272,7 +273,7 @@ export default async function ArticlePage({
                 <span className="hidden h-5 w-px bg-[var(--rule)] sm:block" />
                 <span className="flex items-center gap-1.5">
                   <Calendar className="h-4 w-4" aria-hidden="true" />
-                  {new Date(frontmatter.date).toLocaleDateString("en-US", {
+                  {formatDateOnly(frontmatter.date, {
                     month: "long",
                     day: "numeric",
                     year: "numeric",

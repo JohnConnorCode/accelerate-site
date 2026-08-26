@@ -34,14 +34,18 @@ export function useRv<T extends HTMLElement = HTMLElement>(
     }
 
     let revealed = false;
+    let visibilityTimer: number | null = null;
     const reveal = () => {
       if (revealed) return;
       revealed = true;
       el.classList.add("in");
       el.dataset.revealState = "visible";
       observer.disconnect();
+      if (visibilityTimer != null) window.clearInterval(visibilityTimer);
       window.removeEventListener("scroll", revealIfPassed);
+      window.removeEventListener("scrollend", revealIfPassed);
       window.removeEventListener("resize", revealIfPassed);
+      window.removeEventListener("load", revealIfPassed);
     };
     const revealIfPassed = () => {
       if (el.getBoundingClientRect().top < window.innerHeight + 40) reveal();
@@ -62,20 +66,25 @@ export function useRv<T extends HTMLElement = HTMLElement>(
     window.addEventListener("scrollend", revealIfPassed);
     window.addEventListener("resize", revealIfPassed);
     window.addEventListener("load", revealIfPassed);
+    // IntersectionObserver callbacks can be delayed while the browser restores
+    // scroll or settles responsive layout. Poll only the current/passed viewport
+    // so content cannot remain stranded without consuming later entrances.
+    visibilityTimer = window.setInterval(revealIfPassed, 200);
     // Re-check only the visitor's current/passed viewport while fonts, images,
     // and restored scroll positions settle. Unlike the former global timer,
     // this never consumes the entrance of content that is still below-fold.
     const settleTimers = [250, 750, 1500].map((delay) => window.setTimeout(revealIfPassed, delay));
     const onPageShow = (e: PageTransitionEvent) => {
       if (e.persisted) {
-        el.classList.add("in", "reveal-immediate");
-        el.dataset.revealState = "visible";
+        el.classList.add("reveal-immediate");
+        reveal();
       }
     };
     window.addEventListener("pageshow", onPageShow);
 
     return () => {
       observer.disconnect();
+      if (visibilityTimer != null) window.clearInterval(visibilityTimer);
       settleTimers.forEach((timer) => window.clearTimeout(timer));
       window.removeEventListener("scroll", revealIfPassed);
       window.removeEventListener("scrollend", revealIfPassed);
