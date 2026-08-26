@@ -5,7 +5,6 @@ import { useEffect, useRef } from "react";
 export interface RevealLifecycleOptions {
   threshold?: number;
   rootMargin?: string;
-  readyClass?: string;
   initialViewport?: "immediate" | "animate";
   triggerRatio?: number;
 }
@@ -13,8 +12,7 @@ export interface RevealLifecycleOptions {
 export function useRevealLifecycle<T extends HTMLElement>({
   threshold = 0.02,
   rootMargin = "0px 0px -22% 0px",
-  readyClass = "rv-ready",
-  initialViewport = "immediate",
+  initialViewport = "animate",
   triggerRatio = 0.78,
 }: RevealLifecycleOptions = {}) {
   const ref = useRef<T>(null);
@@ -55,7 +53,6 @@ export function useRevealLifecycle<T extends HTMLElement>({
       { rootMargin, threshold },
     );
 
-    element.classList.add(readyClass);
     element.dataset.revealState = "pending";
     observer.observe(element);
     window.addEventListener("scroll", revealIfEntered, { passive: true });
@@ -71,7 +68,7 @@ export function useRevealLifecycle<T extends HTMLElement>({
       window.removeEventListener("resize", revealIfEntered);
       window.removeEventListener("pageshow", onPageShow);
     };
-  }, [initialViewport, readyClass, rootMargin, threshold, triggerRatio]);
+  }, [initialViewport, rootMargin, threshold, triggerRatio]);
 
   return ref;
 }

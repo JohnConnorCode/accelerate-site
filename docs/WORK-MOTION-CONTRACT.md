@@ -26,8 +26,10 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
 
 ## Timing and accessibility
 
-- Server-rendered content is visible by default.
-- JavaScript arms a start state only after hydration.
+- Server-rendered content is visible by default when JavaScript is unavailable.
+- One inline root bootstrap arms every public reveal before first paint when
+  JavaScript is available. A hydration watchdog removes that gate if the
+  application runtime fails to start.
 - Each below-fold group remains pending until it reaches the explicit 76–78%
   viewport entry line.
 - Group children use a restrained semantic stagger. Cards stagger five semantic
@@ -36,8 +38,9 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
 - Scroll-linked media depth may run inside an entrance owner because it is a
   continuous compositor-only transform, not a second entrance. It must preserve
   overscan, reduced-motion, static HTML visibility, and intrinsic layout.
-- Reduced motion, delayed JavaScript, unavailable JavaScript, and back-forward
-  restoration must show all content without waiting for animation.
+- Reduced motion and unavailable JavaScript show all content immediately.
+  Delayed hydration preserves a stable pending frame instead of painting
+  content visible and then pulling it backward into an entrance.
 
 ## Required verification
 
@@ -49,5 +52,6 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
 - every Work group and media block completes with a Work-owned animation;
 - no element remains hidden after traversal;
 - reduced motion has no nonessential animation;
-- delayed and unavailable JavaScript remain fail-open;
+- delayed hydration remains visually stable and unavailable JavaScript remains
+  fail-open;
 - screenshots are opened and visually inspected.

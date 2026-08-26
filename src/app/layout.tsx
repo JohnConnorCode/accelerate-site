@@ -11,6 +11,7 @@ import { ChatWidget } from "@/components/chat/ChatWidget";
 import { ScrollProgress } from "@/components/layout/ScrollProgress";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { Dock } from "@/components/home/Dock";
+import { MotionRuntime } from "@/components/motion/MotionRuntime";
 import { marketingPositioning } from "@/content/marketing-positioning";
 import "./globals.css";
 
@@ -145,11 +146,17 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${sans.variable} ${display.variable} ${editorial.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `document.documentElement.classList.add("motion-ready");setTimeout(function(){if(!document.documentElement.hasAttribute("data-motion-hydrated")){document.documentElement.classList.remove("motion-ready")}},4000);`,
+          }}
+        />
         <Script id="org-jsonld" type="application/ld+json" strategy="beforeInteractive">
           {JSON.stringify(organizationJsonLd)}
         </Script>
       </head>
       <body className="noise-overlay min-h-screen flex flex-col">
+        <MotionRuntime />
         <ThemeProvider>
           <a
             href="#main-content"

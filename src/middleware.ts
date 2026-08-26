@@ -26,6 +26,21 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
+  // Next 16 can re-enter middleware for the internal rewrite target. Preserve
+  // the validated fictional runtime on that second pass so it never falls
+  // through to live-admin authorization. The marker can only select one of
+  // the checked-in demo packs; it does not grant access to live APIs or data.
+  const rewrittenDemoScenario = request.nextUrl.searchParams.get("__demoScenario") || "";
+  if (request.nextUrl.pathname.startsWith("/admin") && isDemoScenarioId(rewrittenDemoScenario)) {
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-accelerate-admin-runtime", "demo");
+    requestHeaders.set("x-accelerate-demo-scenario", rewrittenDemoScenario);
+    requestHeaders.set("x-accelerate-demo-route", request.nextUrl.pathname.replace(/^\/admin\/?/, "") || "today");
+    const response = NextResponse.next({ request: { headers: requestHeaders } });
+    response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+    return response;
+  }
+
   // Only protect /admin routes (except login and password reset)
   if (
     !request.nextUrl.pathname.startsWith("/admin") ||

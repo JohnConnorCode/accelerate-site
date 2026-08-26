@@ -43,7 +43,8 @@ import { LogoMark } from "@/components/ui/LogoMark";
 import { adminPageVariants } from "@/lib/admin/motion";
 import { adminNavLinks, adminNavSections, type AdminNavLink } from "@/lib/admin/navigation";
 import { AdminDemoBoundary } from "@/components/admin/AdminDemoBoundary";
-import type { DemoScenarioId } from "@/lib/admin/demo/scenarios";
+import { DemoScenarioMark } from "@/components/admin/DemoScenarioMark";
+import { DEMO_SCENARIOS, type DemoScenarioId } from "@/lib/admin/demo/scenarios";
 
 function getBreadcrumbs(pathname: string): { label: string; href: string }[] {
   const crumbs = [{ label: "Today", href: "/admin/today" }];
@@ -299,24 +300,26 @@ export default function AdminShell({
     <div className="admin-shell flex min-h-screen">
       <aside className={cn("admin-sidebar hidden shrink-0 transition-[width] duration-300 lg:block", sidebarCollapsed ? "w-[80px]" : "w-[272px]")} data-admin-sidebar>
         <div className="sticky top-0 flex h-screen flex-col px-4 py-5">
-          <SidebarContent isActive={isActive} onSignOut={handleSignOut} collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebar} priorityCount={priorityCount} demoMode={Boolean(scenarioId)} />
+          <SidebarContent isActive={isActive} onSignOut={handleSignOut} collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebar} priorityCount={priorityCount} demoScenarioId={scenarioId} />
         </div>
       </aside>
 
       <header className="admin-mobile-header fixed inset-x-0 top-0 z-40 flex min-h-16 items-center justify-between gap-2 px-4 pt-[env(safe-area-inset-top)] lg:hidden">
-        <Logo
-          href="/admin/today"
-          ariaLabel={`${tenant.brand.name} Revenue OS home`}
-          size="sm"
-          className="shrink-0 [--gold-base:#fff] [--heading-color:#fff]"
-        />
+        {scenarioId ? (
+          <Link href="/admin/today" className="admin-nav-brand flex min-w-0 items-center gap-2.5 font-semibold" aria-label={`${DEMO_SCENARIOS[scenarioId].name} demo home`}>
+            <DemoScenarioMark scenarioId={scenarioId} className="size-8 shrink-0" />
+            <span className="max-w-40 truncate text-sm">{DEMO_SCENARIOS[scenarioId].name}</span>
+          </Link>
+        ) : (
+          <Logo href="/admin/today" ariaLabel={`${tenant.brand.name} Revenue OS home`} size="sm" className="admin-nav-brand shrink-0" />
+        )}
         <div className="flex items-center gap-1">
           <NotificationBell placement="mobile" />
-          <button type="button" onClick={() => window.dispatchEvent(new CustomEvent("admin:open-ai"))} className="inline-flex size-11 items-center justify-center rounded-[10px] text-white/60 transition-[color,background-color,transform] duration-150 hover:bg-white/8 hover:text-white active:scale-[0.96]" aria-label="Open AI command center"><Bot className="size-4" /></button>
-          <button type="button" onClick={() => setSearchOpen(true)} className="inline-flex size-11 items-center justify-center rounded-[10px] text-white/60 transition-[color,background-color,transform] duration-150 hover:bg-white/8 hover:text-white active:scale-[0.96]" aria-label="Open command palette">
+          <button type="button" onClick={() => window.dispatchEvent(new CustomEvent("admin:open-ai"))} className="admin-nav-control inline-flex size-11 items-center justify-center rounded-[10px] transition-[color,background-color,transform] duration-150 active:scale-[0.96]" aria-label="Open AI command center"><Bot className="size-4" /></button>
+          <button type="button" onClick={() => setSearchOpen(true)} className="admin-nav-control inline-flex size-11 items-center justify-center rounded-[10px] transition-[color,background-color,transform] duration-150 active:scale-[0.96]" aria-label="Open command palette">
             <Search className="h-4.5 w-4.5" />
           </button>
-          <button type="button" onClick={() => setMobileOpen((current) => !current)} className="inline-flex size-11 items-center justify-center rounded-[10px] text-white/75 transition-[color,background-color,transform] duration-150 hover:bg-white/8 hover:text-white active:scale-[0.96]" aria-label={mobileOpen ? "Navigation open" : "Open navigation"} aria-expanded={mobileOpen}>
+          <button type="button" onClick={() => setMobileOpen((current) => !current)} className="admin-nav-control inline-flex size-11 items-center justify-center rounded-[10px] transition-[color,background-color,transform] duration-150 active:scale-[0.96]" aria-label={mobileOpen ? "Navigation open" : "Open navigation"} aria-expanded={mobileOpen}>
             <AnimatePresence initial={false} mode="popLayout">
               <motion.span
                 key={mobileOpen ? "close" : "menu"}
@@ -348,7 +351,7 @@ export default function AdminShell({
               <X className="size-5" />
             </motion.button>
             <motion.aside className="admin-sidebar absolute inset-y-0 left-0 flex w-[286px] flex-col px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))]" initial={{ x: -286 }} animate={{ x: 0 }} exit={{ x: -286 }} transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}>
-              <SidebarContent isActive={isActive} onSignOut={handleSignOut} onNavigate={() => setMobileOpen(false)} priorityCount={priorityCount} demoMode={Boolean(scenarioId)} />
+              <SidebarContent isActive={isActive} onSignOut={handleSignOut} onNavigate={() => setMobileOpen(false)} priorityCount={priorityCount} demoScenarioId={scenarioId} />
             </motion.aside>
           </div>
         )}
@@ -420,7 +423,7 @@ function SidebarContent({
   collapsed = false,
   onToggleCollapse,
   priorityCount = 0,
-  demoMode = false,
+  demoScenarioId = null,
 }: {
   isActive: (href: string) => boolean;
   onSignOut: () => Promise<void> | void;
@@ -428,12 +431,13 @@ function SidebarContent({
   collapsed?: boolean;
   onToggleCollapse?: () => void;
   priorityCount?: number;
-  demoMode?: boolean;
+  demoScenarioId?: DemoScenarioId | null;
 }) {
   const activeSection = adminNavSections.find((section) =>
     section.links.some((link) => isActive(link.href)),
   )?.label;
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
+  const demoScenario = demoScenarioId ? DEMO_SCENARIOS[demoScenarioId] : null;
 
   const toggleSection = (label: string) => {
     setExpandedSections((current) =>
@@ -445,15 +449,20 @@ function SidebarContent({
 
   return (
     <>
-      <div className={cn("mb-6", collapsed ? "flex flex-col items-center gap-2 px-0" : "px-1")}>
+      <div className={cn("mb-5 flex shrink-0 items-center", collapsed ? "flex-col gap-1.5" : "justify-between gap-2 px-1")} data-admin-sidebar-header>
         {collapsed ? (
           <Link
             href="/admin/today"
             onClick={onNavigate}
-            aria-label={`${tenant.brand.name} Revenue OS home`}
-            className="logo-link grid size-10 place-items-center rounded-[10px] [--gold-base:#fff] transition-[background-color,transform] duration-150 hover:bg-white/7 active:scale-[0.96]"
+            aria-label={demoScenario ? `${demoScenario.name} demo home` : `${tenant.brand.name} Revenue OS home`}
+            className="admin-nav-brand admin-nav-control logo-link grid size-10 place-items-center rounded-[10px] transition-[background-color,transform] duration-150 active:scale-[0.96]"
           >
-            <LogoMark className="h-4 w-8" />
+            {demoScenarioId ? <DemoScenarioMark scenarioId={demoScenarioId} className="size-8" /> : <LogoMark className="h-4 w-8" />}
+          </Link>
+        ) : demoScenarioId && demoScenario ? (
+          <Link href="/admin/today" onClick={onNavigate} aria-label={`${demoScenario.name} demo home`} className="admin-nav-brand flex min-w-0 items-center gap-2.5 rounded-[10px] py-1 pr-1 transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.98]">
+            <DemoScenarioMark scenarioId={demoScenarioId} className="size-9 shrink-0" />
+            <span className="min-w-0"><span className="block truncate text-[13px] font-semibold leading-4">{demoScenario.name}</span><span className="mt-0.5 block font-mono text-[8px] uppercase tracking-[0.13em] opacity-50">Demo workspace</span></span>
           </Link>
         ) : (
           <Logo
@@ -461,12 +470,12 @@ function SidebarContent({
             ariaLabel={`${tenant.brand.name} Revenue OS home`}
             onClick={onNavigate}
             size="sm"
-            className="[--gold-base:#fff] [--heading-color:#fff]"
+            className="admin-nav-brand"
           />
         )}
-        <div className={cn("flex shrink-0", collapsed ? "flex-col items-center gap-1" : "mt-3 items-center justify-end gap-0.5")} data-admin-sidebar-controls>
-          {!collapsed && <NotificationBell placement="sidebar" />}
-          {onToggleCollapse && <button type="button" onClick={onToggleCollapse} className="grid size-10 shrink-0 place-items-center rounded-[10px] text-white/58 transition-[background-color,color,transform] duration-150 hover:bg-white/8 hover:text-white active:scale-[0.96]" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <PanelLeftOpen className="size-[17px]" /> : <PanelLeftClose className="size-[17px]" />}</button>}
+        <div className={cn("flex shrink-0 items-center", collapsed ? "flex-col gap-1" : "gap-0.5")} data-admin-sidebar-controls>
+          <NotificationBell placement="sidebar" />
+          {onToggleCollapse && <button type="button" onClick={onToggleCollapse} className="admin-nav-control grid size-10 shrink-0 place-items-center rounded-[10px] transition-[background-color,color,transform] duration-150 active:scale-[0.96]" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <PanelLeftOpen className="size-[17px]" /> : <PanelLeftClose className="size-[17px]" />}</button>}
         </div>
       </div>
 
@@ -480,13 +489,13 @@ function SidebarContent({
                 {!collapsed ? <button
                   type="button"
                   onClick={() => toggleSection(section.label)}
-                  className="group flex min-h-10 w-full items-center justify-between rounded-[10px] px-2.5 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.13em] text-white/55 transition-[background-color,color,transform] duration-150 hover:bg-white/[0.055] hover:text-white/82 active:scale-[0.96]"
+                  className="admin-nav-section-button group flex min-h-10 w-full items-center justify-between rounded-[10px] px-2.5 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.13em] transition-[background-color,color,transform] duration-150 active:scale-[0.96]"
                   aria-expanded={expanded}
                   aria-controls={panelId}
                 >
                   <span>{section.label}</span>
                   <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-200", expanded && "rotate-180")} />
-                </button> : <div className="mx-2 my-2 h-px bg-white/8" aria-hidden="true" />}
+                </button> : <div className="admin-nav-rule mx-2 my-2 h-px" aria-hidden="true" />}
                 <AnimatePresence initial={false}>
                   {expanded && (
                     <motion.div
@@ -501,13 +510,13 @@ function SidebarContent({
                         {section.links.map((link) => {
                 const active = isActive(link.href);
                 return (
-                  <Link key={link.href} href={link.href} onClick={onNavigate} title={collapsed ? link.label : undefined} className={cn("group relative flex min-h-10 items-center rounded-[10px] text-[13.5px] font-medium transition-[color,background-color,transform] duration-150 active:scale-[0.96]", collapsed ? "justify-center px-0" : "gap-3 px-2.5", active ? "bg-white text-black shadow-[0_1px_2px_rgba(0,0,0,0.18)]" : "text-white/72 hover:bg-white/7 hover:text-white")} aria-current={active ? "page" : undefined}>
-                    <link.icon className={cn("h-4 w-4 shrink-0 transition-colors duration-150", active ? "text-black" : "text-white/52 group-hover:text-white/85")} />
+                  <Link key={link.href} href={link.href} onClick={onNavigate} title={collapsed ? link.label : undefined} className={cn("admin-nav-link group relative flex min-h-10 items-center rounded-[10px] text-[13.5px] font-medium transition-[color,background-color,transform] duration-150 active:scale-[0.96]", collapsed ? "justify-center px-0" : "gap-3 px-2.5")} aria-current={active ? "page" : undefined}>
+                    <link.icon className="h-4 w-4 shrink-0 transition-colors duration-150" />
                     {!collapsed && <span className="min-w-0 truncate">{link.label}</span>}
                     {link.href === "/admin/today" && priorityCount > 0 && (collapsed
                       ? <span className={cn("absolute right-2 top-2 size-2 rounded-full", active ? "bg-rose-600" : "bg-rose-400")} aria-label={`${priorityCount} urgent priorities`} />
                       : <span className={cn("ml-auto min-w-5 rounded-full px-1.5 py-0.5 text-center font-mono text-[9px] font-semibold tabular-nums", active ? "bg-black/8 text-black" : "bg-rose-500/18 text-rose-200")} aria-label={`${priorityCount} urgent priorities`}>{priorityCount > 99 ? "99+" : priorityCount}</span>)}
-                    {active && <motion.span layoutId="admin-nav-active" className="absolute inset-y-2 -left-4 w-0.5 rounded-r bg-white" transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }} />}
+                    {active && <motion.span layoutId="admin-nav-active" className="admin-nav-active-indicator absolute inset-y-2 -left-4 w-0.5 rounded-r" transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }} />}
                   </Link>
                 );
                         })}
@@ -521,16 +530,16 @@ function SidebarContent({
         ))}
       </nav>
 
-      <div className="mt-4 border-t border-white/10 pt-3">
-        {!demoMode && <Link href="/demo/command-center" target="_blank" onClick={onNavigate} aria-label="Open demo workspace" title={collapsed ? "Open demo workspace" : undefined} data-admin-demo-link className={cn("mb-1 flex min-h-10 items-center rounded-[10px] bg-white/[0.075] text-xs font-semibold text-white/82 shadow-[0_0_0_1px_rgba(255,255,255,.08)] transition-[background-color,color,transform] duration-150 hover:bg-white/[0.12] hover:text-white active:scale-[0.96]", collapsed ? "justify-center" : "gap-3 px-2.5")}>
+      <div className="admin-nav-footer mt-4 border-t pt-3">
+        {!demoScenarioId && <Link href="/demo/command-center" target="_blank" onClick={onNavigate} aria-label="Open demo workspace" title={collapsed ? "Open demo workspace" : undefined} data-admin-demo-link className={cn("admin-nav-demo-link mb-1 flex min-h-10 items-center rounded-[10px] text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]", collapsed ? "justify-center" : "gap-3 px-2.5")}>
           <MonitorPlay className="h-4 w-4 shrink-0" /> {!collapsed && <><span>Demo workspace</span><ArrowUpRight className="ml-auto h-3.5 w-3.5 text-white/52" /></>}
         </Link>}
         <AdminAppearancePicker collapsed={collapsed} />
-        {!demoMode && <>
-          <Link href="/" target="_blank" onClick={onNavigate} title={collapsed ? "View live site" : undefined} className={cn("flex min-h-10 items-center rounded-[10px] text-xs text-white/58 transition-[color,background-color,transform] duration-150 hover:bg-white/7 hover:text-white active:scale-[0.96]", collapsed ? "justify-center" : "gap-3 px-2.5")}>
+        {!demoScenarioId && <>
+          <Link href="/" target="_blank" onClick={onNavigate} title={collapsed ? "View live site" : undefined} className={cn("admin-nav-utility flex min-h-10 items-center rounded-[10px] text-xs transition-[color,background-color,transform] duration-150 active:scale-[0.96]", collapsed ? "justify-center" : "gap-3 px-2.5")}>
             <ArrowUpRight className="h-4 w-4" /> {!collapsed && "View live site"}
           </Link>
-          <button type="button" onClick={async () => { onNavigate?.(); await onSignOut(); }} title={collapsed ? "Sign out" : undefined} className={cn("flex min-h-10 w-full items-center rounded-[10px] text-xs text-white/58 transition-[color,background-color,transform] duration-150 hover:bg-white/7 hover:text-white active:scale-[0.96]", collapsed ? "justify-center" : "gap-3 px-2.5")}>
+          <button type="button" onClick={async () => { onNavigate?.(); await onSignOut(); }} title={collapsed ? "Sign out" : undefined} className={cn("admin-nav-utility flex min-h-10 w-full items-center rounded-[10px] text-xs transition-[color,background-color,transform] duration-150 active:scale-[0.96]", collapsed ? "justify-center" : "gap-3 px-2.5")}>
             <LogOut className="h-4 w-4" /> {!collapsed && "Sign out"}
           </button>
         </>}

@@ -49,7 +49,7 @@ for (const viewport of viewports) {
     if (pageFacts.sharedHeadingCount !== 1) failures.push(`${viewport.name} ${route}: expected one shared word-mask hero heading, found ${pageFacts.sharedHeadingCount}`);
     if (viewport.reducedMotion === "reduce" && pageFacts.hiddenReveals) failures.push(`${viewport.name} ${route}: ${pageFacts.hiddenReveals} reduced-motion reveals remained hidden`);
     if (viewport.reducedMotion === "no-preference" && ["/work", "/work/work-shelter"].includes(route)) {
-      const pendingReveal = page.locator(".work-reveal.work-reveal-ready:not(.in)").first();
+      const pendingReveal = page.locator("html.motion-ready .work-reveal:not(.in)").first();
       if (!(await pendingReveal.count())) failures.push(`${viewport.name} ${route}: no below-fold Work entrance remained armed`);
       else {
         const pendingElement = await pendingReveal.elementHandle();

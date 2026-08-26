@@ -495,14 +495,15 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
    it should declare ONLY its own interactive transitions (hover, press),
    never re-declare opacity/transform/filter timing to "protect" it. */
 @keyframes rv-in {
-  from { opacity: 0; transform: translateY(14px); filter: blur(4px); }
+  from { opacity: 0; transform: translateY(24px); filter: blur(9px); }
   to   { opacity: 1; transform: none; filter: none; }
 }
-/* Blur-in is the site's signature entrance — stronger blur than a plain
-   fade, snappier duration so it reads as a deliberate "focus pull". */
+/* The root bootstrap adds `.motion-ready` before first paint. That makes the
+   initial frame deterministic without hiding no-JS output. One observer then
+   moves every public reveal from pending to visible. */
 .rv { opacity: 1; transform: none; filter: none; }
-.rv.rv-ready:not(.in) { opacity: 0; transform: translateY(14px); filter: blur(4px); }
-.rv.in:not(.reveal-immediate) { animation: rv-in .48s var(--ease) var(--d, 0s) both; }
+.motion-ready .rv:not(.work-reveal):not(.in) { opacity: 0; transform: translateY(24px); filter: blur(9px); }
+.rv:not(.work-reveal).in:not(.reveal-immediate) { animation: rv-in .7s var(--ease) var(--d, 0s) both; }
 
 /* PlanDeck's card (.deck) has its own backdrop-filter for the frosted
    look. Animating `filter` on an ANCESTOR while a descendant uses
@@ -516,13 +517,13 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
   from { opacity: 0; transform: translateY(36px) scale(.97); }
   to   { opacity: 1; transform: none; }
 }
-.rv.rv-ready:not(.in):has(> .deck) { opacity: 0; transform: translateY(36px) scale(.97); filter: none; }
+.motion-ready .rv:not(.in):has(> .deck) { opacity: 0; transform: translateY(36px) scale(.97); filter: none; }
 .rv.in:not(.reveal-immediate):has(> .deck) { animation: deck-wrap-in 1s ease var(--d, 0s) both; }
 @keyframes deck-blur-in {
   from { filter: blur(16px); }
   to   { filter: none; }
 }
-.rv.rv-ready:not(.in):has(> .deck) > .deck { filter: blur(16px); }
+.motion-ready .rv:not(.in):has(> .deck) > .deck { filter: blur(16px); }
 /* .deck also runs `animation: float-gentle` (its idle bob, infinite) —
    the `animation` shorthand has the exact same "whole list, one winner"
    rule as `transition`, so this MUST list float-gentle alongside its own
@@ -554,15 +555,15 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
    multiple items into view within the same frame, not the primary
    reveal mechanism. */
 @keyframes item-in {
-  from { opacity: 0; transform: translateY(12px); filter: blur(4px); }
+  from { opacity: 0; transform: translateY(20px); filter: blur(8px); }
   to   { opacity: 1; transform: none; filter: none; }
 }
 .item-rv { opacity: 1; transform: none; filter: none; }
-.item-rv.rv-ready:not(.in) { opacity: 0; transform: translateY(12px); filter: blur(4px); }
-.item-rv.in:not(.reveal-immediate) { animation: item-in .42s var(--ease) var(--d, 0s) both; }
+.motion-ready .item-rv:not(.in) { opacity: 0; transform: translateY(20px); filter: blur(8px); }
+.item-rv.in:not(.reveal-immediate) { animation: item-in .55s var(--ease) var(--d, 0s) both; }
 
-/* Work owns a dedicated viewport lifecycle. The class is added only after
-   hydration, so server, delayed-JS, and no-JS output remains fully readable. */
+/* Work shares the same pre-paint lifecycle and adds only its editorial role
+   recipes for grouped copy, cards, and media. */
 @keyframes work-reveal-in {
   from { opacity: 0; transform: translateY(20px); filter: blur(6px); }
   to { opacity: 1; transform: none; filter: none; }
@@ -578,6 +579,48 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
 @keyframes admin-demo-enter {
   from { opacity: 0; transform: translateY(16px); filter: blur(5px); }
   to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+.demo-scenario-mark {
+  display: block;
+  overflow: visible;
+  transform-origin: center;
+}
+@keyframes demo-mark-draw {
+  from { stroke-dashoffset: 64; opacity: .2; }
+  to { stroke-dashoffset: 0; opacity: 1; }
+}
+@keyframes demo-mark-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.045); }
+}
+@keyframes demo-mark-rise {
+  from { transform: scaleY(.12); opacity: .2; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .demo-scenario-mark .demo-mark-stem,
+  .demo-scenario-mark .demo-mark-leaf,
+  .demo-scenario-mark .demo-mark-roof,
+  .demo-scenario-mark .demo-mark-door,
+  .demo-scenario-mark .demo-mark-horizon,
+  .demo-scenario-mark .demo-mark-arrow {
+    stroke-dasharray: 64;
+    animation: demo-mark-draw .8s var(--ease) both;
+  }
+  .demo-scenario-mark--sprout-and-spark .demo-mark-leaf--right { animation-delay: 90ms; }
+  .demo-scenario-mark--sprout-and-spark .demo-mark-leaf--left { animation-delay: 180ms; }
+  .demo-scenario-mark--sprout-and-spark .demo-mark-core { animation: demo-mark-breathe 3.4s ease-in-out .8s infinite; transform-origin: 20px 31px; }
+  .demo-scenario-mark--northline-roofing .demo-mark-roof--front { animation-delay: 120ms; }
+  .demo-scenario-mark--northline-roofing .demo-mark-door { animation-delay: 260ms; }
+  .demo-scenario-mark--northline-roofing { animation: demo-mark-breathe 4.2s ease-in-out 1s infinite; }
+  .demo-scenario-mark--harborline-growth .demo-mark-rise {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: demo-mark-rise .68s var(--ease) both;
+  }
+  .demo-scenario-mark--harborline-growth .demo-mark-rise--two { animation-delay: 100ms; }
+  .demo-scenario-mark--harborline-growth .demo-mark-rise--three { animation-delay: 200ms; }
+  .demo-scenario-mark--harborline-growth .demo-mark-arrow { animation-delay: 300ms; }
 }
 .admin-demo-enter { opacity: 1; transform: none; filter: none; }
 .admin-demo-d1 { --admin-demo-delay: 40ms; }
@@ -611,18 +654,18 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
   .work-hero-meta > *:nth-child(n+5) { animation-delay: 860ms; }
 }
 .work-reveal { opacity: 1; transform: none; filter: none; }
-.work-reveal.work-reveal-ready:not(.in):not([data-motion-role="group"]):not([data-motion-role="card"]) {
+.motion-ready .work-reveal:not(.in):not([data-motion-role="group"]):not([data-motion-role="card"]) {
   opacity: 0;
   transform: translateY(20px);
   filter: blur(6px);
 }
-.work-reveal.work-reveal-ready:not(.in)[data-motion-role="media"] { transform: translateY(26px) scale(.985); }
-.work-reveal.work-reveal-ready:not(.in)[data-motion-role="group"] > * {
+.motion-ready .work-reveal:not(.in)[data-motion-role="media"] { transform: translateY(26px) scale(.985); }
+.motion-ready .work-reveal:not(.in)[data-motion-role="group"] > * {
   opacity: 0;
   transform: translateY(18px);
   filter: blur(5px);
 }
-.work-reveal.work-reveal-ready:not(.in)[data-motion-role="card"] [data-work-stagger] {
+.motion-ready .work-reveal:not(.in)[data-motion-role="card"] [data-work-stagger] {
   opacity: 0;
   transform: translateY(18px);
   filter: blur(5px);
@@ -650,10 +693,10 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
 .work-reveal.in:not(.reveal-immediate)[data-motion-role="card"] [data-work-stagger="5"] { animation-delay: calc(var(--work-delay, 0s) + 360ms); }
 
 @media (max-width: 640px) and (prefers-reduced-motion: no-preference) {
-  .work-reveal.work-reveal-ready:not(.in):not([data-motion-role="group"]):not([data-motion-role="card"]) { transform: translateY(12px); filter: blur(3px); }
-  .work-reveal.work-reveal-ready:not(.in)[data-motion-role="media"] { transform: translateY(16px) scale(.99); }
-  .work-reveal.work-reveal-ready:not(.in)[data-motion-role="group"] > * { transform: translateY(12px); filter: blur(3px); }
-  .work-reveal.work-reveal-ready:not(.in)[data-motion-role="card"] [data-work-stagger] { transform: translateY(12px); filter: blur(3px); }
+  .motion-ready .work-reveal:not(.in):not([data-motion-role="group"]):not([data-motion-role="card"]) { transform: translateY(14px); filter: blur(5px); }
+  .motion-ready .work-reveal:not(.in)[data-motion-role="media"] { transform: translateY(16px) scale(.99); }
+  .motion-ready .work-reveal:not(.in)[data-motion-role="group"] > * { transform: translateY(14px); filter: blur(5px); }
+  .motion-ready .work-reveal:not(.in)[data-motion-role="card"] [data-work-stagger] { transform: translateY(14px); filter: blur(5px); }
   .work-reveal.in:not(.reveal-immediate):not([data-motion-role="group"]),
   .work-reveal.in:not(.reveal-immediate)[data-motion-role="group"] > *,
   .work-reveal.in:not(.reveal-immediate)[data-motion-role="card"] [data-work-stagger] { animation-duration: .52s; }
@@ -673,7 +716,9 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
   to   { transform: translateY(0); }
 }
 .line { display: block; overflow: hidden; padding-bottom: 0.1em; margin-bottom: -0.1em; }
-.line > span { display: block; transform: translateY(112%); }
+.line > span { display: block; transform: none; }
+.motion-ready .hero:not(.loaded) .line > span,
+.motion-ready .line-h:not(.in) .line > span { transform: translateY(112%); }
 .loaded .line > span, .line-h.in .line > span {
   animation: line-in 1.15s var(--ease) var(--d, 0s) both;
 }
@@ -722,9 +767,13 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
 }
 .word > span {
   display: block;
+  transform: none;
+  filter: none;
+  will-change: transform, filter;
+}
+.motion-ready .hero:not(.loaded) .word > span {
   transform: translateY(112%);
   filter: blur(var(--word-blur, 18px));
-  will-change: transform, filter;
 }
 .loaded .word > span {
   animation: word-blur-in 0.95s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s) both;
@@ -760,7 +809,7 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
   transform-origin: 0 50%;
   transition: transform .9s var(--ease) .15s;
 }
-.eyebrow-anim.in::after, .loaded .eyebrow-anim::after { transform: scaleX(1); }
+.eyebrow-anim.in::after { transform: scaleX(1); }
 
 /* Marquee direction/velocity driven by JS (see Marquee component) */
 .marquee-loop { display: flex; width: max-content; will-change: transform; }
@@ -1027,24 +1076,24 @@ body.modal-open [data-dock] {
     animation: word-mask-entry .62s var(--ease) var(--word-delay, 0s) both;
   }
 
-  .section-reveal.rv-ready:not(.in) .eyebrow {
+  .motion-ready .section-reveal:not(.in) .eyebrow {
     opacity: 0;
     transform: translateY(10px);
     filter: blur(4px);
   }
 
-  .section-reveal.rv-ready:not(.in) .display-1,
-  .section-reveal.rv-ready:not(.in) .display-2,
-  .section-reveal.rv-ready:not(.in) .display-3,
-  .section-reveal.rv-ready:not(.in) .page-heading {
+  .motion-ready .section-reveal:not(.in) .display-1,
+  .motion-ready .section-reveal:not(.in) .display-2,
+  .motion-ready .section-reveal:not(.in) .display-3,
+  .motion-ready .section-reveal:not(.in) .page-heading {
     opacity: 0;
     transform: translateY(14px);
     filter: blur(4px);
   }
 
-  .section-reveal.rv-ready:not(.in) > .page-shell > *,
-  .section-reveal.rv-ready:not(.in) > .page-shell--narrow > *,
-  .section-reveal.rv-ready:not(.in) > .page-shell--text > * {
+  .motion-ready .section-reveal:not(.in) > .page-shell > *,
+  .motion-ready .section-reveal:not(.in) > .page-shell--narrow > *,
+  .motion-ready .section-reveal:not(.in) > .page-shell--text > * {
     opacity: 0;
     transform: translateY(14px);
     filter: blur(4px);
@@ -1073,18 +1122,18 @@ body.modal-open [data-dock] {
 }
 
 @media (max-width: 640px) and (prefers-reduced-motion: no-preference) {
-  .rv.rv-ready:not(.in),
-  .item-rv.rv-ready:not(.in),
-  .section-reveal.rv-ready:not(.in) .eyebrow,
-  .section-reveal.rv-ready:not(.in) .display-1,
-  .section-reveal.rv-ready:not(.in) .display-2,
-  .section-reveal.rv-ready:not(.in) .display-3,
-  .section-reveal.rv-ready:not(.in) .page-heading,
-  .section-reveal.rv-ready:not(.in) > [class*="page-shell"] > * {
-    transform: translateY(8px);
-    filter: none;
+  .motion-ready .rv:not(.work-reveal):not(.in),
+  .motion-ready .item-rv:not(.in),
+  .motion-ready .section-reveal:not(.in) .eyebrow,
+  .motion-ready .section-reveal:not(.in) .display-1,
+  .motion-ready .section-reveal:not(.in) .display-2,
+  .motion-ready .section-reveal:not(.in) .display-3,
+  .motion-ready .section-reveal:not(.in) .page-heading,
+  .motion-ready .section-reveal:not(.in) > [class*="page-shell"] > * {
+    transform: translateY(14px);
+    filter: blur(5px);
   }
-  .rv.in:not(.reveal-immediate),
+  .rv:not(.work-reveal).in:not(.reveal-immediate),
   .item-rv.in:not(.reveal-immediate),
   .section-reveal.in:not(.reveal-immediate) .eyebrow,
   .section-reveal.in:not(.reveal-immediate) .display-1,
@@ -1092,7 +1141,7 @@ body.modal-open [data-dock] {
   .section-reveal.in:not(.reveal-immediate) .display-3,
   .section-reveal.in:not(.reveal-immediate) .page-heading,
   .section-reveal.in:not(.reveal-immediate) > [class*="page-shell"] > * {
-    animation-duration: .36s;
+    animation-duration: .54s;
   }
 }
 
@@ -2928,12 +2977,14 @@ summary:focus-visible {
    only needs a single delay value. Blur strength/duration matches the
    headline words' word-blur-in for a consistent, stronger, smoother
    entrance across the whole hero. */
-.swap { opacity: 0; filter: blur(var(--word-blur, 18px)); }
+.swap { opacity: 1; filter: none; }
+.motion-ready .hero:not(.loaded) .swap { opacity: 0; filter: blur(var(--word-blur, 18px)); }
 .loaded .swap { opacity: 1; filter: blur(0px); transition: opacity .9s cubic-bezier(0.16, 1, 0.3, 1) 4.7s, filter .9s cubic-bezier(0.16, 1, 0.3, 1) 4.7s; }
 .rev-ul { position: relative; }
 .rev-ul::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0.05em; height: .042em; min-height: 2px; background: currentColor; transform: scaleX(0); transform-origin: 0 50%; }
 .loaded .rev-ul::after { transform: scaleX(1); transition: transform .9s var(--ease) 5.1s; }
-.hero-inline-cta { opacity: 0; filter: blur(var(--word-blur, 18px)); }
+.hero-inline-cta { opacity: 1; filter: none; }
+.motion-ready .hero:not(.loaded) .hero-inline-cta { opacity: 0; filter: blur(var(--word-blur, 18px)); }
 .loaded .hero-inline-cta { opacity: 1; filter: blur(0px); transition: opacity .8s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s), filter .8s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s); }
 /* CTA now lands inline next to PROFIT (see .hero-inline-cta) instead of
    the old two-column layout, so hero-btm is just the subtext beneath the
@@ -3139,7 +3190,8 @@ summary:focus-visible {
   from { opacity: 0; transform: translateY(5px); }
   to   { opacity: 1; transform: none; }
 }
-.step .tag { opacity: 0; transform: translateY(5px); }
+.step .tag { opacity: 1; transform: none; }
+.motion-ready .step:not(.in) .tag { opacity: 0; transform: translateY(5px); }
 .step.in .tag { animation: tag-in .45s var(--ease) calc(var(--d, 0s) + .2s) both; }
 @media (prefers-reduced-motion: reduce) {
   .step .tag { opacity: 1 !important; transform: none !important; animation: none !important; }
@@ -3164,7 +3216,8 @@ summary:focus-visible {
    symptom is the absence of an animation you were never shown.
 
    Same blur-in as .item-rv, driven by each child's own --d. */
-.st > * { opacity: 0; transform: translateY(16px); filter: blur(6px); }
+.st > * { opacity: 1; transform: none; filter: none; }
+.motion-ready .st:not(.in) > * { opacity: 0; transform: translateY(16px); filter: blur(6px); }
 .st.in > * { animation: item-in .6s var(--ease) var(--d, 0s) both; }
 @media (prefers-reduced-motion: reduce) {
   .st > * { opacity: 1 !important; transform: none !important; filter: none !important; animation: none !important; }
@@ -3204,7 +3257,9 @@ summary:focus-visible {
    Chromium trap `.deck` documents. */
 @keyframes card-fade-in { from { opacity: 0; } to { opacity: 1; } }
 .ev .ev-c,
-.oc .oc-col { opacity: 0; }
+.oc .oc-col { opacity: 1; }
+.motion-ready .ev:not(.in) .ev-c,
+.motion-ready .oc:not(.in) .oc-col { opacity: 0; }
 .ev.in .ev-c,
 .oc.in .oc-col { animation: card-fade-in .55s var(--ease) var(--d, 0s) both; }
 .ev.in .ev-c:nth-child(2),
@@ -3259,6 +3314,17 @@ body.admin-dialog-open {
   --admin-accent: #0b0b0b;
   --admin-accent-soft: rgba(11, 11, 11, 0.07);
   --admin-sidebar: #0b0b0b;
+  --admin-nav-ink: #fbfbfa;
+  --admin-nav-muted: rgba(251, 251, 250, 0.62);
+  --admin-nav-faint: rgba(251, 251, 250, 0.42);
+  --admin-nav-hover: rgba(255, 255, 255, 0.07);
+  --admin-nav-rule: rgba(255, 255, 255, 0.1);
+  --admin-nav-active-bg: #fbfbfa;
+  --admin-nav-active-ink: #0b0b0b;
+  --admin-nav-brand-color: #fbfbfa;
+  --admin-nav-accent: #fbfbfa;
+  --admin-nav-badge-ring: #0b0b0b;
+  --admin-canvas-art: radial-gradient(circle at 88% -8%, var(--admin-accent-soft), transparent 32rem);
   --admin-action: #0b0b0b;
   --admin-action-ink: #fbfbfa;
   --admin-rule: rgba(11, 11, 11, 0.09);
@@ -3284,9 +3350,7 @@ body.admin-dialog-open {
 .admin-shell {
   min-height: 100vh;
   color: var(--admin-ink);
-  background:
-    radial-gradient(circle at 88% -8%, var(--admin-accent-soft), transparent 32rem),
-    var(--admin-canvas);
+  background: var(--admin-canvas-art), var(--admin-canvas);
 }
 
 [data-theme="dark"] .admin-shell,
@@ -3299,6 +3363,17 @@ body.admin-dialog-open {
   --admin-accent: #fbfbfa;
   --admin-accent-soft: rgba(255, 255, 255, 0.045);
   --admin-sidebar: #0b0b0b;
+  --admin-nav-ink: #fbfbfa;
+  --admin-nav-muted: rgba(251, 251, 250, 0.66);
+  --admin-nav-faint: rgba(251, 251, 250, 0.43);
+  --admin-nav-hover: rgba(255, 255, 255, 0.08);
+  --admin-nav-rule: rgba(255, 255, 255, 0.1);
+  --admin-nav-active-bg: #fbfbfa;
+  --admin-nav-active-ink: #10100f;
+  --admin-nav-brand-color: #fbfbfa;
+  --admin-nav-accent: #fbfbfa;
+  --admin-nav-badge-ring: #0b0b0b;
+  --admin-canvas-art: radial-gradient(circle at 82% -12%, rgba(255, 255, 255, 0.07), transparent 34rem);
   --admin-action: #fbfbfa;
   --admin-action-ink: #10100f;
   --admin-rule: rgba(255, 255, 255, 0.045);
@@ -3322,6 +3397,17 @@ body.admin-dialog-open {
   --admin-accent: #9b7bff;
   --admin-accent-soft: rgba(125, 92, 255, 0.22);
   --admin-sidebar: #141020;
+  --admin-nav-ink: #f5f1ff;
+  --admin-nav-muted: rgba(224, 214, 255, 0.68);
+  --admin-nav-faint: rgba(210, 195, 255, 0.43);
+  --admin-nav-hover: rgba(155, 123, 255, 0.12);
+  --admin-nav-rule: rgba(183, 161, 255, 0.13);
+  --admin-nav-active-bg: #9b7bff;
+  --admin-nav-active-ink: #171225;
+  --admin-nav-brand-color: #b49cff;
+  --admin-nav-accent: #9b7bff;
+  --admin-nav-badge-ring: #141020;
+  --admin-canvas-art: radial-gradient(circle at 78% 0%, rgba(155, 123, 255, 0.2), transparent 30rem), radial-gradient(circle at 18% 88%, rgba(89, 55, 190, 0.12), transparent 36rem);
   --admin-action: #9b7bff;
   --admin-action-ink: #171225;
   --admin-rule: rgba(244, 239, 255, 0.055);
@@ -3344,6 +3430,17 @@ body.admin-dialog-open {
   --admin-accent: #356df3;
   --admin-accent-soft: rgba(53, 109, 243, 0.13);
   --admin-sidebar: #18223b;
+  --admin-nav-ink: #f7f9ff;
+  --admin-nav-muted: rgba(226, 234, 255, 0.68);
+  --admin-nav-faint: rgba(213, 224, 255, 0.43);
+  --admin-nav-hover: rgba(115, 155, 255, 0.12);
+  --admin-nav-rule: rgba(160, 187, 255, 0.14);
+  --admin-nav-active-bg: #356df3;
+  --admin-nav-active-ink: #ffffff;
+  --admin-nav-brand-color: #78a0ff;
+  --admin-nav-accent: #5e88f5;
+  --admin-nav-badge-ring: #18223b;
+  --admin-canvas-art: linear-gradient(rgba(53, 109, 243, 0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(53, 109, 243, 0.025) 1px, transparent 1px), radial-gradient(circle at 90% 0%, rgba(53, 109, 243, 0.12), transparent 30rem);
   --admin-action: #356df3;
   --admin-action-ink: #ffffff;
   --admin-rule: rgba(25, 35, 58, 0.075);
@@ -3354,26 +3451,37 @@ body.admin-dialog-open {
   --admin-shadow-hover: 0 0 0 1px rgba(53, 109, 243, 0.15), 0 5px 11px -5px rgba(25, 35, 58, 0.08), 0 26px 48px -30px rgba(35, 72, 145, 0.28);
 }
 
-/* Frost mirrors the cool, high-contrast executive treatment used by the demo
-   chrome: an ice canvas, ink navigation, white work surfaces, and mint status. */
+/* Frost is the luminous violet system: borderless white cards float over a
+   lavender atmosphere while the navigation becomes a light, translucent rail. */
 [data-theme="frost"] .admin-shell,
 [data-theme="frost"] body.admin-dialog-open {
-  --admin-canvas: #edf2fa;
-  --admin-surface: #fbfcff;
-  --admin-surface-subtle: #f3f6fb;
-  --admin-ink: #172033;
-  --admin-muted: #68748b;
-  --admin-accent: #24b994;
-  --admin-accent-soft: rgba(36, 185, 148, 0.1);
-  --admin-sidebar: #171918;
-  --admin-action: #172033;
+  --admin-canvas: #f4f2ff;
+  --admin-surface: #ffffff;
+  --admin-surface-subtle: #f8f7ff;
+  --admin-ink: #111a36;
+  --admin-muted: #65708d;
+  --admin-accent: #6b3ff2;
+  --admin-accent-soft: rgba(107, 63, 242, 0.12);
+  --admin-sidebar: rgba(252, 251, 255, 0.88);
+  --admin-nav-ink: #141b36;
+  --admin-nav-muted: rgba(20, 27, 54, 0.66);
+  --admin-nav-faint: rgba(20, 27, 54, 0.42);
+  --admin-nav-hover: rgba(107, 63, 242, 0.075);
+  --admin-nav-rule: rgba(74, 55, 137, 0.09);
+  --admin-nav-active-bg: #6b3ff2;
+  --admin-nav-active-ink: #ffffff;
+  --admin-nav-brand-color: #6b3ff2;
+  --admin-nav-accent: #6b3ff2;
+  --admin-nav-badge-ring: #ffffff;
+  --admin-action: #6b3ff2;
   --admin-action-ink: #ffffff;
-  --admin-rule: rgba(23, 32, 51, 0.075);
-  --admin-border: rgba(23, 32, 51, 0.1);
-  --admin-shadow-border: 0 0 0 1px rgba(23, 32, 51, 0.06), 0 2px 5px -2px rgba(23, 32, 51, 0.06), 0 18px 38px -26px rgba(45, 65, 104, 0.22);
-  --admin-shadow-border-hover: 0 0 0 1px rgba(36, 185, 148, 0.16), 0 5px 11px -5px rgba(23, 32, 51, 0.08), 0 26px 50px -28px rgba(45, 65, 104, 0.28);
-  --admin-shadow: 0 0 0 1px rgba(23, 32, 51, 0.055), 0 2px 5px -2px rgba(23, 32, 51, 0.05), 0 20px 42px -30px rgba(45, 65, 104, 0.24);
-  --admin-shadow-hover: 0 0 0 1px rgba(36, 185, 148, 0.15), 0 5px 12px -5px rgba(23, 32, 51, 0.08), 0 28px 52px -30px rgba(45, 65, 104, 0.3);
+  --admin-rule: rgba(69, 52, 128, 0.055);
+  --admin-border: rgba(69, 52, 128, 0.065);
+  --admin-canvas-art: radial-gradient(circle at 78% 2%, rgba(127, 89, 255, 0.16), transparent 29rem), radial-gradient(circle at 20% 92%, rgba(186, 172, 255, 0.22), transparent 38rem), linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(244, 241, 255, 0.55));
+  --admin-shadow-border: 0 8px 24px -18px rgba(69, 44, 145, 0.28), 0 20px 52px -38px rgba(69, 44, 145, 0.24);
+  --admin-shadow-border-hover: 0 10px 28px -18px rgba(91, 53, 196, 0.34), 0 28px 64px -38px rgba(69, 44, 145, 0.3);
+  --admin-shadow: 0 10px 30px -22px rgba(58, 39, 124, 0.24), 0 26px 72px -48px rgba(76, 48, 168, 0.3);
+  --admin-shadow-hover: 0 14px 34px -22px rgba(74, 43, 164, 0.3), 0 34px 82px -48px rgba(76, 48, 168, 0.36);
 }
 
 .admin-main {
@@ -3383,7 +3491,7 @@ body.admin-dialog-open {
 
 .admin-sidebar {
   background: var(--admin-sidebar);
-  color: #fbfbfa;
+  color: var(--admin-nav-ink);
   opacity: 1;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
@@ -3392,8 +3500,15 @@ body.admin-dialog-open {
 
 .admin-mobile-header {
   background: var(--admin-sidebar);
-  color: #fbfbfa;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08), 0 14px 34px -28px rgba(0, 0, 0, 0.8);
+  color: var(--admin-nav-ink);
+  box-shadow: 0 1px 0 var(--admin-nav-rule), 0 14px 34px -28px rgba(0, 0, 0, 0.8);
+}
+
+[data-theme="frost"] .admin-sidebar,
+[data-theme="frost"] .admin-mobile-header {
+  -webkit-backdrop-filter: blur(24px) saturate(1.15);
+  backdrop-filter: blur(24px) saturate(1.15);
+  box-shadow: 18px 0 60px -34px rgba(79, 48, 170, 0.32);
 }
 
 /* Collapsed groups keep the operator's navigation compact. Overflow remains
@@ -3405,10 +3520,63 @@ body.admin-dialog-open {
 }
 .admin-nav-scroll::-webkit-scrollbar { display: none; }
 .admin-nav-scroll:focus-within { scrollbar-gutter: stable; }
+.admin-nav-brand {
+  --gold-base: var(--admin-nav-brand-color) !important;
+  --heading-color: var(--admin-nav-ink) !important;
+}
+.admin-nav-control,
+.admin-nav-utility,
+.admin-nav-section-button,
+.admin-nav-link {
+  color: var(--admin-nav-muted);
+}
+.admin-nav-control:hover,
+.admin-nav-utility:hover,
+.admin-nav-section-button:hover,
+.admin-nav-link:hover {
+  color: var(--admin-nav-ink);
+  background: var(--admin-nav-hover);
+}
+.admin-nav-link svg { color: var(--admin-nav-faint); }
+.admin-nav-link:hover svg { color: var(--admin-nav-ink); }
+.admin-nav-link[aria-current="page"] {
+  color: var(--admin-nav-active-ink);
+  background: var(--admin-nav-active-bg);
+  box-shadow: 0 10px 26px -16px color-mix(in srgb, var(--admin-nav-accent) 72%, transparent);
+}
+.admin-nav-link[aria-current="page"] svg { color: var(--admin-nav-active-ink); }
+.admin-nav-link[aria-current="page"] [class*="bg-black/8"] { color: inherit; background: color-mix(in srgb, var(--admin-nav-active-ink) 12%, transparent); }
+.admin-nav-active-indicator { background: var(--admin-nav-accent); }
+.admin-nav-rule { background: var(--admin-nav-rule); }
+.admin-nav-footer { border-color: var(--admin-nav-rule); }
+.admin-nav-demo-link {
+  color: var(--admin-nav-ink);
+  background: color-mix(in srgb, var(--admin-nav-accent) 9%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-nav-accent) 14%, transparent);
+}
+.admin-nav-demo-link:hover { background: color-mix(in srgb, var(--admin-nav-accent) 15%, transparent); }
+.admin-notification-count { box-shadow: 0 0 0 2px var(--admin-nav-badge-ring); }
+.admin-appearance-panel {
+  color: var(--admin-nav-ink);
+  background: color-mix(in srgb, var(--admin-sidebar) 94%, transparent);
+  box-shadow: 0 20px 52px -26px rgba(0, 0, 0, 0.42), 0 0 0 1px var(--admin-nav-rule);
+  -webkit-backdrop-filter: blur(24px) saturate(1.15);
+  backdrop-filter: blur(24px) saturate(1.15);
+}
+.admin-appearance-option:hover { background: var(--admin-nav-hover); }
+.admin-appearance-option.is-selected { background: color-mix(in srgb, var(--admin-nav-accent) 12%, transparent); }
 .admin-sidebar .admin-notification-trigger,
-.admin-mobile-header .admin-notification-trigger { color: rgba(255, 255, 255, 0.52); }
+.admin-mobile-header .admin-notification-trigger { color: var(--admin-nav-muted); }
 .admin-sidebar .admin-notification-trigger:hover,
-.admin-mobile-header .admin-notification-trigger:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+.admin-mobile-header .admin-notification-trigger:hover { color: var(--admin-nav-ink); background: var(--admin-nav-hover); }
+
+[data-theme="frost"] .admin-sidebar { border-right: 1px solid rgba(92, 62, 180, 0.055); }
+[data-theme="frost"] .admin-surface,
+[data-theme="frost"] .admin-shell :is(.glass, .glass-prominent, .glass-gold) { border-color: transparent; }
+[data-theme="frost"] .admin-surface-attention {
+  background: linear-gradient(135deg, rgba(107, 63, 242, 0.105), rgba(255, 255, 255, 0.82));
+  box-shadow: 0 18px 50px -38px rgba(107, 63, 242, 0.42);
+}
 
 .admin-surface {
   border-radius: 16px;
@@ -3475,6 +3643,10 @@ body.admin-dialog-open {
 :is(.admin-shell, body.admin-dialog-open) [class~="text-[#0b0b0b]"] {
   color: var(--admin-ink);
 }
+:is([data-theme="signal"], [data-theme="studio"], [data-theme="frost"]) :is(.admin-shell, body.admin-dialog-open) [class~="bg-[var(--admin-ink)]"] {
+  background-color: var(--admin-action);
+  color: var(--admin-action-ink);
+}
 [data-theme="signal"] :is(.admin-shell, body.admin-dialog-open) [class~="bg-[#d7ff5f]"],
 [data-theme="studio"] :is(.admin-shell, body.admin-dialog-open) [class~="bg-[#d7ff5f]"],
 [data-theme="frost"] :is(.admin-shell, body.admin-dialog-open) [class~="bg-[#d7ff5f]"] {
@@ -3485,30 +3657,6 @@ body.admin-dialog-open {
 [data-theme="frost"] :is(.admin-shell, body.admin-dialog-open) [class~="text-[#d7ff5f]"] {
   color: var(--admin-accent);
 }
-
-[data-theme="signal"] .admin-sidebar a[aria-current="page"] {
-  background: var(--admin-accent);
-  color: #171225;
-  box-shadow: 0 8px 20px -12px rgba(155, 123, 255, 0.85);
-}
-[data-theme="signal"] .admin-sidebar a[aria-current="page"] svg { color: #171225; }
-[data-theme="signal"] .admin-sidebar a[aria-current="page"] [class*="bg-black/8"] { background: rgba(23, 18, 37, 0.12); color: #171225; }
-
-[data-theme="studio"] .admin-sidebar a[aria-current="page"] {
-  background: var(--admin-accent);
-  color: #ffffff;
-  box-shadow: 0 8px 20px -12px rgba(53, 109, 243, 0.9);
-}
-[data-theme="studio"] .admin-sidebar a[aria-current="page"] svg { color: #ffffff; }
-[data-theme="studio"] .admin-sidebar a[aria-current="page"] [class*="bg-black/8"] { background: rgba(255, 255, 255, 0.16); color: #ffffff; }
-
-[data-theme="frost"] .admin-sidebar a[aria-current="page"] {
-  background: #ffffff;
-  color: #172033;
-  box-shadow: 0 8px 22px -13px rgba(0, 0, 0, 0.75);
-}
-[data-theme="frost"] .admin-sidebar a[aria-current="page"] svg { color: #24b994; }
-[data-theme="frost"] .admin-sidebar a[aria-current="page"] [class*="bg-black/8"] { background: rgba(23, 32, 51, 0.08); color: #172033; }
 
 .admin-dialog-surface { box-shadow: 0 0 0 1px rgba(11, 11, 11, 0.08), 0 30px 80px -28px rgba(0, 0, 0, 0.5); }
 [data-theme="dark"] .admin-dialog-surface { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.11), 0 30px 80px -28px #000; }

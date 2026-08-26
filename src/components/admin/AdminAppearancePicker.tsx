@@ -19,7 +19,7 @@ const appearances: Array<{
   { id: "dark", label: "Night", description: "Low-light operating view", icon: Moon, previewClass: "bg-[#10100f] text-[#fbfbfa]" },
   { id: "signal", label: "Signal", description: "Focused violet operations", icon: Sparkles, previewClass: "bg-[#171225] text-[#f3edff]" },
   { id: "studio", label: "Studio", description: "Bright project workspace", icon: Palette, previewClass: "bg-[#f4f7fc] text-[#18233c]" },
-  { id: "frost", label: "Frost", description: "Cool executive workspace", icon: Snowflake, previewClass: "bg-[#edf2fa] text-[#172033]" },
+  { id: "frost", label: "Frost", description: "Luminous violet workspace", icon: Snowflake, previewClass: "bg-gradient-to-br from-white to-[#ece7ff] text-[#6b3ff2]" },
 ];
 
 function isAdminAppearance(theme: string | undefined): theme is AdminAppearance {
@@ -62,7 +62,7 @@ export function AdminAppearancePicker({ collapsed = false }: { collapsed?: boole
         type="button"
         onClick={() => setOpen((value) => !value)}
         className={cn(
-          "inline-flex min-h-10 items-center rounded-[10px] text-xs text-white/58 transition-[background-color,color,transform] duration-150 hover:bg-white/7 hover:text-white active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
+          "admin-nav-utility inline-flex min-h-10 items-center rounded-[10px] text-xs transition-[background-color,color,transform] duration-150 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-nav-accent)]",
           collapsed ? "size-10 justify-center px-0" : "w-full justify-between gap-3 px-2.5",
         )}
         aria-haspopup="dialog"
@@ -72,10 +72,10 @@ export function AdminAppearancePicker({ collapsed = false }: { collapsed?: boole
         title={collapsed ? `Appearance: ${current.label}` : undefined}
       >
         <span className="flex min-w-0 items-center gap-3">
-          <current.icon className="size-4 shrink-0 text-white/72" aria-hidden="true" />
+          <current.icon className="size-4 shrink-0" aria-hidden="true" />
           {!collapsed && <span className="truncate font-medium">{current.label}</span>}
         </span>
-        {!collapsed && <ChevronUp className={cn("size-3.5 shrink-0 text-white/38 transition-transform duration-200", open && "rotate-180")} aria-hidden="true" />}
+        {!collapsed && <ChevronUp className={cn("size-3.5 shrink-0 opacity-55 transition-transform duration-200", open && "rotate-180")} aria-hidden="true" />}
       </button>
 
       <AnimatePresence initial={false}>
@@ -89,13 +89,13 @@ export function AdminAppearancePicker({ collapsed = false }: { collapsed?: boole
             exit={{ opacity: 0, y: 6, scale: 0.98 }}
             transition={{ type: "spring", duration: 0.3, bounce: 0 }}
             className={cn(
-              "absolute bottom-[calc(100%+0.5rem)] z-[70] overflow-hidden rounded-[18px] bg-[#171716] p-2 text-white shadow-[0_20px_52px_-22px_rgba(0,0,0,0.72)] ring-1 ring-white/10",
+              "admin-appearance-panel absolute bottom-[calc(100%+0.5rem)] z-[70] overflow-hidden rounded-[18px] p-2 shadow-[var(--admin-shadow-hover)]",
               collapsed ? "left-0 w-64" : "left-0 w-full min-w-64",
             )}
           >
             <div className="px-2 pb-2 pt-1">
-              <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.14em] text-white/42">Appearance</p>
-              <p className="mt-1 text-[11px] leading-4 text-white/58">One operating system, five focused working environments.</p>
+              <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--admin-nav-faint)]">Appearance</p>
+              <p className="mt-1 text-[11px] leading-4 text-[var(--admin-nav-muted)]">One operating system, five focused working environments.</p>
             </div>
             <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="Admin appearance">
               {appearances.map((appearance) => {
@@ -112,17 +112,17 @@ export function AdminAppearancePicker({ collapsed = false }: { collapsed?: boole
                       setOpen(false);
                     }}
                     className={cn(
-                      "group relative min-h-[92px] rounded-[12px] p-2.5 text-left transition-[background-color,color,transform] duration-150 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
-                      selected ? "bg-white/[0.12]" : "hover:bg-white/[0.07]",
+                      "admin-appearance-option group relative min-h-[92px] rounded-[12px] p-2.5 text-left transition-[background-color,color,transform] duration-150 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-nav-accent)]",
+                      selected && "is-selected",
                     )}
                   >
                     <span className={cn("mb-2 flex h-8 items-center rounded-[8px] px-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]", appearance.previewClass)}>
                       <Icon className="size-3.5" aria-hidden="true" />
                       <span className="ml-1.5 h-1.5 w-9 rounded-full bg-current opacity-30" />
                     </span>
-                    <span className="block pr-5 text-[11px] font-semibold text-white">{appearance.label}</span>
-                    <span className="mt-0.5 block text-[9px] leading-3 text-white/48">{appearance.description}</span>
-                    {selected && <Check className="absolute right-2.5 top-[3.25rem] size-3.5 text-white" aria-hidden="true" />}
+                    <span className="block pr-5 text-[11px] font-semibold text-[var(--admin-nav-ink)]">{appearance.label}</span>
+                    <span className="mt-0.5 block text-[9px] leading-3 text-[var(--admin-nav-muted)]">{appearance.description}</span>
+                    {selected && <Check className="absolute right-2.5 top-[3.25rem] size-3.5 text-[var(--admin-nav-accent)]" aria-hidden="true" />}
                   </button>
                 );
               })}

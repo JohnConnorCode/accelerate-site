@@ -24,7 +24,9 @@ Never create a parallel demo dashboard or copy an admin page into a demo folder.
 
 Each fictional business is a versioned scenario pack containing tenant-facing
 configuration, enabled capabilities, normalized records, a guided story, and
-validation assertions. The shared demo engine owns reads and simulated writes.
+validation assertions. Each pack also has a distinct animated mark rendered by
+the shared scenario-logo primitive in the launcher, shell, and safety controls.
+The shared demo engine owns reads and simulated writes.
 A scenario pack must not implement its own UI, fetch handlers, pipeline rules,
 analytics formulas, AI runtime, or email sender.
 
@@ -43,6 +45,10 @@ business reason.
 - Every simulated mutation says it is simulated and records a local receipt.
 - Live `/admin` authorization remains founder-only and fail-closed. Demo routing
   is not an authentication exception for live data.
+- A validated internal demo rewrite may re-enter middleware, but it must retain
+  the fictional runtime marker and no-index headers instead of falling through
+  to the live login path. That marker selects checked-in demo data only and
+  never authorizes a live admin API.
 - Every demo URL is no-index and excluded from the sitemap.
 
 ## Scenario completeness

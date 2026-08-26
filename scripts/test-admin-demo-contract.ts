@@ -28,6 +28,13 @@ for (const [scenarioId, pack] of Object.entries(DEMO_SCENARIOS)) {
 const categoryCount = new Set(DEMO_SCENARIO_SUMMARIES.map((scenario) => scenario.category)).size;
 assert.equal(categoryCount, DEMO_SCENARIO_SUMMARIES.length, "Scenarios must demonstrate distinct business models");
 
+const scenarioMark = readFileSync("src/components/admin/DemoScenarioMark.tsx", "utf8");
+const adminShell = readFileSync("src/components/admin/AdminShell.tsx", "utf8");
+const demoLauncher = readFileSync("src/app/demo/command-center/page.tsx", "utf8");
+for (const scenario of DEMO_SCENARIO_SUMMARIES) assert.match(scenarioMark, new RegExp(scenario.id), `${scenario.id}: custom logo artwork is missing`);
+assert.match(adminShell, /<DemoScenarioMark/, "Demo workspaces must replace the Accelerate brand mark with their scenario mark");
+assert.match(demoLauncher, /<DemoScenarioMark/, "The launcher must preview each scenario mark");
+
 for (const file of ["src/components/home/CommandCenter.tsx", "src/components/sections/CommandCenterPage.tsx"]) {
   assert.match(readFileSync(file, "utf8"), /href="\/demo\/command-center"/, `${file}: public full-admin demo link is missing`);
   assert.doesNotMatch(readFileSync(file, "utf8"), /href="\/command-center\/demo"/, `${file}: obsolete standalone preview link remains`);

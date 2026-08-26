@@ -16,6 +16,8 @@ const failures = [];
   const launcher = await page.locator('a[href^="/demo/command-center/"][href$="/today"]').count();
   if (launcher !== scenarios.length && !process.argv.includes("--one")) failures.push(`launcher: expected ${scenarios.length} scenario cards, found ${launcher}`);
   if (!await page.getByText("Browser-only fictional workspaces", { exact: false }).count()) failures.push("launcher: missing fictional-data disclosure");
+  const marks = await page.locator(".demo-scenario-mark").evaluateAll((nodes) => nodes.map((node) => ({ classes: node.getAttribute("class"), animation: getComputedStyle(node).animationName, animatedParts: [...node.querySelectorAll("*")].filter((part) => getComputedStyle(part).animationName !== "none").length })));
+  if (marks.length !== 3 || new Set(marks.map((mark) => mark.classes)).size !== 3 || marks.some((mark) => mark.animation === "none" && !mark.animatedParts)) failures.push("launcher: scenario logos are not distinct animated marks");
   const entrances = await page.locator(".admin-demo-enter").evaluateAll((nodes) => nodes.map((node) => ({ name: getComputedStyle(node).animationName, delay: getComputedStyle(node).animationDelay })));
   if (entrances.length < 9 || entrances.some((item) => !item.name.includes("admin-demo-enter")) || new Set(entrances.map((item) => item.delay)).size < 6) failures.push("launcher: hero and scenario cards do not use a complete staggered entrance sequence");
   await page.waitForTimeout(1_300);
@@ -32,7 +34,7 @@ const failures = [];
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
   const page = await context.newPage();
   await page.goto(`${base}/demo/command-center`, { waitUntil: "domcontentloaded", timeout: 60_000 });
-  const facts = await page.evaluate(() => ({ overflow: document.documentElement.scrollWidth > innerWidth + 2, animated: [...document.querySelectorAll(".admin-demo-enter")].filter((node) => getComputedStyle(node).animationName !== "none").length }));
+  const facts = await page.evaluate(() => ({ overflow: document.documentElement.scrollWidth > innerWidth + 2, animated: [...document.querySelectorAll(".admin-demo-enter, .demo-scenario-mark, .demo-scenario-mark *")].filter((node) => getComputedStyle(node).animationName !== "none").length }));
   if (facts.overflow) failures.push("launcher mobile: horizontal overflow");
   if (facts.animated) failures.push(`launcher mobile: ${facts.animated} entrances remained animated under reduced motion`);
   await page.screenshot({ path: `${output}/launcher-mobile.png`, fullPage: true });
@@ -57,7 +59,7 @@ for (const scenario of scenarios) {
       await page.locator("[data-admin-demo-bar]").waitFor({ timeout: 30_000 });
       await page.waitForFunction((expected) => window.__accelerateAdminDemoRuntime === expected, scenario, { timeout: 30_000 });
       await page.waitForTimeout(350);
-      const state = await page.evaluate(() => ({ width: document.documentElement.scrollWidth, viewport: innerWidth, overlay: document.querySelector("nextjs-portal")?.textContent || "", mainText: document.querySelector("main")?.textContent?.replace(/\s+/g, " ").trim().length || 0, logo: Boolean(document.querySelector(".logo-link, [aria-label*='Revenue OS home']")) }));
+      const state = await page.evaluate(() => ({ width: document.documentElement.scrollWidth, viewport: innerWidth, overlay: document.querySelector("nextjs-portal")?.textContent || "", mainText: document.querySelector("main")?.textContent?.replace(/\s+/g, " ").trim().length || 0, logo: Boolean(document.querySelector(".demo-scenario-mark")) }));
       if (state.width > state.viewport + 2) failures.push(`${scenario} ${label} ${route}: overflow ${state.width} > ${state.viewport}`);
       if (/Build Error|Unhandled Runtime Error|Runtime TypeError|Compilation failed/i.test(state.overlay)) failures.push(`${scenario} ${label} ${route}: Next error overlay`);
       if (state.mainText < 120) failures.push(`${scenario} ${label} ${route}: view is not credibly populated`);
@@ -150,6 +152,7 @@ for (const scenario of scenarios) {
   }
 }
 
+const appearanceFingerprints = new Map();
 for (const appearance of ["light", "dark", "signal", "studio", "frost"]) {
   for (const [label, viewport] of [["desktop", { width: 1280, height: 900 }], ["mobile", { width: 390, height: 844 }]]) {
     const context = await browser.newContext({ viewport });
@@ -161,13 +164,24 @@ for (const appearance of ["light", "dark", "signal", "studio", "frost"]) {
     await page.waitForFunction((expected) => document.documentElement.dataset.theme === expected, appearance);
     const tokens = await page.evaluate(() => {
       const styles = getComputedStyle(document.querySelector(".admin-shell"));
-      return { ink: styles.getPropertyValue("--admin-ink").trim(), canvas: styles.getPropertyValue("--admin-canvas").trim(), surface: styles.getPropertyValue("--admin-surface").trim(), overflow: document.documentElement.scrollWidth > innerWidth + 2 };
+      const sidebar = getComputedStyle(document.querySelector(".admin-sidebar"));
+      const card = getComputedStyle(document.querySelector(".admin-surface"));
+      const active = getComputedStyle(document.querySelector('.admin-nav-link[aria-current="page"]'));
+      return {
+        ink: styles.getPropertyValue("--admin-ink").trim(), canvas: styles.getPropertyValue("--admin-canvas").trim(), surface: styles.getPropertyValue("--admin-surface").trim(), action: styles.getPropertyValue("--admin-action").trim(),
+        navInk: styles.getPropertyValue("--admin-nav-ink").trim(), sidebar: sidebar.backgroundColor, cardShadow: card.boxShadow, activeBackground: active.backgroundColor, activeColor: active.color,
+        overflow: document.documentElement.scrollWidth > innerWidth + 2,
+      };
     });
     if (!tokens.ink || !tokens.canvas || tokens.ink === tokens.canvas || tokens.ink === tokens.surface) failures.push(`appearance ${appearance} ${label}: incoherent foreground/background tokens`);
     if (tokens.overflow) failures.push(`appearance ${appearance} ${label}: horizontal overflow`);
+    if (label === "desktop") appearanceFingerprints.set(appearance, [tokens.canvas, tokens.surface, tokens.action, tokens.sidebar, tokens.navInk, tokens.activeBackground].join("|"));
+    if (appearance === "frost" && tokens.cardShadow.includes("0px 0px 0px 1px")) failures.push(`appearance frost ${label}: cards still use a visible outline ring`);
+    if (appearance === "frost" && (tokens.activeBackground === "rgba(0, 0, 0, 0)" || tokens.activeColor === tokens.navInk)) failures.push(`appearance frost ${label}: navigation does not have a distinct violet active treatment`);
     await context.close();
   }
 }
+if (new Set(appearanceFingerprints.values()).size !== appearanceFingerprints.size) failures.push("appearances: two or more themes still resolve to the same shell treatment");
 await browser.close();
 if (failures.length) throw new Error(`Full admin demo QA failures:\n${[...new Set(failures)].join("\n")}`);
 console.log(JSON.stringify({ result: "passed", scenarios, routes, screenshots: output }, null, 2));

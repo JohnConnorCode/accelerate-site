@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight, Check, ShieldCheck } from "lucide-react";
 import { DEMO_SCENARIO_SUMMARIES } from "@/lib/admin/demo/scenarios";
+import { DemoScenarioMark } from "@/components/admin/DemoScenarioMark";
 
 export const metadata: Metadata = {
   title: "Command Center Demo Workspaces",
@@ -56,7 +57,7 @@ export default function AdminDemoLauncher() {
 
                   <article className="relative flex min-w-0 flex-1 flex-col">
                     <div className="flex items-start justify-between gap-4 pt-2">
-                      <span className="grid size-12 place-items-center rounded-[10px] text-sm font-bold text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,.2),0_10px_28px_-16px_rgba(0,0,0,.55)]" style={{ background: scenario.accent }}>{scenario.name.slice(0, 1)}</span>
+                      <span className="grid size-12 place-items-center rounded-[10px] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,.2),0_10px_28px_-16px_rgba(0,0,0,.55)]" style={{ background: scenario.accent }}><DemoScenarioMark scenarioId={scenario.id} className="size-8" /></span>
                       <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-black/38">0{index + 1} / 03</span>
                     </div>
 

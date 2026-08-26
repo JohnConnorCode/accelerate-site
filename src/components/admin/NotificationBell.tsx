@@ -235,7 +235,7 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
         <Bell className="size-[17px]" />
         {signalCount > 0 && (
           <span className={cn(
-            "absolute right-0 top-0 flex size-[15px] items-center justify-center rounded-full font-mono text-[8px] font-bold tabular-nums text-white shadow-[0_0_0_2px_#0b0b0b]",
+            "admin-notification-count absolute right-0 top-0 flex size-[15px] items-center justify-center rounded-full font-mono text-[8px] font-bold tabular-nums text-white",
             hasCriticalSignal ? "bg-rose-500" : "bg-[var(--error)]"
           )}>
             {signalCount > 9 ? "9+" : signalCount}

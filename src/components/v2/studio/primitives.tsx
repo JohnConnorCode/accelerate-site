@@ -21,9 +21,9 @@ function widthClass(w?: Width) {
   return "page-shell"; // default = wide
 }
 
-/* ─── useReveal ─── shared fail-open IntersectionObserver hook. Pair with the
-   CSS rules in globals.css and `section-reveal`; content remains visible until
-   an off-screen element is safely armed for its entrance. */
+/* ─── useReveal ─── shared fail-open IntersectionObserver hook. The root
+   motion bootstrap arms every reveal before paint; this hook owns the single
+   visible-state transition after hydration. */
 export function useReveal<T extends HTMLElement = HTMLElement>() {
   return useRv<T>();
 }

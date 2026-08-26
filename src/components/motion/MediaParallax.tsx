@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
 import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 
@@ -14,6 +14,11 @@ export function MediaParallax({
   distance?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const mounted = useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false,
+  );
   const reduced = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
   const rawY = useTransform(scrollYProgress, [0, 1], [`-${distance}%`, `${distance}%`]);
@@ -23,7 +28,7 @@ export function MediaParallax({
     <div ref={ref} className={`absolute inset-0 overflow-hidden ${className}`} data-media-parallax>
       <motion.div
         className="absolute inset-x-0 -inset-y-[8%] motion-reduce:inset-0"
-        style={reduced ? undefined : { y }}
+        style={!mounted || reduced ? undefined : { y }}
         data-media-parallax-layer
       >
         {children}

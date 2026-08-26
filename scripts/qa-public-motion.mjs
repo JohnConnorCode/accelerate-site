@@ -59,11 +59,12 @@ async function inspectRoute(page, route, label, scrollDelay) {
     }
     await pause(300);
   }, scrollDelay);
-  await page.waitForFunction(() => ![...document.querySelectorAll(".rv.rv-ready:not(.in), .item-rv.rv-ready:not(.in), .section-reveal.rv-ready:not(.in)")].some((node) => {
+  const pendingSelector = ".motion-ready .rv:not(.in), .motion-ready .item-rv:not(.in), .motion-ready .section-reveal:not(.in) > [class*='page-shell'] > *";
+  await page.waitForFunction((selector) => ![...document.querySelectorAll(selector)].some((node) => {
     const rect = node.getBoundingClientRect();
     return rect.top < innerHeight + 40 && rect.bottom > -40 && Number.parseFloat(getComputedStyle(node).opacity) < 0.9;
-  }), null, { timeout: 2_000 }).catch(() => null);
-  const stranded = await page.locator(".rv.rv-ready:not(.in), .item-rv.rv-ready:not(.in), .section-reveal.rv-ready:not(.in)").evaluateAll((nodes) => nodes.filter((node) => {
+  }), pendingSelector, { timeout: 2_000 }).catch(() => null);
+  const stranded = await page.locator(pendingSelector).evaluateAll((nodes) => nodes.filter((node) => {
     const rect = node.getBoundingClientRect();
     return rect.top < innerHeight + 40 && rect.bottom > -40 && Number.parseFloat(getComputedStyle(node).opacity) < 0.9;
   }).length);
@@ -71,8 +72,8 @@ async function inspectRoute(page, route, label, scrollDelay) {
 }
 
 async function captureRevealEntry(page, selector) {
-  await page.waitForFunction((target) => document.querySelector(`${target}.work-reveal-ready:not(.in), ${target}.rv-ready:not(.in)`), selector);
-  const handle = await page.locator(`${selector}.work-reveal-ready:not(.in), ${selector}.rv-ready:not(.in)`).first().elementHandle();
+  await page.waitForFunction((target) => document.querySelector(`${target}:not(.in)[data-reveal-state="pending"]`), selector);
+  const handle = await page.locator(`${selector}:not(.in)[data-reveal-state="pending"]`).first().elementHandle();
   if (!handle) return null;
   const maxSteps = await page.evaluate(() => Math.ceil(document.documentElement.scrollHeight / 12) + 100);
   for (let step = 0; step < maxSteps && !(await handle.evaluate((node) => node.classList.contains("in"))); step += 1) {
@@ -116,7 +117,7 @@ for (const config of [
     if (cardStagger.length < 5 || new Set(cardStagger.map((item) => item.delay)).size < 5 || cardStagger.some((item) => !item.name.includes("work-reveal-in"))) failures.push(`${config.label}: Work card does not use five visible stagger steps`);
     await page.waitForTimeout(180);
     await page.screenshot({ path: `${output}/${config.label}-work-card-entry.png`, fullPage: false });
-    const pendingLocator = page.locator(".work-reveal.work-reveal-ready:not(.in)").first();
+    const pendingLocator = page.locator("html.motion-ready .work-reveal:not(.in)[data-reveal-state='pending']").first();
     const pending = await pendingLocator.count() ? await pendingLocator.elementHandle() : null;
     if (pending) {
       for (let attempt = 0; attempt < 20 && await pending.evaluate((node) => node.getAttribute("data-reveal-state")) !== "visible"; attempt += 1) {
@@ -225,6 +226,30 @@ for (const config of [
   await context.close();
 }
 
+const firstFrame = await browser.newContext({ viewport: { width: 390, height: 844 } });
+const firstFramePage = await firstFrame.newPage();
+await firstFramePage.route("**/_next/static/chunks/*.js", async (route) => {
+  await new Promise((resolve) => setTimeout(resolve, 1_200));
+  await route.continue();
+});
+const firstFrameNavigation = firstFramePage.goto(`${baseUrl}/`, { waitUntil: "load" });
+await firstFramePage.waitForSelector(".hero .eyebrow-anim");
+const eyebrowInitial = await firstFramePage.locator(".hero .eyebrow-anim").evaluate((node) => ({
+  motionReady: document.documentElement.classList.contains("motion-ready"),
+  in: node.classList.contains("in"),
+  opacity: Number.parseFloat(getComputedStyle(node).opacity),
+}));
+if (!eyebrowInitial.motionReady || eyebrowInitial.in || eyebrowInitial.opacity > 0.05) {
+  failures.push(`home eyebrow did not begin in a stable pre-paint state (${JSON.stringify(eyebrowInitial)})`);
+}
+await firstFrameNavigation;
+await firstFramePage.waitForSelector(".hero .eyebrow-anim.in");
+const eyebrowAnimated = await firstFramePage.locator(".hero .eyebrow-anim").evaluate((node) => getComputedStyle(node).animationName);
+if (!eyebrowAnimated.includes("rv-in")) failures.push(`home eyebrow did not use the shared blur entrance (${eyebrowAnimated})`);
+await firstFramePage.waitForTimeout(160);
+await firstFramePage.screenshot({ path: `${output}/mobile-home-eyebrow-entry.png`, fullPage: false });
+await firstFrame.close();
+
 const delayed = await browser.newContext({ viewport: { width: 390, height: 844 } });
 const delayedPage = await delayed.newPage();
 await delayedPage.route("**/_next/static/chunks/*.js", async (route) => {
@@ -235,9 +260,13 @@ const delayedNavigation = delayedPage.goto(`${baseUrl}/work/work-shelter`, { wai
 await delayedPage.waitForSelector("main");
 const delayedInitial = await delayedPage.evaluate(() => ({
   text: document.querySelector("main")?.textContent?.trim().length ?? 0,
-  hidden: [...document.querySelectorAll("[data-work-reveal], [data-work-media-reveal], [data-route-entry]")].filter((node) => Number.parseFloat(getComputedStyle(node).opacity) < 0.9).length,
+  motionReady: document.documentElement.classList.contains("motion-ready"),
+  heroOpacity: Number.parseFloat(getComputedStyle(document.querySelector("main h1"))),
+  pending: document.querySelectorAll(".work-reveal:not(.in)").length,
 }));
-if (delayedInitial.text < 100 || delayedInitial.hidden) failures.push(`delayed hydration hid public content (${delayedInitial.text} chars, ${delayedInitial.hidden} hidden nodes)`);
+if (delayedInitial.text < 100 || !delayedInitial.motionReady || delayedInitial.heroOpacity < 0.9 || !delayedInitial.pending) {
+  failures.push(`delayed hydration was not stable (${JSON.stringify(delayedInitial)})`);
+}
 await delayedNavigation;
 await delayed.close();
 

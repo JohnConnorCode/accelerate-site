@@ -7,6 +7,8 @@ const expectedPublicSlugs = ["work-shelter", "superdebate", "healthcare-real-est
 const expectedSlugs = ["work-shelter", "healthcare-real-estate", "superdebate", "sparkblox", "thrive-protocol", "green-goods", "northern-trust"];
 const prohibited = ["290%", "12x", "12×", "30% satisfaction", "31 live platform features", "~50 accepted"];
 const workMotionSource = readFileSync(join(process.cwd(), "src/components/work/WorkMotion.tsx"), "utf8");
+const revealLifecycleSource = readFileSync(join(process.cwd(), "src/components/motion/useReveal.ts"), "utf8");
+const rootLayoutSource = readFileSync(join(process.cwd(), "src/app/layout.tsx"), "utf8");
 const workCardSource = readFileSync(join(process.cwd(), "src/components/work/WorkCard.tsx"), "utf8");
 const workMotionContract = join(process.cwd(), "docs/WORK-MOTION-CONTRACT.md");
 
@@ -14,7 +16,10 @@ assert.ok(existsSync(workMotionContract), "Work motion needs a durable ownership
 assert.ok(!workMotionSource.includes("@/components/home/reveal"), "Work motion must not depend on the homepage reveal lifecycle");
 assert.ok(!workMotionSource.includes("whileInView"), "Work scroll entrances must have one Work-owned observer lifecycle");
 assert.ok(workMotionSource.includes("@/components/motion/useReveal"), "Work must use the shared public reveal lifecycle");
-assert.ok(workMotionSource.includes("work-reveal-ready"), "Work motion must arm only after hydration");
+assert.ok(!workMotionSource.includes("readyClass"), "Work must not create a route-specific reveal-ready state");
+assert.ok(!revealLifecycleSource.includes("readyClass"), "The public reveal lifecycle must use one root motion gate");
+assert.ok(rootLayoutSource.includes('classList.add("motion-ready")'), "Public reveals must be armed before first paint");
+assert.ok(rootLayoutSource.includes('classList.remove("motion-ready")'), "The pre-paint motion gate must fail open when hydration fails");
 assert.ok(workMotionSource.includes('initialViewport: "animate"'), "Work must explicitly animate its initial viewport instead of inheriting homepage timing");
 assert.ok(workCardSource.includes("reveal={false}"), "Work cards must not double-animate nested cover media");
 

@@ -17,7 +17,7 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
   // root-level transition by pathname would remount that shell on every admin
   // navigation, restarting sidebar entrance animations and visibly flashing
   // the navigation. Admin owns the content-only transition in its layout.
-  if (pathname.startsWith("/admin")) return <>{children}</>;
+  if (pathname.startsWith("/admin") || pathname.startsWith("/demo/command-center")) return <>{children}</>;
 
   return (
     <div
