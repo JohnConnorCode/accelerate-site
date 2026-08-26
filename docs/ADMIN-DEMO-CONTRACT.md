@@ -5,15 +5,16 @@ described, linked, tested, or implemented as though they are the same surface.
 
 ## Canonical demo names
 
-- **Interactive product preview** is `/command-center/demo` and the embedded
-  preview on the public homepage and Command Center page. It is a short,
-  purpose-built marketing explanation.
+- **Interactive product preview** is the embedded preview on the public homepage
+  and Command Center page. It is a short, purpose-built marketing explanation,
+  not a standalone destination. The legacy `/command-center/demo` URL permanently
+  redirects to the full admin demo launcher.
 - **Full admin demo workspace** begins at `/demo/command-center`. It renders the
   actual admin route tree and shared components against fictional scenario data.
 
-The admin sidebar's Demo workspace action always opens the full admin demo
-launcher. A test for the product preview is not evidence that the admin demo
-works.
+Every standalone public demo CTA and the admin sidebar's Demo workspace action
+opens the full admin demo launcher. A test for the embedded product preview is
+not evidence that the admin demo works.
 
 ## One admin, multiple fictional businesses
 
