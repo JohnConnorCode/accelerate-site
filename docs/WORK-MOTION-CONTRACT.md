@@ -28,9 +28,14 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
 
 - Server-rendered content is visible by default.
 - JavaScript arms a start state only after hydration.
-- Each below-fold group remains pending until it enters 90% of the viewport.
-- Group children use a restrained semantic stagger. Cards, proof, CTA, and
-  media use one animation on their owning wrapper.
+- Each below-fold group remains pending until it reaches the explicit 76–78%
+  viewport entry line.
+- Group children use a restrained semantic stagger. Cards stagger five semantic
+  children from one owning wrapper; proof, CTA, and standalone media use one
+  entrance on their owning wrapper.
+- Scroll-linked media depth may run inside an entrance owner because it is a
+  continuous compositor-only transform, not a second entrance. It must preserve
+  overscan, reduced-motion, static HTML visibility, and intrinsic layout.
 - Reduced motion, delayed JavaScript, unavailable JavaScript, and back-forward
   restoration must show all content without waiting for animation.
 

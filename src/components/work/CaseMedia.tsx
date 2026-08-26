@@ -6,6 +6,7 @@ import type { WorkMedia } from "@/content/work";
 import { LazyYouTube } from "./LazyYouTube";
 import { WorkDiagram } from "./WorkDiagram";
 import { WorkMediaReveal } from "./WorkMotion";
+import { MediaParallax } from "@/components/motion/MediaParallax";
 
 export type MediaFrame = "edge" | "film" | "window" | "paper";
 export type MediaAspect = "wide" | "editorial" | "portrait" | "cinematic" | "square";
@@ -56,15 +57,17 @@ export function MediaSurface({ media, priority = false, compact = false, inverte
           />
         ) : (
           <div className="relative w-full" style={{ aspectRatio: ratio }} data-media-width={media.width} data-media-height={media.height}>
-            <Image
-              src={media.src}
-              alt={media.alt}
-              fill
-              priority={priority}
-              sizes={compact ? "(min-width: 1024px) 50vw, 100vw" : "(min-width: 1280px) 1180px, 100vw"}
-              className={`work-media-image ${media.fit === "contain" ? "object-contain" : "object-cover"}`}
-              style={media.objectPosition ? { objectPosition: media.objectPosition } : undefined}
-            />
+            <MediaParallax distance={media.fit === "contain" ? 2.75 : compact ? 4.5 : 5.5}>
+              <Image
+                src={media.src}
+                alt={media.alt}
+                fill
+                priority={priority}
+                sizes={compact ? "(min-width: 1024px) 50vw, 100vw" : "(min-width: 1280px) 1180px, 100vw"}
+                className={`work-media-image ${media.fit === "contain" ? "object-contain" : "object-cover"} transition-transform duration-700 ease-out group-hover:scale-[1.025] group-focus-visible:scale-[1.025] motion-reduce:transition-none`}
+                style={media.objectPosition ? { objectPosition: media.objectPosition } : undefined}
+              />
+            </MediaParallax>
           </div>
         )
       ) : null}

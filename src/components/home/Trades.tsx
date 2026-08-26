@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Reveal } from "./reveal";
 import { AmbientField } from "./AmbientField";
 import { INDUSTRY_VISUALS } from "@/content/industry-visuals";
+import { MediaParallax } from "@/components/motion/MediaParallax";
 
 /* The page's photography beat. Every other section argues in type; this one
    shows the rooms and job sites the system actually runs in. Each card is a
@@ -41,13 +42,15 @@ export function Trades() {
               className={i === 0 ? "trades-lead h-full" : "h-full"}
             >
               <Link href={trade.href} className="trade">
-                <Image
-                  src={trade.visual.hero.src}
-                  alt={trade.visual.hero.alt}
-                  fill
-                  sizes={i === 0 ? "(max-width: 900px) 100vw, 60vw" : "(max-width: 900px) 100vw, 33vw"}
-                  className="trade-img"
-                />
+                <MediaParallax distance={i === 0 ? 6 : 4.5}>
+                  <Image
+                    src={trade.visual.hero.src}
+                    alt={trade.visual.hero.alt}
+                    fill
+                    sizes={i === 0 ? "(max-width: 900px) 100vw, 60vw" : "(max-width: 900px) 100vw, 33vw"}
+                    className="trade-img"
+                  />
+                </MediaParallax>
                 <span className="trade-scrim" />
                 <span className="trade-copy">
                   <span className="trade-name">{trade.name}</span>

@@ -183,6 +183,17 @@ for (const viewport of viewports) {
   if (JSON.stringify(cardOrder) !== JSON.stringify(expectedOrder)) failures.push(`${viewport.name}: incorrect public card order ${cardOrder.join(", ")}`);
   const flagshipOrder = await page.locator('[data-work-tier="flagship"] [data-work-card]').evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-work-card")));
   if (JSON.stringify(flagshipOrder) !== JSON.stringify(["work-shelter", "superdebate"])) failures.push(`${viewport.name}: WORK+SHELTER and SuperDebate are not the dedicated flagships`);
+  const imageCards = await page.locator('[data-work-card] [data-media-kind="image"]').count();
+  const parallaxCovers = await page.locator('[data-work-card] [data-media-parallax]').count();
+  if (parallaxCovers !== imageCards) failures.push(`${viewport.name}: expected ${imageCards} parallax image covers, found ${parallaxCovers}`);
+  if (viewport.reducedMotion === "reduce") {
+    const movingLayers = await page.locator('[data-work-card] [data-media-parallax-layer]').evaluateAll((nodes) => nodes.filter((node) => getComputedStyle(node).transform !== "none").length);
+    if (movingLayers) failures.push(`${viewport.name}: ${movingLayers} media parallax layers remained active under reduced motion`);
+  }
+  if (viewport.name === "desktop") {
+    const widths = await page.locator('[data-work-tier="flagship"] [data-work-card]').evaluateAll((nodes) => nodes.map((node) => Math.round(node.getBoundingClientRect().width)));
+    if (widths.length !== 2 || Math.abs(widths[0] - widths[1]) < 80) failures.push(`desktop: flagship grid is not visibly asymmetric (${widths.join(", ")})`);
+  }
   if (await page.locator('[data-work-card="work-shelter"] img[src*="customer-site-hero"]').count() !== 1) failures.push(`${viewport.name}: WORK+SHELTER card is not using the customer-experience cover`);
   if (await page.locator('[data-work-card="superdebate"] img[src*="online-product"]').count() !== 1) failures.push(`${viewport.name}: SuperDebate card is not using the supplied product screen`);
   if (await page.locator('[data-work-card="thrive-protocol"] img[src*="xion"]').count()) failures.push(`${viewport.name}: Thrive card still uses XION imagery`);

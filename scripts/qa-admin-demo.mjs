@@ -16,6 +16,21 @@ const failures = [];
   const launcher = await page.locator('a[href^="/demo/command-center/"][href$="/today"]').count();
   if (launcher !== scenarios.length && !process.argv.includes("--one")) failures.push(`launcher: expected ${scenarios.length} scenario cards, found ${launcher}`);
   if (!await page.getByText("Browser-only fictional workspaces", { exact: false }).count()) failures.push("launcher: missing fictional-data disclosure");
+  const entrances = await page.locator(".admin-demo-enter").evaluateAll((nodes) => nodes.map((node) => ({ name: getComputedStyle(node).animationName, delay: getComputedStyle(node).animationDelay })));
+  if (entrances.length < 9 || entrances.some((item) => !item.name.includes("admin-demo-enter")) || new Set(entrances.map((item) => item.delay)).size < 6) failures.push("launcher: hero and scenario cards do not use a complete staggered entrance sequence");
+  await page.waitForTimeout(1_300);
+  await page.screenshot({ path: `${output}/launcher-desktop.png`, fullPage: true });
+  await context.close();
+}
+
+{
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
+  const page = await context.newPage();
+  await page.goto(`${base}/demo/command-center`, { waitUntil: "domcontentloaded", timeout: 60_000 });
+  const facts = await page.evaluate(() => ({ overflow: document.documentElement.scrollWidth > innerWidth + 2, animated: [...document.querySelectorAll(".admin-demo-enter")].filter((node) => getComputedStyle(node).animationName !== "none").length }));
+  if (facts.overflow) failures.push("launcher mobile: horizontal overflow");
+  if (facts.animated) failures.push(`launcher mobile: ${facts.animated} entrances remained animated under reduced motion`);
+  await page.screenshot({ path: `${output}/launcher-mobile.png`, fullPage: true });
   await context.close();
 }
 

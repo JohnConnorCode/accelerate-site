@@ -575,6 +575,19 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
   from { opacity: 0; transform: translateY(18px); filter: blur(5px); }
   to { opacity: 1; transform: none; filter: none; }
 }
+@keyframes admin-demo-enter {
+  from { opacity: 0; transform: translateY(16px); filter: blur(5px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+.admin-demo-enter { opacity: 1; transform: none; filter: none; }
+.admin-demo-d1 { --admin-demo-delay: 40ms; }
+.admin-demo-d2 { --admin-demo-delay: 120ms; }
+.admin-demo-d3 { --admin-demo-delay: 200ms; }
+.admin-demo-d4 { --admin-demo-delay: 330ms; }
+.admin-demo-d5 { --admin-demo-delay: 440ms; }
+@media (prefers-reduced-motion: no-preference) {
+  .admin-demo-enter { animation: admin-demo-enter .72s var(--ease) var(--admin-demo-delay, 0ms) both; }
+}
 .work-hero-enter,
 .work-hero-meta > * { opacity: 1; transform: none; filter: none; }
 .work-hero-d1 { --work-hero-delay: 60ms; }
@@ -647,6 +660,7 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
 }
 
 @media (prefers-reduced-motion: reduce) {
+  [data-media-parallax-layer] { transform: none !important; }
   .work-reveal,
   .work-reveal > *,
   .work-reveal [data-work-stagger],
@@ -2670,15 +2684,18 @@ summary:focus-visible {
 }
 .trade { position: relative; display: block; height: 100%; min-height: 220px; overflow: hidden; color: var(--paper); transition: transform .18s var(--spring); }
 .trade:active { transform: scale(.985); }
-.trade-img { object-fit: cover; object-position: center; transition: transform .9s var(--ease); }
-.trade:hover .trade-img, .trade:focus-visible .trade-img { transform: scale(1.04); }
-.trade-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11,11,11,.05) 20%, rgba(11,11,11,.78) 100%); }
-.trade-copy { position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 22px 20px; display: flex; flex-direction: column; gap: 6px; }
+.trade-img { object-fit: cover; object-position: center; transition: transform .9s var(--ease), filter .7s var(--ease); }
+.trade:hover .trade-img, .trade:focus-visible .trade-img { transform: scale(1.045); filter: saturate(1.06); }
+.trade-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11,11,11,.03) 16%, rgba(11,11,11,.82) 100%); transition: opacity .5s var(--ease); }
+.trade:hover .trade-scrim, .trade:focus-visible .trade-scrim { opacity: .9; }
+.trade-copy { position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 22px 20px; display: flex; flex-direction: column; gap: 6px; transition: transform .5s var(--spring); }
+.trade:hover .trade-copy, .trade:focus-visible .trade-copy { transform: translateY(-5px); }
 .trade-name { font-family: var(--util); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: rgba(251,251,250,.72); }
 .trade-promise { font-family: var(--display); font-weight: 500; font-size: clamp(18px, 1.8vw, 24px); letter-spacing: -.02em; line-height: 1.2; max-width: 18ch; }
 @media (prefers-reduced-motion: reduce) {
-  .trade-img { transition: none; }
+  .trade-img, .trade-scrim, .trade-copy { transition: none; }
   .trade:hover .trade-img, .trade:focus-visible .trade-img { transform: none; }
+  .trade:hover .trade-copy, .trade:focus-visible .trade-copy { transform: none; }
 }
 
 /* faq accordion (editorial variant — used by the new homepage FAQ) */

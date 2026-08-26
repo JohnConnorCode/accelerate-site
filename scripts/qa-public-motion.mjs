@@ -74,10 +74,12 @@ async function captureRevealEntry(page, selector) {
   await page.waitForFunction((target) => document.querySelector(`${target}.work-reveal-ready:not(.in), ${target}.rv-ready:not(.in)`), selector);
   const handle = await page.locator(`${selector}.work-reveal-ready:not(.in), ${selector}.rv-ready:not(.in)`).first().elementHandle();
   if (!handle) return null;
-  for (let step = 0; step < 240 && !(await handle.evaluate((node) => node.classList.contains("in"))); step += 1) {
+  const maxSteps = await page.evaluate(() => Math.ceil(document.documentElement.scrollHeight / 12) + 100);
+  for (let step = 0; step < maxSteps && !(await handle.evaluate((node) => node.classList.contains("in"))); step += 1) {
     await page.evaluate(() => window.scrollBy(0, 12));
     await page.waitForTimeout(16);
   }
+  if (!(await handle.evaluate((node) => node.classList.contains("in")))) return null;
   return handle.evaluate((node) => {
     const rect = node.getBoundingClientRect();
     return { top: rect.top, ratio: rect.top / innerHeight, height: innerHeight, role: node.getAttribute("data-motion-role") };
@@ -157,6 +159,17 @@ for (const config of [
     if (!homeEntry || homeEntry.ratio > 0.8) failures.push(`${config.label}: homepage content entered too early at ${homeEntry ? Math.round(homeEntry.ratio * 100) : "unknown"}% of viewport height`);
     await page.waitForTimeout(180);
     await page.screenshot({ path: `${output}/${config.label}-home-entry.png`, fullPage: false });
+    const parallaxLayer = page.locator('[data-work-card] [data-media-parallax-layer]').first();
+    if (!await parallaxLayer.count()) failures.push(`${config.label}: homepage Selected Work has no scroll-linked media depth`);
+    else {
+      await parallaxLayer.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(180);
+      const before = await parallaxLayer.evaluate((node) => getComputedStyle(node).transform);
+      await page.mouse.wheel(0, Math.round(config.viewport.height * 0.45));
+      await page.waitForTimeout(320);
+      const after = await parallaxLayer.evaluate((node) => getComputedStyle(node).transform);
+      if (before === after) failures.push(`${config.label}: homepage media parallax did not respond to scroll`);
+    }
   }
 
   if (config.label === "mobile") {
