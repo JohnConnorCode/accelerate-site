@@ -43,13 +43,26 @@ async function inspectRoute(page, route, label, scrollDelay) {
 
   await page.evaluate(async (delayMs) => {
     const pause = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
-    for (let y = 0; y < document.body.scrollHeight; y += Math.max(220, Math.floor(window.innerHeight * 0.55))) {
-      window.scrollTo(0, y);
-      await pause(delayMs);
+    let previousHeight = 0;
+    for (let pass = 0; pass < 4; pass += 1) {
+      const targetHeight = document.body.scrollHeight;
+      for (let y = pass === 0 ? 0 : window.scrollY; y < targetHeight; y += Math.max(220, Math.floor(window.innerHeight * 0.55))) {
+        window.scrollTo(0, y);
+        await pause(delayMs);
+      }
+      window.scrollTo(0, document.body.scrollHeight);
+      await pause(250);
+      const currentHeight = document.body.scrollHeight;
+      const atBottom = window.scrollY + window.innerHeight >= currentHeight - 2;
+      if (atBottom && currentHeight === previousHeight) break;
+      previousHeight = currentHeight;
     }
-    window.scrollTo(0, document.body.scrollHeight);
-    await pause(550);
+    await pause(300);
   }, scrollDelay);
+  await page.waitForFunction(() => ![...document.querySelectorAll(".rv.rv-ready:not(.in), .item-rv.rv-ready:not(.in), .section-reveal.rv-ready:not(.in)")].some((node) => {
+    const rect = node.getBoundingClientRect();
+    return rect.top < innerHeight + 40 && rect.bottom > -40 && Number.parseFloat(getComputedStyle(node).opacity) < 0.9;
+  }), null, { timeout: 2_000 }).catch(() => null);
   const stranded = await page.locator(".rv.rv-ready:not(.in), .item-rv.rv-ready:not(.in), .section-reveal.rv-ready:not(.in)").evaluateAll((nodes) => nodes.filter((node) => {
     const rect = node.getBoundingClientRect();
     return rect.top < innerHeight + 40 && rect.bottom > -40 && Number.parseFloat(getComputedStyle(node).opacity) < 0.9;
