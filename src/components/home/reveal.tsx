@@ -11,7 +11,7 @@ import { useRevealLifecycle } from "@/components/motion/useReveal";
  */
 export function useRv<T extends HTMLElement = HTMLElement>(
   threshold = 0.02,
-  rootMargin = "0px 0px 40px 0px"
+  rootMargin = "0px 0px -22% 0px"
 ) {
   return useRevealLifecycle<T>({ threshold, rootMargin });
 }

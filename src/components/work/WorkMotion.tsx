@@ -8,10 +8,10 @@ type WorkMotionRole = "group" | "heading" | "copy" | "card" | "proof" | "cta" | 
 function WorkMotion({ children, className = "", delay = 0, role, media = false }: { children: ReactNode; className?: string; delay?: number; role: WorkMotionRole; media?: boolean }) {
   const ref = useRevealLifecycle<HTMLDivElement>({
     threshold: 0.04,
-    rootMargin: "0px 0px -10% 0px",
+    rootMargin: "0px 0px -24% 0px",
     readyClass: "work-reveal-ready",
     initialViewport: "animate",
-    triggerRatio: 0.9,
+    triggerRatio: 0.76,
   });
   return (
     <div

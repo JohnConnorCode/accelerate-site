@@ -64,34 +64,34 @@ export function CaseStudy({ project }: { project: WorkProject }) {
       <section className="relative overflow-hidden border-b border-[var(--rule)] pb-[clamp(3rem,8vw,7rem)] pt-[clamp(3rem,7vw,6rem)]">
         <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[34vw] opacity-[0.055] lg:block [background-image:linear-gradient(var(--case-accent)_1px,transparent_1px),linear-gradient(90deg,var(--case-accent)_1px,transparent_1px)] [background-size:var(--case-grid)_var(--case-grid)]" aria-hidden="true" />
         <Container>
-          <WorkReveal role="copy">
+          <div className="work-hero-enter work-hero-d1">
             <nav aria-label="Breadcrumb" className="mb-10 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--mid)]">
               <ol className="flex flex-wrap items-center gap-x-2"><li><Link className="inline-flex min-h-10 min-w-10 items-center justify-center" href="/">Home</Link></li><li aria-hidden="true">/</li><li><Link className="inline-flex min-h-10 min-w-10 items-center justify-center" href="/work">Work</Link></li><li aria-hidden="true">/</li><li className="text-[var(--mid)]" aria-current="page">{project.name}</li></ol>
             </nav>
-          </WorkReveal>
+          </div>
           {project.visibility === "archived" ? (
-            <WorkReveal role="proof">
+            <div className="work-hero-enter work-hero-d2">
               <aside className="mb-10 grid gap-3 border-y border-[var(--rule)] py-5 md:grid-cols-[10rem_minmax(0,1fr)]" aria-label="Portfolio archive note">
                 <Eyebrow>Portfolio archive</Eyebrow>
                 <p className="max-w-[68ch] text-pretty text-sm leading-6 text-[var(--mid)]">This prior team project is preserved for direct reference. It is not part of Accelerate&apos;s current selected-work lineup.</p>
               </aside>
-            </WorkReveal>
+            </div>
           ) : null}
           <div className="relative grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,.58fr)] lg:items-end">
             <div>
-              <WorkReveal><Eyebrow className="mb-7">{project.category}</Eyebrow></WorkReveal>
-              <RevealHeading lead={project.cardHeadline} as="h1" delay={0.08} stagger={0.045} className="max-w-[13ch] text-balance font-display text-[clamp(3rem,7vw,7rem)] font-medium leading-[0.88] tracking-[-0.065em] text-[var(--fg)]" />
-              <WorkReveal delay={0.16}><p className="mt-8 max-w-[58ch] text-pretty text-[1.05rem] leading-8 text-[var(--mid)]">{project.cardDescription}</p></WorkReveal>
+              <div className="work-hero-enter work-hero-d2"><Eyebrow className="mb-7">{project.category}</Eyebrow></div>
+              <RevealHeading lead={project.cardHeadline} as="h1" delay={0.14} stagger={0.05} className="max-w-[13ch] text-balance font-display text-[clamp(3rem,7vw,7rem)] font-medium leading-[0.88] tracking-[-0.065em] text-[var(--fg)]" />
+              <p className="work-hero-enter work-hero-d5 mt-8 max-w-[58ch] text-pretty text-[1.05rem] leading-8 text-[var(--mid)]">{project.cardDescription}</p>
             </div>
-            <WorkReveal delay={0.2}>
-            <dl className="grid border-t-2 border-[var(--case-accent)] font-mono text-[10px] uppercase tracking-[0.11em] sm:grid-cols-2 lg:grid-cols-1">
+            <div>
+            <dl className="work-hero-meta grid border-t-2 border-[var(--case-accent)] font-mono text-[10px] uppercase tracking-[0.11em] sm:grid-cols-2 lg:grid-cols-1">
               <div className="border-b border-[var(--rule)] py-4"><dt className="text-[var(--mid)]">Industry</dt><dd className="mt-2 text-[var(--fg)]">{project.industry}</dd></div>
               <div className="border-b border-[var(--rule)] py-4"><dt className="text-[var(--mid)]">Role</dt><dd className="mt-2 text-[var(--fg)]">{project.role}</dd></div>
               <div className="border-b border-[var(--rule)] py-4"><dt className="text-[var(--mid)]">Relationship</dt><dd className="mt-2 text-[var(--fg)]">{project.relationship}</dd></div>
               <div className="border-b border-[var(--rule)] py-4"><dt className="text-[var(--mid)]">Period</dt><dd className="mt-2 text-[var(--fg)]">{project.timeline}</dd></div>
               {project.proof ? <div className="border-b border-[var(--rule)] py-4 sm:col-span-2 lg:col-span-1"><dt className="text-[var(--mid)]">{project.proofLabel ?? "Documented proof"}</dt><dd className="mt-2 tabular-nums text-[var(--fg)]">{project.proof}</dd></div> : null}
             </dl>
-            </WorkReveal>
+            </div>
           </div>
         </Container>
       </section>
@@ -133,8 +133,7 @@ export function CaseStudy({ project }: { project: WorkProject }) {
 
       <section className="bg-[var(--case-surface)] py-[clamp(4rem,8vw,8rem)]">
         <Container width="narrow">
-          <WorkReveal role="proof">
-          <div>
+          <WorkReveal role="group">
             <Eyebrow className="mb-6">What this carries forward</Eyebrow>
             <p className="max-w-[42ch] text-balance font-display text-[clamp(2rem,4.5vw,4.3rem)] font-medium leading-[0.96] tracking-[-0.05em] text-[var(--fg)]">{project.carryForward}</p>
             <div className="mt-10 flex flex-wrap gap-2">{project.capabilities.map((capability) => <span key={capability} className="border border-[var(--rule)] bg-[var(--bg)] px-3 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--mid)]">{capability}</span>)}</div>
@@ -150,21 +149,20 @@ export function CaseStudy({ project }: { project: WorkProject }) {
                 </div>
               </div>
             ) : null}
-          </div>
           </WorkReveal>
         </Container>
       </section>
 
       <section className="border-t border-[var(--rule)] py-[clamp(4rem,8vw,8rem)]">
         <Container>
-          <WorkReveal role="heading"><div className="flex flex-wrap items-end justify-between gap-6"><div><Eyebrow className="mb-4">More selected work</Eyebrow><h2 className="max-w-[18ch] text-balance font-display text-[clamp(2rem,4vw,4rem)] font-medium leading-[0.94] tracking-[-0.05em]">More systems built around how the business works.</h2></div><Link href="/work" className="btn btn-sm min-h-11">See all work <span aria-hidden="true" className="arw">→</span></Link></div></WorkReveal>
+          <WorkReveal role="group" className="flex flex-wrap items-end justify-between gap-6"><div><Eyebrow className="mb-4">More selected work</Eyebrow><h2 className="max-w-[18ch] text-balance font-display text-[clamp(2rem,4vw,4rem)] font-medium leading-[0.94] tracking-[-0.05em]">More systems built around how the business works.</h2></div><Link href="/work" className="btn btn-sm min-h-11">See all work <span aria-hidden="true" className="arw">→</span></Link></WorkReveal>
           <div className="mt-12 grid gap-x-8 lg:grid-cols-2">{related.map((item) => <WorkCard key={item.slug} project={item} />)}</div>
         </Container>
       </section>
 
       <section className="bg-[var(--fg)] py-[clamp(4rem,8vw,8rem)] text-[var(--bg)]">
         <Container>
-          <WorkReveal role="cta">
+          <WorkReveal role="group">
             <Eyebrow className="mb-6 !text-[var(--bg)]">Have a similar constraint?</Eyebrow>
             <h2 className="max-w-[14ch] text-balance font-display text-[clamp(2.8rem,6vw,6rem)] font-medium leading-[0.9] tracking-[-0.06em]">Tell us how the work runs today.</h2>
             <p className="mt-7 max-w-[62ch] text-pretty text-[1rem] leading-8 text-[color-mix(in_srgb,var(--bg)_72%,transparent)]">We will help determine whether the answer is AI, automation, better software, a simpler process, or something else.</p>

@@ -58,7 +58,8 @@ for (const viewport of viewports) {
           await page.waitForTimeout(140);
         }
         const entry = await pendingElement?.evaluate((node) => {
-          const animationTarget = node.getAttribute("data-motion-role") === "group" ? node.firstElementChild : node;
+          const role = node.getAttribute("data-motion-role");
+          const animationTarget = role === "group" ? node.firstElementChild : role === "card" ? node.querySelector("[data-work-stagger]") : node;
           return { state: node.getAttribute("data-reveal-state"), animation: animationTarget ? getComputedStyle(animationTarget).animationName : "none" };
         }) ?? { state: "missing", animation: "none" };
         if (entry.state !== "visible" || !entry.animation.startsWith("work-")) failures.push(`${viewport.name} ${route}: Work entrance did not trigger at viewport entry (${entry.state}/${entry.animation})`);
@@ -161,7 +162,8 @@ for (const viewport of viewports) {
       if (viewport.reducedMotion === "no-preference") {
         const unanimatedWork = await page.evaluate(() => [...document.querySelectorAll("[data-work-reveal], [data-work-media-reveal]")].filter((node) => {
           if (!node.classList.contains("in") || node.getAttribute("data-reveal-state") !== "visible") return true;
-          const animationTarget = node.getAttribute("data-motion-role") === "group" ? node.firstElementChild : node;
+          const role = node.getAttribute("data-motion-role");
+          const animationTarget = role === "group" ? node.firstElementChild : role === "card" ? node.querySelector("[data-work-stagger]") : node;
           return !animationTarget || !getComputedStyle(animationTarget).animationName.startsWith("work-");
         }).length);
         if (unanimatedWork) failures.push(`${viewport.name} ${route}: ${unanimatedWork} Work elements completed without a Work entrance animation`);

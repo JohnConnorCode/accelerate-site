@@ -70,6 +70,20 @@ async function inspectRoute(page, route, label, scrollDelay) {
   if (stranded) failures.push(`${label} ${route}: ${stranded} reveal elements remained stranded after traversal`);
 }
 
+async function captureRevealEntry(page, selector) {
+  await page.waitForFunction((target) => document.querySelector(`${target}.work-reveal-ready:not(.in), ${target}.rv-ready:not(.in)`), selector);
+  const handle = await page.locator(`${selector}.work-reveal-ready:not(.in), ${selector}.rv-ready:not(.in)`).first().elementHandle();
+  if (!handle) return null;
+  for (let step = 0; step < 240 && !(await handle.evaluate((node) => node.classList.contains("in"))); step += 1) {
+    await page.evaluate(() => window.scrollBy(0, 12));
+    await page.waitForTimeout(16);
+  }
+  return handle.evaluate((node) => {
+    const rect = node.getBoundingClientRect();
+    return { top: rect.top, ratio: rect.top / innerHeight, height: innerHeight, role: node.getAttribute("data-motion-role") };
+  });
+}
+
 for (const config of [
   { label: "mobile", viewport: { width: 390, height: 844 }, reducedMotion: "no-preference" },
   { label: "reduced", viewport: { width: 430, height: 932 }, reducedMotion: "reduce" },
@@ -92,6 +106,14 @@ for (const config of [
   if (config.reducedMotion === "no-preference") {
     const headingAnimation = await page.locator(".word-mask-word > span").first().evaluate((node) => getComputedStyle(node).animationName);
     if (!headingAnimation.includes("word-mask-entry")) failures.push(`${config.label}: heading entrance animation is not active`);
+    const indexHeroSequence = await page.locator(".work-hero-enter").evaluateAll((nodes) => nodes.map((node) => ({ name: getComputedStyle(node).animationName, delay: getComputedStyle(node).animationDelay })));
+    if (indexHeroSequence.length < 4 || new Set(indexHeroSequence.map((item) => item.delay)).size !== indexHeroSequence.length || indexHeroSequence.some((item) => !item.name.includes("work-hero-in"))) failures.push(`${config.label}: Work hero items are not individually staggered`);
+    const cardEntry = await captureRevealEntry(page, '[data-motion-role="card"]');
+    if (!cardEntry || cardEntry.ratio > 0.8) failures.push(`${config.label}: Work card entered too early at ${cardEntry ? Math.round(cardEntry.ratio * 100) : "unknown"}% of viewport height`);
+    const cardStagger = await page.locator('[data-motion-role="card"].in [data-work-stagger]').first().locator("xpath=..").locator("[data-work-stagger]").evaluateAll((nodes) => nodes.map((node) => ({ name: getComputedStyle(node).animationName, delay: getComputedStyle(node).animationDelay })));
+    if (cardStagger.length < 5 || new Set(cardStagger.map((item) => item.delay)).size < 5 || cardStagger.some((item) => !item.name.includes("work-reveal-in"))) failures.push(`${config.label}: Work card does not use five visible stagger steps`);
+    await page.waitForTimeout(180);
+    await page.screenshot({ path: `${output}/${config.label}-work-card-entry.png`, fullPage: false });
     const pendingLocator = page.locator(".work-reveal.work-reveal-ready:not(.in)").first();
     const pending = await pendingLocator.count() ? await pendingLocator.elementHandle() : null;
     if (pending) {
@@ -100,7 +122,11 @@ for (const config of [
         await page.waitForTimeout(140);
       }
       await page.waitForTimeout(100);
-      const revealFacts = await pending.evaluate((node) => ({ state: node.getAttribute("data-reveal-state"), animation: getComputedStyle(node.getAttribute("data-motion-role") === "group" ? node.firstElementChild : node).animationName }));
+      const revealFacts = await pending.evaluate((node) => {
+        const role = node.getAttribute("data-motion-role");
+        const animatedNode = role === "group" ? node.firstElementChild : role === "card" ? node.querySelector("[data-work-stagger]") : node;
+        return { state: node.getAttribute("data-reveal-state"), animation: animatedNode ? getComputedStyle(animatedNode).animationName : "none" };
+      });
       if (revealFacts.state !== "visible" || !revealFacts.animation.startsWith("work-")) failures.push(`${config.label}: below-fold Work content did not animate at viewport entry`);
     } else failures.push(`${config.label}: no below-fold reveal remained armed for viewport entry`);
   }
@@ -110,9 +136,28 @@ for (const config of [
   const linkedRouteFacts = await page.locator("[data-route-entry]").evaluate((node) => ({ opacity: Number.parseFloat(getComputedStyle(node).opacity), animation: getComputedStyle(node).animationName }));
   if (linkedRouteFacts.opacity < 0.9) failures.push(`${config.label}: client-side Work navigation produced a hidden incoming route`);
   if (config.reducedMotion === "no-preference" && !linkedRouteFacts.animation.includes("route-entry-in")) failures.push(`${config.label}: client-side route entrance animation is not active`);
+  if (config.reducedMotion === "no-preference") {
+    const heroSequence = await page.locator(".work-hero-enter, .work-hero-meta > *").evaluateAll((nodes) => nodes.map((node) => ({ name: getComputedStyle(node).animationName, delay: Number.parseFloat(getComputedStyle(node).animationDelay) })));
+    const orderedDelays = [...heroSequence].map((item) => item.delay).sort((a, b) => a - b);
+    if (heroSequence.length < 8 || heroSequence.some((item) => !item.name.includes("work-hero-in")) || new Set(orderedDelays).size < 5) failures.push(`${config.label}: case hero is not split into a coherent stagger sequence`);
+    const mediaEntry = await captureRevealEntry(page, '[data-motion-role="media"]');
+    if (!mediaEntry || mediaEntry.ratio > 0.8) failures.push(`${config.label}: case media entered too early at ${mediaEntry ? Math.round(mediaEntry.ratio * 100) : "unknown"}% of viewport height`);
+    await page.waitForTimeout(180);
+    await page.screenshot({ path: `${output}/${config.label}-case-media-entry.png`, fullPage: false });
+  }
   await page.goBack({ waitUntil: "domcontentloaded" });
   await page.goForward({ waitUntil: "domcontentloaded" });
   if (await page.locator("[data-route-entry]").evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity)) < 0.9) failures.push(`${config.label}: back-forward navigation produced hidden content`);
+
+  if (config.reducedMotion === "no-preference") {
+    await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded" });
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(50);
+    const homeEntry = await captureRevealEntry(page, ".rv");
+    if (!homeEntry || homeEntry.ratio > 0.8) failures.push(`${config.label}: homepage content entered too early at ${homeEntry ? Math.round(homeEntry.ratio * 100) : "unknown"}% of viewport height`);
+    await page.waitForTimeout(180);
+    await page.screenshot({ path: `${output}/${config.label}-home-entry.png`, fullPage: false });
+  }
 
   if (config.label === "mobile") {
     await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded" });

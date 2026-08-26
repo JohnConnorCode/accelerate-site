@@ -12,10 +12,10 @@ export interface RevealLifecycleOptions {
 
 export function useRevealLifecycle<T extends HTMLElement>({
   threshold = 0.02,
-  rootMargin = "0px 0px 40px 0px",
+  rootMargin = "0px 0px -22% 0px",
   readyClass = "rv-ready",
   initialViewport = "immediate",
-  triggerRatio = 1,
+  triggerRatio = 0.78,
 }: RevealLifecycleOptions = {}) {
   const ref = useRef<T>(null);
 
@@ -47,7 +47,8 @@ export function useRevealLifecycle<T extends HTMLElement>({
       window.removeEventListener("resize", revealIfEntered);
     };
     const revealIfEntered = () => {
-      if (element.getBoundingClientRect().top < window.innerHeight * triggerRatio + 40) reveal();
+      const atDocumentEnd = window.scrollY > 0 && window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+      if (element.getBoundingClientRect().top <= window.innerHeight * triggerRatio || atDocumentEnd) reveal();
     };
     const observer = new IntersectionObserver(
       (entries) => { if (entries[0]?.isIntersecting) reveal(); },
