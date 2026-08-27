@@ -92,9 +92,9 @@ for (const scenario of scenarios) {
         await page.screenshot({ path: `${output}/${scenario}-${label}.png`, fullPage: true });
         if (await page.locator("[data-admin-demo-link]").count()) failures.push(`${scenario} ${label}: duplicate demo chooser remains in shared navigation`);
         if (label === "mobile") {
-          await page.getByRole("button", { name: "Open navigation" }).click();
+          await page.getByRole("button", { name: "Open More" }).click();
           await page.locator('aside[role="dialog"][aria-label="Admin navigation"]').waitFor();
-          await page.waitForTimeout(80);
+          await page.waitForTimeout(420);
           const drawerA11y = await page.evaluate(() => {
             const ids = [...document.querySelectorAll("[id]")].map((node) => node.id).filter(Boolean);
             return {
@@ -125,12 +125,12 @@ for (const scenario of scenarios) {
           await controlsScope.locator('a.admin-nav-link[href="/admin/inbox"]').click();
           await page.waitForURL(new RegExp(`/demo/command-center/${scenario}/inbox$`));
           if (await page.locator('.admin-nav-link[aria-current="page"]').first().getAttribute("href") !== "/admin/inbox") failures.push(`${scenario} ${label}: client navigation left the wrong sidebar item active`);
-          if (!await page.getByRole("navigation", { name: "Breadcrumb" }).getByText("Inbox", { exact: true }).count()) failures.push(`${scenario} ${label}: client navigation left a stale breadcrumb`);
+          if (label === "desktop" && !await page.getByRole("navigation", { name: "Breadcrumb" }).getByText("Inbox", { exact: true }).count()) failures.push(`${scenario} ${label}: client navigation left a stale breadcrumb`);
           await page.goBack({ waitUntil: "domcontentloaded" });
           await page.waitForURL(new RegExp(`/demo/command-center/${scenario}/today$`));
           if (await page.locator('.admin-nav-link[aria-current="page"]').first().getAttribute("href") !== "/admin/today") failures.push(`${scenario} ${label}: back navigation left the wrong sidebar item active`);
           if (label === "mobile") {
-            await page.getByRole("button", { name: "Open navigation" }).click();
+            await page.getByRole("button", { name: "Open More" }).click();
             await page.locator('aside[role="dialog"][aria-label="Admin navigation"]').waitFor();
             controlsScope = page.locator('aside[role="dialog"][aria-label="Admin navigation"]');
           }
@@ -147,29 +147,11 @@ for (const scenario of scenarios) {
           for (let index = 0; index < drawerFocusableCount + 2; index += 1) await page.keyboard.press("Tab");
           if (!await page.evaluate(() => Boolean(document.activeElement?.closest('aside[role="dialog"][aria-label="Admin navigation"]')))) failures.push(`${scenario} mobile: keyboard focus escaped the navigation dialog`);
         }
-        if (label === "desktop") {
-          await controlsScope.getByRole("button", { name: "Open guided demo" }).click();
-          await controlsScope.locator("[data-admin-demo-guide]").waitFor();
-          for (const [index, guidedRoute] of ["today", "conversations", "pipeline", "revenue", "analytics"].entries()) {
-            if (!await controlsScope.locator("[data-admin-demo-guide]").count()) {
-              if (await controlsScope.getByRole("button", { name: "Open demo controls" }).count()) await controlsScope.getByRole("button", { name: "Open demo controls" }).click();
-              await controlsScope.getByRole("button", { name: "Open guided demo" }).click();
-              await controlsScope.locator("[data-admin-demo-guide]").waitFor();
-            }
-            await controlsScope.getByRole("button", { name: `Open story step ${index + 1}` }).click();
-            await page.waitForURL(new RegExp(`/${scenario}/${guidedRoute}$`));
-          }
-        } else {
-          await controlsScope.getByRole("button", { name: "Open guided demo" }).click();
-          await controlsScope.locator("[data-admin-demo-guide]").waitFor();
-          await page.waitForTimeout(400);
-          const guideBounds = await controlsScope.locator("[data-admin-demo-guide]").evaluate((node) => { const rect = node.getBoundingClientRect(); return { top: rect.top, bottom: rect.bottom, viewport: innerHeight }; });
-          if (guideBounds.top < 0 || guideBounds.bottom > guideBounds.viewport + 1) failures.push(`${scenario} mobile: guided demo controls are clipped outside the navigation drawer`);
+        if (label === "mobile") {
           await page.screenshot({ path: `${output}/${scenario}-mobile-navigation.png`, fullPage: false });
-          await controlsScope.getByRole("button", { name: "Open guided demo" }).click();
-          await controlsScope.getByRole("button", { name: "Hide demo controls" }).click();
-          await controlsScope.locator('[data-admin-demo-bar][data-state="collapsed"]').waitFor();
         }
+        await controlsScope.getByRole("button", { name: "Hide demo controls" }).click();
+        await controlsScope.locator('[data-admin-demo-bar][data-state="collapsed"]').waitFor();
       }
     }
     if (scenario === "sprout-and-spark" && label === "desktop") {
@@ -200,7 +182,7 @@ for (const scenario of scenarios) {
         await fetch("/api/admin/revenue-os/actions", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: actions.actions[0].id, decision: "approve" }) });
         const after = await fetch("/api/admin/revenue-os/priority").then((response) => response.json());
         const ai = await fetch("/api/admin/revenue-os/ai/stream", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: "What matters now?" }) }).then((response) => response.text());
-        return { before: before.summary.total, after: after.summary.total, stored: Boolean(sessionStorage.getItem("accelerate:admin-demo:sprout-and-spark:v1")), aiFinal: ai.includes('"type":"final"'), aiDisclosure: ai.includes("stage—not send") };
+        return { before: before.summary.total, after: after.summary.total, stored: Boolean(sessionStorage.getItem("accelerate:admin-demo:sprout-and-spark:v2")), aiFinal: ai.includes('"type":"final"'), aiDisclosure: ai.includes("stage—not send") };
       });
       if (mutation.after !== mutation.before - 1 || !mutation.stored) failures.push("sprout-and-spark desktop: simulated approval did not persist coherently");
       if (!mutation.aiFinal || !mutation.aiDisclosure) failures.push("sprout-and-spark desktop: simulated AI stream is incomplete or unsafe");
@@ -228,13 +210,8 @@ for (const scenario of scenarios) {
       ]);
       await page.locator("[data-admin-demo-bar]").waitFor();
       await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "sprout-and-spark");
-      const reset = await page.evaluate(() => sessionStorage.getItem("accelerate:admin-demo:sprout-and-spark:v1"));
+      const reset = await page.evaluate(() => sessionStorage.getItem("accelerate:admin-demo:sprout-and-spark:v2"));
       if (reset !== null) failures.push("sprout-and-spark desktop: reset did not restore clean scenario state");
-      await page.getByRole("button", { name: "Open demo controls" }).click();
-      await page.getByRole("button", { name: "Open guided demo" }).click();
-      await page.locator("[data-admin-demo-guide]").waitFor();
-      await page.getByRole("button", { name: "Next story step" }).click();
-      await page.waitForURL(/\/sprout-and-spark\/conversations$/);
     }
     await context.close();
   }

@@ -8,9 +8,10 @@ interface PageHeaderProps {
   title: string;
   subtitle?: string;
   actions?: React.ReactNode;
+  eyebrow?: string;
 }
 
-export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, actions, eyebrow }: PageHeaderProps) {
   const reduceMotion = useReducedMotion();
   useEffect(() => {
     document.title = `${title} | Accelerate Admin`;
@@ -19,7 +20,7 @@ export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
   return (
     <motion.div variants={adminHeaderVariants} initial={reduceMotion ? false : "hidden"} animate="visible" className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
       <div className="min-w-0">
-        <motion.p variants={adminHeaderItemVariants} className="admin-eyebrow">Accelerate operations</motion.p>
+        {eyebrow && <motion.p variants={adminHeaderItemVariants} className="admin-eyebrow">{eyebrow}</motion.p>}
         <motion.h1 variants={adminHeaderItemVariants} className="admin-page-title">
           {title}
         </motion.h1>

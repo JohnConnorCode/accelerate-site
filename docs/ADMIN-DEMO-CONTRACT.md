@@ -23,8 +23,10 @@ appearance system, dialogs, responsive behavior, and client operation surface.
 Never create a parallel demo dashboard or copy an admin page into a demo folder.
 
 Each fictional business is a versioned scenario pack containing tenant-facing
-configuration, enabled capabilities, normalized records, a guided story, and
-validation assertions. Each pack also has a distinct animated mark rendered by
+configuration, enabled capabilities, normalized records, exploration highlights,
+and validation assertions. Guided tours are optional product behavior and are
+currently disabled; opening a workspace must always allow immediate free
+exploration. Each pack also has a distinct animated mark rendered by
 the shared scenario-logo primitive in the launcher, shell, and safety controls.
 The shared demo engine owns reads and simulated writes.
 A scenario pack must not implement its own UI, fetch handlers, pipeline rules,

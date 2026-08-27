@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowUpRight, Check, ShieldCheck } from "lucide-react";
 import { DEMO_SCENARIO_SUMMARIES } from "@/lib/admin/demo/scenarios";
 import { DemoScenarioMark } from "@/components/admin/DemoScenarioMark";
+import { DemoWorkspacePreview } from "@/components/admin/DemoWorkspacePreview";
 
 export const metadata: Metadata = {
   title: "Command Center Demo Workspaces",
@@ -65,13 +66,18 @@ export default function AdminDemoLauncher() {
                     <h3 className="mt-2 max-w-[18ch] text-balance font-display text-[clamp(1.75rem,2.5vw,2.5rem)] font-semibold leading-[0.96] tracking-[-0.045em]">{scenario.name}</h3>
                     <p className="mt-4 max-w-[42ch] text-pretty text-sm leading-6 text-black/56">{scenario.description}</p>
 
-                    <ul className="mt-6 space-y-2.5 border-t border-black/10 pt-5">
-                      {scenario.story.slice(0, 3).map((step) => (
+                    <DemoWorkspacePreview scenarioId={scenario.id} />
+
+                    <div className="mt-5 border-t border-black/10 pt-4">
+                      <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-black/38">Inside this workspace</p>
+                      <ul className="mt-3 space-y-2.5">
+                      {scenario.story.slice(0, 2).map((step) => (
                         <li key={step} className="flex gap-2.5 text-xs leading-5 text-black/62">
                           <Check className="mt-0.5 size-3.5 shrink-0" style={{ color: scenario.accent }} />{step}
                         </li>
                       ))}
-                    </ul>
+                      </ul>
+                    </div>
 
                     <span className="mt-auto flex min-h-12 items-center justify-between border-t border-black/12 pt-5 text-sm font-semibold">
                       Explore workspace

@@ -236,6 +236,10 @@ export function loadLastPipelineView(): PipelineViewState {
   return normalizeState(readJson(LAST_VIEW_KEY));
 }
 
+export function hasLastPipelineView(): boolean {
+  return typeof window !== "undefined" && window.localStorage.getItem(LAST_VIEW_KEY) !== null;
+}
+
 export function saveLastPipelineView(state: PipelineViewState): void {
   writeJson(LAST_VIEW_KEY, normalizeState(state));
 }

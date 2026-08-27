@@ -8,7 +8,7 @@ import { AdminSurface } from "@/components/admin/AdminSurface";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { fetchJson } from "@/lib/admin/fetchJson";
-import { DEFAULT_PIPELINE_VIEW, PIPELINE_VISIBLE_FIELDS, SYSTEM_PIPELINE_VIEWS, applyPipelineView, countPipelineSystemViews, loadLastPipelineView, loadSavedPipelineViews, removePipelineView, saveLastPipelineView, savePipelineView, type PipelineViewState, type PipelineVisibleField, type SavedPipelineView } from "@/lib/admin/pipelineViews";
+import { DEFAULT_PIPELINE_VIEW, PIPELINE_VISIBLE_FIELDS, SYSTEM_PIPELINE_VIEWS, applyPipelineView, countPipelineSystemViews, hasLastPipelineView, loadLastPipelineView, loadSavedPipelineViews, removePipelineView, saveLastPipelineView, savePipelineView, type PipelineViewState, type PipelineVisibleField, type SavedPipelineView } from "@/lib/admin/pipelineViews";
 import { REVENUE_STAGE_META, REVENUE_STAGES, type RevenueStage } from "@/lib/revenue-os/types";
 import { cn } from "@/lib/utils";
 
@@ -43,9 +43,10 @@ export default function PipelinePage() {
   useEffect(() => { void load(); }, [load]);
   useEffect(() => {
     const restored = loadLastPipelineView();
+    const deviceDefault = !hasLastPipelineView() && window.matchMedia("(max-width: 767px)").matches ? { ...restored, layout: "list" as const } : restored;
     const params = new URLSearchParams(window.location.search);
     const query = params.get("opportunity")?.trim() || params.get("search")?.trim();
-    setState(query ? { ...restored, systemView: "all", stage: "all", owner: "all", search: query } : restored);
+    setState(query ? { ...deviceDefault, systemView: "all", stage: "all", owner: "all", search: query } : deviceDefault);
     setSaved(loadSavedPipelineViews()); setReady(true);
   }, []);
   useEffect(() => { if (ready) saveLastPipelineView(state); }, [ready, state]);

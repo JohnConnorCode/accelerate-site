@@ -1,4 +1,5 @@
 import type { TenantConfig } from "@/config/tenant";
+import { HARBORLINE_PROFILE, NORTHLINE_PROFILE, SPROUT_PROFILE, type DemoScenarioContentProfile } from "./scenario-profiles";
 
 export type DemoScenarioId = "sprout-and-spark" | "northline-roofing" | "harborline-growth";
 export type DemoAppearance = "light" | "dark" | "signal" | "studio" | "frost";
@@ -20,13 +21,14 @@ interface DemoTask { id: string; title: string; personId: string; dueOffset: num
 interface DemoAction { id: string; title: string; personId: string; type: string; description: string; body?: string }
 
 export interface DemoScenarioPack extends DemoScenarioSummary {
-  version: 1;
+  version: 2;
   tenant: TenantConfig;
   people: DemoPerson[];
   opportunities: DemoOpportunity[];
   conversations: DemoConversation[];
   tasks: DemoTask[];
   actions: DemoAction[];
+  content: DemoScenarioContentProfile;
 }
 
 const UUIDS = Array.from({ length: 80 }, (_, index) => `00000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`);
@@ -43,18 +45,19 @@ function tenant(name: string, domain: string, founder: string, industry: string,
   };
 }
 
-const peopleNames = [
-  ["Avery Morgan", "avery"], ["Jordan Lee", "jordan"], ["Casey Patel", "casey"], ["Morgan Brooks", "morgan"],
-  ["Taylor Nguyen", "taylor"], ["Riley Carter", "riley"], ["Jamie Ortiz", "jamie"], ["Parker Kim", "parker"],
-  ["Cameron Reed", "cameron"], ["Drew Sullivan", "drew"], ["Quinn Bailey", "quinn"], ["Alexis Rivera", "alexis"],
-] as const;
+const CONTENT_PROFILES: Record<DemoScenarioId, DemoScenarioContentProfile> = {
+  "sprout-and-spark": SPROUT_PROFILE,
+  "northline-roofing": NORTHLINE_PROFILE,
+  "harborline-growth": HARBORLINE_PROFILE,
+};
 
-function supportingPeople(domain: string, companyLabel: string, start: number): DemoPerson[] {
-  return Array.from({ length: 28 }, (_, index) => {
-    const [name, email] = peopleNames[index % peopleNames.length]!;
-    const suffix = index >= peopleNames.length ? String(Math.floor(index / peopleNames.length) + 1) : "";
-    return { id: UUIDS[start + index]!, name: `${name}${suffix ? ` ${suffix}` : ""}`, email: `${email}${suffix}@${domain}`, phone: `(312) 555-${String(1100 + index).slice(-4)}`, company: `${companyLabel} ${index + 1}`, role: index % 5 === 0 ? "Community partner" : "Primary contact" };
-  });
+function slug(value: string) { return value.toLowerCase().replace(/[^a-z0-9]+/g, ".").replace(/^\.|\.$/g, ""); }
+
+function supportingPeople(profile: DemoScenarioContentProfile, domain: string, start: number): DemoPerson[] {
+  return profile.supportingPeople.map((item, index) => ({
+    id: UUIDS[start + index]!, name: item.name, email: `${slug(item.name)}@${domain}`,
+    phone: `(312) 555-${String(1100 + index).slice(-4)}`, company: item.company, role: item.role,
+  }));
 }
 
 function makePack(input: {
@@ -63,25 +66,45 @@ function makePack(input: {
   corePeople: Array<[string, string, string, string]>;
   opportunityNames: string[]; subjects: string[]; messages: Array<[string, string]>;
 }): DemoScenarioPack {
+  const profile = CONTENT_PROFILES[input.id];
   const core = input.corePeople.map(([name, email, company, role], index) => ({ id: UUIDS[index]!, name, email: `${email}@${input.domain}`, phone: `(312) 555-${String(1010 + index).slice(-4)}`, company, role }));
-  const people = [...core, ...supportingPeople(input.domain, input.companyLabel, 12)];
+  const people = [...core, ...supportingPeople(profile, input.domain, 12)];
   const stageKeys = ["new", "contacted", "qualified", "meeting", "proposal", "negotiation", "won", "lost", "nurture"];
-  const opportunities: DemoOpportunity[] = Array.from({ length: 18 }, (_, index) => ({
-    id: UUIDS[42 + index]!, name: input.opportunityNames[index % input.opportunityNames.length]!, personId: people[index % people.length]!.id,
-    company: people[index % people.length]!.company, stage: stageKeys[index % stageKeys.length]!, value: 1800 + index * 725,
-    source: ["Website inquiry", "Referral", "Email", "Community partner"][index % 4]!, nextAction: ["Reply with options", "Confirm appointment", "Review proposal", "Schedule follow-up"][index % 4]!,
+  const opportunities: DemoOpportunity[] = profile.opportunities.map((item, index) => ({
+    id: UUIDS[42 + index]!, name: item.name, personId: people[index]!.id, company: people[index]!.company,
+    stage: stageKeys[index % stageKeys.length]!, value: item.value, source: item.source, nextAction: item.nextAction,
   }));
-  const conversations: DemoConversation[] = Array.from({ length: 10 }, (_, index) => {
-    const person = people[index]!; const pair = input.messages[index % input.messages.length]!;
-    return { id: UUIDS[60 + index]!, personId: person.id, subject: input.subjects[index % input.subjects.length]!, intent: index % 3 === 0 ? "ready_to_book" : index % 3 === 1 ? "question" : "follow_up", unread: index < 4 ? 1 : 0, messages: [
-      { id: `msg-${index}-1`, direction: "inbound", body: pair[0], at: ago(18 + index * 7) },
-      { id: `msg-${index}-2`, direction: "outbound", body: pair[1], at: ago(15 + index * 7) },
-      { id: `msg-${index}-3`, direction: "inbound", body: `Thank you. ${pair[0].split(".")[0]}. What is the best next step?`, at: ago(5 + index * 4) },
-    ] };
-  });
-  const tasks: DemoTask[] = Array.from({ length: 18 }, (_, index) => ({ id: `task-${input.id}-${index}`, title: `${opportunities[index % opportunities.length]!.nextAction} for ${people[index % people.length]!.name}`, personId: people[index % people.length]!.id, dueOffset: index - 4, priority: index < 3 ? "high" : "normal", status: index > 14 ? "completed" : "pending" }));
-  const actions: DemoAction[] = Array.from({ length: 6 }, (_, index) => ({ id: `action-${input.id}-${index}`, title: index % 2 ? `Update ${opportunities[index]!.name}` : `Reply to ${people[index]!.name}`, personId: people[index]!.id, type: index % 2 ? "transition_opportunity" : "send_gmail_reply", description: `This is ready because the latest ${conversations[index]!.intent.replace(/_/g, " ")} signal is linked to the record.`, body: index % 2 ? undefined : `Hi ${people[index]!.name.split(" ")[0]},\n\nThanks for the thoughtful note. I reviewed the details and the next step is ready. Would the time we discussed still work for you?\n\n${input.founder.split(" ")[0]}` }));
-  return { ...input, version: 1, tenant: tenant(input.name, input.domain, input.founder, input.industry, input.stages), people, opportunities, conversations, tasks, actions };
+  const conversations: DemoConversation[] = profile.conversations.map((item, index) => ({
+    id: UUIDS[60 + index]!, personId: people[index]!.id, subject: item.subject, intent: item.intent, unread: index < 4 ? 1 : 0,
+    messages: [
+      { id: `msg-${index}-1`, direction: "inbound", body: item.inbound, at: ago(18 + index * 7) },
+      { id: `msg-${index}-2`, direction: "outbound", body: item.outbound, at: ago(15 + index * 7) },
+      { id: `msg-${index}-3`, direction: "inbound", body: item.followUp, at: ago(5 + index * 4) },
+    ],
+  }));
+  const tasks: DemoTask[] = profile.tasks.map((title, index) => ({ id: `task-${input.id}-${index}`, title, personId: people[index]!.id, dueOffset: index - 4, priority: index < 3 ? "high" : "normal", status: index > 14 ? "completed" : "pending" }));
+  const actions: DemoAction[] = profile.actionReasons.map((description, index) => ({
+    id: `action-${input.id}-${index}`, title: index % 2 ? opportunities[index]!.nextAction : `Reply to ${people[index]!.name}`,
+    personId: people[index]!.id, type: index % 2 ? "transition_opportunity" : "send_gmail_reply", description,
+    body: index % 2 ? undefined : profile.replyBodies[Math.floor(index / 2) % profile.replyBodies.length],
+  }));
+  return {
+    id: input.id,
+    name: input.name,
+    category: input.category,
+    description: input.description,
+    accent: input.accent,
+    appearance: input.appearance,
+    story: input.story,
+    version: 2,
+    tenant: tenant(input.name, input.domain, input.founder, input.industry, input.stages),
+    people,
+    opportunities,
+    conversations,
+    tasks,
+    actions,
+    content: profile,
+  };
 }
 
 export const DEMO_SCENARIOS: Record<DemoScenarioId, DemoScenarioPack> = {
@@ -91,4 +114,9 @@ export const DEMO_SCENARIOS: Record<DemoScenarioId, DemoScenarioPack> = {
 };
 
 export const DEMO_SCENARIO_SUMMARIES: DemoScenarioSummary[] = Object.values(DEMO_SCENARIOS).map(({ id, name, category, description, accent, appearance, story }) => ({ id, name, category, description, accent, appearance, story }));
+export const DEMO_SCENARIO_SHELL_NAMES: Record<DemoScenarioId, string> = {
+  "sprout-and-spark": "Sprout & Spark",
+  "northline-roofing": "Northline Roofing",
+  "harborline-growth": "Harborline Growth",
+};
 export function isDemoScenarioId(value: string): value is DemoScenarioId { return value in DEMO_SCENARIOS; }

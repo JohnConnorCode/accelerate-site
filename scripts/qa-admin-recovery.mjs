@@ -162,7 +162,7 @@ if (await desktop.page.getByPlaceholder("Search company, person, or email").inpu
 const mobile = await contextFor({ width: 390, height: 844 });
 await mobile.page.goto(`${base}/admin/emails`, { waitUntil: "networkidle", timeout: 60_000 });
 await mobile.page.getByRole("heading", { name: "Email Studio", exact: true }).waitFor();
-await mobile.page.getByRole("button", { name: "Open navigation" }).click();
+await mobile.page.getByRole("button", { name: "Open More" }).click();
 await mobile.page.getByRole("complementary").getByRole("link", { name: "Email Studio", exact: true }).waitFor();
 await mobile.page.getByRole("button", { name: "Close navigation" }).click();
 await mobile.page.getByRole("button", { name: "Close navigation" }).waitFor({ state: "detached" });

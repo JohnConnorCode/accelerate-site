@@ -3327,6 +3327,8 @@ body.admin-dialog-open {
   --admin-canvas-art: radial-gradient(circle at 88% -8%, var(--admin-accent-soft), transparent 32rem);
   --admin-action: #0b0b0b;
   --admin-action-ink: #fbfbfa;
+  --admin-surface-radius: 16px;
+  --admin-control-radius: 10px;
   --admin-rule: rgba(11, 11, 11, 0.09);
   --admin-border: rgba(11, 11, 11, 0.09);
   --admin-shadow-border:
@@ -3376,6 +3378,8 @@ body.admin-dialog-open {
   --admin-canvas-art: radial-gradient(circle at 82% -12%, rgba(255, 255, 255, 0.07), transparent 34rem);
   --admin-action: #fbfbfa;
   --admin-action-ink: #10100f;
+  --admin-surface-radius: 14px;
+  --admin-control-radius: 9px;
   --admin-rule: rgba(255, 255, 255, 0.045);
   --admin-border: rgba(255, 255, 255, 0.085);
   --admin-shadow-border: 0 0 0 1px rgba(255, 255, 255, 0.08);
@@ -3410,6 +3414,8 @@ body.admin-dialog-open {
   --admin-canvas-art: radial-gradient(circle at 78% 0%, rgba(155, 123, 255, 0.2), transparent 30rem), radial-gradient(circle at 18% 88%, rgba(89, 55, 190, 0.12), transparent 36rem);
   --admin-action: #9b7bff;
   --admin-action-ink: #171225;
+  --admin-surface-radius: 14px;
+  --admin-control-radius: 10px;
   --admin-rule: rgba(244, 239, 255, 0.055);
   --admin-border: rgba(244, 239, 255, 0.11);
   --admin-shadow-border: 0 0 0 1px rgba(183, 161, 255, 0.12), 0 16px 34px -28px rgba(0, 0, 0, 0.7);
@@ -3443,6 +3449,8 @@ body.admin-dialog-open {
   --admin-canvas-art: linear-gradient(rgba(53, 109, 243, 0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(53, 109, 243, 0.025) 1px, transparent 1px), radial-gradient(circle at 90% 0%, rgba(53, 109, 243, 0.12), transparent 30rem);
   --admin-action: #356df3;
   --admin-action-ink: #ffffff;
+  --admin-surface-radius: 11px;
+  --admin-control-radius: 8px;
   --admin-rule: rgba(25, 35, 58, 0.075);
   --admin-border: rgba(25, 35, 58, 0.105);
   --admin-shadow-border: 0 0 0 1px rgba(38, 71, 134, 0.07), 0 2px 4px -2px rgba(25, 35, 58, 0.06), 0 16px 34px -25px rgba(35, 72, 145, 0.19);
@@ -3475,6 +3483,8 @@ body.admin-dialog-open {
   --admin-nav-badge-ring: #ffffff;
   --admin-action: #6b3ff2;
   --admin-action-ink: #ffffff;
+  --admin-surface-radius: 20px;
+  --admin-control-radius: 12px;
   --admin-rule: rgba(69, 52, 128, 0.055);
   --admin-border: rgba(69, 52, 128, 0.065);
   --admin-canvas-art: radial-gradient(circle at 78% 2%, rgba(127, 89, 255, 0.16), transparent 29rem), radial-gradient(circle at 20% 92%, rgba(186, 172, 255, 0.22), transparent 38rem), linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(244, 241, 255, 0.55));
@@ -3504,11 +3514,35 @@ body.admin-dialog-open {
   box-shadow: 0 1px 0 var(--admin-nav-rule), 0 14px 34px -28px rgba(0, 0, 0, 0.8);
 }
 
+.admin-mobile-dock {
+  --admin-dock-bg: color-mix(in srgb, var(--admin-sidebar) 90%, transparent);
+  color: var(--admin-nav-muted);
+  background: var(--admin-dock-bg);
+  box-shadow:
+    0 0 0 1px var(--admin-nav-rule),
+    0 18px 50px -20px rgba(0, 0, 0, 0.68),
+    inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  -webkit-backdrop-filter: blur(22px) saturate(1.12);
+  backdrop-filter: blur(22px) saturate(1.12);
+}
+.admin-mobile-dock-item { color: var(--admin-nav-muted); }
+.admin-mobile-dock-item:hover { color: var(--admin-nav-ink); background: var(--admin-nav-hover); }
+.admin-mobile-dock-item.is-active {
+  color: var(--admin-nav-active-ink);
+  background: var(--admin-nav-active-bg);
+  box-shadow: 0 9px 22px -15px color-mix(in srgb, var(--admin-nav-accent) 75%, transparent);
+}
+body.admin-dialog-open .admin-mobile-dock { visibility: hidden; pointer-events: none; }
+
 [data-theme="frost"] .admin-sidebar,
 [data-theme="frost"] .admin-mobile-header {
   -webkit-backdrop-filter: blur(24px) saturate(1.15);
   backdrop-filter: blur(24px) saturate(1.15);
   box-shadow: 18px 0 60px -34px rgba(79, 48, 170, 0.32);
+}
+[data-theme="frost"] .admin-mobile-dock {
+  --admin-dock-bg: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 0 0 1px rgba(89, 57, 177, 0.08), 0 22px 58px -26px rgba(79, 48, 170, 0.38), inset 0 1px 0 rgba(255,255,255,.9);
 }
 
 /* Collapsed groups keep the operator's navigation compact. Overflow remains
@@ -3529,6 +3563,7 @@ body.admin-dialog-open {
 .admin-nav-section-button,
 .admin-nav-link {
   color: var(--admin-nav-muted);
+  border-radius: var(--admin-control-radius);
 }
 .admin-nav-control:hover,
 .admin-nav-utility:hover,
@@ -3602,9 +3637,13 @@ body.admin-dialog-open {
   background: linear-gradient(135deg, rgba(107, 63, 242, 0.105), rgba(255, 255, 255, 0.82));
   box-shadow: 0 18px 50px -38px rgba(107, 63, 242, 0.42);
 }
+[data-theme="frost"] .admin-page-title { color: #121a38; }
+[data-theme="signal"] .admin-eyebrow { color: color-mix(in srgb, var(--admin-accent) 72%, white); }
+[data-theme="studio"] .admin-page-title { letter-spacing: -0.025em; }
+[data-theme="studio"] .admin-eyebrow { letter-spacing: 0.16em; }
 
 .admin-surface {
-  border-radius: 16px;
+  border-radius: var(--admin-surface-radius);
   background: var(--admin-surface);
   color: var(--admin-ink);
   box-shadow: var(--admin-shadow);

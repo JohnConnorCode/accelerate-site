@@ -325,18 +325,21 @@ export default function TodayPage() {
       {error && overview && <AdminSurface tone="attention" className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center"><TriangleAlert className="size-5 shrink-0 text-amber-600" /><div className="min-w-0 flex-1"><p className="text-sm font-semibold text-[var(--admin-ink)]">Showing the last successful snapshot</p><p className="admin-copy mt-0.5 text-xs">{error} Existing data remains visible and no counters were reset.</p></div><button type="button" onClick={() => void load()} disabled={refreshing} className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-lg px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]"><RefreshCw className={cn("size-3.5", refreshing && "animate-spin")} /> Retry live read</button></AdminSurface>}
       {overview && !overview.schemaReady ? <RevenueSetupGate /> : overview && (
         <>
-          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <AdminSurface padding="none" className="overflow-hidden" aria-label="Operating summary">
+            <dl className="grid divide-y divide-[var(--admin-border)] sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-4">
             {[
               { label: "Priority work", value: urgentCount, note: `${overview.queue.length} total in queue`, icon: Target },
               { label: "Open pipeline", value: formatMoney(overview.metrics.pipelineValue), note: `${formatMoney(overview.metrics.weightedValue)} weighted`, icon: CircleDollarSign },
               { label: "Unread replies", value: overview.metrics.unreadConversations, note: "Synced conversations", icon: Mail },
               { label: "Active campaigns", value: overview.metrics.activeCampaigns, note: `${overview.metrics.pendingProposals} proposals awaiting`, icon: Megaphone },
             ].map(({ label, value, note, icon: Icon }) => (
-              <AdminSurface key={label} padding="lg">
-                <div className="flex items-start justify-between gap-3"><div><p className="admin-eyebrow">{label}</p><p className="mt-3 text-3xl font-semibold tabular-nums tracking-[-0.045em] text-[var(--admin-ink)]">{value}</p><p className="admin-copy mt-1 text-xs">{note}</p></div><span className="grid size-9 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] dark:bg-white/[0.06]"><Icon className="size-4" /></span></div>
-              </AdminSurface>
+              <div key={label} className="flex min-h-[88px] items-center gap-3 px-4 py-3 sm:px-5">
+                <span className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)]"><Icon className="size-4" /></span>
+                <div className="min-w-0 flex-1"><dt className="text-[10px] font-semibold text-[var(--admin-muted)]">{label}</dt><dd className="mt-0.5 text-xl font-semibold tabular-nums tracking-[-0.035em] text-[var(--admin-ink)]">{value}</dd><p className="admin-copy truncate text-[10px]">{note}</p></div>
+              </div>
             ))}
-          </section>
+            </dl>
+          </AdminSurface>
 
           <AdminSurface
             tone="default"

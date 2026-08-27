@@ -169,7 +169,7 @@ async function verifyRoutes(viewport, label, appearance = null) {
         await page.screenshot({ path: `${shellOutput}/collapsed-${runLabel}.png`, fullPage: true });
         await page.getByRole("button", { name: "Expand sidebar" }).click();
       } else {
-        await page.getByRole("button", { name: "Open navigation" }).click();
+        await page.getByRole("button", { name: "Open More" }).click();
         await page.getByRole("link", { name: "Open demo workspace" }).waitFor({ state: "visible" });
         await page.screenshot({ path: `${shellOutput}/navigation-${runLabel}.png`, fullPage: true });
         await page.getByRole("button", { name: "Close navigation" }).click();

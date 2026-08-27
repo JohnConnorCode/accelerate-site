@@ -136,6 +136,14 @@ const NOW_KEYS = [
 ];
 const NOW_SET = new Set(NOW_KEYS);
 
+// Fresh evidence is kept separate from the long-lived historical card notes so
+// focused follow-up slices stay reviewable without rewriting shipped history.
+const CURRENT_IMPLEMENTATION_EVIDENCE = {
+  "admin-shell-design-system": "2026-08-27 exploration-first shell refinement: retained the complete desktop side navigation and all 26 registered areas while adding a five-destination mobile speed dock plus an explicitly labeled, focus-contained Full command center sheet with the complete Command, Revenue, Delivery, Intelligence, System, and Sources hierarchy. Added longest-prefix active-route resolution, URL/back-state coverage, smoother blur/rise page and header motion, responsive surface radii, and distinct Paper, Night, Signal, Studio, and Frost navigation materials. Production-mode three-scenario coverage passed all 28 routes on desktop and mobile.",
+  "full-admin-demo-runtime": "2026-08-27 exploration-first simplification: intentionally removed the visible guided tour while preserving the complete shared admin route tree, scenario switching, reset, appearance controls, fictional-data safety boundary, and browser-session runtime. The launcher now invites immediate free exploration through actual workspace previews; no protected or provider request escaped the demo runtime.",
+  "full-admin-demo-scenarios": "2026-08-27 scenario-pack v2: replaced repeated filler with separately authored business graphs for kids enrichment, roofing and exteriors, and professional services. Each pack now has distinct people, companies, opportunity names and values, next actions, conversation histories, tasks, approvals, campaigns, content, resources, and roadmap items; exact customer-facing copy duplication across packs is contract-tested. The three-business 28-route desktop/mobile matrix, all five appearances, refresh/reset/isolation, and production build pass.",
+};
+
 function taxonomyLabels({ key, workstream, phase, status, labels }) {
   const category = CATEGORY_BY_WORKSTREAM[workstream];
   const fallbackCapability = DEFAULT_CAPABILITY_BY_WORKSTREAM[workstream];
@@ -185,7 +193,9 @@ function card({ key, title, workstream, phase, status = "backlog", priority = "m
       "Architecture contract: docs/REVENUE-OS-ENGINEERING-CONTRACT.md. Agent procedure: docs/AGENT-TICKET-RUNBOOK.md. Module ownership: src/lib/revenue-os/README.md.",
       `Required verification: ${verification || "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; the closest scoped service/API/Playwright test named by this card; npm run build and git diff --check before Shipped. Data or automation changes must also prove invalid input, duplicate/replay, truthful failure receipts, and safe retry. UI changes require reviewed desktop/mobile screenshots."}`,
       "Stop conditions: pause and create or update a dependency card before adding a new provider, weakening authorization, performing a destructive migration, expanding real-recipient automation, or bypassing an authoritative domain service.",
-      ...(evidence ? [`Current implementation evidence: ${evidence}`] : []),
+      ...([CURRENT_IMPLEMENTATION_EVIDENCE[key], evidence].filter(Boolean).length
+        ? [`Current implementation evidence: ${[CURRENT_IMPLEMENTATION_EVIDENCE[key], evidence].filter(Boolean).join(" ")}`]
+        : []),
       "Agent handoff: claim the card by setting Owner, read linked services and migrations before editing, preserve unrelated worktree changes, attach test evidence in Internal notes, and move to Shipped only after every acceptance item is verified.",
     ].join("\n\n"),
     source: "revenue-os-master-plan",
