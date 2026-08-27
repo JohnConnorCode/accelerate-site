@@ -25,7 +25,7 @@ for (const viewport of viewports) {
   page.on("pageerror", (error) => consoleErrors.push(error.message));
 
   for (const route of routes) {
-    const response = await page.goto(`${baseUrl}${route}`, { waitUntil: "networkidle" });
+    const response = await page.goto(`${baseUrl}${route}`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1100);
     if (!response || response.status() >= 400) failures.push(`${viewport.name} ${route}: HTTP ${response?.status() ?? "no response"}`);
 
@@ -128,7 +128,8 @@ for (const viewport of viewports) {
         const triggers = galleries.nth(galleryIndex).locator('button[aria-label^="Open "]');
         if (await triggers.count() < 2) continue;
         await triggers.first().scrollIntoViewIfNeeded();
-        await triggers.first().click();
+        await triggers.first().focus();
+        await triggers.first().press("Enter");
         const activeMedia = page.locator("[data-media-lightbox-active]");
         try {
           await activeMedia.waitFor({ state: "visible", timeout: 5_000 });
@@ -212,7 +213,7 @@ const distinctPage = await distinctContext.newPage();
 const worlds = new Set();
 const accents = new Set();
 for (const route of routes.slice(1)) {
-  await distinctPage.goto(`${baseUrl}${route}`, { waitUntil: "networkidle" });
+  await distinctPage.goto(`${baseUrl}${route}`, { waitUntil: "domcontentloaded" });
   const facts = await distinctPage.locator("[data-case-world]").evaluate((node) => ({ world: node.getAttribute("data-case-world"), accent: node.getAttribute("data-case-accent") }));
   worlds.add(facts.world);
   accents.add(facts.accent);
@@ -227,7 +228,7 @@ const thirdPartyVideoRequests = [];
 videoPage.on("request", (request) => {
   if (/youtube|googlevideo/i.test(request.url())) thirdPartyVideoRequests.push(request.url());
 });
-await videoPage.goto(`${baseUrl}/work/northern-trust`, { waitUntil: "networkidle" });
+await videoPage.goto(`${baseUrl}/work/northern-trust`, { waitUntil: "domcontentloaded" });
 const archiveRobots = await videoPage.locator('meta[name="robots"]').getAttribute("content");
 if (!archiveRobots?.includes("noindex") || !archiveRobots.includes("follow")) failures.push("Northern Trust archive metadata must be noindex, follow");
 if (await videoPage.locator('[data-work-visibility="archived"]').count() !== 1) failures.push("Northern Trust must render with archive visibility");
@@ -242,10 +243,10 @@ await videoContext.close();
 
 const redirectContext = await browser.newContext();
 const redirectPage = await redirectContext.newPage();
-const sitemapResponse = await redirectPage.goto(`${baseUrl}/sitemap.xml`, { waitUntil: "networkidle" });
+const sitemapResponse = await redirectPage.goto(`${baseUrl}/sitemap.xml`, { waitUntil: "domcontentloaded" });
 const sitemapText = await sitemapResponse?.text();
 if (sitemapText?.includes("/work/northern-trust")) failures.push("Northern Trust archive appeared in the public sitemap");
-await redirectPage.goto(`${baseUrl}/results/sparkblox`, { waitUntil: "networkidle" });
+await redirectPage.goto(`${baseUrl}/results/sparkblox`, { waitUntil: "domcontentloaded" });
 if (redirectPage.url() !== `${baseUrl}/work/sparkblox`) failures.push("legacy Sparkblox redirect is not truthful");
 await redirectContext.close();
 await browser.close();
