@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { AlertTriangle, Flame, Clock, Inbox, Handshake, ArrowRight, CheckSquare, FileCheck } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { getScoreColor } from "@/lib/admin/lead-scoring";

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { DollarSign, TrendingUp, ArrowRight } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PIPELINE_STAGES as funnelStages } from "@/lib/admin/pipeline-stages";

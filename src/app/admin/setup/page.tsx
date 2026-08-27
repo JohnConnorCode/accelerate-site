@@ -2,7 +2,7 @@
 
 import { supabaseDashboard, tenant } from "@/config/tenant";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { motion } from "framer-motion";
 import {
   ArrowRight,

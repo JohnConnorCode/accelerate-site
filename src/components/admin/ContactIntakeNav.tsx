@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { FileUp, Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
 

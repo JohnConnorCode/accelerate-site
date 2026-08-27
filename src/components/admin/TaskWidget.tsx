@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { CheckSquare, Circle, CheckCircle2, AlertCircle, Clock } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { TaskQuickAdd } from "./TaskQuickAdd";

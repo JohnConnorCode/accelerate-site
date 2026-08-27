@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { AnimatePresence, motion } from "framer-motion";
 import { Bot, ExternalLink, X } from "lucide-react";
 import { AdminAIChat } from "./AdminAIChat";

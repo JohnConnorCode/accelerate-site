@@ -2,7 +2,7 @@
 
 import { useState, Fragment, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import {
   ChevronDown,
   ChevronUp,

@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import AdminShell from "@/components/admin/AdminShell";
+import { AdminDemoBoundary } from "@/components/admin/AdminDemoBoundary";
 import { isDemoScenarioId, type DemoScenarioId } from "@/lib/admin/demo/scenarios";
 
 // Demo URLs are request-time rewrites. Rendering this shared layout dynamically
@@ -18,8 +19,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     : null;
 
   return (
-    <AdminShell demoScenarioId={demoScenarioId} demoRoute={demoRoute}>
-      {children}
-    </AdminShell>
+    <AdminDemoBoundary scenarioId={demoScenarioId}>
+      <AdminShell demoScenarioId={demoScenarioId} demoRoute={demoRoute}>
+        {children}
+      </AdminShell>
+    </AdminDemoBoundary>
   );
 }

@@ -10,6 +10,7 @@ import { RevenueAnalyticsTracker } from "@/components/layout/RevenueAnalyticsTra
 import { ChatWidget } from "@/components/chat/ChatWidget";
 import { ScrollProgress } from "@/components/layout/ScrollProgress";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { NavigationRuntime } from "@/components/navigation/NavigationRuntime";
 import { Dock } from "@/components/home/Dock";
 import { MotionRuntime } from "@/components/motion/MotionRuntime";
 import { marketingPositioning } from "@/content/marketing-positioning";
@@ -156,8 +157,9 @@ export default function RootLayout({
         </Script>
       </head>
       <body className="noise-overlay min-h-screen flex flex-col">
-        <MotionRuntime />
-        <ThemeProvider>
+        <NavigationRuntime>
+          <MotionRuntime />
+          <ThemeProvider>
           <a
             href="#main-content"
             className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-[var(--fg)] focus:text-[var(--bg)] focus:font-semibold focus:text-sm"
@@ -175,7 +177,8 @@ export default function RootLayout({
           <Footer />
           <ChatWidget />
           <Dock />
-        </ThemeProvider>
+          </ThemeProvider>
+        </NavigationRuntime>
       </body>
     </html>
   );

@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowUpRight, Building2, CircleAlert, CircleCheckBig, User } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { ContactTimeline } from "@/components/admin/ContactTimeline";
 import { AdminSurface } from "@/components/admin/AdminSurface";

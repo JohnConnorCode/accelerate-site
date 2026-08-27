@@ -1,15 +1,16 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, RotateCcw } from "lucide-react";
-import { DEMO_SCENARIOS, DEMO_SCENARIO_SUMMARIES, type DemoScenarioId } from "@/lib/admin/demo/scenarios";
+import { DEMO_SCENARIOS, DEMO_SCENARIO_SUMMARIES, isDemoScenarioId, type DemoScenarioId } from "@/lib/admin/demo/scenarios";
 import { installAdminDemoRuntime } from "@/lib/admin/demo/runtime";
 import { DemoScenarioMark } from "@/components/admin/DemoScenarioMark";
 import { cn } from "@/lib/utils";
+import { useNavigationRuntime } from "@/components/navigation/NavigationRuntime";
 
 interface AdminDemoContextValue {
   scenarioId: DemoScenarioId;
@@ -21,48 +22,45 @@ const DEMO_APPEARANCE_SCENARIO_KEY = "accelerate:admin-demo:appearance-scenario"
 
 export function AdminDemoBoundary({ scenarioId, children }: { scenarioId: DemoScenarioId | null; children: React.ReactNode }) {
   const resetRef = useRef<null | (() => void)>(null);
-  const router = useRouter();
   const { setTheme } = useTheme();
+  const pathname = usePathname();
+  const pathnameScenario = pathname.match(/^\/demo\/command-center\/([^/]+)/)?.[1] || "";
+  const activeScenarioId = isDemoScenarioId(pathnameScenario) ? pathnameScenario : scenarioId;
 
   useLayoutEffect(() => {
-    if (!scenarioId) return;
-    if (window.sessionStorage.getItem(DEMO_APPEARANCE_SCENARIO_KEY) !== scenarioId) {
-      setTheme(DEMO_SCENARIOS[scenarioId].appearance);
-      window.sessionStorage.setItem(DEMO_APPEARANCE_SCENARIO_KEY, scenarioId);
+    if (!activeScenarioId) return;
+    if (window.sessionStorage.getItem(DEMO_APPEARANCE_SCENARIO_KEY) !== activeScenarioId) {
+      setTheme(DEMO_SCENARIOS[activeScenarioId].appearance);
+      window.sessionStorage.setItem(DEMO_APPEARANCE_SCENARIO_KEY, activeScenarioId);
     }
-    const runtime = installAdminDemoRuntime(scenarioId);
+    const runtime = installAdminDemoRuntime(activeScenarioId);
     resetRef.current = runtime.reset;
-    (window as Window & { __accelerateAdminDemoRuntime?: string }).__accelerateAdminDemoRuntime = scenarioId;
-    const capture = (event: MouseEvent) => {
-      const anchor = (event.target as Element | null)?.closest("a");
-      const href = anchor?.getAttribute("href");
-      if (!href?.startsWith("/admin")) return;
-      event.preventDefault();
-      const suffix = href.replace(/^\/admin\/?/, "");
-      router.push(`/demo/command-center/${scenarioId}/${suffix || "today"}`);
-    };
-    document.addEventListener("click", capture, true);
+    (window as Window & { __accelerateAdminDemoRuntime?: string }).__accelerateAdminDemoRuntime = activeScenarioId;
     return () => {
-      document.removeEventListener("click", capture, true);
       delete (window as Window & { __accelerateAdminDemoRuntime?: string }).__accelerateAdminDemoRuntime;
       resetRef.current = null;
       runtime.restore();
     };
-  }, [router, scenarioId, setTheme]);
+  }, [activeScenarioId, setTheme]);
 
   const reset = useCallback(() => resetRef.current?.(), []);
-  if (!scenarioId) return <>{children}</>;
+  if (!activeScenarioId) return <>{children}</>;
 
-  return <AdminDemoContext.Provider value={{ scenarioId, reset }}>{children}</AdminDemoContext.Provider>;
+  return <AdminDemoContext.Provider value={{ scenarioId: activeScenarioId, reset }}>{children}</AdminDemoContext.Provider>;
 }
 
-export function AdminDemoControls({ collapsed = false }: { collapsed?: boolean }) {
+export function useAdminDemo() {
+  return useContext(AdminDemoContext);
+}
+
+export function AdminDemoControls({ collapsed = false, controlsId = "admin-demo-controls" }: { collapsed?: boolean; controlsId?: string }) {
   const demo = useContext(AdminDemoContext);
   const pathname = usePathname();
+  const router = useRouter();
   const { setTheme } = useTheme();
+  const navigation = useNavigationRuntime();
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const controlsId = useId();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -138,7 +136,8 @@ export function AdminDemoControls({ collapsed = false }: { collapsed?: boolean }
                     const nextScenario = event.target.value as DemoScenarioId;
                     setTheme(DEMO_SCENARIOS[nextScenario].appearance);
                     window.sessionStorage.setItem(DEMO_APPEARANCE_SCENARIO_KEY, nextScenario);
-                    window.location.assign(`/demo/command-center/${nextScenario}/${route}`);
+                    navigation.beginNavigation({ href: `/demo/command-center/${nextScenario}/${route}`, kind: "replace", scroll: "top" });
+                    router.replace(`/demo/command-center/${nextScenario}/${route}`, { scroll: false });
                   }} className="mt-1 min-h-11 w-full rounded-[10px] bg-[var(--admin-nav-hover)] px-3 text-xs font-semibold text-[var(--admin-nav-ink)] outline-none ring-1 ring-[var(--admin-nav-rule)] focus:ring-2 focus:ring-[var(--admin-nav-accent)]">
                     {DEMO_SCENARIO_SUMMARIES.map((item) => <option key={item.id} value={item.id}>{item.category}</option>)}
                   </select>

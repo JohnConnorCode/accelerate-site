@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { AtSign, Users, UserX, Search, Download } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { StatCard } from "@/components/admin/StatCard";

@@ -64,6 +64,7 @@
     "test:work-portfolio": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-work-portfolio.ts",
     "test:work-portfolio-qa": "node scripts/qa-work-portfolio.mjs",
     "test:public-motion": "node scripts/qa-public-motion.mjs",
+    "test:navigation-runtime": "npx tsx scripts/test-navigation-runtime.ts && node scripts/qa-navigation-runtime.mjs",
     "verify:public-prerender": "node scripts/verify-public-prerender.mjs",
     "test:chat-house-style": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-chat-house-style.ts",
     "test:agent-trace": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-agent-trace.ts",

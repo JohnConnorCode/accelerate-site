@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { ArrowUpRight, Mail, DollarSign, FileCheck, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { calculateLeadScore, getScoreColor, getScoreLabel } from "@/lib/admin/lead-scoring";

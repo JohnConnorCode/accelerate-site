@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { AlarmClock, ArrowRight, BarChart3, CalendarClock, Check, CheckCircle2, CircleDollarSign, Inbox, Loader2, Mail, Megaphone, RefreshCw, ServerCog, ShieldCheck, Sparkles, Target, TriangleAlert, X } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useAdminNavigation } from "@/components/admin/AdminLink";
 import { Bot, Command, Database, History, ShieldCheck, Sparkles, Wrench } from "lucide-react";
 import { PageHeader } from "./PageHeader";
 import { AdminSurface } from "./AdminSurface";
@@ -25,7 +26,7 @@ function validView(value: string | null): WorkspaceView {
 
 export function AdminAIWorkspace() {
   const searchParams = useSearchParams();
-  const router = useRouter();
+  const router = useAdminNavigation();
   const { activeConversationId, selectConversation } = useAdminAI();
   const view = validView(searchParams.get("view"));
   const conversationId = searchParams.get("conversation");
@@ -36,7 +37,7 @@ export function AdminAIWorkspace() {
     const params = new URLSearchParams(searchParams.toString());
     if (next === "ask") params.delete("view"); else params.set("view", next);
     params.delete("run");
-    router.replace(params.size ? `?${params}` : "?", { scroll: false });
+    router.replace(params.size ? `?${params}` : "?", "preserve");
   };
 
   return <div className="space-y-6 pb-10">

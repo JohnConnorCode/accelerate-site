@@ -2,7 +2,9 @@ import AxeBuilder from "@axe-core/playwright";
 import { chromium } from "playwright";
 import { mkdirSync } from "node:fs";
 
-const baseUrl = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3010";
+// Use the same host the local Next request resolves against so first-party
+// analytics' same-origin guard is exercised instead of producing false 403s.
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3010";
 const output = "/tmp/accelerate-public-motion";
 mkdirSync(output, { recursive: true });
 
@@ -174,6 +176,31 @@ for (const config of [
   }
 
   if (config.label === "mobile") {
+    for (let reload = 1; reload <= 3; reload += 1) {
+      await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded" });
+      const opening = await page.evaluate(() => ({
+        staticPhrase: getComputedStyle(document.querySelector(".hero-intelligent-static")).display,
+        scramblePhrase: getComputedStyle(document.querySelector(".hero-intelligent-scramble")).display,
+        wordAnimations: [...document.querySelectorAll(".hero .word > span")].map((node) => getComputedStyle(node).animationName),
+      }));
+      if (opening.staticPhrase === "none" || opening.scramblePhrase !== "none" || opening.wordAnimations.length !== 9 || opening.wordAnimations.some((name) => !name.includes("word-blur-in"))) failures.push(`mobile reload ${reload}: hero did not begin its deterministic prerendered cascade`);
+      await page.waitForTimeout(2_100);
+      const settledHero = await page.evaluate(() => {
+        const words = document.querySelector(".hero .h1-word-row").getBoundingClientRect();
+        const closing = document.querySelector(".hero-row-cta").getBoundingClientRect();
+        const profit = document.querySelector(".hero-profit").getBoundingClientRect();
+        return {
+          statementGap: closing.top - words.bottom,
+          profitOffset: profit.top - closing.top,
+          profitOpacity: Number.parseFloat(getComputedStyle(document.querySelector(".hero-profit")).opacity),
+          ctaOpacity: Number.parseFloat(getComputedStyle(document.querySelector(".hero-inline-cta")).opacity),
+        };
+      });
+      if (settledHero.statementGap > 12 || Math.abs(settledHero.profitOffset) > 2) failures.push(`mobile reload ${reload}: Profit detached from the headline (${settledHero.statementGap.toFixed(1)}px gap, ${settledHero.profitOffset.toFixed(1)}px offset)`);
+      if (settledHero.profitOpacity < 0.99 || settledHero.ctaOpacity < 0.99) failures.push(`mobile reload ${reload}: hero sequence did not settle visibly`);
+    }
+    await page.screenshot({ path: `${output}/mobile-home-hero-settled.png`, fullPage: false });
+
     await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded" });
     await page.evaluate(() => window.scrollTo(0, 240));
     const bubble = page.getByRole("button", { name: "Open chat" });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { Check, CircleAlert, ExternalLink, Loader2, LockKeyhole, Search, ShieldCheck, Wrench } from "lucide-react";
 import type { AiCapabilitiesPayload, AiCapability } from "@/lib/revenue-os/ai-operations-contract";
 import { AdminSurface } from "./AdminSurface";

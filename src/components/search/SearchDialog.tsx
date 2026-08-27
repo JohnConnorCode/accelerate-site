@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useAppNavigation } from "@/components/navigation/NavigationRuntime";
 import * as Dialog from "@radix-ui/react-dialog";
 import { AnimatePresence, motion } from "framer-motion";
 import { Search, CornerDownLeft, Loader2, ArrowUp, ArrowDown } from "lucide-react";
@@ -44,7 +44,7 @@ function useSearchIndex(open: boolean) {
 }
 
 export function SearchDialog({ open, onOpenChangeAction }: { open: boolean; onOpenChangeAction: (next: boolean) => void }) {
-  const router = useRouter();
+  const router = useAppNavigation();
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   const { entries, failed } = useSearchIndex(open);

@@ -36,6 +36,20 @@ Adding a scenario is data plus one registry entry. Adding an enabled admin route
 or operation requires demo coverage or an explicit capability exclusion with a
 business reason.
 
+## Navigation parity
+
+Live admin and the full demo share the navigation runtime described in
+`docs/NAVIGATION-RUNTIME-CONTRACT.md`. Shared admin components link to canonical
+`/admin/*` destinations; the demo link adapter resolves those destinations to
+the active fictional scenario before the browser navigates. Do not intercept
+document clicks, hard-reload the workspace, or maintain a second demo-only
+history implementation.
+
+The admin content panel is the application scroll viewport on desktop and
+mobile. Forward navigation starts the destination at its top, browser Back and
+Forward restore the prior panel position, and scenario changes replace the
+current fictional workspace without mixing its history or session state.
+
 ## Isolation and truthfulness
 
 - Demo records are invented and use `.example` addresses. Never copy production

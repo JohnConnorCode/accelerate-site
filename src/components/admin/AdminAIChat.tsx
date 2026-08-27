@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { Archive, Bot, Check, CircleAlert, Copy, ExternalLink, History, Loader2, MessageSquarePlus, NotebookPen, Octagon, RotateCcw, Send, Sparkles, ThumbsDown, ThumbsUp, Wrench } from "lucide-react";
 import { useAdminAI, type AdminAIMessage } from "./AdminAIProvider";
 import { cn } from "@/lib/utils";

@@ -27,8 +27,8 @@ type Data = {
 const DEFAULT_FILTERS: FilterState = { days: 30, source: "all", owner: "all", campaign: "all", stage: "all" };
 const STORAGE_KEY = "accelerate:analytics-filters:v1";
 const money = (value: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value || 0);
-const rate = (value: number | null) => value === null ? "—" : `${value}%`;
-const hours = (value: number | null) => value === null ? "—" : value < 1 ? `${Math.round(value * 60)} min` : `${value} hr`;
+const rate = (value: number | null) => value === null ? "N/A" : `${value}%`;
+const hours = (value: number | null) => value === null ? "N/A" : value < 1 ? `${Math.round(value * 60)} min` : `${value} hr`;
 
 function Metric({ label, value, icon: Icon, note, tone = "default" }: { label: string; value: string | number; icon: typeof Users; note?: string; tone?: "default" | "estimate" }) {
   return <AdminSurface padding="lg" className={tone === "estimate" ? "bg-violet-500/[0.035]" : undefined}><div className="flex justify-between gap-3"><div><p className="admin-eyebrow">{label}</p><p className="mt-3 text-3xl font-semibold tabular-nums tracking-[-0.04em] text-[var(--admin-ink)]">{value}</p>{note && <p className="admin-copy mt-1.5 max-w-[32ch] text-pretty text-[11px] leading-4">{note}</p>}</div><Icon className="mt-0.5 size-4 text-[var(--admin-muted)]" /></div></AdminSurface>;

@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useNavigationRuntime } from "@/components/navigation/NavigationRuntime";
 
 /**
  * The single, public route-entry contract. A route must never wait for its
@@ -12,6 +13,7 @@ import { usePathname } from "next/navigation";
  */
 export function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { shouldAnimateRoute } = useNavigationRuntime();
 
   // The Admin layout is its own persistent application shell. Keying this
   // root-level transition by pathname would remount that shell on every admin
@@ -22,7 +24,7 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
   return (
     <div
       key={pathname}
-      className="route-entry"
+      className={shouldAnimateRoute ? "route-entry is-entering" : "route-entry"}
       data-route-entry={pathname}
     >
       {children}

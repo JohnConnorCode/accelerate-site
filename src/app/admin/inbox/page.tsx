@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { motion } from "framer-motion";
 import {
   AlertCircle,
@@ -129,7 +129,7 @@ export default function AdminInboxPage() {
   }
 
   return (
-    <motion.div variants={adminListVariants} initial="hidden" animate="visible">
+    <motion.div variants={adminListVariants} initial={false} animate="visible">
       <motion.div variants={adminSectionVariants}>
         <PageHeader title="Operator Inbox" subtitle="Every lead, message, follow-up, and stalled deal that needs a human decision." actions={<Button size="sm" variant="secondary" onClick={() => load(true)} disabled={refreshing}><RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", refreshing && "animate-spin")} />{refreshing ? "Refreshing…" : "Refresh"}</Button>} />
       </motion.div>

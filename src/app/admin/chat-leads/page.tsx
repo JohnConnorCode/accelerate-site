@@ -3,7 +3,7 @@
 import { tenant } from "@/config/tenant";
 import { useEffect, useState, Fragment } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import {
   ChevronDown,
   ChevronUp,

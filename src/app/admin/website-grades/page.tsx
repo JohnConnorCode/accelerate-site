@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo, Fragment } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { ChevronDown, ChevronUp, Globe, Search, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/admin/PageHeader";

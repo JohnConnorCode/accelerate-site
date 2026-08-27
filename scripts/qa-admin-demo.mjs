@@ -61,12 +61,13 @@ for (const scenario of scenarios) {
       await page.waitForFunction((expected) => window.__accelerateAdminDemoRuntime === expected, scenario, { timeout: 30_000 });
       await page.waitForFunction((expected) => document.documentElement.dataset.theme === expected, defaultAppearances[scenario], { timeout: 30_000 });
       await page.waitForTimeout(350);
-      const state = await page.evaluate(() => ({ width: document.documentElement.scrollWidth, viewport: innerWidth, overlay: document.querySelector("nextjs-portal")?.textContent || "", mainText: document.querySelector("main")?.textContent?.replace(/\s+/g, " ").trim().length || 0, logo: Boolean(document.querySelector(".demo-scenario-mark")) }));
+      const state = await page.evaluate(() => ({ width: document.documentElement.scrollWidth, viewport: innerWidth, overlay: document.querySelector("nextjs-portal")?.textContent || "", mainText: document.querySelector("main")?.textContent?.replace(/\s+/g, " ").trim().length || 0, logo: Boolean(document.querySelector(".demo-scenario-mark")), title: document.title, heading: document.querySelector(".admin-main h1")?.textContent?.replace(/\s+/g, " ").trim() || "" }));
       if (state.width > state.viewport + 2) failures.push(`${scenario} ${label} ${route}: overflow ${state.width} > ${state.viewport}`);
       if (/Build Error|Unhandled Runtime Error|Runtime TypeError|Compilation failed/i.test(state.overlay)) failures.push(`${scenario} ${label} ${route}: Next error overlay`);
       if (state.mainText < 120) failures.push(`${scenario} ${label} ${route}: view is not credibly populated`);
       if (!state.logo) failures.push(`${scenario} ${label} ${route}: shared animated logo is missing`);
-      const expectedActiveHref = `/admin/${route}`;
+      if (!state.heading || !state.title.startsWith(`${state.heading} | `) || !state.title.endsWith(" Demo")) failures.push(`${scenario} ${label} ${route}: contextual title does not match its page heading (${state.title})`);
+      const expectedActiveHref = `/demo/command-center/${scenario}/${route}`;
       if (await page.locator(`.admin-nav-link[href="${expectedActiveHref}"]`).count()) {
         const activeHref = await page.locator('.admin-nav-link[aria-current="page"]').first().getAttribute("href");
         if (activeHref !== expectedActiveHref) failures.push(`${scenario} ${label} ${route}: active navigation is ${activeHref || "missing"}, expected ${expectedActiveHref}`);
@@ -122,13 +123,15 @@ for (const scenario of scenarios) {
           await revenueToggle.click();
           await revenuePanel.waitFor();
 
-          await controlsScope.locator('a.admin-nav-link[href="/admin/inbox"]').click();
+          const inboxHref = `/demo/command-center/${scenario}/inbox`;
+          const todayHref = `/demo/command-center/${scenario}/today`;
+          await controlsScope.locator(`a.admin-nav-link[href="${inboxHref}"]`).click();
           await page.waitForURL(new RegExp(`/demo/command-center/${scenario}/inbox$`));
-          if (await page.locator('.admin-nav-link[aria-current="page"]').first().getAttribute("href") !== "/admin/inbox") failures.push(`${scenario} ${label}: client navigation left the wrong sidebar item active`);
+          if (await page.locator('.admin-nav-link[aria-current="page"]').first().getAttribute("href") !== inboxHref) failures.push(`${scenario} ${label}: client navigation left the wrong sidebar item active`);
           if (label === "desktop" && !await page.getByRole("navigation", { name: "Breadcrumb" }).getByText("Inbox", { exact: true }).count()) failures.push(`${scenario} ${label}: client navigation left a stale breadcrumb`);
           await page.goBack({ waitUntil: "domcontentloaded" });
           await page.waitForURL(new RegExp(`/demo/command-center/${scenario}/today$`));
-          if (await page.locator('.admin-nav-link[aria-current="page"]').first().getAttribute("href") !== "/admin/today") failures.push(`${scenario} ${label}: back navigation left the wrong sidebar item active`);
+          if (await page.locator('.admin-nav-link[aria-current="page"]').first().getAttribute("href") !== todayHref) failures.push(`${scenario} ${label}: back navigation left the wrong sidebar item active`);
           if (label === "mobile") {
             await page.getByRole("button", { name: "Open More" }).click();
             await page.locator('aside[role="dialog"][aria-label="Admin navigation"]').waitFor();

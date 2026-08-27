@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { ArrowUpRight, BookmarkPlus, Building2, Check, CircleDollarSign, Columns3, List, Loader2, Plus, RefreshCw, Search, Settings2, Target, Trash2, TriangleAlert, X } from "lucide-react";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { AdminSurface } from "@/components/admin/AdminSurface";

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { ArrowRight, CalendarDays, ChevronDown, Download, Inbox, Loader2, Mail, Phone, Search, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
@@ -99,7 +99,7 @@ export default function ContactsPage() {
         </div>
 
         {loading ? <LoadingSkeleton variant="table" /> : filtered.length === 0 ? <div className="border-t border-[var(--admin-border)]"><EmptyState title={contacts.length ? "No submissions match these filters" : "No website submissions yet"} description={contacts.length ? "Clear the search or date range to return to the full intake." : "New website contact requests will appear here. You can still add an external list through the reviewed import flow."} icon={Inbox} actionLabel={contacts.length ? "Clear filters" : "Import a contact list"} actionHref={contacts.length ? undefined : "/admin/contact-imports"} onAction={contacts.length ? () => { setSearchQuery(""); setDateFrom(""); setDateTo(""); } : undefined} /></div> : (
-          <motion.div variants={adminListVariants} initial="hidden" animate="visible" className="divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)]">
+          <motion.div variants={adminListVariants} initial={false} animate="visible" className="divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)]">
             {filtered.map((contact) => {
               const expanded = expandedId === contact.id;
               return <motion.article key={contact.id} variants={adminListItemVariants}>

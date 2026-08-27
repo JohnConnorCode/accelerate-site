@@ -300,8 +300,9 @@ export function Hero() {
                   scramble (ScrambleText below), restored verbatim. This is
                   the effect and speed that was actually working. */}
               <span className="word">
-                <span style={{ "--d": "1.00s" } as CSSProperties}>
-                  <ScrambleText text="intelligent automation" delay={1250} trigger={loaded} />
+                <span aria-label="intelligent automation" style={{ "--d": "1.00s" } as CSSProperties}>
+                  <span className="hero-intelligent-static" aria-hidden="true">intelligent automation</span>
+                  <span className="hero-intelligent-scramble" aria-hidden="true"><ScrambleText text="intelligent automation" delay={1250} trigger={loaded} /></span>
                 </span>
               </span>
               {["to", "scale", "your"].map((w, i) => (
@@ -326,7 +327,7 @@ export function Hero() {
               <span className="hero-profit-slot" style={{ overflow: "visible", display: "inline-block" }}>
                 <span
                   className="swap it rev-ul hero-profit"
-                  style={{ position: "relative", zIndex: 10, display: "inline-block", transform: "translateY(0.12em)", lineHeight: 1.25, paddingTop: "0.1em" } as CSSProperties}
+                  style={{ position: "relative", zIndex: 10, display: "inline-block" } as CSSProperties}
                 >
                   PROFIT
                 </span>

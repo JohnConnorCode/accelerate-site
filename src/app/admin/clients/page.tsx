@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { Search } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";

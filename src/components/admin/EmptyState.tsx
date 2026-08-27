@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { Inbox } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 

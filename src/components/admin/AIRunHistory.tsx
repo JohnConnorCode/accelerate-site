@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import Link from "@/components/admin/AdminLink";
+import { useSearchParams } from "next/navigation";
+import { useAdminNavigation } from "@/components/admin/AdminLink";
 import { Activity, Check, ChevronRight, CircleAlert, Clock3, ExternalLink, Filter, Loader2, MessageSquareText, RefreshCw, Search, ShieldCheck, ThumbsDown, ThumbsUp, Wrench } from "lucide-react";
 import type { AiRunDetailPayload, AiRunHistoryPayload, AiRunSummary } from "@/lib/revenue-os/ai-operations-contract";
 import { AdminSurface } from "./AdminSurface";
@@ -42,14 +43,14 @@ function RunDetail({ id, onConversation }: { id: string; onConversation: (id: st
 }
 
 export function AIRunHistory() {
-  const router = useRouter(); const params = useSearchParams();
+  const router = useAdminNavigation(); const params = useSearchParams();
   const [data, setData] = useState<AiRunHistoryPayload | null>(null); const [error, setError] = useState(""); const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState(""); const [windowValue, setWindowValue] = useState("7d"); const [status, setStatus] = useState("all");
   const selected = params.get("run");
   const load = useCallback(async () => { setLoading(true); setError(""); try { const search = new URLSearchParams({ window: windowValue, status, limit: "30" }); if (query.trim()) search.set("q", query.trim()); setData(await fetchJson<AiRunHistoryPayload>(`/api/admin/revenue-os/ai/runs?${search}`)); } catch (issue) { setError(issue instanceof Error ? issue.message : "Run history is unavailable."); } finally { setLoading(false); } }, [query, status, windowValue]);
   useEffect(() => { const timer = window.setTimeout(() => void load(), 180); return () => window.clearTimeout(timer); }, [load]);
-  useEffect(() => { if (!selected && data?.runs[0]) { const next = new URLSearchParams(params.toString()); next.set("run", data.runs[0].id); router.replace(`?${next}`, { scroll: false }); } }, [data, params, router, selected]);
-  const select = (id: string) => { const next = new URLSearchParams(params.toString()); next.set("view", "runs"); next.set("run", id); router.replace(`?${next}`, { scroll: false }); };
+  useEffect(() => { if (!selected && data?.runs[0]) { const next = new URLSearchParams(params.toString()); next.set("run", data.runs[0].id); router.replace(`?${next}`, "preserve"); } }, [data, params, router, selected]);
+  const select = (id: string) => { const next = new URLSearchParams(params.toString()); next.set("view", "runs"); next.set("run", id); router.replace(`?${next}`, "preserve"); };
   const openConversation = (id: string) => { const next = new URLSearchParams(); next.set("conversation", id); router.push(`?${next}`); };
   const metrics = useMemo(() => data ? [{ label: "Runs", value: data.metrics.runs.toLocaleString(), icon: Activity }, { label: "Successful", value: data.metrics.successRate === null ? "—" : `${data.metrics.successRate}%`, icon: ShieldCheck }, { label: "Failures", value: data.metrics.failed.toLocaleString(), icon: CircleAlert }, { label: "Tokens observed", value: data.metrics.totalTokens.toLocaleString(), icon: Wrench }] : [], [data]);
   return <div className="space-y-4">

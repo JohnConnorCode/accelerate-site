@@ -1,9 +1,3 @@
-"use client";
-
-import { useEffect } from "react";
-import { motion, useReducedMotion } from "framer-motion";
-import { adminHeaderItemVariants, adminHeaderVariants } from "@/lib/admin/motion";
-
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
@@ -12,23 +6,18 @@ interface PageHeaderProps {
 }
 
 export function PageHeader({ title, subtitle, actions, eyebrow }: PageHeaderProps) {
-  const reduceMotion = useReducedMotion();
-  useEffect(() => {
-    document.title = `${title} | Accelerate Admin`;
-  }, [title]);
-
   return (
-    <motion.div variants={adminHeaderVariants} initial={reduceMotion ? false : "hidden"} animate="visible" className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+    <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
       <div className="min-w-0">
-        {eyebrow && <motion.p variants={adminHeaderItemVariants} className="admin-eyebrow">{eyebrow}</motion.p>}
-        <motion.h1 variants={adminHeaderItemVariants} className="admin-page-title">
+        {eyebrow && <p className="admin-eyebrow">{eyebrow}</p>}
+        <h1 className="admin-page-title">
           {title}
-        </motion.h1>
+        </h1>
         {subtitle && (
-          <motion.p variants={adminHeaderItemVariants} className="admin-copy mt-1.5 max-w-2xl text-sm">{subtitle}</motion.p>
+          <p className="admin-copy mt-1.5 max-w-2xl text-sm">{subtitle}</p>
         )}
       </div>
-      {actions && <motion.div variants={adminHeaderItemVariants} className="flex shrink-0 flex-wrap items-center gap-2">{actions}</motion.div>}
-    </motion.div>
+      {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
+    </div>
   );
 }

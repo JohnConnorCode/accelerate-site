@@ -1,9 +1,9 @@
 "use client";
 
 import { tenant } from "@/config/tenant";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import Link, { useAdminNavigation } from "@/components/admin/AdminLink";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import {
   ArrowUpRight,
@@ -40,11 +40,11 @@ import { AdminDialog } from "@/components/admin/AdminDialog";
 import { AdminAppearancePicker } from "@/components/admin/AdminAppearancePicker";
 import { Logo } from "@/components/ui/Logo";
 import { LogoMark } from "@/components/ui/LogoMark";
-import { adminPageVariants } from "@/lib/admin/motion";
+import { useNavigationRuntime } from "@/components/navigation/NavigationRuntime";
 import { adminMobileLinks, adminNavLinks, adminNavSections, resolveAdminNavLink, type AdminNavLink } from "@/lib/admin/navigation";
-import { AdminDemoBoundary, AdminDemoControls } from "@/components/admin/AdminDemoBoundary";
+import { AdminDemoControls } from "@/components/admin/AdminDemoBoundary";
 import { DemoScenarioMark } from "@/components/admin/DemoScenarioMark";
-import { DEMO_SCENARIOS, DEMO_SCENARIO_SHELL_NAMES, type DemoScenarioId } from "@/lib/admin/demo/scenarios";
+import { DEMO_SCENARIOS, DEMO_SCENARIO_SHELL_NAMES, isDemoScenarioId, type DemoScenarioId } from "@/lib/admin/demo/scenarios";
 
 function getBreadcrumbs(pathname: string): { label: string; href: string }[] {
   const crumbs = [{ label: "Today", href: "/admin/today" }];
@@ -66,6 +66,12 @@ function resolveAdminPathname(pathname: string, scenarioId: DemoScenarioId | nul
   if (pathname === publicPrefix) return "/admin/today";
   if (pathname.startsWith(`${publicPrefix}/`)) return `/admin/${pathname.slice(publicPrefix.length + 1) || "today"}`;
   return `/admin/${demoRoute || "today"}`;
+}
+
+function resolveAdminPageTitle(pathname: string) {
+  if (pathname.startsWith("/admin/contacts/") && pathname !== "/admin/contacts") return "Contact timeline";
+  if (pathname.startsWith("/admin/pipeline/") && pathname !== "/admin/pipeline") return "Opportunity";
+  return resolveAdminNavLink(pathname)?.label || "Command Center";
 }
 
 interface SearchPerson {
@@ -92,12 +98,15 @@ export default function AdminShell({
   demoRoute: string | null;
 }) {
   const pathname = usePathname();
-  const scenarioId = demoScenarioId;
+  const pathnameScenario = pathname.match(/^\/demo\/command-center\/([^/]+)/)?.[1] || "";
+  const scenarioId = isDemoScenarioId(pathnameScenario) ? pathnameScenario : demoScenarioId;
   // The server route is the hydration-safe fallback. After client navigation,
   // the persistent layout must follow the current public demo URL or its
   // breadcrumb and active navigation state remain stuck on the first route.
   const effectivePathname = resolveAdminPathname(pathname, scenarioId, demoRoute);
-  const router = useRouter();
+  const routeKey = `${scenarioId || "live"}:${effectivePathname}`;
+  const router = useAdminNavigation();
+  const { registerAdminScroller, shouldAnimateRoute } = useNavigationRuntime();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -111,12 +120,15 @@ export default function AdminShell({
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
   const mobileDrawerRef = useRef<HTMLElement>(null);
   const mobileCloseButtonRef = useRef<HTMLButtonElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const searchAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!mobileOpen) return;
     const previousOverflow = document.body.style.overflow;
+    const mainNode = mainRef.current;
+    const previousMainOverflow = mainNode?.style.overflowY || "";
     const returnFocus = mobileMenuButtonRef.current;
     const focusTimer = window.setTimeout(() => mobileCloseButtonRef.current?.focus(), 40);
     const onKeyDown = (event: KeyboardEvent) => {
@@ -144,14 +156,48 @@ export default function AdminShell({
       }
     };
     document.body.style.overflow = "hidden";
+    if (mainNode) mainNode.style.overflowY = "hidden";
     window.addEventListener("keydown", onKeyDown);
     return () => {
       window.clearTimeout(focusTimer);
       document.body.style.overflow = previousOverflow;
+      if (mainNode) mainNode.style.overflowY = previousMainOverflow;
       window.removeEventListener("keydown", onKeyDown);
       window.requestAnimationFrame(() => returnFocus?.focus());
     };
   }, [mobileOpen]);
+
+  useEffect(() => {
+    document.documentElement.classList.add("admin-app-open");
+    document.body.classList.add("admin-app-open");
+    return () => {
+      document.documentElement.classList.remove("admin-app-open");
+      document.body.classList.remove("admin-app-open");
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    let frame = 0;
+    let timer = 0;
+    const applyTitle = () => {
+      const renderedHeading = mainRef.current?.querySelector("h1")?.textContent?.replace(/\s+/g, " ").trim();
+      const pageTitle = renderedHeading || resolveAdminPageTitle(effectivePathname);
+      const expectedTitle = scenarioId
+        ? `${pageTitle} | ${DEMO_SCENARIOS[scenarioId].name} Demo`
+        : `${pageTitle} | ${tenant.brand.name} Admin`;
+      if (document.title !== expectedTitle) document.title = expectedTitle;
+    };
+    const titleObserver = new MutationObserver(applyTitle);
+    titleObserver.observe(document.head, { childList: true, subtree: true, characterData: true });
+    applyTitle();
+    frame = window.requestAnimationFrame(applyTitle);
+    timer = window.setTimeout(applyTitle, 100);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+      titleObserver.disconnect();
+    };
+  }, [effectivePathname, scenarioId]);
 
   const closeSearch = useCallback(() => {
     setSearchOpen(false);
@@ -214,6 +260,11 @@ export default function AdminShell({
   }, []);
 
   useEffect(() => setMobileOpen(false), [effectivePathname]);
+
+  useLayoutEffect(() => {
+    registerAdminScroller(mainRef.current);
+    return () => registerAdminScroller(null);
+  }, [registerAdminScroller]);
 
   useEffect(() => {
     let cancelled = false;
@@ -343,10 +394,9 @@ export default function AdminShell({
   const breadcrumbs = getBreadcrumbs(effectivePathname);
 
   return (
-    <AdminDemoBoundary scenarioId={scenarioId}>
     <AdminAIProvider>
     <MotionConfig reducedMotion="user">
-    <div className="admin-shell flex min-h-screen">
+    <div className="admin-shell flex h-dvh min-h-0 overflow-hidden">
       <aside inert={mobileOpen} className={cn("admin-sidebar hidden shrink-0 transition-[width] duration-300 lg:block", sidebarCollapsed ? "w-[80px]" : "w-[272px]")} data-admin-sidebar>
         <div className="sticky top-0 flex h-screen flex-col px-4 py-5">
           <SidebarContent idPrefix="admin-desktop" isActive={isActive} onSignOut={handleSignOut} collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebar} priorityCount={priorityCount} demoScenarioId={scenarioId} />
@@ -419,7 +469,7 @@ export default function AdminShell({
         inputRef={searchInputRef}
       />
 
-      <main inert={mobileOpen} className="admin-main min-w-0 flex-1 px-4 pb-[max(8rem,calc(7rem+env(safe-area-inset-bottom)))] pt-[calc(76px+env(safe-area-inset-top))] sm:px-6 lg:px-8 lg:pb-12 lg:pt-6 xl:px-10">
+      <main ref={mainRef} inert={mobileOpen} className="admin-main min-w-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[max(8rem,calc(7rem+env(safe-area-inset-bottom)))] pt-[calc(76px+env(safe-area-inset-top))] sm:px-6 lg:px-8 lg:pb-12 lg:pt-6 xl:px-10">
         <div className="admin-route-frame">
           <div className="mb-5 hidden min-h-10 items-center justify-between gap-4 sm:flex">
             <nav className="flex min-w-0 items-center gap-1.5 text-xs text-[var(--admin-muted)]" aria-label="Breadcrumb">
@@ -438,9 +488,9 @@ export default function AdminShell({
           {/* New route content enters immediately. Waiting for an exiting tree
               leaves the operating surface blank and makes navigation feel like
               a reload; the surrounding shell intentionally remains mounted. */}
-          <motion.div key={effectivePathname} variants={adminPageVariants} initial="hidden" animate="visible">
-            <AdminErrorBoundary key={effectivePathname}>{children}</AdminErrorBoundary>
-          </motion.div>
+          <div key={routeKey} className={shouldAnimateRoute ? "admin-route-entry is-entering" : "admin-route-entry"}>
+            <AdminErrorBoundary key={routeKey}>{children}</AdminErrorBoundary>
+          </div>
         </div>
       </main>
 
@@ -468,7 +518,6 @@ export default function AdminShell({
     </div>
     </MotionConfig>
     </AdminAIProvider>
-    </AdminDemoBoundary>
   );
 }
 
@@ -628,7 +677,7 @@ function SidebarContent({
           <MonitorPlay className="h-4 w-4 shrink-0" /> {!collapsed && <><span>Demo workspace</span><ArrowUpRight className="ml-auto h-3.5 w-3.5 text-white/52" /></>}
         </Link>}
         <AdminAppearancePicker collapsed={collapsed} />
-        {demoScenarioId && <div className="mt-1"><AdminDemoControls collapsed={collapsed} /></div>}
+        {demoScenarioId && <div className="mt-1"><AdminDemoControls collapsed={collapsed} controlsId={`${idPrefix}-demo-controls`} /></div>}
         {!demoScenarioId && <>
           <Link href="/" target="_blank" onClick={onNavigate} title={collapsed ? "View live site" : undefined} className={cn("admin-nav-utility flex min-h-10 items-center rounded-[10px] text-xs transition-[color,background-color,transform] duration-150 active:scale-[0.96]", collapsed ? "justify-center" : "gap-3 px-2.5")}>
             <ArrowUpRight className="h-4 w-4" /> {!collapsed && "View live site"}

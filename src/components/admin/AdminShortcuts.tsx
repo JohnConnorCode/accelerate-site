@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useAdminNavigation } from "@/components/admin/AdminLink";
 import { X } from "lucide-react";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { AdminSurface } from "@/components/admin/AdminSurface";
@@ -42,7 +43,7 @@ function shouldIgnore(target: EventTarget | null): boolean {
 }
 
 export function AdminShortcuts() {
-  const router = useRouter();
+  const router = useAdminNavigation();
   const pathname = usePathname();
   const [helpOpen, setHelpOpen] = useState(false);
   const chordArmedRef = useRef(false);

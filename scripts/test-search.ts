@@ -48,7 +48,7 @@ async function main() {
   assert.equal(firstHref("pricing"), "/packages", `"pricing" must reach packages, got ${top("pricing").join(", ")}`);
   assert.equal(firstHref("how much"), "/packages", `"how much" must reach packages, got ${top("how much").join(", ")}`);
   assert.equal(firstHref("book a call"), "/contact", `"book a call" must reach contact, got ${top("book a call").join(", ")}`);
-  assert.equal(firstHref("demo"), "/contact");
+  assert.equal(firstHref("demo"), "/demo/command-center", `"demo" must reach the full Command Center launcher, got ${top("demo").join(", ")}`);
   assert.equal(firstHref("blog"), "/learn", `"blog" must reach the article library, got ${top("blog").join(", ")}`);
 
   // ---- Multi-word queries narrow rather than widen -----------------------

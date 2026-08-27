@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { ArrowRight, DatabaseZap } from "lucide-react";
 import { AdminSurface } from "./AdminSurface";
 
