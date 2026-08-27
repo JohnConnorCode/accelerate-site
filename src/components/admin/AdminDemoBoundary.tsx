@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -63,6 +63,7 @@ export function AdminDemoControls({ collapsed = false }: { collapsed?: boolean }
   const { setTheme } = useTheme();
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const controlsId = useId();
   const [open, setOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
   const [guideStep, setGuideStep] = useState(0);
@@ -121,7 +122,7 @@ export function AdminDemoControls({ collapsed = false }: { collapsed?: boolean }
           collapsed ? "size-11 justify-center" : "w-full gap-2.5 px-2",
         )}
         aria-expanded={open}
-        aria-controls="admin-demo-controls"
+        aria-controls={controlsId}
         aria-label={open ? "Hide demo controls" : "Open demo controls"}
         title={collapsed ? "Demo controls" : undefined}
       >
@@ -135,7 +136,7 @@ export function AdminDemoControls({ collapsed = false }: { collapsed?: boolean }
       <AnimatePresence initial={false}>
         {open && (
           <motion.div
-            id="admin-demo-controls"
+            id={controlsId}
             initial={collapsed ? { opacity: 0, x: -6, scale: 0.98 } : { height: 0, opacity: 0 }}
             animate={collapsed ? { opacity: 1, x: 0, scale: 1 } : { height: "auto", opacity: 1 }}
             exit={collapsed ? { opacity: 0, x: -4, scale: 0.98 } : { height: 0, opacity: 0 }}

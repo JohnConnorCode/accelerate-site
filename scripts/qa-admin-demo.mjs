@@ -94,6 +94,17 @@ for (const scenario of scenarios) {
         if (label === "mobile") {
           await page.getByRole("button", { name: "Open navigation" }).click();
           await page.locator('aside[role="dialog"][aria-label="Admin navigation"]').waitFor();
+          await page.waitForTimeout(80);
+          const drawerA11y = await page.evaluate(() => {
+            const ids = [...document.querySelectorAll("[id]")].map((node) => node.id).filter(Boolean);
+            return {
+              duplicateIds: [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))],
+              focusInside: Boolean(document.activeElement?.closest('aside[role="dialog"][aria-label="Admin navigation"]')),
+              focusLabel: document.activeElement?.getAttribute("aria-label"),
+            };
+          });
+          if (drawerA11y.duplicateIds.length) failures.push(`${scenario} mobile: duplicate ids while navigation is open: ${drawerA11y.duplicateIds.join(", ")}`);
+          if (!drawerA11y.focusInside || drawerA11y.focusLabel !== "Close navigation") failures.push(`${scenario} mobile: navigation did not move focus to its close control`);
         }
         let controlsScope = label === "mobile" ? page.locator('aside[role="dialog"][aria-label="Admin navigation"]') : page.locator("[data-admin-sidebar]");
         const demoControlPlacement = await controlsScope.locator("[data-admin-demo-bar]").evaluate((node) => ({ insideFooter: Boolean(node.closest(".admin-nav-footer")), position: getComputedStyle(node).position }));
@@ -102,7 +113,8 @@ for (const scenario of scenarios) {
 
         if (scenario === "sprout-and-spark") {
           const revenueToggle = controlsScope.getByRole("button", { name: "Revenue", exact: true });
-          const revenuePanel = controlsScope.locator("#admin-nav-revenue");
+          const revenuePanelId = await revenueToggle.getAttribute("aria-controls");
+          const revenuePanel = controlsScope.locator(`[id="${revenuePanelId}"]`);
           await revenueToggle.click();
           await revenuePanel.waitFor();
           await revenueToggle.click();
@@ -131,6 +143,9 @@ for (const scenario of scenarios) {
           const mobileControlFacts = await page.evaluate(() => ({ overflow: document.documentElement.scrollWidth > innerWidth + 2, undersized: [...document.querySelectorAll('aside[role="dialog"][aria-label="Admin navigation"] button, aside[role="dialog"][aria-label="Admin navigation"] select, aside[role="dialog"][aria-label="Admin navigation"] a')].filter((node) => { const rect = node.getBoundingClientRect(); return rect.width > 0 && rect.height > 0 && (rect.width < 40 || rect.height < 40); }).length }));
           if (mobileControlFacts.overflow) failures.push(`${scenario} mobile: open integrated controls caused horizontal overflow`);
           if (mobileControlFacts.undersized) failures.push(`${scenario} mobile: ${mobileControlFacts.undersized} visible navigation controls are below the 40px hit-area minimum`);
+          const drawerFocusableCount = await controlsScope.locator('a[href], button:not([disabled]), select:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])').count();
+          for (let index = 0; index < drawerFocusableCount + 2; index += 1) await page.keyboard.press("Tab");
+          if (!await page.evaluate(() => Boolean(document.activeElement?.closest('aside[role="dialog"][aria-label="Admin navigation"]')))) failures.push(`${scenario} mobile: keyboard focus escaped the navigation dialog`);
         }
         if (label === "desktop") {
           await controlsScope.getByRole("button", { name: "Open guided demo" }).click();

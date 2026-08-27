@@ -73,7 +73,9 @@ async function verifyRoutes(viewport, label, appearance = null) {
   // The appearance picker persists through next-themes. Set it before any app
   // script runs so this sweep proves every retained route against the exact
   // Signal and Studio rendering path, not a one-off post-hydration preview.
-  if (appearance) await context.addInitScript((theme) => window.localStorage.setItem("theme", theme), appearance);
+  if (appearance) await context.addInitScript((theme) => {
+    if (window.top === window) window.localStorage.setItem("theme", theme);
+  }, appearance);
   const page = await context.newPage();
   await page.route("**/api/admin/notifications**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ notifications: [], unreadCount: 3, urgentCount: 1, priority: { status: "ready", summary: { total: 0, urgent: 0, critical: 0 }, items: [] } }) }));
   // Route parity validates shell/layout behavior independently of an unapplied

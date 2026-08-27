@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useTheme } from "next-themes";
 import { Check, ChevronUp, Moon, Palette, Snowflake, Sparkles, Sun } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -31,6 +31,9 @@ export function AdminAppearancePicker({ collapsed = false }: { collapsed?: boole
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelId = useId();
   const currentTheme = isAdminAppearance(theme) ? theme : isAdminAppearance(resolvedTheme) ? resolvedTheme : "light";
   const current = appearances.find((appearance) => appearance.id === currentTheme) ?? appearances[0]!;
 
@@ -40,15 +43,22 @@ export function AdminAppearancePicker({ collapsed = false }: { collapsed?: boole
 
   useEffect(() => {
     if (!open) return;
+    const focusTimer = window.setTimeout(() => {
+      panelRef.current?.querySelector<HTMLElement>('[role="radio"][aria-checked="true"]')?.focus();
+    }, 40);
     const onPointerDown = (event: PointerEvent) => {
       if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
     };
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        setOpen(false);
+        requestAnimationFrame(() => triggerRef.current?.focus());
+      }
     };
     window.addEventListener("pointerdown", onPointerDown);
     window.addEventListener("keydown", onKeyDown);
     return () => {
+      window.clearTimeout(focusTimer);
       window.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("keydown", onKeyDown);
     };
@@ -59,6 +69,7 @@ export function AdminAppearancePicker({ collapsed = false }: { collapsed?: boole
   return (
     <div ref={rootRef} className={cn("relative", open && "z-30")}>
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((value) => !value)}
         className={cn(
@@ -67,7 +78,7 @@ export function AdminAppearancePicker({ collapsed = false }: { collapsed?: boole
         )}
         aria-haspopup="dialog"
         aria-expanded={open}
-        aria-controls="admin-appearance-picker"
+        aria-controls={panelId}
         aria-label={`Appearance: ${current.label}`}
         title={collapsed ? `Appearance: ${current.label}` : undefined}
       >
@@ -81,7 +92,8 @@ export function AdminAppearancePicker({ collapsed = false }: { collapsed?: boole
       <AnimatePresence initial={false}>
         {open && (
           <motion.div
-            id="admin-appearance-picker"
+            ref={panelRef}
+            id={panelId}
             role="dialog"
             aria-label="Choose admin appearance"
             initial={{ opacity: 0, y: 8, scale: 0.98 }}
@@ -110,6 +122,7 @@ export function AdminAppearancePicker({ collapsed = false }: { collapsed?: boole
                     onClick={() => {
                       setTheme(appearance.id);
                       setOpen(false);
+                      requestAnimationFrame(() => triggerRef.current?.focus());
                     }}
                     className={cn(
                       "admin-appearance-option group relative min-h-[92px] rounded-[12px] p-2.5 text-left transition-[background-color,color,transform] duration-150 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-nav-accent)]",

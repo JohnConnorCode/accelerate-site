@@ -110,20 +110,48 @@ export default function AdminShell({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [priorityCount, setPriorityCount] = useState(0);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileDrawerRef = useRef<HTMLElement>(null);
+  const mobileCloseButtonRef = useRef<HTMLButtonElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const searchAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!mobileOpen) return;
     const previousOverflow = document.body.style.overflow;
+    const returnFocus = mobileMenuButtonRef.current;
+    const focusTimer = window.setTimeout(() => mobileCloseButtonRef.current?.focus(), 40);
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMobileOpen(false);
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setMobileOpen(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const drawer = mobileDrawerRef.current;
+      if (!drawer) return;
+      const focusable = [...drawer.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), select:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      )].filter((element) => element.getClientRects().length > 0);
+      if (!focusable.length) return;
+      const first = focusable[0]!;
+      const last = focusable[focusable.length - 1]!;
+      const active = document.activeElement;
+      if (event.shiftKey && (active === first || !drawer.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (active === last || !drawer.contains(active))) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKeyDown);
     return () => {
+      window.clearTimeout(focusTimer);
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
+      window.requestAnimationFrame(() => returnFocus?.focus());
     };
   }, [mobileOpen]);
 
@@ -321,13 +349,13 @@ export default function AdminShell({
     <AdminAIProvider>
     <MotionConfig reducedMotion="user">
     <div className="admin-shell flex min-h-screen">
-      <aside className={cn("admin-sidebar hidden shrink-0 transition-[width] duration-300 lg:block", sidebarCollapsed ? "w-[80px]" : "w-[272px]")} data-admin-sidebar>
+      <aside inert={mobileOpen} className={cn("admin-sidebar hidden shrink-0 transition-[width] duration-300 lg:block", sidebarCollapsed ? "w-[80px]" : "w-[272px]")} data-admin-sidebar>
         <div className="sticky top-0 flex h-screen flex-col px-4 py-5">
-          <SidebarContent isActive={isActive} onSignOut={handleSignOut} collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebar} priorityCount={priorityCount} demoScenarioId={scenarioId} />
+          <SidebarContent idPrefix="admin-desktop" isActive={isActive} onSignOut={handleSignOut} collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebar} priorityCount={priorityCount} demoScenarioId={scenarioId} />
         </div>
       </aside>
 
-      <header className="admin-mobile-header fixed inset-x-0 top-0 z-40 flex min-h-16 items-center justify-between gap-2 px-4 pt-[env(safe-area-inset-top)] lg:hidden">
+      <header inert={mobileOpen} className="admin-mobile-header fixed inset-x-0 top-0 z-40 flex min-h-16 items-center justify-between gap-2 px-4 pt-[env(safe-area-inset-top)] lg:hidden">
         {scenarioId ? (
           <Link href="/admin/today" className="admin-nav-brand flex min-w-0 items-center gap-2.5 font-semibold" aria-label={`${DEMO_SCENARIOS[scenarioId].name} demo home`}>
             <DemoScenarioMark scenarioId={scenarioId} className="size-8 shrink-0" />
@@ -338,11 +366,10 @@ export default function AdminShell({
         )}
         <div className="flex items-center gap-1">
           <NotificationBell placement="mobile" />
-          <button type="button" onClick={() => window.dispatchEvent(new CustomEvent("admin:open-ai"))} className="admin-nav-control inline-flex size-11 items-center justify-center rounded-[10px] transition-[color,background-color,transform] duration-150 active:scale-[0.96]" aria-label="Open AI command center"><Bot className="size-4" /></button>
           <button type="button" onClick={() => setSearchOpen(true)} className="admin-nav-control inline-flex size-11 items-center justify-center rounded-[10px] transition-[color,background-color,transform] duration-150 active:scale-[0.96]" aria-label="Open command palette">
             <Search className="h-4.5 w-4.5" />
           </button>
-          <button type="button" onClick={() => setMobileOpen((current) => !current)} className="admin-nav-control inline-flex size-11 items-center justify-center rounded-[10px] transition-[color,background-color,transform] duration-150 active:scale-[0.96]" aria-label={mobileOpen ? "Navigation open" : "Open navigation"} aria-expanded={mobileOpen}>
+          <button ref={mobileMenuButtonRef} type="button" onClick={() => setMobileOpen((current) => !current)} className="admin-nav-control inline-flex size-11 items-center justify-center rounded-[10px] transition-[color,background-color,transform] duration-150 active:scale-[0.96]" aria-label={mobileOpen ? "Navigation open" : "Open navigation"} aria-expanded={mobileOpen} aria-controls="admin-mobile-navigation">
             <AnimatePresence initial={false} mode="popLayout">
               <motion.span
                 key={mobileOpen ? "close" : "menu"}
@@ -362,8 +389,25 @@ export default function AdminShell({
         {mobileOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
             <motion.button type="button" aria-label="Dismiss navigation" className="absolute inset-0 bg-black/55" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileOpen(false)} />
-            <motion.aside role="dialog" aria-modal="true" aria-label="Admin navigation" className="admin-sidebar absolute inset-y-0 left-0 flex w-[min(22rem,calc(100vw-1rem))] flex-col rounded-r-[24px] px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))] shadow-[24px_0_70px_-32px_rgba(0,0,0,.85)]" initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }} transition={{ type: "spring", duration: 0.3, bounce: 0 }}>
-              <SidebarContent isActive={isActive} onSignOut={handleSignOut} onNavigate={() => setMobileOpen(false)} onClose={() => setMobileOpen(false)} priorityCount={priorityCount} demoScenarioId={scenarioId} />
+            <motion.aside ref={mobileDrawerRef} id="admin-mobile-navigation" role="dialog" aria-modal="true" aria-label="Admin navigation" className="admin-sidebar absolute inset-y-0 left-0 flex w-[min(23.5rem,calc(100vw-0.5rem))] flex-col rounded-r-[24px] px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))] shadow-[24px_0_70px_-32px_rgba(0,0,0,.85)]" initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }} transition={{ type: "spring", duration: 0.3, bounce: 0 }}>
+              <SidebarContent
+                idPrefix="admin-mobile"
+                isActive={isActive}
+                onSignOut={handleSignOut}
+                onNavigate={() => setMobileOpen(false)}
+                onClose={() => setMobileOpen(false)}
+                closeButtonRef={mobileCloseButtonRef}
+                onOpenSearch={() => {
+                  setMobileOpen(false);
+                  window.setTimeout(() => setSearchOpen(true), 220);
+                }}
+                onOpenAI={() => {
+                  setMobileOpen(false);
+                  window.setTimeout(() => window.dispatchEvent(new CustomEvent("admin:open-ai")), 220);
+                }}
+                priorityCount={priorityCount}
+                demoScenarioId={scenarioId}
+              />
             </motion.aside>
           </div>
         )}
@@ -390,7 +434,7 @@ export default function AdminShell({
         inputRef={searchInputRef}
       />
 
-      <main className="admin-main min-w-0 flex-1 px-4 pb-[max(3rem,calc(3rem+env(safe-area-inset-bottom)))] pt-[calc(76px+env(safe-area-inset-top))] sm:px-6 lg:px-8 lg:pb-12 lg:pt-6 xl:px-10">
+      <main inert={mobileOpen} className="admin-main min-w-0 flex-1 px-4 pb-[max(3rem,calc(3rem+env(safe-area-inset-bottom)))] pt-[calc(76px+env(safe-area-inset-top))] sm:px-6 lg:px-8 lg:pb-12 lg:pt-6 xl:px-10">
         <div className="admin-route-frame">
           <div className="mb-5 flex min-h-10 items-center justify-between gap-4">
             <nav className="flex min-w-0 items-center gap-1.5 text-xs text-[var(--admin-muted)]" aria-label="Breadcrumb">
@@ -429,19 +473,27 @@ export default function AdminShell({
 }
 
 function SidebarContent({
+  idPrefix,
   isActive,
   onSignOut,
   onNavigate,
   onClose,
+  closeButtonRef,
+  onOpenSearch,
+  onOpenAI,
   collapsed = false,
   onToggleCollapse,
   priorityCount = 0,
   demoScenarioId = null,
 }: {
+  idPrefix: string;
   isActive: (href: string) => boolean;
   onSignOut: () => Promise<void> | void;
   onNavigate?: () => void;
   onClose?: () => void;
+  closeButtonRef?: React.RefObject<HTMLButtonElement | null>;
+  onOpenSearch?: () => void;
+  onOpenAI?: () => void;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
   priorityCount?: number;
@@ -450,15 +502,24 @@ function SidebarContent({
   const activeSection = adminNavSections.find((section) =>
     section.links.some((link) => isActive(link.href)),
   )?.label;
-  const [expandedSections, setExpandedSections] = useState<string[]>(activeSection ? [activeSection] : [adminNavSections[0]!.label]);
+  const [sectionState, setSectionState] = useState({
+    routeSection: activeSection,
+    expanded: activeSection ? [activeSection] : [adminNavSections[0]!.label],
+  });
+  const expandedSections = sectionState.routeSection === activeSection
+    ? sectionState.expanded
+    : activeSection
+      ? [activeSection]
+      : sectionState.expanded;
   const demoScenario = demoScenarioId ? DEMO_SCENARIOS[demoScenarioId] : null;
 
   const toggleSection = (label: string) => {
-    setExpandedSections((current) =>
-      current.includes(label)
-        ? current.filter((section) => section !== label)
-        : [...current, label],
-    );
+    setSectionState({
+      routeSection: activeSection,
+      expanded: expandedSections.includes(label)
+        ? expandedSections.filter((section) => section !== label)
+        : [...expandedSections, label],
+    });
   };
 
   return (
@@ -484,22 +545,29 @@ function SidebarContent({
             ariaLabel={`${tenant.brand.name} Revenue OS home`}
             onClick={onNavigate}
             size="sm"
-            className="admin-nav-brand"
+            className="admin-nav-brand min-w-0 [&_.logo-word]:!text-[13px] [&_.logo-word]:tracking-[0.1em]"
           />
         )}
         <div className={cn("flex shrink-0 items-center", collapsed ? "flex-col gap-1" : "gap-0.5")} data-admin-sidebar-controls>
-          <NotificationBell placement="sidebar" />
+          {!onClose && <NotificationBell placement="sidebar" />}
           {onToggleCollapse && <button type="button" onClick={onToggleCollapse} className="admin-nav-control grid size-10 shrink-0 place-items-center rounded-[10px] transition-[background-color,color,transform] duration-150 active:scale-[0.96]" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <PanelLeftOpen className="size-[17px]" /> : <PanelLeftClose className="size-[17px]" />}</button>}
-          {onClose && <button type="button" onClick={onClose} className="admin-nav-control grid size-11 shrink-0 place-items-center rounded-[11px] transition-[background-color,color,transform] duration-150 active:scale-[0.96]" aria-label="Close navigation"><X className="size-5" /></button>}
+          {onClose && <button ref={closeButtonRef} type="button" onClick={onClose} className="admin-nav-control grid size-11 shrink-0 place-items-center rounded-[11px] transition-[background-color,color,transform] duration-150 active:scale-[0.96]" aria-label="Close navigation"><X className="size-5" /></button>}
         </div>
       </div>
+
+      {onClose && (
+        <div className="mb-4 grid shrink-0 grid-cols-2 gap-2" aria-label="Workspace tools">
+          <button type="button" onClick={onOpenSearch} className="admin-nav-utility inline-flex min-h-11 items-center justify-center gap-2 rounded-[11px] px-3 text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]"><Search className="size-4" />Search</button>
+          <button type="button" onClick={onOpenAI} className="admin-nav-utility inline-flex min-h-11 items-center justify-center gap-2 rounded-[11px] px-3 text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]"><Bot className="size-4" />Ask AI</button>
+        </div>
+      )}
 
       <nav className="admin-nav-scroll flex-1 space-y-2 overflow-y-auto overscroll-contain" aria-label="Admin navigation">
         {adminNavSections.map((section, sectionIndex) => (
           <motion.section key={section.label} initial={{ opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: sectionIndex * 0.055, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}>
             {(() => {
               const expanded = collapsed || expandedSections.includes(section.label);
-              const panelId = `admin-nav-${section.label.toLowerCase()}`;
+              const panelId = `${idPrefix}-nav-${section.label.toLowerCase()}`;
               return <>
                 {!collapsed ? <button
                   type="button"
