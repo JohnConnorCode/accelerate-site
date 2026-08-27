@@ -58,7 +58,7 @@ for (const config of [
   if (!await pipeline.count()) failures.push(`${config.label}: scenario-aware Pipeline link is missing`);
   else await pipeline.evaluate((node) => node.click());
   await page.waitForURL("**/sprout-and-spark/pipeline");
-  await page.waitForTimeout(380);
+  await page.waitForTimeout(1_280);
   const adminForward = await page.evaluate(() => ({
     y: document.querySelector(".admin-main").scrollTop,
     animation: getComputedStyle(document.querySelector(".admin-route-entry")).animationName,

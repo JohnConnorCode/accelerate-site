@@ -219,6 +219,8 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
       if (!restoresHistory) {
         restoreTimers.push(window.setTimeout(focusDestination, 80));
         restoreTimers.push(window.setTimeout(focusDestination, 320));
+        restoreTimers.push(window.setTimeout(focusDestination, 720));
+        restoreTimers.push(window.setTimeout(focusDestination, 1200));
       }
     });
     return () => {
