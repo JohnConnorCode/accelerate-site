@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { adminHeaderItemVariants, adminHeaderVariants } from "@/lib/admin/motion";
 
 interface PageHeaderProps {
@@ -11,12 +11,13 @@ interface PageHeaderProps {
 }
 
 export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
+  const reduceMotion = useReducedMotion();
   useEffect(() => {
     document.title = `${title} | Accelerate Admin`;
   }, [title]);
 
   return (
-    <motion.div variants={adminHeaderVariants} initial="hidden" animate="visible" className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+    <motion.div variants={adminHeaderVariants} initial={reduceMotion ? false : "hidden"} animate="visible" className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
       <div className="min-w-0">
         <motion.p variants={adminHeaderItemVariants} className="admin-eyebrow">Accelerate operations</motion.p>
         <motion.h1 variants={adminHeaderItemVariants} className="admin-page-title">

@@ -3539,6 +3539,10 @@ body.admin-dialog-open {
 }
 .admin-nav-link svg { color: var(--admin-nav-faint); }
 .admin-nav-link:hover svg { color: var(--admin-nav-ink); }
+.admin-nav-section-button[aria-expanded="true"] {
+  color: var(--admin-nav-ink);
+  background: color-mix(in srgb, var(--admin-nav-accent) 7%, transparent);
+}
 .admin-nav-link[aria-current="page"] {
   color: var(--admin-nav-active-ink);
   background: var(--admin-nav-active-bg);
@@ -3555,6 +3559,27 @@ body.admin-dialog-open {
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-nav-accent) 14%, transparent);
 }
 .admin-nav-demo-link:hover { background: color-mix(in srgb, var(--admin-nav-accent) 15%, transparent); }
+.admin-nav-demo-control {
+  color: var(--admin-nav-ink);
+  background: color-mix(in srgb, var(--admin-nav-accent) 8%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-nav-accent) 12%, transparent);
+}
+.admin-nav-demo-control:hover {
+  background: color-mix(in srgb, var(--admin-nav-accent) 13%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-nav-accent) 18%, transparent);
+}
+.admin-demo-control-panel { background: color-mix(in srgb, var(--admin-nav-hover) 72%, transparent); }
+.admin-demo-rail-popover {
+  color: var(--admin-nav-ink);
+  background: color-mix(in srgb, var(--admin-sidebar) 96%, transparent);
+  box-shadow: 0 24px 70px -30px rgba(0, 0, 0, 0.72), 0 0 0 1px var(--admin-nav-rule);
+  -webkit-backdrop-filter: blur(24px) saturate(1.15);
+  backdrop-filter: blur(24px) saturate(1.15);
+}
+.admin-nav-demo-primary {
+  color: var(--admin-nav-active-ink);
+  background: var(--admin-nav-active-bg);
+}
 .admin-notification-count { box-shadow: 0 0 0 2px var(--admin-nav-badge-ring); }
 .admin-appearance-panel {
   color: var(--admin-nav-ink);

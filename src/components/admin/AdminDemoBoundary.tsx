@@ -1,73 +1,194 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowRight, ChevronDown, ListChecks, RotateCcw, X } from "lucide-react";
+import { useTheme } from "next-themes";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowLeft, ArrowRight, Check, ChevronDown, ListChecks, RotateCcw } from "lucide-react";
 import { DEMO_SCENARIOS, DEMO_SCENARIO_SUMMARIES, type DemoScenarioId } from "@/lib/admin/demo/scenarios";
 import { installAdminDemoRuntime } from "@/lib/admin/demo/runtime";
 import { DemoScenarioMark } from "@/components/admin/DemoScenarioMark";
+import { cn } from "@/lib/utils";
+
+interface AdminDemoContextValue {
+  scenarioId: DemoScenarioId;
+  reset: () => void;
+}
+
+const AdminDemoContext = createContext<AdminDemoContextValue | null>(null);
+const DEMO_APPEARANCE_SCENARIO_KEY = "accelerate:admin-demo:appearance-scenario";
 
 export function AdminDemoBoundary({ scenarioId, children }: { scenarioId: DemoScenarioId | null; children: React.ReactNode }) {
   const resetRef = useRef<null | (() => void)>(null);
-  const controlsTriggerRef = useRef<HTMLButtonElement>(null);
-  const controlsCloseRef = useRef<HTMLButtonElement>(null);
-  const [guideOpen, setGuideOpen] = useState(false);
-  const [guideStep, setGuideStep] = useState(0);
-  const [controlsOpen, setControlsOpen] = useState(false);
-  const pathname = usePathname(); const router = useRouter();
+  const router = useRouter();
+  const { setTheme } = useTheme();
+
   useLayoutEffect(() => {
     if (!scenarioId) return;
+    if (window.sessionStorage.getItem(DEMO_APPEARANCE_SCENARIO_KEY) !== scenarioId) {
+      setTheme(DEMO_SCENARIOS[scenarioId].appearance);
+      window.sessionStorage.setItem(DEMO_APPEARANCE_SCENARIO_KEY, scenarioId);
+    }
     const runtime = installAdminDemoRuntime(scenarioId);
     resetRef.current = runtime.reset;
     (window as Window & { __accelerateAdminDemoRuntime?: string }).__accelerateAdminDemoRuntime = scenarioId;
     const capture = (event: MouseEvent) => {
-      const anchor = (event.target as Element | null)?.closest("a"); const href = anchor?.getAttribute("href");
+      const anchor = (event.target as Element | null)?.closest("a");
+      const href = anchor?.getAttribute("href");
       if (!href?.startsWith("/admin")) return;
-      event.preventDefault(); const suffix = href.replace(/^\/admin\/?/, ""); router.push(`/demo/command-center/${scenarioId}/${suffix || "today"}`);
+      event.preventDefault();
+      const suffix = href.replace(/^\/admin\/?/, "");
+      router.push(`/demo/command-center/${scenarioId}/${suffix || "today"}`);
     };
     document.addEventListener("click", capture, true);
-    return () => { document.removeEventListener("click", capture, true); delete (window as Window & { __accelerateAdminDemoRuntime?: string }).__accelerateAdminDemoRuntime; resetRef.current = null; runtime.restore(); };
-  }, [router, scenarioId]);
+    return () => {
+      document.removeEventListener("click", capture, true);
+      delete (window as Window & { __accelerateAdminDemoRuntime?: string }).__accelerateAdminDemoRuntime;
+      resetRef.current = null;
+      runtime.restore();
+    };
+  }, [router, scenarioId, setTheme]);
+
+  const reset = useCallback(() => resetRef.current?.(), []);
+  if (!scenarioId) return <>{children}</>;
+
+  return <AdminDemoContext.Provider value={{ scenarioId, reset }}>{children}</AdminDemoContext.Provider>;
+}
+
+export function AdminDemoControls({ collapsed = false }: { collapsed?: boolean }) {
+  const demo = useContext(AdminDemoContext);
+  const pathname = usePathname();
+  const router = useRouter();
+  const { setTheme } = useTheme();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [guideStep, setGuideStep] = useState(0);
+
   useEffect(() => {
-    if (!controlsOpen) return;
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setGuideOpen(false);
+        setOpen(false);
+      }
+    };
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       if (guideOpen) setGuideOpen(false);
       else {
-        setControlsOpen(false);
-        requestAnimationFrame(() => controlsTriggerRef.current?.focus());
+        setOpen(false);
+        requestAnimationFrame(() => triggerRef.current?.focus());
       }
     };
+    window.addEventListener("pointerdown", onPointerDown);
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [controlsOpen, guideOpen]);
-  if (!scenarioId) return <>{children}</>;
-  const scenario = DEMO_SCENARIOS[scenarioId];
-  const route = pathname.split("/").slice(4).join("/") || "today";
+    return () => {
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [guideOpen, open]);
+
+  if (!demo) return null;
+  const scenario = DEMO_SCENARIOS[demo.scenarioId];
+  const publicPrefix = `/demo/command-center/${demo.scenarioId}`;
+  const route = pathname.startsWith(`${publicPrefix}/`)
+    ? pathname.slice(publicPrefix.length + 1)
+    : pathname.startsWith("/admin/")
+      ? pathname.slice("/admin/".length)
+      : "today";
   const guideRoutes = ["today", "conversations", "pipeline", "revenue", "analytics"];
-  const openGuideStep = (step: number) => { setGuideStep(step); router.push(`/demo/command-center/${scenarioId}/${guideRoutes[step]}`); };
-  const openControls = () => { setControlsOpen(true); requestAnimationFrame(() => controlsCloseRef.current?.focus()); };
-  const collapseControls = () => { setGuideOpen(false); setControlsOpen(false); requestAnimationFrame(() => controlsTriggerRef.current?.focus()); };
-  return <>
-    {children}
-    <aside className="fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] right-3 z-[80] w-[min(calc(100vw-1.5rem),28rem)] text-white sm:bottom-auto sm:right-5 sm:top-4" aria-label="Demo workspace controls" data-admin-demo-bar data-state={controlsOpen ? "open" : "collapsed"}>
-      {!controlsOpen ? <button ref={controlsTriggerRef} type="button" onClick={openControls} className="ml-auto flex min-h-12 max-w-full items-center gap-2.5 rounded-[14px] bg-[#111]/95 px-3 text-left shadow-[0_18px_55px_-22px_rgba(0,0,0,.72),0_0_0_1px_rgba(255,255,255,.12)] backdrop-blur-xl transition-[background-color,transform,box-shadow] duration-200 hover:bg-[#181818] hover:shadow-[0_22px_60px_-22px_rgba(0,0,0,.8),0_0_0_1px_rgba(255,255,255,.18)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-white active:scale-[0.96]" aria-expanded="false" aria-controls="admin-demo-controls" aria-label="Open demo controls">
-        <span className="grid size-8 shrink-0 place-items-center rounded-[9px] text-white" style={{ backgroundColor: scenario.accent }}><DemoScenarioMark scenarioId={scenarioId} className="size-6" /></span>
-        <span className="min-w-0"><span className="block truncate text-xs font-semibold">{scenario.name}</span><span className="block truncate text-[10px] text-white/48">Fictional demo · controls</span></span>
-        <ChevronDown className="ml-1 size-4 shrink-0 text-white/55" />
-      </button> : <div id="admin-demo-controls" className="relative rounded-[18px] bg-[#111]/95 p-2.5 shadow-[0_24px_80px_-24px_rgba(0,0,0,.72),0_0_0_1px_rgba(255,255,255,.12)] backdrop-blur-xl">
-      {guideOpen && <section className="absolute inset-x-0 bottom-[calc(100%+0.6rem)] rounded-[18px] bg-[#111]/98 p-4 text-white shadow-[0_20px_65px_-24px_rgba(0,0,0,.8)] ring-1 ring-white/12 backdrop-blur-xl sm:bottom-auto sm:top-[calc(100%+0.6rem)]" aria-label="Guided demo story" data-admin-demo-guide>
-        <div className="flex items-start justify-between gap-4"><div><p className="font-mono text-[9px] font-semibold uppercase tracking-[0.14em] text-white/45">Story {guideStep + 1} of {scenario.story.length}</p><h2 className="mt-1 text-balance text-sm font-semibold">{scenario.story[guideStep]}</h2></div><button type="button" onClick={() => setGuideOpen(false)} className="grid size-9 shrink-0 place-items-center rounded-[9px] text-white/58 transition-[background-color,color,transform] hover:bg-white/8 hover:text-white active:scale-[0.96]" aria-label="Close guided story"><X className="size-4" /></button></div>
-        <p className="mt-2 text-pretty text-xs leading-5 text-white/55">Follow this step in the real admin workspace. Records and outcomes remain fictional, and any action is staged locally.</p>
-        <div className="mt-4 flex items-center gap-2"><div className="flex flex-1 gap-1">{scenario.story.map((step, index) => <button key={step} type="button" onClick={() => openGuideStep(index)} className={`h-1.5 flex-1 rounded-full transition-colors ${index <= guideStep ? "bg-white" : "bg-white/16"}`} aria-label={`Open story step ${index + 1}`} aria-current={index === guideStep ? "step" : undefined} />)}</div><button type="button" onClick={() => openGuideStep(Math.min(scenario.story.length - 1, guideStep + 1))} disabled={guideStep === scenario.story.length - 1} className="inline-flex min-h-10 items-center gap-2 rounded-[10px] bg-white px-3 text-xs font-semibold text-black transition-[opacity,transform] hover:opacity-85 active:scale-[0.96] disabled:opacity-35">Next <ArrowRight className="size-3.5" /></button></div>
-      </section>}
-      <div className="flex min-w-0 items-center gap-2.5 px-2 py-1"><span className="grid size-9 shrink-0 place-items-center rounded-[10px] text-white" style={{ backgroundColor: scenario.accent }}><DemoScenarioMark scenarioId={scenarioId} className="size-7" /></span><div className="min-w-0"><p className="truncate text-xs font-semibold">{scenario.name}</p><p className="truncate text-[10px] text-white/50">Fictional data · no live systems</p></div><button ref={controlsCloseRef} type="button" onClick={collapseControls} className="ml-auto grid size-10 shrink-0 place-items-center rounded-[10px] text-white/58 transition-[background-color,color,transform] duration-150 hover:bg-white/8 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-[0.96]" aria-label="Hide demo controls"><X className="size-4" /></button></div>
-      <div className="mt-1 grid grid-cols-[minmax(0,1fr)_auto_auto] gap-1.5">
-        <label><span className="sr-only">Demo business</span><select aria-label="Demo business" value={scenarioId} onChange={(event) => router.push(`/demo/command-center/${event.target.value}/${route}`)} className="min-h-10 w-full rounded-[10px] bg-white/8 px-3 text-xs font-semibold text-white outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-white/35 sm:w-auto">{DEMO_SCENARIO_SUMMARIES.map((item) => <option key={item.id} value={item.id} className="bg-[#111]">{item.category}</option>)}</select></label>
-        <button type="button" onClick={() => setGuideOpen((current) => !current)} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-[10px] bg-white/8 px-3 text-xs font-semibold text-white/72 transition-[background-color,color,transform] hover:bg-white/12 hover:text-white active:scale-[0.96]" aria-expanded={guideOpen} aria-label="Open guided demo"><ListChecks className="size-4" /><span className="hidden sm:inline">Guide</span></button>
-        <button type="button" onClick={() => resetRef.current?.()} className="grid size-10 place-items-center rounded-[10px] bg-white/8 text-white/70 transition-[background-color,color,transform] hover:bg-white/12 hover:text-white active:scale-[0.96]" aria-label="Reset this demo" title="Reset this demo"><RotateCcw className="size-4" /></button>
-      </div>
-      </div>}
-    </aside>
-  </>;
+  const openGuideStep = (step: number) => {
+    setGuideStep(step);
+    router.push(`/demo/command-center/${demo.scenarioId}/${guideRoutes[step]}`);
+  };
+  const closeControls = () => {
+    setGuideOpen(false);
+    setOpen(false);
+    requestAnimationFrame(() => triggerRef.current?.focus());
+  };
+
+  return (
+    <div ref={rootRef} className={cn("relative", open && "z-40")} aria-label="Demo workspace controls" data-admin-demo-bar data-state={open ? "open" : "collapsed"}>
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={() => open ? closeControls() : setOpen(true)}
+        className={cn(
+          "admin-nav-demo-control flex min-h-11 items-center rounded-[12px] text-left transition-[background-color,color,transform,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-nav-accent)] active:scale-[0.96]",
+          collapsed ? "size-11 justify-center" : "w-full gap-2.5 px-2",
+        )}
+        aria-expanded={open}
+        aria-controls="admin-demo-controls"
+        aria-label={open ? "Hide demo controls" : "Open demo controls"}
+        title={collapsed ? "Demo controls" : undefined}
+      >
+        <span className="grid size-8 shrink-0 place-items-center rounded-[9px] text-white shadow-[0_8px_20px_-12px_rgba(0,0,0,.7)]" style={{ backgroundColor: scenario.accent }}><DemoScenarioMark scenarioId={demo.scenarioId} className="size-6" /></span>
+        {!collapsed && <>
+          <span className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold text-[var(--admin-nav-ink)]">Demo controls</span><span className="mt-0.5 block truncate text-[10px] text-[var(--admin-nav-faint)]">{scenario.name}</span></span>
+          <ChevronDown className={cn("size-3.5 shrink-0 text-[var(--admin-nav-faint)] transition-transform duration-200", open && "rotate-180")} aria-hidden="true" />
+        </>}
+      </button>
+
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            id="admin-demo-controls"
+            initial={collapsed ? { opacity: 0, x: -6, scale: 0.98 } : { height: 0, opacity: 0 }}
+            animate={collapsed ? { opacity: 1, x: 0, scale: 1 } : { height: "auto", opacity: 1 }}
+            exit={collapsed ? { opacity: 0, x: -4, scale: 0.98 } : { height: 0, opacity: 0 }}
+            transition={{ type: "spring", duration: 0.3, bounce: 0 }}
+            className={cn("overflow-hidden", collapsed && "admin-demo-rail-popover absolute bottom-0 left-[calc(100%+0.65rem)] w-[17rem] rounded-[18px] p-2 shadow-[0_24px_70px_-30px_rgba(0,0,0,.72)]")}
+          >
+            <div className={cn("space-y-2", !collapsed && "pt-2")}>
+              <div className="admin-demo-control-panel rounded-[14px] p-2 shadow-[inset_0_0_0_1px_var(--admin-nav-rule)]">
+                <label className="block">
+                  <span className="px-1 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--admin-nav-faint)]">Demo business</span>
+                  <select aria-label="Demo business" value={demo.scenarioId} onChange={(event) => {
+                    const nextScenario = event.target.value as DemoScenarioId;
+                    setTheme(DEMO_SCENARIOS[nextScenario].appearance);
+                    window.sessionStorage.setItem(DEMO_APPEARANCE_SCENARIO_KEY, nextScenario);
+                    window.location.assign(`/demo/command-center/${nextScenario}/${route}`);
+                  }} className="mt-1 min-h-11 w-full rounded-[10px] bg-[var(--admin-nav-hover)] px-3 text-xs font-semibold text-[var(--admin-nav-ink)] outline-none ring-1 ring-[var(--admin-nav-rule)] focus:ring-2 focus:ring-[var(--admin-nav-accent)]">
+                    {DEMO_SCENARIO_SUMMARIES.map((item) => <option key={item.id} value={item.id}>{item.category}</option>)}
+                  </select>
+                </label>
+
+                <button type="button" onClick={() => setGuideOpen((current) => !current)} className="admin-nav-utility mt-1.5 flex min-h-11 w-full items-center gap-2.5 rounded-[10px] px-2.5 text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]" aria-expanded={guideOpen} aria-label="Open guided demo">
+                  <ListChecks className="size-4 shrink-0" /><span className="flex-1 text-left">Guided tour</span><span className="font-mono text-[9px] tabular-nums text-[var(--admin-nav-faint)]">{guideStep + 1}/{scenario.story.length}</span>
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {guideOpen && (
+                    <motion.section initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ type: "spring", duration: 0.3, bounce: 0 }} className="overflow-hidden" aria-label="Guided demo story" data-admin-demo-guide>
+                      <div className="mx-1 mb-1 mt-1.5 rounded-[10px] bg-[var(--admin-nav-hover)] p-3">
+                        <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--admin-nav-faint)]">Step {guideStep + 1} of {scenario.story.length}</p>
+                        <p className="mt-1.5 text-pretty text-xs font-medium leading-[1.45] text-[var(--admin-nav-ink)]">{scenario.story[guideStep]}</p>
+                        <div className="mt-3 grid grid-cols-5 gap-1" aria-label="Story steps">
+                          {scenario.story.map((step, index) => <button key={step} type="button" onClick={() => openGuideStep(index)} className={cn("grid size-10 place-items-center rounded-[9px] font-mono text-[10px] font-semibold tabular-nums transition-[background-color,color,transform] duration-150 active:scale-[0.96]", index === guideStep ? "admin-nav-demo-primary" : "admin-nav-utility")} aria-label={`Open story step ${index + 1}`} aria-current={index === guideStep ? "step" : undefined}>{index + 1}</button>)}
+                        </div>
+                        <div className="mt-3 grid grid-cols-[2.75rem_1fr_2.75rem] gap-1.5">
+                          <button type="button" onClick={() => openGuideStep(Math.max(0, guideStep - 1))} disabled={guideStep === 0} className="admin-nav-utility grid size-11 place-items-center rounded-[10px] transition-[background-color,color,transform,opacity] duration-150 active:scale-[0.96] disabled:opacity-30" aria-label="Previous story step"><ArrowLeft className="size-4" /></button>
+                          <button type="button" onClick={() => openGuideStep(guideStep)} className="admin-nav-demo-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] px-3 text-xs font-semibold transition-[opacity,transform] duration-150 hover:opacity-90 active:scale-[0.96]">Open step <Check className="size-3.5" /></button>
+                          <button type="button" onClick={() => openGuideStep(Math.min(scenario.story.length - 1, guideStep + 1))} disabled={guideStep === scenario.story.length - 1} className="admin-nav-utility grid size-11 place-items-center rounded-[10px] transition-[background-color,color,transform,opacity] duration-150 active:scale-[0.96] disabled:opacity-30" aria-label="Next story step"><ArrowRight className="size-4" /></button>
+                        </div>
+                      </div>
+                    </motion.section>
+                  )}
+                </AnimatePresence>
+
+                <div className="mt-1.5 grid grid-cols-2 gap-1.5">
+                  <button type="button" onClick={demo.reset} className="admin-nav-utility inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] px-2 text-[11px] font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]" aria-label="Reset this demo"><RotateCcw className="size-3.5" />Reset</button>
+                  <Link href="/demo/command-center" className="admin-nav-utility inline-flex min-h-11 items-center justify-center rounded-[10px] px-2 text-[11px] font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]">All demos</Link>
+                </div>
+              </div>
+              <p className="px-2 text-pretty text-[9px] leading-3.5 text-[var(--admin-nav-faint)]">Fictional data. Actions stay in this browser session and never reach live systems.</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
