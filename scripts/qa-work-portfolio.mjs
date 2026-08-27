@@ -173,7 +173,11 @@ for (const viewport of viewports) {
       await page.screenshot({ path: `${output}/${viewport.name}-${name}.png`, fullPage: true });
     }
 
+    // Full-page screenshots can scroll fresh reveals into view. Audit the settled
+    // reduced-motion state so axe never samples text during a transient fade.
+    await page.emulateMedia({ reducedMotion: "reduce" });
     const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
+    await page.emulateMedia({ reducedMotion: viewport.reducedMotion });
     const materialViolations = axe.violations.filter((violation) => violation.impact === "serious" || violation.impact === "critical");
     if (materialViolations.length) failures.push(`${viewport.name} ${route}: axe ${materialViolations.map((violation) => `${violation.id} (${violation.nodes.length})`).join(", ")}`);
   }
@@ -235,6 +239,7 @@ if (await videoPage.locator('[data-work-visibility="archived"]').count() !== 1) 
 if (await videoPage.getByText("Portfolio archive", { exact: true }).count() !== 1) failures.push("Northern Trust archive note is missing");
 if (thirdPartyVideoRequests.length) failures.push("Northern Trust requested YouTube before interaction");
 const playButton = videoPage.getByRole("button", { name: /Play Northern Trust homepage scroll motion experiment/i });
+await videoPage.waitForSelector('[data-lazy-video-hydrated="true"]');
 await playButton.focus();
 await playButton.press("Enter");
 await videoPage.waitForSelector('iframe[src*="youtube-nocookie.com"]');

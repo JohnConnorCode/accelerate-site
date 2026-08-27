@@ -1,14 +1,23 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { WorkVideo } from "@/content/work";
 
 export function LazyYouTube({ media, priority = false }: { media: WorkVideo; priority?: boolean }) {
   const [playing, setPlaying] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
 
   return (
-    <div className="relative aspect-video overflow-hidden bg-black" data-lazy-video={media.youtubeId}>
+    <div
+      className="relative aspect-video overflow-hidden bg-black"
+      data-lazy-video={media.youtubeId}
+      data-lazy-video-hydrated={hydrated ? "true" : undefined}
+    >
       {playing ? (
         <iframe
           className="absolute inset-0 size-full"

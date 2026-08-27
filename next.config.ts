@@ -51,7 +51,7 @@ const nextConfig: NextConfig = {
           {
             key: "Content-Security-Policy-Report-Only",
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://connect.facebook.net https://assets.calendly.com; style-src 'self' 'unsafe-inline' https://assets.calendly.com; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://www.google-analytics.com https://*.supabase.co https://calendly.com https://*.calendly.com; frame-src 'self' https://calendly.com https://*.calendly.com",
+              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://connect.facebook.net https://assets.calendly.com; style-src 'self' 'unsafe-inline' https://assets.calendly.com; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://www.google-analytics.com https://*.supabase.co https://calendly.com https://*.calendly.com; frame-src 'self' https://calendly.com https://*.calendly.com https://www.youtube-nocookie.com",
           },
         ],
       },
