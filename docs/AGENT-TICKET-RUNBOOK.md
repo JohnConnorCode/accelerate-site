@@ -109,6 +109,26 @@ Set `shipped` only when every acceptance item is evidenced. Otherwise keep
 `in_progress` and state what remains. Clear or transfer Owner explicitly. Apply
 and verify the board manifest again.
 
+### Release gate
+
+Do not deploy as an automatic final step. A production release requires an
+explicit founder instruction to deploy, publish, promote, roll back, or get the
+completed work live. Treat that instruction as authorization for the named
+release only, not as standing permission.
+
+After explicit release authorization:
+
+1. Inspect `git status --short`, `git worktree list --porcelain`, and local
+   branches not merged into the release branch.
+2. Reconcile every completed, in-scope agent change. Preserve incomplete,
+   unrelated, or ambiguous work and stop if safe ownership cannot be established.
+3. Run the required verification against the complete release tree, commit it,
+   and confirm the release branch and its upstream point to the intended commit.
+4. Build and deploy that exact commit. Any post-verification change reopens the
+   verification gate.
+5. Record the commit SHA, deployment receipt, canonical alias, live checks, and
+   clean/synchronized repository evidence in the handoff.
+
 ## 6. Recovery and rollback
 
 - Code regression: revert only the scoped change; preserve unrelated worktree

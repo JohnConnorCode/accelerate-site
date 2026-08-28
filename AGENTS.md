@@ -88,6 +88,25 @@ Every capability follows this sequence:
   card can use the existing first-party/Supabase, Resend, configured AI, or Google
   Workspace paths.
 
+## Release authority and repository reconciliation
+
+- Production deployment is founder-controlled. Never deploy, alias, promote,
+  roll back, or otherwise change the live site unless the founder explicitly
+  instructs that production action. Completing, committing, or verifying work is
+  not deployment authorization, and an earlier deployment instruction is not
+  standing permission for a later release.
+- When the founder explicitly requests a release, inspect every repository
+  worktree and local branch before building. Reconcile all completed, in-scope
+  agent work into the release branch, preserve incomplete or unrelated work, and
+  stop when ownership or readiness cannot be established safely.
+- Commit and verify the complete release tree before building it. Deploy that
+  exact immutable commit only; if the tree changes after verification, repeat the
+  required verification before deployment.
+- A release handoff records the commit SHA, deployment receipt, canonical alias,
+  verification evidence, and final repository status. Never claim that all agent
+  work shipped from a clean primary worktree alone; the worktree and branch audit
+  is required evidence.
+
 ## Verification minimum
 
 For every code ticket:

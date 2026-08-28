@@ -20,6 +20,27 @@ for (const file of requiredFiles) {
   if (!existsSync(file)) failures.push(`Missing agent contract file: ${file}`);
 }
 
+const agentContract = existsSync("AGENTS.md") ? readFileSync("AGENTS.md", "utf8") : "";
+const ticketRunbook = existsSync("docs/AGENT-TICKET-RUNBOOK.md")
+  ? readFileSync("docs/AGENT-TICKET-RUNBOOK.md", "utf8")
+  : "";
+
+if (!/Production deployment is founder-controlled[\s\S]*Never deploy/i.test(agentContract)) {
+  failures.push("AGENTS.md must reserve production deployment authority for an explicit founder instruction");
+}
+if (!/inspect every repository[\s\S]*worktree and local branch/i.test(agentContract)) {
+  failures.push("AGENTS.md must require a repository-wide worktree and branch audit before release");
+}
+if (!/Deploy that\s+exact immutable commit only/i.test(agentContract)) {
+  failures.push("AGENTS.md must require deployment of the exact verified immutable commit");
+}
+if (!/Do not deploy as an automatic final step/i.test(ticketRunbook)) {
+  failures.push("The agent runbook must prohibit automatic production deployment");
+}
+if (!/Any post-verification change reopens the\s+verification gate/i.test(ticketRunbook)) {
+  failures.push("The agent runbook must reopen verification after a release-tree change");
+}
+
 const requiredNoteSections = [
   "Workstream:",
   "Dependencies:",
