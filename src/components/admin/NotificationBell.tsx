@@ -57,13 +57,13 @@ const priorityColors: Record<string, string> = {
   info: "",
 };
 
-function OverlayPortal({ enabled, children }: { enabled: boolean; children: ReactNode }) {
+function OverlayPortal({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);
-  // The portal target exists only after hydration; the inline desktop popover
-  // remains server-renderable.
+  // Every notification surface belongs to the viewport overlay layer. Keeping
+  // desktop inside the sidebar made its position depend on rail geometry and
+  // allowed the panel to cover the workspace from the wrong origin.
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
-  if (!enabled) return children;
   return mounted ? createPortal(children, document.body) : null;
 }
 
@@ -255,7 +255,7 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
         )}
       </button>
 
-      <OverlayPortal enabled={placement === "mobile"}>
+      <OverlayPortal>
       <AnimatePresence initial={false}>
         {isOpen && (
           <>
@@ -264,16 +264,15 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
               ref={panelRef}
               id={panelId}
               data-admin-mobile-alerts={placement === "mobile" ? "" : undefined}
+              data-placement={placement}
               role="dialog"
+              aria-modal={placement === "mobile" ? true : undefined}
               aria-label="Command Center attention"
               initial={placement === "mobile" ? { opacity: 0, y: 18 } : { opacity: 0, y: -4, scale: 0.95 }}
               animate={placement === "mobile" ? { opacity: 1, y: 0 } : { opacity: 1, y: 0, scale: 1 }}
               exit={placement === "mobile" ? { opacity: 0, y: 10 } : { opacity: 0, y: -4, scale: 0.95 }}
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className={cn(
-                "admin-overlay-token-scope z-[60] overflow-hidden bg-[var(--admin-surface,#fbfbfa)] text-[var(--admin-ink,#0b0b0b)] shadow-[0_24px_64px_-28px_rgba(0,0,0,0.5)]",
-                placement === "mobile" ? "fixed inset-x-0 bottom-0 max-h-[min(78dvh,42rem)] rounded-t-[24px] pb-[env(safe-area-inset-bottom)]" : "absolute left-0 top-full mt-2 w-[min(22rem,calc(100vw-1.5rem))] rounded-[16px] shadow-[var(--admin-shadow-border),0_22px_56px_-28px_rgba(0,0,0,0.45)]",
-              )}
+              className="admin-notification-panel admin-overlay-token-scope z-[60] overflow-hidden bg-[var(--admin-surface,#fbfbfa)] text-[var(--admin-ink,#0b0b0b)]"
             >
             {placement === "mobile" && <span className="mx-auto mt-2 block h-1 w-9 rounded-full bg-[var(--admin-ink)]/20" aria-hidden="true" />}
             <div className="flex items-center justify-between border-b border-[var(--admin-border)] px-4 py-3">
@@ -293,7 +292,7 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
               </div>
             </div>
 
-            <div className="max-h-[min(32rem,calc(78dvh-4.5rem))] overflow-y-auto overscroll-contain">
+            <div className="admin-notification-scroll overflow-y-auto overscroll-contain">
               {priority.items.length > 0 && <section aria-label="Priority work">
                 <div className="flex items-center justify-between px-4 pb-2 pt-3"><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)]">Priority work</p><Link href="/admin/today" onClick={() => setIsOpen(false)} className="inline-flex min-h-10 items-center gap-1 rounded-md px-1.5 text-[10px] font-semibold text-[var(--admin-ink)] transition-[background-color,transform] duration-150 hover:bg-black/[0.04] active:scale-[0.96] dark:hover:bg-white/[0.05]">All {priority.summary.total}<ArrowRight className="size-3" /></Link></div>
                 <div className="divide-y divide-[var(--admin-border)] border-y border-[var(--admin-border)]">

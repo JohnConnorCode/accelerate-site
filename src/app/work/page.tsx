@@ -17,8 +17,8 @@ export default function WorkPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
-      <section className="page-offset border-b border-[var(--rule)] py-[clamp(4rem,10vw,10rem)]">
-        <Container>
+      <section className="page-offset border-b border-[var(--rule)]">
+        <Container className="pb-[clamp(4rem,8vw,8rem)] pt-[clamp(2rem,4vw,4rem)]">
           <div className="work-hero-enter work-hero-d1"><Eyebrow className="mb-8">Selected work</Eyebrow></div>
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1.12fr)_minmax(18rem,.55fr)] lg:items-end">
             <div><RevealHeading lead="Built for the work behind the business." as="h1" delay={0.12} stagger={0.055} className="max-w-[11ch] text-balance font-display text-[clamp(3.5rem,9vw,9rem)] font-medium leading-[0.86] tracking-[-0.07em] text-[var(--fg)]" /><p className="work-hero-enter work-hero-d5 mt-9 max-w-[64ch] text-pretty text-[1.07rem] leading-8 text-[var(--mid)]">We start with the business, find where time or revenue is being lost, and build the right-sized answer. The work below shows that method across AI operations, custom software, workflow automation, managed execution, growth systems, and product strategy.</p></div>

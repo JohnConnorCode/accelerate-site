@@ -607,7 +607,7 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
   --demo-preview-rule: rgba(11, 11, 11, .07);
   --demo-preview-shadow: 0 0 0 1px rgba(0, 0, 0, .07), 0 18px 38px -28px rgba(0, 0, 0, .34);
 }
-[data-theme="dark"] .demo-launcher {
+[data-demo-launcher-theme="dark"] .demo-launcher {
   --demo-launcher-canvas: #0a0a0a;
   --demo-launcher-ink: #fbfbfa;
   --demo-launcher-muted: rgba(251, 251, 250, .64);
@@ -1038,6 +1038,11 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
 .page-offset-roomy {
   padding-top: calc(var(--site-header-h) + var(--safe-top) + clamp(2.25rem, 4.5vw, 3.75rem));
 }
+.not-found-grid {
+  background-image: linear-gradient(var(--rule) 1px, transparent 1px), linear-gradient(90deg, var(--rule) 1px, transparent 1px);
+  background-size: clamp(2.75rem, 6vw, 5rem) clamp(2.75rem, 6vw, 5rem);
+  mask-image: linear-gradient(to bottom, transparent, black 20%, black 82%, transparent);
+}
 
 .photo-hero {
   min-height: calc(100svh - var(--site-header-h) - var(--safe-top));
@@ -1147,7 +1152,10 @@ body.modal-open [data-dock] {
 
 @media (prefers-reduced-motion: no-preference) {
   .route-entry.is-entering { animation: route-entry-in 220ms var(--ease-out) both; }
-  .word-mask-word > span {
+  .motion-ready .word-mask-heading:not(.in) .word-mask-word > span {
+    transform: translateY(112%);
+  }
+  .word-mask-heading.in:not(.reveal-immediate) .word-mask-word > span {
     animation: word-mask-entry .62s var(--ease) var(--word-delay, 0s) both;
   }
 
@@ -3716,6 +3724,35 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   box-shadow: 0 28px 80px -30px rgba(0, 0, 0, 0.78);
   -webkit-backdrop-filter: blur(30px) saturate(1.2);
   backdrop-filter: blur(30px) saturate(1.2);
+}
+
+/* Notifications have one viewport-owned overlay primitive. The desktop form
+   is a contained floating panel; the mobile form owns the bottom edge while
+   the dock yields. Neither placement inherits positioning from its trigger. */
+.admin-notification-panel {
+  position: fixed;
+  background: var(--admin-surface, #fbfbfa);
+  color: var(--admin-ink, #0b0b0b);
+}
+.admin-notification-panel[data-placement="sidebar"] {
+  inset: max(5rem, calc(env(safe-area-inset-top) + 4rem)) max(1rem, env(safe-area-inset-right)) auto auto;
+  width: min(25rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 6rem - env(safe-area-inset-top));
+  border-radius: calc(var(--admin-surface-radius, 16px) + 4px);
+  box-shadow: var(--admin-shadow-border), 0 26px 70px -34px rgba(0, 0, 0, 0.52);
+}
+.admin-notification-panel[data-placement="mobile"] {
+  inset: auto 0 0;
+  max-height: min(78dvh, 42rem);
+  padding-bottom: env(safe-area-inset-bottom);
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 24px 68px -26px rgba(0, 0, 0, 0.58);
+}
+.admin-notification-panel[data-placement="sidebar"] .admin-notification-scroll {
+  max-height: calc(100dvh - 11.25rem - env(safe-area-inset-top));
+}
+.admin-notification-panel[data-placement="mobile"] .admin-notification-scroll {
+  max-height: min(32rem, calc(78dvh - 4.5rem));
 }
 
 [data-theme="frost"] .admin-sidebar,

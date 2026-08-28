@@ -20,10 +20,10 @@ const aspectRatios: Record<MediaAspect, string> = {
 };
 
 const frameClasses: Record<MediaFrame, string> = {
-  edge: "rounded-[2px]",
+  edge: "rounded-[14px]",
   film: "rounded-[14px] shadow-[0_1px_2px_rgba(0,0,0,.04),0_16px_38px_-20px_rgba(0,0,0,.20)]",
-  window: "rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,.04),0_16px_38px_-20px_rgba(0,0,0,.18)]",
-  paper: "rounded-[4px] shadow-[0_1px_2px_rgba(0,0,0,.035),0_14px_34px_-20px_rgba(0,0,0,.16)]",
+  window: "rounded-[14px] shadow-[0_1px_2px_rgba(0,0,0,.04),0_16px_38px_-20px_rgba(0,0,0,.18)]",
+  paper: "rounded-[14px] shadow-[0_1px_2px_rgba(0,0,0,.035),0_14px_34px_-20px_rgba(0,0,0,.16)]",
 };
 
 export function MediaSurface({ media, priority = false, compact = false, inverted = false, frame = "edge", aspect, lightbox = false }: { media: WorkMedia; priority?: boolean; compact?: boolean; inverted?: boolean; frame?: MediaFrame; aspect?: MediaAspect; lightbox?: boolean }) {
@@ -33,11 +33,11 @@ export function MediaSurface({ media, priority = false, compact = false, inverte
     : undefined;
   const surfaceClass = inverted || usesInkCanvas
     ? "bg-[#0b0b0b] outline-white/10"
-    : "bg-[var(--paper)] outline-black/10 dark:outline-white/10";
+    : "bg-[var(--bg)] outline-[var(--rule)]";
 
   return (
     <div
-      className={`${surfaceClass} ${lightbox ? "rounded-[12px]" : frameClasses[frame]} relative overflow-hidden outline outline-1 -outline-offset-1`}
+      className={`${surfaceClass} ${lightbox ? "rounded-[14px]" : frameClasses[frame]} relative overflow-hidden outline outline-1 -outline-offset-1`}
       data-media-surface
       data-media-kind={media.kind}
       data-media-fit={media.kind === "image" ? media.fit ?? "cover" : undefined}

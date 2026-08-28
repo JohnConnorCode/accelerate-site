@@ -14,6 +14,7 @@ import { NavigationRuntime } from "@/components/navigation/NavigationRuntime";
 import { Dock } from "@/components/home/Dock";
 import { MotionRuntime } from "@/components/motion/MotionRuntime";
 import { marketingPositioning } from "@/content/marketing-positioning";
+import { DEMO_LAUNCHER_THEME_KEY } from "@/lib/admin/demo/launcher-theme";
 import "./globals.css";
 
 // High-contrast editorial type system: Inter Tight (display), Inter (body),
@@ -54,6 +55,8 @@ export const viewport: Viewport = {
   themeColor: "#FBFBFA",
 };
 
+const defaultSocialImage = "/api/og?eyebrow=AI-ENABLED%20OPERATIONS&title=Build%20the%20right%20system%20for%20the%20business.&description=AI%20strategy%2C%20custom%20systems%2C%20and%20execution%20built%20around%20how%20the%20business%20actually%20works.";
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.acceleratewith.us"),
   title: {
@@ -72,6 +75,7 @@ export const metadata: Metadata = {
     siteName: "Accelerate",
     title: "Accelerate | Custom AI Strategy, Solutions & Execution",
     description: marketingPositioning.shortOffer,
+    images: [{ url: defaultSocialImage, width: 1200, height: 630, alt: "Accelerate builds AI-enabled operating systems around how the business actually works" }],
   },
   twitter: {
     card: "summary_large_image",
@@ -79,6 +83,7 @@ export const metadata: Metadata = {
     creator: "@accelerateAIops",
     title: "Accelerate | Custom AI Strategy, Solutions & Execution",
     description: marketingPositioning.shortOffer,
+    images: [defaultSocialImage],
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GSC_VERIFICATION || undefined,
@@ -149,7 +154,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `document.documentElement.classList.add("motion-ready");setTimeout(function(){if(!document.documentElement.hasAttribute("data-motion-hydrated")){document.documentElement.classList.remove("motion-ready")}},4000);`,
+            __html: `document.documentElement.classList.add("motion-ready");setTimeout(function(){if(!document.documentElement.hasAttribute("data-motion-hydrated")){document.documentElement.classList.remove("motion-ready")}},4000);try{if(location.pathname.replace(/\\/+$/,"")==="/demo/command-center"){var launcherTheme=localStorage.getItem(${JSON.stringify(DEMO_LAUNCHER_THEME_KEY)});if(launcherTheme!=="light"&&launcherTheme!=="dark")launcherTheme=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.demoLauncherTheme=launcherTheme}}catch(_){}`,
           }}
         />
         <Script id="org-jsonld" type="application/ld+json" strategy="beforeInteractive">

@@ -227,7 +227,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                 }}
                 className="btn w-full"
               >
-                Book a free strategy session <span className="arw" aria-hidden="true">→</span>
+                Book a call <span className="arw" aria-hidden="true">→</span>
               </Link>
               <div className="mt-5 flex items-center justify-between">
                 <ThemeToggle />

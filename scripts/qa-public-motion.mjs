@@ -89,6 +89,38 @@ async function captureRevealEntry(page, selector) {
   });
 }
 
+async function captureFramerRevealEntry(page, selector) {
+  const candidates = page.locator(selector);
+  const index = await candidates.evaluateAll((nodes) => nodes.findIndex((node) => node.getBoundingClientRect().top > innerHeight + 40));
+  const element = index >= 0 ? await candidates.nth(index).elementHandle() : null;
+  if (!element) return null;
+  const maxSteps = await page.evaluate(() => Math.ceil(document.documentElement.scrollHeight / 12) + 100);
+  for (let step = 0; step < maxSteps; step += 1) {
+    const visible = await element.evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity) >= 0.9);
+    if (visible) break;
+    await page.evaluate(() => window.scrollBy(0, 12));
+    await page.waitForTimeout(16);
+  }
+  const visible = await element.evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity) >= 0.9);
+  if (!visible) return null;
+  return element.evaluate((node) => {
+    const rect = node.getBoundingClientRect();
+    return { top: rect.top, ratio: rect.top / innerHeight, height: innerHeight };
+  });
+}
+
+async function togglePublicTheme(page, target) {
+  const label = new RegExp(`Switch to ${target} mode`);
+  let toggle = page.getByRole("button", { name: label }).first();
+  if (!await toggle.count()) {
+    await page.getByRole("button", { name: "Open navigation menu" }).click();
+    toggle = page.getByRole("button", { name: label }).first();
+    await toggle.click();
+    await page.getByRole("button", { name: "Close navigation menu" }).click();
+  } else await toggle.click();
+  await page.waitForFunction((theme) => document.documentElement.dataset.theme === theme, target);
+}
+
 for (const config of [
   { label: "mobile", viewport: { width: 390, height: 844 }, reducedMotion: "no-preference" },
   { label: "reduced", viewport: { width: 430, height: 932 }, reducedMotion: "reduce" },
@@ -108,6 +140,20 @@ for (const config of [
   for (const route of routes) await inspectRoute(page, route, config.label, config.label === "desktop" ? 120 : 24);
 
   await page.goto(`${baseUrl}/work`, { waitUntil: "domcontentloaded" });
+  await page.evaluate(() => localStorage.setItem("theme", "light"));
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => document.documentElement.dataset.theme === "light");
+  const lightCanvas = await page.evaluate(() => ({ theme: document.documentElement.dataset.theme, bg: getComputedStyle(document.body).backgroundColor }));
+  await togglePublicTheme(page, "dark");
+  const darkCanvas = await page.evaluate(() => ({ theme: document.documentElement.dataset.theme, bg: getComputedStyle(document.body).backgroundColor, stored: localStorage.getItem("theme") }));
+  if (lightCanvas.theme !== "light" || darkCanvas.theme !== "dark" || darkCanvas.stored !== "dark" || lightCanvas.bg === darkCanvas.bg) failures.push(`${config.label}: shared public theme toggle did not persist a real Work-page inversion`);
+  const workRadii = await page.locator("[data-work-card] [data-media-surface]").evaluateAll((nodes) => nodes.map((node) => Number.parseFloat(getComputedStyle(node).borderTopLeftRadius)));
+  if (!workRadii.length || workRadii.some((radius) => radius < 12)) failures.push(`${config.label}: Work media does not use the shared rounded treatment`);
+  await page.goto(`${baseUrl}/services`, { waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => document.documentElement.dataset.theme === "dark");
+  await page.goto(`${baseUrl}/work`, { waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => document.documentElement.dataset.theme === "dark");
+  await togglePublicTheme(page, "light");
   if (config.reducedMotion === "no-preference") {
     const headingAnimation = await page.locator(".word-mask-word > span").first().evaluate((node) => getComputedStyle(node).animationName);
     if (!headingAnimation.includes("word-mask-entry")) failures.push(`${config.label}: heading entrance animation is not active`);
@@ -135,6 +181,16 @@ for (const config of [
       if (revealFacts.state !== "visible" || !revealFacts.animation.startsWith("work-")) failures.push(`${config.label}: below-fold Work content did not animate at viewport entry`);
     } else failures.push(`${config.label}: no below-fold reveal remained armed for viewport entry`);
   }
+
+  await page.goto(`${baseUrl}/industries/law-firms`, { waitUntil: "domcontentloaded" });
+  if (config.reducedMotion === "no-preference") {
+    const industryHeading = await captureRevealEntry(page, ".word-mask-heading");
+    if (!industryHeading || industryHeading.ratio > 0.8) failures.push(`${config.label}: below-fold industry heading did not reveal at viewport entry`);
+    await page.goto(`${baseUrl}/industries/law-firms`, { waitUntil: "domcontentloaded" });
+    const industryReveal = await captureFramerRevealEntry(page, ".reveal-self:not(.word-mask-heading)");
+    if (!industryReveal || industryReveal.ratio > 0.8) failures.push(`${config.label}: industry content did not use the shared viewport reveal`);
+  }
+  await page.goto(`${baseUrl}/work`, { waitUntil: "domcontentloaded" });
   const firstCard = page.locator('[data-work-card="work-shelter"] a').first();
   await firstCard.click();
   await page.waitForURL("**/work/work-shelter");

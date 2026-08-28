@@ -14,9 +14,10 @@ interface ThemeToggleProps {
 
 export function ThemeToggle({ variant = "default", collapsed = false }: ThemeToggleProps) {
   const [mounted, setMounted] = useState(false);
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const adminSidebar = variant === "admin-sidebar";
-  const nextLabel = `Switch to ${theme === "light" ? "dark" : "light"} mode`;
+  const isLight = resolvedTheme !== "dark";
+  const nextLabel = `Switch to ${isLight ? "dark" : "light"} mode`;
 
   const sizeClass = adminSidebar
     ? collapsed
@@ -34,8 +35,6 @@ export function ThemeToggle({ variant = "default", collapsed = false }: ThemeTog
   if (!mounted) {
     return <div className={adminSidebar ? (collapsed ? "size-10" : "min-h-10 w-full") : "h-9 w-9 min-h-[44px] min-w-[44px]"} />;
   }
-
-  const isLight = theme === "light";
 
   return (
     <button

@@ -1,5 +1,8 @@
+"use client";
+
 import { Children, Fragment, isValidElement } from "react";
 import type { CSSProperties, ReactNode } from "react";
+import { useRevealLifecycle } from "@/components/motion/useReveal";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Word-by-word heading reveal — the single source of truth for animated
@@ -48,13 +51,14 @@ export function WordMask({
   delay?: number;
 }) {
   const Tag = as;
+  const ref = useRevealLifecycle<HTMLHeadingElement>();
 
   if (tokens.length === 0) {
-    return <Tag className={`reveal-self ${className}`}>{renderPlain(tokens)}</Tag>;
+    return <Tag ref={ref} className={`reveal-self word-mask-heading ${className}`}>{renderPlain(tokens)}</Tag>;
   }
 
   return (
-    <Tag className={`reveal-self word-mask-heading ${className}`} data-motion-role="heading">
+    <Tag ref={ref} className={`reveal-self word-mask-heading ${className}`} data-motion-role="heading">
       {tokens.map((t, i) => (
         <Fragment key={i}>
           {/* mask: clip-path preserves the true text baseline (unlike overflow-hidden

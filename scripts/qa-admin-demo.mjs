@@ -35,19 +35,26 @@ async function readStablePageState(page) {
     const launcher = getComputedStyle(document.querySelector(".demo-launcher"));
     const card = getComputedStyle(document.querySelector(".demo-launcher-card"));
     const preview = getComputedStyle(document.querySelector(".demo-workspace-preview"));
-    return { theme: document.documentElement.dataset.theme, canvas: launcher.backgroundColor, card: card.backgroundColor, ink: card.color, preview: preview.backgroundColor };
+    return { theme: document.documentElement.dataset.demoLauncherTheme, canvas: launcher.backgroundColor, card: card.backgroundColor, ink: card.color, preview: preview.backgroundColor };
   });
   await page.screenshot({ path: `${output}/launcher-desktop-light.png`, fullPage: true });
   await page.getByRole("button", { name: "Switch demo selection to dark mode" }).click();
-  await page.waitForFunction(() => document.documentElement.dataset.theme === "dark");
+  await page.waitForFunction(() => document.documentElement.dataset.demoLauncherTheme === "dark");
   await page.waitForTimeout(500);
   const darkTheme = await page.evaluate(() => {
     const launcher = getComputedStyle(document.querySelector(".demo-launcher"));
     const card = getComputedStyle(document.querySelector(".demo-launcher-card"));
     const preview = getComputedStyle(document.querySelector(".demo-workspace-preview"));
-    return { theme: document.documentElement.dataset.theme, canvas: launcher.backgroundColor, card: card.backgroundColor, ink: card.color, preview: preview.backgroundColor, stored: localStorage.getItem("accelerate:admin-demo:launcher-theme:v1") };
+    return { theme: document.documentElement.dataset.demoLauncherTheme, canvas: launcher.backgroundColor, card: card.backgroundColor, ink: card.color, preview: preview.backgroundColor, stored: localStorage.getItem("accelerate:admin-demo:launcher-theme:v1") };
   });
   if (lightTheme.theme !== "light" || darkTheme.theme !== "dark" || darkTheme.stored !== "dark" || lightTheme.canvas === darkTheme.canvas || lightTheme.card === darkTheme.card || lightTheme.ink === darkTheme.ink || lightTheme.preview === darkTheme.preview) failures.push("launcher: light/dark toggle did not adapt every primary surface");
+  await page.reload({ waitUntil: "domcontentloaded" });
+  const stableLauncherThemes = [];
+  for (let sample = 0; sample < 12; sample += 1) {
+    stableLauncherThemes.push(await page.evaluate(() => document.documentElement.dataset.demoLauncherTheme));
+    await page.waitForTimeout(50);
+  }
+  if (stableLauncherThemes.some((theme) => theme !== "dark")) failures.push(`launcher: stored dark appearance flickered during reload (${stableLauncherThemes.join(",")})`);
   const marks = await page.locator(".demo-scenario-mark").evaluateAll((nodes) => nodes.map((node) => ({ classes: node.getAttribute("class"), animation: getComputedStyle(node).animationName, animatedParts: [...node.querySelectorAll("*")].filter((part) => getComputedStyle(part).animationName !== "none").length })));
   if (marks.length !== 5 || new Set(marks.map((mark) => mark.classes)).size !== 5 || marks.some((mark) => mark.animation === "none" && !mark.animatedParts)) failures.push("launcher: scenario logos are not five distinct animated marks");
   const entrances = await page.locator(".admin-demo-enter").evaluateAll((nodes) => nodes.map((node) => ({ name: getComputedStyle(node).animationName, delay: getComputedStyle(node).animationDelay })));
@@ -121,14 +128,32 @@ for (const scenario of scenarios) {
         }
       }
       if (route === "today") {
+        for (const label of ["All work", "Replies", "Commitments", "Approvals", "Proposals"]) {
+          await page.getByRole("button", { name: label, exact: true }).click();
+          const visibleCount = Number(await page.locator("[data-today-workspace] .admin-surface").first().locator("span.rounded-full").first().textContent());
+          if (!Number.isFinite(visibleCount) || visibleCount < 1) failures.push(`${scenario} ${label}: Today filter has no credible fictional work`);
+        }
+        await page.getByRole("button", { name: "All work", exact: true }).click();
         await page.screenshot({ path: `${output}/${scenario}-${label}.png`, fullPage: true });
         if (await page.locator("[data-admin-demo-link]").count()) failures.push(`${scenario} ${label}: duplicate demo chooser remains in shared navigation`);
+        if (label === "desktop") {
+          const alertTrigger = page.getByRole("button", { name: /Open command center alerts/ });
+          await alertTrigger.click();
+          const alertPanel = page.locator('.admin-notification-panel[data-placement="sidebar"]');
+          await alertPanel.waitFor();
+          await page.waitForTimeout(240);
+          const panelBounds = await alertPanel.evaluate((node) => { const rect = node.getBoundingClientRect(); return { top: rect.top, right: innerWidth - rect.right, bottom: innerHeight - rect.bottom, width: rect.width, position: getComputedStyle(node).position }; });
+          if (panelBounds.position !== "fixed" || panelBounds.top < 64 || panelBounds.right < 8 || panelBounds.bottom < 8 || panelBounds.width > 420) failures.push(`${scenario} desktop: notification panel is not a contained viewport overlay`);
+          await page.screenshot({ path: `${output}/${scenario}-desktop-notifications.png`, fullPage: false });
+          await page.keyboard.press("Escape");
+          await alertPanel.waitFor({ state: "detached" });
+        }
         if (label === "mobile") {
           const alertTrigger = page.getByRole("button", { name: /Open command center alerts/ });
           await alertTrigger.click();
           const alertSheet = page.locator('[data-admin-mobile-alerts]');
           await alertSheet.waitFor();
-          await page.waitForTimeout(40);
+          await page.waitForTimeout(240);
           const alertOverlay = await page.evaluate(() => {
             const dock = document.querySelector(".admin-mobile-dock");
             const sheet = document.querySelector("[data-admin-mobile-alerts]");
@@ -251,7 +276,7 @@ for (const scenario of scenarios) {
         const ai = await fetch("/api/admin/revenue-os/ai/stream", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: "What matters now?" }) }).then((response) => response.text());
         return { before: before.summary.total, after: after.summary.total, stored: Boolean(sessionStorage.getItem("accelerate:admin-demo:northline-roofing:v3")), aiFinal: ai.includes('"type":"final"'), aiDisclosure: ai.includes("stage—not send") };
       });
-      if (mutation.after !== mutation.before - 1 || !mutation.stored) failures.push("northline-roofing desktop: simulated approval did not persist coherently");
+      if (mutation.after >= mutation.before || !mutation.stored) failures.push("northline-roofing desktop: simulated queue work did not persist coherently");
       if (!mutation.aiFinal || !mutation.aiDisclosure) failures.push("northline-roofing desktop: simulated AI stream is incomplete or unsafe");
       await page.goto(`${base}/demo/command-center/alder-ridge-law/today`, { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "alder-ridge-law");

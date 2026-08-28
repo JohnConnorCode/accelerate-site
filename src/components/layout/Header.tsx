@@ -239,7 +239,7 @@ export function Header() {
               onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "header" })}
               className="btn btn-sm"
             >
-              Book a free strategy session <span className="arw" aria-hidden="true">→</span>
+              Book a call <span className="arw" aria-hidden="true">→</span>
             </Link>
           </motion.div>
 
