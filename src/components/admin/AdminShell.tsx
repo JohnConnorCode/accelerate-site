@@ -436,7 +436,7 @@ export default function AdminShell({
       <AnimatePresence initial={false}>
         {mobileOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
-            <motion.button type="button" aria-label="Dismiss navigation" className="absolute inset-0 bg-black/55" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileOpen(false)} />
+            <motion.button type="button" aria-label="Dismiss navigation" className="admin-overlay-backdrop absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileOpen(false)} />
             <motion.aside ref={mobileDrawerRef} id="admin-mobile-navigation" role="dialog" aria-modal="true" aria-label="Admin navigation" className="admin-mobile-sheet admin-sidebar absolute bottom-2 right-2 top-2 flex w-[min(22rem,calc(100vw-1rem))] flex-col rounded-[28px] px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]" initial={{ opacity: 0, x: 30, scale: 0.985 }} animate={{ opacity: 1, x: 0, scale: 1 }} exit={{ opacity: 0, x: 22, scale: 0.99 }} transition={{ type: "spring", duration: 0.34, bounce: 0 }}>
               <SidebarContent
                 idPrefix="admin-mobile"

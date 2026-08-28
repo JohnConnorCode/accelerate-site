@@ -3738,6 +3738,15 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   backdrop-filter: blur(30px) saturate(1.2);
 }
 
+/* One backdrop material for every admin overlay. It separates context without
+   turning the underlying workspace into a dead, flat black slab. Individual
+   overlays own only their panel geometry and focus behavior. */
+.admin-overlay-backdrop {
+  background: color-mix(in srgb, var(--admin-sidebar) 45%, transparent);
+  -webkit-backdrop-filter: blur(10px) saturate(1.06);
+  backdrop-filter: blur(10px) saturate(1.06);
+}
+
 /* The admin owns a bottom dock on small screens, so operation receipts sit
    above its safe-area footprint instead of covering a navigation action. */
 .admin-toast-region {

@@ -45,6 +45,25 @@ for (const [label, viewport] of [["desktop", { width: 1440, height: 1000 }], ["m
   if (state.overflow) failures.push(`${label}: horizontal overflow`);
   if (!state.rendered) failures.push(`${label}: exact rendered preview did not mount`);
   if (state.surfaces.some((surface) => !surface.radius || surface.radius === "0px")) failures.push(`${label}: surface did not inherit the shared radius token`);
+  await page.getByRole("button", { name: "Preview", exact: true }).click();
+  await page.getByRole("button", { name: "Publish", exact: true }).click();
+  const modalFacts = await page.evaluate(() => {
+    const dialog = document.querySelector('[data-admin-overlay="dialog"]');
+    const backdrop = document.querySelector('[data-admin-overlay="backdrop"]');
+    const rect = dialog?.getBoundingClientRect();
+    return {
+      blur: backdrop ? getComputedStyle(backdrop).backdropFilter : "none",
+      top: rect?.top ?? 0,
+      bottom: rect?.bottom ?? innerHeight,
+      viewportHeight: innerHeight,
+      handle: Boolean(dialog?.querySelector("span.h-1.w-9")),
+    };
+  });
+  if (modalFacts.blur === "none") failures.push(`${label}: modal does not use the shared blurred backdrop`);
+  if (label === "mobile" && (modalFacts.top < 8 || modalFacts.bottom > modalFacts.viewportHeight - 8)) failures.push(`${label}: ordinary modal is still presented as an edge-pinned drawer`);
+  if (modalFacts.handle) failures.push(`${label}: ordinary modal still exposes a drawer handle`);
+  await page.keyboard.press("Escape");
+  await page.locator('[data-admin-overlay="dialog"]').waitFor({ state: "detached" });
   await page.screenshot({ path: `${output}/${label}.png`, fullPage: true });
   await context.close();
 }

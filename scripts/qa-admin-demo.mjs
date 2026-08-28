@@ -190,6 +190,7 @@ for (const scenario of scenarios) {
             const ids = [...document.querySelectorAll("[id]")].map((node) => node.id).filter(Boolean);
             const dock = document.querySelector(".admin-mobile-dock");
             const dockStyle = dock ? getComputedStyle(dock) : null;
+            const backdrop = document.querySelector('button[aria-label="Dismiss navigation"]');
             return {
               duplicateIds: [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))],
               focusInside: Boolean(document.activeElement?.closest('aside[role="dialog"][aria-label="Admin navigation"]')),
@@ -197,11 +198,13 @@ for (const scenario of scenarios) {
               bodyState: document.body.classList.contains("admin-mobile-nav-open"),
               dockOpacity: dockStyle ? Number(dockStyle.opacity) : 1,
               dockPointerEvents: dockStyle?.pointerEvents,
+              backdropBlur: backdrop ? getComputedStyle(backdrop).backdropFilter : "none",
             };
           });
           if (drawerA11y.duplicateIds.length) failures.push(`${scenario} mobile: duplicate ids while navigation is open: ${drawerA11y.duplicateIds.join(", ")}`);
           if (!drawerA11y.focusInside || drawerA11y.focusLabel !== "Close navigation") failures.push(`${scenario} mobile: navigation did not move focus to its close control`);
           if (!drawerA11y.bodyState || drawerA11y.dockOpacity > 0.01 || drawerA11y.dockPointerEvents !== "none") failures.push(`${scenario} mobile: More drawer did not take exclusive ownership from the dock`);
+          if (drawerA11y.backdropBlur === "none") failures.push(`${scenario} mobile: More drawer does not use the shared blurred overlay backdrop`);
         }
         let controlsScope = label === "mobile" ? page.locator('aside[role="dialog"][aria-label="Admin navigation"]') : page.locator("[data-admin-sidebar]");
         const demoControlPlacement = await controlsScope.locator("[data-admin-demo-bar]").evaluate((node) => ({ insideFooter: Boolean(node.closest(".admin-nav-footer")), position: getComputedStyle(node).position }));

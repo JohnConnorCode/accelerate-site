@@ -112,7 +112,7 @@ function emailStudio(pack: DemoScenarioPack, id?: string | null, state: DemoStat
     { id: "appointment-confirmation", name: "Appointment confirmation", description: "Confirms the time, owner, and what the customer should expect.", category: "Operations", subject: "Your appointment is confirmed", variables: ["first_name", "appointment_time", "owner_name"], hasDraft: true, source: "published" as const, updatedAt: ago(8) },
     { id: "proposal-follow-up", name: "Proposal follow-up", description: "Moves an open decision forward without generic pressure.", category: "Revenue", subject: "A quick follow-up on your scope", variables: ["first_name", "proposal_name", "owner_name"], hasDraft: false, source: "built_in" as const, updatedAt: ago(54) },
     { id: "welcome", name: "Customer welcome", description: "Sets expectations immediately after a win or enrollment.", category: "Customer", subject: `Welcome to ${pack.name}`, variables: ["first_name", "start_date", "owner_name"], hasDraft: false, source: "published" as const, updatedAt: ago(74) },
-  ];
+  ].map((template) => ({ ...template, hasDraft: template.hasDraft || Boolean(state.emailDrafts[template.id]) }));
   if (!id) return { schemaReady: true, emails: templates };
   const template = templates.find((item) => item.id === id) || templates[0]!;
   const defaultBlocks: DemoEmailBlock[] = [{ id: "hello", type: "paragraph", text: "Hi {{first_name}},\n\nThanks for your note. I reviewed the details for {{company_name}} and the next step is {{next_step}}." }, { id: "next", type: "paragraph", text: `If that works, reply here and ${pack.tenant.founder.fullName} will take care of the rest.` }, { id: "cta", type: "button", text: "Book a call", url: `${pack.tenant.brand.siteUrl}/contact` }];

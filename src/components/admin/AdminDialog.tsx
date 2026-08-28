@@ -43,9 +43,10 @@ export function AdminDialog({
   maxWidth = "md",
   align = "center",
 }: AdminDialogProps) {
-  // Centered forms become bottom sheets on phones. The command palette and
-  // right-side editors keep their deliberate desktop/mobile layouts.
-  const mobileSheet = align === "center";
+  // A centered dialog remains a dialog at every width. Side editors and the
+  // command palette opt into their own deliberate layouts below; ordinary
+  // confirmations do not pretend to be draggable bottom sheets on phones.
+  const mobileDialog = align === "center";
   useEffect(() => {
     if (!open) return;
     openDialogCount += 1;
@@ -63,7 +64,7 @@ export function AdminDialog({
           <Dialog.Portal forceMount>
             <Dialog.Overlay asChild forceMount>
               <motion.div
-                className="fixed inset-0 z-[200] bg-black/48 backdrop-blur-[3px]"
+                className="admin-overlay-backdrop fixed inset-0 z-[200]"
                 data-admin-overlay="backdrop"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -78,7 +79,7 @@ export function AdminDialog({
                   ? "items-stretch justify-end p-0 sm:p-0"
                   : align === "top"
                     ? "items-start justify-center pt-[10vh]"
-                    : "items-end justify-center sm:items-center",
+                    : "items-center justify-center",
               )}
             >
               <Dialog.Content asChild forceMount aria-describedby={undefined}>
@@ -88,7 +89,7 @@ export function AdminDialog({
                   className={cn(
                     "pointer-events-auto relative w-full",
                     widths[maxWidth],
-                    mobileSheet && "max-h-[calc(100dvh-12px)] overflow-y-auto rounded-t-[24px] bg-[var(--admin-surface)] pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-20px_60px_-28px_rgba(0,0,0,0.34)] sm:max-h-[90dvh] sm:rounded-none sm:bg-transparent sm:pb-0 sm:pt-0 sm:shadow-none",
+                    mobileDialog && "max-h-[calc(100dvh-2rem)] overflow-y-auto",
                     className,
                   )}
                   data-admin-overlay="dialog"
@@ -98,7 +99,6 @@ export function AdminDialog({
                   exit={align === "right" ? { opacity: 0, x: 20 } : { opacity: 0, y: 10, scale: 0.985 }}
                   transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
                 >
-                  {mobileSheet && <span className="mx-auto mb-2 block h-1 w-9 rounded-full bg-[var(--admin-ink)]/20 sm:hidden" aria-hidden="true" />}
                   <Dialog.Title asChild>
                     <span className="sr-only">{title}</span>
                   </Dialog.Title>
