@@ -67,9 +67,12 @@ assert.match(dialog, /data-admin-overlay="dialog"/, "Dialog motion must remain o
 assert.match(pageHeader, /utilityActions/, "Compact sync and refresh actions must not consume a full mobile row");
 assert.match(nextConfig, /deploymentId:/, "Next deployment skew protection must remain enabled");
 assert.match(packageJson, /node scripts\/next-release\.mjs vercel-build/, "Prebuilt production deploys must use the deployment-aware release runner");
+assert.match(packageJson, /node scripts\/next-release\.mjs vercel-deploy/, "Prebuilt production upload must preserve the same runtime deployment id");
 assert.match(packageJson, /node scripts\/next-release\.mjs start/, "Local production QA must use the same deployment-aware release runner");
 assert.match(productionRelease, /NEXT_DEPLOYMENT_ID/, "Build and runtime must receive the same immutable deployment id");
 assert.match(productionRelease, /git[\s\S]*rev-parse/, "The release runner must derive its id from the committed release");
+assert.match(productionRelease, /--env[\s\S]*NEXT_DEPLOYMENT_ID/, "The prebuilt upload must explicitly preserve its custom id in the Vercel runtime");
+assert.doesNotMatch(nextConfig, /VERCEL_DEPLOYMENT_ID/, "The reserved platform deployment id must not override a prebuilt custom id");
 assert.match(notificationBell, /admin-notifications-open/, "Mobile alerts must publish their shared overlay state");
 assert.match(notificationBell, /data-admin-mobile-alerts/, "Mobile alerts must expose their collision boundary to browser QA");
 assert.match(notificationBell, /createPortal/, "Viewport-edge alerts must escape transformed shell containing blocks");

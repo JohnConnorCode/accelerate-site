@@ -106,6 +106,10 @@ routing or creating surface-specific history systems.
   release runner. Build-time and runtime IDs must match; otherwise Next may
   correctly refuse to hydrate a dynamic response whose client assets belong to
   a different release.
+- The prebuilt upload explicitly supplies that same custom ID to Vercel's
+  runtime. Do not fall back to Vercel's reserved `dpl_` identifier inside
+  `next.config`: combining the platform ID with a user-managed prebuilt ID gives
+  static and dynamic responses different version identities.
 - Do not add custom cache-clearing scripts, local-storage version flags, or hard
   reloads to route components. Next.js owns deployment-skew detection and turns
   a mismatched App Router response into the necessary document navigation.
