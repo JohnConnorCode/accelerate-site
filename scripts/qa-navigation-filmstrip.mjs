@@ -14,37 +14,80 @@ for (const run of [
   { name: "mobile-slow", viewport: { width: 390, height: 844 }, delay: 650 },
 ]) {
   const context = await browser.newContext({ viewport: run.viewport, reducedMotion: "no-preference" });
+  await context.addInitScript(() => {
+    window.__adminAnimationReceipts = [];
+    const nativeAnimate = Element.prototype.animate;
+    Element.prototype.animate = function patchedAnimate(keyframes, options) {
+      const animation = nativeAnimate.call(this, keyframes, options);
+      const timing = typeof options === "number" ? { duration: options, delay: 0 } : options || {};
+      if (this.closest?.("[data-admin-route-stage]") && [340, 360].includes(Number(timing.duration || 0))) {
+        window.__adminAnimationReceipts.push({
+          path: window.location.pathname,
+          duration: Number(timing.duration || 0),
+          delay: Number(timing.delay || 0),
+          tag: this.tagName,
+        });
+      }
+      return animation;
+    };
+  });
   const page = await context.newPage();
   const errors = [];
-  page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
+  let navigationTriggered = false;
+  page.on("console", (message) => {
+    if (message.type() !== "error") return;
+    const text = message.text();
+    // Slow-route runs intentionally cancel speculative prefetches so the click
+    // exercises an uncached transition. Chromium reports that cancellation as
+    // ERR_FAILED even though the user-initiated navigation proceeds normally.
+    if (run.delay && text.includes("Failed to load resource: net::ERR_FAILED")) return;
+    errors.push(text);
+  });
   page.on("pageerror", (error) => errors.push(error.message));
 
   if (run.delay) {
     await page.route("**/*", async (route) => {
       const request = route.request();
       const isNavigationPayload = request.url().includes("_rsc=") || request.headers().rsc === "1";
-      if (isNavigationPayload && request.url().includes("/pipeline")) await new Promise((resolve) => setTimeout(resolve, run.delay));
+      const isPipelinePayload = isNavigationPayload && request.url().includes("/pipeline");
+      const isPrefetch = request.headers()["next-router-prefetch"] === "1" || request.headers().purpose === "prefetch";
+      if (isPipelinePayload && isPrefetch && !navigationTriggered) return route.abort();
+      if (isPipelinePayload && navigationTriggered) await new Promise((resolve) => setTimeout(resolve, run.delay));
       await route.continue();
     });
   }
 
   await page.goto(`${base}/demo/command-center/northline-roofing/today`, { waitUntil: "domcontentloaded" });
-  await page.waitForFunction(() => document.getAnimations().some((animation) => (
-    animation instanceof CSSAnimation
-    && animation.animationName === "admin-route-entry-in"
-    && animation.effect?.target instanceof Element
-    && animation.effect.target.closest(".admin-route-entry")
-  )), { timeout: 15_000 }).catch(() => {});
+  const initialAsyncState = await page.evaluate(() => {
+    const region = document.querySelector('[data-admin-async-state="loading"]');
+    return region ? {
+      visible: region.getAttribute("data-admin-async-visible"),
+      opacity: Number(getComputedStyle(region).opacity),
+    } : null;
+  });
+  if (initialAsyncState && (initialAsyncState.visible !== "false" || initialAsyncState.opacity > 0.05)) {
+    failures.push(`${run.name}: cold-load fallback flashed before the shared ${120}ms reveal threshold (${JSON.stringify(initialAsyncState)})`);
+  }
+  await page.screenshot({ path: `${output}/${run.name}-direct-000.png` });
+  await page.waitForTimeout(90);
+  const earlyAsyncState = await page.evaluate(() => {
+    const region = document.querySelector('[data-admin-async-state="loading"]');
+    return region ? {
+      visible: region.getAttribute("data-admin-async-visible"),
+      opacity: Number(getComputedStyle(region).opacity),
+    } : null;
+  });
+  if (earlyAsyncState && (earlyAsyncState.visible !== "false" || earlyAsyncState.opacity > 0.05)) {
+    failures.push(`${run.name}: cold-load fallback became visible before 120ms (${JSON.stringify(earlyAsyncState)})`);
+  }
+  await page.screenshot({ path: `${output}/${run.name}-direct-090.png` });
+  await page.locator("[data-admin-route-stage]").waitFor({ state: "attached", timeout: 15_000 });
+  await page.waitForFunction(() => window.__adminAnimationReceipts?.some((receipt) => receipt.path.endsWith("/today") && receipt.delay >= 48), null, { timeout: 5_000 });
   const directEntrance = await page.evaluate(() => {
-    const animations = document.getAnimations().filter((animation) => (
-      animation instanceof CSSAnimation
-      && animation.animationName === "admin-route-entry-in"
-      && animation.effect?.target instanceof Element
-      && animation.effect.target.closest(".admin-route-entry")
-    ));
+    const animations = window.__adminAnimationReceipts?.filter((receipt) => receipt.path.endsWith("/today")) || [];
     return {
       count: animations.length,
-      delays: [...new Set(animations.map((animation) => Number(animation.effect?.getTiming().delay || 0)))],
+      delays: [...new Set(animations.map((animation) => animation.delay))],
     };
   });
   if (directEntrance.count < 2 || directEntrance.delays.length < 2) {
@@ -73,6 +116,7 @@ for (const run of [
       if (dock) observer.observe(dock, { attributes: true, subtree: true });
     });
   }
+  navigationTriggered = true;
   await target.click({ noWaitAfter: true });
   if (run.name.startsWith("mobile")) {
     const intentAcknowledgement = await page.evaluate(() => {
@@ -91,7 +135,7 @@ for (const run of [
     if (run.delay && checkpoint === 120) {
       const fallback = await page.evaluate(() => {
         const root = document.querySelector("[data-admin-route-loading]");
-        const retainedHeading = document.querySelector(".admin-route-entry h1");
+        const retainedHeading = document.querySelector("[data-admin-route-stage] h1");
         return {
           visible: Boolean(root && getComputedStyle(root).opacity !== "0"),
           shapes: root?.querySelectorAll(".admin-skeleton-shape").length || 0,
@@ -110,16 +154,12 @@ for (const run of [
   await page.waitForURL("**/northline-roofing/pipeline", { timeout: 15_000 });
   await page.locator("[data-admin-route-loading]").waitFor({ state: "detached", timeout: 15_000 }).catch(() => {});
   await page.getByRole("heading", { level: 1 }).waitFor({ state: "visible", timeout: 15_000 });
+  await page.waitForFunction(() => window.__adminAnimationReceipts?.some((receipt) => receipt.path.endsWith("/pipeline") && receipt.delay >= 48), null, { timeout: 5_000 });
   const committedAnimations = await page.evaluate(() => {
-    const animations = document.getAnimations().filter((animation) => (
-      animation instanceof CSSAnimation
-      && animation.animationName === "admin-route-entry-in"
-      && animation.effect?.target instanceof Element
-      && animation.effect.target.closest(".admin-route-entry")
-    ));
+    const animations = window.__adminAnimationReceipts?.filter((receipt) => receipt.path.endsWith("/pipeline")) || [];
     return {
       count: animations.length,
-      delays: [...new Set(animations.map((animation) => Number(animation.effect?.getTiming().delay || 0)))],
+      delays: [...new Set(animations.map((animation) => animation.delay))],
     };
   });
   if (committedAnimations.count < 2 || committedAnimations.delays.length < 2) failures.push(`${run.name}: committed destination had no visible semantic stagger (${JSON.stringify(committedAnimations)})`);
@@ -142,6 +182,56 @@ for (const run of [
   if (state.overflow) failures.push(`${run.name}: horizontal overflow`);
   if (state.y > 2) failures.push(`${run.name}: forward navigation landed at ${state.y}px`);
   if (errors.length) failures.push(`${run.name}: ${errors.join(" | ")}`);
+  await context.close();
+}
+
+// Exercise the regional loading owner independently from route resolution.
+// A client-side fetch delay proves that fast reads stay clean while a genuinely
+// slow read reveals destination-shaped geometry in the region it owns.
+{
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "no-preference" });
+  const page = await context.newPage();
+  await page.goto(`${base}/demo/command-center/northline-roofing/pipeline`, { waitUntil: "networkidle" });
+  await page.evaluate(() => {
+    const nativeFetch = window.fetch.bind(window);
+    window.fetch = async (input, init) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+      if (url.includes("/api/admin/revenue-os/overview") || url.includes("/api/admin/revenue-os/actions")) {
+        await new Promise((resolve) => window.setTimeout(resolve, 650));
+      }
+      return nativeFetch(input, init);
+    };
+  });
+  await page.locator('a[href="/demo/command-center/northline-roofing/today"]:visible').first().click({ noWaitAfter: true });
+  await page.waitForURL("**/northline-roofing/today", { timeout: 15_000 });
+  const region = page.locator('[data-admin-async-state="loading"]');
+  await region.waitFor({ state: "attached", timeout: 5_000 });
+  await page.waitForTimeout(80);
+  const beforeThreshold = await region.evaluate((node) => ({
+    visible: node.getAttribute("data-admin-async-visible"),
+    opacity: Number(getComputedStyle(node).opacity),
+  }));
+  if (beforeThreshold.visible !== "false" || beforeThreshold.opacity > 0.05) {
+    failures.push(`slow-local-data: regional fallback flashed before 120ms (${JSON.stringify(beforeThreshold)})`);
+  }
+  await page.screenshot({ path: `${output}/mobile-local-data-080.png` });
+  await page.waitForTimeout(150);
+  const afterThreshold = await region.evaluate((node) => {
+    const summary = node.querySelector(".admin-skeleton-surface");
+    return {
+      visible: node.getAttribute("data-admin-async-visible"),
+      opacity: Number(getComputedStyle(node).opacity),
+      shapes: node.querySelectorAll(".admin-skeleton-shape").length,
+      surfaces: node.querySelectorAll(".admin-skeleton-surface").length,
+      metricCells: summary?.children.length || 0,
+    };
+  });
+  if (afterThreshold.visible !== "true" || afterThreshold.opacity < 0.35 || afterThreshold.shapes < 12 || afterThreshold.surfaces < 2 || afterThreshold.metricCells !== 4) {
+    failures.push(`slow-local-data: regional fallback was not visible and destination-shaped after 230ms (${JSON.stringify(afterThreshold)})`);
+  }
+  await page.screenshot({ path: `${output}/mobile-local-data-230.png` });
+  await page.locator('[data-admin-async-state="ready"]').waitFor({ state: "attached", timeout: 15_000 });
+  await page.screenshot({ path: `${output}/mobile-local-data-ready.png` });
   await context.close();
 }
 

@@ -38,6 +38,9 @@ const dataSkeleton = readFileSync("src/components/admin/LoadingSkeleton.tsx", "u
 assert.equal(existsSync("src/app/admin/loading.tsx"), false, "The root admin layout must not replace committed content with a full-page fallback");
 assert.match(asyncRegion, /data-admin-async-state/, "Client loading must remain observable inside the region that owns it");
 assert.match(asyncRegion, /delayMs/, "Fast reads must not flash a regional skeleton");
+assert.match(asyncRegion, /window\.setTimeout\(\(\) => setShowFallback\(true\), delayMs\)/, "The shared async region must enforce its loading threshold behaviorally");
+assert.match(asyncRegion, /requestAnimationFrame\(\(\) => setShowFallback\(false\)\)/, "A later load must reset the fallback without a synchronous effect cascade");
+assert.match(asyncRegion, /data-admin-async-visible/, "The delayed regional fallback must remain observable in browser timing QA");
 assert.match(asyncRegion, /hasData/, "Cached data must remain visible during a refetch");
 assert.match(dataSkeleton, /admin-skeleton-shape/, "Client-data skeletons must use the semantic admin loading tokens");
 assert.doesNotMatch(dataSkeleton, /animate-pulse|bg-white\//, "Legacy dark-only skeleton styling must not return");

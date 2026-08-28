@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { adminEase } from "@/lib/admin/motion";
 
@@ -16,6 +17,17 @@ interface AdminAsyncRegionProps {
 /** Fast reads never flash a skeleton; slower reads crossfade locally. */
 export function AdminAsyncRegion({ loading, hasData, loadingFallback, children, className, label = "Loading content", delayMs = 120 }: AdminAsyncRegionProps) {
   const reducedMotion = useReducedMotion();
+  const [showFallback, setShowFallback] = useState(false);
+
+  useEffect(() => {
+    const resetFrame = window.requestAnimationFrame(() => setShowFallback(false));
+    if (!loading || hasData) return () => window.cancelAnimationFrame(resetFrame);
+    const timer = window.setTimeout(() => setShowFallback(true), delayMs);
+    return () => {
+      window.cancelAnimationFrame(resetFrame);
+      window.clearTimeout(timer);
+    };
+  }, [delayMs, hasData, loading]);
 
   return (
     <div className={className} aria-busy={loading && !hasData} aria-live="polite">
@@ -25,7 +37,18 @@ export function AdminAsyncRegion({ loading, hasData, loadingFallback, children, 
             {children}
           </motion.div>
         ) : loading ? (
-          <motion.div key="loading" data-admin-async-state="loading" role="status" aria-label={label} initial={reducedMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reducedMotion ? 0 : 0.18, delay: reducedMotion ? 0 : delayMs / 1000 }}>
+          <motion.div
+            key="loading"
+            data-admin-async-state="loading"
+            data-admin-async-visible={showFallback ? "true" : "false"}
+            role={showFallback ? "status" : undefined}
+            aria-hidden={showFallback ? undefined : true}
+            aria-label={showFallback ? label : undefined}
+            initial={false}
+            animate={{ opacity: showFallback ? 1 : 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: reducedMotion ? 0 : 0.18, ease: adminEase }}
+          >
             {loadingFallback}
           </motion.div>
         ) : <span key="pending" className="sr-only" role="status">{label}</span>}
