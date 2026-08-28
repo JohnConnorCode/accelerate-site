@@ -5,6 +5,8 @@ import { useTheme } from "next-themes";
 import { Check, ChevronUp, Moon, Palette, Snowflake, Sparkles, Sun } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { saveDemoAppearance } from "@/lib/admin/demo/appearance-state";
+import type { DemoScenarioId } from "@/lib/admin/demo/scenarios";
 
 type AdminAppearance = "light" | "dark" | "signal" | "studio" | "frost";
 
@@ -26,7 +28,7 @@ function isAdminAppearance(theme: string | undefined): theme is AdminAppearance 
   return appearances.some((appearance) => appearance.id === theme);
 }
 
-export function AdminAppearancePicker({ collapsed = false }: { collapsed?: boolean }) {
+export function AdminAppearancePicker({ collapsed = false, demoScenarioId = null }: { collapsed?: boolean; demoScenarioId?: DemoScenarioId | null }) {
   const { theme, resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
@@ -121,6 +123,7 @@ export function AdminAppearancePicker({ collapsed = false }: { collapsed?: boole
                     aria-checked={selected}
                     onClick={() => {
                       setTheme(appearance.id);
+                      if (demoScenarioId) saveDemoAppearance(demoScenarioId, appearance.id);
                       setOpen(false);
                       requestAnimationFrame(() => triggerRef.current?.focus());
                     }}

@@ -3,12 +3,24 @@ import { chromium } from "playwright";
 
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3010";
 const output = "/tmp/accelerate-full-admin-demo";
-const scenarios = process.argv.includes("--one") ? ["sprout-and-spark"] : ["sprout-and-spark", "northline-roofing", "harborline-growth"];
-const defaultAppearances = { "sprout-and-spark": "light", "northline-roofing": "studio", "harborline-growth": "signal" };
+const scenarios = process.argv.includes("--one") ? ["northline-roofing"] : ["northline-roofing", "alder-ridge-law", "ledgerstone-advisory", "hearthline-realty", "common-table-network"];
+const defaultAppearances = { "northline-roofing": "studio", "alder-ridge-law": "dark", "ledgerstone-advisory": "frost", "hearthline-realty": "signal", "common-table-network": "light" };
 const routes = ["today", "pipeline", "conversations", "inbox", "contacts", "contact-imports", "emails", "campaigns", "proposals", "email-sequences", "revenue", "clients", "bookings", "content", "resources", "ai", "ai-operations", "analytics", "activity", "integrations", "setup", "features", "settings", "leads", "chat-leads", "subscribers", "partners", "website-grades"];
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const failures = [];
+
+async function readStablePageState(page) {
+  const handle = await page.waitForFunction(() => {
+    const root = document.documentElement;
+    const main = document.querySelector("main");
+    if (!root || !main || !document.querySelector(".admin-shell")) return null;
+    return { width: root.scrollWidth, viewport: innerWidth, overlay: document.querySelector("nextjs-portal")?.textContent || "", mainText: main.textContent?.replace(/\s+/g, " ").trim().length || 0, logo: Boolean(document.querySelector(".demo-scenario-mark")), title: document.title, heading: document.querySelector(".admin-main h1")?.textContent?.replace(/\s+/g, " ").trim() || "" };
+  }, undefined, { timeout: 30_000 });
+  const state = await handle.jsonValue();
+  await handle.dispose();
+  return state;
+}
 
 {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
@@ -17,8 +29,27 @@ const failures = [];
   const launcher = await page.locator('a[href^="/demo/command-center/"][href$="/today"]').count();
   if (launcher !== scenarios.length && !process.argv.includes("--one")) failures.push(`launcher: expected ${scenarios.length} scenario cards, found ${launcher}`);
   if (!await page.getByText("Browser-only fictional workspaces", { exact: false }).count()) failures.push("launcher: missing fictional-data disclosure");
+  await page.getByRole("button", { name: "Switch demo selection to dark mode" }).waitFor();
+  await page.waitForTimeout(1_300);
+  const lightTheme = await page.evaluate(() => {
+    const launcher = getComputedStyle(document.querySelector(".demo-launcher"));
+    const card = getComputedStyle(document.querySelector(".demo-launcher-card"));
+    const preview = getComputedStyle(document.querySelector(".demo-workspace-preview"));
+    return { theme: document.documentElement.dataset.theme, canvas: launcher.backgroundColor, card: card.backgroundColor, ink: card.color, preview: preview.backgroundColor };
+  });
+  await page.screenshot({ path: `${output}/launcher-desktop-light.png`, fullPage: true });
+  await page.getByRole("button", { name: "Switch demo selection to dark mode" }).click();
+  await page.waitForFunction(() => document.documentElement.dataset.theme === "dark");
+  await page.waitForTimeout(500);
+  const darkTheme = await page.evaluate(() => {
+    const launcher = getComputedStyle(document.querySelector(".demo-launcher"));
+    const card = getComputedStyle(document.querySelector(".demo-launcher-card"));
+    const preview = getComputedStyle(document.querySelector(".demo-workspace-preview"));
+    return { theme: document.documentElement.dataset.theme, canvas: launcher.backgroundColor, card: card.backgroundColor, ink: card.color, preview: preview.backgroundColor, stored: localStorage.getItem("accelerate:admin-demo:launcher-theme:v1") };
+  });
+  if (lightTheme.theme !== "light" || darkTheme.theme !== "dark" || darkTheme.stored !== "dark" || lightTheme.canvas === darkTheme.canvas || lightTheme.card === darkTheme.card || lightTheme.ink === darkTheme.ink || lightTheme.preview === darkTheme.preview) failures.push("launcher: light/dark toggle did not adapt every primary surface");
   const marks = await page.locator(".demo-scenario-mark").evaluateAll((nodes) => nodes.map((node) => ({ classes: node.getAttribute("class"), animation: getComputedStyle(node).animationName, animatedParts: [...node.querySelectorAll("*")].filter((part) => getComputedStyle(part).animationName !== "none").length })));
-  if (marks.length !== 3 || new Set(marks.map((mark) => mark.classes)).size !== 3 || marks.some((mark) => mark.animation === "none" && !mark.animatedParts)) failures.push("launcher: scenario logos are not distinct animated marks");
+  if (marks.length !== 5 || new Set(marks.map((mark) => mark.classes)).size !== 5 || marks.some((mark) => mark.animation === "none" && !mark.animatedParts)) failures.push("launcher: scenario logos are not five distinct animated marks");
   const entrances = await page.locator(".admin-demo-enter").evaluateAll((nodes) => nodes.map((node) => ({ name: getComputedStyle(node).animationName, delay: getComputedStyle(node).animationDelay })));
   if (entrances.length < 9 || entrances.some((item) => !item.name.includes("admin-demo-enter")) || new Set(entrances.map((item) => item.delay)).size < 6) failures.push("launcher: hero and scenario cards do not use a complete staggered entrance sequence");
   await page.waitForTimeout(1_300);
@@ -27,7 +58,7 @@ const failures = [];
   await page.waitForTimeout(180);
   const hoverState = await firstCard.evaluate((node) => ({ translate: getComputedStyle(node).translate, transition: getComputedStyle(node).transitionProperty }));
   if (hoverState.translate === "none" || !hoverState.transition.includes("translate") || !hoverState.transition.includes("box-shadow")) failures.push("launcher: scenario card hover is not a smooth compositor-led transition");
-  await page.screenshot({ path: `${output}/launcher-desktop.png`, fullPage: true });
+  await page.screenshot({ path: `${output}/launcher-desktop-dark.png`, fullPage: true });
   await context.close();
 }
 
@@ -61,7 +92,7 @@ for (const scenario of scenarios) {
       await page.waitForFunction((expected) => window.__accelerateAdminDemoRuntime === expected, scenario, { timeout: 30_000 });
       await page.waitForFunction((expected) => document.documentElement.dataset.theme === expected, defaultAppearances[scenario], { timeout: 30_000 });
       await page.waitForTimeout(350);
-      const state = await page.evaluate(() => ({ width: document.documentElement.scrollWidth, viewport: innerWidth, overlay: document.querySelector("nextjs-portal")?.textContent || "", mainText: document.querySelector("main")?.textContent?.replace(/\s+/g, " ").trim().length || 0, logo: Boolean(document.querySelector(".demo-scenario-mark")), title: document.title, heading: document.querySelector(".admin-main h1")?.textContent?.replace(/\s+/g, " ").trim() || "" }));
+      const state = await readStablePageState(page);
       if (state.width > state.viewport + 2) failures.push(`${scenario} ${label} ${route}: overflow ${state.width} > ${state.viewport}`);
       if (/Build Error|Unhandled Runtime Error|Runtime TypeError|Compilation failed/i.test(state.overlay)) failures.push(`${scenario} ${label} ${route}: Next error overlay`);
       if (state.mainText < 120) failures.push(`${scenario} ${label} ${route}: view is not credibly populated`);
@@ -93,35 +124,68 @@ for (const scenario of scenarios) {
         await page.screenshot({ path: `${output}/${scenario}-${label}.png`, fullPage: true });
         if (await page.locator("[data-admin-demo-link]").count()) failures.push(`${scenario} ${label}: duplicate demo chooser remains in shared navigation`);
         if (label === "mobile") {
+          const alertTrigger = page.getByRole("button", { name: /Open command center alerts/ });
+          await alertTrigger.click();
+          const alertSheet = page.locator('[data-admin-mobile-alerts]');
+          await alertSheet.waitFor();
+          await page.waitForTimeout(40);
+          const alertOverlay = await page.evaluate(() => {
+            const dock = document.querySelector(".admin-mobile-dock");
+            const sheet = document.querySelector("[data-admin-mobile-alerts]");
+            if (!(dock instanceof HTMLElement) || !(sheet instanceof HTMLElement)) return null;
+            const dockStyle = getComputedStyle(dock);
+            const sheetRect = sheet.getBoundingClientRect();
+            const dockRect = dock.getBoundingClientRect();
+            return {
+              bodyState: document.body.classList.contains("admin-notifications-open"),
+              dockOpacity: Number(dockStyle.opacity),
+              dockPointerEvents: dockStyle.pointerEvents,
+              overlaps: sheetRect.bottom > dockRect.top && sheetRect.top < dockRect.bottom && Number(dockStyle.opacity) > 0.01,
+              sheetBottom: Math.round(innerHeight - sheetRect.bottom),
+            };
+          });
+          if (!alertOverlay?.bodyState || alertOverlay.dockOpacity > 0.01 || alertOverlay.dockPointerEvents !== "none" || alertOverlay.overlaps || Math.abs(alertOverlay.sheetBottom) > 2) failures.push(`${scenario} mobile: notification sheet and dock do not share one collision-free overlay state`);
+          await page.screenshot({ path: `${output}/${scenario}-mobile-notifications.png`, fullPage: false });
+          await page.keyboard.press("Escape");
+          await alertSheet.waitFor({ state: "detached" });
+          if (await page.evaluate(() => document.body.classList.contains("admin-notifications-open"))) failures.push(`${scenario} mobile: notification overlay state remained after close`);
+
           await page.getByRole("button", { name: "Open More" }).click();
           await page.locator('aside[role="dialog"][aria-label="Admin navigation"]').waitFor();
           await page.waitForTimeout(420);
           const drawerA11y = await page.evaluate(() => {
             const ids = [...document.querySelectorAll("[id]")].map((node) => node.id).filter(Boolean);
+            const dock = document.querySelector(".admin-mobile-dock");
+            const dockStyle = dock ? getComputedStyle(dock) : null;
             return {
               duplicateIds: [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))],
               focusInside: Boolean(document.activeElement?.closest('aside[role="dialog"][aria-label="Admin navigation"]')),
               focusLabel: document.activeElement?.getAttribute("aria-label"),
+              bodyState: document.body.classList.contains("admin-mobile-nav-open"),
+              dockOpacity: dockStyle ? Number(dockStyle.opacity) : 1,
+              dockPointerEvents: dockStyle?.pointerEvents,
             };
           });
           if (drawerA11y.duplicateIds.length) failures.push(`${scenario} mobile: duplicate ids while navigation is open: ${drawerA11y.duplicateIds.join(", ")}`);
           if (!drawerA11y.focusInside || drawerA11y.focusLabel !== "Close navigation") failures.push(`${scenario} mobile: navigation did not move focus to its close control`);
+          if (!drawerA11y.bodyState || drawerA11y.dockOpacity > 0.01 || drawerA11y.dockPointerEvents !== "none") failures.push(`${scenario} mobile: More drawer did not take exclusive ownership from the dock`);
         }
         let controlsScope = label === "mobile" ? page.locator('aside[role="dialog"][aria-label="Admin navigation"]') : page.locator("[data-admin-sidebar]");
         const demoControlPlacement = await controlsScope.locator("[data-admin-demo-bar]").evaluate((node) => ({ insideFooter: Boolean(node.closest(".admin-nav-footer")), position: getComputedStyle(node).position }));
         if (!demoControlPlacement.insideFooter || demoControlPlacement.position === "fixed") failures.push(`${scenario} ${label}: demo controls are not integrated into the sidebar footer`);
         if (label === "mobile" && await page.evaluate(() => document.body.style.overflow !== "hidden")) failures.push(`${scenario} mobile: open navigation did not lock background scrolling`);
 
-        if (scenario === "sprout-and-spark") {
+        if (scenario === "northline-roofing") {
           const revenueToggle = controlsScope.getByRole("button", { name: "Revenue", exact: true });
           const revenuePanelId = await revenueToggle.getAttribute("aria-controls");
           const revenuePanel = controlsScope.locator(`[id="${revenuePanelId}"]`);
           await revenueToggle.click();
           await revenuePanel.waitFor();
+          if (await revenuePanel.getAttribute("aria-hidden") !== "false") failures.push(`${scenario} ${label}: Revenue disclosure did not expose its links`);
           await revenueToggle.click();
-          await revenuePanel.waitFor({ state: "detached" });
+          if (await revenuePanel.getAttribute("aria-hidden") !== "true") failures.push(`${scenario} ${label}: Revenue disclosure did not hide its links`);
           await revenueToggle.click();
-          await revenuePanel.waitFor();
+          if (await revenuePanel.getAttribute("aria-hidden") !== "false") failures.push(`${scenario} ${label}: Revenue disclosure did not reopen`);
 
           const inboxHref = `/demo/command-center/${scenario}/inbox`;
           const todayHref = `/demo/command-center/${scenario}/today`;
@@ -157,67 +221,123 @@ for (const scenario of scenarios) {
         await controlsScope.locator('[data-admin-demo-bar][data-state="collapsed"]').waitFor();
       }
     }
-    if (scenario === "sprout-and-spark" && label === "desktop") {
-      await page.goto(`${base}/demo/command-center/sprout-and-spark/today`, { waitUntil: "domcontentloaded" });
-      await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "sprout-and-spark");
+    if (scenario === "northline-roofing" && label === "desktop") {
+      await page.goto(`${base}/demo/command-center/northline-roofing/today`, { waitUntil: "domcontentloaded" });
+      await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "northline-roofing");
       const desktopSidebar = page.locator("[data-admin-sidebar]");
-      await desktopSidebar.getByRole("button", { name: "Open demo controls" }).click();
+      if (await desktopSidebar.locator('[data-admin-demo-bar][data-state="collapsed"]').count()) await desktopSidebar.getByRole("button", { name: "Open demo controls" }).click();
+      await desktopSidebar.getByRole("combobox", { name: "Demo business" }).selectOption("alder-ridge-law");
+      await page.waitForURL(/\/alder-ridge-law\/today$/);
+      await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "alder-ridge-law");
+      await page.waitForFunction(() => document.documentElement.dataset.theme === "dark");
+      if (await desktopSidebar.getByRole("button", { name: "Open demo controls" }).count()) await desktopSidebar.getByRole("button", { name: "Open demo controls" }).click();
       await desktopSidebar.getByRole("combobox", { name: "Demo business" }).selectOption("northline-roofing");
       await page.waitForURL(/\/northline-roofing\/today$/);
       await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "northline-roofing");
       await page.waitForFunction(() => document.documentElement.dataset.theme === "studio");
-      if (await desktopSidebar.getByRole("button", { name: "Open demo controls" }).count()) await desktopSidebar.getByRole("button", { name: "Open demo controls" }).click();
-      await desktopSidebar.getByRole("combobox", { name: "Demo business" }).selectOption("sprout-and-spark");
-      await page.waitForURL(/\/sprout-and-spark\/today$/);
-      await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "sprout-and-spark");
-      await page.waitForFunction(() => document.documentElement.dataset.theme === "light");
 
-      await page.goto(`${base}/demo/command-center/sprout-and-spark/ai?view=runs`, { waitUntil: "domcontentloaded" });
-      await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "sprout-and-spark");
+      await page.goto(`${base}/demo/command-center/northline-roofing/ai?view=runs`, { waitUntil: "domcontentloaded" });
+      await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "northline-roofing");
       await page.getByText("Trace ledger", { exact: true }).waitFor();
       await page.getByText("Ordered trace", { exact: true }).waitFor();
       await page.getByRole("button", { name: /Capabilities Understand tools and safeguards/ }).click();
       await page.getByText("Registered policy", { exact: true }).first().waitFor();
-      if (!page.url().includes("/demo/command-center/sprout-and-spark/ai?view=capabilities")) failures.push("AI workspace: tab navigation escaped the public demo URL");
+      if (!page.url().includes("/demo/command-center/northline-roofing/ai?view=capabilities")) failures.push("AI workspace: tab navigation escaped the public demo URL");
       const mutation = await page.evaluate(async () => {
         const before = await fetch("/api/admin/revenue-os/priority").then((response) => response.json());
         const actions = await fetch("/api/admin/revenue-os/actions").then((response) => response.json());
         await fetch("/api/admin/revenue-os/actions", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: actions.actions[0].id, decision: "approve" }) });
         const after = await fetch("/api/admin/revenue-os/priority").then((response) => response.json());
         const ai = await fetch("/api/admin/revenue-os/ai/stream", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: "What matters now?" }) }).then((response) => response.text());
-        return { before: before.summary.total, after: after.summary.total, stored: Boolean(sessionStorage.getItem("accelerate:admin-demo:sprout-and-spark:v2")), aiFinal: ai.includes('"type":"final"'), aiDisclosure: ai.includes("stage—not send") };
+        return { before: before.summary.total, after: after.summary.total, stored: Boolean(sessionStorage.getItem("accelerate:admin-demo:northline-roofing:v3")), aiFinal: ai.includes('"type":"final"'), aiDisclosure: ai.includes("stage—not send") };
       });
-      if (mutation.after !== mutation.before - 1 || !mutation.stored) failures.push("sprout-and-spark desktop: simulated approval did not persist coherently");
-      if (!mutation.aiFinal || !mutation.aiDisclosure) failures.push("sprout-and-spark desktop: simulated AI stream is incomplete or unsafe");
+      if (mutation.after !== mutation.before - 1 || !mutation.stored) failures.push("northline-roofing desktop: simulated approval did not persist coherently");
+      if (!mutation.aiFinal || !mutation.aiDisclosure) failures.push("northline-roofing desktop: simulated AI stream is incomplete or unsafe");
+      await page.goto(`${base}/demo/command-center/alder-ridge-law/today`, { waitUntil: "domcontentloaded" });
+      await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "alder-ridge-law");
+      await page.waitForFunction(() => document.documentElement.dataset.theme === "dark");
+      const isolated = await page.evaluate(async () => (await fetch("/api/admin/revenue-os/priority").then((response) => response.json())).summary.total);
+      if (isolated !== mutation.before) failures.push("scenario switch: fictional workspace state leaked between businesses");
       await page.goto(`${base}/demo/command-center/northline-roofing/today`, { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "northline-roofing");
       await page.waitForFunction(() => document.documentElement.dataset.theme === "studio");
-      const isolated = await page.evaluate(async () => (await fetch("/api/admin/revenue-os/priority").then((response) => response.json())).summary.total);
-      if (isolated !== mutation.before) failures.push("scenario switch: fictional workspace state leaked between businesses");
-      await page.goto(`${base}/demo/command-center/sprout-and-spark/today`, { waitUntil: "domcontentloaded" });
-      await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "sprout-and-spark");
-      await page.waitForFunction(() => document.documentElement.dataset.theme === "light");
       await page.getByRole("button", { name: /^Appearance:/ }).click();
       await page.getByRole("radio", { name: /Frost/ }).click();
       await page.waitForFunction(() => document.documentElement.dataset.theme === "frost");
+      await desktopSidebar.getByRole("button", { name: "Open demo controls" }).click();
+      await desktopSidebar.getByRole("combobox", { name: "Demo business" }).selectOption("alder-ridge-law");
+      await page.waitForURL(/\/alder-ridge-law\/today$/);
+      await page.waitForFunction(() => document.documentElement.dataset.theme === "dark");
+      if (await desktopSidebar.locator('[data-admin-demo-bar][data-state="collapsed"]').count()) await desktopSidebar.getByRole("button", { name: "Open demo controls" }).click();
+      await desktopSidebar.getByRole("combobox", { name: "Demo business" }).selectOption("northline-roofing");
+      await page.waitForURL(/\/northline-roofing\/today$/);
+      await page.waitForFunction(() => document.documentElement.dataset.theme === "frost");
       await page.reload({ waitUntil: "domcontentloaded" });
       await page.locator("[data-admin-demo-bar]").waitFor();
-      await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "sprout-and-spark");
+      await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "northline-roofing");
       await page.waitForFunction(() => document.documentElement.dataset.theme === "frost");
       const persisted = await page.evaluate(async () => (await fetch("/api/admin/revenue-os/priority").then((response) => response.json())).summary.total);
-      if (persisted !== mutation.after) failures.push("sprout-and-spark desktop: demo mutation did not survive refresh");
+      if (persisted !== mutation.after) failures.push("northline-roofing desktop: demo mutation did not survive refresh");
       await page.getByRole("button", { name: "Open demo controls" }).click();
       await Promise.all([
         page.waitForNavigation({ waitUntil: "domcontentloaded" }),
         page.getByRole("button", { name: "Reset this demo" }).click(),
       ]);
       await page.locator("[data-admin-demo-bar]").waitFor();
-      await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "sprout-and-spark");
-      const reset = await page.evaluate(() => sessionStorage.getItem("accelerate:admin-demo:sprout-and-spark:v2"));
-      if (reset !== null) failures.push("sprout-and-spark desktop: reset did not restore clean scenario state");
+      await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "northline-roofing");
+      const reset = await page.evaluate(() => ({ data: sessionStorage.getItem("accelerate:admin-demo:northline-roofing:v3"), appearance: sessionStorage.getItem("accelerate:admin-demo:northline-roofing:appearance:v1"), theme: document.documentElement.dataset.theme }));
+      if (reset.data !== null || reset.appearance !== null || reset.theme !== "studio") failures.push("northline-roofing desktop: reset did not restore clean data and default appearance");
     }
     await context.close();
   }
+}
+
+for (const scenario of scenarios) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: "reduce" });
+  const page = await context.newPage();
+  page.on("request", (request) => {
+    const path = new URL(request.url()).pathname;
+    if (path.startsWith("/api/admin") || path.startsWith("/api/cron") || path.startsWith("/api/webhooks") || path === "/api/chat") failures.push(`${scenario} operations: protected request escaped demo runtime: ${path}`);
+  });
+  await page.goto(`${base}/demo/command-center/${scenario}/today`, { waitUntil: "domcontentloaded", timeout: 60_000 });
+  await page.waitForFunction((expected) => window.__accelerateAdminDemoRuntime === expected, scenario, { timeout: 30_000 });
+  const operation = await page.evaluate(async (activeScenario) => {
+    const [actionsBefore, tasksBefore, pipelineBefore, conversationsBefore] = await Promise.all([
+      fetch("/api/admin/revenue-os/actions").then((response) => response.json()),
+      fetch("/api/admin/revenue-os/tasks").then((response) => response.json()),
+      fetch("/api/admin/revenue-os/pipeline").then((response) => response.json()),
+      fetch("/api/admin/revenue-os/conversations").then((response) => response.json()),
+    ]);
+    const action = actionsBefore.actions[0];
+    const task = tasksBefore.tasks[0];
+    const opportunity = pipelineBefore.opportunities[0];
+    const conversation = conversationsBefore.conversations[0];
+    const [approval, taskCompletion, stageChange, reply, ai] = await Promise.all([
+      fetch("/api/admin/revenue-os/actions", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: action.id, decision: "approve" }) }).then((response) => response.json()),
+      fetch("/api/admin/revenue-os/tasks", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: task.id }) }).then((response) => response.json()),
+      fetch("/api/admin/revenue-os/pipeline", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: opportunity.id, stage: "proposal" }) }).then((response) => response.json()),
+      fetch("/api/admin/revenue-os/conversations/reply", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ conversationId: conversation.id, body: "This is a safe fictional demo reply." }) }).then((response) => response.json()),
+      fetch("/api/admin/revenue-os/ai/stream", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: "What matters now?" }) }).then((response) => response.text()),
+    ]);
+    const [actionsAfter, tasksAfter, pipelineAfter, conversationAfter] = await Promise.all([
+      fetch("/api/admin/revenue-os/actions").then((response) => response.json()),
+      fetch("/api/admin/revenue-os/tasks").then((response) => response.json()),
+      fetch("/api/admin/revenue-os/pipeline").then((response) => response.json()),
+      fetch(`/api/admin/revenue-os/conversations?id=${encodeURIComponent(conversation.id)}`).then((response) => response.json()),
+    ]);
+    return {
+      approval: approval.simulated === true && actionsAfter.actions.length === actionsBefore.actions.length - 1,
+      task: taskCompletion.simulated === true && tasksAfter.tasks.length === tasksBefore.tasks.length - 1,
+      pipeline: stageChange.simulated === true && pipelineAfter.opportunities.find((item) => item.id === opportunity.id)?.stage === "proposal",
+      reply: reply.simulated === true && JSON.stringify(conversationAfter).includes("This is a safe fictional demo reply."),
+      ai: ai.includes('"type":"final"') && ai.includes("stage—not send"),
+      stored: Boolean(sessionStorage.getItem(`accelerate:admin-demo:${activeScenario}:v3`)),
+    };
+  }, scenario);
+  for (const [name, passed] of Object.entries(operation)) {
+    if (!passed) failures.push(`${scenario} operations: simulated ${name} did not complete coherently`);
+  }
+  await context.close();
 }
 
 const appearanceFingerprints = new Map();
@@ -226,13 +346,15 @@ for (const appearance of ["light", "dark", "signal", "studio", "frost"]) {
     const context = await browser.newContext({ viewport });
     await context.addInitScript((theme) => {
       localStorage.setItem("theme", theme);
-      sessionStorage.setItem("accelerate:admin-demo:appearance-scenario", "sprout-and-spark");
+      sessionStorage.setItem("accelerate:admin-demo:northline-roofing:appearance:v1", theme);
     }, appearance);
     const page = await context.newPage();
     page.on("pageerror", (error) => failures.push(`appearance ${appearance} ${label}: ${error.message.split("\n")[0]}`));
-    await page.goto(`${base}/demo/command-center/sprout-and-spark/today`, { waitUntil: "domcontentloaded", timeout: 60_000 });
-    await page.waitForFunction((expected) => window.__accelerateAdminDemoRuntime === expected, "sprout-and-spark");
+    await page.goto(`${base}/demo/command-center/northline-roofing/today`, { waitUntil: "domcontentloaded", timeout: 60_000 });
+    await page.waitForFunction((expected) => window.__accelerateAdminDemoRuntime === expected, "northline-roofing");
     await page.waitForFunction((expected) => document.documentElement.dataset.theme === expected, appearance);
+    await page.locator(".admin-shell").waitFor({ state: "attached", timeout: 15_000 });
+    await page.locator('.admin-nav-link[aria-current="page"]').first().waitFor({ state: "attached", timeout: 15_000 });
     const tokens = await page.evaluate(() => {
       const styles = getComputedStyle(document.querySelector(".admin-shell"));
       const sidebar = getComputedStyle(document.querySelector(".admin-sidebar"));

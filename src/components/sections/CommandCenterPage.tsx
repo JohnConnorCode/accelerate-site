@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import Link from "next/link";
-import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useHydratedReducedMotion } from "@/hooks/useHydratedReducedMotion";
 import { BookCallButton } from "@/components/v2/studio/primitives";
 import { Reveal, useRv } from "@/components/home/reveal";
 import { AmbientField } from "@/components/home/AmbientField";
@@ -51,7 +52,7 @@ export function CommandCenterPageContent() {
 function Hero() {
   const [loaded, setLoaded] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
-  const reduced = useReducedMotion();
+  const reduced = useHydratedReducedMotion();
 
   // One scroll listener drives both layers: content lifts and fades, the
   // instrument grid behind it drifts the other way. Same technique as the

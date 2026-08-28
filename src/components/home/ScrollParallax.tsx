@@ -2,7 +2,8 @@
 
 import { useRef } from "react";
 import type { ReactNode } from "react";
-import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useHydratedReducedMotion } from "@/hooks/useHydratedReducedMotion";
 
 /**
  * Scroll-linked parallax wrapper. Framer Motion, not GSAP — the homepage
@@ -25,7 +26,7 @@ export function ScrollParallax({
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const reduced = useReducedMotion();
+  const reduced = useHydratedReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
   // 170px/unit of speed — tuned up from an earlier 56px/unit pass that read
   // as barely-there over a full element scroll-through (~1000-2000px of

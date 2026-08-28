@@ -36,7 +36,7 @@ async function openDemo(viewport, label) {
   const page = await context.newPage();
   await page.goto(`${base}/command-center/demo`, { waitUntil: "domcontentloaded", timeout: 60_000 });
   if (new URL(page.url()).pathname !== "/demo/command-center") failures.push("legacy standalone preview did not redirect to the full admin demo launcher");
-  await page.getByRole("heading", { name: "One system. Three operating worlds." }).waitFor();
+  await page.getByRole("heading", { name: "Explore the full admin through five real operating models." }).waitFor();
   await context.close();
 }
 

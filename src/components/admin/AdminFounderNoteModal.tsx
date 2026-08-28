@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Link2, Loader2, NotebookPen, Search, UserRound, X } from "lucide-react";
+import { Link2, Loader2, NotebookPen, Search, X } from "lucide-react";
 import { AdminDialog } from "./AdminDialog";
 import { AdminSurface } from "./AdminSurface";
 import { fetchJson } from "@/lib/admin/fetchJson";
@@ -119,7 +119,7 @@ export function AdminFounderNoteModal() {
                   {searching && <Loader2 className="absolute right-3 top-1/2 size-3.5 -translate-y-1/2 animate-spin text-[var(--admin-muted)]" />}
                 </div>
                 {selectedPerson && <div className="mt-2 flex min-h-11 items-center justify-between rounded-lg bg-[var(--admin-surface)] px-3 shadow-[var(--admin-shadow-border)]"><span className="min-w-0"><span className="block truncate text-xs font-semibold text-[var(--admin-ink)]">{selectedPerson.name}</span><span className="block truncate text-[10px] text-[var(--admin-muted)]">{selectedPerson.email}</span></span><button type="button" onClick={() => { setSelectedPerson(null); setPersonQuery(""); }} className="grid size-10 place-items-center rounded-lg text-[var(--admin-muted)] hover:text-[var(--admin-ink)]" aria-label="Remove attachment"><X className="size-3.5" /></button></div>}
-                {!selectedPerson && people.length > 0 && <div className="mt-2 space-y-1">{people.map((person) => <button key={person.email} type="button" onClick={() => { setSelectedPerson(person); setPersonQuery(""); setPeople([]); }} className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left transition-[background-color,transform] duration-150 hover:bg-[var(--admin-surface)] active:scale-[0.96]"><UserRound className="size-4 shrink-0 text-[var(--admin-muted)]" /><span className="min-w-0"><span className="block truncate text-xs font-semibold text-[var(--admin-ink)]">{person.name}</span><span className="block truncate text-[10px] text-[var(--admin-muted)]">{person.email}</span></span></button>)}</div>}
+                {!selectedPerson && people.length > 0 && <div className="mt-2 space-y-1">{people.map((person) => <button key={person.email} type="button" onClick={() => { setSelectedPerson(person); setPersonQuery(""); setPeople([]); }} className="flex min-h-11 w-full items-center rounded-lg px-3 text-left transition-[background-color,transform] duration-150 hover:bg-[var(--admin-surface)] active:scale-[0.96]"><span className="min-w-0"><span className="block truncate text-xs font-semibold text-[var(--admin-ink)]">{person.name}</span><span className="block truncate text-[10px] text-[var(--admin-muted)]">{person.email}</span></span></button>)}</div>}
                 {!selectedPerson && !searching && personQuery.trim().length >= 3 && people.length === 0 && <p className="px-3 py-3 text-xs text-[var(--admin-muted)]">No canonical contact matches this search.</p>}
               </div>
             )}

@@ -34,6 +34,7 @@ import { AdminShortcuts } from "@/components/admin/AdminShortcuts";
 import { AdminCreateTaskModal } from "@/components/admin/AdminCreateTaskModal";
 import { AdminFounderNoteModal } from "@/components/admin/AdminFounderNoteModal";
 import { AdminAIProvider } from "@/components/admin/AdminAIProvider";
+import { AdminQueryProvider } from "@/components/admin/AdminQueryProvider";
 import { AdminAIPanel } from "@/components/admin/AdminAIPanel";
 import { EmailComposeModal } from "@/components/admin/EmailComposeModal";
 import { AdminDialog } from "@/components/admin/AdminDialog";
@@ -106,7 +107,7 @@ export default function AdminShell({
   const effectivePathname = resolveAdminPathname(pathname, scenarioId, demoRoute);
   const routeKey = `${scenarioId || "live"}:${effectivePathname}`;
   const router = useAdminNavigation();
-  const { registerAdminScroller, shouldAnimateRoute } = useNavigationRuntime();
+  const { pendingHref, registerAdminScroller } = useNavigationRuntime();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -156,11 +157,13 @@ export default function AdminShell({
       }
     };
     document.body.style.overflow = "hidden";
+    document.body.classList.add("admin-mobile-nav-open");
     if (mainNode) mainNode.style.overflowY = "hidden";
     window.addEventListener("keydown", onKeyDown);
     return () => {
       window.clearTimeout(focusTimer);
       document.body.style.overflow = previousOverflow;
+      document.body.classList.remove("admin-mobile-nav-open");
       if (mainNode) mainNode.style.overflowY = previousMainOverflow;
       window.removeEventListener("keydown", onKeyDown);
       window.requestAnimationFrame(() => returnFocus?.focus());
@@ -342,6 +345,12 @@ export default function AdminShell({
 
   const isActive = (href: string) =>
     effectivePathname === href || (href !== "/admin" && effectivePathname.startsWith(href));
+  const pendingAdminPath = pendingHref
+    ? resolveAdminPathname(new URL(pendingHref, "http://accelerate.local").pathname, scenarioId, demoRoute)
+    : null;
+  const isPendingActive = (href: string) => Boolean(
+    pendingAdminPath && (pendingAdminPath === href || (href !== "/admin" && pendingAdminPath.startsWith(href))),
+  );
 
   const commandActions: CommandAction[] = [
     {
@@ -402,6 +411,7 @@ export default function AdminShell({
   const breadcrumbs = getBreadcrumbs(effectivePathname);
 
   return (
+    <AdminQueryProvider scope={scenarioId || "live"}>
     <AdminAIProvider>
     <MotionConfig reducedMotion="user">
     <div className="admin-shell flex h-dvh min-h-0 overflow-hidden">
@@ -432,7 +442,7 @@ export default function AdminShell({
         {mobileOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
             <motion.button type="button" aria-label="Dismiss navigation" className="absolute inset-0 bg-black/55" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileOpen(false)} />
-            <motion.aside ref={mobileDrawerRef} id="admin-mobile-navigation" role="dialog" aria-modal="true" aria-label="Admin navigation" className="admin-sidebar absolute inset-x-2 bottom-2 top-[max(3rem,env(safe-area-inset-top))] flex flex-col rounded-[26px] px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 shadow-[0_30px_90px_-28px_rgba(0,0,0,.78)]" initial={{ opacity: 0, y: 28, scale: 0.985 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 18, scale: 0.99 }} transition={{ type: "spring", duration: 0.34, bounce: 0 }}>
+            <motion.aside ref={mobileDrawerRef} id="admin-mobile-navigation" role="dialog" aria-modal="true" aria-label="Admin navigation" className="admin-mobile-sheet admin-sidebar absolute bottom-2 right-2 top-2 flex w-[min(22rem,calc(100vw-1rem))] flex-col rounded-[28px] px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]" initial={{ opacity: 0, x: 30, scale: 0.985 }} animate={{ opacity: 1, x: 0, scale: 1 }} exit={{ opacity: 0, x: 22, scale: 0.99 }} transition={{ type: "spring", duration: 0.34, bounce: 0 }}>
               <SidebarContent
                 idPrefix="admin-mobile"
                 isActive={isActive}
@@ -496,24 +506,26 @@ export default function AdminShell({
           {/* New route content enters immediately. Waiting for an exiting tree
               leaves the operating surface blank and makes navigation feel like
               a reload; the surrounding shell intentionally remains mounted. */}
-          <div key={routeKey} className={shouldAnimateRoute ? "admin-route-entry is-entering" : "admin-route-entry"}>
+          <div key={routeKey} className="admin-route-entry is-entering">
             <AdminErrorBoundary key={routeKey}>{children}</AdminErrorBoundary>
           </div>
         </div>
       </main>
 
-      <nav inert={mobileOpen} className="admin-mobile-dock fixed inset-x-3 bottom-[max(0.65rem,env(safe-area-inset-bottom))] z-40 grid grid-cols-5 items-stretch rounded-[24px] p-1.5 lg:hidden" aria-label="Primary navigation">
+      <nav inert={mobileOpen} className="admin-mobile-dock fixed inset-x-4 bottom-[max(0.55rem,env(safe-area-inset-bottom))] z-40 grid grid-cols-5 items-stretch rounded-[20px] p-1 lg:hidden" aria-label="Primary navigation">
         {adminMobileLinks.map((link) => {
-          const active = isActive(link.href);
-          return <Link key={link.id} href={link.href} aria-current={active ? "page" : undefined} className={cn("admin-mobile-dock-item relative flex min-h-[54px] min-w-0 flex-col items-center justify-center gap-1 rounded-[18px] px-1 text-[9px] font-semibold transition-[color,background-color,transform] duration-200 active:scale-[0.96]", active && "is-active")}>
-            <link.icon className="size-[18px]" aria-hidden="true" />
-            <span className="max-w-full truncate">{link.label}</span>
-            {link.href === "/admin/today" && priorityCount > 0 && <span className="absolute right-[24%] top-1.5 size-2 rounded-full bg-rose-500 shadow-[0_0_0_2px_var(--admin-dock-bg)]" aria-label={`${priorityCount} urgent priorities`} />}
+          const committed = isActive(link.href);
+          const active = isPendingActive(link.href) || (!pendingAdminPath && committed);
+          return <Link key={link.id} href={link.href} prefetch aria-current={committed ? "page" : undefined} data-pending={isPendingActive(link.href) ? "true" : undefined} className={cn("admin-mobile-dock-item relative flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[16px] px-1 text-[9px] font-semibold transition-[color,background-color,transform] duration-200 active:scale-[0.96]", active && "is-active")}>
+            {active && <motion.span layoutId="admin-mobile-dock-active" className="admin-mobile-dock-active absolute inset-0 rounded-[16px]" transition={{ type: "spring", duration: 0.34, bounce: 0 }} aria-hidden="true" />}
+            <link.icon className="relative z-10 size-[17px]" aria-hidden="true" />
+            <span className="relative z-10 max-w-full truncate">{link.label}</span>
           </Link>;
         })}
-        <button ref={mobileMenuButtonRef} type="button" onClick={() => setMobileOpen(true)} className={cn("admin-mobile-dock-item flex min-h-[54px] min-w-0 flex-col items-center justify-center gap-1 rounded-[18px] px-1 text-[9px] font-semibold transition-[color,background-color,transform] duration-200 active:scale-[0.96]", !adminMobileLinks.some((link) => isActive(link.href)) && "is-active")} aria-label="Open More" aria-expanded={mobileOpen} aria-controls="admin-mobile-navigation">
-          <MoreHorizontal className="size-[19px]" aria-hidden="true" />
-          <span>More</span>
+        <button ref={mobileMenuButtonRef} type="button" onClick={() => setMobileOpen(true)} className={cn("admin-mobile-dock-item relative flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[16px] px-1 text-[9px] font-semibold transition-[color,background-color,transform] duration-200 active:scale-[0.96]", !adminMobileLinks.some((link) => isActive(link.href)) && "is-active")} aria-label="Open More" aria-expanded={mobileOpen} aria-controls="admin-mobile-navigation">
+          {!adminMobileLinks.some((link) => isActive(link.href)) && <motion.span layoutId="admin-mobile-dock-active" className="admin-mobile-dock-active absolute inset-0 rounded-[16px]" transition={{ type: "spring", duration: 0.34, bounce: 0 }} aria-hidden="true" />}
+          <MoreHorizontal className="relative z-10 size-[18px]" aria-hidden="true" />
+          <span className="relative z-10">More</span>
         </button>
       </nav>
 
@@ -526,6 +538,7 @@ export default function AdminShell({
     </div>
     </MotionConfig>
     </AdminAIProvider>
+    </AdminQueryProvider>
   );
 }
 
@@ -569,6 +582,7 @@ function SidebarContent({
       ? [activeSection]
       : sectionState.expanded;
   const demoScenario = demoScenarioId ? DEMO_SCENARIOS[demoScenarioId] : null;
+  const navigationSections = adminNavSections;
 
   const toggleSection = (label: string) => {
     setSectionState({
@@ -582,7 +596,12 @@ function SidebarContent({
   return (
     <>
       <div className={cn("mb-5 flex shrink-0 items-center", collapsed ? "flex-col gap-1.5" : "justify-between gap-2 px-1")} data-admin-sidebar-header>
-        {collapsed ? (
+        {onClose ? (
+          <div className="min-w-0">
+            <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--admin-nav-faint)]">Navigation</p>
+            <h2 className="mt-0.5 text-lg font-semibold tracking-[-0.025em] text-[var(--admin-nav-ink)]">More</h2>
+          </div>
+        ) : collapsed ? (
           <Link
             href="/admin/today"
             onClick={onNavigate}
@@ -614,13 +633,6 @@ function SidebarContent({
 
       {onClose && (
         <div className="mb-3 shrink-0">
-          <div className="mb-3 flex items-end justify-between gap-4 px-1">
-            <div>
-              <p className="text-sm font-semibold text-[var(--admin-nav-ink)]">Full command center</p>
-              <p className="mt-0.5 text-[10px] text-[var(--admin-nav-faint)]">Every workspace, record, and system tool</p>
-            </div>
-            <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--admin-nav-faint)]">{adminNavLinks.length} areas</span>
-          </div>
           <div className="grid grid-cols-2 gap-2" aria-label="Workspace tools">
             <button type="button" onClick={onOpenSearch} className="admin-nav-utility inline-flex min-h-11 items-center justify-center gap-2 rounded-[11px] px-3 text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]"><Search className="size-4" />Search</button>
             <button type="button" onClick={onOpenAI} className="admin-nav-utility inline-flex min-h-11 items-center justify-center gap-2 rounded-[11px] px-3 text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]"><Bot className="size-4" />Ask AI</button>
@@ -629,7 +641,7 @@ function SidebarContent({
       )}
 
       <nav className="admin-nav-scroll flex-1 space-y-2 overflow-y-auto overscroll-contain" aria-label="Admin navigation">
-        {adminNavSections.map((section, sectionIndex) => (
+        {navigationSections.map((section, sectionIndex) => (
           <motion.section key={section.label} initial={{ opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: sectionIndex * 0.055, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}>
             {(() => {
               const expanded = collapsed || expandedSections.includes(section.label);
@@ -645,17 +657,14 @@ function SidebarContent({
                   <span className="flex items-center gap-2"><span className={cn("size-1.5 rounded-full bg-current transition-opacity duration-150", expanded ? "opacity-80" : "opacity-25")} aria-hidden="true" />{section.label}</span>
                   <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-200", expanded && "rotate-180")} />
                 </button> : <div className="admin-nav-rule mx-2 my-2 h-px" aria-hidden="true" />}
-                <AnimatePresence initial={false}>
-                  {expanded && (
-                    <motion.div
-                      id={panelId}
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ type: "spring", duration: 0.3, bounce: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="space-y-0.5 pb-1.5 pt-0.5">
+                <div
+                  id={panelId}
+                  inert={!expanded}
+                  aria-hidden={!expanded}
+                  className={cn("grid transition-[grid-template-rows,opacity] duration-300 ease-out", expanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")}
+                >
+                  <div className="min-h-0 overflow-hidden">
+                    <div className="space-y-0.5 pb-1.5 pt-0.5">
                         {section.links.map((link) => {
                 const active = isActive(link.href);
                 return (
@@ -670,9 +679,8 @@ function SidebarContent({
                 );
                         })}
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                  </div>
+                </div>
               </>;
             })()}
           </motion.section>
@@ -684,7 +692,7 @@ function SidebarContent({
         {!demoScenarioId && <Link href="/demo/command-center" target="_blank" onClick={onNavigate} aria-label="Open demo workspace" title={collapsed ? "Open demo workspace" : undefined} data-admin-demo-link className={cn("admin-nav-demo-link mb-1 flex min-h-10 items-center rounded-[10px] text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]", collapsed ? "justify-center" : "gap-3 px-2.5")}>
           <MonitorPlay className="h-4 w-4 shrink-0" /> {!collapsed && <><span>Demo workspace</span><ArrowUpRight className="ml-auto h-3.5 w-3.5 text-white/52" /></>}
         </Link>}
-        <AdminAppearancePicker collapsed={collapsed} />
+        <AdminAppearancePicker collapsed={collapsed} demoScenarioId={demoScenarioId} />
         {demoScenarioId && <div className="mt-1"><AdminDemoControls collapsed={collapsed} controlsId={`${idPrefix}-demo-controls`} /></div>}
         {!demoScenarioId && <>
           <Link href="/" target="_blank" onClick={onNavigate} title={collapsed ? "View live site" : undefined} className={cn("admin-nav-utility flex min-h-10 items-center rounded-[10px] text-xs transition-[color,background-color,transform] duration-150 active:scale-[0.96]", collapsed ? "justify-center" : "gap-3 px-2.5")}>

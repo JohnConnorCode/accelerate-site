@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { EASE } from "@/lib/animations";
+import { useHydratedReducedMotion } from "@/hooks/useHydratedReducedMotion";
 import { ACTION_KIND, DEMO_ACTIONS } from "./demo/demo-data";
 
 /* The signature visual for /command-center: the approval queue, running.
@@ -24,7 +25,7 @@ const VISIBLE = 4;
 const TICK_MS = 3400;
 
 export function ApprovalQueue() {
-  const reduced = useReducedMotion();
+  const reduced = useHydratedReducedMotion();
   const [cursor, setCursor] = useState(0);
   const [approved, setApproved] = useState(11);
   const [paused, setPaused] = useState(false);

@@ -14,6 +14,11 @@ routing or creating surface-specific history systems.
   to that API.
 - Internal anchors remain real links. The runtime may observe eligible clicks to
   record intent, but it must not cancel them or simulate routing itself.
+- A navigation intent is observable immediately as `pendingHref`. Primary admin
+  navigation may acknowledge that destination optimistically while
+  `aria-current` continues to describe only the committed route. The receipt is
+  cleared when the pathname commits; route-specific components do not invent a
+  second pending-navigation state.
 - Demo navigation must not use document-level click hijacking,
   `window.location.assign`, or a copied demo route tree.
 
@@ -33,8 +38,10 @@ routing or creating surface-specific history systems.
 
 ## Motion, loading, and focus
 
-- Hydration is not a route transition. Initial server content remains visible
-  and must not animate out before animating in.
+- Public hydration is not a route transition. Initial public server content
+  remains visible and must not animate out before animating in. The admin is an
+  application workspace: its first committed destination and every later route
+  commit run the same single semantic entrance sequence.
 - Public and admin routes each have one entrance owner. Route motion is a short
   opacity, blur, and rise on the incoming tree only; local dialogs, lists, and
   state changes may retain their own motion.
@@ -43,13 +50,23 @@ routing or creating surface-specific history systems.
 - Dynamic admin segments use Next.js `loading.tsx` and React Suspense so their
   shells can be partially prefetched, streamed, and interrupted. The shared
   route-aware fallback reserves destination-like geometry and appears without a
-  blank intermediate frame. Prefetched navigation skips the fallback entirely.
+  blank intermediate frame once Next commits the loading boundary. While a
+  navigation request is still pending, the current destination may remain usable
+  instead of being prematurely replaced. Prefetched navigation skips the fallback entirely.
   Suspense belongs as close as practical to genuinely slow data; background
   refreshes preserve usable content instead of replacing it with a fallback.
+- Route loading and client-data loading have different jobs. The shared route
+  fallback may reserve the whole destination during an actual streamed route
+  handoff. Once a page has committed, its real `PageHeader` and page identity
+  remain mounted; only the unresolved data region may show semantic skeleton
+  geometry. Revalidation retains the prior useful result whenever possible.
+- Admin reads use the shared query provider for cancellation, request deduping,
+  bounded cache reuse, and retained results. A client page must not add its own
+  mount-only fetch lifecycle when the shared read primitive covers the request.
 - The route stage distinguishes the fallback tree from the committed tree. The
   fallback has restrained loading motion; the actual destination always receives
-  the incoming blur, opacity, rise, and bounded semantic stagger. Hydration never
-  replays this route entrance.
+  the incoming blur, opacity, rise, and bounded semantic stagger. The admin's
+  initial committed tree runs this entrance once; fallback geometry does not.
 - After forward navigation, focus moves without additional scrolling to the
   destination heading or main region and the route title is announced politely.
   History traversal restores reading position without stealing focus.

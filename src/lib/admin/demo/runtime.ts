@@ -1,8 +1,9 @@
 import { DEMO_SCENARIOS, type DemoScenarioId, type DemoScenarioPack } from "./scenarios";
+import { clearDemoAppearance } from "./appearance-state";
 
 type DemoState = { completedActions: string[]; completedTasks: string[]; stageOverrides: Record<string, string>; sentReplies: Record<string, string[]>; readNotifications: string[] };
 const initialState = (): DemoState => ({ completedActions: [], completedTasks: [], stageOverrides: {}, sentReplies: {}, readNotifications: [] });
-const keyFor = (id: DemoScenarioId) => `accelerate:admin-demo:${id}:v2`;
+const keyFor = (id: DemoScenarioId) => `accelerate:admin-demo:${id}:v3`;
 const jsonResponse = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 const eventStreamResponse = (events: unknown[]) => new Response(events.map((event) => `data: ${JSON.stringify(event)}\n\n`).join(""), { status: 200, headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-store" } });
 const dateOffset = (days: number) => { const value = new Date(); value.setDate(value.getDate() + days); return value.toISOString().slice(0, 10); };
@@ -207,7 +208,7 @@ function legacy(pack: DemoScenarioPack, path: string) {
 
 export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
   const pack = DEMO_SCENARIOS[scenarioId]; const state = loadState(scenarioId); const nativeFetch = window.fetch.bind(window); const nativeOpen = window.open.bind(window);
-  const reset = () => { sessionStorage.removeItem(keyFor(scenarioId)); window.location.reload(); };
+  const reset = () => { sessionStorage.removeItem(keyFor(scenarioId)); clearDemoAppearance(scenarioId); window.location.reload(); };
   const demoFetch: typeof window.fetch = async (input, init) => {
     const raw = typeof input === "string" ? input : input instanceof URL ? input.href : input.url; const url = new URL(raw, window.location.origin); const path = url.pathname; const method = (init?.method || (input instanceof Request ? input.method : "GET")).toUpperCase();
     if (!path.startsWith("/api/admin")) {

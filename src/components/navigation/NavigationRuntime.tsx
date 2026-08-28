@@ -23,6 +23,7 @@ export interface NavigationIntent {
 
 interface NavigationRuntimeValue {
   pending: boolean;
+  pendingHref: string | null;
   shouldAnimateRoute: boolean;
   beginNavigation: (intent: NavigationIntent) => void;
   registerAdminScroller: (node: HTMLElement | null) => void;
@@ -78,6 +79,7 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
   const popTargetId = useRef<string | null>(null);
   const adminScroller = useRef<HTMLElement | null>(null);
   const [pending, setPending] = useState(false);
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
   const [loadingBoundaries, setLoadingBoundaries] = useState<Set<string>>(() => new Set());
   const [hasNavigated, setHasNavigated] = useState(false);
   const [announcement, setAnnouncement] = useState("");
@@ -109,6 +111,7 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
     saveCurrentPosition();
     intent.current = nextIntent;
     setHasNavigated(true);
+    setPendingHref(nextIntent.href);
     setPending(true);
   }, [saveCurrentPosition]);
 
@@ -203,6 +206,7 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
     previousPathname.current = pathname;
     popTargetId.current = null;
     intent.current = null;
+    setPendingHref(null);
     setPending(false);
 
     const focusDestination = () => {
@@ -229,22 +233,25 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
       setAnnouncement(document.title);
       return Boolean(focusTarget);
     };
+    // Next performs its own focus cleanup as the committed tree settles. Two
+    // animation frames place our semantic handoff after that browser-visible
+    // commit without guessing at network time or delaying interaction.
     focusFrame = requestAnimationFrame(() => {
-      const focused = focusDestination();
-      const root = isAdminPath(pathname) ? adminScroller.current : document.getElementById("main-content");
-      if (!restoresHistory && root && !focused) {
-        // React Server Components may replace the committed heading after the
-        // URL changes. Observe that real DOM handoff instead of guessing at
-        // network timing. The interaction guard in focusDestination prevents
-        // this route-scoped observer from stealing focus after the user moves it.
-        focusObserver = new MutationObserver(() => {
-          if (focusDestination()) {
-            focusObserver?.disconnect();
-            focusObserver = null;
-          }
-        });
-        focusObserver.observe(root, { childList: true, subtree: true });
-      }
+      focusFrame = requestAnimationFrame(() => {
+        const root = isAdminPath(pathname) ? adminScroller.current : document.getElementById("main-content");
+        if (!restoresHistory && root) {
+          // A client-data boundary can replace an already-focused heading after
+          // the first commit. Keep the route-scoped observer alive until the next
+          // pathname so that replacement receives the same semantic handoff.
+          // The interaction guard prevents this from stealing focus once the
+          // operator has deliberately moved to another control.
+          focusObserver = new MutationObserver(() => {
+            focusDestination();
+          });
+          focusObserver.observe(root, { childList: true, subtree: true });
+        }
+        focusDestination();
+      });
     });
     return () => {
       cancelAnimationFrame(focusFrame);
@@ -255,11 +262,12 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<NavigationRuntimeValue>(() => ({
     pending: pending || loadingBoundaries.size > 0,
+    pendingHref,
     shouldAnimateRoute: hasNavigated,
     beginNavigation,
     registerAdminScroller,
     registerLoadingBoundary,
-  }), [beginNavigation, hasNavigated, loadingBoundaries, pending, registerAdminScroller, registerLoadingBoundary]);
+  }), [beginNavigation, hasNavigated, loadingBoundaries, pending, pendingHref, registerAdminScroller, registerLoadingBoundary]);
 
   return (
     <NavigationRuntimeContext.Provider value={value}>

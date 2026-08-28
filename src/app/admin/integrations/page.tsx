@@ -19,7 +19,6 @@ import {
   Network,
   RefreshCw,
   Search,
-  ShieldCheck,
   TriangleAlert,
   WalletCards,
   Workflow,
@@ -144,7 +143,7 @@ function ProviderCard({ provider }: { provider: IntegrationView }) {
             </div>
           </div>
           <ul className="mt-5 space-y-2">
-            {provider.limits.map((limit) => <li key={limit} className="flex gap-2 text-xs leading-5 text-[var(--admin-muted)]"><ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-[var(--admin-ink)]" aria-hidden="true" />{limit}</li>)}
+            {provider.limits.map((limit) => <li key={limit} className="relative pl-3 text-xs leading-5 text-[var(--admin-muted)] before:absolute before:left-0 before:top-[0.58rem] before:size-1 before:rounded-full before:bg-[var(--admin-muted)]/55">{limit}</li>)}
           </ul>
           <div className="mt-5 flex flex-wrap gap-2">
             {provider.setupHref && (

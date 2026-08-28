@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
-import { AdminRouteSkeleton } from "@/components/admin/AdminRouteSkeleton";
+import { AdminPageLoading } from "@/components/admin/AdminPageLoading";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { fetchJson } from "@/lib/admin/fetchJson";
@@ -218,7 +218,7 @@ export default function CampaignsPage() {
     }
   };
 
-  if (loading && !data) return <AdminRouteSkeleton />;
+  if (loading && !data) return <AdminPageLoading title="Campaigns" subtitle="Approve a campaign version once, then let controlled automation run inside its sender, audience, cadence, limit, and stop rules." variant="table" />;
   return (
     <div className="space-y-6 pb-10">
       <PageHeader

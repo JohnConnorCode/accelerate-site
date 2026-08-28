@@ -33,6 +33,7 @@ for (const config of [
   const publicOrigin = await page.evaluate(() => window.scrollY);
   await card.evaluate((node) => node.click());
   await page.waitForURL("**/work/work-shelter");
+  await page.waitForFunction(() => /WORK\+SHELTER/i.test(document.title), undefined, { timeout: 15_000 });
   await page.waitForTimeout(32);
   const publicForward = await page.evaluate(() => ({
     y: window.scrollY,
@@ -50,14 +51,15 @@ for (const config of [
   const publicRestored = await page.evaluate(() => window.scrollY);
   if (Math.abs(publicRestored - publicOrigin) > 2) failures.push(`${config.label}: public history restored ${publicRestored}px instead of ${publicOrigin}px`);
 
-  await page.goto(`${base}/demo/command-center/sprout-and-spark/today`, { waitUntil: "networkidle" });
+  await page.goto(`${base}/demo/command-center/northline-roofing/today`, { waitUntil: "networkidle" });
   await page.locator(".admin-main").waitFor({ state: "visible", timeout: 15_000 });
   await page.evaluate(() => { document.querySelector(".admin-main").scrollTop = 900; });
   await page.waitForTimeout(30);
-  const pipeline = page.locator('a[href="/demo/command-center/sprout-and-spark/pipeline"]:visible').first();
+  const pipeline = page.locator('a[href="/demo/command-center/northline-roofing/pipeline"]:visible').first();
   if (!await pipeline.count()) failures.push(`${config.label}: scenario-aware Pipeline link is missing`);
   else await pipeline.evaluate((node) => node.click());
-  await page.waitForURL("**/sprout-and-spark/pipeline");
+  await page.waitForURL("**/northline-roofing/pipeline");
+  await page.waitForFunction(() => document.title === "Pipeline | Northline Roofing & Exteriors Demo", undefined, { timeout: 15_000 });
   await page.waitForTimeout(48);
   const earlyFallback = await page.evaluate(() => {
     const fallback = document.querySelector("[data-admin-route-loading]");
@@ -91,7 +93,7 @@ for (const config of [
   if (adminForward.y > 2) failures.push(`${config.label}: admin forward navigation landed at ${adminForward.y}px`);
   if (adminForward.duplicateHeaders) failures.push(`${config.label}: admin header retained ${adminForward.duplicateHeaders} duplicate entrance animations`);
   if (config.reducedMotion === "reduce" && adminEntrance.contentAnimations) failures.push("reduced: admin route entrance remained animated");
-  if (adminForward.title !== "Pipeline | Sprout & Spark Kids Studio Demo") failures.push(`${config.label}: demo title is not contextual (${adminForward.title})`);
+  if (adminForward.title !== "Pipeline | Northline Roofing & Exteriors Demo") failures.push(`${config.label}: demo title is not contextual (${adminForward.title})`);
   if (!adminForward.focused) failures.push(`${config.label}: admin forward navigation did not focus the destination heading`);
   await page.goBack();
   await page.waitForTimeout(1_050);
@@ -102,8 +104,8 @@ for (const config of [
     await page.getByRole("button", { name: "Open More" }).click();
     await page.getByRole("button", { name: "Open demo controls" }).click();
     const documentCount = await page.evaluate(() => sessionStorage.getItem("accelerate:qa-document-count"));
-    await page.getByLabel("Demo business").selectOption("northline-roofing");
-    await page.waitForURL("**/northline-roofing/today");
+    await page.getByLabel("Demo business").selectOption("alder-ridge-law");
+    await page.waitForURL("**/alder-ridge-law/today");
     await page.waitForTimeout(120);
     const scenarioState = await page.evaluate(() => ({
       count: sessionStorage.getItem("accelerate:qa-document-count"),
@@ -112,8 +114,8 @@ for (const config of [
       y: document.querySelector(".admin-main")?.scrollTop || 0,
     }));
     if (scenarioState.count !== documentCount) failures.push("mobile: scenario switch caused a full document reload");
-    if (!scenarioState.title.includes("Northline")) failures.push("mobile: scenario identity did not update after client navigation");
-    if (scenarioState.documentTitle !== "Today | Northline Roofing & Exteriors Demo") failures.push(`mobile: scenario title did not update (${scenarioState.documentTitle})`);
+    if (!scenarioState.title.includes("Alder Ridge")) failures.push("mobile: scenario identity did not update after client navigation");
+    if (scenarioState.documentTitle !== "Today | Alder Ridge Injury Law Demo") failures.push(`mobile: scenario title did not update (${scenarioState.documentTitle})`);
     if (scenarioState.y > 2) failures.push(`mobile: scenario switch landed at ${scenarioState.y}px`);
   }
 

@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "@/components/admin/AdminLink";
-import { Archive, Bot, Check, CircleAlert, Copy, ExternalLink, History, Loader2, MessageSquarePlus, NotebookPen, Octagon, RotateCcw, Send, ThumbsDown, ThumbsUp, Wrench } from "lucide-react";
+import { Archive, Bot, Check, CircleAlert, Copy, ExternalLink, Loader2, MessageSquarePlus, NotebookPen, Octagon, RotateCcw, Send, ThumbsDown, ThumbsUp, Wrench } from "lucide-react";
 import { useAdminAI, type AdminAIMessage } from "./AdminAIProvider";
 import { cn } from "@/lib/utils";
 
@@ -75,7 +75,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
       <option value="">New conversation</option>{ai.conversations.map((conversation) => <option key={conversation.id} value={conversation.id}>{conversation.title}</option>)}
     </select> : <div className="mt-3 space-y-1">
       <button type="button" onClick={ai.startNew} className={cn("flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-left text-xs font-semibold", !ai.activeConversationId ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]" : "text-[var(--admin-muted)] hover:bg-black/[0.04] dark:hover:bg-white/[0.05]")}><MessageSquarePlus className="size-3.5" />New conversation</button>
-      {ai.conversations.map((conversation) => <button key={conversation.id} type="button" onClick={() => void ai.selectConversation(conversation.id)} className={cn("flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-left text-xs", ai.activeConversationId === conversation.id ? "bg-black/[0.06] font-semibold text-[var(--admin-ink)] dark:bg-white/[0.07]" : "text-[var(--admin-muted)] hover:bg-black/[0.04] dark:hover:bg-white/[0.05]")}><History className="size-3.5 shrink-0" /><span className="truncate">{conversation.title}</span></button>)}
+      {ai.conversations.map((conversation) => <button key={conversation.id} type="button" onClick={() => void ai.selectConversation(conversation.id)} className={cn("flex min-h-11 w-full items-center rounded-xl px-3 text-left text-xs", ai.activeConversationId === conversation.id ? "bg-black/[0.06] font-semibold text-[var(--admin-ink)] dark:bg-white/[0.07]" : "text-[var(--admin-muted)] hover:bg-black/[0.04] dark:hover:bg-white/[0.05]")}><span className="truncate">{conversation.title}</span></button>)}
     </div>}
   </aside>;
 
@@ -99,9 +99,9 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
 
     <form onSubmit={submit} className="border-t border-[var(--admin-border)] p-3 sm:p-4">
       {ai.error && <p className="mb-2 rounded-xl bg-rose-500/10 px-3 py-2 text-xs text-rose-700 dark:text-rose-300">{ai.error}</p>}
-      <div className="flex items-end gap-2 rounded-2xl bg-black/[0.025] p-2 dark:bg-white/[0.035]">
-        <textarea value={ai.draft} onChange={(event) => ai.setDraft(event.target.value.slice(0, 8000))} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} rows={1} placeholder="Ask about priorities, pipeline, conversations, or next actions…" className="max-h-32 min-h-11 min-w-0 flex-1 resize-none rounded-xl bg-[var(--admin-surface)] px-3.5 py-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none placeholder:text-[var(--admin-muted)]/70 focus:shadow-[var(--admin-shadow-border-hover)]" />
-        {ai.running ? <button type="button" onClick={ai.stop} className="grid size-11 shrink-0 place-items-center rounded-xl bg-rose-600 text-white" aria-label="Stop AI run"><Octagon className="size-4" /></button> : <button type="submit" disabled={!ai.draft.trim() || ai.schemaReady === false} className="grid size-11 shrink-0 place-items-center rounded-xl bg-[var(--admin-ink)] text-[var(--admin-surface)] transition-[opacity,transform] hover:opacity-85 active:scale-[0.96] disabled:opacity-35" aria-label="Send AI command"><Send className="size-4" /></button>}
+      <div className="admin-composer">
+        <textarea value={ai.draft} onChange={(event) => ai.setDraft(event.target.value.slice(0, 8000))} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} rows={1} placeholder="Ask about priorities, pipeline, conversations, or next actions…" className="admin-composer-field max-h-32" />
+        {ai.running ? <button type="button" onClick={ai.stop} className="admin-composer-action !bg-rose-600 !text-white" aria-label="Stop AI run"><Octagon className="size-4" /></button> : <button type="submit" disabled={!ai.draft.trim() || ai.schemaReady === false} className="admin-composer-action" aria-label="Send AI command"><Send className="size-4" /></button>}
       </div>
       <div className="mt-2 flex items-center justify-between text-[10px] text-[var(--admin-muted)]"><span>Enter sends · Shift+Enter adds a line</span>{ai.activeConversationId && <button type="button" onClick={() => void ai.archiveActive()} className="inline-flex min-h-8 items-center gap-1.5 rounded-lg px-2 hover:text-[var(--admin-ink)]"><Archive className="size-3" />Archive</button>}</div>
     </form>

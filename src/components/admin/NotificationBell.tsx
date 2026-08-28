@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useId, useRef, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "@/components/admin/AdminLink";
-import { Bell, Check, Inbox, Users, MessageCircle, Handshake, FileCheck, CheckSquare, AlertCircle, Eye, ArrowRight, CalendarClock, X } from "lucide-react";
+import { Bell, Check, Inbox, Users, MessageCircle, Handshake, FileCheck, CheckSquare, AlertCircle, Eye, ArrowRight, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/admin/useToast";
@@ -50,21 +51,21 @@ const typeIcons: Record<string, LucideIcon> = {
   proposal_accepted: FileCheck,
 };
 
-const priorityIcons: Record<PriorityItem["kind"], LucideIcon> = {
-  reply: MessageCircle,
-  task: CheckSquare,
-  follow_up: CheckSquare,
-  proposal: FileCheck,
-  meeting: CalendarClock,
-  approval: FileCheck,
-  system: AlertCircle,
-};
-
 const priorityColors: Record<string, string> = {
   urgent: "border-l-2 border-l-red-500",
   important: "border-l-2 border-l-yellow-500",
   info: "",
 };
+
+function OverlayPortal({ enabled, children }: { enabled: boolean; children: ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+  // The portal target exists only after hydration; the inline desktop popover
+  // remains server-renderable.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => setMounted(true), []);
+  if (!enabled) return children;
+  return mounted ? createPortal(children, document.body) : null;
+}
 
 export function NotificationBell({ placement = "sidebar" }: { placement?: "sidebar" | "mobile" }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -73,7 +74,9 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
   const [priority, setPriority] = useState<PrioritySnapshot>({ status: "ready", summary: { total: 0, urgent: 0, critical: 0 }, items: [] });
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelId = useId();
   const fetchAbortRef = useRef<AbortController | null>(null);
 
   const fetchErrorCount = useRef(0);
@@ -151,7 +154,7 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
   // Close on click outside
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node) && !panelRef.current?.contains(e.target as Node)) {
         setIsOpen(false);
       }
     };
@@ -173,6 +176,15 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
     document.addEventListener("keydown", closeOnEscape);
     return () => document.removeEventListener("keydown", closeOnEscape);
   }, [isOpen]);
+
+  // Mobile alerts and the dock share the bottom edge. Give the sheet exclusive
+  // ownership of that interaction layer while it is open, then restore the
+  // dock when focus returns to the trigger.
+  useEffect(() => {
+    if (placement !== "mobile" || !isOpen) return;
+    document.body.classList.add("admin-notifications-open");
+    return () => document.body.classList.remove("admin-notifications-open");
+  }, [isOpen, placement]);
 
   const handleMarkAllRead = async () => {
     try {
@@ -230,7 +242,7 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
         className={cn("admin-notification-trigger relative inline-flex items-center justify-center rounded-[10px] text-white-muted transition-[color,background-color,transform] duration-150 hover:bg-black/5 hover:text-white-primary active:scale-[0.96]", placement === "mobile" ? "size-11" : "size-10")}
         aria-label={isOpen ? "Close command center alerts" : `Open command center alerts${signalCount ? `, ${signalCount} need attention` : ""}`}
         aria-expanded={isOpen}
-        aria-controls="admin-alerts-panel"
+        aria-controls={panelId}
       >
         <Bell className="size-[17px]" />
         {signalCount > 0 && (
@@ -243,12 +255,15 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
         )}
       </button>
 
+      <OverlayPortal enabled={placement === "mobile"}>
       <AnimatePresence initial={false}>
         {isOpen && (
           <>
             {placement === "mobile" && <motion.button type="button" aria-label="Dismiss command center alerts" onClick={() => setIsOpen(false)} className="fixed inset-0 z-[59] bg-black/35 backdrop-blur-[2px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }} />}
             <motion.div
-              id="admin-alerts-panel"
+              ref={panelRef}
+              id={panelId}
+              data-admin-mobile-alerts={placement === "mobile" ? "" : undefined}
               role="dialog"
               aria-label="Command Center attention"
               initial={placement === "mobile" ? { opacity: 0, y: 18 } : { opacity: 0, y: -4, scale: 0.95 }}
@@ -256,7 +271,7 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
               exit={placement === "mobile" ? { opacity: 0, y: 10 } : { opacity: 0, y: -4, scale: 0.95 }}
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
               className={cn(
-                "z-[60] overflow-hidden bg-[var(--admin-surface,#fbfbfa)] text-[var(--admin-ink,#0b0b0b)] shadow-[0_24px_64px_-28px_rgba(0,0,0,0.5)]",
+                "admin-overlay-token-scope z-[60] overflow-hidden bg-[var(--admin-surface,#fbfbfa)] text-[var(--admin-ink,#0b0b0b)] shadow-[0_24px_64px_-28px_rgba(0,0,0,0.5)]",
                 placement === "mobile" ? "fixed inset-x-0 bottom-0 max-h-[min(78dvh,42rem)] rounded-t-[24px] pb-[env(safe-area-inset-bottom)]" : "absolute left-0 top-full mt-2 w-[min(22rem,calc(100vw-1.5rem))] rounded-[16px] shadow-[var(--admin-shadow-border),0_22px_56px_-28px_rgba(0,0,0,0.45)]",
               )}
             >
@@ -283,10 +298,8 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
                 <div className="flex items-center justify-between px-4 pb-2 pt-3"><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)]">Priority work</p><Link href="/admin/today" onClick={() => setIsOpen(false)} className="inline-flex min-h-10 items-center gap-1 rounded-md px-1.5 text-[10px] font-semibold text-[var(--admin-ink)] transition-[background-color,transform] duration-150 hover:bg-black/[0.04] active:scale-[0.96] dark:hover:bg-white/[0.05]">All {priority.summary.total}<ArrowRight className="size-3" /></Link></div>
                 <div className="divide-y divide-[var(--admin-border)] border-y border-[var(--admin-border)]">
                   {priority.items.slice(0, 3).map((item) => {
-                    const Icon = priorityIcons[item.kind];
-                    return <Link key={item.id} href={item.href} onClick={() => setIsOpen(false)} className="group flex min-h-[68px] items-start gap-3 px-4 py-3 transition-[background-color,transform] duration-150 hover:bg-black/[0.025] active:scale-[0.99] dark:hover:bg-white/[0.03]">
-                      <span className={cn("mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg", item.urgency === "critical" ? "bg-rose-500/10 text-rose-700 dark:text-rose-300" : item.urgency === "high" ? "bg-amber-500/12 text-amber-800 dark:text-amber-300" : "bg-black/[0.045] text-[var(--admin-muted)] dark:bg-white/[0.06]")}><Icon className="size-3.5" /></span>
-                      <span className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold text-[var(--admin-ink)]">{item.title}</span><span className="mt-0.5 block text-[11px] leading-4 text-[var(--admin-muted)]">{item.priorityReason}</span><span className="mt-1 block line-clamp-2 text-[10px] leading-4 text-[var(--admin-muted)]">Next: {item.recommendedNextAction}</span></span>
+                    return <Link key={item.id} href={item.href} onClick={() => setIsOpen(false)} className={cn("group flex min-h-[68px] items-start gap-3 border-l-2 px-4 py-3 transition-[background-color,transform] duration-150 hover:bg-black/[0.025] active:scale-[0.99] dark:hover:bg-white/[0.03]", item.urgency === "critical" ? "border-l-rose-500" : item.urgency === "high" ? "border-l-amber-500" : "border-l-transparent")}>
+                      <span className="min-w-0 flex-1"><span className="flex items-center gap-2"><span className="block truncate text-xs font-semibold text-[var(--admin-ink)]">{item.title}</span>{item.urgency !== "normal" && item.urgency !== "low" && <span className={cn("rounded-full px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-[0.08em]", item.urgency === "critical" ? "bg-rose-500/10 text-rose-700 dark:text-rose-300" : "bg-amber-500/12 text-amber-800 dark:text-amber-300")}>{item.urgency}</span>}</span><span className="mt-0.5 block text-[11px] leading-4 text-[var(--admin-muted)]">{item.priorityReason}</span><span className="mt-1 block line-clamp-2 text-[10px] leading-4 text-[var(--admin-muted)]">Next: {item.recommendedNextAction}</span></span>
                       <ArrowRight className="mt-2 size-3.5 shrink-0 text-[var(--admin-muted)] transition-transform duration-150 group-hover:translate-x-0.5" />
                     </Link>;
                   })}
@@ -354,6 +367,7 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
           </>
         )}
       </AnimatePresence>
+      </OverlayPortal>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import type { TenantConfig } from "@/config/tenant";
-import { HARBORLINE_PROFILE, NORTHLINE_PROFILE, SPROUT_PROFILE, type DemoScenarioContentProfile } from "./scenario-profiles";
+import { ALDER_RIDGE_PROFILE, COMMON_TABLE_PROFILE, HEARTHLINE_PROFILE, LEDGERSTONE_PROFILE, NORTHLINE_PROFILE, type DemoScenarioContentProfile } from "./scenario-profiles";
 
-export type DemoScenarioId = "sprout-and-spark" | "northline-roofing" | "harborline-growth";
+export type DemoScenarioId = "northline-roofing" | "alder-ridge-law" | "ledgerstone-advisory" | "hearthline-realty" | "common-table-network";
 export type DemoAppearance = "light" | "dark" | "signal" | "studio" | "frost";
 
 export interface DemoScenarioSummary {
@@ -21,7 +21,7 @@ interface DemoTask { id: string; title: string; personId: string; dueOffset: num
 interface DemoAction { id: string; title: string; personId: string; type: string; description: string; body?: string }
 
 export interface DemoScenarioPack extends DemoScenarioSummary {
-  version: 2;
+  version: 3;
   tenant: TenantConfig;
   people: DemoPerson[];
   opportunities: DemoOpportunity[];
@@ -46,9 +46,11 @@ function tenant(name: string, domain: string, founder: string, industry: string,
 }
 
 const CONTENT_PROFILES: Record<DemoScenarioId, DemoScenarioContentProfile> = {
-  "sprout-and-spark": SPROUT_PROFILE,
   "northline-roofing": NORTHLINE_PROFILE,
-  "harborline-growth": HARBORLINE_PROFILE,
+  "alder-ridge-law": ALDER_RIDGE_PROFILE,
+  "ledgerstone-advisory": LEDGERSTONE_PROFILE,
+  "hearthline-realty": HEARTHLINE_PROFILE,
+  "common-table-network": COMMON_TABLE_PROFILE,
 };
 
 function slug(value: string) { return value.toLowerCase().replace(/[^a-z0-9]+/g, ".").replace(/^\.|\.$/g, ""); }
@@ -62,9 +64,8 @@ function supportingPeople(profile: DemoScenarioContentProfile, domain: string, s
 
 function makePack(input: {
   id: DemoScenarioId; name: string; category: string; description: string; accent: string; appearance: DemoAppearance; founder: string; domain: string;
-  companyLabel: string; industry: string; story: string[]; stages: Record<string, string>;
+  industry: string; story: string[]; stages: Record<string, string>;
   corePeople: Array<[string, string, string, string]>;
-  opportunityNames: string[]; subjects: string[]; messages: Array<[string, string]>;
 }): DemoScenarioPack {
   const profile = CONTENT_PROFILES[input.id];
   const core = input.corePeople.map(([name, email, company, role], index) => ({ id: UUIDS[index]!, name, email: `${email}@${input.domain}`, phone: `(312) 555-${String(1010 + index).slice(-4)}`, company, role }));
@@ -96,7 +97,7 @@ function makePack(input: {
     accent: input.accent,
     appearance: input.appearance,
     story: input.story,
-    version: 2,
+    version: 3,
     tenant: tenant(input.name, input.domain, input.founder, input.industry, input.stages),
     people,
     opportunities,
@@ -108,15 +109,44 @@ function makePack(input: {
 }
 
 export const DEMO_SCENARIOS: Record<DemoScenarioId, DemoScenarioPack> = {
-  "sprout-and-spark": makePack({ id: "sprout-and-spark", name: "Sprout & Spark Kids Studio", category: "Kids enrichment", description: "Trials, camps, enrollments, family communication, and school partnerships.", accent: "#9bc53d", appearance: "light", founder: "Maya Brooks", domain: "sproutandspark.example", companyLabel: "Family", industry: "children's enrichment studio", story: ["Prioritize new family inquiries", "Review a grounded enrollment follow-up", "Open the connected family and trial", "Simulate the reply", "Verify the receipt and enrollment metrics"], stages: { new: "New inquiry", qualified: "Trial recommended", meeting: "Trial booked", proposal: "Enrollment offered", negotiation: "Decision pending", won: "Enrolled", lost: "Not enrolling", nurture: "Future session" }, corePeople: [["Elena Torres", "elena.torres", "Torres Family", "Parent / guardian"], ["Marcus Green", "marcus.green", "Green Family", "Parent / guardian"], ["Priya Shah", "priya.shah", "Shah Family", "Parent / guardian"], ["Nina Collins", "nina.collins", "Oak Street Elementary", "Community coordinator"], ["Devon Price", "devon.price", "Price Family", "Parent / guardian"], ["Samira Ali", "samira.ali", "Ali Family", "Parent / guardian"]], opportunityNames: ["Robotics Club enrollment", "Summer Makers Camp", "Saturday Art Lab", "School enrichment partnership"], subjects: ["Trial class availability", "Summer camp schedule", "Sibling enrollment question", "School partnership follow-up"], messages: [["We loved the studio tour and would like to try the Tuesday robotics group. Is there room next week?", "There is space in Tuesday's trial. I can hold it through tomorrow and send the short registration form."], ["Can you confirm the camp hours and whether before-care is available?", "Camp runs from 9 to 3. Before-care begins at 8, and I included the full schedule below."], ["We are considering enrolling both children. Is there a sibling option?", "Yes. I outlined the sibling rate and the two age-appropriate groups so you can compare them clearly."]] }),
-  "northline-roofing": makePack({ id: "northline-roofing", name: "Northline Roofing & Exteriors", category: "Home services", description: "Storm inquiries, inspections, estimates, production, invoices, and referrals.", accent: "#f59e0b", appearance: "studio", founder: "Evan Cole", domain: "northlineroofing.example", companyLabel: "Property", industry: "roofing and exterior services company", story: ["Triage a high-intent storm inquiry", "Confirm an inspection", "Advance the estimate", "Resolve a production exception", "Review attributed revenue"], stages: { new: "New inquiry", qualified: "Inspection qualified", meeting: "Inspection booked", proposal: "Estimate sent", negotiation: "Decision pending", won: "Job won", lost: "Not moving forward", nurture: "Seasonal follow-up" }, corePeople: [["Lena Walsh", "lena.walsh", "Walsh Residence", "Homeowner"], ["Andre Coleman", "andre.coleman", "Coleman Residence", "Homeowner"], ["Tessa Moore", "tessa.moore", "Moore Residence", "Property manager"], ["Grant Ellis", "grant.ellis", "Ellis Residence", "Homeowner"], ["Monica Reed", "monica.reed", "Lakeview HOA", "Board president"], ["Owen Park", "owen.park", "Park Residence", "Homeowner"]], opportunityNames: ["Storm restoration", "Roof replacement", "Gutter and fascia project", "HOA exterior inspection"], subjects: ["Inspection after last night's storm", "Estimate questions", "Material delivery update", "Final invoice and warranty"], messages: [["We found shingles in the yard after the storm. Can someone inspect the roof this week?", "Yes. I reserved Thursday afternoon and included what our inspector will document."], ["We reviewed the estimate and have two questions about the ventilation line items.", "I separated those items and added a plain-language explanation of each option."], ["Is Friday's crew start still confirmed?", "Friday is confirmed. The material delivery was received and the weather window remains clear."]] }),
-  "harborline-growth": makePack({ id: "harborline-growth", name: "Harborline Growth Studio", category: "Professional services", description: "Website assessments, discovery, proposals, campaigns, delivery, and reporting.", accent: "#8b5cf6", appearance: "signal", founder: "Avery Stone", domain: "harborlinegrowth.example", companyLabel: "Account", industry: "growth strategy studio", story: ["Review a qualified website assessment", "Open the decision-maker context", "Send the scoped proposal", "Start the approved follow-up", "Inspect campaign and revenue evidence"], stages: { new: "New assessment", qualified: "Discovery qualified", meeting: "Discovery booked", proposal: "Scope sent", negotiation: "In review", won: "Engaged", lost: "Closed", nurture: "Keep warm" }, corePeople: [["Sarah Chen", "sarah.chen", "Northwind Group", "Operations director"], ["Marcus Reyes", "marcus.reyes", "Northwind Group", "CFO"], ["Dana Whitfield", "dana.whitfield", "Whitfield & Co", "Managing partner"], ["Priya Raman", "priya.raman", "Brightwater Labs", "Founder"], ["Ray Atwell", "ray.atwell", "Atwell Construction", "Owner"], ["June Park", "june.park", "Halcyon Legal", "Partner"]], opportunityNames: ["Website conversion rebuild", "Growth operations retainer", "Referral campaign", "Client reporting system"], subjects: ["Website assessment follow-up", "Revised scope", "Referral campaign review", "Monthly reporting questions"], messages: [["The assessment was helpful. Can we talk through the two highest-priority conversion issues?", "Absolutely. I linked each recommendation to the evidence and proposed a focused 30-minute review."], ["Please separate reporting from the main scope so finance can review it independently.", "Done. Reporting is now its own line with timing, ownership, and acceptance criteria."], ["The campaign draft looks right. Can you confirm the exclusion list before launch?", "Confirmed. Existing clients, prior replies, and suppressed contacts are excluded in the dry run."]] }),
+  "northline-roofing": makePack({
+    id: "northline-roofing", name: "Northline Roofing & Exteriors", category: "Home services", description: "Storm response, inspections, estimates, production, invoices, and referrals.", accent: "#d97706", appearance: "studio", founder: "Evan Cole", domain: "northlineroofing.example", industry: "roofing and exterior services company",
+    story: ["Triage a storm inquiry", "Confirm an inspection", "Advance the estimate", "Resolve a production exception", "Review attributed revenue"],
+    stages: { new: "New inquiry", qualified: "Inspection qualified", meeting: "Inspection booked", proposal: "Estimate sent", negotiation: "Decision pending", won: "Job won", lost: "Not moving forward", nurture: "Seasonal follow-up" },
+    corePeople: [["Lena Walsh", "lena.walsh", "Walsh Residence", "Homeowner"], ["Andre Coleman", "andre.coleman", "Coleman Residence", "Homeowner"], ["Tessa Moore", "tessa.moore", "Moore Residence", "Property manager"], ["Grant Ellis", "grant.ellis", "Ellis Residence", "Homeowner"], ["Monica Reed", "monica.reed", "Lakeview HOA", "Board president"], ["Owen Park", "owen.park", "Park Residence", "Homeowner"]],
+  }),
+  "alder-ridge-law": makePack({
+    id: "alder-ridge-law", name: "Alder Ridge Injury Law", category: "Law firms", description: "After-hours intake, conflict review, consultations, retainers, and secure onboarding.", accent: "#b45309", appearance: "dark", founder: "Jordan Pierce", domain: "alderridgelaw.example", industry: "personal injury law firm",
+    story: ["Review a complete after-hours intake", "Clear the conflict check", "Confirm the consultation", "Stage the secure follow-up", "Inspect intake and engagement evidence"],
+    stages: { new: "New intake", qualified: "Conflict cleared", meeting: "Consultation booked", proposal: "Engagement offered", negotiation: "Attorney review", won: "Retained", lost: "Not retained", nurture: "Future follow-up" },
+    corePeople: [["Sofia Rivera", "sofia.rivera", "Rivera Household", "Prospective client"], ["Malcolm Bennett", "malcolm.bennett", "Bennett Household", "Prospective client"], ["Renee Choi", "renee.choi", "Choi Household", "Prospective client"], ["Damon Dawson", "damon.dawson", "Dawson Household", "Prospective client"], ["Amina Evans", "amina.evans", "Evans Household", "Prospective client"], ["Calvin Foster", "calvin.foster", "Foster Household", "Prospective client"]],
+  }),
+  "ledgerstone-advisory": makePack({
+    id: "ledgerstone-advisory", name: "Ledgerstone Accounting & Advisory", category: "Professional services", description: "Proposals, document collection, monthly close, reporting, deadlines, and renewals.", accent: "#6d28d9", appearance: "frost", founder: "Morgan Lee", domain: "ledgerstoneadvisory.example", industry: "accounting and advisory firm",
+    story: ["Review a qualified advisory inquiry", "Open the document checklist", "Approve the scoped proposal", "Resolve a recurring deadline", "Inspect reporting and renewal evidence"],
+    stages: { new: "New inquiry", qualified: "Fit confirmed", meeting: "Review booked", proposal: "Engagement sent", negotiation: "Scope review", won: "Client active", lost: "Not proceeding", nurture: "Future planning" },
+    corePeople: [["Claire Monroe", "claire.monroe", "Monroe Services", "Chief operating officer"], ["Daniel Park", "daniel.park", "Park Family Holdings", "Managing member"], ["Amina Shah", "amina.shah", "Summit Engineering", "President"], ["Jordan Wells", "jordan.wells", "Riverside Foods", "Finance lead"], ["Elias Abbott", "elias.abbott", "Abbott Architecture", "Founder"], ["Naomi Blake", "naomi.blake", "Blake Dental Group", "Practice manager"]],
+  }),
+  "hearthline-realty": makePack({
+    id: "hearthline-realty", name: "Hearthline Realty Group", category: "Real estate", description: "Portal inquiries, showings, listings, long-term nurture, closings, and referrals.", accent: "#7c3aed", appearance: "signal", founder: "Avery Brooks", domain: "hearthlinerealty.example", industry: "residential real estate team",
+    story: ["Prioritize a new portal inquiry", "Build the showing route", "Advance the listing plan", "Resolve a closing exception", "Review source-to-closing evidence"],
+    stages: { new: "New inquiry", qualified: "Needs confirmed", meeting: "Consultation booked", proposal: "Representation offered", negotiation: "Active search / listing", won: "Closed", lost: "Inactive", nurture: "Long-term nurture" },
+    corePeople: [["Maya Carver", "maya.carver", "Carver Household", "Buyer"], ["Jordan Langston", "jordan.langston", "Langston Household", "Seller"], ["Noor Mehta", "noor.mehta", "Mehta Household", "Relocating buyer"], ["Elliot Olsen", "elliot.olsen", "Olsen Household", "Seller"], ["Rina Benson", "rina.benson", "Benson Household", "Buyer"], ["Calvin Chang", "calvin.chang", "Chang Household", "Seller"]],
+  }),
+  "common-table-network": makePack({
+    id: "common-table-network", name: "Common Table Community Network", category: "Nonprofits", description: "Donor stewardship, volunteer coordination, partnerships, grants, and board reporting.", accent: "#15803d", appearance: "light", founder: "Elena Morris", domain: "commontablenetwork.example", industry: "community food-access nonprofit",
+    story: ["Thank a first-time donor", "Start the second-gift journey", "Coordinate a volunteer partner", "Reconcile a grant report", "Review stewardship and program evidence"],
+    stages: { new: "New supporter", qualified: "Interest confirmed", meeting: "Conversation booked", proposal: "Invitation shared", negotiation: "Decision pending", won: "Active supporter", lost: "No response", nurture: "Stewardship" },
+    corePeople: [["Avery Hughes", "avery.hughes", "Hughes Household", "First-time donor"], ["Marcus Watson", "marcus.watson", "Watson Household", "Donor"], ["Renee Pine", "renee.pine", "Pine Family Fund", "Foundation director"], ["Theo Carter", "theo.carter", "Cedar Foods", "Community partnerships lead"], ["Maya Bryant", "maya.bryant", "Bryant Household", "Donor"], ["Caleb Chen", "caleb.chen", "Chen Household", "Monthly donor"]],
+  }),
 };
 
 export const DEMO_SCENARIO_SUMMARIES: DemoScenarioSummary[] = Object.values(DEMO_SCENARIOS).map(({ id, name, category, description, accent, appearance, story }) => ({ id, name, category, description, accent, appearance, story }));
 export const DEMO_SCENARIO_SHELL_NAMES: Record<DemoScenarioId, string> = {
-  "sprout-and-spark": "Sprout & Spark",
   "northline-roofing": "Northline Roofing",
-  "harborline-growth": "Harborline Growth",
+  "alder-ridge-law": "Alder Ridge Law",
+  "ledgerstone-advisory": "Ledgerstone Advisory",
+  "hearthline-realty": "Hearthline Realty",
+  "common-table-network": "Common Table",
 };
 export function isDemoScenarioId(value: string): value is DemoScenarioId { return value in DEMO_SCENARIOS; }

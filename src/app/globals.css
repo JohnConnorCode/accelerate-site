@@ -580,6 +580,74 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
   from { opacity: 0; transform: translateY(16px); filter: blur(5px); }
   to { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
+.demo-launcher {
+  --demo-launcher-canvas: #f3f3f0;
+  --demo-launcher-ink: #0b0b0b;
+  --demo-launcher-muted: rgba(11, 11, 11, .64);
+  --demo-launcher-faint: rgba(11, 11, 11, .42);
+  --demo-launcher-rule: rgba(11, 11, 11, .11);
+  --demo-launcher-accent: #0f7a4b;
+  --demo-launcher-focus: #0b0b0b;
+  --demo-launcher-pill-shadow: inset 0 0 0 1px rgba(15, 122, 75, .18);
+  --demo-card-bg: #fbfbfa;
+  --demo-card-ink: #0b0b0b;
+  --demo-card-muted: rgba(11, 11, 11, .62);
+  --demo-card-faint: rgba(11, 11, 11, .4);
+  --demo-card-rule: rgba(11, 11, 11, .1);
+  --demo-card-action: #0b0b0b;
+  --demo-card-action-ink: #fbfbfa;
+  --demo-card-shadow: 0 0 0 1px rgba(0, 0, 0, .065), 0 2px 4px -2px rgba(0, 0, 0, .08), 0 22px 54px -38px rgba(0, 0, 0, .34);
+  --demo-card-shadow-hover: 0 0 0 1px rgba(0, 0, 0, .11), 0 3px 7px -3px rgba(0, 0, 0, .1), 0 32px 68px -38px rgba(0, 0, 0, .38);
+  --demo-preview-bg: #ffffff;
+  --demo-preview-header: #111110;
+  --demo-preview-header-ink: #fbfbfa;
+  --demo-preview-ink: rgba(11, 11, 11, .8);
+  --demo-preview-muted: rgba(11, 11, 11, .42);
+  --demo-preview-faint: rgba(11, 11, 11, .24);
+  --demo-preview-rule: rgba(11, 11, 11, .07);
+  --demo-preview-shadow: 0 0 0 1px rgba(0, 0, 0, .07), 0 18px 38px -28px rgba(0, 0, 0, .34);
+}
+[data-theme="dark"] .demo-launcher {
+  --demo-launcher-canvas: #0a0a0a;
+  --demo-launcher-ink: #fbfbfa;
+  --demo-launcher-muted: rgba(251, 251, 250, .64);
+  --demo-launcher-faint: rgba(251, 251, 250, .4);
+  --demo-launcher-rule: rgba(255, 255, 255, .12);
+  --demo-launcher-accent: #a7f3d0;
+  --demo-launcher-focus: #fbfbfa;
+  --demo-launcher-pill-shadow: inset 0 0 0 1px rgba(167, 243, 208, .16);
+  --demo-card-bg: #171716;
+  --demo-card-ink: #fbfbfa;
+  --demo-card-muted: rgba(251, 251, 250, .64);
+  --demo-card-faint: rgba(251, 251, 250, .4);
+  --demo-card-rule: rgba(255, 255, 255, .1);
+  --demo-card-action: #fbfbfa;
+  --demo-card-action-ink: #0b0b0b;
+  --demo-card-shadow: 0 0 0 1px rgba(255, 255, 255, .08), 0 22px 54px -38px rgba(0, 0, 0, .9);
+  --demo-card-shadow-hover: 0 0 0 1px rgba(255, 255, 255, .16), 0 34px 74px -40px rgba(0, 0, 0, .95);
+  --demo-preview-bg: #10100f;
+  --demo-preview-header: #f2f2ef;
+  --demo-preview-header-ink: #0b0b0b;
+  --demo-preview-ink: rgba(251, 251, 250, .82);
+  --demo-preview-muted: rgba(251, 251, 250, .43);
+  --demo-preview-faint: rgba(251, 251, 250, .24);
+  --demo-preview-rule: rgba(255, 255, 255, .075);
+  --demo-preview-shadow: 0 0 0 1px rgba(255, 255, 255, .08), 0 20px 42px -28px rgba(0, 0, 0, .9);
+}
+.demo-launcher-grid {
+  opacity: .42;
+  background-image: linear-gradient(color-mix(in srgb, var(--demo-launcher-ink) 4%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--demo-launcher-ink) 4%, transparent) 1px, transparent 1px);
+  background-size: 72px 72px;
+}
+.demo-launcher-glow--top { background: color-mix(in srgb, var(--demo-launcher-accent) 10%, transparent); }
+.demo-launcher-glow--bottom { background: color-mix(in srgb, #8b5cf6 7%, transparent); }
+.demo-launcher-safety { color: var(--demo-launcher-accent); background: color-mix(in srgb, var(--demo-launcher-accent) 9%, transparent); }
+.demo-launcher-theme-toggle { color: var(--demo-launcher-ink); background: color-mix(in srgb, var(--demo-launcher-ink) 5%, transparent); box-shadow: 0 0 0 1px var(--demo-launcher-rule); }
+.demo-launcher-theme-toggle:hover { background: color-mix(in srgb, var(--demo-launcher-ink) 9%, transparent); }
+.demo-launcher-card { background: var(--demo-card-bg); }
+.demo-launcher-card:hover { background: color-mix(in srgb, var(--demo-card-bg) 96%, var(--demo-card-ink) 4%); }
+.demo-workspace-preview { background: var(--demo-preview-bg); }
+.demo-workspace-preview-header { color: var(--demo-preview-header-ink); background: var(--demo-preview-header); }
 .demo-scenario-mark {
   display: block;
   overflow: visible;
@@ -603,24 +671,29 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
   .demo-scenario-mark .demo-mark-roof,
   .demo-scenario-mark .demo-mark-door,
   .demo-scenario-mark .demo-mark-horizon,
-  .demo-scenario-mark .demo-mark-arrow {
+  .demo-scenario-mark .demo-mark-arrow,
+  .demo-scenario-mark .demo-mark-law,
+  .demo-scenario-mark .demo-mark-ledger,
+  .demo-scenario-mark .demo-mark-home,
+  .demo-scenario-mark .demo-mark-table {
     stroke-dasharray: 64;
     animation: demo-mark-draw .8s var(--ease) both;
   }
-  .demo-scenario-mark--sprout-and-spark .demo-mark-leaf--right { animation-delay: 90ms; }
-  .demo-scenario-mark--sprout-and-spark .demo-mark-leaf--left { animation-delay: 180ms; }
-  .demo-scenario-mark--sprout-and-spark .demo-mark-core { animation: demo-mark-breathe 3.4s ease-in-out .8s infinite; transform-origin: 20px 31px; }
   .demo-scenario-mark--northline-roofing .demo-mark-roof--front { animation-delay: 120ms; }
   .demo-scenario-mark--northline-roofing .demo-mark-door { animation-delay: 260ms; }
   .demo-scenario-mark--northline-roofing { animation: demo-mark-breathe 4.2s ease-in-out 1s infinite; }
-  .demo-scenario-mark--harborline-growth .demo-mark-rise {
-    transform-box: fill-box;
-    transform-origin: center bottom;
-    animation: demo-mark-rise .68s var(--ease) both;
-  }
-  .demo-scenario-mark--harborline-growth .demo-mark-rise--two { animation-delay: 100ms; }
-  .demo-scenario-mark--harborline-growth .demo-mark-rise--three { animation-delay: 200ms; }
-  .demo-scenario-mark--harborline-growth .demo-mark-arrow { animation-delay: 300ms; }
+  .demo-scenario-mark--alder-ridge-law .demo-mark-law--left,
+  .demo-scenario-mark--ledgerstone-advisory .demo-mark-ledger--line-two,
+  .demo-scenario-mark--hearthline-realty .demo-mark-home--frame,
+  .demo-scenario-mark--common-table-network .demo-mark-table--bowl { animation-delay: 120ms; }
+  .demo-scenario-mark--alder-ridge-law .demo-mark-law--right,
+  .demo-scenario-mark--ledgerstone-advisory .demo-mark-ledger--line-three,
+  .demo-scenario-mark--hearthline-realty .demo-mark-home--door,
+  .demo-scenario-mark--common-table-network .demo-mark-table--leaf { animation-delay: 240ms; }
+  .demo-scenario-mark--alder-ridge-law,
+  .demo-scenario-mark--ledgerstone-advisory,
+  .demo-scenario-mark--hearthline-realty,
+  .demo-scenario-mark--common-table-network { animation: demo-mark-breathe 4.4s ease-in-out 1s infinite; }
 }
 .admin-demo-enter { opacity: 1; transform: none; filter: none; }
 .admin-demo-d1 { --admin-demo-delay: 40ms; }
@@ -3381,7 +3454,9 @@ body.modal-open [data-dock] { visibility: hidden; pointer-events: none; }
    away from the public-site glass material on purpose.
    ======================================== */
 .admin-shell,
-body.admin-dialog-open {
+.admin-overlay-token-scope,
+body.admin-dialog-open,
+body.admin-notifications-open {
   --admin-canvas: #f3f3f0;
   --admin-surface: #fbfbfa;
   --admin-surface-subtle: #f7f7f4;
@@ -3438,7 +3513,9 @@ body.admin-app-open {
 }
 
 [data-theme="dark"] .admin-shell,
-[data-theme="dark"] body.admin-dialog-open {
+[data-theme="dark"] .admin-overlay-token-scope,
+[data-theme="dark"] body.admin-dialog-open,
+[data-theme="dark"] body.admin-notifications-open {
   --admin-canvas: #10100f;
   --admin-surface: #171716;
   --admin-surface-subtle: #1c1c1a;
@@ -3474,7 +3551,9 @@ body.admin-app-open {
    system tokens, so every retained work surface changes together rather than
    becoming a one-off purple page. */
 [data-theme="signal"] .admin-shell,
-[data-theme="signal"] body.admin-dialog-open {
+[data-theme="signal"] .admin-overlay-token-scope,
+[data-theme="signal"] body.admin-dialog-open,
+[data-theme="signal"] body.admin-notifications-open {
   --admin-canvas: #12101d;
   --admin-surface: #1b1829;
   --admin-surface-subtle: #221e33;
@@ -3509,7 +3588,9 @@ body.admin-app-open {
 /* Studio keeps the operational density but borrows the calm, project-focused
    light canvas and blue signal from a modern work board. */
 [data-theme="studio"] .admin-shell,
-[data-theme="studio"] body.admin-dialog-open {
+[data-theme="studio"] .admin-overlay-token-scope,
+[data-theme="studio"] body.admin-dialog-open,
+[data-theme="studio"] body.admin-notifications-open {
   --admin-canvas: #f3f6fc;
   --admin-surface: #ffffff;
   --admin-surface-subtle: #f5f7fd;
@@ -3544,7 +3625,9 @@ body.admin-app-open {
 /* Frost is the luminous violet system: borderless white cards float over a
    lavender atmosphere while the navigation becomes a light, translucent rail. */
 [data-theme="frost"] .admin-shell,
-[data-theme="frost"] body.admin-dialog-open {
+[data-theme="frost"] .admin-overlay-token-scope,
+[data-theme="frost"] body.admin-dialog-open,
+[data-theme="frost"] body.admin-notifications-open {
   --admin-canvas: #f4f2ff;
   --admin-surface: #ffffff;
   --admin-surface-subtle: #f8f7ff;
@@ -3600,24 +3683,40 @@ body.admin-app-open {
 }
 
 .admin-mobile-dock {
-  --admin-dock-bg: color-mix(in srgb, var(--admin-sidebar) 90%, transparent);
+  --admin-dock-bg: color-mix(in srgb, var(--admin-sidebar) 72%, transparent);
   color: var(--admin-nav-muted);
   background: var(--admin-dock-bg);
   box-shadow:
-    0 0 0 1px var(--admin-nav-rule),
-    0 18px 50px -20px rgba(0, 0, 0, 0.68),
-    inset 0 1px 0 rgba(255, 255, 255, 0.045);
-  -webkit-backdrop-filter: blur(22px) saturate(1.12);
-  backdrop-filter: blur(22px) saturate(1.12);
+    0 16px 40px -24px rgba(0, 0, 0, 0.58),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  -webkit-backdrop-filter: blur(28px) saturate(1.28);
+  backdrop-filter: blur(28px) saturate(1.28);
+  transition:
+    opacity 180ms var(--ease-out),
+    transform 240ms var(--ease-out);
 }
 .admin-mobile-dock-item { color: var(--admin-nav-muted); }
 .admin-mobile-dock-item:hover { color: var(--admin-nav-ink); background: var(--admin-nav-hover); }
 .admin-mobile-dock-item.is-active {
   color: var(--admin-nav-active-ink);
+}
+.admin-mobile-dock-active {
   background: var(--admin-nav-active-bg);
-  box-shadow: 0 9px 22px -15px color-mix(in srgb, var(--admin-nav-accent) 75%, transparent);
+  box-shadow: 0 10px 24px -16px color-mix(in srgb, var(--admin-nav-accent) 78%, transparent);
 }
 body.admin-dialog-open .admin-mobile-dock { visibility: hidden; pointer-events: none; }
+body.admin-notifications-open .admin-mobile-dock,
+body.admin-mobile-nav-open .admin-mobile-dock {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(calc(100% + 1.5rem));
+}
+
+.admin-mobile-sheet {
+  box-shadow: 0 28px 80px -30px rgba(0, 0, 0, 0.78);
+  -webkit-backdrop-filter: blur(30px) saturate(1.2);
+  backdrop-filter: blur(30px) saturate(1.2);
+}
 
 [data-theme="frost"] .admin-sidebar,
 [data-theme="frost"] .admin-mobile-header {
@@ -3626,8 +3725,8 @@ body.admin-dialog-open .admin-mobile-dock { visibility: hidden; pointer-events: 
   box-shadow: 18px 0 60px -34px rgba(79, 48, 170, 0.32);
 }
 [data-theme="frost"] .admin-mobile-dock {
-  --admin-dock-bg: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 0 0 1px rgba(89, 57, 177, 0.08), 0 22px 58px -26px rgba(79, 48, 170, 0.38), inset 0 1px 0 rgba(255,255,255,.9);
+  --admin-dock-bg: rgba(255, 255, 255, 0.66);
+  box-shadow: 0 18px 48px -30px rgba(79, 48, 170, 0.34), inset 0 1px 0 rgba(255,255,255,.82);
 }
 
 /* Collapsed groups keep the operator's navigation compact. Overflow remains
@@ -3877,7 +3976,7 @@ body.admin-dialog-open .admin-mobile-dock { visibility: hidden; pointer-events: 
 .admin-route-frame { width: 100%; max-width: 1500px; margin-inline: auto; }
 
 @keyframes admin-route-entry-in {
-  from { opacity: 0.74; transform: translateY(4px); filter: blur(1.5px); }
+  from { opacity: 0; transform: translateY(14px); filter: blur(6px); }
   to { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
 
@@ -3895,6 +3994,16 @@ body.admin-dialog-open .admin-mobile-dock { visibility: hidden; pointer-events: 
   animation: admin-skeleton-reveal 180ms var(--ease-out) both;
 }
 
+.admin-async-region {
+  min-width: 0;
+  animation: admin-async-region-in 320ms var(--ease-out) both;
+}
+
+@keyframes admin-async-region-in {
+  from { opacity: 0; transform: translateY(8px); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
 .admin-skeleton-header { min-height: 88px; }
 .admin-skeleton-surface {
   border-radius: var(--admin-surface-radius);
@@ -3910,22 +4019,82 @@ body.admin-dialog-open .admin-mobile-dock { visibility: hidden; pointer-events: 
 
 @media (prefers-reduced-motion: no-preference) {
   .admin-route-entry.is-entering > :not([data-admin-route-loading]) > * {
-    animation: admin-route-entry-in 240ms var(--ease-out) both;
+    animation: admin-route-entry-in 400ms var(--ease-out) both;
   }
-  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(2) { animation-delay: 30ms; }
-  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(3) { animation-delay: 60ms; }
-  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(4) { animation-delay: 90ms; }
-  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(n + 5) { animation-delay: 120ms; }
+  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(2) { animation-delay: 50ms; }
+  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(3) { animation-delay: 100ms; }
+  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(4) { animation-delay: 150ms; }
+  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(n + 5) { animation-delay: 200ms; }
 }
 
 @media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
   .admin-route-entry.is-entering > :not([data-admin-route-loading]) > * {
-    animation-duration: 210ms;
+    animation-duration: 360ms;
+    transform-origin: center top;
   }
-  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(2) { animation-delay: 20ms; }
-  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(3) { animation-delay: 40ms; }
-  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(n + 4) { animation-delay: 60ms; }
+  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(2) { animation-delay: 45ms; }
+  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(3) { animation-delay: 90ms; }
+  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(4) { animation-delay: 135ms; }
+  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(n + 5) { animation-delay: 180ms; }
 }
+
+.admin-composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 7px;
+  border: 1px solid color-mix(in srgb, var(--admin-ink) 13%, transparent);
+  border-radius: 16px;
+  background: var(--admin-surface);
+  box-shadow: var(--admin-shadow-border);
+  transition-property: border-color, box-shadow, background-color;
+  transition-duration: 160ms;
+  transition-timing-function: var(--ease-out);
+}
+
+.admin-composer:focus-within {
+  border-color: color-mix(in srgb, var(--admin-ink) 38%, transparent);
+  background: var(--admin-surface);
+  box-shadow: var(--admin-shadow-border-hover), 0 0 0 3px color-mix(in srgb, var(--admin-ink) 7%, transparent);
+}
+
+.admin-composer-field {
+  min-width: 0;
+  min-height: 44px;
+  flex: 1;
+  resize: none;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  padding: 11px 12px;
+  color: var(--admin-ink);
+  font-size: 14px;
+  line-height: 22px;
+  outline: none;
+}
+
+.admin-composer-field::placeholder { color: color-mix(in srgb, var(--admin-muted) 74%, transparent); }
+
+.admin-composer-action {
+  display: inline-flex;
+  min-width: 44px;
+  min-height: 44px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--admin-ink);
+  color: var(--admin-surface);
+  font-size: 12px;
+  font-weight: 650;
+  transition-property: opacity, transform;
+  transition-duration: 150ms;
+  transition-timing-function: var(--ease-out);
+}
+
+.admin-composer-action:hover { opacity: 0.86; }
+.admin-composer-action:active { transform: scale(0.96); }
+.admin-composer-action:disabled { opacity: 0.35; }
 
 body.admin-dialog-open [data-admin-sidebar] { pointer-events: none; }
 body.admin-dialog-open [data-contact-import-actions] { visibility: hidden; }
@@ -3943,6 +4112,7 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
 
 @media (prefers-reduced-motion: reduce) {
   .admin-route-loading { opacity: 1; animation: none; }
+  .admin-mobile-dock-active { transform: none !important; transition: none !important; }
   .admin-skeleton-shape { animation: none; }
   .admin-shell *,
   .admin-shell *::before,

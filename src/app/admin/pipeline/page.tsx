@@ -5,10 +5,11 @@ import Link from "@/components/admin/AdminLink";
 import { ArrowUpRight, BookmarkPlus, Building2, Check, CircleDollarSign, Columns3, List, Loader2, Plus, RefreshCw, Search, Settings2, Target, Trash2, TriangleAlert, X } from "lucide-react";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { AdminSurface } from "@/components/admin/AdminSurface";
-import { AdminRouteSkeleton } from "@/components/admin/AdminRouteSkeleton";
+import { AdminPageLoading } from "@/components/admin/AdminPageLoading";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { fetchJson } from "@/lib/admin/fetchJson";
+import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { DEFAULT_PIPELINE_VIEW, PIPELINE_VISIBLE_FIELDS, SYSTEM_PIPELINE_VIEWS, applyPipelineView, countPipelineSystemViews, hasLastPipelineView, loadLastPipelineView, loadSavedPipelineViews, removePipelineView, saveLastPipelineView, savePipelineView, type PipelineViewState, type PipelineVisibleField, type SavedPipelineView } from "@/lib/admin/pipelineViews";
 import { REVENUE_STAGE_META, REVENUE_STAGES, type RevenueStage } from "@/lib/revenue-os/types";
 import { cn } from "@/lib/utils";
@@ -29,19 +30,26 @@ const shortDate = (value?: string | null) => value ? new Date(value).toLocaleDat
 const has = (state: PipelineViewState, field: PipelineVisibleField) => state.visibleFields.includes(field);
 
 export default function PipelinePage() {
-  const [data, setData] = useState<{ schemaReady: boolean; signalsReady?: { calendar: boolean }; opportunities: Opportunity[] } | null>(null);
   const [state, setState] = useState<PipelineViewState>(DEFAULT_PIPELINE_VIEW);
   const [saved, setSaved] = useState<SavedPipelineView[]>([]);
   const [activeSaved, setActiveSaved] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
   const [dialog, setDialog] = useState<"create" | "customize" | "save" | null>(null);
   const [viewName, setViewName] = useState("");
   const patchState = (patch: Partial<PipelineViewState>) => { setActiveSaved(null); setState((current) => ({ ...current, ...patch })); };
-  const load = useCallback(async () => { setError(""); try { setData(await fetchJson("/api/admin/revenue-os/pipeline")); } catch (reason) { setError(reason instanceof Error ? reason.message : "Could not load pipeline."); } finally { setLoading(false); } }, []);
-  useEffect(() => { void load(); }, [load]);
+  const pipelineQuery = useAdminQuery<{ schemaReady: boolean; signalsReady?: { calendar: boolean }; opportunities: Opportunity[] }>(["admin", "pipeline"], "/api/admin/revenue-os/pipeline");
+  const data = pipelineQuery.data ?? null;
+  const loading = pipelineQuery.isPending;
+  const refreshing = pipelineQuery.isFetching;
+  const error = actionError || pipelineQuery.error?.message || "";
+  const refetchPipeline = pipelineQuery.refetch;
+  const load = useCallback(async () => {
+    setActionError("");
+    const result = await refetchPipeline();
+    if (result.error) setActionError(result.error.message || "Could not load pipeline.");
+  }, [refetchPipeline]);
   useEffect(() => {
     const restored = loadLastPipelineView();
     const deviceDefault = !hasLastPipelineView() && window.matchMedia("(max-width: 767px)").matches ? { ...restored, layout: "list" as const } : restored;
@@ -66,20 +74,20 @@ export default function PipelinePage() {
     if (stage === "lost" && !lossReason) return;
     setSaving(true);
     try { await fetchJson("/api/admin/revenue-os/pipeline", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: item.id, stage, lossReason, reason: "Founder pipeline update" }) }); await load(); }
-    catch (reason) { setError(reason instanceof Error ? reason.message : "Could not move opportunity."); }
+    catch (reason) { setActionError(reason instanceof Error ? reason.message : "Could not move opportunity."); }
     finally { setSaving(false); }
   };
   const create = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); setSaving(true);
     try { await fetchJson("/api/admin/revenue-os/pipeline", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.fromEntries(new FormData(event.currentTarget))) }); setDialog(null); await load(); }
-    catch (reason) { setError(reason instanceof Error ? reason.message : "Could not create opportunity."); }
+    catch (reason) { setActionError(reason instanceof Error ? reason.message : "Could not create opportunity."); }
     finally { setSaving(false); }
   };
   const storeView = (event: FormEvent) => { event.preventDefault(); const next = savePipelineView(viewName, state); setSaved(next); setActiveSaved(next.find((item) => item.name.toLowerCase() === viewName.trim().toLowerCase())?.id ?? null); setViewName(""); setDialog(null); };
 
-  if (loading && !data) return <AdminRouteSkeleton />;
+  if (loading && !data) return <AdminPageLoading title="Pipeline" subtitle="Prioritize the work that moves revenue, then review every opportunity from one operating view." variant="board" />;
   return <div className="space-y-6 pb-10">
-    <PageHeader title="Pipeline" subtitle="Prioritize the work that moves revenue, then review every opportunity from one operating view." actions={<><button type="button" onClick={() => void load()} aria-label="Refresh pipeline" className="grid size-11 place-items-center rounded-xl shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"><RefreshCw className={cn("size-4", loading && "animate-spin")} /></button><button type="button" onClick={() => setDialog("create")} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]"><Plus className="size-4" /> New opportunity</button></>} />
+    <PageHeader title="Pipeline" subtitle="Prioritize the work that moves revenue, then review every opportunity from one operating view." actions={<><button type="button" onClick={() => void load()} aria-label="Refresh pipeline" className="grid size-11 place-items-center rounded-xl shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"><RefreshCw className={cn("size-4", refreshing && "animate-spin")} /></button><button type="button" onClick={() => setDialog("create")} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]"><Plus className="size-4" /> New opportunity</button></>} />
     {error && <AdminSurface tone="attention" className="flex items-center gap-3"><TriangleAlert className="size-5 shrink-0 text-rose-600" /><p className="text-sm">{error}</p></AdminSurface>}
     {data && !data.schemaReady ? <RevenueSetupGate /> : data && <>
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{[

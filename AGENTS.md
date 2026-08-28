@@ -107,3 +107,21 @@ Data, job, webhook, send, or integration work additionally proves happy path,
 duplicate/replay, invalid input, provider failure, truthful receipt, and safe
 retry behavior. Never test destructive behavior against uncontrolled production
 records.
+
+## Outcome acceptance for visual work
+
+- Translate feedback into observable acceptance before editing. Preserve the
+  user's actual outcome, not a convenient proxy. “Use icons intelligently” means
+  every icon must communicate a distinct object, action, or state; it does not
+  mean swapping one repeated glyph for another or enforcing an arbitrary count.
+- Shared behavior belongs in a shared primitive or contract. A route, appearance,
+  demo scenario, viewport, or loading path must not need a local patch to receive
+  the same motion, field, surface, or navigation behavior.
+- Verify the states the user can see: first/direct load, prefetched navigation,
+  slow streamed navigation, committed content, mobile, desktop, reduced motion,
+  empty, populated, and error states when applicable.
+- Never treat source presence as visual evidence. Browser QA must assert the
+  intended computed behavior and screenshots must be opened and inspected.
+- Do not mark visual work complete because the implementation exists. Completion
+  requires evidence that the requested outcome is perceptible, coherent, and
+  consistent in the rendered product.

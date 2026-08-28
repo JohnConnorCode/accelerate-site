@@ -32,6 +32,17 @@ The shared demo engine owns reads and simulated writes.
 A scenario pack must not implement its own UI, fetch handlers, pipeline rules,
 analytics formulas, AI runtime, or email sender.
 
+The current sales suite contains five complete packs: home services, law firms,
+professional services, real estate, and nonprofits. Each pack declares an
+intentional default appearance, while the shared Appearance control still
+offers Paper, Night, Signal, Studio, and Frost. A browser-session appearance
+choice belongs to that scenario, survives switching away and back, and returns
+to the declared default when that scenario is reset.
+
+The launcher has its own light/dark preference. It must adapt its canvas, cards,
+previews, controls, and focus states without overwriting any scenario's admin
+appearance.
+
 Adding a scenario is data plus one registry entry. Adding an enabled admin route
 or operation requires demo coverage or an explicit capability exclusion with a
 business reason.

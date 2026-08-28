@@ -24,7 +24,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { AdminSurface } from "@/components/admin/AdminSurface";
-import { AdminRouteSkeleton } from "@/components/admin/AdminRouteSkeleton";
+import { AdminPageLoading } from "@/components/admin/AdminPageLoading";
 import { useAdminAI } from "@/components/admin/AdminAIProvider";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
@@ -140,7 +140,7 @@ export default function OpportunityRecordPage() {
     }
   }
 
-  if (loading && !record) return <AdminRouteSkeleton />;
+  if (loading && !record) return <AdminPageLoading title="Opportunity record" subtitle="Loading the canonical identity, commitments, communication, meetings, proposals, and verified history." variant="detail" />;
   if (!schemaReady) return <RevenueSetupGate />;
   if (!record) return (
     <div className="space-y-5">

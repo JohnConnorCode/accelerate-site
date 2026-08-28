@@ -2,11 +2,12 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { DEMO_SCENARIOS, DEMO_SCENARIO_SUMMARIES } from "../src/lib/admin/demo/scenarios";
 
-assert.equal(DEMO_SCENARIO_SUMMARIES.length, 3, "The professional launcher must offer three distinct businesses");
+const expectedScenarios = ["northline-roofing", "alder-ridge-law", "ledgerstone-advisory", "hearthline-realty", "common-table-network"];
+assert.deepEqual(DEMO_SCENARIO_SUMMARIES.map((scenario) => scenario.id), expectedScenarios, "The launcher must offer the five targeted businesses in sales order");
 
 for (const [scenarioId, pack] of Object.entries(DEMO_SCENARIOS)) {
   assert.equal(pack.id, scenarioId);
-  assert.equal(pack.version, 2);
+  assert.equal(pack.version, 3);
   assert.ok(pack.people.length >= 30, `${scenarioId}: needs a credible contact graph`);
   assert.ok(pack.opportunities.length >= 15, `${scenarioId}: needs a credible pipeline`);
   assert.ok(pack.conversations.length >= 8, `${scenarioId}: needs a credible inbox`);

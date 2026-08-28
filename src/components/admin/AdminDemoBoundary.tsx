@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, RotateCcw } from "lucide-react";
 import { DEMO_SCENARIOS, DEMO_SCENARIO_SUMMARIES, isDemoScenarioId, type DemoScenarioId } from "@/lib/admin/demo/scenarios";
 import { installAdminDemoRuntime } from "@/lib/admin/demo/runtime";
+import { readDemoAppearance } from "@/lib/admin/demo/appearance-state";
 import { DemoScenarioMark } from "@/components/admin/DemoScenarioMark";
 import { cn } from "@/lib/utils";
 import { useNavigationRuntime } from "@/components/navigation/NavigationRuntime";
@@ -18,8 +19,6 @@ interface AdminDemoContextValue {
 }
 
 const AdminDemoContext = createContext<AdminDemoContextValue | null>(null);
-const DEMO_APPEARANCE_SCENARIO_KEY = "accelerate:admin-demo:appearance-scenario";
-
 export function AdminDemoBoundary({ scenarioId, children }: { scenarioId: DemoScenarioId | null; children: React.ReactNode }) {
   const resetRef = useRef<null | (() => void)>(null);
   const { setTheme } = useTheme();
@@ -29,10 +28,7 @@ export function AdminDemoBoundary({ scenarioId, children }: { scenarioId: DemoSc
 
   useLayoutEffect(() => {
     if (!activeScenarioId) return;
-    if (window.sessionStorage.getItem(DEMO_APPEARANCE_SCENARIO_KEY) !== activeScenarioId) {
-      setTheme(DEMO_SCENARIOS[activeScenarioId].appearance);
-      window.sessionStorage.setItem(DEMO_APPEARANCE_SCENARIO_KEY, activeScenarioId);
-    }
+    setTheme(readDemoAppearance(activeScenarioId));
     const runtime = installAdminDemoRuntime(activeScenarioId);
     resetRef.current = runtime.reset;
     (window as Window & { __accelerateAdminDemoRuntime?: string }).__accelerateAdminDemoRuntime = activeScenarioId;
@@ -57,7 +53,6 @@ export function AdminDemoControls({ collapsed = false, controlsId = "admin-demo-
   const demo = useContext(AdminDemoContext);
   const pathname = usePathname();
   const router = useRouter();
-  const { setTheme } = useTheme();
   const navigation = useNavigationRuntime();
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -134,8 +129,6 @@ export function AdminDemoControls({ collapsed = false, controlsId = "admin-demo-
                   <span className="px-1 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--admin-nav-faint)]">Demo business</span>
                   <select aria-label="Demo business" value={demo.scenarioId} onChange={(event) => {
                     const nextScenario = event.target.value as DemoScenarioId;
-                    setTheme(DEMO_SCENARIOS[nextScenario].appearance);
-                    window.sessionStorage.setItem(DEMO_APPEARANCE_SCENARIO_KEY, nextScenario);
                     navigation.beginNavigation({ href: `/demo/command-center/${nextScenario}/${route}`, kind: "replace", scroll: "top" });
                     router.replace(`/demo/command-center/${nextScenario}/${route}`, { scroll: false });
                   }} className="mt-1 min-h-11 w-full rounded-[10px] bg-[var(--admin-nav-hover)] px-3 text-xs font-semibold text-[var(--admin-nav-ink)] outline-none ring-1 ring-[var(--admin-nav-rule)] focus:ring-2 focus:ring-[var(--admin-nav-accent)]">

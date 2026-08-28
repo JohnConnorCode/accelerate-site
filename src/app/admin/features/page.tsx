@@ -43,7 +43,7 @@ import {
   X,
 } from "lucide-react";
 import { AdminSurface } from "@/components/admin/AdminSurface";
-import { AdminRouteSkeleton } from "@/components/admin/AdminRouteSkeleton";
+import { AdminPageLoading } from "@/components/admin/AdminPageLoading";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
@@ -381,7 +381,7 @@ export default function FeaturesPage() {
     }
   };
 
-  if (loading && !data) return <AdminRouteSkeleton />;
+  if (loading && !data) return <AdminPageLoading title="Feature Board" subtitle="A dependency-ordered execution queue. Milestone says when, category says who owns it, and capability says what it changes." variant="board" />;
   return <div className="space-y-6 pb-10">
     <PageHeader title="Feature Board" subtitle="A dependency-ordered execution queue. Milestone says when, category says who owns it, and capability says what it changes." actions={<><button type="button" onClick={() => void load()} disabled={loading} aria-label="Refresh feature board" className="grid size-11 place-items-center rounded-xl text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"><RefreshCw className={cn("size-4", loading && "animate-spin")} /></button><button type="button" onClick={() => { setNewStatus("backlog"); setOpenFeature(null); }} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]"><Plus className="size-3.5" /> New feature</button></>} />
     {error && <AdminSurface tone="attention" className="flex items-center gap-3"><TriangleAlert className="size-5 shrink-0 text-rose-600" /><p className="text-sm text-[var(--admin-ink)]">{error}</p></AdminSurface>}
