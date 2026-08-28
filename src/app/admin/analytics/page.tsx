@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertTriangle, BarChart3, CircleDollarSign, Clock3, Eye, FilterX, Loader2, MessageCircleReply, RefreshCw, Target, Users } from "lucide-react";
+import { AlertTriangle, BarChart3, CircleDollarSign, Clock3, Eye, FilterX, MessageCircleReply, RefreshCw, Target, Users } from "lucide-react";
 import { AdminSurface } from "@/components/admin/AdminSurface";
+import { AdminRouteSkeleton } from "@/components/admin/AdminRouteSkeleton";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { fetchJson } from "@/lib/admin/fetchJson";
@@ -66,7 +67,7 @@ export default function AnalyticsPage() {
   ] : [];
   const issues = qualityRows.reduce((sum, row) => sum + Number(row.count || 0), 0);
 
-  if (!ready || (loading && !data)) return <div className="grid min-h-[55vh] place-items-center"><Loader2 className="size-6 animate-spin text-[var(--admin-muted)]" /></div>;
+  if (!ready || (loading && !data)) return <AdminRouteSkeleton />;
   if (data && !data.schemaReady) return <RevenueSetupGate />;
   const funnel = data?.funnel; const web = data?.web;
   return <div className="space-y-7 pb-10">

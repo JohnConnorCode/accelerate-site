@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "@/components/admin/AdminLink";
-import { AlarmClock, ArrowRight, BarChart3, CalendarClock, Check, CheckCircle2, CircleDollarSign, Inbox, Loader2, Mail, Megaphone, RefreshCw, ServerCog, ShieldCheck, Sparkles, Target, TriangleAlert, X } from "lucide-react";
+import { AlarmClock, ArrowRight, BarChart3, CalendarClock, Check, CheckCircle2, CircleDollarSign, Inbox, Loader2, Mail, Megaphone, RefreshCw, ServerCog, ShieldCheck, Target, TriangleAlert, X } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
+import { AdminRouteSkeleton } from "@/components/admin/AdminRouteSkeleton";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { RevenueAICommand } from "@/components/admin/RevenueAICommand";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
@@ -171,20 +172,8 @@ function queueIcon(kind: QueueItem["kind"]) {
   if (kind === "reply") return Mail;
   if (kind === "meeting") return CalendarClock;
   if (kind === "proposal") return BarChart3;
-  if (kind === "approval") return Sparkles;
+  if (kind === "approval") return ShieldCheck;
   return Inbox;
-}
-
-function TodayLoadingState() {
-  return <div className="space-y-7 pb-10" aria-busy="true" aria-label="Loading Today">
-    <PageHeader title="Today" subtitle="Building the current operator queue from live revenue and system signals." />
-    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      {Array.from({ length: 4 }).map((_, index) => <AdminSurface key={index} padding="lg" className="animate-pulse"><div className="h-2.5 w-24 rounded-full bg-black/[0.07] dark:bg-white/[0.08]" /><div className="mt-5 h-8 w-20 rounded-lg bg-black/[0.07] dark:bg-white/[0.08]" /><div className="mt-3 h-2.5 w-32 rounded-full bg-black/[0.05] dark:bg-white/[0.06]" /></AdminSurface>)}
-    </section>
-    <section className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
-      {[6, 4].map((count) => <AdminSurface key={count} padding="none" className="overflow-hidden"><div className="px-6 py-5"><div className="h-3 w-28 animate-pulse rounded-full bg-black/[0.07] dark:bg-white/[0.08]" /></div><div className="divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)]">{Array.from({ length: count }).map((_, index) => <div key={index} className="flex min-h-[84px] animate-pulse items-center gap-3 px-6 py-4"><div className="size-9 rounded-xl bg-black/[0.06] dark:bg-white/[0.07]" /><div className="flex-1"><div className="h-3 w-2/5 rounded-full bg-black/[0.07] dark:bg-white/[0.08]" /><div className="mt-3 h-2.5 w-4/5 rounded-full bg-black/[0.05] dark:bg-white/[0.06]" /></div></div>)}</div></AdminSurface>)}
-    </section>
-  </div>;
 }
 
 export default function TodayPage() {
@@ -309,7 +298,7 @@ export default function TodayPage() {
     ].slice(0, 5);
   }, [overview]);
 
-  if (loading && !overview) return <TodayLoadingState />;
+  if (loading && !overview) return <AdminRouteSkeleton />;
 
   if (!overview && error) return <div className="space-y-7 pb-10">
     <PageHeader title="Today" subtitle="The founder queue could not be assembled yet." />
@@ -380,7 +369,7 @@ export default function TodayPage() {
               <div className="flex items-start justify-between gap-3 px-5 py-4"><div><p className="admin-eyebrow">Decisions</p><h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">Approval queue</h2><p className="admin-copy mt-1 text-pretty text-xs">Review exact changes before anything consequential runs.</p></div><span className="mt-0.5 rounded-full bg-black/[0.045] px-2.5 py-1 font-mono text-[10px] tabular-nums text-[var(--admin-muted)] dark:bg-white/[0.06]" aria-label={`${actions.length} pending approvals`}>{actions.length}</span></div>
               <div className="divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)]">
                 {actions.slice(0, showAllApprovals ? 8 : 3).map((action) => (
-                  <div key={action.id} className="px-5 py-4"><div className="flex items-start gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]"><Sparkles className="size-4" /></span><div className="min-w-0 flex-1"><h3 className="text-pretty text-sm font-semibold leading-5 text-[var(--admin-ink)]">{action.title}</h3><p className="admin-copy mt-1 line-clamp-2 text-pretty text-xs leading-5">{action.description || action.reasoning || "Review before execution."}</p><div className="mt-3 flex items-center gap-2"><button type="button" onClick={() => setReviewing(action)} disabled={acting === action.id} className="inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[var(--admin-ink)] px-3 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96] disabled:opacity-50">{acting === action.id ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />} Review</button><button type="button" onClick={() => void decide(action.id, "reject")} disabled={acting === action.id} aria-label={`Reject ${action.title}`} title="Reject proposal" className="grid size-10 shrink-0 place-items-center rounded-lg text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)] transition-[color,box-shadow,transform] duration-150 hover:text-rose-700 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:opacity-50 dark:hover:text-rose-300"><X className="size-3.5" /></button></div></div></div></div>
+                  <div key={action.id} className="px-5 py-4"><div className="flex items-start gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]"><ShieldCheck className="size-4" /></span><div className="min-w-0 flex-1"><h3 className="text-pretty text-sm font-semibold leading-5 text-[var(--admin-ink)]">{action.title}</h3><p className="admin-copy mt-1 line-clamp-2 text-pretty text-xs leading-5">{action.description || action.reasoning || "Review before execution."}</p><div className="mt-3 flex items-center gap-2"><button type="button" onClick={() => setReviewing(action)} disabled={acting === action.id} className="inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[var(--admin-ink)] px-3 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96] disabled:opacity-50">{acting === action.id ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />} Review</button><button type="button" onClick={() => void decide(action.id, "reject")} disabled={acting === action.id} aria-label={`Reject ${action.title}`} title="Reject proposal" className="grid size-10 shrink-0 place-items-center rounded-lg text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)] transition-[color,box-shadow,transform] duration-150 hover:text-rose-700 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:opacity-50 dark:hover:text-rose-300"><X className="size-3.5" /></button></div></div></div></div>
                 ))}
                 {actions.length > 3 && <button type="button" onClick={() => setShowAllApprovals((current) => !current)} className="flex min-h-11 w-full items-center justify-between px-5 text-xs font-semibold text-[var(--admin-ink)] transition-[background-color,transform] duration-150 hover:bg-black/[0.025] active:scale-[0.96] dark:hover:bg-white/[0.03]" aria-expanded={showAllApprovals}>{showAllApprovals ? "Show fewer decisions" : `Review all ${actions.length} decisions`} <ArrowRight className={cn("size-3.5 transition-transform duration-150", showAllApprovals && "rotate-90")} /></button>}
                 {!actions.length && <div className="px-6 py-12 text-center"><Check className="mx-auto size-5 text-emerald-600" /><p className="mt-3 text-sm font-semibold text-[var(--admin-ink)]">No decisions waiting</p><p className="admin-copy mx-auto mt-1 max-w-xs text-xs">Nothing consequential will run without approval. Ask the copilot to prepare work when you have a concrete outcome.</p><a href="#revenue-copilot" className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]">Open copilot <ArrowRight className="size-3.5" /></a></div>}

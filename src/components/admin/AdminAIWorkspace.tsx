@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAdminNavigation } from "@/components/admin/AdminLink";
-import { Bot, Command, Database, History, ShieldCheck, Sparkles, Wrench } from "lucide-react";
+import { Bot, Command, Database, History, MessageSquare, ShieldCheck, Wrench } from "lucide-react";
 import { PageHeader } from "./PageHeader";
 import { AdminSurface } from "./AdminSurface";
 import { AdminAIChat } from "./AdminAIChat";
@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 type WorkspaceView = "ask" | "runs" | "capabilities";
 
 const views: Array<{ id: WorkspaceView; label: string; description: string; icon: typeof Bot }> = [
-  { id: "ask", label: "Ask", description: "Work with live context", icon: Sparkles },
+  { id: "ask", label: "Ask", description: "Work with live context", icon: MessageSquare },
   { id: "runs", label: "Run history", description: "Inspect evidence and outcomes", icon: History },
   { id: "capabilities", label: "Capabilities", description: "Understand tools and safeguards", icon: Wrench },
 ];

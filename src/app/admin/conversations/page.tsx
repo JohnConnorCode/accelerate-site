@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, CheckCircle2, Inbox, Loader2, Mail, RefreshCw, Reply, Search, Send, TriangleAlert } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
+import { AdminRouteSkeleton } from "@/components/admin/AdminRouteSkeleton";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { cn } from "@/lib/utils";
@@ -57,7 +58,7 @@ export default function ConversationsPage() {
     finally { setSending(false); }
   };
 
-  if (loading && !conversations.length) return <div className="grid min-h-[55vh] place-items-center"><Loader2 className="size-6 animate-spin text-[var(--admin-muted)]" /></div>;
+  if (loading && !conversations.length) return <AdminRouteSkeleton />;
   return (
     <div className="space-y-6 pb-10">
       <PageHeader title="Conversations" subtitle="Gmail and system communication in one linked, reply-ready operating inbox." actions={<button type="button" onClick={() => void sync()} disabled={syncing} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] pl-4 pr-3.5 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96] disabled:opacity-50"><RefreshCw className={cn("size-3.5", syncing && "animate-spin")} /> Sync Gmail</button>} />

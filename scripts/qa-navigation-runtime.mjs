@@ -58,10 +58,29 @@ for (const config of [
   if (!await pipeline.count()) failures.push(`${config.label}: scenario-aware Pipeline link is missing`);
   else await pipeline.evaluate((node) => node.click());
   await page.waitForURL("**/sprout-and-spark/pipeline");
-  await page.waitForTimeout(1_280);
+  await page.waitForTimeout(48);
+  const earlyFallback = await page.evaluate(() => {
+    const fallback = document.querySelector("[data-admin-route-loading]");
+    return fallback ? Number(getComputedStyle(fallback).opacity) : null;
+  });
+  if (config.reducedMotion === "no-preference" && earlyFallback !== null && earlyFallback < 0.1) {
+    failures.push(`${config.label}: admin fallback left a blank intermediate frame (${earlyFallback})`);
+  }
+  await page.locator("[data-admin-route-loading]").waitFor({ state: "detached", timeout: 15_000 }).catch(() => {});
+  const adminEntrance = await page.evaluate(() => ({
+    fallback: document.querySelectorAll("[data-admin-route-loading]").length,
+    contentAnimations: document.getAnimations().filter((animation) => (
+      animation instanceof CSSAnimation
+      && animation.animationName === "admin-route-entry-in"
+      && animation.effect?.target instanceof Element
+      && animation.effect.target.closest(".admin-route-entry")
+    )).length,
+  }));
+  if (adminEntrance.fallback) failures.push(`${config.label}: admin route fallback did not resolve`);
+  if (config.reducedMotion === "no-preference" && !adminEntrance.contentAnimations) failures.push(`${config.label}: real admin destination did not receive its route entrance`);
+  await page.waitForTimeout(1_050);
   const adminForward = await page.evaluate(() => ({
     y: document.querySelector(".admin-main").scrollTop,
-    animation: getComputedStyle(document.querySelector(".admin-route-entry")).animationName,
     duplicateHeaders: document.getAnimations().filter((animation) => (
       animation instanceof CSSAnimation
       && String(animation.effect?.target?.className || "").includes("admin-page-title")
@@ -71,8 +90,7 @@ for (const config of [
   }));
   if (adminForward.y > 2) failures.push(`${config.label}: admin forward navigation landed at ${adminForward.y}px`);
   if (adminForward.duplicateHeaders) failures.push(`${config.label}: admin header retained ${adminForward.duplicateHeaders} duplicate entrance animations`);
-  if (config.reducedMotion === "no-preference" && !adminForward.animation.includes("admin-route-entry-in")) failures.push(`${config.label}: admin route entrance did not run`);
-  if (config.reducedMotion === "reduce" && adminForward.animation !== "none") failures.push("reduced: admin route entrance remained animated");
+  if (config.reducedMotion === "reduce" && adminEntrance.contentAnimations) failures.push("reduced: admin route entrance remained animated");
   if (adminForward.title !== "Pipeline | Sprout & Spark Kids Studio Demo") failures.push(`${config.label}: demo title is not contextual (${adminForward.title})`);
   if (!adminForward.focused) failures.push(`${config.label}: admin forward navigation did not focus the destination heading`);
   await page.goBack();

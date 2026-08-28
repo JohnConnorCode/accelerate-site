@@ -40,9 +40,16 @@ routing or creating surface-specific history systems.
   state changes may retain their own motion.
 - Reduced motion removes nonessential movement and blur while preserving all
   route, loading, and focus behavior.
-- The delayed progress indicator appears only when navigation is slow enough to
-  need feedback. Admin loading UI preserves the application shell and content
-  geometry.
+- Dynamic admin segments use Next.js `loading.tsx` and React Suspense so their
+  shells can be partially prefetched, streamed, and interrupted. The shared
+  route-aware fallback reserves destination-like geometry and appears without a
+  blank intermediate frame. Prefetched navigation skips the fallback entirely.
+  Suspense belongs as close as practical to genuinely slow data; background
+  refreshes preserve usable content instead of replacing it with a fallback.
+- The route stage distinguishes the fallback tree from the committed tree. The
+  fallback has restrained loading motion; the actual destination always receives
+  the incoming blur, opacity, rise, and bounded semantic stagger. Hydration never
+  replays this route entrance.
 - After forward navigation, focus moves without additional scrolling to the
   destination heading or main region and the route title is announced politely.
   History traversal restores reading position without stealing focus.
@@ -52,5 +59,7 @@ routing or creating surface-specific history systems.
 `npm run test:navigation-runtime` must cover public and admin forward navigation,
 Back restoration, demo scenario switching without reload, mobile and desktop,
 normal and reduced motion, overflow, console errors, and a single route-motion
-owner. Title QA must prove live and demo routes receive contextual titles from
+owner. It must require the shared route-aware loading boundary, immediate useful
+fallback visibility, committed-content motion, and event-derived focus handoff. Title QA
+must prove live and demo routes receive contextual titles from
 the mounted admin shell.

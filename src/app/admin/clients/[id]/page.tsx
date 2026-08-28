@@ -102,7 +102,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={false}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >

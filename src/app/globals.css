@@ -3877,23 +3877,54 @@ body.admin-dialog-open .admin-mobile-dock { visibility: hidden; pointer-events: 
 .admin-route-frame { width: 100%; max-width: 1500px; margin-inline: auto; }
 
 @keyframes admin-route-entry-in {
-  from { opacity: 0.94; transform: translateY(6px); filter: blur(5px); }
+  from { opacity: 0.74; transform: translateY(4px); filter: blur(1.5px); }
   to { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
 
+@keyframes admin-skeleton-reveal {
+  from { opacity: 0.22; }
+  to { opacity: 1; }
+}
+
+@keyframes admin-skeleton-breathe {
+  0%, 100% { opacity: 0.58; }
+  50% { opacity: 0.9; }
+}
+
+.admin-route-loading {
+  animation: admin-skeleton-reveal 180ms var(--ease-out) both;
+}
+
+.admin-skeleton-header { min-height: 88px; }
+.admin-skeleton-surface {
+  border-radius: var(--admin-surface-radius);
+  background: var(--admin-surface);
+  box-shadow: var(--admin-shadow);
+}
+.admin-skeleton-shape {
+  display: block;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--admin-ink) 7%, var(--admin-surface));
+  animation: admin-skeleton-breathe 1.4s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: no-preference) {
-  .admin-route-entry.is-entering {
-    animation: admin-route-entry-in 280ms var(--ease-out) both;
+  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > * {
+    animation: admin-route-entry-in 240ms var(--ease-out) both;
   }
+  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(2) { animation-delay: 30ms; }
+  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(3) { animation-delay: 60ms; }
+  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(4) { animation-delay: 90ms; }
+  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(n + 5) { animation-delay: 120ms; }
 }
 
-@keyframes admin-loading-breathe {
-  50% { opacity: 0.48; }
-}
-
-.admin-loading-shape {
-  background: color-mix(in srgb, var(--admin-ink) 8%, transparent);
-  animation: admin-loading-breathe 1.15s ease-in-out infinite;
+@media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
+  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > * {
+    animation-duration: 210ms;
+  }
+  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(2) { animation-delay: 20ms; }
+  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(3) { animation-delay: 40ms; }
+  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(n + 4) { animation-delay: 60ms; }
 }
 
 body.admin-dialog-open [data-admin-sidebar] { pointer-events: none; }
@@ -3911,6 +3942,8 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .admin-route-loading { opacity: 1; animation: none; }
+  .admin-skeleton-shape { animation: none; }
   .admin-shell *,
   .admin-shell *::before,
   .admin-shell *::after {

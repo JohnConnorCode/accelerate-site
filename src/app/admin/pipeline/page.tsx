@@ -5,6 +5,7 @@ import Link from "@/components/admin/AdminLink";
 import { ArrowUpRight, BookmarkPlus, Building2, Check, CircleDollarSign, Columns3, List, Loader2, Plus, RefreshCw, Search, Settings2, Target, Trash2, TriangleAlert, X } from "lucide-react";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { AdminSurface } from "@/components/admin/AdminSurface";
+import { AdminRouteSkeleton } from "@/components/admin/AdminRouteSkeleton";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { fetchJson } from "@/lib/admin/fetchJson";
@@ -76,7 +77,7 @@ export default function PipelinePage() {
   };
   const storeView = (event: FormEvent) => { event.preventDefault(); const next = savePipelineView(viewName, state); setSaved(next); setActiveSaved(next.find((item) => item.name.toLowerCase() === viewName.trim().toLowerCase())?.id ?? null); setViewName(""); setDialog(null); };
 
-  if (loading && !data) return <div className="grid min-h-[55vh] place-items-center"><Loader2 className="size-6 animate-spin text-[var(--admin-muted)]" /></div>;
+  if (loading && !data) return <AdminRouteSkeleton />;
   return <div className="space-y-6 pb-10">
     <PageHeader title="Pipeline" subtitle="Prioritize the work that moves revenue, then review every opportunity from one operating view." actions={<><button type="button" onClick={() => void load()} aria-label="Refresh pipeline" className="grid size-11 place-items-center rounded-xl shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"><RefreshCw className={cn("size-4", loading && "animate-spin")} /></button><button type="button" onClick={() => setDialog("create")} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]"><Plus className="size-4" /> New opportunity</button></>} />
     {error && <AdminSurface tone="attention" className="flex items-center gap-3"><TriangleAlert className="size-5 shrink-0 text-rose-600" /><p className="text-sm">{error}</p></AdminSurface>}

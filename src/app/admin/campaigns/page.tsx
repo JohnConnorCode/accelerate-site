@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
+import { AdminRouteSkeleton } from "@/components/admin/AdminRouteSkeleton";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { fetchJson } from "@/lib/admin/fetchJson";
@@ -217,12 +218,7 @@ export default function CampaignsPage() {
     }
   };
 
-  if (loading && !data)
-    return (
-      <div className="grid min-h-[55vh] place-items-center">
-        <Loader2 className="size-6 animate-spin text-[var(--admin-muted)]" />
-      </div>
-    );
+  if (loading && !data) return <AdminRouteSkeleton />;
   return (
     <div className="space-y-6 pb-10">
       <PageHeader

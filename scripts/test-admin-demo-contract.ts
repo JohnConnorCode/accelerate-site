@@ -72,4 +72,12 @@ const legacyDemoRoute = readFileSync("src/app/command-center/demo/page.tsx", "ut
 assert.match(legacyDemoRoute, /permanentRedirect\("\/demo\/command-center"\)/, "Legacy preview route must resolve to the full admin launcher");
 assert.doesNotMatch(legacyDemoRoute, /<CommandCenterDemo|components\/command-center\/demo/, "Legacy preview route must not render the obsolete standalone demo");
 
+for (const file of [
+  "src/app/admin/today/page.tsx",
+  "src/components/admin/NotificationBell.tsx",
+  "src/components/admin/RevenueAICommand.tsx",
+]) {
+  assert.doesNotMatch(readFileSync(file, "utf8"), /Sparkles/, `${file}: generic AI marks must not decorate repeated operational items`);
+}
+
 console.log(JSON.stringify({ result: "passed", scenarios: DEMO_SCENARIO_SUMMARIES.map((scenario) => scenario.id) }, null, 2));

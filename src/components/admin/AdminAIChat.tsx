@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "@/components/admin/AdminLink";
-import { Archive, Bot, Check, CircleAlert, Copy, ExternalLink, History, Loader2, MessageSquarePlus, NotebookPen, Octagon, RotateCcw, Send, Sparkles, ThumbsDown, ThumbsUp, Wrench } from "lucide-react";
+import { Archive, Bot, Check, CircleAlert, Copy, ExternalLink, History, Loader2, MessageSquarePlus, NotebookPen, Octagon, RotateCcw, Send, ThumbsDown, ThumbsUp, Wrench } from "lucide-react";
 import { useAdminAI, type AdminAIMessage } from "./AdminAIProvider";
 import { cn } from "@/lib/utils";
 
@@ -74,7 +74,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
     {mode === "panel" ? <select value={ai.activeConversationId ?? ""} onChange={(event) => void ai.selectConversation(event.target.value || null)} className="mt-2 min-h-10 w-full rounded-xl bg-[var(--admin-surface)] px-3 text-xs text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]">
       <option value="">New conversation</option>{ai.conversations.map((conversation) => <option key={conversation.id} value={conversation.id}>{conversation.title}</option>)}
     </select> : <div className="mt-3 space-y-1">
-      <button type="button" onClick={ai.startNew} className={cn("flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-left text-xs font-semibold", !ai.activeConversationId ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]" : "text-[var(--admin-muted)] hover:bg-black/[0.04] dark:hover:bg-white/[0.05]")}><Sparkles className="size-3.5" />New conversation</button>
+      <button type="button" onClick={ai.startNew} className={cn("flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-left text-xs font-semibold", !ai.activeConversationId ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]" : "text-[var(--admin-muted)] hover:bg-black/[0.04] dark:hover:bg-white/[0.05]")}><MessageSquarePlus className="size-3.5" />New conversation</button>
       {ai.conversations.map((conversation) => <button key={conversation.id} type="button" onClick={() => void ai.selectConversation(conversation.id)} className={cn("flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-left text-xs", ai.activeConversationId === conversation.id ? "bg-black/[0.06] font-semibold text-[var(--admin-ink)] dark:bg-white/[0.07]" : "text-[var(--admin-muted)] hover:bg-black/[0.04] dark:hover:bg-white/[0.05]")}><History className="size-3.5 shrink-0" /><span className="truncate">{conversation.title}</span></button>)}
     </div>}
   </aside>;

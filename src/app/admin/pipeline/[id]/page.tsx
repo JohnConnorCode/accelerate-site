@@ -24,6 +24,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { AdminSurface } from "@/components/admin/AdminSurface";
+import { AdminRouteSkeleton } from "@/components/admin/AdminRouteSkeleton";
 import { useAdminAI } from "@/components/admin/AdminAIProvider";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
@@ -139,7 +140,7 @@ export default function OpportunityRecordPage() {
     }
   }
 
-  if (loading && !record) return <div className="grid min-h-[55vh] place-items-center"><Loader2 className="size-6 animate-spin text-[var(--admin-muted)]" /></div>;
+  if (loading && !record) return <AdminRouteSkeleton />;
   if (!schemaReady) return <RevenueSetupGate />;
   if (!record) return (
     <div className="space-y-5">

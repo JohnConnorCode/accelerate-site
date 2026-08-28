@@ -278,7 +278,9 @@ export default function AdminShell({
         const data = await response.json() as { summary?: { urgent?: number } };
         if (!cancelled) setPriorityCount(Number(data.summary?.urgent || 0));
       } catch (error) {
-        if (!(error instanceof DOMException && error.name === "AbortError")) console.error("[admin-priority-count]", error);
+        // Chromium can surface an aborted navigation fetch as TypeError rather
+        // than AbortError. The controller is the authoritative lifecycle signal.
+        if (!cancelled && !controller?.signal.aborted) console.error("[admin-priority-count]", error);
       }
     };
     void refresh();
@@ -286,12 +288,18 @@ export default function AdminShell({
       if (document.visibilityState === "visible") void refresh();
     }, 30_000);
     const onRefresh = () => void refresh();
+    const onPageHide = () => {
+      cancelled = true;
+      controller?.abort();
+    };
     window.addEventListener("admin:priority-refresh", onRefresh);
+    window.addEventListener("pagehide", onPageHide);
     return () => {
       cancelled = true;
       controller?.abort();
       window.clearInterval(interval);
       window.removeEventListener("admin:priority-refresh", onRefresh);
+      window.removeEventListener("pagehide", onPageHide);
     };
   }, []);
 

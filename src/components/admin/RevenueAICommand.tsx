@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { Bot, CheckCircle2, Loader2, Send, Sparkles } from "lucide-react";
+import { Bot, CheckCircle2, Loader2, Send } from "lucide-react";
 import { AdminSurface } from "./AdminSurface";
 import { useAdminAI } from "./AdminAIProvider";
 
@@ -31,7 +31,7 @@ export function RevenueAICommand({ compact = false, onProposed }: { compact?: bo
       <span className="hidden items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-emerald-700 dark:text-emerald-300 sm:flex"><CheckCircle2 className="size-3" />Gated</span>
     </div>
     <form onSubmit={(event) => submit(event)} className="p-4 pt-0 sm:p-5 sm:pt-0">
-      {!compact && <div className="mb-3 flex flex-wrap gap-2">{starters.map((starter) => <button key={starter} type="button" onClick={() => submit(undefined, starter)} disabled={ai.running || ai.schemaReady === false} className="min-h-10 rounded-full px-3 text-xs font-medium text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)] transition-[color,box-shadow,transform] hover:text-[var(--admin-ink)] hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:opacity-40"><Sparkles className="mr-1.5 inline size-3" />{starter}</button>)}</div>}
+      {!compact && <div className="mb-3 flex flex-wrap gap-2">{starters.map((starter) => <button key={starter} type="button" onClick={() => submit(undefined, starter)} disabled={ai.running || ai.schemaReady === false} className="min-h-10 rounded-full px-3 text-xs font-medium text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)] transition-[color,box-shadow,transform] hover:text-[var(--admin-ink)] hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:opacity-40">{starter}</button>)}</div>}
       <div className="flex gap-2 rounded-2xl bg-black/[0.025] p-2 dark:bg-white/[0.025]"><input value={input} onChange={(event) => setInput(event.target.value)} placeholder="Ask about pipeline, replies, campaigns, or next actions…" className="min-h-11 min-w-0 flex-1 rounded-xl border border-transparent bg-[var(--admin-surface)] px-3.5 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none placeholder:text-[var(--admin-muted)]/70 focus:border-[var(--admin-ink)]/30 focus:shadow-[var(--admin-shadow-border-hover)]" /><button type="submit" disabled={!input.trim() || ai.running || ai.schemaReady === false} aria-label="Send command" className="grid size-11 shrink-0 place-items-center rounded-xl bg-[var(--admin-ink)] text-[var(--admin-surface)] transition-[opacity,transform] hover:opacity-85 active:scale-[0.96] disabled:opacity-35">{ai.running ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}</button></div>
       {ai.schemaReady === false && <p className="mt-3 text-xs text-amber-700 dark:text-amber-300">AI history is not ready. Apply the AI command runtime migration from Setup to enable shared conversations.</p>}
     </form>

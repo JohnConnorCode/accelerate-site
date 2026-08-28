@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "@/components/admin/AdminLink";
-import { Bell, Check, Inbox, Users, MessageCircle, Handshake, FileCheck, CheckSquare, AlertCircle, Eye, ArrowRight, CalendarClock, Sparkles, X } from "lucide-react";
+import { Bell, Check, Inbox, Users, MessageCircle, Handshake, FileCheck, CheckSquare, AlertCircle, Eye, ArrowRight, CalendarClock, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/admin/useToast";
@@ -56,7 +56,7 @@ const priorityIcons: Record<PriorityItem["kind"], LucideIcon> = {
   follow_up: CheckSquare,
   proposal: FileCheck,
   meeting: CalendarClock,
-  approval: Sparkles,
+  approval: FileCheck,
   system: AlertCircle,
 };
 

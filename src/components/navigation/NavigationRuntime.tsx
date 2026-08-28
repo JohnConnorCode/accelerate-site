@@ -26,6 +26,7 @@ interface NavigationRuntimeValue {
   shouldAnimateRoute: boolean;
   beginNavigation: (intent: NavigationIntent) => void;
   registerAdminScroller: (node: HTMLElement | null) => void;
+  registerLoadingBoundary: (id: string, active: boolean) => void;
 }
 
 const NavigationRuntimeContext = createContext<NavigationRuntimeValue | null>(null);
@@ -77,6 +78,7 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
   const popTargetId = useRef<string | null>(null);
   const adminScroller = useRef<HTMLElement | null>(null);
   const [pending, setPending] = useState(false);
+  const [loadingBoundaries, setLoadingBoundaries] = useState<Set<string>>(() => new Set());
   const [hasNavigated, setHasNavigated] = useState(false);
   const [announcement, setAnnouncement] = useState("");
 
@@ -112,6 +114,15 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
 
   const registerAdminScroller = useCallback((node: HTMLElement | null) => {
     adminScroller.current = node;
+  }, []);
+
+  const registerLoadingBoundary = useCallback((id: string, active: boolean) => {
+    setLoadingBoundaries((current) => {
+      const next = new Set(current);
+      if (active) next.add(id);
+      else next.delete(id);
+      return next;
+    });
   }, []);
 
   useEffect(() => {
@@ -158,6 +169,7 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
     if (previousPathname.current === pathname) return;
     const restoreTimers: number[] = [];
     let focusFrame = 0;
+    let focusObserver: MutationObserver | null = null;
     let focusedTarget: HTMLElement | null = null;
 
     const recordedIntent = intent.current;
@@ -195,7 +207,12 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
 
     const focusDestination = () => {
       const root = isAdminPath(pathname) ? adminScroller.current : document.getElementById("main-content");
+      if (root?.querySelector("[data-admin-route-loading]")) return false;
       const heading = root?.querySelector<HTMLElement>("h1, [data-route-heading]");
+      // Client admin pages may commit a local data placeholder before their
+      // real page header exists. The heading is the semantic destination; the
+      // persistent application viewport is not a successful forward handoff.
+      if (isAdminPath(pathname) && !heading) return false;
       const focusTarget = heading || root;
       if (!restoresHistory && focusTarget) {
         const active = document.activeElement;
@@ -210,31 +227,39 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
         }
       }
       setAnnouncement(document.title);
+      return Boolean(focusTarget);
     };
     focusFrame = requestAnimationFrame(() => {
-      focusDestination();
-      // A streamed route can replace its first loading tree after the commit.
-      // Re-run once after that bounded handoff so focus lands on the real page
-      // heading rather than returning to the persistent navigation control.
-      if (!restoresHistory) {
-        restoreTimers.push(window.setTimeout(focusDestination, 80));
-        restoreTimers.push(window.setTimeout(focusDestination, 320));
-        restoreTimers.push(window.setTimeout(focusDestination, 720));
-        restoreTimers.push(window.setTimeout(focusDestination, 1200));
+      const focused = focusDestination();
+      const root = isAdminPath(pathname) ? adminScroller.current : document.getElementById("main-content");
+      if (!restoresHistory && root && !focused) {
+        // React Server Components may replace the committed heading after the
+        // URL changes. Observe that real DOM handoff instead of guessing at
+        // network timing. The interaction guard in focusDestination prevents
+        // this route-scoped observer from stealing focus after the user moves it.
+        focusObserver = new MutationObserver(() => {
+          if (focusDestination()) {
+            focusObserver?.disconnect();
+            focusObserver = null;
+          }
+        });
+        focusObserver.observe(root, { childList: true, subtree: true });
       }
     });
     return () => {
       cancelAnimationFrame(focusFrame);
+      focusObserver?.disconnect();
       restoreTimers.forEach((timer) => window.clearTimeout(timer));
     };
   }, [getScrollPosition, isAdminPath, pathname, setScrollPosition]);
 
   const value = useMemo<NavigationRuntimeValue>(() => ({
-    pending,
+    pending: pending || loadingBoundaries.size > 0,
     shouldAnimateRoute: hasNavigated,
     beginNavigation,
     registerAdminScroller,
-  }), [beginNavigation, hasNavigated, pending, registerAdminScroller]);
+    registerLoadingBoundary,
+  }), [beginNavigation, hasNavigated, loadingBoundaries, pending, registerAdminScroller, registerLoadingBoundary]);
 
   return (
     <NavigationRuntimeContext.Provider value={value}>
