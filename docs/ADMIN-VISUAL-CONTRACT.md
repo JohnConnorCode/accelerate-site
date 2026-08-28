@@ -19,3 +19,6 @@
   navigation must never leave an empty application frame.
 - Reduced motion removes blur, translation, and breathing without changing
   route, focus, or loading semantics.
+- Server-rendered demos expose their layout immediately but remain inert until
+  session state has hydrated; automated journeys wait on the same explicit
+  readiness marker a control relies on, never an arbitrary timeout.

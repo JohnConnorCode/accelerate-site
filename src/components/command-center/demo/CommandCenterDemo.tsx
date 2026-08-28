@@ -107,7 +107,7 @@ const ITEM: Variants = {
 const CORE_DEMO_VIEWS = new Set(["today", "approvals", "people", "ask", "meeting"]);
 
 export function CommandCenterDemo({ standalone = false }: { standalone?: boolean }) {
-  const [view, setView] = useDemoSessionState<string>("view", "approvals");
+  const [view, setView, demoHydrated] = useDemoSessionState<string>("view", "approvals");
   const [approved, setApproved] = useDemoSessionState("approved", 11);
   const [pending, setPending] = useDemoSessionState("pending", DEMO_ACTIONS.length);
   const [visited, setVisited] = useDemoSessionState<string[]>("visited", ["approvals"]);
@@ -174,6 +174,9 @@ export function CommandCenterDemo({ standalone = false }: { standalone?: boolean
   return (
     <motion.div 
       ref={ref}
+      data-demo-interactive={demoHydrated ? "true" : "false"}
+      aria-busy={!demoHydrated}
+      inert={!demoHydrated}
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       style={reduced ? undefined : { rotateX, rotateY, transformStyle: "preserve-3d" }}

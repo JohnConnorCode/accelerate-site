@@ -24,7 +24,9 @@ async function openDemo(viewport, label) {
   const demo = page.locator("#demo .cc").first();
   await demo.scrollIntoViewIfNeeded();
   await demo.getByText("Fictional sample data.", { exact: false }).waitFor();
-  // Let session-backed demo state hydrate before changing the selected view.
+  // Server-rendered controls remain inert until session-backed state has
+  // restored. This marker proves the interaction contract, not merely paint.
+  await page.locator('#demo .cc[data-demo-interactive="true"]').waitFor();
   await demo.getByRole("heading", { name: "6 waiting on you" }).waitFor();
   return { context, page, demo };
 }

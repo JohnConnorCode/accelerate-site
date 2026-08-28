@@ -50,5 +50,5 @@ export function useDemoSessionState<T>(key: string, initialValue: T) {
     window.sessionStorage.setItem(demoStorageKey(key), JSON.stringify(value));
   }, [hydrated, key, value]);
 
-  return [value, setValue] as const;
+  return [value, setValue, hydrated] as const;
 }
