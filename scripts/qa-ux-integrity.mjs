@@ -18,18 +18,64 @@ async function assertNoSeriousAxe(page, label) {
   if (violations.length) failures.push(`${label}: axe ${violations.map((item) => `${item.id} (${item.nodes.map((node) => node.target.join(" ")).join("; ")})`).join(", ")}`);
 }
 
-async function openToday(page) {
+async function openToday(page, label) {
   await page.goto(`${base}/demo/command-center/northline-roofing/today`, { waitUntil: "domcontentloaded" });
   await page.locator(".admin-shell").waitFor();
+  const priorityTabs = page.locator("[data-priority-tabs]");
+  await priorityTabs.waitFor();
+  const contentGaps = await page.locator("[data-today-content-stack]").evaluate((stack) => {
+    const visibleChildren = [...stack.children].filter((child) => {
+      const style = getComputedStyle(child);
+      const rect = child.getBoundingClientRect();
+      return style.display !== "none" && rect.height > 0;
+    });
+    return visibleChildren.slice(1).map((child, index) => {
+      const previous = visibleChildren[index].getBoundingClientRect();
+      const current = child.getBoundingClientRect();
+      return current.top - previous.bottom;
+    });
+  });
+  check(contentGaps.length > 0 && contentGaps.every((gap) => gap >= 19.5), `${label}: Today cards are touching or cramped (${contentGaps.map((gap) => `${gap.toFixed(1)}px`).join(", ")})`);
+  const aiCard = page.locator("[data-revenue-ai-card]");
+  const aiHeaderInset = await aiCard.evaluate((card) => {
+    const cardRect = card.getBoundingClientRect();
+    const textRect = card.querySelector("[data-ai-card-header] .admin-eyebrow").getBoundingClientRect();
+    return textRect.left - cardRect.left;
+  });
+  check(aiHeaderInset >= 16 && aiHeaderInset <= 24, `${label}: AI card header is arbitrarily indented (${aiHeaderInset.toFixed(1)}px)`);
+  const scrollbar = await priorityTabs.evaluate((node) => ({
+    standard: getComputedStyle(node).scrollbarWidth,
+    webkit: getComputedStyle(node, "::-webkit-scrollbar").display,
+  }));
+  check(scrollbar.standard === "none", `${label}: priority tabs expose the standard scrollbar (${JSON.stringify(scrollbar)})`);
+  check(scrollbar.webkit === "none", `${label}: priority tabs expose the WebKit scrollbar (${JSON.stringify(scrollbar)})`);
+  await page.screenshot({ path: `${output}/priority-tabs-load-${label}.png`, fullPage: false });
+  await aiCard.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: `${output}/today-ai-card-${label}.png`, fullPage: false });
   await page.getByRole("button", { name: "Approvals", exact: true }).click();
   const row = page.locator('[data-today-workspace] button[aria-haspopup="dialog"]').first();
-  await row.click();
+  await row.click({ noWaitAfter: true });
+  const animatedSurface = page.locator('[data-admin-overlay="dialog"]');
+  await animatedSurface.waitFor({ state: "attached" });
+  const entranceFrames = [];
+  for (const delay of [0, 72, 180]) {
+    if (delay) await page.waitForTimeout(delay - (entranceFrames.at(-1)?.at || 0));
+    entranceFrames.push(await animatedSurface.evaluate((node, at) => ({
+      at,
+      opacity: Number.parseFloat(getComputedStyle(node).opacity),
+      transform: getComputedStyle(node).transform,
+    }), delay));
+  }
+  const entranceSignatures = new Set(entranceFrames.map((frame) => `${frame.opacity.toFixed(3)}:${frame.transform}`));
+  check(entranceSignatures.size >= 2 && entranceFrames.at(-1).opacity > entranceFrames[0].opacity, `${label}: approval dialog did not visibly interpolate on entry (${JSON.stringify(entranceFrames)})`);
   const dialog = page.getByRole("dialog").filter({ hasText: "Review before approving" });
   await dialog.waitFor();
   await page.waitForFunction(() => new URL(location.href).searchParams.has("action"));
   check(new URL(page.url()).searchParams.has("action"), "today: approval click did not preserve a deep link");
   check(await dialog.evaluate((node) => node.contains(document.activeElement)), "today: approval dialog did not receive focus");
   await page.keyboard.press("Escape");
+  await page.waitForTimeout(16);
+  check(await animatedSurface.count() === 1, `${label}: approval dialog unmounted before its exit transition could run`);
   await dialog.waitFor({ state: "detached" });
   await page.waitForFunction(() => !new URL(location.href).searchParams.has("action"));
   await page.waitForFunction(() => document.activeElement?.hasAttribute("data-approval-review"));
@@ -38,11 +84,11 @@ async function openToday(page) {
 }
 
 for (const [label, viewport] of [["desktop", { width: 1440, height: 1000 }], ["mobile", { width: 390, height: 844 }]]) {
-  const context = await browser.newContext({ viewport, reducedMotion: "reduce" });
+  const context = await browser.newContext({ viewport, reducedMotion: "no-preference" });
   const page = await context.newPage();
   page.on("pageerror", (error) => failures.push(`${label}: ${error.message}`));
 
-  await openToday(page);
+  await openToday(page, label);
 
   const bell = page.locator('button[aria-label^="Open command center alerts"]:visible').first();
   const buttonBox = await bell.boundingBox();

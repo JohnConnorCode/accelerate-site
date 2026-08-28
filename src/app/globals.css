@@ -1143,7 +1143,7 @@ body.modal-open [data-dock] {
    UNIVERSAL SECTION ENTRANCE REVEAL
    ────────────────────────────────────────────────────────────────────────── */
 @keyframes route-entry-in {
-  from { opacity: 0.94; filter: blur(4px); }
+  from { opacity: 0.88; filter: blur(5px); }
   to { opacity: 1; filter: blur(0); }
 }
 
@@ -1158,7 +1158,14 @@ body.modal-open [data-dock] {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .route-entry.is-entering { animation: route-entry-in 220ms var(--ease-out) both; }
+  .route-entry {
+    transition: opacity 140ms var(--ease-out), filter 140ms var(--ease-out);
+  }
+  .route-entry.is-leaving {
+    opacity: 0.86;
+    filter: blur(2px);
+  }
+  .route-entry.is-entering { animation: route-entry-in 360ms var(--ease-out) both; }
   .motion-ready .word-mask-heading:not(.in) .word-mask-word > span {
     transform: translateY(112%);
   }
@@ -1239,11 +1246,11 @@ body.modal-open [data-dock] {
 }
 
 .navigation-progress[data-active="true"] {
-  animation: navigation-progress-in 120ms linear 120ms both;
+  animation: navigation-progress-in 80ms linear 60ms both;
 }
 
 .navigation-progress[data-active="true"] > span {
-  animation: navigation-progress-travel 900ms var(--ease-out) 120ms infinite;
+  animation: navigation-progress-travel 900ms var(--ease-out) 60ms infinite;
 }
 
 @media (max-width: 640px) and (prefers-reduced-motion: no-preference) {
@@ -2930,17 +2937,16 @@ summary:focus-visible {
     flex-direction: column;
     min-width: 0;
     max-width: 100%;
-    min-height: calc(100svh - var(--hero-mobile-top) - var(--hero-mobile-bottom));
+    min-height: 0;
     overflow: hidden;
   }
   .hero-band .hero-top .hero-inline-cta {
-    margin-top: auto;
     width: 100%;
     padding-bottom: 4px;
   }
-  /* The proof statement begins just below the opening screen. This margin is
-     the same bottom breathing room reserved inside the fold, not a spacer:
-     the CTA is the last visible element and the proof starts at the fold. */
+  /* The proof follows the complete opening group without stretching that
+     group to the viewport height. This keeps the primary action attached to
+     PROFIT on tall phones instead of manufacturing a dead spacer above it. */
   .hero-band .hero-btm { margin-top: clamp(30px, 4dvh, 40px); padding-top: clamp(16px, 2.2dvh, 22px); }
   .hero-band .hero-btm .lede { font-size: clamp(14px, 2.1dvh, 15.5px); line-height: 1.5; }
   .hero-band .mq { display: block; }
@@ -2948,15 +2954,13 @@ summary:focus-visible {
   .hero { --word-blur: 9px; }
   .hero h1 {
     display: flex;
-    flex: 1;
+    flex: 0 0 auto;
     flex-direction: column;
     min-height: 0;
     margin-top: clamp(12px, 2.2svh, 18px);
   }
-  /* Keep the headline attached to the eyebrow. The closing group below owns
-     the elastic height, allowing PROFIT to become the middle pivot and the
-     booking action to stay fixed as the last beat instead of pushing the
-     whole headline downward on tall phones. */
+  /* Keep the headline attached to the eyebrow. The closing group is
+     content-sized so its two beats keep an intentional, stable rhythm. */
   .hero .h1-word-row {
     flex: 0 0 auto;
   }
@@ -2971,10 +2975,10 @@ summary:focus-visible {
   .hero-row-cta {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(min-content, 1fr) auto;
-    flex: 1 1 auto;
-    row-gap: clamp(12px, 2svh, 18px);
-    margin-top: clamp(3px, .7svh, 6px);
+    grid-template-rows: auto auto;
+    flex: 0 0 auto;
+    row-gap: clamp(22px, 3svh, 30px);
+    margin-top: clamp(14px, 2svh, 20px);
   }
   .hero-inline-cta { width: 100%; margin: 0; }
   .hero-inline-cta .btn {
@@ -3036,7 +3040,7 @@ summary:focus-visible {
   .hero h1 { margin-top: 8px; }
   .hero .h1 { font-size: clamp(2.2rem, min(13vw, 6.5svh), 2.8rem); line-height: 0.96; }
   .hero-profit { font-size: clamp(3.25rem, min(15vw, 8.4svh), 4rem); }
-  .hero-row-cta { row-gap: 10px; margin-top: 6px; }
+  .hero-row-cta { row-gap: 18px; margin-top: 12px; }
   .hero-inline-cta .btn { min-height: 54px; }
 }
 
@@ -4050,6 +4054,46 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 
 .admin-route-frame { width: 100%; max-width: 1500px; margin-inline: auto; }
 
+@keyframes admin-route-stage-in {
+  from { opacity: 0.84; filter: blur(5px); }
+  to { opacity: 1; filter: blur(0); }
+}
+
+@keyframes admin-route-section-in {
+  from { opacity: 0; transform: translateY(8px); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .admin-route-frame > .admin-route-stage {
+    transition: opacity 130ms var(--ease-out), filter 130ms var(--ease-out), transform 130ms var(--ease-out);
+  }
+
+  .admin-route-frame[data-navigation-pending="true"] > .admin-route-stage {
+    opacity: 0.82;
+    filter: blur(1.5px);
+    transform: translateY(-2px);
+  }
+
+  .admin-route-stage {
+    animation: admin-route-stage-in 320ms var(--ease-out) both;
+  }
+
+  .admin-route-stage > * > * {
+    animation: admin-route-section-in 380ms var(--ease-out) both;
+  }
+
+  .admin-route-stage > * > *:nth-child(1) { animation-delay: 40ms; }
+  .admin-route-stage > * > *:nth-child(2) { animation-delay: 88ms; }
+  .admin-route-stage > * > *:nth-child(3) { animation-delay: 136ms; }
+  .admin-route-stage > * > *:nth-child(4) { animation-delay: 184ms; }
+  .admin-route-stage > * > *:nth-child(5) { animation-delay: 232ms; }
+  .admin-route-stage > * > *:nth-child(6) { animation-delay: 280ms; }
+  .admin-route-stage > * > *:nth-child(7) { animation-delay: 328ms; }
+  .admin-route-stage > * > *:nth-child(8) { animation-delay: 376ms; }
+  .admin-route-stage > * > *:nth-child(n + 9) { animation-delay: 424ms; }
+}
+
 @keyframes admin-skeleton-reveal {
   from { opacity: 0.22; }
   to { opacity: 1; }
@@ -4155,13 +4199,12 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   .admin-route-loading { opacity: 1; animation: none; }
   .admin-mobile-dock-active { transform: none !important; transition: none !important; }
   .admin-skeleton-shape { animation: none; }
-  .admin-shell *,
-  .admin-shell *::before,
-  .admin-shell *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+  .admin-shell { scroll-behavior: auto; }
+  .admin-route-stage,
+  .admin-route-stage > * > * { opacity: 1; filter: none; transform: none; animation: none; }
+  .admin-mobile-dock-item,
+  .admin-surface-interactive,
+  .admin-icon-button,
+  .admin-composer-action { transition-duration: 100ms; }
   .admin-surface-interactive:hover { transform: none; }
 }

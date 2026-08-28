@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
@@ -116,19 +116,14 @@ export default function AdminContentPage() {
         onEdit={handleEdit}
       />
 
-      <AnimatePresence>
-        {showForm && (
-          <ContentItemForm
-            item={editingItem}
-            onSave={handleSave}
-            onDelete={handleDelete}
-            onClose={() => {
-              setShowForm(false);
-              setEditingItem(null);
-            }}
-          />
-        )}
-      </AnimatePresence>
+      <ContentItemForm
+        key={editingItem?.id ?? "new"}
+        open={showForm}
+        item={editingItem}
+        onSave={handleSave}
+        onDelete={handleDelete}
+        onClose={() => setShowForm(false)}
+      />
     </motion.div>
   );
 }

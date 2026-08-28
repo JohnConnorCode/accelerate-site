@@ -181,14 +181,14 @@ function BoardColumn({ status, features, dragDisabled, onOpen }: { status: Featu
   );
 }
 
-function FeatureDialog({ feature, defaultStatus, saving, onClose, onSave, onArchive }: { feature: FeatureRequest | null; defaultStatus: FeatureStatus; saving: boolean; onClose: () => void; onSave: (payload: Record<string, unknown>) => Promise<void>; onArchive: (feature: FeatureRequest) => Promise<void> }) {
+function FeatureDialog({ open, feature, defaultStatus, saving, onClose, onSave, onArchive }: { open: boolean; feature: FeatureRequest | null; defaultStatus: FeatureStatus; saving: boolean; onClose: () => void; onSave: (payload: Record<string, unknown>) => Promise<void>; onArchive: (feature: FeatureRequest) => Promise<void> }) {
   const [form, setForm] = useState(() => ({ ...featureForm(feature), status: feature?.status ?? defaultStatus }));
   const inputClass = "mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal text-[var(--admin-ink)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[var(--admin-muted)]/65 focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10";
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     await onSave({ ...form, id: feature?.id, labels: form.labels.split(",").map((label) => label.trim()).filter(Boolean) });
   };
-  return <AdminDialog open onClose={onClose} title={feature ? "Edit feature" : "Add feature"} labelledBy="feature-dialog-title" maxWidth="lg">
+  return <AdminDialog open={open} onClose={onClose} title={feature ? "Edit feature" : "Add feature"} labelledBy="feature-dialog-title" maxWidth="lg">
     <form onSubmit={(event) => void submit(event)} className="max-h-[92dvh] w-full overflow-y-auto rounded-t-[24px] bg-[var(--admin-surface)] shadow-2xl sm:rounded-[24px]">
       <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]/95 px-5 py-4 backdrop-blur-xl sm:px-6">
         <div><p className="admin-eyebrow">Feature board</p><h2 id="feature-dialog-title" className="mt-1 text-balance text-xl font-semibold tracking-[-0.03em] text-[var(--admin-ink)]">{feature ? "Feature details" : "Add feature"}</h2></div>
@@ -266,7 +266,8 @@ export default function FeaturesPage() {
   const [milestone, setMilestone] = useState<string>(DEFAULT_MILESTONE_FILTER);
   const [category, setCategory] = useState("all");
   const [capability, setCapability] = useState("all");
-  const [openFeature, setOpenFeature] = useState<FeatureRequest | null | undefined>(undefined);
+  const [openFeature, setOpenFeature] = useState<FeatureRequest | null>(null);
+  const [featureDialogOpen, setFeatureDialogOpen] = useState(false);
   const [newStatus, setNewStatus] = useState<FeatureStatus>("backlog");
   const [activeId, setActiveId] = useState<string | null>(null);
   const dragSnapshotRef = useRef<FeatureRequest[] | null>(null);
@@ -310,7 +311,7 @@ export default function FeaturesPage() {
     try {
       const updated = await fetchJson<FeatureRequest>("/api/admin/features", { method: payload.id ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       setData((current) => current ? { ...current, features: payload.id ? current.features.map((feature) => feature.id === updated.id ? updated : feature) : [...current.features, updated] } : current);
-      setOpenFeature(undefined);
+      setFeatureDialogOpen(false);
       toast.success(payload.id ? "Feature updated" : "Feature added to the board");
     } catch (saveError) { toast.error(saveError instanceof Error ? saveError.message : "Could not save feature."); }
     finally { setSaving(false); }
@@ -322,7 +323,7 @@ export default function FeaturesPage() {
     try {
       await fetchJson(`/api/admin/features?id=${encodeURIComponent(feature.id)}`, { method: "DELETE" });
       setData((current) => current ? { ...current, features: current.features.filter((item) => item.id !== feature.id) } : current);
-      setOpenFeature(undefined);
+      setFeatureDialogOpen(false);
       toast.success("Feature archived");
     } catch (archiveError) { toast.error(archiveError instanceof Error ? archiveError.message : "Could not archive feature."); }
     finally { setSaving(false); }
@@ -383,7 +384,7 @@ export default function FeaturesPage() {
 
   if (loading && !data) return <AdminPageLoading title="Feature Board" subtitle="A dependency-ordered execution queue. Milestone says when, category says who owns it, and capability says what it changes." variant="board" />;
   return <div className="space-y-6 pb-10">
-    <PageHeader title="Feature Board" subtitle="A dependency-ordered execution queue. Milestone says when, category says who owns it, and capability says what it changes." actions={<><button type="button" onClick={() => void load()} disabled={loading} aria-label="Refresh feature board" className="grid size-11 place-items-center rounded-xl text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"><RefreshCw className={cn("size-4", loading && "animate-spin")} /></button><button type="button" onClick={() => { setNewStatus("backlog"); setOpenFeature(null); }} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]"><Plus className="size-3.5" /> New feature</button></>} />
+    <PageHeader title="Feature Board" subtitle="A dependency-ordered execution queue. Milestone says when, category says who owns it, and capability says what it changes." utilityActions={<button type="button" onClick={() => void load()} disabled={loading} aria-label="Refresh feature board" className="admin-icon-button shadow-[var(--admin-shadow-border)]"><RefreshCw className={cn("size-4", loading && "animate-spin")} /></button>} actions={<button type="button" onClick={() => { setNewStatus("backlog"); setOpenFeature(null); setFeatureDialogOpen(true); }} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]"><Plus className="size-3.5" /> New feature</button>} />
     {error && <AdminSurface tone="attention" className="flex items-center gap-3"><TriangleAlert className="size-5 shrink-0 text-rose-600" /><p className="text-sm text-[var(--admin-ink)]">{error}</p></AdminSurface>}
     {data && !data.schemaReady ? <RevenueSetupGate title="Activate the Feature Board" migration="migrations/20260816-feature-board.sql" detail="The migration seeds the known Revenue OS roadmap without overwriting future edits." /> : data && <>
       <section className="grid gap-3 sm:grid-cols-3">
@@ -398,12 +399,12 @@ export default function FeaturesPage() {
       </AdminSurface>
       <DndContext sensors={sensors} collisionDetection={closestCorners} measuring={{ droppable: { strategy: MeasuringStrategy.Always } }} autoScroll onDragStart={handleDragStart} onDragOver={handleDragOver} onDragCancel={cancelDrag} onDragEnd={(event) => void handleDragEnd(event)}>
         <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-5 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 xl:-mx-10 xl:px-10">
-          {FEATURE_STATUSES.map((status) => <BoardColumn key={status} status={status} features={byStatus(status)} dragDisabled={filtersActive} onOpen={(feature) => setOpenFeature(feature)} />)}
+          {FEATURE_STATUSES.map((status) => <BoardColumn key={status} status={status} features={byStatus(status)} dragDisabled={filtersActive} onOpen={(feature) => { setOpenFeature(feature); setFeatureDialogOpen(true); }} />)}
         </div>
         <DragOverlay adjustScale={false} dropAnimation={null}>{activeFeature ? <FeatureCard feature={activeFeature} disabled overlay /> : null}</DragOverlay>
       </DndContext>
       <div className="flex flex-col gap-2 rounded-2xl bg-black/[0.025] px-4 py-3 text-xs text-[var(--admin-muted)] dark:bg-white/[0.025] sm:flex-row sm:items-center sm:justify-between"><p>Drag by the grip to reprioritize or move work. Open a card for its definition of done and implementation notes.</p><p className="shrink-0 font-mono text-[10px] tabular-nums">Order saves automatically</p></div>
     </>}
-    {openFeature !== undefined && <FeatureDialog key={openFeature?.id ?? `new-${newStatus}`} feature={openFeature} defaultStatus={newStatus} saving={saving} onClose={() => setOpenFeature(undefined)} onSave={saveFeature} onArchive={archiveFeature} />}
+    <FeatureDialog key={openFeature?.id ?? `new-${newStatus}`} open={featureDialogOpen} feature={openFeature} defaultStatus={newStatus} saving={saving} onClose={() => setFeatureDialogOpen(false)} onSave={saveFeature} onArchive={archiveFeature} />
   </div>;
 }

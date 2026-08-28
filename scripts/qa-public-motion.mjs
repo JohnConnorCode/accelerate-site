@@ -110,14 +110,25 @@ async function captureFramerRevealEntry(page, selector) {
 }
 
 async function togglePublicTheme(page, target) {
-  const label = new RegExp(`Switch to ${target} mode`);
-  let toggle = page.getByRole("button", { name: label }).first();
+  // The document theme is set by a prepaint script, before React has attached
+  // the mobile-menu handler or mounted ThemeToggle. Wait for the shared
+  // hydration signal so this test performs a real user interaction.
+  await page.waitForFunction(() => document.documentElement.dataset.motionHydrated === "true");
+  const accessibleName = `Switch to ${target} mode`;
+  let toggle = page.locator(`button[aria-label="${accessibleName}"]:visible`).first();
   if (!await toggle.count()) {
     await page.getByRole("button", { name: "Open navigation menu" }).click();
-    toggle = page.getByRole("button", { name: label }).first();
-    await toggle.click();
+    toggle = page.locator(`button[aria-label="${accessibleName}"]:visible`).first();
+    await toggle.waitFor();
+    await toggle.focus();
+    await page.keyboard.press("Enter");
     await page.getByRole("button", { name: "Close navigation menu" }).click();
-  } else await toggle.click();
+  } else {
+    // Exercise the accessible button contract without allowing Next's
+    // development-only indicator portal to intercept pointer coordinates.
+    await toggle.focus();
+    await page.keyboard.press("Enter");
+  }
   await page.waitForFunction((theme) => document.documentElement.dataset.theme === theme, target);
 }
 
@@ -129,7 +140,15 @@ for (const config of [
   const context = await browser.newContext({ viewport: config.viewport, reducedMotion: config.reducedMotion });
   let page = await context.newPage();
   const errors = [];
-  page.on("pageerror", (error) => errors.push(error.message));
+  const observeRuntime = (target) => {
+    target.on("pageerror", (error) => errors.push(error.message));
+    target.on("response", (response) => {
+      if (response.status() < 400) return;
+      const url = new URL(response.url());
+      if (["/api/event", "/js/script.js"].includes(url.pathname)) return;
+      errors.push(`${response.status()} ${url.pathname}`);
+    });
+  };
   page.on("response", (response) => {
     if (response.status() < 400) return;
     const url = new URL(response.url());
@@ -137,6 +156,13 @@ for (const config of [
     errors.push(`${response.status()} ${url.pathname}`);
   });
   for (const route of smokeRoutes) await inspectInitial(page, route, config.label);
+  // The prerender smoke pass deliberately replaces documents at
+  // DOMContentLoaded before React must hydrate them. Start functional QA from
+  // a clean document so an intentionally aborted hydration is not mistaken
+  // for a route defect.
+  await page.close();
+  page = await context.newPage();
+  observeRuntime(page);
   for (const route of routes) await inspectRoute(page, route, config.label, config.label === "desktop" ? 120 : 24);
 
   await page.goto(`${baseUrl}/work`, { waitUntil: "domcontentloaded" });
@@ -191,12 +217,21 @@ for (const config of [
     if (!industryReveal || industryReveal.ratio > 0.8) failures.push(`${config.label}: industry content did not use the shared viewport reveal`);
   }
   await page.goto(`${baseUrl}/work`, { waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => document.documentElement.dataset.motionHydrated === "true");
   const firstCard = page.locator('[data-work-card="work-shelter"] a').first();
-  await firstCard.click();
+  await firstCard.click({ noWaitAfter: true });
   await page.waitForURL("**/work/work-shelter");
-  const linkedRouteFacts = await page.locator("[data-route-entry]").evaluate((node) => ({ opacity: Number.parseFloat(getComputedStyle(node).opacity), animation: getComputedStyle(node).animationName }));
-  if (linkedRouteFacts.opacity < 0.9) failures.push(`${config.label}: client-side Work navigation produced a hidden incoming route`);
-  if (config.reducedMotion === "no-preference" && !linkedRouteFacts.animation.includes("route-entry-in")) failures.push(`${config.label}: client-side route entrance animation is not active`);
+  const linkedRoute = page.locator("[data-route-entry]");
+  const linkedRouteFrames = [];
+  for (const wait of [0, 80, 300]) {
+    if (wait) await page.waitForTimeout(wait);
+    linkedRouteFrames.push(await linkedRoute.evaluate((node) => ({ opacity: Number.parseFloat(getComputedStyle(node).opacity), animation: getComputedStyle(node).animationName, filter: getComputedStyle(node).filter })));
+  }
+  if (linkedRouteFrames.at(-1).opacity < 0.99) failures.push(`${config.label}: client-side Work navigation did not settle visibly`);
+  if (config.reducedMotion === "no-preference") {
+    const signatures = new Set(linkedRouteFrames.map((frame) => `${frame.opacity.toFixed(3)}:${frame.filter}`));
+    if (!linkedRouteFrames.some((frame) => frame.animation.includes("route-entry-in")) || signatures.size < 2) failures.push(`${config.label}: client-side route entrance did not interpolate through visible frames`);
+  }
   if (config.reducedMotion === "no-preference") {
     const heroSequence = await page.locator(".work-hero-enter, .work-hero-meta > *").evaluateAll((nodes) => nodes.map((node) => ({ name: getComputedStyle(node).animationName, delay: Number.parseFloat(getComputedStyle(node).animationDelay) })));
     const orderedDelays = [...heroSequence].map((item) => item.delay).sort((a, b) => a - b);
@@ -208,7 +243,8 @@ for (const config of [
   }
   await page.goBack({ waitUntil: "domcontentloaded" });
   await page.goForward({ waitUntil: "domcontentloaded" });
-  if (await page.locator("[data-route-entry]").evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity)) < 0.9) failures.push(`${config.label}: back-forward navigation produced hidden content`);
+  await page.waitForTimeout(config.reducedMotion === "no-preference" ? 420 : 20);
+  if (await page.locator("[data-route-entry]").evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity)) < 0.99) failures.push(`${config.label}: back-forward navigation did not settle visibly`);
 
   if (config.reducedMotion === "no-preference") {
     // Retire the animation-heavy Work document after its back/forward receipt
@@ -216,7 +252,7 @@ for (const config of [
     // competing with the homepage's first reveal measurement in long QA runs.
     await page.close();
     page = await context.newPage();
-    page.on("pageerror", (error) => errors.push(error.message));
+    observeRuntime(page);
     await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded" });
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(50);
@@ -251,14 +287,17 @@ for (const config of [
         const words = document.querySelector(".hero .h1-word-row").getBoundingClientRect();
         const closing = document.querySelector(".hero-row-cta").getBoundingClientRect();
         const profit = document.querySelector(".hero-profit").getBoundingClientRect();
+        const cta = document.querySelector(".hero-inline-cta").getBoundingClientRect();
         return {
           statementGap: closing.top - words.bottom,
           profitOffset: profit.top - closing.top,
+          actionGap: cta.top - profit.bottom,
           profitOpacity: Number.parseFloat(getComputedStyle(document.querySelector(".hero-profit")).opacity),
           ctaOpacity: Number.parseFloat(getComputedStyle(document.querySelector(".hero-inline-cta")).opacity),
         };
       });
-      if (settledHero.statementGap > 12 || Math.abs(settledHero.profitOffset) > 2) failures.push(`mobile reload ${reload}: Profit detached from the headline (${settledHero.statementGap.toFixed(1)}px gap, ${settledHero.profitOffset.toFixed(1)}px offset)`);
+      if (settledHero.statementGap < 12 || settledHero.statementGap > 24 || Math.abs(settledHero.profitOffset) > 2) failures.push(`mobile reload ${reload}: Profit has an unbalanced headline gap (${settledHero.statementGap.toFixed(1)}px gap, ${settledHero.profitOffset.toFixed(1)}px offset)`);
+      if (settledHero.actionGap < 16 || settledHero.actionGap > 34) failures.push(`mobile reload ${reload}: CTA has an unbalanced Profit gap (${settledHero.actionGap.toFixed(1)}px)`);
       if (settledHero.profitOpacity < 0.99 || settledHero.ctaOpacity < 0.99) failures.push(`mobile reload ${reload}: hero sequence did not settle visibly`);
     }
     await page.screenshot({ path: `${output}/mobile-home-hero-settled.png`, fullPage: false });
@@ -328,7 +367,11 @@ const eyebrowInitial = await firstFramePage.locator(".hero .eyebrow-anim").evalu
   in: node.classList.contains("in"),
   opacity: Number.parseFloat(getComputedStyle(node).opacity),
 }));
-if (!eyebrowInitial.motionReady || eyebrowInitial.in || eyebrowInitial.opacity > 0.05) {
+// The CSS-only hero sequence starts before hydration by design. Depending on
+// the exact paint sampled after the server document arrives, the eyebrow may
+// have begun its first few percent; it must still be visually concealed and
+// must never wait fully visible for client JavaScript.
+if (!eyebrowInitial.motionReady || eyebrowInitial.in || eyebrowInitial.opacity > 0.12) {
   failures.push(`home eyebrow did not begin in a stable pre-paint state (${JSON.stringify(eyebrowInitial)})`);
 }
 await firstFrameNavigation;

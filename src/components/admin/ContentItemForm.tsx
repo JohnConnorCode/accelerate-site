@@ -12,6 +12,7 @@ import { Toast } from "@/components/ui/Toast";
 import type { ContentCalendarItem, ContentStatus, ArticleCategory, ArticlePillar } from "@/lib/types";
 
 interface ContentItemFormProps {
+  open: boolean;
   item?: ContentCalendarItem | null;
   onSave: (data: Partial<ContentCalendarItem>) => void;
   onDelete?: (id: string) => void;
@@ -50,7 +51,7 @@ const funnelOptions = [
   { value: "decision", label: "Decision" },
 ];
 
-export function ContentItemForm({ item, onSave, onDelete, onClose }: ContentItemFormProps) {
+export function ContentItemForm({ open, item, onSave, onDelete, onClose }: ContentItemFormProps) {
   const [title, setTitle] = useState(item?.title || "");
   const [slug, setSlug] = useState(item?.slug || "");
   const [status, setStatus] = useState<ContentStatus>(item?.status || "idea");
@@ -156,7 +157,7 @@ export function ContentItemForm({ item, onSave, onDelete, onClose }: ContentItem
   };
 
   return (
-    <AdminDialog open onClose={onClose} title={item ? "Edit content" : "New content"} align="right" maxWidth="md" className="h-full">
+    <AdminDialog open={open} onClose={onClose} title={item ? "Edit content" : "New content"} align="right" maxWidth="md" className="h-full">
       <div className="h-full w-full overflow-y-auto bg-[var(--admin-surface)] p-5 shadow-[-24px_0_70px_-34px_rgba(0,0,0,0.6)] sm:p-6">
         <div className="flex items-center justify-between mb-6">
           <h3 className="font-display text-lg font-semibold text-white-primary">

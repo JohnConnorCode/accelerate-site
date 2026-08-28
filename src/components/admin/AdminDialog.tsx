@@ -58,12 +58,13 @@ export function AdminDialog({
 
   return (
     <Dialog.Root open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
-      <AnimatePresence initial={false}>
+      <AnimatePresence mode="sync">
         {open && (
           <Dialog.Portal forceMount>
             <Dialog.Overlay asChild forceMount>
               <motion.div
                 className="fixed inset-0 z-[200] bg-black/48 backdrop-blur-[3px]"
+                data-admin-overlay="backdrop"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -90,6 +91,8 @@ export function AdminDialog({
                     mobileSheet && "max-h-[calc(100dvh-12px)] overflow-y-auto rounded-t-[24px] bg-[var(--admin-surface)] pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-20px_60px_-28px_rgba(0,0,0,0.34)] sm:max-h-[90dvh] sm:rounded-none sm:bg-transparent sm:pb-0 sm:pt-0 sm:shadow-none",
                     className,
                   )}
+                  data-admin-overlay="dialog"
+                  data-admin-overlay-align={align}
                   initial={align === "right" ? { opacity: 0, x: 32 } : { opacity: 0, y: 18, scale: 0.975 }}
                   animate={align === "right" ? { opacity: 1, x: 0 } : { opacity: 1, y: 0, scale: 1 }}
                   exit={align === "right" ? { opacity: 0, x: 20 } : { opacity: 0, y: 10, scale: 0.985 }}

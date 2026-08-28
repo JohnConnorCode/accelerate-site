@@ -1,7 +1,17 @@
 import type { NextConfig } from "next";
 import createMDX from "@next/mdx";
 
+const rawDeploymentId = process.env.NEXT_DEPLOYMENT_ID
+  || process.env.VERCEL_GIT_COMMIT_SHA
+  || process.env.VERCEL_DEPLOYMENT_ID;
+const deploymentId = rawDeploymentId?.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 96);
+
 const nextConfig: NextConfig = {
+  // Next's built-in version-skew protection. Long-lived tabs send this id with
+  // App Router requests; a mismatched deployment triggers a hard navigation
+  // instead of combining stale route payloads/assets with the current release.
+  deploymentId: deploymentId || undefined,
+
   // Ensure clean URLs without trailing slashes
   trailingSlash: false,
 

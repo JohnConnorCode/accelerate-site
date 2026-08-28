@@ -357,6 +357,7 @@ export default function AdminShell({
   const isPendingActive = (href: string) => Boolean(
     pendingAdminPath && (pendingAdminPath === href || (href !== "/admin" && pendingAdminPath.startsWith(href))),
   );
+  const routeIsPending = Boolean(pendingAdminPath && pendingAdminPath !== effectivePathname);
 
   const commandActions: CommandAction[] = [
     {
@@ -491,7 +492,7 @@ export default function AdminShell({
       />
 
       <main ref={mainRef} inert={mobileOpen} className="admin-main min-w-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[max(8rem,calc(7rem+env(safe-area-inset-bottom)))] pt-[calc(76px+env(safe-area-inset-top))] sm:px-6 lg:px-8 lg:pb-12 lg:pt-6 xl:px-10">
-        <div className="admin-route-frame">
+        <div className="admin-route-frame" data-navigation-pending={routeIsPending ? "true" : "false"}>
           <div className="mb-5 hidden min-h-10 items-center justify-between gap-4 sm:flex">
             <nav className="flex min-w-0 items-center gap-1.5 text-xs text-[var(--admin-muted)]" aria-label="Breadcrumb">
               {breadcrumbs.map((crumb, index) => (

@@ -174,7 +174,7 @@ export default function EmailsPage() {
   const currentListHidden = (tab === "templates" && selectedId) || (tab === "history" && selectedHistory);
 
   return <div className="space-y-6 pb-10">
-    <PageHeader title="Email Studio" subtitle="Edit live email copy safely, inspect what was sent, and compose a direct follow-up from one workspace." actions={<button type="button" onClick={() => { void loadList(); void loadHistory(); }} disabled={loading} className="admin-icon-button shadow-[var(--admin-shadow-border)]" aria-label="Refresh Email Studio"><RefreshCw className={cn("size-4", loading && "animate-spin")} /></button>} />
+    <PageHeader title="Email Studio" subtitle="Edit live email copy safely, inspect what was sent, and compose a direct follow-up from one workspace." utilityActions={<button type="button" onClick={() => { void loadList(); void loadHistory(); }} disabled={loading} className="admin-icon-button shadow-[var(--admin-shadow-border)]" aria-label="Refresh Email Studio"><RefreshCw className={cn("size-4", loading && "animate-spin")} /></button>} />
 
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="inline-flex rounded-xl bg-black/[0.04] p-1 dark:bg-white/[0.055]" role="tablist" aria-label="Email Studio views">

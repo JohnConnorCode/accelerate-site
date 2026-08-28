@@ -160,6 +160,13 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
     };
   }, [beginNavigation, saveCurrentPosition]);
 
+  useLayoutEffect(() => {
+    document.documentElement.dataset.navigationPhase = pending ? "pending" : "idle";
+    return () => {
+      document.documentElement.dataset.navigationPhase = "idle";
+    };
+  }, [pending]);
+
   useEffect(() => {
     const target = isAdminPath() ? adminScroller.current : window;
     if (!target) return;

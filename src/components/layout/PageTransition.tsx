@@ -14,7 +14,11 @@ import { isApplicationWorkspace } from "@/lib/navigation/public-chrome";
  */
 export function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { shouldAnimateRoute } = useNavigationRuntime();
+  const { pendingHref, shouldAnimateRoute } = useNavigationRuntime();
+  const pendingPathname = pendingHref
+    ? new URL(pendingHref, "http://accelerate.local").pathname
+    : null;
+  const isLeaving = Boolean(pendingPathname && pendingPathname !== pathname);
 
   // The Admin layout is its own persistent application shell. Keying this
   // root-level transition by pathname would remount that shell on every admin
@@ -25,8 +29,13 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
   return (
     <div
       key={pathname}
-      className={shouldAnimateRoute ? "route-entry is-entering" : "route-entry"}
+      className={[
+        "route-entry",
+        shouldAnimateRoute ? "is-entering" : "",
+        isLeaving ? "is-leaving" : "",
+      ].filter(Boolean).join(" ")}
       data-route-entry={pathname}
+      data-navigation-pending={isLeaving ? "true" : "false"}
     >
       {children}
     </div>

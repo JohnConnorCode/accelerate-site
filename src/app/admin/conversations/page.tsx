@@ -64,7 +64,7 @@ export default function ConversationsPage() {
   if (loading && !conversations.length) return <AdminPageLoading title="Conversations" subtitle="Gmail and system communication in one linked, reply-ready operating inbox." variant="detail" />;
   return (
     <div className="space-y-6 pb-10">
-      <PageHeader title="Conversations" subtitle="Gmail and system communication in one linked, reply-ready operating inbox." actions={<button type="button" onClick={() => void sync()} disabled={syncing} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] pl-4 pr-3.5 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96] disabled:opacity-50"><RefreshCw className={cn("size-3.5", syncing && "animate-spin")} /> Sync Gmail</button>} />
+      <PageHeader title="Conversations" subtitle="Gmail and system communication in one linked, reply-ready operating inbox." utilityActions={<button type="button" onClick={() => void sync()} disabled={syncing} aria-label={syncing ? "Syncing Gmail" : "Sync Gmail"} className="admin-icon-button shadow-[var(--admin-shadow-border)] disabled:opacity-50"><RefreshCw className={cn("size-3.5", syncing && "animate-spin")} /></button>} />
       {error && <AdminSurface tone="attention" className="flex items-center gap-3"><TriangleAlert className="size-5 shrink-0 text-rose-600" /><p className="text-sm text-[var(--admin-ink)]">{error}</p></AdminSurface>}
       {!schemaReady ? <RevenueSetupGate /> : (
         <AdminSurface padding="none" className="min-h-[650px] overflow-hidden">

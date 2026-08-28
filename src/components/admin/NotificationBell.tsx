@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useId, useRef, type ReactNode } from "react";
+import { useState, useEffect, useCallback, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "@/components/admin/AdminLink";
@@ -65,7 +65,9 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
   const dropdownRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const panelId = useId();
+  // Placement is fixed by the persistent shell, so a semantic id is both
+  // unique and hydration-stable across the public demo rewrite.
+  const panelId = `admin-notifications-${placement}`;
   const fetchAbortRef = useRef<AbortController | null>(null);
 
   const fetchErrorCount = useRef(0);

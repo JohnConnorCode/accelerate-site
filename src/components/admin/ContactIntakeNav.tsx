@@ -11,7 +11,7 @@ const views = [
 
 export function ContactIntakeNav({ active }: { active: (typeof views)[number]["id"] }) {
   return (
-    <nav className="mb-5 flex w-fit max-w-full gap-1 overflow-x-auto rounded-[14px] bg-[var(--admin-surface)] p-1 shadow-[var(--admin-shadow-border)] [scrollbar-width:none]" aria-label="Contact intake views">
+    <nav className="scrollbar-hide mb-5 flex w-fit max-w-full gap-1 overflow-x-auto rounded-[14px] bg-[var(--admin-surface)] p-1 shadow-[var(--admin-shadow-border)]" aria-label="Contact intake views">
       {views.map((view) => {
         const Icon = view.icon;
         const selected = active === view.id;

@@ -59,6 +59,19 @@ routing or creating surface-specific history systems.
 - Public and admin routes each have one entrance owner. Route motion is a short
   opacity, blur, and rise on the incoming tree only; local dialogs, lists, and
   state changes may retain their own motion.
+- Route entrance state must be present in committed markup and stylesheet rules
+  before first paint. Do not start route motion from `useEffect`, a mutation
+  observer, or an imperative Web Animations call: those can expose the final
+  frame first on fast devices and cached visits. The route key restarts the one
+  declarative CSS sequence when Next commits a destination.
+- Pending navigation gives the retained route subtle, immediate visual feedback
+  without hiding usable content. It must not wait for route data, authentication,
+  or an effect before acknowledging the destination.
+- A shared overlay remains mounted outside its open-state conditional while its
+  presence owner runs the exit sequence. Dialog callers keep the selected record
+  through close and clear it only after the overlay lifecycle completes. A route
+  must not conditionally mount the presence owner or use `initial={false}` to
+  suppress an overlay's only entrance.
 - Reduced motion removes nonessential movement and blur while preserving all
   route, loading, and focus behavior.
 - Nested admin segments may use React Suspense close to genuinely slow data so
@@ -84,6 +97,21 @@ routing or creating surface-specific history systems.
   destination heading or main region and the route title is announced politely.
   History traversal restores reading position without stealing focus.
 
+## Release and cache continuity
+
+- Every production build has a stable `deploymentId`. Native Vercel builds use
+  the Git deployment value; the checked-in prebuilt deploy command derives the
+  same kind of immutable value from the committed Git revision.
+- The checked-in production start and prebuilt build commands use the same
+  release runner. Build-time and runtime IDs must match; otherwise Next may
+  correctly refuse to hydrate a dynamic response whose client assets belong to
+  a different release.
+- Do not add custom cache-clearing scripts, local-storage version flags, or hard
+  reloads to route components. Next.js owns deployment-skew detection and turns
+  a mismatched App Router response into the necessary document navigation.
+- Returning-profile QA uses a persistent browser data directory across repeated
+  runs. Incognito-only success is not release evidence.
+
 ## Required verification
 
 `npm run test:navigation-runtime` must cover public and admin forward navigation,
@@ -97,3 +125,8 @@ from the mounted admin shell.
 Mobile verification must also measure same-frame activation feedback, committed
 route identity, and ready-content entry. A pathname assertion alone is not
 sufficient evidence of a polished transition.
+
+Overlay verification must sample intermediate entry and exit frames and prove
+the overlay is still mounted during exit. Persistent-profile verification must
+exercise both a public route and the fictional admin after revisiting the same
+browser profile, including one dialog lifecycle.

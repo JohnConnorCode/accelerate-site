@@ -39,6 +39,7 @@ export default function ContactsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [contactOpen, setContactOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -68,7 +69,10 @@ export default function ContactsPage() {
       dismissedContactRef.current = null;
       return;
     }
-    if (dismissedContactRef.current !== requestedContact) setExpandedId(requestedContact);
+    if (dismissedContactRef.current !== requestedContact) {
+      setExpandedId(requestedContact);
+      setContactOpen(true);
+    }
   }, [searchParams]);
 
   const filtered = useMemo(() => contacts.filter((contact) => {
@@ -79,16 +83,18 @@ export default function ContactsPage() {
     return true;
   }), [contacts, dateFrom, dateTo, searchQuery]);
   const selectedContact = useMemo(() => contacts.find((contact) => contact.id === expandedId) ?? null, [contacts, expandedId]);
+  const displayedContact = selectedContact;
   const openContact = (id: string, trigger?: HTMLElement) => {
     dismissedContactRef.current = null;
     contactTriggerRef.current = trigger ?? null;
     setExpandedId(id);
+    setContactOpen(true);
     router.push(`/admin/contacts?contact=${encodeURIComponent(id)}`, "preserve");
   };
   const closeContact = () => {
     const contactId = expandedId ?? searchParams.get("contact");
     dismissedContactRef.current = contactId;
-    setExpandedId(null);
+    setContactOpen(false);
     if (searchParams.has("contact")) router.replace("/admin/contacts", "preserve");
     window.setTimeout(() => {
       const fallback = contactId ? document.querySelector<HTMLElement>(`[data-contact-row-toggle="${CSS.escape(contactId)}"]`) : null;
@@ -104,6 +110,7 @@ export default function ContactsPage() {
       setContacts((current) => current.filter((contact) => contact.id !== id));
       setTotal((current) => Math.max(0, current - 1));
       setExpandedId(null);
+      setContactOpen(false);
       setToast({ message: "Submission deleted", type: "success" });
     } catch {
       setToast({ message: "Submission could not be deleted", type: "error" });
@@ -142,26 +149,28 @@ export default function ContactsPage() {
       </AdminSurface>
 
       {totalPages > 1 && <div className="mt-4 flex items-center justify-between"><p className="admin-copy text-xs">Page <span className="tabular-nums">{page}</span> of <span className="tabular-nums">{totalPages}</span></p><div className="flex gap-2"><button type="button" disabled={page <= 1} onClick={() => setPage((current) => current - 1)} className="min-h-10 rounded-[10px] px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] disabled:opacity-40">Previous</button><button type="button" disabled={page >= totalPages} onClick={() => setPage((current) => current + 1)} className="min-h-10 rounded-[10px] px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] disabled:opacity-40">Next</button></div></div>}
-      {selectedContact && <AdminDialog open onClose={closeContact} title={`${selectedContact.name} contact details`} labelledBy="contact-detail-title" maxWidth="lg">
+      <AdminDialog open={contactOpen && Boolean(displayedContact)} onClose={closeContact} title={`${displayedContact?.name || "Contact"} contact details`} labelledBy="contact-detail-title" maxWidth="lg">
+        {displayedContact && (
         <div className="admin-dialog-surface max-h-[92dvh] w-full overflow-y-auto rounded-t-[24px] bg-[var(--admin-surface)] shadow-2xl sm:rounded-[24px]">
           <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]/95 px-5 py-4 backdrop-blur-xl sm:px-6">
-            <div className="flex min-w-0 items-center gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-[13px] bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]"><UserRound className="size-5" /></span><div className="min-w-0"><p className="admin-eyebrow">Contact intake</p><h2 id="contact-detail-title" className="mt-1 truncate text-balance text-xl font-semibold tracking-[-0.03em] text-[var(--admin-ink)]">{selectedContact.name}</h2><p className="admin-copy mt-0.5 truncate text-xs">Received {formatDate(selectedContact.created_at)}</p></div></div>
+            <div className="flex min-w-0 items-center gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-[13px] bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]"><UserRound className="size-5" /></span><div className="min-w-0"><p className="admin-eyebrow">Contact intake</p><h2 id="contact-detail-title" className="mt-1 truncate text-balance text-xl font-semibold tracking-[-0.03em] text-[var(--admin-ink)]">{displayedContact.name}</h2><p className="admin-copy mt-0.5 truncate text-xs">Received {formatDate(displayedContact.created_at)}</p></div></div>
             <button type="button" onClick={closeContact} aria-label="Close contact details" className="grid size-10 shrink-0 place-items-center rounded-xl text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:scale-[0.96] dark:hover:bg-white/[0.05]"><X className="size-4" /></button>
           </div>
           <div className="grid gap-5 px-5 py-5 sm:px-6">
             <dl className="grid gap-3 rounded-[16px] bg-[var(--admin-surface-subtle)] p-4 shadow-[var(--admin-shadow-border)] sm:grid-cols-2">
-              <div><dt className="admin-eyebrow">Email</dt><dd className="mt-1 break-all text-sm font-medium text-[var(--admin-ink)]">{selectedContact.email}</dd></div>
-              <div><dt className="admin-eyebrow">Phone</dt><dd className="mt-1 text-sm font-medium text-[var(--admin-ink)]">{selectedContact.phone || "Not supplied"}</dd></div>
-              <div className="sm:col-span-2"><dt className="admin-eyebrow">Business</dt><dd className="mt-1 flex items-center gap-2 text-sm font-medium text-[var(--admin-ink)]"><Building2 className="size-4 text-[var(--admin-muted)]" />{selectedContact.business_name || selectedContact.business_type || "Not supplied"}</dd></div>
+              <div><dt className="admin-eyebrow">Email</dt><dd className="mt-1 break-all text-sm font-medium text-[var(--admin-ink)]">{displayedContact.email}</dd></div>
+              <div><dt className="admin-eyebrow">Phone</dt><dd className="mt-1 text-sm font-medium text-[var(--admin-ink)]">{displayedContact.phone || "Not supplied"}</dd></div>
+              <div className="sm:col-span-2"><dt className="admin-eyebrow">Business</dt><dd className="mt-1 flex items-center gap-2 text-sm font-medium text-[var(--admin-ink)]"><Building2 className="size-4 text-[var(--admin-muted)]" />{displayedContact.business_name || displayedContact.business_type || "Not supplied"}</dd></div>
             </dl>
-            <div><p className="admin-eyebrow">Full message</p><p className="mt-2 whitespace-pre-wrap text-pretty rounded-[16px] bg-[var(--admin-surface-subtle)] p-4 text-sm leading-6 text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]">{selectedContact.message || "No message was supplied with this submission."}</p></div>
+            <div><p className="admin-eyebrow">Full message</p><p className="mt-2 whitespace-pre-wrap text-pretty rounded-[16px] bg-[var(--admin-surface-subtle)] p-4 text-sm leading-6 text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]">{displayedContact.message || "No message was supplied with this submission."}</p></div>
           </div>
           <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--admin-border)] bg-[var(--admin-surface)]/95 px-5 py-4 backdrop-blur-xl sm:px-6">
-            <button type="button" disabled={deletingId === selectedContact.id} onClick={() => void handleDelete(selectedContact.id)} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-rose-500/10 hover:text-rose-700 active:scale-[0.96] disabled:opacity-50 dark:hover:text-rose-300">{deletingId === selectedContact.id ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />} Delete</button>
-            <div className="flex flex-wrap gap-2"><a href={`mailto:${selectedContact.email}`} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"><Mail className="size-3.5" /> Email</a>{selectedContact.phone && <a href={`tel:${selectedContact.phone}`} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"><Phone className="size-3.5" /> Call</a>}<Link href={`/admin/contacts/${encodeURIComponent(selectedContact.email)}`} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]">Open relationship <ArrowRight className="size-3.5" /></Link></div>
+            <button type="button" disabled={deletingId === displayedContact.id} onClick={() => void handleDelete(displayedContact.id)} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-rose-500/10 hover:text-rose-700 active:scale-[0.96] disabled:opacity-50 dark:hover:text-rose-300">{deletingId === displayedContact.id ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />} Delete</button>
+            <div className="flex flex-wrap gap-2"><a href={`mailto:${displayedContact.email}`} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"><Mail className="size-3.5" /> Email</a>{displayedContact.phone && <a href={`tel:${displayedContact.phone}`} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"><Phone className="size-3.5" /> Call</a>}<Link href={`/admin/contacts/${encodeURIComponent(displayedContact.email)}`} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]">Open relationship <ArrowRight className="size-3.5" /></Link></div>
           </div>
         </div>
-      </AdminDialog>}
+        )}
+      </AdminDialog>
       {toast && <Toast message={toast.message} type={toast.type} isVisible onClose={() => setToast(null)} />}
     </div>
   );

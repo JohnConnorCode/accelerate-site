@@ -14,23 +14,6 @@ for (const run of [
   { name: "mobile-slow", viewport: { width: 390, height: 844 }, delay: 650 },
 ]) {
   const context = await browser.newContext({ viewport: run.viewport, reducedMotion: "no-preference" });
-  await context.addInitScript(() => {
-    window.__adminAnimationReceipts = [];
-    const nativeAnimate = Element.prototype.animate;
-    Element.prototype.animate = function patchedAnimate(keyframes, options) {
-      const animation = nativeAnimate.call(this, keyframes, options);
-      const timing = typeof options === "number" ? { duration: options, delay: 0 } : options || {};
-      if (this.closest?.("[data-admin-route-stage]") && [340, 360].includes(Number(timing.duration || 0))) {
-        window.__adminAnimationReceipts.push({
-          path: window.location.pathname,
-          duration: Number(timing.duration || 0),
-          delay: Number(timing.delay || 0),
-          tag: this.tagName,
-        });
-      }
-      return animation;
-    };
-  });
   const page = await context.newPage();
   const errors = [];
   let navigationTriggered = false;
@@ -82,12 +65,25 @@ for (const run of [
   }
   await page.screenshot({ path: `${output}/${run.name}-direct-090.png` });
   await page.locator("[data-admin-route-stage]").waitFor({ state: "attached", timeout: 15_000 });
-  await page.waitForFunction(() => window.__adminAnimationReceipts?.some((receipt) => receipt.path.endsWith("/today") && receipt.delay >= 48), null, { timeout: 5_000 });
+  await page.waitForFunction(() => {
+    const stage = document.querySelector("[data-admin-route-stage]");
+    const section = stage?.querySelector(":scope > * > *");
+    return Boolean(
+      stage && getComputedStyle(stage).animationName.includes("admin-route-stage-in")
+      && section && getComputedStyle(section).animationName.includes("admin-route-section-in")
+    );
+  }, null, { timeout: 5_000 });
   const directEntrance = await page.evaluate(() => {
-    const animations = window.__adminAnimationReceipts?.filter((receipt) => receipt.path.endsWith("/today")) || [];
+    const stage = document.querySelector("[data-admin-route-stage]");
+    const animations = document.getAnimations({ subtree: true }).filter((animation) => (
+      animation instanceof CSSAnimation
+      && animation.effect?.target instanceof Element
+      && stage?.contains(animation.effect.target)
+      && animation.animationName === "admin-route-section-in"
+    ));
     return {
       count: animations.length,
-      delays: [...new Set(animations.map((animation) => animation.delay))],
+      delays: [...new Set(animations.map((animation) => Number(animation.effect?.getTiming().delay || 0)))],
     };
   });
   if (directEntrance.count < 2 || directEntrance.delays.length < 2) {
@@ -154,12 +150,21 @@ for (const run of [
   await page.waitForURL("**/northline-roofing/pipeline", { timeout: 15_000 });
   await page.locator("[data-admin-route-loading]").waitFor({ state: "detached", timeout: 15_000 }).catch(() => {});
   await page.getByRole("heading", { level: 1 }).waitFor({ state: "visible", timeout: 15_000 });
-  await page.waitForFunction(() => window.__adminAnimationReceipts?.some((receipt) => receipt.path.endsWith("/pipeline") && receipt.delay >= 48), null, { timeout: 5_000 });
+  await page.waitForFunction(() => {
+    const stage = document.querySelector("[data-admin-route-stage]");
+    return Boolean(stage && getComputedStyle(stage).animationName.includes("admin-route-stage-in"));
+  }, null, { timeout: 5_000 });
   const committedAnimations = await page.evaluate(() => {
-    const animations = window.__adminAnimationReceipts?.filter((receipt) => receipt.path.endsWith("/pipeline")) || [];
+    const stage = document.querySelector("[data-admin-route-stage]");
+    const animations = document.getAnimations({ subtree: true }).filter((animation) => (
+      animation instanceof CSSAnimation
+      && animation.effect?.target instanceof Element
+      && stage?.contains(animation.effect.target)
+      && animation.animationName === "admin-route-section-in"
+    ));
     return {
       count: animations.length,
-      delays: [...new Set(animations.map((animation) => animation.delay))],
+      delays: [...new Set(animations.map((animation) => Number(animation.effect?.getTiming().delay || 0)))],
     };
   });
   if (committedAnimations.count < 2 || committedAnimations.delays.length < 2) failures.push(`${run.name}: committed destination had no visible semantic stagger (${JSON.stringify(committedAnimations)})`);

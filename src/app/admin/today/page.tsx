@@ -59,17 +59,21 @@ function payloadEntries(payload: Record<string, unknown> | null) {
   return { fields, body };
 }
 
-function ActionReviewDialog({ action, busy, onClose, onApprove, onReject }: {
-  action: ActionRow;
+function ActionReviewDialog({ open, action, busy, onClose, onApprove, onReject }: {
+  open: boolean;
+  action: ActionRow | null;
   busy: boolean;
   onClose: () => void;
   onApprove: () => void;
   onReject: () => void;
 }) {
+  if (!action) {
+    return <AdminDialog open={false} onClose={onClose} title="Review before approving"><span /></AdminDialog>;
+  }
   const { fields, body } = payloadEntries(action.payload);
   const consequence = ACTION_CONSEQUENCE[action.action_type] ?? "Executes this action through the same service the admin uses.";
   const external = action.action_type === "send_email" || action.action_type === "send_gmail_reply" || action.action_type === "activate_campaign";
-  return <AdminDialog open onClose={onClose} title="Review before approving" labelledBy="action-review-title" maxWidth="lg">
+  return <AdminDialog open={open} onClose={onClose} title="Review before approving" labelledBy="action-review-title" maxWidth="lg">
     <div className="max-h-[92dvh] w-full overflow-y-auto rounded-t-[24px] bg-[var(--admin-surface)] shadow-2xl sm:rounded-[24px]">
       <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]/95 px-5 py-4 backdrop-blur-xl sm:px-6">
         <div>
@@ -187,6 +191,7 @@ export default function TodayPage() {
     return (actionsQuery.data?.actions ?? []).filter((action) => action.status === "pending" && (!action.expires_at || Date.parse(action.expires_at) > now));
   }, [actionsQuery.data]);
   const [reviewing, setReviewing] = useState<ActionRow | null>(null);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const [mutationError, setMutationError] = useState("");
   const [acting, setActing] = useState<string | null>(null);
   const [taskActioning, setTaskActioning] = useState<string | null>(null);
@@ -216,13 +221,16 @@ export default function TodayPage() {
     }
     if (dismissedActionRef.current === actionId) return;
     const requested = actions.find((action) => action.id === actionId);
-    if (requested && reviewing?.id !== requested.id) setReviewing(requested);
+    if (requested) {
+      if (reviewing?.id !== requested.id) setReviewing(requested);
+      setReviewOpen(true);
+    }
   }, [actions, reviewing?.id, searchParams]);
 
   const closeReview = () => {
     const actionId = reviewing?.id ?? searchParams.get("action");
     dismissedActionRef.current = actionId;
-    setReviewing(null);
+    setReviewOpen(false);
     if (searchParams.has("action")) router.replace(`/admin/today?focus=${focus}`, "preserve");
     window.setTimeout(() => {
       const fallback = actionId ? document.querySelector<HTMLElement>(`[data-approval-review="${CSS.escape(actionId)}"]`) : null;
@@ -234,6 +242,7 @@ export default function TodayPage() {
     dismissedActionRef.current = null;
     reviewTriggerRef.current = trigger ?? null;
     setReviewing(action);
+    setReviewOpen(true);
     router.push(href, "preserve");
   };
 
@@ -299,11 +308,11 @@ export default function TodayPage() {
 
   return (
     <div className="space-y-4 pb-10 sm:space-y-7">
-      <PageHeader title="Today" subtitle="The founder queue: replies, commitments, meetings, proposals, approvals, and system exceptions in revenue order." actions={<div className="flex items-center gap-3"><span className="hidden text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)] sm:inline">{overview?.generatedAt ? `Updated ${observedTime(overview.generatedAt).replace(/^Observed /, "")}` : "Live read"}</span><button type="button" onClick={() => void refresh()} disabled={refreshing} className="inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:opacity-60"><RefreshCw className={cn("size-3.5", refreshing && "animate-spin")} /><span className="hidden sm:inline">{refreshing ? "Refreshing" : "Refresh"}</span></button></div>} />
+      <PageHeader title="Today" subtitle="The founder queue: replies, commitments, meetings, proposals, approvals, and system exceptions in revenue order." utilityActions={<><span className="hidden text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)] sm:inline">{overview?.generatedAt ? `Updated ${observedTime(overview.generatedAt).replace(/^Observed /, "")}` : "Live read"}</span><button type="button" onClick={() => void refresh()} disabled={refreshing} aria-label={refreshing ? "Refreshing Today" : "Refresh Today"} className="admin-icon-button shadow-[var(--admin-shadow-border)] disabled:opacity-60"><RefreshCw className={cn("size-3.5", refreshing && "animate-spin")} /></button></>} />
       {error && overview && <AdminSurface tone="attention" className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center"><TriangleAlert className="size-5 shrink-0 text-amber-600" /><div className="min-w-0 flex-1"><p className="text-sm font-semibold text-[var(--admin-ink)]">Showing the last successful snapshot</p><p className="admin-copy mt-0.5 text-xs">{error} Existing data remains visible and no counters were reset.</p></div><button type="button" onClick={() => void refresh()} disabled={refreshing} className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-lg px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]"><RefreshCw className={cn("size-3.5", refreshing && "animate-spin")} /> Retry live read</button></AdminSurface>}
       <AdminAsyncRegion loading={loading} hasData={Boolean(overview)} loadingFallback={<LoadingSkeleton variant="today" rows={4} />} label="Loading today's operating queue">
       {overview && !overview.schemaReady ? <RevenueSetupGate /> : overview && (
-        <>
+        <div className="space-y-5 sm:space-y-7" data-today-content-stack>
           <AdminSurface padding="none" className="overflow-hidden" aria-label="Operating summary">
             <dl className="grid grid-cols-2 divide-x divide-y divide-[var(--admin-border)] xl:grid-cols-4 xl:divide-y-0">
             {[
@@ -338,7 +347,7 @@ export default function TodayPage() {
 
           <section className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_22rem] 2xl:grid-cols-[minmax(0,1fr)_24rem]" data-today-workspace>
             <AdminSurface padding="none" className="overflow-hidden">
-              <div className="flex flex-col gap-4 px-5 py-4 sm:px-6"><div className="flex items-center justify-between gap-3"><div><p className="admin-eyebrow">Priority queue</p><h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">What needs your attention</h2></div><span className="rounded-full bg-black/[0.045] px-2.5 py-1 font-mono text-[10px] tabular-nums text-[var(--admin-muted)] dark:bg-white/[0.06]">{visibleQueue.length}</span></div><div className="-mx-1 flex gap-1 overflow-x-auto pb-1 [scrollbar-width:none]">{focusOptions.map((option) => <button key={option.id} type="button" onClick={() => setFocus(option.id)} className={cn("min-h-10 shrink-0 rounded-lg px-3 text-xs font-semibold transition-[background-color,color,box-shadow] duration-150", focus === option.id ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]" : "text-[var(--admin-muted)] hover:bg-black/[0.045] hover:text-[var(--admin-ink)] dark:hover:bg-white/[0.06]")}>{option.label}</button>)}</div></div>
+              <div className="flex flex-col gap-4 px-5 py-4 sm:px-6"><div className="flex items-center justify-between gap-3"><div><p className="admin-eyebrow">Priority queue</p><h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">What needs your attention</h2></div><span className="rounded-full bg-black/[0.045] px-2.5 py-1 font-mono text-[10px] tabular-nums text-[var(--admin-muted)] dark:bg-white/[0.06]">{visibleQueue.length}</span></div><div className="scrollbar-hide -mx-1 flex gap-1 overflow-x-auto pb-1" data-priority-tabs>{focusOptions.map((option) => <button key={option.id} type="button" onClick={() => setFocus(option.id)} className={cn("min-h-10 shrink-0 rounded-lg px-3 text-xs font-semibold transition-[background-color,color,box-shadow] duration-150", focus === option.id ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]" : "text-[var(--admin-muted)] hover:bg-black/[0.045] hover:text-[var(--admin-ink)] dark:hover:bg-white/[0.06]")}>{option.label}</button>)}</div></div>
               <div className="divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)]">
                 {visibleQueue.slice(0, 15).map((item) => {
                   const taskId = item.kind === "task" || item.kind === "follow_up" ? item.id.replace(/^task:/, "") : null;
@@ -374,14 +383,15 @@ export default function TodayPage() {
 
           <div id="revenue-copilot" className="scroll-mt-24"><RevenueAICommand onProposed={() => void refresh()} /></div>
 
-          {reviewing && <ActionReviewDialog
+          <ActionReviewDialog
+            open={reviewOpen}
             action={reviewing}
-            busy={acting === reviewing.id}
+            busy={Boolean(reviewing && acting === reviewing.id)}
             onClose={closeReview}
-            onApprove={() => void decide(reviewing.id, "approve")}
-            onReject={() => void decide(reviewing.id, "reject")}
-          />}
-        </>
+            onApprove={() => { if (reviewing) void decide(reviewing.id, "approve"); }}
+            onReject={() => { if (reviewing) void decide(reviewing.id, "reject"); }}
+          />
+        </div>
       )}
       </AdminAsyncRegion>
     </div>
