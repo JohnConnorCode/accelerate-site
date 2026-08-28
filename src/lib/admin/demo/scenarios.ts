@@ -34,10 +34,10 @@ export interface DemoScenarioPack extends DemoScenarioSummary {
 const UUIDS = Array.from({ length: 80 }, (_, index) => `00000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`);
 const ago = (hours: number) => new Date(Date.now() - hours * 3_600_000).toISOString();
 
-function tenant(name: string, domain: string, founder: string, industry: string, stageLabels: Record<string, string>): TenantConfig {
+function tenant(name: string, domain: string, founder: string, industry: string, stageLabels: Record<string, string>, accentColor: string): TenantConfig {
   const first = founder.split(" ")[0]!;
   return {
-    brand: { name, domain, siteUrl: `https://${domain}`, logoMark: name.slice(0, 1), accentColor: "#7cab2c", tagline: `${industry} operations`, emailFooter: `${name} · Fictional demo workspace` },
+    brand: { name, domain, siteUrl: `https://${domain}`, logoMark: name.slice(0, 1), accentColor, tagline: `${industry} operations`, emailFooter: `${name} · Fictional demo workspace` },
     founder: { name: first, fullName: founder, email: `${first.toLowerCase()}@${domain}`, systemActorEmail: `system@${domain}` },
     ai: { businessDescriptor: `${name}, a fictional ${industry}`, voice: "Be concise, specific, and operational.", positioning: `Help ${name} turn inquiries into well-served customers while protecting staff time.` },
     booking: { url: `https://${domain}/book`, path: "/book", schedulerUrl: null },
@@ -98,7 +98,7 @@ function makePack(input: {
     appearance: input.appearance,
     story: input.story,
     version: 3,
-    tenant: tenant(input.name, input.domain, input.founder, input.industry, input.stages),
+    tenant: tenant(input.name, input.domain, input.founder, input.industry, input.stages, input.accent),
     people,
     opportunities,
     conversations,

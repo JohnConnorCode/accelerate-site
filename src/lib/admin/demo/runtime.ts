@@ -95,14 +95,45 @@ function inbox(pack: DemoScenarioPack) {
 const escapeEmailHtml = (value: string) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, "&quot;").replace(/'/g, "&#039;");
 const interpolateDemoEmail = (value: string, data: Record<string, string>) => value.replace(/\{\{([A-Za-z0-9_]+)\}\}/g, (_, key: string) => data[key] || `{{${key}}}`);
 function demoEmailHtml(blocks: DemoEmailBlock[], data: Record<string, string>, brand: DemoScenarioPack["tenant"]["brand"]) {
+  const initials = brand.name.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]).join("").toUpperCase() || brand.logoMark;
   const body = blocks.map((block) => {
-    if (block.type === "heading") return `<h1 style="margin:0 0 18px;color:#151611;font:700 28px/1.15 Arial,sans-serif">${escapeEmailHtml(interpolateDemoEmail(block.text || "", data))}</h1>`;
-    if (block.type === "paragraph") return `<p style="margin:0 0 16px;color:#3f4744;font:15px/1.65 Arial,sans-serif">${escapeEmailHtml(interpolateDemoEmail(block.text || "", data)).replace(/\n/g, "<br>")}</p>`;
-    if (block.type === "button") return `<p style="margin:24px 0"><a href="${escapeEmailHtml(interpolateDemoEmail(block.url || `${brand.siteUrl}/contact`, data))}" style="display:inline-block;background:#1b211e;border-radius:8px;padding:14px 18px;color:${brand.accentColor};font:700 14px Arial,sans-serif;text-decoration:none">${escapeEmailHtml(interpolateDemoEmail(block.text || "Book a call", data))} →</a></p>`;
-    if (block.type === "divider") return `<hr style="border:0;border-top:1px solid #dfe5df;margin:24px 0">`;
+    if (block.type === "heading") return `<h1 style="margin:0 0 20px;color:#172033;font-family:Arial,Helvetica,sans-serif;font-size:30px;font-weight:700;letter-spacing:-0.6px;line-height:1.18">${escapeEmailHtml(interpolateDemoEmail(block.text || "", data))}</h1>`;
+    if (block.type === "paragraph") return `<p style="margin:0 0 17px;color:#566176;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.65">${escapeEmailHtml(interpolateDemoEmail(block.text || "", data)).replace(/\n/g, "<br>")}</p>`;
+    if (block.type === "button") return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:28px 0 30px"><tr><td style="border-radius:9px;background:${brand.accentColor}"><a href="${escapeEmailHtml(interpolateDemoEmail(block.url || `${brand.siteUrl}/contact`, data))}" style="display:inline-block;border-radius:9px;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;letter-spacing:.1px;padding:14px 20px;text-decoration:none">${escapeEmailHtml(interpolateDemoEmail(block.text || "Book a call", data))}<span style="padding-left:10px">→</span></a></td></tr></table>`;
+    if (block.type === "divider") return `<div style="border-top:1px solid #e6eaf0;margin:28px 0"></div>`;
     return `<div style="height:${Math.max(8, Math.min(96, Number(block.height) || 24))}px"></div>`;
   }).join("");
-  return `<!doctype html><html><body style="margin:0;padding:32px 16px;background:#eef1ee"><main style="max-width:600px;margin:auto;border-radius:16px;background:#fff;padding:36px;box-sizing:border-box"><p style="margin:0 0 24px;color:#151611;font:800 20px Arial,sans-serif">${escapeEmailHtml(brand.name)}<span style="color:${brand.accentColor}">.</span></p>${body}<hr style="border:0;border-top:1px solid #dfe5df;margin:28px 0 16px"><p style="margin:0;color:#68736e;font:11px/1.6 Arial,sans-serif">${escapeEmailHtml(brand.name)} · ${escapeEmailHtml(brand.domain)}</p></main></body></html>`;
+  return `<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>@media only screen and (max-width:620px){.email-shell{padding:18px 10px!important}.email-card{border-radius:14px!important}.email-content{padding:30px 24px!important}.email-brand{padding:22px 24px!important}}</style></head><body style="margin:0;background:#eef2f7;padding:0"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eef2f7"><tr><td class="email-shell" style="padding:36px 16px"><table role="presentation" class="email-card" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:620px;margin:0 auto;border-collapse:separate;border-radius:18px;background:#ffffff;box-shadow:0 14px 42px rgba(21,32,51,.12);overflow:hidden"><tr><td class="email-brand" style="background:#172033;padding:25px 34px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="vertical-align:middle"><span style="display:inline-block;border-radius:8px;background:${brand.accentColor};color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:800;letter-spacing:.7px;line-height:32px;text-align:center;width:32px">${escapeEmailHtml(initials)}</span><span style="padding-left:11px;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:17px;font-weight:700;vertical-align:middle">${escapeEmailHtml(brand.name)}</span></td><td align="right" style="color:#b9c4d5;font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:.08em;text-transform:uppercase">Service update</td></tr></table></td></tr><tr><td class="email-content" style="padding:40px 34px 32px">${body}</td></tr><tr><td style="border-top:1px solid #e6eaf0;padding:21px 34px 25px"><p style="margin:0 0 7px;color:#3e4a5e;font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:700">${escapeEmailHtml(brand.name)}</p><p style="margin:0;color:#7b8798;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.6">${escapeEmailHtml(brand.domain)} · You received this operational update because you are in conversation with ${escapeEmailHtml(brand.name)}.</p></td></tr></table></td></tr></table></body></html>`;
+}
+
+function defaultEmailBlocks(templateId: string, pack: DemoScenarioPack): DemoEmailBlock[] {
+  const owner = pack.tenant.founder.fullName;
+  const contact = `${pack.tenant.brand.siteUrl}/contact`;
+  if (templateId === "appointment-confirmation") return [
+    { id: "title", type: "heading", text: "Your time is confirmed" },
+    { id: "intro", type: "paragraph", text: "Hi {{first_name}},\n\nYour conversation with {{owner_name}} is set for {{appointment_time}}. We will use the time to understand the context, answer the practical questions, and agree on the next useful step." },
+    { id: "cta", type: "button", text: "Review appointment details", url: contact },
+    { id: "signoff", type: "paragraph", text: `If anything changes before then, reply here and ${owner} will help.` },
+  ];
+  if (templateId === "proposal-follow-up") return [
+    { id: "title", type: "heading", text: "A quick follow-up on your scope" },
+    { id: "intro", type: "paragraph", text: "Hi {{first_name}},\n\nI wanted to make sure the {{proposal_name}} is clear enough to evaluate. The scope is built around the decisions and constraints we discussed, not a generic package." },
+    { id: "cta", type: "button", text: "Review the scope", url: contact },
+    { id: "signoff", type: "paragraph", text: `If a short review would be helpful, ${owner} can walk through the tradeoffs with you.` },
+  ];
+  if (templateId === "welcome") return [
+    { id: "title", type: "heading", text: "Welcome. Here is what happens next." },
+    { id: "intro", type: "paragraph", text: "Hi {{first_name}},\n\nWe are glad to be working together. Your first milestone begins {{start_date}}, with a clear owner, a practical plan, and a direct line for questions." },
+    { id: "cta", type: "button", text: "See your next step", url: contact },
+    { id: "signoff", type: "paragraph", text: `Reply to this email at any point. ${owner} and the team will keep the work moving.` },
+  ];
+  return [
+    { id: "title", type: "heading", text: "A clear next step" },
+    { id: "intro", type: "paragraph", text: "Hi {{first_name}},\n\nThanks for getting in touch about {{company_name}}. I reviewed your note and pulled together the most useful next move." },
+    { id: "detail", type: "paragraph", text: "{{next_step}}" },
+    { id: "cta", type: "button", text: "Choose a time", url: contact },
+    { id: "signoff", type: "paragraph", text: `If you would rather reply here, ${owner} will take it from there.` },
+  ];
 }
 function emailStudio(pack: DemoScenarioPack, id: string, state: DemoState): DemoEmailStudioDetail;
 function emailStudio(pack: DemoScenarioPack, id?: string | null, state?: DemoState): DemoEmailStudioList | DemoEmailStudioDetail;
@@ -115,7 +146,7 @@ function emailStudio(pack: DemoScenarioPack, id?: string | null, state: DemoStat
   ].map((template) => ({ ...template, hasDraft: template.hasDraft || Boolean(state.emailDrafts[template.id]) }));
   if (!id) return { schemaReady: true, emails: templates };
   const template = templates.find((item) => item.id === id) || templates[0]!;
-  const defaultBlocks: DemoEmailBlock[] = [{ id: "hello", type: "paragraph", text: "Hi {{first_name}},\n\nThanks for your note. I reviewed the details for {{company_name}} and the next step is {{next_step}}." }, { id: "next", type: "paragraph", text: `If that works, reply here and ${pack.tenant.founder.fullName} will take care of the rest.` }, { id: "cta", type: "button", text: "Book a call", url: `${pack.tenant.brand.siteUrl}/contact` }];
+  const defaultBlocks = defaultEmailBlocks(template.id, pack);
   const draft = state.emailDrafts[template.id]; const blocks = draft?.blocks || defaultBlocks; const sampleData = { first_name: pack.people[0]!.name.split(" ")[0]!, company_name: pack.people[0]!.company, next_step: "a short operating review", appointment_time: "Thursday at 10:00 AM", owner_name: pack.tenant.founder.fullName, proposal_name: "your scope", start_date: "next week" };
   const subjectTemplate = draft?.subjectTemplate || template.subject; const previewText = draft?.previewText || `A clear next step from ${pack.name}.`;
   return { schemaReady: true, ...template, subjectTemplate, bodyTemplate: blocks.map((block) => block.text || "").join("\n\n"), blocks, previewText, sampleData, subject: interpolateDemoEmail(subjectTemplate, sampleData), html: demoEmailHtml(blocks, sampleData, pack.tenant.brand), source: draft || template.hasDraft ? "draft" as const : template.source } satisfies DemoEmailStudioDetail;
