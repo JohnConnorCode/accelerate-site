@@ -191,7 +191,12 @@ export default function AdminShell({
       if (document.title !== expectedTitle) document.title = expectedTitle;
     };
     const titleObserver = new MutationObserver(applyTitle);
-    titleObserver.observe(document.head, { childList: true, subtree: true, characterData: true });
+    const observerOptions = { childList: true, subtree: true, characterData: true };
+    titleObserver.observe(document.head, observerOptions);
+    // Several admin routes replace their server fallback heading after client
+    // data resolves. Keep the document title bound to that visible heading
+    // instead of relying on a timing guess that can miss fast or slow loads.
+    if (mainRef.current) titleObserver.observe(mainRef.current, observerOptions);
     applyTitle();
     frame = window.requestAnimationFrame(applyTitle);
     timer = window.setTimeout(applyTitle, 100);
