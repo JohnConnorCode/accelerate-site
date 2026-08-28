@@ -26,6 +26,8 @@ import { AdminDialog } from "@/components/admin/AdminDialog";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { toast } from "@/lib/admin/useToast";
 import { cn } from "@/lib/utils";
+import { EmailBlockComposer } from "@/components/admin/EmailBlockComposer";
+import { emailBlocksToText, type EmailBlock } from "@/lib/email/blocks";
 
 interface EmailEntry {
   id: string;
@@ -47,8 +49,10 @@ interface EmailDetail {
   description: string;
   category: string;
   variables: string[];
+  sampleData: Record<string, string>;
   subjectTemplate: string;
   bodyTemplate: string;
+  blocks: EmailBlock[];
   previewText: string;
   subject: string;
   html: string;
@@ -82,7 +86,8 @@ export default function EmailsPage() {
   const [query, setQuery] = useState("");
   const [editing, setEditing] = useState(false);
   const [subject, setSubject] = useState("");
-  const [body, setBody] = useState("");
+  const [previewText, setPreviewText] = useState("");
+  const [blocks, setBlocks] = useState<EmailBlock[]>([]);
   const [previewWidth, setPreviewWidth] = useState<"desktop" | "mobile">("desktop");
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
@@ -108,7 +113,8 @@ export default function EmailsPage() {
       const result = await fetchJson<EmailDetail>(`/api/admin/emails/preview?id=${encodeURIComponent(id)}`);
       setDetail(result);
       setSubject(result.subjectTemplate);
-      setBody(result.bodyTemplate);
+      setPreviewText(result.previewText);
+      setBlocks(result.blocks);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Could not load this email.");
     }
@@ -128,13 +134,13 @@ export default function EmailsPage() {
 
   const filteredEmails = useMemo(() => emails.filter((email) => !query.trim() || `${email.name} ${email.description} ${email.category} ${email.subject}`.toLowerCase().includes(query.toLowerCase())), [emails, query]);
   const filteredHistory = useMemo(() => history.filter((item) => !query.trim() || `${item.to} ${item.subject || ""} ${item.template || ""}`.toLowerCase().includes(query.toLowerCase())), [history, query]);
-  const dirty = Boolean(detail && (subject !== detail.subjectTemplate || body !== detail.bodyTemplate));
+  const dirty = Boolean(detail && (subject !== detail.subjectTemplate || previewText !== detail.previewText || JSON.stringify(blocks) !== JSON.stringify(detail.blocks)));
 
   const saveDraft = async () => {
     if (!detail) return;
     setWorking(true);
     try {
-      await fetchJson("/api/admin/emails/preview", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: detail.id, subjectTemplate: subject, bodyTemplate: body, previewText: detail.previewText }) });
+      await fetchJson("/api/admin/emails/preview", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: detail.id, subjectTemplate: subject, previewText, blocks }) });
       await Promise.all([loadList(), loadDetail(detail.id)]);
       setEditing(false);
       toast.success("Draft saved. Live email is unchanged until you publish.");
@@ -168,7 +174,7 @@ export default function EmailsPage() {
 
   const compose = () => {
     if (!detail) return;
-    window.dispatchEvent(new CustomEvent("admin:compose-email", { detail: { subject: detail.subject, body: detail.bodyTemplate } }));
+    window.dispatchEvent(new CustomEvent("admin:compose-email", { detail: { subject: detail.subject, body: emailBlocksToText(detail.blocks, detail.sampleData || {}) } }));
   };
 
   const currentListHidden = (tab === "templates" && selectedId) || (tab === "history" && selectedHistory);
@@ -197,7 +203,7 @@ export default function EmailsPage() {
         <main className={cn("min-w-0", !currentListHidden && "hidden lg:block")}>
           {tab === "templates" && detail ? <motion.div key={detail.id} initial={{ opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}>
             <header className="flex flex-wrap items-start gap-3 border-b border-[var(--admin-border)] px-4 py-4 sm:px-6"><button type="button" onClick={() => setSelectedId(null)} className="admin-icon-button lg:hidden" aria-label="Back to templates"><ArrowLeft className="size-4" /></button><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h2 className="text-balance text-lg font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">{detail.name}</h2><span className={cn("rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em]", detail.source === "draft" ? "bg-amber-500/10 text-amber-700 dark:text-amber-300" : detail.source === "published" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-black/[0.05] text-[var(--admin-muted)] dark:bg-white/[0.06]")}>{detail.source === "built_in" ? "Built-in live" : detail.source}</span></div><p className="admin-copy mt-1 text-xs">{detail.description}</p></div><div className="flex flex-wrap items-center gap-2"><button type="button" onClick={compose} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"><Send className="size-3.5" /> Compose</button><button type="button" onClick={() => setEditing((current) => !current)} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[var(--admin-ink)] px-3.5 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]">{editing ? <Eye className="size-3.5" /> : <Edit3 className="size-3.5" />}{editing ? "Preview" : "Edit"}</button></div></header>
-            {editing ? <div className="grid min-h-[590px] xl:grid-cols-[minmax(0,0.9fr)_minmax(420px,1.1fr)]"><section className="space-y-5 border-r border-[var(--admin-border)] p-4 sm:p-6"><label className="admin-field-label"><span>Subject</span><input value={subject} onChange={(event) => setSubject(event.target.value)} className="admin-field" /></label><label className="admin-field-label"><span>Message body</span><textarea value={body} onChange={(event) => setBody(event.target.value)} rows={16} className="admin-field min-h-[360px] resize-y py-3 font-mono text-xs leading-6" /></label><div><p className="admin-eyebrow">Available variables</p><div className="flex flex-wrap gap-1.5">{detail.variables.map((variable) => <button key={variable} type="button" onClick={() => setBody((current) => `${current}{{${variable}}}`)} className="min-h-8 rounded-lg bg-black/[0.045] px-2 font-mono text-[10px] text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-black/[0.08] hover:text-[var(--admin-ink)] active:scale-[0.96] dark:bg-white/[0.06]">{`{{${variable}}}`}</button>)}</div></div><div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--admin-border)] pt-4"><button type="button" onClick={() => void resetDraft()} disabled={working || !detail.hasDraft} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-xs font-semibold text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:scale-[0.96] disabled:opacity-35"><RotateCcw className="size-3.5" /> Discard draft</button><button type="button" onClick={() => void saveDraft()} disabled={working || !dirty} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[var(--admin-ink)] px-3.5 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 active:scale-[0.96] disabled:opacity-35">{working ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />} Save draft</button></div></section><PreviewPanel detail={detail} width={previewWidth} onWidth={setPreviewWidth} /></div> : <div><div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--admin-border)] px-4 py-3 sm:px-6"><p className="text-sm font-medium text-[var(--admin-ink)]">{detail.subject}</p><div className="flex items-center gap-2">{detail.hasDraft && <><button type="button" onClick={() => void templateAction("test")} disabled={working} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-xs font-semibold text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)] active:scale-[0.96]"><TestTube2 className="size-3.5" /> Test</button><button type="button" onClick={() => setConfirmPublish(true)} disabled={working} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-emerald-700 px-3.5 text-xs font-semibold text-white transition-[opacity,transform] active:scale-[0.96]"><Check className="size-3.5" /> Publish</button></>}</div></div><PreviewPanel detail={detail} width={previewWidth} onWidth={setPreviewWidth} /></div>}
+            {editing ? <div><section className="space-y-4 border-b border-[var(--admin-border)] p-4 sm:p-6"><label className="admin-field-label"><span>Subject</span><input value={subject} onChange={(event) => setSubject(event.target.value)} className="admin-field" /></label><label className="admin-field-label"><span>Inbox preview text</span><input value={previewText} onChange={(event) => setPreviewText(event.target.value)} className="admin-field" /></label><div><p className="admin-eyebrow">Available variables</p><div className="mt-2 flex flex-wrap gap-1.5">{detail.variables.map((variable) => <span key={variable} className="rounded-[var(--admin-control-radius)] bg-[var(--admin-surface-subtle)] px-2 py-1 font-mono text-[10px] text-[var(--admin-muted)]">{`{{${variable}}}`}</span>)}</div></div></section><EmailBlockComposer templateId={detail.id} subject={subject} previewText={previewText} blocks={blocks} onChange={setBlocks} /><div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--admin-border)] p-4 sm:px-6"><button type="button" onClick={() => void resetDraft()} disabled={working || !detail.hasDraft} className="inline-flex min-h-10 items-center gap-2 rounded-[var(--admin-control-radius)] px-3 text-xs font-semibold text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:scale-[0.96] disabled:opacity-35"><RotateCcw className="size-3.5" /> Discard draft</button><button type="button" onClick={() => void saveDraft()} disabled={working || !dirty} className="inline-flex min-h-10 items-center gap-2 rounded-[var(--admin-control-radius)] bg-[var(--admin-ink)] px-3.5 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 active:scale-[0.96] disabled:opacity-35">{working ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />} Save draft</button></div></div> : <div><div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--admin-border)] px-4 py-3 sm:px-6"><p className="text-sm font-medium text-[var(--admin-ink)]">{detail.subject}</p><div className="flex items-center gap-2">{detail.hasDraft && <><button type="button" onClick={() => void templateAction("test")} disabled={working} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-xs font-semibold text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)] active:scale-[0.96]"><TestTube2 className="size-3.5" /> Test</button><button type="button" onClick={() => setConfirmPublish(true)} disabled={working} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-emerald-700 px-3.5 text-xs font-semibold text-white transition-[opacity,transform] active:scale-[0.96]"><Check className="size-3.5" /> Publish</button></>}</div></div><PreviewPanel detail={detail} width={previewWidth} onWidth={setPreviewWidth} /></div>}
           </motion.div> : tab === "history" && selectedHistory ? <div><header className="flex items-start gap-3 border-b border-[var(--admin-border)] px-4 py-4 sm:px-6"><button type="button" onClick={() => setSelectedHistory(null)} className="admin-icon-button lg:hidden" aria-label="Back to sent history"><ArrowLeft className="size-4" /></button><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h2 className="truncate text-lg font-semibold text-[var(--admin-ink)]">{selectedHistory.subject || "(No subject)"}</h2><span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-emerald-700 dark:text-emerald-300">{selectedHistory.status}</span></div><p className="admin-copy mt-1 text-xs">To {selectedHistory.to}</p></div></header><div className="p-4 sm:p-6"><div className="mx-auto max-w-3xl rounded-2xl bg-[var(--admin-surface-subtle)] p-2"><div className="rounded-xl bg-[var(--admin-surface)] p-5 shadow-[var(--admin-shadow-border)]"><div className="flex flex-wrap justify-between gap-3 border-b border-[var(--admin-border)] pb-4 text-xs text-[var(--admin-muted)]"><span>{selectedHistory.template || "Direct message"}</span><span className="tabular-nums">{new Date(selectedHistory.sentAt).toLocaleString()}</span></div><p className="mt-5 whitespace-pre-wrap text-pretty text-sm leading-7 text-[var(--admin-ink)]">{selectedHistory.body || "Message body was not recorded."}</p>{selectedHistory.providerId && <p className="mt-6 font-mono text-[9px] text-[var(--admin-muted)]">Provider receipt {selectedHistory.providerId}</p>}</div></div></div></div> : <div className="grid min-h-[650px] place-items-center text-center"><div><Mail className="mx-auto size-6 text-[var(--admin-muted)]" /><h2 className="mt-4 text-lg font-semibold text-[var(--admin-ink)]">Choose an email</h2><p className="admin-copy mt-1 text-sm">View the exact copy, delivery, and available actions.</p></div></div>}
         </main>
       </div>

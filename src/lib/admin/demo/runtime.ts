@@ -1,8 +1,29 @@
 import { DEMO_SCENARIOS, type DemoScenarioId, type DemoScenarioPack } from "./scenarios";
 import { clearDemoAppearance } from "./appearance-state";
 
-type DemoState = { completedActions: string[]; completedTasks: string[]; stageOverrides: Record<string, string>; sentReplies: Record<string, string[]>; readNotifications: string[] };
-const initialState = (): DemoState => ({ completedActions: [], completedTasks: [], stageOverrides: {}, sentReplies: {}, readNotifications: [] });
+type DemoEmailBlock = { id: string; type: "heading" | "paragraph" | "button" | "divider" | "spacer"; text?: string; url?: string; height?: number };
+type DemoEmailDraft = { subjectTemplate: string; previewText: string; blocks: DemoEmailBlock[] };
+type DemoEmailStudioDetail = {
+  schemaReady: true;
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  subject: string;
+  variables: string[];
+  hasDraft: boolean;
+  source: "published" | "built_in" | "draft";
+  updatedAt: string;
+  subjectTemplate: string;
+  bodyTemplate: string;
+  blocks: DemoEmailBlock[];
+  previewText: string;
+  sampleData: Record<string, string>;
+  html: string;
+};
+type DemoEmailStudioList = { schemaReady: true; emails: Array<Record<string, unknown>> };
+type DemoState = { completedActions: string[]; completedTasks: string[]; stageOverrides: Record<string, string>; sentReplies: Record<string, string[]>; readNotifications: string[]; emailDrafts: Record<string, DemoEmailDraft> };
+const initialState = (): DemoState => ({ completedActions: [], completedTasks: [], stageOverrides: {}, sentReplies: {}, readNotifications: [], emailDrafts: {} });
 const keyFor = (id: DemoScenarioId) => `accelerate:admin-demo:${id}:v3`;
 const jsonResponse = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 const eventStreamResponse = (events: unknown[]) => new Response(events.map((event) => `data: ${JSON.stringify(event)}\n\n`).join(""), { status: 200, headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-store" } });
@@ -71,7 +92,21 @@ function inbox(pack: DemoScenarioPack) {
   return { items, counts, updatedAt: new Date().toISOString() };
 }
 
-function emailStudio(pack: DemoScenarioPack, id?: string | null) {
+const escapeEmailHtml = (value: string) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, "&quot;").replace(/'/g, "&#039;");
+const interpolateDemoEmail = (value: string, data: Record<string, string>) => value.replace(/\{\{([A-Za-z0-9_]+)\}\}/g, (_, key: string) => data[key] || `{{${key}}}`);
+function demoEmailHtml(blocks: DemoEmailBlock[], data: Record<string, string>, brand: DemoScenarioPack["tenant"]["brand"]) {
+  const body = blocks.map((block) => {
+    if (block.type === "heading") return `<h1 style="margin:0 0 18px;color:#151611;font:700 28px/1.15 Arial,sans-serif">${escapeEmailHtml(interpolateDemoEmail(block.text || "", data))}</h1>`;
+    if (block.type === "paragraph") return `<p style="margin:0 0 16px;color:#3f4744;font:15px/1.65 Arial,sans-serif">${escapeEmailHtml(interpolateDemoEmail(block.text || "", data)).replace(/\n/g, "<br>")}</p>`;
+    if (block.type === "button") return `<p style="margin:24px 0"><a href="${escapeEmailHtml(interpolateDemoEmail(block.url || `${brand.siteUrl}/contact`, data))}" style="display:inline-block;background:#1b211e;border-radius:8px;padding:14px 18px;color:${brand.accentColor};font:700 14px Arial,sans-serif;text-decoration:none">${escapeEmailHtml(interpolateDemoEmail(block.text || "Book a call", data))} →</a></p>`;
+    if (block.type === "divider") return `<hr style="border:0;border-top:1px solid #dfe5df;margin:24px 0">`;
+    return `<div style="height:${Math.max(8, Math.min(96, Number(block.height) || 24))}px"></div>`;
+  }).join("");
+  return `<!doctype html><html><body style="margin:0;padding:32px 16px;background:#eef1ee"><main style="max-width:600px;margin:auto;border-radius:16px;background:#fff;padding:36px;box-sizing:border-box"><p style="margin:0 0 24px;color:#151611;font:800 20px Arial,sans-serif">${escapeEmailHtml(brand.name)}<span style="color:${brand.accentColor}">.</span></p>${body}<hr style="border:0;border-top:1px solid #dfe5df;margin:28px 0 16px"><p style="margin:0;color:#68736e;font:11px/1.6 Arial,sans-serif">${escapeEmailHtml(brand.name)} · ${escapeEmailHtml(brand.domain)}</p></main></body></html>`;
+}
+function emailStudio(pack: DemoScenarioPack, id: string, state: DemoState): DemoEmailStudioDetail;
+function emailStudio(pack: DemoScenarioPack, id?: string | null, state?: DemoState): DemoEmailStudioList | DemoEmailStudioDetail;
+function emailStudio(pack: DemoScenarioPack, id?: string | null, state: DemoState = initialState()): DemoEmailStudioList | DemoEmailStudioDetail {
   const templates = [
     { id: "inquiry-reply", name: "New inquiry response", description: "A prompt, personal first response with one clear next step.", category: "Revenue", subject: `Next steps with ${pack.name}`, variables: ["first_name", "company_name", "next_step"], hasDraft: false, source: "published" as const, updatedAt: ago(26) },
     { id: "appointment-confirmation", name: "Appointment confirmation", description: "Confirms the time, owner, and what the customer should expect.", category: "Operations", subject: "Your appointment is confirmed", variables: ["first_name", "appointment_time", "owner_name"], hasDraft: true, source: "published" as const, updatedAt: ago(8) },
@@ -80,8 +115,10 @@ function emailStudio(pack: DemoScenarioPack, id?: string | null) {
   ];
   if (!id) return { schemaReady: true, emails: templates };
   const template = templates.find((item) => item.id === id) || templates[0]!;
-  const bodyTemplate = `Hi {{first_name}},\n\nThanks for your note. I reviewed the details for {{company_name}} and the next step is {{next_step}}.\n\nIf that works, reply here and I’ll take care of the rest.\n\n${pack.tenant.founder.fullName}`;
-  return { schemaReady: true, ...template, subjectTemplate: template.subject, bodyTemplate, previewText: `A clear next step from ${pack.name}.`, subject: template.subject.replace("{{first_name}}", pack.people[0]!.name.split(" ")[0]!), html: `<p>Hi ${pack.people[0]!.name.split(" ")[0]},</p><p>Thanks for your note. I reviewed the details and the next step is ready.</p><p>If that works, reply here and I’ll take care of the rest.</p><p>${pack.tenant.founder.fullName}</p>`, source: template.hasDraft ? "draft" as const : template.source };
+  const defaultBlocks: DemoEmailBlock[] = [{ id: "hello", type: "paragraph", text: "Hi {{first_name}},\n\nThanks for your note. I reviewed the details for {{company_name}} and the next step is {{next_step}}." }, { id: "next", type: "paragraph", text: `If that works, reply here and ${pack.tenant.founder.fullName} will take care of the rest.` }, { id: "cta", type: "button", text: "Book a call", url: `${pack.tenant.brand.siteUrl}/contact` }];
+  const draft = state.emailDrafts[template.id]; const blocks = draft?.blocks || defaultBlocks; const sampleData = { first_name: pack.people[0]!.name.split(" ")[0]!, company_name: pack.people[0]!.company, next_step: "a short operating review", appointment_time: "Thursday at 10:00 AM", owner_name: pack.tenant.founder.fullName, proposal_name: "your scope", start_date: "next week" };
+  const subjectTemplate = draft?.subjectTemplate || template.subject; const previewText = draft?.previewText || `A clear next step from ${pack.name}.`;
+  return { schemaReady: true, ...template, subjectTemplate, bodyTemplate: blocks.map((block) => block.text || "").join("\n\n"), blocks, previewText, sampleData, subject: interpolateDemoEmail(subjectTemplate, sampleData), html: demoEmailHtml(blocks, sampleData, pack.tenant.brand), source: draft || template.hasDraft ? "draft" as const : template.source } satisfies DemoEmailStudioDetail;
 }
 
 function campaigns(pack: DemoScenarioPack) {
@@ -220,7 +257,25 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     }
     const body = init?.body && typeof init.body === "string" ? JSON.parse(init.body) as Record<string, unknown> : {};
     if (method === "GET" && path === "/api/admin/inbox") return jsonResponse(inbox(pack));
-    if (method === "GET" && path === "/api/admin/emails/preview") return jsonResponse(emailStudio(pack, url.searchParams.get("id")));
+    if (method === "GET" && path === "/api/admin/emails/preview") {
+      const id = url.searchParams.get("id");
+      return jsonResponse(id ? emailStudio(pack, id, state) : emailStudio(pack, null, state));
+    }
+    if (method === "POST" && path === "/api/admin/emails/preview" && body.action === "render") {
+      const template = emailStudio(pack, String(body.id || ""), state);
+      const blocks = Array.isArray(body.blocks) ? body.blocks as DemoEmailBlock[] : template.blocks;
+      return jsonResponse({ subject: interpolateDemoEmail(String(body.subjectTemplate || template.subjectTemplate), template.sampleData), html: demoEmailHtml(blocks, template.sampleData, pack.tenant.brand), text: blocks.map((block) => block.text || "").join("\n\n") });
+    }
+    if (method === "PATCH" && path === "/api/admin/emails/preview") {
+      const id = String(body.id || "");
+      if (!id || !Array.isArray(body.blocks)) return jsonResponse({ error: "A complete simulated email is required." }, 400);
+      const current = emailStudio(pack, id, state);
+      state.emailDrafts[id] = { subjectTemplate: String(body.subjectTemplate || current.subjectTemplate), previewText: String(body.previewText || current.previewText), blocks: body.blocks as DemoEmailBlock[] };
+      saveState(scenarioId, state);
+      return jsonResponse({ success: true, simulated: true });
+    }
+    if (method === "POST" && path === "/api/admin/emails/preview" && (body.action === "test" || body.action === "publish")) return jsonResponse({ success: true, simulated: true, to: `${pack.tenant.founder.email}` });
+    if (method === "DELETE" && path === "/api/admin/emails/preview") { delete state.emailDrafts[url.searchParams.get("id") || ""]; saveState(scenarioId, state); return jsonResponse({ success: true, simulated: true }); }
     if (method === "GET" && path === "/api/admin/emails/history") return jsonResponse({ history: pack.conversations.flatMap((conversation, index) => conversation.messages.filter((message) => message.direction === "outbound").map((message) => { const contact = person(pack, conversation.personId); return { id: message.id, to: contact.email, toName: contact.name, subject: conversation.subject, body: message.body, status: "delivered", providerId: `demo-provider-${index}`, template: index % 2 ? "appointment-confirmation" : "inquiry-reply", sentAt: message.at, source: "fictional_demo" }; })) });
     if (method === "GET" && path === "/api/admin/revenue-os/campaigns") return jsonResponse({ schemaReady: true, campaigns: campaigns(pack) });
     if (method === "GET" && path === "/api/admin/revenue-os/campaigns/preview") {

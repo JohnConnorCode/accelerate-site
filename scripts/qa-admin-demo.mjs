@@ -23,38 +23,40 @@ async function readStablePageState(page) {
 }
 
 {
-  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, colorScheme: "light" });
   const page = await context.newPage();
   await page.goto(`${base}/demo/command-center`, { waitUntil: "domcontentloaded", timeout: 60_000 });
   const launcher = await page.locator('a[href^="/demo/command-center/"][href$="/today"]').count();
   if (launcher !== scenarios.length && !process.argv.includes("--one")) failures.push(`launcher: expected ${scenarios.length} scenario cards, found ${launcher}`);
   if (!await page.getByText("Browser-only fictional workspaces", { exact: false }).count()) failures.push("launcher: missing fictional-data disclosure");
-  await page.getByRole("button", { name: "Switch demo selection to dark mode" }).waitFor();
+  if (await page.getByText("Command Center overview", { exact: false }).count()) failures.push("launcher: duplicate local navigation chrome remains");
+  if (await page.locator(".demo-launcher-theme-toggle").count()) failures.push("launcher: duplicate local appearance control remains");
+  await page.getByRole("button", { name: "Switch to dark mode" }).waitFor();
   await page.waitForTimeout(1_300);
   const lightTheme = await page.evaluate(() => {
     const launcher = getComputedStyle(document.querySelector(".demo-launcher"));
     const card = getComputedStyle(document.querySelector(".demo-launcher-card"));
     const preview = getComputedStyle(document.querySelector(".demo-workspace-preview"));
-    return { theme: document.documentElement.dataset.demoLauncherTheme, canvas: launcher.backgroundColor, card: card.backgroundColor, ink: card.color, preview: preview.backgroundColor };
+    return { theme: document.documentElement.dataset.theme, canvas: launcher.backgroundColor, card: card.backgroundColor, ink: card.color, preview: preview.backgroundColor };
   });
   await page.screenshot({ path: `${output}/launcher-desktop-light.png`, fullPage: true });
-  await page.getByRole("button", { name: "Switch demo selection to dark mode" }).click();
-  await page.waitForFunction(() => document.documentElement.dataset.demoLauncherTheme === "dark");
+  await page.getByRole("button", { name: "Switch to dark mode" }).click();
+  await page.waitForFunction(() => document.documentElement.dataset.theme === "dark");
   await page.waitForTimeout(500);
   const darkTheme = await page.evaluate(() => {
     const launcher = getComputedStyle(document.querySelector(".demo-launcher"));
     const card = getComputedStyle(document.querySelector(".demo-launcher-card"));
     const preview = getComputedStyle(document.querySelector(".demo-workspace-preview"));
-    return { theme: document.documentElement.dataset.demoLauncherTheme, canvas: launcher.backgroundColor, card: card.backgroundColor, ink: card.color, preview: preview.backgroundColor, stored: localStorage.getItem("accelerate:admin-demo:launcher-theme:v1") };
+    return { theme: document.documentElement.dataset.theme, canvas: launcher.backgroundColor, card: card.backgroundColor, ink: card.color, preview: preview.backgroundColor };
   });
-  if (lightTheme.theme !== "light" || darkTheme.theme !== "dark" || darkTheme.stored !== "dark" || lightTheme.canvas === darkTheme.canvas || lightTheme.card === darkTheme.card || lightTheme.ink === darkTheme.ink || lightTheme.preview === darkTheme.preview) failures.push("launcher: light/dark toggle did not adapt every primary surface");
+  if (lightTheme.theme !== "light" || darkTheme.theme !== "dark" || lightTheme.canvas === darkTheme.canvas || lightTheme.card === darkTheme.card || lightTheme.ink === darkTheme.ink || lightTheme.preview === darkTheme.preview) failures.push("launcher: shared light/dark appearance did not adapt every primary surface");
   await page.reload({ waitUntil: "domcontentloaded" });
   const stableLauncherThemes = [];
   for (let sample = 0; sample < 12; sample += 1) {
-    stableLauncherThemes.push(await page.evaluate(() => document.documentElement.dataset.demoLauncherTheme));
+    stableLauncherThemes.push(await page.evaluate(() => document.documentElement.dataset.theme));
     await page.waitForTimeout(50);
   }
-  if (stableLauncherThemes.some((theme) => theme !== "dark")) failures.push(`launcher: stored dark appearance flickered during reload (${stableLauncherThemes.join(",")})`);
+  if (stableLauncherThemes.some((theme) => theme !== "dark")) failures.push(`launcher: shared dark appearance flickered during reload (${stableLauncherThemes.join(",")})`);
   const marks = await page.locator(".demo-scenario-mark").evaluateAll((nodes) => nodes.map((node) => ({ classes: node.getAttribute("class"), animation: getComputedStyle(node).animationName, animatedParts: [...node.querySelectorAll("*")].filter((part) => getComputedStyle(part).animationName !== "none").length })));
   if (marks.length !== 5 || new Set(marks.map((mark) => mark.classes)).size !== 5 || marks.some((mark) => mark.animation === "none" && !mark.animatedParts)) failures.push("launcher: scenario logos are not five distinct animated marks");
   const entrances = await page.locator(".admin-demo-enter").evaluateAll((nodes) => nodes.map((node) => ({ name: getComputedStyle(node).animationName, delay: getComputedStyle(node).animationDelay })));
@@ -105,6 +107,10 @@ for (const scenario of scenarios) {
       if (state.mainText < 120) failures.push(`${scenario} ${label} ${route}: view is not credibly populated`);
       if (!state.logo) failures.push(`${scenario} ${label} ${route}: shared animated logo is missing`);
       if (!state.heading || !state.title.startsWith(`${state.heading} | `) || !state.title.endsWith(" Demo")) failures.push(`${scenario} ${label} ${route}: contextual title does not match its page heading (${state.title})`);
+      if (route === "integrations" && label === "desktop") {
+        const crumbLabels = await page.getByRole("navigation", { name: "Breadcrumb" }).locator("a").allTextContents();
+        if (crumbLabels.length !== 1 || crumbLabels[0]?.trim() !== "Integrations") failures.push(`${scenario} desktop integrations: breadcrumb must reflect the real top-level route, got ${crumbLabels.join(" / ") || "none"}`);
+      }
       const expectedActiveHref = `/demo/command-center/${scenario}/${route}`;
       if (await page.locator(`.admin-nav-link[href="${expectedActiveHref}"]`).count()) {
         const activeHref = await page.locator('.admin-nav-link[aria-current="page"]').first().getAttribute("href");

@@ -21,4 +21,16 @@ for (const file of files) {
 }
 const missing = [...used].filter((token) => !defined.has(token)).sort();
 if (missing.length) throw new Error(`Undefined admin tokens:\n${missing.join("\n")}`);
+const glassCard = readFileSync(join(root, "components/ui/GlassCard.tsx"), "utf8");
+if (!glassCard.includes("admin-surface-compatible")) {
+  throw new Error("Admin surface contract: GlassCard must opt into the shared admin surface tier.");
+}
+if (!css.includes(".admin-shell .admin-surface-compatible") || !css.includes("border-radius: var(--admin-surface-radius)")) {
+  throw new Error("Admin surface contract: shared cards must resolve their radius from --admin-surface-radius inside admin.");
+}
+for (const elevation of ["flat", "raised", "outlined"]) {
+  if (!css.includes(`.admin-surface--${elevation}`) || !css.includes(`.admin-surface-compatible--${elevation}`)) {
+    throw new Error(`Admin surface contract: ${elevation} cards must be defined for both current and legacy surfaces.`);
+  }
+}
 console.log(`Admin token contract passed: ${used.size} used tokens are defined.`);

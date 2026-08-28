@@ -3,10 +3,13 @@ import { cn } from "@/lib/utils";
 
 type AdminSurfaceTone = "default" | "subtle" | "ink" | "attention";
 type AdminSurfacePadding = "none" | "sm" | "md" | "lg";
+type AdminSurfaceElevation = "flat" | "raised" | "outlined";
 
 interface AdminSurfaceProps extends React.HTMLAttributes<HTMLDivElement> {
   tone?: AdminSurfaceTone;
   padding?: AdminSurfacePadding;
+  /** Visual hierarchy, resolved by the active admin appearance. */
+  elevation?: AdminSurfaceElevation;
   interactive?: boolean;
 }
 
@@ -25,11 +28,12 @@ const paddings: Record<AdminSurfacePadding, string> = {
 };
 
 export const AdminSurface = forwardRef<HTMLDivElement, AdminSurfaceProps>(
-  ({ tone = "default", padding = "md", interactive = false, className, ...props }, ref) => (
+  ({ tone = "default", padding = "md", elevation = "raised", interactive = false, className, ...props }, ref) => (
     <div
       ref={ref}
       className={cn(
         tones[tone],
+        `admin-surface--${elevation}`,
         paddings[padding],
         interactive && "admin-surface-interactive",
         className,

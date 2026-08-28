@@ -44,22 +44,10 @@ import { Logo } from "@/components/ui/Logo";
 import { LogoMark } from "@/components/ui/LogoMark";
 import { useNavigationRuntime } from "@/components/navigation/NavigationRuntime";
 import { adminMobileLinks, adminNavLinks, adminNavSections, resolveAdminNavLink, type AdminNavLink } from "@/lib/admin/navigation";
+import { getAdminBreadcrumbs } from "@/lib/admin/breadcrumbs";
 import { AdminDemoControls } from "@/components/admin/AdminDemoBoundary";
 import { DemoScenarioMark } from "@/components/admin/DemoScenarioMark";
 import { DEMO_SCENARIOS, DEMO_SCENARIO_SHELL_NAMES, isDemoScenarioId, type DemoScenarioId } from "@/lib/admin/demo/scenarios";
-
-function getBreadcrumbs(pathname: string): { label: string; href: string }[] {
-  const crumbs = [{ label: "Today", href: "/admin/today" }];
-  const active = resolveAdminNavLink(pathname);
-  if (active && active.href !== "/admin/today") crumbs.push({ label: active.label, href: active.href });
-  if (pathname.startsWith("/admin/contacts/") && pathname !== "/admin/contacts") {
-    if (!crumbs.some((crumb) => crumb.href === "/admin/contacts")) {
-      crumbs.push({ label: "Contacts", href: "/admin/contacts" });
-    }
-    crumbs.push({ label: "Timeline", href: pathname });
-  }
-  return crumbs;
-}
 
 function resolveAdminPathname(pathname: string, scenarioId: DemoScenarioId | null, demoRoute: string | null) {
   if (!scenarioId) return pathname;
@@ -415,7 +403,7 @@ export default function AdminShell({
         `${action.label} ${action.description} ${action.keywords}`.toLowerCase().includes(normalizedQuery),
       )
     : commandActions;
-  const breadcrumbs = getBreadcrumbs(effectivePathname);
+  const breadcrumbs = getAdminBreadcrumbs(effectivePathname);
 
   return (
     <AdminQueryProvider scope={scenarioId || "live"}>

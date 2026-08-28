@@ -1,6 +1,6 @@
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { getEmailTemplateDefinition, renderDefinition, replaceEmailVariables } from "./registry";
-import { textEmail } from "./templates";
+import { blocksFromPlainText, parseStoredEmailBlocks, renderEmailBlocks } from "./blocks";
 
 export interface ResolvedEmailTemplate {
   templateKey: string;
@@ -26,8 +26,9 @@ export async function resolveEmailTemplate(templateKey: string, variables: Recor
       const version = Array.isArray(data.email_template_versions) ? data.email_template_versions[0] : data.email_template_versions;
       if (version) {
         const subject = replaceEmailVariables(version.subject_template, variables);
-        const text = replaceEmailVariables(version.body_template, variables);
-        return { templateKey, versionId: version.id, source: "published", subject, text, html: textEmail(text) };
+        const blocks = parseStoredEmailBlocks(version.body_template) || blocksFromPlainText(version.body_template);
+        const { text, html } = await renderEmailBlocks(blocks, variables);
+        return { templateKey, versionId: version.id, source: "published", subject, text, html };
       }
     }
   } catch {

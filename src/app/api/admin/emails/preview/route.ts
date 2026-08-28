@@ -3,7 +3,7 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { getResend, FROM_EMAIL, ADMIN_EMAIL } from "@/lib/email/resend";
 import { EMAIL_TEMPLATE_DEFINITIONS, getEmailTemplateDefinition, renderDefinition, replaceEmailVariables } from "@/lib/email/registry";
-import { textEmail } from "@/lib/email/templates";
+import { blocksFromPlainText, emailBlocksToText, parseStoredEmailBlocks, renderEmailBlocks, serializeEmailBlocks, validateEmailBlocks } from "@/lib/email/blocks";
 import { recordAudit } from "@/lib/revenue-os/audit";
 
 interface StoredVersion {
@@ -24,10 +24,13 @@ function usedVariables(subject: string, body: string) {
   return [...new Set(`${subject} ${body}`.match(/\{\{([A-Za-z0-9_]+)\}\}/g)?.map((token) => token.slice(2, -2)) || [])];
 }
 
-function validateDraft(definition: NonNullable<ReturnType<typeof getEmailTemplateDefinition>>, subject: unknown, body: unknown) {
+function validateDraft(definition: NonNullable<ReturnType<typeof getEmailTemplateDefinition>>, subject: unknown, blocks: unknown) {
   if (typeof subject !== "string" || !subject.trim() || subject.length > 300) return "Subject is required and must be under 300 characters.";
-  if (typeof body !== "string" || !body.trim() || body.length > 20_000) return "Body is required and must be under 20,000 characters.";
-  const invalid = usedVariables(subject, body).filter((variable) => !definition.variables.includes(variable));
+  const validBlocks = validateEmailBlocks(blocks);
+  if (!validBlocks?.length) return "Add at least one valid email section before saving.";
+  const text = emailBlocksToText(validBlocks, definition.sampleData);
+  if (text.length > 20_000) return "Email copy must be under 20,000 characters.";
+  const invalid = usedVariables(subject, text).filter((variable) => !definition.variables.includes(variable));
   return invalid.length ? `Unsupported variables: ${invalid.map((value) => `{{${value}}}`).join(", ")}` : null;
 }
 
@@ -90,8 +93,9 @@ export async function GET(request: NextRequest) {
   const variables = { ...definition.sampleData, ...(selected?.sample_data || {}) };
   const subjectTemplate = selected?.subject_template || definition.subjectTemplate;
   const bodyTemplate = selected?.body_template || definition.bodyTemplate;
+  const blocks = parseStoredEmailBlocks(bodyTemplate) || blocksFromPlainText(bodyTemplate);
   const rendered = selected
-    ? { subject: replaceEmailVariables(subjectTemplate, variables), text: replaceEmailVariables(bodyTemplate, variables), html: textEmail(replaceEmailVariables(bodyTemplate, variables)) }
+    ? await renderEmailBlocks(blocks, variables, selected.preview_text || undefined).then(({ html, text }) => ({ subject: replaceEmailVariables(subjectTemplate, variables), text, html }))
     : renderDefinition(definition, variables);
 
   return NextResponse.json({
@@ -105,6 +109,7 @@ export async function GET(request: NextRequest) {
     sampleData: variables,
     subjectTemplate,
     bodyTemplate,
+    blocks,
     previewText: selected?.preview_text || "",
     subject: rendered.subject,
     html: rendered.html,
@@ -122,7 +127,8 @@ export async function PATCH(request: NextRequest) {
   const body = await request.json();
   const definition = getEmailTemplateDefinition(body.id);
   if (!definition) return NextResponse.json({ error: "Email template not found" }, { status: 404 });
-  const validation = validateDraft(definition, body.subjectTemplate, body.bodyTemplate);
+  const blocks = validateEmailBlocks(body.blocks);
+  const validation = validateDraft(definition, body.subjectTemplate, blocks);
   if (validation) return NextResponse.json({ error: validation }, { status: 400 });
 
   const supabase = createServiceRoleClient();
@@ -141,7 +147,7 @@ export async function PATCH(request: NextRequest) {
     state: "draft",
     subject_template: body.subjectTemplate.trim(),
     preview_text: typeof body.previewText === "string" ? body.previewText.trim().slice(0, 300) : null,
-    body_template: body.bodyTemplate.trim(),
+    body_template: serializeEmailBlocks(blocks!),
     sample_data: definition.sampleData,
     created_by: auth.user.email,
     updated_at: new Date().toISOString(),
@@ -163,6 +169,16 @@ export async function POST(request: NextRequest) {
   const definition = getEmailTemplateDefinition(body.id);
   if (!definition) return NextResponse.json({ error: "Email template not found" }, { status: 404 });
   const supabase = createServiceRoleClient();
+
+  if (body.action === "render") {
+    const blocks = validateEmailBlocks(body.blocks);
+    const validation = validateDraft(definition, body.subjectTemplate, blocks);
+    if (validation) return NextResponse.json({ error: validation }, { status: 400 });
+    const variables = definition.sampleData;
+    const { html, text } = await renderEmailBlocks(blocks!, variables, typeof body.previewText === "string" ? body.previewText : undefined);
+    return NextResponse.json({ subject: replaceEmailVariables(body.subjectTemplate, variables), html, text });
+  }
+
   const { versions, error } = await versionsFor(definition.key);
   if (error) return NextResponse.json({ error: missingSchema(error.code) ? "Apply the Email Studio migration in Setup Center first." : error.message }, { status: 409 });
   const draft = versions.find((version) => version.state === "draft");
@@ -171,9 +187,10 @@ export async function POST(request: NextRequest) {
   if (body.action === "test") {
     const variables = { ...definition.sampleData, ...(draft.sample_data || {}) };
     const subject = replaceEmailVariables(draft.subject_template, variables);
-    const text = replaceEmailVariables(draft.body_template, variables);
+    const blocks = parseStoredEmailBlocks(draft.body_template) || blocksFromPlainText(draft.body_template);
+    const { text, html } = await renderEmailBlocks(blocks, variables, draft.preview_text || undefined);
     const to = auth.user.email || ADMIN_EMAIL;
-    const result = await getResend().emails.send({ from: FROM_EMAIL, to, subject: `[TEST] ${subject}`, text, html: textEmail(text) });
+    const result = await getResend().emails.send({ from: FROM_EMAIL, to, subject: `[TEST] ${subject}`, text, html });
     if (result.error) return NextResponse.json({ error: result.error.message }, { status: 502 });
     await recordAudit(supabase, { actorEmail: auth.user.email, action: "email_template.test_sent", entityType: "email_template", entityId: definition.key, metadata: { versionId: draft.id, providerId: result.data?.id, to } });
     return NextResponse.json({ success: true, to });

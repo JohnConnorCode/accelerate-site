@@ -17,7 +17,7 @@ export function Toaster() {
 
   return (
     <div
-      className="pointer-events-none fixed inset-x-4 bottom-4 z-[300] flex w-auto max-w-sm flex-col gap-2 sm:left-auto sm:w-full"
+      className="admin-toast-region pointer-events-none fixed inset-x-4 z-[300] flex w-auto max-w-sm flex-col gap-2 sm:left-auto sm:w-full"
       aria-live="polite"
       aria-atomic="false"
     >
@@ -28,21 +28,21 @@ export function Toaster() {
           return (
             <motion.div
               key={t.id}
-              initial={{ opacity: 0, x: 24, scale: 0.95 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: 24, scale: 0.95 }}
-              transition={{ duration: 0.18 }}
+              initial={{ opacity: 0, y: 10, scale: 0.985, filter: "blur(4px)" }}
+              animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+              exit={{ opacity: 0, y: 8, scale: 0.985, filter: "blur(3px)" }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
               className={cn(
-                "pointer-events-auto flex items-start gap-3 rounded-lg border border-l-2 border-border-glass bg-bg-elevated px-3 py-2.5 shadow-xl",
+                "admin-toast pointer-events-auto flex items-start gap-3 rounded-[var(--admin-control-radius)] border border-l-2 px-3 py-2.5",
                 styles.bar,
               )}
               role={t.kind === "error" ? "alert" : "status"}
             >
-              <Icon className="mt-0.5 h-4 w-4 shrink-0 text-white-secondary" />
-              <p className="flex-1 text-sm text-white-primary">{t.message}</p>
+              <Icon className="mt-0.5 h-4 w-4 shrink-0 text-[var(--admin-muted)]" />
+              <p className="flex-1 text-sm text-[var(--admin-ink)]">{t.message}</p>
               <button
                 onClick={() => dismiss(t.id)}
-                className="text-white-muted transition-colors hover:text-white-primary cursor-pointer"
+                className="cursor-pointer text-[var(--admin-muted)] transition-colors hover:text-[var(--admin-ink)]"
                 aria-label="Dismiss"
               >
                 <X className="h-3.5 w-3.5" />

@@ -14,7 +14,6 @@ import { NavigationRuntime } from "@/components/navigation/NavigationRuntime";
 import { Dock } from "@/components/home/Dock";
 import { MotionRuntime } from "@/components/motion/MotionRuntime";
 import { marketingPositioning } from "@/content/marketing-positioning";
-import { DEMO_LAUNCHER_THEME_KEY } from "@/lib/admin/demo/launcher-theme";
 import "./globals.css";
 
 // High-contrast editorial type system: Inter Tight (display), Inter (body),
@@ -154,7 +153,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `document.documentElement.classList.add("motion-ready");setTimeout(function(){if(!document.documentElement.hasAttribute("data-motion-hydrated")){document.documentElement.classList.remove("motion-ready")}},4000);try{if(location.pathname.replace(/\\/+$/,"")==="/demo/command-center"){var launcherTheme=localStorage.getItem(${JSON.stringify(DEMO_LAUNCHER_THEME_KEY)});if(launcherTheme!=="light"&&launcherTheme!=="dark")launcherTheme=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.demoLauncherTheme=launcherTheme}}catch(_){}`,
+            __html: `document.documentElement.classList.add("motion-ready");setTimeout(function(){if(!document.documentElement.hasAttribute("data-motion-hydrated")){document.documentElement.classList.remove("motion-ready")}},4000);`,
           }}
         />
         <Script id="org-jsonld" type="application/ld+json" strategy="beforeInteractive">

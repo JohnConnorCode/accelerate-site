@@ -10,6 +10,8 @@ interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: GlassVariant;
   hover?: HoverBehavior;
   padding?: "none" | "sm" | "md" | "lg";
+  /** Only applied inside AdminShell. Keeps legacy cards on the shared surface scale. */
+  adminElevation?: "flat" | "raised" | "outlined";
   children: React.ReactNode;
 }
 
@@ -32,6 +34,7 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
       variant = "default",
       hover = "glow",
       padding = "md",
+      adminElevation = "raised",
       className,
       children,
       onMouseMove: externalMouseMove,
@@ -104,7 +107,8 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
       <div
         ref={setRef}
         className={cn(
-          "rounded-2xl",
+          "rounded-2xl admin-surface-compatible",
+          `admin-surface-compatible--${adminElevation}`,
           variantClasses[variant],
           paddingClasses[padding],
           hoverClass,

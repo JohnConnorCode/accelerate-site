@@ -614,7 +614,7 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
   --demo-preview-rule: rgba(11, 11, 11, .07);
   --demo-preview-shadow: 0 0 0 1px rgba(0, 0, 0, .07), 0 18px 38px -28px rgba(0, 0, 0, .34);
 }
-[data-demo-launcher-theme="dark"] .demo-launcher {
+[data-theme="dark"] .demo-launcher {
   --demo-launcher-canvas: #0a0a0a;
   --demo-launcher-ink: #fbfbfa;
   --demo-launcher-muted: rgba(251, 251, 250, .64);
@@ -649,8 +649,6 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
 .demo-launcher-glow--top { background: color-mix(in srgb, var(--demo-launcher-accent) 10%, transparent); }
 .demo-launcher-glow--bottom { background: color-mix(in srgb, #8b5cf6 7%, transparent); }
 .demo-launcher-safety { color: var(--demo-launcher-accent); background: color-mix(in srgb, var(--demo-launcher-accent) 9%, transparent); }
-.demo-launcher-theme-toggle { color: var(--demo-launcher-ink); background: color-mix(in srgb, var(--demo-launcher-ink) 5%, transparent); box-shadow: 0 0 0 1px var(--demo-launcher-rule); }
-.demo-launcher-theme-toggle:hover { background: color-mix(in srgb, var(--demo-launcher-ink) 9%, transparent); }
 .demo-launcher-card { background: var(--demo-card-bg); }
 .demo-launcher-card:hover { background: color-mix(in srgb, var(--demo-card-bg) 96%, var(--demo-card-ink) 4%); }
 .demo-workspace-preview { background: var(--demo-preview-bg); }
@@ -3517,6 +3515,9 @@ body.admin-notifications-open {
     0 0 0 1px rgba(11, 11, 11, 0.09),
     0 2px 5px -2px rgba(11, 11, 11, 0.1),
     0 22px 42px -26px rgba(11, 11, 11, 0.28);
+  --admin-card-flat-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 5.5%, transparent);
+  --admin-card-raised-shadow: var(--admin-shadow);
+  --admin-card-outline-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 14%, transparent), 0 1px 2px -1px color-mix(in srgb, var(--admin-ink) 5%, transparent);
 }
 
 .admin-shell {
@@ -3737,6 +3738,23 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   backdrop-filter: blur(30px) saturate(1.2);
 }
 
+/* The admin owns a bottom dock on small screens, so operation receipts sit
+   above its safe-area footprint instead of covering a navigation action. */
+.admin-toast-region {
+  bottom: max(0.9rem, env(safe-area-inset-bottom));
+}
+.admin-toast {
+  background: var(--admin-surface);
+  color: var(--admin-ink);
+  border-color: var(--admin-border);
+  box-shadow: var(--admin-shadow);
+}
+@media (max-width: 1023px) {
+  .admin-toast-region {
+    bottom: max(5.25rem, calc(env(safe-area-inset-bottom) + 4.75rem));
+  }
+}
+
 /* Notifications have one viewport-owned overlay primitive. The desktop form
    is a contained floating panel; the mobile form owns the bottom edge while
    the dock yields. Neither placement inherits positioning from its trigger. */
@@ -3909,8 +3927,22 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   border-radius: var(--admin-surface-radius);
   background: var(--admin-surface);
   color: var(--admin-ink);
-  box-shadow: var(--admin-shadow);
+  box-shadow: var(--admin-card-raised-shadow);
 }
+.admin-surface--flat { box-shadow: var(--admin-card-flat-shadow); }
+.admin-surface--raised { box-shadow: var(--admin-card-raised-shadow); }
+.admin-surface--outlined { box-shadow: var(--admin-card-outline-shadow); }
+
+/* Admin pages may still use the public GlassCard primitive. Inside the
+   operations shell, it joins the same surface tier rather than bringing a
+   competing radius into a dense application layout. Controls and pills keep
+   their own smaller/fully-rounded geometry on purpose. */
+.admin-shell .admin-surface-compatible {
+  border-radius: var(--admin-surface-radius);
+}
+.admin-shell .admin-surface-compatible--flat { box-shadow: var(--admin-card-flat-shadow); }
+.admin-shell .admin-surface-compatible--raised { box-shadow: var(--admin-card-raised-shadow); }
+.admin-shell .admin-surface-compatible--outlined { box-shadow: var(--admin-card-outline-shadow); }
 
 .admin-surface-subtle { background: var(--admin-surface-subtle); }
 .admin-surface-ink { background: var(--admin-sidebar); color: #fbfbfa; }
