@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
+import { AdminStatusMessage } from "@/components/admin/AdminStatusMessage";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { cn } from "@/lib/utils";
 
@@ -370,7 +371,8 @@ export default function AdminSetupPage() {
     setGoogleMessage(null);
     try {
       await fetchJson("/api/admin/google/sync", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ source }) });
-      setGoogleMessage({ tone: "success", text: `${source === "all" ? "Workspace" : source} sync completed.` });
+      const sourceLabel = { all: "Workspace", gmail: "Gmail", calendar: "Calendar", drive: "Drive" }[source];
+      setGoogleMessage({ tone: "success", text: `${sourceLabel} sync completed.` });
       await load();
     } catch (syncError) {
       setGoogleMessage({ tone: "error", text: syncError instanceof Error ? syncError.message : "Google sync failed." });
@@ -552,7 +554,7 @@ export default function AdminSetupPage() {
                     ))}
                   </div>
                 </div>
-                {googleMessage && <p className={cn("mt-5 rounded-xl px-4 py-3 text-sm", googleMessage.tone === "success" ? "bg-emerald-500/10 text-emerald-800 dark:text-emerald-200" : "bg-rose-500/10 text-rose-800 dark:text-rose-200")}>{googleMessage.text}</p>}
+                {googleMessage && <AdminStatusMessage tone={googleMessage.tone === "success" ? "success" : "error"} className="mt-5">{googleMessage.text}</AdminStatusMessage>}
               </AdminSurface>
             </section>
           )}

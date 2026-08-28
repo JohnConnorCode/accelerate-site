@@ -55,6 +55,7 @@ for (const config of [
   await page.locator(".admin-main").waitFor({ state: "visible", timeout: 15_000 });
   await page.evaluate(() => { document.querySelector(".admin-main").scrollTop = 900; });
   await page.waitForTimeout(30);
+  const adminOrigin = await page.evaluate(() => document.querySelector(".admin-main").scrollTop);
   const pipeline = page.locator('a[href="/demo/command-center/northline-roofing/pipeline"]:visible').first();
   if (!await pipeline.count()) failures.push(`${config.label}: scenario-aware Pipeline link is missing`);
   else await pipeline.evaluate((node) => node.click());
@@ -72,10 +73,8 @@ for (const config of [
   const adminEntrance = await page.evaluate(() => ({
     fallback: document.querySelectorAll("[data-admin-route-loading]").length,
     contentAnimations: document.getAnimations().filter((animation) => (
-      animation instanceof CSSAnimation
-      && animation.animationName === "admin-route-entry-in"
-      && animation.effect?.target instanceof Element
-      && animation.effect.target.closest(".admin-route-entry")
+      animation.effect?.target instanceof Element
+      && animation.effect.target.matches("[data-admin-route-stage]")
     )).length,
   }));
   if (adminEntrance.fallback) failures.push(`${config.label}: admin route fallback did not resolve`);
@@ -98,7 +97,7 @@ for (const config of [
   await page.goBack();
   await page.waitForTimeout(1_050);
   const adminRestored = await page.evaluate(() => document.querySelector(".admin-main").scrollTop);
-  if (Math.abs(adminRestored - 900) > 2) failures.push(`${config.label}: admin history restored ${adminRestored}px instead of 900px`);
+  if (Math.abs(adminRestored - adminOrigin) > 2) failures.push(`${config.label}: admin history restored ${adminRestored}px instead of ${adminOrigin}px`);
 
   if (config.label === "mobile") {
     await page.getByRole("button", { name: "Open More" }).click();

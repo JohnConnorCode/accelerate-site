@@ -38,6 +38,20 @@ routing or creating surface-specific history systems.
 
 ## Motion, loading, and focus
 
+- A valid admin navigation intent must produce visible feedback in the same
+  frame as activation. The destination may show a pending state, but
+  `aria-current` continues to describe only the committed route.
+- The committed admin page remains visible until the destination route is
+  ready. A root admin loading boundary must not replace the workspace with a
+  full-page skeleton.
+- Route entry and data entry are separate lifecycles. The shell owns the route
+  transition; the shared async-region primitive owns delayed loading, retained
+  data, error, and ready transitions close to the data that changes.
+- Fresh async content enters with opacity, a small vertical offset, and
+  restrained blur. A placeholder may appear only after a short delay and only
+  in the region whose geometry it preserves. Cached data remains visible during
+  refetch.
+
 - Public hydration is not a route transition. Initial public server content
   remains visible and must not animate out before animating in. The admin is an
   application workspace: its first committed destination and every later route
@@ -47,14 +61,13 @@ routing or creating surface-specific history systems.
   state changes may retain their own motion.
 - Reduced motion removes nonessential movement and blur while preserving all
   route, loading, and focus behavior.
-- Dynamic admin segments use Next.js `loading.tsx` and React Suspense so their
-  shells can be partially prefetched, streamed, and interrupted. The shared
-  route-aware fallback reserves destination-like geometry and appears without a
-  blank intermediate frame once Next commits the loading boundary. While a
-  navigation request is still pending, the current destination may remain usable
-  instead of being prematurely replaced. Prefetched navigation skips the fallback entirely.
-  Suspense belongs as close as practical to genuinely slow data; background
-  refreshes preserve usable content instead of replacing it with a fallback.
+- Nested admin segments may use React Suspense close to genuinely slow data so
+  those regions can be streamed and interrupted. The root admin layout must not
+  define a `loading.tsx`: navigation keeps the committed destination usable until
+  the next destination is ready. A nested fallback reserves only its region's
+  geometry, appears only after the shared delay threshold, and is skipped by
+  fast or prefetched reads. Background refreshes preserve usable content instead
+  of replacing it with a fallback.
 - Route loading and client-data loading have different jobs. The shared route
   fallback may reserve the whole destination during an actual streamed route
   handoff. Once a page has committed, its real `PageHeader` and page identity
@@ -76,7 +89,11 @@ routing or creating surface-specific history systems.
 `npm run test:navigation-runtime` must cover public and admin forward navigation,
 Back restoration, demo scenario switching without reload, mobile and desktop,
 normal and reduced motion, overflow, console errors, and a single route-motion
-owner. It must require the shared route-aware loading boundary, immediate useful
-fallback visibility, committed-content motion, and event-derived focus handoff. Title QA
-must prove live and demo routes receive contextual titles from
-the mounted admin shell.
+owner. It must reject a root admin loading boundary, require delayed regional
+loading, retained-data refreshes, committed-content motion, and event-derived
+focus handoff. Title QA must prove live and demo routes receive contextual titles
+from the mounted admin shell.
+
+Mobile verification must also measure same-frame activation feedback, committed
+route identity, and ready-content entry. A pathname assertion alone is not
+sufficient evidence of a polished transition.

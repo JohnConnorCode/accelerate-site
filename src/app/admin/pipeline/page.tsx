@@ -2,7 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "@/components/admin/AdminLink";
-import { ArrowUpRight, BookmarkPlus, Building2, Check, CircleDollarSign, Columns3, List, Loader2, Plus, RefreshCw, Search, Settings2, Target, Trash2, TriangleAlert, X } from "lucide-react";
+import { ArrowUpRight, BookmarkPlus, Check, Columns3, List, Loader2, Plus, RefreshCw, Search, Settings2, Target, Trash2, TriangleAlert, X } from "lucide-react";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminPageLoading } from "@/components/admin/AdminPageLoading";
@@ -90,9 +90,9 @@ export default function PipelinePage() {
     <PageHeader title="Pipeline" subtitle="Prioritize the work that moves revenue, then review every opportunity from one operating view." actions={<><button type="button" onClick={() => void load()} aria-label="Refresh pipeline" className="grid size-11 place-items-center rounded-xl shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"><RefreshCw className={cn("size-4", refreshing && "animate-spin")} /></button><button type="button" onClick={() => setDialog("create")} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]"><Plus className="size-4" /> New opportunity</button></>} />
     {error && <AdminSurface tone="attention" className="flex items-center gap-3"><TriangleAlert className="size-5 shrink-0 text-rose-600" /><p className="text-sm">{error}</p></AdminSurface>}
     {data && !data.schemaReady ? <RevenueSetupGate /> : data && <>
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{[
-        ["Open", metrics.open, "Active opportunities", Target], ["Pipeline value", money(metrics.value), "Unweighted", CircleDollarSign], ["At proposal", metrics.proposals, "Proposal or negotiation", Building2], ["Won revenue", money(metrics.won), "Recorded outcomes", Building2],
-      ].map(([label, value, note, Icon]) => { const MetricIcon = Icon as typeof Target; return <AdminSurface key={String(label)} padding="lg"><div className="flex justify-between gap-3"><div><p className="admin-eyebrow">{String(label)}</p><p className="mt-3 text-3xl font-semibold tabular-nums tracking-[-0.045em]">{String(value)}</p><p className="admin-copy mt-1 text-xs">{String(note)}</p></div><span className="grid size-9 place-items-center rounded-xl bg-black/[0.045] dark:bg-white/[0.06]"><MetricIcon className="size-4" /></span></div></AdminSurface>; })}</section>
+      <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">{[
+        ["Open", metrics.open, "Active opportunities"], ["Pipeline value", money(metrics.value), "Unweighted"], ["At proposal", metrics.proposals, "Proposal or negotiation"], ["Won revenue", money(metrics.won), "Recorded outcomes"],
+      ].map(([label, value, note]) => <AdminSurface key={String(label)} className="min-w-0 p-4 sm:p-5"><p className="admin-eyebrow truncate">{String(label)}</p><p className="mt-2 truncate text-[clamp(1.35rem,6vw,1.85rem)] font-semibold tabular-nums tracking-[-0.045em] sm:mt-3 sm:text-3xl">{String(value)}</p><p className="admin-copy mt-1 truncate text-[10px] sm:text-xs">{String(note)}</p></AdminSurface>)}</section>
 
       <AdminSurface padding="none" className="w-full min-w-0 max-w-full overflow-hidden [contain:inline-size]">
         <div className="border-b border-[var(--admin-border)] p-4 sm:p-5"><div className="flex items-end justify-between gap-4"><div><p className="admin-eyebrow">Operator views</p><h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.025em]">{currentView.label}</h2><p className="admin-copy mt-1 max-w-2xl text-pretty text-xs">{currentView.description}</p></div><span className="shrink-0 rounded-full bg-black/[0.045] px-2.5 py-1 font-mono text-[10px] tabular-nums text-[var(--admin-muted)] dark:bg-white/[0.06]">{shown.length} shown</span></div>

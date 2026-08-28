@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import { isApplicationWorkspace } from "@/lib/navigation/public-chrome";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChatBubble } from "./ChatBubble";
 import { ChatPanel } from "./ChatPanel";
@@ -111,7 +112,7 @@ export function ChatWidget() {
   }, [isOpen]);
 
   // Hide on admin pages
-  if (pathname.startsWith("/admin") || pathname.startsWith("/demo/command-center") || pathname.startsWith("/roofing") || pathname === "/command-center/demo") return null;
+  if (isApplicationWorkspace(pathname)) return null;
 
   return (
     <div

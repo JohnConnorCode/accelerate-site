@@ -138,12 +138,14 @@ for (const scenario of scenarios) {
         if (await page.locator("[data-admin-demo-link]").count()) failures.push(`${scenario} ${label}: duplicate demo chooser remains in shared navigation`);
         if (label === "desktop") {
           const alertTrigger = page.getByRole("button", { name: /Open command center alerts/ });
+          const triggerBounds = await alertTrigger.boundingBox();
           await alertTrigger.click();
           const alertPanel = page.locator('.admin-notification-panel[data-placement="sidebar"]');
           await alertPanel.waitFor();
-          await page.waitForTimeout(240);
+          await page.waitForTimeout(350);
           const panelBounds = await alertPanel.evaluate((node) => { const rect = node.getBoundingClientRect(); return { top: rect.top, right: innerWidth - rect.right, bottom: innerHeight - rect.bottom, width: rect.width, position: getComputedStyle(node).position }; });
-          if (panelBounds.position !== "fixed" || panelBounds.top < 64 || panelBounds.right < 8 || panelBounds.bottom < 8 || panelBounds.width > 420) failures.push(`${scenario} desktop: notification panel is not a contained viewport overlay`);
+          const anchored = triggerBounds ? Math.abs(panelBounds.top - Math.max(12, triggerBounds.y - 8)) <= 3 : false;
+          if (panelBounds.position !== "fixed" || !anchored || panelBounds.right < 8 || panelBounds.bottom < 8 || panelBounds.width > 370) failures.push(`${scenario} desktop: notification panel is not a contained, trigger-anchored viewport overlay`);
           await page.screenshot({ path: `${output}/${scenario}-desktop-notifications.png`, fullPage: false });
           await page.keyboard.press("Escape");
           await alertPanel.waitFor({ state: "detached" });
@@ -153,7 +155,7 @@ for (const scenario of scenarios) {
           await alertTrigger.click();
           const alertSheet = page.locator('[data-admin-mobile-alerts]');
           await alertSheet.waitFor();
-          await page.waitForTimeout(240);
+          await page.waitForTimeout(350);
           const alertOverlay = await page.evaluate(() => {
             const dock = document.querySelector(".admin-mobile-dock");
             const sheet = document.querySelector("[data-admin-mobile-alerts]");
@@ -169,7 +171,7 @@ for (const scenario of scenarios) {
               sheetBottom: Math.round(innerHeight - sheetRect.bottom),
             };
           });
-          if (!alertOverlay?.bodyState || alertOverlay.dockOpacity > 0.01 || alertOverlay.dockPointerEvents !== "none" || alertOverlay.overlaps || Math.abs(alertOverlay.sheetBottom) > 2) failures.push(`${scenario} mobile: notification sheet and dock do not share one collision-free overlay state`);
+          if (!alertOverlay?.bodyState || alertOverlay.dockOpacity > 0.01 || alertOverlay.dockPointerEvents !== "none" || alertOverlay.overlaps || Math.abs(alertOverlay.sheetBottom - 8) > 2) failures.push(`${scenario} mobile: notification sheet and dock do not share one collision-free inset overlay state`);
           await page.screenshot({ path: `${output}/${scenario}-mobile-notifications.png`, fullPage: false });
           await page.keyboard.press("Escape");
           await alertSheet.waitFor({ state: "detached" });
@@ -380,6 +382,7 @@ for (const appearance of ["light", "dark", "signal", "studio", "frost"]) {
     await page.waitForFunction((expected) => document.documentElement.dataset.theme === expected, appearance);
     await page.locator(".admin-shell").waitFor({ state: "attached", timeout: 15_000 });
     await page.locator('.admin-nav-link[aria-current="page"]').first().waitFor({ state: "attached", timeout: 15_000 });
+    await page.locator(".admin-surface").first().waitFor({ state: "attached", timeout: 15_000 });
     const tokens = await page.evaluate(() => {
       const styles = getComputedStyle(document.querySelector(".admin-shell"));
       const sidebar = getComputedStyle(document.querySelector(".admin-sidebar"));

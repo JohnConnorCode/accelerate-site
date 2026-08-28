@@ -80,6 +80,19 @@ current fictional workspace without mixing its history or session state.
 
 ## Scenario completeness
 
+Demo scenario reads use the same retained query cache and async-region lifecycle
+as live reads. Scenario data must not manufacture a full-page loading state
+between primary routes or on revisit. The default sales demo represents a
+configured, healthy operating system and does not show setup warnings unless a
+scenario explicitly demonstrates setup or recovery.
+
+On mobile, Today begins with a compact two-by-two operating summary followed by
+the priority queue. Duplicate desktop rails and the full operational ledger are
+not part of the primary mobile reading order. Search is one responsive command
+surface: centered on desktop and a safe-area-aware full-height sheet on mobile.
+Local destinations and commands are immediate; remote people results enhance
+rather than block the surface.
+
 Every enabled route must load populated, internally consistent data and expose
 its primary safe interactions. Today, Pipeline, Conversations, record timelines,
 notifications, revenue, analytics, activity, email, and AI answers must derive

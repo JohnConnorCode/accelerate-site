@@ -103,7 +103,7 @@ await desktopPage.locator('section[aria-labelledby]:not([aria-labelledby="column
 if (await desktopPage.locator('section[aria-labelledby="column-backlog"]').getByText("Complete campaign unsubscribe handling", { exact: true }).count()) throw new Error("Dragged card remained in Backlog");
 await desktopPage.waitForTimeout(320);
 
-await desktopPage.locator('section[aria-labelledby="column-planned"]').getByRole("button", { name: "Edit Complete campaign unsubscribe handling", exact: true }).click();
+await desktopPage.getByRole("button", { name: "Edit Complete campaign unsubscribe handling", exact: true }).click();
 await desktopPage.getByRole("heading", { name: "Feature details" }).waitFor();
 await desktopPage.screenshot({ path: `${outDir}/feature-board-details.png`, fullPage: true });
 await desktopPage.getByRole("button", { name: "Close feature details" }).click();

@@ -23,7 +23,7 @@ export function AdminPageLoading({
   rows,
 }: AdminPageLoadingProps) {
   return (
-    <div className="space-y-6 pb-10" aria-busy="true" aria-label={`Loading ${title}`}>
+    <div className="space-y-6 pb-10" data-admin-route-loading aria-busy="true" aria-label={`Loading ${title}`}>
       <PageHeader title={title} subtitle={subtitle} eyebrow={eyebrow} />
       <div className="admin-async-region" data-admin-async-state="loading">
         <LoadingSkeleton variant={variant} rows={rows} />

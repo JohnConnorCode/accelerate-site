@@ -178,7 +178,7 @@ export function RoofingQualifier() {
             >
               {status === "submitting" ? <><Loader2 className="size-4 animate-spin" /> Checking fit</> : <>Request the session <ArrowRight className="size-4" /></>}
             </button>
-            <p className="mt-4 flex items-center gap-2 text-xs text-white/42"><ShieldCheck className="size-4" /> No sales reps. Your information stays with Accelerate.</p>
+            <p className="mt-4 flex items-center gap-2 text-xs text-white/72"><ShieldCheck className="size-4" /> No sales reps. Your information stays with Accelerate.</p>
           </motion.form>
         )}
 

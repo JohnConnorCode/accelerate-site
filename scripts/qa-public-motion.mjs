@@ -127,7 +127,7 @@ for (const config of [
   { label: "desktop", viewport: { width: 1440, height: 900 }, reducedMotion: "no-preference" },
 ]) {
   const context = await browser.newContext({ viewport: config.viewport, reducedMotion: config.reducedMotion });
-  const page = await context.newPage();
+  let page = await context.newPage();
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("response", (response) => {
@@ -211,6 +211,12 @@ for (const config of [
   if (await page.locator("[data-route-entry]").evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity)) < 0.9) failures.push(`${config.label}: back-forward navigation produced hidden content`);
 
   if (config.reducedMotion === "no-preference") {
+    // Retire the animation-heavy Work document after its back/forward receipt
+    // exercise. A fresh page prevents old scroll-linked observers from
+    // competing with the homepage's first reveal measurement in long QA runs.
+    await page.close();
+    page = await context.newPage();
+    page.on("pageerror", (error) => errors.push(error.message));
     await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded" });
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(50);

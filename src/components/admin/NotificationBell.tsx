@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useId, useRef, type ReactNode } from 
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "@/components/admin/AdminLink";
-import { Bell, Check, Inbox, Users, MessageCircle, Handshake, FileCheck, CheckSquare, AlertCircle, Eye, ArrowRight, X } from "lucide-react";
+import { ArrowRight, Bell, Check, Inbox, Users, MessageCircle, Handshake, FileCheck, CheckSquare, AlertCircle, Eye, Target, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/admin/useToast";
@@ -23,21 +23,9 @@ interface Notification {
   created_at: string;
 }
 
-interface PriorityItem {
-  id: string;
-  kind: "reply" | "task" | "follow_up" | "proposal" | "meeting" | "approval" | "system";
-  title: string;
-  urgency: "critical" | "high" | "normal" | "low";
-  sourceTimestamp: string;
-  priorityReason: string;
-  recommendedNextAction: string;
-  href: string;
-}
-
 interface PrioritySnapshot {
   status: "ready" | "degraded";
   summary: { total: number; urgent: number; critical: number };
-  items: PriorityItem[];
 }
 
 const typeIcons: Record<string, LucideIcon> = {
@@ -71,8 +59,9 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [urgentCount, setUrgentCount] = useState(0);
-  const [priority, setPriority] = useState<PrioritySnapshot>({ status: "ready", summary: { total: 0, urgent: 0, critical: 0 }, items: [] });
+  const [priority, setPriority] = useState<PrioritySnapshot | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [desktopPosition, setDesktopPosition] = useState<{ left: number; top: number } | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -102,7 +91,7 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
       setNotifications(data.notifications || []);
       setUnreadCount(data.unreadCount || 0);
       setUrgentCount(data.urgentCount || 0);
-      setPriority(data.priority || { status: "degraded", summary: { total: 0, urgent: 0, critical: 0 }, items: [] });
+      setPriority(data.priority || null);
     } catch (err) {
       if (controller.signal.aborted) return;
       console.error("[NotificationBell] fetch failed:", err);
@@ -162,20 +151,56 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // A popover should never strand keyboard users. This is intentionally not a
-  // focus trap: desktop alerts are a contextual menu, while the mobile sheet
-  // has a visible close control and backdrop.
+  const closePanel = useCallback((restoreFocus = true) => {
+    setIsOpen(false);
+    if (restoreFocus) window.requestAnimationFrame(() => triggerRef.current?.focus());
+  }, []);
+
+  // Desktop is a contextual popover. Mobile is modal and keeps keyboard focus
+  // inside the sheet until the user dismisses it.
   useEffect(() => {
     if (!isOpen) return;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      event.preventDefault();
-      setIsOpen(false);
-      triggerRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closePanel();
+        return;
+      }
+      if (placement !== "mobile" || event.key !== "Tab" || !panelRef.current) return;
+      const focusable = [...panelRef.current.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+        .filter((element) => element.getClientRects().length > 0);
+      if (!focusable.length) return;
+      const first = focusable[0]!;
+      const last = focusable[focusable.length - 1]!;
+      if (event.shiftKey && (document.activeElement === first || !panelRef.current.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !panelRef.current.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
     };
-    document.addEventListener("keydown", closeOnEscape);
-    return () => document.removeEventListener("keydown", closeOnEscape);
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [closePanel, isOpen, placement]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const frame = requestAnimationFrame(() => panelRef.current?.focus());
+    return () => cancelAnimationFrame(frame);
   }, [isOpen]);
+
+  const togglePanel = () => {
+    if (!isOpen && placement === "sidebar" && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      const panelWidth = Math.min(360, window.innerWidth - 24);
+      setDesktopPosition({
+        left: Math.max(12, Math.min(rect.right + 12, window.innerWidth - panelWidth - 12)),
+        top: Math.max(12, Math.min(rect.top - 8, window.innerHeight - 320)),
+      });
+    }
+    setIsOpen((current) => !current);
+  };
 
   // Mobile alerts and the dock share the bottom edge. Give the sheet exclusive
   // ownership of that interaction layer while it is open, then restore the
@@ -230,15 +255,15 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
     return `${Math.floor(hours / 24)}d`;
   };
 
-  const signalCount = unreadCount + priority.summary.urgent;
-  const hasCriticalSignal = urgentCount > 0 || priority.summary.critical > 0;
+  const signalCount = unreadCount;
+  const hasCriticalSignal = urgentCount > 0;
 
   return (
     <div className="relative" ref={dropdownRef}>
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={togglePanel}
         className={cn("admin-notification-trigger relative inline-flex items-center justify-center rounded-[10px] text-white-muted transition-[color,background-color,transform] duration-150 hover:bg-black/5 hover:text-white-primary active:scale-[0.96]", placement === "mobile" ? "size-11" : "size-10")}
         aria-label={isOpen ? "Close command center alerts" : `Open command center alerts${signalCount ? `, ${signalCount} need attention` : ""}`}
         aria-expanded={isOpen}
@@ -259,7 +284,7 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
       <AnimatePresence initial={false}>
         {isOpen && (
           <>
-            {placement === "mobile" && <motion.button type="button" aria-label="Dismiss command center alerts" onClick={() => setIsOpen(false)} className="fixed inset-0 z-[59] bg-black/35 backdrop-blur-[2px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }} />}
+            {placement === "mobile" && <motion.button type="button" aria-label="Dismiss notifications" onClick={() => closePanel()} className="fixed inset-0 z-[59] bg-black/35 backdrop-blur-[2px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }} />}
             <motion.div
               ref={panelRef}
               id={panelId}
@@ -267,16 +292,18 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
               data-placement={placement}
               role="dialog"
               aria-modal={placement === "mobile" ? true : undefined}
-              aria-label="Command Center attention"
+              aria-label="Notifications"
+              tabIndex={-1}
               initial={placement === "mobile" ? { opacity: 0, y: 18 } : { opacity: 0, y: -4, scale: 0.95 }}
               animate={placement === "mobile" ? { opacity: 1, y: 0 } : { opacity: 1, y: 0, scale: 1 }}
               exit={placement === "mobile" ? { opacity: 0, y: 10 } : { opacity: 0, y: -4, scale: 0.95 }}
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
               className="admin-notification-panel admin-overlay-token-scope z-[60] overflow-hidden bg-[var(--admin-surface,#fbfbfa)] text-[var(--admin-ink,#0b0b0b)]"
+              style={placement === "sidebar" && desktopPosition ? desktopPosition : undefined}
             >
             {placement === "mobile" && <span className="mx-auto mt-2 block h-1 w-9 rounded-full bg-[var(--admin-ink)]/20" aria-hidden="true" />}
             <div className="flex items-center justify-between border-b border-[var(--admin-border)] px-4 py-3">
-              <div><p className="admin-eyebrow">Command Center</p><h4 className="mt-0.5 text-sm font-semibold text-[var(--admin-ink)]">Attention</h4></div>
+              <div><p className="admin-eyebrow">Command Center</p><h4 className="mt-0.5 text-sm font-semibold text-[var(--admin-ink)]">Notifications</h4></div>
               <div className="flex items-center gap-1">
               {unreadCount > 0 && (
                 <button
@@ -288,23 +315,18 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
                   Mark all read
                 </button>
               )}
-              <button type="button" onClick={() => setIsOpen(false)} className="grid size-10 place-items-center rounded-lg text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:scale-[0.96] dark:hover:bg-white/[0.05]" aria-label="Close command center alerts"><X className="size-4" /></button>
+              <button type="button" onClick={() => closePanel()} className="grid size-10 place-items-center rounded-lg text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:scale-[0.96] dark:hover:bg-white/[0.05]" aria-label="Close notifications"><X className="size-4" /></button>
               </div>
             </div>
 
             <div className="admin-notification-scroll overflow-y-auto overscroll-contain">
-              {priority.items.length > 0 && <section aria-label="Priority work">
-                <div className="flex items-center justify-between px-4 pb-2 pt-3"><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)]">Priority work</p><Link href="/admin/today" onClick={() => setIsOpen(false)} className="inline-flex min-h-10 items-center gap-1 rounded-md px-1.5 text-[10px] font-semibold text-[var(--admin-ink)] transition-[background-color,transform] duration-150 hover:bg-black/[0.04] active:scale-[0.96] dark:hover:bg-white/[0.05]">All {priority.summary.total}<ArrowRight className="size-3" /></Link></div>
-                <div className="divide-y divide-[var(--admin-border)] border-y border-[var(--admin-border)]">
-                  {priority.items.slice(0, 3).map((item) => {
-                    return <Link key={item.id} href={item.href} onClick={() => setIsOpen(false)} className={cn("group flex min-h-[68px] items-start gap-3 border-l-2 px-4 py-3 transition-[background-color,transform] duration-150 hover:bg-black/[0.025] active:scale-[0.99] dark:hover:bg-white/[0.03]", item.urgency === "critical" ? "border-l-rose-500" : item.urgency === "high" ? "border-l-amber-500" : "border-l-transparent")}>
-                      <span className="min-w-0 flex-1"><span className="flex items-center gap-2"><span className="block truncate text-xs font-semibold text-[var(--admin-ink)]">{item.title}</span>{item.urgency !== "normal" && item.urgency !== "low" && <span className={cn("rounded-full px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-[0.08em]", item.urgency === "critical" ? "bg-rose-500/10 text-rose-700 dark:text-rose-300" : "bg-amber-500/12 text-amber-800 dark:text-amber-300")}>{item.urgency}</span>}</span><span className="mt-0.5 block text-[11px] leading-4 text-[var(--admin-muted)]">{item.priorityReason}</span><span className="mt-1 block line-clamp-2 text-[10px] leading-4 text-[var(--admin-muted)]">Next: {item.recommendedNextAction}</span></span>
-                      <ArrowRight className="mt-2 size-3.5 shrink-0 text-[var(--admin-muted)] transition-transform duration-150 group-hover:translate-x-0.5" />
-                    </Link>;
-                  })}
-                </div>
-              </section>}
-              {priority.status === "degraded" && <div className="border-b border-[var(--admin-border)] bg-amber-500/[0.07] px-4 py-3 text-[11px] leading-4 text-amber-800 dark:text-amber-300">Priority work could not be refreshed. Notifications remain available; open Today to retry the live queue.</div>}
+              {priority?.status === "ready" && priority.summary.total > 0 && (
+                <Link href="/admin/today" onClick={() => closePanel(false)} className="group mx-3 mt-3 flex min-h-12 items-center gap-3 rounded-xl bg-[var(--admin-surface-subtle)] px-3 py-2.5 text-left shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.98]">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[var(--admin-surface)] text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]"><Target className="size-4" /></span>
+                  <span className="min-w-0 flex-1"><span className="block text-xs font-semibold text-[var(--admin-ink)]">{priority.summary.total} priority {priority.summary.total === 1 ? "item" : "items"}</span><span className="mt-0.5 block text-[10px] text-[var(--admin-muted)]">{priority.summary.urgent ? `${priority.summary.urgent} urgent · ` : ""}Open Today</span></span>
+                  <ArrowRight className="size-4 shrink-0 text-[var(--admin-muted)] transition-transform duration-150 group-hover:translate-x-0.5" />
+                </Link>
+              )}
               <div className="flex items-center justify-between px-4 pb-2 pt-3"><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)]">Notifications</p>{unreadCount > 0 && <span className="font-mono text-[10px] tabular-nums text-[var(--admin-muted)]">{unreadCount} unread</span>}</div>
               {notifications.length === 0 ? (
                 <p className="px-4 pb-7 pt-3 text-center text-xs text-[var(--admin-muted)]">
@@ -348,7 +370,7 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
                     return (
                       <Link key={notification.id} href={notification.link} onClick={() => {
                         if (!notification.read) void handleMarkRead(notification.id);
-                        setIsOpen(false);
+                        closePanel(false);
                       }}>
                         {content}
                       </Link>
@@ -357,7 +379,7 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
 
                   return <button key={notification.id} type="button" className="block w-full text-left" onClick={() => {
                     if (!notification.read) void handleMarkRead(notification.id);
-                    setIsOpen(false);
+                    closePanel(false);
                   }}>{content}</button>;
                 })
               )}

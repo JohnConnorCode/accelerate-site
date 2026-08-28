@@ -5,6 +5,7 @@ import { verticals } from "@/content/verticals";
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { isApplicationWorkspace } from "@/lib/navigation/public-chrome";
 import { Mail, ArrowRight, Loader2, CheckCircle2, Linkedin } from "lucide-react";
 import { isValidEmail } from "@/lib/validation";
 import { SectionDivider } from "@/components/ui/SectionDivider";
@@ -135,7 +136,7 @@ export function Footer() {
   };
 
   // the admin app has its own chrome; the marketing footer doesn't belong there
-  if (pathname.startsWith("/admin") || pathname.startsWith("/demo/command-center") || pathname.startsWith("/roofing") || pathname === "/command-center/demo") return null;
+  if (isApplicationWorkspace(pathname)) return null;
 
   return (
     <footer className="relative bg-bg-base pb-[var(--safe-bottom)] [--white-primary:var(--fg)] [--white-secondary:color-mix(in_srgb,var(--fg)_84%,var(--bg))] [--white-muted:color-mix(in_srgb,var(--fg)_72%,var(--bg))]">

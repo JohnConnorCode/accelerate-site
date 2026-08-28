@@ -38,6 +38,7 @@ import { AdminQueryProvider } from "@/components/admin/AdminQueryProvider";
 import { AdminAIPanel } from "@/components/admin/AdminAIPanel";
 import { EmailComposeModal } from "@/components/admin/EmailComposeModal";
 import { AdminDialog } from "@/components/admin/AdminDialog";
+import { AdminRouteStage } from "@/components/admin/AdminRouteStage";
 import { AdminAppearancePicker } from "@/components/admin/AdminAppearancePicker";
 import { Logo } from "@/components/ui/Logo";
 import { LogoMark } from "@/components/ui/LogoMark";
@@ -259,7 +260,7 @@ export default function AdminShell({
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => searchForPeople(value), 260);
+    debounceRef.current = setTimeout(() => searchForPeople(value), 120);
   };
 
   useEffect(() => () => {
@@ -484,10 +485,7 @@ export default function AdminShell({
         onSelectPerson={(email) => { router.push(`/admin/contacts/${encodeURIComponent(email)}`); closeSearch(); }}
         onSelectAction={(action) => {
           closeSearch();
-          // Let the command surface finish leaving before opening another
-          // modal or route. Overlapping focus traps and backdrops make a fast
-          // command feel like two stacked applications.
-          window.setTimeout(action.run, 260);
+          window.requestAnimationFrame(action.run);
         }}
         inputRef={searchInputRef}
       />
@@ -508,12 +506,9 @@ export default function AdminShell({
             <div className="hidden items-center gap-2 sm:flex"><button type="button" onClick={() => window.dispatchEvent(new CustomEvent("admin:open-ai"))} className="inline-flex min-h-10 items-center gap-2 rounded-[11px] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow)] transition-[box-shadow,transform] hover:shadow-[var(--admin-shadow-hover)] active:scale-[0.96]"><Bot className="size-3.5" />Ask AI<kbd className="ml-1 rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--admin-muted)]">⌘J</kbd></button><button type="button" onClick={() => setSearchOpen(true)} className="inline-flex min-h-10 items-center gap-3 rounded-[11px] bg-[var(--admin-surface)] px-3 text-xs text-[var(--admin-muted)] shadow-[var(--admin-shadow)] transition-[box-shadow,color,transform] duration-150 hover:text-[var(--admin-ink)] hover:shadow-[var(--admin-shadow-hover)] active:scale-[0.96]"><Search className="h-3.5 w-3.5" />Search<kbd className="ml-1 rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-0.5 font-mono text-[10px]">⌘K</kbd></button></div>
           </div>
 
-          {/* New route content enters immediately. Waiting for an exiting tree
-              leaves the operating surface blank and makes navigation feel like
-              a reload; the surrounding shell intentionally remains mounted. */}
-          <div key={routeKey} className="admin-route-entry is-entering">
+          <AdminRouteStage routeKey={routeKey}>
             <AdminErrorBoundary key={routeKey}>{children}</AdminErrorBoundary>
-          </div>
+          </AdminRouteStage>
         </div>
       </main>
 
@@ -602,9 +597,9 @@ function SidebarContent({
     <>
       <div className={cn("mb-5 flex shrink-0 items-center", collapsed ? "flex-col gap-1.5" : "justify-between gap-2 px-1")} data-admin-sidebar-header>
         {onClose ? (
-          <div className="min-w-0">
-            <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--admin-nav-faint)]">Navigation</p>
-            <h2 className="mt-0.5 text-lg font-semibold tracking-[-0.025em] text-[var(--admin-nav-ink)]">More</h2>
+          <div className="grid min-w-0 flex-1 grid-cols-2 gap-2" aria-label="Workspace tools">
+            <button type="button" onClick={onOpenSearch} className="admin-nav-utility inline-flex min-h-11 items-center justify-center gap-2 rounded-[11px] px-3 text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]"><Search className="size-4" />Search</button>
+            <button type="button" onClick={onOpenAI} className="admin-nav-utility inline-flex min-h-11 items-center justify-center gap-2 rounded-[11px] px-3 text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]"><Bot className="size-4" />Ask AI</button>
           </div>
         ) : collapsed ? (
           <Link
@@ -635,15 +630,6 @@ function SidebarContent({
           {onClose && <button ref={closeButtonRef} type="button" onClick={onClose} className="admin-nav-control grid size-11 shrink-0 place-items-center rounded-[11px] transition-[background-color,color,transform] duration-150 active:scale-[0.96]" aria-label="Close navigation"><X className="size-5" /></button>}
         </div>
       </div>
-
-      {onClose && (
-        <div className="mb-3 shrink-0">
-          <div className="grid grid-cols-2 gap-2" aria-label="Workspace tools">
-            <button type="button" onClick={onOpenSearch} className="admin-nav-utility inline-flex min-h-11 items-center justify-center gap-2 rounded-[11px] px-3 text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]"><Search className="size-4" />Search</button>
-            <button type="button" onClick={onOpenAI} className="admin-nav-utility inline-flex min-h-11 items-center justify-center gap-2 rounded-[11px] px-3 text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]"><Bot className="size-4" />Ask AI</button>
-          </div>
-        </div>
-      )}
 
       <nav className="admin-nav-scroll flex-1 space-y-2 overflow-y-auto overscroll-contain" aria-label="Admin navigation">
         {navigationSections.map((section, sectionIndex) => (
@@ -748,11 +734,11 @@ function CmdKSearch({
 
   useEffect(() => {
     if (!open) return;
-    const timer = window.setTimeout(() => {
+    const frame = window.requestAnimationFrame(() => {
       setSelectedIndex(0);
       inputRef.current?.focus();
-    }, 40);
-    return () => window.clearTimeout(timer);
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [open, inputRef]);
 
   const select = (index: number) => {
@@ -764,20 +750,21 @@ function CmdKSearch({
   };
 
   return (
-    <AdminDialog open={open} onClose={onClose} title="Admin command palette" ariaLabel="Admin command palette" align="top" maxWidth="lg">
-          <div className="relative w-full max-w-xl overflow-hidden rounded-[18px] bg-[#fbfbfa] text-[#0b0b0b] shadow-[0_30px_90px_-25px_rgba(0,0,0,0.58)]">
-            <div className="flex min-h-14 items-center gap-3 border-b border-black/8 px-4">
-              <Search className="h-4 w-4 shrink-0 text-black/38" />
+    <AdminDialog open={open} onClose={onClose} title="Admin command palette" ariaLabel="Admin command palette" align="top" maxWidth="lg" className="max-sm:fixed max-sm:inset-0 max-sm:max-w-none">
+          <div className="admin-dialog-surface relative flex h-dvh w-full flex-col overflow-hidden bg-[var(--admin-surface)] text-[var(--admin-ink)] sm:h-auto sm:max-w-xl sm:rounded-[18px]">
+            <div className="flex min-h-[calc(3.75rem+env(safe-area-inset-top))] items-end gap-3 border-b border-[var(--admin-border)] px-4 pb-3 pt-[env(safe-area-inset-top)] sm:min-h-14 sm:items-center sm:py-0">
+              <Search className="h-4 w-4 shrink-0 text-[var(--admin-muted)]" />
               <input ref={inputRef} value={query} onChange={(event) => { setSelectedIndex(0); onQueryChange(event.target.value); }} onKeyDown={(event) => {
                 if (event.key === "ArrowDown") { event.preventDefault(); setSelectedIndex((current) => Math.min(current + 1, Math.max(0, items.length - 1))); }
                 if (event.key === "ArrowUp") { event.preventDefault(); setSelectedIndex((current) => Math.max(current - 1, 0)); }
                 if (event.key === "Enter") { event.preventDefault(); select(selectedIndex); }
                 if (event.key === "Escape") onClose();
-              }} placeholder="Search people, pages, or run a command…" className="min-w-0 flex-1 bg-transparent text-sm text-black outline-none placeholder:text-black/35" />
-              <kbd className="rounded-md bg-black/5 px-1.5 py-1 font-mono text-[9px] text-black/42">ESC</kbd>
+              }} placeholder="Search people, pages, or run a command…" className="min-w-0 flex-1 bg-transparent text-base text-[var(--admin-ink)] outline-none placeholder:text-[var(--admin-muted)] sm:text-sm" />
+              <button type="button" onClick={onClose} className="grid size-9 place-items-center rounded-lg bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)] transition-[color,transform] active:scale-[0.96] sm:hidden" aria-label="Close search"><X className="size-4" /></button>
+              <kbd className="hidden rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-1 font-mono text-[9px] text-[var(--admin-muted)] sm:block">ESC</kbd>
             </div>
 
-            <div className="max-h-[58vh] overflow-y-auto p-2">
+            <div className="min-h-0 flex-1 overflow-y-auto p-2 sm:max-h-[58vh]">
               {actions.length > 0 && <ResultSection label="Actions">
                 {actions.map((action, index) => <CommandRow key={action.label} icon={action.icon} label={action.label} description={action.description} selected={selectedIndex === index} onClick={() => onSelectAction(action)} />)}
               </ResultSection>}
@@ -793,10 +780,10 @@ function CmdKSearch({
                   return <CommandRow key={person.email} icon={User} label={person.name} description={`${person.email} · ${person.type}`} selected={selectedIndex === itemIndex} onClick={() => onSelectPerson(person.email)} />;
                 })}
               </ResultSection>}
-              {searchingPeople && <p className="px-3 py-4 text-center text-xs text-black/45">Searching records…</p>}
-              {!searchingPeople && items.length === 0 && query && <p className="px-3 py-8 text-center text-sm text-black/45">No matching people, pages, or commands.</p>}
+              {searchingPeople && <p className="px-3 py-4 text-center text-xs text-[var(--admin-muted)]">Searching records…</p>}
+              {!searchingPeople && items.length === 0 && query && <p className="px-3 py-8 text-center text-sm text-[var(--admin-muted)]">No matching people, pages, or commands.</p>}
             </div>
-            <div className="flex items-center justify-between border-t border-black/8 px-4 py-2 font-mono text-[9px] uppercase tracking-[0.08em] text-black/35">
+            <div className="flex items-center justify-between border-t border-[var(--admin-border)] px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 font-mono text-[9px] uppercase tracking-[0.08em] text-[var(--admin-muted)] sm:pb-2">
               <span className="flex items-center gap-1.5"><Command className="h-3 w-3" /> Command Center</span>
               <span>↑↓ navigate · ↵ open</span>
             </div>
@@ -806,15 +793,15 @@ function CmdKSearch({
 }
 
 function ResultSection({ label, children }: { label: string; children: React.ReactNode }) {
-  return <section className="mb-2 last:mb-0"><p className="px-3 py-1.5 font-mono text-[9px] font-semibold uppercase tracking-[0.13em] text-black/35">{label}</p>{children}</section>;
+  return <section className="mb-2 last:mb-0"><p className="px-3 py-1.5 font-mono text-[9px] font-semibold uppercase tracking-[0.13em] text-[var(--admin-muted)]">{label}</p>{children}</section>;
 }
 
 function CommandRow({ icon: Icon, label, description, selected, onClick }: { icon: LucideIcon; label: string; description: string; selected: boolean; onClick: () => void }) {
   return (
-    <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={onClick} className={cn("flex min-h-12 w-full items-center gap-3 rounded-[11px] px-3 text-left transition-[background-color,color] duration-100", selected ? "bg-black text-white" : "text-black hover:bg-black/5")}>
-      <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px]", selected ? "bg-white/12 text-white" : "bg-black/5 text-black/55")}><Icon className="h-4 w-4" /></span>
-      <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{label}</span><span className={cn("block truncate text-[11px]", selected ? "text-white/55" : "text-black/42")}>{description}</span></span>
-      <span className={cn("font-mono text-[10px]", selected ? "text-white/45" : "text-black/25")}>↵</span>
+    <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={onClick} className={cn("flex min-h-14 w-full items-center gap-3 rounded-[11px] px-3 text-left transition-[background-color,color,transform] duration-100 active:scale-[0.985] sm:min-h-12", selected ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]" : "text-[var(--admin-ink)] hover:bg-[var(--admin-surface-subtle)]")}>
+      <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px]", selected ? "bg-white/12" : "bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)]")}><Icon className="h-4 w-4" /></span>
+      <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{label}</span><span className={cn("block truncate text-[11px]", selected ? "opacity-60" : "text-[var(--admin-muted)]")}>{description}</span></span>
+      <span className="font-mono text-[10px] opacity-40">↵</span>
     </button>
   );
 }

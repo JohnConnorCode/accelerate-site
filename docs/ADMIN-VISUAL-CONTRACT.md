@@ -1,6 +1,45 @@
 # Admin visual contract
 
+## Interaction completeness
+
+- Every visible row, card, arrow, disclosure, and action must produce the result
+  its label and icon promise. A record affordance opens an inspectable detail
+  surface or navigates to the canonical record; it must never change only the
+  URL while leaving the rendered state unchanged.
+- Same-route query navigation is observable state. Pages that use query-backed
+  dialogs, filters, tabs, or selected records must react to client navigation,
+  Back, Forward, direct load, and close cleanup rather than reading the query
+  only once at mount.
+- Desktop contextual overlays remain anchored to their trigger and bounded to
+  the content they name. Mobile modal sheets use a backdrop, contained safe-area
+  geometry, focus ownership, Escape/backdrop dismissal, and trigger focus return.
+- Contact and record lists use one obvious row outcome. Supplemental destructive
+  or communication actions live inside the detail surface so the row itself is
+  not split into competing or invisible hit targets.
+
+## Semantic status and contrast
+
+- Body copy always uses the standard high-contrast admin foreground. Success,
+  warning, error, and informational hue belongs to a restrained background tint,
+  leading accent, and distinct status icon; colored body text on a same-hue
+  surface is prohibited.
+- Status is never communicated by color alone. Every status message uses a
+  semantic icon and a textual outcome, and errors use `role="alert"` while
+  non-blocking updates use `role="status"`.
+- Normal-size text and meaningful icons must meet WCAG AA contrast in every
+  shared appearance. Browser QA samples computed foreground/background pairs;
+  source-level color names are not evidence of contrast.
+
 ## Capability icons
+
+- Every visible element must earn its space by communicating a distinct action,
+  object, state, decision, or necessary orientation cue. Arbitrary labels,
+  repeated headings, decorative containers, duplicate identity, and icons that
+  restate adjacent text are prohibited. If removing an element does not reduce
+  comprehension or capability, remove it.
+- Do not label a navigation drawer "Navigation" or repeat its trigger name as a
+  heading. The drawer's structure and accessible label already establish its
+  purpose; the prime top area belongs to high-frequency tools and dismissal.
 
 - Icons identify the object or action in front of the operator. Replies use
   communication icons, approvals use review or shield icons, records use their

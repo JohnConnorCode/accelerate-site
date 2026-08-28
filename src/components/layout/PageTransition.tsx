@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useNavigationRuntime } from "@/components/navigation/NavigationRuntime";
+import { isApplicationWorkspace } from "@/lib/navigation/public-chrome";
 
 /**
  * The single, public route-entry contract. A route must never wait for its
@@ -19,7 +20,7 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
   // root-level transition by pathname would remount that shell on every admin
   // navigation, restarting sidebar entrance animations and visibly flashing
   // the navigation. Admin owns the content-only transition in its layout.
-  if (pathname.startsWith("/admin") || pathname.startsWith("/demo/command-center")) return <>{children}</>;
+  if (isApplicationWorkspace(pathname)) return <>{children}</>;
 
   return (
     <div

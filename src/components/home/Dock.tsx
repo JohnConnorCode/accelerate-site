@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { trackConversion } from "@/lib/analytics";
 import { AnimatePresence, motion } from "framer-motion";
+import { isApplicationWorkspace } from "@/lib/navigation/public-chrome";
 
 /**
  * Floating "book a call" dock — shows on desktop and mobile alike once the
@@ -24,10 +25,8 @@ export function Dock() {
   const [visible, setVisible] = useState(false);
 
   const hiddenRoute =
-    pathname.startsWith("/admin") ||
-    pathname.startsWith("/demo/command-center") ||
+    isApplicationWorkspace(pathname) ||
     pathname.startsWith("/contact") ||
-    pathname.startsWith("/roofing") ||
     pathname.startsWith("/command-center");
 
   useEffect(() => {

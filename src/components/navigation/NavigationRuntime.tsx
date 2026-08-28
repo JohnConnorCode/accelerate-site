@@ -179,7 +179,11 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
     const nextIntent = recordedIntent || { href: location.href, kind: "push" as const, scroll: "top" as const };
     const state = currentHistoryState();
     let nextId = state[ENTRY_KEY];
-    if (!nextId) {
+    // Next preserves arbitrary fields from the previous history state when it
+    // creates a client-side entry. A push must still receive a distinct id or
+    // the destination's top-of-page scroll overwrites the origin receipt and
+    // Back can no longer restore it.
+    if (!nextId || (nextIntent.kind === "push" && nextId === currentEntryId.current)) {
       nextId = newEntryId();
       history.replaceState({ ...state, [ENTRY_KEY]: nextId }, "", location.href);
     }

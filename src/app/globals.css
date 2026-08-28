@@ -580,11 +580,18 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
   from { opacity: 0; transform: translateY(16px); filter: blur(5px); }
   to { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
+@media (prefers-reduced-motion: reduce) {
+  .roofing-hero-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
 .demo-launcher {
   --demo-launcher-canvas: #f3f3f0;
   --demo-launcher-ink: #0b0b0b;
   --demo-launcher-muted: rgba(11, 11, 11, .64);
-  --demo-launcher-faint: rgba(11, 11, 11, .42);
+  --demo-launcher-faint: rgba(11, 11, 11, .68);
   --demo-launcher-rule: rgba(11, 11, 11, .11);
   --demo-launcher-accent: #0f7a4b;
   --demo-launcher-focus: #0b0b0b;
@@ -592,7 +599,7 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
   --demo-card-bg: #fbfbfa;
   --demo-card-ink: #0b0b0b;
   --demo-card-muted: rgba(11, 11, 11, .62);
-  --demo-card-faint: rgba(11, 11, 11, .4);
+  --demo-card-faint: rgba(11, 11, 11, .82);
   --demo-card-rule: rgba(11, 11, 11, .1);
   --demo-card-action: #0b0b0b;
   --demo-card-action-ink: #fbfbfa;
@@ -602,8 +609,8 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
   --demo-preview-header: #111110;
   --demo-preview-header-ink: #fbfbfa;
   --demo-preview-ink: rgba(11, 11, 11, .8);
-  --demo-preview-muted: rgba(11, 11, 11, .42);
-  --demo-preview-faint: rgba(11, 11, 11, .24);
+  --demo-preview-muted: rgba(11, 11, 11, .82);
+  --demo-preview-faint: rgba(11, 11, 11, .58);
   --demo-preview-rule: rgba(11, 11, 11, .07);
   --demo-preview-shadow: 0 0 0 1px rgba(0, 0, 0, .07), 0 18px 38px -28px rgba(0, 0, 0, .34);
 }
@@ -611,7 +618,7 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
   --demo-launcher-canvas: #0a0a0a;
   --demo-launcher-ink: #fbfbfa;
   --demo-launcher-muted: rgba(251, 251, 250, .64);
-  --demo-launcher-faint: rgba(251, 251, 250, .4);
+  --demo-launcher-faint: rgba(251, 251, 250, .7);
   --demo-launcher-rule: rgba(255, 255, 255, .12);
   --demo-launcher-accent: #a7f3d0;
   --demo-launcher-focus: #fbfbfa;
@@ -619,7 +626,7 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
   --demo-card-bg: #171716;
   --demo-card-ink: #fbfbfa;
   --demo-card-muted: rgba(251, 251, 250, .64);
-  --demo-card-faint: rgba(251, 251, 250, .4);
+  --demo-card-faint: rgba(251, 251, 250, .84);
   --demo-card-rule: rgba(255, 255, 255, .1);
   --demo-card-action: #fbfbfa;
   --demo-card-action-ink: #0b0b0b;
@@ -629,8 +636,8 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
   --demo-preview-header: #f2f2ef;
   --demo-preview-header-ink: #0b0b0b;
   --demo-preview-ink: rgba(251, 251, 250, .82);
-  --demo-preview-muted: rgba(251, 251, 250, .43);
-  --demo-preview-faint: rgba(251, 251, 250, .24);
+  --demo-preview-muted: rgba(251, 251, 250, .86);
+  --demo-preview-faint: rgba(251, 251, 250, .62);
   --demo-preview-rule: rgba(255, 255, 255, .075);
   --demo-preview-shadow: 0 0 0 1px rgba(255, 255, 255, .08), 0 20px 42px -28px rgba(0, 0, 0, .9);
 }
@@ -3735,25 +3742,56 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   color: var(--admin-ink, #0b0b0b);
 }
 .admin-notification-panel[data-placement="sidebar"] {
-  inset: max(5rem, calc(env(safe-area-inset-top) + 4rem)) max(1rem, env(safe-area-inset-right)) auto auto;
-  width: min(25rem, calc(100vw - 2rem));
-  max-height: calc(100dvh - 6rem - env(safe-area-inset-top));
+  width: min(22.5rem, calc(100vw - 1.5rem));
+  max-height: min(34rem, calc(100dvh - 1.5rem));
   border-radius: calc(var(--admin-surface-radius, 16px) + 4px);
   box-shadow: var(--admin-shadow-border), 0 26px 70px -34px rgba(0, 0, 0, 0.52);
 }
 .admin-notification-panel[data-placement="mobile"] {
-  inset: auto 0 0;
-  max-height: min(78dvh, 42rem);
+  inset: auto 0.5rem 0.5rem;
+  max-height: min(68dvh, 34rem);
   padding-bottom: env(safe-area-inset-bottom);
-  border-radius: 24px 24px 0 0;
+  border-radius: 24px;
   box-shadow: 0 24px 68px -26px rgba(0, 0, 0, 0.58);
 }
 .admin-notification-panel[data-placement="sidebar"] .admin-notification-scroll {
-  max-height: calc(100dvh - 11.25rem - env(safe-area-inset-top));
+  max-height: min(27rem, calc(100dvh - 6.5rem));
 }
 .admin-notification-panel[data-placement="mobile"] .admin-notification-scroll {
-  max-height: min(32rem, calc(78dvh - 4.5rem));
+  max-height: min(27rem, calc(68dvh - 4.5rem));
 }
+
+/* Semantic status surfaces keep body copy on the standard high-contrast admin
+   ink. Hue belongs to the quiet tint, leading edge, and status icon; it never
+   replaces readable foreground text. */
+.admin-status-message {
+  display: flex;
+  min-height: 3rem;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 14px;
+  padding: 0.75rem 0.875rem;
+  color: var(--admin-ink);
+  box-shadow: var(--admin-shadow-border);
+}
+.admin-status-message-icon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 2rem;
+  place-items: center;
+  border-radius: 10px;
+}
+.admin-status-message--success { background: color-mix(in srgb, var(--admin-surface) 92%, #16a34a 8%); box-shadow: inset 3px 0 0 #168449, var(--admin-shadow-border); }
+.admin-status-message--success .admin-status-message-icon { background: color-mix(in srgb, var(--admin-surface) 80%, #16a34a 20%); color: #0b6b3a; }
+.admin-status-message--warning { background: color-mix(in srgb, var(--admin-surface) 90%, #f59e0b 10%); box-shadow: inset 3px 0 0 #b96808, var(--admin-shadow-border); }
+.admin-status-message--warning .admin-status-message-icon { background: color-mix(in srgb, var(--admin-surface) 78%, #f59e0b 22%); color: #874604; }
+.admin-status-message--error { background: color-mix(in srgb, var(--admin-surface) 91%, #e11d48 9%); box-shadow: inset 3px 0 0 #be123c, var(--admin-shadow-border); }
+.admin-status-message--error .admin-status-message-icon { background: color-mix(in srgb, var(--admin-surface) 79%, #e11d48 21%); color: #9f1239; }
+.admin-status-message--info { background: color-mix(in srgb, var(--admin-surface) 92%, #2563eb 8%); box-shadow: inset 3px 0 0 #2563eb, var(--admin-shadow-border); }
+.admin-status-message--info .admin-status-message-icon { background: color-mix(in srgb, var(--admin-surface) 80%, #2563eb 20%); color: #1d4ed8; }
+[data-theme="dark"] .admin-status-message-icon,
+[data-theme="signal"] .admin-status-message-icon { color: var(--admin-ink); }
 
 [data-theme="frost"] .admin-sidebar,
 [data-theme="frost"] .admin-mobile-header {
@@ -4012,11 +4050,6 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 
 .admin-route-frame { width: 100%; max-width: 1500px; margin-inline: auto; }
 
-@keyframes admin-route-entry-in {
-  from { opacity: 0; transform: translateY(14px); filter: blur(6px); }
-  to { opacity: 1; transform: translateY(0); filter: blur(0); }
-}
-
 @keyframes admin-skeleton-reveal {
   from { opacity: 0.22; }
   to { opacity: 1; }
@@ -4031,15 +4064,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   animation: admin-skeleton-reveal 180ms var(--ease-out) both;
 }
 
-.admin-async-region {
-  min-width: 0;
-  animation: admin-async-region-in 320ms var(--ease-out) both;
-}
-
-@keyframes admin-async-region-in {
-  from { opacity: 0; transform: translateY(8px); filter: blur(4px); }
-  to { opacity: 1; transform: translateY(0); filter: blur(0); }
-}
+.admin-async-region { min-width: 0; }
 
 .admin-skeleton-header { min-height: 88px; }
 .admin-skeleton-surface {
@@ -4052,27 +4077,6 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   border-radius: 10px;
   background: color-mix(in srgb, var(--admin-ink) 7%, var(--admin-surface));
   animation: admin-skeleton-breathe 1.4s ease-in-out infinite;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > * {
-    animation: admin-route-entry-in 400ms var(--ease-out) both;
-  }
-  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(2) { animation-delay: 50ms; }
-  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(3) { animation-delay: 100ms; }
-  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(4) { animation-delay: 150ms; }
-  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(n + 5) { animation-delay: 200ms; }
-}
-
-@media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
-  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > * {
-    animation-duration: 360ms;
-    transform-origin: center top;
-  }
-  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(2) { animation-delay: 45ms; }
-  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(3) { animation-delay: 90ms; }
-  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(4) { animation-delay: 135ms; }
-  .admin-route-entry.is-entering > :not([data-admin-route-loading]) > *:nth-child(n + 5) { animation-delay: 180ms; }
 }
 
 .admin-composer {

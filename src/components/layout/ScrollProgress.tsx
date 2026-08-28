@@ -2,6 +2,7 @@
 
 import { motion, useScroll, useSpring } from "framer-motion";
 import { usePathname } from "next/navigation";
+import { isApplicationWorkspace } from "@/lib/navigation/public-chrome";
 
 /**
  * Slim page-reading progress bar — ties the whole page together as one guided
@@ -11,7 +12,7 @@ export function ScrollProgress() {
   const pathname = usePathname();
   const { scrollYProgress } = useScroll();
   const x = useSpring(scrollYProgress, { stiffness: 120, damping: 30, mass: 0.3 });
-  if (pathname.startsWith("/admin") || pathname.startsWith("/demo/command-center")) return null;
+  if (isApplicationWorkspace(pathname)) return null;
   return (
     <motion.div
       aria-hidden

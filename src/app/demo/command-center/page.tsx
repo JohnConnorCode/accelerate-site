@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function AdminDemoLauncher() {
   return (
-    <main className="demo-launcher relative min-h-screen overflow-hidden bg-[var(--demo-launcher-canvas)] px-4 py-5 text-[var(--demo-launcher-ink)] antialiased transition-colors duration-200 sm:px-6 sm:py-7">
+    <main className="demo-launcher relative min-h-screen overflow-hidden bg-[var(--demo-launcher-canvas)] px-4 pb-5 pt-[calc(var(--site-header-h)+env(safe-area-inset-top)+1.25rem)] text-[var(--demo-launcher-ink)] antialiased transition-colors duration-200 sm:px-6 sm:pb-7 sm:pt-[calc(var(--site-header-h)+env(safe-area-inset-top)+1.75rem)]">
       <div className="demo-launcher-grid pointer-events-none absolute inset-0" aria-hidden="true" />
       <div className="demo-launcher-glow demo-launcher-glow--top pointer-events-none absolute -right-48 top-0 size-[34rem] rounded-full blur-[120px]" aria-hidden="true" />
       <div className="demo-launcher-glow demo-launcher-glow--bottom pointer-events-none absolute -left-64 bottom-[-18rem] size-[38rem] rounded-full blur-[140px]" aria-hidden="true" />
