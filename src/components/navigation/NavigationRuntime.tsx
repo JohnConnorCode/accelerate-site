@@ -33,25 +33,66 @@ interface NavigationRuntimeValue {
 const NavigationRuntimeContext = createContext<NavigationRuntimeValue | null>(null);
 const ENTRY_KEY = "__accelerateNavigationId";
 const POSITION_KEY = "accelerate:navigation-positions";
+const MAX_PERSISTED_POSITIONS = 64;
 
 type NavigationState = Record<string, unknown> & { [ENTRY_KEY]?: string };
+type PositionMap = Map<string, number>;
+
+let positionCache: PositionMap | null = null;
+let positionPersistHandle: number | null = null;
 
 function newEntryId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-function readPositions() {
+function readPositions(): PositionMap {
+  if (positionCache) return positionCache;
+  const entries: Array<[string, number]> = [];
   try {
-    return JSON.parse(sessionStorage.getItem(POSITION_KEY) || "{}") as Record<string, number>;
+    const parsed = JSON.parse(sessionStorage.getItem(POSITION_KEY) || "{}") as Record<string, unknown>;
+    for (const [id, value] of Object.entries(parsed).slice(-MAX_PERSISTED_POSITIONS)) {
+      if (Number.isFinite(value)) entries.push([id, Math.max(0, Math.round(Number(value)))]);
+    }
   } catch {
-    return {};
+    // A malformed legacy receipt must never block navigation or restoration.
   }
+  positionCache = new Map(entries);
+  return positionCache;
+}
+
+function flushPositions() {
+  if (!positionCache) return;
+  if (positionPersistHandle !== null) {
+    window.cancelIdleCallback?.(positionPersistHandle);
+    window.clearTimeout(positionPersistHandle);
+    positionPersistHandle = null;
+  }
+  try {
+    sessionStorage.setItem(POSITION_KEY, JSON.stringify(Object.fromEntries(positionCache)));
+  } catch {
+    // Scroll restoration is best-effort when storage is unavailable or full.
+  }
+}
+
+function schedulePositionFlush() {
+  if (positionPersistHandle !== null) return;
+  if ("requestIdleCallback" in window) {
+    positionPersistHandle = window.requestIdleCallback(() => flushPositions(), { timeout: 1_500 });
+    return;
+  }
+  positionPersistHandle = Number(globalThis.setTimeout(flushPositions, 250));
 }
 
 function writePosition(id: string, value: number) {
   const positions = readPositions();
-  positions[id] = Math.max(0, Math.round(value));
-  sessionStorage.setItem(POSITION_KEY, JSON.stringify(positions));
+  positions.delete(id);
+  positions.set(id, Math.max(0, Math.round(value)));
+  while (positions.size > MAX_PERSISTED_POSITIONS) {
+    const oldest = positions.keys().next().value;
+    if (!oldest) break;
+    positions.delete(oldest);
+  }
+  schedulePositionFlush();
 }
 
 function currentHistoryState(): NavigationState {
@@ -71,6 +112,10 @@ function isModifiedActivation(event: MouseEvent) {
   return event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
 }
 
+function isAdminPath(path: string) {
+  return path.startsWith("/admin") || path.startsWith("/demo/command-center/");
+}
+
 export function NavigationRuntime({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const previousPathname = useRef(pathname);
@@ -84,23 +129,19 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
   const [hasNavigated, setHasNavigated] = useState(false);
   const [announcement, setAnnouncement] = useState("");
 
-  const isAdminPath = useCallback((path = pathname) => (
-    path.startsWith("/admin") || path.startsWith("/demo/command-center/")
-  ), [pathname]);
-
   const getScrollPosition = useCallback((path = previousPathname.current) => {
     if (isAdminPath(path) && adminScroller.current) return adminScroller.current.scrollTop;
     return window.scrollY;
-  }, [isAdminPath]);
+  }, []);
 
-  const setScrollPosition = useCallback((value: number, path = pathname) => {
+  const setScrollPosition = useCallback((value: number, path = location.pathname) => {
     const next = Math.max(0, value);
     if (isAdminPath(path) && adminScroller.current) {
       adminScroller.current.scrollTo({ top: next, behavior: "instant" });
       return;
     }
     window.scrollTo({ top: next, behavior: "instant" });
-  }, [isAdminPath, pathname]);
+  }, []);
 
   const saveCurrentPosition = useCallback(() => {
     if (!currentEntryId.current) return;
@@ -141,6 +182,7 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
       setHasNavigated(true);
       setPending(true);
     };
+    const onPageHide = () => flushPositions();
 
     const onClick = (event: MouseEvent) => {
       if (event.defaultPrevented || isModifiedActivation(event)) return;
@@ -152,10 +194,15 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
     };
 
     window.addEventListener("popstate", onPopState);
+    window.addEventListener("pagehide", onPageHide);
     document.addEventListener("click", onClick, true);
+    readPositions();
+    schedulePositionFlush();
     return () => {
+      flushPositions();
       history.scrollRestoration = previousScrollRestoration;
       window.removeEventListener("popstate", onPopState);
+      window.removeEventListener("pagehide", onPageHide);
       document.removeEventListener("click", onClick, true);
     };
   }, [beginNavigation, saveCurrentPosition]);
@@ -168,12 +215,12 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
   }, [pending]);
 
   useEffect(() => {
-    const target = isAdminPath() ? adminScroller.current : window;
+    const target = isAdminPath(pathname) ? adminScroller.current : window;
     if (!target) return;
     const onScroll = () => saveCurrentPosition();
     target.addEventListener("scroll", onScroll, { passive: true });
     return () => target.removeEventListener("scroll", onScroll);
-  }, [isAdminPath, pathname, saveCurrentPosition]);
+  }, [pathname, saveCurrentPosition]);
 
   useLayoutEffect(() => {
     if (previousPathname.current === pathname) return;
@@ -197,9 +244,10 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
     currentEntryId.current = nextId;
 
     const positions = readPositions();
-    const restoresHistory = nextIntent.kind === "pop" || (!recordedIntent && positions[nextId] !== undefined);
+    const recordedPosition = positions.get(popTargetId.current || nextId);
+    const restoresHistory = nextIntent.kind === "pop" || (!recordedIntent && positions.has(nextId));
     const target = restoresHistory
-      ? positions[popTargetId.current || nextId] || 0
+      ? recordedPosition || 0
       : nextIntent.scroll === "preserve"
         ? getScrollPosition(previousPathname.current)
         : 0;
@@ -269,7 +317,7 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
       focusObserver?.disconnect();
       restoreTimers.forEach((timer) => window.clearTimeout(timer));
     };
-  }, [getScrollPosition, isAdminPath, pathname, setScrollPosition]);
+  }, [getScrollPosition, pathname, setScrollPosition]);
 
   const value = useMemo<NavigationRuntimeValue>(() => ({
     pending: pending || loadingBoundaries.size > 0,

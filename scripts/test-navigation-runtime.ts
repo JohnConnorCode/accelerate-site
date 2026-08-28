@@ -26,6 +26,9 @@ assert.match(runtime, /data-admin-route-loading/, "Focus must wait for the real 
 assert.match(runtime, /pendingHref/, "Navigation intent must expose the destination before its data commits");
 assert.match(runtime, /dataset\.navigationPhase = pending \? "pending" : "idle"/, "The document must expose same-frame navigation intent for perceptual QA");
 assert.match(runtime, /nextIntent\.kind === "push" && nextId === currentEntryId\.current/, "A pushed history entry must not reuse the origin's scroll receipt id");
+assert.match(runtime, /MAX_PERSISTED_POSITIONS = 64/, "Returning profiles must keep a bounded scroll-receipt history");
+assert.match(runtime, /requestIdleCallback/, "Scroll receipt persistence must stay off the navigation frame");
+assert.match(runtime, /while \(positions\.size > MAX_PERSISTED_POSITIONS\)/, "Legacy scroll receipts must be trimmed instead of growing indefinitely");
 assert.match(pageTransition, /shouldAnimateRoute/, "Public route entry must distinguish hydration from navigation");
 assert.match(pageTransition, /isLeaving/, "Public navigation must acknowledge intent before the destination commits");
 assert.match(shell, /ref=\{mainRef\}/, "Admin main must register its application scroll viewport");
@@ -40,6 +43,8 @@ assert.match(styles, /@keyframes admin-route-section-in/, "Committed route secti
 assert.match(styles, /data-navigation-pending="true"/, "Retained admin content must visibly acknowledge destination intent");
 assert.match(shell, /isPendingActive/, "Mobile navigation must acknowledge the intended destination immediately");
 assert.match(shell, /data-pending=\{isPendingActive\(link\.href\)/, "Pending navigation state must remain observable for browser QA");
+assert.match(shell, /--admin-mobile-dock-index/, "The mobile dock must use one persistent position-driven indicator");
+assert.doesNotMatch(shell, /layoutId="admin-mobile-dock-active"/, "The mobile dock indicator must not run layout projection while route DOM is replacing");
 assert.match(shell, /prefetch/, "Primary mobile destinations must use Next prefetching");
 assert.match(shell, /data-navigation-pending=\{routeIsPending/, "The persistent admin shell must publish pending route state");
 assert.doesNotMatch(demo, /document\.addEventListener\("click"/, "Demo navigation must not hijack document clicks");
@@ -57,9 +62,11 @@ assert.match(dataSkeleton, /admin-skeleton-shape/, "Client-data skeletons must u
 assert.doesNotMatch(dataSkeleton, /animate-pulse|bg-white\//, "Legacy dark-only skeleton styling must not return");
 assert.match(pageLoading, /PageHeader/, "Client data loading must preserve the destination's real page identity");
 assert.match(pageLoading, /admin-async-region/, "Client data loading must be scoped to an authored regional transition");
-assert.match(styles, /admin-route-section-in 380ms/, "Desktop admin entrance must remain perceptible without delaying useful interaction");
-assert.match(styles, /translateY\(8px\)/, "Ready route content must use a restrained semantic rise");
-assert.match(styles, /nth-child\(8\).*376ms/, "Committed admin sections must use one bounded semantic stagger");
+assert.match(styles, /admin-route-section-in 180ms/, "Admin entrance must remain perceptible without delaying useful interaction");
+assert.match(styles, /translateY\(6px\)/, "Ready route content must use a restrained semantic rise");
+assert.match(styles, /nth-child\(n \+ 5\).*72ms/, "Committed admin sections must cap their semantic stagger");
+const adminRouteMotion = styles.slice(styles.indexOf("@keyframes admin-route-stage-in"), styles.indexOf("@keyframes admin-skeleton-reveal"));
+assert.doesNotMatch(adminRouteMotion, /filter:/, "Admin route motion must not blur full mobile page layers");
 assert.doesNotMatch(styles, /\.admin-shell \*,\s*\n\s*\.admin-shell \*::before/, "Reduced motion must not globally destroy every admin transition");
 assert.match(dialog, /<AnimatePresence mode="sync">/, "The shared dialog must animate an initially opened controlled surface");
 assert.doesNotMatch(dialog, /<AnimatePresence initial=\{false\}/, "The shared dialog must not suppress entry when a caller opens on mount");

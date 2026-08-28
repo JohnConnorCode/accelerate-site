@@ -35,6 +35,11 @@ routing or creating surface-specific history systems.
   position.
 - The runtime must merge its entry key into the existing Next.js history state,
   never overwrite framework-owned fields.
+- Scroll receipts are a bounded 64-entry LRU held in memory during navigation.
+  Scroll events update that map without parsing or rewriting storage; the small
+  snapshot persists during browser idle time and flushes on page hide. A legacy
+  unbounded receipt is trimmed on hydration so a restored mobile tab cannot make
+  synchronous storage work block every navigation frame.
 
 ## Motion, loading, and focus
 
@@ -56,9 +61,10 @@ routing or creating surface-specific history systems.
   remains visible and must not animate out before animating in. The admin is an
   application workspace: its first committed destination and every later route
   commit run the same single semantic entrance sequence.
-- Public and admin routes each have one entrance owner. Route motion is a short
-  opacity, blur, and rise on the incoming tree only; local dialogs, lists, and
-  state changes may retain their own motion.
+- Public and admin routes each have one entrance owner. Admin route motion is a
+  short opacity and rise on the incoming tree only; it must not blur the full
+  route or every large child surface. Local dialogs, lists, and state changes
+  may retain their own motion.
 - Route entrance state must be present in committed markup and stylesheet rules
   before first paint. Do not start route motion from `useEffect`, a mutation
   observer, or an imperative Web Animations call: those can expose the final
@@ -91,8 +97,13 @@ routing or creating surface-specific history systems.
   mount-only fetch lifecycle when the shared read primitive covers the request.
 - The route stage distinguishes the fallback tree from the committed tree. The
   fallback has restrained loading motion; the actual destination always receives
-  the incoming blur, opacity, rise, and bounded semantic stagger. The admin's
+  the incoming opacity, rise, and bounded semantic stagger. The complete route
+  entrance, including its capped stagger, finishes within 252ms. The admin's
   initial committed tree runs this entrance once; fallback geometry does not.
+- The mobile dock owns one persistent selection indicator. Pending destination
+  state changes its compositor-only transform immediately; it must not remount a
+  shared-layout projection while the route DOM is committing. Cached navigation
+  therefore cannot couple dock movement to route layout replacement.
 - After forward navigation, focus moves without additional scrolling to the
   destination heading or main region and the route title is announced politely.
   History traversal restores reading position without stealing focus.
@@ -119,6 +130,20 @@ routing or creating surface-specific history systems.
   a mismatched App Router response into the necessary document navigation.
 - Returning-profile QA uses a persistent browser data directory across repeated
   runs. Incognito-only success is not release evidence.
+- Command Center document and RSC responses are private application state. They
+  must remain `private, no-cache, no-store, max-age=0, must-revalidate`, preserve
+  RSC-aware `Vary` separation, and never be served from Chrome disk cache or a
+  service worker. Hashed `/_next/static/*` assets retain their normal immutable
+  caching; this policy is not a global cache disable.
+- A persistent-profile investigation records CDP request provenance, response
+  headers, click, route commit, and settled timestamps. Healthy Next router
+  memory/prefetch reuse may commit without a new request; it is not equivalent
+  to `Network.requestServedFromCache`, `fromDiskCache`, or
+  `fromServiceWorker`.
+- Do not tune transition durations, add cache-busting query strings, force hard
+  reloads, or clear browser storage to conceal a navigation incident. Capture
+  the failing persistent profile before mutation and identify the responsible
+  request/cache layer first.
 
 ## Required verification
 
@@ -136,5 +161,9 @@ sufficient evidence of a polished transition.
 
 Overlay verification must sample intermediate entry and exit frames and prove
 the overlay is still mounted during exit. Persistent-profile verification must
-exercise both a public route and the fictional admin after revisiting the same
-browser profile, including one dialog lifecycle.
+exercise at least 30 real Command Center navigations with cache enabled,
+disabled, and re-enabled in the same browser data directory, followed by a fresh
+profile control. It must fail on stale disk-cached RSC responses, service-worker
+control, repeated document navigation, mixed deployment identities, URL/route
+disagreement, runtime errors, or a material persistent-versus-fresh regression.
+Physical Android Chrome evidence follows `docs/ANDROID-CHROME-CACHE-INCIDENT.md`.

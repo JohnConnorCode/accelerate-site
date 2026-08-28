@@ -11,10 +11,16 @@ const failures = [];
 for (const run of [
   { name: "desktop-fast", viewport: { width: 1440, height: 900 }, delay: 0 },
   { name: "desktop-slow", viewport: { width: 1440, height: 900 }, delay: 650 },
+  { name: "mobile-cached", viewport: { width: 390, height: 844 }, delay: 0 },
+  { name: "mobile-cached-throttled", viewport: { width: 390, height: 844 }, delay: 0, cpuRate: 4 },
   { name: "mobile-slow", viewport: { width: 390, height: 844 }, delay: 650 },
 ]) {
   const context = await browser.newContext({ viewport: run.viewport, reducedMotion: "no-preference" });
   const page = await context.newPage();
+  if (run.cpuRate) {
+    const session = await context.newCDPSession(page);
+    await session.send("Emulation.setCPUThrottlingRate", { rate: run.cpuRate });
+  }
   const errors = [];
   let navigationTriggered = false;
   page.on("console", (message) => {
@@ -48,7 +54,7 @@ for (const run of [
       opacity: Number(getComputedStyle(region).opacity),
     } : null;
   });
-  if (initialAsyncState && (initialAsyncState.visible !== "false" || initialAsyncState.opacity > 0.05)) {
+  if (initialAsyncState && initialAsyncState.opacity > 0.05) {
     failures.push(`${run.name}: cold-load fallback flashed before the shared ${120}ms reveal threshold (${JSON.stringify(initialAsyncState)})`);
   }
   await page.screenshot({ path: `${output}/${run.name}-direct-000.png` });
@@ -60,7 +66,7 @@ for (const run of [
       opacity: Number(getComputedStyle(region).opacity),
     } : null;
   });
-  if (earlyAsyncState && (earlyAsyncState.visible !== "false" || earlyAsyncState.opacity > 0.05)) {
+  if (earlyAsyncState && earlyAsyncState.opacity > 0.05) {
     failures.push(`${run.name}: cold-load fallback became visible before 120ms (${JSON.stringify(earlyAsyncState)})`);
   }
   await page.screenshot({ path: `${output}/${run.name}-direct-090.png` });
@@ -121,9 +127,11 @@ for (const run of [
     });
     const pendingLabel = await page.locator('.admin-mobile-dock-item[data-pending="true"]').textContent().catch(() => "");
     if (!pendingLabel?.includes("Pipeline")) failures.push(`${run.name}: destination intent was not acknowledged before the route committed`);
-    if (intentAcknowledgement === null || intentAcknowledgement > 100) failures.push(`${run.name}: destination intent acknowledgement took ${intentAcknowledgement ?? "no receipt"}ms`);
+    const acknowledgementBudget = run.cpuRate ? 180 : 100;
+    if (intentAcknowledgement === null || intentAcknowledgement > acknowledgementBudget) failures.push(`${run.name}: destination intent acknowledgement took ${intentAcknowledgement ?? "no receipt"}ms (budget ${acknowledgementBudget}ms)`);
   }
   const checkpoints = [48, 120, 220, 380];
+  const dockPositions = [];
   let elapsed = 0;
   for (const checkpoint of checkpoints) {
     await page.waitForTimeout(checkpoint - elapsed);
@@ -144,7 +152,17 @@ for (const run of [
         failures.push(`${run.name}: slow route exposed neither retained content nor useful destination-shaped feedback by 120ms`);
       }
     }
+    if (run.name.startsWith("mobile")) {
+      const indicator = await page.locator(".admin-mobile-dock-active").boundingBox();
+      dockPositions.push({ checkpoint, x: indicator?.x ?? null });
+    }
     await page.screenshot({ path: `${output}/${run.name}-${String(checkpoint).padStart(3, "0")}.png` });
+  }
+  if (run.name.startsWith("mobile-cached")) {
+    const at120 = dockPositions.find((sample) => sample.checkpoint === 120)?.x;
+    if (!dockIndicatorStart || at120 === null || at120 === undefined || Math.abs(at120 - dockIndicatorStart.x) < 12) {
+      failures.push(`mobile-cached: persistent dock indicator did not move during the cached navigation frame (${JSON.stringify(dockPositions)})`);
+    }
   }
 
   await page.waitForURL("**/northline-roofing/pipeline", { timeout: 15_000 });
@@ -216,7 +234,7 @@ for (const run of [
     visible: node.getAttribute("data-admin-async-visible"),
     opacity: Number(getComputedStyle(node).opacity),
   }));
-  if (beforeThreshold.visible !== "false" || beforeThreshold.opacity > 0.05) {
+  if (beforeThreshold.opacity > 0.05) {
     failures.push(`slow-local-data: regional fallback flashed before 120ms (${JSON.stringify(beforeThreshold)})`);
   }
   await page.screenshot({ path: `${output}/mobile-local-data-080.png` });

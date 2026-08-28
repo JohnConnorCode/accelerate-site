@@ -1,7 +1,7 @@
 "use client";
 
 import { tenant } from "@/config/tenant";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import Link, { useAdminNavigation } from "@/components/admin/AdminLink";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, MotionConfig, motion } from "framer-motion";
@@ -346,6 +346,11 @@ export default function AdminShell({
     pendingAdminPath && (pendingAdminPath === href || (href !== "/admin" && pendingAdminPath.startsWith(href))),
   );
   const routeIsPending = Boolean(pendingAdminPath && pendingAdminPath !== effectivePathname);
+  const pendingMobileIndex = adminMobileLinks.findIndex((link) => isPendingActive(link.href));
+  const committedMobileIndex = adminMobileLinks.findIndex((link) => isActive(link.href));
+  const mobileDockIndex = pendingAdminPath
+    ? pendingMobileIndex >= 0 ? pendingMobileIndex : adminMobileLinks.length
+    : committedMobileIndex >= 0 ? committedMobileIndex : adminMobileLinks.length;
 
   const commandActions: CommandAction[] = [
     {
@@ -501,18 +506,17 @@ export default function AdminShell({
         </div>
       </main>
 
-      <nav inert={mobileOpen} className="admin-mobile-dock fixed inset-x-4 bottom-[max(0.55rem,env(safe-area-inset-bottom))] z-40 grid grid-cols-5 items-stretch rounded-[20px] p-1 lg:hidden" aria-label="Primary navigation">
+      <nav inert={mobileOpen} style={{ "--admin-mobile-dock-index": mobileDockIndex } as CSSProperties} className="admin-mobile-dock fixed inset-x-4 bottom-[max(0.55rem,env(safe-area-inset-bottom))] z-40 grid grid-cols-5 items-stretch rounded-[20px] p-1 lg:hidden" aria-label="Primary navigation">
+        <span className="admin-mobile-dock-active" aria-hidden="true" />
         {adminMobileLinks.map((link) => {
           const committed = isActive(link.href);
           const active = isPendingActive(link.href) || (!pendingAdminPath && committed);
           return <Link key={link.id} href={link.href} prefetch aria-current={committed ? "page" : undefined} data-pending={isPendingActive(link.href) ? "true" : undefined} className={cn("admin-mobile-dock-item relative flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[16px] px-1 text-[9px] font-semibold transition-[color,background-color,transform] duration-200 active:scale-[0.96]", active && "is-active")}>
-            {active && <motion.span layoutId="admin-mobile-dock-active" className="admin-mobile-dock-active absolute inset-0 rounded-[16px]" transition={{ type: "spring", duration: 0.34, bounce: 0 }} aria-hidden="true" />}
             <link.icon className="relative z-10 size-[17px]" aria-hidden="true" />
             <span className="relative z-10 max-w-full truncate">{link.label}</span>
           </Link>;
         })}
-        <button ref={mobileMenuButtonRef} type="button" onClick={() => setMobileOpen(true)} className={cn("admin-mobile-dock-item relative flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[16px] px-1 text-[9px] font-semibold transition-[color,background-color,transform] duration-200 active:scale-[0.96]", !adminMobileLinks.some((link) => isActive(link.href)) && "is-active")} aria-label="Open More" aria-expanded={mobileOpen} aria-controls="admin-mobile-navigation">
-          {!adminMobileLinks.some((link) => isActive(link.href)) && <motion.span layoutId="admin-mobile-dock-active" className="admin-mobile-dock-active absolute inset-0 rounded-[16px]" transition={{ type: "spring", duration: 0.34, bounce: 0 }} aria-hidden="true" />}
+        <button ref={mobileMenuButtonRef} type="button" onClick={() => setMobileOpen(true)} className={cn("admin-mobile-dock-item relative flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[16px] px-1 text-[9px] font-semibold transition-[color,background-color,transform] duration-200 active:scale-[0.96]", mobileDockIndex === adminMobileLinks.length && "is-active")} aria-label="Open More" aria-expanded={mobileOpen} aria-controls="admin-mobile-navigation">
           <MoreHorizontal className="relative z-10 size-[18px]" aria-hidden="true" />
           <span className="relative z-10">More</span>
         </button>

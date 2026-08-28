@@ -82,7 +82,10 @@ current fictional workspace without mixing its history or session state.
 
 Demo scenario reads use the same retained query cache and async-region lifecycle
 as live reads. Scenario data must not manufacture a full-page loading state
-between primary routes or on revisit. The default sales demo represents a
+between primary routes or on revisit. Cached and repeatedly visited mobile
+routes must preserve immediate dock feedback and the same bounded route entrance
+as a fresh profile; persistent scroll receipts may not grow work on the
+interaction frame. The default sales demo represents a
 configured, healthy operating system and does not show setup warnings unless a
 scenario explicitly demonstrates setup or recovery.
 
