@@ -13,6 +13,14 @@ const nextConfig: NextConfig = {
   // instead of combining stale route payloads/assets with the current release.
   deploymentId: deploymentId || undefined,
 
+  experimental: {
+    // Next 16 auto-enables the runtime deployment-id override inside Vercel's
+    // builder. That replaces the documented custom prebuilt id with Vercel's
+    // reserved dpl_ id at runtime and produces two bootstrap identities. Keep
+    // the build-time custom id serialized into the server output instead.
+    runtimeServerDeploymentId: false,
+  },
+
   // Ensure clean URLs without trailing slashes
   trailingSlash: false,
 
