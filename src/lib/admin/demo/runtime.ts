@@ -42,6 +42,53 @@ function opportunityRows(pack: DemoScenarioPack, state: DemoState) {
     return { id: item.id, name: item.name, email: contact.email, stage, canonical_stage: stage, estimated_value: item.value, won_value: stage === "won" ? item.value : 0, probability: { new: 10, contacted: 20, qualified: 40, meeting: 55, proposal: 70, negotiation: 85, won: 100, lost: 0, nurture: 10 }[stage] || 10, next_action: item.nextAction, next_action_at: dateOffset(index % 7), source: item.source, owner_email: pack.tenant.founder.email, last_activity_at: new Date(Date.now() - index * 7_200_000).toISOString(), created_at: new Date(Date.now() - (index + 4) * 86_400_000).toISOString(), contact: { full_name: contact.name, primary_email: contact.email }, company: { name: item.company, domain: null, industry: pack.category } };
   });
 }
+function auditHistory(pack: DemoScenarioPack, params: URLSearchParams) {
+  const founder = pack.tenant.founder.email;
+  const system = pack.tenant.founder.systemActorEmail;
+  const samples: Array<{ action: string; entityType: string; source: string; actor: string; after: Record<string, string> }> = [
+    { action: "opportunity.updated", entityType: "opportunity", source: "admin", actor: founder, after: { stage: "proposal" } },
+    { action: "email.sent", entityType: "conversation", source: "admin", actor: founder, after: { channel: "gmail" } },
+    { action: "task.completed", entityType: "task", source: "admin", actor: founder, after: { status: "done" } },
+    { action: "proposal.viewed", entityType: "proposal", source: "public", actor: "", after: { status: "viewed" } },
+    { action: "feature.updated", entityType: "feature_request", source: "admin", actor: founder, after: { status: "in_progress" } },
+    { action: "calendar.synced", entityType: "integration", source: "automation", actor: system, after: { stored: "12" } },
+  ];
+  const entries = pack.people.slice(0, 24).map((_, index) => {
+    const sample = samples[index % samples.length]!;
+    const opportunity = pack.opportunities[index % pack.opportunities.length]!;
+    return {
+      id: `audit-${pack.id}-${index}`,
+      actorEmail: sample.actor || null,
+      action: sample.action,
+      entityType: sample.entityType,
+      entityId: sample.entityType === "opportunity" ? opportunity.id : `${sample.entityType}-${index}`,
+      source: sample.source,
+      before: sample.action === "proposal.viewed" ? { status: "sent" } : sample.action === "opportunity.updated" ? { stage: "qualified" } : sample.action === "task.completed" ? { status: "open" } : null,
+      after: { ...sample.after },
+      metadata: {},
+      createdAt: ago(index * 3 + 1),
+    };
+  });
+  const filtered = entries.filter((entry) => {
+    if (params.get("actor") && entry.actorEmail !== params.get("actor")) return false;
+    if (params.get("entity") && entry.entityType !== params.get("entity")) return false;
+    if (params.get("action") && entry.action !== params.get("action")) return false;
+    if (params.get("source") && entry.source !== params.get("source")) return false;
+    const created = entry.createdAt.slice(0, 10);
+    if (params.get("from") && created < params.get("from")!) return false;
+    if (params.get("to") && created > params.get("to")!) return false;
+    return true;
+  });
+  return {
+    entries: filtered,
+    filterOptions: {
+      actors: [...new Set(entries.map((entry) => entry.actorEmail).filter((value): value is string => Boolean(value)))],
+      entityTypes: [...new Set(entries.map((entry) => entry.entityType))],
+      actions: [...new Set(entries.map((entry) => entry.action))],
+      sources: [...new Set(entries.map((entry) => entry.source))],
+    },
+  };
+}
 function queue(pack: DemoScenarioPack, state: DemoState) {
   const approvals = pack.actions.slice(0, 2).filter((item) => !state.completedActions.includes(item.id)).map((item, index) => ({ id: `action:${item.id}`, kind: "approval", title: item.title, summary: item.description, urgency: index === 0 ? "high" : "normal", dueAt: dateOffset(0), sourceTimestamp: ago(index + 1), priorityReason: "A consequential simulated change is staged for operator review.", recommendedNextAction: "Review the exact simulated change", href: `/admin/today?focus=approval&action=${item.id}` }));
   const replies = pack.conversations.slice(0, 2).map((item, index) => { const contact = person(pack, item.personId); return { id: `reply:${item.id}`, kind: "reply", title: `Reply to ${contact.name}`, summary: item.messages.at(-1)!.body, urgency: index === 0 ? "high" : "normal", dueAt: dateOffset(0), sourceTimestamp: item.messages.at(-1)!.at, priorityReason: "An unread customer message is waiting for a response.", recommendedNextAction: "Open the conversation and reply", href: "/admin/conversations" }; });
@@ -365,7 +412,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       return jsonResponse({ timeline, canonical: { schemaReady: true, status: "connected", contact: { id: contact.id, full_name: contact.name, lifecycle_stage: opportunity.stage, communication_status: "active", next_action: opportunity.nextAction, next_action_at: dateOffset(1) }, company: { id: `company-${contact.id}`, name: contact.company, domain: `${contact.company.toLowerCase().replace(/[^a-z0-9]+/g, "")}.example`, industry: pack.category }, opportunities: [{ id: opportunity.id, stage: opportunity.stage, estimated_value: opportunity.value, won_value: opportunity.stage === "won" ? opportunity.value : 0 }] } });
     }
     if (path === "/api/admin/revenue") { const rows = opportunityRows(pack, state); return jsonResponse({ totalMRR: 18400, totalOneTime: rows.reduce((sum, item) => sum + item.won_value, 0), activeCount: 6, churnRate: 4, avgClientValue: 3067, industryBreakdown: [{ name: pack.category, value: 100 }], byClient: pack.people.slice(0, 6).map((item, index) => ({ name: `${item.company} · ${item.name}`, monthly: 1800 + index * 425, oneTime: index * 900 })), mrrTimeline: ["Apr", "May", "Jun", "Jul", "Aug"].map((date, index) => ({ date, mrr: 11200 + index * 1800 })), proposalRevenue: 24600 }); }
-    if (path === "/api/admin/activity") return jsonResponse({ activities: Array.from({ length: 30 }, (_, index) => ({ id: `activity-${index}`, type: ["lead", "email", "task", "proposal"][index % 4], description: `${pack.people[index % pack.people.length]!.name}: ${["record created", "email linked", "task completed", "proposal viewed"][index % 4]}`, timestamp: ago(index * 3 + 1) })) });
+    if (path === "/api/admin/activity") return jsonResponse(auditHistory(pack, url.searchParams));
     if (path === "/api/admin/revenue-os/ai/conversations") return jsonResponse({ schemaReady: true, conversations: [{ id: `ai-${scenarioId}`, title: `Morning review for ${pack.name}`, lastMessageAt: ago(1) }] });
     if (path.startsWith("/api/admin/revenue-os/ai/conversations/")) return jsonResponse({ messages: [{ id: "ai-welcome", role: "assistant", content: `I am grounded in this fictional ${pack.name} workspace. ${pack.story[0]}.`, runId: null, createdAt: ago(1) }] });
     const legacyPayload = legacy(pack, path); if (legacyPayload) return jsonResponse(legacyPayload);

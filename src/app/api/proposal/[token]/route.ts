@@ -3,6 +3,7 @@ import { createServiceRoleClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { transitionOpportunity, transitionStatusFromError } from "@/lib/revenue-os/pipeline";
 import { recordActivity } from "@/lib/revenue-os/activities";
+import { proposalAuditSummary, recordAudit } from "@/lib/revenue-os/audit";
 
 export async function GET(
   request: NextRequest,
@@ -29,11 +30,12 @@ export async function GET(
 
   // Track view if not already viewed
   if (!proposal.viewed_at && proposal.status !== "draft") {
+    const nextStatus = proposal.status === "sent" ? "viewed" : proposal.status;
     await supabase
       .from("proposals")
       .update({
         viewed_at: new Date().toISOString(),
-        status: proposal.status === "sent" ? "viewed" : proposal.status,
+        status: nextStatus,
       })
       .eq("id", proposal.id);
 
@@ -45,6 +47,19 @@ export async function GET(
       link: "/admin/proposals",
       read: false,
     });
+
+    try {
+      await recordAudit(supabase, {
+        action: "proposal.viewed",
+        entityType: "proposal",
+        entityId: proposal.id,
+        source: "public",
+        before: proposalAuditSummary(proposal),
+        after: proposalAuditSummary({ ...proposal, status: nextStatus }),
+      });
+    } catch (error) {
+      console.error("Proposal view audit failed:", error instanceof Error ? error.message : "unknown");
+    }
   }
 
   return NextResponse.json({
@@ -84,6 +99,15 @@ export async function POST(
     recordActivity(supabase, { activityType: `proposal_${body.decision}`, title: `${proposal.client_name} ${body.decision} ${proposal.title}`, summary: body.reason?.trim() || null, opportunityId: proposal.opportunity_id, proposalId: proposal.id, source: "public_link", externalId: `proposal:${proposal.id}:decision:${body.decision}`, occurredAt: now }),
     supabase.from("admin_notifications").insert({ type: "proposal_response", title: `Proposal ${body.decision}: ${proposal.title}`, description: body.reason?.trim() || `${proposal.client_name} ${body.decision} the proposal`, link: "/admin/proposals", read: false, priority: "urgent" }),
     supabase.from("tasks").insert({ title: `${body.decision === "accepted" ? "Start next steps with" : "Review decline from"} ${proposal.client_name}`, description: body.reason?.trim() || `Proposal ${body.decision}. Follow up personally.`, due_date: new Date(Date.now() + 86400000).toISOString().slice(0, 10), priority: "high", opportunity_id: proposal.opportunity_id, related_type: "proposal", related_id: proposal.id, related_name: proposal.client_name, source: "proposal_response", dedupe_key: `proposal-response:${proposal.id}` }),
+    recordAudit(supabase, {
+      action: body.decision === "accepted" ? "proposal.accepted" : "proposal.declined",
+      entityType: "proposal",
+      entityId: proposal.id,
+      source: "public",
+      before: proposalAuditSummary(proposal),
+      after: proposalAuditSummary({ ...proposal, status: body.decision }),
+      metadata: { has_reason: Boolean(body.reason?.trim()) },
+    }),
   ]);
   if (proposal.opportunity_id) {
     const nextStage = body.decision === "accepted" ? "negotiation" : "lost";

@@ -1,4 +1,5 @@
 import "server-only";
+import { tenant } from "@/config/tenant";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { decryptSecret, encryptSecret } from "./encryption";
 import { normalizeEmail, safeErrorMessage } from "./db";
@@ -6,6 +7,7 @@ import { recordSourceRun } from "./runs";
 import { findCanonicalContactByEmail } from "./identity";
 import { stopCampaignMemberships } from "./campaign-stops";
 import { planGmailThreadSync, type GmailHistoryPage, type GmailThreadListPage } from "./gmail-sync-plan";
+import { recordAudit } from "./audit";
 import { recordActivity } from "./activities";
 
 export const GOOGLE_SCOPES = [
@@ -294,6 +296,22 @@ export async function syncCalendar(supabase: SupabaseClient) {
         await supabase.from("calendar_events").update({ metadata: { ...metadata, campaign_stop_receipt: receipt } }).eq("provider", "google").eq("external_id", row.external_id);
       }
     }
+    const matched = rows.filter((row) => row.contact_id).length;
+    const ambiguous = rows.filter((row) => (row.metadata as { identity_resolution?: string }).identity_resolution === "ambiguous").length;
+    await recordAudit(supabase, {
+      actorEmail: tenant.founder.systemActorEmail,
+      action: "calendar.synced",
+      entityType: "integration",
+      entityId: "google_calendar",
+      source: "automation",
+      after: {
+        stored: rows.length,
+        matched,
+        unmatched: rows.length - matched - ambiguous,
+        ambiguous,
+        window: { timeMin, timeMax },
+      },
+    });
     await recordSourceRun(supabase, { sourceKey: "google_calendar", status: "success", summary: { stored: rows.length } });
     return { stored: rows.length };
   } catch (error) {

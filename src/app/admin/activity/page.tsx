@@ -1,119 +1,234 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import {
-  Activity,
-  Users,
-  Inbox,
-  AtSign,
-  Handshake,
-  Globe,
-  Mail,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { FilterX, ScrollText } from "lucide-react";
+import Link from "@/components/admin/AdminLink";
+import { useAdminNavigation } from "@/components/admin/AdminLink";
 import { PageHeader } from "@/components/admin/PageHeader";
-import { GlassCard } from "@/components/ui/GlassCard";
+import { AdminSurface } from "@/components/admin/AdminSurface";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { EmptyState } from "@/components/admin/EmptyState";
-import { cn } from "@/lib/utils";
+import { adminListItemVariants, adminListVariants } from "@/lib/admin/motion";
+import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 
-interface ActivityItem {
+interface AuditHistoryEntry {
   id: string;
-  type: string;
-  description: string;
-  timestamp: string;
+  actorEmail: string | null;
+  action: string;
+  entityType: string;
+  entityId: string | null;
+  source: string;
+  before: unknown;
+  after: unknown;
+  metadata: unknown;
+  createdAt: string;
 }
 
-const typeConfig: Record<string, { icon: LucideIcon; color: string }> = {
-  lead: { icon: Users, color: "text-blue-400 bg-blue-500/10" },
-  contact: { icon: Inbox, color: "text-emerald-400 bg-emerald-500/10" },
-  subscriber: { icon: AtSign, color: "text-purple-400 bg-purple-500/10" },
-  partner: { icon: Handshake, color: "text-yellow-400 bg-yellow-500/10" },
-  grade: { icon: Globe, color: "text-cyan-400 bg-cyan-500/10" },
-  email: { icon: Mail, color: "text-orange-400 bg-orange-500/10" },
-};
+interface AuditHistoryResult {
+  entries: AuditHistoryEntry[];
+  filterOptions: {
+    actors: string[];
+    entityTypes: string[];
+    actions: string[];
+    sources: string[];
+  };
+}
 
-function formatRelativeTime(timestamp: string): string {
-  const diff = Date.now() - new Date(timestamp).getTime();
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
-  return new Date(timestamp).toLocaleDateString();
+const FILTER_KEYS = ["actor", "entity", "action", "source", "from", "to"] as const;
+type FilterKey = (typeof FILTER_KEYS)[number];
+
+function entityHref(entityType: string, entityId: string | null) {
+  if (!entityId) return null;
+  if (entityType === "opportunity") return `/admin/pipeline?opportunity=${encodeURIComponent(entityId)}`;
+  if (entityType === "conversation") return "/admin/conversations";
+  if (entityType === "task") return "/admin/today";
+  if (entityType === "proposal") return "/admin/proposals";
+  if (entityType === "campaign") return "/admin/campaigns";
+  if (entityType === "feature_request") return "/admin/features";
+  if (entityType === "admin_settings") return "/admin/settings";
+  if (entityType === "integration" || entityType === "integration_connection") return "/admin/integrations";
+  return null;
+}
+
+function formatTime(timestamp: string) {
+  const value = new Date(timestamp);
+  if (Number.isNaN(value.getTime())) return timestamp;
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(value);
+}
+
+function scalarEntries(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return [] as Array<[string, string]>;
+  return Object.entries(value as Record<string, unknown>)
+    .filter(([, child]) => child !== null && child !== undefined && typeof child !== "object")
+    .map(([key, child]) => [key.replace(/_/g, " "), String(child)] as [string, string]);
+}
+
+function changeSummary(entry: AuditHistoryEntry) {
+  const before = Object.fromEntries(scalarEntries(entry.before));
+  const after = Object.fromEntries(scalarEntries(entry.after));
+  const keys = [...new Set([...Object.keys(before), ...Object.keys(after)])].filter((key) => before[key] !== after[key]).slice(0, 4);
+  if (keys.length) return keys.map((key) => `${key} ${before[key] ?? "—"} → ${after[key] ?? "—"}`).join(" · ");
+  return scalarEntries(entry.after).slice(0, 4).map(([key, value]) => `${key} ${value}`).join(" · ") || null;
+}
+
+function FilterSelect({
+  label,
+  name,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  name: FilterKey;
+  value: string;
+  options: string[];
+  onChange: (name: FilterKey, value: string) => void;
+}) {
+  const choices = value && !options.includes(value) ? [value, ...options] : options;
+  return (
+    <label className="min-w-0">
+      <span className="sr-only">{label}</span>
+      <select
+        aria-label={label}
+        value={value}
+        onChange={(event) => onChange(name, event.target.value)}
+        className="admin-field min-h-11 w-full text-xs font-semibold"
+      >
+        <option value="">{label}: All</option>
+        {choices.map((option) => (
+          <option key={option} value={option}>{option}</option>
+        ))}
+      </select>
+    </label>
+  );
 }
 
 export default function ActivityPage() {
-  const [activities, setActivities] = useState<ActivityItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const searchParams = useSearchParams();
+  const nav = useAdminNavigation();
+  const filters = useMemo(() => ({
+    actor: searchParams.get("actor")?.trim() || "",
+    entity: searchParams.get("entity")?.trim() || "",
+    action: searchParams.get("action")?.trim() || "",
+    source: searchParams.get("source")?.trim() || "",
+    from: searchParams.get("from")?.trim() || "",
+    to: searchParams.get("to")?.trim() || "",
+  }), [searchParams]);
+  const query = useMemo(() => {
+    const params = new URLSearchParams();
+    for (const key of FILTER_KEYS) if (filters[key]) params.set(key, filters[key]);
+    return params.toString();
+  }, [filters]);
+  const historyQuery = useAdminQuery<AuditHistoryResult>(
+    ["admin", "activity", query],
+    query ? `/api/admin/activity?${query}` : "/api/admin/activity",
+  );
+  const entries = historyQuery.data?.entries ?? [];
+  const options = historyQuery.data?.filterOptions ?? { actors: [], entityTypes: [], actions: [], sources: [] };
+  const activeFilterCount = FILTER_KEYS.filter((key) => filters[key]).length;
 
-  const fetchData = useCallback(async () => {
-    try {
-      const res = await fetch("/api/admin/activity");
-      const data = await res.json();
-      setActivities(data.activities || []);
-    } catch {
-      // silent
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  if (loading) {
-    return (
-      <div>
-        <PageHeader title="Activity Log" />
-        <LoadingSkeleton variant="table" rows={10} />
-      </div>
-    );
-  }
+  const replaceFilters = (next: Partial<typeof filters>) => {
+    const params = new URLSearchParams();
+    const merged = { ...filters, ...next };
+    for (const key of FILTER_KEYS) if (merged[key]) params.set(key, merged[key]);
+    const href = params.toString() ? `/admin/activity?${params}` : "/admin/activity";
+    nav.push(href, "preserve");
+  };
 
   return (
-    <motion.div
-      initial={false}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <PageHeader title="Activity Log" subtitle="Recent system activity" />
-
-      <GlassCard padding="none" hover="none">
-        {activities.length === 0 ? (
-          <EmptyState message="No recent activity" icon={Activity} />
-        ) : (
-          <div className="divide-y divide-border-glass">
-            {activities.map((item, index) => {
-              const config = typeConfig[item.type] || { icon: Activity, color: "text-white-muted bg-white/5" };
-              const Icon = config.icon;
-              return (
-                <motion.div
-                  key={item.id}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.02 }}
-                  className="flex items-center gap-4 px-5 py-3.5 hover:bg-white/[0.02] transition-colors"
+    <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+      <PageHeader
+        title="Activity"
+        subtitle="Actor, origin, target, and before/after history for material changes."
+      />
+      <AdminReadBody
+        loading={historyQuery.isPending}
+        hasData={Boolean(historyQuery.data)}
+        error={historyQuery.error?.message}
+        onRetry={() => void historyQuery.refetch()}
+        refreshing={historyQuery.isFetching}
+        loadingFallback={<LoadingSkeleton variant="table" rows={10} />}
+        label="Loading audit history"
+      >
+        <AdminSurface padding="none" className="mb-4 overflow-hidden">
+          <div className="flex flex-col gap-3 p-4 sm:p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="admin-eyebrow">Audit filters</p>
+                <h2 className="mt-1 text-balance text-base font-semibold">Narrow the ledger without leaving this page</h2>
+              </div>
+              {activeFilterCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => replaceFilters({ actor: "", entity: "", action: "", source: "", from: "", to: "" })}
+                  className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)] transition-[color,box-shadow,transform] duration-150 hover:text-[var(--admin-ink)] hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"
                 >
-                  <div className={cn("rounded-lg p-2 shrink-0", config.color)}>
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <p className="flex-1 text-sm text-white-secondary min-w-0 truncate">
-                    {item.description}
-                  </p>
-                  <time className="text-xs text-white-muted shrink-0">
-                    {formatRelativeTime(item.timestamp)}
-                  </time>
-                </motion.div>
-              );
-            })}
+                  <FilterX className="size-4" />
+                  Clear {activeFilterCount} filters
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
+              <FilterSelect label="Actor" name="actor" value={filters.actor} options={options.actors} onChange={(name, value) => replaceFilters({ [name]: value })} />
+              <FilterSelect label="Entity" name="entity" value={filters.entity} options={options.entityTypes} onChange={(name, value) => replaceFilters({ [name]: value })} />
+              <FilterSelect label="Action" name="action" value={filters.action} options={options.actions} onChange={(name, value) => replaceFilters({ [name]: value })} />
+              <FilterSelect label="Source" name="source" value={filters.source} options={options.sources} onChange={(name, value) => replaceFilters({ [name]: value })} />
+              <label className="min-w-0">
+                <span className="sr-only">From date</span>
+                <input type="date" value={filters.from} onChange={(event) => replaceFilters({ from: event.target.value })} className="admin-field min-h-11 w-full [color-scheme:light] dark:[color-scheme:dark]" />
+              </label>
+              <label className="min-w-0">
+                <span className="sr-only">To date</span>
+                <input type="date" value={filters.to} onChange={(event) => replaceFilters({ to: event.target.value })} className="admin-field min-h-11 w-full [color-scheme:light] dark:[color-scheme:dark]" />
+              </label>
+            </div>
           </div>
-        )}
-      </GlassCard>
+        </AdminSurface>
+
+        <AdminSurface padding="none" className="overflow-hidden">
+          {entries.length === 0 ? (
+            <EmptyState
+              title="No matching audit history"
+              message="No matching audit history"
+              description="Try a wider date range or clear a filter. New material writes appear here after they are recorded."
+              icon={ScrollText}
+            />
+          ) : (
+            <motion.div variants={adminListVariants} initial={false} animate="visible" className="divide-y divide-[var(--admin-border)]">
+              {entries.map((entry) => {
+                const href = entityHref(entry.entityType, entry.entityId);
+                const change = changeSummary(entry);
+                return (
+                  <motion.article key={entry.id} variants={adminListItemVariants} className="grid gap-2 px-5 py-3.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+                    <div className="min-w-0">
+                      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+                        {entry.source} · {entry.entityType.replace(/_/g, " ")}
+                      </p>
+                      <h2 className="mt-1 truncate text-sm font-semibold text-[var(--admin-ink)]">{entry.action.replace(/\./g, " · ")}</h2>
+                      <p className="admin-copy mt-1 text-pretty text-xs">
+                        {entry.actorEmail || "Unattributed"}
+                        {entry.entityId ? ` · ${entry.entityId}` : ""}
+                      </p>
+                      {change && <p className="admin-copy mt-1 line-clamp-2 text-pretty text-xs">{change}</p>}
+                    </div>
+                    <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-end sm:justify-start">
+                      <time className="text-xs tabular-nums text-[var(--admin-muted)]" dateTime={entry.createdAt}>{formatTime(entry.createdAt)}</time>
+                      {href && (
+                        <Link href={href} className="text-xs font-semibold text-[var(--admin-ink)] underline-offset-2 hover:underline">
+                          Open record
+                        </Link>
+                      )}
+                    </div>
+                  </motion.article>
+                );
+              })}
+            </motion.div>
+          )}
+        </AdminSurface>
+      </AdminReadBody>
     </motion.div>
   );
 }

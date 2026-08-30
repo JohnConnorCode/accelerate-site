@@ -92,6 +92,8 @@
     "test:job-claims": "node scripts/qa-job-claims.mjs",
     "test:campaign-stops": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-campaign-stops.ts",
     "test:campaign-stop-claims": "node scripts/qa-campaign-stop-claims.mjs",
+    "test:audit": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-audit.ts",
+    "qa:audit-activity": "node scripts/qa-audit-activity.mjs",
     "test:gmail-sync-plan": "npx tsx scripts/test-gmail-sync-plan.ts",
     "test:integration-catalog": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-integration-catalog.ts",
     "qa:integration-catalog": "node --env-file=.env.local scripts/qa-integration-catalog.mjs",

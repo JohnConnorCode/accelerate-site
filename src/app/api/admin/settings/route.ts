@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { SERVER_ONLY_SECRET_KEYS } from "@/lib/admin/settings";
+import { recordAudit } from "@/lib/revenue-os/audit";
 
 export async function GET() {
   const auth = await requireAdmin();
@@ -49,6 +50,12 @@ export async function PUT(request: NextRequest) {
   }
 
   const supabase = createServiceRoleClient();
+  const { data: existing } = await supabase
+    .from("admin_settings")
+    .select("key,value")
+    .eq("key", key)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("admin_settings")
     .upsert(
@@ -60,6 +67,15 @@ export async function PUT(request: NextRequest) {
     console.error("Database error:", error.message);
     return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
+
+  await recordAudit(supabase, {
+    actorEmail: auth.user.email,
+    action: "settings.updated",
+    entityType: "admin_settings",
+    entityId: key,
+    before: { key, configured: Boolean(existing?.value) },
+    after: { key, configured: Boolean(value) },
+  });
 
   return NextResponse.json({ success: true });
 }

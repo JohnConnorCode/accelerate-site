@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
+import { proposalAuditSummary, recordAudit } from "@/lib/revenue-os/audit";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
@@ -89,6 +90,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
 
+  await recordAudit(supabase, {
+    actorEmail: auth.user.email,
+    action: "proposal.created",
+    entityType: "proposal",
+    entityId: data.id,
+    after: proposalAuditSummary(data),
+  });
+
   return NextResponse.json({ proposal: data });
 }
 
@@ -117,6 +126,12 @@ export async function PATCH(request: NextRequest) {
     updateData.sent_at = new Date().toISOString();
   }
 
+  const { data: before } = await supabase
+    .from("proposals")
+    .select("id,title,status,client_name,total_one_time,total_monthly,lead_id,opportunity_id")
+    .eq("id", id)
+    .maybeSingle();
+
   const { data, error } = await supabase
     .from("proposals")
     .update(updateData)
@@ -128,6 +143,15 @@ export async function PATCH(request: NextRequest) {
     console.error("Database error:", error.message);
     return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
+
+  await recordAudit(supabase, {
+    actorEmail: auth.user.email,
+    action: updates.status === "sent" ? "proposal.sent" : "proposal.updated",
+    entityType: "proposal",
+    entityId: data.id,
+    before: proposalAuditSummary(before),
+    after: proposalAuditSummary(data),
+  });
 
   return NextResponse.json({ proposal: data });
 }
