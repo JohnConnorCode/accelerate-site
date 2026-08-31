@@ -235,7 +235,7 @@ function card({ key, title, workstream, phase, status = "backlog", priority = "m
       `Starting points: ${start}`,
       `Guardrails / non-goals: ${guardrails}`,
       isLoopOne
-        ? `Delivery circuit: step ${LOOP_ONE.indexOf(key) + 1} of ${LOOP_ONE.length}. Board milestone: ${NOW_SET.has(key) ? "Now" : effectiveStatus === "shipped" ? "Done" : "Next"}. The circuit turns a real inquiry into an inspectable record, operator work, a receipted reply, attributed revenue, and bounded memory. Claim this card by setting Owner and in_progress; keep no more than two cards in progress at once.`
+        ? `Delivery circuit: step ${LOOP_ONE.indexOf(key) + 1} of ${LOOP_ONE.length}. Board milestone: ${effectiveStatus === "shipped" ? "Done" : NOW_SET.has(key) ? "Now" : "Next"}. The circuit turns a real inquiry into an inspectable record, operator work, a receipted reply, attributed revenue, and bounded memory. Claim this card by setting Owner and in_progress; keep no more than two cards in progress at once.`
         : shelved
           ? "Board milestone: Later. This card keeps its full specification but is outside the current delivery circuit. Do not start it before Now and dependency-ready Next work unless a current card explicitly depends on it."
           : "Board milestone: Done. This card is shipped; reopen it only with new evidence that an acceptance item no longer holds.",
