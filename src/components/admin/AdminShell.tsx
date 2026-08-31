@@ -230,6 +230,13 @@ export default function AdminShell({
         setSearchOpen((current) => !current);
         setSearchQuery("");
         setSearchPeople([]);
+        return;
+      }
+      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === "m") {
+        const target = event.target as HTMLElement | null;
+        if (target?.matches("input, textarea, [contenteditable='true']") || document.querySelector('[role="dialog"]')) return;
+        event.preventDefault();
+        window.dispatchEvent(new CustomEvent("admin:add-note", { detail: { captureSource: "keyboard_shortcut" } }));
       }
     };
     window.addEventListener("keydown", handler);
@@ -427,7 +434,7 @@ export default function AdminShell({
       description: "Add what you know to operating memory",
       keywords: "note remember decision context knowledge memory",
       icon: NotebookPen,
-      run: () => window.dispatchEvent(new CustomEvent("admin:add-note")),
+      run: () => window.dispatchEvent(new CustomEvent("admin:add-note", { detail: { captureSource: "command_palette" } })),
     },
     {
       label: "Export leads",

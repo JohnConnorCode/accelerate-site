@@ -48,7 +48,7 @@ function MessageActions({ message, onRetry }: { message: AdminAIMessage; onRetry
   };
   return <div className="mt-2 flex flex-wrap items-center gap-1 border-t border-[var(--admin-border)] pt-2">
     <button type="button" onClick={async () => { await navigator.clipboard.writeText(message.content); setCopied(true); window.setTimeout(() => setCopied(false), 1200); }} className="admin-icon-button" aria-label="Copy answer" title="Copy answer">{copied ? <Check className="size-3.5 text-emerald-600" /> : <Copy className="size-3.5" />}</button>
-    <button type="button" onClick={() => window.dispatchEvent(new CustomEvent("admin:add-note", { detail: { initialNote: message.content } }))} className="admin-icon-button" aria-label="Save answer as founder note" title="Save as note"><NotebookPen className="size-3.5" /></button>
+    <button type="button" onClick={() => window.dispatchEvent(new CustomEvent("admin:add-note", { detail: { initialNote: message.content, captureSource: "ai_answer" } }))} className="admin-icon-button" aria-label="Save answer as founder note" title="Save as note"><NotebookPen className="size-3.5" /></button>
     <Link href={`/admin/ai?view=runs&run=${encodeURIComponent(message.runId)}`} className="admin-icon-button" aria-label="Inspect this AI run" title="Inspect run"><ExternalLink className="size-3.5" /></Link>
     {onRetry && <button type="button" onClick={onRetry} className="admin-icon-button" aria-label="Retry this command" title="Retry command"><RotateCcw className="size-3.5" /></button>}
     <span className="mx-1 h-4 w-px bg-[var(--admin-border)]" />

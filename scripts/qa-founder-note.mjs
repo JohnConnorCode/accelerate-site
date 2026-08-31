@@ -96,7 +96,7 @@ async function openAdmin(viewport, label, { failFirstSave = false, colorScheme =
 
 async function openNoteFromPalette(page, mobile = false) {
   if (mobile) await page.getByRole("button", { name: "Open command palette" }).click();
-  else await page.getByRole("button", { name: /Search or run a command/ }).click();
+  else await page.getByRole("button", { name: /^Search/ }).click();
   const palette = page.getByRole("dialog", { name: "Admin command palette" });
   await palette.waitFor();
   await palette.getByPlaceholder("Search people, pages, or run a command…").fill("capture note");
@@ -105,10 +105,12 @@ async function openNoteFromPalette(page, mobile = false) {
   await palette.waitFor({ state: "detached" });
 }
 
-function assertRequest(request, expectedNote) {
+function assertRequest(request, expectedNote, expectedSource = "command_palette") {
   if (request.note !== expectedNote) throw new Error(`Unexpected captured note: ${request.note}`);
   if (request.contactEmail !== "sarah@example.com") throw new Error("Note did not retain the canonical contact attachment");
   if (!/^[0-9a-f-]{36}$/.test(request.requestId)) throw new Error("Note request is missing its idempotency key");
+  if (request.captureSource !== expectedSource) throw new Error(`Expected ${expectedSource} capture source, received ${request.captureSource}`);
+  if (!Number.isInteger(request.captureDurationMs) || request.captureDurationMs < 0) throw new Error("Note request is missing valid open-to-save timing");
 }
 
 const desktop = await openAdmin({ width: 1440, height: 1000 }, "desktop", { failFirstSave: true, reducedMotion: "no-preference" });
@@ -130,6 +132,17 @@ await desktopDialog.waitFor({ state: "detached" });
 if (desktop.requests.length !== 2) throw new Error(`Expected two save attempts, received ${desktop.requests.length}`);
 assertRequest(desktop.requests[0], "Sarah approved the custom automation discovery plan.");
 if (desktop.requests[0].requestId !== desktop.requests[1].requestId) throw new Error("Retry changed the note idempotency key");
+
+await desktop.page.keyboard.press("Meta+Shift+M");
+const shortcutDialog = desktop.page.getByRole("dialog", { name: "Capture what you know" });
+await shortcutDialog.waitFor();
+await shortcutDialog.getByPlaceholder("What happened, what was decided, or what should not be forgotten?").fill("Shortcut capture is fast enough to use in the moment.");
+await shortcutDialog.getByRole("button", { name: "Save note" }).click();
+await shortcutDialog.waitFor({ state: "detached" });
+const shortcutRequest = desktop.requests.at(-1);
+if (shortcutRequest.contactEmail !== null) throw new Error("Standalone shortcut note unexpectedly inherited an attachment");
+if (shortcutRequest.captureSource !== "keyboard_shortcut") throw new Error("Direct shortcut did not preserve its capture source");
+if (shortcutRequest.captureDurationMs > 10_000) throw new Error(`Direct shortcut capture took ${shortcutRequest.captureDurationMs}ms, above the ten-second acceptance threshold`);
 
 const mobile = await openAdmin({ width: 390, height: 844 }, "mobile");
 await openNoteFromPalette(mobile.page, true);
@@ -165,5 +178,5 @@ console.log(JSON.stringify({
     `${outDir}/founder-note-mobile.png`,
     `${outDir}/founder-note-dark.png`,
   ],
-  checks: ["founder auth", "command palette", "canonical contact", "keyboard save", "idempotent retry", "visible error", "mobile overflow", "dark", "reduced motion", "console"],
+  checks: ["founder auth", "command palette", "direct capture shortcut", "sub-ten-second telemetry", "canonical contact", "keyboard save", "idempotent retry", "visible error", "mobile overflow", "dark", "reduced motion", "console"],
 }, null, 2));

@@ -9,7 +9,7 @@ import { toast } from "@/lib/admin/useToast";
 import { cn } from "@/lib/utils";
 
 interface PersonResult { name: string; email: string; type: string }
-interface OpenNoteDetail { contactEmail?: string; contactLabel?: string; companyId?: string; opportunityId?: string; initialNote?: string }
+interface OpenNoteDetail { contactEmail?: string; contactLabel?: string; companyId?: string; opportunityId?: string; initialNote?: string; captureSource?: "command_palette" | "keyboard_shortcut" | "ai_answer" | "record_context" }
 
 export function AdminFounderNoteModal() {
   const [open, setOpen] = useState(false);
@@ -23,10 +23,14 @@ export function AdminFounderNoteModal() {
   const [selectedPerson, setSelectedPerson] = useState<PersonResult | null>(null);
   const [context, setContext] = useState<Pick<OpenNoteDetail, "companyId" | "opportunityId">>({});
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const openedAt = useRef(0);
+  const captureSource = useRef<OpenNoteDetail["captureSource"]>("command_palette");
 
   useEffect(() => {
     const show = (event: Event) => {
       const detail = (event as CustomEvent<OpenNoteDetail>).detail ?? {};
+      openedAt.current = performance.now();
+      captureSource.current = detail.captureSource ?? "command_palette";
       setRequestId(crypto.randomUUID());
       setNote(detail.initialNote?.slice(0, 5_000) ?? "");
       setPersonQuery("");
@@ -70,7 +74,14 @@ export function AdminFounderNoteModal() {
       const result = await fetchJson<{ receipt: { duplicate: boolean } }>("/api/admin/revenue-os/notes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ requestId, note: note.trim(), contactEmail: selectedPerson?.email ?? null, ...context }),
+        body: JSON.stringify({
+          requestId,
+          note: note.trim(),
+          contactEmail: selectedPerson?.email ?? null,
+          captureDurationMs: Math.max(0, Math.round(performance.now() - openedAt.current)),
+          captureSource: captureSource.current,
+          ...context,
+        }),
       });
       toast.success(result.receipt.duplicate ? "Note was already captured" : "Note added to the operating memory");
       setOpen(false);
@@ -126,7 +137,7 @@ export function AdminFounderNoteModal() {
           </div>
 
           <div className="flex items-center justify-between gap-3 border-t border-[var(--admin-border)] pt-4">
-            <p className="font-mono text-[9px] tabular-nums text-[var(--admin-muted)]">{note.length.toLocaleString()} / 5,000 · ⌘↵ save</p>
+            <p className="font-mono text-[9px] tabular-nums text-[var(--admin-muted)]">{note.length.toLocaleString()} / 5,000 · ⌘⇧M anywhere · ⌘↵ save</p>
             <button type="submit" disabled={!note.trim() || saving} className={cn("inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]", (!note.trim() || saving) && "cursor-not-allowed opacity-45")}>
               {saving && <Loader2 className="size-3.5 animate-spin" />} {saving ? "Saving…" : "Save note"}
             </button>
