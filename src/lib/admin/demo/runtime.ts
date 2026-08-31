@@ -274,7 +274,7 @@ function setup(pack: DemoScenarioPack) {
     ["campaigns", "campaigns", "Campaign safety", "Previews exclusions and stops automatically on replies.", "ready", true],
     ["payments", "operations", "Payment connection", "Adds verified payment truth when the business is ready.", "optional", false],
   ].map(([id, group, label, accomplishes, status, required]) => ({ id, group, label, description: accomplishes, accomplishes, status, required, lastSuccessAt: status === "ready" ? ago(2) : null, lastFailure: null, action: { label: status === "ready" ? "Review evidence" : "Plan connection", href: "/admin/integrations" } }));
-  return { checks, bookingMode: "manual", google: { accountEmail: pack.tenant.founder.email, connected: true, settings: { drive_folder_ids: ["fictional-selected-folder"] }, scopes: ["gmail.readonly", "calendar.events", "drive.readonly"] }, summary: { requiredReady: 5, requiredTotal: 5, optionalReady: 0, optionalTotal: 1, launchReady: true, percent: 100, degraded: 0 } };
+  return { checks, bookingMode: "manual", google: { accountEmail: pack.tenant.founder.email, connected: true, settings: { drive_folder_ids: ["fictional-selected-folder"] }, scopes: ["gmail.readonly", "calendar.events", "drive.readonly"], tokenHealth: { accessEnvelopeValid: true, refreshEnvelopeValid: true, expiresAt: new Date(Date.now() + 3_600_000).toISOString() } }, summary: { requiredReady: 5, requiredTotal: 5, optionalReady: 0, optionalTotal: 1, launchReady: true, percent: 100, degraded: 0 } };
 }
 
 function proposals(pack: DemoScenarioPack) {

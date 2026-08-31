@@ -95,6 +95,7 @@ assert.match(demoRuntime, /activeRuntime\?\.scenarioId === scenarioId/, "Demo fe
 assert.match(demoRuntime, /__accelerateAdminDemoRuntime = scenarioId/, "Installing the demo runtime must publish the readiness marker immediately");
 assert.doesNotMatch(demoRuntime, /items: \[\], data: \[\], schemaReady: true/, "Unknown demo admin APIs must not look like a successful empty workspace");
 assert.match(demoRuntime, /This fictional workspace has no handler for this request/, "Unknown demo admin APIs must fail closed with an explicit error");
+assert.match(demoRuntime, /tokenHealth:\s*\{\s*accessEnvelopeValid:\s*true,\s*refreshEnvelopeValid:\s*true,\s*expiresAt:/, "Demo Setup must satisfy the shared Google credential-health response contract");
 assert.match(fetchJson, /waitForDemoRuntime/, "Admin reads must wait for the fictional runtime before touching protected APIs");
 
 console.log(JSON.stringify({ result: "passed", scenarios: DEMO_SCENARIO_SUMMARIES.map((scenario) => scenario.id) }, null, 2));

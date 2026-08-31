@@ -277,7 +277,7 @@ for (const scenario of scenarios) {
       await page.getByText("Trace ledger", { exact: true }).waitFor();
       await page.getByText("Ordered trace", { exact: true }).waitFor();
       await page.getByRole("button", { name: /Capabilities Understand tools and safeguards/ }).click();
-      await page.getByText("Registered policy", { exact: true }).first().waitFor();
+      await page.getByRole("heading", { name: "Read capabilities", exact: true }).waitFor();
       if (!page.url().includes("/demo/command-center/northline-roofing/ai?view=capabilities")) failures.push("AI workspace: tab navigation escaped the public demo URL");
       const mutation = await page.evaluate(async () => {
         const before = await fetch("/api/admin/revenue-os/priority").then((response) => response.json());
