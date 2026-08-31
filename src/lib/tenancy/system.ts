@@ -18,8 +18,13 @@ export async function assertActiveTenantExecution(database: SupabaseClient, sour
   const requestContext = getTenantRequestContext();
   const tenantId = scope?.id || (requestContext?.kind === "actor" ? requestContext.tenant.id : requestContext?.tenantId);
   if (!tenantId) throw new Error("Explicit tenant context is required before provider execution");
-  const platform = createPlatformServiceRoleClient(`tenant-active-assertion:${source}`);
-  const { data, error } = await platform.from("tenants").select("status").eq("id", tenantId).maybeSingle();
+  // Recheck through the caller's already-authorized database. An actor client
+  // can read only an actively joined tenant, while a tenant-bound system client
+  // retains its explicit scope. Creating a fresh platform service client here
+  // widened authority at the last possible moment and made the guard impossible
+  // to exercise with the deterministic domain-service harness.
+  void source;
+  const { data, error } = await database.from("tenants").select("status").eq("id", tenantId).maybeSingle();
   if (error) throw new Error("Tenant lifecycle state could not be verified", { cause: error });
   if (!data || data.status !== "active") throw new InactiveTenantExecutionError();
 }

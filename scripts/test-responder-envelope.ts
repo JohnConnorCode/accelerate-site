@@ -18,6 +18,7 @@ import {
   respondToInbound,
   type ResponderDeclineReason,
 } from "../src/lib/revenue-os/auto-responder";
+import { ACCELERATE_TENANT_ID, accelerateSystemContext, runWithTenantRequestContext } from "../src/lib/tenancy/context";
 
 process.env.OPENROUTER_API_KEY = "sk-or-v1-test-key-not-real";
 process.env.RESEND_API_KEY = "re_test_key_not_real";
@@ -61,8 +62,10 @@ const INSIDE_WINDOW = new Date("2026-08-20T15:00:00.000Z");
 /** 3am Chicago: outside it. */
 const OUTSIDE_WINDOW = new Date("2026-08-20T08:00:00.000Z");
 
-function harness(overrides: { settings?: Row[]; contacts?: Row[]; clients?: Row[]; messages?: Row[] } = {}) {
+function harness(overrides: { settings?: Row[]; contacts?: Row[]; clients?: Row[]; messages?: Row[]; tenants?: Row[] } = {}) {
   return new MemorySupabase({
+    tenants: overrides.tenants ?? [{ id: ACCELERATE_TENANT_ID, slug: "accelerate", status: "active" }],
+    integration_connections: [],
     admin_settings: overrides.settings ?? [
       { key: RESPONDER_ENABLED_KEY, value: "true" },
       { key: RESPONDER_APPROVED_VERSION_KEY, value: RESPONDER_POLICY_VERSION },
@@ -78,6 +81,13 @@ function harness(overrides: { settings?: Row[]; contacts?: Row[]; clients?: Row[
   });
 }
 
+function respond(db: MemorySupabase, input: typeof INPUT) {
+  return runWithTenantRequestContext(
+    accelerateSystemContext("responder-envelope-test"),
+    () => respondToInbound(db.client, input),
+  );
+}
+
 const INPUT = {
   opportunityId: "opp-1",
   contactId: "contact-1",
@@ -91,7 +101,7 @@ const INPUT = {
 
 async function expectDecline(db: MemorySupabase, input: Partial<typeof INPUT>, reason: ResponderDeclineReason, because: string) {
   const before = { model: modelCalls, sent: providerSends };
-  const decision = await respondToInbound(db.client, { ...INPUT, ...input });
+  const decision = await respond(db, { ...INPUT, ...input });
   assert.equal(decision.sent, false, `${because}\n  expected a decline, got a send`);
   assert.equal((decision as { reason: string }).reason, reason, because);
 
@@ -113,7 +123,7 @@ async function main() {
 
   stubNetwork(GOOD_REPLY);
   const ok = harness();
-  const sent = await respondToInbound(ok.client, INPUT);
+  const sent = await respond(ok, INPUT);
   assert.equal(sent.sent, true, `a clean first-touch inquiry inside the envelope must actually send; got ${JSON.stringify(sent)}`);
   assert.equal(modelCalls, 1, "exactly one model call per inquiry");
   assert.equal(providerSends, 1, "exactly one provider send per inquiry");
@@ -182,7 +192,7 @@ async function main() {
   // An outbound message to somebody else must not block this contact.
   stubNetwork(GOOD_REPLY);
   const other = harness({ messages: [{ id: "m1", direction: "outbound", recipient_emails: ["someone@else.com"], created_at: INSIDE_WINDOW.toISOString() }] });
-  assert.equal((await respondToInbound(other.client, INPUT)).sent, true, "the per-contact cap must be per contact, not global");
+  assert.equal((await respond(other, INPUT)).sent, true, "the per-contact cap must be per contact, not global");
 
   // ---- Daily cap ---------------------------------------------------------
 
@@ -202,7 +212,7 @@ async function main() {
       id: `m${index}`, direction: "outbound", recipient_emails: [`other${index}@example.com`], created_at: INSIDE_WINDOW.toISOString(),
     })),
   });
-  assert.equal((await respondToInbound(nearlyFull.client, INPUT)).sent, true, "one below the cap must still send; an off-by-one here silently costs a day of replies");
+  assert.equal((await respond(nearlyFull, INPUT)).sent, true, "one below the cap must still send; an off-by-one here silently costs a day of replies");
 
   // Yesterday's sends must not count against today.
   stubNetwork(GOOD_REPLY);
@@ -211,7 +221,17 @@ async function main() {
       id: `m${index}`, direction: "outbound", recipient_emails: [`other${index}@example.com`], created_at: "2026-08-18T12:00:00.000Z",
     })),
   });
-  assert.equal((await respondToInbound(yesterday.client, INPUT)).sent, true, "the cap is per day; yesterday's volume must not suppress today");
+  assert.equal((await respond(yesterday, INPUT)).sent, true, "the cap is per day; yesterday's volume must not suppress today");
+
+  // Tenant status is re-read immediately before Resend access. A suspended
+  // workspace may still have an in-flight model result, but it must never reach
+  // the provider.
+  stubNetwork(GOOD_REPLY);
+  const suspended = harness({ tenants: [{ id: ACCELERATE_TENANT_ID, slug: "accelerate", status: "suspended" }] });
+  const suspendedDecision = await respond(suspended, INPUT);
+  assert.equal(suspendedDecision.sent, false);
+  assert.equal((suspendedDecision as { reason: string }).reason, "send_failed");
+  assert.equal(providerSends, 0, "a suspended tenant must fail before the Resend provider call");
 
   // ---- Grounding ---------------------------------------------------------
 
@@ -234,7 +254,7 @@ async function main() {
     throw new Error("unexpected call");
   }) as unknown as typeof fetch;
   const failedModel = harness();
-  const modelDown = await respondToInbound(failedModel.client, INPUT);
+  const modelDown = await respond(failedModel, INPUT);
   assert.equal(modelDown.sent, false);
   assert.equal((modelDown as { reason: string }).reason, "generation_failed", "a model outage must degrade to no reply, never to a thrown error that could unwind the capture");
   assert.equal(failedModel.rows("agent_runs")[0]!.status, "failed");
@@ -269,7 +289,7 @@ async function main() {
   console.log(JSON.stringify({
     policyVersion: RESPONDER_POLICY_VERSION,
     declineRulesProven: ["policy_disabled", "policy_not_approved", "not_first_touch", "outside_send_window", "inquiry_too_thin", "contact_suppressed", "existing_client", "already_contacted", "daily_cap_reached", "failed_grounding_check", "send_failed", "generation_failed"],
-    boundariesProven: ["sends-inside-envelope", "per-contact-cap-is-per-contact", "one-below-daily-cap-sends", "yesterday-does-not-count", "own-booking-link-allowed"],
+    boundariesProven: ["sends-inside-envelope", "per-contact-cap-is-per-contact", "one-below-daily-cap-sends", "yesterday-does-not-count", "suspended-tenant-blocked-before-provider", "own-booking-link-allowed"],
     groundingRejections: mustFail.length,
     result: "passed",
   }, null, 2));
