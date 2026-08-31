@@ -136,8 +136,8 @@ export async function runRevenueCommandAgent(supabase: SupabaseClient, actorEmai
         try { toolInput = JSON.parse(use.function.arguments || "{}") as Record<string, unknown>; }
         catch { toolInput = {}; }
         try {
-          const { output, tool } = await executeRegisteredRevenueTool({ supabase, actorEmail }, name, toolInput);
-          await recordAgentRunEvent(supabase, run, { eventType: "tool_result", toolName: name, input: traceValue(toolInput), output: { result: traceValue(output), impact: tool.impact, confirmation_required: tool.confirmationRequired, registry_version: AI_TOOL_REGISTRY_VERSION } });
+          const { output, tool } = await executeRegisteredRevenueTool({ supabase, actorEmail, toolPack: selectedPack }, name, toolInput);
+          await recordAgentRunEvent(supabase, run, { eventType: "tool_result", toolName: name, input: traceValue(toolInput), output: { result: traceValue(output), impact: tool.impact, confirmation_required: tool.confirmationRequired, service_target: tool.serviceTarget, connection_requirement: tool.connectionRequirement, registry_version: AI_TOOL_REGISTRY_VERSION } });
           transcript.push({ role: "tool", tool_call_id: use.id, content: boundedToolContent(output) });
           options.onToolCompleted?.({ name, index: toolIndex, summary: toolSummary(output), failed: false });
           const proposal = proposalSummary(output, tool.impact);

@@ -82,14 +82,17 @@ export interface AiCapability {
   impact: "read" | "internal_write" | "external_action" | "destructive";
   confirmationRequired: boolean;
   packs: string[];
-  state: "registered_policy";
-  operationalReadiness: "not_evaluated";
+  serviceTarget: string;
+  connectionRequirement: "none";
+  state: "available" | "unavailable";
+  operationalReadiness: "ready" | "unavailable";
+  availabilityReason: string;
 }
 
 export interface AiCapabilitiesPayload {
   registryVersion: string;
-  scope: "registry_policy";
-  readinessEvaluated: false;
+  scope: "runtime_registry";
+  readinessEvaluated: true;
   capabilities: AiCapability[];
   safety: {
     registeredReads: number;

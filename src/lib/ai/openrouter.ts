@@ -34,6 +34,12 @@ export interface OpenRouterUsage {
   total_tokens?: number;
 }
 
+export interface OpenRouterStreamMetadata {
+  requestId: string;
+  model: string;
+  usage: OpenRouterUsage;
+}
+
 export interface OpenRouterResponse {
   id: string;
   model: string;
@@ -134,6 +140,10 @@ function headers(): HeadersInit {
   };
 }
 
+function boundedMessage(message: string): string {
+  return message.replace(/(?:sk-or-v1-|Bearer\s+)[A-Za-z0-9._-]+/gi, "[redacted]").slice(0, 500);
+}
+
 function boundedProviderMessage(payload: unknown): string {
   if (!payload || typeof payload !== "object") return "OpenRouter request failed";
   const candidate = payload as { error?: { message?: unknown }; message?: unknown };
@@ -142,7 +152,7 @@ function boundedProviderMessage(payload: unknown): string {
     : typeof candidate.message === "string"
       ? candidate.message
       : "OpenRouter request failed";
-  return message.replace(/(?:sk-or-v1-|Bearer\s+)[A-Za-z0-9._-]+/gi, "[redacted]").slice(0, 500);
+  return boundedMessage(message);
 }
 
 async function attemptChat(input: OpenRouterRequest, model: string): Promise<OpenRouterResponse> {
@@ -186,7 +196,7 @@ async function attemptChat(input: OpenRouterRequest, model: string): Promise<Ope
       if (input.signal?.aborted) throw new OpenRouterError("OpenRouter request was cancelled", 499);
       throw new OpenRouterError(`OpenRouter timed out after ${Date.now() - startedAt}ms`, 504);
     }
-    throw new OpenRouterError(error instanceof Error ? error.message.slice(0, 500) : "OpenRouter request failed", 502);
+    throw new OpenRouterError(error instanceof Error ? boundedMessage(error.message) : "OpenRouter request failed", 502);
   } finally {
     clearTimeout(timeout);
   }
@@ -334,7 +344,7 @@ export async function openRouterChatStream(
       if (input.signal?.aborted) throw new OpenRouterError("OpenRouter request was cancelled", 499);
       throw new OpenRouterError(`OpenRouter timed out after ${Date.now() - startedAt}ms`, 504);
     }
-    throw new OpenRouterError(error instanceof Error ? error.message.slice(0, 500) : "OpenRouter stream failed", 502);
+    throw new OpenRouterError(error instanceof Error ? boundedMessage(error.message) : "OpenRouter stream failed", 502);
   } finally {
     clearTimeout(timeout);
   }
@@ -371,7 +381,7 @@ export async function openRouterJson<T>(input: OpenRouterRequest & {
     };
   } catch (error) {
     throw new OpenRouterError(
-      error instanceof Error ? error.message.slice(0, 500) : "OpenRouter returned an invalid structured payload",
+      error instanceof Error ? boundedMessage(error.message) : "OpenRouter returned an invalid structured payload",
       502,
       response.id,
     );
@@ -380,21 +390,37 @@ export async function openRouterJson<T>(input: OpenRouterRequest & {
 
 /** Streams OpenRouter's OpenAI-compatible SSE response as plain text so the
  * existing website chat client keeps its small text-stream contract. */
-export async function openRouterTextStream(input: Omit<OpenRouterRequest, "responseFormat" | "tools">): Promise<ReadableStream<Uint8Array>> {
+export async function openRouterTextStream(
+  input: Omit<OpenRouterRequest, "responseFormat" | "tools">,
+  onMetadata?: (metadata: OpenRouterStreamMetadata) => void,
+): Promise<ReadableStream<Uint8Array>> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 45_000);
-  const response = await fetch(OPENROUTER_URL, {
-    method: "POST",
-    headers: headers(),
-    body: JSON.stringify({
-      model: getOpenRouterModel(input.model),
-      messages: input.messages,
-      max_tokens: Math.min(Math.max(input.maxTokens ?? 500, 1), 2000),
-      temperature: input.temperature ?? 0.6,
-      stream: true,
-    }),
-    signal: combineSignals(controller.signal, input.signal),
-  });
+  const model = getOpenRouterModel(input.model);
+  const fallbackModel = getOpenRouterFallbackModel();
+  let response: Response;
+  try {
+    response = await fetch(OPENROUTER_URL, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({
+        model,
+        ...(fallbackModel && fallbackModel !== model ? { models: [model, fallbackModel], route: "fallback" } : {}),
+        messages: input.messages,
+        max_tokens: Math.min(Math.max(input.maxTokens ?? 500, 1), 2000),
+        temperature: input.temperature ?? 0.6,
+        stream: true,
+        stream_options: { include_usage: true },
+      }),
+      signal: combineSignals(controller.signal, input.signal),
+    });
+  } catch (error) {
+    clearTimeout(timeout);
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new OpenRouterError(input.signal?.aborted ? "OpenRouter request was cancelled" : "OpenRouter timed out after 45000ms", input.signal?.aborted ? 499 : 504);
+    }
+    throw new OpenRouterError(error instanceof Error ? boundedMessage(error.message) : "OpenRouter stream failed", 502);
+  }
   if (!response.ok || !response.body) {
     clearTimeout(timeout);
     const payload = await response.json().catch(() => null);
@@ -404,29 +430,43 @@ export async function openRouterTextStream(input: Omit<OpenRouterRequest, "respo
   const decoder = new TextDecoder();
   const encoder = new TextEncoder();
   let buffer = "";
+  const metadata: OpenRouterStreamMetadata = {
+    requestId: response.headers.get("x-request-id") || "streamed-openrouter-response",
+    model,
+    usage: {},
+  };
+  let metadataDelivered = false;
+  const deliverMetadata = () => {
+    if (metadataDelivered) return;
+    metadataDelivered = true;
+    onMetadata?.({ ...metadata, usage: { ...metadata.usage } });
+  };
   return new ReadableStream<Uint8Array>({
     async pull(streamController) {
       try {
         while (true) {
           const { value, done } = await reader.read();
           if (done) {
-            if (buffer.trim()) parseSseChunk(buffer, streamController, encoder);
+            if (buffer.trim()) parseSseChunk(buffer, streamController, encoder, metadata);
+            deliverMetadata();
             clearTimeout(timeout);
             streamController.close();
             return;
           }
           buffer += decoder.decode(value, { stream: true });
-          const blocks = buffer.split("\n\n");
+          const blocks = buffer.split(/\r?\n\r?\n/);
           buffer = blocks.pop() ?? "";
-          for (const block of blocks) parseSseChunk(block, streamController, encoder);
+          for (const block of blocks) parseSseChunk(block, streamController, encoder, metadata);
           if (blocks.length) return;
         }
       } catch (error) {
+        deliverMetadata();
         clearTimeout(timeout);
         streamController.error(error);
       }
     },
     cancel() {
+      deliverMetadata();
       clearTimeout(timeout);
       controller.abort();
       void reader.cancel();
@@ -434,17 +474,28 @@ export async function openRouterTextStream(input: Omit<OpenRouterRequest, "respo
   });
 }
 
-function parseSseChunk(block: string, controller: ReadableStreamDefaultController<Uint8Array>, encoder: TextEncoder) {
-  for (const line of block.split("\n")) {
+function parseSseChunk(
+  block: string,
+  controller: ReadableStreamDefaultController<Uint8Array>,
+  encoder: TextEncoder,
+  metadata: OpenRouterStreamMetadata,
+) {
+  for (const line of block.split(/\r?\n/)) {
     if (!line.startsWith("data:")) continue;
     const data = line.slice(5).trim();
     if (!data || data === "[DONE]") continue;
+    let parsed: OpenRouterStreamChunk;
     try {
-      const parsed = JSON.parse(data) as { choices?: Array<{ delta?: { content?: string | null } }> };
-      const content = parsed.choices?.[0]?.delta?.content;
-      if (content) controller.enqueue(encoder.encode(content));
+      parsed = JSON.parse(data) as OpenRouterStreamChunk;
     } catch {
       // Ignore non-JSON keepalive/provider metadata frames.
+      continue;
     }
+    if ("error" in parsed) throw new OpenRouterError(boundedProviderMessage(parsed), 502, metadata.requestId);
+    if (parsed.id) metadata.requestId = parsed.id;
+    if (parsed.model) metadata.model = parsed.model;
+    if (parsed.usage) metadata.usage = parsed.usage;
+    const content = parsed.choices?.[0]?.delta?.content;
+    if (content) controller.enqueue(encoder.encode(content));
   }
 }

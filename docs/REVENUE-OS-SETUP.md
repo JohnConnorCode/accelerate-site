@@ -103,7 +103,7 @@ complete wake-up path.
 
 Approval is bound to the exact selected and edited row digest. Execution claims that snapshot atomically, calls the canonical identity/import service, fills only blank fields on exact existing contacts, and records a terminal result per row plus batch events, activity, and audit provenance. It never creates an opportunity, task, campaign membership, or message. A partial batch retains failed rows for a safe replay; already imported rows resolve through the source-row idempotency key.
 
-Apply `migrations/20260816-contact-importer.sql`, configure the single AI credential `OPENROUTER_API_KEY`, redeploy, and verify the capability in Setup Center. `OPENROUTER_MODEL` is optional; workflow-specific model variables are optional server-side overrides. Raw secrets are never stored in import tables, and the full uploaded source is not logged.
+Apply `migrations/20260816-contact-importer.sql`, configure the single AI credential `OPENROUTER_API_KEY`, redeploy, and verify the capability in Setup Center. `OPENROUTER_MODEL` is optional; `OPENROUTER_FALLBACK_MODEL` may name one OpenRouter-routed fallback, and workflow-specific model variables are optional server-side overrides. Raw secrets are never stored in import tables, and the full uploaded source is not logged.
 
 ## Email Studio publishing
 
@@ -274,7 +274,7 @@ not installed integrations and not permission to connect a new external system.
 
 ## Optional Revenue copilot
 
-Add `OPENROUTER_API_KEY` in Vercel. This is the only AI-provider key used by Contact Import, Revenue Copilot, website chat, plan generation, insights, content briefs, and proposal drafting. `OPENROUTER_MODEL` is optional because the gateway has a default; optional `OPENROUTER_*_MODEL` variables can tune a workflow without adding another provider. The copilot can read live operating data directly. Email sends, Gmail replies, pipeline movements, task creation, and campaign activation must be confirmed through the action queue or an explicit final-send confirmation.
+Add `OPENROUTER_API_KEY` in Vercel. This is the only AI-provider key used by Contact Import, Revenue Copilot, website chat, plan generation, insights, content briefs, and proposal drafting. `OPENROUTER_MODEL` is optional because the gateway has a default; `OPENROUTER_FALLBACK_MODEL` optionally lets OpenRouter route one declared fallback; and optional workflow-specific `OPENROUTER_*_MODEL` variables can tune a workflow without adding another provider SDK. The copilot can read live operating data directly. Email sends, Gmail replies, pipeline movements, task creation, and campaign activation must be confirmed through the action queue or an explicit final-send confirmation.
 
 ## Booking mode
 

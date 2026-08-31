@@ -110,6 +110,7 @@ export function traceTextStream(
   stream: ReadableStream<Uint8Array>,
   supabase: SupabaseClient,
   run: AgentRunHandle,
+  completionDetail?: () => { inputTokens?: number; outputTokens?: number },
 ): ReadableStream<Uint8Array> {
   if (!run.id) return stream;
 
@@ -123,7 +124,11 @@ export function traceTextStream(
     // Deliberately not awaited: the response has already been delivered, and
     // blocking the stream's flush on a database round-trip would add latency to
     // the reply for no benefit to the visitor.
-    void finishAgentRun(supabase, run, outcome, { resultPreview: text, error });
+    void finishAgentRun(supabase, run, outcome, {
+      resultPreview: text,
+      error,
+      ...completionDetail?.(),
+    });
   };
 
   // Written as an explicit reader loop rather than a TransformStream because

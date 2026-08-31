@@ -22,6 +22,7 @@ import {
   executeRegisteredRevenueTool,
   getRevenueAiTools,
   validateToolInput,
+  validateToolOutput,
   AI_TOOL_REGISTRY_VERSION,
 } from "../src/lib/revenue-os/ai-tools";
 
@@ -122,6 +123,12 @@ async function main() {
     "an unknown tool name must fail rather than resolve to undefined",
   );
 
+  await rejects(
+    () => executeRegisteredRevenueTool({ ...context(stubSupabase()), toolPack: "core" }, "propose_stage_change", { opportunityId: "opp-1", stage: "qualified", reason: "Verified reply" }),
+    "not available in the core tool pack",
+    "a registered tool outside the active command pack must fail closed at dispatch",
+  );
+
   // A valid call still succeeds. Without this the suite would pass if
   // validation rejected everything.
   const ok = await executeRegisteredRevenueTool(
@@ -131,6 +138,7 @@ async function main() {
   );
   assert.equal((ok.output as { id: string }).id, "queued-action-id", "a well-formed call must still stage an action");
   assert.equal(ok.tool.impact, "internal_write");
+  assert.equal(ok.tool.serviceTarget, "revenue-os.action-queue", "a proposal must declare the reviewed service it is allowed to call");
 
   // ---- Impact tiers actually branch --------------------------------------
 
@@ -142,6 +150,8 @@ async function main() {
       ["read", "internal_write", "external_action", "destructive"].includes(tool.impact),
       `${tool.name} declares an unknown impact tier "${tool.impact}"`,
     );
+    assert.ok(tool.outputSchema && typeof tool.outputSchema === "object", `${tool.name} must declare an explicit output schema`);
+    assert.equal(tool.connectionRequirement, "none", `${tool.name} must truthfully declare whether it calls a provider connection`);
     assert.ok(
       tool.impact === "read" ? tool.confirmationRequired === false : tool.confirmationRequired === true,
       `${tool.name} is ${tool.impact} but confirmationRequired is ${tool.confirmationRequired}; mutating tools must require confirmation`,
@@ -214,16 +224,22 @@ async function main() {
 
   // The registry version is what a stored trace is interpreted against. Adding
   // gates changes what a tool call means, so the version had to move.
-  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v2");
+  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v3");
 
   // validateToolInput is exported and usable directly, which is how the agent
   // surfaces a correctable error back into the transcript.
   assert.doesNotThrow(() => validateToolInput("t", { type: "object", properties: { a: { type: "string" } }, required: ["a"] }, { a: "x" }));
+  assert.doesNotThrow(() => validateToolOutput("t", { type: "object", required: ["id"], properties: { id: { type: "string" } } }, { id: "one" }));
+  assert.throws(() => validateToolOutput("t", { type: "object", required: ["id"], properties: { id: { type: "string" } } }, { id: 42 }), /invalid output/, "a service response that violates its declared output contract must fail");
+  assert.throws(() => validateToolOutput("t", { type: "object", required: ["total"], properties: { total: { type: "number" } } }, { total: Number.NaN }), /finite number/, "non-finite metrics must never enter the model transcript as valid business data");
+
+  assert.match(dispatch, /availabilityFor\(tool, context\)[\s\S]{0,180}if \(!availability\.available\) throw new Error/, "dispatch must reject a tool outside the active context before executing it");
+  assert.match(dispatch, /const output = await tool\.execute\([\s\S]{0,120}validateToolOutput\(tool\.name, tool\.outputSchema, output\)/, "dispatch must validate every tool output before returning it");
 
   console.log(JSON.stringify({
     registeredTools: registry.length,
     registryVersion: AI_TOOL_REGISTRY_VERSION,
-    gates: ["required", "enum", "additionalProperties", "type", "unknown-tool", "impact-read", "impact-write", "destructive-fail-closed", "snapshot-bounds", "snapshot-read-errors"],
+    gates: ["required", "enum", "additionalProperties", "type", "unknown-tool", "active-pack", "output-contract", "impact-read", "impact-write", "destructive-fail-closed", "snapshot-bounds", "snapshot-read-errors"],
     result: "passed",
   }, null, 2));
 }

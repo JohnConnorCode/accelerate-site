@@ -14,6 +14,7 @@ import {
 } from "@/lib/revenue-os/schema-contract";
 import { bookingMode } from "@/lib/booking";
 import { calendlyAttributionReadiness, campaignEngineReadiness, resendDeliveryReadiness, setupNextRun } from "@/lib/revenue-os/setup-status";
+import { listRevenueAiCapabilities } from "@/lib/revenue-os/ai-tools";
 
 interface SourceRunRow { source_key: string; status: string; summary: unknown; error: string | null; finished_at: string | null }
 interface JobRunRow { job_key: string; status: string; summary: unknown; error: string | null; finished_at: string | null; claimed_at: string }
@@ -31,6 +32,7 @@ export async function GET() {
   const publicBookingMode = bookingMode();
   const supabaseConfigured = configured("NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY");
   const googleConfigured = configured("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET") && isGoogleTokenEncryptionKeyConfigured();
+  const revenueAiCapabilities = listRevenueAiCapabilities();
 
   const runtimeSchema = supabaseConfigured
     ? await verifyRevenueSchemaDataAccess(platform)
@@ -294,13 +296,25 @@ export async function GET() {
       id: "ai",
       group: "ai",
       label: "OpenRouter intelligence gateway",
-      description: configured("OPENROUTER_API_KEY") ? `All AI workflows use OpenRouter${process.env.OPENROUTER_MODEL ? ` with ${process.env.OPENROUTER_MODEL}` : " with the documented default model"}.` : "Add one OpenRouter API key to activate every AI workflow.",
+      description: configured("OPENROUTER_API_KEY") ? `All AI workflows use OpenRouter${process.env.OPENROUTER_MODEL ? ` with ${process.env.OPENROUTER_MODEL}` : " with the documented default model"}${process.env.OPENROUTER_FALLBACK_MODEL ? ` and ${process.env.OPENROUTER_FALLBACK_MODEL} as the configured fallback` : " with no fallback override"}.` : "Add one OpenRouter API key to activate every AI workflow.",
       accomplishes: "Runs contact cleanup, Revenue Copilot, website chat, plan generation, insights, briefs, and drafts through one governed provider gateway.",
       status: configured("OPENROUTER_API_KEY") ? "ready" : "action",
       required: false,
-      keys: ["OPENROUTER_API_KEY", "OPENROUTER_MODEL (optional)"],
+      keys: ["OPENROUTER_API_KEY", "OPENROUTER_MODEL (optional)", "OPENROUTER_FALLBACK_MODEL (optional)"],
       nextRun: setupNextRun("config"),
       action: { label: configured("OPENROUTER_API_KEY") ? "Open AI Workspace" : "Create OpenRouter key", href: configured("OPENROUTER_API_KEY") ? "/admin/ai?view=runs" : "https://openrouter.ai/settings/keys", external: !configured("OPENROUTER_API_KEY") },
+    },
+    {
+      id: "ai_tool_controls",
+      group: "ai",
+      label: "Revenue AI tool controls",
+      description: `${revenueAiCapabilities.filter((tool) => tool.impact === "read").length} bounded reads and ${revenueAiCapabilities.filter((tool) => tool.impact !== "read").length} approval-gated proposals have enforced input/output contracts and service boundaries. Provider execution remains behind the normal approval path.`,
+      accomplishes: "Makes AI-assisted revenue work inspectable and safe without granting arbitrary database or provider access.",
+      status: configured("OPENROUTER_API_KEY") ? "ready" : "optional",
+      required: false,
+      keys: ["src/lib/revenue-os/ai-tools.ts", "action_queue"],
+      nextRun: setupNextRun("config"),
+      action: { label: "Inspect AI controls", href: "/admin/ai?view=capabilities" },
     },
     {
       id: "contact_importer",

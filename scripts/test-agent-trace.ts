@@ -49,7 +49,7 @@ async function main() {
   const run = await startAgentRun(chat.client, { surface: "public_chat", model: "stub/model", promptPreview: "Do you work with nonprofits?" });
   assert.ok(run.id, "a run must be opened before the stream starts");
 
-  const delivered = await drain(traceTextStream(textStream(["We do ", "work with ", "nonprofits."]), chat.client, run));
+  const delivered = await drain(traceTextStream(textStream(["We do ", "work with ", "nonprofits."]), chat.client, run, () => ({ inputTokens: 12, outputTokens: 5 })));
   assert.equal(delivered, "We do work with nonprofits.", "every chunk must reach the visitor unmodified; tracing must not alter the reply");
 
   // The close is deliberately not awaited so it does not add latency to the
@@ -61,6 +61,8 @@ async function main() {
   assert.equal(traced.result_preview, "We do work with nonprofits.", "the ledger must record what was actually said to the prospect");
   assert.ok(traced.finished_at, "a closed run must record finished_at");
   assert.equal(traced.prompt_preview, "Do you work with nonprofits?", "the ledger must record what was asked");
+  assert.equal(traced.input_tokens, 12, "stream tracing must retain provider input usage when the gateway reports it");
+  assert.equal(traced.output_tokens, 5, "stream tracing must retain provider output usage when the gateway reports it");
 
   // ---- A visitor closing the tab still closes the run --------------------
 

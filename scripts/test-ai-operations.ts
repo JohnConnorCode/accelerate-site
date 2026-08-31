@@ -105,7 +105,7 @@ assert.equal(missingDetail.degraded, true);
 assert.deepEqual(missingDetail.events, []);
 
 const capabilities = listRevenueAiCapabilities();
-assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v2");
+assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v3");
 assert.ok(capabilities.some((capability) => capability.impact === "read"));
 assert.ok(capabilities.filter((capability) => capability.impact !== "read").every((capability) => capability.confirmationRequired));
 
@@ -118,8 +118,9 @@ for (const route of ["src/app/api/admin/revenue-os/ai/runs/route.ts", "src/app/a
 }
 
 const capabilitiesRoute = readFileSync("src/app/api/admin/revenue-os/ai/capabilities/route.ts", "utf8");
-assert.match(capabilitiesRoute, /scope: "registry_policy"/);
-assert.match(capabilitiesRoute, /readinessEvaluated: false/);
+assert.match(capabilitiesRoute, /scope: "runtime_registry"/);
+assert.match(capabilitiesRoute, /readinessEvaluated: true/);
+assert.match(capabilitiesRoute, /state: capability\.available \? "available" : "unavailable"/);
 
 console.log(JSON.stringify({
   result: "passed",

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getOpenRouterModel, isOpenRouterConfigured, openRouterTextStream } from "@/lib/ai/openrouter";
-import { finishAgentRun, startAgentRun, traceTextStream } from "@/lib/revenue-os/agent-trace";
+import { getOpenRouterModel, isOpenRouterConfigured, openRouterTextStream, type OpenRouterStreamMetadata } from "@/lib/ai/openrouter";
+import { finishAgentRun, recordAgentRunEvent, startAgentRun, traceTextStream } from "@/lib/revenue-os/agent-trace";
 import { rateLimit } from "@/lib/rate-limit";
 import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
 import { ingestInboundLead } from "@/lib/revenue-os/inbound";
@@ -97,6 +97,7 @@ export async function POST(request: NextRequest) {
     });
 
     let readableStream: ReadableStream<Uint8Array>;
+    let streamMetadata: OpenRouterStreamMetadata | null = null;
     try {
       readableStream = await openRouterTextStream({
         model: process.env.OPENROUTER_CHAT_MODEL,
@@ -106,6 +107,17 @@ export async function POST(request: NextRequest) {
           { role: "system", content: SYSTEM_PROMPT },
           ...messages.slice(-MAX_CONVERSATION_MESSAGES),
         ],
+      }, (metadata) => {
+        streamMetadata = metadata;
+        void recordAgentRunEvent(supabase, run, {
+          eventType: "model_response",
+          output: {
+            provider: "openrouter",
+            request_id: metadata.requestId,
+            model: metadata.model,
+            usage: metadata.usage,
+          },
+        });
       });
     } catch (error) {
       // The outer catch would return ERROR_REPLY but leave this run `running`
@@ -121,7 +133,10 @@ export async function POST(request: NextRequest) {
     // guarantee and an em dash reaching a prospect is the clearest possible tell
     // that nobody wrote this. Tracing wraps the sanitised stream so the ledger
     // records what was actually sent, not what the model first produced.
-    return new Response(traceTextStream(enforceHouseStyle(readableStream), supabase, run), {
+    return new Response(traceTextStream(enforceHouseStyle(readableStream), supabase, run, () => ({
+      inputTokens: streamMetadata?.usage.prompt_tokens,
+      outputTokens: streamMetadata?.usage.completion_tokens,
+    })), {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
         "Transfer-Encoding": "chunked",

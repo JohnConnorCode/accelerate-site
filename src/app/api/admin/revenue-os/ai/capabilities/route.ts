@@ -13,9 +13,9 @@ export async function GET() {
   const capabilities = listRevenueAiCapabilities();
   const payload: AiCapabilitiesPayload = {
     registryVersion: AI_TOOL_REGISTRY_VERSION,
-    scope: "registry_policy",
-    readinessEvaluated: false,
-    capabilities: capabilities.map((capability) => ({ ...capability, label: label(capability.name), state: "registered_policy", operationalReadiness: "not_evaluated" })),
+    scope: "runtime_registry",
+    readinessEvaluated: true,
+    capabilities: capabilities.map((capability) => ({ ...capability, label: label(capability.name), state: capability.available ? "available" : "unavailable", operationalReadiness: capability.available ? "ready" : "unavailable" })),
     safety: {
       registeredReads: capabilities.filter((capability) => capability.impact === "read").length,
       registeredInternalWrites: capabilities.filter((capability) => capability.impact === "internal_write").length,

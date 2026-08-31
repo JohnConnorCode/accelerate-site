@@ -13,13 +13,13 @@
 import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { openRouterChat, openRouterJson, OpenRouterError } from "../src/lib/ai/openrouter";
+import { openRouterChat, openRouterJson, openRouterTextStream, OpenRouterError, type OpenRouterStreamMetadata } from "../src/lib/ai/openrouter";
 
 // Read at call time by the gateway, so setting it here is enough and no real
 // credential is involved.
 process.env.OPENROUTER_API_KEY = "sk-or-v1-test-key-not-real";
 
-type StubResponse = { status: number; body?: unknown; delayMs?: number };
+type StubResponse = { status: number; body?: unknown; delayMs?: number; sse?: string };
 const realFetch = globalThis.fetch;
 let calls: Array<{ body: Record<string, unknown>; signal?: AbortSignal | null }> = [];
 
@@ -41,10 +41,17 @@ function stubFetch(responses: StubResponse[]) {
         }, { once: true });
       });
     }
+    const stream = spec.sse === undefined ? null : new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode(spec.sse));
+        controller.close();
+      },
+    });
     return {
       ok: spec.status >= 200 && spec.status < 300,
       status: spec.status,
       headers: new Headers({ "x-request-id": `req-${index}` }),
+      body: stream,
       json: async () => spec.body ?? { error: { message: `status ${spec.status}` } },
     } as unknown as Response;
   }) as typeof fetch;
@@ -82,6 +89,17 @@ async function main() {
     stubFetch([{ status: 400 }]);
     await assert.rejects(() => openRouterChat(ask));
     assert.equal(calls.length, 1, "a 400 must not be retried");
+  });
+
+  await scenario("provider errors are bounded and redact credentials", async () => {
+    stubFetch([{ status: 400, body: { error: { message: `Bearer exposed-token ${"x".repeat(600)}` } } }]);
+    await assert.rejects(() => openRouterChat(ask), (error: unknown) => {
+      assert.ok(error instanceof OpenRouterError);
+      assert.doesNotMatch(error.message, /exposed-token/);
+      assert.match(error.message, /\[redacted\]/);
+      assert.ok(error.message.length <= 500, "provider errors must stay within the trace-safe bound");
+      return true;
+    });
   });
 
   await scenario("a caller cancellation is not treated as a provider failure", async () => {
@@ -124,6 +142,32 @@ async function main() {
     const body = calls[0]?.body as { models?: string[]; route?: string };
     assert.equal(body.models, undefined);
     assert.equal(body.route, undefined);
+  });
+
+  await scenario("text streaming retains the provider receipt and resolved model", async () => {
+    process.env.OPENROUTER_FALLBACK_MODEL = "anthropic/claude-haiku-4.5";
+    stubFetch([{ status: 200, sse: [
+      'data: {"id":"gen-stream-1","model":"anthropic/claude-haiku-4.5","choices":[{"delta":{"content":"Hello"}}]}',
+      'data: {"id":"gen-stream-1","model":"anthropic/claude-haiku-4.5","choices":[],"usage":{"prompt_tokens":11,"completion_tokens":4,"total_tokens":15}}',
+      "data: [DONE]",
+      "",
+    ].join("\r\n\r\n") }]);
+    let metadata: OpenRouterStreamMetadata | undefined;
+    const stream = await openRouterTextStream(ask, (receipt) => { metadata = receipt; });
+    const chunks: Uint8Array[] = [];
+    for (const reader = stream.getReader(); ;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+    }
+    assert.equal(new TextDecoder().decode(Buffer.concat(chunks)), "Hello");
+    assert.deepEqual(metadata, {
+      requestId: "gen-stream-1",
+      model: "anthropic/claude-haiku-4.5",
+      usage: { prompt_tokens: 11, completion_tokens: 4, total_tokens: 15 },
+    });
+    assert.deepEqual((calls[0]?.body as { models?: string[] }).models, ["openai/gpt-4.1-mini", "anthropic/claude-haiku-4.5"]);
+    delete process.env.OPENROUTER_FALLBACK_MODEL;
   });
 
   const jsonSchema = {
@@ -195,6 +239,7 @@ async function main() {
   assert.match(readFileSync("src/app/api/admin/proposals/generate/route.ts", "utf8"), /isOpenRouterConfigured\(\)/);
   assert.match(readFileSync("src/lib/revenue-os/ai-agent.ts", "utf8"), /request_id: response\.id/);
   assert.match(readFileSync("src/app/api/chat/route.ts", "utf8"), /startAgentRun/);
+  assert.match(readFileSync("src/app/api/chat/route.ts", "utf8"), /request_id: metadata\.requestId/);
   assert.doesNotMatch(readFileSync("src/app/api/generate-plan/route.ts", "utf8"), /Claude/);
 
   function walk(dir: string): string[] {

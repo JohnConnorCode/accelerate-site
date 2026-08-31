@@ -95,6 +95,7 @@ Use Playwright for local visual and interaction QA. This repository rule is oper
 | `RESEND_API_KEY` | Resend API key (secret) |
 | `OPENROUTER_API_KEY` | Single server-only AI gateway key for every AI workflow (secret) |
 | `OPENROUTER_MODEL` | Optional default OpenRouter model override |
+| `OPENROUTER_FALLBACK_MODEL` | Optional OpenRouter-routed fallback model; no cross-provider SDK fallback is used |
 | `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` | Plausible analytics domain |
 | `PLAUSIBLE_API_KEY` | Plausible Stats API key (server-only, secret) |
 | `NEXT_PUBLIC_GTAG_ID` | Google Analytics 4 measurement ID (public) |
