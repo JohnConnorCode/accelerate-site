@@ -1,10 +1,10 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { GlassCard } from "@/components/ui/GlassCard";
+import { AdminSurface } from "@/components/admin/AdminSurface";
 
 interface StatCardProps {
   label: string;
@@ -16,18 +16,19 @@ interface StatCardProps {
 }
 
 export function StatCard({ label, value, change, trend, icon: Icon, index = 0 }: StatCardProps) {
+  const reducedMotion = useReducedMotion();
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={reducedMotion ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05, duration: 0.3 }}
+      transition={reducedMotion ? { duration: 0 } : { delay: index * 0.04, duration: 0.24 }}
     >
-      <GlassCard hover="glow" padding="md">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-sm text-white-muted">{label}</span>
-          <Icon className="h-4 w-4 text-white-muted" />
+      <AdminSurface padding="lg" className="h-full">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="admin-copy text-sm">{label}</span>
+          <Icon className="size-4 text-[var(--admin-muted)]" />
         </div>
-        <p className="text-2xl font-display font-bold text-gold-gradient">
+        <p className="font-display text-2xl font-bold tabular-nums text-[var(--admin-ink)]">
           {value}
         </p>
         {change && (
@@ -35,14 +36,14 @@ export function StatCard({ label, value, change, trend, icon: Icon, index = 0 }:
             "mt-1 text-xs flex items-center gap-1",
             trend === "up" && "text-[var(--success)]",
             trend === "down" && "text-[var(--error)]",
-            !trend && "text-white-muted"
+            !trend && "text-[var(--admin-muted)]"
           )}>
             {trend === "up" && <TrendingUp className="h-3 w-3" />}
             {trend === "down" && <TrendingDown className="h-3 w-3" />}
             {change}
           </p>
         )}
-      </GlassCard>
+      </AdminSurface>
     </motion.div>
   );
 }

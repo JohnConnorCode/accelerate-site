@@ -85,11 +85,14 @@ export function Header() {
   useEffect(() => {
     if (mobileOpen) {
       document.body.style.overflow = "hidden";
+      document.body.dataset.mobileNavigation = "open";
     } else {
       document.body.style.overflow = "";
+      delete document.body.dataset.mobileNavigation;
     }
     return () => {
       document.body.style.overflow = "";
+      delete document.body.dataset.mobileNavigation;
     };
   }, [mobileOpen]);
 

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import type { CSSProperties } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import { trackConversion } from "@/lib/analytics";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -20,34 +20,6 @@ interface MobileNavProps {
   navLinks: NavLink[];
 }
 
-const coverEase = [0.22, 1, 0.36, 1] as const;
-
-const coverVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.28, ease: coverEase } },
-  exit: { opacity: 0, transition: { duration: 0.2, ease: coverEase } },
-};
-
-const linkVariants = {
-  hidden: { opacity: 0, y: 14 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.38, ease: coverEase, delay: 0.06 + i * 0.045 },
-  }),
-  exit: { opacity: 0, transition: { duration: 0.12 } },
-};
-
-const ctaVariants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: coverEase, delay: 0.32 },
-  },
-  exit: { opacity: 0, transition: { duration: 0.12 } },
-};
-
 const focusRing =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--fg)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]";
 
@@ -57,8 +29,8 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
 
   useEffect(() => {
     if (isOpen) {
-      const timer = setTimeout(() => closeButtonRef.current?.focus(), 180);
-      return () => clearTimeout(timer);
+      const frame = requestAnimationFrame(() => closeButtonRef.current?.focus());
+      return () => cancelAnimationFrame(frame);
     }
     setExpandedItem(null);
   }, [isOpen]);
@@ -93,14 +65,11 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
   let linkIndex = 0;
 
   return (
-    <AnimatePresence initial={false}>
-      {isOpen && (
-        <motion.div
-          variants={coverVariants}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-          className="fixed inset-0 z-[100] lg:hidden"
+        <div
+          data-open={isOpen ? "true" : "false"}
+          aria-hidden={!isOpen}
+          inert={!isOpen}
+          className="mobile-nav-overlay fixed inset-0 z-[100] lg:hidden"
           style={{ backgroundColor: "var(--bg)" }}
         >
           <nav
@@ -125,13 +94,10 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                 {navLinks.map((link) => {
                   const currentIndex = linkIndex++;
                   return link.children ? (
-                    <motion.div
+                    <div
                       key={link.label}
-                      variants={linkVariants}
-                      custom={currentIndex}
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
+                      className="mobile-nav-item"
+                      style={{ "--mobile-nav-index": currentIndex } as CSSProperties}
                     >
                       <button
                         onClick={() =>
@@ -150,33 +116,15 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                             {link.label}
                           </span>
                         </span>
-                        <motion.span
-                          animate={{ rotate: expandedItem === link.label ? 90 : 0 }}
-                          transition={{ duration: 0.2 }}
-                        >
+                        <span className="mobile-nav-chevron" data-expanded={expandedItem === link.label ? "true" : "false"}>
                           <ChevronRight className="h-4 w-4 text-[var(--mid)]" />
-                        </motion.span>
+                        </span>
                       </button>
-                      <AnimatePresence>
-                        {expandedItem === link.label && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.28, ease: coverEase }}
-                            className="overflow-hidden"
-                          >
+                      <div className="mobile-nav-children" data-expanded={expandedItem === link.label ? "true" : "false"}>
+                        <div className="min-h-0 overflow-hidden">
                             <div className="mb-3 ml-[2.65rem] border-l border-[var(--rule)] pl-4">
-                              {link.children.map((child, ci) => (
-                                <motion.div
-                                  key={child.href}
-                                  initial={{ opacity: 0, y: 6 }}
-                                  animate={{
-                                    opacity: 1,
-                                    y: 0,
-                                    transition: { delay: ci * 0.04 },
-                                  }}
-                                >
+                              {link.children.map((child) => (
+                                <div key={child.href}>
                                   <Link
                                     href={child.href}
                                     onClick={onClose}
@@ -184,21 +132,17 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                                   >
                                     {child.label}
                                   </Link>
-                                </motion.div>
+                                </div>
                               ))}
                             </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
+                        </div>
+                      </div>
+                    </div>
                   ) : (
-                    <motion.div
+                    <div
                       key={link.href}
-                      variants={linkVariants}
-                      custom={currentIndex}
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
+                      className="mobile-nav-item"
+                      style={{ "--mobile-nav-index": currentIndex } as CSSProperties}
                     >
                       <Link
                         href={link.href}
@@ -212,13 +156,13 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                           {link.label}
                         </span>
                       </Link>
-                    </motion.div>
+                    </div>
                   );
                 })}
               </div>
             </div>
 
-            <motion.div variants={ctaVariants} initial="hidden" animate="visible" exit="exit">
+            <div className="mobile-nav-cta">
               <Link
                 href="/contact"
                 onClick={() => {
@@ -235,10 +179,8 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                   Accelerate
                 </span>
               </div>
-            </motion.div>
+            </div>
           </nav>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        </div>
   );
 }

@@ -1171,6 +1171,69 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
   padding-left: max(1.5rem, var(--safe-left));
   padding-right: max(1.5rem, var(--safe-right));
 }
+.mobile-nav-overlay {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition-property: opacity, visibility;
+  transition-duration: 160ms, 0s;
+  transition-delay: 0s, 160ms;
+  transition-timing-function: var(--ease-out), linear;
+}
+.mobile-nav-overlay[data-open="true"] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+.mobile-nav-item,
+.mobile-nav-cta {
+  opacity: 0;
+  transform: translateY(10px);
+  transition-property: opacity, transform;
+  transition-duration: 180ms;
+  transition-timing-function: var(--ease-out);
+}
+.mobile-nav-overlay[data-open="true"] .mobile-nav-item {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: calc(24ms + var(--mobile-nav-index, 0) * 24ms);
+}
+.mobile-nav-overlay[data-open="true"] .mobile-nav-cta {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 144ms;
+}
+.mobile-nav-chevron {
+  display: inline-flex;
+  transition: transform 180ms var(--ease-out);
+}
+.mobile-nav-chevron[data-expanded="true"] { transform: rotate(90deg); }
+.mobile-nav-children {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition-property: grid-template-rows, opacity;
+  transition-duration: 180ms;
+  transition-timing-function: var(--ease-out);
+}
+.mobile-nav-children[data-expanded="true"] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+/* Route focus is a semantic screen-reader handoff, not a keyboard-tab stop.
+   Suppress the browser's irregular heading outline while preserving ordinary
+   focus rings on every interactive control. */
+.route-entry h1[tabindex="-1"]:focus,
+.route-entry [data-route-heading][tabindex="-1"]:focus {
+  outline: none;
+}
+body[data-mobile-navigation="open"] #main-content,
+body[data-mobile-navigation="open"] footer,
+body[data-mobile-navigation="open"] [data-dock],
+body[data-mobile-navigation="open"] .chat-widget-root {
+  visibility: hidden;
+}
 
 .chat-widget-root {
   right: max(1rem, var(--safe-right));
@@ -1220,8 +1283,8 @@ body.modal-open [data-dock] {
    UNIVERSAL SECTION ENTRANCE REVEAL
    ────────────────────────────────────────────────────────────────────────── */
 @keyframes route-entry-in {
-  from { opacity: 0.88; filter: blur(5px); }
-  to { opacity: 1; filter: blur(0); }
+  from { opacity: 0.88; }
+  to { opacity: 1; }
 }
 
 @keyframes word-mask-entry {
@@ -1236,11 +1299,10 @@ body.modal-open [data-dock] {
 
 @media (prefers-reduced-motion: no-preference) {
   .route-entry {
-    transition: opacity 140ms var(--ease-out), filter 140ms var(--ease-out);
+    transition: opacity 140ms var(--ease-out);
   }
   .route-entry.is-leaving {
     opacity: 0.86;
-    filter: blur(2px);
   }
   .route-entry.is-entering { animation: route-entry-in 360ms var(--ease-out) both; }
   .motion-ready .word-mask-heading[data-reveal-state="pending"]:not(.in) .word-mask-word > span {
@@ -1354,6 +1416,13 @@ body.modal-open [data-dock] {
 }
 
 @media (max-width: 640px) and (prefers-reduced-motion: no-preference) {
+  .atmo-a,
+  .atmo-b,
+  .logo-mark__cv,
+  .logo-letter {
+    animation: none !important;
+  }
+  .logo-letter { transform: none; }
   .motion-ready .rv:not(.work-reveal):not(.in),
   .motion-ready .item-rv:not(.in),
   .motion-ready .section-reveal:not(.in) .eyebrow,
@@ -2222,6 +2291,14 @@ summary:focus-visible {
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+
+  .mobile-nav-overlay,
+  .mobile-nav-item,
+  .mobile-nav-cta,
+  .mobile-nav-chevron,
+  .mobile-nav-children {
+    transition: none !important;
+  }
 
   .orb-gold,
   .orb-white {
@@ -4268,6 +4345,16 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 }
 .admin-dialog-title { font-size: 1.35rem; }
 .admin-page-title { font-size: clamp(1.75rem, 2.5vw, 2.35rem); }
+
+/* Async page regions must preserve the same rhythm as directly rendered admin
+   content. Keep this on the shared read primitive so route fragments cannot
+   silently collapse their sibling spacing. */
+.admin-read-body,
+.admin-content-stack {
+  display: grid;
+  gap: clamp(1.25rem, 1.6vw, 1.5rem);
+  min-width: 0;
+}
 .admin-copy { color: var(--admin-muted); text-wrap: pretty; }
 .admin-number { font-variant-numeric: tabular-nums; }
 

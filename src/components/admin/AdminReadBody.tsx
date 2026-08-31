@@ -51,7 +51,7 @@ export function AdminReadBody({
   }
 
   return (
-    <>
+    <div className="admin-read-body">
       {error && hasData && (
         <AdminSurface tone="attention" className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
           <TriangleAlert className="size-5 shrink-0 text-amber-600" />
@@ -71,9 +71,9 @@ export function AdminReadBody({
           )}
         </AdminSurface>
       )}
-      <AdminAsyncRegion loading={loading} hasData={hasData} loadingFallback={loadingFallback} label={label}>
+      <AdminAsyncRegion loading={loading} hasData={hasData} loadingFallback={loadingFallback} label={label} contentClassName="admin-content-stack">
         {children}
       </AdminAsyncRegion>
-    </>
+    </div>
   );
 }

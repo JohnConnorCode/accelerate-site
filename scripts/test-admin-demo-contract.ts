@@ -85,6 +85,12 @@ for (const file of [
 
 const demoRuntime = readFileSync("src/lib/admin/demo/runtime.ts", "utf8");
 const fetchJson = readFileSync("src/lib/admin/fetchJson.ts", "utf8");
+const adminReadBody = readFileSync("src/components/admin/AdminReadBody.tsx", "utf8");
+const adminStyles = readFileSync("src/app/globals.css", "utf8");
+const bookingsPage = readFileSync("src/app/admin/bookings/page.tsx", "utf8");
+assert.match(adminReadBody, /contentClassName="admin-content-stack"/, "Shared async admin reads must preserve page section rhythm after data resolves");
+assert.match(adminStyles, /\.admin-content-stack[\s\S]*?display:\s*grid;[\s\S]*?gap:/, "Admin section rhythm must be owned by one shared layout rule");
+assert.doesNotMatch(bookingsPage, /Roofing campaign|roofing opportunities/, "Shared Bookings copy must not leak the home-services scenario into other tenants");
 assert.match(demoRuntime, /activeRuntime\?\.scenarioId === scenarioId/, "Demo fetch intercept must be idempotent per scenario so first client reads cannot miss the runtime");
 assert.match(demoRuntime, /__accelerateAdminDemoRuntime = scenarioId/, "Installing the demo runtime must publish the readiness marker immediately");
 assert.doesNotMatch(demoRuntime, /items: \[\], data: \[\], schemaReady: true/, "Unknown demo admin APIs must not look like a successful empty workspace");

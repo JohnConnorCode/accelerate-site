@@ -101,6 +101,13 @@ its primary safe interactions. Today, Pipeline, Conversations, record timelines,
 notifications, revenue, analytics, activity, email, and AI answers must derive
 from the same scenario graph and reconcile after simulated changes.
 
+Loaded admin page regions preserve one shared content-stack rhythm across direct,
+cached, refreshing, and demo reads. Async wrappers must carry that layout contract
+instead of relying on route-level sibling selectors that stop at the wrapper.
+Adjacent top-level surfaces may not touch or overlap at any viewport or appearance.
+Tenant-neutral routes also keep neutral copy; scenario-specific language belongs
+in scenario data, never hard-coded into a shared page.
+
 Scenario QA covers desktop and mobile, all admin appearances, keyboard and focus,
 reduced motion, overflow, console errors, refresh persistence, exact reset,
 cross-scenario isolation, and a founder-authenticated run proving zero protected

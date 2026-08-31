@@ -1,8 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { TrendingUp } from "lucide-react";
-import { GlassCard } from "@/components/ui/GlassCard";
+import { AdminSurface } from "@/components/admin/AdminSurface";
 import {
   LineChart,
   Line,
@@ -18,41 +18,42 @@ interface MRRChartProps {
 }
 
 export function MRRChart({ data }: MRRChartProps) {
+  const reducedMotion = useReducedMotion();
   if (data.length === 0) return null;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={reducedMotion ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1, duration: 0.3 }}
+      transition={reducedMotion ? { duration: 0 } : { delay: 0.08, duration: 0.24 }}
     >
-      <GlassCard hover="none">
-        <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="h-4 w-4 text-gold-light" />
-          <h3 className="font-display text-sm font-semibold text-white-primary">
+      <AdminSurface>
+        <div className="mb-4 flex items-center gap-2">
+          <TrendingUp className="size-4 text-[var(--admin-accent)]" />
+          <h3 className="font-display text-sm font-semibold text-[var(--admin-ink)]">
             MRR Over Time
           </h3>
         </div>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--admin-border)" />
               <XAxis
                 dataKey="date"
-                tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }}
-                axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
+                tick={{ fill: "var(--admin-muted)", fontSize: 11 }}
+                axisLine={{ stroke: "var(--admin-border)" }}
               />
               <YAxis
-                tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }}
-                axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
+                tick={{ fill: "var(--admin-muted)", fontSize: 11 }}
+                axisLine={{ stroke: "var(--admin-border)" }}
                 tickFormatter={(v) => `$${v.toLocaleString()}`}
               />
               <Tooltip
                 contentStyle={{
-                  background: "rgba(20,20,30,0.95)",
-                  border: "1px solid rgba(255,255,255,0.1)",
+                  background: "var(--admin-surface)",
+                  border: "1px solid var(--admin-border)",
                   borderRadius: 8,
-                  color: "#fff",
+                  color: "var(--admin-ink)",
                   fontSize: 12,
                 }}
                 formatter={(value: number | undefined) => [`$${(value ?? 0).toLocaleString()}`, "MRR"]}
@@ -60,15 +61,15 @@ export function MRRChart({ data }: MRRChartProps) {
               <Line
                 type="monotone"
                 dataKey="mrr"
-                stroke="var(--gold-base)"
+                stroke="var(--admin-accent)"
                 strokeWidth={2}
-                dot={{ fill: "var(--gold-base)", r: 3 }}
+                dot={{ fill: "var(--admin-accent)", r: 3 }}
                 activeDot={{ r: 5 }}
               />
             </LineChart>
           </ResponsiveContainer>
         </div>
-      </GlassCard>
+      </AdminSurface>
     </motion.div>
   );
 }

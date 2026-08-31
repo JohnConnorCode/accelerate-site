@@ -69,6 +69,16 @@ routing or creating surface-specific history systems.
   short opacity and rise on the incoming tree only; it must not blur the full
   route or every large child surface. Local dialogs, lists, and state changes
   may retain their own motion.
+- Public route handoff is opacity-only. A filter on the full route forces Chrome
+  to rasterize an entire long page during the interaction frame and is forbidden.
+- The public mobile navigation cover remains mounted and inert while closed, and
+  uses interruptible CSS transitions for open, close, disclosure, and item state.
+  While its opaque surface owns the viewport, the hidden page, footer, dock, and
+  chat do not keep painting underneath it. Reduced motion removes these
+  transitions without changing focus, dismissal, or navigation behavior.
+- Decorative ambient drift, logo loops, and the homepage spotlight must not run
+  continuously on a coarse-pointer phone. A touch may animate the spotlight for
+  a bounded response, then releases its animation frame loop.
 - Route entrance state must be present in committed markup and stylesheet rules
   before first paint. Do not start route motion from `useEffect`, a mutation
   observer, or an imperative Web Animations call: those can expose the final
@@ -134,6 +144,11 @@ routing or creating surface-specific history systems.
   a mismatched App Router response into the necessary document navigation.
 - Returning-profile QA uses a persistent browser data directory across repeated
   runs. Incognito-only success is not release evidence.
+- Returning-profile QA covers the public mobile drawer and real public Link
+  navigation as well as Command Center routes. It measures rapid animation
+  interruption, drawer readiness, route commit, long tasks, full-route filter
+  state, semantic focus appearance, reduced motion, and fresh-profile parity
+  under mobile CPU throttling.
 - Command Center document and RSC responses are private application state. They
   must remain `private, no-cache, no-store, max-age=0, must-revalidate`, preserve
   RSC-aware `Vary` separation, and never be served from Chrome disk cache or a

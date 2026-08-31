@@ -92,6 +92,7 @@ export function Hero() {
 
   useEffect(() => {
     let spotlightRaf: number | undefined;
+    const supportsFinePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
     const restartEntrance = () => {
       // App-router and bfcache restores can retain a completed CSS animation.
       // Remove the lifecycle class for one rendered frame, then add it back on
@@ -191,6 +192,7 @@ export function Hero() {
       pointerHasControl = false;
       mouseX.set(0);
       mouseY.set(0);
+      if (!supportsFinePointer) stopSpotlight();
     };
 
     const onPointerMove = (e: PointerEvent) => {
@@ -206,6 +208,7 @@ export function Hero() {
       // native gesture, capture the pointer, or alter focus, so links and
       // vertical scrolling remain fully native.
       pointSpotlightAt(e.clientX, e.clientY, false);
+      startSpotlight();
       touchReleaseTimer = setTimeout(releasePointerControl, 1050);
     };
 
@@ -224,7 +227,7 @@ export function Hero() {
     const visibilityObserver = new IntersectionObserver(
       ([entry]) => {
         heroIsVisible = Boolean(entry?.isIntersecting);
-        if (heroIsVisible && !document.hidden) startSpotlight();
+        if (supportsFinePointer && heroIsVisible && !document.hidden) startSpotlight();
         else stopSpotlight();
       },
       { rootMargin: "120px 0px" }
@@ -233,10 +236,10 @@ export function Hero() {
 
     const onVisibilityChange = () => {
       if (document.hidden || !heroIsVisible) stopSpotlight();
-      else startSpotlight();
+      else if (supportsFinePointer) startSpotlight();
     };
     document.addEventListener("visibilitychange", onVisibilityChange);
-    if (!document.hidden) startSpotlight();
+    if (supportsFinePointer && !document.hidden) startSpotlight();
 
     const onPageShow = (event: PageTransitionEvent) => {
       if (event.persisted) restartEntrance();

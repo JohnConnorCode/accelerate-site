@@ -26,7 +26,10 @@ for (const config of [
     if (response.status() >= 500) errors.push(`${response.status()} ${new URL(response.url()).pathname}`);
   });
 
-  await page.goto(`${base}/work`, { waitUntil: "networkidle" });
+  // Route readiness is asserted from the rendered destination below. Waiting
+  // for global network idleness makes navigation QA hostage to unrelated
+  // third-party media and analytics connections.
+  await page.goto(`${base}/work`, { waitUntil: "domcontentloaded" });
   const card = page.locator('[data-work-card="work-shelter"] a').first();
   await card.scrollIntoViewIfNeeded();
   await page.evaluate(() => window.scrollBy(0, 80));
@@ -51,7 +54,7 @@ for (const config of [
   const publicRestored = await page.evaluate(() => window.scrollY);
   if (Math.abs(publicRestored - publicOrigin) > 2) failures.push(`${config.label}: public history restored ${publicRestored}px instead of ${publicOrigin}px`);
 
-  await page.goto(`${base}/demo/command-center/northline-roofing/today`, { waitUntil: "networkidle" });
+  await page.goto(`${base}/demo/command-center/northline-roofing/today`, { waitUntil: "domcontentloaded" });
   await page.locator(".admin-main").waitFor({ state: "visible", timeout: 15_000 });
   await page.evaluate(() => { document.querySelector(".admin-main").scrollTop = 900; });
   await page.waitForTimeout(30);

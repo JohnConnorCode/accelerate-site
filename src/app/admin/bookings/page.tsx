@@ -69,7 +69,7 @@ export default function AdminBookingsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Bookings" subtitle="Roofing campaign qualification, calls, and revenue attribution." />
+      <PageHeader title="Bookings" subtitle="Qualification, scheduled calls, attendance, and attributed revenue." />
       <AdminReadBody loading={loading} hasData={Boolean(bookingsQuery.data)} error={bookingsQuery.error?.message} onRetry={() => void load()} refreshing={bookingsQuery.isFetching} loadingFallback={<LoadingSkeleton variant="table" />} label="Loading bookings">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
@@ -96,7 +96,7 @@ export default function AdminBookingsPage() {
                   <td className="px-4 py-4"><select value={item.stage} onChange={(event) => updateStage(item, event.target.value)} className="min-h-10 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 text-xs text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)]">{stages.map((stage) => <option key={stage} value={stage}>{stage.replace(/_/g, " ")}</option>)}</select></td>
                 </tr>
               ))}
-              {items.length === 0 && <tr><td colSpan={6} className="px-5 py-12 text-center text-[var(--admin-muted)]">No roofing opportunities yet.</td></tr>}
+              {items.length === 0 && <tr><td colSpan={6} className="px-5 py-12 text-center text-[var(--admin-muted)]">No booking opportunities yet.</td></tr>}
             </tbody>
           </table>
         </div>
