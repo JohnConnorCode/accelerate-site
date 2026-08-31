@@ -12,6 +12,7 @@ import { DEMO_MODE_REPLY, ERROR_REPLY } from "@/lib/chat/fallbacks";
 import { handleChatLeadCapture } from "@/lib/chat/lead-capture";
 import { enforceHouseStyle } from "@/lib/chat/sanitize";
 import type { ChatMessage } from "@/lib/types";
+import { AI_CONTEXT_VERSION, boundFounderConversation, buildPublicChatGroundingContract } from "@/lib/revenue-os/ai-context";
 
 // Hobby functions default to a 10s ceiling, and a streamed reply routinely runs
 // longer than that. Without this the visitor's answer is cut off mid-sentence.
@@ -83,6 +84,7 @@ export async function POST(request: NextRequest) {
     if (!isOpenRouterConfigured()) {
       return plainText(DEMO_MODE_REPLY);
     }
+    const boundedConversation = boundFounderConversation(messages);
 
     // This is the only fully autonomous AI we run that talks to prospects, and
     // until now it wrote no trace at all: nobody could see what it had said to
@@ -104,8 +106,8 @@ export async function POST(request: NextRequest) {
         maxTokens: MAX_TOKENS,
         temperature: TEMPERATURE,
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          ...messages.slice(-MAX_CONVERSATION_MESSAGES),
+          { role: "system", content: `${SYSTEM_PROMPT}\n\n${buildPublicChatGroundingContract()}` },
+          ...boundedConversation,
         ],
       }, (metadata) => {
         streamMetadata = metadata;
@@ -116,6 +118,7 @@ export async function POST(request: NextRequest) {
             request_id: metadata.requestId,
             model: metadata.model,
             usage: metadata.usage,
+            context_version: AI_CONTEXT_VERSION,
           },
         });
       });

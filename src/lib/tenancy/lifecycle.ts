@@ -1,6 +1,8 @@
 import "server-only";
 import type { User } from "@supabase/supabase-js";
 import { createPlatformServiceRoleClient } from "@/lib/supabase/server";
+import { ADMIN_EMAIL, FROM_EMAIL, getResend } from "@/lib/email/resend";
+import { tenantAdminInvitationEmail } from "@/lib/email/templates";
 
 export type TenantLifecycleStatus = "active" | "suspended" | "archived";
 export interface PlatformTenantActor { userId: string; email: string }
@@ -57,21 +59,64 @@ async function findUserByEmail(email: string): Promise<User | null> {
   throw new TenantLifecycleError(502, "The administrator directory is too large to search safely");
 }
 
-async function resolveInvitedUser(email: string, redirectTo: string) {
+async function resolveInvitedUser(email: string, acceptBaseUrl: string, tenantId: string, tenantSlug: string) {
   const database = platformDatabase("resolve-invited-user");
   const normalized = email.trim().toLowerCase();
   const existing = await findUserByEmail(normalized);
-  if (existing) {
+  if (existing?.email_confirmed_at) {
     return {
       userId: existing.id,
-      status: existing.email_confirmed_at ? "active" as const : "invited" as const,
+      status: "active" as const,
+      acceptUrl: null,
     };
   }
-  const { data, error } = await database.auth.admin.inviteUserByEmail(normalized, { redirectTo });
-  if (error || !data.user) {
-    throw new TenantLifecycleError(502, "The administrator invitation could not be sent", { cause: error || undefined });
+  const type = existing ? "magiclink" as const : "invite" as const;
+  const { data, error } = await database.auth.admin.generateLink({ type, email: normalized });
+  const tokenHash = data?.properties?.hashed_token;
+  const userId = existing?.id || data?.user?.id;
+  if (error || !userId || !tokenHash) {
+    throw new TenantLifecycleError(502, "The administrator invitation link could not be prepared", { cause: error || undefined });
   }
-  return { userId: data.user.id, status: "invited" as const };
+  const acceptUrl = new URL("/auth/callback", acceptBaseUrl);
+  acceptUrl.searchParams.set("token_hash", tokenHash);
+  acceptUrl.searchParams.set("type", type);
+  acceptUrl.searchParams.set("tenant_id", tenantId);
+  acceptUrl.searchParams.set("workspace", tenantSlug);
+  return { userId, status: "invited" as const, acceptUrl: acceptUrl.toString() };
+}
+
+export interface TenantInvitationResult {
+  membership: TenantMembershipRow;
+  deliveryStatus: "sent" | "not_required" | "failed" | "unknown";
+  providerReceiptId: string | null;
+  operatorMessage: string;
+  warning: string | null;
+}
+
+async function recordInvitationDelivery(input: {
+  tenantId: string;
+  membershipId: string;
+  actor: PlatformTenantActor;
+  requestId: string;
+  status: "sent" | "failed";
+  providerReceiptId?: string;
+}) {
+  const database = platformDatabase("record-invitation-delivery");
+  const { error } = await database.from("platform_audit_log").insert({
+    actor_user_id: input.actor.userId,
+    actor_email: input.actor.email,
+    action: `tenant.invitation.${input.status}`,
+    tenant_id: input.tenantId,
+    target_type: "tenant_membership",
+    target_id: input.membershipId,
+    metadata: {
+      request_id: input.requestId,
+      provider: "resend",
+      provider_receipt_id: input.providerReceiptId || null,
+    },
+  });
+  if (error?.code === "23505") return;
+  if (error) throw new TenantLifecycleError(500, "The invitation delivery receipt could not be recorded", { cause: error });
 }
 
 export async function inviteTenantAdmin(input: {
@@ -79,11 +124,12 @@ export async function inviteTenantAdmin(input: {
   email: string;
   actor: PlatformTenantActor;
   origin: string;
-}) {
+  requestId: string;
+}): Promise<TenantInvitationResult> {
   const normalized = input.email.trim().toLowerCase();
   const lookupDatabase = platformDatabase("invite-tenant-lookup");
   const { data: tenant, error: tenantError } = await lookupDatabase.from("tenants")
-    .select("id,slug,status")
+    .select("id,slug,name,status")
     .eq("id", input.tenantId)
     .single();
   if (tenantError || !tenant) {
@@ -94,7 +140,9 @@ export async function inviteTenantAdmin(input: {
   }
   const invitation = await resolveInvitedUser(
     normalized,
-    `${input.origin}/auth/callback?next=${encodeURIComponent(`/t/${tenant.slug}/admin/today`)}`,
+    input.origin,
+    input.tenantId,
+    tenant.slug,
   );
   const database = platformDatabase("invite-admin");
   const { data, error } = await database.rpc("platform_upsert_tenant_membership", {
@@ -105,6 +153,111 @@ export async function inviteTenantAdmin(input: {
     p_actor_user_id: input.actor.userId,
     p_actor_email: input.actor.email,
   });
+  const membership = rpcData<TenantMembershipRow>(data, error);
+  if (!invitation.acceptUrl) {
+    return {
+      membership,
+      deliveryStatus: "not_required",
+      providerReceiptId: null,
+      operatorMessage: `Access granted to the existing account for ${normalized}`,
+      warning: null,
+    };
+  }
+
+  let delivery: Awaited<ReturnType<ReturnType<typeof getResend>["emails"]["send"]>>;
+  try {
+    delivery = await getResend().emails.send({
+      from: FROM_EMAIL,
+      to: normalized,
+      replyTo: ADMIN_EMAIL || undefined,
+      subject: `You are invited to ${tenant.name}`,
+      text: `You have been invited to administer ${tenant.name}. Accept the invitation: ${invitation.acceptUrl}`,
+      html: tenantAdminInvitationEmail({ workspaceName: tenant.name, acceptUrl: invitation.acceptUrl }),
+      tags: [
+        { name: "platform_action", value: "tenant-invitation" },
+        { name: "tenant_id", value: input.tenantId },
+      ],
+    }, { idempotencyKey: `tenant-invite:${input.tenantId}:${invitation.userId}:${input.requestId}` });
+    if (delivery.error || !delivery.data?.id) {
+      await recordInvitationDelivery({ tenantId: input.tenantId, membershipId: membership.id, actor: input.actor, requestId: input.requestId, status: "failed" });
+      return {
+        membership,
+        deliveryStatus: "failed",
+        providerReceiptId: null,
+        operatorMessage: `Invitation pending for ${normalized}`,
+        warning: "Access is recorded, but the invitation email was not delivered. Use Resend invitation to try again safely.",
+      };
+    }
+  } catch {
+    return {
+      membership,
+      deliveryStatus: "unknown",
+      providerReceiptId: null,
+      operatorMessage: `Invitation pending for ${normalized}`,
+      warning: "Access is recorded, but the email provider outcome is unknown. Check Resend before sending another invitation.",
+    };
+  }
+
+  const providerReceiptId = delivery.data!.id;
+  try {
+    await recordInvitationDelivery({ tenantId: input.tenantId, membershipId: membership.id, actor: input.actor, requestId: input.requestId, status: "sent", providerReceiptId });
+  } catch {
+    return {
+      membership,
+      deliveryStatus: "sent",
+      providerReceiptId,
+      operatorMessage: `Invitation accepted by the email provider for ${normalized}`,
+      warning: "The provider accepted the invitation, but its local audit receipt could not be recorded. Do not resend until the receipt is reconciled.",
+    };
+  }
+  return {
+    membership,
+    deliveryStatus: "sent",
+    providerReceiptId,
+    operatorMessage: `Invitation sent to ${normalized}`,
+    warning: null,
+  };
+}
+
+export async function activateInvitedTenantMembership(input: { tenantId: string; tenantSlug: string; userId: string; email: string }) {
+  const normalized = input.email.trim().toLowerCase();
+  const database = platformDatabase("activate-invited-membership");
+  const { data: tenant, error: tenantError } = await database.from("tenants")
+    .select("id,slug,status")
+    .eq("id", input.tenantId)
+    .eq("slug", input.tenantSlug)
+    .maybeSingle();
+  if (tenantError) throw new TenantLifecycleError(500, "The invitation workspace could not be verified", { cause: tenantError });
+  if (!tenant || !["provisioning", "active"].includes(tenant.status)) {
+    throw new TenantLifecycleError(404, "The invitation workspace is no longer available");
+  }
+  const { data: membership, error: membershipError } = await database.from("tenant_memberships")
+    .select("id,tenant_id,user_id,invited_email,status")
+    .eq("tenant_id", input.tenantId)
+    .eq("user_id", input.userId)
+    .eq("invited_email", normalized)
+    .eq("status", "invited")
+    .maybeSingle();
+  if (membershipError) throw new TenantLifecycleError(500, "The invitation could not be activated", { cause: membershipError });
+  if (!membership) {
+    const { data: active } = await database.from("tenant_memberships")
+      .select("id,tenant_id,user_id,invited_email,status")
+      .eq("tenant_id", input.tenantId)
+      .eq("user_id", input.userId)
+      .eq("invited_email", normalized)
+      .eq("status", "active")
+      .maybeSingle();
+    if (active) return active as TenantMembershipRow;
+    throw new TenantLifecycleError(404, "The invitation is no longer available");
+  }
+  const { data, error } = await database.rpc("platform_upsert_tenant_membership", {
+    p_tenant_id: input.tenantId,
+    p_user_id: input.userId,
+    p_invited_email: normalized,
+    p_membership_status: "active",
+    p_actor_user_id: input.userId,
+    p_actor_email: normalized,
+  });
   return rpcData<TenantMembershipRow>(data, error);
 }
 
@@ -114,6 +267,7 @@ export async function createTenantWorkspace(input: {
   adminEmail?: string;
   actor: PlatformTenantActor;
   origin: string;
+  requestId: string;
 }) {
   const database = platformDatabase("create-workspace");
   const { data, error } = await database.rpc("platform_create_tenant", {
@@ -127,8 +281,8 @@ export async function createTenantWorkspace(input: {
     return { tenant, membership: null, warning: null };
   }
   try {
-    const membership = await inviteTenantAdmin({ tenantId: tenant.id, email: input.adminEmail, actor: input.actor, origin: input.origin });
-    return { tenant, membership, warning: null };
+    const invitation = await inviteTenantAdmin({ tenantId: tenant.id, email: input.adminEmail, actor: input.actor, origin: input.origin, requestId: input.requestId });
+    return { tenant, membership: invitation.membership, warning: invitation.warning, operatorMessage: invitation.operatorMessage, deliveryStatus: invitation.deliveryStatus };
   } catch {
     return {
       tenant,

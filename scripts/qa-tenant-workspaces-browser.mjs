@@ -38,7 +38,19 @@ for (const fixture of fixtures) {
     page.on("response", (response) => { if (response.status() >= 500) errors.push(`${response.status()} ${response.url()}`); });
   };
   watch();
+  let inviteRequest = null;
   await page.route("**/api/admin/tenants", (route) => {
+    if (route.request().method() === "POST") {
+      inviteRequest = route.request().postDataJSON();
+      if (inviteRequest?.action !== "invite") return route.fulfill({ status: 405, contentType: "application/json", body: JSON.stringify({ error: "Visual QA only simulates invitation recovery" }) });
+      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({
+        membership: { id: "member-client-2", tenant_id: "tenant-harbor", user_id: "invited-admin", invited_email: "owner@harbor.example", status: "invited" },
+        deliveryStatus: "sent",
+        providerReceiptId: "qa-provider-receipt",
+        operatorMessage: "Invitation sent to owner@harbor.example",
+        warning: null,
+      }) });
+    }
     if (route.request().method() !== "GET") return route.fulfill({ status: 405, contentType: "application/json", body: JSON.stringify({ error: "Visual QA never mutates tenant state" }) });
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({
       isPlatformAdmin: true,
@@ -76,6 +88,22 @@ for (const fixture of fixtures) {
   await page.getByLabel("Workspace name").fill("North Star Dental");
   if (await page.getByLabel("URL slug").inputValue() !== "north-star-dental") throw new Error(`${fixture.name} generated tenant slug is not stable`);
   await page.getByLabel("Workspace name").fill("");
+  const resend = page.getByRole("button", { name: "Resend invitation to owner@harbor.example" });
+  await resend.waitFor({ state: "visible" });
+  const resendMetrics = await resend.evaluate((element) => {
+    const styles = getComputedStyle(element);
+    const rect = element.getBoundingClientRect();
+    return { width: rect.width, height: rect.height, transitionProperty: styles.transitionProperty };
+  });
+  if (resendMetrics.width < 40 || resendMetrics.height < 40) throw new Error(`${fixture.name} resend target is smaller than 40px`);
+  if (!resendMetrics.transitionProperty.includes("transform") || resendMetrics.transitionProperty.includes("all")) throw new Error(`${fixture.name} resend transition is not intentional`);
+  await resend.locator("xpath=../..").screenshot({ path: `${output}/invitation-${fixture.name}.png` });
+  await resend.focus();
+  await page.keyboard.press("Enter");
+  await page.getByText("Invitation sent to owner@harbor.example", { exact: true }).waitFor({ state: "visible" });
+  if (inviteRequest?.tenantId !== "tenant-harbor" || inviteRequest?.adminEmail !== "owner@harbor.example" || !/^[0-9a-f-]{36}$/i.test(inviteRequest?.requestId || "")) {
+    throw new Error(`${fixture.name} resend did not preserve tenant, recipient, and request identity`);
+  }
   await page.getByRole("button", { name: "Suspend", exact: true }).click();
   await page.locator("h2", { hasText: "Suspend Northline Roofing?" }).waitFor({ state: "visible" });
   await page.keyboard.press("Escape");

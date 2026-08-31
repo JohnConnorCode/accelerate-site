@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { isOpenRouterConfigured, openRouterJson } from "@/lib/ai/openrouter";
+import { approvedPricingPromptContext, assertApprovedPricingRows } from "@/lib/ai/approved-pricing";
 
 const GENERATE_LIMIT = 30;
 const GENERATE_WINDOW_MS = 60 * 60 * 1000;
@@ -13,7 +14,10 @@ Style:
 - Confident, specific, revenue-first. Talk in jobs, clients, appointments, revenue, not "leads."
 - Frame AI as teammates ("a teammate that books your calendar 24/7"), not software.
 - Reference the client's industry and the intake details concretely. No generic filler.
-- Pricing must be realistic and tied to the recommendations.
+- Pricing can only use the approved service catalog below. For every priced item, use the exact catalog name and exact one-time/monthly amounts. Do not invent discounts, bundles, taxes, terms, or custom prices. If no catalog item fits, use null for pricing and state that founder scope confirmation is required.
+
+APPROVED SERVICE CATALOG (the only source permitted for money):
+${approvedPricingPromptContext()}
 
 You always return ONLY a valid JSON object with exactly this shape:
 {
@@ -69,7 +73,9 @@ const PROPOSAL_SCHEMA = {
 
 function validateProposal(value: unknown) {
   if (!value || typeof value !== "object" || !Array.isArray((value as { sections?: unknown }).sections)) throw new Error("OpenRouter returned an invalid proposal draft");
-  return value as { sections: Array<{ title: string; content?: string | null; items?: string[] | null; pricing?: Array<{ item: string; monthly: number; oneTime: number }> | null }> };
+  const proposal = value as { sections: Array<{ title: string; content?: string | null; items?: string[] | null; pricing?: Array<{ item: string; monthly: number; oneTime: number }> | null }> };
+  for (const section of proposal.sections) if (section.pricing) assertApprovedPricingRows(section.pricing);
+  return proposal;
 }
 
 export async function POST(request: NextRequest) {

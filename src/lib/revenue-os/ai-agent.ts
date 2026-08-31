@@ -5,28 +5,10 @@ import { getOpenRouterModel, openRouterChat, openRouterChatStream, OpenRouterErr
 import { loadAgentLearningSignals } from "./agent-learning";
 import { AI_TOOL_REGISTRY_VERSION, executeRegisteredRevenueTool, selectRevenueToolPack, toOpenRouterTools, type RevenueToolPackId } from "./ai-tools";
 import { finishAgentRun, recordAgentRunEvent, startAgentRun } from "./agent-trace";
+import { AI_CONTEXT_VERSION, boundFounderConversation, boundToolResult, buildRevenueAiGroundingContract, groundedAnswerFailure, validateGroundedRevenueAnswer } from "./ai-context";
 
 /** Tool steps allowed before the run reports what it has and stops. */
 const MAX_TOOL_TURNS = 5;
-/** Ceiling on a single tool result inside the transcript. */
-const MAX_TOOL_RESULT_CHARS = 6000;
-
-/**
- * Tool results were pushed into the transcript whole and re-sent on every
- * subsequent turn, so one large result compounded across the entire run with
- * no token accounting anywhere. Truncating is visible to the model, which is
- * better than silently running out of context mid-answer.
- */
-function boundedToolContent(output: unknown): string {
-  const serialized = JSON.stringify(output);
-  if (serialized.length <= MAX_TOOL_RESULT_CHARS) return serialized;
-  return JSON.stringify({
-    truncated: true,
-    reason: `Result exceeded ${MAX_TOOL_RESULT_CHARS} characters and was cut. Narrow the request if you need more.`,
-    preview: serialized.slice(0, MAX_TOOL_RESULT_CHARS),
-  });
-}
-
 const SYSTEM_CONTRACT = `You are ${tenant.brand.name}'s founder-only Revenue OS copilot. Ground every factual claim in tool results. Never invent numbers, people, pricing, dates, or business facts. Read tools may run directly. Every write or outbound action must use a propose_* tool and clearly tell the founder it is awaiting approval. Prioritize revenue, replies, commitments, meetings, proposals, and campaign exceptions. ${tenant.ai.voice}`;
 
 export interface CommandMessage { role: "user" | "assistant"; content: string }
@@ -91,7 +73,7 @@ function proposalSummary(output: unknown, impact: string): AgentProposalSummary 
 }
 
 export async function runRevenueCommandAgent(supabase: SupabaseClient, actorEmail: string, messages: CommandMessage[], options: CommandAgentOptions = {}) {
-  const safeMessages = messages.slice(-12).filter((item) => ["user", "assistant"].includes(item.role) && item.content.trim()).map((item) => ({ role: item.role, content: item.content.slice(0, 8000) }));
+  const safeMessages = boundFounderConversation(messages);
   const lastMessage = safeMessages.at(-1);
   if (!lastMessage || lastMessage.role !== "user") throw new Error("A user command is required");
   const model = getOpenRouterModel(process.env.OPENROUTER_AGENT_MODEL);
@@ -111,19 +93,29 @@ export async function runRevenueCommandAgent(supabase: SupabaseClient, actorEmai
     const today = `Today is ${now.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "America/Chicago" })} (${now.toISOString().slice(0, 10)}). Use this for every relative date; never infer the date from memory.`;
     for (let turn = 0; turn < MAX_TOOL_TURNS; turn++) {
       const context = safePageContext(options.pageContext);
-      const request = { model, maxTokens: 1200, signal: options.signal, messages: [{ role: "system" as const, content: `${SYSTEM_CONTRACT}\n\n${today}\n\n${learningSignals}${context ? `\n\n${context}` : ""}\n\nThis turn has the ${selectedPack} tool pack. If a required capability is unavailable, say so instead of inventing a tool.` }, ...transcript], tools: toOpenRouterTools(selectedPack) };
+      const grounding = buildRevenueAiGroundingContract({ today, learningSignals, pageContext: context, toolPack: selectedPack });
+      const request = { model, maxTokens: 1200, signal: options.signal, messages: [{ role: "system" as const, content: `${SYSTEM_CONTRACT}\n\n${grounding}` }, ...transcript], tools: toOpenRouterTools(selectedPack) };
+      let bufferedAnswer = "";
       const response = options.onAssistantDelta
-        ? await openRouterChatStream(request, options.onAssistantDelta)
+        ? await openRouterChatStream(request, (delta) => { bufferedAnswer += delta; })
         : await openRouterChat(request);
       inputTokens += response.usage?.prompt_tokens ?? 0;
       outputTokens += response.usage?.completion_tokens ?? 0;
       const assistant = response.choices[0]?.message;
       if (!assistant) throw new Error("OpenRouter returned no assistant response");
       transcript.push(assistant);
-      await recordAgentRunEvent(supabase, run, { eventType: "model_response", output: { provider: "openrouter", request_id: response.id, model: response.model, usage: response.usage ?? {}, turn } });
+      await recordAgentRunEvent(supabase, run, { eventType: "model_response", output: { provider: "openrouter", request_id: response.id, model: response.model, usage: response.usage ?? {}, turn, context_version: AI_CONTEXT_VERSION } });
       const uses = assistant.tool_calls ?? [];
       if (!uses.length) {
         const text = assistant.content?.trim() || "";
+        const grounding = validateGroundedRevenueAnswer(text, toolNames);
+        if (!grounding.valid) {
+          const safeAnswer = groundedAnswerFailure(grounding.reason || "The answer could not be verified");
+          options.onAssistantDelta?.(safeAnswer);
+          await finishAgentRun(supabase, run, "partial", { toolNames, inputTokens, outputTokens, resultPreview: safeAnswer, error: grounding.reason || "Grounding contract rejected the answer" });
+          return { text: safeAnswer, runId: run.id, proposedActions: toolNames.filter((name) => name.startsWith("propose_")) };
+        }
+        if (options.onAssistantDelta) options.onAssistantDelta(bufferedAnswer || text);
         await finishAgentRun(supabase, run, "completed", { toolNames, inputTokens, outputTokens, resultPreview: text });
         return { text, runId: run.id, proposedActions: toolNames.filter((name) => name.startsWith("propose_")) };
       }
@@ -138,7 +130,7 @@ export async function runRevenueCommandAgent(supabase: SupabaseClient, actorEmai
         try {
           const { output, tool } = await executeRegisteredRevenueTool({ supabase, actorEmail, toolPack: selectedPack }, name, toolInput);
           await recordAgentRunEvent(supabase, run, { eventType: "tool_result", toolName: name, input: traceValue(toolInput), output: { result: traceValue(output), impact: tool.impact, confirmation_required: tool.confirmationRequired, service_target: tool.serviceTarget, connection_requirement: tool.connectionRequirement, registry_version: AI_TOOL_REGISTRY_VERSION } });
-          transcript.push({ role: "tool", tool_call_id: use.id, content: boundedToolContent(output) });
+          transcript.push({ role: "tool", tool_call_id: use.id, content: boundToolResult(name, output) });
           options.onToolCompleted?.({ name, index: toolIndex, summary: toolSummary(output), failed: false });
           const proposal = proposalSummary(output, tool.impact);
           if (proposal) options.onProposalStaged?.(proposal);

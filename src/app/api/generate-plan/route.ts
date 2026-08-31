@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { getOpenRouterModel, isOpenRouterConfigured, openRouterJson } from "@/lib/ai/openrouter";
 import { PLAN_SYSTEM_PROMPT, buildUserPrompt } from "@/lib/ai/prompts";
+import { assertApprovedPriceComponent, assertApprovedPricingRows } from "@/lib/ai/approved-pricing";
 import { rateLimit } from "@/lib/rate-limit";
 import type { IntakeFormData, DigitalGrowthPlan } from "@/lib/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -28,8 +29,24 @@ function validatePlan(value: unknown): DigitalGrowthPlan {
   const plan = value as DigitalGrowthPlan & { investmentSummary?: { budgetNotes?: string | null }; recommendations?: Array<Record<string, unknown>> };
   if (typeof plan.executiveSummary !== "string" || !Array.isArray(plan.recommendations) || !Array.isArray(plan.implementationRoadmap) || !plan.roiProjection || !plan.investmentSummary || !Array.isArray(plan.nextSteps)) throw new Error("OpenRouter returned an incomplete growth plan");
   for (const recommendation of plan.recommendations) {
+    if (recommendation.pricingOneTime !== null || recommendation.pricingMonthly !== null) {
+      assertApprovedPricingRows([{
+        item: recommendation.name,
+        oneTime: recommendation.pricingOneTime ?? 0,
+        monthly: recommendation.pricingMonthly ?? 0,
+      }]);
+    }
     if (recommendation.pricingOneTime === null) delete recommendation.pricingOneTime;
     if (recommendation.pricingMonthly === null) delete recommendation.pricingMonthly;
+  }
+  const oneTimeCosts = plan.investmentSummary.oneTimeCosts ?? [];
+  const monthlyCosts = plan.investmentSummary.monthlyCosts ?? [];
+  for (const row of oneTimeCosts) assertApprovedPriceComponent({ item: row.item, amount: row.amount, kind: "oneTime" });
+  for (const row of monthlyCosts) assertApprovedPriceComponent({ item: row.item, amount: row.amount, kind: "monthly" });
+  const expectedOneTime = oneTimeCosts.reduce((sum, row) => sum + row.amount, 0);
+  const expectedMonthly = monthlyCosts.reduce((sum, row) => sum + row.amount, 0);
+  if (plan.investmentSummary.totalOneTime !== expectedOneTime || plan.investmentSummary.totalMonthly !== expectedMonthly) {
+    throw new Error("OpenRouter returned investment totals that do not match the approved line items");
   }
   if (plan.investmentSummary.budgetNotes === null) delete plan.investmentSummary.budgetNotes;
   return plan;

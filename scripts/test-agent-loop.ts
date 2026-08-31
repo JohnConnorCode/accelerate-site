@@ -90,12 +90,12 @@ async function main() {
   sent = [];
   stubOpenRouter(() => ({
     id: "req-final", model: "stub/model", usage: { prompt_tokens: 10, completion_tokens: 5 },
-    choices: [{ message: { role: "assistant", content: "Nothing is overdue." } }],
+    choices: [{ message: { role: "assistant", content: "Facts\nNo verified facts are available.\nInferences\nNone.\nMissing information\nNo live snapshot was requested.\nRecommended next steps\nRequest the live today snapshot." } }],
   }));
 
   const plain = stubSupabase();
   const answered = await runRevenueCommandAgent(plain.client, "test@acceleratewith.us", ask);
-  assert.equal(answered.text, "Nothing is overdue.");
+  assert.match(answered.text, /^Facts\n/);
 
   const prompt = systemPrompt(sent[0]!);
   const today = new Date().toISOString().slice(0, 10);
@@ -104,6 +104,17 @@ async function main() {
 
   const completed = plain.writes.find((write) => write.table === "agent_runs" && write.op === "update");
   assert.equal(completed?.payload.status, "completed", "a run that produced a final answer must be recorded as completed");
+
+  sent = [];
+  stubOpenRouter(() => ({
+    id: "req-ungrounded", model: "stub/model", usage: { prompt_tokens: 10, completion_tokens: 5 },
+    choices: [{ message: { role: "assistant", content: "Nothing is overdue." } }],
+  }));
+  const rejected = stubSupabase();
+  const rejectedAnswer = await runRevenueCommandAgent(rejected.client, "test@acceleratewith.us", ask);
+  assert.match(rejectedAnswer.text, /did not pass the grounding contract/i, "unstructured unsupported prose must be replaced by a safe explicit degraded answer");
+  const rejectedTerminal = rejected.writes.find((write) => write.table === "agent_runs" && write.op === "update");
+  assert.equal(rejectedTerminal?.payload.status, "partial", "a rejected final answer must never be recorded as a completed grounded run");
 
   // ---- Turn exhaustion returns what it has, and is not a failure ----------
 
@@ -171,13 +182,14 @@ async function main() {
     // The cut content is what has to be bounded. The envelope around it is a
     // fixed, small overhead, so asserting on the raw string length would just
     // encode that constant.
-    assert.ok((parsed.preview ?? "").length <= 6000, `a truncated result still carried ${(parsed.preview ?? "").length} characters of payload`);
+    assert.ok((parsed.preview ?? "").length <= 3500, `a truncated result still carried ${(parsed.preview ?? "").length} characters of payload`);
     assert.ok((parsed.reason ?? "").length > 0, "the model must be told why the result was cut so it can narrow the request");
+    assert.match(String((parsed as { source?: string }).source), /^registered_tool_result:/, "a tool result must identify its registered evidence receipt");
   }
   assert.ok(sawTruncation, "an oversized tool result must be truncated; unbounded results are re-sent on every subsequent turn and compound across the run");
 
   console.log(JSON.stringify({
-    checks: ["current-date-injected", "turn-budget-enforced", "exhaustion-returns-partial", "exhaustion-is-terminal", "staged-proposals-named", "transcript-bounded"],
+    checks: ["current-date-injected", "grounded-final-enforced", "ungrounded-final-degrades", "turn-budget-enforced", "exhaustion-returns-partial", "exhaustion-is-terminal", "staged-proposals-named", "transcript-bounded", "tool-receipt-provenance"],
     result: "passed",
   }, null, 2));
 }

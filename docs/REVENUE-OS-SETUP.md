@@ -39,7 +39,8 @@ The admin Setup Center at `/admin/setup` is the live source of truth. It checks 
 33. `migrations/20260830-tenant-uniqueness-cutover.sql`
 34. `migrations/20260830-revenue-recovery.sql`
 35. `migrations/20260831-tenant-lifecycle-rpcs.sql`
-36. `migrations/20260831-tenant-suspension-guards.sql`
+36. `migrations/20260831-tenant-invitation-receipt-idempotency.sql`
+37. `migrations/20260831-tenant-suspension-guards.sql`
 
 The Revenue OS migrations are idempotent. The core migration preserves legacy tables and creates the canonical operating model. The Feature Board migration creates the delivery roadmap. First-party analytics adds anonymous event storage. Money-first outreach adds campaign send idempotency and unguessable unsubscribe tokens. Email Studio adds protected draft and published template revisions. Contact Import adds review batches, row receipts, immutable events, and an atomic digest-bound execution claim.
 

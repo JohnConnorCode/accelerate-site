@@ -9,12 +9,13 @@ const createTenantSchema = z.object({
   name: z.string().trim().min(1).max(120),
   slug: z.string().trim().toLowerCase().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   adminEmail: z.string().trim().toLowerCase().email().optional(),
+  requestId: z.string().uuid(),
 });
 
 const tenantActionSchema = z.discriminatedUnion("action", [
   createTenantSchema,
   z.object({ action: z.enum(["activate", "suspend", "archive"]), tenantId: z.string().uuid() }),
-  z.object({ action: z.literal("invite"), tenantId: z.string().uuid(), adminEmail: z.string().trim().toLowerCase().email() }),
+  z.object({ action: z.literal("invite"), tenantId: z.string().uuid(), adminEmail: z.string().trim().toLowerCase().email(), requestId: z.string().uuid() }),
   z.object({ action: z.literal("revoke"), membershipId: z.string().uuid() }),
 ]);
 
@@ -41,13 +42,13 @@ export async function POST(request: NextRequest) {
   if (!actor.email) return NextResponse.json({ error: "Platform actor email is required" }, { status: 400 });
 
   try {
+    const publicOrigin = process.env.NEXT_PUBLIC_SITE_URL?.trim() || request.nextUrl.origin;
     if (input.action === "create") {
-      const result = await createTenantWorkspace({ name: input.name, slug: input.slug, adminEmail: input.adminEmail, actor, origin: new URL(request.url).origin });
+      const result = await createTenantWorkspace({ name: input.name, slug: input.slug, adminEmail: input.adminEmail, actor, origin: publicOrigin, requestId: input.requestId });
       return NextResponse.json(result, { status: 201 });
     }
     if (input.action === "invite") {
-      const membership = await inviteTenantAdmin({ tenantId: input.tenantId, email: input.adminEmail, actor, origin: new URL(request.url).origin });
-      return NextResponse.json({ membership });
+      return NextResponse.json(await inviteTenantAdmin({ tenantId: input.tenantId, email: input.adminEmail, actor, origin: publicOrigin, requestId: input.requestId }));
     }
     if (input.action === "revoke") {
       const membership = await revokeTenantAdmin({ membershipId: input.membershipId, actor });
