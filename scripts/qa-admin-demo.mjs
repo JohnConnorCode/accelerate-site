@@ -406,6 +406,52 @@ for (const scenario of scenarios) {
   await context.close();
 }
 
+// Deep-link identity matrix. Top-level route health is insufficient: every list row
+// must open the exact record it names, and an unknown ID must never borrow fixture data.
+for (const scenario of scenarios) {
+  for (const [label, viewport] of [["desktop", { width: 1280, height: 900 }], ["mobile", { width: 390, height: 844 }]]) {
+    const context = await browser.newContext({ viewport, reducedMotion: "reduce" });
+    const page = await context.newPage();
+    page.on("pageerror", (error) => failures.push(`${scenario} ${label} deep links: ${error.message.split("\n")[0]}`));
+    await page.goto(`${base}/demo/command-center/${scenario}/clients`, { waitUntil: "domcontentloaded", timeout: 60_000 });
+    await page.waitForFunction((expected) => window.__accelerateAdminDemoRuntime === expected, scenario);
+    const contract = await page.evaluate(async () => {
+      const [clientList, pipelineList] = await Promise.all([
+        fetch("/api/admin/clients").then((response) => response.json()),
+        fetch("/api/admin/revenue-os/pipeline").then((response) => response.json()),
+      ]);
+      const firstContact = pipelineList.opportunities[0]?.email;
+      const [unknownClient, unknownOpportunity, unknownContact, unknownRun, unknownProposal, unknownCampaign, unknownEmail, unknownImport, unknownConversation] = await Promise.all([
+        fetch("/api/admin/clients?id=missing-client").then(async (response) => ({ status: response.status, body: await response.json() })),
+        fetch("/api/admin/revenue-os/records/opportunity/missing-opportunity").then(async (response) => ({ status: response.status, body: await response.json() })),
+        fetch("/api/admin/contacts/timeline?email=missing%40example.test").then((response) => response.json()),
+        fetch("/api/admin/revenue-os/ai/runs/missing-run").then((response) => response.json()),
+        fetch("/api/admin/proposals?id=missing-proposal").then((response) => response.json()),
+        fetch("/api/admin/revenue-os/campaigns/preview?id=missing-campaign").then((response) => response.status),
+        fetch("/api/admin/emails/preview?id=missing-email").then((response) => response.status),
+        fetch("/api/admin/revenue-os/contact-imports?id=missing-import").then((response) => response.json()),
+        fetch("/api/admin/revenue-os/ai/conversations/missing-conversation").then((response) => response.status),
+      ]);
+      const knownContact = firstContact ? await fetch(`/api/admin/contacts/timeline?email=${encodeURIComponent(firstContact)}`).then((response) => response.json()) : null;
+      return { clients: clientList.clients, opportunities: pipelineList.opportunities, unknownClient, unknownOpportunity, unknownContact, unknownRun, unknownProposal, unknownCampaign, unknownEmail, unknownImport, unknownConversation, knownContact };
+    });
+    if (contract.unknownClient.body.client !== null || contract.unknownOpportunity.body.record !== null || contract.unknownContact.canonical.contact !== null || contract.unknownRun.run !== null || contract.unknownProposal.proposal !== null || contract.unknownCampaign !== 404 || contract.unknownEmail !== 404 || contract.unknownImport.batch !== null || contract.unknownConversation !== 404) failures.push(`${scenario} ${label} deep links: an unknown ID substituted or exposed another entity`);
+    if (contract.knownContact?.canonical?.status !== "connected" || contract.knownContact.canonical.contact?.full_name !== contract.opportunities[0]?.contact?.full_name) failures.push(`${scenario} ${label} deep links: known contact identity did not reconcile`);
+    for (const client of contract.clients) {
+      await page.goto(`${base}/demo/command-center/${scenario}/clients/${encodeURIComponent(client.id)}`, { waitUntil: "domcontentloaded", timeout: 60_000 });
+      await page.getByRole("heading", { name: client.business_name, exact: true }).waitFor({ timeout: 30_000 });
+      if (await page.getByRole("heading", { name: "Client Not Found", exact: true }).count()) failures.push(`${scenario} ${label}: valid client ${client.id} rendered not found`);
+    }
+    for (const opportunity of contract.opportunities) {
+      await page.goto(`${base}/demo/command-center/${scenario}/pipeline/${encodeURIComponent(opportunity.id)}`, { waitUntil: "domcontentloaded", timeout: 60_000 });
+      await page.getByRole("heading", { name: opportunity.name, exact: true }).waitFor({ timeout: 30_000 });
+      if (await page.getByText("Opportunity not found", { exact: false }).count()) failures.push(`${scenario} ${label}: valid opportunity ${opportunity.id} rendered not found`);
+      if (await page.locator('a[href$="/admin/tasks"], a[href*="/admin/tasks?"]').count()) failures.push(`${scenario} ${label}: opportunity ${opportunity.id} exposes the nonexistent Tasks route`);
+    }
+    await context.close();
+  }
+}
+
 const appearanceFingerprints = new Map();
 for (const appearance of ["light", "dark", "signal", "studio", "frost"]) {
   for (const [label, viewport] of [["desktop", { width: 1280, height: 900 }], ["mobile", { width: 390, height: 844 }]]) {

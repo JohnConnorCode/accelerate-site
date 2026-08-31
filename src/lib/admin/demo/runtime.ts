@@ -3,6 +3,7 @@ import { clearDemoAppearance } from "./appearance-state";
 
 type DemoEmailBlock = { id: string; type: "heading" | "paragraph" | "button" | "divider" | "spacer"; text?: string; url?: string; height?: number };
 type DemoEmailDraft = { subjectTemplate: string; previewText: string; blocks: DemoEmailBlock[] };
+type DemoGeneratedAiRun = { id: string; surface: string; provider: string; model: string; toolPack: string; conversationId: string; status: string; toolNames: string[]; inputTokens: number; outputTokens: number; durationMs: number; promptPreview: string; resultPreview: string; error: null; startedAt: string; finishedAt: string; feedback: null };
 type DemoEmailStudioDetail = {
   schemaReady: true;
   id: string;
@@ -22,8 +23,18 @@ type DemoEmailStudioDetail = {
   html: string;
 };
 type DemoEmailStudioList = { schemaReady: true; emails: Array<Record<string, unknown>> };
-type DemoState = { completedActions: string[]; completedTasks: string[]; stageOverrides: Record<string, string>; sentReplies: Record<string, string[]>; readNotifications: string[]; emailDrafts: Record<string, DemoEmailDraft> };
-const initialState = (): DemoState => ({ completedActions: [], completedTasks: [], stageOverrides: {}, sentReplies: {}, readNotifications: [], emailDrafts: {} });
+type DemoState = {
+  completedActions: string[];
+  completedTasks: string[];
+  stageOverrides: Record<string, string>;
+  opportunityOverrides: Record<string, { nextAction?: string | null; nextActionAt?: string | null; estimatedValue?: number }>;
+  clientOverrides: Record<string, Record<string, unknown>>;
+  generatedAiRuns: DemoGeneratedAiRun[];
+  sentReplies: Record<string, string[]>;
+  readNotifications: string[];
+  emailDrafts: Record<string, DemoEmailDraft>;
+};
+const initialState = (): DemoState => ({ completedActions: [], completedTasks: [], stageOverrides: {}, opportunityOverrides: {}, clientOverrides: {}, generatedAiRuns: [], sentReplies: {}, readNotifications: [], emailDrafts: {} });
 const keyFor = (id: DemoScenarioId) => `accelerate:admin-demo:${id}:v3`;
 const jsonResponse = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 const eventStreamResponse = (events: unknown[]) => new Response(events.map((event) => `data: ${JSON.stringify(event)}\n\n`).join(""), { status: 200, headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-store" } });
@@ -38,9 +49,36 @@ function saveState(id: DemoScenarioId, state: DemoState) { sessionStorage.setIte
 function person(pack: DemoScenarioPack, id: string) { return pack.people.find((item) => item.id === id)!; }
 function opportunityRows(pack: DemoScenarioPack, state: DemoState) {
   return pack.opportunities.map((item, index) => {
-    const contact = person(pack, item.personId); const stage = state.stageOverrides[item.id] || item.stage;
-    return { id: item.id, name: item.name, email: contact.email, stage, canonical_stage: stage, estimated_value: item.value, won_value: stage === "won" ? item.value : 0, probability: { new: 10, contacted: 20, qualified: 40, meeting: 55, proposal: 70, negotiation: 85, won: 100, lost: 0, nurture: 10 }[stage] || 10, next_action: item.nextAction, next_action_at: dateOffset(index % 7), source: item.source, owner_email: pack.tenant.founder.email, last_activity_at: new Date(Date.now() - index * 7_200_000).toISOString(), created_at: new Date(Date.now() - (index + 4) * 86_400_000).toISOString(), contact: { full_name: contact.name, primary_email: contact.email }, company: { name: item.company, domain: null, industry: pack.category } };
+    const contact = person(pack, item.personId); const stage = state.stageOverrides[item.id] || item.stage; const override = state.opportunityOverrides[item.id] || {};
+    const estimatedValue = override.estimatedValue ?? item.value;
+    return { id: item.id, name: item.name, email: contact.email, stage, canonical_stage: stage, estimated_value: estimatedValue, won_value: stage === "won" ? estimatedValue : 0, probability: { new: 10, contacted: 20, qualified: 40, meeting: 55, proposal: 70, negotiation: 85, won: 100, lost: 0, nurture: 10 }[stage] || 10, next_action: override.nextAction === undefined ? item.nextAction : override.nextAction, next_action_at: override.nextActionAt === undefined ? dateOffset(index % 7) : override.nextActionAt, source: item.source, owner_email: pack.tenant.founder.email, last_activity_at: new Date(Date.now() - index * 7_200_000).toISOString(), created_at: new Date(Date.now() - (index + 4) * 86_400_000).toISOString(), updated_at: ago(index + 1), contact: { full_name: contact.name, primary_email: contact.email }, company: { name: item.company, domain: null, industry: pack.category } };
   });
+}
+
+function opportunityRecord(pack: DemoScenarioPack, state: DemoState, id: string) {
+  const row = opportunityRows(pack, state).find((item) => item.id === id);
+  const source = pack.opportunities.find((item) => item.id === id);
+  if (!row || !source) return null;
+  const contact = person(pack, source.personId);
+  const relatedConversation = pack.conversations.find((item) => item.personId === contact.id);
+  const relatedTasks = pack.tasks.filter((item) => item.personId === contact.id).slice(0, 4).map((item, index) => ({ id: item.id, title: item.title, status: state.completedTasks.includes(item.id) ? "completed" : item.status, priority: item.priority, due_date: dateOffset(item.dueOffset), created_at: ago(48 + index) }));
+  const relatedProposals = proposals(pack).filter((item) => item.lead_id === contact.id).map((item) => ({ ...item, subject: item.title }));
+  const conversationRows = relatedConversation ? [{ id: relatedConversation.id, subject: relatedConversation.subject, channel: "gmail", status: "open", created_at: relatedConversation.messages[0]?.at }] : [];
+  return {
+    contract: "revenue-os.opportunity-record.v1",
+    activityContract: "revenue-os.activity.v1",
+    opportunity: row,
+    contact: { id: contact.id, full_name: contact.name, primary_email: contact.email, phone: contact.phone, title: contact.role, lifecycle_stage: row.canonical_stage, communication_status: "active" },
+    company: { id: `company-${contact.id}`, name: source.company, domain: `${source.company.toLowerCase().replace(/[^a-z0-9]+/g, "")}.example`, website: `https://${source.company.toLowerCase().replace(/[^a-z0-9]+/g, "")}.example`, industry: pack.category, size_band: "small_business", location: "Fictional service area", research_summary: `Fictional ${pack.category.toLowerCase()} account with a recorded next action and linked operating history.` },
+    tasks: relatedTasks,
+    conversations: conversationRows,
+    meetings: [{ id: `meeting-${id}`, title: `${source.company} review`, status: "confirmed", start_at: new Date(Date.now() + 2 * 86_400_000).toISOString() }],
+    proposals: relatedProposals,
+    activity: [
+      { id: `activity-${id}-1`, activity_type: "opportunity_updated", title: `Pipeline moved to ${row.canonical_stage.replace(/_/g, " ")}`, summary: `The current next action is ${row.next_action || "not yet set"}.`, source: "admin", actor_email: pack.tenant.founder.email, occurred_at: row.updated_at },
+      { id: `activity-${id}-2`, activity_type: "conversation_received", title: relatedConversation?.subject || "Relationship context recorded", summary: relatedConversation?.messages.at(-1)?.body || `A fictional operating note for ${contact.name}.`, source: "gmail_sync", actor_email: null, occurred_at: relatedConversation?.messages.at(-1)?.at || ago(6) },
+    ],
+  };
 }
 function auditHistory(pack: DemoScenarioPack, params: URLSearchParams) {
   const founder = pack.tenant.founder.email;
@@ -109,7 +147,9 @@ function notifications(pack: DemoScenarioPack, state: DemoState) {
 }
 function conversations(pack: DemoScenarioPack, state: DemoState, selected: string | null) {
   const rows = pack.conversations.map((item) => { const contact = person(pack, item.personId); return { id: item.id, channel: "gmail", external_id: `demo-${item.id}`, subject: item.subject, status: "open", intent: item.intent, unread_count: item.unread, last_message_at: item.messages.at(-1)!.at, metadata: { contact_email: contact.email } }; });
-  const active = pack.conversations.find((item) => item.id === selected) || pack.conversations[0]!; const contact = person(pack, active.personId);
+  const active = selected ? pack.conversations.find((item) => item.id === selected) : pack.conversations[0];
+  if (!active) return { schemaReady: true, conversations: rows, messages: [] };
+  const contact = person(pack, active.personId);
   const messages = [...active.messages, ...(state.sentReplies[active.id] || []).map((body, index) => ({ id: `local-${index}`, direction: "outbound" as const, body, at: new Date().toISOString() }))].map((item) => ({ id: item.id, direction: item.direction, sender_email: item.direction === "inbound" ? contact.email : pack.tenant.founder.email, recipient_emails: [item.direction === "inbound" ? pack.tenant.founder.email : contact.email], subject: active.subject, body_text: item.body, status: "delivered", sent_at: item.direction === "outbound" ? item.at : null, received_at: item.direction === "inbound" ? item.at : null, created_at: item.at }));
   return { schemaReady: true, conversations: rows, messages };
 }
@@ -193,7 +233,8 @@ function emailStudio(pack: DemoScenarioPack, id?: string | null, state: DemoStat
     { id: "welcome", name: "Customer welcome", description: "Sets expectations immediately after a win or enrollment.", category: "Customer", subject: `Welcome to ${pack.name}`, variables: ["first_name", "start_date", "owner_name"], hasDraft: false, source: "published" as const, updatedAt: ago(74) },
   ].map((template) => ({ ...template, hasDraft: template.hasDraft || Boolean(state.emailDrafts[template.id]) }));
   if (!id) return { schemaReady: true, emails: templates };
-  const template = templates.find((item) => item.id === id) || templates[0]!;
+  const template = templates.find((item) => item.id === id);
+  if (!template) throw new Error(`Unknown demo email template: ${id}`);
   const defaultBlocks = defaultEmailBlocks(template.id, pack);
   const draft = state.emailDrafts[template.id]; const blocks = draft?.blocks || defaultBlocks; const sampleData = { first_name: pack.people[0]!.name.split(" ")[0]!, company_name: pack.people[0]!.company, next_step: "a short operating review", appointment_time: "Thursday at 10:00 AM", owner_name: pack.tenant.founder.fullName, proposal_name: "your scope", start_date: "next week" };
   const subjectTemplate = draft?.subjectTemplate || template.subject; const previewText = draft?.previewText || `A clear next step from ${pack.name}.`;
@@ -224,15 +265,16 @@ function bookings(pack: DemoScenarioPack) {
   return { opportunities, metrics: { total: opportunities.length, qualified: opportunities.filter((item) => item.qualified).length, booked: count("booked"), showed: count("showed"), noShow: count("no_show"), won: count("won"), pipelineValue: opportunities.reduce((sum, item) => sum + item.estimated_value, 0), wonRevenue: opportunities.reduce((sum, item) => sum + item.won_value, 0), qualifiedToBooked: 67, bookedToShowed: 83 } };
 }
 
-function aiRuns(pack: DemoScenarioPack) {
-  const runs = Array.from({ length: 8 }, (_, index) => ({ id: `ai-run-${index}`, surface: ["command_center", "conversation_brief", "pipeline_review"][index % 3]!, provider: "openrouter", model: "bounded-demo-model", toolPack: index % 2 ? "pipeline" : "core", conversationId: pack.conversations[index % pack.conversations.length]!.id, status: index === 6 ? "failed" : "completed", toolNames: index % 2 ? ["search_pipeline", "get_record_timeline"] : ["get_today_snapshot"], inputTokens: 680 + index * 91, outputTokens: 210 + index * 37, durationMs: 1200 + index * 180, promptPreview: `Review the next best action for ${pack.people[index]!.company}.`, resultPreview: `Reviewed the relevant fictional records and prepared a grounded next step for ${pack.people[index]!.name}.`, error: index === 6 ? "Simulated provider timeout; no external action occurred." : null, startedAt: ago(index * 8 + 1), finishedAt: ago(index * 8 + .9), feedback: index % 4 === 0 ? "helpful" : null }));
+function aiRuns(pack: DemoScenarioPack, state: DemoState = initialState()) {
+  const runs = [...state.generatedAiRuns, ...Array.from({ length: 8 }, (_, index) => ({ id: `ai-run-${index}`, surface: ["command_center", "conversation_brief", "pipeline_review"][index % 3]!, provider: "openrouter", model: "bounded-demo-model", toolPack: index % 2 ? "pipeline" : "core", conversationId: `ai-${pack.id}`, status: index === 6 ? "failed" : "completed", toolNames: index % 2 ? ["search_pipeline", "get_record_timeline"] : ["get_today_snapshot"], inputTokens: 680 + index * 91, outputTokens: 210 + index * 37, durationMs: 1200 + index * 180, promptPreview: `Review the next best action for ${pack.people[index]!.company}.`, resultPreview: `Reviewed the relevant fictional records and prepared a grounded next step for ${pack.people[index]!.name}.`, error: index === 6 ? "Simulated provider timeout; no external action occurred." : null, startedAt: ago(index * 8 + 1), finishedAt: ago(index * 8 + .9), feedback: index % 4 === 0 ? "helpful" : null }))];
   const completed = runs.filter((run) => run.status === "completed").length;
   return { schemaReady: true, degraded: false, degradationReasons: [], runs, metrics: { runs: runs.length, completed, partial: 0, failed: runs.length - completed, cancelled: 0, successRate: Math.round(completed / runs.length * 100), totalTokens: runs.reduce((sum, run) => sum + run.inputTokens + run.outputTokens, 0), medianDurationMs: 1830, feedbackCoverage: 25 }, facets: { surfaces: [...new Set(runs.map((run) => run.surface))], models: ["bounded-demo-model"], packs: ["core", "pipeline"], tools: [...new Set(runs.flatMap((run) => run.toolNames))] }, nextCursor: null, summaryTruncated: false, generatedAt: new Date().toISOString() };
 }
 
-function aiRunDetail(pack: DemoScenarioPack, runId: string) {
-  const run = aiRuns(pack).runs.find((item) => item.id === runId) || aiRuns(pack).runs[0]!;
-  const opportunity = pack.opportunities[Number(run.id.split("-").at(-1) || 0) % pack.opportunities.length]!;
+function aiRunDetail(pack: DemoScenarioPack, state: DemoState, runId: string) {
+  const run = aiRuns(pack, state).runs.find((item) => item.id === runId);
+  if (!run) return { schemaReady: true, degraded: false, degradationReasons: [], run: null, events: [], eventsTruncated: false, affectedRecords: [] };
+  const parsedIndex = Number(run.id.split("-").at(-1)); const opportunity = pack.opportunities[(Number.isFinite(parsedIndex) ? parsedIndex : 0) % pack.opportunities.length]!;
   return { schemaReady: true, degraded: false, degradationReasons: [], run, events: [
     { id: `${run.id}-context`, type: "context_loaded", label: "Business context", summary: "Loaded a bounded fictional priority and pipeline snapshot.", toolName: null, status: "recorded", createdAt: run.startedAt },
     { id: `${run.id}-tool`, type: run.status === "failed" ? "tool_error" : "tool_result", label: run.toolNames[0]!.replace(/_/g, " "), summary: run.status === "failed" ? "The simulated provider timed out without changing data." : "Completed with bounded fictional evidence.", toolName: run.toolNames[0], status: run.status === "failed" ? "failed" : "completed", createdAt: run.finishedAt || run.startedAt },
@@ -286,9 +328,21 @@ function emailSequences(pack: DemoScenarioPack) {
   return { sequences, stats: { active: 9, completed: 4, paused: 2, unsubscribed: 1, total: 16 }, totalPages: 1 };
 }
 
-function clients(pack: DemoScenarioPack) {
-  const clients = pack.people.slice(0, 9).map((contact, index) => ({ id: `client-${index}`, business_name: contact.company, contact_name: contact.name, contact_email: contact.email, industry: pack.category, status: index < 6 ? "active" : index === 6 ? "onboarding" : index === 7 ? "paused" : "churned", monthly_value: index < 7 ? 1200 + index * 275 : 0, one_time_value: 1800 + index * 450, contract_start: dateOffset(-120 + index * 9), contract_end: dateOffset(245 + index * 12), created_at: ago(900 + index * 120) }));
-  return { clients, totalMRR: clients.reduce((sum, item) => sum + item.monthly_value, 0), activeCount: clients.filter((item) => item.status === "active").length };
+function clientRows(pack: DemoScenarioPack, state: DemoState) {
+  return pack.people.slice(0, 9).map((contact, index) => ({
+    id: `client-${index}`, lead_id: contact.id, business_name: contact.company, contact_name: contact.name, contact_email: contact.email, contact_phone: contact.phone, industry: pack.category,
+    status: index < 6 ? "active" : index === 6 ? "onboarding" : index === 7 ? "paused" : "churned", monthly_value: index < 7 ? 1200 + index * 275 : 0, one_time_value: 1800 + index * 450,
+    contract_start: dateOffset(-120 + index * 9), contract_end: dateOffset(245 + index * 12), services: ["Operating review", "Workflow implementation"],
+    onboarding_checklist: [{ label: "Kickoff complete", done: true }, { label: "Systems access confirmed", done: index !== 6 }, { label: "First workflow verified", done: index < 6 }],
+    notes: `Fictional client record for the ${pack.name} demonstration.`, created_at: ago(900 + index * 120), updated_at: ago(index + 2),
+    ...(state.clientOverrides[`client-${index}`] || {}),
+  }));
+}
+
+function clients(pack: DemoScenarioPack, state: DemoState, requestedId?: string | null) {
+  const rows = clientRows(pack, state);
+  if (requestedId) return { client: rows.find((item) => item.id === requestedId) || null, canonicalSchemaReady: true };
+  return { clients: rows, canonicalSchemaReady: true, totalMRR: rows.filter((item) => item.status === "active").reduce((sum, item) => sum + Number(item.monthly_value || 0), 0), activeCount: rows.filter((item) => item.status === "active").length };
 }
 
 function contentItems(pack: DemoScenarioPack) {
@@ -339,19 +393,24 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       return nativeFetch(input, init);
     }
     const body = init?.body && typeof init.body === "string" ? JSON.parse(init.body) as Record<string, unknown> : {};
+    const emailTemplateIds = ["inquiry-reply", "appointment-confirmation", "proposal-follow-up", "welcome"];
     if (method === "GET" && path === "/api/admin/inbox") return jsonResponse(inbox(pack));
     if (method === "GET" && path === "/api/admin/emails/preview") {
       const id = url.searchParams.get("id");
+      if (id && !emailTemplateIds.includes(id)) return jsonResponse({ error: "Email template not found" }, 404);
       return jsonResponse(id ? emailStudio(pack, id, state) : emailStudio(pack, null, state));
     }
     if (method === "POST" && path === "/api/admin/emails/preview" && body.action === "render") {
-      const template = emailStudio(pack, String(body.id || ""), state);
+      const id = String(body.id || "");
+      if (!emailTemplateIds.includes(id)) return jsonResponse({ error: "Email template not found" }, 404);
+      const template = emailStudio(pack, id, state);
       const blocks = Array.isArray(body.blocks) ? body.blocks as DemoEmailBlock[] : template.blocks;
       return jsonResponse({ subject: interpolateDemoEmail(String(body.subjectTemplate || template.subjectTemplate), template.sampleData), html: demoEmailHtml(blocks, template.sampleData, pack.tenant.brand), text: blocks.map((block) => block.text || "").join("\n\n") });
     }
     if (method === "PATCH" && path === "/api/admin/emails/preview") {
       const id = String(body.id || "");
       if (!id || !Array.isArray(body.blocks)) return jsonResponse({ error: "A complete simulated email is required." }, 400);
+      if (!emailTemplateIds.includes(id)) return jsonResponse({ error: "Email template not found" }, 404);
       const current = emailStudio(pack, id, state);
       state.emailDrafts[id] = { subjectTemplate: String(body.subjectTemplate || current.subjectTemplate), previewText: String(body.previewText || current.previewText), blocks: body.blocks as DemoEmailBlock[] };
       saveState(scenarioId, state);
@@ -367,12 +426,13 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       return jsonResponse({ schemaReady: true, batches: [{ id: `import-${scenarioId}`, original_filename: `${scenarioId}-past-contacts.csv`, status: "completed", completed_at: ago(4), selected_row_count: 24, created_at: ago(4) }], playbooks: [{ id: `recovery-${scenarioId}`, campaign_id: campaign.id, motion_key: "stale_lead", offer_label: `Book a focused ${pack.category.toLowerCase()} review`, booking_url: pack.tenant.booking.url, timezone: "America/Detroit", outcome_window_days: 60, created_at: ago(3), campaigns: campaign, metrics: { eligible: 18, excluded: 6, replied: 4, booked: 2, won: 1, estimatedValue: 18400, wonRevenue: 6400 } }] });
     }
     if (method === "GET" && path === "/api/admin/revenue-os/campaigns/preview") {
-      const campaign = campaigns(pack).find((item) => item.id === url.searchParams.get("id")) || campaigns(pack)[0]!;
+      const campaign = campaigns(pack).find((item) => item.id === url.searchParams.get("id"));
+      if (!campaign) return jsonResponse({ error: "Campaign not found" }, 404);
       return jsonResponse({ campaign, policy: campaign.policy, steps: campaign.campaign_steps.map((step) => ({ ...step, body_template: "Hi {{first_name}}, here is the useful next step we discussed." })), totals: { members: campaign.campaign_members.length, eligible: campaign.campaign_members.filter((item) => item.status === "active").length, excluded: campaign.campaign_members.filter((item) => item.status !== "active").length }, exclusions: pack.people.slice(20, 22).map((item) => ({ email: item.email, reason: "Existing reply or suppression" })), samples: pack.people.slice(0, 3).map((item) => ({ email: item.email, subject: campaign.campaign_steps[0]!.subject_template, body: `Hi ${item.name.split(" ")[0]}, here is the useful next step we discussed.` })) });
     }
     if (method === "GET" && path === "/api/admin/bookings") return jsonResponse(bookings(pack));
-    if (method === "GET" && path === "/api/admin/revenue-os/ai/runs") return jsonResponse(aiRuns(pack));
-    if (method === "GET" && path.startsWith("/api/admin/revenue-os/ai/runs/")) return jsonResponse(aiRunDetail(pack, decodeURIComponent(path.split("/").at(-1) || "")));
+    if (method === "GET" && path === "/api/admin/revenue-os/ai/runs") return jsonResponse(aiRuns(pack, state));
+    if (method === "GET" && path.startsWith("/api/admin/revenue-os/ai/runs/")) return jsonResponse(aiRunDetail(pack, state, decodeURIComponent(path.split("/").at(-1) || "")));
     if (method === "GET" && path === "/api/admin/revenue-os/ai/capabilities") return jsonResponse(aiCapabilities());
     if (method === "GET" && path === "/api/admin/tenant/providers") return jsonResponse({ providers: [
       { id: `demo-openrouter-${scenarioId}`, provider: "openrouter", account_email: null, reply_to_email: null, status: "connected", credential_version: 3, connected_at: ago(12), credential_source: "tenant", key_metadata: { label: `${pack.name} demo key`, limit: 50, limit_remaining: 38.25, limit_reset: "monthly", usage: 11.75, is_free_tier: false, expires_at: null, verified_at: ago(12) } },
@@ -381,20 +441,41 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     ] });
     if (method === "GET" && path === "/api/admin/integrations") return jsonResponse(integrationCatalog(pack));
     if (method === "GET" && path === "/api/admin/setup") return jsonResponse(setup(pack));
-    if (method === "GET" && path === "/api/admin/proposals") { const rows = proposals(pack); const requested = url.searchParams.get("id"); return jsonResponse(requested ? { proposal: rows.find((item) => item.id === requested) || rows[0] } : { proposals: rows, totalOneTime: rows.reduce((sum, item) => sum + item.total_one_time, 0), totalMonthly: rows.reduce((sum, item) => sum + item.total_monthly, 0) }); }
+    if (method === "GET" && path === "/api/admin/proposals") { const rows = proposals(pack); const requested = url.searchParams.get("id"); return jsonResponse(requested ? { proposal: rows.find((item) => item.id === requested) || null } : { proposals: rows, totalOneTime: rows.reduce((sum, item) => sum + item.total_one_time, 0), totalMonthly: rows.reduce((sum, item) => sum + item.total_monthly, 0) }); }
     if (method === "GET" && path === "/api/admin/email-sequences") return jsonResponse(emailSequences(pack));
-    if (method === "GET" && path === "/api/admin/clients") return jsonResponse(clients(pack));
+    if (method === "GET" && path === "/api/admin/clients") return jsonResponse(clients(pack, state, url.searchParams.get("id")));
     if (method === "GET" && path === "/api/admin/content") return jsonResponse({ items: contentItems(pack) });
     if (method === "GET" && path === "/api/admin/features") return jsonResponse({ schemaReady: true, features: featureBoard(pack) });
     if (method === "GET" && path === "/api/admin/settings") return jsonResponse(settings(pack));
-    if (method === "GET" && path === "/api/admin/revenue-os/contact-imports") { const batch = importBatch(pack); return jsonResponse(url.searchParams.get("id") ? { schemaReady: true, batch } : { schemaReady: true, batches: [{ ...batch, rows: undefined }] }); }
+    if (method === "GET" && path === "/api/admin/tenants") return jsonResponse({ isPlatformAdmin: false, platformOwnerUserId: null, tenants: [], memberships: [] });
+    if (method === "GET" && path === "/api/admin/revenue-os/contact-imports") { const batch = importBatch(pack); const requested = url.searchParams.get("id"); return jsonResponse(requested ? { schemaReady: true, batch: requested === batch.id ? batch : null } : { schemaReady: true, batches: [{ ...batch, rows: undefined }] }); }
     if (method === "POST" && path === "/api/admin/revenue-os/ai/stream") {
       const conversationId = String(body.conversationId || `ai-${scenarioId}`); const runId = `demo-run-${crypto.randomUUID()}`;
       const answer = `For ${pack.name}, the highest-priority move is to handle ${pack.actions[0]!.title.toLowerCase()} first. It is grounded in the latest linked conversation, and this demo will stage—not send—any external action.`;
+      const startedAt = new Date().toISOString();
+      state.generatedAiRuns.unshift({ id: runId, surface: "command_center", provider: "openrouter", model: "bounded-demo-model", toolPack: "operator_brief", conversationId, status: "completed", toolNames: ["build_priority_brief"], inputTokens: 640, outputTokens: 190, durationMs: 920, promptPreview: String(body.text || "Review the current priorities"), resultPreview: answer, error: null, startedAt, finishedAt: startedAt, feedback: null });
+      saveState(scenarioId, state);
       return eventStreamResponse([{ type: "conversation", conversationId, userMessageId: `demo-user-${crypto.randomUUID()}` }, { type: "run_started", runId, model: "bounded-demo-model", pack: "operator_brief" }, { type: "tool_started", name: "build_priority_brief", index: 0 }, { type: "tool_completed", name: "build_priority_brief", index: 0, summary: "Reviewed fictional priorities, conversations, and pipeline context.", failed: false }, { type: "assistant_delta", delta: answer }, { type: "final", conversationId, messageId: `demo-assistant-${crypto.randomUUID()}`, runId, text: answer, proposedActions: [] }]);
     }
     if (method === "POST" && path === "/api/admin/revenue-os/contact-imports") return jsonResponse({ schemaReady: true, batch: importBatch(pack) });
     if (method === "POST" && path === "/api/admin/settings/test") return jsonResponse({ success: true, simulated: true });
+    const opportunityRecordMatch = path.match(/^\/api\/admin\/revenue-os\/records\/opportunity\/([^/]+)$/);
+    if (method === "GET" && opportunityRecordMatch) return jsonResponse({ schemaReady: true, record: opportunityRecord(pack, state, decodeURIComponent(opportunityRecordMatch[1]!)) });
+    if (method === "PATCH" && opportunityRecordMatch) {
+      const opportunityId = decodeURIComponent(opportunityRecordMatch[1]!);
+      if (!pack.opportunities.some((item) => item.id === opportunityId)) return jsonResponse({ error: "Opportunity not found" }, 404);
+      state.opportunityOverrides[opportunityId] = { nextAction: body.nextAction === undefined ? state.opportunityOverrides[opportunityId]?.nextAction : body.nextAction === null ? null : String(body.nextAction), nextActionAt: body.nextActionAt === undefined ? state.opportunityOverrides[opportunityId]?.nextActionAt : body.nextActionAt === null ? null : String(body.nextActionAt), estimatedValue: body.estimatedValue === undefined ? state.opportunityOverrides[opportunityId]?.estimatedValue : Number(body.estimatedValue) };
+      saveState(scenarioId, state); window.dispatchEvent(new Event("admin:demo-state"));
+      return jsonResponse({ schemaReady: true, record: opportunityRecord(pack, state, opportunityId), simulated: true });
+    }
+    if (method === "PATCH" && path === "/api/admin/clients") {
+      const clientId = String(body.id || "");
+      if (!clientRows(pack, state).some((item) => item.id === clientId)) return jsonResponse({ error: "Client not found" }, 404);
+      const allowed = ["status", "business_name", "contact_name", "contact_email", "contact_phone", "industry", "monthly_value", "one_time_value", "contract_start", "contract_end", "services", "onboarding_checklist", "notes"];
+      state.clientOverrides[clientId] = { ...(state.clientOverrides[clientId] || {}), ...Object.fromEntries(allowed.filter((key) => body[key] !== undefined).map((key) => [key, body[key]])), updated_at: new Date().toISOString() };
+      saveState(scenarioId, state); window.dispatchEvent(new Event("admin:demo-state"));
+      return jsonResponse({ client: clientRows(pack, state).find((item) => item.id === clientId), simulated: true });
+    }
     if (method !== "GET") {
       if (path === "/api/admin/revenue-os/actions") state.completedActions.push(String(body.id));
       if (["/api/admin/tasks", "/api/admin/revenue-os/tasks"].includes(path)) state.completedTasks.push(String(body.id));
@@ -414,7 +495,8 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     if (path === "/api/admin/revenue-os/analytics") return jsonResponse(analytics(pack, state));
     if (path === "/api/admin/contacts/timeline") {
       const requestedEmail = (url.searchParams.get("email") || "").toLowerCase();
-      const contact = pack.people.find((item) => item.email.toLowerCase() === requestedEmail) || pack.people[0]!;
+      const contact = pack.people.find((item) => item.email.toLowerCase() === requestedEmail);
+      if (!contact) return jsonResponse({ timeline: [], canonical: { schemaReady: true, status: "unlinked", contact: null, company: null, opportunities: [] } });
       const opportunity = pack.opportunities.find((item) => item.personId === contact.id) || pack.opportunities[0]!;
       const conversation = pack.conversations.find((item) => item.personId === contact.id) || pack.conversations[0]!;
       const contactTasks = pack.tasks.filter((item) => item.personId === contact.id).slice(0, 3);
@@ -429,7 +511,11 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     if (path === "/api/admin/revenue") { const rows = opportunityRows(pack, state); return jsonResponse({ totalMRR: 18400, totalOneTime: rows.reduce((sum, item) => sum + item.won_value, 0), activeCount: 6, churnRate: 4, avgClientValue: 3067, industryBreakdown: [{ name: pack.category, value: 100 }], byClient: pack.people.slice(0, 6).map((item, index) => ({ name: `${item.company} · ${item.name}`, monthly: 1800 + index * 425, oneTime: index * 900 })), mrrTimeline: ["Apr", "May", "Jun", "Jul", "Aug"].map((date, index) => ({ date, mrr: 11200 + index * 1800 })), proposalRevenue: 24600 }); }
     if (path === "/api/admin/activity") return jsonResponse(auditHistory(pack, url.searchParams));
     if (path === "/api/admin/revenue-os/ai/conversations") return jsonResponse({ schemaReady: true, conversations: [{ id: `ai-${scenarioId}`, title: `Morning review for ${pack.name}`, lastMessageAt: ago(1) }] });
-    if (path.startsWith("/api/admin/revenue-os/ai/conversations/")) return jsonResponse({ messages: [{ id: "ai-welcome", role: "assistant", content: `I am grounded in this fictional ${pack.name} workspace. ${pack.story[0]}.`, runId: null, createdAt: ago(1) }] });
+    if (path.startsWith("/api/admin/revenue-os/ai/conversations/")) {
+      const requestedId = decodeURIComponent(path.split("/").at(-1) || "");
+      if (requestedId !== `ai-${scenarioId}`) return jsonResponse({ error: "AI conversation not found" }, 404);
+      return jsonResponse({ messages: [{ id: "ai-welcome", role: "assistant", content: `I am grounded in this fictional ${pack.name} workspace. ${pack.story[0]}.`, runId: null, createdAt: ago(1) }] });
+    }
     const legacyPayload = legacy(pack, path); if (legacyPayload) return jsonResponse(legacyPayload);
     if (path === "/api/admin/revenue-os/tasks") return jsonResponse({ tasks: pack.tasks.filter((item) => !state.completedTasks.includes(item.id)) });
     if (path === "/api/admin/tasks") return jsonResponse({ tasks: pack.tasks.filter((item) => !state.completedTasks.includes(item.id)).map((item) => ({ ...item, due_date: dateOffset(item.dueOffset), contact_email: person(pack, item.personId).email })) });

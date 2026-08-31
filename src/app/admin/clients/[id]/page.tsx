@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState, useCallback, use } from "react";
-import { motion } from "framer-motion";
 import Link from "@/components/admin/AdminLink";
 import { ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { ClientDetail } from "@/components/admin/ClientDetail";
 import { ContactTimeline } from "@/components/admin/ContactTimeline";
-import { GlassCard } from "@/components/ui/GlassCard";
+import { AdminSurface } from "@/components/admin/AdminSurface";
+import { fetchJson } from "@/lib/admin/fetchJson";
+import { toast } from "@/lib/admin/useToast";
 
 interface Client {
   id: string;
@@ -47,20 +48,19 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
 
   const fetchClient = useCallback(async () => {
     try {
-      const res = await fetch(`/api/admin/clients?id=${id}`);
-      const data = await res.json();
+      const data = await fetchJson<{ client?: Client | null }>(`/api/admin/clients?id=${encodeURIComponent(id)}`);
       setClient(data.client || null);
 
       // Fetch timeline for this client's email
       if (data.client?.contact_email) {
-        const timelineRes = await fetch(
+        const timelineData = await fetchJson<{ timeline?: TimelineItem[] }>(
           `/api/admin/contacts/timeline?email=${encodeURIComponent(data.client.contact_email)}`
         );
-        const timelineData = await timelineRes.json();
         setTimeline(timelineData.timeline || []);
       }
-    } catch {
-      // Silent
+    } catch (error) {
+      setClient(null);
+      toast.error(error instanceof Error ? error.message : "Failed to load client");
     } finally {
       setLoading(false);
     }
@@ -71,7 +71,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
   }, [fetchClient]);
 
   const handleUpdate = async (data: Record<string, unknown>) => {
-    await fetch("/api/admin/clients", {
+    await fetchJson("/api/admin/clients", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -90,10 +90,10 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
 
   if (!client) {
     return (
-      <div>
+      <div className="space-y-4">
         <PageHeader title="Client Not Found" />
-        <p className="text-white-muted">This client does not exist.</p>
-        <Link href="/admin/clients" className="text-gold-light text-sm mt-2 inline-block">
+        <AdminSurface tone="subtle"><p className="text-sm text-[var(--admin-muted)]">This client does not exist or is outside the current workspace.</p></AdminSurface>
+        <Link href="/admin/clients" className="inline-flex min-h-10 items-center text-sm font-semibold text-[var(--admin-ink)]">
           Back to Clients
         </Link>
       </div>
@@ -101,15 +101,11 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
   }
 
   return (
-    <motion.div
-      initial={false}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <div>
       <div className="mb-4">
         <Link
           href="/admin/clients"
-          className="inline-flex items-center gap-1.5 text-xs text-white-muted hover:text-white-secondary transition-colors"
+          className="inline-flex min-h-10 items-center gap-1.5 text-xs font-semibold text-[var(--admin-muted)] transition-colors hover:text-[var(--admin-ink)]"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to Clients
@@ -126,14 +122,14 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
           <ClientDetail client={client} onUpdate={handleUpdate} />
         </div>
         <div>
-          <GlassCard hover="none" padding="md">
-            <h4 className="font-display text-sm font-semibold text-white-primary mb-4">
+          <AdminSurface padding="md">
+            <h4 className="mb-4 text-sm font-semibold text-[var(--admin-ink)]">
               Activity Timeline
             </h4>
             <ContactTimeline items={timeline} />
-          </GlassCard>
+          </AdminSurface>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

@@ -5,7 +5,7 @@ import { DollarSign, Calendar, CheckCircle2, Circle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
 import { Toast } from "@/components/ui/Toast";
-import { GlassCard } from "@/components/ui/GlassCard";
+import { AdminSurface } from "./AdminSurface";
 import { StatusBadge } from "./StatusBadge";
 import { TaskQuickAdd } from "./TaskQuickAdd";
 
@@ -88,20 +88,20 @@ export function ClientDetail({ client, onUpdate }: ClientDetailProps) {
       {/* Header */}
       <div className="flex items-center gap-3 flex-wrap">
         <StatusBadge status={status} />
-        <span className="text-white-muted text-xs">
+        <span className="text-xs text-[var(--admin-muted)]">
           Client since {new Date(client.created_at).toLocaleDateString()}
         </span>
       </div>
 
       {/* Status + Values */}
-      <GlassCard hover="none" padding="md">
+      <AdminSurface padding="md">
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="block text-xs text-white-muted mb-1">Status</label>
+            <label className="mb-1 block text-xs text-[var(--admin-muted)]">Status</label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full rounded-lg bg-bg-subtle border border-border-glass px-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold focus:ring-1 focus:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color] duration-200"
+              className="min-h-11 w-full rounded-xl bg-[var(--admin-surface)] px-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none transition-[box-shadow] focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
             >
               {statusOptions.map((s) => (
                 <option key={s} value={s}>
@@ -112,118 +112,118 @@ export function ClientDetail({ client, onUpdate }: ClientDetailProps) {
           </div>
 
           <div>
-            <label className="block text-xs text-white-muted mb-1">Industry</label>
-            <p className="text-sm text-white-secondary capitalize">
+            <label className="mb-1 block text-xs text-[var(--admin-muted)]">Industry</label>
+            <p className="text-sm capitalize text-[var(--admin-ink)]">
               {client.industry?.replace(/_/g, " ") || "N/A"}
             </p>
           </div>
 
           <div>
-            <label className="block text-xs text-white-muted mb-1">Monthly Value (MRR)</label>
+            <label className="mb-1 block text-xs text-[var(--admin-muted)]">Monthly Value (MRR)</label>
             <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white-muted" />
+              <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--admin-muted)]" />
               <input
                 type="number"
                 min="0"
                 step="100"
                 value={monthlyValue}
                 onChange={(e) => setMonthlyValue(e.target.value)}
-                className="w-full rounded-lg bg-bg-subtle border border-border-glass pl-9 pr-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold focus:ring-1 focus:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color] duration-200"
+                className="min-h-11 w-full rounded-xl bg-[var(--admin-surface)] pl-9 pr-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs text-white-muted mb-1">One-Time Value</label>
+            <label className="mb-1 block text-xs text-[var(--admin-muted)]">One-Time Value</label>
             <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white-muted" />
+              <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--admin-muted)]" />
               <input
                 type="number"
                 min="0"
                 step="100"
                 value={oneTimeValue}
                 onChange={(e) => setOneTimeValue(e.target.value)}
-                className="w-full rounded-lg bg-bg-subtle border border-border-glass pl-9 pr-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold focus:ring-1 focus:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color] duration-200"
+                className="min-h-11 w-full rounded-xl bg-[var(--admin-surface)] pl-9 pr-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs text-white-muted mb-1 flex items-center gap-1">
+            <label className="mb-1 flex items-center gap-1 text-xs text-[var(--admin-muted)]">
               <Calendar className="h-3 w-3" /> Contract Start
             </label>
             <input
               type="date"
               value={contractStart}
               onChange={(e) => setContractStart(e.target.value)}
-              className="w-full rounded-lg bg-bg-subtle border border-border-glass px-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold transition-[border-color,box-shadow,background-color]"
+              className="min-h-11 w-full rounded-xl bg-[var(--admin-surface)] px-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
             />
           </div>
 
           <div>
-            <label className="block text-xs text-white-muted mb-1 flex items-center gap-1">
+            <label className="mb-1 flex items-center gap-1 text-xs text-[var(--admin-muted)]">
               <Calendar className="h-3 w-3" /> Contract End
             </label>
             <input
               type="date"
               value={contractEnd}
               onChange={(e) => setContractEnd(e.target.value)}
-              className="w-full rounded-lg bg-bg-subtle border border-border-glass px-3 py-2 text-sm text-white-primary focus:outline-none focus:border-gold transition-[border-color,box-shadow,background-color]"
+              className="min-h-11 w-full rounded-xl bg-[var(--admin-surface)] px-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
             />
           </div>
         </div>
-      </GlassCard>
+      </AdminSurface>
 
       {/* Contact Info */}
-      <GlassCard hover="none" padding="md">
-        <h4 className="text-xs text-white-muted uppercase font-semibold mb-3">Contact Information</h4>
-        <div className="text-sm text-white-secondary space-y-1">
-          <p><span className="text-white-muted">Name:</span> {client.contact_name}</p>
-          <p><span className="text-white-muted">Email:</span> {client.contact_email}</p>
-          {client.contact_phone && <p><span className="text-white-muted">Phone:</span> {client.contact_phone}</p>}
+      <AdminSurface padding="md">
+        <h4 className="admin-eyebrow mb-3">Contact information</h4>
+        <div className="space-y-1 text-sm text-[var(--admin-ink)]">
+          <p><span className="text-[var(--admin-muted)]">Name:</span> {client.contact_name}</p>
+          <p><span className="text-[var(--admin-muted)]">Email:</span> {client.contact_email}</p>
+          {client.contact_phone && <p><span className="text-[var(--admin-muted)]">Phone:</span> {client.contact_phone}</p>}
         </div>
-      </GlassCard>
+      </AdminSurface>
 
       {/* Services */}
       {client.services && client.services.length > 0 && (
-        <GlassCard hover="none" padding="md">
-          <h4 className="text-xs text-white-muted uppercase font-semibold mb-3">Services</h4>
+        <AdminSurface padding="md">
+          <h4 className="admin-eyebrow mb-3">Services</h4>
           <div className="flex flex-wrap gap-2">
             {client.services.map((service, i) => (
               <span
                 key={i}
-                className="text-xs bg-white/10 text-white-secondary rounded-full px-3 py-1"
+                className="rounded-full bg-[var(--admin-surface-subtle)] px-3 py-1 text-xs text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]"
               >
                 {service}
               </span>
             ))}
           </div>
-        </GlassCard>
+        </AdminSurface>
       )}
 
       {/* Onboarding Checklist */}
       {status === "onboarding" && (
-        <GlassCard hover="none" padding="md">
-          <h4 className="text-xs text-white-muted uppercase font-semibold mb-3">Onboarding Checklist</h4>
+        <AdminSurface padding="md">
+          <h4 className="admin-eyebrow mb-3">Onboarding checklist</h4>
           <div className="space-y-2">
             {checklist.map((item, idx) => (
               <button
                 key={idx}
                 onClick={() => toggleChecklistItem(idx)}
-                className="flex items-center gap-3 w-full text-left px-2 py-1.5 rounded hover:bg-white/5 transition-colors cursor-pointer"
+                className="flex min-h-10 w-full cursor-pointer items-center gap-3 rounded-xl px-2 text-left transition-colors hover:bg-[var(--admin-surface-subtle)] active:scale-[0.96]"
               >
                 {item.done ? (
                   <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
                 ) : (
-                  <Circle className="h-4 w-4 text-white-muted shrink-0" />
+                  <Circle className="h-4 w-4 shrink-0 text-[var(--admin-muted)]" />
                 )}
-                <span className={`text-sm ${item.done ? "text-white-muted line-through" : "text-white-primary"}`}>
+                <span className={`text-sm ${item.done ? "text-[var(--admin-muted)] line-through" : "text-[var(--admin-ink)]"}`}>
                   {item.label}
                 </span>
               </button>
             ))}
           </div>
-        </GlassCard>
+        </AdminSurface>
       )}
 
       {/* Notes */}

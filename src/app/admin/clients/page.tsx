@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { motion } from "framer-motion";
 import Link from "@/components/admin/AdminLink";
 import { Search } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
-import { GlassCard } from "@/components/ui/GlassCard";
+import { AdminSurface } from "@/components/admin/AdminSurface";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { fetchJson } from "@/lib/admin/fetchJson";
@@ -75,11 +74,7 @@ export default function ClientsPage() {
   }
 
   return (
-    <motion.div
-      initial={false}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <div>
       <PageHeader
         title="Clients"
         subtitle={`${activeCount} active · $${totalMRR.toLocaleString()}/mo MRR`}
@@ -90,103 +85,95 @@ export default function ClientsPage() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-gold transition-[border-color,box-shadow,background-color]"
+          className="min-h-11 rounded-xl bg-[var(--admin-surface)] px-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
         >
           {statusOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
         <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white-muted" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--admin-muted)]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search clients..."
-            className="w-full rounded-lg bg-bg-subtle border border-border-glass pl-9 pr-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-gold transition-[border-color,box-shadow,background-color] placeholder:text-white-muted"
+            className="min-h-11 w-full rounded-xl bg-[var(--admin-surface)] pl-9 pr-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none placeholder:text-[var(--admin-muted)] focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
           />
         </div>
       </div>
 
       {/* MRR Summary Cards */}
       <div className="grid gap-4 sm:grid-cols-3 mb-6">
-        <GlassCard hover="none" padding="sm">
-          <p className="text-xs text-white-muted">Monthly Recurring</p>
-          <p className="text-xl font-display font-bold text-gold-gradient">${totalMRR.toLocaleString()}</p>
-        </GlassCard>
-        <GlassCard hover="none" padding="sm">
-          <p className="text-xs text-white-muted">Active Clients</p>
-          <p className="text-xl font-display font-bold text-emerald-400">{activeCount}</p>
-        </GlassCard>
-        <GlassCard hover="none" padding="sm">
-          <p className="text-xs text-white-muted">Avg MRR/Client</p>
-          <p className="text-xl font-display font-bold text-white-primary">
+        <AdminSurface padding="sm">
+          <p className="admin-eyebrow">Monthly recurring</p>
+          <p className="mt-1 text-xl font-semibold tabular-nums text-[var(--admin-ink)]">${totalMRR.toLocaleString()}</p>
+        </AdminSurface>
+        <AdminSurface padding="sm">
+          <p className="admin-eyebrow">Active clients</p>
+          <p className="mt-1 text-xl font-semibold tabular-nums text-emerald-600 dark:text-emerald-300">{activeCount}</p>
+        </AdminSurface>
+        <AdminSurface padding="sm">
+          <p className="admin-eyebrow">Average MRR / client</p>
+          <p className="mt-1 text-xl font-semibold tabular-nums text-[var(--admin-ink)]">
             ${activeCount > 0 ? Math.round(totalMRR / activeCount).toLocaleString() : "0"}
           </p>
-        </GlassCard>
+        </AdminSurface>
       </div>
 
       {/* Client Table */}
       {clients.length === 0 ? (
         <EmptyState message="No clients yet. Win a lead to create your first client!" />
       ) : (
-        <GlassCard hover="none">
+        <AdminSurface padding="none" className="overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border-glass">
-                  <th className="text-left px-3 py-2 text-xs text-white-muted uppercase">Business</th>
-                  <th className="text-left px-3 py-2 text-xs text-white-muted uppercase">Contact</th>
-                  <th className="text-left px-3 py-2 text-xs text-white-muted uppercase hidden sm:table-cell">Industry</th>
-                  <th className="text-left px-3 py-2 text-xs text-white-muted uppercase">MRR</th>
-                  <th className="text-left px-3 py-2 text-xs text-white-muted uppercase">Status</th>
-                  <th className="text-left px-3 py-2 text-xs text-white-muted uppercase hidden sm:table-cell">Since</th>
+                <tr className="border-b border-[var(--admin-border)] bg-[var(--admin-surface-subtle)]">
+                  {['Business', 'Contact', 'Industry', 'MRR', 'Status', 'Since'].map((label, index) => <th key={label} className={`px-4 py-3 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)] ${index === 2 || index === 5 ? 'hidden sm:table-cell' : ''}`}>{label}</th>)}
                 </tr>
               </thead>
               <tbody>
-                {clients.map((client, i) => (
-                  <motion.tr
+                {clients.map((client) => (
+                  <tr
                     key={client.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: i * 0.03 }}
-                    className="border-b border-border-glass last:border-b-0 hover:bg-white/[0.02] transition-colors"
+                    className="border-b border-[var(--admin-border)] transition-colors last:border-b-0 hover:bg-[var(--admin-surface-subtle)]"
                   >
                     <td className="px-3 py-2.5">
                       <Link
                         href={`/admin/clients/${client.id}`}
-                        className="text-white-primary hover:text-gold-light transition-colors font-medium"
+                        className="font-semibold text-[var(--admin-ink)] transition-opacity hover:opacity-70"
                       >
                         {client.business_name}
                       </Link>
                     </td>
                     <td className="px-3 py-2.5">
                       <div>
-                        <p className="text-white-secondary text-xs">{client.contact_name}</p>
-                        <p className="text-white-muted text-[10px]">{client.contact_email}</p>
+                        <p className="text-xs text-[var(--admin-ink)]">{client.contact_name}</p>
+                        <p className="text-[10px] text-[var(--admin-muted)]">{client.contact_email}</p>
                       </div>
                     </td>
-                    <td className="px-3 py-2.5 text-white-secondary text-xs capitalize hidden sm:table-cell">
+                    <td className="hidden px-3 py-2.5 text-xs capitalize text-[var(--admin-muted)] sm:table-cell">
                       {client.industry?.replace(/_/g, " ") || "N/A"}
                     </td>
-                    <td className="px-3 py-2.5 text-emerald-400 font-medium">
+                    <td className="px-3 py-2.5 font-semibold tabular-nums text-[var(--admin-ink)]">
                       ${client.monthly_value?.toLocaleString() || "0"}
                     </td>
                     <td className="px-3 py-2.5">
                       <StatusBadge status={client.status} />
                     </td>
-                    <td className="px-3 py-2.5 text-white-muted text-xs hidden sm:table-cell">
+                    <td className="hidden px-3 py-2.5 text-xs text-[var(--admin-muted)] sm:table-cell">
                       {client.contract_start
                         ? new Date(client.contract_start).toLocaleDateString()
                         : new Date(client.created_at).toLocaleDateString()}
                     </td>
-                  </motion.tr>
+                  </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </GlassCard>
+        </AdminSurface>
       )}
-    </motion.div>
+    </div>
   );
 }

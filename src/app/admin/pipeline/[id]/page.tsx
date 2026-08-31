@@ -170,7 +170,7 @@ export default function OpportunityRecordPage() {
           <Section title="Related work" count={record.tasks.length + record.conversations.length + record.meetings.length + record.proposals.length}>
             <div className="grid gap-3 sm:grid-cols-2">
               {[
-                { title: "Tasks", icon: CheckCircle2, items: record.tasks, href: "/admin/tasks", line: (item: Item) => `${item.status || "pending"}${item.due_date ? ` · ${dateTime(item.due_date)}` : ""}` },
+                { title: "Tasks", icon: CheckCircle2, items: record.tasks, href: "/admin/today", line: (item: Item) => `${item.status || "pending"}${item.due_date ? ` · ${dateTime(item.due_date)}` : ""}` },
                 { title: "Conversations", icon: MessageSquareText, items: record.conversations, href: "/admin/conversations", line: (item: Item) => `${item.channel || "message"} · ${item.status || "open"}` },
                 { title: "Meetings", icon: CalendarClock, items: record.meetings, href: "/admin/bookings", line: (item: Item) => dateTime(item.start_at) },
                 { title: "Proposals", icon: FileText, items: record.proposals, href: "/admin/proposals", line: (item: Item) => `${item.status || "draft"} · ${money(Number(item.total_one_time || 0) + Number(item.total_monthly || 0))}` },
