@@ -56,6 +56,9 @@ membership binding, status changes, revocation, and their platform audit receipt
 atomic and service-role-only; apply it before exposing tenant provisioning. The
 suspension guard then makes active tenant status a just-in-time requirement for
 operational RPC claims, including service-role callers holding a stale context.
+Production tenant release and activation use the staged, fail-closed checks in
+`docs/TENANT-CUTOVER-RUNBOOK.md`; a green Setup Center or schema check alone is
+not activation evidence.
 
 Agents apply migrations directly with `npm run db:migrate -- <migration.sql>` and
 verify the resulting objects through the service role. The command is fixed to
