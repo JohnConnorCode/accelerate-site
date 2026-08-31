@@ -27,15 +27,21 @@ function lines(value) {
 
 export function evaluateRepository(state, excludedWorktrees = []) {
   const checks = [];
-  const excluded = new Set(excludedWorktrees);
-  const additionalWorktrees = state.worktrees.slice(1).filter((item) => !excluded.has(item.branch));
-  const unmergedBranches = state.unmergedBranches.filter((branch) => !excluded.has(branch));
+  const exclusions = new Map(excludedWorktrees.map((entry) => {
+    const separator = entry.lastIndexOf("@");
+    return separator > 0 ? [entry.slice(0, separator), entry.slice(separator + 1)] : [entry, ""];
+  }));
+  const matchedExclusions = new Set(state.worktrees.slice(1).filter((item) => exclusions.get(item.branch) === item.head).map((item) => item.branch));
+  const invalidExclusions = [...exclusions].filter(([branch, head]) => !/^[a-f0-9]{40}$/.test(head) || !matchedExclusions.has(branch));
+  const additionalWorktrees = state.worktrees.slice(1).filter((item) => !matchedExclusions.has(item.branch));
+  const unmergedBranches = state.unmergedBranches.filter((branch) => !matchedExclusions.has(branch));
   checks.push(check("repository.branch", state.branch === "main", state.branch === "main" ? "Release branch is main." : `Release branch is ${state.branch || "detached"}; expected main.`));
   checks.push(check("repository.clean", state.dirtyPaths.length === 0, state.dirtyPaths.length === 0 ? "Release worktree is clean." : `${state.dirtyPaths.length} changed path(s) remain: ${state.dirtyPaths.slice(0, 8).join(", ")}${state.dirtyPaths.length > 8 ? ", …" : ""}`));
   checks.push(check("repository.upstream", Boolean(state.upstream), state.upstream ? `Tracking ${state.upstream}.` : "Release branch has no upstream."));
   checks.push(check("repository.synchronized", Boolean(state.upstream) && state.head === state.upstreamHead, state.upstream && state.head === state.upstreamHead ? `HEAD matches ${state.upstream}.` : "HEAD does not match the tracked upstream commit."));
-  checks.push(check("repository.single_worktree", additionalWorktrees.length === 0, additionalWorktrees.length === 0 ? (excluded.size ? `Only explicitly excluded worktree(s) remain outside release: ${[...excluded].join(", ")}.` : "Only the release worktree is present.") : `${additionalWorktrees.length} additional worktree(s) require reconciliation or explicit exclusion: ${additionalWorktrees.map((item) => `${item.branch}@${item.head.slice(0, 12)} (${item.path})`).join(", ")}`));
-  checks.push(check("repository.no_unmerged_branches", unmergedBranches.length === 0, unmergedBranches.length === 0 ? (excluded.size ? `Only explicitly excluded unmerged branch(es) remain outside release: ${[...excluded].join(", ")}.` : "No local branch is unmerged into the release commit.") : `Unmerged local branch(es): ${unmergedBranches.join(", ")}`));
+  checks.push(check("repository.exclusions_exact", invalidExclusions.length === 0, invalidExclusions.length === 0 ? (matchedExclusions.size ? "Every worktree exclusion is bound to its exact 40-character commit." : "No worktree exclusion is requested.") : `Invalid or stale worktree exclusion(s): ${invalidExclusions.map(([branch, head]) => `${branch}@${head || "missing-sha"}`).join(", ")}`));
+  checks.push(check("repository.single_worktree", additionalWorktrees.length === 0, additionalWorktrees.length === 0 ? (matchedExclusions.size ? `Only exact-commit excluded worktree(s) remain outside release: ${[...matchedExclusions].join(", ")}.` : "Only the release worktree is present.") : `${additionalWorktrees.length} additional worktree(s) require reconciliation or exact-commit exclusion: ${additionalWorktrees.map((item) => `${item.branch}@${item.head} (${item.path})`).join(", ")}`));
+  checks.push(check("repository.no_unmerged_branches", unmergedBranches.length === 0, unmergedBranches.length === 0 ? (matchedExclusions.size ? `Only exact-commit excluded unmerged branch(es) remain outside release: ${[...matchedExclusions].join(", ")}.` : "No local branch is unmerged into the release commit.") : `Unmerged local branch(es): ${unmergedBranches.join(", ")}`));
   const missingFiles = state.requiredTrackedFiles.filter((entry) => !entry.tracked);
   checks.push(check("repository.cutover_files_tracked", missingFiles.length === 0, missingFiles.length === 0 ? "All cutover migrations and verifiers are tracked by the release commit." : `Untracked cutover file(s): ${missingFiles.map((entry) => entry.path).join(", ")}`));
   return checks;
@@ -68,6 +74,7 @@ export function readRepositoryState() {
     "docs/TENANT-CUTOVER-RUNBOOK.md",
     "scripts/test-tenant-suspension-postgres.mjs",
     "scripts/test-tenant-cutover-readiness.mjs",
+    "scripts/verify-tenant-production-isolation.mjs",
     "scripts/verify-tenant-cutover-readiness.mjs",
   ];
   const requiredTrackedFiles = requiredPaths.map((path) => ({ path, tracked: command(["ls-files", "--error-unmatch", path], { allowFailure: true }).status === 0 }));
@@ -147,13 +154,33 @@ export function evaluateReceipt(receipt, head, tenantSlug) {
     check("release.commit", receipt.commitSha === head, receipt.commitSha === head ? "Receipt commit matches the checked-out release." : "Receipt commit does not match HEAD."),
     check("release.deployment", typeof receipt.deploymentReceipt === "string" && receipt.deploymentReceipt.trim().length > 0, receipt.deploymentReceipt ? "Deployment receipt is present." : "Deployment receipt is missing."),
     check("release.alias", receipt.canonicalAlias === CANONICAL_ALIAS, receipt.canonicalAlias === CANONICAL_ALIAS ? `Canonical alias is ${CANONICAL_ALIAS}.` : `Canonical alias must be ${CANONICAL_ALIAS}.`),
-    check("release.migration", receipt.migrations?.suspensionGuard === "passed" && receipt.migrations?.uniquenessCutover === "passed", "Suspension and uniqueness migration receipts must both be passed."),
+    check("release.verified_at", typeof receipt.verifiedAt === "string" && !Number.isNaN(Date.parse(receipt.verifiedAt)), receipt.verifiedAt ? "Release receipt has a verification timestamp." : "Release receipt verification timestamp is missing."),
   ];
+  const evidencePassed = (entry) => entry?.status === "passed" && typeof entry.receipt === "string" && entry.receipt.trim().length > 0;
+  const missingMigrations = ["suspensionGuard", "uniquenessCutover"].filter((name) => !evidencePassed(receipt.migrations?.[name]));
+  checks.push(check("release.migration", missingMigrations.length === 0, missingMigrations.length === 0 ? "Suspension and uniqueness migration evidence have concrete receipts." : `Missing passed migration receipt(s): ${missingMigrations.join(", ")}.`));
   const requiredChecks = ["schema", "isolation", "providers", "adminRoutes", "rollback"];
-  const missing = requiredChecks.filter((name) => receipt.verification?.[name] !== "passed");
-  checks.push(check("release.verification", missing.length === 0, missing.length === 0 ? "Schema, isolation, provider, admin-route, and rollback evidence passed." : `Missing passed verification receipt(s): ${missing.join(", ")}.`));
+  const missing = requiredChecks.filter((name) => !evidencePassed(receipt.verification?.[name]));
+  checks.push(check("release.verification", missing.length === 0, missing.length === 0 ? "Schema, isolation, provider, admin-route, and rollback evidence have concrete receipts." : `Missing passed verification receipt(s): ${missing.join(", ")}.`));
   if (tenantSlug) checks.push(check("release.activation_target", receipt.activationTarget === tenantSlug, receipt.activationTarget === tenantSlug ? "Receipt is bound to the requested activation target." : "Receipt activation target does not match --tenant."));
   return checks;
+}
+
+export function evaluateDeployment(state, head) {
+  const expectedId = head.slice(0, 12);
+  return [
+    check("deployment.canonical_alias", state.homeStatus === 200 && state.homeUrl === `${CANONICAL_ALIAS}/`, state.homeStatus === 200 ? `Canonical alias resolved to ${state.homeUrl}.` : `Canonical alias returned HTTP ${state.homeStatus}.`),
+    check("deployment.identity", state.deploymentIds.length === 1 && state.deploymentIds[0] === expectedId, state.deploymentIds.length === 1 && state.deploymentIds[0] === expectedId ? `Canonical HTML serves deployment identity ${expectedId}.` : `Canonical HTML deployment identities ${state.deploymentIds.join(", ") || "none"} do not match ${expectedId}.`),
+    check("deployment.tenant_route", [302, 307, 308].includes(state.tenantRouteStatus) && state.tenantRouteLocation?.startsWith("/admin/login?redirect=%2Ft%2Faccelerate%2Fadmin%2Ftoday"), [302, 307, 308].includes(state.tenantRouteStatus) ? "Canonical tenant workspace route reaches the authenticated login boundary." : `Tenant workspace route returned HTTP ${state.tenantRouteStatus}.`),
+  ];
+}
+
+export async function readDeploymentState() {
+  const home = await fetch(`${CANONICAL_ALIAS}/`, { signal: AbortSignal.timeout(15_000) });
+  const html = await home.text();
+  const deploymentIds = [...new Set([...html.matchAll(/\?dpl=([A-Za-z0-9_-]+)/g)].map((match) => match[1]))];
+  const tenantRoute = await fetch(`${CANONICAL_ALIAS}/t/accelerate/admin/today`, { redirect: "manual", signal: AbortSignal.timeout(15_000) });
+  return { homeStatus: home.status, homeUrl: home.url, deploymentIds, tenantRouteStatus: tenantRoute.status, tenantRouteLocation: tenantRoute.headers.get("location") };
 }
 
 function readReceipt(path) {
@@ -187,7 +214,10 @@ async function main() {
     const databaseState = readDatabaseState(tenantSlug, expectedArtifacts);
     checks.push(...evaluateDatabase(stage, databaseState, expectedArtifacts, tenantSlug));
   }
-  if (stage === "post-deploy" || stage === "pre-activation") checks.push(...evaluateReceipt(readReceipt(receiptPath), repositoryState.head, tenantSlug));
+  if (stage === "post-deploy" || stage === "pre-activation") {
+    checks.push(...evaluateDeployment(await readDeploymentState(), repositoryState.head));
+    checks.push(...evaluateReceipt(readReceipt(receiptPath), repositoryState.head, tenantSlug));
+  }
   const output = resultFor(stage, checks);
   console.log(JSON.stringify(output, null, 2));
   process.exitCode = output.status === "ready" ? 0 : 1;

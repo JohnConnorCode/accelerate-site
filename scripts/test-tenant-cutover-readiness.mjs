@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import {
   CUTOVER_RECEIPT_VERSION,
   evaluateDatabase,
+  evaluateDeployment,
   evaluateReceipt,
   evaluateRepository,
   expectedCompatibilityIndexes,
@@ -30,7 +31,8 @@ const cleanRepository = {
   requiredTrackedFiles: [{ path: "migration.sql", tracked: true }],
 };
 assert.equal(resultFor("repository", evaluateRepository(cleanRepository)).status, "ready");
-assert.equal(resultFor("repository", evaluateRepository({ ...cleanRepository, worktrees: [...cleanRepository.worktrees, { path: "/tmp/investigation", branch: "investigation", head: "b".repeat(40) }], unmergedBranches: ["investigation"] }, ["investigation"])).status, "ready");
+assert.equal(resultFor("repository", evaluateRepository({ ...cleanRepository, worktrees: [...cleanRepository.worktrees, { path: "/tmp/investigation", branch: "investigation", head: "b".repeat(40) }], unmergedBranches: ["investigation"] }, [`investigation@${"b".repeat(40)}`])).status, "ready");
+assert.equal(resultFor("repository", evaluateRepository({ ...cleanRepository, worktrees: [...cleanRepository.worktrees, { path: "/tmp/investigation", branch: "investigation", head: "b".repeat(40) }], unmergedBranches: ["investigation"] }, ["investigation"])).status, "blocked");
 for (const mutation of [
   { dirtyPaths: ["src/app/page.tsx"] },
   { upstreamHead: "b".repeat(40) },
@@ -64,12 +66,17 @@ const receipt = {
   commitSha: cleanRepository.head,
   deploymentReceipt: "deployment_123",
   canonicalAlias: "https://www.acceleratewith.us",
-  migrations: { suspensionGuard: "passed", uniquenessCutover: "passed" },
-  verification: { schema: "passed", isolation: "passed", providers: "passed", adminRoutes: "passed", rollback: "passed" },
+  verifiedAt: "2026-08-31T13:45:00.000Z",
+  migrations: { suspensionGuard: { status: "passed", receipt: "migration-suspension-guard" }, uniquenessCutover: { status: "passed", receipt: "44 indexes and 10 constraints absent" } },
+  verification: { schema: { status: "passed", receipt: "402/402" }, isolation: { status: "passed", receipt: "controlled-proof" }, providers: { status: "passed", receipt: "provider-suite" }, adminRoutes: { status: "passed", receipt: "retained-route-matrix" }, rollback: { status: "passed", receipt: "suspension-proof" } },
   activationTarget: "controlled-client",
 };
 assert.equal(resultFor("post-deploy", evaluateReceipt(receipt, cleanRepository.head)).status, "ready");
 assert.equal(resultFor("post-deploy", evaluateReceipt({ ...receipt, commitSha: "b".repeat(40) }, cleanRepository.head)).status, "blocked");
+assert.equal(resultFor("post-deploy", evaluateReceipt({ ...receipt, verification: { ...receipt.verification, providers: { status: "passed", receipt: "" } } }, cleanRepository.head)).status, "blocked");
+const deployment = { homeStatus: 200, homeUrl: "https://www.acceleratewith.us/", deploymentIds: [cleanRepository.head.slice(0, 12)], tenantRouteStatus: 307, tenantRouteLocation: "/admin/login?redirect=%2Ft%2Faccelerate%2Fadmin%2Ftoday" };
+assert.equal(resultFor("post-deploy", evaluateDeployment(deployment, cleanRepository.head)).status, "ready");
+assert.equal(resultFor("post-deploy", evaluateDeployment({ ...deployment, deploymentIds: ["stale-release"] }, cleanRepository.head)).status, "blocked");
 assert.equal(resultFor("pre-activation", [
   ...evaluateDatabase("pre-activation", postDeployDatabase, expectedArtifacts, "controlled-client"),
   ...evaluateReceipt(receipt, cleanRepository.head, "controlled-client"),

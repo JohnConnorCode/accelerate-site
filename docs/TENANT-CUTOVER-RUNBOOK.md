@@ -14,9 +14,10 @@ pass.
 1. `npm run verify:tenant-cutover -- --stage=repository`
    requires `main`, a clean tree, exact upstream synchronization, no additional
    worktree or unmerged local branch unless each is explicitly named with
-   `--exclude-worktree=<branch>` in the recorded release command, and all
-   cutover files committed. Exclusion preserves unrelated investigation work;
-   it never makes that work part of the release.
+   `--exclude-worktree=<branch>@<full-40-character-commit>` in the recorded
+   release command, and all cutover files committed. Exact commit binding makes
+   a stale exclusion fail if the investigation advances. Exclusion preserves
+   unrelated investigation work; it never makes that work part of the release.
 2. After authorized application of
    `migrations/20260831-tenant-suspension-guards.sql`, run
    `npm run verify:tenant-cutover -- --stage=post-migration`. The production
@@ -47,16 +48,17 @@ shape and name only evidence that was actually observed:
   "commitSha": "40-character verified commit",
   "deploymentReceipt": "immutable Vercel deployment identifier",
   "canonicalAlias": "https://www.acceleratewith.us",
+  "verifiedAt": "ISO-8601 timestamp",
   "migrations": {
-    "suspensionGuard": "passed",
-    "uniquenessCutover": "passed"
+    "suspensionGuard": { "status": "passed", "receipt": "migration verification identifier" },
+    "uniquenessCutover": { "status": "passed", "receipt": "global artifact reconciliation result" }
   },
   "verification": {
-    "schema": "passed",
-    "isolation": "passed",
-    "providers": "passed",
-    "adminRoutes": "passed",
-    "rollback": "passed"
+    "schema": { "status": "passed", "receipt": "schema receipt" },
+    "isolation": { "status": "passed", "receipt": "controlled isolation receipt" },
+    "providers": { "status": "passed", "receipt": "provider test receipt" },
+    "adminRoutes": { "status": "passed", "receipt": "desktop/mobile route receipt" },
+    "rollback": { "status": "passed", "receipt": "suspension rollback receipt" }
   },
   "activationTarget": "controlled-client-slug"
 }
