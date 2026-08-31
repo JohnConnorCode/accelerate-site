@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendRecordedEmail } from "./communications";
 import { recordAudit } from "./audit";
 import { campaignMemberMaySend, stopCampaignMemberships } from "./campaign-stops";
+import { recordStaleClaimRecovery, STALE_CLAIM_WINDOW_MS } from "./runs";
 
 interface CampaignPolicy {
   daily_limit?: number;
@@ -54,16 +55,22 @@ export const MAX_SEND_ATTEMPTS = 3;
  * is the recovery, bounded by age so a send genuinely in flight is never
  * duplicated.
  */
-const SEND_CLAIM_STALE_MINUTES = 30;
-
-async function releaseStaleSendClaims(supabase: SupabaseClient, now: Date): Promise<number> {
-  const staleBefore = new Date(now.getTime() - SEND_CLAIM_STALE_MINUTES * 60_000).toISOString();
+export async function recoverStaleCampaignSendClaims(supabase: SupabaseClient, now = new Date()): Promise<number> {
+  const staleBefore = new Date(now.getTime() - STALE_CLAIM_WINDOW_MS).toISOString();
   const { data, error } = await supabase.from("campaign_members")
     .update({ status: "active", next_send_at: now.toISOString(), updated_at: now.toISOString() })
     .eq("status", "sending")
     .lt("send_claimed_at", staleBefore)
-    .select("id");
+    .select("id,campaign_id,send_claim_key");
   if (error) throw new Error(`releasing stale send claims: ${error.message}`);
+  for (const row of data ?? []) {
+    await recordStaleClaimRecovery(supabase, {
+      entityType: "campaign_member",
+      entityId: String(row.id),
+      jobKey: typeof row.send_claim_key === "string" ? row.send_claim_key : null,
+      detail: "A campaign send claimed this member and never reported a terminal state, so the claim was released for a later executor to retry under the original send key.",
+    });
+  }
   return data?.length ?? 0;
 }
 
@@ -118,7 +125,7 @@ export async function executeDueCampaignMembers(supabase: SupabaseClient, now = 
   let failed = 0;
   let stopped = 0;
   let unclaimed = 0;
-  const recoveredSends = await releaseStaleSendClaims(supabase, now);
+  const recoveredSends = await recoverStaleCampaignSendClaims(supabase, now);
 
   // One account-wide budget, shared across every active campaign.
   const { count: sentTodayAllCampaigns } = await supabase.from("messages")

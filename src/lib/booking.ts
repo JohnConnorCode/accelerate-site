@@ -5,13 +5,25 @@
 
 import { tenant } from "@/config/tenant";
 
+export type BookingMode = "embed" | "manual" | "disabled";
+
+/**
+ * Public booking mode. Tenant config owns the default; CALENDLY_ENABLED=false
+ * is the emergency pause. This is not Calendly API health.
+ */
+export function bookingMode(): BookingMode {
+  if (process.env.CALENDLY_ENABLED === "false") return "disabled";
+  if (tenant.capabilities.publicBooking && tenant.booking.schedulerUrl) return "embed";
+  return "manual";
+}
+
+/** Whether a public scheduler embed should render. */
+export function hasScheduler(): boolean {
+  return bookingMode() === "embed";
+}
+
 /** External scheduler event, when one is configured. */
 export const CALENDLY_URL = tenant.booking.schedulerUrl ?? "";
-
-/** Whether to render a scheduler embed at all. With no event configured the
- *  booking surfaces fall back to the contact form rather than embedding an
- *  empty or foreign calendar. */
-export const HAS_SCHEDULER = Boolean(tenant.booking.schedulerUrl);
 
 /** On-site booking page. The calendar is embedded at the top of it. */
 export const BOOKING_PATH = tenant.booking.path;

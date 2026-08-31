@@ -56,7 +56,7 @@ export function AnimateOnScroll({
   return (
     <Component
       variants={resolvedVariants}
-      initial="hidden"
+      initial={false}
       animate={reducedMotion ? "visible" : undefined}
       whileInView={reducedMotion ? undefined : "visible"}
       viewport={{ once: true, margin: "0px 0px -6% 0px" }}
@@ -119,7 +119,7 @@ export function EntranceGroup({
   return (
     <motion.div
       className={cn("reveal-self", className)}
-      initial="hidden"
+      initial={false}
       animate={reducedMotion ? "visible" : undefined}
       whileInView={reducedMotion ? undefined : "visible"}
       viewport={{ once: true, margin: "0px 0px -6% 0px" }}

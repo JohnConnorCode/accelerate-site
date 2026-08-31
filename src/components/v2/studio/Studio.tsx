@@ -1,6 +1,5 @@
-"use client";
-
 import { Hero } from "@/components/home/Hero";
+import { HeroStatement } from "@/components/home/HeroStatement";
 import { Marquee } from "@/components/home/Marquee";
 import { Systems } from "@/components/home/Systems";
 import { CommandCenter } from "@/components/home/CommandCenter";
@@ -22,10 +21,12 @@ import { FinalCta } from "@/components/home/FinalCta";
 export function Studio() {
   return (
     <>
-      {/* Grouped so the mobile hero, proof copy, and marquee can share one
-          continuous opening composition (see `.hero-band` in globals.css). */}
+      {/* The opening hero owns the first viewport. Its explanatory beat enters
+          as a separate scroll section before the marquee, so the CTA keeps a
+          clean, decisive silhouette at every breakpoint. */}
       <div className="hero-band">
         <Hero />
+        <HeroStatement />
         <Marquee />
       </div>
       <Systems />

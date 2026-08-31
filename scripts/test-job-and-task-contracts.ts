@@ -17,7 +17,7 @@ import assert from "node:assert/strict";
 import { MemorySupabase } from "./lib/memory-supabase";
 import { failJobRun, finishJobRun, startJobRun, withJobRun } from "../src/lib/revenue-os/runs";
 import { createRevenueTask } from "../src/lib/revenue-os/tasks";
-import { globalDailySendCap, normalizeCampaignPolicy, renderCampaignTemplate } from "../src/lib/revenue-os/campaigns";
+import { globalDailySendCap, normalizeCampaignPolicy, recoverStaleCampaignSendClaims, renderCampaignTemplate } from "../src/lib/revenue-os/campaigns";
 
 /** A MemorySupabase with the job-claim RPC wired to a real ledger row. */
 function jobHarness(options: { claimed?: boolean; recoveredStale?: boolean; existingStatus?: string } = {}) {
@@ -25,7 +25,7 @@ function jobHarness(options: { claimed?: boolean; recoveredStale?: boolean; exis
   const claimed = options.claimed !== false;
   db.rpc("claim_revenue_job_run", (args) => {
     const runId = "run-1";
-    if (claimed) db.rows("job_runs").push({ id: runId, job_key: args.p_job_key, status: "running", summary: null, error: null, finished_at: null });
+    if (claimed) db.rows("job_runs").push({ id: runId, job_key: args.p_job_key, status: "running", summary: null, error: null, finished_at: null, recovered_from: options.recoveredStale ? "run-dead" : null });
     return { run_id: runId, claimed, existing_status: options.existingStatus ?? (claimed ? "running" : "running"), recovered_stale: Boolean(options.recoveredStale) };
   });
   return db;
@@ -77,6 +77,10 @@ async function main() {
   const recovered = jobHarness({ recoveredStale: true });
   const takeover = await withJobRun(recovered.client, "google-workspace-sync", async () => ({ value: 1, summary: {} }));
   assert.equal(takeover.recoveredStale, true, "a job that keeps needing recovery is a failing job; absorbing the takeover hides that");
+  const recoveryAudit = recovered.rows("audit_log").find((row) => row.action === "execution.stale_claim_recovered");
+  assert.ok(recoveryAudit, "stale job recovery must write an audit receipt, not only an operator alert");
+  assert.equal(recoveryAudit?.entity_id, "run-1");
+  assert.equal((recoveryAudit?.metadata as { recovered_from?: string } | undefined)?.recovered_from, "run-dead");
 
   // ---- Terminal writes are scoped to `running` -------------------------
 
@@ -166,8 +170,28 @@ async function main() {
   assert.equal(renderCampaignTemplate("Hi {{unknown_key}}.", {}), "Hi .", "an unknown placeholder must not survive into the sent body");
   assert.equal(renderCampaignTemplate("Hi {{first_name}}.", { first_name: "   " }), "Hi .", "a whitespace-only value counts as missing");
 
+  // ---- Abandoned campaign send claims are released and audited --------
+
+  const staleSend = new MemorySupabase({
+    campaign_members: [{
+      id: "member-1",
+      campaign_id: "campaign-1",
+      status: "sending",
+      send_claimed_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+      send_claim_key: "campaign:campaign-1:member:member-1:step:0",
+    }],
+    audit_log: [],
+  });
+  const released = await recoverStaleCampaignSendClaims(staleSend.client);
+  assert.equal(released, 1, "a send left `sending` past the stale window must be released");
+  assert.equal(staleSend.rows("campaign_members")[0]!.status, "active", "the member must return to active so the original send key can retry");
+  assert.ok(
+    staleSend.rows("audit_log").some((row) => row.action === "execution.stale_claim_recovered" && row.entity_id === "member-1"),
+    "campaign send recovery must write an audit receipt",
+  );
+
   console.log(JSON.stringify({
-    checks: ["job-success-receipt", "job-failure-recorded-and-rethrown", "unclaimed-does-no-work", "stale-takeover-surfaced", "job-terminal-writes-scoped", "claim-rpc-error-surfaces", "task-dedupe", "dedupe-scoped-to-open", "dedupe-opt-in", "blank-title-refused", "policy-normalisation", "global-cap-bounded", "template-leaves-no-placeholders"],
+    checks: ["job-success-receipt", "job-failure-recorded-and-rethrown", "unclaimed-does-no-work", "stale-takeover-surfaced", "job-terminal-writes-scoped", "claim-rpc-error-surfaces", "task-dedupe", "dedupe-scoped-to-open", "dedupe-opt-in", "blank-title-refused", "policy-normalisation", "global-cap-bounded", "template-leaves-no-placeholders", "stale-campaign-send-recovered"],
     result: "passed",
   }, null, 2));
 }

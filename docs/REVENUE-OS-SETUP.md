@@ -129,7 +129,7 @@ The initial seed includes production migration, admin QA, unsubscribe handling, 
 
 ### Master backlog and agent handoff
 
-The complete execution backlog is source-controlled in `scripts/feature-backlog-data.mjs`. It currently contains 90 dependency-ordered cards across foundation, admin, Google, Gmail, Calendar, Drive, campaigns, proposals, AI, setup, security, operations, QA, release, documentation, and client productization.
+The complete execution backlog is source-controlled in `scripts/feature-backlog-data.mjs`. Its current managed count and status totals come from `npm run verify:agent-contract`; do not copy those mutable totals into documentation. The cards cover foundation, admin, Google, Gmail, Calendar, Drive, campaigns, proposals, AI, setup, security, operations, QA, release, documentation, and client productization.
 
 The universal implementation framework is `docs/REVENUE-OS-ENGINEERING-CONTRACT.md`; the exact pickup/evidence/recovery procedure is `docs/AGENT-TICKET-RUNBOOK.md`; and `src/lib/revenue-os/README.md` maps every core service to its callers and invariants. Run `npm run verify:agent-contract` before claiming work. Managed card definitions are durable in the manifest and projected into `/admin/features`; changes that must survive reconciliation belong in the manifest first.
 
@@ -234,7 +234,7 @@ The public Calendly embed is the active booking path when `CALENDLY_ENABLED` is 
 
 1. Deploy after applying the migration and environment changes.
 2. Sign in with the exact `ADMIN_EMAIL`; verify another authenticated account is denied.
-3. Run `npm run seed:features -- --apply`, then open Setup Center and refresh all checks, including the 90-card Feature Board roadmap.
+3. Run `npm run seed:features -- --apply`, then open Setup Center and refresh all checks, including the complete managed Feature Board reported by `npm run verify:agent-contract`.
 4. Open one public page and complete one safe test conversion; verify Analytics shows first-party activity and the canonical funnel shows the associated opportunity once it is created.
 5. Connect Google, save only approved Drive folder IDs, and run Workspace sync.
 6. Create a small campaign, inspect its dry run, activate the version, then pause it before a second step becomes due.

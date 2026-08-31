@@ -58,9 +58,13 @@ routing or creating surface-specific history systems.
   refetch.
 
 - Public hydration is not a route transition. Initial public server content
-  remains visible and must not animate out before animating in. The admin is an
-  application workspace: its first committed destination and every later route
-  commit run the same single semantic entrance sequence.
+  remains visible and must not animate out before animating in. The homepage
+  hero is the exception: it owns a mount-time `.loaded` gate. PROFIT and the
+  booking button enter with delayed CSS transitions off that gate, so the hero
+  must start unloaded and generic first-paint visibility rules must not force
+  those two beats visible. The admin is an application workspace: its first
+  committed destination and every later route commit run the same single
+  semantic entrance sequence.
 - Public and admin routes each have one entrance owner. Admin route motion is a
   short opacity and rise on the incoming tree only; it must not blur the full
   route or every large child surface. Local dialogs, lists, and state changes

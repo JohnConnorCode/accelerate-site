@@ -3,7 +3,7 @@ import { nanoid } from "nanoid";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { scheduleEmailSequence } from "@/lib/email/sequences";
 import { isValidWorkEmail, normalizeEmail, normalizeWebsite, qualifyRoofingOpportunity, type RoofingQualifierInput } from "@/lib/opportunities";
-import { HAS_SCHEDULER } from "@/lib/booking";
+import { bookingMode } from "@/lib/booking";
 import { recordAudit } from "@/lib/revenue-os/audit";
 import { ingestRoofingQualification } from "@/lib/revenue-os/inbound";
 
@@ -38,11 +38,9 @@ export async function POST(request: NextRequest) {
   }
 
   const qualification = qualifyRoofingOpportunity(body.role, body.revenueBand);
-  // Public self-booking is the active campaign path. Set CALENDLY_ENABLED=false
-  // only for an intentional emergency pause; the free Calendly event needs no API token to embed.
-  // Also requires a configured event: without one the funnel would hand a
-  // qualified lead an empty calendar, which is worse than the manual path.
-  const calendlyEnabled = HAS_SCHEDULER && process.env.CALENDLY_ENABLED !== "false";
+  // Public self-booking is tenant-owned. CALENDLY_ENABLED=false is an emergency
+  // pause. Embed availability is not Calendly API health.
+  const calendlyEnabled = bookingMode() === "embed";
   const supabase = createServiceRoleClient();
   let ingestion;
   try {

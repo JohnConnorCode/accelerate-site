@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { recordAudit } from "./audit";
+import { recordStaleClaimRecovery, STALE_CLAIM_WINDOW_MS } from "./runs";
 
 export const ACTION_URGENCY_ORDER = ["critical", "high", "normal", "low"] as const;
 export type ActionUrgency = (typeof ACTION_URGENCY_ORDER)[number];
@@ -85,7 +86,35 @@ export async function proposeAction(supabase: SupabaseClient, input: {
   return data;
 }
 
+export async function recoverStaleExecutingActions(supabase: SupabaseClient): Promise<number> {
+  const now = new Date().toISOString();
+  const staleBefore = new Date(Date.now() - STALE_CLAIM_WINDOW_MS).toISOString();
+  const { data, error } = await supabase
+    .from("action_queue")
+    .update({
+      status: "failed",
+      error: "Action abandoned before reporting a terminal state and was recovered by a later claim",
+      updated_at: now,
+    })
+    .eq("status", "executing")
+    .lt("updated_at", staleBefore)
+    .select("id,action_type");
+  if (error) {
+    console.error("[actions] stale executing recovery failed:", error.message);
+    return 0;
+  }
+  for (const row of data ?? []) {
+    await recordStaleClaimRecovery(supabase, {
+      entityType: "action_queue",
+      entityId: String(row.id),
+      detail: `Action ${row.action_type} stayed executing past the stale window and was closed as failed so it cannot block the queue forever.`,
+    });
+  }
+  return data?.length ?? 0;
+}
+
 export async function claimApprovedAction(supabase: SupabaseClient, id: string, actorEmail: string) {
+  await recoverStaleExecutingActions(supabase);
   const now = new Date().toISOString();
   const { data, error } = await supabase.from("action_queue").update({
     status: "executing",

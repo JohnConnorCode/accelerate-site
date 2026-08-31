@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   Check, ArrowUpRight, Compass, Workflow, TrendingUp, MessageCircle, PenTool, BarChart3,
@@ -9,9 +9,9 @@ import type { LucideIcon } from "lucide-react";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 import { Section, Container, Eyebrow, Heading, BookCallButton, useReveal, CallTerms } from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
-import { ProofStrip } from "@/components/v2/studio/ProofStrip";
 import { HERO_HEADING } from "@/lib/type-recipes";
-import { OpsFeed } from "@/components/v2/living/OpsFeed";
+import { ApprovalQueue } from "@/components/command-center/ApprovalQueue";
+import type { LiveQueueItem } from "@/components/command-center/ApprovalQueue";
 import { services } from "@/content/services";
 import { trackConversion } from "@/lib/analytics";
 
@@ -19,78 +19,22 @@ const iconMap: Record<string, LucideIcon> = {
   Compass, Workflow, TrendingUp, MessageCircle, PenTool, BarChart3,
 };
 
-/* Static micro-feed per service — the ops-feed motif carried through to each
-   card, showing that service's work in the same live-operations language as
-   the hero. Deterministic (no timers): three rows, one glance. */
-const MICRO_FEEDS: Record<string, { time: string; glyph: string; rgb: string; label: string }[]> = {
-  strategy: [
-    { time: "09:02", glyph: "◆", rgb: "96,165,250", label: "Opportunity map delivered" },
-    { time: "09:15", glyph: "↗", rgb: "163,230,53", label: "Estimate follow-up sent" },
-    { time: "11:40", glyph: "✓", rgb: "190,242,100", label: "Quarter roadmap approved" },
-  ],
-  automation: [
-    { time: "07:58", glyph: "→", rgb: "34,211,238", label: "Intake routed → job created" },
-    { time: "08:31", glyph: "＄", rgb: "52,211,153", label: "Invoice chased → paid" },
-    { time: "08:45", glyph: "✓", rgb: "190,242,100", label: "Morning handoff done by 9am" },
-  ],
-  sales: [
-    { time: "12:04", glyph: "●", rgb: "56,189,248", label: "New inquiry → replied in 40s" },
-    { time: "14:22", glyph: "↻", rgb: "167,139,250", label: "Follow-up #3 delivered" },
-    { time: "16:51", glyph: "✦", rgb: "163,230,53", label: "Proposal opened → owner pinged" },
-  ],
-  engagement: [
-    { time: "02:11", glyph: "●", rgb: "56,189,248", label: "2am inquiry answered" },
-    { time: "09:30", glyph: "✓", rgb: "190,242,100", label: "Appointment confirmed" },
-    { time: "17:05", glyph: "★", rgb: "251,191,36", label: "Review request sent" },
-  ],
-  content: [
-    { time: "08:20", glyph: "✎", rgb: "167,139,250", label: "Article drafted → in review" },
-    { time: "10:12", glyph: "◆", rgb: "96,165,250", label: "Local page published" },
-    { time: "15:44", glyph: "✓", rgb: "190,242,100", label: "Month of posts scheduled" },
-  ],
-  reporting: [
-    { time: "06:30", glyph: "↗", rgb: "163,230,53", label: "Dashboard refreshed" },
-    { time: "07:00", glyph: "●", rgb: "56,189,248", label: "Weekly numbers → owner briefed" },
-    { time: "07:02", glyph: "◆", rgb: "96,165,250", label: "Forecast updated" },
-  ],
-};
+const SERVICE_QUEUE: LiveQueueItem[] = [
+  { id: "scope", kind: "note", title: "Scope mapped to the operating constraint", because: "The sequence of work is ready for review." },
+  { id: "workflow", kind: "task", title: "Workflow build moved into testing", because: "The handoff is being tested against the real process." },
+  { id: "integration", kind: "deal", title: "Core tools connected", because: "The system can now pass the right context between teams." },
+  { id: "handoff", kind: "calendar", title: "Team handoff scheduled", because: "The people who run it are included before it goes live." },
+  { id: "improve", kind: "email", title: "Weekly improvement brief prepared", because: "The next useful change is waiting with the evidence." },
+];
 
-function MicroFeed({ serviceId }: { serviceId: string }) {
-  const rows = MICRO_FEEDS[serviceId];
-  if (!rows) return null;
-  return (
-    <div className="mb-6 overflow-hidden rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-base)_88%,transparent)]">
-      <p className="flex items-center gap-2 border-b border-border-glass px-3.5 py-2.5 font-mono text-[0.65rem] sm:text-[0.56rem] uppercase tracking-[0.22em] text-white-muted">
-        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--gold-base)]" />
-        live · operations
-      </p>
-      <ul className="flex flex-col px-1.5 py-1.5 font-mono text-[0.8rem] sm:text-[0.72rem]">
-        {rows.map((r) => (
-          <li key={r.label} className="flex items-center gap-3 sm:gap-2.5 rounded-lg px-2.5 sm:px-2 py-2 sm:py-1.5">
-            <span className="text-[0.7rem] sm:text-[0.62rem] tabular-nums text-white-muted">{r.time}</span>
-            <span
-              className="grid h-[20px] w-[20px] sm:h-[18px] sm:w-[18px] shrink-0 place-items-center rounded text-[0.75rem] sm:text-[0.66rem]"
-              style={{ color: `rgb(${r.rgb})`, background: `rgba(${r.rgb},0.14)` }}
-            >
-              {r.glyph}
-            </span>
-            <span className="min-w-0 flex-1 truncate text-white-secondary">{r.label}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-/* ────────────────────────────────────────────────────────────────────────────
-   Single per-service row. Consistent layout (text left, deliverables card
-   right) and vertically centered, so a tall card never leaves a void under a
-   short description. Hairline dividers tie the six rows into one cohesive list
-   instead of six disjoint full-height sections. */
+/* One editorial service row: the service's reason first, then the concrete
+   work. This avoids repeating a decorative "live demo" in every card. */
 function ServiceBand({
   service,
+  ordinal,
 }: {
   service: (typeof services)[number];
+  ordinal: number;
 }) {
   const Icon = iconMap[service.icon];
   const ref = useReveal<HTMLElement>();
@@ -99,52 +43,50 @@ function ServiceBand({
     <section
       ref={ref}
       id={service.id}
-      className="section-reveal scroll-mt-[104px] border-t border-border-glass py-14 lg:py-[5.5rem]"
+      className="services-band section-reveal scroll-mt-[126px]"
     >
-      <div className="page-shell grid items-center gap-10 lg:grid-cols-5 lg:gap-16">
-        {/* text — 3 cols */}
-        <div className="lg:col-span-3">
+      <div className="page-shell services-band-grid">
+        <div className="services-band-intro">
           <div>
             {Icon && (
-              <span className="mb-5 inline-grid h-12 w-12 place-items-center rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)] text-gold">
-                <Icon className="h-6 w-6" strokeWidth={1.75} />
+              <span className="services-band-icon">
+                <Icon className="h-5 w-5" strokeWidth={1.6} />
               </span>
             )}
-            <h2 className="display-3 mb-3">{service.name}</h2>
-            <p className="mb-4 max-w-2xl text-base leading-relaxed text-white-muted">
+            <p className="services-band-number">{String(ordinal).padStart(2, "0")}</p>
+            <h2 className="services-band-title">{service.name}</h2>
+            <p className="services-band-problem">
               {service.problemStatement}
             </p>
-            <p className="max-w-2xl text-base leading-relaxed text-white-secondary">
+            <p className="services-band-description">
               {service.description}
             </p>
           </div>
         </div>
 
-        {/* deliverables card — 2 cols */}
-        <div className="lg:col-span-2">
-          <div className="rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-md sm:p-7">
-            <MicroFeed serviceId={service.id} />
-            <p className="mb-4 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white-muted">
+        <div className="services-band-deliverables">
+          <div>
+            <p className="services-band-deliverables-label">
               What you get
             </p>
-            <ul className="mb-7 flex flex-col gap-2.5">
+            <ul className="services-band-deliverables-list">
               {service.deliverables.map((d) => (
-                <li key={d} className="flex items-start gap-3 text-sm leading-relaxed text-white-secondary">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" strokeWidth={2.5} />
+                <li key={d}>
+                  <Check aria-hidden className="h-4 w-4 shrink-0" strokeWidth={2.25} />
                   <span>{d}</span>
                 </li>
               ))}
             </ul>
-            <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border-glass pt-5">
-              <p className="font-display text-lg font-semibold text-heading">{service.pricingDisplay}</p>
+            <div className="services-band-action">
+              <p>{service.pricingDisplay}</p>
               <Link
                 href="/contact"
                 data-cursor="link"
                 onClick={() => trackConversion("Service Get Started", { service: service.name })}
-                className="group inline-flex items-center gap-1.5 text-sm font-semibold text-heading"
+                className="services-band-link"
               >
-                <span className="ink-sweep">Get started</span>
-                <ArrowUpRight className="h-4 w-4 text-gold transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                <span>Start a conversation</span>
+                <ArrowUpRight className="h-4 w-4" />
               </Link>
             </div>
           </div>
@@ -162,32 +104,52 @@ const STEPS = [
 ];
 
 export function ServicesPageContent() {
-  const [activeId, setActiveId] = useState<string>("");
+  const [activeId, setActiveId] = useState<string>(services[0]!.id);
+  const quickNavRef = useRef<HTMLDivElement>(null);
 
-  // sticky-nav active state — observed against viewport center
+  // Scrollspy tracks the reading line rather than a zero-height observer
+  // window. The old observer could miss a section entirely on short mobile
+  // viewports, leaving the rail stale while the reader continued down-page.
   useEffect(() => {
-    const observers: IntersectionObserver[] = [];
-    services.forEach((service) => {
-      const el = document.getElementById(service.id);
-      if (!el) return;
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry?.isIntersecting) setActiveId(service.id);
-        },
-        { rootMargin: "-50% 0px -50% 0px" }
-      );
-      observer.observe(el);
-      observers.push(observer);
-    });
-    return () => observers.forEach((o) => o.disconnect());
+    let frame = 0;
+    const updateActiveService = () => {
+      frame = 0;
+      const readingLine = Math.max(144, window.innerHeight * 0.38);
+      let nextId = services[0]!.id;
+      for (const service of services) {
+        const section = document.getElementById(service.id);
+        if (section && section.getBoundingClientRect().top <= readingLine) nextId = service.id;
+      }
+      setActiveId((current) => current === nextId ? current : nextId);
+    };
+    const scheduleUpdate = () => {
+      if (!frame) frame = requestAnimationFrame(updateActiveService);
+    };
+    scheduleUpdate();
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate);
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
+    };
   }, []);
+
+  // Keep the selected item centered inside the rail. Scrolling the rail
+  // directly never changes the document's vertical scroll position.
+  useEffect(() => {
+    const rail = quickNavRef.current;
+    const activeLink = rail?.querySelector<HTMLElement>(`[data-service-id="${activeId}"]`);
+    if (!rail || !activeLink) return;
+    const left = activeLink.offsetLeft - (rail.clientWidth - activeLink.offsetWidth) / 2;
+    rail.scrollTo({ left: Math.max(0, left), behavior: "auto" });
+  }, [activeId]);
 
   return (
     <>
-      {/* hero — word-stagger headline + the live operations feed */}
-      <section className="page-offset-roomy relative overflow-hidden pb-24">
+      <section className="page-offset-roomy relative flex min-h-[88vh] items-center overflow-hidden pb-20">
         <Container width="wide">
-          <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
+          <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
             <div className="min-w-0">
               <AnimateOnScroll><Eyebrow className="mb-7">what we do</Eyebrow></AnimateOnScroll>
               <RevealHeading
@@ -198,7 +160,7 @@ export function ServicesPageContent() {
                 delay={0.1}
               />
               <AnimateOnScroll delay={0.25}>
-                <p className="mt-7 max-w-md text-base leading-relaxed text-white-secondary">
+                <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
                   We help you decide where AI belongs, build the right workflows, agents, tools, and integrations, and stay involved through execution, training, and improvement.
                 </p>
               </AnimateOnScroll>
@@ -216,20 +178,25 @@ export function ServicesPageContent() {
               </AnimateOnScroll>
             </div>
 
-            {/* hero visual — the live operations feed, same as the homepage */}
             <AnimateOnScroll as="div" delay={0.2} className="relative min-w-0">
-              <OpsFeed className="w-full shadow-2xl shadow-black/40" />
+              <ApprovalQueue
+                items={SERVICE_QUEUE}
+                header="delivery queue"
+                actions={["Map", "Build", "Run"]}
+                footer={["Completed today", "Running / improving"]}
+                initialCount={18}
+              />
             </AnimateOnScroll>
           </div>
         </Container>
       </section>
 
-      {/* sticky service quick-nav — on-brand colors */}
+      {/* Sticky service quick-nav — follows the current service on its own. */}
       <nav
-        className="sticky top-[60px] z-[80] border-b border-border-glass bg-bg-base/85 backdrop-blur-md"
+        className="services-subnav sticky z-[80]"
         aria-label="Service quick navigation"
       >
-        <div className="page-shell flex gap-1 overflow-x-auto py-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div ref={quickNavRef} className="services-subnav-rail page-shell">
           {services.map((service) => {
             const Icon = iconMap[service.icon];
             const isActive = activeId === service.id;
@@ -238,10 +205,13 @@ export function ServicesPageContent() {
                 key={service.id}
                 href={`#${service.id}`}
                 data-cursor="link"
-                className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                data-service-id={service.id}
+                onClick={() => setActiveId(service.id)}
+                aria-current={isActive ? "location" : undefined}
+                className={`services-subnav-link ${
                   isActive
-                    ? "border-b-2 border-gold bg-[color-mix(in_srgb,var(--gold-base)_14%,transparent)] text-gold"
-                    : "text-white-muted hover:bg-[color-mix(in_srgb,var(--gold-base)_8%,transparent)] hover:text-white-primary"
+                    ? "is-active"
+                    : ""
                 }`}
               >
                 {Icon && <Icon className="h-3.5 w-3.5" strokeWidth={2} />}
@@ -253,12 +223,9 @@ export function ServicesPageContent() {
       </nav>
 
       {/* per-service bands */}
-      {services.map((service) => (
-        <ServiceBand key={service.id} service={service} />
+      {services.map((service, index) => (
+        <ServiceBand key={service.id} service={service} ordinal={index + 1} />
       ))}
-
-      {/* proof, after the visitor has seen what we build */}
-      <ProofStrip />
 
       {/* process timeline — master language: numbered nodes + connector */}
       <Section width="wide" className="bg-[var(--bg-section-warm)]">

@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { ArrowUpRight, Clock } from "lucide-react";
-import type { Article } from "@/lib/types";
+import type { ArticleSummary } from "@/lib/types";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { formatDateOnly } from "@/lib/date-format";
 
 interface ArticleCardProps {
-  article: Article;
+  article: ArticleSummary;
   index?: number;
   showCategory?: boolean;
 }

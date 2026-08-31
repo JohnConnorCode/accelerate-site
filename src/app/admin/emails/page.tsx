@@ -24,6 +24,9 @@ import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { fetchJson } from "@/lib/admin/fetchJson";
+import { useAdminQuery } from "@/lib/admin/useAdminQuery";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
+import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { toast } from "@/lib/admin/useToast";
 import { cn } from "@/lib/utils";
 import { EmailBlockComposer } from "@/components/admin/EmailBlockComposer";
@@ -78,59 +81,40 @@ type StudioTab = "templates" | "history";
 
 export default function EmailsPage() {
   const [tab, setTab] = useState<StudioTab>("templates");
-  const [emails, setEmails] = useState<EmailEntry[]>([]);
-  const [history, setHistory] = useState<HistoryItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedHistory, setSelectedHistory] = useState<HistoryItem | null>(null);
-  const [detail, setDetail] = useState<EmailDetail | null>(null);
   const [query, setQuery] = useState("");
   const [editing, setEditing] = useState(false);
   const [subject, setSubject] = useState("");
   const [previewText, setPreviewText] = useState("");
   const [blocks, setBlocks] = useState<EmailBlock[]>([]);
   const [previewWidth, setPreviewWidth] = useState<"desktop" | "mobile">("desktop");
-  const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
   const [confirmPublish, setConfirmPublish] = useState(false);
-  const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
+  const listQuery = useAdminQuery<{ schemaReady: boolean; emails: EmailEntry[] }>(["admin", "emails"], "/api/admin/emails/preview");
+  const historyQuery = useAdminQuery<{ history: HistoryItem[] }>(["admin", "emails-history"], "/api/admin/emails/history");
+  const emails = useMemo(() => listQuery.data?.emails ?? [], [listQuery.data?.emails]);
+  const history = useMemo(() => historyQuery.data?.history ?? [], [historyQuery.data?.history]);
+  const selectedEmailId = selectedId || emails[0]?.id || null;
+  const detailQuery = useAdminQuery<EmailDetail>(["admin", "emails", selectedEmailId], `/api/admin/emails/preview?id=${encodeURIComponent(selectedEmailId || "")}`, { enabled: Boolean(selectedEmailId) });
+  const detail = detailQuery.data ?? null;
+  const loading = listQuery.isPending;
 
-  const loadList = useCallback(async () => {
-    setError("");
-    try {
-      const result = await fetchJson<{ schemaReady: boolean; emails: EmailEntry[] }>("/api/admin/emails/preview");
-      setEmails(result.emails);
-      setSelectedId((current) => current || result.emails[0]?.id || null);
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Could not load Email Studio.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
+  const loadList = useCallback(async () => { setActionError(""); await listQuery.refetch(); }, [listQuery]);
+  const loadHistory = useCallback(async () => { await historyQuery.refetch(); }, [historyQuery]);
   const loadDetail = useCallback(async (id: string) => {
-    setError("");
-    try {
-      const result = await fetchJson<EmailDetail>(`/api/admin/emails/preview?id=${encodeURIComponent(id)}`);
-      setDetail(result);
-      setSubject(result.subjectTemplate);
-      setPreviewText(result.previewText);
-      setBlocks(result.blocks);
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Could not load this email.");
-    }
-  }, []);
+    setActionError("");
+    setSelectedId(id);
+    await detailQuery.refetch();
+  }, [detailQuery]);
 
-  const loadHistory = useCallback(async () => {
-    try {
-      const result = await fetchJson<{ history: HistoryItem[] }>("/api/admin/emails/history");
-      setHistory(result.history);
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Could not load sent history.");
-    }
-  }, []);
-
-  useEffect(() => { void loadList(); void loadHistory(); }, [loadHistory, loadList]);
-  useEffect(() => { if (selectedId) void loadDetail(selectedId); }, [loadDetail, selectedId]);
+  useEffect(() => {
+    if (!detail || editing) return;
+    setSubject(detail.subjectTemplate);
+    setPreviewText(detail.previewText);
+    setBlocks(detail.blocks);
+  }, [detail, editing]);
 
   const filteredEmails = useMemo(() => emails.filter((email) => !query.trim() || `${email.name} ${email.description} ${email.category} ${email.subject}`.toLowerCase().includes(query.toLowerCase())), [emails, query]);
   const filteredHistory = useMemo(() => history.filter((item) => !query.trim() || `${item.to} ${item.subject || ""} ${item.template || ""}`.toLowerCase().includes(query.toLowerCase())), [history, query]);
@@ -177,11 +161,13 @@ export default function EmailsPage() {
     window.dispatchEvent(new CustomEvent("admin:compose-email", { detail: { subject: detail.subject, body: emailBlocksToText(detail.blocks, detail.sampleData || {}) } }));
   };
 
-  const currentListHidden = (tab === "templates" && selectedId) || (tab === "history" && selectedHistory);
+  const currentListHidden = (tab === "templates" && selectedEmailId) || (tab === "history" && selectedHistory);
 
   return <div className="space-y-6 pb-10">
-    <PageHeader title="Email Studio" subtitle="Edit live email copy safely, inspect what was sent, and compose a direct follow-up from one workspace." utilityActions={<button type="button" onClick={() => { void loadList(); void loadHistory(); }} disabled={loading} className="admin-icon-button shadow-[var(--admin-shadow-border)]" aria-label="Refresh Email Studio"><RefreshCw className={cn("size-4", loading && "animate-spin")} /></button>} />
+    <PageHeader title="Email Studio" subtitle="Edit live email copy safely, inspect what was sent, and compose a direct follow-up from one workspace." utilityActions={<button type="button" onClick={() => { void loadList(); void loadHistory(); }} disabled={listQuery.isFetching} className="admin-icon-button shadow-[var(--admin-shadow-border)]" aria-label="Refresh Email Studio"><RefreshCw className={cn("size-4", listQuery.isFetching && "animate-spin")} /></button>} />
 
+    <AdminReadBody loading={loading} hasData={Boolean(listQuery.data)} error={listQuery.error?.message || historyQuery.error?.message || ""} onRetry={() => { void loadList(); void loadHistory(); }} refreshing={listQuery.isFetching} loadingFallback={<LoadingSkeleton variant="detail" />} label="Loading Email Studio">
+    {actionError && <AdminSurface tone="attention" className="flex items-center gap-3"><TriangleAlert className="size-5 shrink-0 text-rose-600" /><p className="text-sm text-[var(--admin-ink)]">{actionError}</p></AdminSurface>}
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="inline-flex rounded-xl bg-black/[0.04] p-1 dark:bg-white/[0.055]" role="tablist" aria-label="Email Studio views">
         {[{ id: "templates" as const, label: "Templates", icon: Mail }, { id: "history" as const, label: "Sent history", icon: History }].map(({ id, label, icon: Icon }) => <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => { setTab(id); setQuery(""); }} className={cn("inline-flex min-h-10 items-center gap-2 rounded-lg px-3.5 text-xs font-semibold transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.96]", tab === id ? "bg-[var(--admin-surface)] text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]" : "text-[var(--admin-muted)] hover:text-[var(--admin-ink)]")}><Icon className="size-3.5" />{label}</button>)}
@@ -189,14 +175,12 @@ export default function EmailsPage() {
       <div className="relative min-w-[240px] flex-1 sm:max-w-sm"><Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-[var(--admin-muted)]" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={tab === "templates" ? "Search templates" : "Search recipients or subjects"} className="admin-field pl-10" /></div>
     </div>
 
-    {error && <AdminSurface tone="attention" className="flex items-center gap-3"><TriangleAlert className="size-5 shrink-0 text-rose-600" /><p className="text-sm text-[var(--admin-ink)]">{error}</p></AdminSurface>}
-
     <AdminSurface padding="none" className="min-h-[680px] overflow-hidden">
       <div className="grid min-h-[680px] lg:grid-cols-[320px_minmax(0,1fr)]">
         <aside className={cn("border-r border-[var(--admin-border)]", currentListHidden && "hidden lg:block")}>
           <div className="border-b border-[var(--admin-border)] px-4 py-3"><p className="admin-eyebrow mb-0">{tab === "templates" ? `${filteredEmails.length} messages` : `${filteredHistory.length} deliveries`}</p></div>
           <div className="max-h-[635px] divide-y divide-[var(--admin-border)] overflow-y-auto">
-            {tab === "templates" ? filteredEmails.map((email) => <button key={email.id} type="button" onClick={() => { setSelectedId(email.id); setEditing(false); }} className={cn("group w-full px-4 py-3.5 text-left transition-[background-color] duration-150 hover:bg-black/[0.022] dark:hover:bg-white/[0.025]", selectedId === email.id && "bg-black/[0.035] dark:bg-white/[0.04]")}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate text-sm font-semibold text-[var(--admin-ink)]">{email.name}</p><p className="admin-copy mt-1 line-clamp-2 text-[11px] leading-4">{email.description}</p></div><span className={cn("mt-0.5 size-2 shrink-0 rounded-full", email.hasDraft ? "bg-amber-500" : email.source === "published" ? "bg-emerald-500" : "bg-slate-400")} /></div><div className="mt-2 flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.08em] text-[var(--admin-muted)]"><span>{email.category}</span>{email.delayDays != null && <span>· {email.delayDays ? `Day ${email.delayDays}` : "Immediate"}</span>}</div></button>) : filteredHistory.map((item) => <button key={item.id} type="button" onClick={() => setSelectedHistory(item)} className={cn("w-full px-4 py-3.5 text-left transition-[background-color] duration-150 hover:bg-black/[0.022] dark:hover:bg-white/[0.025]", selectedHistory?.id === item.id && "bg-black/[0.035] dark:bg-white/[0.04]")}><div className="flex items-center justify-between gap-2"><p className="truncate text-sm font-semibold text-[var(--admin-ink)]">{item.to}</p><span className={cn("size-2 shrink-0 rounded-full", item.status === "sent" || item.status === "delivered" ? "bg-emerald-500" : item.status === "failed" ? "bg-rose-500" : "bg-amber-500")} /></div><p className="mt-1 truncate text-xs text-[var(--admin-ink)]">{item.subject || "(No subject)"}</p><p className="admin-copy mt-1 font-mono text-[9px] tabular-nums">{new Date(item.sentAt).toLocaleString()}</p></button>)}
+            {tab === "templates" ? filteredEmails.map((email) => <button key={email.id} type="button" onClick={() => { setSelectedId(email.id); setEditing(false); }} className={cn("group w-full px-4 py-3.5 text-left transition-[background-color] duration-150 hover:bg-black/[0.022] dark:hover:bg-white/[0.025]", selectedEmailId === email.id && "bg-black/[0.035] dark:bg-white/[0.04]")}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate text-sm font-semibold text-[var(--admin-ink)]">{email.name}</p><p className="admin-copy mt-1 line-clamp-2 text-[11px] leading-4">{email.description}</p></div><span className={cn("mt-0.5 size-2 shrink-0 rounded-full", email.hasDraft ? "bg-amber-500" : email.source === "published" ? "bg-emerald-500" : "bg-slate-400")} /></div><div className="mt-2 flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.08em] text-[var(--admin-muted)]"><span>{email.category}</span>{email.delayDays != null && <span>· {email.delayDays ? `Day ${email.delayDays}` : "Immediate"}</span>}</div></button>) : filteredHistory.map((item) => <button key={item.id} type="button" onClick={() => setSelectedHistory(item)} className={cn("w-full px-4 py-3.5 text-left transition-[background-color] duration-150 hover:bg-black/[0.022] dark:hover:bg-white/[0.025]", selectedHistory?.id === item.id && "bg-black/[0.035] dark:bg-white/[0.04]")}><div className="flex items-center justify-between gap-2"><p className="truncate text-sm font-semibold text-[var(--admin-ink)]">{item.to}</p><span className={cn("size-2 shrink-0 rounded-full", item.status === "sent" || item.status === "delivered" ? "bg-emerald-500" : item.status === "failed" ? "bg-rose-500" : "bg-amber-500")} /></div><p className="mt-1 truncate text-xs text-[var(--admin-ink)]">{item.subject || "(No subject)"}</p><p className="admin-copy mt-1 font-mono text-[9px] tabular-nums">{new Date(item.sentAt).toLocaleString()}</p></button>)}
           </div>
         </aside>
 
@@ -208,6 +192,7 @@ export default function EmailsPage() {
         </main>
       </div>
     </AdminSurface>
+    </AdminReadBody>
 
     <AdminDialog open={confirmPublish} onClose={() => setConfirmPublish(false)} title="Publish this email draft?" labelledBy="publish-email-title" maxWidth="sm"><AdminSurface padding="lg" className="admin-dialog-surface"><p className="admin-eyebrow">External behavior change</p><h2 id="publish-email-title" className="admin-dialog-title">Publish this email draft?</h2><p className="admin-copy mt-2 text-pretty text-sm">New sends will use this exact subject and body. Previously sent email will not change.</p><div className="mt-6 flex justify-end gap-2"><button type="button" onClick={() => setConfirmPublish(false)} className="min-h-10 rounded-lg px-3 text-xs font-semibold text-[var(--admin-muted)] active:scale-[0.96]">Cancel</button><button type="button" onClick={() => void templateAction("publish")} disabled={working} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[var(--admin-ink)] px-3.5 text-xs font-semibold text-[var(--admin-surface)] active:scale-[0.96] disabled:opacity-50">{working ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />} Publish live</button></div></AdminSurface></AdminDialog>
   </div>;

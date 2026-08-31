@@ -1,11 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import { CalendarCheck2, DollarSign, Target, UserCheck } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
-import { AdminPageLoading } from "@/components/admin/AdminPageLoading";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
+import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { fetchJson } from "@/lib/admin/fetchJson";
+import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { toast } from "@/lib/admin/useToast";
 
 interface Opportunity {
@@ -41,23 +43,15 @@ interface Metrics {
 const stages = ["nurture", "qualified", "calendar_viewed", "booked", "showed", "no_show", "proposal", "won", "lost"];
 
 export default function AdminBookingsPage() {
-  const [items, setItems] = useState<Opportunity[]>([]);
-  const [metrics, setMetrics] = useState<Metrics | null>(null);
-  const [loading, setLoading] = useState(true);
+  const bookingsQuery = useAdminQuery<{ opportunities: Opportunity[]; metrics: Metrics }>(["admin", "bookings"], "/api/admin/bookings?days=90");
+  const items = bookingsQuery.data?.opportunities ?? [];
+  const metrics = bookingsQuery.data?.metrics ?? null;
+  const loading = bookingsQuery.isPending;
 
   const load = useCallback(async () => {
-    try {
-      const data = await fetchJson<{ opportunities: Opportunity[]; metrics: Metrics }>("/api/admin/bookings?days=90");
-      setItems(data.opportunities);
-      setMetrics(data.metrics);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Couldn't load bookings");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+    const result = await bookingsQuery.refetch();
+    if (result.error) toast.error(result.error.message || "Couldn't load bookings");
+  }, [bookingsQuery]);
 
   const updateStage = async (item: Opportunity, stage: string) => {
     try {
@@ -73,11 +67,10 @@ export default function AdminBookingsPage() {
     }
   };
 
-  if (loading) return <AdminPageLoading title="Bookings" subtitle="Roofing campaign qualification, calls, and revenue attribution." variant="table" />;
-
   return (
     <div className="space-y-6">
       <PageHeader title="Bookings" subtitle="Roofing campaign qualification, calls, and revenue attribution." />
+      <AdminReadBody loading={loading} hasData={Boolean(bookingsQuery.data)} error={bookingsQuery.error?.message} onRetry={() => void load()} refreshing={bookingsQuery.isFetching} loadingFallback={<LoadingSkeleton variant="table" />} label="Loading bookings">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
           { label: "Qualified", value: metrics?.qualified || 0, note: `${metrics?.qualifiedToBooked || 0}% booked`, icon: Target },
@@ -108,6 +101,7 @@ export default function AdminBookingsPage() {
           </table>
         </div>
       </AdminSurface>
+      </AdminReadBody>
     </div>
   );
 }

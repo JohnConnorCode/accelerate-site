@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
     try {
       plan = await callOpenRouter(modelUsed, userPrompt);
     } catch (firstError) {
-      console.error("First Claude call failed, retrying:", firstError);
+      console.error("First OpenRouter plan call failed, retrying:", firstError);
       try {
         plan = await callOpenRouter(modelUsed, userPrompt);
       } catch (retryError) {

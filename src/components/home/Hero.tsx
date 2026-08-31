@@ -348,15 +348,6 @@ export function Hero() {
           </h1>
         </div>
 
-        <div className={`hero-btm st${loaded ? " in" : ""}`}>
-          {/* Fades in over a second after the CTA (6.10s), not
-              simultaneously with it — a deliberate trailing beat. */}
-          <div style={{ "--d": "7.30s" } as CSSProperties}>
-            <p className="lede">
-              We identify where work is slow or revenue is missed, then build and improve the smallest useful system. That can include CRM connections, voice-to-text workflows, or better inquiry capture.
-            </p>
-          </div>
-        </div>
       </motion.div>
     </section>
   );

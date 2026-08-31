@@ -23,7 +23,7 @@ import { ArticleCard } from "@/components/mdx/ArticleCard";
 import { Section, Container, Eyebrow, Heading } from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { HERO_HEADING } from "@/lib/type-recipes";
-import type { Article, ArticleCategory } from "@/lib/types";
+import type { ArticleCategory, ArticleSummary } from "@/lib/types";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { formatDateOnly } from "@/lib/date-format";
 
@@ -39,8 +39,8 @@ const ALL_CATEGORIES: ArticleCategory[] = [
 ];
 
 interface LearnHubProps {
-  articles: Article[];
-  featuredArticle: Article | null;
+  articles: ArticleSummary[];
+  featuredArticle: ArticleSummary | null;
 }
 
 const formatDate = (date: string) =>

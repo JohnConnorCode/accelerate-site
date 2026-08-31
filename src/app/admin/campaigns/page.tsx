@@ -18,10 +18,12 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
-import { AdminPageLoading } from "@/components/admin/AdminPageLoading";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
+import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { fetchJson } from "@/lib/admin/fetchJson";
+import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { cn } from "@/lib/utils";
 
 interface Campaign {
@@ -79,38 +81,27 @@ const statusClass: Record<string, string> = {
 };
 
 export default function CampaignsPage() {
-  const [data, setData] = useState<{
+  const campaignsQuery = useAdminQuery<{
     schemaReady: boolean;
     campaigns: Campaign[];
-  } | null>(null);
+  }>(["admin", "campaigns"], "/api/admin/revenue-os/campaigns");
+  const data = campaignsQuery.data ?? null;
   const [preview, setPreview] = useState<Preview | null>(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
-  const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
   const deepLinkHandled = useRef(false);
+  const loading = campaignsQuery.isPending;
 
   const load = useCallback(async () => {
-    setError("");
-    try {
-      setData(await fetchJson("/api/admin/revenue-os/campaigns"));
-    } catch (loadError) {
-      setError(
-        loadError instanceof Error
-          ? loadError.message
-          : "Could not load campaigns.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-  useEffect(() => {
-    void load();
-  }, [load]);
+    setActionError("");
+    const result = await campaignsQuery.refetch();
+    if (result.error) setActionError(result.error.message || "Could not load campaigns.");
+  }, [campaignsQuery]);
 
   const loadPreview = useCallback(async (id: string) => {
     setSaving(true);
-    setError("");
+    setActionError("");
     try {
       setPreview(
         await fetchJson(
@@ -118,7 +109,7 @@ export default function CampaignsPage() {
         ),
       );
     } catch (previewError) {
-      setError(
+      setActionError(
         previewError instanceof Error
           ? previewError.message
           : "Could not build campaign preview.",
@@ -140,7 +131,7 @@ export default function CampaignsPage() {
     action: "activate" | "pause" | "run",
   ) => {
     setSaving(true);
-    setError("");
+    setActionError("");
     try {
       await fetchJson("/api/admin/revenue-os/campaigns", {
         method: "PATCH",
@@ -149,10 +140,10 @@ export default function CampaignsPage() {
       });
       setPreview(null);
       await load();
-    } catch (actionError) {
-      setError(
-        actionError instanceof Error
-          ? actionError.message
+    } catch (updateError) {
+      setActionError(
+        updateError instanceof Error
+          ? updateError.message
           : "Could not update campaign.",
       );
     } finally {
@@ -163,7 +154,7 @@ export default function CampaignsPage() {
   const create = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSaving(true);
-    setError("");
+    setActionError("");
     const form = new FormData(event.currentTarget);
     const recipients = String(form.get("recipients") || "")
       .split(/[\n,;]/)
@@ -208,7 +199,7 @@ export default function CampaignsPage() {
       await load();
       await loadPreview(result.campaign.id);
     } catch (createError) {
-      setError(
+      setActionError(
         createError instanceof Error
           ? createError.message
           : "Could not create campaign.",
@@ -218,7 +209,6 @@ export default function CampaignsPage() {
     }
   };
 
-  if (loading && !data) return <AdminPageLoading title="Campaigns" subtitle="Approve a campaign version once, then let controlled automation run inside its sender, audience, cadence, limit, and stop rules." variant="table" />;
   return (
     <div className="space-y-6 pb-10">
       <PageHeader
@@ -232,7 +222,7 @@ export default function CampaignsPage() {
               aria-label="Refresh campaigns"
               className="grid size-11 place-items-center rounded-xl text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"
             >
-              <RefreshCw className={cn("size-4", loading && "animate-spin")} />
+              <RefreshCw className={cn("size-4", campaignsQuery.isFetching && "animate-spin")} />
             </button>
             <button
               type="button"
@@ -244,12 +234,13 @@ export default function CampaignsPage() {
           </>
         }
       />
-      {error && (
+      {actionError && (
         <AdminSurface tone="attention" className="flex items-center gap-3">
           <TriangleAlert className="size-5 shrink-0 text-rose-600" />
-          <p className="text-sm text-[var(--admin-ink)]">{error}</p>
+          <p className="text-sm text-[var(--admin-ink)]">{actionError}</p>
         </AdminSurface>
       )}
+      <AdminReadBody loading={loading} hasData={Boolean(data)} error={campaignsQuery.error?.message || ""} onRetry={() => void load()} refreshing={campaignsQuery.isFetching} loadingFallback={<LoadingSkeleton variant="table" />} label="Loading campaigns">
       {data && !data.schemaReady ? (
         <RevenueSetupGate />
       ) : (
@@ -527,6 +518,7 @@ export default function CampaignsPage() {
           </div>
         )
       )}
+      </AdminReadBody>
       <AdminDialog
         open={showCreate}
         onClose={() => setShowCreate(false)}

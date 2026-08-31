@@ -22,6 +22,10 @@ assert.ok(rootLayoutSource.includes('classList.add("motion-ready")'), "Public re
 assert.ok(rootLayoutSource.includes('classList.remove("motion-ready")'), "The pre-paint motion gate must fail open when hydration fails");
 assert.ok(workMotionSource.includes('initialViewport: "animate"'), "Work must explicitly animate its initial viewport instead of inheriting homepage timing");
 assert.ok(workCardSource.includes("reveal={false}"), "Work cards must not double-animate nested cover media");
+const publicStyles = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
+assert.ok(publicStyles.includes('.motion-ready .rv[data-reveal-state="pending"]:not(.work-reveal):not(.in)'), "Generic public reveals hide only while pending");
+assert.ok(publicStyles.includes(".motion-ready .work-reveal:not(.in)"), "Work must keep a delayed-hydration pending frame");
+assert.ok(publicStyles.includes(".motion-ready .hero:not(.loaded) .swap"), "Hero PROFIT must wait on the loaded gate");
 
 assert.deepEqual(workProjects.map((project) => project.slug), expectedSlugs, "work order must remain editorially intentional");
 assert.deepEqual(publicWorkProjects.map((project) => project.slug), expectedPublicSlugs, "public work must contain the six aligned cases");

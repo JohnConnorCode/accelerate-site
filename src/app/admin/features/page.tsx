@@ -42,12 +42,15 @@ import {
   UserRound,
   X,
 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { AdminSurface } from "@/components/admin/AdminSurface";
-import { AdminPageLoading } from "@/components/admin/AdminPageLoading";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
+import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { fetchJson } from "@/lib/admin/fetchJson";
+import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { toast } from "@/lib/admin/useToast";
 import {
   FEATURE_PRIORITIES,
@@ -58,6 +61,7 @@ import {
   type FeatureStatus,
 } from "@/lib/feature-board";
 import { cn } from "@/lib/utils";
+import { tenant } from "@/config/tenant";
 
 interface BoardResponse { schemaReady: boolean; features: FeatureRequest[] }
 
@@ -210,7 +214,7 @@ function FeatureDialog({ open, feature, defaultStatus, saving, onClose, onSave, 
         <label className="text-xs font-semibold text-[var(--admin-ink)] sm:col-span-2">Description<textarea rows={3} value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} className={cn(inputClass, "min-h-24 py-3 leading-6")} placeholder="Why it matters and what should change" /></label>
         <label className="text-xs font-semibold text-[var(--admin-ink)]">Status<select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as FeatureStatus })} className={inputClass}>{FEATURE_STATUSES.map((status) => <option key={status} value={status}>{FEATURE_STATUS_META[status].label}</option>)}</select></label>
         <label className="text-xs font-semibold text-[var(--admin-ink)]">Priority<select value={form.priority} onChange={(event) => setForm({ ...form, priority: event.target.value as FeaturePriority })} className={inputClass}>{FEATURE_PRIORITIES.map((priority) => <option key={priority} value={priority}>{priorityMeta[priority].label}</option>)}</select></label>
-        <label className="text-xs font-semibold text-[var(--admin-ink)]">Owner<input value={form.owner} onChange={(event) => setForm({ ...form, owner: event.target.value })} className={inputClass} placeholder="John" /></label>
+        <label className="text-xs font-semibold text-[var(--admin-ink)]">Owner<input value={form.owner} onChange={(event) => setForm({ ...form, owner: event.target.value })} className={inputClass} placeholder={tenant.founder.name} /></label>
         <label className="text-xs font-semibold text-[var(--admin-ink)]">Target date<input type="date" value={form.target_date} onChange={(event) => setForm({ ...form, target_date: event.target.value })} className={inputClass} /></label>
         <label className="text-xs font-semibold text-[var(--admin-ink)] sm:col-span-2">Labels<input value={form.labels} onChange={(event) => setForm({ ...form, labels: event.target.value })} className={inputClass} placeholder="category:operator, milestone:later, phase:2, capability:admin-ux" /><span className="admin-copy mt-1.5 block text-[10px]">Use the controlled category, milestone, phase, and capability dimensions. Managed-card labels come from the manifest.</span></label>
         <label className="text-xs font-semibold text-[var(--admin-ink)] sm:col-span-2">Definition of done<textarea rows={3} value={form.acceptance_criteria} onChange={(event) => setForm({ ...form, acceptance_criteria: event.target.value })} className={cn(inputClass, "min-h-24 py-3 leading-6")} placeholder="The observable result that proves this is shipped" /></label>
@@ -256,11 +260,19 @@ function previewMove(features: FeatureRequest[], activeId: string, overId: strin
   return features.map((feature) => map.get(feature.id) ?? feature);
 }
 
+const FEATURES_QUERY_KEY = ["admin", "features"] as const;
+
 export default function FeaturesPage() {
-  const [data, setData] = useState<BoardResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const featuresQuery = useAdminQuery<BoardResponse>(FEATURES_QUERY_KEY, "/api/admin/features");
+  const data = featuresQuery.data ?? null;
+  const setData = (updater: BoardResponse | null | ((current: BoardResponse | null) => BoardResponse | null)) => {
+    queryClient.setQueryData(FEATURES_QUERY_KEY, (current: BoardResponse | undefined) => {
+      const next = typeof updater === "function" ? updater(current ?? null) : updater;
+      return next ?? undefined;
+    });
+  };
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [priority, setPriority] = useState<"all" | FeaturePriority>("all");
   const [milestone, setMilestone] = useState<string>(DEFAULT_MILESTONE_FILTER);
@@ -277,13 +289,9 @@ export default function FeaturesPage() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
-  const load = useCallback(async () => {
-    setError("");
-    try { setData(await fetchJson<BoardResponse>("/api/admin/features")); }
-    catch (loadError) { setError(loadError instanceof Error ? loadError.message : "Could not load the feature board."); }
-    finally { setLoading(false); }
-  }, []);
-  useEffect(() => { void load(); }, [load]);
+  const loading = featuresQuery.isPending;
+  const error = featuresQuery.error?.message || "";
+  const load = useCallback(async () => { await featuresQuery.refetch(); }, [featuresQuery]);
 
   const features = useMemo(() => data?.features ?? [], [data?.features]);
   const labels = useMemo(() => [...new Set(features.flatMap((feature) => feature.labels))].sort(), [features]);
@@ -382,10 +390,9 @@ export default function FeaturesPage() {
     }
   };
 
-  if (loading && !data) return <AdminPageLoading title="Feature Board" subtitle="A dependency-ordered execution queue. Milestone says when, category says who owns it, and capability says what it changes." variant="board" />;
   return <div className="space-y-6 pb-10">
-    <PageHeader title="Feature Board" subtitle="A dependency-ordered execution queue. Milestone says when, category says who owns it, and capability says what it changes." utilityActions={<button type="button" onClick={() => void load()} disabled={loading} aria-label="Refresh feature board" className="admin-icon-button shadow-[var(--admin-shadow-border)]"><RefreshCw className={cn("size-4", loading && "animate-spin")} /></button>} actions={<button type="button" onClick={() => { setNewStatus("backlog"); setOpenFeature(null); setFeatureDialogOpen(true); }} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]"><Plus className="size-3.5" /> New feature</button>} />
-    {error && <AdminSurface tone="attention" className="flex items-center gap-3"><TriangleAlert className="size-5 shrink-0 text-rose-600" /><p className="text-sm text-[var(--admin-ink)]">{error}</p></AdminSurface>}
+    <PageHeader title="Feature Board" subtitle="A dependency-ordered execution queue. Milestone says when, category says who owns it, and capability says what it changes." utilityActions={<button type="button" onClick={() => void load()} disabled={featuresQuery.isFetching} aria-label="Refresh feature board" className="admin-icon-button shadow-[var(--admin-shadow-border)]"><RefreshCw className={cn("size-4", featuresQuery.isFetching && "animate-spin")} /></button>} actions={<button type="button" onClick={() => { setNewStatus("backlog"); setOpenFeature(null); setFeatureDialogOpen(true); }} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]"><Plus className="size-3.5" /> New feature</button>} />
+    <AdminReadBody loading={loading} hasData={Boolean(data)} error={error} onRetry={() => void load()} refreshing={featuresQuery.isFetching} loadingFallback={<LoadingSkeleton variant="board" />} label="Loading feature board">
     {data && !data.schemaReady ? <RevenueSetupGate title="Activate the Feature Board" migration="migrations/20260816-feature-board.sql" detail="The migration seeds the known Revenue OS roadmap without overwriting future edits." /> : data && <>
       <section className="grid gap-3 sm:grid-cols-3">
         {[{ label: "Open work", value: features.filter((feature) => feature.status !== "shipped").length, note: "Across the active roadmap", icon: KanbanSquare }, { label: "Urgent", value: features.filter((feature) => feature.priority === "urgent" && feature.status !== "shipped").length, note: "Requires the next decision", icon: TriangleAlert }, { label: "Shipped", value: features.filter((feature) => feature.status === "shipped").length, note: "Delivered and verified", icon: CheckCircle2 }].map(({ label: metricLabel, value, note, icon: Icon }) => <AdminSurface key={metricLabel} padding="lg"><div className="flex items-start justify-between gap-3"><div><p className="admin-eyebrow">{metricLabel}</p><p className="mt-3 text-3xl font-semibold tabular-nums tracking-[-0.045em] text-[var(--admin-ink)]">{value}</p><p className="admin-copy mt-1 text-xs">{note}</p></div><span className="grid size-9 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] dark:bg-white/[0.06]"><Icon className="size-4" /></span></div></AdminSurface>)}
@@ -405,6 +412,7 @@ export default function FeaturesPage() {
       </DndContext>
       <div className="flex flex-col gap-2 rounded-2xl bg-black/[0.025] px-4 py-3 text-xs text-[var(--admin-muted)] dark:bg-white/[0.025] sm:flex-row sm:items-center sm:justify-between"><p>Drag by the grip to reprioritize or move work. Open a card for its definition of done and implementation notes.</p><p className="shrink-0 font-mono text-[10px] tabular-nums">Order saves automatically</p></div>
     </>}
+    </AdminReadBody>
     <FeatureDialog key={openFeature?.id ?? `new-${newStatus}`} open={featureDialogOpen} feature={openFeature} defaultStatus={newStatus} saving={saving} onClose={() => setFeatureDialogOpen(false)} onSave={saveFeature} onArchive={archiveFeature} />
   </div>;
 }

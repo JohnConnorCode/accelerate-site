@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { tenant } from "@/config/tenant";
 import { X } from "lucide-react";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminDialog } from "@/components/admin/AdminDialog";
@@ -15,11 +16,14 @@ interface EmailTemplate {
   body: string;
 }
 
-const templates: EmailTemplate[] = [
-  {
-    label: "Plan review",
-    subject: "A clear next step for {{business}}",
-    body: `Hi {{name}},
+export function emailComposeTemplates(): EmailTemplate[] {
+  const founder = tenant.founder.name;
+  const brand = tenant.brand.name;
+  return [
+    {
+      label: "Plan review",
+      subject: "A clear next step for {{business}}",
+      body: `Hi {{name}},
 
 I reviewed the plan for {{business}} and pulled out the one or two changes most likely to move the needle first.
 
@@ -27,13 +31,13 @@ If it would be useful, I can walk you through the reasoning, the rollout order, 
 
 Would a short conversation this week be useful?
 
-John
-Accelerate`,
-  },
-  {
-    label: "Decision follow-up",
-    subject: "A quick follow-up on {{business}}'s plan",
-    body: `Hi {{name}},
+${founder}
+${brand}`,
+    },
+    {
+      label: "Decision follow-up",
+      subject: "A quick follow-up on {{business}}'s plan",
+      body: `Hi {{name}},
 
 I wanted to make sure the plan for {{business}} did not get buried.
 
@@ -41,12 +45,12 @@ The fastest wins are usually response time, follow-through, and the handoffs tha
 
 No pressure either way. Just reply if you want to talk it through.
 
-John`,
-  },
-  {
-    label: "Proposal ready",
-    subject: "The proposal for {{business}} is ready",
-    body: `Hi {{name}},
+${founder}`,
+    },
+    {
+      label: "Proposal ready",
+      subject: "The proposal for {{business}} is ready",
+      body: `Hi {{name}},
 
 I put together the proposal for {{business}} around the priorities we discussed.
 
@@ -54,11 +58,12 @@ It covers the operating system, the implementation sequence, and what we will ow
 
 Reply with any questions, or send a few times that work and we will walk through it together.
 
-John
-Accelerate`,
-  },
-  { label: "Custom", subject: "", body: "" },
-];
+${founder}
+${brand}`,
+    },
+    { label: "Custom", subject: "", body: "" },
+  ];
+}
 
 interface EmailComposeModalProps {
   isOpen: boolean;
@@ -87,6 +92,7 @@ export function EmailComposeModal({
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const templates = emailComposeTemplates();
 
   useEffect(() => {
     if (!isOpen) return;

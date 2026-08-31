@@ -28,7 +28,15 @@ function isAdminAppearance(theme: string | undefined): theme is AdminAppearance 
   return appearances.some((appearance) => appearance.id === theme);
 }
 
-export function AdminAppearancePicker({ collapsed = false, demoScenarioId = null }: { collapsed?: boolean; demoScenarioId?: DemoScenarioId | null }) {
+export function AdminAppearancePicker({
+  collapsed = false,
+  demoScenarioId = null,
+  placement = "sidebar",
+}: {
+  collapsed?: boolean;
+  demoScenarioId?: DemoScenarioId | null;
+  placement?: "sidebar" | "canvas";
+}) {
   const { theme, resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
@@ -66,7 +74,8 @@ export function AdminAppearancePicker({ collapsed = false, demoScenarioId = null
     };
   }, [open]);
 
-  if (!mounted) return <div className={collapsed ? "size-10" : "min-h-10 w-full"} />;
+  const canvas = placement === "canvas";
+  if (!mounted) return <div className={canvas || collapsed ? "size-10" : "min-h-10 w-full"} />;
 
   return (
     <div ref={rootRef} className={cn("relative", open && "z-30")}>
@@ -75,20 +84,23 @@ export function AdminAppearancePicker({ collapsed = false, demoScenarioId = null
         type="button"
         onClick={() => setOpen((value) => !value)}
         className={cn(
-          "admin-nav-utility inline-flex min-h-10 items-center rounded-[10px] text-xs transition-[background-color,color,transform] duration-150 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-nav-accent)]",
-          collapsed ? "size-10 justify-center px-0" : "w-full justify-between gap-3 px-2.5",
+          "inline-flex min-h-10 items-center rounded-[10px] text-xs transition-[background-color,color,transform] duration-150 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2",
+          canvas
+            ? "admin-icon-button size-10 justify-center text-[var(--admin-ink)] focus-visible:ring-[var(--admin-ink)]"
+            : "admin-nav-utility focus-visible:ring-[var(--admin-nav-accent)]",
+          !canvas && (collapsed ? "size-10 justify-center px-0" : "w-full justify-between gap-3 px-2.5"),
         )}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={panelId}
         aria-label={`Appearance: ${current.label}`}
-        title={collapsed ? `Appearance: ${current.label}` : undefined}
+        title={collapsed || canvas ? `Appearance: ${current.label}` : undefined}
       >
         <span className="flex min-w-0 items-center gap-3">
           <current.icon className="size-4 shrink-0" aria-hidden="true" />
-          {!collapsed && <span className="truncate font-medium">{current.label}</span>}
+          {!collapsed && !canvas && <span className="truncate font-medium">{current.label}</span>}
         </span>
-        {!collapsed && <ChevronUp className={cn("size-3.5 shrink-0 opacity-55 transition-transform duration-200", open && "rotate-180")} aria-hidden="true" />}
+        {!collapsed && !canvas && <ChevronUp className={cn("size-3.5 shrink-0 opacity-55 transition-transform duration-200", open && "rotate-180")} aria-hidden="true" />}
       </button>
 
       <AnimatePresence initial={false}>
@@ -98,13 +110,17 @@ export function AdminAppearancePicker({ collapsed = false, demoScenarioId = null
             id={panelId}
             role="dialog"
             aria-label="Choose admin appearance"
-            initial={{ opacity: 0, y: 8, scale: 0.98 }}
+            initial={{ opacity: 0, y: canvas ? -8 : 8, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 6, scale: 0.98 }}
+            exit={{ opacity: 0, y: canvas ? -6 : 6, scale: 0.98 }}
             transition={{ type: "spring", duration: 0.3, bounce: 0 }}
             className={cn(
-              "admin-appearance-panel absolute bottom-[calc(100%+0.5rem)] z-[70] overflow-hidden rounded-[18px] p-2 shadow-[var(--admin-shadow-hover)]",
-              collapsed ? "left-0 w-64" : "left-0 w-full min-w-64",
+              "admin-appearance-panel absolute z-[70] overflow-hidden rounded-[18px] p-2 shadow-[var(--admin-shadow-hover)]",
+              canvas
+                ? "right-0 top-[calc(100%+0.5rem)] w-64"
+                : collapsed
+                  ? "bottom-[calc(100%+0.5rem)] left-0 w-64"
+                  : "bottom-[calc(100%+0.5rem)] left-0 w-full min-w-64",
             )}
           >
             <div className="px-2 pb-2 pt-1">

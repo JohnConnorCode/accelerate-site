@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { DollarSign, Users, TrendingDown, BarChart3 } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { MRRChart } from "@/components/admin/MRRChart";
 import { StatCard } from "@/components/admin/StatCard";
 
@@ -22,42 +23,9 @@ interface RevenueData {
 }
 
 export default function RevenuePage() {
-  const [data, setData] = useState<RevenueData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  const fetchRevenue = useCallback(async () => {
-    try {
-      const res = await fetch("/api/admin/revenue");
-      const json = await res.json();
-      setData(json);
-    } catch {
-      // Silent
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchRevenue();
-  }, [fetchRevenue]);
-
-  if (loading) {
-    return (
-      <div>
-        <PageHeader title="Revenue" />
-        <LoadingSkeleton variant="page" />
-      </div>
-    );
-  }
-
-  if (!data) {
-    return (
-      <div>
-        <PageHeader title="Revenue" />
-        <p className="text-white-muted">Failed to load revenue data.</p>
-      </div>
-    );
-  }
+  const revenueQuery = useAdminQuery<RevenueData>(["admin", "revenue"], "/api/admin/revenue");
+  const data = revenueQuery.data ?? null;
+  const loading = revenueQuery.isPending;
 
   return (
     <motion.div
@@ -66,6 +34,8 @@ export default function RevenuePage() {
       transition={{ duration: 0.3 }}
     >
       <PageHeader title="Revenue" subtitle="Financial overview" />
+      <AdminReadBody loading={loading} hasData={Boolean(data)} error={revenueQuery.error?.message} onRetry={() => void revenueQuery.refetch()} refreshing={revenueQuery.isFetching} loadingFallback={<LoadingSkeleton variant="page" />} label="Loading revenue">
+      {data && <>
 
       {/* Key Metrics */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
@@ -193,6 +163,8 @@ export default function RevenuePage() {
           </GlassCard>
         </div>
       )}
+      </>}
+      </AdminReadBody>
     </motion.div>
   );
 }

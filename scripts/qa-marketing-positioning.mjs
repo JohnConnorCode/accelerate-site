@@ -105,19 +105,31 @@ const hero = await motionPage.evaluate(() => {
   const struck = rect(".strike");
   const profit = rect(".hero-profit");
   const cta = rect(".hero-inline-cta");
+  const statement = rect(".hero-statement");
   return {
     headerGap: eyebrow.top - header.bottom,
     outcomeGap: profit.top - struck.bottom,
     actionGap: cta.top - profit.bottom,
     profitOpacity: Number.parseFloat(getComputedStyle(document.querySelector(".hero-profit")).opacity),
     ctaOpacity: Number.parseFloat(getComputedStyle(document.querySelector(".hero-inline-cta")).opacity),
+    statementTop: statement.top,
+    viewportHeight: innerHeight,
   };
 });
 if (hero.headerGap < 20) failures.push(`phone hero: only ${hero.headerGap.toFixed(1)}px below the header`);
 if (hero.outcomeGap > 48) failures.push(`phone hero: ${hero.outcomeGap.toFixed(1)}px between productivity and PROFIT`);
 if (hero.actionGap > 40) failures.push(`phone hero: ${hero.actionGap.toFixed(1)}px between PROFIT and CTA`);
 if (hero.profitOpacity < 0.99 || hero.ctaOpacity < 0.99) failures.push("phone hero: outcome or CTA still hidden after 4.2s");
+if (hero.statementTop < hero.viewportHeight - 1) failures.push(`phone hero: explanatory statement begins ${hero.statementTop.toFixed(1)}px into the opening viewport instead of below the fold`);
 await motionPage.screenshot({ path: `${output}/home-phone-motion-settled.png`, fullPage: false });
+await motionPage.locator(".hero-statement").scrollIntoViewIfNeeded();
+await motionPage.waitForTimeout(1100);
+const statement = await motionPage.evaluate(() => ({
+  revealed: document.querySelector(".hero-statement")?.classList.contains("is-revealed"),
+  copyAnimation: getComputedStyle(document.querySelector(".hero-statement-copy")).animationName,
+}));
+if (!statement.revealed || !statement.copyAnimation.includes("hero-statement-copy-in")) failures.push("phone hero statement: custom scroll reveal did not run");
+await motionPage.screenshot({ path: `${output}/home-phone-statement.png`, fullPage: false });
 await motionContext.close();
 await browser.close();
 

@@ -561,6 +561,9 @@ export interface Article {
   wordCount: number;
 }
 
+/** Listing/card payload. Never include MDX bodies; those belong on article pages. */
+export type ArticleSummary = Omit<Article, "content">;
+
 // ========================================
 // CHAT TYPES
 // ========================================

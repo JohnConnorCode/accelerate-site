@@ -2,7 +2,10 @@
 
 import { tenant } from "@/config/tenant";
 import { useState } from "react";
+import { LockKeyhole } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { AdminAuthLayout } from "@/components/admin/AdminAuthLayout";
+import { AdminSurface } from "@/components/admin/AdminSurface";
 
 export default function UpdatePasswordPage() {
   const [password, setPassword] = useState("");
@@ -39,20 +42,26 @@ export default function UpdatePasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <div className="glass-prominent rounded-xl p-8">
-          <h1 className="font-display text-2xl font-bold text-gold-gradient text-center mb-2">
-            {tenant.brand.name}
-          </h1>
-          <p className="text-center text-sm text-white-muted mb-8">
-            Set New Password
-          </p>
+    <AdminAuthLayout
+      eyebrow="Account recovery"
+      title="Set a new password."
+      copy="Choose a new password for the configured admin account, then continue into operations."
+    >
+      <div className="w-full max-w-md">
+        <div className="mb-7 lg:hidden">
+          <p className="font-display text-lg font-semibold tracking-[-0.03em]">{tenant.brand.name}</p>
+          <p className="mt-1 font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-[var(--admin-muted)]">Private operations</p>
+        </div>
+        <AdminSurface padding="lg" className="admin-dialog-surface">
+          <div className="admin-action-mark mb-7"><LockKeyhole className="h-4.5 w-4.5" /></div>
+          <p className="admin-eyebrow">Secure access</p>
+          <h1 className="admin-page-title text-[2rem]">Set a new password</h1>
+          <p className="admin-copy mb-7 mt-2 text-sm">Use at least eight characters, then confirm it to continue.</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm text-white-secondary mb-1.5">
-                New Password
+              <label className="block text-xs font-medium text-[var(--admin-muted)] mb-1.5">
+                New password
               </label>
               <input
                 type="password"
@@ -60,13 +69,14 @@ export default function UpdatePasswordPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={8}
-                className="w-full rounded-lg bg-bg-subtle border border-border-glass px-4 py-2.5 text-sm text-white-primary placeholder:text-white-muted focus:outline-none focus:border-gold transition-colors"
+                autoComplete="new-password"
+                className="admin-field min-h-11"
                 placeholder="Min 8 characters"
               />
             </div>
             <div>
-              <label className="block text-sm text-white-secondary mb-1.5">
-                Confirm Password
+              <label className="block text-xs font-medium text-[var(--admin-muted)] mb-1.5">
+                Confirm password
               </label>
               <input
                 type="password"
@@ -74,23 +84,24 @@ export default function UpdatePasswordPage() {
                 onChange={(e) => setConfirm(e.target.value)}
                 required
                 minLength={8}
-                className="w-full rounded-lg bg-bg-subtle border border-border-glass px-4 py-2.5 text-sm text-white-primary placeholder:text-white-muted focus:outline-none focus:border-gold transition-colors"
+                autoComplete="new-password"
+                className="admin-field min-h-11"
                 placeholder="Repeat password"
               />
             </div>
 
-            {error && <p className="text-sm text-error">{error}</p>}
+            {error && <p className="text-sm text-error" role="alert">{error}</p>}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-gold-gradient px-4 py-2.5 text-sm font-semibold text-black transition-[filter,opacity,transform] hover:brightness-110 disabled:opacity-50 cursor-pointer"
+              className="admin-action-control w-full cursor-pointer px-4"
             >
-              {loading ? "Updating..." : "Update Password"}
+              {loading ? "Updating…" : "Update password"}
             </button>
           </form>
-        </div>
+        </AdminSurface>
       </div>
-    </div>
+    </AdminAuthLayout>
   );
 }

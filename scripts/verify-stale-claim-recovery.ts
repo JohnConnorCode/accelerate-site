@@ -11,6 +11,7 @@
  * Everything here uses a reserved job key and is removed afterwards.
  */
 import { randomUUID } from "node:crypto";
+import { startJobRun } from "../src/lib/revenue-os/runs";
 import { createServiceRoleClient } from "../src/lib/supabase/server";
 
 const JOB_KEY = `revenue-os-stale-verify-${randomUUID().slice(0, 8)}`;
@@ -52,18 +53,21 @@ async function main() {
     if (ageError) throw new Error(`could not age the claim: ${ageError.message}`);
 
     // The old behaviour: still refused, forever. The new behaviour: taken over.
-    const third = await claim(supabase);
+    const third = await startJobRun(supabase, JOB_KEY);
     check("an abandoned claim is taken over rather than blocking the job", third.claimed === true, third);
-    check("the takeover is reported so it can be alerted on", third.recovered_stale === true, third);
-    check("the takeover starts a new run rather than reusing the dead one", third.run_id !== first.run_id, { dead: first.run_id, fresh: third.run_id });
+    check("the takeover is reported so it can be alerted on", third.recoveredStale === true, third);
+    check("the takeover starts a new run rather than reusing the dead one", third.runId !== first.run_id, { dead: first.run_id, fresh: third.runId });
 
     const { data: recovered } = await supabase.from("job_runs").select("status,error,finished_at").eq("id", first.run_id).single();
     check("the abandoned run is closed as failed", recovered?.status === "failed", recovered?.status);
     check("the abandoned run records why it was closed", /abandoned/i.test(recovered?.error ?? ""), recovered?.error);
     check("the abandoned run gets a terminal timestamp", Boolean(recovered?.finished_at), recovered?.finished_at);
 
-    const { data: fresh } = await supabase.from("job_runs").select("recovered_from").eq("id", third.run_id).single();
+    const { data: fresh } = await supabase.from("job_runs").select("recovered_from").eq("id", third.runId).single();
     check("the new run points back at what it recovered from", fresh?.recovered_from === first.run_id, fresh);
+
+    const { data: audits } = await supabase.from("audit_log").select("action,entity_id,metadata").eq("action", "execution.stale_claim_recovered").eq("entity_id", third.runId);
+    check("the takeover writes an audit receipt", (audits?.length ?? 0) > 0, audits);
 
     // A long-running job that is still inside the window must never be stolen.
     const fourth = await claim(supabase, "24 hours");
@@ -72,11 +76,12 @@ async function main() {
     console.log(JSON.stringify({
       jobKey: JOB_KEY,
       deadRun: first.run_id,
-      recoveredBy: third.run_id,
+      recoveredBy: third.runId,
       result: failures.length ? "failed" : "passed",
     }, null, 2));
   } finally {
     await supabase.from("job_runs").delete().eq("job_key", JOB_KEY);
+    await supabase.from("audit_log").delete().eq("action", "execution.stale_claim_recovered").eq("metadata->>job_key", JOB_KEY);
   }
 
   if (failures.length) {

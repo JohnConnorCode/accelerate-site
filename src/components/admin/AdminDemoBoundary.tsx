@@ -26,6 +26,10 @@ export function AdminDemoBoundary({ scenarioId, children }: { scenarioId: DemoSc
   const pathnameScenario = pathname.match(/^\/demo\/command-center\/([^/]+)/)?.[1] || "";
   const activeScenarioId = isDemoScenarioId(pathnameScenario) ? pathnameScenario : scenarioId;
 
+  if (typeof window !== "undefined" && activeScenarioId) {
+    installAdminDemoRuntime(activeScenarioId);
+  }
+
   useLayoutEffect(() => {
     if (!activeScenarioId) return;
     setTheme(readDemoAppearance(activeScenarioId));

@@ -38,6 +38,7 @@ export async function approveAndExecuteAction(supabase: SupabaseClient, id: stri
           conversationId: stringValue(payload, "conversationId")!,
           body: stringValue(payload, "body")!,
           actorEmail,
+          idempotencyKey: `action:${id}`,
         });
         break;
       case "transition_opportunity": {

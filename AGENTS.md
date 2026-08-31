@@ -84,6 +84,11 @@ Every capability follows this sequence:
 - Secrets remain in environment configuration or encrypted server-only storage.
   Never log or return tokens, service keys, raw customer messages, or prompts.
 - Calendly remains optional and disabled unless a card explicitly activates it.
+- Instance-per-client is the chosen product shape: one Vercel project and one
+  Supabase database per installation, one shared codebase, and one tenant config
+  file. Shared-database multi-tenancy was considered and rejected. Do not add
+  tenant_id columns, workspace switchers, membership roles, or cross-client row
+  filtering. Revisit only through a new architecture card.
 - Do not introduce another analytics, email, AI, or scheduling provider when the
   card can use the existing first-party/Supabase, Resend, configured AI, or Google
   Workspace paths.

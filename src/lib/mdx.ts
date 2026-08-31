@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 import readingTime from "reading-time";
-import type { Article, ArticleFrontmatter, ArticleCategory } from "./types";
+import type { Article, ArticleFrontmatter, ArticleCategory, ArticleSummary } from "./types";
 
 const ARTICLES_DIR = path.join(process.cwd(), "src/content/articles");
 
@@ -56,6 +56,19 @@ export function getAllArticles(options?: { includeScheduled?: boolean }): Articl
     );
 }
 
+export function toArticleSummary(article: Article): ArticleSummary {
+  return {
+    frontmatter: article.frontmatter,
+    slug: article.slug,
+    readingTime: article.readingTime,
+    wordCount: article.wordCount,
+  };
+}
+
+export function getArticleSummaries(options?: { includeScheduled?: boolean }): ArticleSummary[] {
+  return getAllArticles(options).map(toArticleSummary);
+}
+
 export function getArticleBySlug(slug: string): Article | null {
   const filename = `${slug}.mdx`;
   const filePath = path.join(ARTICLES_DIR, filename);
@@ -68,16 +81,16 @@ export function getArticleBySlug(slug: string): Article | null {
   return article;
 }
 
-export function getArticlesByCategory(category: ArticleCategory): Article[] {
-  return getAllArticles().filter(
-    (article) => article.frontmatter.category === category
-  );
+export function getArticlesByCategory(category: ArticleCategory): ArticleSummary[] {
+  return getAllArticles()
+    .filter((article) => article.frontmatter.category === category)
+    .map(toArticleSummary);
 }
 
-export function getArticlesByTag(tag: string): Article[] {
-  return getAllArticles().filter((article) =>
-    article.frontmatter.tags.includes(tag)
-  );
+export function getArticlesByTag(tag: string): ArticleSummary[] {
+  return getAllArticles()
+    .filter((article) => article.frontmatter.tags.includes(tag))
+    .map(toArticleSummary);
 }
 
 export function getAllCategories(options?: { includeScheduled?: boolean }): { category: ArticleCategory; count: number }[] {
@@ -106,7 +119,7 @@ export function getAllTags(options?: { includeScheduled?: boolean }): { tag: str
     .sort((a, b) => b.count - a.count);
 }
 
-export function getRelatedArticles(slug: string, limit = 3): Article[] {
+export function getRelatedArticles(slug: string, limit = 3): ArticleSummary[] {
   const article = getArticleBySlug(slug);
   if (!article) return [];
 
@@ -126,7 +139,7 @@ export function getRelatedArticles(slug: string, limit = 3): Article[] {
   return scored
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
-    .map((s) => s.article);
+    .map((s) => toArticleSummary(s.article));
 }
 
 // Re-export from shared constants to avoid circular imports

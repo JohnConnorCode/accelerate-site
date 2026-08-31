@@ -30,6 +30,15 @@ UI / API / form / webhook / cron / AI tool
 If a proposed implementation cannot fit this flow, stop and update the
 architecture card before adding an exception.
 
+The Command Center is cloned per client: each installation is its own Vercel
+project and its own Supabase database running this codebase with one tenant
+config file. That is why contacts.primary_email and companies.domain can stay
+globally unique and why founder-only `ADMIN_EMAIL` is sufficient authorization.
+Shared-database multi-tenancy was considered and rejected. Do not add tenant,
+workspace, or organization columns, a workspace switcher, membership roles, or
+cross-client row filtering. Business facts belong in `src/config/tenant.ts`.
+Secrets stay in the environment. Revisit only through a new architecture card.
+
 ## Layer boundaries
 
 | Layer | Owns | Must not own |

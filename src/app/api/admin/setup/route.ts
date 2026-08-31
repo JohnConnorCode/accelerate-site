@@ -12,6 +12,8 @@ import {
   computeSchemaCenterStatus,
   verifyRevenueSchemaDataAccess,
 } from "@/lib/revenue-os/schema-contract";
+import { bookingMode } from "@/lib/booking";
+import { calendlyAttributionReadiness, campaignEngineReadiness, resendDeliveryReadiness, setupNextRun } from "@/lib/revenue-os/setup-status";
 
 interface SourceRunRow { source_key: string; status: string; summary: unknown; error: string | null; finished_at: string | null }
 interface JobRunRow { job_key: string; status: string; summary: unknown; error: string | null; finished_at: string | null; claimed_at: string }
@@ -25,9 +27,7 @@ export async function GET() {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
   const supabase = createServiceRoleClient();
-  // Keep Setup Center truthful with the public qualified-lead flow: Calendly is
-  // active by default and only turns off during an explicit emergency pause.
-  const calendlyEnabled = process.env.CALENDLY_ENABLED !== "false";
+  const publicBookingMode = bookingMode();
   const supabaseConfigured = configured("NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY");
   const googleConfigured = configured("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET") && isGoogleTokenEncryptionKeyConfigured();
 
@@ -98,6 +98,24 @@ export async function GET() {
     .filter((run) => run.status === "running" && (!run.claimed_at || Date.now() - Date.parse(run.claimed_at) > STALLED_JOB_MINUTES * 60_000))
     .map((run) => ({ key: run.job_key }));
 
+  const { data: lastOutbound } = supabaseConfigured
+    ? await supabase.from("messages").select("status,sent_at,created_at,provider_id").eq("direction", "outbound").order("created_at", { ascending: false }).limit(1).maybeSingle()
+    : { data: null };
+  const emailReadiness = resendDeliveryReadiness({ configured: configured("RESEND_API_KEY", "RESEND_FROM_EMAIL"), lastOutbound });
+  const campaignReadiness = campaignEngineReadiness({
+    schemaReady,
+    configured: configured("CRON_SECRET", "RESEND_API_KEY"),
+    lastJob: latestJob.get("revenue-campaigns") ?? null,
+  });
+  const { data: lastCalendlyReceipt } = supabaseConfigured
+    ? await supabase.from("calendly_webhook_receipts").select("event_type,processed_at").in("event_type", ["invitee.created", "invitee.canceled"]).order("processed_at", { ascending: false }).limit(1).maybeSingle()
+    : { data: null };
+  const calendlyAttribution = calendlyAttributionReadiness({
+    bookingMode: publicBookingMode,
+    webhookConfigured: configured("CALENDLY_WEBHOOK_SECRET"),
+    lastSignedReceipt: lastCalendlyReceipt,
+  });
+
   const checks: SetupCapability[] = [
     {
       id: "supabase",
@@ -108,6 +126,7 @@ export async function GET() {
       status: supabaseConfigured ? "ready" : "action",
       required: true,
       keys: ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY"],
+      nextRun: setupNextRun("config"),
       action: { label: "Open Supabase API settings", href: supabaseDashboard("/settings/api"), external: true },
     },
     {
@@ -129,6 +148,7 @@ export async function GET() {
       keys: ["migrations/20260816-revenue-os.sql", "migrations/20260817-schema-verification.sql", "npm run db:verify-schema -- --record"],
       lastSuccessAt: latestSchemaVerification?.status === "success" ? latestSchemaVerification.checked_at : null,
       lastFailure: schemaCenter.ready ? null : (latestSchemaVerification?.failure_detail ?? runtimeSchema.issues[0]?.message ?? schemaCenter.reason),
+      nextRun: setupNextRun("schema-verify"),
     },
     {
       id: "founder_access",
@@ -139,6 +159,7 @@ export async function GET() {
       status: configured("ADMIN_EMAIL") ? "ready" : "action",
       required: true,
       keys: ["ADMIN_EMAIL"],
+      nextRun: setupNextRun("config"),
     },
     {
       id: "feature_board",
@@ -149,6 +170,7 @@ export async function GET() {
       status: featureBoardReady ? "ready" : "action",
       required: false,
       keys: ["migrations/20260816-feature-board.sql", "npm run seed:features -- --apply"],
+      nextRun: setupNextRun("config"),
       action: { label: featureBoardReady ? "Open Feature Board" : featureBoardResult.error ? "Open Supabase SQL editor" : "Review backlog instructions", href: featureBoardReady ? "/admin/features" : featureBoardResult.error ? supabaseDashboard("/sql/new") : "/admin/setup#feature_board", external: Boolean(featureBoardResult.error) },
     },
     {
@@ -160,16 +182,20 @@ export async function GET() {
       status: configured("NEXT_PUBLIC_SITE_URL") ? "ready" : "action",
       required: true,
       keys: ["NEXT_PUBLIC_SITE_URL"],
+      nextRun: setupNextRun("config"),
     },
     {
       id: "email",
       group: "email",
       label: "Resend delivery",
-      description: configured("RESEND_API_KEY", "RESEND_FROM_EMAIL") ? "A server-only API key and verified sender are configured." : "Add the Resend API key and verified sender.",
+      description: emailReadiness.description,
       accomplishes: "Sends approved campaigns, confirmations, proposals, and transactional messages with receipts.",
-      status: configured("RESEND_API_KEY", "RESEND_FROM_EMAIL") ? "ready" : "action",
+      status: emailReadiness.status,
       required: true,
       keys: ["RESEND_API_KEY", "RESEND_FROM_EMAIL"],
+      lastSuccessAt: emailReadiness.lastSuccessAt,
+      lastFailure: emailReadiness.lastFailure,
+      nextRun: setupNextRun("outbound-send"),
       action: { label: "Open Resend domains", href: "https://resend.com/domains", external: true },
     },
     {
@@ -181,6 +207,7 @@ export async function GET() {
       status: configured("RESEND_WEBHOOK_SECRET") ? "ready" : "action",
       required: false,
       keys: ["RESEND_WEBHOOK_SECRET", "/api/webhooks/resend"],
+      nextRun: setupNextRun("outbound-send"),
       action: { label: "Open Resend webhooks", href: "https://resend.com/webhooks", external: true },
     },
     {
@@ -192,6 +219,7 @@ export async function GET() {
       status: emailStudioReady ? "ready" : "action",
       required: false,
       keys: ["migrations/20260816-email-studio.sql"],
+      nextRun: setupNextRun("outbound-send"),
       action: { label: emailStudioReady ? "Open Email Studio" : "Open Supabase SQL editor", href: emailStudioReady ? "/admin/emails" : supabaseDashboard("/sql/new"), external: !emailStudioReady },
     },
     {
@@ -203,6 +231,7 @@ export async function GET() {
       status: googleConfigured ? "ready" : "action",
       required: false,
       keys: ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_TOKEN_ENCRYPTION_KEY"],
+      nextRun: setupNextRun("config"),
       action: { label: "Open Google Cloud credentials", href: "https://console.cloud.google.com/apis/credentials", external: true },
     },
     {
@@ -216,6 +245,7 @@ export async function GET() {
       keys: requiredGoogleScopes,
       lastSuccessAt: google?.last_success_at ?? null,
       lastFailure: google?.last_error ?? null,
+      nextRun: setupNextRun("gmail-sync"),
       action: { label: googleConnected ? "Manage connection" : "Connect Google Workspace", href: googleConnected ? "/admin/setup#google" : "/api/admin/google/authorize" },
     },
     {
@@ -228,6 +258,7 @@ export async function GET() {
       required: false,
       lastSuccessAt: latestSource.get("gmail")?.status === "success" ? latestSource.get("gmail")?.finished_at : null,
       lastFailure: latestSource.get("gmail")?.error ?? null,
+      nextRun: setupNextRun("gmail-sync"),
     },
     {
       id: "calendar_sync",
@@ -239,6 +270,7 @@ export async function GET() {
       required: false,
       lastSuccessAt: latestSource.get("google_calendar")?.status === "success" ? latestSource.get("google_calendar")?.finished_at : null,
       lastFailure: latestSource.get("google_calendar")?.error ?? null,
+      nextRun: setupNextRun("gmail-sync"),
     },
     {
       id: "drive_sync",
@@ -250,6 +282,7 @@ export async function GET() {
       required: false,
       lastSuccessAt: latestSource.get("google_drive")?.status === "success" ? latestSource.get("google_drive")?.finished_at : null,
       lastFailure: latestSource.get("google_drive")?.error ?? null,
+      nextRun: setupNextRun("gmail-sync"),
     },
     {
       id: "ai",
@@ -260,6 +293,7 @@ export async function GET() {
       status: configured("OPENROUTER_API_KEY") ? "ready" : "action",
       required: false,
       keys: ["OPENROUTER_API_KEY", "OPENROUTER_MODEL (optional)"],
+      nextRun: setupNextRun("config"),
       action: { label: configured("OPENROUTER_API_KEY") ? "Open AI Workspace" : "Create OpenRouter key", href: configured("OPENROUTER_API_KEY") ? "/admin/ai?view=runs" : "https://openrouter.ai/settings/keys", external: !configured("OPENROUTER_API_KEY") },
     },
     {
@@ -271,19 +305,25 @@ export async function GET() {
       status: !contactImporterReady ? "action" : configured("OPENROUTER_API_KEY") ? "ready" : "degraded",
       required: false,
       keys: ["migrations/20260816-contact-importer.sql", "OPENROUTER_API_KEY"],
+      nextRun: setupNextRun("config"),
       action: { label: contactImporterReady ? "Open Contact Import" : "Open Supabase SQL editor", href: contactImporterReady ? "/admin/contact-imports" : supabaseDashboard("/sql/new"), external: !contactImporterReady },
     },
     {
       id: "campaigns",
       group: "campaigns",
       label: "Controlled campaign engine",
-      description: schemaReady && configured("CRON_SECRET", "RESEND_API_KEY") ? "Campaigns can be approved once and executed just in time." : "The schema, cron secret, and Resend delivery are required.",
+      description: campaignReadiness.status === "ready"
+        ? "Campaigns can be approved once and executed just in time."
+        : campaignReadiness.status === "degraded"
+          ? "The latest campaign job failed. Review the job receipt before sending more mail."
+          : "The schema, cron secret, and Resend delivery are required.",
       accomplishes: "Automates approved follow-up while preserving pause, reply, booking, bounce, and unsubscribe stops.",
-      status: schemaReady && configured("CRON_SECRET", "RESEND_API_KEY") ? "ready" : "action",
+      status: campaignReadiness.status,
       required: true,
       keys: ["CRON_SECRET", "RESEND_API_KEY"],
-      lastSuccessAt: latestJob.get("revenue-campaigns")?.status === "success" ? latestJob.get("revenue-campaigns")?.finished_at : null,
-      lastFailure: latestJob.get("revenue-campaigns")?.error ?? null,
+      lastSuccessAt: campaignReadiness.lastSuccessAt,
+      lastFailure: campaignReadiness.lastFailure,
+      nextRun: setupNextRun("cron-job"),
     },
     {
       id: "proposals",
@@ -294,6 +334,7 @@ export async function GET() {
       status: !proposalResult.error && configured("NEXT_PUBLIC_SITE_URL") ? "ready" : "action",
       required: true,
       keys: ["NEXT_PUBLIC_SITE_URL"],
+      nextRun: setupNextRun("public-event"),
     },
     {
       id: "first_party_analytics",
@@ -304,27 +345,35 @@ export async function GET() {
       status: firstPartyAnalyticsReady ? "ready" : "action",
       required: true,
       keys: ["migrations/20260816-first-party-analytics.sql"],
+      nextRun: setupNextRun("public-event"),
       action: firstPartyAnalyticsReady ? { label: "Open Analytics", href: "/admin/analytics" } : { label: "Open Supabase SQL editor", href: supabaseDashboard("/sql/new"), external: true },
     },
     {
       id: "manual_booking",
       group: "booking",
-      label: calendlyEnabled ? "Public Calendly booking" : "Manual scheduling mode",
-      description: calendlyEnabled ? "The public contact page embeds the configured free Calendly event for self-booking. API attribution is tracked separately." : "Calendly is off. The founder reviews opportunities and schedules through direct email or Google Calendar.",
+      label: publicBookingMode === "embed" ? "Public scheduler embed" : publicBookingMode === "disabled" ? "Public booking paused" : "Manual scheduling mode",
+      description: publicBookingMode === "embed"
+        ? "The public contact and qualifier pages embed the tenant scheduler URL. API attribution is a separate check."
+        : publicBookingMode === "disabled"
+          ? "CALENDLY_ENABLED=false paused public self-booking. The founder still schedules by reply."
+          : "No public embed. The founder reviews opportunities and schedules through email or Calendar.",
       accomplishes: "Keeps calendar activation optional without blocking the revenue workflow.",
-      status: "ready",
+      status: publicBookingMode === "disabled" ? "disabled" : "ready",
       required: false,
-      keys: ["CALENDLY_ENABLED"],
+      keys: ["tenant.capabilities.publicBooking", "CALENDLY_ENABLED"],
+      nextRun: setupNextRun("config"),
     },
     {
       id: "calendly",
       group: "booking",
       label: "Calendly attribution",
-      description: calendlyEnabled ? "Public booking is active; Calendly API/webhook credentials are optional and required only for automatic booking and cancellation attribution." : "Optional and intentionally disabled until self-booking is activated.",
-      accomplishes: "Adds self-booking and cancellation attribution through the canonical opportunity service.",
-      status: calendlyEnabled ? configured("CALENDLY_PERSONAL_ACCESS_TOKEN", "CALENDLY_WEBHOOK_SECRET") ? "ready" : "action" : "disabled",
+      description: calendlyAttribution.description,
+      accomplishes: "Adds booking and cancellation attribution through the canonical opportunity service without treating API tokens as health.",
+      status: calendlyAttribution.status,
       required: false,
-      keys: ["CALENDLY_PERSONAL_ACCESS_TOKEN", "CALENDLY_WEBHOOK_SECRET"],
+      keys: ["CALENDLY_WEBHOOK_SECRET"],
+      lastSuccessAt: calendlyAttribution.lastSuccessAt,
+      nextRun: setupNextRun("config"),
     },
     {
       id: "continuous_scheduler",
@@ -349,6 +398,7 @@ export async function GET() {
       lastFailure: scheduler?.last_run_status === "failed"
         ? "The latest Supabase Cron wake-up failed. Review Cron history and the system-health job receipt."
         : healthSnapshotRun?.status === "failed" ? healthSnapshotRun.error : null,
+      nextRun: setupNextRun("health-snapshot"),
       action: { label: "Review integration health", href: "/admin/integrations" },
     },
     {
@@ -366,6 +416,7 @@ export async function GET() {
       lastFailure: stalledJobs.length
         ? `${stalledJobs.map((run) => run.key).join(", ")} claimed a run and never reported a result. The next run takes the claim over.`
         : [...latestJob.values()].find((run) => run.status === "failed")?.error ?? null,
+      nextRun: setupNextRun("cron-job"),
     },
   ];
 
@@ -375,7 +426,7 @@ export async function GET() {
   const optionalReady = optional.filter((check) => check.status === "ready").length;
   return NextResponse.json({
     checks,
-    bookingMode: calendlyEnabled ? "calendly" : "manual",
+    bookingMode: publicBookingMode === "embed" ? "calendly" : "manual",
     google: google ? { accountEmail: google.account_email, connected: googleConnected, settings: google.settings ?? {}, scopes } : null,
     summary: {
       requiredReady,

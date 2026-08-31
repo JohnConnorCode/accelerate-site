@@ -65,9 +65,18 @@ export interface TenantPlaybook {
   nextAction: string;
 }
 
+export interface TenantCapabilities {
+  /**
+   * Public self-serve scheduler. False keeps founder-reply booking even when a
+   * scheduler URL is present. Booking health truth stays on the booking-mode card.
+   */
+  publicBooking: boolean;
+}
+
 export interface TenantConfig {
   brand: TenantBrand;
   founder: TenantFounder;
+  capabilities: TenantCapabilities;
   ai: {
     /** How the copilot refers to the business it works for. */
     businessDescriptor: string;
@@ -127,6 +136,9 @@ export const tenant: TenantConfig = {
     fullName: "John Connor",
     email: "john@acceleratewith.us",
     systemActorEmail: "system@acceleratewith.us",
+  },
+  capabilities: {
+    publicBooking: true,
   },
   ai: {
     businessDescriptor: "Accelerate, an AI strategy, solutions, and execution partner for small business",

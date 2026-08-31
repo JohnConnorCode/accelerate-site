@@ -362,12 +362,20 @@ export async function openRouterJson<T>(input: OpenRouterRequest & {
   } catch {
     throw new OpenRouterError("OpenRouter returned malformed structured JSON", 502, response.id);
   }
-  return {
-    data: input.validate(parsed),
-    requestId: response.id,
-    model: response.model,
-    usage: response.usage ?? {},
-  };
+  try {
+    return {
+      data: input.validate(parsed),
+      requestId: response.id,
+      model: response.model,
+      usage: response.usage ?? {},
+    };
+  } catch (error) {
+    throw new OpenRouterError(
+      error instanceof Error ? error.message.slice(0, 500) : "OpenRouter returned an invalid structured payload",
+      502,
+      response.id,
+    );
+  }
 }
 
 /** Streams OpenRouter's OpenAI-compatible SSE response as plain text so the

@@ -1,7 +1,34 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { recordAudit } from "./audit";
 import { safeErrorMessage } from "./db";
 import { alertJobFailure, alertStaleRecovery } from "./alerts";
+
+export const STALE_CLAIM_WINDOW_MS = 30 * 60 * 1000;
+
+export async function recordStaleClaimRecovery(supabase: SupabaseClient, input: {
+  entityType: string;
+  entityId: string;
+  recoveredFrom?: string | null;
+  detail: string;
+  jobKey?: string | null;
+}) {
+  await recordAudit(supabase, {
+    actorEmail: "system",
+    action: "execution.stale_claim_recovered",
+    entityType: input.entityType,
+    entityId: input.entityId,
+    source: "automation",
+    before: { status: "running" },
+    after: { status: "failed", recovered: true },
+    metadata: {
+      job_key: input.jobKey ?? null,
+      recovered_from: input.recoveredFrom ?? null,
+      detail: input.detail,
+      stale_after_ms: STALE_CLAIM_WINDOW_MS,
+    },
+  });
+}
 
 export interface JobRunClaim { runId: string; claimed: boolean; existingStatus: string; recoveredStale: boolean }
 export interface JobRunOutcome<T> { value: T | null; claimed: boolean; runId: string; existingStatus?: string; recoveredStale?: boolean }
@@ -16,11 +43,22 @@ export async function startJobRun(supabase: SupabaseClient, jobKey: string, idem
   // recovered_stale means this claim took over a run that died without ever
   // reporting a terminal state. It is surfaced rather than absorbed, because a
   // job that keeps needing recovery is a failing job, not a healthy one.
+  const recoveredStale = Boolean(claim.recovered_stale);
+  if (recoveredStale && Boolean(claim.claimed)) {
+    const { data: fresh } = await supabase.from("job_runs").select("recovered_from").eq("id", claim.run_id).maybeSingle();
+    await recordStaleClaimRecovery(supabase, {
+      entityType: "job_run",
+      entityId: claim.run_id,
+      recoveredFrom: typeof fresh?.recovered_from === "string" ? fresh.recovered_from : null,
+      jobKey,
+      detail: `A previous ${jobKey} run claimed the job and never reported a terminal state, so this claim took it over.`,
+    });
+  }
   return {
     runId: claim.run_id,
     claimed: Boolean(claim.claimed),
     existingStatus: claim.existing_status,
-    recoveredStale: Boolean(claim.recovered_stale),
+    recoveredStale,
   };
 }
 

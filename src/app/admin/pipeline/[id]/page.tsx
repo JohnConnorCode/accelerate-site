@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "@/components/admin/AdminLink";
 import {
@@ -24,11 +24,13 @@ import {
   UserRound,
 } from "lucide-react";
 import { AdminSurface } from "@/components/admin/AdminSurface";
-import { AdminPageLoading } from "@/components/admin/AdminPageLoading";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
+import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { useAdminAI } from "@/components/admin/AdminAIProvider";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { fetchJson } from "@/lib/admin/fetchJson";
+import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { REVENUE_STAGE_META, type RevenueStage } from "@/lib/revenue-os/types";
 
 type Item = Record<string, unknown> & { id: string };
@@ -89,82 +91,61 @@ function Section({ id, title, count, children }: { id?: string; title: string; c
 export default function OpportunityRecordPage() {
   const { id } = useParams<{ id: string }>();
   const ai = useAdminAI();
-  const [record, setRecord] = useState<RecordModel | null>(null);
-  const [schemaReady, setSchemaReady] = useState(true);
-  const [loading, setLoading] = useState(true);
+  const recordQuery = useAdminQuery<{ schemaReady: boolean; record: RecordModel | null }>(["admin", "opportunity", id], `/api/admin/revenue-os/records/opportunity/${encodeURIComponent(id)}`);
+  const record = recordQuery.data?.record ?? null;
+  const schemaReady = recordQuery.data?.schemaReady ?? true;
+  const loading = recordQuery.isPending;
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
   const [saved, setSaved] = useState("");
 
   const load = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const data = await fetchJson<{ schemaReady: boolean; record: RecordModel | null }>(`/api/admin/revenue-os/records/opportunity/${encodeURIComponent(id)}`);
-      setSchemaReady(data.schemaReady);
-      setRecord(data.record);
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Could not load the opportunity record.");
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => { void load(); }, [load]);
+    setActionError("");
+    await recordQuery.refetch();
+  }, [recordQuery]);
 
   const openTasks = useMemo(() => record?.tasks.filter((task) => task.status !== "completed") ?? [], [record]);
 
   async function savePlan(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
-    setError("");
+    setActionError("");
     setSaved("");
     const form = new FormData(event.currentTarget);
     try {
-      const data = await fetchJson<{ record: RecordModel }>(`/api/admin/revenue-os/records/opportunity/${encodeURIComponent(id)}`, {
+      await fetchJson<{ record: RecordModel }>(`/api/admin/revenue-os/records/opportunity/${encodeURIComponent(id)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nextAction: String(form.get("nextAction") || ""),
           nextActionAt: form.get("nextActionAt") ? new Date(String(form.get("nextActionAt"))).toISOString() : null,
           estimatedValue: Number(form.get("estimatedValue")),
-          expectedUpdatedAt: opportunity.updated_at,
+          expectedUpdatedAt: record?.opportunity.updated_at,
         }),
       });
-      setRecord(data.record);
+      await recordQuery.refetch();
       setSaved("Revenue plan saved and dependent views refreshed.");
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Could not save the revenue plan.");
+      setActionError(saveError instanceof Error ? saveError.message : "Could not save the revenue plan.");
     } finally {
       setSaving(false);
     }
   }
 
-  if (loading && !record) return <AdminPageLoading title="Opportunity record" subtitle="Loading the canonical identity, commitments, communication, meetings, proposals, and verified history." variant="detail" />;
-  if (!schemaReady) return <RevenueSetupGate />;
-  if (!record) return (
-    <div className="space-y-5">
-      <PageHeader title="Opportunity record" subtitle="The canonical record could not be loaded." />
-      <AdminSurface tone="attention" className="space-y-4 text-center">
-        <TriangleAlert className="mx-auto size-6 text-rose-600" />
-        <p className="text-sm text-[var(--admin-ink)]">{error || "Opportunity not found."}</p>
-        <button type="button" onClick={() => void load()} className="inline-flex min-h-10 items-center gap-2 rounded-xl px-4 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] active:scale-[0.96]"><RefreshCw className="size-4" /> Retry</button>
-      </AdminSurface>
-    </div>
-  );
-
-  const opportunity = record.opportunity;
-  const stage = opportunity.canonical_stage ?? "new";
+  const opportunity = record?.opportunity;
+  const stage = opportunity?.canonical_stage ?? "new";
   return (
     <div className="space-y-5 pb-12">
       <Link href="/admin/pipeline" className="inline-flex min-h-10 items-center gap-2 rounded-xl pr-3 text-xs font-semibold text-[var(--admin-muted)] transition-[color,transform] duration-150 hover:text-[var(--admin-ink)] active:scale-[0.96]"><ArrowLeft className="size-4" /> Back to Pipeline</Link>
       <PageHeader
-        title={opportunity.name || record.company?.name || "Untitled opportunity"}
+        title={opportunity?.name || record?.company?.name || "Opportunity record"}
         subtitle="One operating view for identity, commitments, communication, meetings, proposals, and verified history."
-        actions={<div className="flex items-center gap-2"><button type="button" onClick={() => ai.openWithPrompt(`Review opportunity ${opportunity.name || record.company?.name || id}. Summarize the latest activity, identify risks, and recommend the next best action.`)} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3.5 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"><Bot className="size-4" />Ask AI</button><button type="button" onClick={() => void load()} disabled={loading} className="grid size-11 place-items-center rounded-xl text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"><RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} /><span className="sr-only">Refresh record</span></button></div>}
+        actions={<div className="flex items-center gap-2"><button type="button" onClick={() => ai.openWithPrompt(`Review opportunity ${opportunity?.name || record?.company?.name || id}. Summarize the latest activity, identify risks, and recommend the next best action.`)} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3.5 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"><Bot className="size-4" />Ask AI</button><button type="button" onClick={() => void load()} disabled={recordQuery.isFetching} className="grid size-11 place-items-center rounded-xl text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"><RefreshCw className={`size-4 ${recordQuery.isFetching ? "animate-spin" : ""}`} /><span className="sr-only">Refresh record</span></button></div>}
       />
 
-      {error && <AdminSurface tone="attention" className="flex items-start gap-3"><TriangleAlert className="mt-0.5 size-5 shrink-0 text-rose-600" /><div><p className="text-sm font-semibold text-[var(--admin-ink)]">The last action did not complete</p><p className="admin-copy mt-1 text-xs">{error}</p></div></AdminSurface>}
+      {actionError && <AdminSurface tone="attention" className="flex items-start gap-3"><TriangleAlert className="mt-0.5 size-5 shrink-0 text-rose-600" /><div><p className="text-sm font-semibold text-[var(--admin-ink)]">The last action did not complete</p><p className="admin-copy mt-1 text-xs">{actionError}</p></div></AdminSurface>}
+      <AdminReadBody loading={loading} hasData={Boolean(record) || recordQuery.data?.schemaReady === false} error={recordQuery.error?.message || (!loading && recordQuery.data && !record ? "Opportunity not found." : "")} onRetry={() => void load()} refreshing={recordQuery.isFetching} loadingFallback={<LoadingSkeleton variant="detail" />} label="Loading opportunity record">
+      {recordQuery.data && !schemaReady ? <RevenueSetupGate /> : record && opportunity ? <>
       {saved && <AdminSurface className="flex items-center gap-3 bg-emerald-500/[0.055]"><CheckCircle2 className="size-5 shrink-0 text-emerald-600" /><p className="text-sm text-[var(--admin-ink)]" role="status">{saved}</p></AdminSurface>}
 
       <nav aria-label="Record context" className="flex snap-x gap-2 overflow-x-auto pb-1">
@@ -217,6 +198,8 @@ export default function OpportunityRecordPage() {
           </Section>
         </aside>
       </div>
+      </> : null}
+      </AdminReadBody>
     </div>
   );
 }

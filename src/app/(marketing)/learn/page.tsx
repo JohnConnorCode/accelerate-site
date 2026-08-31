@@ -2,7 +2,7 @@ export const revalidate = 3600;
 
 import { seoMetadata } from "@/lib/og";
 import { generateBreadcrumbJsonLd } from "@/lib/seo";
-import { getAllArticles } from "@/lib/mdx";
+import { getArticleSummaries } from "@/lib/mdx";
 import { LearnHub } from "@/components/sections/LearnHub";
 
 export const metadata = seoMetadata({
@@ -25,7 +25,7 @@ const breadcrumbJsonLd = generateBreadcrumbJsonLd([
 ]);
 
 export default function LearnPage() {
-  const articles = getAllArticles();
+  const articles = getArticleSummaries();
   const featuredArticle =
     articles.find((a) => a.frontmatter.featured) || articles[0] || null;
   const nonFeatured = featuredArticle

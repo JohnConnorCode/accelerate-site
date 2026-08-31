@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo, Fragment } from "react";
+import { useState, useMemo, Fragment } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "@/components/admin/AdminLink";
 import { ChevronDown, ChevronUp, Globe, Search, Download } from "lucide-react";
@@ -12,7 +12,9 @@ import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { Pagination } from "@/components/admin/Pagination";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { EmptyState } from "@/components/admin/EmptyState";
+import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 
 interface GradeCategory {
   score: number;
@@ -49,32 +51,15 @@ function getScoreBadgeClass(score: number): string {
 }
 
 export default function WebsiteGradesPage() {
-  const [grades, setGrades] = useState<WebsiteGrade[]>([]);
-  const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [scoreFilter, setScoreFilter] = useState("all");
-
-  const fetchData = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/admin/website-grades?page=${page}`);
-      const data = await res.json();
-      setGrades(data.grades || []);
-      setTotal(data.total || 0);
-      setTotalPages(data.totalPages || 1);
-    } catch {
-      // silent
-    } finally {
-      setLoading(false);
-    }
-  }, [page]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const gradesQuery = useAdminQuery<{ grades?: WebsiteGrade[]; total?: number; totalPages?: number }>(["admin", "website-grades", page], `/api/admin/website-grades?page=${page}`);
+  const grades = useMemo(() => gradesQuery.data?.grades ?? [], [gradesQuery.data?.grades]);
+  const total = gradesQuery.data?.total ?? 0;
+  const totalPages = gradesQuery.data?.totalPages ?? 1;
+  const loading = gradesQuery.isPending;
 
   const filtered = useMemo(() => {
     return grades.filter((g) => {
@@ -93,15 +78,6 @@ export default function WebsiteGradesPage() {
     window.open("/api/admin/website-grades/export", "_blank");
   };
 
-  if (loading) {
-    return (
-      <div>
-        <PageHeader title="Website Grades" />
-        <LoadingSkeleton variant="table" />
-      </div>
-    );
-  }
-
   return (
     <motion.div
       initial={false}
@@ -109,6 +85,7 @@ export default function WebsiteGradesPage() {
       transition={{ duration: 0.3 }}
     >
       <PageHeader title="Website Grades" subtitle={`${total} total`} />
+      <AdminReadBody loading={loading} hasData={Boolean(gradesQuery.data)} error={gradesQuery.error?.message} onRetry={() => void gradesQuery.refetch()} refreshing={gradesQuery.isFetching} loadingFallback={<LoadingSkeleton variant="table" />} label="Loading website grades">
 
       {/* Search & Filters */}
       <div className="flex flex-wrap gap-3 mb-4">
@@ -250,6 +227,7 @@ export default function WebsiteGradesPage() {
       </GlassCard>
 
       <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
+      </AdminReadBody>
     </motion.div>
   );
 }

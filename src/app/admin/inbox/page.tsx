@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "@/components/admin/AdminLink";
 import { motion } from "framer-motion";
 import {
@@ -24,7 +25,9 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { fetchJson } from "@/lib/admin/fetchJson";
@@ -62,28 +65,22 @@ function timeAgo(value: string) {
 }
 
 export default function AdminInboxPage() {
-  const [data, setData] = useState<AdminInboxResponse | null>(null);
+  const queryClient = useQueryClient();
+  const inboxQuery = useAdminQuery<AdminInboxResponse>(["admin", "inbox"], "/api/admin/inbox");
+  const data = inboxQuery.data ?? null;
+  const setData = (updater: (current: AdminInboxResponse | null) => AdminInboxResponse | null) => {
+    queryClient.setQueryData(["admin", "inbox"], (current: AdminInboxResponse | undefined) => updater(current ?? null) ?? undefined);
+  };
   const [kind, setKind] = useState<AdminInboxKind | "all">("all");
   const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState("");
+  const loading = inboxQuery.isPending;
+  const refreshing = inboxQuery.isFetching && Boolean(data);
+  const error = inboxQuery.error?.message || "";
 
   const load = useCallback(async (background = false) => {
-    if (background) setRefreshing(true); else setLoading(true);
-    setError("");
-    try {
-      const result = await fetchJson<AdminInboxResponse>("/api/admin/inbox");
-      setData(result);
-    } catch (loadError) {
-      const message = loadError instanceof Error ? loadError.message : "Couldn't load the operator inbox";
-      setError(message);
-      if (background) toast.error(message);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+    const result = await inboxQuery.refetch();
+    if (result.error && background) toast.error(result.error.message || "Couldn't load the operator inbox");
+  }, [inboxQuery]);
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
@@ -124,15 +121,12 @@ export default function AdminInboxPage() {
     }
   };
 
-  if (loading) {
-    return <div><PageHeader title="Operator Inbox" subtitle="Everything that needs a human decision." /><LoadingSkeleton variant="page" /></div>;
-  }
-
   return (
     <motion.div variants={adminListVariants} initial={false} animate="visible">
       <motion.div variants={adminSectionVariants}>
         <PageHeader title="Operator Inbox" subtitle="Every lead, message, follow-up, and stalled deal that needs a human decision." actions={<Button size="sm" variant="secondary" onClick={() => load(true)} disabled={refreshing}><RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", refreshing && "animate-spin")} />{refreshing ? "Refreshing…" : "Refresh"}</Button>} />
       </motion.div>
+      <AdminReadBody loading={loading} hasData={Boolean(data)} error={error} onRetry={() => void load()} refreshing={refreshing} loadingFallback={<LoadingSkeleton variant="page" />} label="Loading operator inbox">
 
       <motion.div variants={adminSectionVariants} className="mb-5 grid gap-3 sm:grid-cols-[1fr_auto]">
         <label className="relative block">
@@ -186,6 +180,7 @@ export default function AdminInboxPage() {
           </motion.div>
         </AdminSurface>
       )}
+      </AdminReadBody>
     </motion.div>
   );
 }

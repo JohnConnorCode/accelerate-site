@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertTriangle, BarChart3, CircleDollarSign, Clock3, Eye, FilterX, MessageCircleReply, RefreshCw, Target, Users } from "lucide-react";
 import { AdminSurface } from "@/components/admin/AdminSurface";
-import { AdminPageLoading } from "@/components/admin/AdminPageLoading";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
+import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
-import { fetchJson } from "@/lib/admin/fetchJson";
+import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { REVENUE_STAGE_META, REVENUE_STAGES } from "@/lib/revenue-os/types";
 
 type Rank = { label: string; count: number };
@@ -45,18 +46,23 @@ function RankedList({ title, rows, suffix = "" }: { title: string; rows: Rank[];
 
 export default function AnalyticsPage() {
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
-  const [ready, setReady] = useState(false);
-  const [data, setData] = useState<Data | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   useEffect(() => {
-    try { const stored = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || "null") as Partial<FilterState> | null; if (stored) setFilters({ ...DEFAULT_FILTERS, ...stored, days: [7, 30, 90, 365].includes(Number(stored.days)) ? Number(stored.days) : 30 }); } catch { /* use defaults */ }
-    setReady(true);
+    const timer = window.setTimeout(() => {
+      try {
+        const stored = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || "null") as Partial<FilterState> | null;
+        if (!stored) return;
+        setFilters({ ...DEFAULT_FILTERS, ...stored, days: [7, 30, 90, 365].includes(Number(stored.days)) ? Number(stored.days) : 30 });
+      } catch { /* keep defaults */ }
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
-  useEffect(() => { if (ready) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(filters)); }, [filters, ready]);
+  useEffect(() => { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(filters)); }, [filters]);
   const query = useMemo(() => { const params = new URLSearchParams({ days: String(filters.days) }); for (const key of ["source", "owner", "campaign", "stage"] as const) if (filters[key] !== "all") params.set(key, filters[key]); return params.toString(); }, [filters]);
-  const load = useCallback(async () => { if (!ready) return; setLoading(true); try { setData(await fetchJson<Data>(`/api/admin/revenue-os/analytics?${query}`)); setError(""); } catch (caught) { setError(caught instanceof Error ? caught.message : "Could not load analytics."); } finally { setLoading(false); } }, [query, ready]);
-  useEffect(() => { void load(); }, [load]);
+  const analyticsQuery = useAdminQuery<Data>(["admin", "analytics", query], `/api/admin/revenue-os/analytics?${query}`);
+  const data = analyticsQuery.data ?? null;
+  const loading = analyticsQuery.isPending;
+  const error = analyticsQuery.error?.message || "";
+  const load = useCallback(async () => { await analyticsQuery.refetch(); }, [analyticsQuery]);
   const activeFilterCount = [filters.source, filters.owner, filters.campaign, filters.stage].filter((value) => value !== "all").length;
   const qualityRows = data ? [
     { label: "Missing attribution", count: data.quality.missingAttribution, detail: "No canonical source or source detail" },
@@ -67,12 +73,11 @@ export default function AnalyticsPage() {
   ] : [];
   const issues = qualityRows.reduce((sum, row) => sum + Number(row.count || 0), 0);
 
-  if (!ready || (loading && !data)) return <AdminPageLoading title="Analytics" subtitle="Revenue facts, operating estimates, and data-quality gaps from the same canonical records." variant="page" />;
-  if (data && !data.schemaReady) return <RevenueSetupGate />;
   const funnel = data?.funnel; const web = data?.web;
   return <div className="space-y-7 pb-10">
-    <PageHeader title="Analytics" subtitle="Revenue facts, operating estimates, and data-quality gaps from the same canonical records." utilityActions={<button type="button" onClick={() => void load()} disabled={loading} aria-label="Refresh analytics" className="admin-icon-button shadow-[var(--admin-shadow-border)]"><RefreshCw className={loading ? "size-3.5 animate-spin" : "size-3.5"} /></button>} />
-    {error && <AdminSurface tone="attention">{error}</AdminSurface>}
+    <PageHeader title="Analytics" subtitle="Revenue facts, operating estimates, and data-quality gaps from the same canonical records." utilityActions={<button type="button" onClick={() => void load()} disabled={analyticsQuery.isFetching} aria-label="Refresh analytics" className="admin-icon-button shadow-[var(--admin-shadow-border)]"><RefreshCw className={analyticsQuery.isFetching ? "size-3.5 animate-spin" : "size-3.5"} /></button>} />
+    <AdminReadBody loading={loading} hasData={Boolean(data)} error={error} onRetry={() => void load()} refreshing={analyticsQuery.isFetching} loadingFallback={<LoadingSkeleton variant="page" />} label="Loading analytics">
+    {data && !data.schemaReady ? <RevenueSetupGate /> : data && <>
 
     <AdminSurface padding="none" className="overflow-hidden"><div className="flex flex-col gap-4 p-4 sm:p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="admin-eyebrow">Cohort controls</p><h2 className="mt-1 text-balance text-base font-semibold">Decide which revenue book you are reviewing</h2></div>{activeFilterCount > 0 && <button type="button" onClick={() => setFilters((current) => ({ ...DEFAULT_FILTERS, days: current.days }))} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)] transition-[color,box-shadow,transform] duration-150 hover:text-[var(--admin-ink)] hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"><FilterX className="size-4" />Clear {activeFilterCount} filters</button>}</div><div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap"><div className="grid grid-cols-4 rounded-xl p-1 shadow-[var(--admin-shadow-border)]" aria-label="Analytics date window">{[7, 30, 90, 365].map((days) => <button key={days} type="button" aria-pressed={filters.days === days} onClick={() => setFilters((current) => ({ ...current, days }))} className={`min-h-10 rounded-lg px-2 text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96] sm:px-3 ${filters.days === days ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]" : "text-[var(--admin-muted)] hover:text-[var(--admin-ink)]"}`}>{days === 365 ? "1 year" : `${days} days`}</button>)}</div>{data && <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap"><FilterSelect label="Source" value={filters.source} options={data.filterOptions.sources} onChange={(source) => setFilters((current) => ({ ...current, source }))} /><FilterSelect label="Owner" value={filters.owner} options={data.filterOptions.owners} onChange={(owner) => setFilters((current) => ({ ...current, owner }))} /><FilterSelect label="Campaign" value={filters.campaign} options={data.filterOptions.campaigns} onChange={(campaign) => setFilters((current) => ({ ...current, campaign }))} /><FilterSelect label="Stage" value={filters.stage} options={data.filterOptions.stages} labels={Object.fromEntries(REVENUE_STAGES.map((stage) => [stage, REVENUE_STAGE_META[stage].label]))} onChange={(stage) => setFilters((current) => ({ ...current, stage }))} /></div>}</div><p className="admin-copy text-pretty text-xs">{data?.cohort}</p></div></AdminSurface>
 
@@ -84,5 +89,7 @@ export default function AnalyticsPage() {
 
     {web?.status === "degraded" && <AdminSurface tone="attention" className="flex gap-3"><AlertTriangle className="mt-0.5 size-4 shrink-0" /><div><p className="font-semibold">Website measurement needs attention</p><p className="admin-copy mt-1 text-pretty text-sm">{web.reason}</p></div></AdminSurface>}
     {web?.status === "ready" && <><section><div className="mb-3 flex items-end justify-between gap-4"><div><p className="admin-eyebrow">Website activity</p><h2 className="mt-1 text-balance text-xl font-semibold">Traffic and intent signals</h2></div><p className="text-right text-xs text-[var(--admin-muted)]">Date filter only · privacy-minimised first-party capture</p></div><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><Metric label="Visitors" value={web.visitors ?? "—"} icon={Users} /><Metric label="Page views" value={web.pageViews ?? "—"} icon={Eye} /><Metric label="Intent actions" value={web.conversions ?? "—"} icon={Target} note="CTA clicks and form starts. Reading and scrolling remain engagement." /><Metric label="Intent rate" value={rate(web.conversionRate)} icon={BarChart3} note={web.engagementEvents != null ? `${web.engagementEvents} engagement events excluded` : undefined} /></div></section><div className="grid gap-4 xl:grid-cols-3"><RankedList title="Top conversion events" rows={web.conversionEvents} /><RankedList title="Top landing pages" rows={web.topPages} suffix=" views" /><RankedList title="Traffic sources" rows={web.sources} suffix=" events" /></div></>}
+    </>}
+    </AdminReadBody>
   </div>;
 }

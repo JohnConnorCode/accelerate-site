@@ -124,7 +124,7 @@ If you'd like a deeper look at where AI could plug into your business right now,
 
 Otherwise, just hit reply on this email. I read every one.
 
-John
+${tenant.founder.name}
 Founder, ${tenant.brand.name}
 ${siteUrl()}`,
     });

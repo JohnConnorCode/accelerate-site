@@ -120,5 +120,6 @@ export interface SetupCapability {
   keys?: string[];
   lastSuccessAt?: string | null;
   lastFailure?: string | null;
+  nextRun?: string | null;
   action?: { label: string; href: string; external?: boolean };
 }

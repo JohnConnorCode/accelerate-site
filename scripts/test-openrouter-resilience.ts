@@ -11,7 +11,9 @@
  *   - a configured fallback model is handed to OpenRouter for provider failover
  */
 import assert from "node:assert/strict";
-import { openRouterChat, OpenRouterError } from "../src/lib/ai/openrouter";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { openRouterChat, openRouterJson, OpenRouterError } from "../src/lib/ai/openrouter";
 
 // Read at call time by the gateway, so setting it here is enough and no real
 // credential is involved.
@@ -123,6 +125,90 @@ async function main() {
     assert.equal(body.models, undefined);
     assert.equal(body.route, undefined);
   });
+
+  const jsonSchema = {
+    type: "object",
+    additionalProperties: false,
+    required: ["ok"],
+    properties: { ok: { type: "boolean" } },
+  };
+  const validateOk = (value: unknown) => {
+    if (!value || typeof value !== "object" || typeof (value as { ok?: unknown }).ok !== "boolean") {
+      throw new Error("invalid structured payload");
+    }
+    return value as { ok: boolean };
+  };
+  const jsonAsk = {
+    messages: [{ role: "user" as const, content: "json" }],
+    schemaName: "probe",
+    schema: jsonSchema,
+    validate: validateOk,
+  };
+
+  await scenario("structured output requests a strict JSON schema", async () => {
+    stubFetch([{ status: 200, body: { ...okBody, choices: [{ message: { role: "assistant", content: "{\"ok\":true}" } }] } }]);
+    const result = await openRouterJson(jsonAsk);
+    assert.equal(result.data.ok, true);
+    const format = calls[0]?.body.response_format as { type?: string; json_schema?: { strict?: boolean; name?: string } };
+    assert.equal(format?.type, "json_schema");
+    assert.equal(format?.json_schema?.strict, true);
+    assert.equal(format?.json_schema?.name, "probe");
+  });
+
+  await scenario("malformed structured JSON is rejected before a domain write", async () => {
+    stubFetch([{ status: 200, body: { ...okBody, choices: [{ message: { role: "assistant", content: "not-json" } }] } }]);
+    await assert.rejects(() => openRouterJson(jsonAsk), (error: unknown) => {
+      assert.ok(error instanceof OpenRouterError);
+      assert.match((error as OpenRouterError).message, /malformed structured JSON/);
+      return true;
+    });
+  });
+
+  await scenario("unvalidated structured JSON is rejected before a domain write", async () => {
+    stubFetch([{ status: 200, body: { ...okBody, choices: [{ message: { role: "assistant", content: "{\"ok\":\"nope\"}" } }] } }]);
+    await assert.rejects(() => openRouterJson(jsonAsk), (error: unknown) => {
+      assert.ok(error instanceof OpenRouterError);
+      assert.match((error as OpenRouterError).message, /invalid structured payload/);
+      return true;
+    });
+  });
+
+  const sources = [
+    "src/lib/revenue-os/contact-imports.ts",
+    "src/lib/revenue-os/ai-agent.ts",
+    "src/app/api/chat/route.ts",
+    "src/app/api/generate-plan/route.ts",
+    "src/app/api/admin/ai-content-brief/route.ts",
+    "src/app/api/admin/proposals/generate/route.ts",
+  ];
+  for (const file of sources) {
+    const source = readFileSync(file, "utf8");
+    assert.match(source, /@\/lib\/ai\/openrouter/, `${file} must call the shared OpenRouter adapter`);
+    assert.doesNotMatch(source, /@anthropic-ai\/sdk|from ["']openai["']/, `${file} must not call a direct provider SDK`);
+  }
+  assert.equal(existsSync("src/app/api/admin/ai-insights/route.ts"), false, "pre-canonical insights must stay deleted rather than return a successful empty AI result");
+  const setup = readFileSync("src/app/api/admin/setup/route.ts", "utf8");
+  assert.match(setup, /OPENROUTER_API_KEY/);
+  assert.doesNotMatch(setup, /OPENROUTER_API_KEY.{0,80}sk-or/, "Setup must not echo the OpenRouter secret");
+  assert.match(readFileSync("src/app/api/chat/route.ts", "utf8"), /isOpenRouterConfigured\(\)/);
+  assert.match(readFileSync("src/app/api/generate-plan/route.ts", "utf8"), /isOpenRouterConfigured\(\)/);
+  assert.match(readFileSync("src/app/api/admin/proposals/generate/route.ts", "utf8"), /isOpenRouterConfigured\(\)/);
+  assert.match(readFileSync("src/lib/revenue-os/ai-agent.ts", "utf8"), /request_id: response\.id/);
+  assert.match(readFileSync("src/app/api/chat/route.ts", "utf8"), /startAgentRun/);
+  assert.doesNotMatch(readFileSync("src/app/api/generate-plan/route.ts", "utf8"), /Claude/);
+
+  function walk(dir: string): string[] {
+    return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+      const full = join(dir, entry.name);
+      return entry.isDirectory() ? walk(full) : full.endsWith(".ts") || full.endsWith(".tsx") ? [full] : [];
+    });
+  }
+  for (const file of ["src/lib", "src/app"].flatMap(walk)) {
+    const source = readFileSync(file, "utf8");
+    assert.doesNotMatch(source, /from ["']@anthropic-ai\/sdk["']/, `${file} reintroduced a direct Anthropic client`);
+    assert.doesNotMatch(source, /from ["']openai["']/, `${file} reintroduced a direct OpenAI client`);
+  }
+  checks.push("gateway-callers", "no-direct-provider-sdk", "setup-key-readiness");
 
   console.log(JSON.stringify({ checks, result: "passed" }, null, 2));
 }

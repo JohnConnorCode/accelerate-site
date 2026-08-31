@@ -1,7 +1,11 @@
 import "server-only";
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 
+/** Current envelope. A rotation adds v2 and keeps decryptSecret able to read
+ * prior versions until leftover tokens are re-encrypted. Unknown versions fail
+ * closed and never fall back to plaintext. */
 const VERSION = "v1";
+const SUPPORTED_VERSIONS = new Set(["v1"]);
 
 function key(): Buffer {
   const rawKey = process.env.GOOGLE_TOKEN_ENCRYPTION_KEY;
@@ -22,9 +26,15 @@ export function encryptSecret(value: string): string {
   return [VERSION, iv.toString("base64url"), tag.toString("base64url"), encrypted.toString("base64url")].join(".");
 }
 
-export function decryptSecret(value: string): string {
+export function isEncryptedSecret(value: string): boolean {
   const [version, ivValue, tagValue, encryptedValue] = value.split(".");
-  if (version !== VERSION || !ivValue || !tagValue || !encryptedValue) throw new Error("Unsupported encrypted secret format");
+  return Boolean(version && SUPPORTED_VERSIONS.has(version) && ivValue && tagValue && encryptedValue);
+}
+
+export function decryptSecret(value: string): string {
+  if (!isEncryptedSecret(value)) throw new Error("Unsupported encrypted secret format");
+  const [version, ivValue, tagValue, encryptedValue] = value.split(".");
+  if (!version || !ivValue || !tagValue || !encryptedValue || !SUPPORTED_VERSIONS.has(version)) throw new Error("Unsupported encrypted secret format");
   const decipher = createDecipheriv("aes-256-gcm", key(), Buffer.from(ivValue, "base64url"));
   decipher.setAuthTag(Buffer.from(tagValue, "base64url"));
   return Buffer.concat([decipher.update(Buffer.from(encryptedValue, "base64url")), decipher.final()]).toString("utf8");

@@ -58,10 +58,12 @@ assert.equal(categoryCount, DEMO_SCENARIO_SUMMARIES.length, "Scenarios must demo
 const scenarioMark = readFileSync("src/components/admin/DemoScenarioMark.tsx", "utf8");
 const adminShell = readFileSync("src/components/admin/AdminShell.tsx", "utf8");
 const demoBoundary = readFileSync("src/components/admin/AdminDemoBoundary.tsx", "utf8");
-const demoLauncher = readFileSync("src/app/demo/command-center/page.tsx", "utf8");
+const demoLauncher = readFileSync("src/app/(marketing)/demo/command-center/page.tsx", "utf8");
 for (const scenario of DEMO_SCENARIO_SUMMARIES) assert.match(scenarioMark, new RegExp(scenario.id), `${scenario.id}: custom logo artwork is missing`);
 assert.match(adminShell, /<DemoScenarioMark/, "Demo workspaces must replace the Accelerate brand mark with their scenario mark");
 assert.match(demoLauncher, /<DemoScenarioMark/, "The launcher must preview each scenario mark");
+assert.doesNotMatch(demoLauncher, /lg:col-span-3|Inside this workspace/, "Launcher cards must share one size and must not stack a second story list on the chooser");
+assert.match(demoLauncher, /DEMO_SCENARIO_SHELL_NAMES/, "Launcher titles must use the short operating names, not the full legal lockup");
 assert.doesNotMatch(demoBoundary, /AdminDemoGuide|Guided tour|Open guided tour/, "The exploration-first workspace must not render the paused guided tour");
 
 for (const file of ["src/components/home/CommandCenter.tsx", "src/components/sections/CommandCenterPage.tsx"]) {
@@ -69,7 +71,7 @@ for (const file of ["src/components/home/CommandCenter.tsx", "src/components/sec
   assert.doesNotMatch(readFileSync(file, "utf8"), /href="\/command-center\/demo"/, `${file}: obsolete standalone preview link remains`);
 }
 
-const legacyDemoRoute = readFileSync("src/app/command-center/demo/page.tsx", "utf8");
+const legacyDemoRoute = readFileSync("src/app/(marketing)/command-center/demo/page.tsx", "utf8");
 assert.match(legacyDemoRoute, /permanentRedirect\("\/demo\/command-center"\)/, "Legacy preview route must resolve to the full admin launcher");
 assert.doesNotMatch(legacyDemoRoute, /<CommandCenterDemo|components\/command-center\/demo/, "Legacy preview route must not render the obsolete standalone demo");
 
@@ -80,5 +82,13 @@ for (const file of [
 ]) {
   assert.doesNotMatch(readFileSync(file, "utf8"), /Sparkles/, `${file}: generic AI marks must not decorate repeated operational items`);
 }
+
+const demoRuntime = readFileSync("src/lib/admin/demo/runtime.ts", "utf8");
+const fetchJson = readFileSync("src/lib/admin/fetchJson.ts", "utf8");
+assert.match(demoRuntime, /activeRuntime\?\.scenarioId === scenarioId/, "Demo fetch intercept must be idempotent per scenario so first client reads cannot miss the runtime");
+assert.match(demoRuntime, /__accelerateAdminDemoRuntime = scenarioId/, "Installing the demo runtime must publish the readiness marker immediately");
+assert.doesNotMatch(demoRuntime, /items: \[\], data: \[\], schemaReady: true/, "Unknown demo admin APIs must not look like a successful empty workspace");
+assert.match(demoRuntime, /This fictional workspace has no handler for this request/, "Unknown demo admin APIs must fail closed with an explicit error");
+assert.match(fetchJson, /waitForDemoRuntime/, "Admin reads must wait for the fictional runtime before touching protected APIs");
 
 console.log(JSON.stringify({ result: "passed", scenarios: DEMO_SCENARIO_SUMMARIES.map((scenario) => scenario.id) }, null, 2));

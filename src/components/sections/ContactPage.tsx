@@ -6,7 +6,7 @@ import { Section, Container, Eyebrow, Heading } from "@/components/v2/studio/pri
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { HERO_HEADING } from "@/lib/type-recipes";
 import { ContactForm } from "@/components/sections/ContactForm";
-import { CALENDLY_URL, HAS_SCHEDULER } from "@/lib/booking";
+import { CALENDLY_URL, hasScheduler } from "@/lib/booking";
 
 const INFO_CARDS = [
   {
@@ -93,7 +93,7 @@ export function ContactPageContent() {
               <h2 className="mb-2 px-2 font-display text-2xl font-bold tracking-[-0.02em] text-heading">
                 Book your free AI strategy session
               </h2>
-              {HAS_SCHEDULER ? (
+              {hasScheduler() ? (
                 <>
                   <p className="mb-5 px-2 text-pretty text-sm leading-6 text-white-secondary">Choose a time directly on John’s calendar.</p>
                   <iframe

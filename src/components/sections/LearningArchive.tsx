@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import type { Article } from "@/lib/types";
+import type { ArticleSummary } from "@/lib/types";
 import { ArticleCard } from "@/components/mdx/ArticleCard";
 import { AnimateOnScroll, EntranceGroup, EntranceItem } from "@/components/ui/AnimateOnScroll";
 import { Container, Eyebrow } from "@/components/v2/studio/primitives";
@@ -15,7 +15,7 @@ export function LearningArchive({
   eyebrow: string;
   title: string;
   description: string;
-  articles: Article[];
+  articles: ArticleSummary[];
   showCategory?: boolean;
 }) {
   return (

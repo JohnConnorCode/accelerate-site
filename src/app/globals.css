@@ -502,7 +502,14 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
    initial frame deterministic without hiding no-JS output. One observer then
    moves every public reveal from pending to visible. */
 .rv { opacity: 1; transform: none; filter: none; }
-.motion-ready .rv:not(.work-reveal):not(.in) { opacity: 0; transform: translateY(24px); filter: blur(9px); }
+.motion-ready .rv[data-reveal-state="pending"]:not(.work-reveal):not(.in) { opacity: 0; transform: translateY(24px); filter: blur(9px); }
+/* Hero eyebrow uses the .loaded gate, not the shared observer. Hide it only
+   while the hero is still waiting to start its own sequence. */
+.motion-ready .hero:not(.loaded) .eyebrow-anim {
+  opacity: 0;
+  transform: translateY(24px);
+  filter: blur(9px);
+}
 .rv:not(.work-reveal).in:not(.reveal-immediate) { animation: rv-in .7s var(--ease) var(--d, 0s) both; }
 
 /* PlanDeck's card (.deck) has its own backdrop-filter for the frosted
@@ -588,31 +595,31 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
   }
 }
 .demo-launcher {
-  --demo-launcher-canvas: #f3f3f0;
+  --demo-launcher-canvas: #fbfbfa;
   --demo-launcher-ink: #0b0b0b;
-  --demo-launcher-muted: rgba(11, 11, 11, .64);
-  --demo-launcher-faint: rgba(11, 11, 11, .68);
-  --demo-launcher-rule: rgba(11, 11, 11, .11);
+  --demo-launcher-muted: rgba(11, 11, 11, .62);
+  --demo-launcher-faint: rgba(11, 11, 11, .46);
+  --demo-launcher-rule: rgba(11, 11, 11, .1);
   --demo-launcher-accent: #0f7a4b;
   --demo-launcher-focus: #0b0b0b;
   --demo-launcher-pill-shadow: inset 0 0 0 1px rgba(15, 122, 75, .18);
-  --demo-card-bg: #fbfbfa;
+  --demo-card-bg: #ffffff;
   --demo-card-ink: #0b0b0b;
-  --demo-card-muted: rgba(11, 11, 11, .62);
-  --demo-card-faint: rgba(11, 11, 11, .82);
-  --demo-card-rule: rgba(11, 11, 11, .1);
+  --demo-card-muted: rgba(11, 11, 11, .58);
+  --demo-card-faint: rgba(11, 11, 11, .5);
+  --demo-card-rule: rgba(11, 11, 11, .08);
   --demo-card-action: #0b0b0b;
   --demo-card-action-ink: #fbfbfa;
-  --demo-card-shadow: 0 0 0 1px rgba(0, 0, 0, .065), 0 2px 4px -2px rgba(0, 0, 0, .08), 0 22px 54px -38px rgba(0, 0, 0, .34);
-  --demo-card-shadow-hover: 0 0 0 1px rgba(0, 0, 0, .11), 0 3px 7px -3px rgba(0, 0, 0, .1), 0 32px 68px -38px rgba(0, 0, 0, .38);
-  --demo-preview-bg: #ffffff;
+  --demo-card-shadow: 0 0 0 1px rgba(0, 0, 0, .06), 0 1px 2px -1px rgba(0, 0, 0, .05), 0 16px 36px -24px rgba(0, 0, 0, .28);
+  --demo-card-shadow-hover: 0 0 0 1px rgba(0, 0, 0, .1), 0 2px 6px -2px rgba(0, 0, 0, .08), 0 26px 48px -28px rgba(0, 0, 0, .32);
+  --demo-preview-bg: #f6f6f3;
   --demo-preview-header: #111110;
   --demo-preview-header-ink: #fbfbfa;
-  --demo-preview-ink: rgba(11, 11, 11, .8);
-  --demo-preview-muted: rgba(11, 11, 11, .82);
-  --demo-preview-faint: rgba(11, 11, 11, .58);
+  --demo-preview-ink: rgba(11, 11, 11, .82);
+  --demo-preview-muted: rgba(11, 11, 11, .52);
+  --demo-preview-faint: rgba(11, 11, 11, .42);
   --demo-preview-rule: rgba(11, 11, 11, .07);
-  --demo-preview-shadow: 0 0 0 1px rgba(0, 0, 0, .07), 0 18px 38px -28px rgba(0, 0, 0, .34);
+  --demo-preview-shadow: inset 0 0 0 1px rgba(0, 0, 0, .05);
 }
 [data-theme="dark"] .demo-launcher {
   --demo-launcher-canvas: #0a0a0a;
@@ -623,31 +630,32 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
   --demo-launcher-accent: #a7f3d0;
   --demo-launcher-focus: #fbfbfa;
   --demo-launcher-pill-shadow: inset 0 0 0 1px rgba(167, 243, 208, .16);
-  --demo-card-bg: #171716;
+  --demo-card-bg: #141413;
   --demo-card-ink: #fbfbfa;
-  --demo-card-muted: rgba(251, 251, 250, .64);
-  --demo-card-faint: rgba(251, 251, 250, .84);
-  --demo-card-rule: rgba(255, 255, 255, .1);
+  --demo-card-muted: rgba(251, 251, 250, .6);
+  --demo-card-faint: rgba(251, 251, 250, .48);
+  --demo-card-rule: rgba(255, 255, 255, .08);
   --demo-card-action: #fbfbfa;
   --demo-card-action-ink: #0b0b0b;
-  --demo-card-shadow: 0 0 0 1px rgba(255, 255, 255, .08), 0 22px 54px -38px rgba(0, 0, 0, .9);
-  --demo-card-shadow-hover: 0 0 0 1px rgba(255, 255, 255, .16), 0 34px 74px -40px rgba(0, 0, 0, .95);
-  --demo-preview-bg: #10100f;
-  --demo-preview-header: #f2f2ef;
+  --demo-card-shadow: 0 0 0 1px rgba(255, 255, 255, .07), 0 18px 40px -28px rgba(0, 0, 0, .85);
+  --demo-card-shadow-hover: 0 0 0 1px rgba(255, 255, 255, .14), 0 26px 52px -30px rgba(0, 0, 0, .9);
+  --demo-preview-bg: #0e0e0d;
+  --demo-preview-header: #ecece8;
   --demo-preview-header-ink: #0b0b0b;
-  --demo-preview-ink: rgba(251, 251, 250, .82);
-  --demo-preview-muted: rgba(251, 251, 250, .86);
-  --demo-preview-faint: rgba(251, 251, 250, .62);
-  --demo-preview-rule: rgba(255, 255, 255, .075);
-  --demo-preview-shadow: 0 0 0 1px rgba(255, 255, 255, .08), 0 20px 42px -28px rgba(0, 0, 0, .9);
+  --demo-preview-ink: rgba(251, 251, 250, .84);
+  --demo-preview-muted: rgba(251, 251, 250, .52);
+  --demo-preview-faint: rgba(251, 251, 250, .42);
+  --demo-preview-rule: rgba(255, 255, 255, .07);
+  --demo-preview-shadow: inset 0 0 0 1px rgba(255, 255, 255, .05);
 }
 .demo-launcher-grid {
-  opacity: .42;
-  background-image: linear-gradient(color-mix(in srgb, var(--demo-launcher-ink) 4%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--demo-launcher-ink) 4%, transparent) 1px, transparent 1px);
-  background-size: 72px 72px;
+  opacity: .22;
+  background-image: linear-gradient(color-mix(in srgb, var(--demo-launcher-ink) 5%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--demo-launcher-ink) 5%, transparent) 1px, transparent 1px);
+  background-size: 88px 88px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,.7), transparent 78%);
 }
-.demo-launcher-glow--top { background: color-mix(in srgb, var(--demo-launcher-accent) 10%, transparent); }
-.demo-launcher-glow--bottom { background: color-mix(in srgb, #8b5cf6 7%, transparent); }
+.demo-launcher-glow--top { background: color-mix(in srgb, var(--demo-launcher-accent) 8%, transparent); }
+.demo-launcher-glow--bottom { background: transparent; }
 .demo-launcher-safety { color: var(--demo-launcher-accent); background: color-mix(in srgb, var(--demo-launcher-accent) 9%, transparent); }
 .demo-launcher-card { background: var(--demo-card-bg); }
 .demo-launcher-card:hover { background: color-mix(in srgb, var(--demo-card-bg) 96%, var(--demo-card-ink) 4%); }
@@ -1075,12 +1083,83 @@ a.tag:active { background: var(--surface-bg-strong); transform: scale(.96); tran
 
 .services-subnav {
   top: calc(var(--site-header-h) + var(--safe-top));
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: color-mix(in srgb, var(--bg) 94%, transparent);
+  box-shadow: 0 9px 18px -20px rgba(0, 0, 0, .28);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.services-subnav-rail {
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  padding-top: 0;
+  padding-bottom: 0;
+  scroll-padding-inline: max(20px, var(--page-pad));
+  scrollbar-width: none;
+}
+.services-subnav-rail::-webkit-scrollbar { display: none; }
+.services-subnav-link {
+  display: inline-flex;
+  min-height: 46px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+  border-bottom: 2px solid transparent;
+  padding: 0 15px;
+  color: color-mix(in srgb, var(--fg) 58%, transparent);
+  font-family: var(--util);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .045em;
+  line-height: 1;
+  white-space: nowrap;
+  transition-property: color, border-color, transform;
+  transition-duration: 180ms;
+  transition-timing-function: var(--ease);
+}
+.services-subnav-link:hover { color: var(--fg); }
+.services-subnav-link:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+.services-subnav-link:active { transform: scale(.96); }
+.services-subnav-link.is-active {
+  border-bottom-color: var(--fg);
+  color: var(--fg);
+  box-shadow: none;
+}
+
+.services-band { padding: clamp(68px, 8vw, 116px) 0; border-bottom: 1px solid var(--rule); }
+.services-band-grid { display: grid; gap: clamp(38px, 6vw, 94px); align-items: start; }
+.services-band-icon { display: inline-grid; width: 42px; height: 42px; place-items: center; margin-bottom: 25px; border: 1px solid color-mix(in srgb, var(--fg) 20%, transparent); border-radius: 999px; }
+.services-band-number { margin: 0 0 12px; font-family: var(--util); font-size: 10px; letter-spacing: .16em; color: color-mix(in srgb, var(--fg) 52%, transparent); }
+.services-band-title { max-width: 14ch; margin: 0; font-family: var(--display); font-size: clamp(2.45rem, 4.4vw, 5.5rem); font-weight: 600; letter-spacing: -.07em; line-height: .92; text-wrap: balance; }
+.services-band-problem { max-width: 42ch; margin: 27px 0 0; font-size: 1.05rem; font-weight: 600; line-height: 1.52; letter-spacing: -.012em; color: var(--fg); text-wrap: pretty; }
+.services-band-description { max-width: 49ch; margin: 15px 0 0; font-size: 1rem; line-height: 1.62; color: color-mix(in srgb, var(--fg) 65%, transparent); text-wrap: pretty; }
+.services-band-deliverables { padding: clamp(25px, 3vw, 38px) 0; border-top: 1px solid var(--fg); border-bottom: 1px solid var(--rule); background: transparent; }
+.services-band-deliverables-label { margin: 0 0 22px; font-family: var(--util); font-size: 10px; letter-spacing: .15em; text-transform: uppercase; color: color-mix(in srgb, var(--fg) 56%, transparent); }
+.services-band-deliverables-list { display: grid; gap: 13px; margin: 0; padding: 0; list-style: none; }
+.services-band-deliverables-list li { display: flex; gap: 11px; align-items: flex-start; font-size: .95rem; line-height: 1.5; color: color-mix(in srgb, var(--fg) 78%, transparent); }
+.services-band-deliverables-list svg { margin-top: .2em; color: var(--fg); }
+.services-band-action { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--rule); }
+.services-band-action > p { margin: 0; font-family: var(--display); font-size: 1.25rem; font-weight: 600; letter-spacing: -.03em; }
+.services-band-link { display: inline-flex; align-items: center; gap: 8px; color: var(--fg); font-family: var(--util); font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; transition-property: opacity, transform; transition-duration: 180ms; transition-timing-function: var(--ease); }
+.services-band-link:hover { opacity: .63; }
+.services-band-link:active { transform: scale(.96); }
+@media (min-width: 1024px) {
+  .services-band-grid { grid-template-columns: minmax(0, 1.26fr) minmax(340px, .74fr); }
 }
 @media (max-width: 1023px) {
-  .services-subnav .page-shell {
+  .services-subnav-rail {
     -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 28px), transparent 100%);
     mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 28px), transparent 100%);
   }
+}
+@media (max-width: 639px) {
+  .services-band { padding: 70px 0; }
+  .services-band-icon { margin-bottom: 21px; }
+  .services-band-problem { margin-top: 22px; font-size: 1rem; }
+  .services-band-deliverables { padding: 25px 0; }
+  .services-band-action { align-items: flex-start; flex-direction: column; }
 }
 .services-band {
   scroll-margin-top: calc(var(--site-header-h) + var(--safe-top) + 52px);
@@ -1164,7 +1243,7 @@ body.modal-open [data-dock] {
     filter: blur(2px);
   }
   .route-entry.is-entering { animation: route-entry-in 360ms var(--ease-out) both; }
-  .motion-ready .word-mask-heading:not(.in) .word-mask-word > span {
+  .motion-ready .word-mask-heading[data-reveal-state="pending"]:not(.in) .word-mask-word > span {
     transform: translateY(112%);
   }
   .word-mask-heading.in:not(.reveal-immediate) .word-mask-word > span {
@@ -2907,7 +2986,7 @@ summary:focus-visible {
 @media (max-width: 560px) { .cta-cluster .btn { width: 100%; } }
 
 /* hero */
-.hero { position: relative; overflow: hidden; padding-top: clamp(114px, 16vw, 180px); padding-bottom: clamp(46px, 7vw, 74px); --word-blur: 18px; }
+.hero { position: relative; min-height: max(100svh, 720px); overflow: hidden; padding-top: clamp(114px, 16vw, 180px); padding-bottom: clamp(46px, 7vw, 74px); --word-blur: 18px; }
 .hero h1 { margin-top: clamp(20px, 2.6vw, 34px); }
 .hero .wrap { position: relative; z-index: 1; }
 /* The 114px floor above is sized for the fixed header's clearance on
@@ -2925,6 +3004,7 @@ summary:focus-visible {
     --hero-mobile-top: calc(var(--site-header-h) + var(--safe-top) + 14px);
     --hero-mobile-bottom: clamp(22px, 3.8svh, 32px);
     display: block;
+    min-height: 100svh;
     overflow: hidden;
     padding-top: var(--hero-mobile-top);
     padding-bottom: 30px;
@@ -2942,11 +3022,6 @@ summary:focus-visible {
     width: 100%;
     padding-bottom: 4px;
   }
-  /* The proof follows the complete opening group without stretching that
-     group to the viewport height. This keeps the primary action attached to
-     PROFIT on tall phones instead of manufacturing a dead spacer above it. */
-  .hero-band .hero-btm { margin-top: clamp(30px, 4dvh, 40px); padding-top: clamp(16px, 2.2dvh, 22px); }
-  .hero-band .hero-btm .lede { font-size: clamp(14px, 2.1dvh, 15.5px); line-height: 1.5; }
   .hero-band .mq { display: block; }
 
   .hero { --word-blur: 9px; }
@@ -3027,7 +3102,6 @@ summary:focus-visible {
   .motion-ready .hero .hero-profit { animation: hero-mobile-focus-in .72s cubic-bezier(0.16, 1, 0.3, 1) .92s both !important; }
   .motion-ready .hero .hero-profit::after { animation: hero-mobile-rule-in .65s var(--ease) 1.12s both !important; }
   .motion-ready .hero .hero-inline-cta { animation: hero-mobile-focus-in .68s cubic-bezier(0.16, 1, 0.3, 1) 1.28s both !important; }
-  .motion-ready .hero .hero-btm > * { animation: item-in .58s var(--ease) 1.56s both !important; }
 }
 
 @media (max-width: 640px) and (max-height: 620px) {
@@ -3144,10 +3218,6 @@ summary:focus-visible {
 .hero-inline-cta { opacity: 1; filter: none; }
 .motion-ready .hero:not(.loaded) .hero-inline-cta { opacity: 0; filter: blur(var(--word-blur, 18px)); }
 .loaded .hero-inline-cta { opacity: 1; filter: blur(0px); transition: opacity .8s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s), filter .8s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s); }
-/* CTA now lands inline next to PROFIT (see .hero-inline-cta) instead of
-   the old two-column layout, so hero-btm is just the subtext beneath the
-   headline, at .lede's own default width. */
-.hero-btm { border-top: 1px solid var(--rule); padding-top: clamp(26px, 3vw, 36px); margin-top: clamp(36px, 5vw, 64px); }
 @media (prefers-reduced-motion: reduce) {
   .strike::after, .swap, .rev-ul::after, .hero-inline-cta { transition: none !important; transform: scaleX(1) !important; opacity: 1 !important; filter: none !important; }
 }
@@ -3155,9 +3225,36 @@ summary:focus-visible {
   .motion-ready .hero .eyebrow-anim,
   .motion-ready .hero .word > span,
   .motion-ready .hero .hero-profit,
-  .motion-ready .hero .hero-inline-cta,
-  .motion-ready .hero .hero-btm > * { animation: none !important; opacity: 1 !important; transform: none !important; filter: none !important; }
+  .motion-ready .hero .hero-inline-cta { animation: none !important; opacity: 1 !important; transform: none !important; filter: none !important; }
   .motion-ready .hero .hero-profit::after { animation: none !important; transform: scaleX(1) !important; }
+}
+
+/* Hero statement — the original explanation gets its own quiet beat after the
+   opening viewport, instead of competing with the headline and booking CTA. */
+.hero-statement {
+  position: relative;
+  padding: clamp(72px, 10vw, 140px) 0;
+  border-top: 1px solid var(--rule);
+}
+.hero-statement-copy {
+  max-width: 31ch;
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(1.85rem, 3.55vw, 4rem);
+  font-weight: 600;
+  letter-spacing: -.055em;
+  line-height: 1.03;
+  text-wrap: pretty;
+}
+@keyframes hero-statement-copy-in { from { opacity: 0; transform: translateY(16px); filter: blur(6px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
+.motion-ready .hero-statement:not(.is-revealed) .hero-statement-copy { opacity: 0; transform: translateY(16px); filter: blur(6px); }
+.hero-statement.is-revealed .hero-statement-copy { animation: hero-statement-copy-in .72s var(--ease) both; }
+@media (max-width: 700px) {
+  .hero-statement { padding: 72px 0 80px; }
+  .hero-statement-copy { max-width: 20ch; font-size: clamp(1.75rem, 8.8vw, 2.7rem); line-height: 1.07; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-statement-copy { animation: none !important; opacity: 1 !important; transform: none !important; filter: none !important; }
 }
 
 /* final CTA */
@@ -3524,6 +3621,7 @@ body.admin-notifications-open {
   min-height: 100dvh;
   color: var(--admin-ink);
   background: var(--admin-canvas-art), var(--admin-canvas);
+  color-scheme: light;
 }
 
 html.admin-app-open,
@@ -3565,6 +3663,7 @@ body.admin-app-open {
   --admin-shadow-border-hover: 0 0 0 1px rgba(255, 255, 255, 0.13);
   --admin-shadow: 0 0 0 1px rgba(255, 255, 255, 0.075);
   --admin-shadow-hover: 0 0 0 1px rgba(255, 255, 255, 0.13);
+  color-scheme: dark;
 }
 
 /* Signal is the dense, high-focus dashboard treatment: violet lives in the
@@ -3603,6 +3702,7 @@ body.admin-app-open {
   --admin-shadow-border-hover: 0 0 0 1px rgba(183, 161, 255, 0.24), 0 20px 44px -26px rgba(0, 0, 0, 0.78);
   --admin-shadow: 0 0 0 1px rgba(183, 161, 255, 0.105), 0 18px 42px -30px rgba(0, 0, 0, 0.78);
   --admin-shadow-hover: 0 0 0 1px rgba(183, 161, 255, 0.25), 0 25px 50px -30px rgba(0, 0, 0, 0.85);
+  color-scheme: dark;
 }
 
 /* Studio keeps the operational density but borrows the calm, project-focused
@@ -3640,6 +3740,7 @@ body.admin-app-open {
   --admin-shadow-border-hover: 0 0 0 1px rgba(53, 109, 243, 0.16), 0 5px 10px -5px rgba(25, 35, 58, 0.09), 0 24px 44px -28px rgba(35, 72, 145, 0.28);
   --admin-shadow: 0 0 0 1px rgba(38, 71, 134, 0.065), 0 2px 5px -2px rgba(25, 35, 58, 0.055), 0 18px 38px -28px rgba(35, 72, 145, 0.22);
   --admin-shadow-hover: 0 0 0 1px rgba(53, 109, 243, 0.15), 0 5px 11px -5px rgba(25, 35, 58, 0.08), 0 26px 48px -30px rgba(35, 72, 145, 0.28);
+  color-scheme: light;
 }
 
 /* Frost is the luminous violet system: borderless white cards float over a
@@ -3677,6 +3778,7 @@ body.admin-app-open {
   --admin-shadow-border-hover: 0 10px 28px -18px rgba(91, 53, 196, 0.34), 0 28px 64px -38px rgba(69, 44, 145, 0.3);
   --admin-shadow: 0 10px 30px -22px rgba(58, 39, 124, 0.24), 0 26px 72px -48px rgba(76, 48, 168, 0.3);
   --admin-shadow-hover: 0 14px 34px -22px rgba(74, 43, 164, 0.3), 0 34px 82px -48px rgba(76, 48, 168, 0.36);
+  color-scheme: light;
 }
 
 .admin-main {
@@ -3963,7 +4065,55 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 .admin-shell .admin-surface-compatible--outlined { box-shadow: var(--admin-card-outline-shadow); }
 
 .admin-surface-subtle { background: var(--admin-surface-subtle); }
-.admin-surface-ink { background: var(--admin-sidebar); color: #fbfbfa; }
+.admin-surface-ink { background: var(--admin-sidebar); color: var(--admin-nav-ink); }
+
+/* Auth layouts reuse the signed-in shell tokens. Brand rails stay on the
+   sidebar palette; primary controls stay on the action palette. Layout
+   panels must never inherit action remapping. */
+.admin-auth-brand {
+  background: var(--admin-sidebar);
+  color: var(--admin-nav-ink);
+}
+.admin-auth-brand-muted { color: var(--admin-nav-muted); }
+.admin-auth-brand-faint { color: var(--admin-nav-faint); }
+.admin-auth-brand-ring {
+  border-color: color-mix(in srgb, var(--admin-nav-ink) 10%, transparent);
+}
+
+.admin-action-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  border-radius: var(--admin-control-radius);
+  background: var(--admin-action);
+  color: var(--admin-action-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition-property: background-color, transform, opacity;
+  transition-duration: 150ms;
+  transition-timing-function: var(--ease);
+}
+.admin-action-control:hover {
+  background: color-mix(in srgb, var(--admin-action) 86%, var(--admin-action-ink));
+}
+.admin-action-control:active { transform: scale(0.96); }
+.admin-action-control:disabled { opacity: 0.5; cursor: not-allowed; }
+.admin-action-control:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--admin-action) 28%, transparent);
+}
+
+.admin-action-mark {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--admin-action);
+  color: var(--admin-action-ink);
+}
 .admin-surface-attention {
   background: color-mix(in srgb, var(--admin-surface) 94%, var(--admin-accent) 6%);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-accent) 23%, transparent), 0 16px 36px -28px color-mix(in srgb, var(--admin-accent) 35%, transparent);
@@ -3992,16 +4142,16 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 }
 
 /* Transitional route compatibility. Some retained admin pages still carry
-   neutral Tailwind utilities from before the shared operations palette. Keep
-   those routes on the centralized token contract until their local components
-   are individually simplified; this intentionally excludes status colors. */
-:is(.admin-shell, body.admin-dialog-open) [class~="bg-[#0b0b0b]"],
-:is(.admin-shell, body.admin-dialog-open) [class~="bg-[#0a0a0a]"],
-:is(.admin-shell, body.admin-dialog-open) [class~="bg-black"] {
+   neutral Tailwind utilities from before the shared operations palette. Map
+   those leftover blacks only on interactive controls so layout panels keep
+   their own tokens; this intentionally excludes status colors. */
+:is(.admin-shell, body.admin-dialog-open) :is(button, a, [type="submit"], [role="button"])[class~="bg-[#0b0b0b]"],
+:is(.admin-shell, body.admin-dialog-open) :is(button, a, [type="submit"], [role="button"])[class~="bg-[#0a0a0a]"],
+:is(.admin-shell, body.admin-dialog-open) :is(button, a, [type="submit"], [role="button"])[class~="bg-black"] {
   background-color: var(--admin-action);
   color: var(--admin-action-ink);
 }
-:is(.admin-shell, body.admin-dialog-open) [class~="hover:bg-[#252525]"]:hover {
+:is(.admin-shell, body.admin-dialog-open) :is(button, a, [type="submit"], [role="button"])[class~="hover:bg-[#252525]"]:hover {
   background-color: color-mix(in srgb, var(--admin-action) 86%, var(--admin-action-ink));
 }
 :is(.admin-shell, body.admin-dialog-open) [class*="bg-black/"] {

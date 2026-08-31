@@ -27,7 +27,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ confirmationRequired: true, action });
   }
   try {
-    const result = await sendGmailReply(supabase, { conversationId: body.conversationId, body: body.body, actorEmail: auth.user.email || "founder" });
+    const result = await sendGmailReply(supabase, {
+      conversationId: body.conversationId,
+      body: body.body,
+      actorEmail: auth.user.email || "founder",
+      idempotencyKey: `gmail-reply:${body.conversationId}:${Buffer.from(body.body.trim()).toString("base64url").slice(0, 48)}`,
+    });
     return NextResponse.json({ success: true, result });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Gmail reply failed" }, { status: 400 });

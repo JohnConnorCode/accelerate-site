@@ -89,6 +89,7 @@ function auditHistory(pack: DemoScenarioPack, params: URLSearchParams) {
     },
   };
 }
+
 function queue(pack: DemoScenarioPack, state: DemoState) {
   const approvals = pack.actions.slice(0, 2).filter((item) => !state.completedActions.includes(item.id)).map((item, index) => ({ id: `action:${item.id}`, kind: "approval", title: item.title, summary: item.description, urgency: index === 0 ? "high" : "normal", dueAt: dateOffset(0), sourceTimestamp: ago(index + 1), priorityReason: "A consequential simulated change is staged for operator review.", recommendedNextAction: "Review the exact simulated change", href: `/admin/today?focus=approval&action=${item.id}` }));
   const replies = pack.conversations.slice(0, 2).map((item, index) => { const contact = person(pack, item.personId); return { id: `reply:${item.id}`, kind: "reply", title: `Reply to ${contact.name}`, summary: item.messages.at(-1)!.body, urgency: index === 0 ? "high" : "normal", dueAt: dateOffset(0), sourceTimestamp: item.messages.at(-1)!.at, priorityReason: "An unread customer message is waiting for a response.", recommendedNextAction: "Open the conversation and reply", href: "/admin/conversations" }; });
@@ -324,7 +325,11 @@ function legacy(pack: DemoScenarioPack, path: string) {
   return null;
 }
 
+let activeRuntime: { scenarioId: DemoScenarioId; restore: () => void; reset: () => void } | null = null;
+
 export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
+  if (activeRuntime?.scenarioId === scenarioId) return activeRuntime;
+  activeRuntime?.restore();
   const pack = DEMO_SCENARIOS[scenarioId]; const state = loadState(scenarioId); const nativeFetch = window.fetch.bind(window); const nativeOpen = window.open.bind(window);
   const reset = () => { sessionStorage.removeItem(keyFor(scenarioId)); clearDemoAppearance(scenarioId); window.location.reload(); };
   const demoFetch: typeof window.fetch = async (input, init) => {
@@ -419,9 +424,18 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     if (path === "/api/admin/revenue-os/tasks") return jsonResponse({ tasks: pack.tasks.filter((item) => !state.completedTasks.includes(item.id)) });
     if (path === "/api/admin/tasks") return jsonResponse({ tasks: pack.tasks.filter((item) => !state.completedTasks.includes(item.id)).map((item) => ({ ...item, due_date: dateOffset(item.dueOffset), contact_email: person(pack, item.personId).email })) });
     if (path === "/api/admin/google/sync") return jsonResponse({ success: true, simulated: true });
-    return jsonResponse({ items: [], data: [], schemaReady: true, simulated: true });
+    return jsonResponse({ error: "This fictional workspace has no handler for this request.", simulated: true }, 404);
   };
+  (window as Window & { __accelerateAdminDemoRuntime?: string }).__accelerateAdminDemoRuntime = scenarioId;
   window.fetch = demoFetch;
   window.open = ((url?: string | URL, target?: string, features?: string) => { const value = String(url || ""); if (value.startsWith("/api/admin")) { const blob = new Blob([`name,email,scenario\n${pack.people.slice(0, 8).map((item) => `${item.name},${item.email},${scenarioId}`).join("\n")}`], { type: "text/csv" }); return nativeOpen(URL.createObjectURL(blob), target, features); } return nativeOpen(url, target, features); }) as typeof window.open;
-  return { pack, reset, restore: () => { window.fetch = nativeFetch; window.open = nativeOpen; } };
+  const restore = () => {
+    window.fetch = nativeFetch;
+    window.open = nativeOpen;
+    const marker = window as Window & { __accelerateAdminDemoRuntime?: string };
+    if (marker.__accelerateAdminDemoRuntime === scenarioId) delete marker.__accelerateAdminDemoRuntime;
+    if (activeRuntime?.scenarioId === scenarioId) activeRuntime = null;
+  };
+  activeRuntime = { scenarioId, restore, reset };
+  return { pack, reset, restore };
 }

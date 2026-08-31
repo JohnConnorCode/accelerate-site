@@ -1,14 +1,15 @@
 import "server-only";
-import { tenant } from "@/config/tenant";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { decryptSecret, encryptSecret } from "./encryption";
+import { tenant } from "@/config/tenant";
+import { decryptSecret, encryptSecret, isEncryptedSecret } from "./encryption";
 import { normalizeEmail, safeErrorMessage } from "./db";
 import { recordSourceRun } from "./runs";
 import { findCanonicalContactByEmail } from "./identity";
 import { stopCampaignMemberships } from "./campaign-stops";
 import { planGmailThreadSync, type GmailHistoryPage, type GmailThreadListPage } from "./gmail-sync-plan";
-import { recordAudit } from "./audit";
 import { recordActivity } from "./activities";
+import { recordAudit } from "./audit";
+import { prepareGmailReply } from "./gmail-reply-mime";
 
 export const GOOGLE_SCOPES = [
   "openid",
@@ -81,7 +82,9 @@ export async function getGoogleAccessToken(supabase: SupabaseClient): Promise<{ 
   const { data: connection, error } = await supabase.from("integration_connections").select("*").eq("provider", "google").eq("status", "connected").maybeSingle();
   if (error) throw new Error(error.message);
   if (!connection?.encrypted_refresh_token) throw new Error("Google Workspace is not connected");
+  if (!isEncryptedSecret(connection.encrypted_refresh_token)) throw new Error("Google refresh token is not in the encrypted envelope; reconnect Workspace.");
   if (connection.encrypted_access_token && connection.token_expires_at && new Date(connection.token_expires_at).getTime() > Date.now() + 60000) {
+    if (!isEncryptedSecret(connection.encrypted_access_token)) throw new Error("Google access token is not in the encrypted envelope; reconnect Workspace.");
     return { token: decryptSecret(connection.encrypted_access_token), connection };
   }
 
@@ -352,9 +355,17 @@ export async function syncDrive(supabase: SupabaseClient) {
   return { stored, folders: folders.length };
 }
 
-export async function sendGmailReply(supabase: SupabaseClient, input: { conversationId: string; body: string; actorEmail: string }) {
+export async function sendGmailReply(supabase: SupabaseClient, input: { conversationId: string; body: string; actorEmail: string; idempotencyKey?: string }) {
   const body = input.body.trim();
   if (!body) throw new Error("Reply body is required");
+  if (input.idempotencyKey && input.idempotencyKey.length > 256) throw new Error("Email idempotency keys must be 256 characters or fewer");
+  if (input.idempotencyKey) {
+    const { data: existing, error } = await supabase.from("messages").select("id,provider_id,status,conversation_id").eq("idempotency_key", input.idempotencyKey).maybeSingle();
+    if (error) throw new Error(error.message);
+    if (existing?.status === "sent") return { providerId: existing.provider_id, messageId: existing.id, conversationId: existing.conversation_id };
+    if (existing) throw new Error("This email is already being processed; review its receipt before retrying");
+  }
+
   const { token, connection } = await getGoogleAccessToken(supabase);
   const { data: conversation, error: conversationError } = await supabase.from("conversations").select("id,external_id,subject,contact_id,opportunity_id,metadata").eq("id", input.conversationId).eq("channel", "gmail").maybeSingle();
   if (conversationError) throw new Error(conversationError.message);
@@ -365,48 +376,64 @@ export async function sendGmailReply(supabase: SupabaseClient, input: { conversa
   const ownerEmail = normalizeEmail(connection.account_email as string);
   const metadata = (conversation.metadata ?? {}) as { contact_email?: string };
   const recipient = normalizeEmail(metadata.contact_email || latest.sender_email);
-  if (!ownerEmail || !recipient || recipient === ownerEmail) throw new Error("Could not identify the Gmail reply recipient");
-  const subject = /^re:/i.test(conversation.subject || "") ? conversation.subject : `Re: ${conversation.subject || latest.subject || "Your message"}`;
-  const references = [latest.references_header, latest.external_id ? `<${latest.external_id}>` : null].filter(Boolean).join(" ");
-  const raw = [
-    `From: ${ownerEmail}`,
-    `To: ${recipient}`,
-    `Subject: ${subject}`,
-    latest.external_id ? `In-Reply-To: <${latest.external_id}>` : null,
-    references ? `References: ${references}` : null,
-    "MIME-Version: 1.0",
-    "Content-Type: text/plain; charset=UTF-8",
-    "",
+  if (!ownerEmail || !recipient) throw new Error("Could not identify the Gmail reply recipient");
+  const prepared = prepareGmailReply({
+    ownerEmail,
+    recipient,
+    conversationSubject: conversation.subject,
+    latest,
     body,
-  ].filter((line): line is string => line !== null).join("\r\n");
-  const sent = await googleFetch<{ id: string; threadId: string; labelIds?: string[] }>("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ raw: Buffer.from(raw).toString("base64url"), threadId: conversation.external_id }),
   });
-  const now = new Date().toISOString();
-  const { data: message, error: saveError } = await supabase.from("messages").upsert({
+
+  const claimId = crypto.randomUUID();
+  const { error: claimError } = await supabase.from("messages").insert({
+    id: claimId,
     conversation_id: conversation.id,
-    external_id: sent.id,
-    provider_id: sent.id,
+    idempotency_key: input.idempotencyKey || null,
     direction: "outbound",
     sender_email: ownerEmail,
-    recipient_emails: [recipient],
-    subject,
+    recipient_emails: [prepared.recipient],
+    subject: prepared.subject,
     body_text: body,
-    status: "sent",
+    status: "processing",
     in_reply_to: latest.external_id,
-    references_header: references || null,
+    references_header: prepared.references,
+    metadata: { source: "gmail_reply", gmail_thread_id: conversation.external_id },
+  });
+  if (claimError) throw new Error(claimError.code === "23505" ? "This email has already been claimed" : claimError.message);
+
+  let sent: { id: string; threadId: string; labelIds?: string[] };
+  try {
+    sent = await googleFetch<{ id: string; threadId: string; labelIds?: string[] }>("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ raw: Buffer.from(prepared.raw).toString("base64url"), threadId: conversation.external_id }),
+    });
+  } catch (error) {
+    await supabase.from("messages").update({ status: "failed", metadata: { source: "gmail_reply", error: error instanceof Error ? error.message : "Gmail send failed" } }).eq("id", claimId);
+    throw error;
+  }
+
+  const now = new Date().toISOString();
+  const { data: message, error: saveError } = await supabase.from("messages").update({
+    external_id: sent.id,
+    provider_id: sent.id,
+    status: "sent",
     sent_at: now,
-    metadata: { labels: sent.labelIds ?? [], gmail_thread_id: sent.threadId },
-  }, { onConflict: "conversation_id,external_id" }).select("id").single();
-  if (saveError) console.error("[google/gmail-send] sent but local receipt failed", saveError.message);
+    in_reply_to: latest.external_id,
+    references_header: prepared.references,
+    metadata: { labels: sent.labelIds ?? [], gmail_thread_id: sent.threadId, source: "gmail_reply" },
+  }).eq("id", claimId).select("id").single();
+  if (saveError || !message) {
+    throw new Error("Email provider accepted the message but its local receipt could not be recorded; reconcile before retrying");
+  }
+
   await Promise.all([
     supabase.from("conversations").update({ status: "waiting", unread_count: 0, last_message_at: now }).eq("id", conversation.id),
     recordActivity(supabase, {
       activityType: "email_sent",
-      title: subject,
-      summary: `Gmail reply sent to ${recipient}`,
+      title: prepared.subject,
+      summary: `Gmail reply sent to ${prepared.recipient}`,
       contactId: conversation.contact_id,
       opportunityId: conversation.opportunity_id,
       conversationId: conversation.id,
@@ -415,6 +442,14 @@ export async function sendGmailReply(supabase: SupabaseClient, input: { conversa
       externalId: sent.id,
       occurredAt: now,
     }),
+    recordAudit(supabase, {
+      actorEmail: input.actorEmail,
+      action: "email.sent",
+      entityType: "conversation",
+      entityId: conversation.id,
+      source: "admin",
+      metadata: { channel: "gmail", provider_id: sent.id, message_id: message.id, recipient: prepared.recipient, in_reply_to: latest.external_id },
+    }),
   ]);
-  return { providerId: sent.id, messageId: message?.id ?? null };
+  return { providerId: sent.id, messageId: message.id, conversationId: conversation.id };
 }

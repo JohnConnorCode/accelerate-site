@@ -22,7 +22,7 @@ export const REVENUE_SCHEMA_TABLES = [
   { table: "proposals", columns: ["id", "opportunity_id", "contact_id", "company_id", "status", "version"] },
   { table: "proposal_events", columns: ["id", "proposal_id", "event_type", "source"] },
   { table: "action_queue", columns: ["id", "action_type", "status", "dedupe_key", "expires_at"] },
-  { table: "job_runs", columns: ["id", "job_key", "status", "idempotency_key", "claim_key", "claimed_at"] },
+  { table: "job_runs", columns: ["id", "job_key", "status", "idempotency_key", "claim_key", "claimed_at", "recovered_from"] },
   { table: "source_runs", columns: ["id", "source_key", "status", "summary", "started_at"] },
   { table: "webhook_receipts", columns: ["id", "provider", "event_type", "status", "received_at"] },
   { table: "integration_connections", columns: ["id", "provider", "status", "scopes", "last_success_at"] },

@@ -1,8 +1,8 @@
-import type { Article } from "@/lib/types";
+import type { ArticleSummary } from "@/lib/types";
 import { ArticleCard } from "@/components/mdx/ArticleCard";
 
 interface RelatedArticlesProps {
-  articles: Article[];
+  articles: ArticleSummary[];
 }
 
 export function RelatedArticles({ articles }: RelatedArticlesProps) {

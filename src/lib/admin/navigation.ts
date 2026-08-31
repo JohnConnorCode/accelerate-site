@@ -66,7 +66,7 @@ export const adminNavSections: AdminNavSection[] = [
   { label: "Intelligence", links: [
     { id: "ai", label: "AI Workspace", href: "/admin/ai", icon: Bot, description: "Ask, inspect runs, and review capabilities", keywords: "assistant copilot command chat operations traces capabilities", moreGroup: "Intelligence" },
     { id: "analytics", label: "Analytics", href: "/admin/analytics", icon: BarChart3, description: "Source-to-revenue funnel", moreGroup: "Intelligence" },
-    { id: "activity", label: "Activity", href: "/admin/activity", icon: Activity, description: "Operating activity ledger", moreGroup: "Intelligence" },
+    { id: "activity", label: "Activity", href: "/admin/activity", icon: Activity, description: "Audit history for material changes", moreGroup: "Intelligence" },
   ] },
   { label: "System", links: [
     { id: "integrations", label: "Integrations", href: "/admin/integrations", icon: PlugZap, description: "Capabilities, evidence, and roadmap", moreGroup: "System" },

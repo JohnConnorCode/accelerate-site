@@ -17,7 +17,7 @@
 import assert from "node:assert/strict";
 import { MemorySupabase, type Row } from "./lib/memory-supabase";
 import { approveAndExecuteAction } from "../src/lib/revenue-os/action-executor";
-import { failAction, finishAction, rejectAction } from "../src/lib/revenue-os/actions";
+import { failAction, finishAction, recoverStaleExecutingActions, rejectAction } from "../src/lib/revenue-os/actions";
 
 const iso = (offsetMs: number) => new Date(Date.now() + offsetMs).toISOString();
 
@@ -173,8 +173,31 @@ async function main() {
   await failAction(alreadyRejected.client, "action-1", "late failure");
   assert.equal(alreadyRejected.rows("action_queue")[0]!.status, "rejected", "failAction must not overwrite a founder's rejection");
 
+  // ---- Abandoned executing claims must not disable the queue forever ----
+
+  const abandonedAt = iso(-2 * 60 * 60 * 1000);
+  const abandoned = seed(pending({
+    id: "abandoned",
+    status: "executing",
+    action_type: "send_email",
+    updated_at: abandonedAt,
+    payload: { to: "alex@example.com", subject: "Hello", body: "Hi" },
+  }));
+  (abandoned.tables.action_queue ??= []).push(pending({ id: "fresh-after-recovery" }));
+  const recoveredCount = await recoverStaleExecutingActions(abandoned.client);
+  assert.equal(recoveredCount, 1, "an executing action older than the stale window must be recovered");
+  const abandonedRow = abandoned.rows("action_queue").find((row) => row.id === "abandoned")!;
+  assert.equal(abandonedRow.status, "failed", "the abandoned action must close as failed rather than stay executing");
+  assert.match(String(abandonedRow.error), /abandoned/i, "the recovered action must say why it was closed");
+  assert.ok(
+    abandoned.rows("audit_log").some((row) => row.action === "execution.stale_claim_recovered" && row.entity_id === "abandoned"),
+    "action stale recovery must write an audit receipt",
+  );
+  const afterRecovery = await approveAndExecuteAction(abandoned.client, "fresh-after-recovery", "john@acceleratewith.us") as Row;
+  assert.equal(afterRecovery.next_action, "Send the revised scope", "recovering an abandoned action must not block a later claim");
+
   console.log(JSON.stringify({
-    checks: ["executes-and-audits", "claim-is-single-shot", "expired-refused", "no-expiry-allowed", "validates-before-side-effect", "invalid-stage-refused", "unregistered-fails-closed", "failure-recorded-and-rethrown", "reject-single-shot", "rejected-never-executes", "terminal-writes-scoped"],
+    checks: ["executes-and-audits", "claim-is-single-shot", "expired-refused", "no-expiry-allowed", "validates-before-side-effect", "invalid-stage-refused", "unregistered-fails-closed", "failure-recorded-and-rethrown", "reject-single-shot", "rejected-never-executes", "terminal-writes-scoped", "stale-executing-recovered"],
     result: "passed",
   }, null, 2));
 }

@@ -51,7 +51,7 @@ export function WordMask({
   delay?: number;
 }) {
   const Tag = as;
-  const ref = useRevealLifecycle<HTMLHeadingElement>();
+  const ref = useRevealLifecycle<HTMLHeadingElement>({ initialViewport: "immediate" });
 
   if (tokens.length === 0) {
     return <Tag ref={ref} className={`reveal-self word-mask-heading ${className}`}>{renderPlain(tokens)}</Tag>;

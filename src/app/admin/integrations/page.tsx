@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Link from "@/components/admin/AdminLink";
 import {
   ArrowRight,
@@ -13,7 +13,6 @@ import {
   Database,
   ExternalLink,
   FileText,
-  Loader2,
   Mail,
   MessageSquare,
   Network,
@@ -25,8 +24,10 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { AdminSurface } from "@/components/admin/AdminSurface";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
+import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { PageHeader } from "@/components/admin/PageHeader";
-import { fetchJson } from "@/lib/admin/fetchJson";
+import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import type { IntegrationCatalog, IntegrationView } from "@/lib/revenue-os/integrations";
 import type { IntegrationStatus } from "@/lib/revenue-os/integration-registry";
 import { cn } from "@/lib/utils";
@@ -164,25 +165,14 @@ function ProviderCard({ provider }: { provider: IntegrationView }) {
 }
 
 export default function IntegrationsPage() {
-  const [data, setData] = useState<IntegrationCatalog | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const integrationsQuery = useAdminQuery<IntegrationCatalog>(["admin", "integrations"], "/api/admin/integrations");
+  const data = integrationsQuery.data ?? null;
+  const loading = integrationsQuery.isPending;
+  const error = integrationsQuery.error?.message || "";
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      setData(await fetchJson<IntegrationCatalog>("/api/admin/integrations"));
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Could not load the integration catalog.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { void load(); }, [load]);
+  const load = useCallback(async () => { await integrationsQuery.refetch(); }, [integrationsQuery]);
 
   const providers = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -210,14 +200,11 @@ export default function IntegrationsPage() {
       <PageHeader
         title="Integrations"
         subtitle="One capability map for the tools that power the Command Center. Ready means behavior was verified, not merely that a key exists."
-        actions={<button type="button" onClick={() => void load()} disabled={loading} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:cursor-wait disabled:opacity-55"><RefreshCw className={cn("size-3.5", loading && "animate-spin")} /> Refresh evidence</button>}
+        actions={<button type="button" onClick={() => void load()} disabled={integrationsQuery.isFetching} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:cursor-wait disabled:opacity-55"><RefreshCw className={cn("size-3.5", integrationsQuery.isFetching && "animate-spin")} /> Refresh evidence</button>}
       />
 
-      {loading && !data ? (
-        <AdminSurface className="flex min-h-64 items-center justify-center"><div className="text-center"><Loader2 className="mx-auto size-6 animate-spin text-[var(--admin-muted)]" /><p className="admin-copy mt-3 text-sm">Reading capability evidence…</p></div></AdminSurface>
-      ) : error && !data ? (
-        <AdminSurface tone="attention" className="flex min-h-64 flex-col items-center justify-center text-center"><TriangleAlert className="size-6 text-amber-700 dark:text-amber-300" /><p className="mt-3 font-semibold text-[var(--admin-ink)]">Integration evidence is unavailable</p><p className="admin-copy mt-1 max-w-md text-sm">{error}</p><button type="button" onClick={() => void load()} className="mt-5 min-h-11 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] active:scale-[0.96]">Try again</button></AdminSurface>
-      ) : data && (
+      <AdminReadBody loading={loading} hasData={Boolean(data)} error={error} onRetry={() => void load()} refreshing={integrationsQuery.isFetching} loadingFallback={<LoadingSkeleton variant="page" />} label="Loading integrations">
+      {data && (
         <>
           {!data.evidenceAvailable && <AdminSurface tone="attention" className="flex items-start gap-3"><TriangleAlert className="mt-0.5 size-5 shrink-0 text-amber-700 dark:text-amber-300" /><div><p className="text-sm font-semibold text-[var(--admin-ink)]">Operational evidence is incomplete</p><p className="admin-copy mt-1 text-xs leading-5">The catalog remains usable, but no affected provider is shown as healthy until the receipt tables can be read again.</p></div></AdminSurface>}
 
@@ -242,6 +229,7 @@ export default function IntegrationsPage() {
           <p className="text-center font-mono text-[9px] uppercase tracking-[0.09em] text-[var(--admin-muted)]">Registry {data.registryVersion} · evidence generated {new Date(data.generatedAt).toLocaleString()}</p>
         </>
       )}
+      </AdminReadBody>
     </div>
   );
 }

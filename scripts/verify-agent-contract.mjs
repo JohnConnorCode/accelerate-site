@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { featureBacklog, validateFeatureBacklog } from "./feature-backlog-data.mjs";
+import { featureBacklog, LOOP_ONE, NOW_KEYS, SECOND_BRAIN_IMPLEMENTATIONS, validateFeatureBacklog } from "./feature-backlog-data.mjs";
+import { collectFeatureBoardIntegrityFailures } from "./lib/feature-board-graph.mjs";
 
 const requiredFiles = [
   "AGENTS.md",
@@ -12,6 +13,7 @@ const requiredFiles = [
   "docs/NAVIGATION-RUNTIME-CONTRACT.md",
   "docs/ADMIN-DEMO-CONTRACT.md",
   "docs/WORK-MOTION-CONTRACT.md",
+  "docs/GROK-4.6-COMMAND-CENTER-EXECUTION-PLAN.md",
   "src/lib/revenue-os/README.md",
 ];
 const failures = [];
@@ -23,6 +25,9 @@ for (const file of requiredFiles) {
 const agentContract = existsSync("AGENTS.md") ? readFileSync("AGENTS.md", "utf8") : "";
 const ticketRunbook = existsSync("docs/AGENT-TICKET-RUNBOOK.md")
   ? readFileSync("docs/AGENT-TICKET-RUNBOOK.md", "utf8")
+  : "";
+const grokExecutionPlan = existsSync("docs/GROK-4.6-COMMAND-CENTER-EXECUTION-PLAN.md")
+  ? readFileSync("docs/GROK-4.6-COMMAND-CENTER-EXECUTION-PLAN.md", "utf8")
   : "";
 
 if (!/Production deployment is founder-controlled[\s\S]*Never deploy/i.test(agentContract)) {
@@ -39,6 +44,33 @@ if (!/Do not deploy as an automatic final step/i.test(ticketRunbook)) {
 }
 if (!/Any post-verification change reopens the\s+verification gate/i.test(ticketRunbook)) {
   failures.push("The agent runbook must reopen verification after a release-tree change");
+}
+
+const requiredGrokSections = [
+  "## Purpose and authority",
+  "## Coordinator preflight",
+  "## Mandatory ticket packet",
+  "## Architecture law",
+  "## Dependency-ordered program",
+  "## Optional provider lane",
+  "## Verification matrix",
+  "## Evidence and worker handoff",
+  "## Release gate",
+  "## Permanent non-goals",
+];
+for (const section of requiredGrokSections) {
+  if (!grokExecutionPlan.includes(section)) failures.push(`Grok execution plan is missing ${section}`);
+}
+if (!/not a second roadmap/i.test(grokExecutionPlan)
+  || !/durable roadmap is `scripts\/feature-backlog-data\.mjs`/i.test(grokExecutionPlan)
+  || !/operational\s+projection is `\/admin\/features`/i.test(grokExecutionPlan)) {
+  failures.push("Grok execution plan must preserve the Feature Board as the only roadmap and status authority");
+}
+if (!/seed:features -- --apply` is coordinator-only/i.test(grokExecutionPlan)) {
+  failures.push("Grok execution plan must reserve live manifest reconciliation for the coordinator");
+}
+if (!/Production release is founder-authorized per named release/i.test(grokExecutionPlan)) {
+  failures.push("Grok execution plan must preserve per-release founder deployment authority");
 }
 
 const requiredNoteSections = [
@@ -75,28 +107,60 @@ for (const card of featureBacklog) {
   }
 }
 
-// Dependencies are declared as card titles and flattened into the notes block by
-// card(). Nothing previously checked that those strings resolve, so renaming a
-// title silently broke the dependency graph. Parse them back and require a match.
-// The sentinel that marks a card as having no dependencies. It used to be
-// "None —", which put an em dash into every dependency-free card's notes and
-// broke the house rule the moment those notes were read. Keyed on the word
-// instead, so the wording can carry punctuation without breaking the check.
-const NO_DEPENDENCY_SENTINEL = "None";
-const cardTitles = new Set(featureBacklog.map((card) => card.title));
+const cardsByKey = new Map(featureBacklog.map((card) => [card.seed_key, card]));
+failures.push(...collectFeatureBoardIntegrityFailures(featureBacklog, {
+  loopKeys: LOOP_ONE,
+  nowKeys: NOW_KEYS,
+  secondBrainImplementations: SECOND_BRAIN_IMPLEMENTATIONS,
+}));
 
-for (const card of featureBacklog) {
-  const line = card.notes
-    .split("\n\n")
-    .find((section) => section.startsWith("Dependencies: "));
-  if (!line) continue;
-  const declared = line.slice("Dependencies: ".length).trim();
-  if (declared.startsWith(NO_DEPENDENCY_SENTINEL)) continue;
-  for (const dependency of declared.split(";").map((item) => item.trim()).filter(Boolean)) {
-    if (!cardTitles.has(dependency)) {
-      failures.push(`[${card.seed_key}] depends on "${dependency}", which matches no card title`);
-    }
+// The execution guide sequences stable card keys but never owns their mutable
+// status. Resolve every `card:<key>` reference against the manifest so a rename
+// or missing extension card fails before a lower-context worker is dispatched.
+const referencedGrokKeys = [...grokExecutionPlan.matchAll(/`card:([a-z0-9]+(?:-[a-z0-9]+)*)`/g)]
+  .map((match) => match[1]);
+if (!referencedGrokKeys.length) failures.push("Grok execution plan must reference Feature Board work by stable card:key tokens");
+for (const key of new Set(referencedGrokKeys)) {
+  if (!cardsByKey.has(key)) failures.push(`Grok execution plan references missing Feature Board key: ${key}`);
+}
+
+const grokExtensionKeys = [
+  "feature-board-dependency-integrity",
+  "booking-mode-contract-reconciliation",
+  "task-operator-workspace",
+  "identity-review-workbench",
+  "data-quality-repair-center",
+  "stage-history-analytics-reconciliation",
+  "incident-receipt-recovery-console",
+  "operating-goals-scorecards",
+  "forecast-scenario-planner",
+  "won-to-delivery-handoff",
+  "client-success-lifecycle-workspace",
+  "governed-bulk-operator-actions",
+  "automation-policy-registry",
+  "client-instance-portability",
+  "integration-adapter-contract",
+  "microsoft-365-workspace-parity",
+  "stripe-revenue-reconciliation",
+  "slack-notification-approval-surface",
+  "notion-knowledge-source",
+];
+for (const key of grokExtensionKeys) {
+  const card = cardsByKey.get(key);
+  if (!card) {
+    failures.push(`Grok extension card is missing from the manifest: ${key}`);
+    continue;
   }
+  if (!referencedGrokKeys.includes(key)) failures.push(`Grok extension card is not sequenced by the execution plan: ${key}`);
+}
+for (const key of [
+  "microsoft-365-workspace-parity",
+  "stripe-revenue-reconciliation",
+  "slack-notification-approval-surface",
+  "notion-knowledge-source",
+]) {
+  const card = cardsByKey.get(key);
+  if (card && !card.labels.includes("milestone:later")) failures.push(`[${key}] optional provider work must remain milestone:later until separately authorized`);
 }
 
 // Cloneability ratchet. The Command Center is installed per client from this one
@@ -109,7 +173,7 @@ for (const card of featureBacklog) {
 // src/content and the public marketing pages are deliberately out of scope, since
 // those are Accelerate's own website and stay single-brand.
 const BRAND_LITERAL = /acceleratewith|Accelerate/;
-const BRAND_SCOPE = ["src/lib", "src/app/admin", "src/app/api/admin"];
+const BRAND_SCOPE = ["src/lib", "src/app/admin", "src/app/api/admin", "src/components/admin"];
 const BRAND_BUDGET = {
   // Empty on purpose: every business fact in these directories now reads from
   // src/config/tenant.ts. Adding an entry here means accepting a regression, so

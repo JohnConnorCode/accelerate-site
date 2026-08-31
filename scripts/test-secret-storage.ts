@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import { maskSecret } from "@/lib/admin/settings";
+import { maskSecret, SERVER_ONLY_SECRET_KEYS } from "@/lib/admin/settings";
 import {
   decryptSecret,
   encryptSecret,
+  isEncryptedSecret,
   isGoogleTokenEncryptionKeyConfigured,
 } from "../src/lib/revenue-os/encryption";
 
@@ -106,4 +107,18 @@ assert.equal(maskSecret("a"), "****", "Very short secret values remain fully mas
 assert.equal(maskSecret("short12"), "****", "Short secret values remain fully masked.");
 assert.equal(maskSecret("very_long_secret_value"), "ver****lue", "Long secret masking should show first 3 and last 3 chars.");
 
-console.log(JSON.stringify({ result: "secret-storage-hardening coverage added", checks: 6 }));
+assert.equal(SERVER_ONLY_SECRET_KEYS.has("RESEND_WEBHOOK_SECRET"), true, "Webhook secrets must not be writable through admin_settings");
+assert.equal(SERVER_ONLY_SECRET_KEYS.has("GOOGLE_TOKEN_ENCRYPTION_KEY"), true);
+
+withEnv(
+  { GOOGLE_TOKEN_ENCRYPTION_KEY: "unit-secret-key", SUPABASE_SERVICE_ROLE_KEY: "super-fallback", OPENROUTER_API_KEY: baseEnv.OPENROUTER_API_KEY },
+  () => {
+    const encrypted = encryptSecret("provider-token-value");
+    assert.equal(isEncryptedSecret(encrypted), true);
+    assert.equal(isEncryptedSecret("plaintext-refresh-token"), false, "historical plaintext must not be treated as an encrypted envelope");
+    assert.throws(() => decryptSecret("plaintext-refresh-token"), /Unsupported encrypted secret format/);
+    assert.throws(() => decryptSecret(encrypted.replace(/^v1\./, "v9.")), /Unsupported encrypted secret format/, "unknown versions fail closed");
+  },
+);
+
+console.log(JSON.stringify({ result: "secret-storage-hardening coverage added", checks: 10 }));

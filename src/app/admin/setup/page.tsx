@@ -50,6 +50,7 @@ interface SetupCheck {
   keys?: string[];
   lastSuccessAt?: string | null;
   lastFailure?: string | null;
+  nextRun?: string | null;
   action?: { label: string; href: string; external?: boolean };
 }
 
@@ -126,7 +127,7 @@ const setupGuides: Record<string, SetupGuide> = {
   },
   founder_access: {
     steps: [
-      "Choose the inbox John actively monitors.",
+      `Choose the inbox ${tenant.founder.name} actively monitors.`,
       "Set ADMIN_EMAIL to that exact address in Vercel and redeploy.",
       "This address owns new audit alerts and also controls admin access.",
     ],
@@ -154,7 +155,7 @@ const setupGuides: Record<string, SetupGuide> = {
   manual_booking: {
     steps: [
       "Leave CALENDLY_ENABLED unset or set it to false.",
-      "John receives the audit request, reviews the company, and replies with meeting times.",
+      `${tenant.founder.name} receives the audit request, reviews the company, and replies with meeting times.`,
       "No calendar credentials or webhook are needed in this mode.",
     ],
   },
@@ -211,10 +212,10 @@ const setupGuides: Record<string, SetupGuide> = {
   },
   calendly: {
     steps: [
-      "Keep CALENDLY_ENABLED=false until the token and webhook are fully tested.",
-      "Add CALENDLY_PERSONAL_ACCESS_TOKEN and a long random CALENDLY_WEBHOOK_SECRET in Vercel.",
-      "Create invitee.created and invitee.canceled subscriptions for /api/webhooks/calendly?secret=<CALENDLY_WEBHOOK_SECRET>.",
-      "Set CALENDLY_ENABLED=true, redeploy, and test a booking plus cancellation from /roofing.",
+      "Public embed is tenant.capabilities.publicBooking plus a scheduler URL. It does not need Calendly API tokens.",
+      "CALENDLY_ENABLED=false is an emergency pause of the public embed, not a health signal.",
+      "Add a long random CALENDLY_WEBHOOK_SECRET and subscribe invitee.created plus invitee.canceled to /api/webhooks/calendly.",
+      "Ready for attribution requires a signed booking or cancellation receipt. A token without a receipt is not Ready.",
     ],
     href: "https://calendly.com/integrations/api_webhooks",
     linkLabel: "Open Calendly API & webhooks",
@@ -281,10 +282,11 @@ function SetupCheckCard({ check }: { check: SetupCheck }) {
           <p className="mt-3 text-pretty text-xs leading-5 text-[var(--admin-ink)]/72">
             <span className="font-semibold text-[var(--admin-ink)]">What it unlocks:</span> {check.accomplishes}
           </p>
-          {(check.lastSuccessAt || check.lastFailure) && (
+          {(check.lastSuccessAt || check.lastFailure || check.nextRun) && (
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[10px] text-[var(--admin-muted)]">
               {check.lastSuccessAt && <span>Last success {new Date(check.lastSuccessAt).toLocaleString()}</span>}
               {check.lastFailure && <span className="text-rose-700 dark:text-rose-300">Last failure: {check.lastFailure}</span>}
+              {check.nextRun && <span>{check.nextRun}</span>}
             </div>
           )}
           {check.keys && (
@@ -483,7 +485,7 @@ export default function AdminSetupPage() {
               </h2>
               <p className="admin-copy mt-2 text-sm leading-6">
                 {data.bookingMode === "manual"
-                  ? "This is launch-safe. Qualified prospects receive confirmation, enter Bookings, and wait for John’s personal reply."
+                  ? `This is launch-safe. Qualified prospects receive confirmation, enter Bookings, and wait for ${tenant.founder.name}'s personal reply.`
                   : "Qualified prospects can choose a time immediately, with webhook-based stage attribution."}
               </p>
               <Link href="/admin/bookings" className="mt-5 inline-flex min-h-11 items-center gap-2 text-xs font-semibold text-[var(--admin-ink)] underline decoration-[var(--admin-border)] underline-offset-4 transition-opacity duration-150 hover:opacity-65">

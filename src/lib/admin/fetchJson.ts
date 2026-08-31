@@ -3,10 +3,25 @@
  * (surfacing the API's `error` message when present) so callers can `catch`
  * and route the failure into a toast instead of silently swallowing it.
  */
+async function waitForDemoRuntime() {
+  if (typeof window === "undefined") return;
+  if (!window.location.pathname.startsWith("/demo/command-center")) return;
+  if ((window as Window & { __accelerateAdminDemoRuntime?: string }).__accelerateAdminDemoRuntime) return;
+  await new Promise<void>((resolve) => {
+    const started = Date.now();
+    const tick = () => {
+      if ((window as Window & { __accelerateAdminDemoRuntime?: string }).__accelerateAdminDemoRuntime || Date.now() - started > 3000) resolve();
+      else window.requestAnimationFrame(tick);
+    };
+    tick();
+  });
+}
+
 export async function fetchJson<T = unknown>(
   input: RequestInfo | URL,
   init?: RequestInit,
 ): Promise<T> {
+  await waitForDemoRuntime();
   const res = await fetch(input, init);
 
   if (!res.ok) {

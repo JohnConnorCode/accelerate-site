@@ -52,6 +52,28 @@ assert.doesNotMatch(demo, /window\.location\.(assign|replace)/, "Scenario change
 assert.doesNotMatch(styles, /html\s*\{[^}]*scroll-behavior:\s*smooth/, "Route scrolling must not inherit global smooth behavior");
 const dataSkeleton = readFileSync("src/components/admin/LoadingSkeleton.tsx", "utf8");
 assert.equal(existsSync("src/app/admin/loading.tsx"), false, "The root admin layout must not replace committed content with a full-page fallback");
+assert.equal(existsSync("src/app/(marketing)/loading.tsx"), true, "Public navigations need a marketing loading region under the shared chrome");
+const rootLayout = readFileSync("src/app/layout.tsx", "utf8");
+assert.doesNotMatch(rootLayout, /components\/layout\/Header/, "Marketing chrome must not hydrate on admin through the root layout");
+assert.match(readFileSync("src/app/(marketing)/layout.tsx", "utf8"), /MarketingChrome/, "Public routes must own Header, Footer, Chat, and Dock");
+assert.doesNotMatch(readFileSync("src/components/v2/studio/Studio.tsx", "utf8"), /"use client"/, "Homepage composition must stay a server component");
+assert.match(readFileSync("src/app/(marketing)/learn/page.tsx", "utf8"), /getArticleSummaries/, "Learn listings must not serialize MDX bodies");
+assert.doesNotMatch(readFileSync("src/app/(marketing)/learn/page.tsx", "utf8"), /getAllArticles\(/, "Learn listings must not serialize MDX bodies");
+const hero = readFileSync("src/components/home/Hero.tsx", "utf8");
+assert.match(hero, /const \[loaded, setLoaded\] = useState\(false\)/, "Hero must start unloaded so PROFIT and the CTA can transition in");
+assert.match(hero, /eyebrow-anim rv\$\{loaded \? " in" : ""\}/, "Hero eyebrow must wait on the same loaded gate as the rest of the sequence");
+assert.doesNotMatch(hero, /reveal-immediate/, "Hero copy must not skip its authored entrance");
+assert.match(styles, /\.motion-ready \.hero:not\(\.loaded\) \.swap/, "PROFIT must stay hidden until the loaded gate flips");
+assert.match(styles, /\.motion-ready \.hero:not\(\.loaded\) \.hero-inline-cta/, "The hero CTA must stay hidden until the loaded gate flips");
+assert.match(styles, /\.loaded \.swap \{[^}]*transition:/, "PROFIT entrance is a delayed transition off .loaded, not a first-paint rest state");
+assert.match(styles, /\.loaded \.hero-inline-cta \{[^}]*transition:/, "Hero CTA entrance is a delayed transition off .loaded");
+assert.doesNotMatch(styles, /\.motion-ready \.hero \.rv:not\(\.in\)/, "Hero rv copy must not bypass the loaded entrance");
+const rootNotFound = readFileSync("src/app/not-found.tsx", "utf8");
+const marketingNotFound = readFileSync("src/app/(marketing)/not-found.tsx", "utf8");
+assert.match(rootNotFound, /MarketingChrome/, "Unmatched URLs have no marketing layout, so the root 404 must wrap chrome");
+assert.match(rootNotFound, /NotFoundBody/, "Root and marketing 404s must share one body");
+assert.doesNotMatch(marketingNotFound, /MarketingChrome/, "Marketing notFound() already sits inside MarketingChrome");
+assert.match(marketingNotFound, /NotFoundBody/, "Marketing 404 must render the shared body without a second shell");
 assert.match(asyncRegion, /data-admin-async-state/, "Client loading must remain observable inside the region that owns it");
 assert.match(asyncRegion, /delayMs/, "Fast reads must not flash a regional skeleton");
 assert.match(asyncRegion, /window\.setTimeout\(\(\) => setShowFallback\(true\), delayMs\)/, "The shared async region must enforce its loading threshold behaviorally");
@@ -98,6 +120,26 @@ for (const file of adminPageFiles) {
   const source = readFileSync(file, "utf8");
   assert.doesNotMatch(source, /AdminRouteSkeleton/, `${file}: client data loading must not replace the page with the route fallback`);
   assert.doesNotMatch(source, /\{[^\n]*&&\s*<AdminDialog/, `${file}: controlled dialogs must stay mounted so exit motion can finish`);
+}
+
+const coreAdminPages = [
+  "src/app/admin/today/page.tsx",
+  "src/app/admin/pipeline/page.tsx",
+  "src/app/admin/conversations/page.tsx",
+  "src/app/admin/analytics/page.tsx",
+  "src/app/admin/campaigns/page.tsx",
+  "src/app/admin/emails/page.tsx",
+  "src/app/admin/features/page.tsx",
+  "src/app/admin/pipeline/[id]/page.tsx",
+  "src/app/admin/integrations/page.tsx",
+  "src/app/admin/inbox/page.tsx",
+  "src/app/admin/bookings/page.tsx",
+];
+for (const file of coreAdminPages) {
+  const source = readFileSync(file, "utf8");
+  assert.match(source, /useAdminQuery/, `${file} must use the shared cancellable admin query cache`);
+  assert.match(source, /AdminAsyncRegion|AdminReadBody/, `${file} must keep delayed regional loading instead of blanking the route`);
+  assert.doesNotMatch(source, /return <AdminPageLoading/, `${file} must not replace committed page identity with a full-page loader`);
 }
 
 const today = readFileSync("src/app/admin/today/page.tsx", "utf8");

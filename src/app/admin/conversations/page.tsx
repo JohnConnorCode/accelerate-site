@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, CheckCircle2, Inbox, Loader2, RefreshCw, Search, Send, TriangleAlert } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
-import { AdminPageLoading } from "@/components/admin/AdminPageLoading";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
+import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
@@ -30,7 +31,7 @@ export default function ConversationsPage() {
   const messages = useMemo(() => conversationQuery.data?.messages ?? [], [conversationQuery.data?.messages]);
   const schemaReady = conversationQuery.data?.schemaReady ?? true;
   const loading = conversationQuery.isPending;
-  const error = actionError || conversationQuery.error?.message || "";
+  const readError = conversationQuery.error?.message || "";
   const refetchConversations = conversationQuery.refetch;
   const load = useCallback(async () => {
     setActionError("");
@@ -61,11 +62,11 @@ export default function ConversationsPage() {
     finally { setSending(false); }
   };
 
-  if (loading && !conversations.length) return <AdminPageLoading title="Conversations" subtitle="Gmail and system communication in one linked, reply-ready operating inbox." variant="detail" />;
   return (
     <div className="space-y-6 pb-10">
       <PageHeader title="Conversations" subtitle="Gmail and system communication in one linked, reply-ready operating inbox." utilityActions={<button type="button" onClick={() => void sync()} disabled={syncing} aria-label={syncing ? "Syncing Gmail" : "Sync Gmail"} className="admin-icon-button shadow-[var(--admin-shadow-border)] disabled:opacity-50"><RefreshCw className={cn("size-3.5", syncing && "animate-spin")} /></button>} />
-      {error && <AdminSurface tone="attention" className="flex items-center gap-3"><TriangleAlert className="size-5 shrink-0 text-rose-600" /><p className="text-sm text-[var(--admin-ink)]">{error}</p></AdminSurface>}
+      <AdminReadBody loading={loading} hasData={Boolean(conversationQuery.data)} error={readError} onRetry={() => void load()} refreshing={conversationQuery.isFetching} loadingFallback={<LoadingSkeleton variant="detail" />} label="Loading conversations">
+      {actionError && <AdminSurface tone="attention" className="flex items-center gap-3"><TriangleAlert className="size-5 shrink-0 text-rose-600" /><p className="text-sm text-[var(--admin-ink)]">{actionError}</p></AdminSurface>}
       {!schemaReady ? <RevenueSetupGate /> : (
         <AdminSurface padding="none" className="min-h-[650px] overflow-hidden">
           <div className="grid min-h-[650px] lg:grid-cols-[360px_1fr]">
@@ -87,6 +88,7 @@ export default function ConversationsPage() {
           </div>
         </AdminSurface>
       )}
+      </AdminReadBody>
     </div>
   );
 }
