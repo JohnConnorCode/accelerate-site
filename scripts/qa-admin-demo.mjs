@@ -133,6 +133,36 @@ for (const scenario of scenarios) {
           if ((profile.timeline?.length || 0) < 4 || profile.canonical?.status !== "connected") failures.push(`${scenario} ${label} contacts: relationship data is incomplete`);
         }
       }
+      if (route === "inbox") {
+        const refresh = page.locator("[data-inbox-refresh]");
+        await refresh.waitFor({ state: "visible", timeout: 30_000 });
+        await page.waitForFunction(() => {
+          const button = document.querySelector("[data-inbox-refresh]");
+          return button instanceof HTMLButtonElement && !button.disabled && button.textContent?.trim() === "Refresh";
+        }, undefined, { timeout: 5_000 });
+        await page.evaluate(() => {
+          const browserWindow = window;
+          const originalFetch = browserWindow.fetch.bind(browserWindow);
+          browserWindow.__accelerateInboxRefreshCount = 0;
+          browserWindow.fetch = async (input, init) => {
+            const raw = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+            const url = new URL(raw, location.origin);
+            if (url.pathname === "/api/admin/inbox") {
+              browserWindow.__accelerateInboxRefreshCount += 1;
+              await new Promise((resolve) => setTimeout(resolve, 120));
+            }
+            return originalFetch(input, init);
+          };
+        });
+        await refresh.click();
+        await page.waitForFunction(() => document.querySelector("[data-inbox-refresh]")?.getAttribute("aria-busy") === "true", undefined, { timeout: 2_000 });
+        await page.waitForFunction(() => {
+          const button = document.querySelector("[data-inbox-refresh]");
+          return button instanceof HTMLButtonElement && !button.disabled && button.textContent?.trim() === "Refresh";
+        }, undefined, { timeout: 5_000 });
+        const refreshCount = await page.evaluate(() => window.__accelerateInboxRefreshCount);
+        if (refreshCount !== 1) failures.push(`${scenario} ${label} inbox: one refresh click issued ${refreshCount} reads`);
+      }
       if (route === "today") {
         for (const label of ["All work", "Replies", "Commitments", "Approvals", "Proposals"]) {
           await page.getByRole("button", { name: label, exact: true }).click();

@@ -76,13 +76,13 @@ export default function AdminInboxPage() {
   const loading = inboxQuery.isPending;
   const refreshing = inboxQuery.isFetching && Boolean(data);
   const error = inboxQuery.error?.message || "";
+  const refetchInbox = inboxQuery.refetch;
 
   const load = useCallback(async (background = false) => {
-    const result = await inboxQuery.refetch();
+    const result = await refetchInbox();
     if (result.error && background) toast.error(result.error.message || "Couldn't load the operator inbox");
-  }, [inboxQuery]);
+  }, [refetchInbox]);
 
-  useEffect(() => { load(); }, [load]);
   useEffect(() => {
     const refresh = () => load(true);
     const onVisibility = () => { if (document.visibilityState === "visible") load(true); };
@@ -124,7 +124,7 @@ export default function AdminInboxPage() {
   return (
     <motion.div variants={adminListVariants} initial={false} animate="visible">
       <motion.div variants={adminSectionVariants}>
-        <PageHeader title="Operator Inbox" subtitle="Every lead, message, follow-up, and stalled deal that needs a human decision." actions={<Button size="sm" variant="secondary" onClick={() => load(true)} disabled={refreshing}><RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", refreshing && "animate-spin")} />{refreshing ? "Refreshing…" : "Refresh"}</Button>} />
+        <PageHeader title="Operator Inbox" subtitle="Every lead, message, follow-up, and stalled deal that needs a human decision." actions={<Button size="sm" variant="secondary" onClick={() => void load(true)} disabled={refreshing} aria-busy={refreshing} data-inbox-refresh><RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", refreshing && "animate-spin")} />{refreshing ? "Refreshing…" : "Refresh"}</Button>} />
       </motion.div>
       <AdminReadBody loading={loading} hasData={Boolean(data)} error={error} onRetry={() => void load()} refreshing={refreshing} loadingFallback={<LoadingSkeleton variant="page" />} label="Loading operator inbox">
 
