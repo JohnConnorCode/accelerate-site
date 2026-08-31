@@ -6,6 +6,7 @@ import {
   Accordion, AccordionItem, AccordionTrigger, AccordionContent,
 } from "@/components/ui/Accordion";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
+import { HeroEntranceItem, PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
 import { Section, Container, Eyebrow, Heading, BookCallButton, CallTerms } from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { ProofStrip } from "@/components/v2/studio/ProofStrip";
@@ -175,27 +176,27 @@ export function PackagesPageContent() {
     <>
       {/* hero — pricing statement + the guarantee that every package shares,
           right where price anxiety peaks */}
-      <section className="page-offset-roomy relative overflow-hidden pb-24">
+      <PublicHeroEntrance className="page-offset-roomy relative overflow-hidden pb-24">
         <Container width="wide">
         <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
           <div className="min-w-0">
-            <AnimateOnScroll><Eyebrow className="mb-7">packages</Eyebrow></AnimateOnScroll>
-            <RevealHeading
+            <HeroEntranceItem step={1}><Eyebrow className="mb-7">packages</Eyebrow></HeroEntranceItem>
+            <HeroEntranceItem step={2}><RevealHeading
               as="h1"
               className={HERO_HEADING}
               lead="Pick where you start. Grow from"
               accent="there."
-              delay={0.1}
-            />
-            <AnimateOnScroll delay={0.3}>
+              entrance="parent"
+            /></HeroEntranceItem>
+            <HeroEntranceItem step={3}>
               <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
                 Clear scope, clear pricing, no long-term contracts. Every package
                 is built and run by our team, not software handed off for you to
                 manage, and working from day one.
               </p>
-            </AnimateOnScroll>
+            </HeroEntranceItem>
           </div>
-          <AnimateOnScroll as="div" delay={0.2} className="mx-auto w-full max-w-sm">
+          <HeroEntranceItem step={3} className="mx-auto w-full max-w-sm">
             <div className="relative overflow-hidden border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] p-7">
               <p className="mb-5 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white-muted">
                 In every package
@@ -214,10 +215,10 @@ export function PackagesPageContent() {
                 ))}
               </ul>
             </div>
-          </AnimateOnScroll>
+          </HeroEntranceItem>
         </div>
         </Container>
-      </section>
+      </PublicHeroEntrance>
 
       {/* pricing cards */}
       <Section width="wide">

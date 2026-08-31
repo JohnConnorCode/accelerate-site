@@ -31,6 +31,7 @@
 
 import Image from "next/image";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
+import { HeroEntranceItem, PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
 import { Container, Eyebrow, BookCallButton, CallTerms } from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 
@@ -111,7 +112,7 @@ export function NonprofitLanding() {
     <>
       {/* ── Hero: full-bleed documentary photograph. The page is about people,
              so the first thing on it is people doing the work. ───────────── */}
-      <section className="page-offset relative">
+      <PublicHeroEntrance className="page-offset relative">
         {/* The photo starts BELOW the header rather than behind it. The nav takes
             its colour from the theme, not from whatever is under it, so a
             full-bleed dark image behind it renders dark type on a dark
@@ -131,34 +132,33 @@ export function NonprofitLanding() {
 
           <Container className="photo-hero-inner relative">
           <div className="max-w-[54rem]">
-            <AnimateOnScroll>
-              <Eyebrow className="mb-7 !text-white/85">For nonprofits</Eyebrow>
-            </AnimateOnScroll>
+            <HeroEntranceItem step={1}><Eyebrow className="mb-7 !text-white/85">For nonprofits</Eyebrow></HeroEntranceItem>
 
-            <RevealHeading
+            <HeroEntranceItem step={2}><RevealHeading
               as="h1"
               className="max-w-[17ch] font-display font-extrabold leading-[1.0] tracking-[-0.04em] text-[clamp(2.5rem,5.6vw,5rem)] text-white"
               lead="Every supporter thanked, followed up,"
               accent="and invited back."
-            />
+              entrance="parent"
+            /></HeroEntranceItem>
 
-            <AnimateOnScroll delay={0.18}>
+            <HeroEntranceItem step={3}>
               <p className="mt-6 max-w-[46ch] text-[1.02rem] leading-[1.7] text-white/75 lg:mt-9 lg:text-[1.08rem] lg:leading-[1.8]">
                 We build the systems that keep your supporter relationships moving, and
                 then we run them alongside your team. Your voice, your data, your
                 approvals. The remembering becomes ours.
               </p>
-            </AnimateOnScroll>
+            </HeroEntranceItem>
 
-            <AnimateOnScroll delay={0.3}>
+            <HeroEntranceItem step={4}>
               <div className="mt-8 lg:mt-10">
                 <BookCallButton variant="inverse" location="nonprofit_hero" label="Book a 20-minute call" />
               </div>
-            </AnimateOnScroll>
+            </HeroEntranceItem>
           </div>
           </Container>
         </div>
-      </section>
+      </PublicHeroEntrance>
 
       {/* ── Recognition ─────────────────────────────────────────────────── */}
       <section className="section-divide relative border-t border-[color-mix(in_srgb,var(--fg)_12%,transparent)] py-[clamp(4.5rem,8vw,7rem)]">

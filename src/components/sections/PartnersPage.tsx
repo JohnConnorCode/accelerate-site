@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Section, Container, Eyebrow, Heading, BookCallButton, CallTerms } from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { HERO_HEADING } from "@/lib/type-recipes";
-import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
+import { HeroEntranceItem, PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
 import { partnerTiers } from "@/content/partners";
 import { cn } from "@/lib/utils";
 import { trackConversion } from "@/lib/analytics";
@@ -73,27 +73,27 @@ export function PartnersPage() {
   return (
     <>
       {/* hero — statement + the financial hook front and center */}
-      <section className="page-offset-roomy relative overflow-hidden pb-24">
+      <PublicHeroEntrance className="page-offset-roomy relative overflow-hidden pb-24">
         <Container width="wide">
         <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
           <div className="min-w-0">
-            <AnimateOnScroll><Eyebrow className="mb-7">partner program</Eyebrow></AnimateOnScroll>
-            <RevealHeading
+            <HeroEntranceItem step={1}><Eyebrow className="mb-7">partner program</Eyebrow></HeroEntranceItem>
+            <HeroEntranceItem step={2}><RevealHeading
               as="h1"
               className={HERO_HEADING}
               lead="Add AI to your offering."
               accent="Keep the revenue."
-              delay={0.1}
-            />
-            <AnimateOnScroll delay={0.3}>
+              entrance="parent"
+            /></HeroEntranceItem>
+            <HeroEntranceItem step={3}>
               <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
                 Refer clients or white-label our work. We design, build, and run
                 the AI systems, accountable to results, so your name stays on the
                 win. Earn recurring revenue for as long as they stay.
               </p>
-            </AnimateOnScroll>
+            </HeroEntranceItem>
           </div>
-          <AnimateOnScroll as="div" delay={0.2} className="mx-auto w-full max-w-sm">
+          <HeroEntranceItem step={3} className="mx-auto w-full max-w-sm">
             <div className="relative overflow-hidden border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] p-8">
               <p className="mb-4 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white-muted">Partner earnings</p>
               <div className="flex items-baseline gap-3">
@@ -108,10 +108,10 @@ export function PartnersPage() {
                 Referral · Agency · White-label · Technology
               </div>
             </div>
-          </AnimateOnScroll>
+          </HeroEntranceItem>
         </div>
         </Container>
-      </section>
+      </PublicHeroEntrance>
 
       {/* why partner */}
       <Section width="wide" divide>

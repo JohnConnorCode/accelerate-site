@@ -8,6 +8,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
+import { HeroEntranceItem, PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
 import { Container, Eyebrow, BookCallButton, CallTerms } from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { OpsConsole } from "@/components/v2/studio/OpsConsole";
@@ -62,33 +63,31 @@ export function VerticalPage({ vertical }: VerticalPageProps) {
   return (
     <>
       {/* hero — statement + this trade's live ops console (the signature motif) */}
-      <section className="page-offset-roomy relative flex min-h-[88vh] items-center overflow-hidden pb-20">
+      <PublicHeroEntrance className="page-offset-roomy relative flex min-h-[88vh] items-center overflow-hidden pb-20">
         <Container width="wide">
           <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
             <div className="min-w-0">
-              <AnimateOnScroll>
-                <Eyebrow className="mb-7">{vertical.name}</Eyebrow>
-              </AnimateOnScroll>
-              <RevealHeading
+              <HeroEntranceItem step={1}><Eyebrow className="mb-7">{vertical.name}</Eyebrow></HeroEntranceItem>
+              <HeroEntranceItem step={2}><RevealHeading
                 as="h1"
                 className={H1}
                 lead={vertical.heroHeadlineWhite}
                 accent={vertical.heroHeadlineGold}
-                delay={0.12}
-              />
-              <AnimateOnScroll delay={0.25}>
+                entrance="parent"
+              /></HeroEntranceItem>
+              <HeroEntranceItem step={3}>
                 <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
                   {vertical.heroSubheadline}
                 </p>
-              </AnimateOnScroll>
-              <AnimateOnScroll delay={0.35}>
+              </HeroEntranceItem>
+              <HeroEntranceItem step={4}>
                 <div className="mt-9">
                   <BookCallButton location="industry_hero" />
                 </div>
-              </AnimateOnScroll>
+              </HeroEntranceItem>
             </div>
             {opsFeed && (
-              <AnimateOnScroll as="div" delay={0.2} className="relative min-w-0">
+              <HeroEntranceItem step={3} className="relative min-w-0">
                 <OpsConsole
                   name={vertical.name}
                   feed={opsFeed.feed}
@@ -98,11 +97,11 @@ export function VerticalPage({ vertical }: VerticalPageProps) {
                     </p>
                   }
                 />
-              </AnimateOnScroll>
+              </HeroEntranceItem>
             )}
           </div>
         </Container>
-      </section>
+      </PublicHeroEntrance>
 
       {/* pain points */}
       <section className="section-y section-divide relative bg-[var(--bg-section-warm)]">

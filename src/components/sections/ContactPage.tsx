@@ -2,6 +2,7 @@
 
 import { Mail, Clock, Zap, Check } from "lucide-react";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
+import { HeroEntranceItem, PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
 import { Section, Container, Eyebrow, Heading } from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { HERO_HEADING } from "@/lib/type-recipes";
@@ -37,22 +38,22 @@ export function ContactPageContent() {
   return (
     <>
       {/* hero — eyebrow + display heading + info cards in dark-glass tiles */}
-      <section className="page-offset-roomy relative overflow-hidden pb-24">
+      <PublicHeroEntrance className="page-offset-roomy relative overflow-hidden pb-24">
         <Container width="wide">
         <div className="grid items-start gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
           {/* left: statement */}
           <div className="min-w-0">
-            <AnimateOnScroll><Eyebrow className="mb-7">contact</Eyebrow></AnimateOnScroll>
-            <RevealHeading as="h1" className={HERO_HEADING} lead="Let's" accent="talk." delay={0.1} />
-            <AnimateOnScroll delay={0.3}>
+            <HeroEntranceItem step={1}><Eyebrow className="mb-7">contact</Eyebrow></HeroEntranceItem>
+            <HeroEntranceItem step={2}><RevealHeading as="h1" className={HERO_HEADING} lead="Let's" accent="talk." entrance="parent" /></HeroEntranceItem>
+            <HeroEntranceItem step={3}>
               <p className="mt-7 max-w-md text-base leading-relaxed text-white-secondary">
                 Tell us what is breaking. We reply within one business day. The session is with John.
               </p>
-            </AnimateOnScroll>
+            </HeroEntranceItem>
 
             {/* info cards */}
             <div className="mt-10 flex flex-col gap-3">
-              {INFO_CARDS.map((card, i) => {
+              {INFO_CARDS.map((card) => {
                 const Icon = card.icon;
                 const href = "href" in card ? card.href : undefined;
                 const shell =
@@ -71,13 +72,13 @@ export function ContactPageContent() {
                   </>
                 );
                 return (
-                  <AnimateOnScroll as="div" key={card.label} delay={0.45 + i * 0.12}>
+                  <HeroEntranceItem step={4} key={card.label}>
                     {href ? (
                       <a href={href} data-cursor="link" className={shell}>{inner}</a>
                     ) : (
                       <div className={shell}>{inner}</div>
                     )}
-                  </AnimateOnScroll>
+                  </HeroEntranceItem>
                 );
               })}
             </div>
@@ -85,7 +86,7 @@ export function ContactPageContent() {
 
           {/* right: the active campaign booking path. Keep the manual form below
               as a fallback for visitors who prefer to send context first. */}
-          <AnimateOnScroll as="div" delay={0.3} className="lg:sticky lg:top-32">
+          <HeroEntranceItem step={3} className="lg:sticky lg:top-32">
             <div className="border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] p-4 sm:p-6">
               <p className="mb-1 px-2 font-mono text-[0.6rem] uppercase tracking-[0.22em] text-white-muted">
                 Start here
@@ -115,10 +116,10 @@ export function ContactPageContent() {
                 </>
               )}
             </div>
-          </AnimateOnScroll>
+          </HeroEntranceItem>
         </div>
         </Container>
-      </section>
+      </PublicHeroEntrance>
 
       {/* risk reversal — what you walk away with, free */}
       <Section width="wide" divide>

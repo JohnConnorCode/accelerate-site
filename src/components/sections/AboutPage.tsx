@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Rocket, TrendingUp, Handshake } from "lucide-react";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
+import { HeroEntranceItem, PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
 import { Section, Container, Eyebrow, Heading, BookCallButton, CallTerms } from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { HERO_HEADING } from "@/lib/type-recipes";
@@ -100,32 +101,32 @@ export function AboutPageContent() {
     <>
       {/* hero — portrait-led split: the founder's face is the signature visual,
           unique to this page (every other page leads with the ops console). */}
-      <section className="page-offset-roomy relative overflow-hidden pb-24">
+      <PublicHeroEntrance className="page-offset-roomy relative overflow-hidden pb-24">
         <Container width="wide">
           <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
             <div className="min-w-0">
-              <AnimateOnScroll><Eyebrow className="mb-7">about accelerate</Eyebrow></AnimateOnScroll>
-              <RevealHeading
+              <HeroEntranceItem step={1}><Eyebrow className="mb-7">about accelerate</Eyebrow></HeroEntranceItem>
+              <HeroEntranceItem step={2}><RevealHeading
                 as="h1"
                 className={HERO_HEADING}
                 lead="AI should fit the business,"
                 accent="not the other way around."
-                delay={0.1}
-              />
-              <AnimateOnScroll delay={0.3}>
+                entrance="parent"
+              /></HeroEntranceItem>
+              <HeroEntranceItem step={3}>
                 <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
                   We combine strategy, engineering, and hands-on execution. We
                   help a team decide where AI belongs, build the right custom
                   solution, and stay involved until it works in the real operation.
                 </p>
-              </AnimateOnScroll>
+              </HeroEntranceItem>
             </div>
-            <AnimateOnScroll as="div" delay={0.2} className="mx-auto w-full max-w-sm">
+            <HeroEntranceItem step={3} className="mx-auto w-full max-w-sm">
               <FounderCard />
-            </AnimateOnScroll>
+            </HeroEntranceItem>
           </div>
         </Container>
-      </section>
+      </PublicHeroEntrance>
 
       {/* origin story — a focused reading column (the face already lives above) */}
       <Section width="text" divide>

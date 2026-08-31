@@ -1250,6 +1250,29 @@ body.modal-open [data-dock] {
     animation: word-mask-entry .62s var(--ease) var(--word-delay, 0s) both;
   }
 
+  /* Public heroes have one lifecycle owner and one sequence. Do not replace
+     these slots with independent AnimateOnScroll wrappers: doing so creates
+     competing observers and breaks the site-wide hero cadence. */
+  .motion-ready .public-hero-entrance[data-reveal-state="pending"] [data-hero-step] {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(5px);
+  }
+  .motion-ready .public-hero-entrance[data-reveal-state="pending"] [data-hero-heading="true"] .word-mask-word > span {
+    transform: translateY(112%);
+  }
+  .public-hero-entrance.in:not(.reveal-immediate) [data-hero-step] {
+    animation: section-item-in .56s var(--ease-out) both;
+  }
+  .public-hero-entrance.in:not(.reveal-immediate) [data-hero-step="1"] { animation-delay: 60ms; }
+  .public-hero-entrance.in:not(.reveal-immediate) [data-hero-step="2"] { animation-delay: 140ms; }
+  .public-hero-entrance.in:not(.reveal-immediate) [data-hero-step="3"] { animation-delay: 250ms; }
+  .public-hero-entrance.in:not(.reveal-immediate) [data-hero-step="4"] { animation-delay: 350ms; }
+  .public-hero-entrance.in:not(.reveal-immediate) [data-hero-step="5"] { animation-delay: 450ms; }
+  .public-hero-entrance.in:not(.reveal-immediate) [data-hero-heading="true"] .word-mask-word > span {
+    animation: word-mask-entry .62s var(--ease) calc(var(--word-delay, 0s) + 140ms) both;
+  }
+
   .motion-ready .section-reveal:not(.in) .eyebrow {
     opacity: 0;
     transform: translateY(10px);

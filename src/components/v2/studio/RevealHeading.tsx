@@ -43,22 +43,25 @@ export function WordMask({
   className = "",
   stagger = 0.055,
   delay = 0.08,
+  entrance = "self",
 }: {
   tokens: WordToken[];
   as?: "h1" | "h2" | "h3";
   className?: string;
   stagger?: number;
   delay?: number;
+  /** Use `parent` only inside PublicHeroEntrance's shared lifecycle. */
+  entrance?: "self" | "parent";
 }) {
   const Tag = as;
   const ref = useRevealLifecycle<HTMLHeadingElement>({ initialViewport: "immediate" });
 
   if (tokens.length === 0) {
-    return <Tag ref={ref} className={`reveal-self word-mask-heading ${className}`}>{renderPlain(tokens)}</Tag>;
+    return <Tag ref={entrance === "self" ? ref : undefined} className={`reveal-self word-mask-heading ${className}`}>{renderPlain(tokens)}</Tag>;
   }
 
   return (
-    <Tag ref={ref} className={`reveal-self word-mask-heading ${className}`} data-motion-role="heading">
+    <Tag ref={entrance === "self" ? ref : undefined} className={`reveal-self word-mask-heading ${className}`} data-motion-role="heading" data-hero-heading={entrance === "parent" ? "true" : undefined}>
       {tokens.map((t, i) => (
         <Fragment key={i}>
           {/* mask: clip-path preserves the true text baseline (unlike overflow-hidden
@@ -122,6 +125,7 @@ export function RevealHeading({
   className = "",
   stagger = 0.055,
   delay = 0.08,
+  entrance = "self",
 }: {
   lead: string;
   accent?: string;
@@ -129,10 +133,11 @@ export function RevealHeading({
   className?: string;
   stagger?: number;
   delay?: number;
+  entrance?: "self" | "parent";
 }) {
   const tokens: WordToken[] = [
     ...lead.trim().split(/\s+/).filter(Boolean).map((w) => ({ w, italic: false })),
     ...(accent ? accent.trim().split(/\s+/).filter(Boolean).map((w) => ({ w, italic: true })) : []),
   ];
-  return <WordMask tokens={tokens} as={as} className={className} stagger={stagger} delay={delay} />;
+  return <WordMask tokens={tokens} as={as} className={className} stagger={stagger} delay={delay} entrance={entrance} />;
 }

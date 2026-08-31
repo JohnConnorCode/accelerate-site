@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
+import { HeroEntranceItem, PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
 import { Section, Container, Eyebrow, Heading, BookCallButton, useReveal, CallTerms } from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { HERO_HEADING } from "@/lib/type-recipes";
@@ -147,24 +148,21 @@ export function ServicesPageContent() {
 
   return (
     <>
-      <section className="page-offset-roomy relative flex min-h-[88vh] items-center overflow-hidden pb-20">
+      <PublicHeroEntrance className="page-offset-roomy relative flex min-h-[88vh] items-center overflow-hidden pb-20">
         <Container width="wide">
           <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
             <div className="min-w-0">
-              <AnimateOnScroll><Eyebrow className="mb-7">what we do</Eyebrow></AnimateOnScroll>
-              <RevealHeading
-                as="h1"
-                className={HERO_HEADING}
-                lead="AI strategy and solutions."
-                accent="Built around your business."
-                delay={0.1}
-              />
-              <AnimateOnScroll delay={0.25}>
+              <HeroEntranceItem step={1}><Eyebrow className="mb-7">what we do</Eyebrow></HeroEntranceItem>
+              <HeroEntranceItem step={2}><RevealHeading
+                as="h1" className={HERO_HEADING} lead="AI strategy and solutions."
+                accent="Built around your business." entrance="parent"
+              /></HeroEntranceItem>
+              <HeroEntranceItem step={3}>
                 <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
                   We help you decide where AI belongs, build the right workflows, agents, tools, and integrations, and stay involved through execution, training, and improvement.
                 </p>
-              </AnimateOnScroll>
-              <AnimateOnScroll delay={0.35}>
+              </HeroEntranceItem>
+              <HeroEntranceItem step={4}>
                 <div className="mt-9 flex items-center gap-6">
                   <BookCallButton location="services_inline" />
                   <Link
@@ -175,10 +173,10 @@ export function ServicesPageContent() {
                     See how we help
                   </Link>
                 </div>
-              </AnimateOnScroll>
+              </HeroEntranceItem>
             </div>
 
-            <AnimateOnScroll as="div" delay={0.2} className="relative min-w-0">
+            <HeroEntranceItem step={3} className="relative min-w-0">
               <ApprovalQueue
                 items={SERVICE_QUEUE}
                 header="delivery queue"
@@ -186,10 +184,10 @@ export function ServicesPageContent() {
                 footer={["Completed today", "Running / improving"]}
                 initialCount={18}
               />
-            </AnimateOnScroll>
+            </HeroEntranceItem>
           </div>
         </Container>
-      </section>
+      </PublicHeroEntrance>
 
       {/* Sticky service quick-nav — follows the current service on its own. */}
       <nav

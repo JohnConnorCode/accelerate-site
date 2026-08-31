@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Download, ArrowUpRight, ClipboardCheck, Zap, BarChart3 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
+import { HeroEntranceItem, PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
 import { Section, Container, Eyebrow, Heading, BookCallButton, CallTerms } from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { HERO_HEADING } from "@/lib/type-recipes";
@@ -25,31 +26,31 @@ export function ResourcesPage() {
   return (
     <>
       {/* hero — statement left, the featured resource (lead with your best) right */}
-      <section className="page-offset-roomy relative overflow-hidden pb-24">
+      <PublicHeroEntrance className="page-offset-roomy relative overflow-hidden pb-24">
         <Container width="wide">
         <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
           <div className="min-w-0">
-            <AnimateOnScroll><Eyebrow className="mb-7">free resources</Eyebrow></AnimateOnScroll>
-            <RevealHeading
+            <HeroEntranceItem step={1}><Eyebrow className="mb-7">free resources</Eyebrow></HeroEntranceItem>
+            <HeroEntranceItem step={2}><RevealHeading
               as="h1"
               className={HERO_HEADING}
               lead="Tools you can use"
               accent="today."
-              delay={0.1}
-            />
-            <AnimateOnScroll delay={0.3}>
+              entrance="parent"
+            /></HeroEntranceItem>
+            <HeroEntranceItem step={3}>
               <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
                 Checklists, guides, and head-to-head comparisons, built for
                 owners making real decisions about AI and automation.
               </p>
-            </AnimateOnScroll>
+            </HeroEntranceItem>
           </div>
 
           {featured && (() => {
             const FeaturedIcon = iconMap[featured.icon] || Download;
             return (
-              <AnimateOnScroll
-                as="div"
+              <HeroEntranceItem
+                step={3}
                 className="relative overflow-hidden rounded-3xl border border-border-gold/50 bg-[color-mix(in_srgb,var(--gold-base)_5%,var(--bg-elevated))] p-7 backdrop-blur-md sm:p-8"
               >
                 <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold to-transparent opacity-70" />
@@ -77,12 +78,12 @@ export function ResourcesPage() {
                   <Download className="h-4 w-4" />
                   Download free
                 </button>
-              </AnimateOnScroll>
+              </HeroEntranceItem>
             );
           })()}
         </div>
         </Container>
-      </section>
+      </PublicHeroEntrance>
 
       {/* the rest of the library */}
       <Section width="wide" divide>
