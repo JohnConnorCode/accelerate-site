@@ -3105,12 +3105,11 @@ summary:focus-visible {
      wrapping/clipping. */
   .hero-top { max-width: 100%; overflow: hidden; }
 
-  /* Mobile must not wait for React hydration to begin its opening sequence.
-     The real phrase is present in prerendered HTML, while a short CSS-owned
-     cascade makes reloads and client visits deterministic. Desktop keeps the
-     richer scramble treatment. */
-  .hero-intelligent-static { display: inline; }
-  .hero-intelligent-scramble { display: none; }
+  /* The phone carries the same signature scramble as desktop. Keeping the
+     spaces in its text node lets this one phrase wrap naturally rather than
+     clipping a transient random-glyph string. */
+  .hero-intelligent-static { display: none; }
+  .hero-intelligent-scramble { display: inline; }
   /* This is keyed to the hero's lifecycle class, never the document-wide
      bootstrap class. It consequently replays after a client back navigation
      and after a bfcache restoration instead of inheriting a finished run. */
@@ -3125,9 +3124,12 @@ summary:focus-visible {
   .motion-ready .hero.loaded .word:nth-child(7) > span { animation-delay: .60s !important; }
   .motion-ready .hero.loaded .word:nth-child(8) > span { animation-delay: .68s !important; }
   .motion-ready .hero.loaded .word:nth-child(9) > span { animation-delay: .76s !important; }
-  .motion-ready .hero.loaded .hero-profit { animation: hero-mobile-focus-in .72s cubic-bezier(0.16, 1, 0.3, 1) .92s both !important; }
-  .motion-ready .hero.loaded .hero-profit::after { animation: hero-mobile-rule-in .65s var(--ease) 1.12s both !important; }
-  .motion-ready .hero.loaded .hero-inline-cta { animation: hero-mobile-focus-in .68s cubic-bezier(0.16, 1, 0.3, 1) 1.28s both !important; }
+  /* One reading order, rather than independent phone effects: the ninth word
+     settles, its strike draws, PROFIT lands, then the invitation appears. */
+  .motion-ready .hero.loaded .strike::after { transition-delay: 1.52s; }
+  .motion-ready .hero.loaded .hero-profit { animation: hero-mobile-focus-in .72s cubic-bezier(0.16, 1, 0.3, 1) 2.24s both !important; }
+  .motion-ready .hero.loaded .hero-profit::after { animation: hero-mobile-rule-in .65s var(--ease) 2.48s both !important; }
+  .motion-ready .hero.loaded .hero-inline-cta { animation: hero-mobile-focus-in .68s cubic-bezier(0.16, 1, 0.3, 1) 2.9s both !important; }
 }
 
 @media (max-width: 640px) and (max-height: 620px) {

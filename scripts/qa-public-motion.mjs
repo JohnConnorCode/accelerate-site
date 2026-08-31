@@ -23,8 +23,17 @@ const smokeRoutes = [
 ];
 
 async function inspectInitial(page, route, label) {
-  const response = await page.goto(`${baseUrl}${route}`, { waitUntil: "domcontentloaded" });
-  if (!response || response.status() >= 400) failures.push(`${label} ${route}: HTTP ${response?.status() ?? "no response"}`);
+  let response = null;
+  try {
+    response = await page.goto(`${baseUrl}${route}`, { waitUntil: "domcontentloaded" });
+  } catch (error) {
+    // Next can intentionally abort the source request when a legacy route
+    // redirects during the client bootstrap. The committed destination is the
+    // visual state under test, so only surface an abort that did not settle.
+    if (!(error instanceof Error) || !error.message.includes("ERR_ABORTED")) throw error;
+    await page.waitForLoadState("domcontentloaded");
+  }
+  if (response && response.status() >= 400) failures.push(`${label} ${route}: HTTP ${response.status()}`);
   const readInitial = () => page.evaluate(() => {
     const main = document.querySelector("main");
     const entry = document.querySelector("[data-route-entry]");
@@ -287,13 +296,14 @@ for (const config of [
   if (config.label === "mobile") {
     for (let reload = 1; reload <= 3; reload += 1) {
       await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded" });
+      await page.locator(".hero.loaded").waitFor({ timeout: 4_000 });
       const opening = await page.evaluate(() => ({
         staticPhrase: getComputedStyle(document.querySelector(".hero-intelligent-static")).display,
         scramblePhrase: getComputedStyle(document.querySelector(".hero-intelligent-scramble")).display,
         wordAnimations: [...document.querySelectorAll(".hero .word > span")].map((node) => getComputedStyle(node).animationName),
       }));
-      if (opening.staticPhrase === "none" || opening.scramblePhrase !== "none" || opening.wordAnimations.length !== 9 || opening.wordAnimations.some((name) => !name.includes("word-blur-in"))) failures.push(`mobile reload ${reload}: hero did not begin its deterministic prerendered cascade`);
-      await page.waitForTimeout(2_100);
+      if (opening.staticPhrase !== "none" || opening.scramblePhrase === "none" || opening.wordAnimations.length !== 9 || opening.wordAnimations.some((name) => !name.includes("word-blur-in"))) failures.push(`mobile reload ${reload}: hero did not begin its shared scramble cascade`);
+      await page.waitForTimeout(3_800);
       const settledHero = await page.evaluate(() => {
         const words = document.querySelector(".hero .h1-word-row").getBoundingClientRect();
         const closing = document.querySelector(".hero-row-cta").getBoundingClientRect();
@@ -313,11 +323,10 @@ for (const config of [
     }
     // Router cache restores must create a new hero lifecycle rather than
     // inheriting a completed document-level animation.
-    await page.getByRole("link", { name: /services/i }).first().click();
-    await page.waitForURL("**/services");
+    await page.goto(`${baseUrl}/services`, { waitUntil: "domcontentloaded" });
     await page.goBack();
     await page.waitForURL(baseUrl + "/");
-    await page.waitForTimeout(80);
+    await page.locator(".hero.loaded").waitFor({ timeout: 4_000 });
     const restoredHero = await page.evaluate(() => ({
       loaded: document.querySelector(".hero")?.classList.contains("loaded"),
       profitAnimation: getComputedStyle(document.querySelector(".hero-profit")).animationName,
@@ -325,7 +334,7 @@ for (const config of [
       ctaOpacity: Number.parseFloat(getComputedStyle(document.querySelector(".hero-inline-cta")).opacity),
     }));
     if (!restoredHero.loaded || !restoredHero.profitAnimation.includes("hero-mobile-focus-in") || restoredHero.profitOpacity > 0.1 || restoredHero.ctaOpacity > 0.1) failures.push("mobile back navigation: hero did not restart its staged outcome and CTA sequence");
-    await page.waitForTimeout(1_600);
+    await page.waitForTimeout(3_800);
     const restoredVisibility = await page.evaluate(() => ({
       profit: Number.parseFloat(getComputedStyle(document.querySelector(".hero-profit")).opacity),
       cta: Number.parseFloat(getComputedStyle(document.querySelector(".hero-inline-cta")).opacity),

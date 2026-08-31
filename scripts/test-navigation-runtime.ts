@@ -68,6 +68,10 @@ assert.doesNotMatch(hero, /reveal-immediate/, "Hero copy must not skip its autho
 assert.match(styles, /\.motion-ready \.hero:not\(\.loaded\) \.swap/, "PROFIT must stay hidden until the loaded gate flips");
 assert.match(styles, /\.motion-ready \.hero:not\(\.loaded\) \.hero-inline-cta/, "The hero CTA must stay hidden until the loaded gate flips");
 assert.match(styles, /\.motion-ready \.hero\.loaded \.hero-profit/, "Mobile PROFIT animation must be owned by the restartable hero lifecycle");
+assert.match(styles, /\.hero-intelligent-static \{ display: none; \}/, "Mobile must preserve the signature intelligent-automation scramble rather than replacing it with static copy");
+assert.match(styles, /\.hero-intelligent-scramble \{ display: inline; \}/, "Mobile must render the same scramble treatment as desktop");
+assert.match(styles, /\.hero\.loaded \.strike::after \{ transition-delay: 1\.52s; \}/, "Mobile must draw the productivity strike before PROFIT enters");
+assert.match(styles, /\.hero\.loaded \.hero-profit \{ animation: hero-mobile-focus-in[^}]* 2\.24s/, "Mobile PROFIT must wait for the strike beat instead of competing with the headline");
 assert.match(styles, /\.loaded \.swap \{[^}]*transition:/, "PROFIT entrance is a delayed transition off .loaded, not a first-paint rest state");
 assert.match(styles, /\.loaded \.hero-inline-cta \{[^}]*transition:/, "Hero CTA entrance is a delayed transition off .loaded");
 assert.doesNotMatch(styles, /\.motion-ready \.hero \.rv:not\(\.in\)/, "Hero rv copy must not bypass the loaded entrance");

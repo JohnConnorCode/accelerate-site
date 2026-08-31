@@ -6,12 +6,9 @@ import Link from "next/link";
 import { motion, useScroll, useTransform, useReducedMotion, useMotionValue, useSpring } from "framer-motion";
 import { trackConversion } from "@/lib/analytics";
 
-// Original scramble effect, restored verbatim from the last version that
-// shipped — same 30ms constant cadence, same simple "flip through random
-// glyphs until it locks left-to-right" mechanic. Later attempts to make
-// this "smoother" (per-letter blur, eased cadence, splitting the phrase
-// into two independently-timed words) made it worse, not better; this is
-// what was actually working.
+// The headline's original, deliberately mechanical scramble: a constant
+// cadence and a simple left-to-right lock. Spaces remain spaces so the phrase
+// can wrap naturally on a phone while its letters resolve.
 function ScrambleText({ text, delay = 0, trigger = true }: { text: string; delay?: number; trigger?: boolean }) {
   const [display, setDisplay] = useState(text.replace(/./g, " ")); // Non-breaking spaces for layout stability
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
@@ -27,7 +24,7 @@ function ScrambleText({ text, delay = 0, trigger = true }: { text: string; delay
           text
             .split("")
             .map((letter, index) => {
-              if (index < iteration) {
+              if (letter === " " || index < iteration) {
                 return letter;
               }
               return chars[Math.floor(Math.random() * chars.length)];
