@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { syncCalendar, syncDrive, syncGmail } from "@/lib/revenue-os/google";
 import { withJobRun } from "@/lib/revenue-os/runs";
+import { googleOperatorError } from "@/lib/revenue-os/google-oauth";
 
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin();
@@ -19,7 +20,8 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json({ success: true, result: result.value, skipped: !result.claimed, runId: result.runId, existingStatus: result.existingStatus ?? null });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Google sync failed" }, { status: 400 });
+    const projected = googleOperatorError(error, "sync");
+    return NextResponse.json({ error: projected.message, code: projected.code }, { status: 400 });
   }
 }
 
@@ -33,6 +35,6 @@ export async function PATCH(request: NextRequest) {
   const supabase = auth.database;
   const { data } = await supabase.from("integration_connections").select("settings").eq("provider", "google").maybeSingle();
   const { error } = await supabase.from("integration_connections").update({ settings: { ...(data?.settings ?? {}), drive_folder_ids: body.driveFolderIds.map((id) => id.trim()) } }).eq("provider", "google").eq("status", "connected");
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (error) return NextResponse.json({ error: "Drive folder access could not be saved." }, { status: 500 });
   return NextResponse.json({ success: true });
 }

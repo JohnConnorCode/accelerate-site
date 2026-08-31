@@ -11,24 +11,27 @@ for (const key of ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "ADM
 }
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } });
-const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({ type: "magiclink", email: process.env.ADMIN_EMAIL, options: { redirectTo: `${base}/auth/callback?next=/admin/integrations` } });
-if (linkError || !linkData?.properties?.hashed_token) throw linkError || new Error("Could not generate a QA session");
-const { data: verified, error: verifyError } = await supabase.auth.verifyOtp({ token_hash: linkData.properties.hashed_token, type: "magiclink" });
-if (verifyError || !verified.session) throw verifyError || new Error("Could not exchange a QA session");
-
 const projectRef = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname.split(".")[0];
-const cookieValue = `base64-${Buffer.from(JSON.stringify(verified.session)).toString("base64url")}`;
 const cookieKey = `sb-${projectRef}-auth-token`;
-const cookieParts = cookieValue.length <= 3180
-  ? [{ name: cookieKey, value: cookieValue }]
-  : Array.from({ length: Math.ceil(cookieValue.length / 3180) }, (_, index) => ({ name: `${cookieKey}.${index}`, value: cookieValue.slice(index * 3180, (index + 1) * 3180) }));
+
+async function freshSessionCookies() {
+  const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({ type: "magiclink", email: process.env.ADMIN_EMAIL, options: { redirectTo: `${base}/auth/callback?next=/admin/integrations` } });
+  if (linkError || !linkData?.properties?.hashed_token) throw linkError || new Error("Could not generate a QA session");
+  const { data: verified, error: verifyError } = await supabase.auth.verifyOtp({ token_hash: linkData.properties.hashed_token, type: "magiclink" });
+  if (verifyError || !verified.session) throw verifyError || new Error("Could not exchange a QA session");
+  const cookieValue = `base64-${Buffer.from(JSON.stringify(verified.session)).toString("base64url")}`;
+  return cookieValue.length <= 3180
+    ? [{ name: cookieKey, value: cookieValue }]
+    : Array.from({ length: Math.ceil(cookieValue.length / 3180) }, (_, index) => ({ name: `${cookieKey}.${index}`, value: cookieValue.slice(index * 3180, (index + 1) * 3180) }));
+}
 
 const browser = await chromium.launch({ headless: true });
 const failures = [];
 
-async function openCatalog(viewport, label, colorScheme = "light", reducedMotion = "reduce") {
+async function openCatalog(viewport, label, colorScheme = "light", reducedMotion = "reduce", query = "") {
   const context = await browser.newContext({ viewport, colorScheme, reducedMotion });
   const origin = new URL(base);
+  const cookieParts = await freshSessionCookies();
   await context.addCookies(cookieParts.map((cookie) => ({ ...cookie, domain: origin.hostname, path: "/", httpOnly: false, secure: origin.protocol === "https:", sameSite: "Lax" })));
   if (colorScheme === "dark") await context.addInitScript(() => localStorage.setItem("theme", "dark"));
   const page = await context.newPage();
@@ -36,7 +39,7 @@ async function openCatalog(viewport, label, colorScheme = "light", reducedMotion
   page.on("pageerror", (error) => failures.push(`${label}: page ${error.message.split("\n")[0]}`));
   page.on("response", (response) => { if (response.status() >= 500) failures.push(`${label}: ${response.status()} ${response.url()}`); });
   await page.route("**/api/admin/notifications**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ notifications: [], unreadCount: 0 }) }));
-  const response = await page.goto(`${base}/admin/integrations`, { waitUntil: "domcontentloaded", timeout: 60_000 });
+  const response = await page.goto(`${base}/admin/integrations${query}`, { waitUntil: "domcontentloaded", timeout: 60_000 });
   if (!response || response.status() >= 500) failures.push(`${label}: HTTP ${response?.status() ?? "none"}`);
   await page.getByRole("heading", { name: "Integrations", exact: true }).waitFor();
   await page.getByText("Google Workspace", { exact: true }).waitFor();
@@ -48,7 +51,8 @@ async function openCatalog(viewport, label, colorScheme = "light", reducedMotion
   return { context, page };
 }
 
-const desktop = await openCatalog({ width: 1440, height: 1000 }, "desktop");
+const desktop = await openCatalog({ width: 1440, height: 1000 }, "desktop", "light", "reduce", "?google_error=not_configured");
+await desktop.page.getByRole("status").getByText("Google OAuth is not configured", { exact: true }).waitFor();
 await desktop.page.screenshot({ path: `${outDir}/integrations-desktop.png`, fullPage: true });
 await desktop.page.getByRole("tab", { name: /Planned/ }).focus();
 await desktop.page.keyboard.press("Enter");

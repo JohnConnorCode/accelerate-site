@@ -75,7 +75,7 @@ export async function saveGoogleConnection(supabase: SupabaseClient, tokens: { a
     status: "connected",
     connected_at: existing?.connected_at || new Date().toISOString(),
     last_error: null,
-  }, { onConflict: "provider" });
+  }, { onConflict: "tenant_id,provider" });
   if (error) throw new Error(error.message);
   return profile;
 }
@@ -309,7 +309,7 @@ export async function syncCalendar(supabase: SupabaseClient) {
         synced_at: new Date().toISOString(),
       };
     }));
-    const { error } = rows.length ? await supabase.from("calendar_events").upsert(rows, { onConflict: "provider,external_id" }) : { error: null };
+    const { error } = rows.length ? await supabase.from("calendar_events").upsert(rows, { onConflict: "tenant_id,provider,external_id" }) : { error: null };
     if (error) throw new Error(error.message);
     const now = Date.now();
     for (const row of rows) {
@@ -384,7 +384,7 @@ export async function syncDrive(supabase: SupabaseClient) {
       metadata: { parents: file.parents ?? [] },
       synced_at: new Date().toISOString(),
     }));
-    const { error } = rows.length ? await supabase.from("drive_documents").upsert(rows, { onConflict: "provider,external_id" }) : { error: null };
+    const { error } = rows.length ? await supabase.from("drive_documents").upsert(rows, { onConflict: "tenant_id,provider,external_id" }) : { error: null };
     if (error) throw new Error(error.message);
     stored += rows.length;
   }

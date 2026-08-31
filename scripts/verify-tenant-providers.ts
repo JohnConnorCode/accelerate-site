@@ -76,7 +76,7 @@ for (const cron of ["google-workspace-sync", "revenue-campaigns", "system-health
 const googleAuthorize = readFileSync("src/app/api/admin/google/authorize/route.ts", "utf8");
 const googleCallback = readFileSync("src/app/api/admin/google/callback/route.ts", "utf8");
 assert.ok(googleAuthorize.includes("tenantId: auth.tenant.id"), "Google OAuth state must bind tenant identity");
-assert.ok(googleCallback.includes("expected.tenantId !== auth.tenant.id"), "Google callback must reject a switched/tampered tenant context");
+assert.ok(googleCallback.includes("verifyGoogleOAuthStateBinding(encodedState, { state, tenantId: auth.tenant.id, tenantSlug: auth.tenant.slug })"), "Google callback must verify signed state against the active tenant context");
 
 const providerApi = readFileSync("src/app/api/admin/tenant/providers/route.ts", "utf8");
 assert.ok(providerApi.includes("credentialVersion = Number(existing?.credential_version || 0) + 1"), "provider credential rotations must increment their version");

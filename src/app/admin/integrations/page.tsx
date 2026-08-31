@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "@/components/admin/AdminLink";
 import {
   ArrowRight,
@@ -59,6 +60,16 @@ const statusMeta: Record<IntegrationStatus, { label: string; icon: LucideIcon; c
 };
 
 type Filter = "all" | "operational" | "attention" | "available" | "planned";
+
+const googleResultMessages: Record<string, { tone: "default" | "attention"; title: string; detail: string }> = {
+  connected: { tone: "default", title: "Google Workspace connected", detail: "The encrypted connection is stored. Run the first Workspace sync from Setup Center to create behavioral receipts." },
+  consent_denied: { tone: "attention", title: "Google consent was cancelled", detail: "No connection was stored. Start again when you are ready to approve the declared Gmail, Calendar, and Drive read-only access." },
+  state_mismatch: { tone: "attention", title: "Google connection expired", detail: "The tenant-bound authorization state was missing, changed, or expired. Start a new connection from this workspace." },
+  not_configured: { tone: "attention", title: "Google OAuth is not configured", detail: "Add the documented Production OAuth credentials and token-encryption key, redeploy, then try again." },
+  reconnect_required: { tone: "attention", title: "Google authorization must be renewed", detail: "Start a new Google connection from this workspace. Existing local records will remain intact." },
+  tenant_unavailable: { tone: "attention", title: "Workspace is inactive", detail: "Google provider execution remains disabled until the workspace is active." },
+  connection_failed: { tone: "attention", title: "Google connection could not be verified", detail: "No healthy connection was asserted. Review Setup Center and retry from this workspace." },
+};
 
 function relativeTime(value: string | null) {
   if (!value) return "No receipt yet";
@@ -166,12 +177,16 @@ function ProviderCard({ provider }: { provider: IntegrationView }) {
 }
 
 export default function IntegrationsPage() {
+  const searchParams = useSearchParams();
   const integrationsQuery = useAdminQuery<IntegrationCatalog>(["admin", "integrations"], "/api/admin/integrations");
   const data = integrationsQuery.data ?? null;
   const loading = integrationsQuery.isPending;
   const error = integrationsQuery.error?.message || "";
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
+  const googleResult = searchParams.get("google_connected") === "1"
+    ? googleResultMessages.connected
+    : googleResultMessages[searchParams.get("google_error") || ""] ?? null;
 
   const load = useCallback(async () => { await integrationsQuery.refetch(); }, [integrationsQuery]);
 
@@ -203,6 +218,13 @@ export default function IntegrationsPage() {
         subtitle="One capability map for the tools that power the Command Center. Ready means behavior was verified, not merely that a key exists."
         actions={<button type="button" onClick={() => void load()} disabled={integrationsQuery.isFetching} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:cursor-wait disabled:opacity-55"><RefreshCw className={cn("size-3.5", integrationsQuery.isFetching && "animate-spin")} /> Refresh evidence</button>}
       />
+
+      {googleResult && (
+        <AdminSurface tone={googleResult.tone} className="flex items-start gap-3" role="status">
+          {googleResult.tone === "default" ? <Check className="mt-0.5 size-5 shrink-0 text-emerald-700 dark:text-emerald-300" /> : <TriangleAlert className="mt-0.5 size-5 shrink-0 text-amber-700 dark:text-amber-300" />}
+          <div><p className="text-sm font-semibold text-[var(--admin-ink)]">{googleResult.title}</p><p className="admin-copy mt-1 text-xs leading-5">{googleResult.detail}</p></div>
+        </AdminSurface>
+      )}
 
       <TenantProviderControls />
 

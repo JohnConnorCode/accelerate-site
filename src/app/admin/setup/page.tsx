@@ -57,7 +57,13 @@ interface SetupCheck {
 interface SetupResponse {
   checks: SetupCheck[];
   bookingMode: "manual" | "calendly";
-  google?: { accountEmail: string; connected: boolean; settings: { drive_folder_ids?: string[] }; scopes: string[] } | null;
+  google?: {
+    accountEmail: string;
+    connected: boolean;
+    settings: { drive_folder_ids?: string[] };
+    scopes: string[];
+    tokenHealth: { accessEnvelopeValid: boolean; refreshEnvelopeValid: boolean; expiresAt: string | null };
+  } | null;
   summary: {
     requiredReady: number;
     requiredTotal: number;
@@ -528,6 +534,19 @@ export default function AdminSetupPage() {
                 </button>
               </div>
               <AdminSurface padding="lg">
+                <div className="mb-6 grid gap-2 sm:grid-cols-2">
+                  <div className="rounded-xl bg-black/[0.025] p-4 dark:bg-white/[0.03]">
+                    <div className="flex items-center gap-2"><ShieldCheck className="size-4 text-emerald-600 dark:text-emerald-300" /><h3 className="text-sm font-semibold text-[var(--admin-ink)]">Encrypted credential health</h3></div>
+                    <p className="admin-copy mt-2 text-pretty text-xs leading-5">Access and refresh credentials use the supported authenticated envelope. Values never leave the server.</p>
+                    <p className="mt-3 font-mono text-[10px] tabular-nums text-[var(--admin-muted)]">Access token expires {data.google.tokenHealth.expiresAt ? new Date(data.google.tokenHealth.expiresAt).toLocaleString() : "at an unknown time"}</p>
+                  </div>
+                  <div className="rounded-xl bg-black/[0.025] p-4 dark:bg-white/[0.03]">
+                    <div className="flex items-center gap-2"><CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-300" /><h3 className="text-sm font-semibold text-[var(--admin-ink)]">Granted scopes</h3></div>
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {data.google.scopes.map((scope) => <code key={scope} className="max-w-full break-all rounded-md bg-[var(--admin-surface)] px-2 py-1 font-mono text-[10px] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]">{scope}</code>)}
+                    </div>
+                  </div>
+                </div>
                 <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
                   <div>
                     <div className="flex items-center gap-3">

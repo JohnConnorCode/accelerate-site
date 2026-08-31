@@ -226,6 +226,34 @@ Add:
 
 Then open Setup Center and choose **Connect Google Workspace**. The app requests Gmail read/send, Calendar event, and Drive read-only capabilities. Drive synchronization remains disabled until specific folder IDs are saved in Setup Center.
 
+Use the staged verifier before and after the founder-owned credential and consent steps:
+
+```bash
+npm run verify:google-readiness
+npm run verify:google-readiness -- --stage=production
+```
+
+The source stage proves the minimum scope declaration, signed tenant-bound OAuth
+state, tenant-composite provider writes, stable browser-safe failure projection,
+and the ten-folder Drive boundary. The Production stage is read-only: it lists
+only Vercel environment variable names and queries only non-secret connection
+facts plus the latest source-run statuses. It never returns or prints credential
+values, access tokens, refresh tokens, customer messages, or Drive content;
+encrypted-envelope checks are reduced to booleans inside PostgreSQL.
+
+Production is ready only when all three Google variable names exist, the
+bootstrap tenant has a connected account with supported encrypted token
+envelopes and every declared scope, Gmail and Calendar have successful terminal
+source receipts, and Drive is either explicitly not configured or has a
+successful receipt for no more than ten selected folder IDs. A missing row,
+expired consent attempt, partial run, failed run, or environment key alone is
+reported as blocked rather than healthy.
+
+OAuth failures return stable codes to the Integrations workspace. Start a fresh
+connection after `state_mismatch`, `connection_failed`, or
+`reconnect_required`; no local records are deleted. Provider and database error
+text is not reflected into the URL or browser response.
+
 ## Integration capability catalog
 
 `/admin/integrations` is the authoritative map of live, available, planned, and

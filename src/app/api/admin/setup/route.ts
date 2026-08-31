@@ -2,10 +2,10 @@ import { supabaseDashboard } from "@/config/tenant";
 import { NextResponse } from "next/server";
 import { requirePlatformAdmin } from "@/lib/admin/auth";
 import { STALLED_JOB_MINUTES } from "@/lib/revenue-os/health";
-import { createPlatformServiceRoleClient } from "@/lib/supabase/server";
+import { createBootstrapServiceRoleClient, createPlatformServiceRoleClient } from "@/lib/supabase/server";
 import type { SetupCapability } from "@/lib/revenue-os/types";
 import { GOOGLE_SCOPES } from "@/lib/revenue-os/google";
-import { isGoogleTokenEncryptionKeyConfigured } from "@/lib/revenue-os/encryption";
+import { isEncryptedSecret, isGoogleTokenEncryptionKeyConfigured } from "@/lib/revenue-os/encryption";
 import {
   REVENUE_SCHEMA_CONTRACT_VERSION,
   type SchemaVerificationRun,
@@ -26,26 +26,27 @@ function configured(...keys: string[]) {
 export async function GET() {
   const auth = await requirePlatformAdmin();
   if (auth instanceof NextResponse) return auth;
-  const supabase = createPlatformServiceRoleClient("platform-setup-center");
+  const platform = createPlatformServiceRoleClient("platform-setup-center");
+  const supabase = createBootstrapServiceRoleClient("bootstrap-setup-center");
   const publicBookingMode = bookingMode();
   const supabaseConfigured = configured("NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY");
   const googleConfigured = configured("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET") && isGoogleTokenEncryptionKeyConfigured();
 
   const runtimeSchema = supabaseConfigured
-    ? await verifyRevenueSchemaDataAccess(supabase)
+    ? await verifyRevenueSchemaDataAccess(platform)
     : { status: "connectivity_failure" as const, issues: [], checkedAt: new Date().toISOString() };
   const [featureBoardResult, googleResult, sourceRunsResult, jobRunsResult, proposalResult, analyticsResult, emailStudioResult, contactImporterResult, schemaVerificationResult, schedulerResult] = supabaseConfigured
     ? await Promise.all([
-        supabase.from("feature_requests").select("id", { count: "exact" }).eq("source", "revenue-os-master-plan").is("archived_at", null).limit(1),
-        supabase.from("integration_connections").select("account_email,status,scopes,last_success_at,last_error,settings").eq("provider", "google").maybeSingle(),
+        platform.from("feature_requests").select("id", { count: "exact" }).eq("source", "revenue-os-master-plan").is("archived_at", null).limit(1),
+        supabase.from("integration_connections").select("account_email,status,scopes,last_success_at,last_error,settings,encrypted_access_token,encrypted_refresh_token,token_expires_at").eq("provider", "google").maybeSingle(),
         supabase.from("source_runs").select("source_key,status,summary,error,finished_at").order("started_at", { ascending: false }).limit(40),
         supabase.from("job_runs").select("job_key,status,summary,error,finished_at,claimed_at").order("claimed_at", { ascending: false }).limit(40),
         supabase.from("proposals").select("id").limit(1),
         supabase.from("website_events").select("id").limit(1),
         supabase.from("email_template_versions").select("id", { count: "exact" }).limit(1),
         supabase.from("contact_import_batches").select("id,status,review_digest,approval_digest,ai_provider", { count: "exact" }).limit(1),
-        supabase.from("schema_verification_runs").select("contract_version,status,failure_detail,checked_at").order("checked_at", { ascending: false }).limit(1).maybeSingle(),
-        supabase.rpc("command_center_scheduler_status"),
+        platform.from("schema_verification_runs").select("contract_version,status,failure_detail,checked_at").order("checked_at", { ascending: false }).limit(1).maybeSingle(),
+        platform.rpc("command_center_scheduler_status"),
       ])
     : [
         { error: new Error("Supabase is not configured"), count: null },
@@ -81,7 +82,12 @@ export async function GET() {
   const scopes: string[] = google?.scopes ?? [];
   const requiredGoogleScopes = GOOGLE_SCOPES.filter((scope) => !["openid", "email"].includes(scope));
   const googleScopesReady = requiredGoogleScopes.every((scope) => scopes.includes(scope));
-  const googleConnected = google?.status === "connected" && Boolean(google.account_email) && googleScopesReady;
+  const googleTokenHealth = {
+    accessEnvelopeValid: typeof google?.encrypted_access_token === "string" && isEncryptedSecret(google.encrypted_access_token),
+    refreshEnvelopeValid: typeof google?.encrypted_refresh_token === "string" && isEncryptedSecret(google.encrypted_refresh_token),
+    expiresAt: google?.token_expires_at ?? null,
+  };
+  const googleConnected = google?.status === "connected" && Boolean(google.account_email) && googleScopesReady && googleTokenHealth.accessEnvelopeValid && googleTokenHealth.refreshEnvelopeValid;
   const latestSource = new Map<string, SourceRunRow>();
   for (const run of sourceRunsResult.data ?? []) if (!latestSource.has(run.source_key)) latestSource.set(run.source_key, run);
   const latestJob = new Map<string, JobRunRow>();
@@ -427,7 +433,7 @@ export async function GET() {
   return NextResponse.json({
     checks,
     bookingMode: publicBookingMode === "embed" ? "calendly" : "manual",
-    google: google ? { accountEmail: google.account_email, connected: googleConnected, settings: google.settings ?? {}, scopes } : null,
+    google: google ? { accountEmail: google.account_email, connected: googleConnected, settings: google.settings ?? {}, scopes, tokenHealth: googleTokenHealth } : null,
     summary: {
       requiredReady,
       requiredTotal: required.length,

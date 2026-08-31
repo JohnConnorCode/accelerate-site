@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { GOOGLE_SCOPES, getGoogleAccessToken } from "@/lib/revenue-os/google";
 import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
 import { isGoogleTokenEncryptionKeyConfigured } from "@/lib/revenue-os/encryption";
+import { googleOperatorError } from "@/lib/revenue-os/google-oauth";
 
 export async function GET() {
   const auth = await requireAdmin();
@@ -29,7 +30,8 @@ export async function POST() {
     const { connection } = await getGoogleAccessToken(auth.database);
     return NextResponse.json({ success: true, accountEmail: connection.account_email, scopes: connection.scopes });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Google connection test failed" }, { status: 400 });
+    const projected = googleOperatorError(error, "connection-test");
+    return NextResponse.json({ error: projected.message, code: projected.code }, { status: 400 });
   }
 }
 
@@ -44,6 +46,6 @@ export async function DELETE() {
     scopes: [],
     last_error: null,
   }).eq("provider", "google");
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (error) return NextResponse.json({ error: "Google could not be disconnected safely." }, { status: 500 });
   return NextResponse.json({ success: true });
 }

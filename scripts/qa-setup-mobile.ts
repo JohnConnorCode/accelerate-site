@@ -36,7 +36,17 @@ type Cookie = {
 };
 
 type SetupCheck = { id: string; label: string; status: "ready" | "action" | "degraded" | "optional" | "disabled"; description?: string; lastFailure?: string | null };
-type SetupResponse = { checks: SetupCheck[]; summary: { launchReady: boolean; requiredReady: number; requiredTotal: number } };
+type SetupResponse = {
+  checks: SetupCheck[];
+  summary: { launchReady: boolean; requiredReady: number; requiredTotal: number };
+  google?: {
+    accountEmail: string;
+    connected: boolean;
+    settings: { drive_folder_ids?: string[] };
+    scopes: string[];
+    tokenHealth: { accessEnvelopeValid: boolean; refreshEnvelopeValid: boolean; expiresAt: string | null };
+  } | null;
+};
 
 hydrateEnvFromLocalFile(".env.local");
 
@@ -171,7 +181,7 @@ async function runSetupMobileChecks() {
     viewport: { width: 1280, height: 900 },
   });
   await applyFounderCookies(apiContext, BASE_URL, cookies);
-  const response = await apiContext.request.get(`${BASE_URL}/api/admin/setup`);
+  const response = await apiContext.request.get(`${BASE_URL}/api/admin/setup`, { timeout: 60_000 });
   if (!response.ok()) {
     const body = await response.text();
     console.error(`Setup API status ${response.status()} body: ${body.slice(0, 220)}`);
@@ -204,12 +214,31 @@ async function runSetupMobileChecks() {
 
   const checks = ["mobile", "desktop"] as const;
   for (const viewport of checks) {
+    const viewportCookies = await loadFounderCookies();
     const context = await browser.newContext({
       viewport: viewport === "mobile" ? { width: 390, height: 844 } : { width: 1440, height: 1024 },
       colorScheme: "light",
     });
-    await applyFounderCookies(context, BASE_URL, cookies);
+    await applyFounderCookies(context, BASE_URL, viewportCookies);
     const page = await context.newPage();
+    const visualPayload = viewport === "desktop" ? {
+      ...payload,
+      google: {
+        accountEmail: "workspace-qa@example.invalid",
+        connected: true,
+        settings: { drive_folder_ids: [] },
+        scopes: [
+          "openid",
+          "email",
+          "https://www.googleapis.com/auth/gmail.readonly",
+          "https://www.googleapis.com/auth/gmail.send",
+          "https://www.googleapis.com/auth/calendar.events",
+          "https://www.googleapis.com/auth/drive.readonly",
+        ],
+        tokenHealth: { accessEnvelopeValid: true, refreshEnvelopeValid: true, expiresAt: "2026-08-31T15:30:00.000Z" },
+      },
+    } : payload;
+    await page.route("**/api/admin/setup", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(visualPayload) }));
     page.on("console", (message) => {
       if (message.type() === "error") {
         violations.push(`${viewport}: console error ${message.text()}`);
@@ -219,7 +248,7 @@ async function runSetupMobileChecks() {
       violations.push(`${viewport}: page error ${error.message}`);
     });
 
-    const response = await page.goto(`${BASE_URL}/admin/setup`, { waitUntil: "networkidle" });
+    const response = await page.goto(`${BASE_URL}/admin/setup`, { waitUntil: "domcontentloaded", timeout: 60_000 });
     if (!response || !response.ok()) {
       await context.close();
       await apiContext.close();
@@ -228,7 +257,13 @@ async function runSetupMobileChecks() {
     }
 
     await page.getByRole("heading", { name: "Setup Center" }).waitFor({ timeout: 20_000 });
-    await page.waitForLoadState("networkidle");
+    try {
+      await page.locator('[id="schema"]').waitFor({ timeout: 30_000 });
+    } catch {
+      await page.screenshot({ path: `${outDir}/setup-${viewport}-failure.png`, fullPage: true });
+      const body = (await page.locator("body").innerText()).replace(/\s+/g, " ").slice(0, 500);
+      throw new Error(`Setup did not settle for ${viewport} at ${page.url()}: ${body}`);
+    }
     await page.waitForTimeout(500);
 
     const state = await page.evaluate(() => ({
@@ -249,6 +284,12 @@ async function runSetupMobileChecks() {
       path: viewport === "mobile" ? screenshotPathMobile : screenshotPathDesktop,
       fullPage: true,
     });
+    if (viewport === "desktop") {
+      const googleControl = page.locator('[id="google"]');
+      await googleControl.getByText("Encrypted credential health", { exact: true }).waitFor();
+      await googleControl.getByText("https://www.googleapis.com/auth/drive.readonly", { exact: true }).waitFor();
+      await googleControl.screenshot({ path: `${outDir}/setup-google-connected.png` });
+    }
     await context.close();
   }
 
