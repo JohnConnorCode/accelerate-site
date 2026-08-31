@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
   const limit = Math.min(100, Math.max(1, Number(request.nextUrl.searchParams.get("limit")) || 50));
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const [legacy, canonical] = await Promise.all([
     supabase.from("sent_emails").select("id, to_email, to_name, subject, body, template_used, created_at, related_type, related_id").order("created_at", { ascending: false }).limit(limit),
     supabase.from("messages").select("id, recipient_emails, subject, body_text, status, provider_message_id, sent_at, created_at, metadata").eq("direction", "outbound").order("created_at", { ascending: false }).limit(limit),

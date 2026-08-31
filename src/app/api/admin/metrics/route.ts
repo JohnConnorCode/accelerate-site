@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { calculateLeadScore } from "@/lib/admin/lead-scoring";
 
@@ -7,7 +6,7 @@ export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const { searchParams } = new URL(request.url);
   const days = parseInt(searchParams.get("days") || "30");
   const now = new Date();

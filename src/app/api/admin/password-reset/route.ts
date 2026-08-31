@@ -1,6 +1,6 @@
 import { tenant } from "@/config/tenant";
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceRoleClient } from "@/lib/supabase/server";
+import { createPlatformServiceRoleClient } from "@/lib/supabase/server";
 import { isConfiguredAdmin } from "@/lib/admin/access";
 import { rateLimit } from "@/lib/rate-limit";
 import { getResend, FROM_EMAIL } from "@/lib/email/resend";
@@ -37,13 +37,20 @@ export async function POST(request: NextRequest) {
   }
 
   const normalizedEmail = email.trim().toLowerCase();
+  const supabase = createPlatformServiceRoleClient("admin-password-reset");
+  const { data: membership } = await supabase
+    .from("tenant_memberships")
+    .select("tenant_id")
+    .eq("invited_email", normalizedEmail)
+    .in("status", ["invited", "active"])
+    .limit(1)
+    .maybeSingle();
   // Do not disclose whether a submitted email has access.
-  if (!isConfiguredAdmin(normalizedEmail)) {
+  if (!isConfiguredAdmin(normalizedEmail) && !membership) {
     return NextResponse.json({ success: true }, { headers: { "Cache-Control": "no-store" } });
   }
 
   try {
-    const supabase = createServiceRoleClient();
     const { data, error } = await supabase.auth.admin.generateLink({
       type: "recovery",
       email: normalizedEmail,

@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createServiceRoleClient } from "@/lib/supabase/server";
-import { getResend, FROM_EMAIL, ADMIN_EMAIL } from "@/lib/email/resend";
+import { ADMIN_EMAIL } from "@/lib/email/resend";
 import { EMAIL_TEMPLATE_DEFINITIONS, getEmailTemplateDefinition, renderDefinition, replaceEmailVariables } from "@/lib/email/registry";
 import { blocksFromPlainText, emailBlocksToText, parseStoredEmailBlocks, renderEmailBlocks, serializeEmailBlocks, validateEmailBlocks } from "@/lib/email/blocks";
 import { recordAudit } from "@/lib/revenue-os/audit";
+import { sendRecordedEmail } from "@/lib/revenue-os/communications";
+import { InactiveTenantExecutionError } from "@/lib/tenancy/system";
 
 interface StoredVersion {
   id: string;
@@ -34,8 +36,7 @@ function validateDraft(definition: NonNullable<ReturnType<typeof getEmailTemplat
   return invalid.length ? `Unsupported variables: ${invalid.map((value) => `{{${value}}}`).join(", ")}` : null;
 }
 
-async function versionsFor(key: string) {
-  const supabase = createServiceRoleClient();
+async function versionsFor(supabase: SupabaseClient, key: string) {
   const { data, error } = await supabase
     .from("email_template_versions")
     .select("id, template_key, state, subject_template, preview_text, body_template, sample_data, updated_at, published_at")
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest) {
   const id = request.nextUrl.searchParams.get("id");
 
   if (!id) {
-    const supabase = createServiceRoleClient();
+    const supabase = auth.database;
     const { data, error } = await supabase
       .from("email_template_versions")
       .select("template_key, state, updated_at")
@@ -85,7 +86,7 @@ export async function GET(request: NextRequest) {
 
   const definition = getEmailTemplateDefinition(id);
   if (!definition) return NextResponse.json({ error: "Email template not found" }, { status: 404 });
-  const { versions, error } = await versionsFor(id);
+  const { versions, error } = await versionsFor(auth.database, id);
   const draft = versions.find((version) => version.state === "draft") || null;
   const published = versions.find((version) => version.state === "published") || null;
   const requestedMode = request.nextUrl.searchParams.get("mode");
@@ -131,7 +132,7 @@ export async function PATCH(request: NextRequest) {
   const validation = validateDraft(definition, body.subjectTemplate, blocks);
   if (validation) return NextResponse.json({ error: validation }, { status: 400 });
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const { error: templateError } = await supabase.from("email_templates").upsert({
     template_key: definition.key,
     name: definition.name,
@@ -152,7 +153,7 @@ export async function PATCH(request: NextRequest) {
     created_by: auth.user.email,
     updated_at: new Date().toISOString(),
   };
-  const { versions } = await versionsFor(definition.key);
+  const { versions } = await versionsFor(supabase, definition.key);
   const existing = versions.find((version) => version.state === "draft");
   const result = existing
     ? await supabase.from("email_template_versions").update(payload).eq("id", existing.id).select().single()
@@ -168,7 +169,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const definition = getEmailTemplateDefinition(body.id);
   if (!definition) return NextResponse.json({ error: "Email template not found" }, { status: 404 });
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
 
   if (body.action === "render") {
     const blocks = validateEmailBlocks(body.blocks);
@@ -179,7 +180,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ subject: replaceEmailVariables(body.subjectTemplate, variables), html, text });
   }
 
-  const { versions, error } = await versionsFor(definition.key);
+  const { versions, error } = await versionsFor(supabase, definition.key);
   if (error) return NextResponse.json({ error: missingSchema(error.code) ? "Apply the Email Studio migration in Setup Center first." : error.message }, { status: 409 });
   const draft = versions.find((version) => version.state === "draft");
   if (!draft) return NextResponse.json({ error: "Save a draft before continuing." }, { status: 409 });
@@ -190,9 +191,30 @@ export async function POST(request: NextRequest) {
     const blocks = parseStoredEmailBlocks(draft.body_template) || blocksFromPlainText(draft.body_template);
     const { text, html } = await renderEmailBlocks(blocks, variables, draft.preview_text || undefined);
     const to = auth.user.email || ADMIN_EMAIL;
-    const result = await getResend().emails.send({ from: FROM_EMAIL, to, subject: `[TEST] ${subject}`, text, html });
-    if (result.error) return NextResponse.json({ error: result.error.message }, { status: 502 });
-    await recordAudit(supabase, { actorEmail: auth.user.email, action: "email_template.test_sent", entityType: "email_template", entityId: definition.key, metadata: { versionId: draft.id, providerId: result.data?.id, to } });
+    let result;
+    try {
+      result = await sendRecordedEmail(supabase, {
+        to,
+        subject: `[TEST] ${subject}`,
+        text,
+        html,
+        actorEmail: auth.user.email,
+        source: "admin",
+        template: `test:${definition.key}`,
+        idempotencyKey: `email-template-test:${definition.key}:${draft.id}:${draft.updated_at}`,
+      });
+    } catch (error) {
+      return NextResponse.json({
+        error: error instanceof InactiveTenantExecutionError
+          ? "This workspace was suspended before the test email could be sent."
+          : "The email provider did not return a confirmed delivery receipt. Review the delivery record before retrying.",
+      }, { status: error instanceof InactiveTenantExecutionError ? 409 : 502 });
+    }
+    try {
+      await recordAudit(supabase, { actorEmail: auth.user.email, action: "email_template.test_sent", entityType: "email_template", entityId: definition.key, metadata: { versionId: draft.id, providerId: result.providerId, messageId: result.messageId, to } });
+    } catch {
+      return NextResponse.json({ error: "The test email delivery is recorded, but its audit receipt could not be written. Retrying is safe." }, { status: 500 });
+    }
     return NextResponse.json({ success: true, to });
   }
 
@@ -208,7 +230,7 @@ export async function DELETE(request: NextRequest) {
   if (auth instanceof NextResponse) return auth;
   const id = request.nextUrl.searchParams.get("id");
   if (!id || !getEmailTemplateDefinition(id)) return NextResponse.json({ error: "Email template not found" }, { status: 404 });
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const { error } = await supabase.from("email_template_versions").delete().eq("template_key", id).eq("state", "draft");
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   await recordAudit(supabase, { actorEmail: auth.user.email, action: "email_template.draft_reset", entityType: "email_template", entityId: id });

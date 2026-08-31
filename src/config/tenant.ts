@@ -1,16 +1,16 @@
 /**
  * The one place a business fact is allowed to appear.
  *
- * The Command Center is cloned per client: each installation is its own Vercel
- * project and its own Supabase database running this same codebase. That makes a
- * new client a config file plus environment variables, not a search and replace,
- * and it is why there is no tenant column anywhere in the schema. See the
- * `cloneable-command-center-contract` card for the recorded decision.
+ * Accelerate's source-controlled configuration is the bootstrap/default tenant
+ * and the public marketing-site identity. Live tenant workspaces load a validated
+ * version of this shape from the shared database. See
+ * `shared-database-multi-tenancy-contract` and docs/MULTI-TENANCY-CONTRACT.md.
  *
  * Rules for this file:
  * - No secrets. API keys, tokens, and database credentials stay in the
  *   environment. Everything here is safe to read from client components.
- * - No per-row or per-request data. This is per-deployment configuration.
+ * - No per-row or per-request data. Request-scoped tenant configuration is loaded
+ *   by the server tenant-context module and passed explicitly to consumers.
  * - Anything read here must have a sensible value for a business that is not
  *   Accelerate. If a value only makes sense for Accelerate, it belongs in
  *   `src/content/`, which is Accelerate's own marketing site and stays
@@ -118,8 +118,8 @@ export interface TenantConfig {
 }
 
 /**
- * Accelerate's own installation. A client install replaces this object; nothing
- * else in `src/lib`, `src/app/admin`, or `src/app/api/admin` should need editing.
+ * Accelerate's bootstrap/default tenant and public marketing identity. Tenant
+ * workspaces validate stored configuration against this same interface.
  */
 export const tenant: TenantConfig = {
   brand: {

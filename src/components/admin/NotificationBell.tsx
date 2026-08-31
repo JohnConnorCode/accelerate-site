@@ -133,12 +133,15 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
       }
     };
     document.addEventListener("visibilitychange", onVisibility);
+    const onPageHide = () => fetchAbortRef.current?.abort();
+    window.addEventListener("pagehide", onPageHide);
 
     return () => {
       cancelled = true;
       if (timer) clearTimeout(timer);
       fetchAbortRef.current?.abort();
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pagehide", onPageHide);
     };
   }, [fetchNotifications, urgentCount]);
 

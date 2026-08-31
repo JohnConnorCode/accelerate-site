@@ -3597,6 +3597,9 @@ body.admin-notifications-open {
   --admin-canvas: #f3f3f0;
   --admin-surface: #fbfbfa;
   --admin-surface-subtle: #f7f7f4;
+  --admin-soft: var(--admin-surface-subtle);
+  --admin-line: var(--admin-border);
+  --admin-mobile-dock-index: 0;
   --admin-ink: #0b0b0b;
   --admin-muted: #6e6e68;
   --admin-accent: #0b0b0b;
@@ -4126,6 +4129,33 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 .admin-action-control:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--admin-action) 28%, transparent);
+}
+
+.admin-secondary-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 40px;
+  border-radius: var(--admin-control-radius);
+  background: var(--admin-surface);
+  color: var(--admin-ink);
+  box-shadow: var(--admin-shadow-border);
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition-property: background-color, color, box-shadow, transform, opacity;
+  transition-duration: 150ms;
+  transition-timing-function: var(--ease);
+}
+.admin-secondary-control:hover {
+  background: var(--admin-surface-subtle);
+  box-shadow: var(--admin-shadow-border-hover);
+}
+.admin-secondary-control:active { transform: scale(0.96); }
+.admin-secondary-control:disabled { cursor: not-allowed; opacity: 0.5; }
+.admin-secondary-control:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--admin-ink) 16%, transparent), var(--admin-shadow-border);
 }
 
 .admin-action-mark {

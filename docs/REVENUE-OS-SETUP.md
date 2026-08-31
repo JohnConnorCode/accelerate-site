@@ -33,10 +33,29 @@ The admin Setup Center at `/admin/setup` is the live source of truth. It checks 
 27. `migrations/20260823-command-center-scheduler.sql`
 28. `migrations/20260823-remove-legacy-job-claim-overload.sql`
 29. `migrations/20260824-ai-command-runtime.sql`
+30. `migrations/20260830-shared-database-tenancy.sql`
+31. `migrations/20260830-tenant-context-authorization.sql`
+32. `migrations/20260830-tenant-public-boundaries.sql`
+33. `migrations/20260830-tenant-uniqueness-cutover.sql`
+34. `migrations/20260830-revenue-recovery.sql`
+35. `migrations/20260831-tenant-lifecycle-rpcs.sql`
+36. `migrations/20260831-tenant-suspension-guards.sql`
 
 The Revenue OS migrations are idempotent. The core migration preserves legacy tables and creates the canonical operating model. The Feature Board migration creates the delivery roadmap. First-party analytics adds anonymous event storage. Money-first outreach adds campaign send idempotency and unguessable unsubscribe tokens. Email Studio adds protected draft and published template revisions. Contact Import adds review batches, row receipts, immutable events, and an atomic digest-bound execution claim.
 
 The AI command runtime migration adds founder-owned conversation history, replay-safe client message IDs, and run linkage for provider, tool-pack, duration, and conversation observability. Apply it before enabling `/admin/ai`; until then the command UI fails closed with a setup message and no schema is created from a request path.
+
+The shared-database tenancy migration creates the tenant control plane, assigns
+every existing operational row to the deterministic Accelerate tenant, adds
+tenant-composite keys and foreign-key backstops, and installs membership-plus-
+request-context RLS. Its Accelerate default is a temporary compatibility seam;
+the authorization cutover removes it only after every writer passes explicit
+tenant context. Revenue recovery follows it and creates tenant-owned recovery
+records from its first row. The lifecycle RPC migration makes workspace creation,
+membership binding, status changes, revocation, and their platform audit receipts
+atomic and service-role-only; apply it before exposing tenant provisioning. The
+suspension guard then makes active tenant status a just-in-time requirement for
+operational RPC claims, including service-role callers holding a stale context.
 
 Agents apply migrations directly with `npm run db:migrate -- <migration.sql>` and
 verify the resulting objects through the service role. The command is fixed to

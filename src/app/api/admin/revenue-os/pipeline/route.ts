@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
 import { canonicalStage, createOpportunity, transitionOpportunity, transitionStatusFromError, updateOpportunityDetails } from "@/lib/revenue-os/pipeline";
 import { REVENUE_STAGES, type RevenueStage } from "@/lib/revenue-os/types";
@@ -8,7 +7,7 @@ import { REVENUE_STAGES, type RevenueStage } from "@/lib/revenue-os/types";
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const params = new URL(request.url).searchParams;
   const stage = params.get("stage");
   const search = params.get("search")?.trim();
@@ -52,7 +51,7 @@ export async function POST(request: NextRequest) {
   const name = typeof body.name === "string" ? body.name.trim() : "";
   const email = typeof body.email === "string" ? body.email.trim() : "";
   if (!name || !email) return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   try {
     const data = await createOpportunity(supabase, {
       actorEmail: auth.user.email || "founder",
@@ -79,7 +78,7 @@ export async function PATCH(request: NextRequest) {
   const body = await request.json() as Record<string, unknown>;
   const id = typeof body.id === "string" ? body.id : "";
   if (!id) return NextResponse.json({ error: "Opportunity id is required" }, { status: 400 });
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   try {
     if (typeof body.stage === "string") {
       if (!REVENUE_STAGES.includes(body.stage as RevenueStage)) return NextResponse.json({ error: "Invalid pipeline stage" }, { status: 400 });

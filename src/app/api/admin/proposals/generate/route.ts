@@ -1,6 +1,5 @@
 import { tenant } from "@/config/tenant";
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { isOpenRouterConfigured, openRouterJson } from "@/lib/ai/openrouter";
@@ -92,7 +91,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "lead_id is required" }, { status: 400 });
   }
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
 
   const { data: lead, error: leadError } = await supabase
     .from("solution_requests")

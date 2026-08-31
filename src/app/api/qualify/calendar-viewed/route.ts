@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceRoleClient } from "@/lib/supabase/server";
+import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
 import { transitionOpportunity, transitionStatusFromError } from "@/lib/revenue-os/pipeline";
 
 export async function POST(request: NextRequest) {
   const { token } = (await request.json().catch(() => ({}))) as { token?: string };
   if (!token || token.length > 64) return NextResponse.json({ error: "Invalid token" }, { status: 400 });
 
-  const supabase = createServiceRoleClient();
+  const supabase = createBootstrapServiceRoleClient("legacy-public-qualifier-calendar");
   const { data: opportunity } = await supabase
     .from("opportunities")
     .select("id, stage, qualified")

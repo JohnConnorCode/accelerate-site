@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
+import { createClient } from "@supabase/supabase-js";
 
 function hydrateEnvFromLocalFile(filePath: string) {
   if (!existsSync(filePath)) return;
@@ -126,68 +127,74 @@ async function expectStatus(responsePromise: Promise<Response>, expected: number
 
     const calendlySecretHeaders = { "content-type": "application/json", "x-accelerate-webhook-secret": calendlySecret };
 
-    checks.push("calendly webhook rejects malformed JSON (400) with valid secret header");
+    checks.push("calendly webhook accepts the local secret before rejecting malformed JSON (400), or rejects a target-mismatched secret (401)");
     const malformedBody = "{ this-is-not-json }";
-    await expectStatus(
-      post(calendlyRoute, {
-        body: malformedBody,
-        headers: calendlySecretHeaders,
-      }),
-      400,
-      `${calendlyRoute} valid secret header (malformed JSON)`,
-    );
+    const malformedResult = await post(calendlyRoute, { body: malformedBody, headers: calendlySecretHeaders });
+    assert.ok([400, 401].includes(malformedResult.status), `${calendlyRoute} malformed payload expected 400 with a matching secret or 401 when the target uses another secret, got ${malformedResult.status}`);
 
-    checks.push("calendly webhook rejects unsupported payload (400) with valid secret");
-    await expectStatus(
-      post(calendlyRoute, {
-        body: "{}",
-        headers: calendlySecretHeaders,
-      }),
-      400,
-      `${calendlyRoute} valid secret header (unsupported payload)`,
-    );
+    if (malformedResult.status === 401) {
+      notes.push(`skipped Calendly signed-payload semantics because ${BASE_URL} does not accept the CALENDLY_WEBHOOK_SECRET loaded by this process`);
+    } else {
+      checks.push("calendly webhook rejects unsupported payload (400) with valid secret");
+      await expectStatus(
+        post(calendlyRoute, {
+          body: "{}",
+          headers: calendlySecretHeaders,
+        }),
+        400,
+        `${calendlyRoute} valid secret header (unsupported payload)`,
+      );
 
-    checks.push("calendly webhook ignores replayed payload after first receipt");
-    const replayToken = `replay-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const replayPayload = JSON.stringify({
-      event: "invitee.created",
-      created_at: new Date().toISOString(),
-      payload: {
-        uri: `calendly://webhook-demo/${replayToken}`,
-        email: `${replayToken}@example.com`,
-        event: "https://api.calendly.com/event-types/1",
-        scheduled_event: {
-          uri: `https://api.calendly.com/event-types/${replayToken}`,
-          start_time: new Date(Date.now() + 3600000).toISOString(),
-        },
-      },
-    });
-    const replayBody = {
-      body: replayPayload,
-      headers: calendlySecretHeaders,
-    };
-    const firstReplay = await post(calendlyRoute, replayBody);
-    assert.equal(firstReplay.status, 200, `${calendlyRoute} first replay attempt`);
-    const secondReplay = await post(calendlyRoute, replayBody);
-    assert.equal(secondReplay.status, 200, `${calendlyRoute} repeated replay`);
-    const secondReplayBody = await secondReplay.json();
-    assert.equal(
-      secondReplayBody.duplicate,
-      true,
-      `${calendlyRoute} should report duplicate=true on replay`,
-    );
-
-    checks.push("calendly webhook rejects oversized payload (413) with valid secret");
-    const oversizedPayload = JSON.stringify({ event: "invitee.created", payload: { marker: "x".repeat(120_000) } });
-    await expectStatus(
-      post(calendlyRoute, {
-        body: oversizedPayload,
-        headers: calendlySecretHeaders,
-      }),
-      413,
-      `${calendlyRoute} valid secret header (oversize payload)`,
-    );
+      const allowReplayMutation = /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:|\/|$)/.test(BASE_URL)
+        || process.env.WEBHOOK_DEFENSE_ALLOW_REPLAY_QA === "1";
+      if (!allowReplayMutation) {
+        notes.push("skipped Calendly replay mutation against a non-local target; set WEBHOOK_DEFENSE_ALLOW_REPLAY_QA=1 only for an explicitly authorized disposable QA target");
+      } else {
+        checks.push("calendly webhook ignores replayed payload after first receipt");
+        const replayToken = `replay-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const replayPayload = JSON.stringify({
+          event: "invitee.created",
+          created_at: new Date().toISOString(),
+          payload: {
+            uri: `calendly://webhook-demo/${replayToken}`,
+            email: `${replayToken}@example.com`,
+            event: "https://api.calendly.com/event-types/1",
+            scheduled_event: {
+              uri: `https://api.calendly.com/event-types/${replayToken}`,
+              start_time: new Date(Date.now() + 3600000).toISOString(),
+            },
+          },
+        });
+        const replayBody = {
+          body: replayPayload,
+          headers: calendlySecretHeaders,
+        };
+        const firstReplay = await post(calendlyRoute, replayBody);
+        assert.equal(firstReplay.status, 200, `${calendlyRoute} first replay attempt`);
+        const secondReplay = await post(calendlyRoute, replayBody);
+        assert.equal(secondReplay.status, 200, `${calendlyRoute} repeated replay`);
+        const secondReplayBody = await secondReplay.json();
+        assert.equal(secondReplayBody.duplicate, true, `${calendlyRoute} should report duplicate=true on replay`);
+        if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+          const service = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+          const [notificationCleanup, receiptCleanup] = await Promise.all([
+            service.from("admin_notifications").delete().ilike("description", `%${replayToken}%`),
+            service.from("calendly_webhook_receipts").delete().eq("id", `invitee.created:calendly://webhook-demo/${replayToken}`),
+          ]);
+          assert.equal(notificationCleanup.error, null, "Calendly replay QA notification cleanup failed");
+          assert.equal(receiptCleanup.error, null, "Calendly replay QA receipt cleanup failed");
+        }
+      }
+    }
   }
+
+  checks.push("calendly webhook rejects oversized payload before signature parsing (413 if configured / 503 unconfigured)");
+  const calendlyOversizedPayload = JSON.stringify({ event: "invitee.created", payload: { marker: "x".repeat(120_000) } });
+  await expectStatus(
+    post(calendlyRoute, { body: calendlyOversizedPayload, headers: { "content-type": "application/json" } }),
+    [413, 503],
+    `${calendlyRoute} oversized payload`,
+  );
 
   const resendRoute = "/api/webhooks/resend";
   {

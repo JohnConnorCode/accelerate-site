@@ -3,6 +3,9 @@ import { getResend, FROM_EMAIL } from "./resend";
 import { emailSequences } from "@/content/email-sequences";
 import { resolveEmailTemplate } from "./runtime-template";
 import type { EmailSequenceType } from "@/lib/types";
+import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Resend } from "resend";
 
 interface SequenceEnrollment {
   email: string;
@@ -100,11 +103,11 @@ export async function scheduleEmailSequence(
 export async function cancelScheduledSequences(
   email: string,
   sequenceType: EmailSequenceType,
+  dependencies?: { database: SupabaseClient; resend: Resend },
 ): Promise<void> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return;
 
-  const { createClient } = await import("@supabase/supabase-js");
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+  const supabase = dependencies?.database || createBootstrapServiceRoleClient("legacy-email-sequence-cancel");
   const { data } = await supabase
     .from("email_sequences")
     .select("id, metadata")
@@ -113,7 +116,7 @@ export async function cancelScheduledSequences(
     .neq("status", "paused");
   if (!data?.length) return;
 
-  const resend = getResend();
+  const resend = dependencies?.resend || getResend();
   for (const sequence of data) {
     const ids = Array.isArray(sequence.metadata?.resend_email_ids)
       ? sequence.metadata.resend_email_ids.filter((id: unknown): id is string => typeof id === "string")
@@ -136,11 +139,7 @@ async function saveSequenceRecord(
   }
 
   try {
-    const { createClient } = await import("@supabase/supabase-js");
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY
-    );
+    const supabase = createBootstrapServiceRoleClient("legacy-email-sequence-save");
 
     const steps = emailSequences[enrollment.sequenceType];
     const totalSteps = steps?.length ?? 0;

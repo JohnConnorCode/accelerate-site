@@ -36,8 +36,6 @@ const routes = [
   { slug: "analytics", label: "Analytics" },
   { slug: "activity", label: "Activity" },
   { slug: "integrations", label: "Integrations" },
-  { slug: "setup", label: "Setup Center" },
-  { slug: "features", label: "Feature Board" },
   { slug: "settings", label: "Settings" },
   { slug: "leads", label: "Leads" },
   { slug: "chat-leads", label: "Chat inquiries" },
@@ -45,6 +43,9 @@ const routes = [
   { slug: "partners", label: "Partners" },
   { slug: "website-grades", label: "Website Grades" },
 ];
+// The persistent profile exercises a fictional client workspace. Setup Center,
+// Feature Board, and tenant management are founder-only platform surfaces and
+// must remain absent from this route matrix as well as from the rendered nav.
 const mobilePrimarySlugs = new Set(["today", "pipeline", "conversations", "inbox"]);
 
 if (!Number.isFinite(iterations) || iterations < 4) throw new Error("--iterations must be at least 4");

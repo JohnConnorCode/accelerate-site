@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { proposalAuditSummary, recordAudit } from "@/lib/revenue-os/audit";
 
@@ -7,7 +6,7 @@ export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status");
   const id = searchParams.get("id");
@@ -58,7 +57,7 @@ export async function POST(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const body = await request.json();
 
   const { nanoid } = await import("nanoid");
@@ -105,7 +104,7 @@ export async function PATCH(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const body = await request.json();
   const { id, ...updates } = body;
 

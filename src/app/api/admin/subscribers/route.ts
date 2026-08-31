@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { attachRevenueLinkage } from "@/lib/revenue-os/legacy-adapter";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const url = new URL(request.url);
   const page = Math.max(1, parseInt(url.searchParams.get("page") || "1") || 1);
   const pageSize = 25;

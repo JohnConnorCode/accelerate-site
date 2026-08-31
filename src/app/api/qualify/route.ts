@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
-import { createServiceRoleClient } from "@/lib/supabase/server";
+import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
 import { scheduleEmailSequence } from "@/lib/email/sequences";
 import { isValidWorkEmail, normalizeEmail, normalizeWebsite, qualifyRoofingOpportunity, type RoofingQualifierInput } from "@/lib/opportunities";
 import { bookingMode } from "@/lib/booking";
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
   // Public self-booking is tenant-owned. CALENDLY_ENABLED=false is an emergency
   // pause. Embed availability is not Calendly API health.
   const calendlyEnabled = bookingMode() === "embed";
-  const supabase = createServiceRoleClient();
+  const supabase = createBootstrapServiceRoleClient("legacy-public-qualifier");
   let ingestion;
   try {
     ingestion = await ingestRoofingQualification(supabase, { email, companyWebsite, role: body.role, revenueBand: body.revenueBand, primaryLeak: body.primaryLeak, messageVariant: body.messageVariant, qualifierToken: nanoid(24), utm: body.utm, qualification });

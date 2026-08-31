@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { createRevenueTask } from "@/lib/revenue-os/tasks";
 
@@ -7,7 +6,7 @@ export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status");
   const date = searchParams.get("date");
@@ -52,7 +51,7 @@ export async function POST(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const body = await request.json();
 
   const { title, description, due_date, due_time, priority, related_type, related_id, related_name } = body;
@@ -73,7 +72,7 @@ export async function PATCH(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const body = await request.json();
   const { id, status, snoozed_until, title, description, due_date, priority } = body;
 
@@ -117,7 +116,7 @@ export async function DELETE(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
 

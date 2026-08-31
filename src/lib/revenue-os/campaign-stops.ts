@@ -106,7 +106,7 @@ export async function stopCampaignMemberships(supabase: SupabaseClient, input: {
 
 export async function campaignMemberMaySend(supabase: SupabaseClient, input: { memberId: string; campaignId: string }) {
   const { data: member, error } = await supabase.from("campaign_members")
-    .select("id,status,contacts(communication_status),campaigns(status,version,approved_version)")
+    .select("id,status,contacts!campaign_members_contact_id_tenant_fkey(communication_status),campaigns!campaign_members_campaign_id_tenant_fkey(status,version,approved_version)")
     .eq("id", input.memberId).eq("campaign_id", input.campaignId).maybeSingle();
   if (error) throw new Error(error.message);
   if (!member || member.status !== "sending") return false;

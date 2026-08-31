@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { sendGmailReply } from "@/lib/revenue-os/google";
 import { proposeAction } from "@/lib/revenue-os/actions";
 
@@ -9,7 +8,7 @@ export async function POST(request: NextRequest) {
   if (auth instanceof NextResponse) return auth;
   const body = await request.json() as { conversationId?: string; body?: string; confirmed?: boolean };
   if (!body.conversationId || !body.body?.trim()) return NextResponse.json({ error: "Conversation and reply body are required" }, { status: 400 });
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   if (!body.confirmed) {
     const action = await proposeAction(supabase, {
       actionType: "send_gmail_reply",

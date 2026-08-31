@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { canonicalStage, transitionOpportunity, transitionStatusFromError } from "@/lib/revenue-os/pipeline";
 import { OPPORTUNITY_STAGES } from "@/lib/opportunities";
 import { sendNoShowRebookEmail } from "@/lib/email/booking";
@@ -11,7 +10,7 @@ export async function GET(request: NextRequest) {
 
   const days = Math.min(365, Math.max(7, Number(new URL(request.url).searchParams.get("days") || 90)));
   const since = new Date(Date.now() - days * 86400000).toISOString();
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const { data, error } = await supabase
     .from("opportunities")
     .select("*")
@@ -53,7 +52,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Invalid opportunity update" }, { status: 400 });
   }
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const { data: current } = await supabase.from("opportunities").select("stage, email, qualifier_token").eq("id", body.id).maybeSingle();
   if (!current) return NextResponse.json({ error: "Opportunity not found" }, { status: 404 });
 

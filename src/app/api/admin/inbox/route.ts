@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { calculateLeadScore } from "@/lib/admin/lead-scoring";
 import type { AdminInboxItem, AdminInboxKind } from "@/lib/admin/inbox";
@@ -21,7 +20,7 @@ export async function GET(request: NextRequest) {
   const requestedKind = searchParams.get("kind") as AdminInboxKind | null;
   const kind = requestedKind && VALID_KINDS.has(requestedKind) ? requestedKind : null;
   const query = (searchParams.get("q") || "").trim().toLowerCase().slice(0, 100);
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const now = new Date();
   const today = now.toISOString().split("T")[0]!;
   const stalledBefore = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString();

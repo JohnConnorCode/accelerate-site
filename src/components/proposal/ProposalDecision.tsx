@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Check, Loader2, X } from "lucide-react";
 import { tenant } from "@/config/tenant";
 
-export function ProposalDecision({ token, status }: { token: string; status: string }) {
+export function ProposalDecision({ token, status, apiBase = "/api/proposal" }: { token: string; status: string; apiBase?: string }) {
   const [decision, setDecision] = useState<"accepted" | "declined" | null>(["accepted", "declined"].includes(status) ? status as "accepted" | "declined" : null);
   const [declining, setDeclining] = useState(false);
   const [reason, setReason] = useState("");
@@ -14,7 +14,7 @@ export function ProposalDecision({ token, status }: { token: string; status: str
     if (next === "declined" && !reason.trim()) { setError("Please share a short reason so we can close the loop properly."); return; }
     setLoading(true); setError("");
     try {
-      const response = await fetch(`/api/proposal/${encodeURIComponent(token)}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ decision: next, reason: reason.trim() || undefined }) });
+      const response = await fetch(`${apiBase}/${encodeURIComponent(token)}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ decision: next, reason: reason.trim() || undefined }) });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "Could not record your response");
       setDecision(next); setDeclining(false);

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { listAuditHistory } from "@/lib/revenue-os/audit";
 
 function textParam(value: string | null) {
@@ -14,7 +13,7 @@ export async function GET(request: NextRequest) {
 
   const params = request.nextUrl.searchParams;
   try {
-    const history = await listAuditHistory(createServiceRoleClient(), {
+    const history = await listAuditHistory(auth.database, {
       actor: textParam(params.get("actor")),
       entityType: textParam(params.get("entity")),
       entityId: textParam(params.get("entityId")),

@@ -1,8 +1,8 @@
 import { supabaseDashboard } from "@/config/tenant";
 import { NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requirePlatformAdmin } from "@/lib/admin/auth";
 import { STALLED_JOB_MINUTES } from "@/lib/revenue-os/health";
-import { createServiceRoleClient } from "@/lib/supabase/server";
+import { createPlatformServiceRoleClient } from "@/lib/supabase/server";
 import type { SetupCapability } from "@/lib/revenue-os/types";
 import { GOOGLE_SCOPES } from "@/lib/revenue-os/google";
 import { isGoogleTokenEncryptionKeyConfigured } from "@/lib/revenue-os/encryption";
@@ -24,9 +24,9 @@ function configured(...keys: string[]) {
 }
 
 export async function GET() {
-  const auth = await requireAdmin();
+  const auth = await requirePlatformAdmin();
   if (auth instanceof NextResponse) return auth;
-  const supabase = createServiceRoleClient();
+  const supabase = createPlatformServiceRoleClient("platform-setup-center");
   const publicBookingMode = bookingMode();
   const supabaseConfigured = configured("NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY");
   const googleConfigured = configured("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET") && isGoogleTokenEncryptionKeyConfigured();

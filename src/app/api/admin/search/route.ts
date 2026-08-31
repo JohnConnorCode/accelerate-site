@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
 
 export async function GET(request: NextRequest) {
@@ -17,7 +16,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ results: [] });
   }
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const pattern = `%${q}%`;
 
   const [canonicalRes, leadsRes, contactsRes, subscribersRes, chatRes] = await Promise.all([

@@ -95,7 +95,16 @@ assert.match(booking, /export function bookingMode/);
 assert.equal(typeof hasScheduler(), "boolean");
 
 assert.match(readFileSync("src/app/api/admin/revenue-os/campaigns/route.ts", "utf8"), /sender_name:[\s\S]*tenant\.brand\.name/);
-assert.match(readFileSync("src/lib/revenue-os/communications.ts", "utf8"), /unsubscribeUrl = `\$\{siteUrl\(\)\}/);
+const communications = readFileSync("src/lib/revenue-os/communications.ts", "utf8");
+assert.match(communications, /tenantScopeForDatabase\(supabase\)/, "campaign unsubscribe links must resolve the database tenant scope");
+assert.match(communications, /\/api\/public\/\$\{scope\.slug\}\/unsubscribe\//, "tenant campaign unsubscribe links must remain tenant-scoped");
+assert.match(communications, /getTenantFromEmail\(supabase\)/, "the canonical sender must resolve the workspace sender identity");
+assert.match(communications, /getTenantReplyToEmail\(supabase\)/, "campaign replies must resolve the workspace reply inbox");
+assert.match(readFileSync("src/lib/email/resend.ts", "utf8"), /export async function getTenantFromEmail/, "tenant sender identity must be resolved at the provider boundary");
+assert.match(readFileSync("src/lib/email/resend.ts", "utf8"), /export async function getTenantReplyToEmail/, "tenant reply routing must be resolved at the provider boundary");
+assert.doesNotMatch(readFileSync("src/lib/revenue-os/campaigns.ts", "utf8"), /replyTo: campaign\.sender_email/, "campaign delivery identity must not silently become the reply inbox");
+assert.match(readFileSync("src/lib/revenue-os/campaigns.ts", "utf8"), /getTenantReplyToEmail\(supabase\)/, "campaign activation must verify a monitored reply inbox before members become due");
+assert.match(readFileSync("src/app/api/admin/tenant/providers/route.ts", "utf8"), /replyToEmail/, "provider configuration must collect a monitored workspace reply inbox");
 assert.match(readFileSync("src/app/api/admin/plausible/route.ts", "utf8"), /analyticsDomain\(\)/);
 assert.match(readFileSync("src/app/admin/setup/page.tsx", "utf8"), /tenant\.external\.vercelProjectUrl/);
 assert.match(harborCompose, /Mara/);

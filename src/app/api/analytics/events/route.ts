@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { createServiceRoleClient } from "@/lib/supabase/server";
+import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
 
 const eventSchema = z.object({
   eventId: z.string().uuid(),
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
   const parsed = eventSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid analytics event" }, { status: 400 });
   const event = parsed.data;
-  const { error } = await createServiceRoleClient().from("website_events").upsert({
+  const { error } = await createBootstrapServiceRoleClient("legacy-public-analytics").from("website_events").upsert({
     event_id: event.eventId, visitor_id: event.visitorId, event_name: event.name, path: event.path,
     referrer_host: event.referrerHost || null, ...event.attribution, properties: event.properties || {},
   }, { onConflict: "event_id", ignoreDuplicates: true });

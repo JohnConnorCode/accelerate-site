@@ -365,8 +365,9 @@ final repository synchronization evidence.
 
 ## Permanent non-goals
 
-- Shared-database multi-tenancy, tenant IDs, workspace switching, membership
-  roles, or cross-client row filtering.
+- A second database-per-client architecture alongside the active shared-database
+  tenant contract; custom domains, billing, tenant-managed membership roles, and
+  cross-tenant customer analytics remain separately authorized work.
 - A second identity resolver, pipeline transition service, sender, priority
   formula, analytics formula, AI runtime, policy engine, or execution ledger.
 - Destructive AI tools, autonomous prompt mutation, unrestricted document

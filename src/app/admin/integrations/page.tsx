@@ -31,6 +31,7 @@ import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import type { IntegrationCatalog, IntegrationView } from "@/lib/revenue-os/integrations";
 import type { IntegrationStatus } from "@/lib/revenue-os/integration-registry";
 import { cn } from "@/lib/utils";
+import { TenantProviderControls } from "@/components/admin/TenantProviderControls";
 
 const providerIcons: Record<string, LucideIcon> = {
   supabase: Database,
@@ -202,6 +203,8 @@ export default function IntegrationsPage() {
         subtitle="One capability map for the tools that power the Command Center. Ready means behavior was verified, not merely that a key exists."
         actions={<button type="button" onClick={() => void load()} disabled={integrationsQuery.isFetching} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:cursor-wait disabled:opacity-55"><RefreshCw className={cn("size-3.5", integrationsQuery.isFetching && "animate-spin")} /> Refresh evidence</button>}
       />
+
+      <TenantProviderControls />
 
       <AdminReadBody loading={loading} hasData={Boolean(data)} error={error} onRetry={() => void load()} refreshing={integrationsQuery.isFetching} loadingFallback={<LoadingSkeleton variant="page" />} label="Loading integrations">
       {data && (

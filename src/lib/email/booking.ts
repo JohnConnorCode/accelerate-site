@@ -1,5 +1,6 @@
 import { siteUrl, tenant } from "@/config/tenant";
 import { getResend, FROM_EMAIL } from "@/lib/email/resend";
+import type { Resend } from "resend";
 
 /** Path of the vertical playbook these booking emails belong to. */
 const roofingPath = () => tenant.playbooks.find((playbook) => playbook.key === "roofing")?.path ?? "/";
@@ -8,7 +9,7 @@ export async function scheduleAuditPrepEmail(input: {
   email: string;
   scheduledAt: string;
   eventKey: string;
-}) {
+}, resend: Resend = getResend()) {
   const meeting = new Date(input.scheduledAt);
   if (Number.isNaN(meeting.getTime())) return;
   const preferred = new Date(meeting.getTime() - 24 * 60 * 60 * 1000);
@@ -29,7 +30,7 @@ ${tenant.brand.name}`,
   };
   if (preferred.getTime() > now + 10 * 60 * 1000) options.scheduledAt = preferred.toISOString();
 
-  await getResend().emails.send(options, {
+  await resend.emails.send(options, {
     idempotencyKey: `roofing-audit-prep/${input.eventKey}`.slice(0, 256),
   });
 }

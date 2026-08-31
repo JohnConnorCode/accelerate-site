@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { normalizeEmail } from "@/lib/revenue-os/db";
 import { findCanonicalContactByEmail } from "@/lib/revenue-os/identity";
 
@@ -12,7 +11,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Supply a campaign and 1–500 members" }, { status: 400 });
   }
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const { data: campaign, error: campaignError } = await supabase
     .from("campaigns").select("id,status").eq("id", body.campaignId).maybeSingle();
   if (campaignError) return NextResponse.json({ error: campaignError.message }, { status: 400 });

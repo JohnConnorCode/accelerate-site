@@ -9,9 +9,10 @@ export async function GET() {
   try {
     const state = randomBytes(24).toString("base64url");
     const response = NextResponse.redirect(buildGoogleAuthUrl(state));
-    response.cookies.set("google_oauth_state", state, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", maxAge: 600, path: "/" });
+    const boundState = Buffer.from(JSON.stringify({ state, tenantId: auth.tenant.id, tenantSlug: auth.tenant.slug })).toString("base64url");
+    response.cookies.set("google_oauth_state", boundState, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", maxAge: 600, path: "/" });
     return response;
   } catch (error) {
-    return NextResponse.redirect(new URL(`/admin/setup?google_error=${encodeURIComponent(error instanceof Error ? error.message : "Google setup failed")}`, process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"));
+    return NextResponse.redirect(new URL(`/admin/integrations?google_error=${encodeURIComponent(error instanceof Error ? error.message : "Google setup failed")}`, process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"));
   }
 }

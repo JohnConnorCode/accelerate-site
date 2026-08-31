@@ -18,6 +18,7 @@ import {
   MessageSquareText,
   MessageCircleMore,
   PlugZap,
+  RotateCcw,
   Settings,
   Target,
   UserRound,
@@ -53,6 +54,7 @@ export const adminNavSections: AdminNavSection[] = [
     { id: "contacts", label: "Contact intake", href: "/admin/contacts", icon: UsersRound, description: "Website submissions and reviewed list imports", keywords: "contacts submissions csv json paste ai dedupe import", moreGroup: "Revenue" },
     { id: "emails", label: "Email Studio", href: "/admin/emails", icon: MessageSquareText, description: "View and edit live email copy", keywords: "templates preview editor", moreGroup: "Revenue" },
     { id: "campaigns", label: "Campaigns", href: "/admin/campaigns", icon: Mail, description: "Controlled outbound", moreGroup: "Revenue" },
+    { id: "recovery", label: "Revenue Recovery", href: "/admin/recovery", icon: RotateCcw, description: "Recover past demand", keywords: "reactivation stale leads no shows estimates recovery", moreGroup: "Revenue" },
     { id: "proposals", label: "Proposals", href: "/admin/proposals", icon: FileCheck, description: "Drafts, decisions, and follow-up", moreGroup: "Revenue" },
     { id: "delivery-runs", label: "Delivery Runs", href: "/admin/email-sequences", icon: MailCheck, description: "Sequence and delivery status", keywords: "email sequences sends", moreGroup: "Revenue" },
     { id: "revenue", label: "Revenue", href: "/admin/revenue", icon: BriefcaseBusiness, description: "Revenue and client value", moreGroup: "Revenue" },
@@ -69,6 +71,7 @@ export const adminNavSections: AdminNavSection[] = [
     { id: "activity", label: "Activity", href: "/admin/activity", icon: Activity, description: "Audit history for material changes", moreGroup: "Intelligence" },
   ] },
   { label: "System", links: [
+    { id: "tenants", label: "Tenants", href: "/admin/tenants", icon: UsersRound, description: "Workspace provisioning and access", moreGroup: "System" },
     { id: "integrations", label: "Integrations", href: "/admin/integrations", icon: PlugZap, description: "Capabilities, evidence, and roadmap", moreGroup: "System" },
     { id: "setup", label: "Setup Center", href: "/admin/setup", icon: ListChecks, description: "Connections and readiness", moreGroup: "System" },
     { id: "features", label: "Feature Board", href: "/admin/features", icon: KanbanSquare, description: "Managed delivery backlog", moreGroup: "System" },

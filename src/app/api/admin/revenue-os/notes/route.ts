@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { captureFounderNote } from "@/lib/revenue-os/notes";
 import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -30,7 +29,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const receipt = await captureFounderNote(createServiceRoleClient(), {
+    const receipt = await captureFounderNote(auth.database, {
       requestId,
       body: note,
       actorEmail: auth.user.email ?? "founder",

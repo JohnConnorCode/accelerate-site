@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { REVENUE_SCHEMA_CONSTRAINTS, REVENUE_SCHEMA_CONTRACT_VERSION, REVENUE_SCHEMA_FUNCTIONS, REVENUE_SCHEMA_INDEXES, REVENUE_SCHEMA_POLICIES, REVENUE_SCHEMA_TABLES, type RevenueSchemaStatus } from "../src/lib/revenue-os/schema-contract";
+import { REVENUE_SCHEMA_CONSTRAINTS, REVENUE_SCHEMA_CONTRACT_VERSION, REVENUE_SCHEMA_FUNCTIONS, REVENUE_SCHEMA_INDEXES, REVENUE_SCHEMA_POLICIES, REVENUE_SCHEMA_TABLES, TENANT_SCOPED_TABLES, type RevenueSchemaStatus } from "../src/lib/revenue-os/schema-contract";
 import { PROJECT_REF, runPsql } from "./lib/accelerate-database.mjs";
 
 type Requirement = { kind: "table" | "column" | "constraint" | "index" | "function" | "policy"; label: string; sql: string; migration?: string };
@@ -8,7 +8,12 @@ type Failure = Pick<Requirement, "kind" | "label" | "migration"> & { detail: str
 
 const shouldRecord = process.argv.includes("--record");
 const checkedAt = new Date().toISOString();
-const migrationFor = (table: string) => table === "schema_verification_runs"
+const tenantScopedTableSet = new Set<string>(TENANT_SCOPED_TABLES);
+const migrationFor = (table: string, column?: string) => ["recovery_playbooks", "recovery_candidates", "recovery_outcomes"].includes(table)
+  ? "migrations/20260830-revenue-recovery.sql"
+  : column === "tenant_id" && tenantScopedTableSet.has(table)
+    ? "migrations/20260830-shared-database-tenancy.sql"
+  : table === "schema_verification_runs"
   ? "migrations/20260817-schema-verification.sql"
   : table === "ai_conversations" || table === "ai_messages" || table === "agent_runs"
     ? "migrations/20260824-ai-command-runtime.sql"
@@ -18,16 +23,26 @@ const migrationFor = (table: string) => table === "schema_verification_runs"
     ? "migrations/20260817-atomic-job-claims.sql"
     : table === "campaign_members"
       ? "migrations/20260817-atomic-campaign-member-claims.sql"
+    : ["tenants", "tenant_memberships", "tenant_ingest_keys", "platform_audit_log"].includes(table)
+      ? "migrations/20260830-shared-database-tenancy.sql"
+      : "migrations/20260816-revenue-os.sql";
+const migrationForIndex = (name: string) => name.includes("tenant")
+  ? "migrations/20260830-shared-database-tenancy.sql"
+  : name.includes("ai_") || name === "idx_agent_runs_conversation"
+    ? "migrations/20260824-ai-command-runtime.sql"
     : "migrations/20260816-revenue-os.sql";
+const migrationForPolicy = (table: string, name: string) => name === "Tenant member access" || ["tenants", "tenant_memberships"].includes(table)
+  ? "migrations/20260830-shared-database-tenancy.sql"
+  : migrationFor(table);
 const requirements: Requirement[] = [
   ...REVENUE_SCHEMA_TABLES.flatMap(({ table, columns }) => [
     { kind: "table" as const, label: `public.${table}`, migration: migrationFor(table), sql: `SELECT to_regclass('public.${table}') IS NOT NULL` },
-    ...columns.map((column) => ({ kind: "column" as const, label: `public.${table}.${column}`, migration: migrationFor(table), sql: `SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '${table}' AND column_name = '${column}')` })),
+    ...columns.map((column) => ({ kind: "column" as const, label: `public.${table}.${column}`, migration: migrationFor(table, column), sql: `SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '${table}' AND column_name = '${column}')` })),
   ]),
   ...REVENUE_SCHEMA_CONSTRAINTS.map(({ table, name }) => ({ kind: "constraint" as const, label: `public.${table}.${name}`, migration: migrationFor(table), sql: `SELECT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = '${name}' AND conrelid = 'public.${table}'::regclass)` })),
-  ...REVENUE_SCHEMA_INDEXES.map((name) => ({ kind: "index" as const, label: `public.${name}`, migration: name.includes("ai_") || name === "idx_agent_runs_conversation" ? "migrations/20260824-ai-command-runtime.sql" : "migrations/20260816-revenue-os.sql", sql: `SELECT to_regclass('public.${name}') IS NOT NULL` })),
-  ...REVENUE_SCHEMA_FUNCTIONS.map((name) => ({ kind: "function" as const, label: name, migration: name.includes("stop_campaign") ? "migrations/20260817-campaign-stop-claims.sql" : name.includes("claim_campaign_member") ? "migrations/20260817-atomic-campaign-member-claims.sql" : name.includes("claim_revenue_job") ? "migrations/20260819-stale-claim-recovery.sql" : "migrations/20260816-revenue-os.sql", sql: `SELECT to_regprocedure('${name}') IS NOT NULL` })),
-  ...REVENUE_SCHEMA_POLICIES.map(({ table, name }) => ({ kind: "policy" as const, label: `public.${table}.${name}`, migration: "migrations/20260816-revenue-os.sql", sql: `SELECT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = '${table}' AND policyname = '${name}')` })),
+  ...REVENUE_SCHEMA_INDEXES.map((name) => ({ kind: "index" as const, label: `public.${name}`, migration: migrationForIndex(name), sql: `SELECT to_regclass('public.${name}') IS NOT NULL` })),
+  ...REVENUE_SCHEMA_FUNCTIONS.map((name) => ({ kind: "function" as const, label: name, migration: name.includes("authorized_request_tenant") ? "migrations/20260830-tenant-context-authorization.sql" : name.includes("tenant") ? "migrations/20260830-shared-database-tenancy.sql" : name.includes("stop_campaign") ? "migrations/20260830-tenant-context-authorization.sql" : name.includes("claim_campaign_member") ? "migrations/20260830-tenant-context-authorization.sql" : name.includes("claim_revenue_job") ? "migrations/20260830-tenant-context-authorization.sql" : "migrations/20260816-revenue-os.sql", sql: `SELECT to_regprocedure('${name}') IS NOT NULL` })),
+  ...REVENUE_SCHEMA_POLICIES.map(({ table, name }) => ({ kind: "policy" as const, label: `public.${table}.${name}`, migration: migrationForPolicy(table, name), sql: `SELECT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = '${table}' AND policyname = '${name}')` })),
 ];
 
 function execute(sql: string) {

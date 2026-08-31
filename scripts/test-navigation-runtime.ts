@@ -98,6 +98,7 @@ assert.match(nextConfig, /deploymentId:/, "Next deployment skew protection must 
 assert.match(nextConfig, /runtimeServerDeploymentId:\s*false/, "Prebuilt releases must keep the build-time custom id authoritative at runtime");
 assert.match(packageJson, /node scripts\/next-release\.mjs vercel-build/, "Prebuilt production deploys must use the deployment-aware release runner");
 assert.match(packageJson, /node scripts\/next-release\.mjs vercel-deploy/, "Prebuilt production upload must use the verified release runner");
+assert.match(packageJson, /"build":\s*"node scripts\/next-release\.mjs build"/, "Local production builds must embed the release identity used by start");
 assert.match(packageJson, /node scripts\/next-release\.mjs start/, "Local production QA must use the same deployment-aware release runner");
 assert.match(productionRelease, /NEXT_DEPLOYMENT_ID/, "The build must receive one immutable custom deployment id");
 assert.match(productionRelease, /git[\s\S]*rev-parse/, "The release runner must derive its id from the committed release");

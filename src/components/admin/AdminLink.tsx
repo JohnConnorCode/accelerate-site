@@ -8,15 +8,19 @@ import { useNavigationRuntime, type NavigationScroll } from "@/components/naviga
 
 type AdminLinkProps = LinkProps & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, keyof LinkProps>;
 
-export function resolveAdminHref(href: string, scenarioId: string | null) {
-  if (!scenarioId || !href.startsWith("/admin")) return href;
+export function resolveAdminHref(href: string, scenarioId: string | null, workspaceSlug?: string | null) {
+  if (!href.startsWith("/admin")) return href;
   const suffix = href.replace(/^\/admin\/?/, "");
-  return `/demo/command-center/${scenarioId}/${suffix || "today"}`;
+  if (scenarioId) return `/demo/command-center/${scenarioId}/${suffix || "today"}`;
+  if (workspaceSlug) return `/t/${workspaceSlug}/admin/${suffix || "today"}`;
+  return href;
 }
 
 export default function AdminLink({ href, ...props }: AdminLinkProps) {
   const demo = useAdminDemo();
-  const resolvedHref = typeof href === "string" ? resolveAdminHref(href, demo?.scenarioId || null) : href;
+  const pathname = usePathname();
+  const workspaceSlug = pathname.match(/^\/t\/([^/]+)\/admin(?:\/|$)/)?.[1] || null;
+  const resolvedHref = typeof href === "string" ? resolveAdminHref(href, demo?.scenarioId || null, workspaceSlug) : href;
   return <Link href={resolvedHref} {...props} />;
 }
 
@@ -27,7 +31,8 @@ export function useAdminNavigation() {
   const { beginNavigation } = useNavigationRuntime();
 
   const scenarioId = demo?.scenarioId || null;
-  const resolve = useCallback((href: string) => resolveAdminHref(href, scenarioId), [scenarioId]);
+  const workspaceSlug = pathname.match(/^\/t\/([^/]+)\/admin(?:\/|$)/)?.[1] || null;
+  const resolve = useCallback((href: string) => resolveAdminHref(href, scenarioId, workspaceSlug), [scenarioId, workspaceSlug]);
   const navigate = useCallback((kind: "push" | "replace", href: string, scroll: NavigationScroll = "top") => {
     const resolved = resolve(href);
     const destination = new URL(resolved, window.location.href);

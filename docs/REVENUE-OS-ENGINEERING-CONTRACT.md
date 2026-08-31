@@ -30,21 +30,22 @@ UI / API / form / webhook / cron / AI tool
 If a proposed implementation cannot fit this flow, stop and update the
 architecture card before adding an exception.
 
-The Command Center is cloned per client: each installation is its own Vercel
-project and its own Supabase database running this codebase with one tenant
-config file. That is why contacts.primary_email and companies.domain can stay
-globally unique and why founder-only `ADMIN_EMAIL` is sufficient authorization.
-Shared-database multi-tenancy was considered and rejected. Do not add tenant,
-workspace, or organization columns, a workspace switcher, membership roles, or
-cross-client row filtering. Business facts belong in `src/config/tenant.ts`.
-Secrets stay in the environment. Revisit only through a new architecture card.
+The Command Center is one application and one Supabase database serving explicit
+tenant workspaces. `ADMIN_EMAIL` is the sole platform owner in v1; client admins
+must have an active membership in the requested tenant. Every operational row,
+identity rule, claim, receipt, provider connection, public intake, and background
+job carries tenant ownership. Global uniqueness is reserved for platform facts;
+business identity and replay boundaries are tenant-composite. The complete
+trust, routing, schema, migration, and rollback rules live in
+`docs/MULTI-TENANCY-CONTRACT.md`. The former instance-per-client decision is a
+historical receipt and no longer governs implementation.
 
 ## Layer boundaries
 
 | Layer | Owns | Must not own |
 |---|---|---|
-| Entrypoints | Authentication, payload parsing, validation, response mapping | Pipeline rules, identity merging, sending logic, provider health truth |
-| Domain services | Invariants, transitions, deduplication, canonical writes | Rendering, route-specific response shapes, raw client credentials |
+| Entrypoints | Authentication, tenant resolution, payload parsing, validation, response mapping | Pipeline rules, identity merging, sending logic, provider health truth |
+| Domain services | Tenant-scoped invariants, transitions, deduplication, canonical writes | Rendering, route-specific response shapes, raw client credentials |
 | Execution | Claims, retries, terminal status, run summaries | Assuming a request or provider acknowledgement equals success |
 | Data ledgers | Canonical records, immutable events, receipts, provenance | Hidden derived state or destructive reconciliation |
 | Intelligence | Bounded context, registered tools, proposals, explanations | Raw database access, unregistered tools, direct external action |
@@ -69,6 +70,8 @@ Secrets stay in the environment. Revisit only through a new architecture card.
 Canonical IDs take precedence over normalized email. Email may assist resolution,
 but ambiguous matches fail into review. Compatibility tables are sources and
 projections during migration, not permission to add permanent dual-write logic.
+Canonical IDs are never accepted without confirming their row tenant matches the
+active tenant context; composite foreign keys provide the database backstop.
 
 ## Universal mutation contract
 

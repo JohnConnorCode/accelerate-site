@@ -43,13 +43,15 @@ import { AdminAppearancePicker } from "@/components/admin/AdminAppearancePicker"
 import { Logo } from "@/components/ui/Logo";
 import { LogoMark } from "@/components/ui/LogoMark";
 import { useNavigationRuntime } from "@/components/navigation/NavigationRuntime";
-import { adminMobileLinks, adminNavLinks, adminNavSections, resolveAdminNavLink, type AdminNavLink } from "@/lib/admin/navigation";
+import { adminMobileLinks, adminNavSections, resolveAdminNavLink, type AdminNavLink, type AdminNavSection } from "@/lib/admin/navigation";
 import { getAdminBreadcrumbs } from "@/lib/admin/breadcrumbs";
 import { AdminDemoControls } from "@/components/admin/AdminDemoBoundary";
 import { DemoScenarioMark } from "@/components/admin/DemoScenarioMark";
 import { DEMO_SCENARIOS, DEMO_SCENARIO_SHELL_NAMES, isDemoScenarioId, type DemoScenarioId } from "@/lib/admin/demo/scenarios";
 
 function resolveAdminPathname(pathname: string, scenarioId: DemoScenarioId | null, demoRoute: string | null) {
+  const workspacePath = pathname.match(/^\/t\/[^/]+\/admin(?:\/(.*))?$/);
+  if (workspacePath) return `/admin/${workspacePath[1] || "today"}`;
   if (!scenarioId) return pathname;
   if (pathname === "/admin" || pathname.startsWith("/admin/")) return pathname;
   const publicPrefix = `/demo/command-center/${scenarioId}`;
@@ -78,14 +80,27 @@ interface CommandAction {
   run: () => void;
 }
 
+interface WorkspaceOption {
+  id: string;
+  slug: string;
+  name: string;
+  status: string;
+}
+
 export default function AdminShell({
   children,
   demoScenarioId,
   demoRoute,
+  workspaceSlug,
+  workspaceName,
+  isPlatformAdmin,
 }: {
   children: React.ReactNode;
   demoScenarioId: DemoScenarioId | null;
   demoRoute: string | null;
+  workspaceSlug: string;
+  workspaceName: string;
+  isPlatformAdmin: boolean;
 }) {
   const pathname = usePathname();
   const pathnameScenario = pathname.match(/^\/demo\/command-center\/([^/]+)/)?.[1] || "";
@@ -94,6 +109,11 @@ export default function AdminShell({
   // the persistent layout must follow the current public demo URL or its
   // breadcrumb and active navigation state remain stuck on the first route.
   const effectivePathname = resolveAdminPathname(pathname, scenarioId, demoRoute);
+  const visibleNavSections = useMemo(() => adminNavSections.map((section) => ({
+    ...section,
+    links: section.links.filter((link) => isPlatformAdmin || !["features", "tenants", "setup"].includes(link.id)),
+  })).filter((section) => section.links.length > 0), [isPlatformAdmin]);
+  const visibleNavLinks = useMemo(() => visibleNavSections.flatMap((section) => section.links), [visibleNavSections]);
   const routeKey = `${scenarioId || "live"}:${effectivePathname}`;
   const router = useAdminNavigation();
   const { pendingHref, registerAdminScroller } = useNavigationRuntime();
@@ -106,6 +126,7 @@ export default function AdminShell({
   const [composeDraft, setComposeDraft] = useState({ subject: "", body: "" });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [priorityCount, setPriorityCount] = useState(0);
+  const [workspaces, setWorkspaces] = useState<WorkspaceOption[]>([]);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
   const mobileDrawerRef = useRef<HTMLElement>(null);
@@ -258,6 +279,31 @@ export default function AdminShell({
 
   useEffect(() => setMobileOpen(false), [effectivePathname]);
 
+  useEffect(() => {
+    if (scenarioId) return;
+    const controller = new AbortController();
+    const onPageHide = () => controller.abort();
+    window.addEventListener("pagehide", onPageHide);
+    void fetch("/api/admin/tenants", { signal: controller.signal })
+      .then(async (response) => response.ok ? response.json() : Promise.reject(new Error("Workspace list unavailable")))
+      .then((payload: { tenants?: WorkspaceOption[] }) => {
+        setWorkspaces((payload.tenants || []).filter((workspace) => workspace.status === "active"));
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted) console.error("[tenant-workspaces] could not load workspace list", error);
+      });
+    return () => {
+      controller.abort();
+      window.removeEventListener("pagehide", onPageHide);
+    };
+  }, [scenarioId, workspaceSlug]);
+
+  const switchWorkspace = useCallback((slug: string) => {
+    if (!slug || slug === workspaceSlug) return;
+    const suffix = effectivePathname.replace(/^\/admin\/?/, "") || "today";
+    window.location.assign(`/t/${slug}/admin/${suffix}`);
+  }, [effectivePathname, workspaceSlug]);
+
   useLayoutEffect(() => {
     registerAdminScroller(mainRef.current);
     return () => registerAdminScroller(null);
@@ -401,8 +447,8 @@ export default function AdminShell({
 
   const normalizedQuery = searchQuery.trim().toLowerCase();
   const filteredLinks = normalizedQuery
-    ? adminNavLinks.filter((link) => `${link.label} ${link.description} ${link.keywords || ""}`.toLowerCase().includes(normalizedQuery))
-    : adminNavLinks.slice(0, 7);
+    ? visibleNavLinks.filter((link) => `${link.label} ${link.description} ${link.keywords || ""}`.toLowerCase().includes(normalizedQuery))
+    : visibleNavLinks.slice(0, 7);
   const filteredActions = normalizedQuery
     ? commandActions.filter((action) =>
         `${action.label} ${action.description} ${action.keywords}`.toLowerCase().includes(normalizedQuery),
@@ -417,7 +463,7 @@ export default function AdminShell({
     <div className="admin-shell flex h-dvh min-h-0 overflow-hidden">
       <aside inert={mobileOpen} className={cn("admin-sidebar hidden shrink-0 transition-[width] duration-300 lg:block", sidebarCollapsed ? "w-[80px]" : "w-[272px]")} data-admin-sidebar>
         <div className="sticky top-0 flex h-screen flex-col px-4 py-5">
-          <SidebarContent idPrefix="admin-desktop" isActive={isActive} onSignOut={handleSignOut} collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebar} priorityCount={priorityCount} demoScenarioId={scenarioId} />
+          <SidebarContent idPrefix="admin-desktop" isActive={isActive} onSignOut={handleSignOut} collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebar} priorityCount={priorityCount} demoScenarioId={scenarioId} navigationSections={visibleNavSections} workspaceSlug={workspaceSlug} workspaceName={workspaceName} workspaces={workspaces} onSwitchWorkspace={switchWorkspace} />
         </div>
       </aside>
 
@@ -460,6 +506,11 @@ export default function AdminShell({
                 }}
                 priorityCount={priorityCount}
                 demoScenarioId={scenarioId}
+                navigationSections={visibleNavSections}
+                workspaceSlug={workspaceSlug}
+                workspaceName={workspaceName}
+                workspaces={workspaces}
+                onSwitchWorkspace={switchWorkspace}
               />
             </motion.aside>
           </div>
@@ -548,6 +599,11 @@ function SidebarContent({
   onToggleCollapse,
   priorityCount = 0,
   demoScenarioId = null,
+  navigationSections,
+  workspaceSlug,
+  workspaceName,
+  workspaces,
+  onSwitchWorkspace,
 }: {
   idPrefix: string;
   isActive: (href: string) => boolean;
@@ -561,13 +617,18 @@ function SidebarContent({
   onToggleCollapse?: () => void;
   priorityCount?: number;
   demoScenarioId?: DemoScenarioId | null;
+  navigationSections: AdminNavSection[];
+  workspaceSlug: string;
+  workspaceName: string;
+  workspaces: WorkspaceOption[];
+  onSwitchWorkspace: (slug: string) => void;
 }) {
-  const activeSection = adminNavSections.find((section) =>
+  const activeSection = navigationSections.find((section) =>
     section.links.some((link) => isActive(link.href)),
   )?.label;
   const [sectionState, setSectionState] = useState({
     routeSection: activeSection,
-    expanded: activeSection ? [activeSection] : [adminNavSections[0]!.label],
+    expanded: activeSection ? [activeSection] : [navigationSections[0]!.label],
   });
   const expandedSections = sectionState.routeSection === activeSection
     ? sectionState.expanded
@@ -575,8 +636,6 @@ function SidebarContent({
       ? [activeSection]
       : sectionState.expanded;
   const demoScenario = demoScenarioId ? DEMO_SCENARIOS[demoScenarioId] : null;
-  const navigationSections = adminNavSections;
-
   const toggleSection = (label: string) => {
     setSectionState({
       routeSection: activeSection,
@@ -672,7 +731,24 @@ function SidebarContent({
       </nav>
 
       <div className="admin-nav-footer mt-3 shrink-0 border-t pt-3">
-        {!collapsed && <p className="mb-1 px-2.5 font-mono text-[9px] font-semibold uppercase tracking-[0.13em] text-[var(--admin-nav-faint)]">Workspace</p>}
+        {!collapsed && !demoScenarioId && <div className="mb-2 px-1">
+          <label htmlFor={`${idPrefix}-workspace`} className="mb-1 block px-1.5 font-mono text-[9px] font-semibold uppercase tracking-[0.13em] text-[var(--admin-nav-faint)]">Workspace</label>
+          <div className="admin-nav-utility relative rounded-[11px] shadow-sm">
+            <select
+              id={`${idPrefix}-workspace`}
+              value={workspaceSlug}
+              onChange={(event) => onSwitchWorkspace(event.target.value)}
+              className="min-h-11 w-full appearance-none cursor-pointer rounded-[11px] bg-transparent py-2 pl-3 pr-9 text-xs font-semibold outline-none transition-[background-color,color,box-shadow,transform] duration-150 focus-visible:ring-2 focus-visible:ring-white/45 active:scale-[0.98]"
+              aria-label="Switch workspace"
+            >
+              {(workspaces.length ? workspaces : [{ id: workspaceSlug, slug: workspaceSlug, name: workspaceName, status: "active" }]).map((workspace) => (
+                <option key={workspace.id} value={workspace.slug}>{workspace.name}</option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-3.5 -translate-y-1/2 opacity-60" aria-hidden="true" />
+          </div>
+        </div>}
+        {!collapsed && demoScenarioId && <p className="mb-1 px-2.5 font-mono text-[9px] font-semibold uppercase tracking-[0.13em] text-[var(--admin-nav-faint)]">Workspace</p>}
         {!demoScenarioId && <Link href="/demo/command-center" target="_blank" onClick={onNavigate} aria-label="Open demo workspace" title={collapsed ? "Open demo workspace" : undefined} data-admin-demo-link className={cn("admin-nav-demo-link mb-1 flex min-h-10 items-center rounded-[10px] text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]", collapsed ? "justify-center" : "gap-3 px-2.5")}>
           <MonitorPlay className="h-4 w-4 shrink-0" /> {!collapsed && <><span>Demo workspace</span><ArrowUpRight className="ml-auto h-3.5 w-3.5 text-white/52" /></>}
         </Link>}

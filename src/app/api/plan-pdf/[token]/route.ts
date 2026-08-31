@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import type { DigitalGrowthPlan } from "@/lib/types";
+import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
 
 // PDF generation using a simple HTML-to-response approach
 // @react-pdf/renderer has SSR compatibility issues with Next.js App Router,
@@ -24,11 +25,7 @@ export async function GET(
   // Try to load from Supabase
   if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
     try {
-      const { createClient } = await import("@supabase/supabase-js");
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.SUPABASE_SERVICE_ROLE_KEY
-      );
+      const supabase = createBootstrapServiceRoleClient("legacy-public-plan-pdf");
 
       const { data } = await supabase
         .from("solution_requests")

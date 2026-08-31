@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceRoleClient } from "@/lib/supabase/server";
+import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
 import { bookingMode } from "@/lib/booking";
 
 export async function GET(request: NextRequest) {
   const token = new URL(request.url).searchParams.get("token");
   if (!token || token.length > 64) return NextResponse.json({ error: "Invalid token" }, { status: 400 });
 
-  const { data } = await createServiceRoleClient()
+  const { data } = await createBootstrapServiceRoleClient("legacy-public-qualifier-resume")
     .from("opportunities")
     .select("email, qualified, stage")
     .eq("qualifier_token", token)

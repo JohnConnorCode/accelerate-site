@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { loadOperatorQueue, summarizeOperatorQueue } from "@/lib/revenue-os/queue";
 
 export async function GET() {
@@ -8,7 +7,7 @@ export async function GET() {
   if (auth instanceof NextResponse) return auth;
 
   try {
-    const items = await loadOperatorQueue(createServiceRoleClient());
+    const items = await loadOperatorQueue(auth.database);
     return NextResponse.json({
       generatedAt: new Date().toISOString(),
       summary: summarizeOperatorQueue(items),

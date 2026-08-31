@@ -10,6 +10,7 @@ import { planGmailThreadSync, type GmailHistoryPage, type GmailThreadListPage } 
 import { recordActivity } from "./activities";
 import { recordAudit } from "./audit";
 import { prepareGmailReply } from "./gmail-reply-mime";
+import { assertActiveTenantExecution } from "@/lib/tenancy/system";
 
 export const GOOGLE_SCOPES = [
   "openid",
@@ -60,6 +61,7 @@ export async function exchangeGoogleCode(code: string) {
 }
 
 export async function saveGoogleConnection(supabase: SupabaseClient, tokens: { access_token: string; refresh_token?: string; expires_in: number; scope: string }) {
+  await assertActiveTenantExecution(supabase, "google-connect");
   const profile = await googleFetch<{ email: string }>("https://openidconnect.googleapis.com/v1/userinfo", { headers: { Authorization: `Bearer ${tokens.access_token}` } });
   const { data: existing } = await supabase.from("integration_connections").select("encrypted_refresh_token,connected_at").eq("provider", "google").maybeSingle();
   if (!tokens.refresh_token && !existing?.encrypted_refresh_token) throw new Error("Google did not return a refresh token. Reconnect and grant offline access.");
@@ -79,6 +81,7 @@ export async function saveGoogleConnection(supabase: SupabaseClient, tokens: { a
 }
 
 export async function getGoogleAccessToken(supabase: SupabaseClient): Promise<{ token: string; connection: Record<string, unknown> }> {
+  await assertActiveTenantExecution(supabase, "google");
   const { data: connection, error } = await supabase.from("integration_connections").select("*").eq("provider", "google").eq("status", "connected").maybeSingle();
   if (error) throw new Error(error.message);
   if (!connection?.encrypted_refresh_token) throw new Error("Google Workspace is not connected");
@@ -221,6 +224,25 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
       if (messageError) throw new Error(messageError.message);
       const priorIds = new Set((priorInbound ?? []).map((message) => message.external_id));
       const newInbound = inboundRows.filter((row) => !priorIds.has(row.external_id));
+      // Persist every inbound reply through the activity ledger, not merely a
+      // first-seen stop. On a retry the message may no longer be "new", but
+      // this deterministic receipt still repairs any earlier partial handoff.
+      if (contactId) {
+        for (const reply of inboundRows) {
+          await recordActivity(supabase, {
+            activityType: "gmail_reply_received",
+            title: `Gmail reply received: ${reply.subject || "(No subject)"}`,
+            summary: "Inbound Gmail reply received from a known contact.",
+            contactId,
+            opportunityId,
+            conversationId: conversation.id,
+            source: "gmail_sync",
+            externalId: `gmail:${thread.id}:${reply.external_id}`,
+            occurredAt: reply.received_at || reply.sent_at || new Date().toISOString(),
+            metadata: { gmail_thread_id: thread.id, gmail_message_id: reply.external_id },
+          });
+        }
+      }
       if (contactId && newInbound.length) {
         const reply = newInbound[0]!;
         await stopCampaignMemberships(supabase, { contactId, reason: "gmail_reply", source: "automation", sourceReceiptId: `gmail:${thread.id}:${reply.external_id}` });
@@ -283,7 +305,7 @@ export async function syncCalendar(supabase: SupabaseClient) {
         attendees,
         contact_id: contact?.id ?? null,
         opportunity_id: opportunityId,
-        metadata: { organizer: event.organizer ?? null, hangout_link: event.hangoutLink ?? null, attendee_emails: attendeeEmails, identity_resolution: contactMatches.size > 1 ? "ambiguous" : contact ? "matched" : "unmatched", campaign_stop_receipt: existingMetadata.campaign_stop_receipt ?? null },
+        metadata: { organizer: event.organizer ?? null, hangout_link: event.hangoutLink ?? null, attendee_emails: attendeeEmails, identity_resolution: contactMatches.size > 1 ? "ambiguous" : contact ? "matched" : "unmatched", campaign_stop_receipt: existingMetadata.campaign_stop_receipt ?? null, booking_occurred_at: typeof event.created === "string" ? event.created : null },
         synced_at: new Date().toISOString(),
       };
     }));
@@ -291,12 +313,27 @@ export async function syncCalendar(supabase: SupabaseClient) {
     if (error) throw new Error(error.message);
     const now = Date.now();
     for (const row of rows) {
-      const metadata = row.metadata as { campaign_stop_receipt?: string | null };
+      const metadata = row.metadata as { campaign_stop_receipt?: string | null; booking_occurred_at?: string | null };
       const upcomingConfirmedMeeting = row.contact_id && row.status === "confirmed" && row.start_at && new Date(row.start_at).getTime() >= now;
-      if (upcomingConfirmedMeeting && !metadata.campaign_stop_receipt) {
+      if (upcomingConfirmedMeeting) {
         const receipt = `google-calendar:${row.external_id}`;
-        await stopCampaignMemberships(supabase, { contactId: row.contact_id!, reason: "calendar_booking", source: "automation", sourceReceiptId: receipt });
-        await supabase.from("calendar_events").update({ metadata: { ...metadata, campaign_stop_receipt: receipt } }).eq("provider", "google").eq("external_id", row.external_id);
+        const occurredAt = metadata.booking_occurred_at && !Number.isNaN(Date.parse(metadata.booking_occurred_at)) ? metadata.booking_occurred_at : new Date().toISOString();
+        await recordActivity(supabase, {
+          activityType: "calendar_booking",
+          title: "Google Calendar booking confirmed",
+          summary: row.start_at ? `Scheduled for ${row.start_at}.` : "Upcoming confirmed meeting.",
+          contactId: row.contact_id!,
+          opportunityId: row.opportunity_id,
+          source: "google_calendar",
+          actorEmail: tenant.founder.systemActorEmail,
+          externalId: receipt,
+          occurredAt,
+          metadata: { calendar_event_id: row.external_id },
+        });
+        if (!metadata.campaign_stop_receipt) {
+          await stopCampaignMemberships(supabase, { contactId: row.contact_id!, reason: "calendar_booking", source: "automation", sourceReceiptId: receipt });
+          await supabase.from("calendar_events").update({ metadata: { ...metadata, campaign_stop_receipt: receipt } }).eq("provider", "google").eq("external_id", row.external_id);
+        }
       }
     }
     const matched = rows.filter((row) => row.contact_id).length;
@@ -404,6 +441,7 @@ export async function sendGmailReply(supabase: SupabaseClient, input: { conversa
 
   let sent: { id: string; threadId: string; labelIds?: string[] };
   try {
+    await assertActiveTenantExecution(supabase, "gmail-send");
     sent = await googleFetch<{ id: string; threadId: string; labelIds?: string[] }>("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },

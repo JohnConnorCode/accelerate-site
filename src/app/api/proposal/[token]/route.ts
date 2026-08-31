@@ -1,22 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceRoleClient } from "@/lib/supabase/server";
+import { createBootstrapServiceRoleClient, createServiceRoleClient } from "@/lib/supabase/server";
+import type { TenantSystemContext } from "@/lib/tenancy/context";
 import { rateLimit } from "@/lib/rate-limit";
 import { transitionOpportunity, transitionStatusFromError } from "@/lib/revenue-os/pipeline";
 import { recordActivity } from "@/lib/revenue-os/activities";
 import { proposalAuditSummary, recordAudit } from "@/lib/revenue-os/audit";
 
-export async function GET(
+export async function handleProposalGet(
   request: NextRequest,
-  { params }: { params: Promise<{ token: string }> }
+  { params }: { params: Promise<{ token: string }> },
+  tenantContext?: TenantSystemContext,
 ) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  const { success } = rateLimit(ip, 20, 60 * 60 * 1000);
+  const { success } = rateLimit(`proposal-view:${tenantContext?.tenantId || "accelerate"}:${ip}`, 20, 60 * 60 * 1000);
   if (!success) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
   const { token } = await params;
-  const supabase = createServiceRoleClient();
+  const supabase = tenantContext ? createServiceRoleClient(tenantContext) : createBootstrapServiceRoleClient("legacy-public-proposal");
 
   const { data: proposal, error } = await supabase
     .from("proposals")
@@ -75,17 +77,18 @@ export async function GET(
   });
 }
 
-export async function POST(
+export async function handleProposalPost(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> },
+  tenantContext?: TenantSystemContext,
 ) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  if (!rateLimit(`proposal-response:${ip}`, 10, 60 * 60 * 1000).success) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  if (!rateLimit(`proposal-response:${tenantContext?.tenantId || "accelerate"}:${ip}`, 10, 60 * 60 * 1000).success) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   const { token } = await params;
   const body = await request.json().catch(() => ({})) as { decision?: "accepted" | "declined"; reason?: string };
   if (!body.decision || !["accepted", "declined"].includes(body.decision)) return NextResponse.json({ error: "Choose accept or decline" }, { status: 400 });
   if (body.decision === "declined" && !body.reason?.trim()) return NextResponse.json({ error: "Please tell us why you are declining" }, { status: 400 });
-  const supabase = createServiceRoleClient();
+  const supabase = tenantContext ? createServiceRoleClient(tenantContext) : createBootstrapServiceRoleClient("legacy-public-proposal");
   const { data: proposal, error } = await supabase.from("proposals").select("id,title,client_name,status,opportunity_id").eq("share_token", token).maybeSingle();
   if (error || !proposal) return NextResponse.json({ error: "Proposal not found" }, { status: 404 });
   if (["accepted", "declined"].includes(proposal.status)) return NextResponse.json({ success: true, status: proposal.status, alreadyResponded: true });
@@ -128,4 +131,12 @@ export async function POST(
     }
   }
   return NextResponse.json({ success: true, status: body.decision });
+}
+
+export async function GET(request: NextRequest, context: { params: Promise<{ token: string }> }) {
+  return handleProposalGet(request, context);
+}
+
+export async function POST(request: NextRequest, context: { params: Promise<{ token: string }> }) {
+  return handleProposalPost(request, context);
 }

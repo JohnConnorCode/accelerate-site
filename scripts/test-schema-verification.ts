@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   classifyRevenueSchemaContractStatus,
   computeSchemaCenterStatus,
+  REVENUE_SCHEMA_CONTRACT_VERSION,
   type RevenueSchemaIssue,
   type SchemaVerificationRun,
   type SchemaVerificationState,
@@ -18,7 +19,7 @@ function makeIssues(records: Array<{ table: string; message?: string; code?: str
 
 function makeState(overrides: Partial<SchemaVerificationState>): SchemaVerificationState {
   const defaultLatest: SchemaVerificationRun = {
-    contract_version: "revenue-os.2026-08-24.1",
+    contract_version: REVENUE_SCHEMA_CONTRACT_VERSION,
     status: "success",
     checked_at: "2026-08-17T00:00:00.000Z",
   };
@@ -83,13 +84,13 @@ assert.equal(mappedSuccessMissingReceipt.status, "action", "Runtime success with
 
 const mappedDrift = computeSchemaCenterStatus(makeState({
   runtimeStatus: "drift",
-  latestVerification: { contract_version: "revenue-os.2026-08-24.1", status: "drift", checked_at: "2026-08-17T00:00:00.000Z", failure_code: "drift" },
+  latestVerification: { contract_version: REVENUE_SCHEMA_CONTRACT_VERSION, status: "drift", checked_at: "2026-08-17T00:00:00.000Z", failure_code: "drift" },
 }));
 assert.equal(mappedDrift.status, "degraded", "Drift should surface as degraded in Setup Center.");
 
 const mappedDriftWithSuccessReceipt = computeSchemaCenterStatus(makeState({
   runtimeStatus: "drift",
-  latestVerification: { contract_version: "revenue-os.2026-08-24.1", status: "success", checked_at: "2026-08-17T00:00:00.000Z" },
+  latestVerification: { contract_version: REVENUE_SCHEMA_CONTRACT_VERSION, status: "success", checked_at: "2026-08-17T00:00:00.000Z" },
 }));
 assert.equal(mappedDriftWithSuccessReceipt.status, "degraded", "Any drift runtime remains degraded even with a stale success receipt.");
 
@@ -101,13 +102,13 @@ assert.equal(mappedConnectivity.status, "action", "Connectivity failure should s
 
 const mappedUnapplied = computeSchemaCenterStatus(makeState({
   runtimeStatus: "unapplied_migration",
-  latestVerification: { contract_version: "revenue-os.2026-08-24.1", status: "unapplied_migration", checked_at: "2026-08-17T00:00:00.000Z", failure_code: "unapplied_migration" },
+  latestVerification: { contract_version: REVENUE_SCHEMA_CONTRACT_VERSION, status: "unapplied_migration", checked_at: "2026-08-17T00:00:00.000Z", failure_code: "unapplied_migration" },
 }));
 assert.equal(mappedUnapplied.status, "action", "Unapplied migration should be an action, not degraded.");
 
 const mappedHealthy = computeSchemaCenterStatus(makeState({
   runtimeStatus: "success",
-  latestVerification: { contract_version: "revenue-os.2026-08-24.1", status: "success", checked_at: "2026-08-17T00:00:00.000Z" },
+  latestVerification: { contract_version: REVENUE_SCHEMA_CONTRACT_VERSION, status: "success", checked_at: "2026-08-17T00:00:00.000Z" },
 }));
 assert.equal(mappedHealthy.status, "ready", "Healthy runtime and successful verification must map to Setup readiness.");
 

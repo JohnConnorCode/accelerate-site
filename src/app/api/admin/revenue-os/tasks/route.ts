@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { completeOperatorTask, snoozeOperatorTask } from "@/lib/revenue-os/tasks";
 
 export async function PATCH(request: NextRequest) {
@@ -10,7 +9,7 @@ export async function PATCH(request: NextRequest) {
   if (!body.id || !body.action) return NextResponse.json({ error: "Task ID and action are required" }, { status: 400 });
 
   try {
-    const supabase = createServiceRoleClient();
+    const supabase = auth.database;
     const actorEmail = auth.user.email || "founder";
     const task = body.action === "complete"
       ? await completeOperatorTask(supabase, { id: body.id, actorEmail })

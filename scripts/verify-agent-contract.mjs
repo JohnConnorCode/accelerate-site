@@ -7,6 +7,7 @@ const requiredFiles = [
   "../AGENTS.md",
   "docs/AGENT-TICKET-RUNBOOK.md",
   "docs/REVENUE-OS-ENGINEERING-CONTRACT.md",
+  "docs/MULTI-TENANCY-CONTRACT.md",
   "docs/REVENUE-OS-SETUP.md",
   "docs/FEATURE-BOARD-TAXONOMY.md",
   "docs/MARKETING-POSITIONING-CONTRACT.md",
@@ -163,10 +164,9 @@ for (const key of [
   if (card && !card.labels.includes("milestone:later")) failures.push(`[${key}] optional provider work must remain milestone:later until separately authorized`);
 }
 
-// Cloneability ratchet. The Command Center is installed per client from this one
-// codebase (see the cloneable-command-center-contract card), so a business fact
-// hard-coded under these directories is a bug that only shows up on the second
-// installation. Business facts belong in src/config/tenant.ts.
+// Tenant-config ratchet. Accelerate's source config is the bootstrap shape and
+// tenant workspaces load the same validated shape at request time. A business
+// literal under these directories bypasses that seam and is a cross-tenant bug.
 //
 // The budget below is the count of literals each file still carries. It may only
 // shrink: adding one fails, and removing them all should delete the entry.

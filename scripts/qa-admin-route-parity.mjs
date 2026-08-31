@@ -13,7 +13,9 @@ const allRoutes = [
   "/admin/bookings", "/admin/clients", "/admin/chat-leads", "/admin/subscribers",
   "/admin/content", "/admin/resources", "/admin/partners", "/admin/website-grades",
 ];
-const routes = process.argv.includes("--chat")
+const routes = process.env.QA_ROUTE
+  ? [process.env.QA_ROUTE]
+  : process.argv.includes("--chat")
   ? ["/admin/chat-leads"]
   : process.argv.includes("--ai")
     ? ["/admin/ai", "/admin/ai-operations"]
@@ -143,6 +145,8 @@ async function verifyRoutes(viewport, label, appearance = null) {
       }
 
       if (viewport.width >= 1024) {
+        const expandControl = page.getByRole("button", { name: "Expand sidebar" });
+        if (await expandControl.isVisible().catch(() => false)) await expandControl.click();
         await page.waitForTimeout(450);
         const containment = await page.evaluate(() => {
           const sidebar = document.querySelector("[data-admin-sidebar]")?.getBoundingClientRect();
@@ -167,12 +171,20 @@ async function verifyRoutes(viewport, label, appearance = null) {
         if (!collapsedContainment) failures.add(`${runLabel} ${route}: collapsed controls overflow the sidebar`);
         if (!await page.getByRole("link", { name: "Open demo workspace" }).isVisible()) failures.add(`${runLabel} ${route}: demo workspace is unavailable in collapsed navigation`);
         await page.screenshot({ path: `${shellOutput}/collapsed-${runLabel}.png`, fullPage: true });
-        await page.getByRole("button", { name: "Expand sidebar" }).click();
       } else {
-        await page.getByRole("button", { name: "Open More" }).click();
-        await page.getByRole("link", { name: "Open demo workspace" }).waitFor({ state: "visible" });
+        await page.waitForTimeout(2_000);
+        const openMore = page.getByRole("button", { name: "Open More" });
+        if (!await openMore.isVisible().catch(() => false)) {
+          const controls = await page.getByRole("button").allTextContents();
+          failures.add(`${runLabel} ${route}: mobile More control is missing at ${page.url()} (buttons: ${controls.join(", ") || "none"})`);
+        } else {
+          await openMore.click();
+        }
+        const demoLink = page.getByRole("link", { name: "Open demo workspace" });
+        if (!await demoLink.waitFor({ state: "visible", timeout: 3_000 }).then(() => true).catch(() => false)) failures.add(`${runLabel} ${route}: demo workspace is unavailable in mobile navigation`);
         await page.screenshot({ path: `${shellOutput}/navigation-${runLabel}.png`, fullPage: true });
-        await page.getByRole("button", { name: "Close navigation" }).click();
+        const closeNavigation = page.getByRole("button", { name: "Close navigation" });
+        if (await closeNavigation.isVisible()) await closeNavigation.click();
       }
     }
   }

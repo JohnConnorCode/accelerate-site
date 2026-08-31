@@ -3,7 +3,8 @@ import { runPsql } from "./lib/accelerate-database.mjs";
 
 function literal(value) { return `'${value.replaceAll("'", "''")}'`; }
 function query(sql) {
-  const result = runPsql(["-t", "-A", "--command", sql]);
+  const scopedSql = `SET LOCAL request.headers = '{"x-tenant-id":"acce1e8e-0000-4000-8000-000000000001"}'; SET LOCAL request.jwt.claim.role = 'service_role'; ${sql}`;
+  const result = runPsql(["--single-transaction", "-q", "-t", "-A", "--command", scopedSql]);
   if (result.status !== 0) throw new Error((result.stderr || result.stdout || "Database query failed").trim());
   return result.stdout.trim();
 }

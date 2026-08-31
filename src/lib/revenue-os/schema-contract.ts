@@ -5,9 +5,25 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-08-24.1";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-08-30.1";
 
-export const REVENUE_SCHEMA_TABLES = [
+export const TENANT_SCOPED_TABLES = [
+  "action_queue", "activities", "admin_notifications", "admin_settings",
+  "agent_run_events", "agent_runs", "ai_conversations", "ai_messages", "audit_log",
+  "calendar_events", "calendly_webhook_receipts", "campaign_members", "campaign_steps", "campaigns",
+  "chat_leads", "clients", "companies", "contact_import_batches", "contact_import_events",
+  "contact_import_rows", "contact_submissions", "contacts", "content_calendar", "conversations",
+  "drive_documents", "email_sequence_logs", "email_sequences", "email_template_versions", "email_templates",
+  "integration_connections", "job_runs", "messages", "opportunities", "opportunity_stage_events",
+  "partner_applications", "plan_views", "proposal_events", "proposals", "recovery_candidates",
+  "recovery_outcomes", "recovery_playbooks", "resource_downloads", "roi_calculations", "sent_emails",
+  "solution_requests", "source_runs", "stage_events", "subscribers", "tasks", "webhook_receipts",
+  "website_events", "website_grades",
+] as const;
+
+const TENANT_SCOPED_TABLE_SET = new Set<string>(TENANT_SCOPED_TABLES);
+
+const BASE_REVENUE_SCHEMA_TABLES = [
   { table: "contacts", columns: ["id", "full_name", "primary_email", "alternate_emails", "company_id", "communication_status", "unsubscribe_token"] },
   { table: "companies", columns: ["id", "name", "domain", "source_record_type", "source_record_id"] },
   { table: "opportunities", columns: ["id", "contact_id", "company_id", "stage", "pipeline", "estimated_value", "won_value", "probability", "source_record_type", "source_record_id"] },
@@ -33,6 +49,9 @@ export const REVENUE_SCHEMA_TABLES = [
   { table: "contact_import_batches", columns: ["id", "status", "review_digest", "approval_digest", "ai_provider"] },
   { table: "contact_import_rows", columns: ["id", "batch_id", "row_index", "included", "status"] },
   { table: "contact_import_events", columns: ["id", "batch_id", "event_type", "created_at"] },
+  { table: "recovery_playbooks", columns: ["id", "campaign_id", "source_batch_id", "motion_key", "relationship_basis", "offer_label", "booking_url", "outcome_window_days", "created_by", "created_at"] },
+  { table: "recovery_candidates", columns: ["id", "playbook_id", "campaign_id", "contact_id", "import_row_id", "email", "status", "estimated_value", "eligibility_evidence", "baseline", "outcome_window_ends_at", "created_at"] },
+  { table: "recovery_outcomes", columns: ["id", "candidate_id", "opportunity_id", "outcome_type", "amount", "source_receipt_id", "observed_at", "created_at"] },
   { table: "feature_requests", columns: ["id", "seed_key", "status", "sort_order", "source"] },
   { table: "schema_verification_runs", columns: ["id", "contract_version", "status", "summary", "checked_at"] },
   { table: "agent_runs", columns: ["id", "surface", "provider", "model", "tool_pack", "conversation_id", "status", "tool_names", "duration_ms", "started_at", "finished_at"] },
@@ -40,6 +59,24 @@ export const REVENUE_SCHEMA_TABLES = [
   { table: "ai_conversations", columns: ["id", "actor_email", "title", "status", "last_message_at", "created_at", "updated_at"] },
   { table: "ai_messages", columns: ["id", "conversation_id", "role", "content", "run_id", "client_message_id", "metadata", "created_at"] },
 ] as const;
+
+const BASE_REVENUE_SCHEMA_TABLE_NAMES = new Set<string>(BASE_REVENUE_SCHEMA_TABLES.map((item) => item.table));
+
+export const REVENUE_SCHEMA_TABLES = [
+  { table: "tenants", columns: ["id", "slug", "name", "status", "config_version", "config", "created_at", "updated_at"] },
+  { table: "tenant_memberships", columns: ["id", "tenant_id", "user_id", "invited_email", "role", "status", "invited_at", "activated_at", "revoked_at"] },
+  { table: "tenant_ingest_keys", columns: ["id", "tenant_id", "key_prefix", "token_digest", "surfaces", "allowed_origins", "status", "expires_at"] },
+  { table: "platform_audit_log", columns: ["id", "actor_user_id", "actor_email", "action", "tenant_id", "metadata", "created_at"] },
+  ...BASE_REVENUE_SCHEMA_TABLES.map((requirement) => ({
+    table: requirement.table,
+    columns: TENANT_SCOPED_TABLE_SET.has(requirement.table)
+      ? [...requirement.columns, "tenant_id"]
+      : [...requirement.columns],
+  })),
+  ...TENANT_SCOPED_TABLES
+    .filter((table) => !BASE_REVENUE_SCHEMA_TABLE_NAMES.has(table))
+    .map((table) => ({ table, columns: ["tenant_id"] })),
+];
 
 export const REVENUE_SCHEMA_CONSTRAINTS = [
   { table: "opportunities", name: "opportunities_stage_check" },
@@ -49,21 +86,24 @@ export const REVENUE_SCHEMA_CONSTRAINTS = [
 ] as const;
 
 export const REVENUE_SCHEMA_INDEXES = [
-  "idx_contacts_primary_email_unique",
-  "idx_contacts_source_record_unique",
-  "idx_opportunities_source_record_unique",
-  "idx_messages_idempotency_key",
-  "idx_tasks_open_dedupe",
+  "idx_contacts_tenant_primary_email_unique",
+  "idx_contacts_tenant_source_record_unique",
+  "idx_opportunities_tenant_source_record_unique",
+  "idx_messages_tenant_idempotency_unique",
+  "idx_tasks_tenant_open_dedupe",
   "idx_contact_import_rows_batch",
   "idx_schema_verification_runs_latest",
-  "idx_job_runs_claim_key",
-  "idx_job_runs_one_active_per_job",
+  "idx_job_runs_tenant_claim_key",
+  "idx_job_runs_tenant_active_job",
   "idx_messages_provider_id",
   "idx_webhook_receipts_provider_received",
   "idx_ai_conversations_actor_recent",
-  "idx_ai_messages_client_replay",
+  "idx_ai_messages_tenant_client_replay",
   "idx_ai_messages_conversation_order",
   "idx_agent_runs_conversation",
+  "idx_tenant_memberships_user_active",
+  "idx_companies_tenant_domain_unique",
+  "idx_webhook_receipts_tenant_provider_id",
 ] as const;
 
 export const REVENUE_SCHEMA_FUNCTIONS = [
@@ -76,6 +116,10 @@ export const REVENUE_SCHEMA_FUNCTIONS = [
   "public.configure_command_center_scheduler(text,text)",
   "public.wake_command_center_health()",
   "public.command_center_scheduler_status()",
+  "public.accelerate_default_tenant_id()",
+  "private.request_tenant_id()",
+  "private.has_active_tenant_membership(uuid)",
+  "private.authorized_request_tenant_id()",
 ] as const;
 
 export const REVENUE_SCHEMA_POLICIES = [
@@ -84,6 +128,10 @@ export const REVENUE_SCHEMA_POLICIES = [
   { table: "messages", name: "Service role full access" },
   { table: "campaigns", name: "Service role full access" },
   { table: "schema_verification_runs", name: "Service role full access" },
+  { table: "tenants", name: "Member tenant read" },
+  { table: "tenant_memberships", name: "Own membership read" },
+  { table: "contacts", name: "Tenant member access" },
+  { table: "admin_settings", name: "Tenant member access" },
 ] as const;
 
 export type RevenueSchemaStatus = "success" | "unapplied_migration" | "drift" | "connectivity_failure";

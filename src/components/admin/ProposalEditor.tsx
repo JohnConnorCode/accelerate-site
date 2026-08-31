@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { Save, Send, Eye, Trash2, Plus } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
@@ -36,6 +37,7 @@ interface ProposalEditorProps {
 }
 
 export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
+  const pathname = usePathname();
   const [title, setTitle] = useState(proposal.title);
   const [sections, setSections] = useState<ProposalSection[]>(
     proposal.content?.sections || []
@@ -86,9 +88,9 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
     setSections((prev) => [...prev, { title: "New Section", content: "" }]);
   };
 
-  const shareUrl = typeof window !== "undefined"
-    ? `${window.location.origin}/proposal/${proposal.share_token}`
-    : `/proposal/${proposal.share_token}`;
+  const tenantSlug = pathname.match(/^\/t\/([^/]+)\/admin(?:\/|$)/)?.[1];
+  const sharePath = tenantSlug ? `/t/${tenantSlug}/proposal/${proposal.share_token}` : `/proposal/${proposal.share_token}`;
+  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}${sharePath}` : sharePath;
 
   return (
     <div className="space-y-6">

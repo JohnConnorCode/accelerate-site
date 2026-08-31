@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { PIPELINE_STAGES } from "@/lib/admin/pipeline-stages";
 import { attachRevenueLinkage } from "@/lib/revenue-os/legacy-adapter";
@@ -29,7 +28,7 @@ export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status");
   const industry = searchParams.get("industry");
@@ -102,7 +101,7 @@ export async function POST(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const body = await request.json();
 
   const { contact_name, contact_email, contact_phone, business_name, industry, source, notes } = body;
@@ -161,7 +160,7 @@ export async function PATCH(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const body = await request.json();
 
   // Support bulk status updates: { ids: string[], lead_status: string }
@@ -292,7 +291,7 @@ export async function DELETE(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const body = await request.json();
 
   const ids = validateBulkIds(body.ids);

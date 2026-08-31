@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { sendRecordedEmail } from "@/lib/revenue-os/communications";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 
 const SEND_LIMIT = 60;
@@ -48,7 +47,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
   }
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const warnings: string[] = [];
 
   // Every founder send uses the canonical Resend receipt path. Legacy lead

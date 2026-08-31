@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { loadRevenueAnalytics, loadWebsiteAnalytics } from "@/lib/revenue-os/analytics";
 import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
 import { REVENUE_STAGES, type RevenueStage } from "@/lib/revenue-os/types";
@@ -15,7 +14,7 @@ export async function GET(request: NextRequest) {
   const requestedStage = bounded(params.get("stage"));
   const stage = requestedStage && REVENUE_STAGES.includes(requestedStage as RevenueStage) ? requestedStage : undefined;
   try {
-    const supabase = createServiceRoleClient();
+    const supabase = auth.database;
     const revenue = await loadRevenueAnalytics(supabase, { days, source: bounded(params.get("source")), owner: bounded(params.get("owner")), campaign: bounded(params.get("campaign")), stage });
     try {
       return NextResponse.json({ schemaReady: true, ...revenue, web: await loadWebsiteAnalytics(supabase, days) });

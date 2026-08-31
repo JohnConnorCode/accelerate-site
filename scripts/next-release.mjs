@@ -45,7 +45,10 @@ function verifyPrebuiltIdentity() {
   }
 }
 
-if (mode === "start") {
+if (mode === "build") {
+  console.log(`Building production release ${deploymentId}`);
+  run("next", ["build", ...args], { env });
+} else if (mode === "start") {
   console.log(`Starting production release ${deploymentId}`);
   run("next", ["start", ...args], { env });
 } else if (mode === "vercel-build") {

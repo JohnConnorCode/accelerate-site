@@ -1,11 +1,17 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
+import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
+import type { TenantSystemContext } from "@/lib/tenancy/context";
 import { cancelScheduledSequences } from "@/lib/email/sequences";
 import { scheduleAuditPrepEmail } from "@/lib/email/booking";
+import { getResend, getTenantResend } from "@/lib/email/resend";
 import { rateLimit } from "@/lib/rate-limit";
+import { recordActivity } from "@/lib/revenue-os/activities";
 import { recordAudit } from "@/lib/revenue-os/audit";
+import { stopCampaignMemberships } from "@/lib/revenue-os/campaign-stops";
 import { transitionOpportunity } from "@/lib/revenue-os/pipeline";
+import { ACCELERATE_TENANT_ID } from "@/lib/tenancy/constants";
 
 interface CalendlyWebhookPayload {
   event?: "invitee.created" | "invitee.canceled";
@@ -50,8 +56,8 @@ const MAX_CALENDLY_WEBHOOK_PAYLOAD_BYTES = 100_000;
 const CALENDLY_WEBHOOK_RATE_LIMIT_PER_MIN = 120;
 const CALENDLY_WEBHOOK_RATE_WINDOW_MS = 60_000;
 
-export async function POST(request: NextRequest) {
-  const secret = process.env.CALENDLY_WEBHOOK_SECRET;
+export async function handleCalendlyWebhook(request: NextRequest, input?: { webhookSecret?: string; tenantContext?: TenantSystemContext }) {
+  const secret = input?.webhookSecret || process.env.CALENDLY_WEBHOOK_SECRET;
   if (!secret) return NextResponse.json({ error: "Webhook is not configured" }, { status: 503 });
 
   const raw = await request.text();
@@ -94,7 +100,11 @@ export async function POST(request: NextRequest) {
   // before this change could notify once more; there were no real bookings at
   // the time it shipped.
   const receiptId = `${body.event}:${body.payload.uri}`;
-  const supabase = createServiceRoleClient();
+  const isBootstrapTenant = !input?.tenantContext || input.tenantContext.tenantId === ACCELERATE_TENANT_ID;
+  const supabase = input?.tenantContext
+    ? createServiceRoleClient(input.tenantContext)
+    : createBootstrapServiceRoleClient("legacy-calendly-webhook");
+  const resend = input?.tenantContext ? await getTenantResend(supabase) : getResend();
   const { data: existingReceipt } = await supabase
     .from("calendly_webhook_receipts")
     .select("id")
@@ -103,11 +113,47 @@ export async function POST(request: NextRequest) {
   if (existingReceipt) return NextResponse.json({ success: true, duplicate: true });
 
   const email = body.payload.email.trim().toLowerCase();
-  const { data: opportunity } = await supabase
-    .from("opportunities")
-    .select("id, stage, calendly_invitee_uri")
-    .eq("email", email)
-    .maybeSingle();
+  const [{ data: opportunity }, { data: contact }] = await Promise.all([
+    supabase
+      .from("opportunities")
+      .select("id, stage, contact_id, calendly_invitee_uri")
+      .eq("email", email)
+      .maybeSingle(),
+    supabase
+      .from("contacts")
+      .select("id")
+      .eq("primary_email", email)
+      .maybeSingle(),
+  ]);
+
+  // Stop sends as soon as Calendly confirms the booking—not after a later
+  // pipeline update. Recovery contacts often have no opportunity yet, but
+  // still need the same protection from a follow-up email racing the meeting.
+  const contactId = opportunity?.contact_id || contact?.id || null;
+  if (body.event === "invitee.created" && contactId) {
+    await stopCampaignMemberships(supabase, {
+      contactId,
+      reason: "calendar_booking",
+      source: "webhook",
+      sourceReceiptId: receiptId,
+      actorEmail: "calendly",
+    });
+    // The activity receipt remains true even after every campaign step has
+    // already completed, when there is no pending membership left to stop.
+    // It gives recovery attribution a signed, replay-safe booking fact.
+    await recordActivity(supabase, {
+      activityType: "calendar_booking",
+      title: `Calendly booking: ${body.payload.name || email}`,
+      summary: body.payload.scheduled_event?.start_time ? `Scheduled for ${body.payload.scheduled_event.start_time}.` : "Calendly booking confirmed.",
+      contactId,
+      opportunityId: opportunity?.id ?? null,
+      source: "calendly_webhook",
+      actorEmail: "calendly",
+      externalId: `calendly:${receiptId}`,
+      occurredAt: body.created_at,
+      metadata: { invitee_uri: body.payload.uri, scheduled_event_uri: body.payload.scheduled_event?.uri ?? null },
+    });
+  }
 
   if (!opportunity) {
     // A booking nobody can trace to an inquiry is the case where the
@@ -125,9 +171,9 @@ export async function POST(request: NextRequest) {
 
     const { error: notificationError } = await supabase.from("admin_notifications").insert({
       type: "new_contact",
-      title: "Calendly booking without a qualifier",
+      title: contact ? "Calendly booking from a recovery contact" : "Calendly booking without a qualifier",
       description: `${body.payload.name || email} · ${email}`,
-      link: "/admin/bookings",
+      link: contact ? "/admin/recovery" : "/admin/bookings",
       priority: "important",
     });
     if (notificationError) {
@@ -174,23 +220,23 @@ export async function POST(request: NextRequest) {
     const [notification] = await Promise.all([
       supabase.from("admin_notifications").insert({
         type: "new_lead",
-        title: "Roofing revenue audit booked",
+        title: isBootstrapTenant ? "Roofing revenue audit booked" : "New Calendly booking",
         description: `${body.payload.name || email}${scheduledAt ? ` · ${new Date(scheduledAt).toLocaleString("en-US", { timeZone: "America/Chicago" })}` : ""}`,
         link: "/admin/bookings",
         priority: "urgent",
       }),
       supabase.from("tasks").insert({
-        title: `Prepare roofing audit for ${body.payload.name || email}`,
-        description: "Review the company website, response path, and estimate follow-up before the call.",
+        title: isBootstrapTenant ? `Prepare roofing audit for ${body.payload.name || email}` : `Prepare for meeting with ${body.payload.name || email}`,
+        description: isBootstrapTenant ? "Review the company website, response path, and estimate follow-up before the call." : "Review the contact history, open work, and agreed meeting context before the call.",
         due_date: scheduledAt ? new Date(new Date(scheduledAt).getTime() - 86400000).toISOString().split("T")[0] : null,
         priority: "high",
         related_type: "lead",
         related_id: opportunity.id,
         related_name: body.payload.name || email,
       }),
-      cancelScheduledSequences(email, "booking_nurture"),
-      scheduledAt
-        ? scheduleAuditPrepEmail({ email, scheduledAt, eventKey: body.payload.uri })
+      cancelScheduledSequences(email, "booking_nurture", { database: supabase, resend }),
+      scheduledAt && isBootstrapTenant
+        ? scheduleAuditPrepEmail({ email, scheduledAt, eventKey: body.payload.uri }, resend)
         : Promise.resolve(),
     ]);
     if (notification.error) {
@@ -236,4 +282,8 @@ export async function POST(request: NextRequest) {
     console.error("[calendly-webhook] receipt write failed:", receiptError.message);
   }
   return NextResponse.json({ success: true });
+}
+
+export async function POST(request: NextRequest) {
+  return handleCalendlyWebhook(request);
 }

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { ACTIVITY_LEDGER_CONTRACT, loadActivityTimeline } from "@/lib/revenue-os/activities";
 
 export async function GET(request: NextRequest) {
@@ -9,7 +8,7 @@ export async function GET(request: NextRequest) {
   const params = new URL(request.url).searchParams;
   const limitValue = Number(params.get("limit") || 50);
   try {
-    const activities = await loadActivityTimeline(createServiceRoleClient(), {
+    const activities = await loadActivityTimeline(auth.database, {
       contactId: params.get("contactId")?.trim() || undefined,
       companyId: params.get("companyId")?.trim() || undefined,
       opportunityId: params.get("opportunityId")?.trim() || undefined,

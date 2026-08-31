@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
 
 const VALID_SEQUENCE_STATUSES = new Set(["active", "paused", "completed", "unsubscribed"]);
@@ -8,7 +7,7 @@ export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const { searchParams } = new URL(request.url);
   const page = Math.max(1, parseInt(searchParams.get("page") || "1") || 1);
   const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "25") || 25));
@@ -64,7 +63,7 @@ export async function PATCH(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const { id, status } = await request.json();
 
   if (!id || !status) {

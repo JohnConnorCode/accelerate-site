@@ -108,14 +108,20 @@ function buildSqlTextArray(values: readonly string[]) {
 function runAuthenticatedMutationPolicyAudit() {
   const policyRows = runPolicyAuditRows();
   const mutationRows = policyRows.filter((row) => MUTATION_COMMANDS.has(row.cmd.toUpperCase()));
-  if (mutationRows.length > 0) {
-    const violations = mutationRows
+  const violations = mutationRows.filter((row) => {
+    const predicate = `${row.qual || ""} ${row.with_check || ""}`;
+    return row.policyname !== "Tenant member access"
+      || !predicate.includes("private.request_tenant_id()")
+      || !predicate.includes("private.has_active_tenant_membership(tenant_id)");
+  });
+  if (violations.length > 0) {
+    const detail = violations
       .map((row) => `${row.tablename}.${row.policyname}.${row.cmd}`)
       .join(", ");
-    throw new Error(`Authenticated mutation policy rows found on canonical admin tables: ${violations}`);
+    throw new Error(`Authenticated mutation policies missing tenant-membership guards: ${detail}`);
   }
 
-  console.log(`founder-access-policy-audit: checked ${policyRows.length} authenticated policy rows; no mutating policies on canonical admin tables.`);
+  console.log(`founder-access-policy-audit: checked ${policyRows.length} authenticated policy rows; every mutation is tenant- and membership-bound.`);
 }
 
 function runPolicyAuditRows() {

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { isValidEmail } from "@/lib/validation";
 import { sendContactEmail } from "@/lib/email/send";
-import { createServiceRoleClient } from "@/lib/supabase/server";
+import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
 import { ingestInboundLead } from "@/lib/revenue-os/inbound";
 import { recordAudit } from "@/lib/revenue-os/audit";
 
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     // Save to Supabase
     if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      const supabase = createServiceRoleClient();
+      const supabase = createBootstrapServiceRoleClient("legacy-public-contact");
 
       const { data: submission, error: dbError } = await supabase.from("contact_submissions").insert({
         name,

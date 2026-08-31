@@ -1,4 +1,4 @@
-import { createServiceRoleClient } from "@/lib/supabase/server";
+import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
 
 export const SERVER_ONLY_SECRET_KEYS = new Set([
   "OPENROUTER_API_KEY",
@@ -20,7 +20,7 @@ export async function getSetting(key: string): Promise<string> {
   if (process.env[key]) return process.env[key] || "";
   if (SERVER_ONLY_SECRET_KEYS.has(key)) return "";
   try {
-    const supabase = createServiceRoleClient();
+    const supabase = createBootstrapServiceRoleClient("legacy-admin-settings");
     const { data } = await supabase
       .from("admin_settings")
       .select("value")

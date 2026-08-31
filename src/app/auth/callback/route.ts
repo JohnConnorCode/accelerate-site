@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { createPlatformServiceRoleClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -41,6 +42,15 @@ export async function GET(request: NextRequest) {
 
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        await createPlatformServiceRoleClient("tenant-invitation-activation")
+          .from("tenant_memberships")
+          .update({ status: "active", activated_at: new Date().toISOString(), revoked_at: null })
+          .eq("user_id", user.id)
+          .eq("invited_email", user.email.toLowerCase())
+          .eq("status", "invited");
+      }
       return response;
     }
   }

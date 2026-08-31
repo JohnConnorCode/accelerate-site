@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
 
 export async function GET() {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
 
   const [clientsRes, proposalsRes] = await Promise.all([
     supabase.from("clients").select("id, business_name, contact_name, industry, status, monthly_value, one_time_value, contract_start, created_at"),

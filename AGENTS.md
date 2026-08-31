@@ -14,16 +14,18 @@ rediscovering architecture or inventing new write paths.
    reorganizing backlog cards.
 4. `docs/REVENUE-OS-ENGINEERING-CONTRACT.md` for data, automation, AI, security,
    and failure invariants.
-5. `src/lib/revenue-os/README.md` for authoritative modules and callers.
-6. `docs/REVENUE-OS-SETUP.md` when the ticket touches schema, providers, secrets,
+5. `docs/MULTI-TENANCY-CONTRACT.md` before changing schema, authorization,
+   admin routing, public intake, integrations, jobs, or tenant configuration.
+6. `src/lib/revenue-os/README.md` for authoritative modules and callers.
+7. `docs/REVENUE-OS-SETUP.md` when the ticket touches schema, providers, secrets,
    health, or production activation.
-7. `docs/MARKETING-POSITIONING-CONTRACT.md` before changing any public marketing
+8. `docs/MARKETING-POSITIONING-CONTRACT.md` before changing any public marketing
    copy, metadata, search description, public assistant positioning, or CTA.
-8. `docs/NAVIGATION-RUNTIME-CONTRACT.md` before changing links, history,
+9. `docs/NAVIGATION-RUNTIME-CONTRACT.md` before changing links, history,
    scroll restoration, route focus, loading states, or page transitions.
-9. `docs/ADMIN-DEMO-CONTRACT.md` before changing either demo, the admin runtime,
+10. `docs/ADMIN-DEMO-CONTRACT.md` before changing either demo, the admin runtime,
    admin navigation, demo fixtures, or demo QA.
-10. `docs/WORK-MOTION-CONTRACT.md` before changing Work pages, public reveal
+11. `docs/WORK-MOTION-CONTRACT.md` before changing Work pages, public reveal
    primitives, scroll behavior, or portfolio animation QA.
 
 Run `npm run verify:agent-contract` before implementation. If it fails, repair
@@ -79,16 +81,18 @@ Every capability follows this sequence:
   targets only project `skjypuwkceoiunyhhqlm`. Store database credentials in
   Keychain or an approved secret manager, never in the repository or command
   output.
-- Admin access is founder-only and fail-closed through `ADMIN_EMAIL` in both
-  middleware and API authorization. Never weaken it for testing.
+- Platform administration is founder-only and fail-closed through `ADMIN_EMAIL`.
+  Tenant workspaces require an authenticated active membership and explicit
+  tenant context in both middleware and API authorization. Never weaken either
+  boundary for testing.
 - Secrets remain in environment configuration or encrypted server-only storage.
   Never log or return tokens, service keys, raw customer messages, or prompts.
 - Calendly remains optional and disabled unless a card explicitly activates it.
-- Instance-per-client is the chosen product shape: one Vercel project and one
-  Supabase database per installation, one shared codebase, and one tenant config
-  file. Shared-database multi-tenancy was considered and rejected. Do not add
-  tenant_id columns, workspace switchers, membership roles, or cross-client row
-  filtering. Revisit only through a new architecture card.
+- Shared-database multi-tenancy is the chosen product shape under
+  `shared-database-multi-tenancy-contract`: one application and Supabase database,
+  explicit tenant ownership on every operational row, tenant-composite identity
+  and idempotency, membership-plus-context RLS, and tenant-bound provider/public
+  execution. The former instance-per-client card is historical evidence only.
 - Do not introduce another analytics, email, AI, or scheduling provider when the
   card can use the existing first-party/Supabase, Resend, configured AI, or Google
   Workspace paths.

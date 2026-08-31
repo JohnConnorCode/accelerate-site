@@ -3,7 +3,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendRecordedEmail } from "./communications";
 import { recordAudit } from "./audit";
 import { campaignMemberMaySend, stopCampaignMemberships } from "./campaign-stops";
+import { isMissingRevenueSchema } from "./db";
 import { recordStaleClaimRecovery, STALE_CLAIM_WINDOW_MS } from "./runs";
+import { getTenantFromEmail, getTenantReplyToEmail, getTenantResend } from "@/lib/email/resend";
 
 interface CampaignPolicy {
   daily_limit?: number;
@@ -93,6 +95,16 @@ export async function activateCampaign(supabase: SupabaseClient, id: string, act
   if (!count) throw new Error("Add at least one active step before launching this campaign");
   if (count > 1 && process.env.CAMPAIGN_AUTOMATION_ENABLED !== "true") throw new Error("The money-first pilot is limited to one email step until automated reply and bounce stops are enabled");
 
+  // Launch is the commitment point. Validate the workspace-owned delivery
+  // credential, verified identity, and monitored response inbox before any
+  // member becomes due, rather than allowing the first scheduled send to
+  // discover an incomplete client handoff.
+  await Promise.all([
+    getTenantResend(supabase),
+    getTenantFromEmail(supabase),
+    getTenantReplyToEmail(supabase),
+  ]);
+
   const now = new Date().toISOString();
   const { data, error: updateError } = await supabase.from("campaigns").update({
     status: "active",
@@ -117,10 +129,19 @@ export async function pauseCampaign(supabase: SupabaseClient, id: string, actorE
 
 export async function executeDueCampaignMembers(supabase: SupabaseClient, now = new Date(), campaignId?: string) {
   const dayStart = new Date(now); dayStart.setUTCHours(0, 0, 0, 0);
-  let campaignQuery = supabase.from("campaigns").select("id,name,status,version,approved_version,policy,sender_email").eq("status", "active");
+  let campaignQuery = supabase.from("campaigns").select("id,name,status,version,approved_version,policy,sender_name,sender_email").eq("status", "active");
   if (campaignId) campaignQuery = campaignQuery.eq("id", campaignId);
   const { data: campaigns, error } = await campaignQuery;
   if (error) throw new Error(error.message);
+  const recoveryByCampaign = new Map<string, { offer_label: string; booking_url: string }>();
+  if (campaigns?.length) {
+    const { data: recoveryPlaybooks, error: recoveryError } = await supabase.from("recovery_playbooks")
+      .select("campaign_id,offer_label,booking_url").in("campaign_id", campaigns.map((campaign) => campaign.id));
+    // Ordinary campaign delivery remains available during a staged schema
+    // rollout; recovery launches cannot exist until this table does.
+    if (recoveryError && !isMissingRevenueSchema(recoveryError)) throw new Error(recoveryError.message);
+    for (const playbook of recoveryPlaybooks ?? []) recoveryByCampaign.set(playbook.campaign_id, playbook);
+  }
   let sent = 0;
   let failed = 0;
   let stopped = 0;
@@ -147,7 +168,7 @@ export async function executeDueCampaignMembers(supabase: SupabaseClient, now = 
     if (!remaining) continue;
 
     const { data: members, error: memberError } = await supabase.from("campaign_members")
-      .select("id,email,current_step,contact_id,opportunity_id,send_attempts,contacts(full_name),opportunities(name,stage)")
+      .select("id,email,current_step,contact_id,opportunity_id,send_attempts,contacts!campaign_members_contact_id_tenant_fkey(full_name),opportunities!campaign_members_opportunity_id_tenant_fkey(name,stage)")
       .eq("campaign_id", campaign.id).in("status", ["queued", "active"]).lte("next_send_at", now.toISOString())
       .order("next_send_at", { ascending: true }).limit(remaining);
     if (memberError) throw new Error(memberError.message);
@@ -168,7 +189,14 @@ export async function executeDueCampaignMembers(supabase: SupabaseClient, now = 
         continue;
       }
       const contact = Array.isArray(member.contacts) ? member.contacts[0] : member.contacts;
-      const values = { first_name: contact?.full_name?.split(" ")[0] ?? "", full_name: contact?.full_name ?? "", company: opportunity?.name ?? "" };
+      const recovery = recoveryByCampaign.get(campaign.id);
+      const values = {
+        first_name: contact?.full_name?.split(" ")[0] ?? "",
+        full_name: contact?.full_name ?? "",
+        company: opportunity?.name ?? "",
+        offer_label: recovery?.offer_label ?? "",
+        booking_url: recovery?.booking_url ?? "",
+      };
       const idempotencyKey = `campaign:${campaign.id}:member:${member.id}:step:${step.step_order}`;
       // A member that cannot be claimed is not a no-op worth hiding: it means
       // suppressed, paused, version-drifted, not due, or missing a canonical
@@ -192,6 +220,7 @@ export async function executeDueCampaignMembers(supabase: SupabaseClient, now = 
           opportunityId: member.opportunity_id ?? undefined,
           campaignId: campaign.id,
           template: `campaign:${campaign.id}:step:${step.step_order}`,
+          from: campaign.sender_email ? (campaign.sender_name ? `${campaign.sender_name} <${campaign.sender_email}>` : campaign.sender_email) : undefined,
           source: "campaign",
           idempotencyKey,
         });

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin/auth";
-import { createServiceRoleClient } from "@/lib/supabase/server";
+import { requirePlatformAdmin } from "@/lib/admin/auth";
+import { createPlatformServiceRoleClient } from "@/lib/supabase/server";
 import { recordAudit } from "@/lib/revenue-os/audit";
 import { isFeaturePriority, isFeatureStatus } from "@/lib/feature-board";
 
@@ -18,9 +18,9 @@ function cleanLabels(value: unknown): string[] {
 }
 
 export async function GET() {
-  const auth = await requireAdmin();
+  const auth = await requirePlatformAdmin();
   if (auth instanceof NextResponse) return auth;
-  const supabase = createServiceRoleClient();
+  const supabase = createPlatformServiceRoleClient("feature-board");
   const { data, error } = await supabase.from("feature_requests").select("*").is("archived_at", null).order("sort_order", { ascending: true }).order("created_at", { ascending: true });
   if (error) {
     if (error.code === "42P01" || error.code === "PGRST205") return NextResponse.json({ schemaReady: false, features: [] });
@@ -30,14 +30,14 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requirePlatformAdmin();
   if (auth instanceof NextResponse) return auth;
   const body = await request.json();
   const title = cleanText(body.title, 180);
   if (!title) return NextResponse.json({ error: "Title is required" }, { status: 400 });
   const status = isFeatureStatus(body.status) ? body.status : "backlog";
   const priority = isFeaturePriority(body.priority) ? body.priority : "medium";
-  const supabase = createServiceRoleClient();
+  const supabase = createPlatformServiceRoleClient("feature-board");
   const { data: tail } = await supabase.from("feature_requests").select("sort_order").eq("status", status).is("archived_at", null).order("sort_order", { ascending: false }).limit(1).maybeSingle();
   const payload = {
     title,
@@ -58,10 +58,10 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requirePlatformAdmin();
   if (auth instanceof NextResponse) return auth;
   const body = await request.json();
-  const supabase = createServiceRoleClient();
+  const supabase = createPlatformServiceRoleClient("feature-board");
 
   if (Array.isArray(body.reorder)) {
     if (!body.reorder.length || body.reorder.length > 250) return NextResponse.json({ error: "Invalid reorder payload" }, { status: 400 });
@@ -104,11 +104,11 @@ export async function PATCH(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requirePlatformAdmin();
   if (auth instanceof NextResponse) return auth;
   const id = new URL(request.url).searchParams.get("id");
   if (!id) return NextResponse.json({ error: "Feature id is required" }, { status: 400 });
-  const supabase = createServiceRoleClient();
+  const supabase = createPlatformServiceRoleClient("feature-board");
   const { data: before } = await supabase.from("feature_requests").select("*").eq("id", id).is("archived_at", null).maybeSingle();
   if (!before) return NextResponse.json({ error: "Feature not found" }, { status: 404 });
   const { error } = await supabase.from("feature_requests").update({ archived_at: new Date().toISOString() }).eq("id", id);

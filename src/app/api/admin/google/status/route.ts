@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { GOOGLE_SCOPES, getGoogleAccessToken } from "@/lib/revenue-os/google";
 import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
 import { isGoogleTokenEncryptionKeyConfigured } from "@/lib/revenue-os/encryption";
@@ -8,7 +7,7 @@ import { isGoogleTokenEncryptionKeyConfigured } from "@/lib/revenue-os/encryptio
 export async function GET() {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const { data, error } = await supabase.from("integration_connections").select("provider,account_email,token_expires_at,scopes,status,settings,last_sync_at,last_success_at,last_error,connected_at").eq("provider", "google").maybeSingle();
   if (error) {
     if (isMissingRevenueSchema(error)) return NextResponse.json({ schemaReady: false, configured: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && isGoogleTokenEncryptionKeyConfigured()), connected: false });
@@ -27,7 +26,7 @@ export async function POST() {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
   try {
-    const { connection } = await getGoogleAccessToken(createServiceRoleClient());
+    const { connection } = await getGoogleAccessToken(auth.database);
     return NextResponse.json({ success: true, accountEmail: connection.account_email, scopes: connection.scopes });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Google connection test failed" }, { status: 400 });
@@ -37,7 +36,7 @@ export async function POST() {
 export async function DELETE() {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
-  const { error } = await createServiceRoleClient().from("integration_connections").update({
+  const { error } = await auth.database.from("integration_connections").update({
     status: "disconnected",
     encrypted_access_token: null,
     encrypted_refresh_token: null,

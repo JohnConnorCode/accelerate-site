@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getOpenRouterModel, isOpenRouterConfigured, openRouterTextStream } from "@/lib/ai/openrouter";
 import { finishAgentRun, startAgentRun, traceTextStream } from "@/lib/revenue-os/agent-trace";
 import { rateLimit } from "@/lib/rate-limit";
-import { createServiceRoleClient } from "@/lib/supabase/server";
+import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
 import { ingestInboundLead } from "@/lib/revenue-os/inbound";
 import { recordAudit } from "@/lib/revenue-os/audit";
 import { isValidEmail } from "@/lib/validation";
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     // until now it wrote no trace at all: nobody could see what it had said to
     // anyone. It joins the same agent_runs ledger as the admin copilot rather
     // than getting a second one.
-    const supabase = createServiceRoleClient();
+    const supabase = createBootstrapServiceRoleClient("legacy-public-chat");
     const model = getOpenRouterModel(process.env.OPENROUTER_CHAT_MODEL);
     const run = await startAgentRun(supabase, {
       surface: "public_chat",
@@ -169,7 +169,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const supabase = createServiceRoleClient();
+    const supabase = createBootstrapServiceRoleClient("legacy-public-chat");
 
     const { data: inserted, error: insertError } = await supabase
       .from("chat_leads")

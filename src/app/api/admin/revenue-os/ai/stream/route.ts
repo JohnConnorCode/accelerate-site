@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { runRevenueCommandAgent, type CommandPageContext } from "@/lib/revenue-os/ai-agent";
 import { AiConversationSchemaUnavailableError, appendAiAssistantMessage, openAiConversationTurn } from "@/lib/revenue-os/ai-conversations";
@@ -36,7 +35,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Text and clientMessageId are required" }, { status: 400 });
   }
   const conversationId = typeof body.conversationId === "string" ? body.conversationId : null;
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   let turn;
   try {
     turn = await openAiConversationTurn(supabase, { actorEmail, conversationId, content: body.text, clientMessageId: body.clientMessageId.slice(0, 100) });

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { loadOperatorQueue, summarizeOperatorQueue } from "@/lib/revenue-os/queue";
 
@@ -7,7 +6,7 @@ export async function GET() {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
 
   const [notificationsRes, unreadRes, urgentRes, priorityItems] = await Promise.all([
     supabase
@@ -52,7 +51,7 @@ export async function PATCH(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const body = await request.json();
 
   if (body.markAllRead) {

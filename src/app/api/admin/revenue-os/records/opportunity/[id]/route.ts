@@ -3,7 +3,6 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
 import { updateOpportunityDetails } from "@/lib/revenue-os/pipeline";
 import { loadOpportunityRecord } from "@/lib/revenue-os/records";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -12,7 +11,7 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
   if (auth instanceof NextResponse) return auth;
   const { id } = await params;
   try {
-    const record = await loadOpportunityRecord(createServiceRoleClient(), id);
+    const record = await loadOpportunityRecord(auth.database, id);
     if (!record) return NextResponse.json({ error: "Opportunity not found" }, { status: 404 });
     return NextResponse.json({ schemaReady: true, record });
   } catch (error) {
@@ -50,7 +49,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
   }
 
   try {
-    await updateOpportunityDetails(createServiceRoleClient(), {
+    await updateOpportunityDetails(auth.database, {
       id,
       actorEmail: auth.user.email || "founder",
       nextAction: typeof nextAction === "string" ? nextAction.trim() || null : nextAction === null ? null : undefined,
@@ -58,7 +57,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
       estimatedValue: estimatedValue === undefined ? undefined : Number(estimatedValue),
       expectedUpdatedAt: typeof expectedUpdatedAt === "string" ? expectedUpdatedAt : undefined,
     });
-    const record = await loadOpportunityRecord(createServiceRoleClient(), id);
+    const record = await loadOpportunityRecord(auth.database, id);
     if (!record) return NextResponse.json({ error: "Opportunity not found" }, { status: 404 });
     return NextResponse.json({ schemaReady: true, record });
   } catch (error) {

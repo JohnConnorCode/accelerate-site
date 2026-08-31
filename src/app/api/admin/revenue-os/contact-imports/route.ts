@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { rateLimit } from "@/lib/rate-limit";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import {
   analyzeContactImport,
   approveContactImport,
@@ -26,7 +25,7 @@ function errorResponse(error: unknown) {
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   try {
     const id = new URL(request.url).searchParams.get("id");
     if (id) {
@@ -48,7 +47,7 @@ export async function POST(request: NextRequest) {
   catch { return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 }); }
   const action = typeof body.action === "string" ? body.action : "";
   const actorEmail = auth.user.email || auth.user.id;
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   try {
     if (action === "analyze") {
       const limited = rateLimit(`contact-import-analyze:${actorEmail}`, 12, 60 * 60 * 1000);

@@ -211,7 +211,7 @@ export async function loadIntegrationCatalog(supabase: SupabaseClient): Promise<
     supabase.from("source_runs").select("source_key,status,started_at,finished_at,error").order("started_at", { ascending: false }).limit(100),
     supabase.from("job_runs").select("job_key,status,claimed_at,finished_at,error").order("claimed_at", { ascending: false }).limit(100),
     supabase.from("webhook_receipts").select("provider,status,received_at,error").order("received_at", { ascending: false }).limit(100),
-    supabase.from("messages").select("status,provider_id,created_at,conversations!inner(channel)").eq("conversations.channel", "resend").order("created_at", { ascending: false }).limit(1),
+    supabase.from("messages").select("status,provider_id,created_at,conversations!messages_conversation_id_tenant_fkey!inner(channel)").eq("conversations.channel", "resend").order("created_at", { ascending: false }).limit(1),
     supabase.from("website_events").select("created_at").order("created_at", { ascending: false }).limit(1),
     supabase.from("agent_runs").select("status,started_at,finished_at,error").order("started_at", { ascending: false }).limit(1),
     supabase.from("schema_verification_runs").select("status,checked_at,failure_detail").order("checked_at", { ascending: false }).limit(1),

@@ -43,7 +43,8 @@ function LoginForm() {
       // The server endpoint writes the Supabase session cookies directly onto
       // its response. A hard replace ensures the protected request carries
       // them through middleware without leaving a stale login entry in history.
-      window.location.replace(redirect);
+      const workspacePath = response.headers.get("x-workspace-path");
+      window.location.replace(redirect === "/admin" && workspacePath ? workspacePath : redirect);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred.");
       setLoading(false);

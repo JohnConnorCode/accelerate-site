@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { SERVER_ONLY_SECRET_KEYS } from "@/lib/admin/settings";
 import { recordAudit } from "@/lib/revenue-os/audit";
@@ -8,7 +7,7 @@ export async function GET() {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const { data, error } = await supabase
     .from("admin_settings")
     .select("*")
@@ -49,7 +48,7 @@ export async function PUT(request: NextRequest) {
     );
   }
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const { data: existing } = await supabase
     .from("admin_settings")
     .select("key,value")

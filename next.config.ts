@@ -6,8 +6,15 @@ const rawDeploymentId = process.env.NEXT_DEPLOYMENT_ID
 // Vercel custom deployment IDs for prebuilt output are user-managed values:
 // they cannot use Vercel's reserved `dpl_` prefix and are capped at 32 chars.
 const deploymentId = rawDeploymentId?.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 32);
+const requestedDistDir = process.env.NEXT_DIST_DIR?.trim();
+if (requestedDistDir && !/^\.next-[a-z0-9-]+$/.test(requestedDistDir)) {
+  throw new Error("NEXT_DIST_DIR must be a repository-local .next-* directory name");
+}
 
 const nextConfig: NextConfig = {
+  // Allows browser verification to use an isolated artifact when another local
+  // worktree process is building concurrently. Production remains on `.next`.
+  distDir: requestedDistDir || ".next",
   // Next's built-in version-skew protection. Long-lived tabs send this id with
   // App Router requests; a mismatched deployment triggers a hard navigation
   // instead of combining stale route payloads/assets with the current release.

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { recordAgentFeedback, type AgentFeedbackRating } from "@/lib/revenue-os/agent-learning";
 
 export async function POST(request: NextRequest) {
@@ -11,7 +10,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "A completed run and feedback rating are required" }, { status: 400 });
   }
   try {
-    await recordAgentFeedback(createServiceRoleClient(), { runId: body.runId, rating: body.rating as AgentFeedbackRating, actorEmail: auth.user.email || "founder" });
+    await recordAgentFeedback(auth.database, { runId: body.runId, rating: body.rating as AgentFeedbackRating, actorEmail: auth.user.email || "founder" });
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Could not record feedback" }, { status: 400 });

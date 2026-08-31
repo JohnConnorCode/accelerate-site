@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { sanitizeCsv } from "@/lib/admin/csv";
 
@@ -7,7 +6,7 @@ export async function GET() {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const { data, error } = await supabase
     .from("website_grades")
     .select("url, email, overall_score, created_at")

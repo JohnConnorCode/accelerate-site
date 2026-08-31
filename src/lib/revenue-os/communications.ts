@@ -1,12 +1,19 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { getResend, FROM_EMAIL } from "@/lib/email/resend";
+import { getTenantFromEmail, getTenantReplyToEmail, getTenantResend } from "@/lib/email/resend";
 import { siteUrl } from "@/config/tenant";
 import { recordAudit } from "./audit";
 import { recordActivity } from "./activities";
-import { normalizeEmail } from "./db";
+import { normalizeEmail, safeErrorMessage } from "./db";
+import { tenantScopeForDatabase } from "@/lib/supabase/server";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function replyAddress(identity: string) {
+  const bracketed = identity.match(/<([^>]+)>/)?.[1];
+  const candidate = (bracketed || identity).trim();
+  return EMAIL_PATTERN.test(candidate) ? candidate : null;
+}
 
 /**
  * Resend rejects any tag value containing characters outside ASCII letters,
@@ -42,20 +49,25 @@ export async function sendRecordedEmail(supabase: SupabaseClient, input: {
   conversationId?: string;
   template?: string;
   idempotencyKey?: string;
+  from?: string;
+  replyTo?: string;
   source?: "admin" | "campaign" | "automation" | "ai";
 }) {
   const to = normalizeEmail(input.to);
   if (!to || !EMAIL_PATTERN.test(to)) throw new Error("A valid recipient email is required");
   if (!input.subject.trim() || !input.text.trim()) throw new Error("Subject and message body are required");
-  if (!process.env.RESEND_API_KEY) throw new Error("Resend is not configured");
   if (input.idempotencyKey && input.idempotencyKey.length > 256) throw new Error("Email idempotency keys must be 256 characters or fewer");
 
   if (input.idempotencyKey) {
     const { data: existing, error } = await supabase.from("messages").select("id,provider_id,status,conversation_id").eq("idempotency_key", input.idempotencyKey).maybeSingle();
     if (error) throw new Error(error.message);
     if (existing?.status === "sent") return { providerId: existing.provider_id, messageId: existing.id, conversationId: existing.conversation_id };
-    if (existing) throw new Error("This email is already being processed; review its receipt before retrying");
+    if (existing) throw new Error(`This email already has a ${existing.status || "non-success"} receipt; reconcile it before retrying`);
   }
+  const from = input.from?.trim() || await getTenantFromEmail(supabase);
+  if (!replyAddress(from)) throw new Error("A valid sender identity is required");
+  const replyTo = input.replyTo?.trim() || (input.source === "campaign" ? await getTenantReplyToEmail(supabase) : input.actorEmail || process.env.ADMIN_EMAIL || undefined);
+  if (replyTo && !replyAddress(replyTo)) throw new Error("A valid reply-to inbox is required");
 
   let conversationId = input.conversationId;
   if (!conversationId) {
@@ -86,36 +98,52 @@ export async function sendRecordedEmail(supabase: SupabaseClient, input: {
   if (input.source === "campaign" && input.contactId) {
     const { data: contact } = await supabase.from("contacts").select("communication_status,unsubscribe_token").eq("id", input.contactId).maybeSingle();
     if (contact && contact.communication_status !== "active") throw new Error("Contact is suppressed from campaign email");
-    if (contact?.unsubscribe_token) unsubscribeUrl = `${siteUrl()}/api/unsubscribe/${contact.unsubscribe_token}`;
+    if (contact?.unsubscribe_token) {
+      const scope = tenantScopeForDatabase(supabase);
+      unsubscribeUrl = scope?.slug
+        ? `${siteUrl()}/api/public/${scope.slug}/unsubscribe/${contact.unsubscribe_token}`
+        : `${siteUrl()}/api/unsubscribe/${contact.unsubscribe_token}`;
+    }
   }
 
   const claimId = crypto.randomUUID();
-  const { error: claimError } = await supabase.from("messages").insert({ id: claimId, conversation_id: conversationId, idempotency_key: input.idempotencyKey || null, direction: "outbound", sender_email: FROM_EMAIL, recipient_emails: [to], subject: input.subject.trim(), body_text: input.text, body_html: input.html ?? null, status: "processing", metadata: { template: input.template ?? null, source: input.source ?? "admin", campaign_id: input.campaignId ?? null } });
+  const { error: claimError } = await supabase.from("messages").insert({ id: claimId, conversation_id: conversationId, idempotency_key: input.idempotencyKey || null, direction: "outbound", sender_email: from, recipient_emails: [to], subject: input.subject.trim(), body_text: input.text, body_html: input.html ?? null, status: "processing", metadata: { template: input.template ?? null, source: input.source ?? "admin", campaign_id: input.campaignId ?? null } });
   if (claimError) throw new Error(claimError.code === "23505" ? "This email has already been claimed" : claimError.message);
 
   const deliveredText = unsubscribeUrl ? `${input.text}\n\nUnsubscribe: ${unsubscribeUrl}` : input.text;
   const deliveredHtml = unsubscribeUrl && input.html ? `${input.html}<p style="margin-top:24px;font-size:12px;color:#777"><a href="${unsubscribeUrl}">Unsubscribe</a></p>` : input.html;
-  const response = await getResend().emails.send({
-    from: FROM_EMAIL,
-    replyTo: input.actorEmail || process.env.ADMIN_EMAIL || undefined,
-    to,
-    subject: input.subject.trim(),
-    text: deliveredText,
-    html: deliveredHtml,
-    headers: unsubscribeUrl ? { "List-Unsubscribe": `<${unsubscribeUrl}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" } : undefined,
-    tags: resendTags({ messageId: claimId, conversationId, campaignId: input.campaignId, source: input.source ?? "admin", template: input.template }),
-  }, input.idempotencyKey ? { idempotencyKey: input.idempotencyKey } : undefined);
-  if (response.error) {
-    await supabase.from("messages").update({ status: "failed", metadata: { source: input.source ?? "admin", error: response.error.message } }).eq("id", claimId);
-    throw new Error(response.error.message);
+  let response: { data: { id: string } | null; error: { message: string } | null };
+  try {
+    response = await (await getTenantResend(supabase)).emails.send({
+      from,
+      replyTo,
+      to,
+      subject: input.subject.trim(),
+      text: deliveredText,
+      html: deliveredHtml,
+      headers: unsubscribeUrl ? { "List-Unsubscribe": `<${unsubscribeUrl}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" } : undefined,
+      tags: resendTags({ messageId: claimId, conversationId, campaignId: input.campaignId, source: input.source ?? "admin", template: input.template }),
+    }, input.idempotencyKey ? { idempotencyKey: input.idempotencyKey } : undefined);
+    if (response.error) throw new Error(response.error.message);
+    if (!response.data?.id) throw new Error("Email provider did not return a confirmed delivery identifier");
+  } catch (error) {
+    const failure = safeErrorMessage(error);
+    const { error: receiptError } = await supabase.from("messages").update({
+      status: "failed",
+      metadata: { template: input.template ?? null, source: input.source ?? "admin", campaign_id: input.campaignId ?? null, error: failure },
+    }).eq("id", claimId);
+    if (receiptError) {
+      throw new Error("Email delivery did not produce a confirmed provider receipt, and its local failure receipt could not be recorded; reconcile before retrying", { cause: error });
+    }
+    throw error instanceof Error ? error : new Error(failure);
   }
-  const providerId = response.data?.id ?? null;
+  const providerId = response.data.id;
   const now = new Date().toISOString();
 
   const { data: message, error: messageError } = await supabase.from("messages").update({
     provider_id: providerId,
     direction: "outbound",
-    sender_email: FROM_EMAIL,
+    sender_email: from,
     recipient_emails: [to],
     subject: input.subject.trim(),
     body_text: deliveredText,

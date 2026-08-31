@@ -4,7 +4,10 @@ import { getResend } from "@/lib/email/resend";
 import { recordAudit } from "@/lib/revenue-os/audit";
 import { suppressContactFromCampaignEmail } from "@/lib/revenue-os/campaign-stops";
 import { recordActivity } from "@/lib/revenue-os/activities";
+import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
+import type { Resend } from "resend";
+import type { TenantSystemContext } from "@/lib/tenancy/context";
 
 export const runtime = "nodejs";
 
@@ -38,8 +41,8 @@ function webhookHeaders(request: NextRequest) {
   return id && timestamp && signature ? { id, timestamp, signature } : null;
 }
 
-export async function POST(request: NextRequest) {
-  const webhookSecret = process.env.RESEND_WEBHOOK_SECRET;
+export async function handleResendWebhook(request: NextRequest, input?: { webhookSecret?: string; resend?: Resend; tenantContext?: TenantSystemContext }) {
+  const webhookSecret = input?.webhookSecret || process.env.RESEND_WEBHOOK_SECRET;
   if (!webhookSecret) return NextResponse.json({ error: "Resend webhook is not configured" }, { status: 503 });
   const headers = webhookHeaders(request);
   if (!headers) return NextResponse.json({ error: "Missing webhook signature" }, { status: 401 });
@@ -57,13 +60,15 @@ export async function POST(request: NextRequest) {
 
   let event: ResendEvent;
   try {
-    event = getResend().webhooks.verify({ payload: raw, headers, webhookSecret }) as ResendEvent;
+    event = (input?.resend || getResend()).webhooks.verify({ payload: raw, headers, webhookSecret }) as ResendEvent;
   } catch {
     return NextResponse.json({ error: "Invalid webhook signature" }, { status: 401 });
   }
   if (!event.type) return NextResponse.json({ error: "Unsupported webhook payload" }, { status: 400 });
 
-  const supabase = createServiceRoleClient();
+  const supabase = input?.tenantContext
+    ? createServiceRoleClient(input.tenantContext)
+    : createBootstrapServiceRoleClient("legacy-resend-webhook");
   const { error: receiptError } = await supabase.from("webhook_receipts").insert({
     id: headers.id,
     provider: "resend",
@@ -77,7 +82,7 @@ export async function POST(request: NextRequest) {
   try {
     const providerId = event.data?.email_id;
     const taggedMessageId = event.data?.tags?.revenue_message_id;
-    const messageQuery = supabase.from("messages").select("id,conversation_id,metadata,delivery_status,delivery_updated_at,conversations(contact_id,campaign_id)");
+    const messageQuery = supabase.from("messages").select("id,conversation_id,metadata,delivery_status,delivery_updated_at,conversations!messages_conversation_id_tenant_fkey(contact_id,campaign_id)");
     const { data: message, error: messageError } = providerId
       ? await messageQuery.eq("provider_id", providerId).maybeSingle()
       : taggedMessageId ? await messageQuery.eq("id", taggedMessageId).maybeSingle() : { data: null, error: null };
@@ -129,4 +134,8 @@ export async function POST(request: NextRequest) {
     await supabase.from("webhook_receipts").update({ status: "failed", error: message }).eq("id", headers.id);
     return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
   }
+}
+
+export async function POST(request: NextRequest) {
+  return handleResendWebhook(request);
 }

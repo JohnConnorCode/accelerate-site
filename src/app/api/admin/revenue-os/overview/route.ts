@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
 import { loadOperatorQueue } from "@/lib/revenue-os/queue";
 import { canonicalStage } from "@/lib/revenue-os/pipeline";
@@ -9,7 +8,7 @@ import { loadOperationalHealth } from "@/lib/revenue-os/health";
 export async function GET() {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
 
   try {
     const [queue, opportunitiesResult, campaignResult, conversationsResult, proposalsResult, integrationResult, health] = await Promise.all([

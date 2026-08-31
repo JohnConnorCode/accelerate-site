@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { operatorTaskRecordHref, sortOperatorQueue, summarizeOperatorQueue, validateOperatorQueue } from "../src/lib/revenue-os/queue";
+import { operatorTaskQueuePresentation, operatorTaskRecordHref, sortOperatorQueue, summarizeOperatorQueue, validateOperatorQueue } from "../src/lib/revenue-os/queue";
 import type { OperatorQueueItem } from "../src/lib/revenue-os/types";
 
 function item(overrides: Partial<OperatorQueueItem> & Pick<OperatorQueueItem, "id" | "kind">): OperatorQueueItem {
@@ -47,17 +47,23 @@ assert.equal(operatorTaskRecordHref({ related_type: "client", related_id: "c-1",
 assert.equal(operatorTaskRecordHref({ related_type: "contact", related_id: "person-1", opportunity_id: null }), "/admin/contacts?contact=person-1");
 assert.equal(operatorTaskRecordHref({ related_type: "campaign", related_id: "campaign-1", opportunity_id: null }), "/admin/campaigns?campaign=campaign-1");
 assert.equal(operatorTaskRecordHref({ related_type: "lead", related_id: "lead-1", opportunity_id: "opp-1" }), "/admin/pipeline/opp-1", "a canonical opportunity must win over a legacy related type");
+assert.deepEqual(operatorTaskQueuePresentation({ source: "recovery", title: "Reply to recovery lead: lead@example.com", priority: "high", dueDate: "2026-08-23" }, "2026-08-23"), {
+  kind: "reply", priorityReason: "Recovery reply needs a personal response", recommendedNextAction: "Open the contact, respond personally while intent is fresh, then complete the task.",
+}, "recovery replies must appear in the Replies lane with a conversion-oriented next action");
+assert.deepEqual(operatorTaskQueuePresentation({ source: "recovery", title: "Confirm recovery booking: lead@example.com", priority: "high", dueDate: "2026-08-23" }, "2026-08-23"), {
+  kind: "reply", priorityReason: "Recovery booking needs immediate confirmation", recommendedNextAction: "Open the contact, confirm the appointment, prepare the conversation, then complete the task.",
+}, "recovery bookings must appear in the Replies lane with a meeting-prep action");
 
 const overview = readFileSync("src/app/api/admin/revenue-os/overview/route.ts", "utf8");
 const priorityRoute = readFileSync("src/app/api/admin/revenue-os/priority/route.ts", "utf8");
 const notifications = readFileSync("src/app/api/admin/notifications/route.ts", "utf8");
 const aiTools = readFileSync("src/lib/revenue-os/ai-tools.ts", "utf8");
-const layout = readFileSync("src/app/admin/layout.tsx", "utf8");
+const adminShell = readFileSync("src/components/admin/AdminShell.tsx", "utf8");
 for (const [consumer, source] of Object.entries({ overview, priorityRoute, notifications, aiTools })) {
   assert.match(source, /loadOperatorQueue/, `${consumer} must consume the canonical priority selector`);
 }
-assert.match(layout, /\/api\/admin\/revenue-os\/priority/, "navigation counters must read the canonical selector endpoint");
-assert.match(layout, /admin:priority-refresh/, "mutations must be able to refresh navigation priority state immediately");
+assert.match(adminShell, /\/api\/admin\/revenue-os\/priority/, "navigation counters must read the canonical selector endpoint");
+assert.match(adminShell, /admin:priority-refresh/, "mutations must be able to refresh navigation priority state immediately");
 
 console.log(JSON.stringify({
   result: "passed",

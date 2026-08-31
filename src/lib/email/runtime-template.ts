@@ -1,4 +1,4 @@
-import { createServiceRoleClient } from "@/lib/supabase/server";
+import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
 import { getEmailTemplateDefinition, renderDefinition, replaceEmailVariables } from "./registry";
 import { blocksFromPlainText, parseStoredEmailBlocks, renderEmailBlocks } from "./blocks";
 
@@ -16,7 +16,7 @@ export async function resolveEmailTemplate(templateKey: string, variables: Recor
   if (!definition) throw new Error(`Unknown email template: ${templateKey}`);
 
   try {
-    const supabase = createServiceRoleClient();
+    const supabase = createBootstrapServiceRoleClient("runtime-email-template");
     const { data, error } = await supabase
       .from("email_templates")
       .select("current_published_version, email_template_versions!email_templates_current_published_version_fkey(id, subject_template, body_template)")

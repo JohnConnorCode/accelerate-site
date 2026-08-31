@@ -19,10 +19,13 @@ interface ProposalData {
   created_at: string;
 }
 
-async function fetchProposal(token: string): Promise<ProposalData | null> {
+async function fetchProposal(token: string, tenantSlug?: string): Promise<ProposalData | null> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "https://www.acceleratewith.us";
+  const endpoint = tenantSlug
+    ? `/api/public/${encodeURIComponent(tenantSlug)}/proposal/${encodeURIComponent(token)}`
+    : `/api/proposal/${encodeURIComponent(token)}`;
   try {
-    const res = await fetch(`${baseUrl}/api/proposal/${token}`, {
+    const res = await fetch(`${baseUrl}${endpoint}`, {
       cache: "no-store",
     });
     if (!res.ok) return null;
@@ -36,10 +39,10 @@ async function fetchProposal(token: string): Promise<ProposalData | null> {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ token: string }>;
+  params: Promise<{ token: string; tenantSlug?: string }>;
 }): Promise<Metadata> {
-  const { token } = await params;
-  const proposal = await fetchProposal(token);
+  const { token, tenantSlug } = await params;
+  const proposal = await fetchProposal(token, tenantSlug);
   return {
     title: proposal ? `${proposal.title} | Accelerate` : "Proposal | Accelerate",
     description: proposal
@@ -51,10 +54,10 @@ export async function generateMetadata({
 export default async function ProposalPage({
   params,
 }: {
-  params: Promise<{ token: string }>;
+  params: Promise<{ token: string; tenantSlug?: string }>;
 }) {
-  const { token } = await params;
-  const proposal = await fetchProposal(token);
+  const { token, tenantSlug } = await params;
+  const proposal = await fetchProposal(token, tenantSlug);
 
   if (!proposal) {
     return (
@@ -160,7 +163,7 @@ export default async function ProposalPage({
           ))}
         </div>
 
-        <ProposalDecision token={token} status={proposal.status} />
+        <ProposalDecision token={token} status={proposal.status} apiBase={tenantSlug ? `/api/public/${encodeURIComponent(tenantSlug)}/proposal` : undefined} />
 
         {/* Footer */}
         <footer className="mt-16 pt-8 border-t border-border-glass text-center">

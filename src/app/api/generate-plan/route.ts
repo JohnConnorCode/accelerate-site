@@ -7,6 +7,7 @@ import type { IntakeFormData, DigitalGrowthPlan } from "@/lib/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendPlanEmail as sendPlanEmailNotification } from "@/lib/email/send";
 import { scheduleEmailSequence } from "@/lib/email/sequences";
+import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
 
 const stringArray = { type: "array", items: { type: "string", maxLength: 500 }, maxItems: 20 } as const;
 const PLAN_SCHEMA = {
@@ -48,11 +49,7 @@ async function getSupabaseClient(): Promise<SupabaseClient | null> {
     return null;
   }
   try {
-    const { createClient } = await import("@supabase/supabase-js");
-    return createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY
-    );
+    return createBootstrapServiceRoleClient("legacy-public-plan-generator");
   } catch {
     return null;
   }

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { loadActivityTimeline } from "@/lib/revenue-os/activities";
 
@@ -14,7 +13,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Email parameter required" }, { status: 400 });
   }
 
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
 
   const canonicalContactResult = await supabase
     .from("contacts")

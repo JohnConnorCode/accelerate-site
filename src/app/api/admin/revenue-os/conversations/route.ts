@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
 
 export async function GET(request: NextRequest) {
@@ -8,7 +7,7 @@ export async function GET(request: NextRequest) {
   if (auth instanceof NextResponse) return auth;
   const params = new URL(request.url).searchParams;
   const id = params.get("id");
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   let query = supabase.from("conversations").select("*").order("last_message_at", { ascending: false, nullsFirst: false }).limit(100);
   if (params.get("status")) query = query.eq("status", params.get("status")!);
   const conversations = await query;
@@ -37,7 +36,7 @@ export async function PATCH(request: NextRequest) {
   if (body.contactId !== undefined) patch.contact_id = body.contactId;
   if (body.status === "resolved" || body.status === "archived") patch.unread_count = 0;
   if (!Object.keys(patch).length) return NextResponse.json({ error: "No valid updates supplied" }, { status: 400 });
-  const { data, error } = await createServiceRoleClient().from("conversations").update(patch).eq("id", body.id).select("*").single();
+  const { data, error } = await auth.database.from("conversations").update(patch).eq("id", body.id).select("*").single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json({ conversation: data });
 }

@@ -76,7 +76,18 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (!isConfiguredAdmin(data.user.email)) {
+  const { data: memberships } = await supabase
+    .from("tenant_memberships")
+    .select("status,tenants!inner(slug,status)")
+    .eq("user_id", data.user.id)
+    .eq("status", "active");
+  const activeSlugs = (memberships || []).flatMap((membership) => {
+    const linked = membership.tenants as unknown as { slug?: string; status?: string } | Array<{ slug?: string; status?: string }>;
+    const tenantRows = Array.isArray(linked) ? linked : [linked];
+    return tenantRows.filter((tenant) => tenant?.status === "active" && tenant.slug).map((tenant) => tenant.slug!);
+  });
+
+  if (!isConfiguredAdmin(data.user.email) && activeSlugs.length === 0) {
     response = NextResponse.json(
       { error: "This account does not have admin access." },
       { status: 403, headers: { "Cache-Control": "no-store" } },
@@ -84,6 +95,11 @@ export async function POST(request: NextRequest) {
     await supabase.auth.signOut();
     return response;
   }
+
+  const defaultSlug = isConfiguredAdmin(data.user.email) && activeSlugs.includes("accelerate")
+    ? "accelerate"
+    : activeSlugs[0];
+  if (defaultSlug) response.headers.set("x-workspace-path", `/t/${defaultSlug}/admin/today`);
 
   return response;
 }

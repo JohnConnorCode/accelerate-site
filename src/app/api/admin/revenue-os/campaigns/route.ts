@@ -1,7 +1,6 @@
 import { tenant } from "@/config/tenant";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { activateCampaign, executeDueCampaignMembers, normalizeCampaignPolicy, pauseCampaign } from "@/lib/revenue-os/campaigns";
 import { isMissingRevenueSchema, normalizeEmail } from "@/lib/revenue-os/db";
 import { recordAudit } from "@/lib/revenue-os/audit";
@@ -9,8 +8,8 @@ import { recordAudit } from "@/lib/revenue-os/audit";
 export async function GET() {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
-  const supabase = createServiceRoleClient();
-  const { data, error } = await supabase.from("campaigns").select("*,campaign_steps(*),campaign_members(id,status,current_step,next_send_at,stop_reason,send_attempts)").order("created_at", { ascending: false });
+  const supabase = auth.database;
+  const { data, error } = await supabase.from("campaigns").select("*,campaign_steps!campaign_steps_campaign_id_tenant_fkey(*),campaign_members!campaign_members_campaign_id_tenant_fkey(id,status,current_step,next_send_at,stop_reason,send_attempts)").order("created_at", { ascending: false });
   if (error) {
     if (isMissingRevenueSchema(error)) return NextResponse.json({ schemaReady: false, campaigns: [] });
     return NextResponse.json({ error: "Could not load campaigns" }, { status: 500 });
@@ -26,7 +25,7 @@ export async function POST(request: NextRequest) {
   if (!name) return NextResponse.json({ error: "Campaign name is required" }, { status: 400 });
   const steps = Array.isArray(body.steps) ? body.steps.slice(0, 10) : [];
   if (!steps.length) return NextResponse.json({ error: "At least one campaign step is required" }, { status: 400 });
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   const { data: campaign, error } = await supabase.from("campaigns").insert({
     name,
     status: "draft",
@@ -66,7 +65,7 @@ export async function PATCH(request: NextRequest) {
   const id = typeof body.id === "string" ? body.id : "";
   const action = typeof body.action === "string" ? body.action : "";
   if (!id) return NextResponse.json({ error: "Campaign id is required" }, { status: 400 });
-  const supabase = createServiceRoleClient();
+  const supabase = auth.database;
   try {
     if (action === "activate") return NextResponse.json({ campaign: await activateCampaign(supabase, id, auth.user.email || "founder") });
     if (action === "pause") return NextResponse.json({ campaign: await pauseCampaign(supabase, id, auth.user.email || "founder") });
