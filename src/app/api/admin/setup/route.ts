@@ -15,6 +15,7 @@ import {
 import { bookingMode } from "@/lib/booking";
 import { calendlyAttributionReadiness, campaignEngineReadiness, resendDeliveryReadiness, setupNextRun } from "@/lib/revenue-os/setup-status";
 import { listRevenueAiCapabilities } from "@/lib/revenue-os/ai-tools";
+import { resolveOpenRouterCredential } from "@/lib/ai/openrouter-credentials";
 
 interface SourceRunRow { source_key: string; status: string; summary: unknown; error: string | null; finished_at: string | null }
 interface JobRunRow { job_key: string; status: string; summary: unknown; error: string | null; finished_at: string | null; claimed_at: string }
@@ -33,6 +34,8 @@ export async function GET() {
   const supabaseConfigured = configured("NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY");
   const googleConfigured = configured("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET") && isGoogleTokenEncryptionKeyConfigured();
   const revenueAiCapabilities = listRevenueAiCapabilities();
+  const openRouterCredential = supabaseConfigured ? await resolveOpenRouterCredential(supabase).catch(() => null) : null;
+  const openRouterReady = Boolean(openRouterCredential);
 
   const runtimeSchema = supabaseConfigured
     ? await verifyRevenueSchemaDataAccess(platform)
@@ -296,13 +299,13 @@ export async function GET() {
       id: "ai",
       group: "ai",
       label: "OpenRouter intelligence gateway",
-      description: configured("OPENROUTER_API_KEY") ? `All AI workflows use OpenRouter${process.env.OPENROUTER_MODEL ? ` with ${process.env.OPENROUTER_MODEL}` : " with the documented default model"}${process.env.OPENROUTER_FALLBACK_MODEL ? ` and ${process.env.OPENROUTER_FALLBACK_MODEL} as the configured fallback` : " with no fallback override"}.` : "Add one OpenRouter API key to activate every AI workflow.",
+      description: openRouterReady ? `All AI workflows use the ${openRouterCredential?.source === "tenant" ? "encrypted workspace-owned" : "bootstrap platform-managed"} OpenRouter key${process.env.OPENROUTER_MODEL ? ` with ${process.env.OPENROUTER_MODEL}` : " with the documented default model"}${process.env.OPENROUTER_FALLBACK_MODEL ? ` and ${process.env.OPENROUTER_FALLBACK_MODEL} as the configured fallback model` : " with no model fallback override"}.` : "Add and verify this workspace's OpenRouter API key in Integrations.",
       accomplishes: "Runs contact cleanup, Revenue Copilot, website chat, plan generation, insights, briefs, and drafts through one governed provider gateway.",
-      status: configured("OPENROUTER_API_KEY") ? "ready" : "action",
+      status: openRouterReady ? "ready" : "action",
       required: false,
-      keys: ["OPENROUTER_API_KEY", "OPENROUTER_MODEL (optional)", "OPENROUTER_FALLBACK_MODEL (optional)"],
+      keys: ["Tenant OpenRouter connection", "OPENROUTER_MODEL (optional)", "OPENROUTER_FALLBACK_MODEL (optional)"],
       nextRun: setupNextRun("config"),
-      action: { label: configured("OPENROUTER_API_KEY") ? "Open AI Workspace" : "Create OpenRouter key", href: configured("OPENROUTER_API_KEY") ? "/admin/ai?view=runs" : "https://openrouter.ai/settings/keys", external: !configured("OPENROUTER_API_KEY") },
+      action: { label: openRouterReady ? "Open AI Workspace" : "Configure OpenRouter", href: openRouterReady ? "/admin/ai?view=runs" : "/admin/integrations#workspace-provider-heading" },
     },
     {
       id: "ai_tool_controls",
@@ -310,7 +313,7 @@ export async function GET() {
       label: "Revenue AI tool controls",
       description: `${revenueAiCapabilities.filter((tool) => tool.impact === "read").length} bounded reads and ${revenueAiCapabilities.filter((tool) => tool.impact !== "read").length} approval-gated proposals have enforced input/output contracts and service boundaries. Provider execution remains behind the normal approval path.`,
       accomplishes: "Makes AI-assisted revenue work inspectable and safe without granting arbitrary database or provider access.",
-      status: configured("OPENROUTER_API_KEY") ? "ready" : "optional",
+      status: openRouterReady ? "ready" : "optional",
       required: false,
       keys: ["src/lib/revenue-os/ai-tools.ts", "action_queue"],
       nextRun: setupNextRun("config"),
@@ -320,11 +323,11 @@ export async function GET() {
       id: "contact_importer",
       group: "ai",
       label: "Approval-gated Contact Import",
-      description: !contactImporterReady ? "Apply the Contact Import migration." : configured("OPENROUTER_API_KEY") ? `${contactImporterResult.count ?? 0} import batch${contactImporterResult.count === 1 ? " is" : "es are"} stored with review and execution receipts.` : "The import ledger is ready; OpenRouter is still needed for cleanup and mapping.",
+      description: !contactImporterReady ? "Apply the Contact Import migration." : openRouterReady ? `${contactImporterResult.count ?? 0} import batch${contactImporterResult.count === 1 ? " is" : "es are"} stored with review and execution receipts.` : "The import ledger is ready; this workspace still needs its OpenRouter key for cleanup and mapping.",
       accomplishes: "Cleans pasted lists, CSV, TSV, JSON, and notes into reviewed canonical contacts without sending messages or creating opportunities.",
-      status: !contactImporterReady ? "action" : configured("OPENROUTER_API_KEY") ? "ready" : "degraded",
+      status: !contactImporterReady ? "action" : openRouterReady ? "ready" : "degraded",
       required: false,
-      keys: ["migrations/20260816-contact-importer.sql", "OPENROUTER_API_KEY"],
+      keys: ["migrations/20260816-contact-importer.sql", "Tenant OpenRouter connection"],
       nextRun: setupNextRun("config"),
       action: { label: contactImporterReady ? "Open Contact Import" : "Open Supabase SQL editor", href: contactImporterReady ? "/admin/contact-imports" : supabaseDashboard("/sql/new"), external: !contactImporterReady },
     },

@@ -2,8 +2,11 @@ import assert from "node:assert/strict";
 import { maskSecret, SERVER_ONLY_SECRET_KEYS } from "@/lib/admin/settings";
 import {
   decryptSecret,
+  decryptTenantSecret,
   encryptSecret,
+  encryptTenantSecret,
   isEncryptedSecret,
+  isTenantEncryptedSecret,
   isGoogleTokenEncryptionKeyConfigured,
 } from "../src/lib/revenue-os/encryption";
 
@@ -82,6 +85,17 @@ withEnv(
 );
 
 withEnv(
+  { GOOGLE_TOKEN_ENCRYPTION_KEY: "unit-secret-key", SUPABASE_SERVICE_ROLE_KEY: "super-fallback", OPENROUTER_API_KEY: baseEnv.OPENROUTER_API_KEY },
+  () => {
+    const encrypted = encryptTenantSecret("tenant-provider-token", "tenant-a", "openrouter", "api_key");
+    assert.equal(isTenantEncryptedSecret(encrypted), true);
+    assert.equal(decryptTenantSecret(encrypted, "tenant-a", "openrouter", "api_key"), "tenant-provider-token");
+    assert.throws(() => decryptTenantSecret(encrypted, "tenant-b", "openrouter", "api_key"), "tenant-scoped ciphertext must not decrypt in another workspace");
+    assert.throws(() => decryptTenantSecret(encrypted, "tenant-a", "resend", "api_key"), "tenant-scoped ciphertext must not move between providers");
+  },
+);
+
+withEnv(
   {
     GOOGLE_TOKEN_ENCRYPTION_KEY: "   ",
     SUPABASE_SERVICE_ROLE_KEY: "still-service-role-key",
@@ -121,4 +135,4 @@ withEnv(
   },
 );
 
-console.log(JSON.stringify({ result: "secret-storage-hardening coverage added", checks: 10 }));
+console.log(JSON.stringify({ result: "secret-storage-hardening coverage added", checks: 14 }));

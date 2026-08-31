@@ -374,6 +374,11 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     if (method === "GET" && path === "/api/admin/revenue-os/ai/runs") return jsonResponse(aiRuns(pack));
     if (method === "GET" && path.startsWith("/api/admin/revenue-os/ai/runs/")) return jsonResponse(aiRunDetail(pack, decodeURIComponent(path.split("/").at(-1) || "")));
     if (method === "GET" && path === "/api/admin/revenue-os/ai/capabilities") return jsonResponse(aiCapabilities());
+    if (method === "GET" && path === "/api/admin/tenant/providers") return jsonResponse({ providers: [
+      { id: `demo-openrouter-${scenarioId}`, provider: "openrouter", account_email: null, reply_to_email: null, status: "connected", credential_version: 3, connected_at: ago(12), credential_source: "tenant", key_metadata: { label: `${pack.name} demo key`, limit: 50, limit_remaining: 38.25, limit_reset: "monthly", usage: 11.75, is_free_tier: false, expires_at: null, verified_at: ago(12) } },
+      { id: `demo-resend-${scenarioId}`, provider: "resend", account_email: pack.tenant.founder.email, reply_to_email: pack.tenant.founder.email, status: "connected", credential_version: 2, connected_at: ago(24), credential_source: "tenant", key_metadata: null },
+      { id: `demo-calendly-${scenarioId}`, provider: "calendly", account_email: null, reply_to_email: null, status: "connected", credential_version: 1, connected_at: ago(36), credential_source: "tenant", key_metadata: null },
+    ] });
     if (method === "GET" && path === "/api/admin/integrations") return jsonResponse(integrationCatalog(pack));
     if (method === "GET" && path === "/api/admin/setup") return jsonResponse(setup(pack));
     if (method === "GET" && path === "/api/admin/proposals") { const rows = proposals(pack); const requested = url.searchParams.get("id"); return jsonResponse(requested ? { proposal: rows.find((item) => item.id === requested) || rows[0] } : { proposals: rows, totalOneTime: rows.reduce((sum, item) => sum + item.total_one_time, 0), totalMonthly: rows.reduce((sum, item) => sum + item.total_monthly, 0) }); }

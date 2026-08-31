@@ -1,4 +1,4 @@
-export const INTEGRATION_REGISTRY_VERSION = "revenue-os-integrations.v1";
+export const INTEGRATION_REGISTRY_VERSION = "revenue-os-integrations.v2";
 
 export type IntegrationMaturity = "native" | "next" | "planned" | "edge";
 export type IntegrationCostTier = "free" | "usage_included" | "usage_based" | "paid";
@@ -92,11 +92,11 @@ export const integrationRegistry: readonly IntegrationDefinition[] = [
   {
     id: "openrouter", name: "OpenRouter", category: "foundation", maturity: "native", priority: 4,
     description: "One governed model gateway for bounded analysis, retrieval, drafting, and registered tools.", strategicRole: "Model gateway",
-    cost: { tier: "usage_based", label: "Usage based", detail: "Use workflow-specific model routing and budgets rather than adding separate provider credentials." },
-    auth: "Server-only API key", transports: ["api"], dataClasses: ["Bounded operating context", "Redacted traces"],
-    configurationKey: "openrouter", setupHref: "/admin/setup#openrouter", docsHref: "https://openrouter.ai/docs",
-    limits: ["Bounded context and turns", "Registered tools only", "Per-run usage receipts"],
-    guardrail: "Models never receive database or provider credentials and never perform unrestricted writes.",
+    cost: { tier: "usage_based", label: "Tenant billed", detail: "Usage is charged to the workspace-owned OpenRouter account; set a provider-side monthly limit and review its usage receipts." },
+    auth: "Encrypted tenant-owned API key", transports: ["api"], dataClasses: ["Bounded operating context", "Redacted traces"],
+    connectionProvider: "openrouter", configurationKey: "openrouter", setupHref: "/admin/integrations#workspace-provider-heading", docsHref: "https://openrouter.ai/docs",
+    limits: ["Workspace-owned spend and provider limits", "Bounded context and turns", "Registered tools only", "Per-run usage receipts"],
+    guardrail: "Client workspaces fail closed without their own key. Models never receive database or other provider credentials and never perform unrestricted writes.",
     capabilities: [
       { id: "governed-ai", label: "Governed intelligence", description: "Run bounded model workflows with immutable traces and tool gates.", direction: "bidirectional", impact: "internal_write", configurationKey: "openrouter", evidenceKey: "runtime:openrouter" },
     ],

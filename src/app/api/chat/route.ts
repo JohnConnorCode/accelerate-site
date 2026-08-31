@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getOpenRouterModel, isOpenRouterConfigured, openRouterTextStream, type OpenRouterStreamMetadata } from "@/lib/ai/openrouter";
+import { getOpenRouterModel, openRouterTextStream, type OpenRouterStreamMetadata } from "@/lib/ai/openrouter";
+import { isTenantOpenRouterConfigured } from "@/lib/ai/openrouter-credentials";
 import { finishAgentRun, recordAgentRunEvent, startAgentRun, traceTextStream } from "@/lib/revenue-os/agent-trace";
 import { rateLimit } from "@/lib/rate-limit";
 import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
@@ -81,7 +82,8 @@ export async function POST(request: NextRequest) {
       if (redirect) return plainText(redirect);
     }
 
-    if (!isOpenRouterConfigured()) {
+    const supabase = createBootstrapServiceRoleClient("legacy-public-chat");
+    if (!await isTenantOpenRouterConfigured(supabase)) {
       return plainText(DEMO_MODE_REPLY);
     }
     const boundedConversation = boundFounderConversation(messages);
@@ -90,7 +92,6 @@ export async function POST(request: NextRequest) {
     // until now it wrote no trace at all: nobody could see what it had said to
     // anyone. It joins the same agent_runs ledger as the admin copilot rather
     // than getting a second one.
-    const supabase = createBootstrapServiceRoleClient("legacy-public-chat");
     const model = getOpenRouterModel(process.env.OPENROUTER_CHAT_MODEL);
     const run = await startAgentRun(supabase, {
       surface: "public_chat",
@@ -102,6 +103,7 @@ export async function POST(request: NextRequest) {
     let streamMetadata: OpenRouterStreamMetadata | null = null;
     try {
       readableStream = await openRouterTextStream({
+        database: supabase,
         model: process.env.OPENROUTER_CHAT_MODEL,
         maxTokens: MAX_TOKENS,
         temperature: TEMPERATURE,

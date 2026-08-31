@@ -58,6 +58,14 @@ function bindTenantDatabase(client: SupabaseClient, tenantId: string, enforceFil
   return database;
 }
 
+/** Test doubles need the same non-ambient scope marker as runtime clients. This
+ * seam is unavailable in production so application code cannot manufacture a
+ * tenant context instead of going through authentication/system resolution. */
+export function bindTenantDatabaseForTest(client: SupabaseClient, tenantId: string): SupabaseClient {
+  if (process.env.NODE_ENV === "production") throw new Error("Test tenant binding is unavailable in production");
+  return bindTenantDatabase(client, tenantId);
+}
+
 export function tenantIdForDatabase(database: SupabaseClient) {
   return tenantDatabaseScopes.get(database)?.id;
 }

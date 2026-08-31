@@ -1,5 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { resolveOpenRouterCredential } from "@/lib/ai/openrouter-credentials";
 import {
   INTEGRATION_REGISTRY_VERSION,
   integrationRegistry,
@@ -206,7 +207,7 @@ function configured(...keys: string[]): boolean {
 
 export async function loadIntegrationCatalog(supabase: SupabaseClient): Promise<IntegrationCatalog> {
   const checkedAt = new Date().toISOString();
-  const [connectionResult, sourceResult, jobResult, webhookResult, messageResult, firstPartyResult, agentResult, schemaResult] = await Promise.all([
+  const [connectionResult, sourceResult, jobResult, webhookResult, messageResult, firstPartyResult, agentResult, schemaResult, openRouterCredential] = await Promise.all([
     supabase.from("integration_connections").select("provider,account_email,status,scopes,last_sync_at,last_success_at,last_error").order("connected_at", { ascending: false }),
     supabase.from("source_runs").select("source_key,status,started_at,finished_at,error").order("started_at", { ascending: false }).limit(100),
     supabase.from("job_runs").select("job_key,status,claimed_at,finished_at,error").order("claimed_at", { ascending: false }).limit(100),
@@ -215,6 +216,7 @@ export async function loadIntegrationCatalog(supabase: SupabaseClient): Promise<
     supabase.from("website_events").select("created_at").order("created_at", { ascending: false }).limit(1),
     supabase.from("agent_runs").select("status,started_at,finished_at,error").order("started_at", { ascending: false }).limit(1),
     supabase.from("schema_verification_runs").select("status,checked_at,failure_detail").order("checked_at", { ascending: false }).limit(1),
+    resolveOpenRouterCredential(supabase).catch(() => null),
   ]);
 
   const evidenceTablesAvailable = !connectionResult.error && !sourceResult.error && !jobResult.error && !webhookResult.error;
@@ -230,7 +232,7 @@ export async function loadIntegrationCatalog(supabase: SupabaseClient): Promise<
       google: configured("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_TOKEN_ENCRYPTION_KEY"),
       resend: configured("RESEND_API_KEY", "RESEND_FROM_EMAIL"),
       resend_webhooks: configured("RESEND_WEBHOOK_SECRET"),
-      openrouter: configured("OPENROUTER_API_KEY"),
+      openrouter: Boolean(openRouterCredential),
     },
     runtime: {
       supabase: {

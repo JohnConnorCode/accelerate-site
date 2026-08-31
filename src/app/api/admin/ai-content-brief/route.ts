@@ -1,7 +1,8 @@
 import { tenant } from "@/config/tenant";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { isOpenRouterConfigured, openRouterJson } from "@/lib/ai/openrouter";
+import { openRouterJson } from "@/lib/ai/openrouter";
+import { isTenantOpenRouterConfigured } from "@/lib/ai/openrouter-credentials";
 
 export const CONTENT_BRIEF_CONTEXT_VERSION = "content-brief-context.v1";
 export const CONTENT_BRIEF_SOURCE_ALLOWLIST = [
@@ -284,9 +285,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (!isOpenRouterConfigured()) {
+  if (!await isTenantOpenRouterConfigured(auth.database)) {
     return NextResponse.json(
-      { error: "OpenRouter is not configured. Add OPENROUTER_API_KEY in Setup Center." },
+      { error: "OpenRouter is not configured for this workspace. Add its API key in Integrations." },
       { status: 400 },
     );
   }
@@ -308,6 +309,7 @@ export async function POST(request: NextRequest) {
       throw new Error("Content brief context exceeded its fixed budget");
     }
     const response = await openRouterJson({
+      database: auth.database,
       model: process.env.OPENROUTER_CONTENT_MODEL,
       maxTokens: 1_000,
       temperature: 0.2,

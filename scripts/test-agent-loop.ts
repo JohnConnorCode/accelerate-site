@@ -19,6 +19,8 @@
  */
 import assert from "node:assert/strict";
 import { runRevenueCommandAgent } from "../src/lib/revenue-os/ai-agent";
+import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
+import { ACCELERATE_TENANT_ID } from "../src/lib/tenancy/context";
 
 process.env.OPENROUTER_API_KEY = "sk-or-v1-test-key-not-real";
 
@@ -53,15 +55,23 @@ function stubOpenRouter(reply: (turn: number) => unknown) {
  * are recorded so the terminal state of the run can be asserted.
  */
 function stubSupabase(tables: Record<string, Row[]> = {}) {
+  const seededTables: Record<string, Row[]> = {
+    tenants: [{ id: ACCELERATE_TENANT_ID, slug: "accelerate", status: "active" }],
+    integration_connections: [],
+    ...tables,
+  };
   const writes: Array<{ table: string; op: "insert" | "update"; payload: Row }> = [];
 
   function query(table: string): Record<string, unknown> {
     let pending: { op: "insert" | "update"; payload: Row } | null = null;
+    let expectsSingle = false;
     const self: Record<string, unknown> = {};
     const chain = () => self;
-    for (const method of ["select", "eq", "neq", "gt", "gte", "lt", "lte", "is", "in", "not", "or", "filter", "order", "limit", "range", "maybeSingle", "single"]) {
+    for (const method of ["select", "eq", "neq", "gt", "gte", "lt", "lte", "is", "in", "not", "or", "filter", "order", "limit", "range"]) {
       self[method] = chain;
     }
+    self.maybeSingle = () => { expectsSingle = true; return self; };
+    self.single = () => { expectsSingle = true; return self; };
     for (const op of ["insert", "update"] as const) {
       self[op] = (payload: Row) => {
         pending = { op, payload };
@@ -69,8 +79,12 @@ function stubSupabase(tables: Record<string, Row[]> = {}) {
         return self;
       };
     }
-    self.then = (resolve: (result: { data: unknown; error: unknown }) => unknown) =>
-      resolve(pending ? { data: { id: "run-1", ...pending.payload }, error: null } : { data: tables[table] ?? [], error: null });
+    self.then = (resolve: (result: { data: unknown; error: unknown }) => unknown) => {
+      const rows = seededTables[table] ?? [];
+      return resolve(pending
+        ? { data: { id: "run-1", ...pending.payload }, error: null }
+        : { data: expectsSingle ? rows[0] ?? null : rows, error: null });
+    };
     return self;
   }
 
@@ -78,6 +92,10 @@ function stubSupabase(tables: Record<string, Row[]> = {}) {
 }
 
 const ask = [{ role: "user" as const, content: "What should I do today?" }];
+
+function runAgent(client: Parameters<typeof runRevenueCommandAgent>[0]) {
+  return runRevenueCommandAgent(bindTenantDatabaseForTest(client, ACCELERATE_TENANT_ID), "test@acceleratewith.us", ask);
+}
 
 /** The system prompt the gateway actually received on a given request. */
 function systemPrompt(request: Sent): string {
@@ -94,7 +112,7 @@ async function main() {
   }));
 
   const plain = stubSupabase();
-  const answered = await runRevenueCommandAgent(plain.client, "test@acceleratewith.us", ask);
+  const answered = await runAgent(plain.client);
   assert.match(answered.text, /^Facts\n/);
 
   const prompt = systemPrompt(sent[0]!);
@@ -111,7 +129,7 @@ async function main() {
     choices: [{ message: { role: "assistant", content: "Nothing is overdue." } }],
   }));
   const rejected = stubSupabase();
-  const rejectedAnswer = await runRevenueCommandAgent(rejected.client, "test@acceleratewith.us", ask);
+  const rejectedAnswer = await runAgent(rejected.client);
   assert.match(rejectedAnswer.text, /did not pass the grounding contract/i, "unstructured unsupported prose must be replaced by a safe explicit degraded answer");
   const rejectedTerminal = rejected.writes.find((write) => write.table === "agent_runs" && write.op === "update");
   assert.equal(rejectedTerminal?.payload.status, "partial", "a rejected final answer must never be recorded as a completed grounded run");
@@ -121,7 +139,7 @@ async function main() {
   sent = [];
   stubOpenRouter(toolCallTurn);
   const exhausted = stubSupabase();
-  const partial = await runRevenueCommandAgent(exhausted.client, "test@acceleratewith.us", ask);
+  const partial = await runAgent(exhausted.client);
 
   assert.ok(partial.text.length > 0, "turn exhaustion must return what the run gathered instead of throwing the answer away");
   assert.match(partial.text, /Working on step 0/, "the assistant's own reasoning from earlier turns must survive");
@@ -144,7 +162,7 @@ async function main() {
     choices: [{ message: { role: "assistant", content: "Staging a task.", tool_calls: [{ id: `call-${turn}`, type: "function", function: { name: "propose_task", arguments: JSON.stringify({ title: `Follow up ${turn}`, priority: "high" }) } }] } }],
   }));
   const staged = stubSupabase();
-  const orphans = await runRevenueCommandAgent(staged.client, "test@acceleratewith.us", ask);
+  const orphans = await runAgent(staged.client);
 
   assert.match(orphans.text, /staged for your approval/i, "actions staged before the run ran out of turns must be named, or they sit in the queue with nothing explaining them");
   assert.match(orphans.text, /propose_task/, "the founder must be told which proposals to review or reject");
@@ -170,7 +188,7 @@ async function main() {
   }));
   sent = [];
   stubOpenRouter(toolCallTurn);
-  await runRevenueCommandAgent(stubSupabase({ tasks: huge, opportunities: huge }).client, "test@acceleratewith.us", ask);
+  await runAgent(stubSupabase({ tasks: huge, opportunities: huge }).client);
 
   const toolMessages = sent.at(-1)!.messages.filter((message) => message.role === "tool");
   assert.ok(toolMessages.length > 0, "the final request must contain the tool results, or this assertion proves nothing");

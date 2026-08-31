@@ -81,10 +81,20 @@ assert.ok(googleCallback.includes("verifyGoogleOAuthStateBinding(encodedState, {
 const providerApi = readFileSync("src/app/api/admin/tenant/providers/route.ts", "utf8");
 assert.ok(providerApi.includes("credentialVersion = Number(existing?.credential_version || 0) + 1"), "provider credential rotations must increment their version");
 assert.ok(providerApi.includes("recordAudit"), "provider credential changes must be audited without returning secrets");
+assert.ok(providerApi.includes('action: z.literal("configure_openrouter")'), "tenant administrators must be able to configure OpenRouter");
+assert.ok(providerApi.includes("validateOpenRouterApiKey"), "OpenRouter keys must be verified before storage");
+assert.ok(providerApi.includes('encryptTenantSecret(parsed.data.apiKey.trim(), authorization.tenant.id, "openrouter", "api_key")'), "OpenRouter ciphertext must bind the active tenant and provider field");
+assert.ok(providerApi.includes("environment_fallback_allowed: false"), "tenant BYOK must disable platform credential fallback");
 const providerUi = readFileSync("src/components/admin/TenantProviderControls.tsx", "utf8");
 assert.ok(providerUi.includes('type={visible ? "text" : "password"}'), "provider credential entry must default to masked and expose an explicit reveal control");
 assert.ok(providerUi.includes("credential_version"), "provider controls must expose the active credential version without returning the secret");
 assert.ok(providerUi.includes("Signed webhook endpoint"), "provider controls must expose the canonical tenant-bound webhook endpoint");
 assert.ok(providerUi.includes("Disconnect provider"), "provider disconnect must require a deliberate confirmation surface");
+assert.ok(providerUi.includes('name="OpenRouter"'), "provider controls must expose tenant OpenRouter BYOK");
+assert.ok(providerUi.includes("Your key, your spend"), "OpenRouter controls must make cost ownership explicit");
+
+const openRouterGateway = readFileSync("src/lib/ai/openrouter.ts", "utf8");
+assert.ok(openRouterGateway.includes("resolveOpenRouterCredential(input.database)"), "production OpenRouter traffic must resolve a tenant credential");
+assert.ok(openRouterGateway.includes('process.env.NODE_ENV === "production"'), "unscoped production OpenRouter calls must fail closed");
 
 console.log(JSON.stringify({ result: "passed", checkedApiFiles: directServiceClients.length, signedSurfaces: 2 }));

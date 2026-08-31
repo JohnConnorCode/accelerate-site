@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
-import { getOpenRouterModel, isOpenRouterConfigured, openRouterJson } from "@/lib/ai/openrouter";
+import { getOpenRouterModel, openRouterJson } from "@/lib/ai/openrouter";
+import { isTenantOpenRouterConfigured } from "@/lib/ai/openrouter-credentials";
 import { PLAN_SYSTEM_PROMPT, buildUserPrompt } from "@/lib/ai/prompts";
 import { assertApprovedPriceComponent, assertApprovedPricingRows } from "@/lib/ai/approved-pricing";
 import { rateLimit } from "@/lib/rate-limit";
@@ -138,7 +139,7 @@ export async function POST(request: NextRequest) {
 
     // Use the deterministic fallback when the optional OpenRouter connection is
     // not active. No alternate AI provider is called.
-    if (!isOpenRouterConfigured()) {
+    if (!supabase || !await isTenantOpenRouterConfigured(supabase)) {
       const fallbackPlan = generateFallbackPlan(formData);
       await savePlan(supabase, shareToken, fallbackPlan, "fallback");
       return NextResponse.json({ plan: fallbackPlan, shareToken });
@@ -150,11 +151,11 @@ export async function POST(request: NextRequest) {
     let plan: DigitalGrowthPlan;
 
     try {
-      plan = await callOpenRouter(modelUsed, userPrompt);
+      plan = await callOpenRouter(supabase, modelUsed, userPrompt);
     } catch (firstError) {
       console.error("First OpenRouter plan call failed, retrying:", firstError);
       try {
-        plan = await callOpenRouter(modelUsed, userPrompt);
+        plan = await callOpenRouter(supabase, modelUsed, userPrompt);
       } catch (retryError) {
         console.error("Retry also failed:", retryError);
         if (supabase) {
@@ -206,10 +207,12 @@ export async function POST(request: NextRequest) {
 }
 
 async function callOpenRouter(
+  database: SupabaseClient,
   model: string,
   userPrompt: string
 ): Promise<DigitalGrowthPlan> {
   const response = await openRouterJson({
+    database,
     model,
     maxTokens: 4096,
     temperature: 0.7,

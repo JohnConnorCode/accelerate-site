@@ -2,7 +2,8 @@ import { tenant } from "@/config/tenant";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { rateLimit } from "@/lib/rate-limit";
-import { isOpenRouterConfigured, openRouterJson } from "@/lib/ai/openrouter";
+import { openRouterJson } from "@/lib/ai/openrouter";
+import { isTenantOpenRouterConfigured } from "@/lib/ai/openrouter-credentials";
 import { approvedPricingPromptContext, assertApprovedPricingRows } from "@/lib/ai/approved-pricing";
 
 const GENERATE_LIMIT = 30;
@@ -109,8 +110,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Lead not found" }, { status: 404 });
   }
 
-  if (!isOpenRouterConfigured()) {
-    return NextResponse.json({ error: "OpenRouter is not configured. Add OPENROUTER_API_KEY in Setup Center." }, { status: 503 });
+  if (!await isTenantOpenRouterConfigured(supabase)) {
+    return NextResponse.json({ error: "OpenRouter is not configured for this workspace. Add its API key in Integrations." }, { status: 503 });
   }
 
   try {
@@ -123,6 +124,7 @@ export async function POST(request: NextRequest) {
       : "No AI plan generated";
 
     const response = await openRouterJson({
+      database: supabase,
       model: process.env.OPENROUTER_PROPOSAL_MODEL,
       maxTokens: 2000,
       temperature: 0.2,

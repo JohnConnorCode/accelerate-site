@@ -44,6 +44,7 @@
     "test:lead-capture-contract": "npx tsx scripts/test-lead-capture-contract.ts",
     "test:notification-contract": "npx tsx scripts/test-notification-contract.ts",
     "test:openrouter-resilience": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-openrouter-resilience.ts",
+    "test:tenant-openrouter": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-tenant-openrouter.ts",
     "test:ai-tool-gates": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-ai-tool-gates.ts",
     "test:ai-context": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-ai-context.ts",
     "test:ai-pricing-grounding": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-ai-pricing-grounding.ts",

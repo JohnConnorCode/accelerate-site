@@ -1,28 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin/auth";
-import { encryptSecret } from "@/lib/revenue-os/encryption";
+import { encryptSecret, encryptTenantSecret } from "@/lib/revenue-os/encryption";
 import { recordAudit } from "@/lib/revenue-os/audit";
+import { OpenRouterCredentialError, resolveOpenRouterCredential, validateOpenRouterApiKey } from "@/lib/ai/openrouter-credentials";
 
 const providerSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("configure_resend"), apiKey: z.string().trim().min(10).max(500), fromEmail: z.string().trim().email().max(254), replyToEmail: z.string().trim().email().max(254), webhookSecret: z.string().trim().min(10).max(500).optional() }),
   z.object({ action: z.literal("configure_calendly"), webhookSecret: z.string().trim().min(10).max(500) }),
-  z.object({ action: z.literal("disconnect"), provider: z.enum(["resend", "google", "calendly"]) }),
+  z.object({ action: z.literal("configure_openrouter"), apiKey: z.string().trim().min(24).max(500) }),
+  z.object({ action: z.literal("disconnect"), provider: z.enum(["resend", "google", "calendly", "openrouter"]) }),
 ]);
 
 export async function GET() {
   const authorization = await requireAdmin();
   if (authorization instanceof NextResponse) return authorization;
   const { data, error } = await authorization.database.from("integration_connections")
-    .select("id,provider,account_email,scopes,status,credential_version,last_sync_at,last_success_at,last_error,connected_at,updated_at,settings")
+    .select("id,provider,account_email,scopes,status,credential_version,last_sync_at,last_success_at,last_error,connected_at,updated_at,settings,environment_fallback_allowed")
     .order("provider");
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: "Provider connections could not be loaded." }, { status: 500 });
+  let openRouterSource: "tenant" | "platform" | null = null;
+  try { openRouterSource = (await resolveOpenRouterCredential(authorization.database))?.source ?? null; }
+  catch { /* The connection remains visible as degraded without leaking the storage failure. */ }
   const providers = (data || []).map(({ settings, ...provider }) => ({
     ...provider,
+    status: provider.provider === "openrouter" && provider.status === "connected" && !openRouterSource ? "degraded" : provider.status,
+    last_error: provider.provider === "openrouter" && provider.status === "connected" && !openRouterSource ? "The encrypted workspace key is unavailable. Verify and rotate it." : provider.last_error,
     reply_to_email: settings && typeof settings === "object" && typeof (settings as Record<string, unknown>).reply_to_email === "string"
       ? (settings as Record<string, unknown>).reply_to_email
       : null,
+    credential_source: provider.provider === "openrouter" ? openRouterSource : provider.status === "connected" ? "tenant" : null,
+    key_metadata: provider.provider === "openrouter" && settings && typeof settings === "object" ? {
+      label: typeof (settings as Record<string, unknown>).key_label === "string" ? (settings as Record<string, unknown>).key_label : null,
+      limit: typeof (settings as Record<string, unknown>).limit === "number" ? (settings as Record<string, unknown>).limit : null,
+      limit_remaining: typeof (settings as Record<string, unknown>).limit_remaining === "number" ? (settings as Record<string, unknown>).limit_remaining : null,
+      limit_reset: typeof (settings as Record<string, unknown>).limit_reset === "string" ? (settings as Record<string, unknown>).limit_reset : null,
+      usage: typeof (settings as Record<string, unknown>).usage === "number" ? (settings as Record<string, unknown>).usage : null,
+      is_free_tier: typeof (settings as Record<string, unknown>).is_free_tier === "boolean" ? (settings as Record<string, unknown>).is_free_tier : null,
+      expires_at: typeof (settings as Record<string, unknown>).expires_at === "string" ? (settings as Record<string, unknown>).expires_at : null,
+      verified_at: typeof (settings as Record<string, unknown>).verified_at === "string" ? (settings as Record<string, unknown>).verified_at : null,
+    } : null,
   }));
+  if (!providers.some((provider) => provider.provider === "openrouter")) {
+    providers.push({ id: "openrouter", provider: "openrouter", account_email: null, scopes: [], status: openRouterSource ? "connected" : "disconnected", credential_version: 0, last_sync_at: null, last_success_at: null, last_error: null, connected_at: null, updated_at: null, environment_fallback_allowed: openRouterSource === "platform", reply_to_email: null, credential_source: openRouterSource, key_metadata: null });
+  }
   return NextResponse.json({ providers });
 }
 
@@ -32,20 +53,56 @@ export async function POST(request: NextRequest) {
   const parsed = providerSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid provider action" }, { status: 400 });
   if (parsed.data.action === "disconnect") {
-    const { error } = await authorization.database.from("integration_connections").update({
+    const { data: existing } = await authorization.database.from("integration_connections").select("credential_version,status").eq("provider", parsed.data.provider).maybeSingle();
+    const { error } = await authorization.database.from("integration_connections").upsert({
+      provider: parsed.data.provider,
       status: "revoked",
       encrypted_credentials: {},
+      credential_version: Number(existing?.credential_version || 1),
+      environment_fallback_allowed: false,
       last_error: "Disconnected by tenant administrator",
       updated_at: new Date().toISOString(),
-    }).eq("provider", parsed.data.provider);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    await recordAudit(authorization.database, { actorEmail: authorization.user.email, action: "provider.disconnected", entityType: "integration_connection", entityId: parsed.data.provider, after: { provider: parsed.data.provider, status: "revoked" } });
+    }, { onConflict: "tenant_id,provider" });
+    if (error) return NextResponse.json({ error: "The provider could not be disconnected. Try again." }, { status: 500 });
+    await recordAudit(authorization.database, { actorEmail: authorization.user.email, action: "provider.disconnected", entityType: "integration_connection", entityId: parsed.data.provider, before: { status: existing?.status || null }, after: { provider: parsed.data.provider, status: "revoked" } });
     return NextResponse.json({ success: true });
   }
   const now = new Date().toISOString();
-  const provider = parsed.data.action === "configure_calendly" ? "calendly" : "resend";
+  const provider = parsed.data.action === "configure_calendly" ? "calendly" : parsed.data.action === "configure_openrouter" ? "openrouter" : "resend";
   const { data: existing } = await authorization.database.from("integration_connections").select("credential_version,status,settings").eq("provider", provider).maybeSingle();
   const credentialVersion = Number(existing?.credential_version || 0) + 1;
+  if (parsed.data.action === "configure_openrouter") {
+    try {
+      const metadata = await validateOpenRouterApiKey(parsed.data.apiKey, request.signal);
+      const { data, error } = await authorization.database.from("integration_connections").upsert({
+        provider: "openrouter",
+        status: "connected",
+        encrypted_credentials: { api_key: encryptTenantSecret(parsed.data.apiKey.trim(), authorization.tenant.id, "openrouter", "api_key") },
+        credential_version: credentialVersion,
+        environment_fallback_allowed: false,
+        settings: {
+          key_label: metadata.label,
+          limit: metadata.limit,
+          limit_remaining: metadata.limitRemaining,
+          limit_reset: metadata.limitReset,
+          usage: metadata.usage,
+          is_free_tier: metadata.isFreeTier,
+          expires_at: metadata.expiresAt,
+          verified_at: now,
+        },
+        connected_at: now,
+        last_success_at: now,
+        last_error: null,
+        updated_at: now,
+      }, { onConflict: "tenant_id,provider" }).select("id,provider,status,credential_version,connected_at,updated_at").single();
+      if (error) return NextResponse.json({ error: "The verified key could not be saved. Try again." }, { status: 500 });
+      await recordAudit(authorization.database, { actorEmail: authorization.user.email, action: "provider.credentials_rotated", entityType: "integration_connection", entityId: "openrouter", before: { status: existing?.status || null }, after: { provider: "openrouter", status: "connected", credentialVersion, verified: true } });
+      return NextResponse.json({ provider: data });
+    } catch (error) {
+      if (error instanceof OpenRouterCredentialError) return NextResponse.json({ error: error.message }, { status: error.status });
+      return NextResponse.json({ error: "OpenRouter could not be configured. Try again." }, { status: 500 });
+    }
+  }
   if (parsed.data.action === "configure_calendly") {
     const { data, error } = await authorization.database.from("integration_connections").upsert({
       provider: "calendly",

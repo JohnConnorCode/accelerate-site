@@ -1,5 +1,7 @@
 import { tenant } from "@/config/tenant";
 import "server-only";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { resolveOpenRouterCredential } from "@/lib/ai/openrouter-credentials";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 export const DEFAULT_OPENROUTER_MODEL = "openai/gpt-4.1-mini";
@@ -51,6 +53,8 @@ export interface OpenRouterResponse {
 }
 
 export interface OpenRouterRequest {
+  /** Tenant-bound database context used only to resolve the encrypted key. */
+  database?: SupabaseClient;
   messages: OpenRouterMessage[];
   model?: string;
   maxTokens?: number;
@@ -124,13 +128,7 @@ async function backoff(attempt: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, ceiling / 2 + Math.random() * (ceiling / 2)));
 }
 
-export function isOpenRouterConfigured(): boolean {
-  return Boolean(process.env.OPENROUTER_API_KEY?.trim());
-}
-
-function headers(): HeadersInit {
-  const key = process.env.OPENROUTER_API_KEY?.trim();
-  if (!key) throw new OpenRouterError("OpenRouter is not configured. Add OPENROUTER_API_KEY in Vercel.", 503);
+function headers(key: string): HeadersInit {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || tenant.brand.siteUrl;
   return {
     Authorization: `Bearer ${key}`,
@@ -138,6 +136,25 @@ function headers(): HeadersInit {
     "HTTP-Referer": siteUrl,
     "X-OpenRouter-Title": `${tenant.brand.name} Revenue OS`,
   };
+}
+
+/** Environment-only readiness is retained for local provider verification.
+ * Product execution must pass a tenant-bound database; production refuses the
+ * unscoped path even when a platform key exists. */
+export function isOpenRouterConfigured(): boolean {
+  return Boolean(process.env.OPENROUTER_API_KEY?.trim());
+}
+
+async function requestApiKey(input: OpenRouterRequest): Promise<string> {
+  if (input.database) {
+    const credential = await resolveOpenRouterCredential(input.database);
+    if (!credential) throw new OpenRouterError("OpenRouter is not configured for this workspace.", 503);
+    return credential.apiKey;
+  }
+  if (process.env.NODE_ENV === "production") throw new OpenRouterError("OpenRouter execution requires an explicit tenant context.", 503);
+  const key = process.env.OPENROUTER_API_KEY?.trim();
+  if (!key) throw new OpenRouterError("OpenRouter is not configured.", 503);
+  return key;
 }
 
 function boundedMessage(message: string): string {
@@ -155,7 +172,7 @@ function boundedProviderMessage(payload: unknown): string {
   return boundedMessage(message);
 }
 
-async function attemptChat(input: OpenRouterRequest, model: string): Promise<OpenRouterResponse> {
+async function attemptChat(input: OpenRouterRequest, model: string, apiKey: string): Promise<OpenRouterResponse> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 45_000);
   const startedAt = Date.now();
@@ -163,7 +180,7 @@ async function attemptChat(input: OpenRouterRequest, model: string): Promise<Ope
   try {
     const response = await fetch(OPENROUTER_URL, {
       method: "POST",
-      headers: headers(),
+      headers: headers(apiKey),
       body: JSON.stringify({
         model,
         // Provider-side failover: OpenRouter tries the fallback itself if the
@@ -203,11 +220,12 @@ async function attemptChat(input: OpenRouterRequest, model: string): Promise<Ope
 }
 
 export async function openRouterChat(input: OpenRouterRequest): Promise<OpenRouterResponse> {
+  const apiKey = await requestApiKey(input);
   const model = getOpenRouterModel(input.model);
   let lastError: OpenRouterError | null = null;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     try {
-      return await attemptChat(input, model);
+      return await attemptChat(input, model, apiKey);
     } catch (error) {
       if (!(error instanceof OpenRouterError)) throw error;
       lastError = error;
@@ -246,6 +264,7 @@ export async function openRouterChatStream(
   input: OpenRouterRequest,
   onTextDelta: (delta: string) => void,
 ): Promise<OpenRouterResponse> {
+  const apiKey = await requestApiKey(input);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 45_000);
   const model = getOpenRouterModel(input.model);
@@ -254,7 +273,7 @@ export async function openRouterChatStream(
   try {
     const response = await fetch(OPENROUTER_URL, {
       method: "POST",
-      headers: headers(),
+      headers: headers(apiKey),
       body: JSON.stringify({
         model,
         ...(fallbackModel && fallbackModel !== model ? { models: [model, fallbackModel], route: "fallback" } : {}),
@@ -398,11 +417,12 @@ export async function openRouterTextStream(
   const timeout = setTimeout(() => controller.abort(), 45_000);
   const model = getOpenRouterModel(input.model);
   const fallbackModel = getOpenRouterFallbackModel();
+  const apiKey = await requestApiKey(input);
   let response: Response;
   try {
     response = await fetch(OPENROUTER_URL, {
       method: "POST",
-      headers: headers(),
+      headers: headers(apiKey),
       body: JSON.stringify({
         model,
         ...(fallbackModel && fallbackModel !== model ? { models: [model, fallbackModel], route: "fallback" } : {}),

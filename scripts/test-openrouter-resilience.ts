@@ -232,11 +232,12 @@ async function main() {
   }
   assert.equal(existsSync("src/app/api/admin/ai-insights/route.ts"), false, "pre-canonical insights must stay deleted rather than return a successful empty AI result");
   const setup = readFileSync("src/app/api/admin/setup/route.ts", "utf8");
-  assert.match(setup, /OPENROUTER_API_KEY/);
+  assert.match(setup, /resolveOpenRouterCredential/);
+  assert.match(setup, /Tenant OpenRouter connection/);
   assert.doesNotMatch(setup, /OPENROUTER_API_KEY.{0,80}sk-or/, "Setup must not echo the OpenRouter secret");
-  assert.match(readFileSync("src/app/api/chat/route.ts", "utf8"), /isOpenRouterConfigured\(\)/);
-  assert.match(readFileSync("src/app/api/generate-plan/route.ts", "utf8"), /isOpenRouterConfigured\(\)/);
-  assert.match(readFileSync("src/app/api/admin/proposals/generate/route.ts", "utf8"), /isOpenRouterConfigured\(\)/);
+  assert.match(readFileSync("src/app/api/chat/route.ts", "utf8"), /isTenantOpenRouterConfigured\(supabase\)/);
+  assert.match(readFileSync("src/app/api/generate-plan/route.ts", "utf8"), /isTenantOpenRouterConfigured\(supabase\)/);
+  assert.match(readFileSync("src/app/api/admin/proposals/generate/route.ts", "utf8"), /isTenantOpenRouterConfigured\(supabase\)/);
   assert.match(readFileSync("src/lib/revenue-os/ai-agent.ts", "utf8"), /request_id: response\.id/);
   assert.match(readFileSync("src/app/api/chat/route.ts", "utf8"), /startAgentRun/);
   assert.match(readFileSync("src/app/api/chat/route.ts", "utf8"), /request_id: metadata\.requestId/);

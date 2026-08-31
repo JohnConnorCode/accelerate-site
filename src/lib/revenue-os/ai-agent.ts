@@ -94,7 +94,7 @@ export async function runRevenueCommandAgent(supabase: SupabaseClient, actorEmai
     for (let turn = 0; turn < MAX_TOOL_TURNS; turn++) {
       const context = safePageContext(options.pageContext);
       const grounding = buildRevenueAiGroundingContract({ today, learningSignals, pageContext: context, toolPack: selectedPack });
-      const request = { model, maxTokens: 1200, signal: options.signal, messages: [{ role: "system" as const, content: `${SYSTEM_CONTRACT}\n\n${grounding}` }, ...transcript], tools: toOpenRouterTools(selectedPack) };
+      const request = { database: supabase, model, maxTokens: 1200, signal: options.signal, messages: [{ role: "system" as const, content: `${SYSTEM_CONTRACT}\n\n${grounding}` }, ...transcript], tools: toOpenRouterTools(selectedPack) };
       let bufferedAnswer = "";
       const response = options.onAssistantDelta
         ? await openRouterChatStream(request, (delta) => { bufferedAnswer += delta; })

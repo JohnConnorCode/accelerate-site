@@ -22,6 +22,7 @@ import {
   type ResponderDeclineReason,
 } from "../src/lib/revenue-os/auto-responder";
 import { ACCELERATE_TENANT_ID, accelerateSystemContext, runWithTenantRequestContext } from "../src/lib/tenancy/context";
+import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
 
 process.env.OPENROUTER_API_KEY = "sk-or-v1-test-key-not-real";
 process.env.RESEND_API_KEY = "re_test_key_not_real";
@@ -88,9 +89,10 @@ function harness(overrides: { settings?: Row[]; contacts?: Row[]; clients?: Row[
 }
 
 function respond(db: MemorySupabase, input: typeof INPUT) {
+  const tenantDatabase = bindTenantDatabaseForTest(db.client, ACCELERATE_TENANT_ID);
   return runWithTenantRequestContext(
     accelerateSystemContext("responder-envelope-test"),
-    () => respondToInbound(db.client, input),
+    () => respondToInbound(tenantDatabase, input),
   );
 }
 
@@ -246,7 +248,8 @@ async function main() {
   const suspended = harness({ tenants: [{ id: ACCELERATE_TENANT_ID, slug: "accelerate", status: "suspended" }] });
   const suspendedDecision = await respond(suspended, INPUT);
   assert.equal(suspendedDecision.sent, false);
-  assert.equal((suspendedDecision as { reason: string }).reason, "send_failed");
+  assert.equal((suspendedDecision as { reason: string }).reason, "tenant_inactive");
+  assert.equal(modelCalls, 0, "a suspended tenant must fail before the model call");
   assert.equal(providerSends, 0, "a suspended tenant must fail before the Resend provider call");
 
   // ---- Grounding ---------------------------------------------------------
@@ -329,7 +332,7 @@ async function main() {
 
   console.log(JSON.stringify({
     policyVersion: RESPONDER_POLICY_VERSION,
-    declineRulesProven: ["policy_disabled", "policy_not_approved", "not_first_touch", "outside_send_window", "inquiry_too_thin", "contact_suppressed", "existing_client", "already_contacted", "daily_cap_reached", "failed_grounding_check", "send_failed", "generation_failed"],
+    declineRulesProven: ["policy_disabled", "policy_not_approved", "tenant_inactive", "not_first_touch", "outside_send_window", "inquiry_too_thin", "contact_suppressed", "existing_client", "already_contacted", "daily_cap_reached", "failed_grounding_check", "send_failed", "generation_failed"],
     boundariesProven: ["sends-inside-envelope", "source-allowlist", "untrusted-data-boundary", "per-field-and-total-context-budgets", "safe-final-output-envelope", "per-contact-cap-is-per-contact", "one-below-daily-cap-sends", "yesterday-does-not-count", "suspended-tenant-blocked-before-provider", "own-booking-link-allowed"],
     groundingRejections: mustFail.length,
     result: "passed",

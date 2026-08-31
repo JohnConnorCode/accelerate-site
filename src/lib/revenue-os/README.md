@@ -48,7 +48,7 @@ these modules instead of recreating their rules.
 - New AI capability first needs a normal domain service, then a registered tool.
 - Every admin AI surface uses the shared stream API and conversation service; do
   not create route-local chats, model loops, or transcript stores.
-- All model traffic uses `src/lib/ai/openrouter.ts`; do not add a route-local provider SDK.
+- All model traffic uses `src/lib/ai/openrouter.ts` with an explicit tenant-bound database so `openrouter-credentials.ts` can resolve that workspace's encrypted key; do not add a route-local provider SDK or unscoped production call.
 - New metric extends `analytics.ts`; screens do not calculate competing funnels.
 - New compatibility read extends `legacy-adapter.ts` and names its retirement
   reconciliation card.

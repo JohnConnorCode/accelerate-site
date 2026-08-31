@@ -118,22 +118,22 @@ for (const fixture of fixtures) {
   await page.route("**/api/admin/tenant/providers", (route) => {
     if (route.request().method() !== "GET") return route.fulfill({ status: 405, contentType: "application/json", body: JSON.stringify({ error: "Visual QA never mutates provider state" }) });
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ providers: [
-      { id: "provider-resend", provider: "resend", status: "connected", credential_version: 3, connected_at: "2026-08-29T12:00:00.000Z" },
+      { id: "provider-openrouter", provider: "openrouter", status: "connected", credential_version: 4, connected_at: "2026-08-31T12:00:00.000Z", credential_source: "tenant", key_metadata: { label: "Northline production", limit: 50, limit_remaining: 41.25, limit_reset: "monthly", usage: 8.75, is_free_tier: false, expires_at: null, verified_at: "2026-08-31T12:00:00.000Z" } },
     ] }) });
   });
   await page.goto(`${base}/t/accelerate/admin/integrations`, { waitUntil: "domcontentloaded", timeout: 60_000 });
   await page.getByRole("heading", { name: "Integrations", exact: true }).waitFor({ state: "visible", timeout: 30_000 });
   await page.getByRole("heading", { name: "Provider credentials" }).waitFor({ state: "visible", timeout: 30_000 });
-  const apiKeyField = page.getByRole("textbox", { name: /API key/ });
+  const apiKeyField = page.locator('input[placeholder="sk-or-v1-…"]');
   await apiKeyField.waitFor({ state: "visible" });
-  await page.getByText("Credential v3").waitFor({ state: "visible" });
-  await page.getByLabel("Show api key").click();
+  await page.getByText("Credential v4").waitFor({ state: "visible" });
+  await page.getByLabel("Show openrouter api key").click();
   if (await apiKeyField.getAttribute("type") !== "text") throw new Error(`${fixture.name} credential reveal control did not update the field`);
-  await page.getByLabel("Hide api key").click();
+  await page.getByLabel("Hide openrouter api key").click();
   await page.getByRole("button", { name: "Disconnect", exact: true }).click();
-  await page.locator("h2", { hasText: "Disconnect Resend?" }).waitFor({ state: "visible" });
+  await page.locator("h2", { hasText: "Disconnect OpenRouter?" }).waitFor({ state: "visible" });
   await page.keyboard.press("Escape");
-  await page.locator("h2", { hasText: "Disconnect Resend?" }).waitFor({ state: "hidden" });
+  await page.locator("h2", { hasText: "Disconnect OpenRouter?" }).waitFor({ state: "hidden" });
   await page.locator(".admin-main").evaluate((element) => element.scrollTo({ top: 0, behavior: "instant" }));
   const integrationDimensions = await page.evaluate(() => ({ width: document.documentElement.scrollWidth, viewport: innerWidth }));
   if (integrationDimensions.width > integrationDimensions.viewport + 2) throw new Error(`${fixture.name} integrations overflow ${integrationDimensions.width} > ${integrationDimensions.viewport}`);

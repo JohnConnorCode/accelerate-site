@@ -449,6 +449,7 @@ export async function analyzeContactImport(supabase: SupabaseClient, input: {
     const aiContext = buildContactImportAiContext({ rawRows, instructions: input.instructions });
     const allowedSourceIndexes = new Set(aiContext.sourceRows.map((row) => row.sourceIndex));
     const ai = await openRouterJson({
+      database: supabase,
       model: process.env.OPENROUTER_IMPORT_MODEL,
       maxTokens: 7000,
       temperature: 0,

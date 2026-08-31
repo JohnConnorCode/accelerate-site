@@ -1,11 +1,13 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { tenant } from "@/config/tenant";
-import { getOpenRouterModel, isOpenRouterConfigured, openRouterChat } from "@/lib/ai/openrouter";
+import { getOpenRouterModel, openRouterChat } from "@/lib/ai/openrouter";
+import { isTenantOpenRouterConfigured } from "@/lib/ai/openrouter-credentials";
 import { AI_CONTEXT_VERSION } from "./ai-context";
 import { recordAudit } from "./audit";
 import { sendRecordedEmail } from "./communications";
 import { finishAgentRun, startAgentRun } from "./agent-trace";
+import { InactiveTenantExecutionError } from "@/lib/tenancy/system";
 
 /**
  * Acknowledge a first-touch inbound inquiry without waiting for a human.
@@ -74,6 +76,7 @@ export type ResponderDeclineReason =
   | "policy_disabled"
   | "policy_not_approved"
   | "not_configured"
+  | "tenant_inactive"
   | "not_first_touch"
   | "existing_client"
   | "contact_suppressed"
@@ -269,8 +272,18 @@ export async function respondToInbound(supabase: SupabaseClient, input: Responde
     return decline(supabase, input.opportunityId, "policy_not_approved", `approved "${approved || "none"}", current "${RESPONDER_POLICY_VERSION}"`);
   }
 
-  if (!isOpenRouterConfigured() || !process.env.RESEND_API_KEY) {
-    return decline(supabase, input.opportunityId, "not_configured");
+  try {
+    if (!await isTenantOpenRouterConfigured(supabase)) {
+      return decline(supabase, input.opportunityId, "not_configured");
+    }
+  } catch (error) {
+    // Credential resolution also rechecks lifecycle. This policy is called
+    // after the lead is durable, so an unavailable workspace must become an
+    // auditable no-send decision rather than unwind the intake transaction.
+    if (error instanceof InactiveTenantExecutionError) {
+      return decline(supabase, input.opportunityId, "tenant_inactive");
+    }
+    return decline(supabase, input.opportunityId, "not_configured", "Tenant OpenRouter configuration could not be confirmed.");
   }
 
   if (input.existingOpportunity) {
@@ -328,6 +341,7 @@ export async function respondToInbound(supabase: SupabaseClient, input: Responde
     const record = buildResponderContext({ ...input, now }, bookingLink);
 
     const response = await openRouterChat({
+      database: supabase,
       model,
       maxTokens: 400,
       temperature: 0.4,

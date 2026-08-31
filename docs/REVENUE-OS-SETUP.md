@@ -104,7 +104,7 @@ complete wake-up path.
 
 Approval is bound to the exact selected and edited row digest. Execution claims that snapshot atomically, calls the canonical identity/import service, fills only blank fields on exact existing contacts, and records a terminal result per row plus batch events, activity, and audit provenance. It never creates an opportunity, task, campaign membership, or message. A partial batch retains failed rows for a safe replay; already imported rows resolve through the source-row idempotency key.
 
-Apply `migrations/20260816-contact-importer.sql`, configure the single AI credential `OPENROUTER_API_KEY`, redeploy, and verify the capability in Setup Center. `OPENROUTER_MODEL` is optional; `OPENROUTER_FALLBACK_MODEL` may name one OpenRouter-routed fallback, and workflow-specific model variables are optional server-side overrides. Raw secrets are never stored in import tables, and the full uploaded source is not logged.
+Apply `migrations/20260816-contact-importer.sql`, then connect and verify the workspace's OpenRouter key in Integrations. The key is stored in the tenant's authenticated encrypted provider envelope; it is never stored in import tables or returned to the browser. `OPENROUTER_MODEL` is optional; `OPENROUTER_FALLBACK_MODEL` may name one OpenRouter-routed model fallback, and workflow-specific model variables remain platform-side routing controls. The full uploaded source is not logged.
 
 ## Email Studio publishing
 
@@ -273,9 +273,11 @@ missing scopes, revoked connections, failed events, or stale evidence remain
 visible as degraded. Providers labeled Planned or Edge are roadmap contracts,
 not installed integrations and not permission to connect a new external system.
 
-## Optional Revenue copilot
+## Tenant-owned OpenRouter and Revenue Copilot
 
-Add `OPENROUTER_API_KEY` in Vercel. This is the only AI-provider key used by Contact Import, Revenue Copilot, website chat, plan generation, insights, content briefs, and proposal drafting. `OPENROUTER_MODEL` is optional because the gateway has a default; `OPENROUTER_FALLBACK_MODEL` optionally lets OpenRouter route one declared fallback; and optional workflow-specific `OPENROUTER_*_MODEL` variables can tune a workflow without adding another provider SDK. The copilot can read live operating data directly. Email sends, Gmail replies, pipeline movements, task creation, and campaign activation must be confirmed through the action queue or an explicit final-send confirmation.
+Each workspace admin connects a dedicated OpenRouter API key in Integrations. The server verifies it with OpenRouter's current-key metadata endpoint without generating tokens, encrypts it with tenant/provider/field authentication, increments its credential version on rotation, and never returns plaintext. AI calls resolve that tenant connection immediately before provider traffic, so client usage is billed to the client's OpenRouter account. Client tenants fail closed when their key is missing, revoked, invalid, or unreadable. Only the Accelerate bootstrap tenant may use the temporary `OPENROUTER_API_KEY` platform fallback, and an explicit disconnect disables that fallback.
+
+Create a separate OpenRouter key per tenant and set a provider-side monthly limit. `OPENROUTER_MODEL` is optional because the gateway has a default; `OPENROUTER_FALLBACK_MODEL` selects a model fallback, not a credential fallback; and workflow-specific `OPENROUTER_*_MODEL` variables can tune a workflow without adding another provider SDK. The same tenant key serves Contact Import, Revenue Copilot, website chat, plan generation, content briefs, proposals, and the responder. Email sends, Gmail replies, pipeline movements, task creation, and campaign activation retain their normal confirmation and policy boundaries.
 
 ## Booking mode
 

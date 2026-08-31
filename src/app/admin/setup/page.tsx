@@ -183,17 +183,17 @@ const setupGuides: Record<string, SetupGuide> = {
   },
   ai: {
     steps: [
-      `Create one OpenRouter API key. This is the only AI provider credential ${tenant.brand.name} uses.`,
-      "Store OPENROUTER_API_KEY in Vercel only. OPENROUTER_MODEL is optional; the app has a documented default.",
-      "Redeploy, then open AI Workspace or Contact Import. Writes remain behind their normal approval and service boundaries.",
+      "Create a dedicated OpenRouter API key with a monthly spend limit for this workspace.",
+      "Open Integrations, paste the key, and let the no-token verification complete. The encrypted key never returns to the browser.",
+      "Open AI Workspace or Contact Import. Every request is charged to the workspace key and writes remain behind their normal approval boundaries.",
     ],
-    href: "https://openrouter.ai/settings/keys",
-    linkLabel: "Create OpenRouter key",
+    href: "/admin/integrations#workspace-provider-heading",
+    linkLabel: "Configure OpenRouter",
   },
   contact_importer: {
     steps: [
       "Apply migrations/20260816-contact-importer.sql after the Revenue OS migration.",
-      "Configure OPENROUTER_API_KEY once in Vercel and redeploy.",
+      "Configure and verify this workspace's OpenRouter key in Integrations.",
       "Open Contact Import, analyze a safe sample, edit the preview, and approve only the exact reviewed snapshot.",
       "Verify the completed batch reports row receipts. Analysis never imports, and execution never sends or creates opportunities.",
     ],

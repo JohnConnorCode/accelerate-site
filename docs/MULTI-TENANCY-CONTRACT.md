@@ -71,11 +71,14 @@ playbooks, and Setup consume the active configuration explicitly. Query caches,
 links, breadcrumbs, exports, and downloads include tenant identity and discard
 retained tenant data before a switch.
 
-Each tenant owns its Google, Resend, analytics, and optional scheduling
+Each tenant owns its Google, Resend, OpenRouter, analytics, and optional scheduling
 connections. Credentials use a versioned environment-backed encryption keyring;
 ciphertext authentication binds tenant ID and provider. No client tenant may fall
-back to Accelerate's environment credentials. Supabase, cron wake-up, the AI
-gateway, and the encryption keyring remain platform infrastructure.
+back to Accelerate's environment credentials. The AI gateway is shared platform
+infrastructure, but every model request resolves the active tenant's encrypted
+OpenRouter key before provider traffic. Only the bootstrap tenant may use the
+explicit temporary environment fallback. Supabase, cron wake-up, model-routing
+policy, and the encryption keyring remain platform infrastructure.
 
 New public capture uses a signed, rotatable tenant ingest credential bound to
 tenant, surface, allowed origin, expiry, and rate limit. Existing unscoped public
