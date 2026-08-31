@@ -61,10 +61,13 @@ assert.match(readFileSync("src/app/(marketing)/learn/page.tsx", "utf8"), /getArt
 assert.doesNotMatch(readFileSync("src/app/(marketing)/learn/page.tsx", "utf8"), /getAllArticles\(/, "Learn listings must not serialize MDX bodies");
 const hero = readFileSync("src/components/home/Hero.tsx", "utf8");
 assert.match(hero, /const \[loaded, setLoaded\] = useState\(false\)/, "Hero must start unloaded so PROFIT and the CTA can transition in");
+assert.match(hero, /const restartEntrance = \(\) =>/, "Hero must own a restartable entrance lifecycle");
+assert.match(hero, /if \(event\.persisted\) restartEntrance\(\)/, "Hero must replay after a bfcache restoration");
 assert.match(hero, /eyebrow-anim rv\$\{loaded \? " in" : ""\}/, "Hero eyebrow must wait on the same loaded gate as the rest of the sequence");
 assert.doesNotMatch(hero, /reveal-immediate/, "Hero copy must not skip its authored entrance");
 assert.match(styles, /\.motion-ready \.hero:not\(\.loaded\) \.swap/, "PROFIT must stay hidden until the loaded gate flips");
 assert.match(styles, /\.motion-ready \.hero:not\(\.loaded\) \.hero-inline-cta/, "The hero CTA must stay hidden until the loaded gate flips");
+assert.match(styles, /\.motion-ready \.hero\.loaded \.hero-profit/, "Mobile PROFIT animation must be owned by the restartable hero lifecycle");
 assert.match(styles, /\.loaded \.swap \{[^}]*transition:/, "PROFIT entrance is a delayed transition off .loaded, not a first-paint rest state");
 assert.match(styles, /\.loaded \.hero-inline-cta \{[^}]*transition:/, "Hero CTA entrance is a delayed transition off .loaded");
 assert.doesNotMatch(styles, /\.motion-ready \.hero \.rv:not\(\.in\)/, "Hero rv copy must not bypass the loaded entrance");

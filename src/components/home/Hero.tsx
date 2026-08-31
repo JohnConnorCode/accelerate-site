@@ -55,6 +55,7 @@ function ScrambleText({ text, delay = 0, trigger = true }: { text: string; delay
 export function Hero() {
   const [loaded, setLoaded] = useState(false);
   const entranceRaf = useRef<number | undefined>(undefined);
+  const entranceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const sectionRef = useRef<HTMLElement>(null);
   const reduced = useReducedMotion();
   const [finePointer, setFinePointer] = useState(false);
@@ -93,16 +94,27 @@ export function Hero() {
   }, []);
 
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | undefined;
     let spotlightRaf: number | undefined;
-    entranceRaf.current = requestAnimationFrame(() => {
-      timer = setTimeout(() => setLoaded(true), 40);
-    });
+    const restartEntrance = () => {
+      // App-router and bfcache restores can retain a completed CSS animation.
+      // Remove the lifecycle class for one rendered frame, then add it back on
+      // the next one. The browser sees a genuine new animation instead of a
+      // settled hero that only *looks* as though it has replayed.
+      setLoaded(false);
+      if (entranceRaf.current) cancelAnimationFrame(entranceRaf.current);
+      if (entranceTimer.current) clearTimeout(entranceTimer.current);
+      entranceRaf.current = requestAnimationFrame(() => {
+        entranceRaf.current = requestAnimationFrame(() => {
+          entranceTimer.current = setTimeout(() => setLoaded(true), 16);
+        });
+      });
+    };
+    restartEntrance();
 
     const el = sectionRef.current;
     if (!el || reduced) return () => {
       if (entranceRaf.current) cancelAnimationFrame(entranceRaf.current);
-      if (timer) clearTimeout(timer);
+      if (entranceTimer.current) clearTimeout(entranceTimer.current);
     };
 
     // The lit grid has one continuous position rather than separate idle and
@@ -229,13 +241,15 @@ export function Hero() {
     document.addEventListener("visibilitychange", onVisibilityChange);
     if (!document.hidden) startSpotlight();
 
-    const onPageShow = () => setLoaded(true);
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) restartEntrance();
+    };
     window.addEventListener("pageshow", onPageShow);
 
     return () => {
       if (entranceRaf.current) cancelAnimationFrame(entranceRaf.current);
       stopSpotlight();
-      if (timer) clearTimeout(timer);
+      if (entranceTimer.current) clearTimeout(entranceTimer.current);
       if (touchReleaseTimer) clearTimeout(touchReleaseTimer);
       visibilityObserver.disconnect();
       document.removeEventListener("visibilitychange", onVisibilityChange);

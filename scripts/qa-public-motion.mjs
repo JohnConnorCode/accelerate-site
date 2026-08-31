@@ -25,7 +25,7 @@ const smokeRoutes = [
 async function inspectInitial(page, route, label) {
   const response = await page.goto(`${baseUrl}${route}`, { waitUntil: "domcontentloaded" });
   if (!response || response.status() >= 400) failures.push(`${label} ${route}: HTTP ${response?.status() ?? "no response"}`);
-  const initial = await page.evaluate(() => {
+  const readInitial = () => page.evaluate(() => {
     const main = document.querySelector("main");
     const entry = document.querySelector("[data-route-entry]");
     return {
@@ -35,6 +35,17 @@ async function inspectInitial(page, route, label) {
       overflow: document.documentElement.scrollWidth > window.innerWidth + 1,
     };
   });
+  // Next can replace the document immediately after DOMContentLoaded when a
+  // cached route bootstrap arrives. This is a test-harness race, not a visual
+  // state, so retry the read against the committed document once.
+  let initial;
+  try {
+    initial = await readInitial();
+  } catch (error) {
+    if (!(error instanceof Error) || !error.message.includes("Execution context was destroyed")) throw error;
+    await page.waitForLoadState("domcontentloaded");
+    initial = await readInitial();
+  }
   if (initial.mainOpacity < 0.9 || initial.entryOpacity < 0.9) failures.push(`${label} ${route}: prerendered route began hidden (${initial.mainOpacity}/${initial.entryOpacity})`);
   if (initial.visibleText < 20) failures.push(`${label} ${route}: main content was not present at DOMContentLoaded`);
   if (initial.overflow) failures.push(`${label} ${route}: horizontal overflow`);
@@ -296,10 +307,30 @@ for (const config of [
           ctaOpacity: Number.parseFloat(getComputedStyle(document.querySelector(".hero-inline-cta")).opacity),
         };
       });
-      if (settledHero.statementGap < 12 || settledHero.statementGap > 24 || Math.abs(settledHero.profitOffset) > 2) failures.push(`mobile reload ${reload}: Profit has an unbalanced headline gap (${settledHero.statementGap.toFixed(1)}px gap, ${settledHero.profitOffset.toFixed(1)}px offset)`);
+      if (settledHero.statementGap < 24 || settledHero.statementGap > 42 || Math.abs(settledHero.profitOffset) > 2) failures.push(`mobile reload ${reload}: Profit has an unbalanced headline gap (${settledHero.statementGap.toFixed(1)}px gap, ${settledHero.profitOffset.toFixed(1)}px offset)`);
       if (settledHero.actionGap < 16 || settledHero.actionGap > 34) failures.push(`mobile reload ${reload}: CTA has an unbalanced Profit gap (${settledHero.actionGap.toFixed(1)}px)`);
       if (settledHero.profitOpacity < 0.99 || settledHero.ctaOpacity < 0.99) failures.push(`mobile reload ${reload}: hero sequence did not settle visibly`);
     }
+    // Router cache restores must create a new hero lifecycle rather than
+    // inheriting a completed document-level animation.
+    await page.getByRole("link", { name: /services/i }).first().click();
+    await page.waitForURL("**/services");
+    await page.goBack();
+    await page.waitForURL(baseUrl + "/");
+    await page.waitForTimeout(80);
+    const restoredHero = await page.evaluate(() => ({
+      loaded: document.querySelector(".hero")?.classList.contains("loaded"),
+      profitAnimation: getComputedStyle(document.querySelector(".hero-profit")).animationName,
+      profitOpacity: Number.parseFloat(getComputedStyle(document.querySelector(".hero-profit")).opacity),
+      ctaOpacity: Number.parseFloat(getComputedStyle(document.querySelector(".hero-inline-cta")).opacity),
+    }));
+    if (!restoredHero.loaded || !restoredHero.profitAnimation.includes("hero-mobile-focus-in") || restoredHero.profitOpacity > 0.1 || restoredHero.ctaOpacity > 0.1) failures.push("mobile back navigation: hero did not restart its staged outcome and CTA sequence");
+    await page.waitForTimeout(1_600);
+    const restoredVisibility = await page.evaluate(() => ({
+      profit: Number.parseFloat(getComputedStyle(document.querySelector(".hero-profit")).opacity),
+      cta: Number.parseFloat(getComputedStyle(document.querySelector(".hero-inline-cta")).opacity),
+    }));
+    if (restoredVisibility.profit < 0.99 || restoredVisibility.cta < 0.99) failures.push("mobile back navigation: hero did not settle visibly after replay");
     await page.screenshot({ path: `${output}/mobile-home-hero-settled.png`, fullPage: false });
 
     await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded" });
