@@ -1,18 +1,21 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { execFileSync } from "node:child_process";
+import { readFileSync, readdirSync } from "node:fs";
 
-let adminServiceFiles: string[] = [];
-try {
-  adminServiceFiles = execFileSync("rg", ["-l", "createServiceRoleClient\\(", "src/app/api/admin"], { encoding: "utf8" })
-    .trim().split("\n").filter(Boolean);
-} catch {
-  // ripgrep exits with status 1 when no matches are found, which is the desired state.
+function sourceFiles(directory: string): string[] {
+  const files: string[] = [];
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const path = `${directory}/${entry.name}`;
+    if (entry.isDirectory()) files.push(...sourceFiles(path));
+    else if (/\.(?:ts|tsx)$/.test(entry.name)) files.push(path);
+  }
+  return files;
 }
+
+const serviceFiles = sourceFiles("src").filter((file) => readFileSync(file, "utf8").includes("createServiceRoleClient("));
+const adminServiceFiles = serviceFiles.filter((file) => file.startsWith("src/app/api/admin/"));
 assert.deepEqual(adminServiceFiles, [], "interactive admin routes must use the database returned by requireAdmin");
 
-const nonAdminServiceFiles = execFileSync("rg", ["-l", "createServiceRoleClient\\(", "src"], { encoding: "utf8" })
-  .trim().split("\n").filter((file) => file && !file.startsWith("src/app/api/admin/") && file !== "src/lib/supabase/server.ts");
+const nonAdminServiceFiles = serviceFiles.filter((file) => !file.startsWith("src/app/api/admin/") && file !== "src/lib/supabase/server.ts");
 for (const file of nonAdminServiceFiles) {
   assert.doesNotMatch(readFileSync(file, "utf8"), /createServiceRoleClient\(\s*\)/, `${file} uses service-role access without TenantSystemContext`);
 }
