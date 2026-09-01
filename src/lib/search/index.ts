@@ -68,7 +68,7 @@ const STATIC_PAGES: Array<Omit<SearchEntry, "group">> = [
     id: "page-open-source",
     title: "Open Source",
     description:
-      "The Command Center is MIT licensed. Self-host it free, or have Accelerate build and run a custom managed version.",
+      "The Command Center is MIT licensed. Self-host it free, or have us build and run a custom managed version.",
     href: "/open-source",
     keywords: ["open source", "github", "self-host", "mit license", "managed hosting"],
   },
