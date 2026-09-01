@@ -249,6 +249,22 @@ async function main() {
     "the admin_layout_change case must call applyLayoutChange, the same domain service the AI tool proposes into",
   );
 
+  // action_queue.entity_id is a UUID column. A layout scope ("nav.sidebar",
+  // "page.today") is not a UUID, and a stubbed Supabase client happily echoes
+  // back whatever you insert — so this exact defect (proposeLayoutChange
+  // once passed entityId: input.scope) passed every test above while failing
+  // every real proposal in production with a Postgres type error. Guard the
+  // source directly, since no in-process test can see a real column type.
+  const adminLayoutSource = readFileSync("src/lib/revenue-os/admin-layout.ts", "utf8");
+  const proposeLayoutChangeBody = adminLayoutSource.slice(
+    adminLayoutSource.indexOf("export async function proposeLayoutChange"),
+    adminLayoutSource.indexOf("export async function applyLayoutChange"),
+  );
+  assert.ok(
+    !/entityId:\s*input\.scope/.test(proposeLayoutChangeBody),
+    "proposeLayoutChange must not pass the scope string as action_queue.entity_id (a UUID column) — this silently failed every real proposal in production",
+  );
+
   console.log(
     JSON.stringify(
       {
@@ -272,6 +288,7 @@ async function main() {
           "tool-impact-honoured",
           "tool-core-pack",
           "executor-wiring",
+          "no-scope-string-into-uuid-entity-id",
         ],
         result: "passed",
       },

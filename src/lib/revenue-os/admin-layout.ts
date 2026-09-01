@@ -76,8 +76,12 @@ export async function proposeLayoutChange(
     payload: { scope: input.scope, doc },
     reasoning: input.reasoning,
     sourceContext: "admin_ai",
-    entityType: "admin_layout",
-    entityId: input.scope,
+    // action_queue.entity_id is a UUID column for linking to a real business
+    // record (contact/opportunity/etc). A layout scope is a config string,
+    // not one of those — entityType/entityId are correctly omitted here.
+    // The scope already travels in `payload.scope` for dedup and display;
+    // audit_log.entity_id (TEXT) is where the scope string belongs, and
+    // applyLayoutChange/revertLayoutChange already use it there correctly.
     dedupeKey: `ai-layout:${input.scope}`,
     proposedBy: input.actorEmail,
     expiresAt: new Date(Date.now() + 86400000).toISOString(),
