@@ -19,13 +19,13 @@ export const OPEN_SOURCE_PATHS: OpenSourcePath[] = [
     title: "Run it yourself.",
     scope: "Free, MIT licensed",
     description:
-      "Clone the repository, connect your own Supabase project, and run the same Command Center codebase behind our own agency. You own the code, the database, and any AI provider key you connect.",
+      "Clone the repository, connect your own Supabase project, and run the same Command Center codebase behind our own agency. You own the code, the database, and any AI provider key you connect. Nothing phones home to us.",
     included: [
-      "The complete source, MIT licensed",
+      "The complete source, MIT licensed, no seat limits or usage tiers",
       "CRM, pipeline, inbox, campaigns, proposals, and analytics in one application",
       "AI operations with approval gates and an audit trail, using your own OpenRouter key",
-      "Documentation for migrations, tenancy, and the security model",
-      "A public roadmap, with acceptance criteria for every planned change",
+      "32 ordered database migrations and full documentation for tenancy and security",
+      "A public roadmap, with acceptance criteria written out for every planned change",
     ],
     ctaText: "View the repository",
     ctaHref: "https://github.com/JohnConnorCode/accelerate-site",
@@ -40,7 +40,7 @@ export const OPEN_SOURCE_PATHS: OpenSourcePath[] = [
       "The same system, configured for how your team already works, deployed on infrastructure we manage, and kept running by the people who wrote it. This is managed execution, the same offer behind every Accelerate engagement, applied to this product.",
     included: [
       "Your own isolated workspace, configured around your existing tools",
-      "Migrations, updates, and monitoring handled for you",
+      "Migrations, updates, security patches, and monitoring handled for you",
       "Integrations connected: Google Workspace, Resend, Calendly, and the rest of your stack",
       "Direct support from the engineers who built it, not a support queue",
       "Training for your team and ongoing improvement as the business changes",
@@ -49,6 +49,38 @@ export const OPEN_SOURCE_PATHS: OpenSourcePath[] = [
     ctaHref: "/contact",
   },
 ];
+
+export interface OpenSourceStat {
+  value: string;
+  label: string;
+  detail: string;
+}
+
+/** Verifiable facts about the codebase, not illustrative figures. Recompute
+    against the repo before changing a number here. */
+export const OPEN_SOURCE_STATS: OpenSourceStat[] = [
+  { value: "32", label: "Ordered migrations", detail: "Every schema change, in sequence" },
+  { value: "101", label: "Automated checks", detail: "Test and verification scripts" },
+  { value: "94K", label: "Lines of TypeScript", detail: "Across 534 source files" },
+  { value: "MIT", label: "Fully open license", detail: "No seat limits, no usage tiers" },
+];
+
+export const TECH_STACK = [
+  "Next.js 16",
+  "React 19",
+  "TypeScript",
+  "Tailwind CSS 4",
+  "Supabase",
+  "TanStack Query",
+  "OpenRouter",
+  "Resend",
+  "Playwright",
+];
+
+export const QUICK_START = `git clone https://github.com/JohnConnorCode/accelerate-site.git
+cd accelerate-site
+npm ci
+npm run dev`;
 
 export const openSourceFaqs: FAQ[] = [
   {
@@ -59,12 +91,17 @@ export const openSourceFaqs: FAQ[] = [
   {
     question: "What does self-hosting actually require?",
     answer:
-      "Node.js, a Supabase project you control, and running the documented migrations. A one-click deploy path that removes the terminal step entirely is on the public roadmap now.",
+      "Node.js, a Supabase project you control, and running the 32 documented migrations. A one-click deploy path that removes the terminal step entirely is on the public roadmap now.",
   },
   {
     question: "Can I self-host it now and bring you in later?",
     answer:
       "Yes. Self-hosting and a managed build are not a one-time fork in the road. You can start on your own and bring us in later for a specific integration, a migration, or to take operating it off your plate entirely.",
+  },
+  {
+    question: "How mature is the codebase?",
+    answer:
+      "It runs a real, working agency today: 101 automated test and verification scripts, ordered migrations with a documented rollback path, tenant isolation enforced at the database level, and a public commit history you can read before you decide anything.",
   },
   {
     question: "How is this different from your other services?",
