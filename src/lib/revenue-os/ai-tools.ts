@@ -5,6 +5,7 @@ import { proposeAction } from "./actions";
 import { loadOperatorQueue } from "./queue";
 import { REVENUE_STAGES } from "./types";
 import { loadActivityTimeline } from "./activities";
+import { ADMIN_LAYOUT_SCOPES, proposeLayoutChange } from "./admin-layout";
 
 export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v3";
 export const REVENUE_TOOL_PACKS = ["core", "pipeline", "outreach"] as const;
@@ -553,10 +554,44 @@ const registry: AiToolRegistration[] = [
         expiresAt: new Date(Date.now() + 86400000).toISOString(),
       }),
   },
+  {
+    name: "propose_layout_change",
+    description:
+      "Stage a reorder or show/hide change to a bounded admin layout region (sidebar navigation or the Today page) for founder approval. Only known ids for the given scope may be referenced; required regions can never be hidden.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        scope: { type: "string", enum: ADMIN_LAYOUT_SCOPES.map((scope) => scope.id) },
+        order: { type: "array", items: { type: "string" } },
+        hidden: { type: "array", items: { type: "string" } },
+        reasoning: { type: "string" },
+      },
+      required: ["scope", "reasoning"],
+      additionalProperties: false,
+    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.action-queue",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }, input) =>
+      proposeLayoutChange(supabase, {
+        scope: String(input.scope ?? ""),
+        doc: { order: input.order ?? [], hidden: input.hidden ?? [] },
+        actorEmail,
+        reasoning: value(input, "reasoning"),
+      }),
+  },
 ];
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
-  core: ["get_today_snapshot", "search_pipeline", "get_record_timeline", "propose_task"],
+  core: [
+    "get_today_snapshot",
+    "search_pipeline",
+    "get_record_timeline",
+    "propose_task",
+    "propose_layout_change",
+  ],
   pipeline: [
     "get_today_snapshot",
     "search_pipeline",

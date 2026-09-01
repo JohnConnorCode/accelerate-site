@@ -7,6 +7,7 @@ import { activateCampaign } from "./campaigns";
 import { sendGmailReply } from "./google";
 import { REVENUE_STAGES, type RevenueStage } from "./types";
 import { createRevenueTask } from "./tasks";
+import { applyLayoutChange } from "./admin-layout";
 
 function stringValue(
   payload: Record<string, unknown>,
@@ -25,6 +26,7 @@ export const APPROVABLE_ACTIONS = [
   "create_task",
   "update_next_action",
   "activate_campaign",
+  "admin_layout_change",
 ] as const;
 
 export async function approveAndExecuteAction(
@@ -101,6 +103,13 @@ export async function approveAndExecuteAction(
       }
       case "activate_campaign":
         result = await activateCampaign(supabase, stringValue(payload, "campaignId")!, actorEmail);
+        break;
+      case "admin_layout_change":
+        result = await applyLayoutChange(supabase, {
+          scope: stringValue(payload, "scope")!,
+          doc: payload.doc,
+          actorEmail,
+        });
         break;
       default:
         throw new Error(`Action type ${action.action_type} is not registered for execution`);
