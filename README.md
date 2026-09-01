@@ -3,37 +3,31 @@
 [![CI](https://github.com/JohnConnorCode/accelerate-site/actions/workflows/ci.yml/badge.svg)](https://github.com/JohnConnorCode/accelerate-site/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-An open-source, multi-tenant operating system for service businesses: CRM, pipeline, inbox, campaigns, proposals, analytics, AI-assisted operations, and a public marketing site in one Next.js application.
+Accelerate Revenue OS is a self-hosted operations platform for service businesses. It runs your pipeline, inbox, campaigns, proposals, and analytics in one application, with AI built into the workflow instead of bolted on top. This is the actual code behind a working business, open-sourced as-is, not a demo trimmed down for GitHub.
+
+Most CRMs rent you a seat in someone else's database and charge more the more you use them. This one you own outright: your own Supabase project, your own AI provider key, your own data. Multi-tenancy is built in from the schema up, so an agency can run several client businesses from a single deployment without any of them seeing each other's records.
 
 [Live site](https://www.acceleratewith.us) · [Interactive fictional demo](https://www.acceleratewith.us/demo/command-center) · [Architecture](docs/ARCHITECTURE.md) · [Self-hosting](docs/SELF-HOSTING.md) · [Roadmap](#roadmap)
 
 ![The Today command center, showing a founder's priority queue, open pipeline value, and pending approvals for a fictional roofing company workspace.](docs/images/command-center-workspace.png)
 
-> **Project status:** Active and production-derived. The fictional demo works without provider credentials. Running a connected workspace requires your own Supabase project and optional provider accounts. Review the security and tenancy contracts before using real customer data.
+> **Project status:** Active and production-derived. The fictional demo works with zero setup and no provider credentials. A connected workspace needs your own Supabase project and, optionally, your own provider accounts. Read the security and tenancy contracts before you put real customer data anywhere near it.
 
-## What is included
+## What it does
 
-The Command Center is an integrated operating layer for the work that turns
-demand into revenue. Its core product surface includes:
+**Today** is the operator's front door: one ranked queue, per tenant, of replies, approvals, follow-ups, and anything else that needs a decision right now.
 
-- **Today and operator priorities** — a tenant-scoped queue for next actions,
-  approvals, follow-up, and work that needs attention now.
-- **Revenue records** — canonical contacts, companies, opportunities, pipeline
-  stages, ownership, tasks, activities, attribution, and record workspaces.
-- **Inbox and engagement** — conversations, contact intake, identity resolution,
-  notes, and auditable communication workflows.
-- **Revenue execution** — campaign planning, proposals, booking workflows, and
-  recovery/receipt tracking with approval gates and idempotent external actions.
-- **Analytics and data quality** — source-to-revenue attribution, first-party
-  website signals, decision-ready reporting, and explicit data-quality states.
-- **Grounded AI operations** — bounded context retrieval, tool evidence,
-  approval-gated writes, action queues, and immutable audit receipts.
-- **Tenant controls** — shared-database multi-tenancy with explicit tenant
-  context, membership authorization, isolated records, provider boundaries, and
-  tenant-owned OpenRouter credentials for cost control.
-- **Integrations and safe demos** — Resend, Google Workspace, Calendly, Plausible,
-  and first-party analytics paths, plus five fictional Command Center workspaces
-  that run without provider credentials.
+**Records** are canonical. Every contact, company, and opportunity is one entity with one pipeline stage, one owner, and one activity history, so different screens never quietly disagree about the same deal.
+
+**The inbox** resolves identity on intake, so a new message from an existing contact gets merged into their record instead of spawning a duplicate.
+
+**Campaigns, proposals, and bookings** run through approval gates and idempotent sends, so a flaky network or a doubled click never means a client gets the same email twice.
+
+**Analytics** ties revenue back to its source, by channel, campaign, and stage, and shows where attribution data is genuinely missing instead of quietly treating it as zero.
+
+**The AI layer is grounded, not generic.** Every model call runs against bounded, retrieved context with source citations, and every write it proposes goes through the same approval queue and audit trail as a human action. It doesn't get a side door around the rules everyone else follows.
+
+**Tenancy is structural, not bolted on.** One shared database, explicit tenant context on every request, isolated records, and a workspace can connect its own OpenRouter key so AI spend is billed to that tenant, not to you. Five fictional demo workspaces let you explore the entire product, including a live drag-and-drop feature-board kanban, with no setup at all.
 
 See [Roadmap](#roadmap) below for what's shipped, in progress, and planned next.
 
@@ -58,9 +52,9 @@ npm ci
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The public site and fictional demo are the fastest way to explore the project without connecting external services.
+Open [http://localhost:3000](http://localhost:3000). The public site and fictional demo are the fastest way to explore the project; neither one touches an external service.
 
-For a connected local workspace:
+To connect a real workspace instead:
 
 ```bash
 cp .env.example .env.local
@@ -68,7 +62,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Never copy production credentials into a fork. See [Self-hosting](docs/SELF-HOSTING.md) for migration order, environment tiers, tenant bootstrap, and provider activation.
+Never copy production credentials into a fork. [Self-hosting](docs/SELF-HOSTING.md) covers migration order, environment tiers, tenant bootstrap, and turning on providers.
 
 ## Useful commands
 
@@ -97,33 +91,33 @@ Public site / Admin UI / APIs / Cron / Webhooks / AI tools
        Tenant-scoped PostgreSQL + immutable receipts
 ```
 
-Route handlers and UI components are adapters. Business writes live in `src/lib/revenue-os/`; tenant resolution lives in `src/lib/tenancy/`; database changes are ordered SQL migrations. Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) before changing these boundaries.
+Route handlers and UI components are thin adapters, nothing more. Every business write lives in `src/lib/revenue-os/`, tenant resolution lives in `src/lib/tenancy/`, and every database change is an ordered SQL migration, never a runtime mutation. Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) before you touch any of those boundaries.
 
 ## Roadmap
 
-The [canonical feature manifest](scripts/feature-backlog-data.mjs) is the single source of truth for what's shipped, in progress, planned, and backlog — every card has acceptance criteria, dependencies, and required verification, following the [Feature Board taxonomy](docs/FEATURE-BOARD-TAXONOMY.md). Don't maintain a separate roadmap in a fork; extend the manifest instead.
+`scripts/feature-backlog-data.mjs` is the single source of truth for what's shipped, in progress, planned, and backlog. Every card carries acceptance criteria, dependencies, and required verification, following the [Feature Board taxonomy](docs/FEATURE-BOARD-TAXONOMY.md). Extend that manifest; don't start a second roadmap in a fork.
 
-You can explore the same Kanban UI the founder uses, populated with representative fictional data, in any [demo workspace](https://www.acceleratewith.us/demo/command-center) under **System → Feature Board**. (The live founder board at `/admin/features` requires authentication and isn't publicly viewable.)
+You can explore the same kanban UI the founder uses, populated with representative fictional data, inside any [demo workspace](https://www.acceleratewith.us/demo/command-center) under **System → Feature Board**. The live founder board at `/admin/features` requires authentication, so it isn't publicly browsable.
 
-Near-term priorities include a genuine one-click deploy path (`one-click-vercel-deploy`, `guided-first-run-setup` in the manifest) — the goal is a working workspace from the README with zero terminal steps, not just a `git clone`.
+The near-term priority is a genuine one-click deploy path (`one-click-vercel-deploy` and `guided-first-run-setup` in the manifest): a working workspace straight from this README, with zero terminal steps required.
 
 ## Security model
 
-- Server credentials never belong in browser bundles, source control, logs, or database settings rows.
-- Operational records carry tenant ownership and are protected by membership, request context, and database policies.
-- External effects require deterministic idempotency and a terminal receipt.
-- AI reads bounded context; writes and external actions require the same validated services and approval rules as the UI.
-- Fictional demos must never issue protected production requests.
+- Server credentials never reach browser bundles, source control, logs, or a database settings row.
+- Every operational record carries tenant ownership, enforced by membership checks, request context, and database policy, not by convention.
+- External effects (sends, webhooks, provider calls) require deterministic idempotency and end in a terminal receipt, so retries can't double-fire them.
+- AI reads run against bounded context only. AI writes and external actions go through the same validated services and approval rules the UI does; there is no separate, looser path for the model.
+- Fictional demo workspaces are hard-isolated from production: they can never issue a real, protected request.
 
-Please report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
+Found a vulnerability? Report it privately, as described in [SECURITY.md](SECURITY.md), rather than opening a public issue.
 
 ## Contributing
 
-Contributions are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md), follow [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and keep pull requests focused. Changes to authorization, tenancy, migrations, providers, or automation require the relevant contract tests and threat-boundary evidence. Repository changes are tracked in [CHANGELOG.md](CHANGELOG.md).
+Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first, follow [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and keep pull requests narrowly scoped to one change. Anything touching authorization, tenancy, migrations, providers, or automation needs the relevant contract tests and threat-boundary evidence, not just a passing build. Repository-level changes are tracked in [CHANGELOG.md](CHANGELOG.md).
 
 ## Branding and assets
 
-The source code is MIT licensed. Accelerate names, marks, customer/case-study media, photography, marketing copy, and downloadable resources are not granted for reuse by the software license. Forks should replace them before publishing. See [ASSETS.md](ASSETS.md).
+The source code is MIT licensed. The Accelerate name, marks, customer and case-study media, photography, marketing copy, and downloadable resources are not covered by that license. If you're publishing a fork, replace them first. See [ASSETS.md](ASSETS.md) for the exact boundary.
 
 ## License
 
