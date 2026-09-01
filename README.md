@@ -95,7 +95,7 @@ Please report vulnerabilities privately as described in [SECURITY.md](SECURITY.m
 
 ## Contributing
 
-Contributions are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md), follow [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and keep pull requests focused. Changes to authorization, tenancy, migrations, providers, or automation require the relevant contract tests and threat-boundary evidence.
+Contributions are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md), follow [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and keep pull requests focused. Changes to authorization, tenancy, migrations, providers, or automation require the relevant contract tests and threat-boundary evidence. Repository changes are tracked in [CHANGELOG.md](CHANGELOG.md).
 
 ## Branding and assets
 
