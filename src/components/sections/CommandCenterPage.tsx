@@ -12,6 +12,7 @@ import { ApprovalQueue } from "@/components/command-center/ApprovalQueue";
 import { CapabilityCatalog } from "@/components/command-center/CapabilityCatalog";
 import { CommandCenterDemo } from "@/components/command-center/demo/CommandCenterDemo";
 import { CommandCenterNav } from "@/components/command-center/CommandCenterNav";
+import { ProductSlider } from "@/components/media/ProductSlider";
 import { commandCenterFaqs } from "@/content/command-center-faq";
 import {
   CURRENT_SURFACES,
@@ -20,6 +21,7 @@ import {
   MARQUEE_ITEMS,
   WHO_ITS_FOR,
 } from "@/content/command-center";
+import { PRODUCT_SCREENSHOTS } from "@/content/product-screenshots";
 import type { MouseEvent } from "react";
 
 /* /command-center, built on the homepage editorial system (.sect / .wrap /
@@ -144,10 +146,17 @@ function Hero() {
               </p>
             </div>
             <div
-              className={`rv${loaded ? " in" : ""}`}
+              className={`rv${loaded ? " in" : ""} flex flex-wrap items-center gap-6`}
               style={{ "--d": ".62s", marginTop: 32 } as CSSProperties}
             >
               <BookCallButton location="command_center_hero" />
+              <Link
+                href="/demo/command-center"
+                data-cursor="link"
+                className="text-sm font-medium text-[var(--mid)] underline-offset-4 transition-colors hover:text-[var(--fg)] hover:underline"
+              >
+                Explore the live demo
+              </Link>
             </div>
           </div>
 
@@ -483,6 +492,9 @@ function OpenSource() {
             </Reveal>
           </div>
         </div>
+        <Reveal rv as="div" delay={0.1} style={{ marginTop: "clamp(32px,4vw,54px)" }}>
+          <ProductSlider slides={PRODUCT_SCREENSHOTS} groupLabel="Command Center screens" />
+        </Reveal>
       </div>
     </section>
   );
