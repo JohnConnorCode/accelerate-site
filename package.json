@@ -1,7 +1,21 @@
 {
-  "name": "accelerate-site",
+  "name": "accelerate-revenue-os",
   "version": "0.1.0",
+  "description": "Multi-tenant revenue operations, CRM, automation, and AI workspace for service businesses.",
   "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JohnConnorCode/accelerate-site.git"
+  },
+  "homepage": "https://www.acceleratewith.us/demo/command-center",
+  "bugs": {
+    "url": "https://github.com/JohnConnorCode/accelerate-site/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "npm@10.9.2",
   "scripts": {
     "dev": "next dev",
     "build": "node scripts/next-release.mjs build",
@@ -9,6 +23,9 @@
     "start": "node scripts/next-release.mjs start",
     "start:qa": "NEXT_DIST_DIR=.next-qa node scripts/next-release.mjs start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "verify:oss": "node scripts/verify-open-source-readiness.mjs",
+    "test:core": "npm run test:admin-demo-contract && npm run test:admin-breadcrumbs && npm run test:tenant-config && npm run test:tenant-isolation && npm run test:secret-storage",
     "verify:articles": "npx tsx scripts/verify-articles.ts",
     "deploy:check": "vercel whoami && vercel teams ls",
     "deploy:pull": "vercel pull --yes --environment=production",
@@ -156,7 +173,7 @@
     "gsap": "^3.14.2",
     "lenis": "^1.3.23",
     "lucide-react": "^0.575.0",
-    "nanoid": "^5.1.6",
+    "nanoid": "^5.1.16",
     "next": "16.3.3",
     "next-mdx-remote": "^6.0.0",
     "next-themes": "^0.4.6",
@@ -167,7 +184,7 @@
     "rehype-autolink-headings": "^7.1.0",
     "rehype-slug": "^6.0.0",
     "remark-gfm": "^4.0.1",
-    "resend": "^6.9.3",
+    "resend": "^6.25.0",
     "server-only": "^0.0.1",
     "tailwind-merge": "^3.5.0"
   },
@@ -180,7 +197,6 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "playwright": "^1.58.2",
-    "puppeteer": "^24.37.5",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

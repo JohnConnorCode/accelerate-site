@@ -33,9 +33,7 @@ if (
   fail("the SQL file must be inside migrations/ or supabase/");
 }
 
-console.log(
-  `Checking Accelerate Supabase ${PROJECT_REF} through ${POOLER_HOST}:${POOLER_PORT}...`,
-);
+console.log(`Checking Supabase project ${PROJECT_REF} through ${POOLER_HOST}:${POOLER_PORT}...`);
 const connectionCheck = runPsql(["--command", "SELECT current_database() AS database, current_user AS role;"]);
 process.stdout.write(connectionCheck.stdout ?? "");
 process.stderr.write(connectionCheck.stderr ?? "");

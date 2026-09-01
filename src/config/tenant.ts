@@ -176,8 +176,8 @@ export const tenant: TenantConfig = {
     },
   ],
   external: {
-    vercelProjectUrl: "https://vercel.com/robert-farrells-projects/accelerate-site/settings/environment-variables",
-    supabaseProjectRef: "skjypuwkceoiunyhhqlm",
+    vercelProjectUrl: null,
+    supabaseProjectRef: null,
   },
 };
 

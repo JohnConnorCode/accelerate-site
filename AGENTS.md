@@ -75,12 +75,11 @@ Every capability follows this sequence:
 - Use additive, ordered, idempotent migrations. Never silently mutate production
   schema from an application request.
 - Migration delivery includes execution and live verification. Do not hand SQL
-  files back to the founder for manual dashboard work. For Accelerate, run
-  `npm run db:migrate -- <migration.sql>`; it reads the project-specific database
-  password from macOS Keychain service `accelerate-supabase-db-password` and
-  targets only project `skjypuwkceoiunyhhqlm`. Store database credentials in
-  Keychain or an approved secret manager, never in the repository or command
-  output.
+  files back for manual dashboard work. Run
+  `npm run db:migrate -- <migration.sql>` only after the resolved project and
+  pooler host match the intended environment. Database credentials belong in an
+  approved local secret manager or environment, never in the repository or
+  command output. Public contributors must use a project they control.
 - Platform administration is founder-only and fail-closed through `ADMIN_EMAIL`.
   Tenant workspaces require an authenticated active membership and explicit
   tenant context in both middleware and API authorization. Never weaken either

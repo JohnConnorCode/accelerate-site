@@ -122,8 +122,8 @@ VALUES (
       'nextAction', 'Respond to qualified roofing audit request'
     )),
     'external', jsonb_build_object(
-      'vercelProjectUrl', 'https://vercel.com/robert-farrells-projects/accelerate-site/settings/environment-variables',
-      'supabaseProjectRef', 'skjypuwkceoiunyhhqlm'
+      'vercelProjectUrl', NULL,
+      'supabaseProjectRef', NULL
     )
   )
 )

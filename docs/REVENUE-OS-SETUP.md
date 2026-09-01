@@ -61,12 +61,13 @@ Production tenant release and activation use the staged, fail-closed checks in
 `docs/TENANT-CUTOVER-RUNBOOK.md`; a green Setup Center or schema check alone is
 not activation evidence.
 
-Agents apply migrations directly with `npm run db:migrate -- <migration.sql>` and
-verify the resulting objects through the service role. The command is fixed to
-the Accelerate Supabase project and reads its database password from macOS
-Keychain service `accelerate-supabase-db-password`; no database password belongs
-in `.env.local`, Vercel, documentation, or command output. Migration execution
-is part of delivery and must not be delegated to the founder.
+Maintainers apply migrations with `npm run db:migrate -- <migration.sql>` and
+verify the resulting objects through the service role. The command resolves the
+project, pooler host, database user, and password from the self-hosted
+environment described in `.env.example`; on macOS the password may instead come
+from the configured Keychain service. Always inspect the printed target before
+continuing. No database password belongs in source control, hosting logs,
+documentation, or command output.
 
 After the last migration, agents run `npm run db:verify-schema -- --record`.
 This read-only command verifies the versioned Revenue OS contract across required
