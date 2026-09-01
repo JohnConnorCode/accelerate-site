@@ -1,7 +1,17 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Key, Mail, Globe, Building2, Loader2, CheckCircle, XCircle, Bell } from "lucide-react";
+import {
+  Key,
+  Mail,
+  Globe,
+  Building2,
+  Loader2,
+  CheckCircle,
+  XCircle,
+  Bell,
+  LayoutPanelTop,
+} from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { Button } from "@/components/ui/Button";
@@ -9,6 +19,8 @@ import { Input } from "@/components/ui/Input";
 import { Toast } from "@/components/ui/Toast";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { AdminSwitch } from "@/components/admin/AdminSwitch";
+import { ADMIN_LAYOUT_SCOPES } from "@/lib/admin/layout-scopes";
+import { LayoutScopeCard } from "@/components/admin/LayoutScopeCard";
 
 interface Setting {
   key: string;
@@ -242,6 +254,39 @@ export default function SettingsPage() {
                     disabled={savingNotifyPrefs.has(pref.key)}
                   />
                 </div>
+              ))}
+            </div>
+          </AdminSurface>
+        </div>
+
+        {/* Layout */}
+        <div>
+          <AdminSurface padding="lg">
+            <div className="flex items-center gap-3 mb-5">
+              <span className="grid size-10 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] dark:bg-white/[0.06]">
+                <LayoutPanelTop className="size-4" />
+              </span>
+              <div>
+                <p className="admin-eyebrow">Read-only</p>
+                <h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">
+                  Layout
+                </h2>
+                <p className="admin-copy mt-1 text-xs">
+                  Ask the AI Workspace to reorganize the sidebar or Today page — changes wait for
+                  your approval before applying. Revert here at any time.
+                </p>
+              </div>
+            </div>
+
+            <div className="divide-y divide-[var(--admin-border)] overflow-hidden rounded-xl bg-[var(--admin-surface-subtle)] shadow-[var(--admin-shadow-border)]">
+              {ADMIN_LAYOUT_SCOPES.map((scope) => (
+                <LayoutScopeCard
+                  key={scope.id}
+                  scopeId={scope.id}
+                  scopeLabel={scope.label}
+                  regions={scope.regions}
+                  onToast={(message, type) => setToast({ message, type })}
+                />
               ))}
             </div>
           </AdminSurface>

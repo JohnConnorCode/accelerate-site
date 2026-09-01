@@ -54,10 +54,12 @@ import { useNavigationRuntime } from "@/components/navigation/NavigationRuntime"
 import {
   adminMobileLinks,
   adminNavSections,
+  applyNavLayoutOverride,
   resolveAdminNavLink,
   type AdminNavLink,
   type AdminNavSection,
 } from "@/lib/admin/navigation";
+import type { LayoutDoc } from "@/lib/admin/layout-overrides";
 import { getAdminBreadcrumbs } from "@/lib/admin/breadcrumbs";
 import { AdminDemoControls } from "@/components/admin/AdminDemoBoundary";
 import { DemoScenarioMark } from "@/components/admin/DemoScenarioMark";
@@ -120,6 +122,7 @@ export default function AdminShell({
   workspaceSlug,
   workspaceName,
   isPlatformAdmin,
+  navLayoutOverride = null,
 }: {
   children: React.ReactNode;
   demoScenarioId: DemoScenarioId | null;
@@ -127,6 +130,7 @@ export default function AdminShell({
   workspaceSlug: string;
   workspaceName: string;
   isPlatformAdmin: boolean;
+  navLayoutOverride?: LayoutDoc | null;
 }) {
   const pathname = usePathname();
   const pathnameScenario = pathname.match(/^\/demo\/command-center\/([^/]+)/)?.[1] || "";
@@ -135,21 +139,20 @@ export default function AdminShell({
   // the persistent layout must follow the current public demo URL or its
   // breadcrumb and active navigation state remain stuck on the first route.
   const effectivePathname = resolveAdminPathname(pathname, scenarioId, demoRoute);
-  const visibleNavSections = useMemo(
-    () =>
-      adminNavSections
-        .map((section) => ({
-          ...section,
-          links: section.links.filter(
-            (link) =>
-              isPlatformAdmin ||
-              (scenarioId && link.id === "features") ||
-              !["features", "tenants", "setup"].includes(link.id),
-          ),
-        }))
-        .filter((section) => section.links.length > 0),
-    [isPlatformAdmin, scenarioId],
-  );
+  const visibleNavSections = useMemo(() => {
+    const roleFiltered = adminNavSections
+      .map((section) => ({
+        ...section,
+        links: section.links.filter(
+          (link) =>
+            isPlatformAdmin ||
+            (scenarioId && link.id === "features") ||
+            !["features", "tenants", "setup"].includes(link.id),
+        ),
+      }))
+      .filter((section) => section.links.length > 0);
+    return applyNavLayoutOverride(roleFiltered, navLayoutOverride);
+  }, [isPlatformAdmin, scenarioId, navLayoutOverride]);
   const visibleNavLinks = useMemo(
     () => visibleNavSections.flatMap((section) => section.links),
     [visibleNavSections],

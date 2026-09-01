@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "@/components/admin/AdminLink";
@@ -26,6 +26,8 @@ import { fetchJson } from "@/lib/admin/fetchJson";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
 import { cn } from "@/lib/utils";
+import { applyLayoutOverride, type LayoutDoc } from "@/lib/admin/layout-overrides";
+import { ADMIN_LAYOUT_SCOPES, TODAY_LAYOUT_REGIONS } from "@/lib/admin/layout-scopes";
 
 interface QueueItem {
   id: string;
@@ -105,7 +107,28 @@ const ACTION_CONSEQUENCE: Record<string, string> = {
     "Moves this opportunity to a new stage and records an immutable stage event.",
   create_task: "Creates a task on your queue.",
   update_next_action: "Changes the next action recorded on this opportunity.",
+  admin_layout_change:
+    "Reorders or hides an admin layout region immediately. Revert it any time from Settings → Layout.",
 };
+
+/** Renders an admin_layout_change payload as a readable order/hidden summary
+    instead of raw JSON — the generic payload table can't resolve ids to
+    labels or distinguish order from hidden. */
+function layoutChangeSummary(payload: Record<string, unknown> | null) {
+  if (!payload) return null;
+  const scopeId = typeof payload.scope === "string" ? payload.scope : null;
+  const doc = payload.doc as { order?: unknown; hidden?: unknown } | undefined;
+  if (!scopeId || !doc) return null;
+  const scope = ADMIN_LAYOUT_SCOPES.find((candidate) => candidate.id === scopeId);
+  const labelFor = (id: string) => scope?.regions.find((region) => region.id === id)?.label ?? id;
+  const order = Array.isArray(doc.order) ? doc.order.filter((id) => typeof id === "string") : [];
+  const hidden = Array.isArray(doc.hidden) ? doc.hidden.filter((id) => typeof id === "string") : [];
+  return {
+    scopeLabel: scope?.label ?? scopeId,
+    orderText: order.length ? order.map(labelFor).join(" → ") : "Default order",
+    hiddenText: hidden.length ? hidden.map(labelFor).join(", ") : null,
+  };
+}
 
 /** Fields worth showing verbatim, in the order an operator reads them. */
 const PAYLOAD_FIELD_ORDER = [
@@ -168,6 +191,8 @@ function ActionReviewDialog({
     );
   }
   const { fields, body } = payloadEntries(action.payload);
+  const layoutSummary =
+    action.action_type === "admin_layout_change" ? layoutChangeSummary(action.payload) : null;
   const consequence =
     ACTION_CONSEQUENCE[action.action_type] ??
     "Executes this action through the same service the admin uses.";
@@ -228,7 +253,38 @@ function ActionReviewDialog({
         </div>
 
         <div className="grid gap-4 px-5 py-5 sm:px-6">
-          {fields.length > 0 && (
+          {layoutSummary && (
+            <dl className="grid gap-2 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-4 py-3">
+              <div className="grid gap-1 sm:grid-cols-[130px_1fr] sm:gap-3">
+                <dt className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+                  scope
+                </dt>
+                <dd className="break-words text-xs text-[var(--admin-ink)]">
+                  {layoutSummary.scopeLabel}
+                </dd>
+              </div>
+              <div className="grid gap-1 sm:grid-cols-[130px_1fr] sm:gap-3">
+                <dt className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+                  new order
+                </dt>
+                <dd className="break-words text-xs text-[var(--admin-ink)]">
+                  {layoutSummary.orderText}
+                </dd>
+              </div>
+              {layoutSummary.hiddenText && (
+                <div className="grid gap-1 sm:grid-cols-[130px_1fr] sm:gap-3">
+                  <dt className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+                    hidden
+                  </dt>
+                  <dd className="break-words text-xs text-[var(--admin-ink)]">
+                    {layoutSummary.hiddenText}
+                  </dd>
+                </div>
+              )}
+            </dl>
+          )}
+
+          {!layoutSummary && fields.length > 0 && (
             <dl className="grid gap-2 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-4 py-3">
               {fields.map(([key, value]) => (
                 <div key={key} className="grid gap-1 sm:grid-cols-[130px_1fr] sm:gap-3">
@@ -398,7 +454,27 @@ export default function TodayPage() {
     ["today", "actions"],
     "/api/admin/revenue-os/actions",
   );
+  const layoutQuery = useAdminQuery<{ doc: LayoutDoc | null }>(
+    ["today", "layout"],
+    "/api/admin/revenue-os/layout?scope=page.today",
+  );
   const overview = overviewQuery.data ?? null;
+  const todayLayoutDoc = layoutQuery.data?.doc ?? null;
+  // "operating-summary" stays pinned above the health banner and workspace
+  // grid — moving it would bury the at-a-glance KPI strip below the queue by
+  // default. Only its visibility is layout-managed; the ledger and copilot
+  // panel (already adjacent below the workspace grid) are freely reorderable
+  // and hideable relative to each other.
+  const operatingSummaryHidden = Boolean(todayLayoutDoc?.hidden.includes("operating-summary"));
+  const tailRegions = useMemo(
+    () =>
+      applyLayoutOverride(
+        TODAY_LAYOUT_REGIONS.filter((region) => region.id !== "operating-summary"),
+        ["revenue-copilot"],
+        todayLayoutDoc,
+      ),
+    [todayLayoutDoc],
+  );
   const actions = useMemo(() => {
     const now = Date.now();
     return (actionsQuery.data?.actions ?? []).filter(
@@ -603,6 +679,69 @@ export default function TodayPage() {
       </div>
     );
 
+  const tailRegionNodes: Record<string, React.ReactNode> = {
+    "operational-ledger": (
+      <AdminSurface padding="none" className="hidden overflow-hidden md:block">
+        <div className="flex items-center justify-between gap-3 px-5 py-4 sm:px-6">
+          <div>
+            <p className="admin-eyebrow">Operational ledger</p>
+            <h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">
+              Connection and job health
+            </h2>
+          </div>
+          <Link
+            href="/admin/setup"
+            className="text-xs font-semibold text-[var(--admin-ink)] underline decoration-[var(--admin-border)] underline-offset-4 hover:decoration-[var(--admin-ink)]"
+          >
+            Details
+          </Link>
+        </div>
+        <div className="grid divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)] sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-5">
+          {healthItems.map((item) => (
+            <div key={`${item.label}-${item.status}`} className="min-h-[96px] px-5 py-4">
+              <div className="flex items-center gap-2">
+                <span
+                  className={cn(
+                    "size-2 rounded-full",
+                    item.status === "success" || item.status === "connected"
+                      ? "bg-emerald-500"
+                      : item.status === "failed" ||
+                          item.status === "partial" ||
+                          item.status === "degraded" ||
+                          item.status === "revoked"
+                        ? "bg-amber-500"
+                        : "bg-[var(--admin-muted)]",
+                  )}
+                />
+                <p className="truncate text-xs font-semibold text-[var(--admin-ink)]">
+                  {item.label}
+                </p>
+              </div>
+              <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+                {item.status.replace(/_/g, " ")}
+              </p>
+              <p className="admin-copy mt-1 line-clamp-2 text-xs">
+                {item.error ||
+                  (item.at ? `Last activity ${relativeTime(item.at)}` : "No run recorded yet")}
+              </p>
+            </div>
+          ))}
+          {!healthItems.length && (
+            <div className="px-6 py-8 text-sm text-[var(--admin-muted)] sm:col-span-2 lg:col-span-5">
+              No connections or job receipts have been recorded. Setup Center will show exactly what
+              needs configuration.
+            </div>
+          )}
+        </div>
+      </AdminSurface>
+    ),
+    "revenue-copilot": (
+      <div id="revenue-copilot" className="scroll-mt-24">
+        <RevenueAICommand onProposed={() => void refresh()} />
+      </div>
+    ),
+  };
+
   return (
     <div className="space-y-4 pb-10 sm:space-y-7">
       <PageHeader
@@ -662,49 +801,53 @@ export default function TodayPage() {
         ) : (
           overview && (
             <div className="space-y-5 sm:space-y-7" data-today-content-stack>
-              <AdminSurface
-                padding="none"
-                className="overflow-hidden"
-                aria-label="Operating summary"
-              >
-                <dl className="grid grid-cols-2 divide-x divide-y divide-[var(--admin-border)] xl:grid-cols-4 xl:divide-y-0">
-                  {[
-                    {
-                      label: "Priority work",
-                      value: urgentCount,
-                      note: `${overview.queue.length} total`,
-                    },
-                    {
-                      label: "Open pipeline",
-                      value: formatMoney(overview.metrics.pipelineValue),
-                      note: `${formatMoney(overview.metrics.weightedValue)} weighted`,
-                    },
-                    {
-                      label: "Unread replies",
-                      value: overview.metrics.unreadConversations,
-                      note: "Synced conversations",
-                    },
-                    {
-                      label: "Active campaigns",
-                      value: overview.metrics.activeCampaigns,
-                      note: `${overview.metrics.pendingProposals} proposals awaiting`,
-                    },
-                  ].map(({ label, value, note }) => (
-                    <div
-                      key={label}
-                      className="min-w-0 px-4 py-3.5 sm:min-h-[96px] sm:px-5 sm:py-4"
-                    >
-                      <dt className="truncate text-[9px] font-semibold uppercase tracking-[0.06em] text-[var(--admin-muted)] sm:text-[10px] sm:normal-case sm:tracking-normal">
-                        {label}
-                      </dt>
-                      <dd className="mt-1 truncate text-[clamp(1.25rem,6vw,1.75rem)] font-semibold tabular-nums tracking-[-0.045em] text-[var(--admin-ink)] sm:text-2xl">
-                        {value}
-                      </dd>
-                      <p className="admin-copy mt-0.5 truncate text-[9px] sm:text-[10px]">{note}</p>
-                    </div>
-                  ))}
-                </dl>
-              </AdminSurface>
+              {!operatingSummaryHidden && (
+                <AdminSurface
+                  padding="none"
+                  className="overflow-hidden"
+                  aria-label="Operating summary"
+                >
+                  <dl className="grid grid-cols-2 divide-x divide-y divide-[var(--admin-border)] xl:grid-cols-4 xl:divide-y-0">
+                    {[
+                      {
+                        label: "Priority work",
+                        value: urgentCount,
+                        note: `${overview.queue.length} total`,
+                      },
+                      {
+                        label: "Open pipeline",
+                        value: formatMoney(overview.metrics.pipelineValue),
+                        note: `${formatMoney(overview.metrics.weightedValue)} weighted`,
+                      },
+                      {
+                        label: "Unread replies",
+                        value: overview.metrics.unreadConversations,
+                        note: "Synced conversations",
+                      },
+                      {
+                        label: "Active campaigns",
+                        value: overview.metrics.activeCampaigns,
+                        note: `${overview.metrics.pendingProposals} proposals awaiting`,
+                      },
+                    ].map(({ label, value, note }) => (
+                      <div
+                        key={label}
+                        className="min-w-0 px-4 py-3.5 sm:min-h-[96px] sm:px-5 sm:py-4"
+                      >
+                        <dt className="truncate text-[9px] font-semibold uppercase tracking-[0.06em] text-[var(--admin-muted)] sm:text-[10px] sm:normal-case sm:tracking-normal">
+                          {label}
+                        </dt>
+                        <dd className="mt-1 truncate text-[clamp(1.25rem,6vw,1.75rem)] font-semibold tabular-nums tracking-[-0.045em] text-[var(--admin-ink)] sm:text-2xl">
+                          {value}
+                        </dd>
+                        <p className="admin-copy mt-0.5 truncate text-[9px] sm:text-[10px]">
+                          {note}
+                        </p>
+                      </div>
+                    ))}
+                  </dl>
+                </AdminSurface>
+              )}
 
               {!demo && overview.health.status === "attention" && (
                 <AdminSurface
@@ -1079,65 +1222,9 @@ export default function TodayPage() {
                 </AdminSurface>
               </section>
 
-              <AdminSurface padding="none" className="hidden overflow-hidden md:block">
-                <div className="flex items-center justify-between gap-3 px-5 py-4 sm:px-6">
-                  <div>
-                    <p className="admin-eyebrow">Operational ledger</p>
-                    <h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">
-                      Connection and job health
-                    </h2>
-                  </div>
-                  <Link
-                    href="/admin/setup"
-                    className="text-xs font-semibold text-[var(--admin-ink)] underline decoration-[var(--admin-border)] underline-offset-4 hover:decoration-[var(--admin-ink)]"
-                  >
-                    Details
-                  </Link>
-                </div>
-                <div className="grid divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)] sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-5">
-                  {healthItems.map((item) => (
-                    <div key={`${item.label}-${item.status}`} className="min-h-[96px] px-5 py-4">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={cn(
-                            "size-2 rounded-full",
-                            item.status === "success" || item.status === "connected"
-                              ? "bg-emerald-500"
-                              : item.status === "failed" ||
-                                  item.status === "partial" ||
-                                  item.status === "degraded" ||
-                                  item.status === "revoked"
-                                ? "bg-amber-500"
-                                : "bg-[var(--admin-muted)]",
-                          )}
-                        />
-                        <p className="truncate text-xs font-semibold text-[var(--admin-ink)]">
-                          {item.label}
-                        </p>
-                      </div>
-                      <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
-                        {item.status.replace(/_/g, " ")}
-                      </p>
-                      <p className="admin-copy mt-1 line-clamp-2 text-xs">
-                        {item.error ||
-                          (item.at
-                            ? `Last activity ${relativeTime(item.at)}`
-                            : "No run recorded yet")}
-                      </p>
-                    </div>
-                  ))}
-                  {!healthItems.length && (
-                    <div className="px-6 py-8 text-sm text-[var(--admin-muted)] sm:col-span-2 lg:col-span-5">
-                      No connections or job receipts have been recorded. Setup Center will show
-                      exactly what needs configuration.
-                    </div>
-                  )}
-                </div>
-              </AdminSurface>
-
-              <div id="revenue-copilot" className="scroll-mt-24">
-                <RevenueAICommand onProposed={() => void refresh()} />
-              </div>
+              {tailRegions.map((region) => (
+                <Fragment key={region.id}>{tailRegionNodes[region.id]}</Fragment>
+              ))}
 
               <ActionReviewDialog
                 open={reviewOpen}

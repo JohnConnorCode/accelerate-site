@@ -26,6 +26,7 @@ import {
   UsersRound,
   type LucideIcon,
 } from "lucide-react";
+import { applyLayoutOverride, type LayoutDoc } from "@/lib/admin/layout-overrides";
 
 export interface AdminNavLink {
   id: string;
@@ -308,6 +309,35 @@ export const adminNavSections: AdminNavSection[] = [
 export const adminNavLinks = adminNavSections.flatMap((section) => section.links);
 export const adminMobileLinks = adminNavLinks.filter((link) => link.mobilePrimary);
 export const adminMoreSections = adminNavSections.filter((section) => section.label !== "Command");
+
+/** Section membership is fixed; a layout override may only reorder sections
+    (by the first surviving link's new position) and links within them, and
+    hide/reveal links — never move a link to a different section. */
+export function applyNavLayoutOverride(
+  sections: AdminNavSection[],
+  doc: LayoutDoc | null | undefined,
+  requiredIds: string[] = ["settings"],
+): AdminNavSection[] {
+  if (!doc) return sections;
+
+  const flatLinks = sections.flatMap((section) => section.links);
+  const orderedLinks = applyLayoutOverride(flatLinks, requiredIds, doc);
+  const orderIndex = new Map(orderedLinks.map((link, index) => [link.id, index]));
+
+  return sections
+    .map((section) => ({
+      ...section,
+      links: section.links
+        .filter((link) => orderIndex.has(link.id))
+        .sort((a, b) => orderIndex.get(a.id)! - orderIndex.get(b.id)!),
+    }))
+    .filter((section) => section.links.length > 0)
+    .sort((a, b) => {
+      const aIndex = orderIndex.get(a.links[0]!.id) ?? Number.MAX_SAFE_INTEGER;
+      const bIndex = orderIndex.get(b.links[0]!.id) ?? Number.MAX_SAFE_INTEGER;
+      return aIndex - bIndex;
+    });
+}
 
 export function resolveAdminNavLink(pathname: string) {
   return [...adminNavLinks]
