@@ -5,7 +5,7 @@
 
 An open-source, multi-tenant operating system for service businesses: CRM, pipeline, inbox, campaigns, proposals, analytics, AI-assisted operations, and a public marketing site in one Next.js application.
 
-[Live site](https://www.acceleratewith.us) · [Interactive fictional demo](https://www.acceleratewith.us/demo/command-center) · [Architecture](docs/ARCHITECTURE.md) · [Self-hosting](docs/SELF-HOSTING.md)
+[Live site](https://www.acceleratewith.us) · [Interactive fictional demo](https://www.acceleratewith.us/demo/command-center) · [Architecture](docs/ARCHITECTURE.md) · [Self-hosting](docs/SELF-HOSTING.md) · [Roadmap](#roadmap)
 
 ![The Today command center, showing a founder's priority queue, open pipeline value, and pending approvals for a fictional roofing company workspace.](docs/images/command-center-workspace.png)
 
@@ -35,10 +35,7 @@ demand into revenue. Its core product surface includes:
   and first-party analytics paths, plus five fictional Command Center workspaces
   that run without provider credentials.
 
-The complete, status-tracked inventory lives in the [interactive Feature Board](https://www.acceleratewith.us/admin/features)
-and its checked-in [canonical feature manifest](https://github.com/JohnConnorCode/accelerate-site/blob/main/scripts/feature-backlog-data.mjs).
-Use that manifest as the source of truth for shipped, planned, blocked, and
-backlog capabilities; do not maintain a separate roadmap in a fork.
+See [Roadmap](#roadmap) below for what's shipped, in progress, and planned next.
 
 ## Technology
 
@@ -101,6 +98,14 @@ Public site / Admin UI / APIs / Cron / Webhooks / AI tools
 ```
 
 Route handlers and UI components are adapters. Business writes live in `src/lib/revenue-os/`; tenant resolution lives in `src/lib/tenancy/`; database changes are ordered SQL migrations. Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) before changing these boundaries.
+
+## Roadmap
+
+The [canonical feature manifest](scripts/feature-backlog-data.mjs) is the single source of truth for what's shipped, in progress, planned, and backlog — every card has acceptance criteria, dependencies, and required verification, following the [Feature Board taxonomy](docs/FEATURE-BOARD-TAXONOMY.md). Don't maintain a separate roadmap in a fork; extend the manifest instead.
+
+You can explore the same Kanban UI the founder uses, populated with representative fictional data, in any [demo workspace](https://www.acceleratewith.us/demo/command-center) under **System → Feature Board**. (The live founder board at `/admin/features` requires authentication and isn't publicly viewable.)
+
+Near-term priorities include a genuine one-click deploy path (`one-click-vercel-deploy`, `guided-first-run-setup` in the manifest) — the goal is a working workspace from the README with zero terminal steps, not just a `git clone`.
 
 ## Security model
 
