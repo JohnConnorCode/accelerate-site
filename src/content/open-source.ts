@@ -1,5 +1,42 @@
 import type { FAQ } from "@/lib/types";
 
+export interface OpenSourceSlide {
+  src: string;
+  alt: string;
+  caption: string;
+}
+
+/** Five different screens, five different fictional businesses, five of the
+    product's built-in appearances. Real screenshots of the real UI, not
+    mockups. */
+export const PRODUCT_SLIDES: OpenSourceSlide[] = [
+  {
+    src: "/images/open-source/slide-today-paper.png",
+    alt: "Today, the operator priority queue and approval decisions, in the Paper appearance for a fictional roofing business.",
+    caption: "Today · Paper theme",
+  },
+  {
+    src: "/images/open-source/slide-pipeline-night.png",
+    alt: "Pipeline, a nine-stage opportunity board, in the Night appearance for a fictional law firm.",
+    caption: "Pipeline · Night theme",
+  },
+  {
+    src: "/images/open-source/slide-features-signal.png",
+    alt: "The Feature Board kanban, the same public roadmap system, in the Signal appearance for a fictional advisory firm.",
+    caption: "Feature Board · Signal theme",
+  },
+  {
+    src: "/images/open-source/slide-analytics-studio.png",
+    alt: "Analytics, revenue facts and forecasts from canonical records, in the Studio appearance for a fictional real estate team.",
+    caption: "Analytics · Studio theme",
+  },
+  {
+    src: "/images/open-source/slide-ai-frost.png",
+    alt: "The AI workspace, grounded chat with visible evidence, in the Frost appearance for a fictional nonprofit network.",
+    caption: "AI Workspace · Frost theme",
+  },
+];
+
 export interface OpenSourcePath {
   id: string;
   eyebrow: string;
