@@ -13,7 +13,13 @@ import { CapabilityCatalog } from "@/components/command-center/CapabilityCatalog
 import { CommandCenterDemo } from "@/components/command-center/demo/CommandCenterDemo";
 import { CommandCenterNav } from "@/components/command-center/CommandCenterNav";
 import { commandCenterFaqs } from "@/content/command-center-faq";
-import { LOOP_STEPS, TRUST_LADDER, MARQUEE_ITEMS, WHO_ITS_FOR } from "@/content/command-center";
+import {
+  CURRENT_SURFACES,
+  LOOP_STEPS,
+  TRUST_LADDER,
+  MARQUEE_ITEMS,
+  WHO_ITS_FOR,
+} from "@/content/command-center";
 import type { MouseEvent } from "react";
 
 /* /command-center, built on the homepage editorial system (.sect / .wrap /
@@ -29,6 +35,7 @@ export function CommandCenterPageContent() {
       <Marquee />
       <Problem />
       <Built />
+      <CurrentSurface />
       <Demo />
       <HowItWorks />
       <TrustLadder />
@@ -228,6 +235,59 @@ function Built() {
               speaks the trade.
             </Reveal>
           </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── the current product surface ──────────────────────────────────────── */
+
+function CurrentSurface() {
+  return (
+    <section className="sect" id="surface">
+      <AmbientField />
+      <div className="wrap">
+        <div className="shead">
+          <Reveal rv as="p" className="label eyebrow-anim">
+            What is running today
+          </Reveal>
+          <div>
+            <Reveal rv as="h2" className="h2" delay={0.06}>
+              One operating surface.
+              <br />
+              <span className="it">Six ways to use it.</span>
+            </Reveal>
+            <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
+              The Command Center is not a promise to buy a pile of tools. It is the shared context,
+              controls, and evidence underneath the work your team already does.
+            </Reveal>
+          </div>
+        </div>
+
+        <div className="mt-[clamp(34px,5vw,64px)] grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {CURRENT_SURFACES.map((surface, i) => (
+            <Reveal
+              key={surface.n}
+              rv
+              as="article"
+              className="group min-h-[220px] rounded-[24px] border border-[var(--rule)] bg-[color-mix(in_srgb,var(--fg)_4%,transparent)] p-6 transition-[border-color,transform,background-color] duration-300 hover:-translate-y-1 hover:border-[var(--fg)] hover:bg-[color-mix(in_srgb,var(--fg)_7%,transparent)] sm:p-7"
+              delay={0.04 * i}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <span className="label text-[var(--mid)]">{surface.label}</span>
+                <span className="font-mono text-xs tabular-nums text-[var(--soft)]">
+                  {surface.n}
+                </span>
+              </div>
+              <h3 className="mt-10 text-[1.35rem] font-medium leading-[1.08] tracking-[-0.03em] text-[var(--heading)] text-balance">
+                {surface.title}
+              </h3>
+              <p className="mt-4 text-[15px] leading-[1.55] text-[var(--mid)] text-pretty">
+                {surface.body}
+              </p>
+            </Reveal>
+          ))}
         </div>
       </div>
     </section>

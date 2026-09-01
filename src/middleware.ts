@@ -6,6 +6,15 @@ import { isDemoScenarioId } from "@/lib/admin/demo/scenarios";
 import { ACCELERATE_TENANT_ID, ACCELERATE_TENANT_SLUG } from "@/lib/tenancy/constants";
 
 export async function middleware(request: NextRequest) {
+  // Keep the legacy preview URL as a real redirect. A server-component
+  // permanentRedirect can be represented as a meta refresh during a direct
+  // document request, which leaves browser history and analytics on the old
+  // URL. The middleware redirect is unambiguous for both document and RSC
+  // requests while the route-level redirect remains the canonical fallback.
+  if (request.nextUrl.pathname === "/command-center/demo") {
+    return NextResponse.redirect(new URL("/demo/command-center", request.url), 308);
+  }
+
   const demoMatch = request.nextUrl.pathname.match(
     /^\/demo\/command-center\/([a-z0-9-]+)(?:\/(.*))?$/,
   );
@@ -156,5 +165,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/t/:path*", "/demo/command-center/:path*"],
+  matcher: ["/admin/:path*", "/t/:path*", "/demo/command-center/:path*", "/command-center/demo"],
 };
