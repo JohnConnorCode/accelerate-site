@@ -40,6 +40,7 @@ export function CommandCenterPageContent() {
       <HowItWorks />
       <TrustLadder />
       <Catalog />
+      <OpenSource />
       <Proof />
       <WhoItsFor />
       <Faq />
@@ -444,6 +445,44 @@ function Catalog() {
           </div>
         </div>
         <CapabilityCatalog />
+      </div>
+    </section>
+  );
+}
+
+/* ── open source ──────────────────────────────────────────────────────── */
+
+function OpenSource() {
+  return (
+    <section className="sect" id="open-source">
+      <AmbientField />
+      <div className="wrap">
+        <div className="shead">
+          <Reveal rv as="p" className="label eyebrow-anim">
+            Open source
+          </Reveal>
+          <div>
+            <Reveal rv as="h2" className="h2" delay={0.06}>
+              Read the code. Or have
+              <br />
+              us <span className="it">build and run it.</span>
+            </Reveal>
+            <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
+              This is the actual application behind our own agency, published under the MIT license.
+              Run it yourself for free, or have us configure and run a custom version for your
+              business, the same managed execution behind every Accelerate engagement.
+            </Reveal>
+            <Reveal rv as="div" delay={0.16} style={{ marginTop: 28 }}>
+              <Link
+                href="/open-source"
+                data-cursor="link"
+                className="inline-flex min-h-12 items-center rounded-xl bg-[var(--fg)] px-5 text-xs font-semibold text-[var(--bg)] transition-[opacity,transform] hover:opacity-80 active:scale-[0.96]"
+              >
+                See both paths →
+              </Link>
+            </Reveal>
+          </div>
+        </div>
       </div>
     </section>
   );
