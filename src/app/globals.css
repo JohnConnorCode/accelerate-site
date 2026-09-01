@@ -3091,7 +3091,7 @@ summary:focus-visible {
   will-change: transform;
   animation:
     marquee-l 34s linear infinite,
-    fade-in-marquee 1s ease-out 8.3s both;
+    fade-in-marquee 0.6s ease-out 0.3s both;
 }
 .marquee-track.rev {
   animation-name: marquee-r;
@@ -3692,7 +3692,7 @@ summary:focus-visible {
 .mq-track {
   animation:
     marquee-l 34s linear infinite,
-    fade-in-marquee 1s ease-out 8.3s both;
+    fade-in-marquee 0.6s ease-out 0.3s both;
 }
 .mq:hover .mq-track {
   animation-play-state: paused;
