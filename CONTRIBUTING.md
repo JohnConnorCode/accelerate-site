@@ -21,7 +21,7 @@ npm run test:core
 npm run build
 ```
 
-Run the closest service or Playwright journey for the behavior you changed. Visual work requires desktop and mobile screenshots, keyboard coverage, console-error checks, and reduced-motion coverage when motion is involved.
+Run the closest service or Playwright journey for the behavior you changed. Visual work requires desktop and mobile screenshots, keyboard coverage, console-error checks, and reduced-motion coverage when motion is involved. `node scripts/shot.mjs <path> <label> [width] [height]` and `node scripts/film.mjs <path> <frames> <mode>` are ad hoc Playwright tools for capturing those screenshots against a local dev server; each has a usage comment at the top of the file.
 
 ## Pull requests
 

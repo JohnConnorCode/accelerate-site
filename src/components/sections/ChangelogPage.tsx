@@ -1,7 +1,8 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Sparkles, Wrench, Bug, Megaphone, Rss } from "lucide-react";
+import { Sparkles, Wrench, Bug, Megaphone, Rss, Search, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 import { Section, Eyebrow, Heading } from "@/components/v2/studio/primitives";
@@ -20,17 +21,42 @@ const categoryConfig: Record<
   announcement: { label: "News", icon: Megaphone, accent: "text-white-muted" },
 };
 
+const categoryOrder = Object.keys(categoryConfig) as ChangelogEntry["category"][];
+
 const fmtDate = (s: string) =>
   formatDateOnly(s, { year: "numeric", month: "long", day: "numeric" });
 
 export function ChangelogPage() {
-  const grouped = changelogEntries.reduce<Record<string, ChangelogEntry[]>>((acc, entry) => {
+  const [query, setQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState<ChangelogEntry["category"] | "all">("all");
+
+  const categoryCounts = useMemo(() => {
+    const counts: Partial<Record<ChangelogEntry["category"], number>> = {};
+    for (const entry of changelogEntries)
+      counts[entry.category] = (counts[entry.category] ?? 0) + 1;
+    return counts;
+  }, []);
+
+  const filteredEntries = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    return changelogEntries.filter((entry) => {
+      if (activeCategory !== "all" && entry.category !== activeCategory) return false;
+      if (!normalizedQuery) return true;
+      return (
+        entry.title.toLowerCase().includes(normalizedQuery) ||
+        entry.description.toLowerCase().includes(normalizedQuery)
+      );
+    });
+  }, [query, activeCategory]);
+
+  const grouped = filteredEntries.reduce<Record<string, ChangelogEntry[]>>((acc, entry) => {
     const key = getUtcMonthKey(entry.publishedAt);
     if (!acc[key]) acc[key] = [];
     acc[key].push(entry);
     return acc;
   }, {});
   const months = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
+  const hasFilters = activeCategory !== "all" || query.trim().length > 0;
 
   return (
     <Section width="wide" className="page-offset-roomy">
@@ -53,10 +79,80 @@ export function ChangelogPage() {
             <Rss className="h-4 w-4 text-gold" />
             RSS feed
           </Link>
+
+          <div className="mt-8">
+            <label htmlFor="changelog-search" className="sr-only">
+              Search the changelog
+            </label>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white-muted" />
+              <input
+                id="changelog-search"
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search updates…"
+                className="admin-field w-full rounded-full border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_80%,transparent)] py-2.5 pl-10 pr-9 text-sm text-heading placeholder:text-white-muted focus:border-border-gold focus:outline-none"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  aria-label="Clear search"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white-muted transition-colors hover:text-heading"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveCategory("all")}
+                className={cn(
+                  "rounded-full border px-3.5 py-1.5 font-mono text-[0.65rem] uppercase tracking-[0.16em] transition-colors",
+                  activeCategory === "all"
+                    ? "border-border-gold text-gold"
+                    : "border-border-glass text-white-muted hover:border-[var(--border-glass-hover)] hover:text-heading",
+                )}
+              >
+                All ({changelogEntries.length})
+              </button>
+              {categoryOrder.map((category) => {
+                const count = categoryCounts[category];
+                if (!count) return null;
+                const config = categoryConfig[category];
+                return (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => setActiveCategory(category)}
+                    className={cn(
+                      "rounded-full border px-3.5 py-1.5 font-mono text-[0.65rem] uppercase tracking-[0.16em] transition-colors",
+                      activeCategory === category
+                        ? "border-border-gold text-gold"
+                        : "border-border-glass text-white-muted hover:border-[var(--border-glass-hover)] hover:text-heading",
+                    )}
+                  >
+                    {config.label} ({count})
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
         {/* timeline — vertical connector with month markers */}
-        <div className="relative flex flex-col gap-12 border-l border-border-glass pl-8 sm:pl-10">
+        <div
+          className="relative flex flex-col gap-12 border-l border-border-glass pl-8 sm:pl-10"
+          aria-live="polite"
+        >
+          {months.length === 0 && (
+            <p className="text-sm text-white-secondary">
+              {hasFilters ? "No updates match your search or filter." : "No updates yet."}
+            </p>
+          )}
           {months.map((monthKey) => {
             const entries = grouped[monthKey] ?? [];
             const monthLabel = formatDateOnly(monthKey + "-01", { year: "numeric", month: "long" });
