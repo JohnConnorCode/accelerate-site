@@ -7,7 +7,7 @@ import { generateFaqJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 export const metadata = seoMetadata({
   title: "Command Center",
   description:
-    "One integrated solution Accelerate can build when your business needs shared context, connected workflows, and one operating layer.",
+    "A multi-tenant operating layer for service businesses: prioritized work, pipeline, communications, analytics, safe automation, and tenant-controlled AI costs.",
   ogTitle: "Command Center",
   ogSubtitle: "An integrated operating layer, when that is the right solution",
   path: "/command-center",

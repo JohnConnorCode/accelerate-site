@@ -102,9 +102,9 @@ export const capabilities: Capability[] = [
   {
     id: "voice",
     category: "capture",
-    title: "Voice notes",
+    title: "AI-assisted contact import",
     detail:
-      "Talk into your phone between appointments. It transcribes, files it, and texts you back what it did with it.",
+      "Bring in a CSV or pasted list, let the system normalize and resolve identity, then review the proposed records before anything is written.",
   },
 
   // Organize
@@ -307,15 +307,15 @@ export const capabilities: Capability[] = [
   {
     id: "mcp",
     category: "connect",
-    title: "Claude works in it directly, with no copy and paste",
+    title: "A grounded AI workspace",
     detail:
-      "No more pasting half your business into a chat window to ask a question about it. Claude connects straight to your records over MCP and works in them, inside the same permissions everyone else has.",
+      "Ask about the records in context, inspect the sources and tool evidence, and keep proposed actions inside the same approval and audit boundary as the rest of the workspace.",
   },
   {
     id: "sms",
     category: "connect",
-    title: "Text message",
-    detail: "Ask a question, log a call, get a briefing. From your phone, with nothing to install.",
+    title: "A mobile-ready workspace",
+    detail: "Use the same Today queue, inbox, pipeline, records, and setup controls from a responsive browser surface with no separate mobile app to maintain.",
   },
   {
     id: "api",
@@ -326,8 +326,8 @@ export const capabilities: Capability[] = [
   {
     id: "reports",
     category: "connect",
-    title: "Reports by email",
-    detail: "Weekly and monthly, to you or to the whole team, with nobody assembling them.",
+    title: "Decision-ready analytics",
+    detail: "See source, owner, campaign, stage, communication, forecast, attribution, and data-quality signals together, with the metric semantics documented.",
   },
 
   // Govern
@@ -347,8 +347,8 @@ export const capabilities: Capability[] = [
   {
     id: "own-db",
     category: "govern",
-    title: "Your own database",
-    detail: "Your records live in a database of your own, separate from every other client.",
+    title: "Shared infrastructure, isolated tenant data",
+    detail: "One maintained application and database serves the system, while tenant context, membership checks, composite ownership, and row-level policies keep each business's records isolated.",
   },
   {
     id: "roles",
@@ -434,4 +434,44 @@ export const WHO_ITS_FOR = [
   "You run client work, business development, and admin, and there is no operations hire coming.",
   "Your team is small and most of what the business knows is in one person's head.",
   "You already work with us on automation and want your own internal operation running the same way.",
+];
+
+/** Shipped operator surfaces shown near the top of the solution page. */
+export const CURRENT_SURFACES = [
+  {
+    n: "01",
+    label: "Prioritize",
+    title: "Today and the approval queue",
+    body: "Overdue work, replies, meetings, proposals, campaign exceptions, and AI actions arrive in one ranked queue with a clear reason for every item.",
+  },
+  {
+    n: "02",
+    label: "Work revenue",
+    title: "Pipeline, saved views, and record workspaces",
+    body: "Move canonical opportunities through validated stages, save the views you use every week, and open the full contact, company, activity, and next-action context in one place.",
+  },
+  {
+    n: "03",
+    label: "Keep context",
+    title: "Contacts, companies, conversations, and notes",
+    body: "The operating history stays connected: identity, messages, meetings, proposals, tasks, and human or AI activity all resolve back to the same records.",
+  },
+  {
+    n: "04",
+    label: "Measure",
+    title: "Analytics that separate facts from forecasts",
+    body: "Source-to-revenue performance, reply coverage, forecast method, attribution gaps, stale data, and impossible stage events are visible without turning estimates into facts.",
+  },
+  {
+    n: "05",
+    label: "Automate safely",
+    title: "Campaigns, proposals, and recovery",
+    body: "Drafts, sends, campaign stops, proposal versions, task generation, and failed work all use confirmation, idempotency, receipts, and recovery paths.",
+  },
+  {
+    n: "06",
+    label: "Run per tenant",
+    title: "Shared infrastructure, isolated workspaces",
+    body: "Each business gets its own tenant context, membership boundary, configuration, audit trail, and provider controls—including the option to use its own OpenRouter key and model budget.",
+  },
 ];

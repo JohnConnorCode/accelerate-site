@@ -24,12 +24,12 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Where does our data live?",
     answer:
-      "In your own instance on your own accounts, not in a shared table beside other companies. You own the data and can export all of it whenever you want.",
+      "The Command Center uses shared infrastructure with explicit tenant isolation. Your workspace has its own membership boundary, tenant-scoped records, provider configuration, and audit trail. You own the data and can export it whenever you want.",
   },
   {
-    question: "Do I need to use Claude, or any particular AI tool?",
+    question: "Can we control our AI provider costs?",
     answer:
-      "No. Most of the time you will use the web app and the morning email. If you do use Claude, it can connect straight into your data and work in it directly, which beats copying things back and forth.",
+      "Yes. Each tenant can use the shared provider configuration or bring its own OpenRouter API key and approved model settings. Keys stay server-side, and the workspace keeps provider and usage behavior inside the tenant boundary.",
   },
   {
     question: "How is this different from the notetaker we already have?",
