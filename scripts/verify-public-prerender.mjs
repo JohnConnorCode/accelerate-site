@@ -18,6 +18,7 @@ const required = [
   "/blog",
   "/changelog",
   "/command-center",
+  "/open-source",
   "/command-center/demo",
   "/contact",
   "/industries",

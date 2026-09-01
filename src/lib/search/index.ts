@@ -65,6 +65,14 @@ const STATIC_PAGES: Array<Omit<SearchEntry, "group">> = [
     keywords: ["demo", "sandbox", "interactive", "admin demo", "product demo"],
   },
   {
+    id: "page-open-source",
+    title: "Open Source",
+    description:
+      "The Command Center is MIT licensed. Self-host it free, or have Accelerate build and run a custom managed version.",
+    href: "/open-source",
+    keywords: ["open source", "github", "self-host", "mit license", "managed hosting"],
+  },
+  {
     id: "page-packages",
     title: "Packages",
     description: "How engagements are scoped and what each level includes.",

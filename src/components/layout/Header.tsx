@@ -49,6 +49,7 @@ const navLinks: NavLink[] = [
   },
   { label: "Work", href: "/work" },
   { label: "Learn", href: "/learn" },
+  { label: "Open Source", href: "/open-source" },
 ];
 
 // Shared underline used by every nav item — grows from the left on hover and
