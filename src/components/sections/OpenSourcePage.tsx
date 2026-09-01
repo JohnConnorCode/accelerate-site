@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Check, ArrowUpRight } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { Check, ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Accordion,
   AccordionItem,
@@ -26,12 +28,96 @@ import { cn } from "@/lib/utils";
 import {
   OPEN_SOURCE_PATHS,
   OPEN_SOURCE_STATS,
+  PRODUCT_SLIDES,
   TECH_STACK,
   QUICK_START,
   openSourceFaqs,
 } from "@/content/open-source";
 import type { OpenSourcePath } from "@/content/open-source";
 import { trackConversion } from "@/lib/analytics";
+
+const SLIDE_INTERVAL_MS = 4500;
+
+function ProductSlider() {
+  const [index, setIndex] = useState(0);
+  const reduced = useReducedMotion();
+  const slide = PRODUCT_SLIDES[index]!;
+
+  useEffect(() => {
+    if (reduced) return;
+    const id = setInterval(
+      () => setIndex((current) => (current + 1) % PRODUCT_SLIDES.length),
+      SLIDE_INTERVAL_MS,
+    );
+    return () => clearInterval(id);
+  }, [reduced]);
+
+  const go = (delta: number) => {
+    setIndex((current) => (current + delta + PRODUCT_SLIDES.length) % PRODUCT_SLIDES.length);
+  };
+
+  return (
+    <div>
+      <div className="group relative aspect-[1400/875] overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.35)]">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={slide.src}
+            initial={reduced ? undefined : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={reduced ? undefined : { opacity: 0 }}
+            transition={{ duration: 0.45 }}
+            className="absolute inset-0"
+          >
+            <Image
+              src={slide.src}
+              alt={slide.alt}
+              fill
+              sizes="(min-width: 1024px) 46vw, 90vw"
+              className="object-cover"
+              priority={index === 0}
+            />
+          </motion.div>
+        </AnimatePresence>
+        <button
+          type="button"
+          onClick={() => go(-1)}
+          aria-label="Previous screen"
+          className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white opacity-0 backdrop-blur-sm transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => go(1)}
+          aria-label="Next screen"
+          className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white opacity-0 backdrop-blur-sm transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
+      <div className="mt-4 flex items-center justify-center gap-2">
+        {PRODUCT_SLIDES.map((s, i) => (
+          <button
+            key={s.src}
+            type="button"
+            onClick={() => setIndex(i)}
+            aria-label={`Show slide ${i + 1} of ${PRODUCT_SLIDES.length}`}
+            aria-current={i === index}
+            className={cn(
+              "h-1.5 rounded-full transition-all",
+              i === index
+                ? "w-6 bg-[var(--fg)]"
+                : "w-1.5 bg-[color-mix(in_srgb,var(--fg)_22%,transparent)]",
+            )}
+          />
+        ))}
+      </div>
+      <p className="mt-3 text-center font-mono text-[0.6rem] uppercase tracking-[0.18em] text-white-muted">
+        {slide.caption}
+      </p>
+    </div>
+  );
+}
 
 function PathCard({ path, index }: { path: OpenSourcePath; index: number }) {
   return (
@@ -139,19 +225,7 @@ export function OpenSourcePageContent() {
               </HeroEntranceItem>
             </div>
             <HeroEntranceItem step={3} className="relative min-w-0">
-              <div className="overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.35)]">
-                <Image
-                  src="/images/open-source/feature-board.png"
-                  alt="The Feature Board kanban, showing the open, dependency-ordered roadmap inside a demo workspace."
-                  width={1400}
-                  height={875}
-                  className="h-auto w-full"
-                  priority
-                />
-              </div>
-              <p className="mt-3 text-center font-mono text-[0.6rem] uppercase tracking-[0.18em] text-white-muted">
-                The Feature Board, in a demo workspace
-              </p>
+              <ProductSlider />
             </HeroEntranceItem>
           </div>
         </Container>
