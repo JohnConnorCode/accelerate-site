@@ -4,10 +4,11 @@ Thanks for helping improve Accelerate Revenue OS.
 
 ## Before opening a change
 
-1. Search existing issues and keep the proposed scope narrow.
-2. Read `AGENTS.md` and the contract relevant to your change.
-3. For security-sensitive behavior, open a private report instead of a public issue.
-4. Never use real customer data, production credentials, or production mutations for development or screenshots.
+1. Search existing issues and check the [roadmap](README.md#roadmap) — `scripts/feature-backlog-data.mjs` is the canonical backlog, with acceptance criteria and dependencies already written out for planned and backlog cards.
+2. Keep the proposed scope narrow.
+3. Read `AGENTS.md` and the contract relevant to your change.
+4. For security-sensitive behavior, open a private report instead of a public issue.
+5. Never use real customer data, production credentials, or production mutations for development or screenshots.
 
 ## Local workflow
 

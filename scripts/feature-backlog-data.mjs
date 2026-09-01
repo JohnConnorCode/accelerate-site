@@ -4017,6 +4017,51 @@ export const featureBacklog = [
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-notion-knowledge-adapter.ts; npm run test:integration-catalog; npm run build; git diff --check. Production sync evidence requires separate founder activation.",
   }),
+  card({
+    key: "one-click-vercel-deploy",
+    title: "Ship a one-click Vercel deploy button",
+    workstream: "productization",
+    phase: 5,
+    priority: "high",
+    description:
+      "Add a real Deploy to Vercel button and template configuration so a visitor can go from the README to a running, empty, unconfigured instance without cloning the repo or touching a terminal. This is the single highest-leverage change for adoption: every extra manual step between 'I found this on GitHub' and 'I have a working workspace' loses non-technical operators and the agencies serving them.",
+    acceptance: [
+      "A Deploy to Vercel button in the README launches Vercel's import flow pre-filled with this repository and the required environment variable prompts (Supabase URL/anon/service-role keys, ADMIN_EMAIL, and any other non-optional vars from .env.example)",
+      "A freshly deployed instance boots successfully with zero manual repository edits: it renders the public marketing site and fictional demo immediately, and a clearly stated Setup Center path for connecting a real Supabase project",
+      "The generated deployment never ships with Accelerate's own branding as the only option silently baked in; the template deploy uses the existing tenant-config seam so the operator's own name/brand can be set without editing source",
+      "Deploying does not require any Accelerate-owned credential, and no Accelerate production data, API key, or secret can reach the new deployment through the template",
+    ],
+    dependencies: ["Prove a clean client installation end to end"],
+    start: "README.md; vercel.json; .env.example; docs/SELF-HOSTING.md; src/config/tenant.ts",
+    guardrails:
+      "The button must never point at a fork that could be swapped by a third party without review, and must never pre-fill or embed any real credential, connection string, or production value. Do not weaken or bypass the existing tenant-config seam to make the button simpler; the deployed instance must remain a genuinely empty, isolated workspace.",
+    labels: ["clonable", "setup"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run verify:oss; npm run build; a real end-to-end test of the button from a signed-out Vercel account against a scratch Supabase project, confirmed to boot with zero manual file edits; git diff --check.",
+  }),
+  card({
+    key: "guided-first-run-setup",
+    title: "Guide first-run setup inside the product, not the terminal",
+    workstream: "setup",
+    phase: 5,
+    priority: "medium",
+    description:
+      "Extend Setup Center into a guided first-run flow so a freshly deployed, unconfigured instance walks its new owner through connecting Supabase, applying migrations, and creating the first founder admin account from inside the running app. A one-click deploy that lands on an empty or crashing Setup Center is not actually one click; the remaining friction is exactly the CLI/psql migration step this card removes.",
+    acceptance: [
+      "An unconfigured deployment shows a guided, numbered first-run flow instead of a blank or erroring Setup Center",
+      "The flow can apply the documented migration order against the operator's own Supabase project through a safe, idempotent, clearly-labeled in-product action or gives one exact copy-pasteable command when a direct database connection is required",
+      "The flow ends with a working founder admin login, a green Setup Center, and zero Accelerate-owned data seeded into the new project",
+      "Every step fails closed and explains the exact missing credential or unmet precondition rather than silently degrading or letting the operator proceed into a half-configured state",
+    ],
+    dependencies: ["Ship a one-click Vercel deploy button"],
+    start:
+      "src/app/admin/setup/page.tsx; src/app/api/admin/setup/route.ts; docs/REVENUE-OS-SETUP.md; docs/SELF-HOSTING.md; migrations/",
+    guardrails:
+      "Never run a destructive or production migration without explicit operator confirmation in the flow. Never seed Accelerate's own customer or demo data into a new installation. The guided flow supplements, never replaces, the documented manual migration path for operators who prefer it.",
+    labels: ["setup", "clonable"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run db:verify-schema; npm run build; an end-to-end run against a scratch Supabase project proving the flow reaches a green Setup Center and a working founder login with zero Accelerate data present; git diff --check.",
+  }),
 ];
 
 const countsByStatus = new Map();
