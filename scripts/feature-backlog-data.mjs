@@ -192,6 +192,10 @@ LATEST_IMPLEMENTATION_EVIDENCE["admin-shell-design-system"] =
   "2026-08-31 settings control and hierarchy repair: notification preferences now use one semantic shared switch with a 48x28 pill track, centered 20px thumb, equal end insets, 44px hit target, keyboard operation, focus treatment, per-preference busy protection, and optimistic rollback. AdminShell suppresses redundant one-item top-level breadcrumbs while preserving multi-level record context. Settings removes nested Framer Motion ownership and makes configuration keys, editors, and actions wrap or stack on compact screens. Static contracts and the full five-business desktop/mobile browser matrix cover switch geometry and interaction, top-level hierarchy, overflow, deep links, protected-request isolation, and runtime errors; desktop/mobile Settings screenshots were visually inspected. " +
   LATEST_IMPLEMENTATION_EVIDENCE["admin-shell-design-system"];
 
+LATEST_IMPLEMENTATION_EVIDENCE["admin-shell-design-system"] =
+  "2026-08-31 production receipt: exact product commit 309d7d00206d89f16fb9985e469ad94afa5f8d85 is READY as Vercel deployment dpl_97YsfXwgHejvqVRycbKZV2eWiMfi and aliased to https://www.acceleratewith.us. The canonical Settings response returned HTTP 200 with release identity 309d7d00206d. The live five-business, 28-route desktop/mobile matrix passed switch geometry and keyboard interaction, client/opportunity deep links, content population, responsive overflow, console health, theme ownership, and protected-request isolation. A cold-hydration false negative led the browser gate to wait for coherent H1/title commitment before sampling; the hardened full rerun passed. " +
+  LATEST_IMPLEMENTATION_EVIDENCE["admin-shell-design-system"];
+
 // Fresh evidence is kept separate from the long-lived historical card notes so
 // focused follow-up slices stay reviewable without rewriting shipped history.
 const CURRENT_IMPLEMENTATION_EVIDENCE = {

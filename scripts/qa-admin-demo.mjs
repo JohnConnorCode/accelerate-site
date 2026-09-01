@@ -15,7 +15,9 @@ async function readStablePageState(page) {
     const root = document.documentElement;
     const main = document.querySelector("main");
     if (!root || !main || !document.querySelector(".admin-shell")) return null;
-    return { width: root.scrollWidth, viewport: innerWidth, overlay: document.querySelector("nextjs-portal")?.textContent || "", mainText: main.textContent?.replace(/\s+/g, " ").trim().length || 0, logo: Boolean(document.querySelector(".demo-scenario-mark")), title: document.title, heading: document.querySelector(".admin-main h1")?.textContent?.replace(/\s+/g, " ").trim() || "" };
+    const heading = document.querySelector(".admin-main h1")?.textContent?.replace(/\s+/g, " ").trim() || "";
+    if (!heading || !document.title.startsWith(`${heading} | `)) return null;
+    return { width: root.scrollWidth, viewport: innerWidth, overlay: document.querySelector("nextjs-portal")?.textContent || "", mainText: main.textContent?.replace(/\s+/g, " ").trim().length || 0, logo: Boolean(document.querySelector(".demo-scenario-mark")), title: document.title, heading };
   }, undefined, { timeout: 30_000 });
   const state = await handle.jsonValue();
   await handle.dispose();
