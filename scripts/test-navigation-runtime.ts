@@ -79,11 +79,13 @@ assert.match(hero, /eyebrow-anim rv\$\{loaded \? " in" : ""\}/, "Hero eyebrow mu
 assert.doesNotMatch(hero, /reveal-immediate/, "Hero copy must not skip its authored entrance");
 assert.match(styles, /\.motion-ready \.hero:not\(\.loaded\) \.swap/, "PROFIT must stay hidden until the loaded gate flips");
 assert.match(styles, /\.motion-ready \.hero:not\(\.loaded\) \.hero-inline-cta/, "The hero CTA must stay hidden until the loaded gate flips");
-assert.match(styles, /\.motion-ready \.hero\.loaded \.hero-profit/, "Mobile PROFIT animation must be owned by the restartable hero lifecycle");
 assert.match(styles, /\.hero-intelligent-static \{ display: none; \}/, "Mobile must preserve the signature intelligent-automation scramble rather than replacing it with static copy");
 assert.match(styles, /\.hero-intelligent-scramble \{ display: inline; \}/, "Mobile must render the same scramble treatment as desktop");
-assert.match(styles, /\.hero\.loaded \.strike::after \{ transition-delay: 1\.52s; \}/, "Mobile must draw the productivity strike before PROFIT enters");
-assert.match(styles, /\.hero\.loaded \.hero-profit \{ animation: hero-mobile-focus-in[^}]* 2\.24s/, "Mobile PROFIT must wait for the strike beat instead of competing with the headline");
+assert.doesNotMatch(styles, /hero-mobile-focus-in|hero-mobile-rule-in/, "Mobile must not replace the desktop hero choreography with a compressed phone-only timeline");
+assert.match(styles, /\.loaded \.strike::after \{[^}]*3\.85s/, "Every viewport must share the desktop productivity-strike beat");
+assert.match(styles, /\.loaded \.swap \{[^}]*4\.7s/, "Every viewport must share the desktop PROFIT beat");
+assert.match(styles, /\.loaded \.rev-ul::after \{[^}]*5\.1s/, "Every viewport must share the desktop PROFIT underline beat");
+assert.match(hero, /className="hero-inline-cta"[\s\S]*?"--d": "6\.10s"/, "Every viewport must share the desktop CTA beat");
 assert.match(styles, /\.loaded \.swap \{[^}]*transition:/, "PROFIT entrance is a delayed transition off .loaded, not a first-paint rest state");
 assert.match(styles, /\.loaded \.hero-inline-cta \{[^}]*transition:/, "Hero CTA entrance is a delayed transition off .loaded");
 assert.doesNotMatch(styles, /\.motion-ready \.hero \.rv:not\(\.in\)/, "Hero rv copy must not bypass the loaded entrance");

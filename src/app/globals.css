@@ -3187,26 +3187,10 @@ summary:focus-visible {
      clipping a transient random-glyph string. */
   .hero-intelligent-static { display: none; }
   .hero-intelligent-scramble { display: inline; }
-  /* This is keyed to the hero's lifecycle class, never the document-wide
-     bootstrap class. It consequently replays after a client back navigation
-     and after a bfcache restoration instead of inheriting a finished run. */
-  .motion-ready .hero.loaded .eyebrow-anim { animation: rv-in .52s var(--ease) .06s both !important; }
-  .motion-ready .hero.loaded .word > span { animation: word-blur-in .7s cubic-bezier(0.16, 1, 0.3, 1) both !important; }
-  .motion-ready .hero.loaded .word:nth-child(1) > span { animation-delay: .12s !important; }
-  .motion-ready .hero.loaded .word:nth-child(2) > span { animation-delay: .20s !important; }
-  .motion-ready .hero.loaded .word:nth-child(3) > span { animation-delay: .28s !important; }
-  .motion-ready .hero.loaded .word:nth-child(4) > span { animation-delay: .36s !important; }
-  .motion-ready .hero.loaded .word:nth-child(5) > span { animation-delay: .44s !important; }
-  .motion-ready .hero.loaded .word:nth-child(6) > span { animation-delay: .52s !important; }
-  .motion-ready .hero.loaded .word:nth-child(7) > span { animation-delay: .60s !important; }
-  .motion-ready .hero.loaded .word:nth-child(8) > span { animation-delay: .68s !important; }
-  .motion-ready .hero.loaded .word:nth-child(9) > span { animation-delay: .76s !important; }
-  /* One reading order, rather than independent phone effects: the ninth word
-     settles, its strike draws, PROFIT lands, then the invitation appears. */
-  .motion-ready .hero.loaded .strike::after { transition-delay: 1.52s; }
-  .motion-ready .hero.loaded .hero-profit { animation: hero-mobile-focus-in .72s cubic-bezier(0.16, 1, 0.3, 1) 2.24s both !important; }
-  .motion-ready .hero.loaded .hero-profit::after { animation: hero-mobile-rule-in .65s var(--ease) 2.48s both !important; }
-  .motion-ready .hero.loaded .hero-inline-cta { animation: hero-mobile-focus-in .68s cubic-bezier(0.16, 1, 0.3, 1) 2.9s both !important; }
+  /* Mobile changes only the composition and proportional blur. The eyebrow,
+     word cascade, strike, PROFIT, underline, and CTA deliberately inherit the
+     desktop lifecycle, durations, and delays so the signature choreography is
+     identical at every viewport and remains restartable on Back/bfcache. */
 }
 
 @media (max-width: 640px) and (max-height: 620px) {
@@ -3227,15 +3211,6 @@ summary:focus-visible {
 
 @media (max-width: 640px) and (min-height: 900px) {
   .hero .h1 { line-height: 1.08; }
-}
-
-@keyframes hero-mobile-focus-in {
-  from { opacity: 0; filter: blur(9px); }
-  to { opacity: 1; filter: blur(0); }
-}
-@keyframes hero-mobile-rule-in {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
 }
 
 /* hero backdrop — a fine drafting grid in hairline rule color (no blur, so

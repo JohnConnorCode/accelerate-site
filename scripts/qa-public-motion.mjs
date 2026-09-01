@@ -303,7 +303,7 @@ for (const config of [
         wordAnimations: [...document.querySelectorAll(".hero .word > span")].map((node) => getComputedStyle(node).animationName),
       }));
       if (opening.staticPhrase !== "none" || opening.scramblePhrase === "none" || opening.wordAnimations.length !== 9 || opening.wordAnimations.some((name) => !name.includes("word-blur-in"))) failures.push(`mobile reload ${reload}: hero did not begin its shared scramble cascade`);
-      await page.waitForTimeout(3_800);
+      await page.waitForTimeout(7_400);
       const settledHero = await page.evaluate(() => {
         const words = document.querySelector(".hero .h1-word-row").getBoundingClientRect();
         const closing = document.querySelector(".hero-row-cta").getBoundingClientRect();
@@ -329,12 +329,13 @@ for (const config of [
     await page.locator(".hero.loaded").waitFor({ timeout: 4_000 });
     const restoredHero = await page.evaluate(() => ({
       loaded: document.querySelector(".hero")?.classList.contains("loaded"),
-      profitAnimation: getComputedStyle(document.querySelector(".hero-profit")).animationName,
+      profitTransitionDelay: getComputedStyle(document.querySelector(".hero-profit")).transitionDelay,
+      ctaTransitionDelay: getComputedStyle(document.querySelector(".hero-inline-cta")).transitionDelay,
       profitOpacity: Number.parseFloat(getComputedStyle(document.querySelector(".hero-profit")).opacity),
       ctaOpacity: Number.parseFloat(getComputedStyle(document.querySelector(".hero-inline-cta")).opacity),
     }));
-    if (!restoredHero.loaded || !restoredHero.profitAnimation.includes("hero-mobile-focus-in") || restoredHero.profitOpacity > 0.1 || restoredHero.ctaOpacity > 0.1) failures.push("mobile back navigation: hero did not restart its staged outcome and CTA sequence");
-    await page.waitForTimeout(3_800);
+    if (!restoredHero.loaded || !restoredHero.profitTransitionDelay.includes("4.7s") || !restoredHero.ctaTransitionDelay.includes("6.1s") || restoredHero.profitOpacity > 0.1 || restoredHero.ctaOpacity > 0.1) failures.push("mobile back navigation: hero did not restart the shared desktop-timed outcome and CTA sequence");
+    await page.waitForTimeout(7_400);
     const restoredVisibility = await page.evaluate(() => ({
       profit: Number.parseFloat(getComputedStyle(document.querySelector(".hero-profit")).opacity),
       cta: Number.parseFloat(getComputedStyle(document.querySelector(".hero-inline-cta")).opacity),
