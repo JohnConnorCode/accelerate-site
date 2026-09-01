@@ -13,13 +13,32 @@ An open-source, multi-tenant operating system for service businesses: CRM, pipel
 
 ## What is included
 
-- Shared-database multi-tenancy with explicit tenant context and membership boundaries.
-- Contact and company records, pipeline, tasks, conversations, proposals, and revenue recovery.
-- Approval-gated campaigns, imports, and AI-assisted actions with immutable receipts.
-- Tenant-owned OpenRouter credentials so each workspace can control model spend.
-- Resend, Google Workspace, Calendly, Plausible, and first-party analytics integration paths.
-- Five fictional Command Center workspaces for safe product exploration.
-- A complete marketing site, knowledge library, qualification flows, and resource delivery.
+The Command Center is an integrated operating layer for the work that turns
+demand into revenue. Its core product surface includes:
+
+- **Today and operator priorities** — a tenant-scoped queue for next actions,
+  approvals, follow-up, and work that needs attention now.
+- **Revenue records** — canonical contacts, companies, opportunities, pipeline
+  stages, ownership, tasks, activities, attribution, and record workspaces.
+- **Inbox and engagement** — conversations, contact intake, identity resolution,
+  notes, and auditable communication workflows.
+- **Revenue execution** — campaign planning, proposals, booking workflows, and
+  recovery/receipt tracking with approval gates and idempotent external actions.
+- **Analytics and data quality** — source-to-revenue attribution, first-party
+  website signals, decision-ready reporting, and explicit data-quality states.
+- **Grounded AI operations** — bounded context retrieval, tool evidence,
+  approval-gated writes, action queues, and immutable audit receipts.
+- **Tenant controls** — shared-database multi-tenancy with explicit tenant
+  context, membership authorization, isolated records, provider boundaries, and
+  tenant-owned OpenRouter credentials for cost control.
+- **Integrations and safe demos** — Resend, Google Workspace, Calendly, Plausible,
+  and first-party analytics paths, plus five fictional Command Center workspaces
+  that run without provider credentials.
+
+The complete, status-tracked inventory lives in the [interactive Feature Board](https://www.acceleratewith.us/admin/features)
+and its checked-in [canonical feature manifest](https://github.com/JohnConnorCode/accelerate-site/blob/main/scripts/feature-backlog-data.mjs).
+Use that manifest as the source of truth for shipped, planned, blocked, and
+backlog capabilities; do not maintain a separate roadmap in a fork.
 
 ## Technology
 
