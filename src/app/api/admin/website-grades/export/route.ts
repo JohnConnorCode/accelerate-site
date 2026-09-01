@@ -18,16 +18,10 @@ export async function GET() {
   }
 
   const headers = ["URL", "Email", "Score", "Date"];
-  const rows = (data || []).map(
-    (r: Record<string, unknown>) =>
-      [
-        r.url,
-        r.email,
-        r.overall_score,
-        new Date(r.created_at as string).toLocaleDateString(),
-      ]
-        .map((v) => `"${sanitizeCsv(String(v ?? "")).replace(/"/g, '""')}"`)
-        .join(",")
+  const rows = (data || []).map((r: Record<string, unknown>) =>
+    [r.url, r.email, r.overall_score, new Date(r.created_at as string).toLocaleDateString()]
+      .map((v) => `"${sanitizeCsv(String(v ?? "")).replace(/"/g, '""')}"`)
+      .join(","),
   );
 
   const csv = [headers.join(","), ...rows].join("\n");

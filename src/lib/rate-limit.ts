@@ -22,7 +22,7 @@ function cleanup(windowMs: number) {
 export function rateLimit(
   ip: string,
   limit: number,
-  windowMs: number
+  windowMs: number,
 ): { success: boolean; remaining: number } {
   const now = Date.now();
   cleanup(windowMs);

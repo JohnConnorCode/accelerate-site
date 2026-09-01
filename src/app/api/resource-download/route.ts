@@ -14,18 +14,18 @@ export async function POST(request: NextRequest) {
   try {
     const { resourceId, name, email, utm } = await request.json();
 
-    if (typeof resourceId !== "string" || !resourceId.trim() || typeof name !== "string" || !name.trim() || typeof email !== "string") {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+    if (
+      typeof resourceId !== "string" ||
+      !resourceId.trim() ||
+      typeof name !== "string" ||
+      !name.trim() ||
+      typeof email !== "string"
+    ) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     if (!isValidEmail(email)) {
-      return NextResponse.json(
-        { error: "Please provide a valid email address." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Please provide a valid email address." }, { status: 400 });
     }
 
     // Save to Supabase if configured
@@ -70,9 +70,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Resource download error:", error);
-    return NextResponse.json(
-      { error: "Failed to process download" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to process download" }, { status: 500 });
   }
 }

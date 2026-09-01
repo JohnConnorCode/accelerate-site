@@ -21,11 +21,7 @@ export async function getSetting(key: string): Promise<string> {
   if (SERVER_ONLY_SECRET_KEYS.has(key)) return "";
   try {
     const supabase = createBootstrapServiceRoleClient("legacy-admin-settings");
-    const { data } = await supabase
-      .from("admin_settings")
-      .select("value")
-      .eq("key", key)
-      .single();
+    const { data } = await supabase.from("admin_settings").select("value").eq("key", key).single();
 
     if (data?.value) return data.value;
   } catch {

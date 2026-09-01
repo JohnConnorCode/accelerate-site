@@ -8,9 +8,7 @@ export function Accordion({
   children,
   ...props
 }: AccordionPrimitive.AccordionMultipleProps | AccordionPrimitive.AccordionSingleProps) {
-  return (
-    <AccordionPrimitive.Root {...props}>{children}</AccordionPrimitive.Root>
-  );
+  return <AccordionPrimitive.Root {...props}>{children}</AccordionPrimitive.Root>;
 }
 
 export function AccordionItem({
@@ -24,7 +22,7 @@ export function AccordionItem({
         "glass rounded-xl mb-3 overflow-clip",
         "data-[state=open]:border-border-gold",
         "transition-colors duration-300",
-        className
+        className,
       )}
       {...props}
     >
@@ -46,7 +44,7 @@ export function AccordionTrigger({
           "text-white-primary font-medium",
           "hover:text-white-primary transition-colors cursor-pointer",
           "group",
-          className
+          className,
         )}
         {...props}
       >
@@ -68,7 +66,7 @@ export function AccordionContent({
         "overflow-hidden",
         "data-[state=open]:animate-[accordion-down_200ms_ease-out]",
         "data-[state=closed]:animate-[accordion-up_200ms_ease-out]",
-        className
+        className,
       )}
       {...props}
     >

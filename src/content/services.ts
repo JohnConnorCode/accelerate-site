@@ -28,9 +28,19 @@ export const services: Service[] = [
       { value: "Clear", label: "Sequence before you spend" },
     ],
     process: [
-      { step: "Discovery", description: "We learn your business, tools, team, and goals in a deep-dive session." },
-      { step: "Audit", description: "We map every process and identify the highest-impact AI opportunities." },
-      { step: "Deliver", description: "You receive a detailed roadmap with priorities, tools, timelines, and what the team gets back." },
+      {
+        step: "Discovery",
+        description: "We learn your business, tools, team, and goals in a deep-dive session.",
+      },
+      {
+        step: "Audit",
+        description: "We map every process and identify the highest-impact AI opportunities.",
+      },
+      {
+        step: "Deliver",
+        description:
+          "You receive a detailed roadmap with priorities, tools, timelines, and what the team gets back.",
+      },
     ],
   },
   {
@@ -66,9 +76,20 @@ export const services: Service[] = [
       { value: "0", label: "Missed follow-ups" },
     ],
     process: [
-      { step: "Workflow Audit", description: "We map every manual process and identify the highest-impact automation opportunities." },
-      { step: "Build & Connect", description: "Custom integrations between your CRM, calendar, email, and payment systems." },
-      { step: "Monitor & Iterate", description: "Ongoing monitoring, optimization, and new workflow builds as your business grows." },
+      {
+        step: "Workflow Audit",
+        description:
+          "We map every manual process and identify the highest-impact automation opportunities.",
+      },
+      {
+        step: "Build & Connect",
+        description: "Custom integrations between your CRM, calendar, email, and payment systems.",
+      },
+      {
+        step: "Monitor & Iterate",
+        description:
+          "Ongoing monitoring, optimization, and new workflow builds as your business grows.",
+      },
     ],
   },
   {
@@ -101,9 +122,21 @@ export const services: Service[] = [
       { value: "< 5 min", label: "Response time we build toward" },
     ],
     process: [
-      { step: "Pipeline Audit", description: "We map your current sales process and identify where opportunities are falling through." },
-      { step: "Build & Launch", description: "Automated sequences, scoring rules, and campaign infrastructure tailored to your business." },
-      { step: "Optimize", description: "A/B testing, conversion tracking, and monthly reporting to continuously improve results." },
+      {
+        step: "Pipeline Audit",
+        description:
+          "We map your current sales process and identify where opportunities are falling through.",
+      },
+      {
+        step: "Build & Launch",
+        description:
+          "Automated sequences, scoring rules, and campaign infrastructure tailored to your business.",
+      },
+      {
+        step: "Optimize",
+        description:
+          "A/B testing, conversion tracking, and monthly reporting to continuously improve results.",
+      },
     ],
   },
   {
@@ -138,9 +171,18 @@ export const services: Service[] = [
       { value: "0", label: "Extra headcount to cover intake" },
     ],
     process: [
-      { step: "Knowledge Training", description: "We train the agent on your services, pricing, FAQs, and conversation style." },
-      { step: "Deploy Everywhere", description: "Launch on your website, SMS, email, and social channels simultaneously." },
-      { step: "Learn & Improve", description: "Monthly refinement based on real conversations and conversion data." },
+      {
+        step: "Knowledge Training",
+        description: "We train the agent on your services, pricing, FAQs, and conversation style.",
+      },
+      {
+        step: "Deploy Everywhere",
+        description: "Launch on your website, SMS, email, and social channels simultaneously.",
+      },
+      {
+        step: "Learn & Improve",
+        description: "Monthly refinement based on real conversations and conversion data.",
+      },
     ],
   },
   {
@@ -170,9 +212,19 @@ export const services: Service[] = [
       { value: "12", label: "Pieces per month, typical" },
     ],
     process: [
-      { step: "Voice & Strategy", description: "We learn your tone, audience, and goals to build an editorial calendar." },
-      { step: "Create & Schedule", description: "Ongoing content creation across all channels, published on a consistent schedule." },
-      { step: "Measure & Adjust", description: "Performance reporting and continuous refinement based on what resonates." },
+      {
+        step: "Voice & Strategy",
+        description: "We learn your tone, audience, and goals to build an editorial calendar.",
+      },
+      {
+        step: "Create & Schedule",
+        description:
+          "Ongoing content creation across all channels, published on a consistent schedule.",
+      },
+      {
+        step: "Measure & Adjust",
+        description: "Performance reporting and continuous refinement based on what resonates.",
+      },
     ],
   },
   {
@@ -202,9 +254,18 @@ export const services: Service[] = [
       { value: "Clear", label: "One view of the operation" },
     ],
     process: [
-      { step: "Audit & Connect", description: "We map your data sources and connect everything into a unified view." },
-      { step: "Build & Configure", description: "Custom dashboards and automated reports tailored to your KPIs." },
-      { step: "Deliver & Refine", description: "Weekly digests and ongoing refinement as your priorities evolve." },
+      {
+        step: "Audit & Connect",
+        description: "We map your data sources and connect everything into a unified view.",
+      },
+      {
+        step: "Build & Configure",
+        description: "Custom dashboards and automated reports tailored to your KPIs.",
+      },
+      {
+        step: "Deliver & Refine",
+        description: "Weekly digests and ongoing refinement as your priorities evolve.",
+      },
     ],
   },
 ];

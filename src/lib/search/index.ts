@@ -15,7 +15,8 @@ import { publicWorkProjects } from "@/content/work";
  * for a day while being reachable from nowhere, because three separate hand
  * written lists all had to be remembered. Nothing here is hand written.
  */
-export type SearchGroup = "Articles" | "Industries" | "Services" | "Packages" | "Work" | "Pages" | "Changelog";
+export type SearchGroup =
+  "Articles" | "Industries" | "Services" | "Packages" | "Work" | "Pages" | "Changelog";
 
 export interface SearchEntry {
   id: string;
@@ -31,20 +32,108 @@ export interface SearchEntry {
 
 /** Pages with no content collection behind them. */
 const STATIC_PAGES: Array<Omit<SearchEntry, "group">> = [
-  { id: "page-home", title: "Home", description: "AI strategy, custom solutions, managed execution, training, and optimization built around your business.", href: "/", keywords: ["home", "start", "accelerate"] },
-  { id: "page-services", title: "Services", description: "Consulting, custom systems, integrations, execution, training, and ongoing improvement.", href: "/services", keywords: ["what you do", "offering", "capabilities"] },
-  { id: "page-command-center", title: "Command Center", description: "One integrated operating solution for businesses that need shared context and connected workflows.", href: "/command-center", keywords: ["dashboard", "admin", "operations", "software"] },
-  { id: "page-command-center-demo", title: "Command Center Demo", description: "Explore three complete fictional operating workspaces using the real Command Center interface.", href: "/demo/command-center", keywords: ["demo", "sandbox", "interactive", "admin demo", "product demo"] },
-  { id: "page-packages", title: "Packages", description: "How engagements are scoped and what each level includes.", href: "/packages", keywords: ["pricing", "cost", "how much", "plans", "tiers"] },
-  { id: "page-work", title: "Selected Work", description: "Systems, products, operations, and growth work by the team behind this site.", href: "/work", keywords: ["case studies", "proof", "portfolio", "projects"] },
-  { id: "page-learn", title: "Learn", description: "Guides on AI operations, automation, and revenue systems.", href: "/learn", keywords: ["blog", "articles", "guides", "library", "resources"] },
-  { id: "page-about", title: "About", description: "Who we are and how we work.", href: "/about", keywords: ["team", "founder", "story", "who"] },
-  { id: "page-contact", title: "Contact", description: "Book a free strategy session or send us a note.", href: "/contact", keywords: ["book", "call", "demo", "talk", "get in touch", "schedule", "meeting"] },
-  { id: "page-plan-builder", title: "Plan Builder", description: "Answer a few questions and get a recommended plan.", href: "/plan-builder", keywords: ["quote", "recommendation", "build a plan", "tool"] },
-  { id: "page-resources", title: "Resources", description: "Downloadable guides and templates.", href: "/resources", keywords: ["downloads", "templates", "guides", "free"] },
-  { id: "page-partners", title: "Partners", description: "Partner with us.", href: "/partners", keywords: ["referral", "agency", "affiliate"] },
-  { id: "page-industries", title: "Industries", description: "How this works in your specific line of business.", href: "/industries", keywords: ["verticals", "sectors", "who you work with"] },
-  { id: "page-changelog", title: "Changelog", description: "What we have shipped recently.", href: "/changelog", keywords: ["updates", "releases", "news", "what is new"] },
+  {
+    id: "page-home",
+    title: "Home",
+    description:
+      "AI strategy, custom solutions, managed execution, training, and optimization built around your business.",
+    href: "/",
+    keywords: ["home", "start", "accelerate"],
+  },
+  {
+    id: "page-services",
+    title: "Services",
+    description:
+      "Consulting, custom systems, integrations, execution, training, and ongoing improvement.",
+    href: "/services",
+    keywords: ["what you do", "offering", "capabilities"],
+  },
+  {
+    id: "page-command-center",
+    title: "Command Center",
+    description:
+      "One integrated operating solution for businesses that need shared context and connected workflows.",
+    href: "/command-center",
+    keywords: ["dashboard", "admin", "operations", "software"],
+  },
+  {
+    id: "page-command-center-demo",
+    title: "Command Center Demo",
+    description:
+      "Explore three complete fictional operating workspaces using the real Command Center interface.",
+    href: "/demo/command-center",
+    keywords: ["demo", "sandbox", "interactive", "admin demo", "product demo"],
+  },
+  {
+    id: "page-packages",
+    title: "Packages",
+    description: "How engagements are scoped and what each level includes.",
+    href: "/packages",
+    keywords: ["pricing", "cost", "how much", "plans", "tiers"],
+  },
+  {
+    id: "page-work",
+    title: "Selected Work",
+    description: "Systems, products, operations, and growth work by the team behind this site.",
+    href: "/work",
+    keywords: ["case studies", "proof", "portfolio", "projects"],
+  },
+  {
+    id: "page-learn",
+    title: "Learn",
+    description: "Guides on AI operations, automation, and revenue systems.",
+    href: "/learn",
+    keywords: ["blog", "articles", "guides", "library", "resources"],
+  },
+  {
+    id: "page-about",
+    title: "About",
+    description: "Who we are and how we work.",
+    href: "/about",
+    keywords: ["team", "founder", "story", "who"],
+  },
+  {
+    id: "page-contact",
+    title: "Contact",
+    description: "Book a free strategy session or send us a note.",
+    href: "/contact",
+    keywords: ["book", "call", "demo", "talk", "get in touch", "schedule", "meeting"],
+  },
+  {
+    id: "page-plan-builder",
+    title: "Plan Builder",
+    description: "Answer a few questions and get a recommended plan.",
+    href: "/plan-builder",
+    keywords: ["quote", "recommendation", "build a plan", "tool"],
+  },
+  {
+    id: "page-resources",
+    title: "Resources",
+    description: "Downloadable guides and templates.",
+    href: "/resources",
+    keywords: ["downloads", "templates", "guides", "free"],
+  },
+  {
+    id: "page-partners",
+    title: "Partners",
+    description: "Partner with us.",
+    href: "/partners",
+    keywords: ["referral", "agency", "affiliate"],
+  },
+  {
+    id: "page-industries",
+    title: "Industries",
+    description: "How this works in your specific line of business.",
+    href: "/industries",
+    keywords: ["verticals", "sectors", "who you work with"],
+  },
+  {
+    id: "page-changelog",
+    title: "Changelog",
+    description: "What we have shipped recently.",
+    href: "/changelog",
+    keywords: ["updates", "releases", "news", "what is new"],
+  },
 ];
 
 let cached: SearchEntry[] | null = null;
@@ -77,7 +166,12 @@ export function buildSearchIndex(): SearchEntry[] {
       description: vertical.shortDescription,
       href: `/industries/${vertical.slug}`,
       group: "Industries",
-      keywords: ["industry", "vertical", vertical.name, ...vertical.painPoints.slice(0, 3).map((point) => point.title)],
+      keywords: [
+        "industry",
+        "vertical",
+        vertical.name,
+        ...vertical.painPoints.slice(0, 3).map((point) => point.title),
+      ],
     });
   }
 
@@ -104,7 +198,14 @@ export function buildSearchIndex(): SearchEntry[] {
   }
 
   for (const project of publicWorkProjects) {
-    entries.push({ id: `work-${project.slug}`, title: project.name, description: project.cardDescription, href: `/work/${project.slug}`, group: "Work", keywords: ["work", "case study", "portfolio", project.category, ...project.capabilities] });
+    entries.push({
+      id: `work-${project.slug}`,
+      title: project.name,
+      description: project.cardDescription,
+      href: `/work/${project.slug}`,
+      group: "Work",
+      keywords: ["work", "case study", "portfolio", project.category, ...project.capabilities],
+    });
   }
 
   for (const page of STATIC_PAGES) {

@@ -34,7 +34,7 @@ export function ResourceGate({ resourceId, onClose }: ResourceGateProps) {
 
       if (e.key === "Tab" && modalRef.current) {
         const focusable = modalRef.current.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
         );
         if (focusable.length === 0) return;
 
@@ -188,15 +188,12 @@ export function ResourceGate({ resourceId, onClose }: ResourceGateProps) {
             />
 
             {error && (
-              <p role="alert" className="text-[var(--error)] text-sm">{error}</p>
+              <p role="alert" className="text-[var(--error)] text-sm">
+                {error}
+              </p>
             )}
 
-            <Button
-              type="submit"
-              className="w-full"
-              size="lg"
-              disabled={isSubmitting}
-            >
+            <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />

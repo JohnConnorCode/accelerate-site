@@ -35,11 +35,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function TagPage({
-  params,
-}: {
-  params: Promise<{ tag: string }>;
-}) {
+export default async function TagPage({ params }: { params: Promise<{ tag: string }> }) {
   const { tag } = await params;
   const decoded = decodeURIComponent(tag);
   const articles = getArticlesByTag(decoded);

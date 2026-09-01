@@ -1,9 +1,6 @@
 const UTC_TIME_ZONE = "UTC";
 
-export function formatDateOnly(
-  date: string,
-  options: Intl.DateTimeFormatOptions
-) {
+export function formatDateOnly(date: string, options: Intl.DateTimeFormatOptions) {
   return new Date(date).toLocaleDateString("en-US", {
     ...options,
     timeZone: UTC_TIME_ZONE,

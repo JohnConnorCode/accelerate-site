@@ -6,11 +6,17 @@
 async function waitForDemoRuntime() {
   if (typeof window === "undefined") return;
   if (!window.location.pathname.startsWith("/demo/command-center")) return;
-  if ((window as Window & { __accelerateAdminDemoRuntime?: string }).__accelerateAdminDemoRuntime) return;
+  if ((window as Window & { __accelerateAdminDemoRuntime?: string }).__accelerateAdminDemoRuntime)
+    return;
   await new Promise<void>((resolve) => {
     const started = Date.now();
     const tick = () => {
-      if ((window as Window & { __accelerateAdminDemoRuntime?: string }).__accelerateAdminDemoRuntime || Date.now() - started > 3000) resolve();
+      if (
+        (window as Window & { __accelerateAdminDemoRuntime?: string })
+          .__accelerateAdminDemoRuntime ||
+        Date.now() - started > 3000
+      )
+        resolve();
       else window.requestAnimationFrame(tick);
     };
     tick();

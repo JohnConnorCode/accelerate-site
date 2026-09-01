@@ -2,7 +2,16 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import { usePathname } from "next/navigation";
-import { X, Send, Loader2, CalendarDays, ArrowRight, RotateCcw, Square, WifiOff } from "lucide-react";
+import {
+  X,
+  Send,
+  Loader2,
+  CalendarDays,
+  ArrowRight,
+  RotateCcw,
+  Square,
+  WifiOff,
+} from "lucide-react";
 import { ChatMessage } from "./ChatMessage";
 import { ChatLeadCapture } from "./ChatLeadCapture";
 import type { ChatMessage as ChatMessageType } from "@/lib/types";
@@ -25,7 +34,11 @@ const PAGE_QUESTIONS: { matches: (pathname: string) => boolean; questions: strin
   },
   {
     matches: (pathname) => pathname.startsWith("/services") || pathname.startsWith("/industries"),
-    questions: ["What does this cost?", "How soon would we see a result?", "Nobody here is technical. Is that a problem?"],
+    questions: [
+      "What does this cost?",
+      "How soon would we see a result?",
+      "Nobody here is technical. Is that a problem?",
+    ],
   },
   {
     matches: () => true,
@@ -93,7 +106,9 @@ function persistState(state: StoredChatState) {
 export function ChatPanel({ onClose }: ChatPanelProps) {
   const pathname = usePathname();
   const quickQuestions = useMemo(() => {
-    const selected = PAGE_QUESTIONS.find((group) => group.matches(pathname)) ?? PAGE_QUESTIONS[PAGE_QUESTIONS.length - 1];
+    const selected =
+      PAGE_QUESTIONS.find((group) => group.matches(pathname)) ??
+      PAGE_QUESTIONS[PAGE_QUESTIONS.length - 1];
     return homeFaqs.filter((faq) => selected?.questions.includes(faq.question));
   }, [pathname]);
   const [messages, setMessages] = useState<ChatMessageType[]>([WELCOME_MESSAGE]);
@@ -145,10 +160,13 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
     };
   }, []);
 
-  useEffect(() => () => {
-    requestControllerRef.current?.abort();
-    if (quickReplyTimerRef.current) window.clearTimeout(quickReplyTimerRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      requestControllerRef.current?.abort();
+      if (quickReplyTimerRef.current) window.clearTimeout(quickReplyTimerRef.current);
+    },
+    [],
+  );
 
   const requestReply = async (prompt: string, conversation: ChatMessageType[]) => {
     if (!isOnline || isLoading || isTyping) return;
@@ -214,9 +232,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
         assistantContent += decoder.decode(value, { stream: true });
         const content = assistantContent;
         setMessages((prev) =>
-          prev.map((message) =>
-            message.id === assistantId ? { ...message, content } : message,
-          ),
+          prev.map((message) => (message.id === assistantId ? { ...message, content } : message)),
         );
       }
 
@@ -363,16 +379,29 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
       {/* Header */}
       <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-border-glass bg-bg-subtle px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <div>
-          <h3 id="public-chat-title" className="text-sm font-display font-semibold text-white-primary">
+          <h3
+            id="public-chat-title"
+            className="text-sm font-display font-semibold text-white-primary"
+          >
             Accelerate AI
           </h3>
-          <p className="mt-0.5 flex items-center gap-1.5 text-xs text-white-secondary" aria-live="polite">
+          <p
+            className="mt-0.5 flex items-center gap-1.5 text-xs text-white-secondary"
+            aria-live="polite"
+          >
             {!isOnline ? (
-              <><WifiOff className="h-3 w-3" /> Offline. Reconnect to send</>
+              <>
+                <WifiOff className="h-3 w-3" /> Offline. Reconnect to send
+              </>
             ) : isLoading || isTyping ? (
-              <><span className="h-1.5 w-1.5 rounded-full bg-[var(--fg)] animate-pulse" /> Drafting a response…</>
+              <>
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--fg)] animate-pulse" /> Drafting
+                a response…
+              </>
             ) : (
-              <><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Ready when you are</>
+              <>
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Ready when you are
+              </>
             )}
           </p>
         </div>
@@ -387,30 +416,41 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3" role="log" aria-label="Chat messages" aria-live="polite">
-        {messages.map((msg) => msg.content ? <ChatMessage key={msg.id} message={msg} /> : null)}
+      <div
+        className="flex-1 overflow-y-auto p-4 space-y-3"
+        role="log"
+        aria-label="Chat messages"
+        aria-live="polite"
+      >
+        {messages.map((msg) => (msg.content ? <ChatMessage key={msg.id} message={msg} /> : null))}
         {/* Quick-reply prompts — only while the conversation is still just
             the welcome message, so a visitor who doesn't know what to type
             has somewhere to start. Disappears the moment any message (typed
             or a quick reply) actually goes out. */}
         {messages.length === 1 && (
           <div className="pt-1">
-            <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-white-secondary">Good places to start</p>
+            <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-white-secondary">
+              Good places to start
+            </p>
             <div className="flex flex-wrap gap-2">
-            {quickQuestions.map((faq) => (
-              <button
-                key={faq.question}
-                type="button"
-                onClick={() => handleQuickQuestion(faq)}
-                className="min-h-10 border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] bg-bg-subtle px-3 py-2 text-left text-xs leading-4 text-white-secondary transition-[border-color,color,background-color,transform] hover:border-[var(--fg)] hover:text-white-primary active:scale-[0.96] cursor-pointer"
-              >
-                {faq.question}
-              </button>
-            ))}
+              {quickQuestions.map((faq) => (
+                <button
+                  key={faq.question}
+                  type="button"
+                  onClick={() => handleQuickQuestion(faq)}
+                  className="min-h-10 border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] bg-bg-subtle px-3 py-2 text-left text-xs leading-4 text-white-secondary transition-[border-color,color,background-color,transform] hover:border-[var(--fg)] hover:text-white-primary active:scale-[0.96] cursor-pointer"
+                >
+                  {faq.question}
+                </button>
+              ))}
             </div>
           </div>
         )}
-        {(isTyping || (isLoading && (!messages[messages.length - 1] || messages[messages.length - 1]?.role !== "assistant" || !messages[messages.length - 1]?.content))) && (
+        {(isTyping ||
+          (isLoading &&
+            (!messages[messages.length - 1] ||
+              messages[messages.length - 1]?.role !== "assistant" ||
+              !messages[messages.length - 1]?.content))) && (
           <div className="flex justify-start">
             <div className="flex items-center gap-2 rounded-2xl rounded-bl-md px-4 py-2.5 bg-bg-subtle border border-border-glass">
               <Loader2 className="h-4 w-4 animate-spin text-white-muted" />
@@ -455,7 +495,9 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
         className="group flex min-h-11 items-center justify-center gap-2 border-t border-border-glass bg-bg-subtle px-4 py-2.5 text-xs transition-colors hover:bg-bg-elevated"
       >
         <CalendarDays className="h-3.5 w-3.5 shrink-0 text-[var(--fg)]" strokeWidth={1.75} />
-        <span className="font-medium text-white-primary">Book a free 30-minute strategy session</span>
+        <span className="font-medium text-white-primary">
+          Book a free 30-minute strategy session
+        </span>
         <ArrowRight className="h-3 w-3 shrink-0 text-white-muted transition-transform group-hover:translate-x-0.5" />
       </a>
 
@@ -504,7 +546,9 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
             </button>
           )}
         </form>
-        <p className="mt-1.5 px-0.5 text-[10px] text-white-secondary">Enter to send · Shift + Enter for a new line</p>
+        <p className="mt-1.5 px-0.5 text-[10px] text-white-secondary">
+          Enter to send · Shift + Enter for a new line
+        </p>
       </div>
     </div>
   );

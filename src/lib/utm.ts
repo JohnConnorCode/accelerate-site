@@ -4,13 +4,7 @@
 
 const UTM_KEY = "accelerate_utm";
 
-const UTM_PARAMS = [
-  "utm_source",
-  "utm_medium",
-  "utm_campaign",
-  "utm_term",
-  "utm_content",
-] as const;
+const UTM_PARAMS = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"] as const;
 
 export interface UTMData {
   utm_source?: string;
@@ -45,8 +39,7 @@ export function captureUTMParams(): void {
   // Always capture referrer and landing page if we have UTM params
   // or if there's an external referrer
   const referrer = document.referrer;
-  const isExternalReferrer =
-    referrer && !referrer.includes(window.location.hostname);
+  const isExternalReferrer = referrer && !referrer.includes(window.location.hostname);
 
   if (hasUTM || isExternalReferrer) {
     if (isExternalReferrer) data.referrer = referrer;

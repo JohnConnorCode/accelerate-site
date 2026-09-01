@@ -20,7 +20,7 @@ const port = await new Promise((resolve, reject) => {
       server.close(() => reject(new Error("Could not allocate a PostgreSQL test port")));
       return;
     }
-    server.close((error) => error ? reject(error) : resolve(address.port));
+    server.close((error) => (error ? reject(error) : resolve(address.port)));
   });
 });
 
@@ -158,15 +158,34 @@ try {
     run(pgCtl, ["-D", data, "-l", log, "-o", `-F -h 127.0.0.1 -k '' -p ${port}`, "-w", "start"]);
   } catch (error) {
     const diagnostics = readFileSync(log, "utf8").trim();
-    throw new Error(`${error instanceof Error ? error.message : "PostgreSQL failed to start"}\n${diagnostics}`);
+    throw new Error(
+      `${error instanceof Error ? error.message : "PostgreSQL failed to start"}\n${diagnostics}`,
+    );
   }
   started = true;
-  const args = ["-h", "127.0.0.1", "-p", String(port), "-U", "postgres", "-d", "postgres", "-v", "ON_ERROR_STOP=1", "-X", "-q"];
+  const args = [
+    "-h",
+    "127.0.0.1",
+    "-p",
+    String(port),
+    "-U",
+    "postgres",
+    "-d",
+    "postgres",
+    "-v",
+    "ON_ERROR_STOP=1",
+    "-X",
+    "-q",
+  ];
   run(psql, [...args, "-f", fixture]);
   run(psql, [...args, "-f", "migrations/20260831-tenant-lifecycle-rpcs.sql"]);
-  const output = run(psql, [...args, "-t", "-A", "-f", proof]).trim().split("\n").at(-1);
+  const output = run(psql, [...args, "-t", "-A", "-f", proof])
+    .trim()
+    .split("\n")
+    .at(-1);
   console.log(output);
 } finally {
   if (started) spawnSync(pgCtl, ["-D", data, "-m", "fast", "-w", "stop"], { encoding: "utf8" });
-  if (root.startsWith(join(tmpdir(), "accelerate-tenant-lifecycle-"))) rmSync(root, { recursive: true, force: true });
+  if (root.startsWith(join(tmpdir(), "accelerate-tenant-lifecycle-")))
+    rmSync(root, { recursive: true, force: true });
 }

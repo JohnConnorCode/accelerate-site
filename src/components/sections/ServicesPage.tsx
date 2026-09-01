@@ -3,12 +3,27 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
-  Check, ArrowUpRight, Compass, Workflow, TrendingUp, MessageCircle, PenTool, BarChart3,
+  Check,
+  ArrowUpRight,
+  Compass,
+  Workflow,
+  TrendingUp,
+  MessageCircle,
+  PenTool,
+  BarChart3,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 import { HeroEntranceItem, PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
-import { Section, Container, Eyebrow, Heading, BookCallButton, useReveal, CallTerms } from "@/components/v2/studio/primitives";
+import {
+  Section,
+  Container,
+  Eyebrow,
+  Heading,
+  BookCallButton,
+  useReveal,
+  CallTerms,
+} from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { HERO_HEADING } from "@/lib/type-recipes";
 import { ApprovalQueue } from "@/components/command-center/ApprovalQueue";
@@ -17,15 +32,45 @@ import { services } from "@/content/services";
 import { trackConversion } from "@/lib/analytics";
 
 const iconMap: Record<string, LucideIcon> = {
-  Compass, Workflow, TrendingUp, MessageCircle, PenTool, BarChart3,
+  Compass,
+  Workflow,
+  TrendingUp,
+  MessageCircle,
+  PenTool,
+  BarChart3,
 };
 
 const SERVICE_QUEUE: LiveQueueItem[] = [
-  { id: "scope", kind: "note", title: "Scope mapped to the operating constraint", because: "The sequence of work is ready for review." },
-  { id: "workflow", kind: "task", title: "Workflow build moved into testing", because: "The handoff is being tested against the real process." },
-  { id: "integration", kind: "deal", title: "Core tools connected", because: "The system can now pass the right context between teams." },
-  { id: "handoff", kind: "calendar", title: "Team handoff scheduled", because: "The people who run it are included before it goes live." },
-  { id: "improve", kind: "email", title: "Weekly improvement brief prepared", because: "The next useful change is waiting with the evidence." },
+  {
+    id: "scope",
+    kind: "note",
+    title: "Scope mapped to the operating constraint",
+    because: "The sequence of work is ready for review.",
+  },
+  {
+    id: "workflow",
+    kind: "task",
+    title: "Workflow build moved into testing",
+    because: "The handoff is being tested against the real process.",
+  },
+  {
+    id: "integration",
+    kind: "deal",
+    title: "Core tools connected",
+    because: "The system can now pass the right context between teams.",
+  },
+  {
+    id: "handoff",
+    kind: "calendar",
+    title: "Team handoff scheduled",
+    because: "The people who run it are included before it goes live.",
+  },
+  {
+    id: "improve",
+    kind: "email",
+    title: "Weekly improvement brief prepared",
+    because: "The next useful change is waiting with the evidence.",
+  },
 ];
 
 /* One editorial service row: the service's reason first, then the concrete
@@ -41,11 +86,7 @@ function ServiceBand({
   const ref = useReveal<HTMLElement>();
 
   return (
-    <section
-      ref={ref}
-      id={service.id}
-      className="services-band section-reveal scroll-mt-[126px]"
-    >
+    <section ref={ref} id={service.id} className="services-band section-reveal scroll-mt-[126px]">
       <div className="page-shell services-band-grid">
         <div className="services-band-intro">
           <div>
@@ -56,20 +97,14 @@ function ServiceBand({
             )}
             <p className="services-band-number">{String(ordinal).padStart(2, "0")}</p>
             <h2 className="services-band-title">{service.name}</h2>
-            <p className="services-band-problem">
-              {service.problemStatement}
-            </p>
-            <p className="services-band-description">
-              {service.description}
-            </p>
+            <p className="services-band-problem">{service.problemStatement}</p>
+            <p className="services-band-description">{service.description}</p>
           </div>
         </div>
 
         <div className="services-band-deliverables">
           <div>
-            <p className="services-band-deliverables-label">
-              What you get
-            </p>
+            <p className="services-band-deliverables-label">What you get</p>
             <ul className="services-band-deliverables-list">
               {service.deliverables.map((d) => (
                 <li key={d}>
@@ -98,10 +133,26 @@ function ServiceBand({
 }
 
 const STEPS = [
-  { n: "01", t: "The session", d: "Thirty minutes on how the business works, what the team wants to change, and where time or revenue is being lost." },
-  { n: "02", t: "The recommendation", d: "A written view of where AI fits, the right type of solution, what should happen first, and why." },
-  { n: "03", t: "The delivery", d: "We provide the agreed consulting, custom build, integrations, training, or managed execution against a clear scope." },
-  { n: "04", t: "The improvement", d: "When ongoing help makes sense, we operate the work, support the team, measure what changes, and keep improving it." },
+  {
+    n: "01",
+    t: "The session",
+    d: "Thirty minutes on how the business works, what the team wants to change, and where time or revenue is being lost.",
+  },
+  {
+    n: "02",
+    t: "The recommendation",
+    d: "A written view of where AI fits, the right type of solution, what should happen first, and why.",
+  },
+  {
+    n: "03",
+    t: "The delivery",
+    d: "We provide the agreed consulting, custom build, integrations, training, or managed execution against a clear scope.",
+  },
+  {
+    n: "04",
+    t: "The improvement",
+    d: "When ongoing help makes sense, we operate the work, support the team, measure what changes, and keep improving it.",
+  },
 ];
 
 export function ServicesPageContent() {
@@ -121,7 +172,7 @@ export function ServicesPageContent() {
         const section = document.getElementById(service.id);
         if (section && section.getBoundingClientRect().top <= readingLine) nextId = service.id;
       }
-      setActiveId((current) => current === nextId ? current : nextId);
+      setActiveId((current) => (current === nextId ? current : nextId));
     };
     const scheduleUpdate = () => {
       if (!frame) frame = requestAnimationFrame(updateActiveService);
@@ -152,14 +203,22 @@ export function ServicesPageContent() {
         <Container width="wide">
           <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
             <div className="min-w-0">
-              <HeroEntranceItem step={1}><Eyebrow className="mb-7">what we do</Eyebrow></HeroEntranceItem>
-              <HeroEntranceItem step={2}><RevealHeading
-                as="h1" className={HERO_HEADING} lead="AI strategy and solutions."
-                accent="Built around your business." entrance="parent"
-              /></HeroEntranceItem>
+              <HeroEntranceItem step={1}>
+                <Eyebrow className="mb-7">what we do</Eyebrow>
+              </HeroEntranceItem>
+              <HeroEntranceItem step={2}>
+                <RevealHeading
+                  as="h1"
+                  className={HERO_HEADING}
+                  lead="AI strategy and solutions."
+                  accent="Built around your business."
+                  entrance="parent"
+                />
+              </HeroEntranceItem>
               <HeroEntranceItem step={3}>
                 <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                  We help you decide where AI belongs, build the right workflows, agents, tools, and integrations, and stay involved through execution, training, and improvement.
+                  We help you decide where AI belongs, build the right workflows, agents, tools, and
+                  integrations, and stay involved through execution, training, and improvement.
                 </p>
               </HeroEntranceItem>
               <HeroEntranceItem step={4}>
@@ -190,10 +249,7 @@ export function ServicesPageContent() {
       </PublicHeroEntrance>
 
       {/* Sticky service quick-nav — follows the current service on its own. */}
-      <nav
-        className="services-subnav sticky z-[80]"
-        aria-label="Service quick navigation"
-      >
+      <nav className="services-subnav sticky z-[80]" aria-label="Service quick navigation">
         <div ref={quickNavRef} className="services-subnav-rail page-shell">
           {services.map((service) => {
             const Icon = iconMap[service.icon];
@@ -206,11 +262,7 @@ export function ServicesPageContent() {
                 data-service-id={service.id}
                 onClick={() => setActiveId(service.id)}
                 aria-current={isActive ? "location" : undefined}
-                className={`services-subnav-link ${
-                  isActive
-                    ? "is-active"
-                    : ""
-                }`}
+                className={`services-subnav-link ${isActive ? "is-active" : ""}`}
               >
                 {Icon && <Icon className="h-3.5 w-3.5" strokeWidth={2} />}
                 {service.name}
@@ -232,14 +284,24 @@ export function ServicesPageContent() {
           How an engagement works
         </Heading>
         <div className="relative mx-auto max-w-2xl">
-          <div className="absolute bottom-12 left-[18px] top-3 w-px bg-[color-mix(in_srgb,var(--gold-base)_40%,transparent)]" aria-hidden />
+          <div
+            className="absolute bottom-12 left-[18px] top-3 w-px bg-[color-mix(in_srgb,var(--gold-base)_40%,transparent)]"
+            aria-hidden
+          />
           {STEPS.map((s, i) => (
-            <AnimateOnScroll key={s.n} delay={i * 0.08} as="div" className="relative mb-8 flex items-start gap-6 last:mb-0">
+            <AnimateOnScroll
+              key={s.n}
+              delay={i * 0.08}
+              as="div"
+              className="relative mb-8 flex items-start gap-6 last:mb-0"
+            >
               <span className="relative z-10 grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border-gold bg-bg-base font-mono text-xs font-semibold text-gold">
                 {s.n}
               </span>
               <div className="pt-1">
-                <h3 className="font-display text-xl font-semibold text-heading sm:text-2xl">{s.t}</h3>
+                <h3 className="font-display text-xl font-semibold text-heading sm:text-2xl">
+                  {s.t}
+                </h3>
                 <p className="mt-1.5 max-w-md text-sm leading-relaxed text-white-muted">{s.d}</p>
               </div>
             </AnimateOnScroll>
@@ -258,7 +320,8 @@ export function ServicesPageContent() {
           </div>
           <div className="flex flex-col gap-7">
             <p className="text-lg leading-relaxed text-white-secondary">
-              A free strategy session with the engineers who would do the work. You leave with a written plan. Yours to keep either way.
+              A free strategy session with the engineers who would do the work. You leave with a
+              written plan. Yours to keep either way.
             </p>
             <BookCallButton location="services_closing" />
             <CallTerms />

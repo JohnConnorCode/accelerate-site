@@ -32,12 +32,14 @@ export function StatCard({ label, value, change, trend, icon: Icon, index = 0 }:
           {value}
         </p>
         {change && (
-          <p className={cn(
-            "mt-1 text-xs flex items-center gap-1",
-            trend === "up" && "text-[var(--success)]",
-            trend === "down" && "text-[var(--error)]",
-            !trend && "text-[var(--admin-muted)]"
-          )}>
+          <p
+            className={cn(
+              "mt-1 text-xs flex items-center gap-1",
+              trend === "up" && "text-[var(--success)]",
+              trend === "down" && "text-[var(--error)]",
+              !trend && "text-[var(--admin-muted)]",
+            )}
+          >
             {trend === "up" && <TrendingUp className="h-3 w-3" />}
             {trend === "down" && <TrendingDown className="h-3 w-3" />}
             {change}

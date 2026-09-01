@@ -17,7 +17,12 @@ function attachTenant(values: unknown, tenantId: string): unknown {
   return { ...(values as Record<string, unknown>), tenant_id: tenantId };
 }
 
-function bindTenantDatabase(client: SupabaseClient, tenantId: string, enforceFilters = false, tenantSlug?: string): SupabaseClient {
+function bindTenantDatabase(
+  client: SupabaseClient,
+  tenantId: string,
+  enforceFilters = false,
+  tenantSlug?: string,
+): SupabaseClient {
   const database = new Proxy(client, {
     get(target, property, receiver) {
       if (property !== "from") return Reflect.get(target, property, receiver);
@@ -32,19 +37,28 @@ function bindTenantDatabase(client: SupabaseClient, tenantId: string, enforceFil
             }
             if (builderProperty === "insert" || builderProperty === "upsert") {
               return (rows: unknown, options?: unknown) => {
-                const optionRecord = options && typeof options === "object"
-                  ? options as Record<string, unknown>
-                  : null;
+                const optionRecord =
+                  options && typeof options === "object"
+                    ? (options as Record<string, unknown>)
+                    : null;
                 const onConflict = optionRecord?.onConflict;
-                const tenantOptions = builderProperty === "upsert" && typeof onConflict === "string" && !onConflict.split(",").includes("tenant_id")
-                  ? { ...optionRecord, onConflict: `tenant_id,${onConflict}` }
-                  : options;
+                const tenantOptions =
+                  builderProperty === "upsert" &&
+                  typeof onConflict === "string" &&
+                  !onConflict.split(",").includes("tenant_id")
+                    ? { ...optionRecord, onConflict: `tenant_id,${onConflict}` }
+                    : options;
                 return value.call(builderTarget, attachTenant(rows, tenantId), tenantOptions);
               };
             }
-            if (enforceFilters && ["select", "update", "delete"].includes(String(builderProperty))) {
+            if (
+              enforceFilters &&
+              ["select", "update", "delete"].includes(String(builderProperty))
+            ) {
               return (...args: unknown[]) => {
-                const result = value.apply(builderTarget, args) as { eq: (column: string, value: string) => unknown };
+                const result = value.apply(builderTarget, args) as {
+                  eq: (column: string, value: string) => unknown;
+                };
                 return result.eq("tenant_id", tenantId);
               };
             }
@@ -61,8 +75,12 @@ function bindTenantDatabase(client: SupabaseClient, tenantId: string, enforceFil
 /** Test doubles need the same non-ambient scope marker as runtime clients. This
  * seam is unavailable in production so application code cannot manufacture a
  * tenant context instead of going through authentication/system resolution. */
-export function bindTenantDatabaseForTest(client: SupabaseClient, tenantId: string): SupabaseClient {
-  if (process.env.NODE_ENV === "production") throw new Error("Test tenant binding is unavailable in production");
+export function bindTenantDatabaseForTest(
+  client: SupabaseClient,
+  tenantId: string,
+): SupabaseClient {
+  if (process.env.NODE_ENV === "production")
+    throw new Error("Test tenant binding is unavailable in production");
   return bindTenantDatabase(client, tenantId);
 }
 
@@ -89,7 +107,7 @@ export async function createServerSupabaseClient(tenantId?: string, tenantSlug?:
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
+              cookieStore.set(name, value, options),
             );
           } catch {
             // The `setAll` method was called from a Server Component.
@@ -97,7 +115,7 @@ export async function createServerSupabaseClient(tenantId?: string, tenantSlug?:
           }
         },
       },
-    }
+    },
   );
   return tenantId ? bindTenantDatabase(client, tenantId, false, tenantSlug) : client;
 }

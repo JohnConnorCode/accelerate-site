@@ -1,14 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import {
-  Hammer,
-  Layers,
-  Wrench,
-  Zap,
-  MessageSquareText,
-  ShieldOff,
-} from "lucide-react";
+import { Hammer, Layers, Wrench, Zap, MessageSquareText, ShieldOff } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap-init";
@@ -30,37 +23,44 @@ const iconMap: Record<string, LucideIcon> = {
 export function WhyAccelerate() {
   const gridRef = useRef<HTMLDivElement>(null);
 
-  useGSAP(() => {
-    if (!gridRef.current) return;
-    if (prefersReducedMotion()) return;
+  useGSAP(
+    () => {
+      if (!gridRef.current) return;
+      if (prefersReducedMotion()) return;
 
-    const cards = gridRef.current.querySelectorAll("[data-why-card]");
+      const cards = gridRef.current.querySelectorAll("[data-why-card]");
 
-    gsap.fromTo(cards,
-      { opacity: 0, y: 20, rotateX: 8 },
-      {
-        opacity: 1,
-        y: 0,
-        rotateX: 0,
-        duration: 0.5,
-        delay: 0.25,
-        stagger: 0.1,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: gridRef.current,
-          start: "top 80%",
-          toggleActions: "play none none none",
+      gsap.fromTo(
+        cards,
+        { opacity: 0, y: 20, rotateX: 8 },
+        {
+          opacity: 1,
+          y: 0,
+          rotateX: 0,
+          duration: 0.5,
+          delay: 0.25,
+          stagger: 0.1,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: gridRef.current,
+            start: "top 80%",
+            toggleActions: "play none none none",
+          },
         },
-      }
-    );
-  }, { scope: gridRef });
+      );
+    },
+    { scope: gridRef },
+  );
 
   // Split: first 2 items are "hero" cards, rest are smaller
   const heroItems = differentiators.slice(0, 2);
   const restItems = differentiators.slice(2);
 
   return (
-    <section className="relative py-24 bg-bg-base overflow-hidden" style={{ perspective: "1200px" }}>
+    <section
+      className="relative py-24 bg-bg-base overflow-hidden"
+      style={{ perspective: "1200px" }}
+    >
       <div className="absolute inset-0 dot-grid pointer-events-none" />
       <div className="ambient-glow-right" />
 
@@ -78,8 +78,7 @@ export function WhyAccelerate() {
             label="Why Us"
             heading={
               <>
-                Strategy + <span className="text-gold">Systems</span> +
-                Management = Growth
+                Strategy + <span className="text-gold">Systems</span> + Management = Growth
               </>
             }
             description="We build and run AI systems for your business. Strategy, implementation, and ongoing management, all from one team that actually understands your operations."
@@ -106,9 +105,7 @@ export function WhyAccelerate() {
                       <div className="w-14 h-14 rounded-xl bg-[var(--glow-soft)] flex items-center justify-center shrink-0">
                         <Icon className="w-7 h-7 text-gold" aria-hidden="true" />
                       </div>
-                      <h3 className="text-xl font-semibold text-heading">
-                        {item.title}
-                      </h3>
+                      <h3 className="text-xl font-semibold text-heading">{item.title}</h3>
                     </div>
                     <p className="text-white-secondary leading-relaxed flex-1">
                       {item.description}
@@ -133,12 +130,8 @@ export function WhyAccelerate() {
                   className="overflow-hidden"
                 >
                   <Icon className="w-6 h-6 text-gold mb-4" aria-hidden="true" />
-                  <h3 className="text-base font-semibold text-heading mb-2">
-                    {item.title}
-                  </h3>
-                  <p className="text-sm text-white-muted leading-relaxed">
-                    {item.description}
-                  </p>
+                  <h3 className="text-base font-semibold text-heading mb-2">{item.title}</h3>
+                  <p className="text-sm text-white-muted leading-relaxed">{item.description}</p>
                 </GlassCard>
               );
             })}

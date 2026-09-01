@@ -79,10 +79,7 @@ export function Section({
 
 /* ─── Eyebrow ─── the "[ label ]" bracket marker. Single rendering path —
    numbered/rule variant was removed (added noise, signified nothing). */
-export function Eyebrow({
-  children,
-  className,
-}: { children: ReactNode; className?: string }) {
+export function Eyebrow({ children, className }: { children: ReactNode; className?: string }) {
   return <p className={`eyebrow ${className ?? ""}`}>{children}</p>;
 }
 
@@ -154,7 +151,9 @@ export function BookCallButton({
         className={`btn ${inverse ? "btn-inv" : ""}`}
       >
         {label}
-        <span className="arw" aria-hidden="true">→</span>
+        <span className="arw" aria-hidden="true">
+          →
+        </span>
       </Link>
     </MagneticButton>
   );
@@ -171,7 +170,12 @@ export function Stack({
   className?: string;
   children: ReactNode;
 }) {
-  const g = gap === "tight" ? "var(--stack-tight)" : gap === "roomy" ? "var(--stack-roomy)" : "var(--stack-cozy)";
+  const g =
+    gap === "tight"
+      ? "var(--stack-tight)"
+      : gap === "roomy"
+        ? "var(--stack-roomy)"
+        : "var(--stack-cozy)";
   return (
     <div className={`flex flex-col ${className ?? ""}`} style={{ gap: g }}>
       {children}

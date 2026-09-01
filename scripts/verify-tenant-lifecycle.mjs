@@ -28,10 +28,10 @@ if (result.status !== 0) {
 
 const receipt = JSON.parse(result.stdout.trim());
 if (
-  receipt.functions !== lifecycleFunctions.length
-  || receipt.service_role_execute !== true
-  || receipt.authenticated_execute !== false
-  || receipt.anon_execute !== false
+  receipt.functions !== lifecycleFunctions.length ||
+  receipt.service_role_execute !== true ||
+  receipt.authenticated_execute !== false ||
+  receipt.anon_execute !== false
 ) {
   throw new Error(`Tenant lifecycle privilege verification failed: ${JSON.stringify(receipt)}`);
 }

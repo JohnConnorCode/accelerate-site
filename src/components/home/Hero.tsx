@@ -3,13 +3,28 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import Link from "next/link";
-import { motion, useScroll, useTransform, useReducedMotion, useMotionValue, useSpring } from "framer-motion";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useReducedMotion,
+  useMotionValue,
+  useSpring,
+} from "framer-motion";
 import { trackConversion } from "@/lib/analytics";
 
 // The headline's original, deliberately mechanical scramble: a constant
 // cadence and a simple left-to-right lock. Spaces remain spaces so the phrase
 // can wrap naturally on a phone while its letters resolve.
-function ScrambleText({ text, delay = 0, trigger = true }: { text: string; delay?: number; trigger?: boolean }) {
+function ScrambleText({
+  text,
+  delay = 0,
+  trigger = true,
+}: {
+  text: string;
+  delay?: number;
+  trigger?: boolean;
+}) {
   const [display, setDisplay] = useState(text.replace(/./g, " ")); // Non-breaking spaces for layout stability
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
 
@@ -29,7 +44,7 @@ function ScrambleText({ text, delay = 0, trigger = true }: { text: string; delay
               }
               return chars[Math.floor(Math.random() * chars.length)];
             })
-            .join("")
+            .join(""),
         );
 
         if (iteration >= text.length) {
@@ -57,7 +72,10 @@ export function Hero() {
   const reduced = useReducedMotion();
   const [finePointer, setFinePointer] = useState(false);
 
-  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end start"] });
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
+  });
   const fade = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
   const lift = useTransform(scrollYProgress, [0, 1], [0, -80]);
   const gridDrift = useTransform(scrollYProgress, [0, 1], [0, 130]);
@@ -72,7 +90,7 @@ export function Hero() {
   const smoothY = useSpring(mouseY, springConfig);
 
   // Rotate values based on normalized coordinates (-1 to 1)
-  const gridRotateX = useTransform(smoothY, [-1, 1], [4, -4]); 
+  const gridRotateX = useTransform(smoothY, [-1, 1], [4, -4]);
   const gridRotateY = useTransform(smoothX, [-1, 1], [-4, 4]);
 
   // Text tilts the opposite way for intense spatial parallax
@@ -110,10 +128,11 @@ export function Hero() {
     restartEntrance();
 
     const el = sectionRef.current;
-    if (!el || reduced) return () => {
-      if (entranceRaf.current) cancelAnimationFrame(entranceRaf.current);
-      if (entranceTimer.current) clearTimeout(entranceTimer.current);
-    };
+    if (!el || reduced)
+      return () => {
+        if (entranceRaf.current) cancelAnimationFrame(entranceRaf.current);
+        if (entranceTimer.current) clearTimeout(entranceTimer.current);
+      };
 
     // The lit grid has one continuous position rather than separate idle and
     // hover animations. At rest it follows a slow, asymmetric orbit. A fine
@@ -230,7 +249,7 @@ export function Hero() {
         if (supportsFinePointer && heroIsVisible && !document.hidden) startSpotlight();
         else stopSpotlight();
       },
-      { rootMargin: "120px 0px" }
+      { rootMargin: "120px 0px" },
     );
     visibilityObserver.observe(el);
 
@@ -263,32 +282,45 @@ export function Hero() {
   const spatialMotion = !reduced && finePointer;
 
   return (
-    <section ref={sectionRef} className={`hero${loaded ? " loaded" : ""}`} id="hero" style={spatialMotion ? { perspective: "1200px" } : undefined}>
+    <section
+      ref={sectionRef}
+      className={`hero${loaded ? " loaded" : ""}`}
+      id="hero"
+      style={spatialMotion ? { perspective: "1200px" } : undefined}
+    >
       <motion.div
         className="hero-field"
         aria-hidden="true"
-        style={spatialMotion ? {
-          y: gridDrift,
-          rotateX: gridRotateX,
-          rotateY: gridRotateY,
-          scale: 1.05, // Prevent edges from showing when tilted
-          transformStyle: "preserve-3d"
-        } : undefined}
+        style={
+          spatialMotion
+            ? {
+                y: gridDrift,
+                rotateX: gridRotateX,
+                rotateY: gridRotateY,
+                scale: 1.05, // Prevent edges from showing when tilted
+                transformStyle: "preserve-3d",
+              }
+            : undefined
+        }
       >
         <div className="hero-grid-base" />
         <div className="hero-grid-lit interactive" />
         <span className="hero-tick hero-tick-tl" />
         <span className="hero-tick hero-tick-br" />
       </motion.div>
-      <motion.div 
-        className="wrap" 
-        style={spatialMotion ? {
-          opacity: fade, 
-          y: lift,
-          rotateX: textRotateX,
-          rotateY: textRotateY,
-          transformStyle: "preserve-3d"
-        } : undefined}
+      <motion.div
+        className="wrap"
+        style={
+          spatialMotion
+            ? {
+                opacity: fade,
+                y: lift,
+                rotateX: textRotateX,
+                rotateY: textRotateY,
+                transformStyle: "preserve-3d",
+              }
+            : undefined
+        }
       >
         <div className="hero-top">
           <p className={`label eyebrow-anim rv${loaded ? " in" : ""}`}>
@@ -307,21 +339,28 @@ export function Hero() {
             <span className="h1-word-row">
               {["We", "architect", "and", "deploy"].map((w, i) => (
                 <span key={w} className="word">
-                  <span style={{ "--d": `${0.20 + i * 0.20}s` } as CSSProperties}>{w}</span>
+                  <span style={{ "--d": `${0.2 + i * 0.2}s` } as CSSProperties}>{w}</span>
                 </span>
               ))}
               {/* "intelligent automation" — the original single combined
                   scramble (ScrambleText below), restored verbatim. This is
                   the effect and speed that was actually working. */}
               <span className="word">
-                <span aria-label="intelligent automation" style={{ "--d": "1.00s" } as CSSProperties}>
-                  <span className="hero-intelligent-static" aria-hidden="true">intelligent automation</span>
-                  <span className="hero-intelligent-scramble" aria-hidden="true"><ScrambleText text="intelligent automation" delay={1250} trigger={loaded} /></span>
+                <span
+                  aria-label="intelligent automation"
+                  style={{ "--d": "1.00s" } as CSSProperties}
+                >
+                  <span className="hero-intelligent-static" aria-hidden="true">
+                    intelligent automation
+                  </span>
+                  <span className="hero-intelligent-scramble" aria-hidden="true">
+                    <ScrambleText text="intelligent automation" delay={1250} trigger={loaded} />
+                  </span>
                 </span>
               </span>
               {["to", "scale", "your"].map((w, i) => (
                 <span key={w} className="word">
-                  <span style={{ "--d": `${2.20 + i * 0.20}s` } as CSSProperties}>{w}</span>
+                  <span style={{ "--d": `${2.2 + i * 0.2}s` } as CSSProperties}>{w}</span>
                 </span>
               ))}
               <span className="word">
@@ -338,30 +377,34 @@ export function Hero() {
                 blur-in treatment and reveals once the underline finishes
                 drawing. */}
             <span className="hero-row-cta">
-              <span className="hero-profit-slot" style={{ overflow: "visible", display: "inline-block" }}>
+              <span
+                className="hero-profit-slot"
+                style={{ overflow: "visible", display: "inline-block" }}
+              >
                 <span
                   className="swap it rev-ul hero-profit"
-                  style={{ position: "relative", zIndex: 10, display: "inline-block" } as CSSProperties}
+                  style={
+                    { position: "relative", zIndex: 10, display: "inline-block" } as CSSProperties
+                  }
                 >
                   PROFIT
                 </span>
               </span>
-              <span
-                className="hero-inline-cta"
-                style={{ "--d": "6.10s" } as CSSProperties}
-              >
+              <span className="hero-inline-cta" style={{ "--d": "6.10s" } as CSSProperties}>
                 <Link
                   href="/contact"
                   onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "hero" })}
                   className="btn"
                 >
-                  Book a free strategy session <span className="arw" aria-hidden="true">→</span>
+                  Book a free strategy session{" "}
+                  <span className="arw" aria-hidden="true">
+                    →
+                  </span>
                 </Link>
               </span>
             </span>
           </h1>
         </div>
-
       </motion.div>
     </section>
   );

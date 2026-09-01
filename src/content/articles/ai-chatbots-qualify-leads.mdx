@@ -10,7 +10,8 @@ author: "John Connor"
 authorRole: "Founder, Accelerate"
 seoTitle: "AI Chatbot Lead Qualification | How It Works"
 seoDescription: "Learn how AI chatbots qualify website visitors, score intent, and book appointments while you sleep. Real examples for home services, law, and real estate."
-targetKeywords: ["AI chatbot lead qualification", "AI lead qualification", "chatbot for business leads"]
+targetKeywords:
+  ["AI chatbot lead qualification", "AI lead qualification", "chatbot for business leads"]
 funnelStage: "consideration"
 ---
 
@@ -43,19 +44,37 @@ The process happens in real time, usually within 2 to 3 minutes, and the visitor
 
 <StepByStep>
   <Step number={1} title="Greeting and intent detection">
-    The chatbot opens with a contextual greeting based on the page the visitor is on. If they are on your roofing page, it asks about their roof. If they are on your contact page, it asks how it can help. This is not "Hi, how can I help you?" -- it is "I see you are looking at our roof replacement services. Are you dealing with a current issue, or planning ahead?" The AI immediately categorizes the visitor's intent: emergency, active project, research, or price shopping.
+    The chatbot opens with a contextual greeting based on the page the visitor is on. If they are on
+    your roofing page, it asks about their roof. If they are on your contact page, it asks how it
+    can help. This is not "Hi, how can I help you?" -- it is "I see you are looking at our roof
+    replacement services. Are you dealing with a current issue, or planning ahead?" The AI
+    immediately categorizes the visitor's intent: emergency, active project, research, or price
+    shopping.
   </Step>
   <Step number={2} title="Qualifying questions in natural conversation">
-    Instead of a form with 10 fields, the AI asks qualifying questions conversationally. For a roofing business: "Is this for your home or a commercial property?" "When did you first notice the issue?" "Have you gotten any other estimates?" Each answer narrows the qualification. The AI adapts its questions based on previous answers -- it does not follow a rigid script.
+    Instead of a form with 10 fields, the AI asks qualifying questions conversationally. For a
+    roofing business: "Is this for your home or a commercial property?" "When did you first notice
+    the issue?" "Have you gotten any other estimates?" Each answer narrows the qualification. The AI
+    adapts its questions based on previous answers -- it does not follow a rigid script.
   </Step>
   <Step number={3} title="Intent scoring">
-    Based on the visitor's answers, the AI assigns an intent score. High-intent signals include: describing an active problem, asking about availability, mentioning a timeline ("we need this done before the rainy season"), and engaging deeply with multiple questions. Low-intent signals include: asking only about price without describing a need, refusing to share contact information, or giving vague answers.
+    Based on the visitor's answers, the AI assigns an intent score. High-intent signals include:
+    describing an active problem, asking about availability, mentioning a timeline ("we need this
+    done before the rainy season"), and engaging deeply with multiple questions. Low-intent signals
+    include: asking only about price without describing a need, refusing to share contact
+    information, or giving vague answers.
   </Step>
   <Step number={4} title="Routing based on score">
-    High-intent visitors get routed to immediate action: book an appointment, schedule a callback, or get connected to your team via text. Medium-intent visitors get added to a nurture sequence with helpful content and periodic check-ins. Low-intent visitors get their questions answered and are invited to return when ready.
+    High-intent visitors get routed to immediate action: book an appointment, schedule a callback,
+    or get connected to your team via text. Medium-intent visitors get added to a nurture sequence
+    with helpful content and periodic check-ins. Low-intent visitors get their questions answered
+    and are invited to return when ready.
   </Step>
   <Step number={5} title="Appointment booking or handoff">
-    For qualified, high-intent visitors, the AI books directly on your calendar. It checks your availability, offers time slots, confirms the appointment, and sends a confirmation to both you and the visitor. For urgent situations, it can trigger an immediate notification to your phone so you can call back within minutes.
+    For qualified, high-intent visitors, the AI books directly on your calendar. It checks your
+    availability, offers time slots, confirms the appointment, and sends a confirmation to both you
+    and the visitor. For urgent situations, it can trigger an immediate notification to your phone
+    so you can call back within minutes.
   </Step>
 </StepByStep>
 
@@ -66,22 +85,52 @@ This distinction matters more than any other factor in whether your chatbot gene
 <ComparisonTable
   headers={["Capability", "Generic Chatbot", "Trained AI Agent"]}
   rows={[
-    ["Greeting", "Same generic message for every visitor", "Contextual greeting based on page, time of day, and traffic source"],
-    ["Questions", "Rigid form-style questions in fixed order", "Conversational flow that adapts based on responses"],
-    ["Industry knowledge", "None -- cannot answer service-specific questions", "Trained on your services, pricing, service area, and FAQ"],
-    ["Qualification", "Collects name and email only", "Scores intent, identifies urgency, and categorizes by service need"],
-    ["Objection handling", "Cannot handle objections or complex questions", "Addresses pricing concerns, explains process, and builds confidence"],
-    ["After-hours behavior", "Collects a message for later follow-up", "Fully qualifies and books appointments 24/7"],
-    ["Booking", "Links to a separate booking page", "Books directly on your calendar within the conversation"],
+    [
+      "Greeting",
+      "Same generic message for every visitor",
+      "Contextual greeting based on page, time of day, and traffic source",
+    ],
+    [
+      "Questions",
+      "Rigid form-style questions in fixed order",
+      "Conversational flow that adapts based on responses",
+    ],
+    [
+      "Industry knowledge",
+      "None -- cannot answer service-specific questions",
+      "Trained on your services, pricing, service area, and FAQ",
+    ],
+    [
+      "Qualification",
+      "Collects name and email only",
+      "Scores intent, identifies urgency, and categorizes by service need",
+    ],
+    [
+      "Objection handling",
+      "Cannot handle objections or complex questions",
+      "Addresses pricing concerns, explains process, and builds confidence",
+    ],
+    [
+      "After-hours behavior",
+      "Collects a message for later follow-up",
+      "Fully qualifies and books appointments 24/7",
+    ],
+    [
+      "Booking",
+      "Links to a separate booking page",
+      "Books directly on your calendar within the conversation",
+    ],
     ["Follow-up", "None", "Triggers email/text sequences based on qualification level"],
-    ["Learning", "Static -- never improves", "Improves with conversation data and retraining"]
+    ["Learning", "Static -- never improves", "Improves with conversation data and retraining"],
   ]}
 />
 
 The generic chatbot is a digital contact form with a conversation interface. The trained AI agent is a qualification engine that happens to communicate through chat.
 
 <Callout type="warning" title="The Widget Trap">
-Many businesses install a chatbot widget, point it at their website, and expect results. A chatbot without training on your specific business is like hiring a receptionist and never telling them what your company does. The implementation is where this succeeds or fails.
+  Many businesses install a chatbot widget, point it at their website, and expect results. A chatbot
+  without training on your specific business is like hiring a receptionist and never telling them
+  what your company does. The implementation is where this succeeds or fails.
 </Callout>
 
 ## What Qualification Looks Like by Industry
@@ -93,6 +142,7 @@ The qualification process is different for every industry because the signals th
 **Key qualifying factors:** Type of property, nature of the issue (emergency vs. planned), location within service area, homeowner vs. tenant, timeline.
 
 **Example conversation flow:**
+
 - AI: "Are you dealing with an active issue right now, or looking to schedule a maintenance visit?"
 - Visitor: "My AC stopped working and it's 95 degrees."
 - AI: "That sounds urgent. Let me get a technician to you as soon as possible. What is your zip code so I can check our coverage and availability?"
@@ -104,6 +154,7 @@ The AI recognizes the urgency signal ("stopped working," "95 degrees") and fast-
 **Key qualifying factors:** Practice area match, statute of limitations urgency, jurisdiction, case merit indicators, ability to retain counsel.
 
 **Example conversation flow:**
+
 - AI: "I can help point you in the right direction. Can you briefly describe your legal situation?"
 - Visitor: "I was in a car accident last week and the other driver's insurance is lowballing me."
 - AI: "I am sorry to hear that. A few quick questions so we can assess how we might help. Were there any injuries? And did the accident happen in Illinois?"
@@ -115,6 +166,7 @@ The AI is checking jurisdiction (Illinois) and case merit (injuries indicate hig
 **Key qualifying factors:** Buying vs. selling, timeline, pre-approval status, price range, geographic preference.
 
 **Example conversation flow:**
+
 - AI: "Welcome! Are you looking to buy, sell, or both?"
 - Visitor: "We're thinking about selling our home in Lincoln Park."
 - AI: "Great area. How soon are you looking to list? And have you had a recent appraisal or do you have a price range in mind?"
@@ -123,7 +175,10 @@ The AI is simultaneously qualifying the visitor (timeline and price range indica
 
 ## The After-Hours Advantage
 
-<StatHighlight value="First reply" label="is usually still in the conversation. Second reply is often too late." />
+<StatHighlight
+  value="First reply"
+  label="is usually still in the conversation. Second reply is often too late."
+/>
 
 Speed-to-response is the single most predictive factor in whether an inquiry converts to a client. It matters more than price, reviews, or brand recognition. The first business to respond meaningfully wins the majority of the time.
 
@@ -132,12 +187,17 @@ An AI chatbot's advantage is that it responds **instantly** -- within seconds --
 Here is the math. If 42% of your inquiries come after hours, and you currently lose 70% of those because they go to a form that gets responded to the next morning, and a chatbot recovers even half of them, that is a 15% increase in qualified appointments from your existing website traffic. No additional ad spend. No SEO campaign. Just catching what you are already losing.
 
 <Callout type="tip" title="The Compound Effect">
-An AI chatbot does not just qualify visitors. It generates data. Every conversation tells you what visitors are asking about, what concerns they have, what services are most in demand, and what objections come up most frequently. After 90 days, you will know more about your website visitors than you ever did from form submissions alone. Use that data to improve your website copy, your ad targeting, and your sales conversations.
+  An AI chatbot does not just qualify visitors. It generates data. Every conversation tells you what
+  visitors are asking about, what concerns they have, what services are most in demand, and what
+  objections come up most frequently. After 90 days, you will know more about your website visitors
+  than you ever did from form submissions alone. Use that data to improve your website copy, your ad
+  targeting, and your sales conversations.
 </Callout>
 
 ## Off-the-Shelf vs. Custom: Making the Choice
 
 **Off-the-shelf chatbots work when:**
+
 - Your qualification process is straightforward (collect name, need, timeline, book)
 - You have low to moderate website traffic (under 500 unique visitors per month)
 - Your industry does not require specialized knowledge in the conversation
@@ -146,6 +206,7 @@ An AI chatbot does not just qualify visitors. It generates data. Every conversat
 Tools like Drift, Intercom, and Tidio offer chatbot builders with AI capabilities. They can handle basic qualification with template conversation flows. If you want to build one yourself, our guide on [building an AI chatbot without code](/learn/build-ai-chatbot-no-code) walks through the process.
 
 **Custom AI agents are worth it when:**
+
 - Your qualification process involves industry-specific questions and branching logic
 - You need the chatbot to access real-time data (availability, pricing, service area lookup)
 - Your visitor volume is high enough that improved qualification meaningfully impacts revenue

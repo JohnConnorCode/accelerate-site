@@ -18,8 +18,7 @@ const websiteJsonLd = {
   "@id": "https://www.acceleratewith.us/#website",
   name: "Accelerate",
   url: "https://www.acceleratewith.us",
-  description:
-    marketingPositioning.coreOffer,
+  description: marketingPositioning.coreOffer,
   publisher: { "@id": "https://www.acceleratewith.us/#organization" },
   potentialAction: {
     "@type": "SearchAction",
@@ -35,8 +34,7 @@ const serviceJsonLd = {
   "@type": "Service",
   "@id": "https://www.acceleratewith.us/#service",
   name: "AI Strategy & Systems for Small Business",
-  description:
-    marketingPositioning.coreOffer,
+  description: marketingPositioning.coreOffer,
   provider: { "@id": "https://www.acceleratewith.us/#organization" },
   serviceType: [
     "AI Strategy & Roadmap",
@@ -58,9 +56,18 @@ const serviceJsonLd = {
 export default function HomePage() {
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <Studio />
     </>
   );

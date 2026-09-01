@@ -3,12 +3,12 @@
 The Feature Board is an execution queue, not a tag cloud. Managed cards use four
 label dimensions only:
 
-| Dimension | Purpose | Values |
-|---|---|---|
-| `milestone:*` | When the work belongs | `now`, `next`, `later`, `done` |
-| `category:*` | Which durable product area owns it | `platform`, `operator`, `integrations`, `engagement`, `intelligence`, `governance`, `quality`, `productization`, `marketing` |
-| `phase:*` | Architecture maturity sequence | `0` through `6` |
-| `capability:*` | Reusable domain filter | Controlled in `scripts/feature-backlog-data.mjs`; at most two per card |
+| Dimension      | Purpose                            | Values                                                                                                                       |
+| -------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `milestone:*`  | When the work belongs              | `now`, `next`, `later`, `done`                                                                                               |
+| `category:*`   | Which durable product area owns it | `platform`, `operator`, `integrations`, `engagement`, `intelligence`, `governance`, `quality`, `productization`, `marketing` |
+| `phase:*`      | Architecture maturity sequence     | `0` through `6`                                                                                                              |
+| `capability:*` | Reusable domain filter             | Controlled in `scripts/feature-backlog-data.mjs`; at most two per card                                                       |
 
 Rules:
 

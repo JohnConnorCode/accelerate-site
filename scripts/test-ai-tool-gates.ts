@@ -41,7 +41,25 @@ function stubSupabase(tables: Record<string, { data?: Row[]; error?: { message: 
     let pending: Row | null = null;
     const self: Record<string, unknown> = {};
     const chain = () => self;
-    for (const method of ["select", "eq", "neq", "gt", "gte", "lt", "lte", "is", "in", "not", "or", "filter", "order", "limit", "range", "maybeSingle", "single"]) {
+    for (const method of [
+      "select",
+      "eq",
+      "neq",
+      "gt",
+      "gte",
+      "lt",
+      "lte",
+      "is",
+      "in",
+      "not",
+      "or",
+      "filter",
+      "order",
+      "limit",
+      "range",
+      "maybeSingle",
+      "single",
+    ]) {
       self[method] = chain;
     }
     self.insert = (payload: Row) => {
@@ -55,7 +73,10 @@ function stubSupabase(tables: Record<string, { data?: Row[]; error?: { message: 
     self.then = (resolve: (result: { data: unknown; error: unknown }) => unknown) => {
       if (pending) return resolve({ data: { id: "queued-action-id", ...pending }, error: null });
       const fixture = tables[table] ?? {};
-      return resolve({ data: fixture.error ? null : (fixture.data ?? []), error: fixture.error ?? null });
+      return resolve({
+        data: fixture.error ? null : (fixture.data ?? []),
+        error: fixture.error ?? null,
+      });
     };
     return self;
   }
@@ -67,7 +88,9 @@ function stubSupabase(tables: Record<string, { data?: Row[]; error?: { message: 
 }
 
 function context(supabase: unknown) {
-  return { supabase, actorEmail: "test@acceleratewith.us" } as Parameters<typeof executeRegisteredRevenueTool>[0];
+  return { supabase, actorEmail: "test@acceleratewith.us" } as Parameters<
+    typeof executeRegisteredRevenueTool
+  >[0];
 }
 
 async function rejects(run: () => Promise<unknown>, includes: string, because: string) {
@@ -88,31 +111,55 @@ async function main() {
   // ---- Schema enforcement -------------------------------------------------
 
   await rejects(
-    () => executeRegisteredRevenueTool(context(stubSupabase()), "propose_send_email", { subject: "Hi", body: "Hello", reasoning: "test" }),
+    () =>
+      executeRegisteredRevenueTool(context(stubSupabase()), "propose_send_email", {
+        subject: "Hi",
+        body: "Hello",
+        reasoning: "test",
+      }),
     'requires "to"',
     "a required field the model omitted must be rejected, not turned into the string undefined inside a dedupe key",
   );
 
   await rejects(
-    () => executeRegisteredRevenueTool(context(stubSupabase()), "propose_send_email", { to: "   ", subject: "Hi", body: "Hello", reasoning: "test" }),
+    () =>
+      executeRegisteredRevenueTool(context(stubSupabase()), "propose_send_email", {
+        to: "   ",
+        subject: "Hi",
+        body: "Hello",
+        reasoning: "test",
+      }),
     'requires "to"',
     "whitespace is not a recipient; a blank required string must be treated as missing",
   );
 
   await rejects(
-    () => executeRegisteredRevenueTool(context(stubSupabase()), "propose_task", { title: "Call back", priority: "urgent" }),
+    () =>
+      executeRegisteredRevenueTool(context(stubSupabase()), "propose_task", {
+        title: "Call back",
+        priority: "urgent",
+      }),
     "one of",
     "a value outside the declared enum must be rejected; the registry only accepts high/medium/low",
   );
 
   await rejects(
-    () => executeRegisteredRevenueTool(context(stubSupabase()), "propose_task", { title: "Call back", priority: "high", sendImmediately: true }),
+    () =>
+      executeRegisteredRevenueTool(context(stubSupabase()), "propose_task", {
+        title: "Call back",
+        priority: "high",
+        sendImmediately: true,
+      }),
     'does not accept "sendImmediately"',
     "additionalProperties:false must be honoured, or an invented field rides into a payload a human then approves",
   );
 
   await rejects(
-    () => executeRegisteredRevenueTool(context(stubSupabase()), "propose_task", { title: 42, priority: "high" }),
+    () =>
+      executeRegisteredRevenueTool(context(stubSupabase()), "propose_task", {
+        title: 42,
+        priority: "high",
+      }),
     "to be a string",
     "a declared string type must be enforced",
   );
@@ -124,21 +171,34 @@ async function main() {
   );
 
   await rejects(
-    () => executeRegisteredRevenueTool({ ...context(stubSupabase()), toolPack: "core" }, "propose_stage_change", { opportunityId: "opp-1", stage: "qualified", reason: "Verified reply" }),
+    () =>
+      executeRegisteredRevenueTool(
+        { ...context(stubSupabase()), toolPack: "core" },
+        "propose_stage_change",
+        { opportunityId: "opp-1", stage: "qualified", reason: "Verified reply" },
+      ),
     "not available in the core tool pack",
     "a registered tool outside the active command pack must fail closed at dispatch",
   );
 
   // A valid call still succeeds. Without this the suite would pass if
   // validation rejected everything.
-  const ok = await executeRegisteredRevenueTool(
-    context(stubSupabase()),
-    "propose_task",
-    { title: "Call back", priority: "high", description: "Follow up on the quote" },
+  const ok = await executeRegisteredRevenueTool(context(stubSupabase()), "propose_task", {
+    title: "Call back",
+    priority: "high",
+    description: "Follow up on the quote",
+  });
+  assert.equal(
+    (ok.output as { id: string }).id,
+    "queued-action-id",
+    "a well-formed call must still stage an action",
   );
-  assert.equal((ok.output as { id: string }).id, "queued-action-id", "a well-formed call must still stage an action");
   assert.equal(ok.tool.impact, "internal_write");
-  assert.equal(ok.tool.serviceTarget, "revenue-os.action-queue", "a proposal must declare the reviewed service it is allowed to call");
+  assert.equal(
+    ok.tool.serviceTarget,
+    "revenue-os.action-queue",
+    "a proposal must declare the reviewed service it is allowed to call",
+  );
 
   // ---- Impact tiers actually branch --------------------------------------
 
@@ -150,10 +210,19 @@ async function main() {
       ["read", "internal_write", "external_action", "destructive"].includes(tool.impact),
       `${tool.name} declares an unknown impact tier "${tool.impact}"`,
     );
-    assert.ok(tool.outputSchema && typeof tool.outputSchema === "object", `${tool.name} must declare an explicit output schema`);
-    assert.equal(tool.connectionRequirement, "none", `${tool.name} must truthfully declare whether it calls a provider connection`);
     assert.ok(
-      tool.impact === "read" ? tool.confirmationRequired === false : tool.confirmationRequired === true,
+      tool.outputSchema && typeof tool.outputSchema === "object",
+      `${tool.name} must declare an explicit output schema`,
+    );
+    assert.equal(
+      tool.connectionRequirement,
+      "none",
+      `${tool.name} must truthfully declare whether it calls a provider connection`,
+    );
+    assert.ok(
+      tool.impact === "read"
+        ? tool.confirmationRequired === false
+        : tool.confirmationRequired === true,
       `${tool.name} is ${tool.impact} but confirmationRequired is ${tool.confirmationRequired}; mutating tools must require confirmation`,
     );
   }
@@ -182,9 +251,19 @@ async function main() {
   // drive a mislabelled tool through dispatch. That makes the two checks above
   // prove the gate works but not that dispatch still calls it. Assert the wiring
   // at the source, or deleting one line silently disarms it.
-  const dispatch = source.slice(source.indexOf("export async function executeRegisteredRevenueTool"));
-  assert.match(dispatch, /const output = await tool\.execute\([\s\S]{0,120}assertImpactHonoured\(tool, output\)/, "executeRegisteredRevenueTool must run the impact check on the tool's output before returning it");
-  assert.ok(dispatch.indexOf("assertImpactHonoured(tool, output)") < dispatch.indexOf("return { output, tool }"), "the impact check must run before the result is handed back to the agent");
+  const dispatch = source.slice(
+    source.indexOf("export async function executeRegisteredRevenueTool"),
+  );
+  assert.match(
+    dispatch,
+    /const output = await tool\.execute\([\s\S]{0,120}assertImpactHonoured\(tool, output\)/,
+    "executeRegisteredRevenueTool must run the impact check on the tool's output before returning it",
+  );
+  assert.ok(
+    dispatch.indexOf("assertImpactHonoured(tool, output)") <
+      dispatch.indexOf("return { output, tool }"),
+    "the impact check must run before the result is handed back to the agent",
+  );
 
   // Destructive fails closed at dispatch even before schema validation, so the
   // absence of a destructive tool today is not what is keeping us safe.
@@ -208,19 +287,56 @@ async function main() {
     {},
   );
   const snapshot = degraded.output as { unreadable: string[]; openOpportunityCount: number };
-  assert.deepEqual(snapshot.unreadable, ["opportunities"], "a table that failed to read must be named, not silently reported as empty");
+  assert.deepEqual(
+    snapshot.unreadable,
+    ["opportunities"],
+    "a table that failed to read must be named, not silently reported as empty",
+  );
   assert.equal(snapshot.openOpportunityCount, 0);
 
-  const healthy = await executeRegisteredRevenueTool(context(stubSupabase()), "get_today_snapshot", {});
-  assert.deepEqual((healthy.output as { unreadable: string[] }).unreadable, [], "a clean read must report nothing unreadable");
+  const healthy = await executeRegisteredRevenueTool(
+    context(stubSupabase()),
+    "get_today_snapshot",
+    {},
+  );
+  assert.deepEqual(
+    (healthy.output as { unreadable: string[] }).unreadable,
+    [],
+    "a clean read must report nothing unreadable",
+  );
 
-  const bulk = Array.from({ length: 50 }, (_, index) => ({ id: `opp-${index}`, name: `Company ${index}`, stage: "qualified", estimated_value: 100 }));
-  const large = await executeRegisteredRevenueTool(context(stubSupabase({ opportunities: { data: bulk } })), "get_today_snapshot", {});
-  const bounded = large.output as { topOpportunities: Row[]; openOpportunityCount: number; openPipelineValue: number; truncated: boolean };
+  const bulk = Array.from({ length: 50 }, (_, index) => ({
+    id: `opp-${index}`,
+    name: `Company ${index}`,
+    stage: "qualified",
+    estimated_value: 100,
+  }));
+  const large = await executeRegisteredRevenueTool(
+    context(stubSupabase({ opportunities: { data: bulk } })),
+    "get_today_snapshot",
+    {},
+  );
+  const bounded = large.output as {
+    topOpportunities: Row[];
+    openOpportunityCount: number;
+    openPipelineValue: number;
+    truncated: boolean;
+  };
   assert.equal(bounded.openOpportunityCount, 50, "the count must reflect everything read");
-  assert.equal(bounded.openPipelineValue, 5000, "pipeline value must be summed over everything read, not just what is detailed");
-  assert.ok(bounded.topOpportunities.length <= 10, `detail must be capped; got ${bounded.topOpportunities.length} rows into the transcript`);
-  assert.equal(bounded.truncated, true, "hitting the row limit must be disclosed so the model does not present a partial view as complete");
+  assert.equal(
+    bounded.openPipelineValue,
+    5000,
+    "pipeline value must be summed over everything read, not just what is detailed",
+  );
+  assert.ok(
+    bounded.topOpportunities.length <= 10,
+    `detail must be capped; got ${bounded.topOpportunities.length} rows into the transcript`,
+  );
+  assert.equal(
+    bounded.truncated,
+    true,
+    "hitting the row limit must be disclosed so the model does not present a partial view as complete",
+  );
 
   // The registry version is what a stored trace is interpreted against. Adding
   // gates changes what a tool call means, so the version had to move.
@@ -228,20 +344,77 @@ async function main() {
 
   // validateToolInput is exported and usable directly, which is how the agent
   // surfaces a correctable error back into the transcript.
-  assert.doesNotThrow(() => validateToolInput("t", { type: "object", properties: { a: { type: "string" } }, required: ["a"] }, { a: "x" }));
-  assert.doesNotThrow(() => validateToolOutput("t", { type: "object", required: ["id"], properties: { id: { type: "string" } } }, { id: "one" }));
-  assert.throws(() => validateToolOutput("t", { type: "object", required: ["id"], properties: { id: { type: "string" } } }, { id: 42 }), /invalid output/, "a service response that violates its declared output contract must fail");
-  assert.throws(() => validateToolOutput("t", { type: "object", required: ["total"], properties: { total: { type: "number" } } }, { total: Number.NaN }), /finite number/, "non-finite metrics must never enter the model transcript as valid business data");
+  assert.doesNotThrow(() =>
+    validateToolInput(
+      "t",
+      { type: "object", properties: { a: { type: "string" } }, required: ["a"] },
+      { a: "x" },
+    ),
+  );
+  assert.doesNotThrow(() =>
+    validateToolOutput(
+      "t",
+      { type: "object", required: ["id"], properties: { id: { type: "string" } } },
+      { id: "one" },
+    ),
+  );
+  assert.throws(
+    () =>
+      validateToolOutput(
+        "t",
+        { type: "object", required: ["id"], properties: { id: { type: "string" } } },
+        { id: 42 },
+      ),
+    /invalid output/,
+    "a service response that violates its declared output contract must fail",
+  );
+  assert.throws(
+    () =>
+      validateToolOutput(
+        "t",
+        { type: "object", required: ["total"], properties: { total: { type: "number" } } },
+        { total: Number.NaN },
+      ),
+    /finite number/,
+    "non-finite metrics must never enter the model transcript as valid business data",
+  );
 
-  assert.match(dispatch, /availabilityFor\(tool, context\)[\s\S]{0,180}if \(!availability\.available\) throw new Error/, "dispatch must reject a tool outside the active context before executing it");
-  assert.match(dispatch, /const output = await tool\.execute\([\s\S]{0,120}validateToolOutput\(tool\.name, tool\.outputSchema, output\)/, "dispatch must validate every tool output before returning it");
+  assert.match(
+    dispatch,
+    /availabilityFor\(tool, context\)[\s\S]{0,180}if \(!availability\.available\)\s*throw new Error/,
+    "dispatch must reject a tool outside the active context before executing it",
+  );
+  assert.match(
+    dispatch,
+    /const output = await tool\.execute\([\s\S]{0,120}validateToolOutput\(tool\.name, tool\.outputSchema, output\)/,
+    "dispatch must validate every tool output before returning it",
+  );
 
-  console.log(JSON.stringify({
-    registeredTools: registry.length,
-    registryVersion: AI_TOOL_REGISTRY_VERSION,
-    gates: ["required", "enum", "additionalProperties", "type", "unknown-tool", "active-pack", "output-contract", "impact-read", "impact-write", "destructive-fail-closed", "snapshot-bounds", "snapshot-read-errors"],
-    result: "passed",
-  }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        registeredTools: registry.length,
+        registryVersion: AI_TOOL_REGISTRY_VERSION,
+        gates: [
+          "required",
+          "enum",
+          "additionalProperties",
+          "type",
+          "unknown-tool",
+          "active-pack",
+          "output-contract",
+          "impact-read",
+          "impact-write",
+          "destructive-fail-closed",
+          "snapshot-bounds",
+          "snapshot-read-errors",
+        ],
+        result: "passed",
+      },
+      null,
+      2,
+    ),
+  );
 }
 
 main().catch((error) => {

@@ -21,18 +21,19 @@ export function useModalDismiss(isOpen: boolean, onClose: () => void) {
     };
     window.addEventListener("keydown", handleKey);
 
-    const previouslyFocused = document.activeElement instanceof HTMLElement
-      ? document.activeElement
-      : null;
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
     openModalCount += 1;
     document.body.style.overflow = "hidden";
     document.body.classList.add("admin-dialog-open");
 
     const focusTimer = window.setTimeout(() => {
       const dialog = document.querySelector<HTMLElement>('[role="dialog"]:last-of-type');
-      dialog?.querySelector<HTMLElement>(
-        '[autofocus], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])',
-      )?.focus();
+      dialog
+        ?.querySelector<HTMLElement>(
+          '[autofocus], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        )
+        ?.focus();
     }, 40);
 
     return () => {

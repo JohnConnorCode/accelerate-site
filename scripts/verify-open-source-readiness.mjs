@@ -31,7 +31,8 @@ for (const file of requiredFiles) {
     failures.push(`required community file is not tracked: ${file}`);
   } else {
     try {
-      if (!readFileSync(file, "utf8").trim()) failures.push(`required community file is empty: ${file}`);
+      if (!readFileSync(file, "utf8").trim())
+        failures.push(`required community file is empty: ${file}`);
     } catch {
       failures.push(`required community file is missing: ${file}`);
     }
@@ -39,15 +40,34 @@ for (const file of requiredFiles) {
 }
 
 for (const file of tracked) {
-  if (/^\.env(?:\.|$)/.test(file) && file !== ".env.example") failures.push(`environment file must not be tracked: ${file}`);
+  if (/^\.env(?:\.|$)/.test(file) && file !== ".env.example")
+    failures.push(`environment file must not be tracked: ${file}`);
 }
 
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
-if (packageJson.private !== true) failures.push("package.json must remain private to prevent accidental npm publication");
+if (packageJson.private !== true)
+  failures.push("package.json must remain private to prevent accidental npm publication");
 if (packageJson.license !== "MIT") failures.push("package.json must declare the MIT license");
 if (!packageJson.repository?.url) failures.push("package.json must declare its repository URL");
 
-const textExtensions = new Set(["", ".css", ".html", ".js", ".json", ".jsx", ".md", ".mdx", ".mjs", ".sql", ".svg", ".ts", ".tsx", ".txt", ".yml", ".yaml"]);
+const textExtensions = new Set([
+  "",
+  ".css",
+  ".html",
+  ".js",
+  ".json",
+  ".jsx",
+  ".md",
+  ".mdx",
+  ".mjs",
+  ".sql",
+  ".svg",
+  ".ts",
+  ".tsx",
+  ".txt",
+  ".yml",
+  ".yaml",
+]);
 const secretPatterns = [
   ["private key", /-----BEGIN [A-Z ]*PRIVATE KEY-----/],
   ["Stripe secret key", /sk_(?:live|test)_[A-Za-z0-9]{16,}/],
@@ -72,9 +92,11 @@ for (const file of tracked) {
   if (extname(file) === ".md") {
     for (const match of value.matchAll(/\[[^\]]+\]\(([^)]+)\)/g)) {
       const target = match[1].trim().replace(/^<|>$/g, "");
-      if (!target || target.startsWith("#") || target.startsWith("/") || /^[a-z]+:/i.test(target)) continue;
+      if (!target || target.startsWith("#") || target.startsWith("/") || /^[a-z]+:/i.test(target))
+        continue;
       const localPath = decodeURIComponent(target.split("#")[0]);
-      if (!existsSync(resolve(dirname(file), localPath))) failures.push(`broken local Markdown link in ${file}: ${target}`);
+      if (!existsSync(resolve(dirname(file), localPath)))
+        failures.push(`broken local Markdown link in ${file}: ${target}`);
     }
   }
 }
@@ -84,4 +106,15 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(JSON.stringify({ result: "passed", trackedFiles: tracked.length, requiredCommunityFiles: requiredFiles.length, secretPatterns: secretPatterns.length }, null, 2));
+console.log(
+  JSON.stringify(
+    {
+      result: "passed",
+      trackedFiles: tracked.length,
+      requiredCommunityFiles: requiredFiles.length,
+      secretPatterns: secretPatterns.length,
+    },
+    null,
+    2,
+  ),
+);

@@ -35,7 +35,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
       className={cn(
         "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize",
         statusColorMap[status] || "bg-white/10 text-white-secondary",
-        className
+        className,
       )}
     >
       {status}

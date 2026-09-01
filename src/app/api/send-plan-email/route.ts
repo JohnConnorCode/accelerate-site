@@ -13,18 +13,18 @@ export async function POST(request: NextRequest) {
   try {
     const { name, email, summary, shareToken } = await request.json();
 
-    if (typeof name !== "string" || !name.trim() || typeof email !== "string" || typeof shareToken !== "string" || !shareToken.trim()) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+    if (
+      typeof name !== "string" ||
+      !name.trim() ||
+      typeof email !== "string" ||
+      typeof shareToken !== "string" ||
+      !shareToken.trim()
+    ) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     if (!isValidEmail(email)) {
-      return NextResponse.json(
-        { error: "Please provide a valid email address." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Please provide a valid email address." }, { status: 400 });
     }
 
     await sendPlanEmail(name, email, summary || "Your custom growth plan", shareToken);
@@ -32,9 +32,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Failed to send plan email:", error);
-    return NextResponse.json(
-      { error: "Failed to send email" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
   }
 }

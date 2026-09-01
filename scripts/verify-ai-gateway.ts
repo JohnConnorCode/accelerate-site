@@ -46,7 +46,9 @@ async function probe(surface: string, run: () => Promise<Omit<Result, "surface" 
     results.push({ surface, ok: true, ms: Date.now() - startedAt, ...outcome });
   } catch (error) {
     results.push({
-      surface, ok: false, ms: Date.now() - startedAt,
+      surface,
+      ok: false,
+      ms: Date.now() - startedAt,
       detail: error instanceof Error ? error.message.slice(0, 300) : String(error),
     });
   }
@@ -56,7 +58,8 @@ const ECHO_TOOL: OpenRouterTool = {
   type: "function",
   function: {
     name: "record_pipeline_note",
-    description: "Record a short note about a sales opportunity. Call this when asked to note something.",
+    description:
+      "Record a short note about a sales opportunity. Call this when asked to note something.",
     parameters: {
       type: "object",
       properties: { note: { type: "string", description: "The note to record" } },
@@ -68,15 +71,20 @@ const ECHO_TOOL: OpenRouterTool = {
 
 async function main() {
   if (!isOpenRouterConfigured()) {
-    console.error("OPENROUTER_API_KEY is not set. This script reads .vercel/.env.production.local;");
-    console.error("run `vercel pull --yes --environment=production` if that file is stale or missing.");
+    console.error(
+      "OPENROUTER_API_KEY is not set. This script reads .vercel/.env.production.local;",
+    );
+    console.error(
+      "run `vercel pull --yes --environment=production` if that file is stale or missing.",
+    );
     process.exit(1);
   }
 
   // 1. Plain completion.
   await probe("chat.plain", async () => {
     const response = await openRouterChat({
-      maxTokens: 5, temperature: 0,
+      maxTokens: 5,
+      temperature: 0,
       messages: [{ role: "user", content: "Reply with exactly: OK" }],
     });
     const text = response.choices[0]?.message.content ?? "";
@@ -87,12 +95,19 @@ async function main() {
   // 2. Strict structured output. This is the path every generative feature uses,
   //    and the one where a provider that ignores json_schema fails loudly.
   await probe("json.structured", async () => {
-    const { data, requestId, model, usage } = await openRouterJson<{ stage: string; confident: boolean }>({
-      maxTokens: 60, temperature: 0,
-      messages: [{
-        role: "user",
-        content: "A prospect just asked for pricing after a demo. Classify the deal stage as one of: new, qualified, proposal.",
-      }],
+    const { data, requestId, model, usage } = await openRouterJson<{
+      stage: string;
+      confident: boolean;
+    }>({
+      maxTokens: 60,
+      temperature: 0,
+      messages: [
+        {
+          role: "user",
+          content:
+            "A prospect just asked for pricing after a demo. Classify the deal stage as one of: new, qualified, proposal.",
+        },
+      ],
       schemaName: "stage_classification",
       schema: {
         type: "object",
@@ -102,8 +117,10 @@ async function main() {
       },
       validate: (value) => {
         const candidate = value as { stage?: unknown; confident?: unknown };
-        if (typeof candidate.stage !== "string") throw new Error("stage missing from structured output");
-        if (typeof candidate.confident !== "boolean") throw new Error("confident missing from structured output");
+        if (typeof candidate.stage !== "string")
+          throw new Error("stage missing from structured output");
+        if (typeof candidate.confident !== "boolean")
+          throw new Error("confident missing from structured output");
         return { stage: candidate.stage, confident: candidate.confident };
       },
     });
@@ -114,24 +131,36 @@ async function main() {
   //    how good the registry is.
   await probe("chat.tools", async () => {
     const response = await openRouterChat({
-      maxTokens: 80, temperature: 0,
+      maxTokens: 80,
+      temperature: 0,
       tools: [ECHO_TOOL],
       messages: [
         { role: "system", content: "You use tools when they fit the request." },
-        { role: "user", content: "Please record a note that Ridgeline Roofing asked about pricing." },
+        {
+          role: "user",
+          content: "Please record a note that Ridgeline Roofing asked about pricing.",
+        },
       ],
     });
     const calls = response.choices[0]?.message.tool_calls ?? [];
-    if (!calls.length) throw new Error("model returned no tool call, so the copilot loop cannot function");
-    if (calls[0]?.function.name !== ECHO_TOOL.function.name) throw new Error(`unexpected tool ${calls[0]?.function.name}`);
+    if (!calls.length)
+      throw new Error("model returned no tool call, so the copilot loop cannot function");
+    if (calls[0]?.function.name !== ECHO_TOOL.function.name)
+      throw new Error(`unexpected tool ${calls[0]?.function.name}`);
     JSON.parse(calls[0].function.arguments); // must be parseable, the agent assumes this
-    return { model: response.model, requestId: response.id, tokens: response.usage?.total_tokens, detail: `tool=${calls[0].function.name}` };
+    return {
+      model: response.model,
+      requestId: response.id,
+      tokens: response.usage?.total_tokens,
+      detail: `tool=${calls[0].function.name}`,
+    };
   });
 
   // 4. Streaming, the public website chat path.
   await probe("stream.text", async () => {
     const stream = await openRouterTextStream({
-      maxTokens: 20, temperature: 0,
+      maxTokens: 20,
+      temperature: 0,
       messages: [{ role: "user", content: "Say hello in five words or fewer." }],
     });
     const reader = stream.getReader();
@@ -159,21 +188,31 @@ async function main() {
   };
   const distinct = new Set(Object.values(surfaceModels));
 
-  console.log(JSON.stringify({
-    surfaceModels,
-    distinctModelsInUse: distinct.size,
-    results,
-    totalTokens: results.reduce((sum, item) => sum + (item.tokens ?? 0), 0),
-    result: results.every((item) => item.ok) ? "passed" : "failed",
-  }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        surfaceModels,
+        distinctModelsInUse: distinct.size,
+        results,
+        totalTokens: results.reduce((sum, item) => sum + (item.tokens ?? 0), 0),
+        result: results.every((item) => item.ok) ? "passed" : "failed",
+      },
+      null,
+      2,
+    ),
+  );
 
   if (distinct.size === 1) {
-    console.log(`\nNote: every surface resolves to ${surfaceModels.resolved}. The public marketing chat and the tool-calling copilot run on the same model.`);
+    console.log(
+      `\nNote: every surface resolves to ${surfaceModels.resolved}. The public marketing chat and the tool-calling copilot run on the same model.`,
+    );
   }
 
   const failed = results.filter((item) => !item.ok);
   if (failed.length) {
-    console.error(`\nAI gateway verification failed ${failed.length} of ${results.length} probe(s):`);
+    console.error(
+      `\nAI gateway verification failed ${failed.length} of ${results.length} probe(s):`,
+    );
     for (const item of failed) console.error(`- ${item.surface}: ${item.detail}`);
     process.exit(1);
   }

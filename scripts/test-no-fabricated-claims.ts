@@ -37,19 +37,35 @@ const NO_STATISTICS = ["src/components/sections/NonprofitLanding.tsx"];
  *
  * Say the true thing and let it stand.
  */
-const NO_ANTITHESIS_DIRS = ["src/content", "src/components/sections", "src/lib/chat", "src/components/home"];
+const NO_ANTITHESIS_DIRS = [
+  "src/content",
+  "src/components/sections",
+  "src/lib/chat",
+  "src/components/home",
+];
 
 /**
  * Hard ROI theater. Time and capacity are allowed. Dollar recoveries,
  * recycled first-responder percentages, and invented clients are not.
  */
-const NO_ROI_THEATER_DIRS = ["src/content", "src/components/home", "src/components/sections", "src/components/v2"];
+const NO_ROI_THEATER_DIRS = [
+  "src/content",
+  "src/components/home",
+  "src/components/sections",
+  "src/components/v2",
+];
 
 const ROI_THEATER_PATTERNS: Array<{ pattern: RegExp; why: string }> = [
-  { pattern: /78%\s+of\s+(customers|buyers|consumers|personal injury)/i, why: "a recycled first-responder percentage" },
+  {
+    pattern: /78%\s+of\s+(customers|buyers|consumers|personal injury)/i,
+    why: "a recycled first-responder percentage",
+  },
   { pattern: /\+?38%\s*(more jobs|booked)/i, why: "an unmeasured jobs-booked percentage" },
   { pattern: /Michigan Avenue/i, why: "an invented named client" },
-  { pattern: /\$\d[\d,]*(?:\+|\/month|\/mo)?[^.!?]{0,40}(recovered|additional) revenue/i, why: "dollar ROI presented as typical" },
+  {
+    pattern: /\$\d[\d,]*(?:\+|\/month|\/mo)?[^.!?]{0,40}(recovered|additional) revenue/i,
+    why: "dollar ROI presented as typical",
+  },
   { pattern: /First-year ROI/i, why: "a headline ROI" },
   { pattern: /\b340%\b/, why: "an invented ROI percentage" },
   { pattern: /value:\s*"\+\$/, why: "fake money on an operations feed" },
@@ -81,15 +97,33 @@ const ANTITHESIS_PATTERNS: Array<{ pattern: RegExp; why: string }> = [
   // is what makes this a redefinition rather than an ordinary sequence of
   // events. Without that requirement it flags narration like "They do not leave
   // a voicemail. They hit the back button.", which is fine writing.
-  { pattern: /\b(?:is|are|was|were)\s+n[o']t\b[^.!?]{2,80}[.!?]\s+(?:It|That|They|Its)\s+(?:is|are|was|were)\b/i, why: 'a "not X. It is Y." antithesis' },
+  {
+    pattern:
+      /\b(?:is|are|was|were)\s+n[o']t\b[^.!?]{2,80}[.!?]\s+(?:It|That|They|Its)\s+(?:is|are|was|were)\b/i,
+    why: 'a "not X. It is Y." antithesis',
+  },
   // Same shape where the second sentence repeats the subject: "The fix is not
   // a chart. The fix is a text message."
-  { pattern: /\bThe\s+(\w+)\s+(?:is|are|was|were)\s+n[o']t\b[^.!?]{2,80}[.!?]\s+The\s+\1\s+(?:is|are|was|were)\b/i, why: 'a "The X is not A. The X is B." antithesis' },
+  {
+    pattern:
+      /\bThe\s+(\w+)\s+(?:is|are|was|were)\s+n[o']t\b[^.!?]{2,80}[.!?]\s+The\s+\1\s+(?:is|are|was|were)\b/i,
+    why: 'a "The X is not A. The X is B." antithesis',
+  },
   // "It's not X, it's Y" inside one sentence.
-  { pattern: /\b(?:is|are|was|were)\s+n[o']t\s+[^.,;!?]{2,60},\s*(?:it|they|that|we|you)\s+(?:is|are|was|were)\b/i, why: 'an "it is not X, it is Y" antithesis' },
+  {
+    pattern:
+      /\b(?:is|are|was|were)\s+n[o']t\s+[^.,;!?]{2,60},\s*(?:it|they|that|we|you)\s+(?:is|are|was|were)\b/i,
+    why: 'an "it is not X, it is Y" antithesis',
+  },
   // Punchy fragment: "Not a template." "Not another platform to learn."
-  { pattern: /(?:^|[.!?]\s+|\*\*)Not\s+(?:a|an|another|just|only)\b[^.!?]{2,70}[.!?]/, why: 'a "Not X." fragment antithesis' },
-  { pattern: /\bnever\s+the\s+(?:missing piece|point|problem|issue|answer)\b/i, why: "a strawman dismissal" },
+  {
+    pattern: /(?:^|[.!?]\s+|\*\*)Not\s+(?:a|an|another|just|only)\b[^.!?]{2,70}[.!?]/,
+    why: 'a "Not X." fragment antithesis',
+  },
+  {
+    pattern: /\bnever\s+the\s+(?:missing piece|point|problem|issue|answer)\b/i,
+    why: "a strawman dismissal",
+  },
 ];
 
 /** Patterns that assert a measured fact. */
@@ -97,29 +131,34 @@ const CLAIM_PATTERNS: Array<{ pattern: RegExp; why: string }> = [
   { pattern: /\d+(\.\d+)?\s?%/, why: "a percentage" },
   { pattern: /\$\s?\d/, why: "a dollar figure" },
   { pattern: /\b\d+(\.\d+)?\s?x\b/i, why: "a multiplier" },
-  { pattern: /\b(?:studies|research|survey|report)s?\s+(?:show|shows|found|suggests?)/i, why: "an appeal to unnamed research" },
+  {
+    pattern: /\b(?:studies|research|survey|report)s?\s+(?:show|shows|found|suggests?)/i,
+    why: "an appeal to unnamed research",
+  },
   { pattern: /\baccording to\b/i, why: "a citation" },
   { pattern: /\b(?:on average|industry average|benchmark)\b/i, why: "an unsourced average" },
   { pattern: /\b\d{4}\s+(?:report|study|survey|index)\b/i, why: "a named source document" },
-  { pattern: /\bFEP\b|Fundraising Effectiveness/i, why: "a fabricated source that appeared in an earlier version" },
+  {
+    pattern: /\bFEP\b|Fundraising Effectiveness/i,
+    why: "a fabricated source that appeared in an earlier version",
+  },
 ];
 
 /**
  * Numbers that are promises we make, not measurements we claim. A commitment we
  * choose to keep is checkable by the reader; a benchmark is not.
  */
-const ALLOWED = [
-  /\b(?:20|30)[- ]minute\b/i,
-  /\bTwenty minutes\b/i,
-];
+const ALLOWED = [/\b(?:20|30)[- ]minute\b/i, /\bTwenty minutes\b/i];
 
 /** Quoted strings, since only shipped copy matters. */
 function stringLiterals(source: string): string[] {
-  const withoutComments = source
-    .replace(/\/\*[\s\S]*?\*\//g, " ")
-    .replace(/^\s*\/\/.*$/gm, " ");
+  const withoutComments = source.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " ");
   const found: string[] = [];
-  for (const pattern of [/"((?:[^"\\\n]|\\.)*)"/g, /'((?:[^'\\\n]|\\.)*)'/g, /`((?:[^`\\]|\\.)*)`/g]) {
+  for (const pattern of [
+    /"((?:[^"\\\n]|\\.)*)"/g,
+    /'((?:[^'\\\n]|\\.)*)'/g,
+    /`((?:[^`\\]|\\.)*)`/g,
+  ]) {
     for (const match of withoutComments.matchAll(pattern)) {
       if (match[1]) found.push(match[1]);
     }
@@ -133,9 +172,16 @@ function isCopy(literal: string): boolean {
   // CSS-in-class strings are full of percentages (color-mix, clamp, rgba) and
   // are not prose. Checking for CSS function syntax is far more reliable than
   // trying to enumerate every Tailwind utility.
-  if (/(?:var\(--|color-mix\(|rgba?\(|clamp\(|linear-gradient\(|calc\()/.test(literal)) return false;
+  if (/(?:var\(--|color-mix\(|rgba?\(|clamp\(|linear-gradient\(|calc\()/.test(literal))
+    return false;
   if (/\[&|:!?text-|^\s*(?:absolute|relative|fixed)\s/.test(literal)) return false;
-  if (/^[a-z0-9:_\[\]()\/,.%\-\s#&]+$/i.test(literal) && /(?:^|\s)(?:flex|grid|text-|bg-|border|mt-|mb-|px-|py-|gap-|absolute|relative|font-|leading-|tracking-|max-w|min-h|inset|object-|aspect-|rounded|hover:|sm:|md:|lg:)/.test(literal)) return false;
+  if (
+    /^[a-z0-9:_\[\]()\/,.%\-\s#&]+$/i.test(literal) &&
+    /(?:^|\s)(?:flex|grid|text-|bg-|border|mt-|mb-|px-|py-|gap-|absolute|relative|font-|leading-|tracking-|max-w|min-h|inset|object-|aspect-|rounded|hover:|sm:|md:|lg:)/.test(
+      literal,
+    )
+  )
+    return false;
   if (literal.startsWith("/") || literal.startsWith("http")) return false;
   return /\s/.test(literal);
 }
@@ -151,7 +197,9 @@ for (const file of NO_STATISTICS) {
     if (ALLOWED.some((allowed) => allowed.test(literal))) continue;
     for (const rule of CLAIM_PATTERNS) {
       if (rule.pattern.test(literal)) {
-        failures.push(`${file}: contains ${rule.why} in copy we have not measured:\n    "${literal.slice(0, 130)}"`);
+        failures.push(
+          `${file}: contains ${rule.why} in copy we have not measured:\n    "${literal.slice(0, 130)}"`,
+        );
       }
     }
   }
@@ -161,8 +209,8 @@ for (const file of NO_STATISTICS) {
 function copyChunks(file: string, source: string): string[] {
   if (/\.mdx?$/.test(file)) {
     return source
-      .replace(/^---[\s\S]*?^---/m, " ")   // frontmatter
-      .replace(/```[\s\S]*?```/g, " ")      // code fences
+      .replace(/^---[\s\S]*?^---/m, " ") // frontmatter
+      .replace(/```[\s\S]*?```/g, " ") // code fences
       .split(/\n{2,}/);
   }
   return stringLiterals(source).filter(isCopy);
@@ -171,7 +219,11 @@ function copyChunks(file: string, source: string): string[] {
 function walk(dir: string): string[] {
   const found: string[] = [];
   let entries: string[];
-  try { entries = readdirSync(dir); } catch { return found; }
+  try {
+    entries = readdirSync(dir);
+  } catch {
+    return found;
+  }
   for (const entry of entries) {
     const full = join(dir, entry);
     if (statSync(full).isDirectory()) found.push(...walk(full));
@@ -191,7 +243,9 @@ for (const dir of NO_ANTITHESIS_DIRS) {
       for (const rule of ANTITHESIS_PATTERNS) {
         const match = rule.pattern.exec(chunk);
         if (match) {
-          failures.push(`${file}: uses ${rule.why}. State the point directly:\n    "${match[0].trim().slice(0, 140)}"`);
+          failures.push(
+            `${file}: uses ${rule.why}. State the point directly:\n    "${match[0].trim().slice(0, 140)}"`,
+          );
         }
       }
     }
@@ -215,13 +269,30 @@ for (const dir of NO_ROI_THEATER_DIRS) {
   }
 }
 
-assert.ok(inspected > 10, `only inspected ${inspected} copy strings, so this guard is probably not looking at the right thing`);
+assert.ok(
+  inspected > 10,
+  `only inspected ${inspected} copy strings, so this guard is probably not looking at the right thing`,
+);
 
 if (failures.length) {
   console.error(`Fabricated-claim guard failed with ${failures.length} issue(s).`);
-  console.error("These pages carry no measured books, so they carry no dollar ROI, no invented clients, and they state points directly rather than by contrast.\n");
+  console.error(
+    "These pages carry no measured books, so they carry no dollar ROI, no invented clients, and they state points directly rather than by contrast.\n",
+  );
   for (const failure of failures) console.error(`- ${failure}`);
   process.exitCode = 1;
 } else {
-  console.log(JSON.stringify({ statisticsGuarded: NO_STATISTICS.length, antithesisChunksScanned: antithesisScanned, roiChunksScanned: roiScanned, copyStringsInspected: inspected, result: "passed" }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        statisticsGuarded: NO_STATISTICS.length,
+        antithesisChunksScanned: antithesisScanned,
+        roiChunksScanned: roiScanned,
+        copyStringsInspected: inspected,
+        result: "passed",
+      },
+      null,
+      2,
+    ),
+  );
 }

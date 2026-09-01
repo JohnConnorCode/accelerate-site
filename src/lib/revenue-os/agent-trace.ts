@@ -29,7 +29,15 @@ export interface AgentRunHandle {
 
 export async function startAgentRun(
   supabase: SupabaseClient,
-  input: { surface: string; model: string; actorEmail?: string | null; promptPreview?: string; conversationId?: string | null; provider?: string; toolPack?: string },
+  input: {
+    surface: string;
+    model: string;
+    actorEmail?: string | null;
+    promptPreview?: string;
+    conversationId?: string | null;
+    provider?: string;
+    toolPack?: string;
+  },
 ): Promise<AgentRunHandle> {
   const startedAt = Date.now();
   const { data, error } = await supabase
@@ -57,7 +65,13 @@ export async function finishAgentRun(
   supabase: SupabaseClient,
   run: AgentRunHandle,
   outcome: AgentRunOutcome,
-  detail: { resultPreview?: string; error?: string; inputTokens?: number; outputTokens?: number; toolNames?: string[] } = {},
+  detail: {
+    resultPreview?: string;
+    error?: string;
+    inputTokens?: number;
+    outputTokens?: number;
+    toolNames?: string[];
+  } = {},
 ): Promise<void> {
   if (!run.id) return;
   const { error } = await supabase
@@ -93,7 +107,11 @@ export async function recordAgentRunEvent(
     input: event.input ?? null,
     output: event.output ?? null,
   });
-  if (error) console.error(`[agent-trace] could not record ${event.eventType} on run ${run.id}:`, error.message);
+  if (error)
+    console.error(
+      `[agent-trace] could not record ${event.eventType} on run ${run.id}:`,
+      error.message,
+    );
 }
 
 /**
@@ -141,7 +159,10 @@ export function traceTextStream(
       try {
         const { done, value } = await reader.read();
         if (done) {
-          close(text.trim() ? "completed" : "failed", text.trim() ? undefined : "Stream produced no content");
+          close(
+            text.trim() ? "completed" : "failed",
+            text.trim() ? undefined : "Stream produced no content",
+          );
           controller.close();
           return;
         }
@@ -153,7 +174,10 @@ export function traceTextStream(
       }
     },
     cancel(reason) {
-      close("cancelled", `Client disconnected: ${reason instanceof Error ? reason.message : String(reason)}`);
+      close(
+        "cancelled",
+        `Client disconnected: ${reason instanceof Error ? reason.message : String(reason)}`,
+      );
       return reader.cancel(reason);
     },
   });

@@ -109,13 +109,18 @@ export function StarField() {
         const x = Math.random();
         const y = Math.random();
         pts.push({
-          x, y,
+          x,
+          y,
           size: 0.5 + Math.random() * 1.3 + depth * 0.4,
           baseOpacity: 0.3 + Math.random() * 0.5 + depth * 0.2,
           twinkleSpeed: 0.4 + Math.random() * 2.0,
           twinklePhase: Math.random() * Math.PI * 2,
-          depth, r, g, b,
-          targetX: x, targetY: y,
+          depth,
+          r,
+          g,
+          b,
+          targetX: x,
+          targetY: y,
           sizeBoost: 1,
         });
       }
@@ -169,7 +174,8 @@ export function StarField() {
           s.sizeBoost = 1;
         }
 
-        const twinkle = 0.5 + 0.5 * (0.5 + 0.5 * Math.sin(seconds * s.twinkleSpeed + s.twinklePhase));
+        const twinkle =
+          0.5 + 0.5 * (0.5 + 0.5 * Math.sin(seconds * s.twinkleSpeed + s.twinklePhase));
         const alpha = s.baseOpacity * twinkle;
         if (alpha < 0.02) continue;
 

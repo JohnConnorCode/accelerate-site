@@ -26,8 +26,7 @@ const breadcrumbJsonLd = generateBreadcrumbJsonLd([
 
 export default function LearnPage() {
   const articles = getArticleSummaries();
-  const featuredArticle =
-    articles.find((a) => a.frontmatter.featured) || articles[0] || null;
+  const featuredArticle = articles.find((a) => a.frontmatter.featured) || articles[0] || null;
   const nonFeatured = featuredArticle
     ? articles.filter((a) => a.slug !== featuredArticle.slug)
     : articles;

@@ -132,16 +132,33 @@ export const DEMO_PEOPLE: DemoPerson[] = [
       { k: "Prefers", v: "Short email, no decks, answers within a day" },
       { k: "Watch out", v: "Was burned by a vendor who missed a go-live in 2024" },
     ],
-    open: [
-      "Who signs off alongside Marcus?",
-      "Does the March 3 start survive their audit week?",
-    ],
+    open: ["Who signs off alongside Marcus?", "Does the March 3 start survive their audit week?"],
     timeline: [
-      { when: "Wed 08:14", kind: "email-in", text: '"Send it over this week and I will get it in front of Marcus."' },
-      { when: "Tue 10:02", kind: "meeting", text: "Northwind kickoff call, 42 min. Scope, timeline, training." },
-      { when: "Tue 10:48", kind: "ai", text: "Filed 6 facts, 3 tasks, and 2 open questions from the call." },
-      { when: "Mon 16:30", kind: "email-out", text: "Sent the original scope and the two reference calls." },
-      { when: "Jan 28", kind: "note", text: "Intro came through Dana Whitfield. Owes Dana a thank-you." },
+      {
+        when: "Wed 08:14",
+        kind: "email-in",
+        text: '"Send it over this week and I will get it in front of Marcus."',
+      },
+      {
+        when: "Tue 10:02",
+        kind: "meeting",
+        text: "Northwind kickoff call, 42 min. Scope, timeline, training.",
+      },
+      {
+        when: "Tue 10:48",
+        kind: "ai",
+        text: "Filed 6 facts, 3 tasks, and 2 open questions from the call.",
+      },
+      {
+        when: "Mon 16:30",
+        kind: "email-out",
+        text: "Sent the original scope and the two reference calls.",
+      },
+      {
+        when: "Jan 28",
+        kind: "note",
+        text: "Intro came through Dana Whitfield. Owes Dana a thank-you.",
+      },
     ],
   },
   {
@@ -158,7 +175,11 @@ export const DEMO_PEOPLE: DemoPerson[] = [
     open: ["What payback period does he need to see?"],
     timeline: [
       { when: "Wed 11:05", kind: "meeting", text: "Intro call, 18 min. Mostly listened." },
-      { when: "Wed 11:24", kind: "ai", text: "Flagged: no notes filed from this call yet. Draft waiting." },
+      {
+        when: "Wed 11:24",
+        kind: "ai",
+        text: "Flagged: no notes filed from this call yet. Draft waiting.",
+      },
     ],
   },
   {
@@ -174,8 +195,16 @@ export const DEMO_PEOPLE: DemoPerson[] = [
     ],
     open: ["Make the intro to Priya Raman you offered in March."],
     timeline: [
-      { when: "Mon 15:40", kind: "meeting", text: "Check-in, 25 min. Asked how Northwind was going." },
-      { when: "Mon 15:52", kind: "ai", text: "You promised Thursday. Calendar hold drafted and waiting." },
+      {
+        when: "Mon 15:40",
+        kind: "meeting",
+        text: "Check-in, 25 min. Asked how Northwind was going.",
+      },
+      {
+        when: "Mon 15:52",
+        kind: "ai",
+        text: "You promised Thursday. Calendar hold drafted and waiting.",
+      },
     ],
   },
   {
@@ -214,7 +243,14 @@ export const DEMO_PIPELINE: { stage: string; deals: DemoDeal[] }[] = [
     stage: "In conversation",
     deals: [
       { id: "d1", name: "Reyes intro", company: "Northwind Group", value: "$18k", age: "6d" },
-      { id: "d2", name: "Cedar retainer", company: "Atwell Construction", value: "$4k/mo", age: "22d", flag: "Cooling" },
+      {
+        id: "d2",
+        name: "Cedar retainer",
+        company: "Atwell Construction",
+        value: "$4k/mo",
+        age: "22d",
+        flag: "Cooling",
+      },
     ],
   },
   {
@@ -230,7 +266,9 @@ export const DEMO_PIPELINE: { stage: string; deals: DemoDeal[] }[] = [
   },
   {
     stage: "Won",
-    deals: [{ id: "d6", name: "Phase one", company: "Whitfield & Co", value: "$22k", age: "closed" }],
+    deals: [
+      { id: "d6", name: "Phase one", company: "Whitfield & Co", value: "$22k", age: "closed" },
+    ],
   },
 ];
 
@@ -246,7 +284,10 @@ export const DEMO_ANSWERS: DemoAnswer[] = [
   {
     q: "What did I agree to with Northwind?",
     a: "Three things. A March 3 start date, the reporting piece split out as its own line so Marcus can approve it separately, and a training day in week two rather than week one. Sarah is taking the revised scope to Marcus this week. She has not committed to a number yet.",
-    sources: ["Northwind kickoff call, Tue 10:02", "Email from s.chen@northwind.example, Wed 08:14"],
+    sources: [
+      "Northwind kickoff call, Tue 10:02",
+      "Email from s.chen@northwind.example, Wed 08:14",
+    ],
   },
   {
     q: "Who is going cold that I care about?",
@@ -263,11 +304,20 @@ export const DEMO_ANSWERS: DemoAnswer[] = [
 /* ── meeting extraction ────────────────────────────────────────────────── */
 
 export const DEMO_TRANSCRIPT = [
-  { who: "Sarah", text: "Realistically we need this live before the audit, so early March at the latest." },
+  {
+    who: "Sarah",
+    text: "Realistically we need this live before the audit, so early March at the latest.",
+  },
   { who: "You", text: "March 3 works. I will confirm the training day separately." },
-  { who: "Sarah", text: "Marcus will want the reporting broken out. He approves that line himself." },
+  {
+    who: "Sarah",
+    text: "Marcus will want the reporting broken out. He approves that line himself.",
+  },
   { who: "You", text: "I will split it out and send the revised scope Friday." },
-  { who: "Sarah", text: "One thing, we had a vendor miss a go-live in 2024 and it was painful. That is the nervousness you are hearing." },
+  {
+    who: "Sarah",
+    text: "One thing, we had a vendor miss a go-live in 2024 and it was painful. That is the nervousness you are hearing.",
+  },
 ];
 
 export interface ExtractedItem {
@@ -380,17 +430,44 @@ export interface StubRow {
   ai?: boolean;
 }
 
-export const STUBS: Record<string, { title: string; sub: string; head: [string, string, string]; rows: StubRow[] }> = {
+export const STUBS: Record<
+  string,
+  { title: string; sub: string; head: [string, string, string]; rows: StubRow[] }
+> = {
   today: {
     title: "Today",
     sub: "AI-prioritized daily agenda, syncing your calendar, emails, and CRM in real-time.",
     head: ["Action Required", "Context", "Status / Integration"],
     rows: [
-      { a: "Approve revised proposal for Northwind", b: "Auto-generated from yesterday's Zoom transcript", c: "Draft ready in Docs", ai: true },
-      { a: "Follow up with Sarah Chen", b: "She opened the pricing page 3 times today", c: "HubSpot signal", ai: true },
-      { a: "Review Q3 Marketing Spend", b: "Approaching budget limit threshold", c: "QuickBooks alert", ai: true },
-      { a: "Call back Ray Atwell", b: "Invoice 18 days overdue, two automated emails ignored", c: "Stripe / Pending" },
-      { a: "Prep for QBR with Halcyon Legal", b: "AI pulled key metrics from past 3 months", c: "Meeting at 14:00", ai: true },
+      {
+        a: "Approve revised proposal for Northwind",
+        b: "Auto-generated from yesterday's Zoom transcript",
+        c: "Draft ready in Docs",
+        ai: true,
+      },
+      {
+        a: "Follow up with Sarah Chen",
+        b: "She opened the pricing page 3 times today",
+        c: "HubSpot signal",
+        ai: true,
+      },
+      {
+        a: "Review Q3 Marketing Spend",
+        b: "Approaching budget limit threshold",
+        c: "QuickBooks alert",
+        ai: true,
+      },
+      {
+        a: "Call back Ray Atwell",
+        b: "Invoice 18 days overdue, two automated emails ignored",
+        c: "Stripe / Pending",
+      },
+      {
+        a: "Prep for QBR with Halcyon Legal",
+        b: "AI pulled key metrics from past 3 months",
+        c: "Meeting at 14:00",
+        ai: true,
+      },
     ],
   },
   inbox: {
@@ -400,7 +477,12 @@ export const STUBS: Record<string, { title: string; sub: string; head: [string, 
     rows: [
       { a: "Sarah Chen", b: "Re: revised scope", c: "Northwind Group", ai: true },
       { a: "Dana Whitfield", b: "Thursday still good?", c: "Whitfield & Co", ai: true },
-      { a: "accounts@atwell", b: "Out of office until the 14th", c: "Atwell Construction", ai: true },
+      {
+        a: "accounts@atwell",
+        b: "Out of office until the 14th",
+        c: "Atwell Construction",
+        ai: true,
+      },
       { a: "Priya Raman", b: "Happy to be introduced", c: "New contact created", ai: true },
     ],
   },
@@ -480,7 +562,7 @@ export const STUBS: Record<string, { title: string; sub: string; head: [string, 
   reports: {
     title: "Reports",
     sub: "Assembled and sent without anybody building them.",
-    head: ["Report", "Cadence", "Last sent" ],
+    head: ["Report", "Cadence", "Last sent"],
     rows: [
       { a: "Pipeline movement", b: "Weekly, Monday 07:00", c: "2 days ago", ai: true },
       { a: "What went quiet", b: "Weekly, Monday 07:00", c: "2 days ago", ai: true },
@@ -533,7 +615,6 @@ export const STUBS: Record<string, { title: string; sub: string; head: [string, 
   },
 };
 
-
 /* ── feedback ──────────────────────────────────────────────────────────────
    Rejecting a draft is the most valuable thing a person does in this system,
    because it is the only input that changes what gets written next. The demo
@@ -548,8 +629,24 @@ export interface FeedbackReason {
 
 export const FEEDBACK_REASONS: FeedbackReason[] = [
   { id: "long", label: "Too long", learned: "Drafts to {who} will run shorter from here." },
-  { id: "tone", label: "Wrong tone", learned: "Tone for {who} pulled closer to how you actually write to them." },
-  { id: "facts", label: "Facts are wrong", learned: "Flagged. It will re-read the source before drafting this again." },
-  { id: "timing", label: "Not yet", learned: "Held. This resurfaces in a week rather than tomorrow." },
-  { id: "wrong", label: "Should not exist", learned: "This kind of action will stop being raised for {who}." },
+  {
+    id: "tone",
+    label: "Wrong tone",
+    learned: "Tone for {who} pulled closer to how you actually write to them.",
+  },
+  {
+    id: "facts",
+    label: "Facts are wrong",
+    learned: "Flagged. It will re-read the source before drafting this again.",
+  },
+  {
+    id: "timing",
+    label: "Not yet",
+    learned: "Held. This resurfaces in a week rather than tomorrow.",
+  },
+  {
+    id: "wrong",
+    label: "Should not exist",
+    learned: "This kind of action will stop being raised for {who}.",
+  },
 ];

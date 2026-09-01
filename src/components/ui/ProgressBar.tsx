@@ -10,12 +10,7 @@ interface ProgressBarProps {
 
 export function ProgressBar({ progress, className }: ProgressBarProps) {
   return (
-    <div
-      className={cn(
-        "w-full h-1.5 bg-white/5 rounded-full overflow-hidden",
-        className
-      )}
-    >
+    <div className={cn("w-full h-1.5 bg-white/5 rounded-full overflow-hidden", className)}>
       <motion.div
         className="h-full progress-gold rounded-full"
         initial={{ width: 0 }}

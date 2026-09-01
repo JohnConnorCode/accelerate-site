@@ -23,15 +23,9 @@ export function ComparisonTable({ headers, rows }: ComparisonTableProps) {
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr
-              key={i}
-              className="border-b border-border-glass last:border-b-0"
-            >
+            <tr key={i} className="border-b border-border-glass last:border-b-0">
               {row.map((cell, j) => (
-                <td
-                  key={j}
-                  className="px-4 py-3 text-white-secondary"
-                >
+                <td key={j} className="px-4 py-3 text-white-secondary">
                   {cell}
                 </td>
               ))}

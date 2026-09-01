@@ -37,7 +37,16 @@ import { fetchJson } from "@/lib/admin/fetchJson";
 import { cn } from "@/lib/utils";
 
 type SetupStatus = "ready" | "action" | "degraded" | "optional" | "disabled";
-type SetupGroup = "core" | "email" | "google" | "ai" | "campaigns" | "proposals" | "analytics" | "booking" | "operations";
+type SetupGroup =
+  | "core"
+  | "email"
+  | "google"
+  | "ai"
+  | "campaigns"
+  | "proposals"
+  | "analytics"
+  | "booking"
+  | "operations";
 
 interface SetupCheck {
   id: string;
@@ -62,7 +71,11 @@ interface SetupResponse {
     connected: boolean;
     settings: { drive_folder_ids?: string[] };
     scopes: string[];
-    tokenHealth: { accessEnvelopeValid: boolean; refreshEnvelopeValid: boolean; expiresAt: string | null };
+    tokenHealth: {
+      accessEnvelopeValid: boolean;
+      refreshEnvelopeValid: boolean;
+      expiresAt: string | null;
+    };
   } | null;
   summary: {
     requiredReady: number;
@@ -255,17 +268,55 @@ const flowSteps = [
 ];
 
 const growthLayers = [
-  { title: "Controlled campaigns", detail: "Approve one campaign version, then send just in time with reply, booking, bounce, unsubscribe, and pause stops.", icon: Megaphone },
-  { title: "Workspace intelligence", detail: "Connect Gmail conversations, Calendar meetings, and only the Drive folders you explicitly approve.", icon: PlugZap },
-  { title: "Safe Revenue copilot", detail: "Research, prioritize, draft, and propose actions from live records; external actions remain confirmation-gated.", icon: Bot },
+  {
+    title: "Controlled campaigns",
+    detail:
+      "Approve one campaign version, then send just in time with reply, booking, bounce, unsubscribe, and pause stops.",
+    icon: Megaphone,
+  },
+  {
+    title: "Workspace intelligence",
+    detail:
+      "Connect Gmail conversations, Calendar meetings, and only the Drive folders you explicitly approve.",
+    icon: PlugZap,
+  },
+  {
+    title: "Safe Revenue copilot",
+    detail:
+      "Research, prioritize, draft, and propose actions from live records; external actions remain confirmation-gated.",
+    icon: Bot,
+  },
 ];
 
-const statusMeta: Record<SetupStatus, { label: string; icon: typeof CheckCircle2; className: string }> = {
-  ready: { label: "Ready", icon: CheckCircle2, className: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" },
-  action: { label: "Action needed", icon: TriangleAlert, className: "bg-amber-500/12 text-amber-800 dark:text-amber-300" },
-  degraded: { label: "Degraded", icon: TriangleAlert, className: "bg-rose-500/10 text-rose-700 dark:text-rose-300" },
-  optional: { label: "Optional", icon: CircleDashed, className: "bg-black/[0.055] text-[var(--admin-muted)] dark:bg-white/[0.07]" },
-  disabled: { label: "Not enabled", icon: CircleDashed, className: "bg-black/[0.055] text-[var(--admin-muted)] dark:bg-white/[0.07]" },
+const statusMeta: Record<
+  SetupStatus,
+  { label: string; icon: typeof CheckCircle2; className: string }
+> = {
+  ready: {
+    label: "Ready",
+    icon: CheckCircle2,
+    className: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+  },
+  action: {
+    label: "Action needed",
+    icon: TriangleAlert,
+    className: "bg-amber-500/12 text-amber-800 dark:text-amber-300",
+  },
+  degraded: {
+    label: "Degraded",
+    icon: TriangleAlert,
+    className: "bg-rose-500/10 text-rose-700 dark:text-rose-300",
+  },
+  optional: {
+    label: "Optional",
+    icon: CircleDashed,
+    className: "bg-black/[0.055] text-[var(--admin-muted)] dark:bg-white/[0.07]",
+  },
+  disabled: {
+    label: "Not enabled",
+    icon: CircleDashed,
+    className: "bg-black/[0.055] text-[var(--admin-muted)] dark:bg-white/[0.07]",
+  },
 };
 
 function SetupCheckCard({ check }: { check: SetupCheck }) {
@@ -281,24 +332,45 @@ function SetupCheckCard({ check }: { check: SetupCheck }) {
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="font-semibold tracking-[-0.015em] text-[var(--admin-ink)]">{check.label}</h3>
-            <span className={cn("rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.09em]", meta.className)}>{meta.label}</span>
+            <h3 className="font-semibold tracking-[-0.015em] text-[var(--admin-ink)]">
+              {check.label}
+            </h3>
+            <span
+              className={cn(
+                "rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.09em]",
+                meta.className,
+              )}
+            >
+              {meta.label}
+            </span>
           </div>
           <p className="admin-copy mt-1.5 text-pretty text-sm leading-6">{check.description}</p>
           <p className="mt-3 text-pretty text-xs leading-5 text-[var(--admin-ink)]/72">
-            <span className="font-semibold text-[var(--admin-ink)]">What it unlocks:</span> {check.accomplishes}
+            <span className="font-semibold text-[var(--admin-ink)]">What it unlocks:</span>{" "}
+            {check.accomplishes}
           </p>
           {(check.lastSuccessAt || check.lastFailure || check.nextRun) && (
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[10px] text-[var(--admin-muted)]">
-              {check.lastSuccessAt && <span>Last success {new Date(check.lastSuccessAt).toLocaleString()}</span>}
-              {check.lastFailure && <span className="text-rose-700 dark:text-rose-300">Last failure: {check.lastFailure}</span>}
+              {check.lastSuccessAt && (
+                <span>Last success {new Date(check.lastSuccessAt).toLocaleString()}</span>
+              )}
+              {check.lastFailure && (
+                <span className="text-rose-700 dark:text-rose-300">
+                  Last failure: {check.lastFailure}
+                </span>
+              )}
               {check.nextRun && <span>{check.nextRun}</span>}
             </div>
           )}
           {check.keys && (
             <div className="mt-3 flex flex-wrap gap-1.5">
               {check.keys.map((key) => (
-                <code key={key} className="max-w-full break-all rounded-md bg-black/[0.045] px-2 py-1 font-mono text-[10px] text-[var(--admin-muted)] dark:bg-white/[0.065]">{key}</code>
+                <code
+                  key={key}
+                  className="max-w-full break-all rounded-md bg-black/[0.045] px-2 py-1 font-mono text-[10px] text-[var(--admin-muted)] dark:bg-white/[0.065]"
+                >
+                  {key}
+                </code>
               ))}
             </div>
           )}
@@ -307,11 +379,19 @@ function SetupCheckCard({ check }: { check: SetupCheck }) {
       {check.action && (
         <div className="border-t border-[var(--admin-border)] px-4 py-3 sm:px-5">
           {check.action.external ? (
-            <a href={check.action.href} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center gap-2 rounded-lg text-xs font-semibold text-[var(--admin-ink)] underline decoration-[var(--admin-border)] underline-offset-4 transition-[opacity,transform] duration-150 hover:opacity-65 active:scale-[0.96]">
+            <a
+              href={check.action.href}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex min-h-10 items-center gap-2 rounded-lg text-xs font-semibold text-[var(--admin-ink)] underline decoration-[var(--admin-border)] underline-offset-4 transition-[opacity,transform] duration-150 hover:opacity-65 active:scale-[0.96]"
+            >
               {check.action.label} <ExternalLink className="size-3.5" aria-hidden="true" />
             </a>
           ) : (
-            <Link href={check.action.href} className="inline-flex min-h-10 items-center gap-2 rounded-lg text-xs font-semibold text-[var(--admin-ink)] underline decoration-[var(--admin-border)] underline-offset-4 transition-[opacity,transform] duration-150 hover:opacity-65 active:scale-[0.96]">
+            <Link
+              href={check.action.href}
+              className="inline-flex min-h-10 items-center gap-2 rounded-lg text-xs font-semibold text-[var(--admin-ink)] underline decoration-[var(--admin-border)] underline-offset-4 transition-[opacity,transform] duration-150 hover:opacity-65 active:scale-[0.96]"
+            >
               {check.action.label} <ArrowRight className="size-3.5" aria-hidden="true" />
             </Link>
           )}
@@ -321,19 +401,29 @@ function SetupCheckCard({ check }: { check: SetupCheck }) {
         <details className="group border-t border-[var(--admin-border)]">
           <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 text-sm font-medium text-[var(--admin-ink)] transition-colors duration-150 hover:bg-black/[0.025] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--admin-ink)] dark:hover:bg-white/[0.035] sm:px-5">
             {check.status === "ready" ? "Review setup" : "How to finish this"}
-            <ChevronDown className="size-4 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180" aria-hidden="true" />
+            <ChevronDown
+              className="size-4 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
+              aria-hidden="true"
+            />
           </summary>
           <div className="border-t border-[var(--admin-border)] bg-black/[0.018] px-4 py-4 dark:bg-white/[0.018] sm:px-5">
             <ol className="space-y-3">
               {guide.steps.map((step, index) => (
                 <li key={step} className="flex gap-3 text-sm leading-6 text-[var(--admin-muted)]">
-                  <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-[var(--admin-ink)] font-mono text-[9px] tabular-nums text-[var(--admin-surface)]">{index + 1}</span>
+                  <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-[var(--admin-ink)] font-mono text-[9px] tabular-nums text-[var(--admin-surface)]">
+                    {index + 1}
+                  </span>
                   <span>{step}</span>
                 </li>
               ))}
             </ol>
             {guide.href && (
-              <a href={guide.href} target="_blank" rel="noreferrer" className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[transform,opacity] duration-150 hover:opacity-85 active:scale-[0.96]">
+              <a
+                href={guide.href}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[transform,opacity] duration-150 hover:opacity-85 active:scale-[0.96]"
+              >
                 {guide.linkLabel} <ExternalLink className="size-3.5" aria-hidden="true" />
               </a>
             )}
@@ -350,7 +440,10 @@ export default function AdminSetupPage() {
   const [error, setError] = useState("");
   const [googleSyncing, setGoogleSyncing] = useState(false);
   const [driveFolders, setDriveFolders] = useState("");
-  const [googleMessage, setGoogleMessage] = useState<{ tone: "success" | "error"; text: string } | null>(null);
+  const [googleMessage, setGoogleMessage] = useState<{
+    tone: "success" | "error";
+    text: string;
+  } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -360,17 +453,22 @@ export default function AdminSetupPage() {
       setData(next);
       setDriveFolders((next.google?.settings.drive_folder_ids ?? []).join("\n"));
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Could not check the launch setup.");
+      setError(
+        loadError instanceof Error ? loadError.message : "Could not check the launch setup.",
+      );
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   const groupedChecks = useMemo(() => {
     const map = new Map<SetupGroup, SetupCheck[]>();
-    for (const check of data?.checks ?? []) map.set(check.group, [...(map.get(check.group) ?? []), check]);
+    for (const check of data?.checks ?? [])
+      map.set(check.group, [...(map.get(check.group) ?? []), check]);
     return map;
   }, [data]);
 
@@ -378,12 +476,24 @@ export default function AdminSetupPage() {
     setGoogleSyncing(true);
     setGoogleMessage(null);
     try {
-      await fetchJson("/api/admin/google/sync", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ source }) });
-      const sourceLabel = { all: "Workspace", gmail: "Gmail", calendar: "Calendar", drive: "Drive" }[source];
+      await fetchJson("/api/admin/google/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ source }),
+      });
+      const sourceLabel = {
+        all: "Workspace",
+        gmail: "Gmail",
+        calendar: "Calendar",
+        drive: "Drive",
+      }[source];
       setGoogleMessage({ tone: "success", text: `${sourceLabel} sync completed.` });
       await load();
     } catch (syncError) {
-      setGoogleMessage({ tone: "error", text: syncError instanceof Error ? syncError.message : "Google sync failed." });
+      setGoogleMessage({
+        tone: "error",
+        text: syncError instanceof Error ? syncError.message : "Google sync failed.",
+      });
     } finally {
       setGoogleSyncing(false);
     }
@@ -393,27 +503,100 @@ export default function AdminSetupPage() {
     setGoogleSyncing(true);
     setGoogleMessage(null);
     try {
-      const driveFolderIds = driveFolders.split(/\n|,/).map((id) => id.trim()).filter(Boolean);
-      await fetchJson("/api/admin/google/sync", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ driveFolderIds }) });
-      setGoogleMessage({ tone: "success", text: "Drive folder access saved. Run Drive sync to verify it." });
+      const driveFolderIds = driveFolders
+        .split(/\n|,/)
+        .map((id) => id.trim())
+        .filter(Boolean);
+      await fetchJson("/api/admin/google/sync", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ driveFolderIds }),
+      });
+      setGoogleMessage({
+        tone: "success",
+        text: "Drive folder access saved. Run Drive sync to verify it.",
+      });
       await load();
     } catch (saveError) {
-      setGoogleMessage({ tone: "error", text: saveError instanceof Error ? saveError.message : "Could not save Drive folders." });
+      setGoogleMessage({
+        tone: "error",
+        text: saveError instanceof Error ? saveError.message : "Could not save Drive folders.",
+      });
     } finally {
       setGoogleSyncing(false);
     }
   };
 
-  const groupMeta: Array<{ id: SetupGroup; eyebrow: string; title: string; description: string; icon: typeof ShieldCheck }> = [
-    { id: "core", eyebrow: "Foundation", title: "Core system", description: "Identity, database, access, and the canonical production origin.", icon: ShieldCheck },
-    { id: "email", eyebrow: "Communication", title: "Email delivery", description: "Approved transactional and campaign delivery with provider receipts.", icon: MailCheck },
-    { id: "google", eyebrow: "Connection", title: "Google Workspace", description: "One encrypted connection for Gmail, Calendar, and selected Drive folders.", icon: PlugZap },
-    { id: "ai", eyebrow: "Intelligence", title: "Revenue copilot", description: "Grounded analysis and confirmation-gated action proposals.", icon: Bot },
-    { id: "campaigns", eyebrow: "Outbound", title: "Campaign automation", description: "Versioned approval, just-in-time sending, and immediate stop controls.", icon: Megaphone },
-    { id: "proposals", eyebrow: "Closing", title: "Proposal decisions", description: "Public view, acceptance, decline, and pipeline attribution without payment.", icon: FileCode2 },
-    { id: "analytics", eyebrow: "Measurement", title: "Revenue attribution", description: "Campaign and source performance through won revenue.", icon: BarChart3 },
-    { id: "booking", eyebrow: "Scheduling", title: "Booking mode", description: "Manual scheduling now, with Calendly preserved as an optional later channel.", icon: CalendarDays },
-    { id: "operations", eyebrow: "Reliability", title: "Operations health", description: "Protected jobs, terminal receipts, failures, and recovery evidence.", icon: Settings2 },
+  const groupMeta: Array<{
+    id: SetupGroup;
+    eyebrow: string;
+    title: string;
+    description: string;
+    icon: typeof ShieldCheck;
+  }> = [
+    {
+      id: "core",
+      eyebrow: "Foundation",
+      title: "Core system",
+      description: "Identity, database, access, and the canonical production origin.",
+      icon: ShieldCheck,
+    },
+    {
+      id: "email",
+      eyebrow: "Communication",
+      title: "Email delivery",
+      description: "Approved transactional and campaign delivery with provider receipts.",
+      icon: MailCheck,
+    },
+    {
+      id: "google",
+      eyebrow: "Connection",
+      title: "Google Workspace",
+      description: "One encrypted connection for Gmail, Calendar, and selected Drive folders.",
+      icon: PlugZap,
+    },
+    {
+      id: "ai",
+      eyebrow: "Intelligence",
+      title: "Revenue copilot",
+      description: "Grounded analysis and confirmation-gated action proposals.",
+      icon: Bot,
+    },
+    {
+      id: "campaigns",
+      eyebrow: "Outbound",
+      title: "Campaign automation",
+      description: "Versioned approval, just-in-time sending, and immediate stop controls.",
+      icon: Megaphone,
+    },
+    {
+      id: "proposals",
+      eyebrow: "Closing",
+      title: "Proposal decisions",
+      description: "Public view, acceptance, decline, and pipeline attribution without payment.",
+      icon: FileCode2,
+    },
+    {
+      id: "analytics",
+      eyebrow: "Measurement",
+      title: "Revenue attribution",
+      description: "Campaign and source performance through won revenue.",
+      icon: BarChart3,
+    },
+    {
+      id: "booking",
+      eyebrow: "Scheduling",
+      title: "Booking mode",
+      description: "Manual scheduling now, with Calendly preserved as an optional later channel.",
+      icon: CalendarDays,
+    },
+    {
+      id: "operations",
+      eyebrow: "Reliability",
+      title: "Operations health",
+      description: "Protected jobs, terminal receipts, failures, and recovery evidence.",
+      icon: Settings2,
+    },
   ];
 
   return (
@@ -421,205 +604,380 @@ export default function AdminSetupPage() {
       <PageHeader
         title="Setup Center"
         subtitle="Connect, verify, and operate the complete Revenue OS. Every status reflects this deployment; secrets are never displayed or stored in the admin database."
-        actions={(
+        actions={
           <>
-            <Link href="/admin/integrations" className="inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]">
+            <Link
+              href="/admin/integrations"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"
+            >
               Integration map <PlugZap className="size-3.5" aria-hidden="true" />
             </Link>
-            <Link href="/roofing" target="_blank" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-4 text-xs font-semibold text-[var(--admin-ink)] shadow-sm transition-[transform,background-color] duration-150 hover:bg-[var(--admin-surface-subtle)] active:scale-[0.96]">
+            <Link
+              href="/roofing"
+              target="_blank"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-4 text-xs font-semibold text-[var(--admin-ink)] shadow-sm transition-[transform,background-color] duration-150 hover:bg-[var(--admin-surface-subtle)] active:scale-[0.96]"
+            >
               View funnel <ArrowRight className="size-3.5" aria-hidden="true" />
             </Link>
-            <button type="button" onClick={() => void load()} disabled={loading} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[transform,opacity] duration-150 hover:opacity-85 active:scale-[0.96] disabled:cursor-wait disabled:opacity-55">
-              <RefreshCw className={cn("size-3.5", loading && "animate-spin")} aria-hidden="true" /> Refresh checks
+            <button
+              type="button"
+              onClick={() => void load()}
+              disabled={loading}
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[transform,opacity] duration-150 hover:opacity-85 active:scale-[0.96] disabled:cursor-wait disabled:opacity-55"
+            >
+              <RefreshCw className={cn("size-3.5", loading && "animate-spin")} aria-hidden="true" />{" "}
+              Refresh checks
             </button>
           </>
-        )}
+        }
       />
 
       {loading && !data ? (
         <AdminSurface className="flex min-h-64 items-center justify-center">
-          <div className="text-center"><Loader2 className="mx-auto size-6 animate-spin text-[var(--admin-muted)]" /><p className="admin-copy mt-3 text-sm">Checking the running deployment…</p></div>
+          <div className="text-center">
+            <Loader2 className="mx-auto size-6 animate-spin text-[var(--admin-muted)]" />
+            <p className="admin-copy mt-3 text-sm">Checking the running deployment…</p>
+          </div>
         </AdminSurface>
       ) : error && !data ? (
-        <AdminSurface tone="attention" className="flex min-h-64 flex-col items-center justify-center text-center">
+        <AdminSurface
+          tone="attention"
+          className="flex min-h-64 flex-col items-center justify-center text-center"
+        >
           <TriangleAlert className="size-6 text-amber-700 dark:text-amber-300" />
           <p className="mt-3 font-semibold text-[var(--admin-ink)]">Setup check failed</p>
           <p className="admin-copy mt-1 max-w-md text-sm">{error}</p>
-          <button type="button" onClick={() => void load()} className="mt-5 min-h-11 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] active:scale-[0.96]">Try again</button>
+          <button
+            type="button"
+            onClick={() => void load()}
+            className="mt-5 min-h-11 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] active:scale-[0.96]"
+          >
+            Try again
+          </button>
         </AdminSurface>
-      ) : data && (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.24 }} className="space-y-7">
-          <section className="grid gap-4 xl:grid-cols-[1.35fr_0.65fr]">
-            <AdminSurface tone="ink" padding="lg" className="relative overflow-hidden">
-              <div className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full bg-[#d7ff5f]/10 blur-3xl" />
-              <div className="relative">
-                <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <p className="font-mono text-[10px] uppercase tracking-[0.17em] text-[#d7ff5f]">Production readiness</p>
-                    <h2 className="mt-3 text-balance text-2xl font-semibold tracking-[-0.035em] text-white sm:text-3xl">
-                      {data.summary.launchReady ? "Ready to generate opportunities." : "A few launch items need attention."}
-                    </h2>
-                    <p className="mt-3 max-w-xl text-pretty text-sm leading-6 text-white/58">
-                      {data.summary.launchReady
-                        ? "The required capture, email, database, and measurement systems are connected."
-                        : `${data.summary.requiredReady} of ${data.summary.requiredTotal} required systems are ready. Open the checks below for exact instructions.`}
-                    </p>
+      ) : (
+        data && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.24 }}
+            className="space-y-7"
+          >
+            <section className="grid gap-4 xl:grid-cols-[1.35fr_0.65fr]">
+              <AdminSurface tone="ink" padding="lg" className="relative overflow-hidden">
+                <div className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full bg-[#d7ff5f]/10 blur-3xl" />
+                <div className="relative">
+                  <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-[0.17em] text-[#d7ff5f]">
+                        Production readiness
+                      </p>
+                      <h2 className="mt-3 text-balance text-2xl font-semibold tracking-[-0.035em] text-white sm:text-3xl">
+                        {data.summary.launchReady
+                          ? "Ready to generate opportunities."
+                          : "A few launch items need attention."}
+                      </h2>
+                      <p className="mt-3 max-w-xl text-pretty text-sm leading-6 text-white/58">
+                        {data.summary.launchReady
+                          ? "The required capture, email, database, and measurement systems are connected."
+                          : `${data.summary.requiredReady} of ${data.summary.requiredTotal} required systems are ready. Open the checks below for exact instructions.`}
+                      </p>
+                    </div>
+                    <div className="shrink-0 sm:text-right">
+                      <p className="font-mono text-4xl font-semibold tabular-nums tracking-[-0.05em] text-white">
+                        {data.summary.percent}%
+                      </p>
+                      <p className="mt-1 text-xs text-white/42">required complete</p>
+                    </div>
                   </div>
-                  <div className="shrink-0 sm:text-right">
-                    <p className="font-mono text-4xl font-semibold tabular-nums tracking-[-0.05em] text-white">{data.summary.percent}%</p>
-                    <p className="mt-1 text-xs text-white/42">required complete</p>
+                  <div className="mt-7 h-2 overflow-hidden rounded-full bg-white/10">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${data.summary.percent}%` }}
+                      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                      className="h-full rounded-full bg-[#d7ff5f]"
+                    />
+                  </div>
+                  <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-xs text-white/52">
+                    <span className="flex items-center gap-2">
+                      <ShieldCheck className="size-4 text-[#d7ff5f]" /> Secrets hidden
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <Check className="size-4 text-[#d7ff5f]" /> Live environment checks
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <Settings2 className="size-4 text-[#d7ff5f]" /> Exact setup instructions
+                    </span>
                   </div>
                 </div>
-                <div className="mt-7 h-2 overflow-hidden rounded-full bg-white/10">
-                  <motion.div initial={{ width: 0 }} animate={{ width: `${data.summary.percent}%` }} transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="h-full rounded-full bg-[#d7ff5f]" />
-                </div>
-                <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-xs text-white/52">
-                  <span className="flex items-center gap-2"><ShieldCheck className="size-4 text-[#d7ff5f]" /> Secrets hidden</span>
-                  <span className="flex items-center gap-2"><Check className="size-4 text-[#d7ff5f]" /> Live environment checks</span>
-                  <span className="flex items-center gap-2"><Settings2 className="size-4 text-[#d7ff5f]" /> Exact setup instructions</span>
-                </div>
-              </div>
-            </AdminSurface>
+              </AdminSurface>
 
-            <AdminSurface tone="attention" padding="lg">
-              <span className="grid size-10 place-items-center rounded-xl bg-amber-500/12 text-amber-800 dark:text-amber-300">
-                {data.bookingMode === "manual" ? <UserCheck className="size-5" /> : <CalendarClock className="size-5" />}
-              </span>
-              <p className="admin-eyebrow mt-5">Current booking mode</p>
-              <h2 className="mt-1 text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">
-                {data.bookingMode === "manual" ? "Personal review" : "Calendly self-booking"}
-              </h2>
-              <p className="admin-copy mt-2 text-sm leading-6">
-                {data.bookingMode === "manual"
-                  ? `This is launch-safe. Qualified prospects receive confirmation, enter Bookings, and wait for ${tenant.founder.name}'s personal reply.`
-                  : "Qualified prospects can choose a time immediately, with webhook-based stage attribution."}
-              </p>
-              <Link href="/admin/bookings" className="mt-5 inline-flex min-h-11 items-center gap-2 text-xs font-semibold text-[var(--admin-ink)] underline decoration-[var(--admin-border)] underline-offset-4 transition-opacity duration-150 hover:opacity-65">
-                Open opportunity pipeline <ArrowRight className="size-3.5" />
-              </Link>
-            </AdminSurface>
-          </section>
-
-          <section>
-            <div className="mb-3">
-              <p className="admin-eyebrow">What this accomplishes</p>
-              <h2 className="mt-1 text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">One measurable path from attention to revenue</h2>
-            </div>
-            <AdminSurface padding="sm">
-              <div className="grid gap-2 md:grid-cols-5">
-                {flowSteps.map(({ label, detail, icon: Icon }, index) => (
-                  <div key={label} className="relative rounded-xl bg-black/[0.025] p-4 dark:bg-white/[0.025]">
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="grid size-9 place-items-center rounded-lg bg-[var(--admin-surface)] text-[var(--admin-ink)] shadow-sm"><Icon className="size-4" /></span>
-                      <span className="font-mono text-[9px] tabular-nums text-[var(--admin-muted)]">0{index + 1}</span>
-                    </div>
-                    <p className="mt-4 text-sm font-semibold text-[var(--admin-ink)]">{label}</p>
-                    <p className="admin-copy mt-1 text-xs leading-5">{detail}</p>
-                  </div>
-                ))}
-              </div>
-            </AdminSurface>
-          </section>
-
-          {data.google?.connected && (
-            <section id="google">
-              <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="admin-eyebrow">Workspace control</p>
-                  <h2 className="mt-1 text-balance text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">Connected as {data.google.accountEmail}</h2>
-                  <p className="admin-copy mt-1 text-pretty text-sm">Sync on demand, then let protected scheduled jobs keep conversations and meetings current.</p>
-                </div>
-                <button type="button" onClick={() => void syncGoogle("all")} disabled={googleSyncing} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--admin-ink)] pl-4 pr-3.5 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50">
-                  <RefreshCw className={cn("size-3.5", googleSyncing && "animate-spin")} /> Sync Workspace
-                </button>
-              </div>
-              <AdminSurface padding="lg">
-                <div className="mb-6 grid gap-2 sm:grid-cols-2">
-                  <div className="rounded-xl bg-black/[0.025] p-4 dark:bg-white/[0.03]">
-                    <div className="flex items-center gap-2"><ShieldCheck className="size-4 text-emerald-600 dark:text-emerald-300" /><h3 className="text-sm font-semibold text-[var(--admin-ink)]">Encrypted credential health</h3></div>
-                    <p className="admin-copy mt-2 text-pretty text-xs leading-5">Access and refresh credentials use the supported authenticated envelope. Values never leave the server.</p>
-                    <p className="mt-3 font-mono text-[10px] tabular-nums text-[var(--admin-muted)]">Access token expires {data.google.tokenHealth.expiresAt ? new Date(data.google.tokenHealth.expiresAt).toLocaleString() : "at an unknown time"}</p>
-                  </div>
-                  <div className="rounded-xl bg-black/[0.025] p-4 dark:bg-white/[0.03]">
-                    <div className="flex items-center gap-2"><CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-300" /><h3 className="text-sm font-semibold text-[var(--admin-ink)]">Granted scopes</h3></div>
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      {data.google.scopes.map((scope) => <code key={scope} className="max-w-full break-all rounded-md bg-[var(--admin-surface)] px-2 py-1 font-mono text-[10px] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]">{scope}</code>)}
-                    </div>
-                  </div>
-                </div>
-                <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <span className="grid size-10 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] dark:bg-white/[0.06]"><FolderOpen className="size-[18px]" /></span>
-                      <div><h3 className="font-semibold text-[var(--admin-ink)]">Approved Drive folders</h3><p className="admin-copy mt-0.5 text-xs">One folder ID per line, maximum 10.</p></div>
-                    </div>
-                    <textarea value={driveFolders} onChange={(event) => setDriveFolders(event.target.value)} rows={4} placeholder="1AbCdEf..." className="mt-4 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 py-3 font-mono text-xs text-[var(--admin-ink)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[var(--admin-muted)]/60 focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10" />
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <button type="button" onClick={() => void saveDriveFolders()} disabled={googleSyncing} className="min-h-10 rounded-lg bg-[var(--admin-ink)] px-3.5 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 active:scale-[0.96] disabled:opacity-50">Save folders</button>
-                      <button type="button" onClick={() => void syncGoogle("drive")} disabled={googleSyncing} className="min-h-10 rounded-lg px-3.5 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:opacity-50">Sync Drive</button>
-                    </div>
-                  </div>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    {[
-                      { label: "Gmail", detail: "Threads, unread work, replies, and campaign stops", source: "gmail" as const, icon: MailCheck },
-                      { label: "Calendar", detail: "Upcoming meetings and recent meeting history", source: "calendar" as const, icon: CalendarDays },
-                    ].map(({ label, detail, source, icon: Icon }) => (
-                      <div key={label} className="rounded-2xl bg-black/[0.025] p-2 dark:bg-white/[0.025]">
-                        <div className="rounded-xl bg-[var(--admin-surface)] p-4 shadow-[var(--admin-shadow-border)]">
-                          <Icon className="size-4 text-[var(--admin-ink)]" />
-                          <h3 className="mt-4 text-sm font-semibold text-[var(--admin-ink)]">{label}</h3>
-                          <p className="admin-copy mt-1 text-pretty text-xs leading-5">{detail}</p>
-                          <button type="button" onClick={() => void syncGoogle(source)} disabled={googleSyncing} className="mt-4 min-h-10 text-xs font-semibold text-[var(--admin-ink)] underline decoration-[var(--admin-border)] underline-offset-4 transition-[opacity,transform] duration-150 hover:opacity-65 active:scale-[0.96] disabled:opacity-50">Sync {label}</button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                {googleMessage && <AdminStatusMessage tone={googleMessage.tone === "success" ? "success" : "error"} className="mt-5">{googleMessage.text}</AdminStatusMessage>}
+              <AdminSurface tone="attention" padding="lg">
+                <span className="grid size-10 place-items-center rounded-xl bg-amber-500/12 text-amber-800 dark:text-amber-300">
+                  {data.bookingMode === "manual" ? (
+                    <UserCheck className="size-5" />
+                  ) : (
+                    <CalendarClock className="size-5" />
+                  )}
+                </span>
+                <p className="admin-eyebrow mt-5">Current booking mode</p>
+                <h2 className="mt-1 text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">
+                  {data.bookingMode === "manual" ? "Personal review" : "Calendly self-booking"}
+                </h2>
+                <p className="admin-copy mt-2 text-sm leading-6">
+                  {data.bookingMode === "manual"
+                    ? `This is launch-safe. Qualified prospects receive confirmation, enter Bookings, and wait for ${tenant.founder.name}'s personal reply.`
+                    : "Qualified prospects can choose a time immediately, with webhook-based stage attribution."}
+                </p>
+                <Link
+                  href="/admin/bookings"
+                  className="mt-5 inline-flex min-h-11 items-center gap-2 text-xs font-semibold text-[var(--admin-ink)] underline decoration-[var(--admin-border)] underline-offset-4 transition-opacity duration-150 hover:opacity-65"
+                >
+                  Open opportunity pipeline <ArrowRight className="size-3.5" />
+                </Link>
               </AdminSurface>
             </section>
-          )}
 
-          {groupMeta.map(({ id, eyebrow, title, description, icon: Icon }) => {
-            const checks = groupedChecks.get(id) ?? [];
-            if (!checks.length) return null;
-            return (
-              <section key={id}>
-                <div className="mb-3 flex items-start gap-3">
-                  <span className="mt-0.5 grid size-10 shrink-0 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] dark:bg-white/[0.06]"><Icon className="size-[18px]" /></span>
+            <section>
+              <div className="mb-3">
+                <p className="admin-eyebrow">What this accomplishes</p>
+                <h2 className="mt-1 text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">
+                  One measurable path from attention to revenue
+                </h2>
+              </div>
+              <AdminSurface padding="sm">
+                <div className="grid gap-2 md:grid-cols-5">
+                  {flowSteps.map(({ label, detail, icon: Icon }, index) => (
+                    <div
+                      key={label}
+                      className="relative rounded-xl bg-black/[0.025] p-4 dark:bg-white/[0.025]"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="grid size-9 place-items-center rounded-lg bg-[var(--admin-surface)] text-[var(--admin-ink)] shadow-sm">
+                          <Icon className="size-4" />
+                        </span>
+                        <span className="font-mono text-[9px] tabular-nums text-[var(--admin-muted)]">
+                          0{index + 1}
+                        </span>
+                      </div>
+                      <p className="mt-4 text-sm font-semibold text-[var(--admin-ink)]">{label}</p>
+                      <p className="admin-copy mt-1 text-xs leading-5">{detail}</p>
+                    </div>
+                  ))}
+                </div>
+              </AdminSurface>
+            </section>
+
+            {data.google?.connected && (
+              <section id="google">
+                <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                   <div>
-                    <p className="admin-eyebrow">{eyebrow}</p>
-                    <h2 className="mt-1 text-balance text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">{title}</h2>
-                    <p className="admin-copy mt-1 text-pretty text-sm">{description}</p>
+                    <p className="admin-eyebrow">Workspace control</p>
+                    <h2 className="mt-1 text-balance text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">
+                      Connected as {data.google.accountEmail}
+                    </h2>
+                    <p className="admin-copy mt-1 text-pretty text-sm">
+                      Sync on demand, then let protected scheduled jobs keep conversations and
+                      meetings current.
+                    </p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => void syncGoogle("all")}
+                    disabled={googleSyncing}
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--admin-ink)] pl-4 pr-3.5 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50"
+                  >
+                    <RefreshCw className={cn("size-3.5", googleSyncing && "animate-spin")} /> Sync
+                    Workspace
+                  </button>
                 </div>
-                <div className="grid gap-3 lg:grid-cols-2">
-                  {checks.map((check) => <SetupCheckCard key={check.id} check={check} />)}
-                </div>
-              </section>
-            );
-          })}
-
-          <section>
-            <div className="mb-3">
-              <p className="admin-eyebrow">Operating capabilities</p>
-              <h2 className="mt-1 text-balance text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">What the connected system now does</h2>
-            </div>
-            <div className="grid gap-3 lg:grid-cols-3">
-              {growthLayers.map(({ title, detail, icon: Icon }) => (
-                <AdminSurface key={title} padding="lg">
-                  <span className="grid size-10 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] dark:bg-white/[0.06]"><Icon className="size-[18px]" /></span>
-                  <h3 className="mt-5 font-semibold tracking-[-0.015em] text-[var(--admin-ink)]">{title}</h3>
-                  <p className="admin-copy mt-2 text-sm leading-6">{detail}</p>
+                <AdminSurface padding="lg">
+                  <div className="mb-6 grid gap-2 sm:grid-cols-2">
+                    <div className="rounded-xl bg-black/[0.025] p-4 dark:bg-white/[0.03]">
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="size-4 text-emerald-600 dark:text-emerald-300" />
+                        <h3 className="text-sm font-semibold text-[var(--admin-ink)]">
+                          Encrypted credential health
+                        </h3>
+                      </div>
+                      <p className="admin-copy mt-2 text-pretty text-xs leading-5">
+                        Access and refresh credentials use the supported authenticated envelope.
+                        Values never leave the server.
+                      </p>
+                      <p className="mt-3 font-mono text-[10px] tabular-nums text-[var(--admin-muted)]">
+                        Access token expires{" "}
+                        {data.google.tokenHealth.expiresAt
+                          ? new Date(data.google.tokenHealth.expiresAt).toLocaleString()
+                          : "at an unknown time"}
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-black/[0.025] p-4 dark:bg-white/[0.03]">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-300" />
+                        <h3 className="text-sm font-semibold text-[var(--admin-ink)]">
+                          Granted scopes
+                        </h3>
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {data.google.scopes.map((scope) => (
+                          <code
+                            key={scope}
+                            className="max-w-full break-all rounded-md bg-[var(--admin-surface)] px-2 py-1 font-mono text-[10px] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]"
+                          >
+                            {scope}
+                          </code>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <span className="grid size-10 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] dark:bg-white/[0.06]">
+                          <FolderOpen className="size-[18px]" />
+                        </span>
+                        <div>
+                          <h3 className="font-semibold text-[var(--admin-ink)]">
+                            Approved Drive folders
+                          </h3>
+                          <p className="admin-copy mt-0.5 text-xs">
+                            One folder ID per line, maximum 10.
+                          </p>
+                        </div>
+                      </div>
+                      <textarea
+                        value={driveFolders}
+                        onChange={(event) => setDriveFolders(event.target.value)}
+                        rows={4}
+                        placeholder="1AbCdEf..."
+                        className="mt-4 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 py-3 font-mono text-xs text-[var(--admin-ink)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[var(--admin-muted)]/60 focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10"
+                      />
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => void saveDriveFolders()}
+                          disabled={googleSyncing}
+                          className="min-h-10 rounded-lg bg-[var(--admin-ink)] px-3.5 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 active:scale-[0.96] disabled:opacity-50"
+                        >
+                          Save folders
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void syncGoogle("drive")}
+                          disabled={googleSyncing}
+                          className="min-h-10 rounded-lg px-3.5 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:opacity-50"
+                        >
+                          Sync Drive
+                        </button>
+                      </div>
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {[
+                        {
+                          label: "Gmail",
+                          detail: "Threads, unread work, replies, and campaign stops",
+                          source: "gmail" as const,
+                          icon: MailCheck,
+                        },
+                        {
+                          label: "Calendar",
+                          detail: "Upcoming meetings and recent meeting history",
+                          source: "calendar" as const,
+                          icon: CalendarDays,
+                        },
+                      ].map(({ label, detail, source, icon: Icon }) => (
+                        <div
+                          key={label}
+                          className="rounded-2xl bg-black/[0.025] p-2 dark:bg-white/[0.025]"
+                        >
+                          <div className="rounded-xl bg-[var(--admin-surface)] p-4 shadow-[var(--admin-shadow-border)]">
+                            <Icon className="size-4 text-[var(--admin-ink)]" />
+                            <h3 className="mt-4 text-sm font-semibold text-[var(--admin-ink)]">
+                              {label}
+                            </h3>
+                            <p className="admin-copy mt-1 text-pretty text-xs leading-5">
+                              {detail}
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => void syncGoogle(source)}
+                              disabled={googleSyncing}
+                              className="mt-4 min-h-10 text-xs font-semibold text-[var(--admin-ink)] underline decoration-[var(--admin-border)] underline-offset-4 transition-[opacity,transform] duration-150 hover:opacity-65 active:scale-[0.96] disabled:opacity-50"
+                            >
+                              Sync {label}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {googleMessage && (
+                    <AdminStatusMessage
+                      tone={googleMessage.tone === "success" ? "success" : "error"}
+                      className="mt-5"
+                    >
+                      {googleMessage.text}
+                    </AdminStatusMessage>
+                  )}
                 </AdminSurface>
-              ))}
-            </div>
-          </section>
+              </section>
+            )}
 
-          <p className="flex items-start gap-2 text-xs leading-5 text-[var(--admin-muted)]">
-            <Rocket className="mt-0.5 size-3.5 shrink-0" /> Application preferences live in Settings. Deployment integrations and credentials live in Vercel and are verified here after redeploying.
-          </p>
-        </motion.div>
+            {groupMeta.map(({ id, eyebrow, title, description, icon: Icon }) => {
+              const checks = groupedChecks.get(id) ?? [];
+              if (!checks.length) return null;
+              return (
+                <section key={id}>
+                  <div className="mb-3 flex items-start gap-3">
+                    <span className="mt-0.5 grid size-10 shrink-0 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] dark:bg-white/[0.06]">
+                      <Icon className="size-[18px]" />
+                    </span>
+                    <div>
+                      <p className="admin-eyebrow">{eyebrow}</p>
+                      <h2 className="mt-1 text-balance text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">
+                        {title}
+                      </h2>
+                      <p className="admin-copy mt-1 text-pretty text-sm">{description}</p>
+                    </div>
+                  </div>
+                  <div className="grid gap-3 lg:grid-cols-2">
+                    {checks.map((check) => (
+                      <SetupCheckCard key={check.id} check={check} />
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
+
+            <section>
+              <div className="mb-3">
+                <p className="admin-eyebrow">Operating capabilities</p>
+                <h2 className="mt-1 text-balance text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">
+                  What the connected system now does
+                </h2>
+              </div>
+              <div className="grid gap-3 lg:grid-cols-3">
+                {growthLayers.map(({ title, detail, icon: Icon }) => (
+                  <AdminSurface key={title} padding="lg">
+                    <span className="grid size-10 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] dark:bg-white/[0.06]">
+                      <Icon className="size-[18px]" />
+                    </span>
+                    <h3 className="mt-5 font-semibold tracking-[-0.015em] text-[var(--admin-ink)]">
+                      {title}
+                    </h3>
+                    <p className="admin-copy mt-2 text-sm leading-6">{detail}</p>
+                  </AdminSurface>
+                ))}
+              </div>
+            </section>
+
+            <p className="flex items-start gap-2 text-xs leading-5 text-[var(--admin-muted)]">
+              <Rocket className="mt-0.5 size-3.5 shrink-0" /> Application preferences live in
+              Settings. Deployment integrations and credentials live in Vercel and are verified here
+              after redeploying.
+            </p>
+          </motion.div>
+        )
       )}
     </div>
   );

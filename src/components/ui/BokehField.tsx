@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 
 const pools = [
   { x: "25%", y: "35%", w: 600, h: 500, o: 0.12, dur: 30, delay: 0, drift: 0 },
-  { x: "75%", y: "45%", w: 500, h: 400, o: 0.10, dur: 26, delay: -8, drift: 1 },
+  { x: "75%", y: "45%", w: 500, h: 400, o: 0.1, dur: 26, delay: -8, drift: 1 },
   { x: "50%", y: "75%", w: 550, h: 350, o: 0.08, dur: 34, delay: -16, drift: 2 },
 ];
 
@@ -43,7 +43,7 @@ export function BokehField({ className }: { className?: string }) {
     <div
       className={cn(
         "absolute inset-0 overflow-hidden pointer-events-none motion-safe:block motion-reduce:hidden",
-        className
+        className,
       )}
       aria-hidden="true"
     >

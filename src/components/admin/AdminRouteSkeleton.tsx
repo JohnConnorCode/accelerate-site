@@ -30,8 +30,19 @@ export function AdminRouteSkeleton() {
     return () => registerLoadingBoundary(boundaryId, false);
   }, [boundaryId, registerLoadingBoundary]);
 
-  return <div className="admin-route-loading space-y-6 pb-10" data-admin-route-loading="true" aria-busy="true" aria-label="Loading workspace">
-    <header className="admin-skeleton-header"><span className="admin-skeleton-shape block h-2.5 w-28" /><span className="admin-skeleton-shape mt-3 block h-9 w-[min(22rem,70vw)]" /><span className="admin-skeleton-shape mt-3 block h-3 w-[min(34rem,82vw)]" /></header>
-    <LoadingSkeleton variant={recipeFor(pathname)} />
-  </div>;
+  return (
+    <div
+      className="admin-route-loading space-y-6 pb-10"
+      data-admin-route-loading="true"
+      aria-busy="true"
+      aria-label="Loading workspace"
+    >
+      <header className="admin-skeleton-header">
+        <span className="admin-skeleton-shape block h-2.5 w-28" />
+        <span className="admin-skeleton-shape mt-3 block h-9 w-[min(22rem,70vw)]" />
+        <span className="admin-skeleton-shape mt-3 block h-3 w-[min(34rem,82vw)]" />
+      </header>
+      <LoadingSkeleton variant={recipeFor(pathname)} />
+    </div>
+  );
 }

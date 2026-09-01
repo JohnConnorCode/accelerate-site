@@ -149,73 +149,80 @@ export function EmailComposeModal({
 
   return (
     <>
-      <AdminDialog open={isOpen} onClose={onClose} title="Compose email" labelledBy="email-compose-title" maxWidth="md">
-              <AdminSurface padding="lg" className="admin-dialog-surface max-h-[92dvh] overflow-y-auto rounded-[20px]">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="admin-eyebrow">Direct follow-up</p>
-                    <h3 id="email-compose-title" className="admin-dialog-title">
-                    Compose email
-                  </h3>
-                  </div>
-                  <button
-                    onClick={onClose}
-                    aria-label="Close dialog"
-                    className="admin-icon-button"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
+      <AdminDialog
+        open={isOpen}
+        onClose={onClose}
+        title="Compose email"
+        labelledBy="email-compose-title"
+        maxWidth="md"
+      >
+        <AdminSurface
+          padding="lg"
+          className="admin-dialog-surface max-h-[92dvh] overflow-y-auto rounded-[20px]"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="admin-eyebrow">Direct follow-up</p>
+              <h3 id="email-compose-title" className="admin-dialog-title">
+                Compose email
+              </h3>
+            </div>
+            <button onClick={onClose} aria-label="Close dialog" className="admin-icon-button">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
 
-                <div className="space-y-3">
-                  <Input
-                    label="To"
-                    type="email"
-                    value={recipient}
-                    onChange={(event) => setRecipient(event.target.value)}
-                    disabled={Boolean(recipientEmail)}
-                    placeholder="name@company.com"
-                    autoFocus={!recipientEmail}
-                  />
+          <div className="space-y-3">
+            <Input
+              label="To"
+              type="email"
+              value={recipient}
+              onChange={(event) => setRecipient(event.target.value)}
+              disabled={Boolean(recipientEmail)}
+              placeholder="name@company.com"
+              autoFocus={!recipientEmail}
+            />
 
-                  {/* Template selector */}
-                  <div>
-                    <label className="admin-field-label mb-1">Template</label>
-                    <select
-                      value={selectedTemplate}
-                      onChange={(e) => applyTemplate(e.target.value)}
-                      className="admin-field"
-                    >
-                      {templates.map((t) => (
-                        <option key={t.label} value={t.label}>{t.label}</option>
-                      ))}
-                    </select>
-                  </div>
+            {/* Template selector */}
+            <div>
+              <label className="admin-field-label mb-1">Template</label>
+              <select
+                value={selectedTemplate}
+                onChange={(e) => applyTemplate(e.target.value)}
+                className="admin-field"
+              >
+                {templates.map((t) => (
+                  <option key={t.label} value={t.label}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-                  <Input
-                    label="Subject"
-                    type="text"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    placeholder="Email subject..."
-                  />
-                  <Textarea
-                    label="Body"
-                    value={body}
-                    onChange={(e) => setBody(e.target.value)}
-                    placeholder="Write your email..."
-                    className="min-h-[200px]"
-                  />
-                  <Button
-                    variant="primary"
-                    onClick={handleSend}
-                    disabled={sending || !recipient.trim() || !subject || !body}
-                    className="w-full"
-                  >
-                    {sending ? "Sending..." : "Send Email"}
-                  </Button>
-                </div>
-              </AdminSurface>
+            <Input
+              label="Subject"
+              type="text"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              placeholder="Email subject..."
+            />
+            <Textarea
+              label="Body"
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              placeholder="Write your email..."
+              className="min-h-[200px]"
+            />
+            <Button
+              variant="primary"
+              onClick={handleSend}
+              disabled={sending || !recipient.trim() || !subject || !body}
+              className="w-full"
+            >
+              {sending ? "Sending..." : "Send Email"}
+            </Button>
+          </div>
+        </AdminSurface>
       </AdminDialog>
 
       {toast && (

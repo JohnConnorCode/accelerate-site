@@ -29,23 +29,28 @@ export function Who() {
               more motion on the same template. */}
           <Reveal rv className="who-stat">
             <CountUp target="15" className="who-n" />
-            <span className="who-n-label">
-              Years deploying machine learning at scale
-            </span>
+            <span className="who-n-label">Years deploying machine learning at scale</span>
           </Reveal>
           <Reveal rv className="who-copy" delay={0.08}>
             <p className="lead-p">
-              We put AI into production long before the hype cycle. Knowing exactly where to deploy automation, and what will break when you do, is the difference between a system that runs and one that needs babysitting.
+              We put AI into production long before the hype cycle. Knowing exactly where to deploy
+              automation, and what will break when you do, is the difference between a system that
+              runs and one that needs babysitting.
             </p>
             <p>
-              We are deliberately selective. You interface directly with the engineers architecting your system, never an account manager. The practice is led by John Connor.
+              We are deliberately selective. You interface directly with the engineers architecting
+              your system, never an account manager. The practice is led by John Connor.
             </p>
             <Link
               href="/about"
               className="body-c"
-              style={{ fontSize: "14.5px", textDecoration: "underline", textUnderlineOffset: "3px" }}
+              style={{
+                fontSize: "14.5px",
+                textDecoration: "underline",
+                textUnderlineOffset: "3px",
+              }}
             >
-              Read more about the team{" "}<span aria-hidden="true">→</span>
+              Read more about the team <span aria-hidden="true">→</span>
             </Link>
           </Reveal>
         </div>

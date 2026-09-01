@@ -36,7 +36,10 @@ export async function middleware(request: NextRequest) {
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set("x-accelerate-admin-runtime", "demo");
     requestHeaders.set("x-accelerate-demo-scenario", rewrittenDemoScenario);
-    requestHeaders.set("x-accelerate-demo-route", request.nextUrl.pathname.replace(/^\/admin\/?/, "") || "today");
+    requestHeaders.set(
+      "x-accelerate-demo-route",
+      request.nextUrl.pathname.replace(/^\/admin\/?/, "") || "today",
+    );
     const response = NextResponse.next({ request: { headers: requestHeaders } });
     response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
     return response;
@@ -73,7 +76,7 @@ export async function middleware(request: NextRequest) {
           });
         },
       },
-    }
+    },
   );
 
   const {
@@ -110,7 +113,10 @@ export async function middleware(request: NextRequest) {
     tenantId = tenant.id;
     tenantName = tenant.name;
     const workspaceRoute = workspaceMatch[2] || "today";
-    if (!isConfiguredAdmin(user.email) && /^(features|tenants|setup)(?:\/|$)/.test(workspaceRoute)) {
+    if (
+      !isConfiguredAdmin(user.email) &&
+      /^(features|tenants|setup)(?:\/|$)/.test(workspaceRoute)
+    ) {
       return NextResponse.redirect(new URL(`/t/${tenantSlug}/admin/today`, request.url));
     }
 

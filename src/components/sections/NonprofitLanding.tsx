@@ -67,23 +67,28 @@ const BREAKS = [
 const SEQUENCE = [
   {
     what: "The moment a gift lands",
-    detail: "It is matched to the right supporter and thanked in your voice, straight away, while the decision to give is still fresh.",
+    detail:
+      "It is matched to the right supporter and thanked in your voice, straight away, while the decision to give is still fresh.",
   },
   {
     what: "Before the next ask",
-    detail: "A short note about what the money paid for, with nothing attached to it. This is the message that earns the gift after it.",
+    detail:
+      "A short note about what the money paid for, with nothing attached to it. This is the message that earns the gift after it.",
   },
   {
     what: "When they are ready to give again",
-    detail: "A second ask that references the program they already funded, in language your team approved once.",
+    detail:
+      "A second ask that references the program they already funded, in language your team approved once.",
   },
   {
     what: "When a one-time gift could become monthly",
-    detail: "The recurring path goes to the supporters whose giving pattern suggests they would take it.",
+    detail:
+      "The recurring path goes to the supporters whose giving pattern suggests they would take it.",
   },
   {
     what: "The moment something needs a person",
-    detail: "A major gift signal, a complaint, anything ambiguous: the automation stops and hands it to a human with the full history attached.",
+    detail:
+      "A major gift signal, a complaint, anything ambiguous: the automation stops and hands it to a human with the full history attached.",
   },
 ];
 
@@ -119,43 +124,51 @@ export function NonprofitLanding() {
             photograph. Insetting solves that properly instead of fighting it. */}
         <div className="photo-hero relative overflow-hidden [&_.display-italic]:!text-white">
           <div className="absolute inset-0">
-          <Image
-            src="/images/nonprofits/hero.jpg"
-            alt="Volunteers sorting donated food into boxes at a community distribution table"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-center"
-          />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,6,6,0.4)_0%,rgba(6,6,6,0.18)_36%,rgba(6,6,6,0.82)_100%)] lg:bg-[linear-gradient(100deg,rgba(6,6,6,0.95)_0%,rgba(6,6,6,0.88)_40%,rgba(6,6,6,0.5)_70%,rgba(6,6,6,0.34)_100%)]" />
+            <Image
+              src="/images/nonprofits/hero.jpg"
+              alt="Volunteers sorting donated food into boxes at a community distribution table"
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,6,6,0.4)_0%,rgba(6,6,6,0.18)_36%,rgba(6,6,6,0.82)_100%)] lg:bg-[linear-gradient(100deg,rgba(6,6,6,0.95)_0%,rgba(6,6,6,0.88)_40%,rgba(6,6,6,0.5)_70%,rgba(6,6,6,0.34)_100%)]" />
           </div>
 
           <Container className="photo-hero-inner relative">
-          <div className="max-w-[54rem]">
-            <HeroEntranceItem step={1}><Eyebrow className="mb-7 !text-white/85">For nonprofits</Eyebrow></HeroEntranceItem>
+            <div className="max-w-[54rem]">
+              <HeroEntranceItem step={1}>
+                <Eyebrow className="mb-7 !text-white/85">For nonprofits</Eyebrow>
+              </HeroEntranceItem>
 
-            <HeroEntranceItem step={2}><RevealHeading
-              as="h1"
-              className="max-w-[17ch] font-display font-extrabold leading-[1.0] tracking-[-0.04em] text-[clamp(2.5rem,5.6vw,5rem)] text-white"
-              lead="Every supporter thanked, followed up,"
-              accent="and invited back."
-              entrance="parent"
-            /></HeroEntranceItem>
+              <HeroEntranceItem step={2}>
+                <RevealHeading
+                  as="h1"
+                  className="max-w-[17ch] font-display font-extrabold leading-[1.0] tracking-[-0.04em] text-[clamp(2.5rem,5.6vw,5rem)] text-white"
+                  lead="Every supporter thanked, followed up,"
+                  accent="and invited back."
+                  entrance="parent"
+                />
+              </HeroEntranceItem>
 
-            <HeroEntranceItem step={3}>
-              <p className="mt-6 max-w-[46ch] text-[1.02rem] leading-[1.7] text-white/75 lg:mt-9 lg:text-[1.08rem] lg:leading-[1.8]">
-                We build the systems that keep your supporter relationships moving, and
-                then we run them alongside your team. Your voice, your data, your
-                approvals. The remembering becomes ours.
-              </p>
-            </HeroEntranceItem>
+              <HeroEntranceItem step={3}>
+                <p className="mt-6 max-w-[46ch] text-[1.02rem] leading-[1.7] text-white/75 lg:mt-9 lg:text-[1.08rem] lg:leading-[1.8]">
+                  We build the systems that keep your supporter relationships moving, and then we
+                  run them alongside your team. Your voice, your data, your approvals. The
+                  remembering becomes ours.
+                </p>
+              </HeroEntranceItem>
 
-            <HeroEntranceItem step={4}>
-              <div className="mt-8 lg:mt-10">
-                <BookCallButton variant="inverse" location="nonprofit_hero" label="Book a 20-minute call" />
-              </div>
-            </HeroEntranceItem>
-          </div>
+              <HeroEntranceItem step={4}>
+                <div className="mt-8 lg:mt-10">
+                  <BookCallButton
+                    variant="inverse"
+                    location="nonprofit_hero"
+                    label="Book a 20-minute call"
+                  />
+                </div>
+              </HeroEntranceItem>
+            </div>
           </Container>
         </div>
       </PublicHeroEntrance>
@@ -174,8 +187,8 @@ export function NonprofitLanding() {
           />
           <AnimateOnScroll delay={0.12}>
             <p className="mt-7 max-w-[58ch] text-[1.02rem] leading-[1.75] text-white-secondary">
-              Every one of these comes down to capacity, and every one of them is
-              fixable. Asking a stretched team to try harder fixes none of them.
+              Every one of these comes down to capacity, and every one of them is fixable. Asking a
+              stretched team to try harder fixes none of them.
             </p>
           </AnimateOnScroll>
 
@@ -208,9 +221,18 @@ export function NonprofitLanding() {
       <section className="relative">
         <div className="grid gap-px bg-[color-mix(in_srgb,var(--fg)_14%,transparent)] sm:grid-cols-3">
           {[
-            { src: "/images/nonprofits/packing.jpg", alt: "A volunteer packing food into bags for distribution" },
-            { src: "/images/nonprofits/supplies.jpg", alt: "Volunteers in branded shirts serving food under an outdoor canopy" },
-            { src: "/images/nonprofits/sorting.jpg", alt: "Volunteers organizing donated fresh produce" },
+            {
+              src: "/images/nonprofits/packing.jpg",
+              alt: "A volunteer packing food into bags for distribution",
+            },
+            {
+              src: "/images/nonprofits/supplies.jpg",
+              alt: "Volunteers in branded shirts serving food under an outdoor canopy",
+            },
+            {
+              src: "/images/nonprofits/sorting.jpg",
+              alt: "Volunteers organizing donated fresh produce",
+            },
           ].map((photo, i) => (
             <AnimateOnScroll key={photo.src} delay={0.08 * i}>
               <div className="relative aspect-[4/5] overflow-hidden sm:aspect-[3/4]">
@@ -243,9 +265,9 @@ export function NonprofitLanding() {
               />
               <AnimateOnScroll delay={0.14}>
                 <p className="mt-7 max-w-[42ch] text-[1.02rem] leading-[1.75] text-white-secondary">
-                  Your team writes the voice and approves the templates once. After that,
-                  the remembering, the matching, and the timing run on their own. The
-                  words stay yours throughout.
+                  Your team writes the voice and approves the templates once. After that, the
+                  remembering, the matching, and the timing run on their own. The words stay yours
+                  throughout.
                 </p>
               </AnimateOnScroll>
             </div>
@@ -291,9 +313,9 @@ export function NonprofitLanding() {
               />
               <AnimateOnScroll delay={0.12}>
                 <p className="mt-7 max-w-[46ch] text-[1.02rem] leading-[1.75] text-white-secondary">
-                  We built and now run the system that organizes their operations end to
-                  end. Below is the scope of that work, described plainly, so you can
-                  judge whether it resembles yours.
+                  We built and now run the system that organizes their operations end to end. Below
+                  is the scope of that work, described plainly, so you can judge whether it
+                  resembles yours.
                 </p>
               </AnimateOnScroll>
               <AnimateOnScroll delay={0.2}>
@@ -362,15 +384,18 @@ export function NonprofitLanding() {
             />
             <AnimateOnScroll delay={0.14}>
               <p className="mt-7 max-w-[52ch] text-[1.05rem] leading-[1.75] text-white/80">
-                Bring how work reaches you today and where it stalls. You will leave with
-                a written plan for what to fix first, in what order, and what to leave
-                alone. It is yours to keep and run yourself if you never speak to us
-                again.
+                Bring how work reaches you today and where it stalls. You will leave with a written
+                plan for what to fix first, in what order, and what to leave alone. It is yours to
+                keep and run yourself if you never speak to us again.
               </p>
             </AnimateOnScroll>
             <AnimateOnScroll delay={0.24}>
               <div className="mt-10">
-                <BookCallButton variant="inverse" location="nonprofit_close" label="Book a 20-minute call" />
+                <BookCallButton
+                  variant="inverse"
+                  location="nonprofit_close"
+                  label="Book a 20-minute call"
+                />
               </div>
             </AnimateOnScroll>
             <AnimateOnScroll delay={0.32}>

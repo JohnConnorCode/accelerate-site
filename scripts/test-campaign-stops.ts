@@ -14,11 +14,33 @@ const cases: Array<[CampaignStopReason, string]> = [
 ];
 for (const [reason, expected] of cases) assert.equal(campaignStopStatus(reason), expected, reason);
 
-const resendRoute = readFileSync(new URL("../src/app/api/webhooks/resend/route.ts", import.meta.url), "utf8");
-const unsubscribeRoute = readFileSync(new URL("../src/app/api/unsubscribe/[token]/route.ts", import.meta.url), "utf8");
-for (const [label, source] of [["Resend", resendRoute], ["unsubscribe", unsubscribeRoute]] as const) {
-  assert.match(source, /suppressContactFromCampaignEmail/, `${label} must use the canonical contact suppression service`);
-  assert.doesNotMatch(source, /from\("contacts"\)\.update\(/, `${label} must not write campaign eligibility directly`);
+const resendRoute = readFileSync(
+  new URL("../src/app/api/webhooks/resend/route.ts", import.meta.url),
+  "utf8",
+);
+const unsubscribeRoute = readFileSync(
+  new URL("../src/app/api/unsubscribe/[token]/route.ts", import.meta.url),
+  "utf8",
+);
+for (const [label, source] of [
+  ["Resend", resendRoute],
+  ["unsubscribe", unsubscribeRoute],
+] as const) {
+  assert.match(
+    source,
+    /suppressContactFromCampaignEmail/,
+    `${label} must use the canonical contact suppression service`,
+  );
+  assert.doesNotMatch(
+    source,
+    /from\("contacts"\)\.update\(/,
+    `${label} must not write campaign eligibility directly`,
+  );
 }
 
-console.log(JSON.stringify({ cases: cases.length, result: "campaign stop state and adapter ownership contract passed" }));
+console.log(
+  JSON.stringify({
+    cases: cases.length,
+    result: "campaign stop state and adapter ownership contract passed",
+  }),
+);

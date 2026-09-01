@@ -29,7 +29,10 @@ interface Lead {
 
 interface LeadDetailProps {
   lead: Lead;
-  onUpdate: (id: string, data: { lead_status?: string; notes?: string; estimated_value?: number }) => void;
+  onUpdate: (
+    id: string,
+    data: { lead_status?: string; notes?: string; estimated_value?: number },
+  ) => void;
 }
 
 const statusOptions = ["new", "contacted", "qualified", "proposal", "won", "lost"];
@@ -70,16 +73,12 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
         <span
           className={cn(
             "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold",
-            scoreColor
+            scoreColor,
           )}
         >
           Score: {score} ({scoreLabel})
         </span>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => setShowEmailModal(true)}
-        >
+        <Button variant="secondary" size="sm" onClick={() => setShowEmailModal(true)}>
           <Mail className="h-3.5 w-3.5 mr-1.5" />
           Send Email
         </Button>
@@ -124,7 +123,10 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
 
                 setToast({ message: "Proposal generated! View in Proposals.", type: "success" });
               } catch (err) {
-                setToast({ message: err instanceof Error ? err.message : "Failed to generate", type: "error" });
+                setToast({
+                  message: err instanceof Error ? err.message : "Failed to generate",
+                  type: "error",
+                });
               } finally {
                 setGeneratingProposal(false);
               }
@@ -178,9 +180,7 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
       <div className="grid gap-4 sm:grid-cols-2">
         {/* Intake summary */}
         <div>
-          <label className="block text-xs text-white-muted mb-1">
-            Intake Summary
-          </label>
+          <label className="block text-xs text-white-muted mb-1">Intake Summary</label>
           <div className="text-sm text-white-secondary">
             {lead.intake_data ? (
               <ul className="space-y-0.5">
@@ -216,12 +216,9 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
       {/* AI Plan Preview */}
       {lead.ai_plan && (
         <div>
-          <label className="block text-xs text-white-muted mb-1">
-            AI Plan Summary
-          </label>
+          <label className="block text-xs text-white-muted mb-1">AI Plan Summary</label>
           <p className="text-sm text-white-secondary">
-            {(lead.ai_plan as { executiveSummary?: string }).executiveSummary ||
-              "Plan generated"}
+            {(lead.ai_plan as { executiveSummary?: string }).executiveSummary || "Plan generated"}
           </p>
         </div>
       )}
@@ -240,11 +237,7 @@ export function LeadDetail({ lead, onUpdate }: LeadDetailProps) {
       </Button>
 
       {/* Follow-up Task */}
-      <TaskQuickAdd
-        relatedType="lead"
-        relatedId={lead.id}
-        relatedName={lead.contact_name}
-      />
+      <TaskQuickAdd relatedType="lead" relatedId={lead.id} relatedName={lead.contact_name} />
 
       <EmailComposeModal
         isOpen={showEmailModal}

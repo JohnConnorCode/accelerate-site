@@ -28,7 +28,17 @@ const paddings: Record<AdminSurfacePadding, string> = {
 };
 
 export const AdminSurface = forwardRef<HTMLDivElement, AdminSurfaceProps>(
-  ({ tone = "default", padding = "md", elevation = "raised", interactive = false, className, ...props }, ref) => (
+  (
+    {
+      tone = "default",
+      padding = "md",
+      elevation = "raised",
+      interactive = false,
+      className,
+      ...props
+    },
+    ref,
+  ) => (
     <div
       ref={ref}
       className={cn(

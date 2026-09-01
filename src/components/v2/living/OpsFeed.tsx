@@ -19,14 +19,14 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 // system, not a one-note list. Money events (won/paid) glow green; ops events use
 // a calm cool/warm spread so the eye can tell channels apart at a glance.
 const KIND: Record<Kind, { glyph: string; rgb: string }> = {
-  call:    { glyph: "●", rgb: "56,189,248" },   // sky — calls
-  text:    { glyph: "→", rgb: "34,211,238" },   // cyan — texts
-  follow:  { glyph: "↻", rgb: "167,139,250" },  // violet — follow-ups
-  book:    { glyph: "✓", rgb: "190,242,100" },  // lime — bookings
-  review:  { glyph: "★", rgb: "251,191,36" },   // amber — reviews
-  capture: { glyph: "◆", rgb: "96,165,250" },   // blue — captures
-  won:     { glyph: "✦", rgb: "163,230,53" },   // bright lime — deals
-  paid:    { glyph: "＄", rgb: "52,211,153" },   // emerald — payments
+  call: { glyph: "●", rgb: "56,189,248" }, // sky — calls
+  text: { glyph: "→", rgb: "34,211,238" }, // cyan — texts
+  follow: { glyph: "↻", rgb: "167,139,250" }, // violet — follow-ups
+  book: { glyph: "✓", rgb: "190,242,100" }, // lime — bookings
+  review: { glyph: "★", rgb: "251,191,36" }, // amber — reviews
+  capture: { glyph: "◆", rgb: "96,165,250" }, // blue — captures
+  won: { glyph: "✦", rgb: "163,230,53" }, // bright lime — deals
+  paid: { glyph: "＄", rgb: "52,211,153" }, // emerald — payments
 };
 
 const OPS: { kind: Kind; label: string }[] = [
@@ -154,7 +154,9 @@ export function OpsFeed({ className }: { className?: string }) {
               paused
             </span>
           ) : (
-            <span className="font-mono text-[0.68rem] tracking-wide text-[var(--white-muted)]">built for you</span>
+            <span className="font-mono text-[0.68rem] tracking-wide text-[var(--white-muted)]">
+              built for you
+            </span>
           )}
         </button>
       </div>
@@ -170,7 +172,12 @@ export function OpsFeed({ className }: { className?: string }) {
         </div>
         <span className="flex items-center gap-1.5 font-mono text-[0.66rem] tabular-nums tracking-wide text-[var(--white-muted)]">
           <span className="text-[var(--gold-base)]">↑</span>
-          <motion.span key={count} initial={{ opacity: 0.4 }} animate={{ opacity: 1 }} className="text-[var(--white-secondary)]">
+          <motion.span
+            key={count}
+            initial={{ opacity: 0.4 }}
+            animate={{ opacity: 1 }}
+            className="text-[var(--white-secondary)]"
+          >
             {count}
           </motion.span>
           today
@@ -182,9 +189,15 @@ export function OpsFeed({ className }: { className?: string }) {
           padding/text so the panel doesn't dominate the hero. */}
       <ul
         className="flex flex-col gap-0.5 p-2 font-mono text-[0.74rem] sm:gap-1 sm:p-2.5 sm:text-[0.82rem]"
-        onMouseEnter={() => { paused.current = true; }}
-        onMouseLeave={() => { setPaused(false); }}
-        onPointerDown={(e) => { if (e.pointerType === "touch") setPaused(!paused.current); }}
+        onMouseEnter={() => {
+          paused.current = true;
+        }}
+        onMouseLeave={() => {
+          setPaused(false);
+        }}
+        onPointerDown={(e) => {
+          if (e.pointerType === "touch") setPaused(!paused.current);
+        }}
       >
         <AnimatePresence initial={false} mode="popLayout">
           {events.map((e) => {
@@ -198,27 +211,39 @@ export function OpsFeed({ className }: { className?: string }) {
                 // fading the text dips it below AA contrast mid-animation, and
                 // the feed animates continuously, so a contrast checker always
                 // catches a transition frame. Rows arrive at full opacity.
-                initial={mounted && !reduced ? { y: -14, backgroundColor: `rgba(${c},0.24)` } : false}
+                initial={
+                  mounted && !reduced ? { y: -14, backgroundColor: `rgba(${c},0.24)` } : false
+                }
                 animate={{
                   y: 0,
                   backgroundColor: "rgba(0,0,0,0)",
                 }}
-                exit={{ opacity: 0, y: 6, height: 0, marginTop: 0, transition: { duration: 0.25, ease: "easeIn" } }}
-                transition={{ duration: 0.55, ease: EASE, backgroundColor: { duration: 1.2, ease: "easeOut" } }}
+                exit={{
+                  opacity: 0,
+                  y: 6,
+                  height: 0,
+                  marginTop: 0,
+                  transition: { duration: 0.25, ease: "easeIn" },
+                }}
+                transition={{
+                  duration: 0.55,
+                  ease: EASE,
+                  backgroundColor: { duration: 1.2, ease: "easeOut" },
+                }}
                 whileHover={{ x: 5, backgroundColor: `rgba(${c},0.16)` }}
                 className="group flex cursor-pointer items-center gap-2 rounded-lg border px-2 py-1.5 sm:gap-3 sm:px-3 sm:py-2.5"
                 style={{ borderColor: "transparent" }}
               >
-                <span className="text-[0.68rem] tabular-nums text-[var(--white-muted)]">{e.time}</span>
+                <span className="text-[0.68rem] tabular-nums text-[var(--white-muted)]">
+                  {e.time}
+                </span>
                 <span
                   className="grid h-5 w-5 shrink-0 place-items-center rounded-md text-[0.72rem] transition-transform duration-300 group-hover:scale-110"
                   style={{ color: `rgb(${c})`, background: `rgba(${c},0.16)` }}
                 >
                   {KIND[e.kind].glyph}
                 </span>
-                <span className="flex-1 truncate text-[var(--white-secondary)]">
-                  {e.label}
-                </span>
+                <span className="flex-1 truncate text-[var(--white-secondary)]">{e.label}</span>
                 <span className="shrink-0 text-[var(--white-muted)] opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                   ›
                 </span>

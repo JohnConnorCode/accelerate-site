@@ -23,7 +23,17 @@ import { join } from "node:path";
  * priority ALTER in migrations/business-operating-system.sql, plus the
  * dedupe_key ALTER in migrations/20260820-notification-dedupe.sql.
  */
-const COLUMNS = new Set(["id", "type", "title", "description", "link", "read", "created_at", "priority", "dedupe_key"]);
+const COLUMNS = new Set([
+  "id",
+  "type",
+  "title",
+  "description",
+  "link",
+  "read",
+  "created_at",
+  "priority",
+  "dedupe_key",
+]);
 const PRIORITIES = new Set(["urgent", "important", "info"]);
 
 function sourceFiles(dir: string): string[] {
@@ -82,7 +92,9 @@ for (const file of sourceFiles("src")) {
     inspected += 1;
     for (const key of topLevelKeys(block)) {
       if (!COLUMNS.has(key)) {
-        failures.push(`${file}: writes "${key}", which is not a column on admin_notifications (did you mean description?)`);
+        failures.push(
+          `${file}: writes "${key}", which is not a column on admin_notifications (did you mean description?)`,
+        );
       }
     }
     // Priority is often a ternary, so check every literal in the expression
@@ -90,19 +102,26 @@ for (const file of sourceFiles("src")) {
     for (const assignment of block.matchAll(/priority:\s*([^\n]+)/g)) {
       for (const literal of (assignment[1] ?? "").matchAll(/["']([a-z_]+)["']/g)) {
         if (literal[1] && !PRIORITIES.has(literal[1])) {
-          failures.push(`${file}: priority "${literal[1]}" violates the CHECK constraint (allowed: ${[...PRIORITIES].join(", ")})`);
+          failures.push(
+            `${file}: priority "${literal[1]}" violates the CHECK constraint (allowed: ${[...PRIORITIES].join(", ")})`,
+          );
         }
       }
     }
   }
 }
 
-assert.ok(inspected > 0, "found no admin_notifications insert sites, so this guard is not actually checking anything");
+assert.ok(
+  inspected > 0,
+  "found no admin_notifications insert sites, so this guard is not actually checking anything",
+);
 
 if (failures.length) {
   console.error(`Notification contract failed with ${failures.length} issue(s):`);
   for (const failure of failures) console.error(`- ${failure}`);
   process.exitCode = 1;
 } else {
-  console.log(JSON.stringify({ insertSites: inspected, columns: COLUMNS.size, result: "passed" }, null, 2));
+  console.log(
+    JSON.stringify({ insertSites: inspected, columns: COLUMNS.size, result: "passed" }, null, 2),
+  );
 }

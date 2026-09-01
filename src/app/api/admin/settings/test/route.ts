@@ -47,7 +47,12 @@ export async function POST(request: NextRequest) {
 
   if (key === "OPENROUTER_API_KEY") {
     try {
-      await openRouterChat({ database: auth.database, maxTokens: 5, temperature: 0, messages: [{ role: "user", content: "Reply with OK." }] });
+      await openRouterChat({
+        database: auth.database,
+        maxTokens: 5,
+        temperature: 0,
+        messages: [{ role: "user", content: "Reply with OK." }],
+      });
       return NextResponse.json({ success: true });
     } catch {
       return NextResponse.json({ success: false, error: "Invalid API key or connection failed" });

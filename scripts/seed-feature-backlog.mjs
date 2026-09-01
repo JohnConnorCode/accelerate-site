@@ -6,7 +6,9 @@ const apply = process.argv.includes("--apply");
 const verify = process.argv.includes("--verify");
 if (!apply && !verify) {
   console.log(JSON.stringify({ mode: "dry-run", ...summary }, null, 2));
-  console.log("Run `npm run seed:features -- --apply` to reconcile the entire active board to this master backlog.");
+  console.log(
+    "Run `npm run seed:features -- --apply` to reconcile the entire active board to this master backlog.",
+  );
   process.exit(0);
 }
 
@@ -14,28 +16,65 @@ for (const key of ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]) {
   if (!process.env[key]) throw new Error(`${key} is required`);
 }
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: { autoRefreshToken: false, persistSession: false },
+  },
+);
 
 const { data: before, error: readError } = await supabase
   .from("feature_requests")
-  .select("id,seed_key,source,archived_at,title,description,status,priority,labels,sort_order,owner,target_date,acceptance_criteria,notes");
+  .select(
+    "id,seed_key,source,archived_at,title,description,status,priority,labels,sort_order,owner,target_date,acceptance_criteria,notes",
+  );
 if (readError) throw readError;
 
 const canonicalKeys = new Set(featureBacklog.map((feature) => feature.seed_key));
 if (verify) {
   const active = (before ?? []).filter((row) => !row.archived_at);
   const liveByKey = new Map(active.map((row) => [row.seed_key, row]));
-  const fields = ["title", "description", "status", "priority", "labels", "sort_order", "owner", "target_date", "acceptance_criteria", "notes", "source"];
-  const missing = featureBacklog.filter((feature) => !liveByKey.has(feature.seed_key)).map((feature) => feature.seed_key);
-  const drifted = featureBacklog.filter((feature) => {
-    const live = liveByKey.get(feature.seed_key);
-    return live && fields.some((field) => JSON.stringify(live[field]) !== JSON.stringify(feature[field]));
-  }).map((feature) => feature.seed_key);
-  const outsideManifest = active.filter((row) => !row.seed_key || !canonicalKeys.has(row.seed_key)).map((row) => row.id);
-  const liveStatus = active.filter((row) => canonicalKeys.has(row.seed_key)).reduce((counts, row) => ({ ...counts, [row.status]: (counts[row.status] ?? 0) + 1 }), {});
-  const result = { mode: "verified", expected: featureBacklog.length, activeManaged: active.filter((row) => canonicalKeys.has(row.seed_key)).length, byStatus: liveStatus, missing, drifted, outsideManifest };
+  const fields = [
+    "title",
+    "description",
+    "status",
+    "priority",
+    "labels",
+    "sort_order",
+    "owner",
+    "target_date",
+    "acceptance_criteria",
+    "notes",
+    "source",
+  ];
+  const missing = featureBacklog
+    .filter((feature) => !liveByKey.has(feature.seed_key))
+    .map((feature) => feature.seed_key);
+  const drifted = featureBacklog
+    .filter((feature) => {
+      const live = liveByKey.get(feature.seed_key);
+      return (
+        live &&
+        fields.some((field) => JSON.stringify(live[field]) !== JSON.stringify(feature[field]))
+      );
+    })
+    .map((feature) => feature.seed_key);
+  const outsideManifest = active
+    .filter((row) => !row.seed_key || !canonicalKeys.has(row.seed_key))
+    .map((row) => row.id);
+  const liveStatus = active
+    .filter((row) => canonicalKeys.has(row.seed_key))
+    .reduce((counts, row) => ({ ...counts, [row.status]: (counts[row.status] ?? 0) + 1 }), {});
+  const result = {
+    mode: "verified",
+    expected: featureBacklog.length,
+    activeManaged: active.filter((row) => canonicalKeys.has(row.seed_key)).length,
+    byStatus: liveStatus,
+    missing,
+    drifted,
+    outsideManifest,
+  };
   console.log(JSON.stringify(result, null, 2));
   if (missing.length || drifted.length || outsideManifest.length) process.exit(1);
   process.exit(0);
@@ -43,16 +82,35 @@ if (verify) {
 
 for (let index = 0; index < featureBacklog.length; index += 40) {
   const batch = featureBacklog.slice(index, index + 40);
-  const { error } = await supabase.from("feature_requests").upsert(batch, { onConflict: "seed_key" });
+  const { error } = await supabase
+    .from("feature_requests")
+    .upsert(batch, { onConflict: "seed_key" });
   if (error) throw error;
 }
 
 const existingKeys = new Set((before ?? []).map((row) => row.seed_key));
 const inserted = featureBacklog.filter((feature) => !existingKeys.has(feature.seed_key)).length;
-const outsideManifest = (before ?? []).filter((row) => !row.archived_at && (!row.seed_key || !canonicalKeys.has(row.seed_key)));
+const outsideManifest = (before ?? []).filter(
+  (row) => !row.archived_at && (!row.seed_key || !canonicalKeys.has(row.seed_key)),
+);
 for (let index = 0; index < outsideManifest.length; index += 100) {
   const ids = outsideManifest.slice(index, index + 100).map((row) => row.id);
-  const { error } = await supabase.from("feature_requests").update({ archived_at: new Date().toISOString() }).in("id", ids);
+  const { error } = await supabase
+    .from("feature_requests")
+    .update({ archived_at: new Date().toISOString() })
+    .in("id", ids);
   if (error) throw error;
 }
-console.log(JSON.stringify({ mode: "applied", ...summary, inserted, updated: featureBacklog.length - inserted, archivedOutsideManifest: outsideManifest.length }, null, 2));
+console.log(
+  JSON.stringify(
+    {
+      mode: "applied",
+      ...summary,
+      inserted,
+      updated: featureBacklog.length - inserted,
+      archivedOutsideManifest: outsideManifest.length,
+    },
+    null,
+    2,
+  ),
+);

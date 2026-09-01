@@ -37,7 +37,10 @@ export async function GET(request: NextRequest) {
       .from("contact_submissions")
       .update({ read_at: new Date().toISOString() })
       .in("id", unreadIds)
-      .then(() => {}, (err: unknown) => console.error("Failed to mark contacts read:", err));
+      .then(
+        () => {},
+        (err: unknown) => console.error("Failed to mark contacts read:", err),
+      );
   }
 
   const linked = await attachRevenueLinkage(supabase, data || [], {
@@ -89,10 +92,7 @@ export async function DELETE(request: NextRequest) {
   }
 
   const supabase = auth.database;
-  const { error } = await supabase
-    .from("contact_submissions")
-    .delete()
-    .eq("id", id);
+  const { error } = await supabase.from("contact_submissions").delete().eq("id", id);
 
   if (error) {
     console.error("Database error:", error.message);

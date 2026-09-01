@@ -27,7 +27,8 @@ export function Systems() {
               Build <span className="it">what it needs.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              We do not begin with a product. We learn how your team works, find the best use of AI or automation, and choose the right-sized solution.
+              We do not begin with a product. We learn how your team works, find the best use of AI
+              or automation, and choose the right-sized solution.
             </Reveal>
           </div>
         </div>
@@ -46,7 +47,11 @@ export function Systems() {
             >
               <Link href={mode.href} className="pillar">
                 <span className="pillar-head">
-                  <span className="pillar-glyph" style={{ color: `rgb(${COLORS[i]})` }} aria-hidden="true">
+                  <span
+                    className="pillar-glyph"
+                    style={{ color: `rgb(${COLORS[i]})` }}
+                    aria-hidden="true"
+                  >
                     {GLYPHS[i]}
                   </span>
                   <span className="pillar-k">{mode.label}</span>
@@ -55,7 +60,11 @@ export function Systems() {
                 <span className="pillar-name">{mode.title}</span>
                 <span className="pillar-d">{mode.description}</span>
                 <span className="pillar-eg">
-                  <span className="pillar-eg-glyph" style={{ color: `rgb(${COLORS[i]})` }} aria-hidden="true">
+                  <span
+                    className="pillar-eg-glyph"
+                    style={{ color: `rgb(${COLORS[i]})` }}
+                    aria-hidden="true"
+                  >
                     {GLYPHS[i]}
                   </span>
                   {mode.example}

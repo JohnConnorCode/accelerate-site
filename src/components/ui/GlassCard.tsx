@@ -41,7 +41,7 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
       onMouseLeave: externalMouseLeave,
       ...props
     },
-    externalRef
+    externalRef,
   ) => {
     const internalRef = useRef<HTMLDivElement>(null);
 
@@ -49,9 +49,10 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
       (node: HTMLDivElement | null) => {
         (internalRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
         if (typeof externalRef === "function") externalRef(node);
-        else if (externalRef) (externalRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+        else if (externalRef)
+          (externalRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
       },
-      [externalRef]
+      [externalRef],
     );
 
     const handleMouseMove = useCallback(
@@ -80,7 +81,7 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
 
         if (externalMouseMove) externalMouseMove(e);
       },
-      [hover, externalMouseMove]
+      [hover, externalMouseMove],
     );
 
     const handleMouseLeave = useCallback(
@@ -91,7 +92,7 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
         }
         if (externalMouseLeave) externalMouseLeave(e);
       },
-      [hover, externalMouseLeave]
+      [hover, externalMouseLeave],
     );
 
     const hoverClass =
@@ -112,7 +113,7 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
           variantClasses[variant],
           paddingClasses[padding],
           hoverClass,
-          className
+          className,
         )}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
@@ -121,7 +122,7 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
         {children}
       </div>
     );
-  }
+  },
 );
 
 GlassCard.displayName = "GlassCard";

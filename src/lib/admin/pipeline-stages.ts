@@ -29,8 +29,10 @@ const WIDGET_STAGE_COLORS: ReadonlyArray<[RevenueStage, string]> = [
   ["won", "bg-emerald-500"],
 ];
 
-export const PIPELINE_STAGES: readonly PipelineStage[] = WIDGET_STAGE_COLORS.map(([key, color]) => ({
-  key,
-  label: REVENUE_STAGE_META[key].label,
-  color,
-}));
+export const PIPELINE_STAGES: readonly PipelineStage[] = WIDGET_STAGE_COLORS.map(
+  ([key, color]) => ({
+    key,
+    label: REVENUE_STAGE_META[key].label,
+    color,
+  }),
+);

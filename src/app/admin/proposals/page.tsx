@@ -60,9 +60,11 @@ export default function ProposalsPage() {
       const params = new URLSearchParams();
       if (statusFilter !== "all") params.set("status", statusFilter);
 
-      const data = await fetchJson<{ proposals?: Proposal[]; totalOneTime?: number; totalMonthly?: number }>(
-        `/api/admin/proposals?${params}`,
-      );
+      const data = await fetchJson<{
+        proposals?: Proposal[];
+        totalOneTime?: number;
+        totalMonthly?: number;
+      }>(`/api/admin/proposals?${params}`);
       setProposals(data.proposals || []);
       setTotalOneTime(data.totalOneTime || 0);
       setTotalMonthly(data.totalMonthly || 0);
@@ -96,7 +98,9 @@ export default function ProposalsPage() {
       });
       await fetchProposals();
       if (selectedProposal && updates.id === selectedProposal.id) {
-        const data = await fetchJson<{ proposal: Proposal }>(`/api/admin/proposals?id=${selectedProposal.id}`);
+        const data = await fetchJson<{ proposal: Proposal }>(
+          `/api/admin/proposals?id=${selectedProposal.id}`,
+        );
         setSelectedProposal(data.proposal);
       }
       toast.success("Proposal saved");
@@ -157,21 +161,14 @@ export default function ProposalsPage() {
             Back to Proposals
           </button>
         </div>
-        <PageHeader
-          title={selectedProposal.title}
-          subtitle={selectedProposal.client_name}
-        />
+        <PageHeader title={selectedProposal.title} subtitle={selectedProposal.client_name} />
         <ProposalEditor proposal={selectedProposal} onSave={handleSave} />
       </motion.div>
     );
   }
 
   return (
-    <motion.div
-      initial={false}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <PageHeader
         title="Proposals"
         subtitle={`$${totalMonthly.toLocaleString()}/mo · $${totalOneTime.toLocaleString()} one-time`}
@@ -195,7 +192,9 @@ export default function ProposalsPage() {
           className="rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-gold transition-[border-color,box-shadow,background-color]"
         >
           {statusOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
           ))}
         </select>
       </div>
@@ -219,10 +218,16 @@ export default function ProposalsPage() {
                 <tr className="border-b border-border-glass">
                   <th className="text-left px-3 py-2 text-xs text-white-muted uppercase">Title</th>
                   <th className="text-left px-3 py-2 text-xs text-white-muted uppercase">Client</th>
-                  <th className="text-left px-3 py-2 text-xs text-white-muted uppercase hidden sm:table-cell">Monthly</th>
-                  <th className="text-left px-3 py-2 text-xs text-white-muted uppercase hidden sm:table-cell">One-Time</th>
+                  <th className="text-left px-3 py-2 text-xs text-white-muted uppercase hidden sm:table-cell">
+                    Monthly
+                  </th>
+                  <th className="text-left px-3 py-2 text-xs text-white-muted uppercase hidden sm:table-cell">
+                    One-Time
+                  </th>
                   <th className="text-left px-3 py-2 text-xs text-white-muted uppercase">Status</th>
-                  <th className="text-left px-3 py-2 text-xs text-white-muted uppercase hidden sm:table-cell">Created</th>
+                  <th className="text-left px-3 py-2 text-xs text-white-muted uppercase hidden sm:table-cell">
+                    Created
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -235,12 +240,8 @@ export default function ProposalsPage() {
                     className="border-b border-border-glass last:border-b-0 hover:bg-white/[0.02] transition-colors cursor-pointer"
                     onClick={() => setSelectedProposal(proposal)}
                   >
-                    <td className="px-3 py-2.5 text-white-primary font-medium">
-                      {proposal.title}
-                    </td>
-                    <td className="px-3 py-2.5 text-white-secondary">
-                      {proposal.client_name}
-                    </td>
+                    <td className="px-3 py-2.5 text-white-primary font-medium">{proposal.title}</td>
+                    <td className="px-3 py-2.5 text-white-secondary">{proposal.client_name}</td>
                     <td className="px-3 py-2.5 text-emerald-400 hidden sm:table-cell">
                       ${proposal.total_monthly?.toLocaleString() || "0"}/mo
                     </td>

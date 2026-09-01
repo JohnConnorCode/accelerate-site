@@ -7,7 +7,7 @@ const ORG_ID = `${BASE_URL}/#organization`;
 export function generateArticleJsonLd(
   frontmatter: ArticleFrontmatter,
   readingTime: string,
-  wordCount: number
+  wordCount: number,
 ) {
   return {
     "@context": "https://schema.org",
@@ -34,9 +34,7 @@ export function generateArticleJsonLd(
   };
 }
 
-export function generateBreadcrumbJsonLd(
-  items: { name: string; url: string }[]
-) {
+export function generateBreadcrumbJsonLd(items: { name: string; url: string }[]) {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -49,9 +47,7 @@ export function generateBreadcrumbJsonLd(
   };
 }
 
-export function generateFaqJsonLd(
-  faqs: { question: string; answer: string }[]
-) {
+export function generateFaqJsonLd(faqs: { question: string; answer: string }[]) {
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -67,7 +63,7 @@ export function generateFaqJsonLd(
 }
 
 export function generateServiceListJsonLd(
-  services: { name: string; shortDescription: string; href: string }[]
+  services: { name: string; shortDescription: string; href: string }[],
 ) {
   return {
     "@context": "https://schema.org",
@@ -88,9 +84,11 @@ export function generateServiceListJsonLd(
   };
 }
 
-export function generateVerticalJsonLd(
-  vertical: { name: string; shortDescription: string; slug: string }
-) {
+export function generateVerticalJsonLd(vertical: {
+  name: string;
+  shortDescription: string;
+  slug: string;
+}) {
   const jsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Service",

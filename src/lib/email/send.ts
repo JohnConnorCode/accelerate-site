@@ -6,12 +6,18 @@ export async function sendPlanEmail(
   name: string,
   email: string,
   summary: string,
-  shareToken: string
+  shareToken: string,
 ) {
   const planUrl = `${siteUrl()}/plan/${shareToken}`;
   const [prospectEmail, adminEmail] = await Promise.all([
     resolveEmailTemplate("plan-confirmation", { name, planSummary: summary, planLink: planUrl }),
-    resolveEmailTemplate("admin-lead", { name, email, industry: "via Solution Generator", phone: "", business: "" }),
+    resolveEmailTemplate("admin-lead", {
+      name,
+      email,
+      industry: "via Solution Generator",
+      phone: "",
+      business: "",
+    }),
   ]);
 
   await Promise.all([
@@ -84,7 +90,7 @@ export async function sendRoiReportEmail(
     annualRevenueImpact: string;
     timeSavedPerWeek: string;
     paybackPeriodMonths: string;
-  }
+  },
 ) {
   const resolved = await resolveEmailTemplate("roi-report", {
     name: data.name || "there",
@@ -111,7 +117,7 @@ export async function sendAdminNotification(
     phone?: string;
     business?: string;
     industry: string;
-  }
+  },
 ) {
   const resolved = await resolveEmailTemplate("admin-lead", {
     name: leadData.name,

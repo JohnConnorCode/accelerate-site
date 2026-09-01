@@ -31,7 +31,7 @@ export function useCardTilt(maxDeg = 6) {
       el.style.setProperty("--glow-x", `${x * 100}%`);
       el.style.setProperty("--glow-y", `${y * 100}%`);
     },
-    [maxDeg]
+    [maxDeg],
   );
 
   const onMouseLeave = useCallback(() => {

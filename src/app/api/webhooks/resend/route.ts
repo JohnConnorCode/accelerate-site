@@ -41,9 +41,13 @@ function webhookHeaders(request: NextRequest) {
   return id && timestamp && signature ? { id, timestamp, signature } : null;
 }
 
-export async function handleResendWebhook(request: NextRequest, input?: { webhookSecret?: string; resend?: Resend; tenantContext?: TenantSystemContext }) {
+export async function handleResendWebhook(
+  request: NextRequest,
+  input?: { webhookSecret?: string; resend?: Resend; tenantContext?: TenantSystemContext },
+) {
   const webhookSecret = input?.webhookSecret || process.env.RESEND_WEBHOOK_SECRET;
-  if (!webhookSecret) return NextResponse.json({ error: "Resend webhook is not configured" }, { status: 503 });
+  if (!webhookSecret)
+    return NextResponse.json({ error: "Resend webhook is not configured" }, { status: 503 });
   const headers = webhookHeaders(request);
   if (!headers) return NextResponse.json({ error: "Missing webhook signature" }, { status: 401 });
 
@@ -60,11 +64,16 @@ export async function handleResendWebhook(request: NextRequest, input?: { webhoo
 
   let event: ResendEvent;
   try {
-    event = (input?.resend || getResend()).webhooks.verify({ payload: raw, headers, webhookSecret }) as ResendEvent;
+    event = (input?.resend || getResend()).webhooks.verify({
+      payload: raw,
+      headers,
+      webhookSecret,
+    }) as ResendEvent;
   } catch {
     return NextResponse.json({ error: "Invalid webhook signature" }, { status: 401 });
   }
-  if (!event.type) return NextResponse.json({ error: "Unsupported webhook payload" }, { status: 400 });
+  if (!event.type)
+    return NextResponse.json({ error: "Unsupported webhook payload" }, { status: 400 });
 
   const supabase = input?.tenantContext
     ? createServiceRoleClient(input.tenantContext)
@@ -77,38 +86,65 @@ export async function handleResendWebhook(request: NextRequest, input?: { webhoo
     payload_hash: createHash("sha256").update(raw).digest("hex"),
   });
   if (receiptError?.code === "23505") return NextResponse.json({ success: true, duplicate: true });
-  if (receiptError) return NextResponse.json({ error: "Webhook receipt could not be claimed" }, { status: 500 });
+  if (receiptError)
+    return NextResponse.json({ error: "Webhook receipt could not be claimed" }, { status: 500 });
 
   try {
     const providerId = event.data?.email_id;
     const taggedMessageId = event.data?.tags?.revenue_message_id;
-    const messageQuery = supabase.from("messages").select("id,conversation_id,metadata,delivery_status,delivery_updated_at,conversations!messages_conversation_id_tenant_fkey(contact_id,campaign_id)");
+    const messageQuery = supabase
+      .from("messages")
+      .select(
+        "id,conversation_id,metadata,delivery_status,delivery_updated_at,conversations!messages_conversation_id_tenant_fkey(contact_id,campaign_id)",
+      );
     const { data: message, error: messageError } = providerId
       ? await messageQuery.eq("provider_id", providerId).maybeSingle()
-      : taggedMessageId ? await messageQuery.eq("id", taggedMessageId).maybeSingle() : { data: null, error: null };
+      : taggedMessageId
+        ? await messageQuery.eq("id", taggedMessageId).maybeSingle()
+        : { data: null, error: null };
     if (messageError) throw new Error(messageError.message);
 
     const occurredAt = event.created_at ?? new Date().toISOString();
     const deliveryStatus = EVENT_STATUS[event.type];
     const details = event.data?.bounce ?? event.data?.failed ?? null;
-    const receivedAfterRecordedStatus = !message?.delivery_updated_at
-      || new Date(occurredAt).getTime() >= new Date(message.delivery_updated_at).getTime();
+    const receivedAfterRecordedStatus =
+      !message?.delivery_updated_at ||
+      new Date(occurredAt).getTime() >= new Date(message.delivery_updated_at).getTime();
     if (message && deliveryStatus && receivedAfterRecordedStatus) {
-      const update: Record<string, unknown> = { delivery_status: deliveryStatus, delivery_updated_at: occurredAt };
+      const update: Record<string, unknown> = {
+        delivery_status: deliveryStatus,
+        delivery_updated_at: occurredAt,
+      };
       if (event.type === "email.bounced") update.bounced_at = occurredAt;
       if (event.type === "email.complained") update.complained_at = occurredAt;
-      if (["email.bounced", "email.complained", "email.failed", "email.suppressed"].includes(event.type)) update.status = deliveryStatus;
+      if (
+        ["email.bounced", "email.complained", "email.failed", "email.suppressed"].includes(
+          event.type,
+        )
+      )
+        update.status = deliveryStatus;
       const { error } = await supabase.from("messages").update(update).eq("id", message.id);
       if (error) throw new Error(error.message);
     }
 
-    const conversation = Array.isArray(message?.conversations) ? message?.conversations[0] : message?.conversations;
+    const conversation = Array.isArray(message?.conversations)
+      ? message?.conversations[0]
+      : message?.conversations;
     const contactId = conversation?.contact_id ?? null;
     const campaignId = conversation?.campaign_id ?? event.data?.tags?.revenue_campaign_id ?? null;
-    const hardFailure = event.type === "email.bounced" || event.type === "email.complained" || event.type === "email.suppressed";
+    const hardFailure =
+      event.type === "email.bounced" ||
+      event.type === "email.complained" ||
+      event.type === "email.suppressed";
     if (hardFailure && contactId) {
       const reason = event.type.replace("email.", "resend_");
-      await suppressContactFromCampaignEmail(supabase, { contactId, campaignId, reason: reason as "resend_bounced" | "resend_complained" | "resend_suppressed", source: "webhook", sourceReceiptId: headers.id });
+      await suppressContactFromCampaignEmail(supabase, {
+        contactId,
+        campaignId,
+        reason: reason as "resend_bounced" | "resend_complained" | "resend_suppressed",
+        source: "webhook",
+        sourceReceiptId: headers.id,
+      });
     }
 
     if (message) {
@@ -125,13 +161,34 @@ export async function handleResendWebhook(request: NextRequest, input?: { webhoo
         metadata: { provider_event_type: event.type, provider_id: providerId ?? null },
       });
     }
-    await recordAudit(supabase, { action: "resend.webhook_processed", entityType: "webhook_receipt", entityId: headers.id, source: "webhook", metadata: { event_type: event.type, provider_id: providerId ?? null, message_id: message?.id ?? null, hard_failure: hardFailure } });
-    const { error: completeError } = await supabase.from("webhook_receipts").update({ status: "processed", processed_at: new Date().toISOString() }).eq("id", headers.id);
+    await recordAudit(supabase, {
+      action: "resend.webhook_processed",
+      entityType: "webhook_receipt",
+      entityId: headers.id,
+      source: "webhook",
+      metadata: {
+        event_type: event.type,
+        provider_id: providerId ?? null,
+        message_id: message?.id ?? null,
+        hard_failure: hardFailure,
+      },
+    });
+    const { error: completeError } = await supabase
+      .from("webhook_receipts")
+      .update({ status: "processed", processed_at: new Date().toISOString() })
+      .eq("id", headers.id);
     if (completeError) throw new Error(completeError.message);
-    return NextResponse.json({ success: true, matched: Boolean(message), suppressed: hardFailure && Boolean(contactId) });
+    return NextResponse.json({
+      success: true,
+      matched: Boolean(message),
+      suppressed: hardFailure && Boolean(contactId),
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Webhook processing failed";
-    await supabase.from("webhook_receipts").update({ status: "failed", error: message }).eq("id", headers.id);
+    await supabase
+      .from("webhook_receipts")
+      .update({ status: "failed", error: message })
+      .eq("id", headers.id);
     return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
   }
 }

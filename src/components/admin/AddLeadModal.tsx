@@ -83,7 +83,10 @@ export function AddLeadModal({ isOpen, onClose, onLeadCreated }: AddLeadModalPro
       onLeadCreated();
       setTimeout(onClose, 500);
     } catch (err) {
-      setToast({ message: err instanceof Error ? err.message : "Failed to create lead", type: "error" });
+      setToast({
+        message: err instanceof Error ? err.message : "Failed to create lead",
+        type: "error",
+      });
     } finally {
       setSaving(false);
     }
@@ -91,95 +94,104 @@ export function AddLeadModal({ isOpen, onClose, onLeadCreated }: AddLeadModalPro
 
   return (
     <>
-      <AdminDialog open={isOpen} onClose={onClose} title="Add new lead" labelledBy="add-lead-title" maxWidth="md">
-              <AdminSurface padding="lg" className="admin-dialog-surface max-h-[92dvh] overflow-y-auto rounded-[20px]">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 id="add-lead-title" className="admin-dialog-title">
-                    Add New Lead
-                  </h3>
-                  <button
-                    onClick={onClose}
-                    aria-label="Close dialog"
-                    className="admin-icon-button"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
+      <AdminDialog
+        open={isOpen}
+        onClose={onClose}
+        title="Add new lead"
+        labelledBy="add-lead-title"
+        maxWidth="md"
+      >
+        <AdminSurface
+          padding="lg"
+          className="admin-dialog-surface max-h-[92dvh] overflow-y-auto rounded-[20px]"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 id="add-lead-title" className="admin-dialog-title">
+              Add New Lead
+            </h3>
+            <button onClick={onClose} aria-label="Close dialog" className="admin-icon-button">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
 
-                <div className="space-y-3">
-                  <Input
-                    label="Contact Name *"
-                    type="text"
-                    value={contactName}
-                    onChange={(e) => setContactName(e.target.value)}
-                    placeholder="John Smith"
-                  />
-                  <Input
-                    label="Email *"
-                    type="email"
-                    value={contactEmail}
-                    onChange={(e) => setContactEmail(e.target.value)}
-                    placeholder="john@company.com"
-                  />
-                  <Input
-                    label="Phone"
-                    type="tel"
-                    value={contactPhone}
-                    onChange={(e) => setContactPhone(e.target.value)}
-                    placeholder="(555) 123-4567"
-                  />
-                  <Input
-                    label="Business Name"
-                    type="text"
-                    value={businessName}
-                    onChange={(e) => setBusinessName(e.target.value)}
-                    placeholder="Smith & Associates"
-                  />
+          <div className="space-y-3">
+            <Input
+              label="Contact Name *"
+              type="text"
+              value={contactName}
+              onChange={(e) => setContactName(e.target.value)}
+              placeholder="John Smith"
+            />
+            <Input
+              label="Email *"
+              type="email"
+              value={contactEmail}
+              onChange={(e) => setContactEmail(e.target.value)}
+              placeholder="john@company.com"
+            />
+            <Input
+              label="Phone"
+              type="tel"
+              value={contactPhone}
+              onChange={(e) => setContactPhone(e.target.value)}
+              placeholder="(555) 123-4567"
+            />
+            <Input
+              label="Business Name"
+              type="text"
+              value={businessName}
+              onChange={(e) => setBusinessName(e.target.value)}
+              placeholder="Smith & Associates"
+            />
 
-                  <div>
-                    <label className="admin-field-label mb-1">Industry</label>
-                    <select
-                      value={industry}
-                      onChange={(e) => setIndustry(e.target.value)}
-                      className="admin-field"
-                    >
-                      {industryOptions.map((opt) => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                  </div>
+            <div>
+              <label className="admin-field-label mb-1">Industry</label>
+              <select
+                value={industry}
+                onChange={(e) => setIndustry(e.target.value)}
+                className="admin-field"
+              >
+                {industryOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-                  <div>
-                    <label className="admin-field-label mb-1">Source</label>
-                    <select
-                      value={source}
-                      onChange={(e) => setSource(e.target.value)}
-                      className="admin-field"
-                    >
-                      {sourceOptions.map((opt) => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                  </div>
+            <div>
+              <label className="admin-field-label mb-1">Source</label>
+              <select
+                value={source}
+                onChange={(e) => setSource(e.target.value)}
+                className="admin-field"
+              >
+                {sourceOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-                  <Textarea
-                    label="Notes"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="How did you meet? Any context..."
-                    className="min-h-[60px]"
-                  />
+            <Textarea
+              label="Notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="How did you meet? Any context..."
+              className="min-h-[60px]"
+            />
 
-                  <Button
-                    variant="primary"
-                    onClick={handleSubmit}
-                    disabled={saving || !contactName || !contactEmail}
-                    className="w-full"
-                  >
-                    {saving ? "Creating..." : "Create Lead"}
-                  </Button>
-                </div>
-              </AdminSurface>
+            <Button
+              variant="primary"
+              onClick={handleSubmit}
+              disabled={saving || !contactName || !contactEmail}
+              className="w-full"
+            >
+              {saving ? "Creating..." : "Create Lead"}
+            </Button>
+          </div>
+        </AdminSurface>
       </AdminDialog>
 
       {toast && (

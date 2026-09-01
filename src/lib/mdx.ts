@@ -8,9 +8,7 @@ const ARTICLES_DIR = path.join(process.cwd(), "src/content/articles");
 
 function getArticleFiles(): string[] {
   if (!fs.existsSync(ARTICLES_DIR)) return [];
-  return fs
-    .readdirSync(ARTICLES_DIR)
-    .filter((file) => file.endsWith(".mdx"));
+  return fs.readdirSync(ARTICLES_DIR).filter((file) => file.endsWith(".mdx"));
 }
 
 function parseArticle(filename: string): Article {
@@ -50,9 +48,7 @@ export function getAllArticles(options?: { includeScheduled?: boolean }): Articl
       return article.frontmatter.date <= today;
     })
     .sort(
-      (a, b) =>
-        new Date(b.frontmatter.date).getTime() -
-        new Date(a.frontmatter.date).getTime()
+      (a, b) => new Date(b.frontmatter.date).getTime() - new Date(a.frontmatter.date).getTime(),
     );
 }
 
@@ -93,7 +89,9 @@ export function getArticlesByTag(tag: string): ArticleSummary[] {
     .map(toArticleSummary);
 }
 
-export function getAllCategories(options?: { includeScheduled?: boolean }): { category: ArticleCategory; count: number }[] {
+export function getAllCategories(options?: {
+  includeScheduled?: boolean;
+}): { category: ArticleCategory; count: number }[] {
   const articles = getAllArticles(options);
   const categoryCounts = new Map<ArticleCategory, number>();
   for (const article of articles) {
@@ -106,7 +104,9 @@ export function getAllCategories(options?: { includeScheduled?: boolean }): { ca
   }));
 }
 
-export function getAllTags(options?: { includeScheduled?: boolean }): { tag: string; count: number }[] {
+export function getAllTags(options?: {
+  includeScheduled?: boolean;
+}): { tag: string; count: number }[] {
   const articles = getAllArticles(options);
   const tagCounts = new Map<string, number>();
   for (const article of articles) {
@@ -129,9 +129,7 @@ export function getRelatedArticles(slug: string, limit = 3): ArticleSummary[] {
     let score = 0;
     if (a.frontmatter.category === article.frontmatter.category) score += 3;
     if (a.frontmatter.pillar === article.frontmatter.pillar) score += 2;
-    const sharedTags = a.frontmatter.tags.filter((t) =>
-      article.frontmatter.tags.includes(t)
-    );
+    const sharedTags = a.frontmatter.tags.filter((t) => article.frontmatter.tags.includes(t));
     score += sharedTags.length;
     return { article: a, score };
   });

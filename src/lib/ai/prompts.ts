@@ -123,14 +123,14 @@ export function buildUserPrompt(data: IntakeFormData): string {
   parts.push(`BUDGET RANGE: ${formatLabel(data.budgetRange)}`);
 
   parts.push(``);
-  parts.push(`Generate a comprehensive Digital Growth Plan for this prospect. Return ONLY valid JSON matching the schema provided.`);
+  parts.push(
+    `Generate a comprehensive Digital Growth Plan for this prospect. Return ONLY valid JSON matching the schema provided.`,
+  );
 
   return parts.join("\n");
 }
 
 function formatLabel(value: string | undefined): string {
   if (!value) return "Not specified";
-  return value
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  return value.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }

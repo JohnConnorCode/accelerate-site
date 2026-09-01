@@ -25,20 +25,54 @@ const cleanupOnly = process.argv.includes("--cleanup");
 
 /** A believable spread: most inquiries stall early, a few convert. */
 const BOOK = [
-  { company: "Ridgeline Roofing", stages: ["qualified", "meeting", "proposal", "won"], value: 18000, source: "google" },
-  { company: "Cedar Creek Plumbing", stages: ["qualified", "meeting", "proposal"], value: 12500, source: "referral" },
-  { company: "Bright Path Dental", stages: ["qualified", "meeting"], value: 9000, source: "google" },
-  { company: "Harbor Legal Group", stages: ["qualified", "meeting", "proposal", "negotiation"], value: 24000, source: "linkedin" },
+  {
+    company: "Ridgeline Roofing",
+    stages: ["qualified", "meeting", "proposal", "won"],
+    value: 18000,
+    source: "google",
+  },
+  {
+    company: "Cedar Creek Plumbing",
+    stages: ["qualified", "meeting", "proposal"],
+    value: 12500,
+    source: "referral",
+  },
+  {
+    company: "Bright Path Dental",
+    stages: ["qualified", "meeting"],
+    value: 9000,
+    source: "google",
+  },
+  {
+    company: "Harbor Legal Group",
+    stages: ["qualified", "meeting", "proposal", "negotiation"],
+    value: 24000,
+    source: "linkedin",
+  },
   { company: "Summit HVAC", stages: ["contacted", "qualified"], value: 7500, source: "google" },
   { company: "Northgate Electric", stages: ["contacted"], value: 6000, source: "referral" },
   { company: "Lakeside Landscaping", stages: [], value: 4500, source: "google" },
-  { company: "Ironwood Construction", stages: ["qualified", "meeting", "proposal", "won"], value: 31000, source: "referral" },
-  { company: "Verde Pest Control", stages: ["contacted", "qualified", "lost"], value: 5000, source: "google", lossReason: "Went with a cheaper competitor" },
+  {
+    company: "Ironwood Construction",
+    stages: ["qualified", "meeting", "proposal", "won"],
+    value: 31000,
+    source: "referral",
+  },
+  {
+    company: "Verde Pest Control",
+    stages: ["contacted", "qualified", "lost"],
+    value: 5000,
+    source: "google",
+    lossReason: "Went with a cheaper competitor",
+  },
   { company: "Copperfield Auto", stages: [], value: 3800, source: "direct" },
 ];
 
 async function purge(supabase: ReturnType<typeof createServiceRoleClient>) {
-  const { data: opportunities } = await supabase.from("opportunities").select("id").like("email", `${PREFIX}%`);
+  const { data: opportunities } = await supabase
+    .from("opportunities")
+    .select("id")
+    .like("email", `${PREFIX}%`);
   for (const opportunity of opportunities ?? []) {
     for (const table of ["tasks", "activities", "stage_events"]) {
       await supabase.from(table).delete().eq("opportunity_id", opportunity.id);
@@ -58,14 +92,33 @@ async function main() {
 
   if (cleanupOnly) {
     await purge(supabase);
-    const { count } = await supabase.from("opportunities").select("*", { count: "exact", head: true }).like("email", `${PREFIX}%`);
-    console.log(JSON.stringify({ mode: "cleanup", leftover: count ?? 0, result: (count ?? 0) === 0 ? "clean" : "incomplete" }, null, 2));
+    const { count } = await supabase
+      .from("opportunities")
+      .select("*", { count: "exact", head: true })
+      .like("email", `${PREFIX}%`);
+    console.log(
+      JSON.stringify(
+        {
+          mode: "cleanup",
+          leftover: count ?? 0,
+          result: (count ?? 0) === 0 ? "clean" : "incomplete",
+        },
+        null,
+        2,
+      ),
+    );
     if (count) process.exit(1);
     return;
   }
 
-  const { data: existing } = await supabase.from("contacts").select("id").like("primary_email", `${PREFIX}%`);
-  if (existing?.length) throw new Error(`${existing.length} demo contact(s) already present. Run with --cleanup first.`);
+  const { data: existing } = await supabase
+    .from("contacts")
+    .select("id")
+    .like("primary_email", `${PREFIX}%`);
+  if (existing?.length)
+    throw new Error(
+      `${existing.length} demo contact(s) already present. Run with --cleanup first.`,
+    );
 
   const created: { company: string; stage: string; value: number }[] = [];
   for (const entry of BOOK) {
@@ -81,12 +134,18 @@ async function main() {
       summary: `${entry.company} asked about reducing missed inquiries and slow follow-up.`,
       utm: { utm_source: entry.source, utm_medium: "organic", utm_campaign: entry.source },
     });
-    await supabase.from("opportunities").update({ estimated_value: entry.value }).eq("id", captured.opportunity.id);
+    await supabase
+      .from("opportunities")
+      .update({ estimated_value: entry.value })
+      .eq("id", captured.opportunity.id);
 
     let stage = "new";
     for (const next of entry.stages) {
       await transitionOpportunity(supabase, {
-        id: captured.opportunity.id, to: next, actorEmail: "demo@local", source: "demo",
+        id: captured.opportunity.id,
+        to: next,
+        actorEmail: "demo@local",
+        source: "demo",
         reason: `Demo dataset progression to ${next}`,
         ...(next === "lost" ? { lossReason: entry.lossReason ?? "No reason given" } : {}),
       });
@@ -96,15 +155,24 @@ async function main() {
   }
 
   const analytics = await loadRevenueAnalytics(supabase, 30);
-  console.log(JSON.stringify({
-    mode: "seeded",
-    created: created.length,
-    byStage: created.reduce<Record<string, number>>((acc, item) => { acc[item.stage] = (acc[item.stage] ?? 0) + 1; return acc; }, {}),
-    funnel: analytics.funnel,
-    rates: analytics.rates,
-    sources: analytics.sources,
-    cleanup: "npm run verify:operator-surfaces -- --cleanup",
-  }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        mode: "seeded",
+        created: created.length,
+        byStage: created.reduce<Record<string, number>>((acc, item) => {
+          acc[item.stage] = (acc[item.stage] ?? 0) + 1;
+          return acc;
+        }, {}),
+        funnel: analytics.funnel,
+        rates: analytics.rates,
+        sources: analytics.sources,
+        cleanup: "npm run verify:operator-surfaces -- --cleanup",
+      },
+      null,
+      2,
+    ),
+  );
 }
 
 main().catch((error) => {

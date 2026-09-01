@@ -57,11 +57,23 @@ export function WordMask({
   const ref = useRevealLifecycle<HTMLHeadingElement>({ initialViewport: "immediate" });
 
   if (tokens.length === 0) {
-    return <Tag ref={entrance === "self" ? ref : undefined} className={`reveal-self word-mask-heading ${className}`}>{renderPlain(tokens)}</Tag>;
+    return (
+      <Tag
+        ref={entrance === "self" ? ref : undefined}
+        className={`reveal-self word-mask-heading ${className}`}
+      >
+        {renderPlain(tokens)}
+      </Tag>
+    );
   }
 
   return (
-    <Tag ref={entrance === "self" ? ref : undefined} className={`reveal-self word-mask-heading ${className}`} data-motion-role="heading" data-hero-heading={entrance === "parent" ? "true" : undefined}>
+    <Tag
+      ref={entrance === "self" ? ref : undefined}
+      className={`reveal-self word-mask-heading ${className}`}
+      data-motion-role="heading"
+      data-hero-heading={entrance === "parent" ? "true" : undefined}
+    >
       {tokens.map((t, i) => (
         <Fragment key={i}>
           {/* mask: clip-path preserves the true text baseline (unlike overflow-hidden
@@ -69,11 +81,14 @@ export function WordMask({
               tails horizontally but hides it vertically. */}
           <span
             className="word-mask-word inline-block pb-[0.18em] -mb-[0.18em]"
-            style={{ clipPath: "inset(-10% -10% 0 -10%)", "--word-delay": `${delay + i * stagger}s` } as CSSProperties}
+            style={
+              {
+                clipPath: "inset(-10% -10% 0 -10%)",
+                "--word-delay": `${delay + i * stagger}s`,
+              } as CSSProperties
+            }
           >
-            <span className={`inline-block ${t.italic ? "display-italic" : ""}`}>
-              {t.w}
-            </span>
+            <span className={`inline-block ${t.italic ? "display-italic" : ""}`}>{t.w}</span>
           </span>
           {i < tokens.length - 1 ? " " : null}
         </Fragment>
@@ -90,7 +105,11 @@ export function childrenToTokens(children: ReactNode): WordToken[] | null {
   let ok = true;
 
   const pushWords = (text: string, italic: boolean) => {
-    text.trim().split(/\s+/).filter(Boolean).forEach((w) => tokens.push({ w, italic }));
+    text
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .forEach((w) => tokens.push({ w, italic }));
   };
 
   Children.forEach(children, (child) => {
@@ -101,7 +120,8 @@ export function childrenToTokens(children: ReactNode): WordToken[] | null {
     }
     if (isValidElement(child)) {
       const props = child.props as { className?: string; children?: ReactNode };
-      const isItalic = typeof props.className === "string" && props.className.includes("display-italic");
+      const isItalic =
+        typeof props.className === "string" && props.className.includes("display-italic");
       let elemOk = isItalic; // only know how to tokenize the gold-italic accent span
       if (isItalic) {
         Children.forEach(props.children, (sub) => {
@@ -136,8 +156,27 @@ export function RevealHeading({
   entrance?: "self" | "parent";
 }) {
   const tokens: WordToken[] = [
-    ...lead.trim().split(/\s+/).filter(Boolean).map((w) => ({ w, italic: false })),
-    ...(accent ? accent.trim().split(/\s+/).filter(Boolean).map((w) => ({ w, italic: true })) : []),
+    ...lead
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((w) => ({ w, italic: false })),
+    ...(accent
+      ? accent
+          .trim()
+          .split(/\s+/)
+          .filter(Boolean)
+          .map((w) => ({ w, italic: true }))
+      : []),
   ];
-  return <WordMask tokens={tokens} as={as} className={className} stagger={stagger} delay={delay} entrance={entrance} />;
+  return (
+    <WordMask
+      tokens={tokens}
+      as={as}
+      className={className}
+      stagger={stagger}
+      delay={delay}
+      entrance={entrance}
+    />
+  );
 }

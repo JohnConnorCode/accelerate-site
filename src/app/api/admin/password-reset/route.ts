@@ -22,7 +22,10 @@ function requestKey(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const { success } = rateLimit(requestKey(request), RESET_LIMIT, RESET_WINDOW_MS);
   if (!success) {
-    return NextResponse.json({ error: "Too many reset requests. Please wait a few minutes." }, { status: 429 });
+    return NextResponse.json(
+      { error: "Too many reset requests. Please wait a few minutes." },
+      { status: 429 },
+    );
   }
 
   let email: unknown;
@@ -72,7 +75,10 @@ export async function POST(request: NextRequest) {
     if (sendError) throw sendError;
   } catch (error) {
     console.error("[admin-password-reset] Failed to issue recovery email", error);
-    return NextResponse.json({ error: "We could not send a reset email. Please try again shortly." }, { status: 500 });
+    return NextResponse.json(
+      { error: "We could not send a reset email. Please try again shortly." },
+      { status: 500 },
+    );
   }
 
   return NextResponse.json({ success: true }, { headers: { "Cache-Control": "no-store" } });

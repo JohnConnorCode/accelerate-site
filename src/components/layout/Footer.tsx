@@ -71,9 +71,7 @@ const footerColumns = [
   },
   {
     title: "Industries",
-    links: [
-      ...INDUSTRY_LINKS,
-    ],
+    links: [...INDUSTRY_LINKS],
   },
   {
     title: "Resources",
@@ -173,9 +171,7 @@ export function Footer() {
           {/* Link Columns */}
           {footerColumns.map((col, i) => (
             <FooterSection key={col.title} index={i + 1}>
-              <h3 className="text-sm font-semibold text-white-primary mb-4">
-                {col.title}
-              </h3>
+              <h3 className="text-sm font-semibold text-white-primary mb-4">{col.title}</h3>
               <ul className="space-y-2.5">
                 {col.links.map((link) => (
                   <li key={link.href}>
@@ -196,12 +192,8 @@ export function Footer() {
         <FooterSection index={5} className="mt-14 pt-8 border-t border-[var(--border-subtle)]">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
             <div>
-              <h3 className="text-sm font-semibold text-white-primary mb-1">
-                One email a week
-              </h3>
-              <p className="text-sm text-white-muted">
-                No spam. Unsubscribe anytime.
-              </p>
+              <h3 className="text-sm font-semibold text-white-primary mb-1">One email a week</h3>
+              <p className="text-sm text-white-muted">No spam. Unsubscribe anytime.</p>
             </div>
             {status === "success" ? (
               <div className="flex items-center gap-2 text-sm text-[var(--success)]">
@@ -210,10 +202,7 @@ export function Footer() {
               </div>
             ) : (
               <div className="w-full sm:w-auto">
-                <form
-                  className="flex gap-2 w-full sm:w-auto"
-                  onSubmit={handleSubscribe}
-                >
+                <form className="flex gap-2 w-full sm:w-auto" onSubmit={handleSubscribe}>
                   <input
                     id="footer-email"
                     type="email"

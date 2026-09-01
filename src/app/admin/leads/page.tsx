@@ -143,7 +143,7 @@ export default function AdminLeadsPage() {
 
   const handleUpdateLead = async (
     id: string,
-    data: { lead_status?: string; notes?: string; estimated_value?: number }
+    data: { lead_status?: string; notes?: string; estimated_value?: number },
   ) => {
     try {
       await fetchJson("/api/admin/leads", {
@@ -235,11 +235,7 @@ export default function AdminLeadsPage() {
   }
 
   return (
-    <motion.div
-      initial={false}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <PageHeader
         title="Leads"
         subtitle={`${total} total`}
@@ -261,27 +257,43 @@ export default function AdminLeadsPage() {
       <div className="flex flex-wrap gap-3 mb-4">
         <select
           value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setStatusFilter(e.target.value);
+            setPage(1);
+          }}
           className="rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-gold transition-[border-color,box-shadow,background-color]"
         >
           {statusOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
           ))}
         </select>
         <select
           value={industryFilter}
-          onChange={(e) => { setIndustryFilter(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setIndustryFilter(e.target.value);
+            setPage(1);
+          }}
           className="rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-gold transition-[border-color,box-shadow,background-color]"
         >
           {industryOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
           ))}
         </select>
         <DateRangeFilter
           dateFrom={dateFrom}
           dateTo={dateTo}
-          onDateFromChange={(v) => { setDateFrom(v); setPage(1); }}
-          onDateToChange={(v) => { setDateTo(v); setPage(1); }}
+          onDateFromChange={(v) => {
+            setDateFrom(v);
+            setPage(1);
+          }}
+          onDateToChange={(v) => {
+            setDateTo(v);
+            setPage(1);
+          }}
         />
       </div>
 
@@ -318,7 +330,10 @@ export default function AdminLeadsPage() {
               onChange={(e) => setViewName(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleSaveView();
-                if (e.key === "Escape") { setShowSaveView(false); setViewName(""); }
+                if (e.key === "Escape") {
+                  setShowSaveView(false);
+                  setViewName("");
+                }
               }}
               placeholder="View name"
               autoFocus
@@ -334,7 +349,10 @@ export default function AdminLeadsPage() {
             </button>
             <button
               type="button"
-              onClick={() => { setShowSaveView(false); setViewName(""); }}
+              onClick={() => {
+                setShowSaveView(false);
+                setViewName("");
+              }}
               aria-label="Cancel saving view"
               className="text-white-muted hover:text-white-primary transition-colors rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer"
             >

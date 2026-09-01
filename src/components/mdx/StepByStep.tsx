@@ -11,9 +11,7 @@ export function Step({ number, title, children }: StepProps) {
         {number}
       </div>
       <div className="flex-1">
-        <h3 className="m-0 font-display font-semibold text-white-primary">
-          {title}
-        </h3>
+        <h3 className="m-0 font-display font-semibold text-white-primary">{title}</h3>
         <div className="mt-2 text-sm text-white-secondary leading-relaxed [&>p]:m-0">
           {children}
         </div>
@@ -27,9 +25,5 @@ interface StepByStepProps {
 }
 
 export function StepByStep({ children }: StepByStepProps) {
-  return (
-    <div className="my-8 glass rounded-lg p-6">
-      {children}
-    </div>
-  );
+  return <div className="my-8 glass rounded-lg p-6">{children}</div>;
 }

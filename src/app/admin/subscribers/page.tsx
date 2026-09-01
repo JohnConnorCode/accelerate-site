@@ -80,16 +80,19 @@ export default function SubscribersPage() {
   }
 
   return (
-    <motion.div
-      initial={false}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <PageHeader title="Newsletter Subscribers" subtitle={`${total} total`} />
 
       <div className="grid gap-4 sm:grid-cols-3 mb-6">
         <StatCard label="Total" value={stats.total} icon={AtSign} index={0} />
-        <StatCard label="Active" value={stats.active} icon={Users} index={1} trend="up" change={`${stats.total ? Math.round((stats.active / stats.total) * 100) : 0}% active`} />
+        <StatCard
+          label="Active"
+          value={stats.active}
+          icon={Users}
+          index={1}
+          trend="up"
+          change={`${stats.total ? Math.round((stats.active / stats.total) * 100) : 0}% active`}
+        />
         <StatCard label="Unsubscribed" value={stats.unsubscribed} icon={UserX} index={2} />
       </div>
 
@@ -124,10 +127,18 @@ export default function SubscribersPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border-glass">
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Email</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Source</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Status</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Date</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                Email
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                Source
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                Status
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                Date
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -147,7 +158,9 @@ export default function SubscribersPage() {
                     {sub.email}
                   </Link>
                 </td>
-                <td className="px-4 py-3 text-white-secondary capitalize">{sub.source || "website"}</td>
+                <td className="px-4 py-3 text-white-secondary capitalize">
+                  {sub.source || "website"}
+                </td>
                 <td className="px-4 py-3">
                   <StatusBadge status={sub.unsubscribed_at ? "unsubscribed" : "active"} />
                 </td>
@@ -158,9 +171,7 @@ export default function SubscribersPage() {
             ))}
           </tbody>
         </table>
-        {filtered.length === 0 && (
-          <EmptyState message="No subscribers found" icon={AtSign} />
-        )}
+        {filtered.length === 0 && <EmptyState message="No subscribers found" icon={AtSign} />}
       </GlassCard>
 
       <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />

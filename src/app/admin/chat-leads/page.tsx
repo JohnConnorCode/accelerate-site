@@ -52,7 +52,9 @@ function relativeTime(dateString: string) {
 
 function transcriptFor(lead: ChatLead) {
   return (lead.conversation || [])
-    .map((message) => `${message.role === "user" ? lead.name : tenant.brand.name}: ${message.content}`)
+    .map(
+      (message) => `${message.role === "user" ? lead.name : tenant.brand.name}: ${message.content}`,
+    )
     .join("\n\n");
 }
 
@@ -187,11 +189,21 @@ export default function ChatLeadsPage() {
             <table className="w-full table-fixed text-sm md:min-w-[720px] md:table-auto">
               <thead>
                 <tr className="border-b border-border-glass">
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-white-muted">Contact</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-white-muted">Conversation</th>
-                  <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase text-white-muted md:table-cell">Source</th>
-                  <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase text-white-muted md:table-cell">Received</th>
-                  <th className="w-12 px-4 py-3"><span className="sr-only">Expand</span></th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-white-muted">
+                    Contact
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-white-muted">
+                    Conversation
+                  </th>
+                  <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase text-white-muted md:table-cell">
+                    Source
+                  </th>
+                  <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase text-white-muted md:table-cell">
+                    Received
+                  </th>
+                  <th className="w-12 px-4 py-3">
+                    <span className="sr-only">Expand</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -214,8 +226,12 @@ export default function ChatLeadsPage() {
                             aria-controls={panelId}
                             className="text-left"
                           >
-                            <span className="block font-medium text-white-primary">{lead.name}</span>
-                            <span className="mt-0.5 block break-all text-xs text-white-muted">{lead.email}</span>
+                            <span className="block font-medium text-white-primary">
+                              {lead.name}
+                            </span>
+                            <span className="mt-0.5 block break-all text-xs text-white-muted">
+                              {lead.email}
+                            </span>
                           </button>
                         </td>
                         <td className="px-4 py-3 text-white-secondary">
@@ -223,9 +239,16 @@ export default function ChatLeadsPage() {
                         </td>
                         <td className="hidden px-4 py-3 text-xs text-white-muted md:table-cell">
                           {lead.utm_source || "Direct"}
-                          {lead.utm_campaign && <span className="block text-[10px] opacity-70">{lead.utm_campaign}</span>}
+                          {lead.utm_campaign && (
+                            <span className="block text-[10px] opacity-70">
+                              {lead.utm_campaign}
+                            </span>
+                          )}
                         </td>
-                        <td className="hidden px-4 py-3 text-xs text-white-muted md:table-cell" title={new Date(lead.created_at).toLocaleString()}>
+                        <td
+                          className="hidden px-4 py-3 text-xs text-white-muted md:table-cell"
+                          title={new Date(lead.created_at).toLocaleString()}
+                        >
                           {relativeTime(lead.created_at)}
                         </td>
                         <td className="px-4 py-3">
@@ -237,7 +260,11 @@ export default function ChatLeadsPage() {
                             aria-label={`${expanded ? "Collapse" : "Open"} conversation with ${lead.name}`}
                             className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-white-muted transition-[color,background-color,transform] hover:bg-white/5 hover:text-white-primary active:scale-[0.96]"
                           >
-                            {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                            {expanded ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
                           </button>
                         </td>
                       </motion.tr>
@@ -252,7 +279,9 @@ export default function ChatLeadsPage() {
                           >
                             <td colSpan={5} className="bg-bg-elevated px-4 py-4">
                               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                                <p className="text-xs font-medium uppercase tracking-[0.12em] text-white-muted">Conversation</p>
+                                <p className="text-xs font-medium uppercase tracking-[0.12em] text-white-muted">
+                                  Conversation
+                                </p>
                                 <div className="flex flex-wrap items-center gap-2">
                                   <button
                                     type="button"
@@ -278,17 +307,26 @@ export default function ChatLeadsPage() {
                               <GlassCard padding="sm" hover="none">
                                 <div className="max-h-96 space-y-3 overflow-y-auto pr-1">
                                   {(lead.conversation || []).map((message, messageIndex) => (
-                                    <div key={`${lead.id}-${messageIndex}`} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
-                                      <div className={`max-w-[84%] rounded-xl px-3 py-2.5 text-sm leading-relaxed ${message.role === "user" ? "bg-white/10 text-white-primary" : "border border-border-glass bg-bg-subtle text-white-secondary"}`}>
+                                    <div
+                                      key={`${lead.id}-${messageIndex}`}
+                                      className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                                    >
+                                      <div
+                                        className={`max-w-[84%] rounded-xl px-3 py-2.5 text-sm leading-relaxed ${message.role === "user" ? "bg-white/10 text-white-primary" : "border border-border-glass bg-bg-subtle text-white-secondary"}`}
+                                      >
                                         <p className="mb-1 text-[10px] uppercase tracking-[0.1em] text-white-muted">
                                           {message.role === "user" ? lead.name : tenant.brand.name}
                                         </p>
-                                        <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                                        <p className="whitespace-pre-wrap break-words">
+                                          {message.content}
+                                        </p>
                                       </div>
                                     </div>
                                   ))}
                                   {(!lead.conversation || lead.conversation.length === 0) && (
-                                    <p className="py-6 text-center text-sm text-white-muted">No conversation recorded</p>
+                                    <p className="py-6 text-center text-sm text-white-muted">
+                                      No conversation recorded
+                                    </p>
                                   )}
                                 </div>
                               </GlassCard>
@@ -311,7 +349,9 @@ export default function ChatLeadsPage() {
         )}
       </GlassCard>
 
-      {!error && <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />}
+      {!error && (
+        <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
+      )}
     </motion.div>
   );
 }

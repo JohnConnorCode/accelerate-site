@@ -1,51 +1,411 @@
 import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
-  { id: "admin-settings-control-polish", slug: "admin-settings-control-polish", title: "Settings controls now look and behave like production controls", description: "Rebuilt notification preferences around one accessible shared switch with a 48-by-28 pill track, a centered thumb, a full 44-pixel touch target, keyboard operation, visible focus, and a truthful busy state that prevents duplicate saves. Top-level Command Center pages no longer repeat their title as a one-item breadcrumb, while record-detail breadcrumbs remain intact. Settings also sheds its nested route animation and now stacks long configuration keys and editing actions safely on compact screens. The five-business desktop/mobile Command Center regression matrix verifies switch geometry, interaction, overflow, deep links, protected-request isolation, and runtime health.", category: "fix", publishedAt: "2026-08-31" },
-  { id: "home-hero-mobile-timing-parity", slug: "home-hero-mobile-timing-parity", title: "The homepage hero now keeps one animation rhythm on every screen", description: "Removed the compressed phone-only hero timeline that made the mobile entrance rush through the headline, strike, PROFIT reveal, underline, and strategy action in roughly half the authored desktop sequence. Mobile still uses its responsive type scale, composition, and proportional blur, but every entrance beat now inherits the exact desktop duration and delay. A dedicated production-browser contract compares the computed desktop and mobile timelines, captures the headline, PROFIT, and action frames at both widths, checks overflow and runtime errors, and verifies reduced-motion visitors receive the complete hero immediately.", category: "fix", publishedAt: "2026-08-31" },
-  { id: "admin-record-links-and-ai-workspace", slug: "admin-record-links-and-ai-workspace", title: "Client records open reliably and the AI workspace gets a focused operating surface", description: "Repaired the fictional Command Center detail contract so every client and pipeline link resolves the exact requested record across all five businesses; unknown client, opportunity, contact, AI run, proposal, campaign, email, import, and conversation IDs now fail honestly instead of substituting another fixture. Pipeline related-work links point to the real Today workspace, generated AI runs retain their own inspectable identity, and direct tenant reads remain safely restricted. Clients and client details now use the shared appearance-aware admin surfaces instead of the legacy glass and gold layer. The AI workspace removes the stacked explainer-card preamble, keeps a compact three-view switcher, restores conversation selection on phones, keeps the composer inside a bounded viewport-aware work area, and presents assistant answers as readable editorial output with visible evidence and follow-up actions. Automated coverage now opens every client and opportunity detail on desktop and mobile for every fictional business and separately proves invalid IDs cannot cross-link to another entity.", category: "fix", publishedAt: "2026-08-31" },
-  { id: "admin-layout-continuity", slug: "admin-layout-continuity", title: "Admin pages keep one coherent rhythm in every workspace", description: "Repaired the shared async content wrapper that had collapsed section spacing across Analytics, Bookings, Revenue Recovery, Pipeline, Integrations, Feature Board, and other loaded admin routes. The spacing contract now lives in the shared read primitive, so direct, cached, refreshing, live, and fictional-tenant views cannot silently push cards together. Bookings no longer leaks roofing language into other businesses, Analytics reflows its supporting note on phones, and the legacy Revenue cards and chart now use the same appearance-aware surfaces, ink, borders, and accent tokens as the rest of Command Center. Setup also receives the complete Google credential-health contract instead of crashing inside fictional workspaces. Inbox refresh no longer triggers a render-driven refetch loop: one click now performs one bounded read, exposes its busy state, and reliably returns the control to idle. Browser coverage measures real sibling gaps and overflow across the affected routes on desktop and mobile in Signal, Paper, and Night, while the complete five-business, 28-route desktop/mobile demo matrix verifies every enabled workspace and the Inbox refresh interaction.", category: "fix", publishedAt: "2026-08-31" },
-  { id: "mobile-chrome-navigation-performance", slug: "mobile-chrome-navigation-performance", title: "Mobile navigation no longer fights the page underneath it", description: "Rebuilt the public mobile menu around interruptible browser-native transitions, removed the full-page blur layer from route changes, stopped decorative ambient and logo loops from running continuously on phones, and limited the homepage spotlight to real touch interaction instead of every animation frame. The opaque menu now suspends rendering work behind it while keeping the closed drawer inert, route focus no longer draws a broken outline around page headings, and a persistent-profile performance gate exercises repeated navigation, rapid open-close interruption, fresh and returning profiles, reduced motion, long tasks, overflow, focus, and runtime errors under mobile CPU throttling.", category: "fix", publishedAt: "2026-08-31" },
-  { id: "tenant-openrouter-byok", slug: "tenant-openrouter-byok", title: "Each workspace can bring its own OpenRouter key", description: "Tenant administrators can now connect, verify, rotate, and revoke a dedicated OpenRouter API key from Integrations. Verification checks the key without generating tokens; storage encrypts it against the exact tenant, provider, and credential field; and the plaintext never returns to the browser. Every AI workflow resolves the active workspace before provider traffic, so client usage is billed to the client's OpenRouter account and a missing or revoked client key fails closed. Accelerate retains a clearly labelled bootstrap-only platform fallback while tenants move onto their own spend controls.", category: "feature", publishedAt: "2026-08-31" },
-  { id: "tenant-admin-invitations", slug: "tenant-admin-invitations", title: "Client workspace invitations are ready for real operators", description: "Platform administration can now add a client operator through a branded, one-time invitation delivered by the verified Accelerate sender. New accounts, existing confirmed accounts, and previously unconfirmed accounts each follow an explicit path; pending invitations have a safe resend control, delivery outcomes carry provider receipts, and uncertain outcomes tell the founder to reconcile instead of sending twice. Acceptance activates exactly one matching membership and workspace, while suspension, revocation, and the shared-database isolation boundary continue to fail closed.", category: "feature", publishedAt: "2026-08-31" },
-  { id: "grounded-ai-context-contracts", slug: "grounded-ai-context-contracts", title: "AI generation paths now carry stricter evidence and context boundaries", description: "Revenue Copilot, public chat, growth plans, proposal drafts, content briefs, contact imports, and first-touch responses now use explicit source allowlists and fixed context budgets whenever AI generation is configured. Live tool results carry source receipts; unsupported final answers degrade visibly instead of being presented as grounded; prices must match the published service catalog exactly; and imported rows, visitor messages, and inquiry text remain untrusted data rather than instructions. The materially stricter first-touch responder policy advances to version 2 and remains paused until that exact policy is reviewed and approved.", category: "improvement", publishedAt: "2026-08-31" },
-  { id: "tenant-workspaces-and-revenue-recovery", slug: "tenant-workspaces-and-revenue-recovery", title: "Command Center is ready for secure client workspaces and revenue recovery", description: "Command Center now runs as one shared application with explicit, isolated client workspaces: tenant-scoped records, memberships, provider credentials, public intake, webhook routing, jobs, and suspension guards keep each business separate. The new Revenue Recovery workflow turns reviewed historical contacts into bounded, approval-gated reactivation campaigns for stale leads, unsold estimates, no-shows, dormant customers, and lapsed clients. It tracks replies, bookings, reopened opportunities, and wins back to the originating campaign, then puts the next human response in the priority queue. Campaign setup now separates the verified sending identity from the monitored reply inbox and refuses activation until both are ready.", category: "feature", publishedAt: "2026-08-31" },
-  { id: "admin-surfaces-and-email-authoring", slug: "admin-surfaces-and-email-authoring", title: "Admin surfaces and Email Studio now share a deliberate system", description: "Operational cards now choose a semantic surface role—flat, raised, or outlined—while every appearance supplies the matching radius, shadow, and edge treatment. Legacy cards resolve through the same contract, so a theme change cannot split the workspace into visual generations. Email Studio now authors typed sections instead of raw body markup; one renderer produces its exact preview, founder test message, and future published sends, while demo edits remain entirely fictional and local. Mobile receipts clear the navigation dock rather than covering it.", category: "improvement", publishedAt: "2026-08-28" },
-  { id: "navigation-cache-and-motion-continuity", slug: "navigation-cache-and-motion-continuity", title: "Navigation stays smooth in returning browser profiles", description: "Replaced post-paint route animation startup with one pre-paint CSS sequence for the public site, founder workspace, and fictional demos. Admin overlays now remain mounted for their complete entrance and exit lifecycles, refresh controls use the shared compact header position on mobile, and reduced-motion preferences no longer disable unrelated interface feedback. Prebuilt production releases now preserve one build-time Next.js deployment identity and fail closed before upload if the server output could substitute a competing runtime identity. Persistent-profile and frame-sampled browser tests cover public navigation, cached admin navigation, dialog entry and exit, and mobile continuity.", category: "fix", publishedAt: "2026-08-28" },
-  { id: "admin-cold-load-continuity", slug: "admin-cold-load-continuity", title: "Cold admin loads now preserve the destination instead of flashing placeholders", description: "Fast Command Center reads now resolve without showing a skeleton at all. When a read is genuinely slow, one shared async-region primitive waits briefly, fades in a destination-shaped placeholder, and then crossfades to retained or ready content; Today keeps the same 2-by-2 mobile summary geometry throughout. Frame-by-frame browser coverage now forces an uncached route and verifies cold-load visibility, same-frame navigation feedback, sequential blur-and-rise motion, focus, scroll reset, mobile dock movement, and reduced motion against the rendered application.", category: "fix", publishedAt: "2026-08-28" },
-  { id: "interface-reliability-and-brand-refresh", slug: "interface-reliability-and-brand-refresh", title: "Shared interface foundations now stay coherent across every route", description: "Repaired the viewport-owned notification layer, restored viewport-timed public reveals on industry pages, isolated the fictional-demo launcher theme from the global site preference, and gave every Today demo filter meaningful interactive work. Selected Work now uses one rounded media treatment and a header-aware hero rhythm in both themes. The 404 experience and social-share cards were rebuilt in the current Accelerate system, with one dynamic Open Graph source supplying consistent, optimized imagery across the site.", category: "fix", publishedAt: "2026-08-28" },
-  { id: "admin-motion-and-composer-standard", slug: "admin-motion-and-composer-standard", title: "Admin navigation now feels continuous and intentional", description: "The founder workspace and every fictional demo now acknowledge the intended destination immediately, then resolve through one perceptible, sequential blur-and-rise entrance on direct loads and later navigation. Page identity remains visible while unresolved data uses regional geometry, and shared cancellable queries retain useful results across revisits and refreshes. The mobile dock moves as one glass selection surface, yields the bottom edge to notifications instead of overlapping them, and More opens one accessible side drawer. Today and notification queues no longer repeat decorative icons; AI commands and conversation replies share one focused composer surface. Browser contracts enforce the motion sequence, loading ownership, overlay collision rules, semantic icon use, and shared messaging controls.", category: "fix", publishedAt: "2026-08-27" },
-  { id: "continuous-navigation-runtime", slug: "continuous-navigation-runtime", title: "Navigation now behaves like one continuous application", description: "Public pages, the founder workspace, and all three fictional demos now share one navigation runtime. New destinations begin at the top, browser history restores the exact prior reading position, admin navigation stays inside its application viewport, and demo links remain in the selected fictional business without hard reloads. Slow admin transitions now render one route-aware, tokenized skeleton with the same geometry as the destination instead of a blank frame or generic spinner. The real destination then resolves through one restrained, legible blur-and-rise sequence; fast prefetched routes skip the fallback, reduced motion remains immediate, and focus moves only after the committed page heading exists. AI marks are now reserved for explicit AI entry points, while approvals, notifications, prompts, and queue rows use their actual operational meaning.", category: "improvement", publishedAt: "2026-08-27" },
-  { id: "work-motion-ownership-repair", slug: "work-motion-ownership-repair", title: "Every Work story now moves as one coherent system", description: "Repaired the Work index and all case studies so cards, chapters, proof, calls to action, and standalone media animate when they actually enter the viewport. One shared public observer now owns trigger behavior, while Work supplies one explicit visual recipe; nested card-and-media entrances and inherited homepage timing have been removed. A checked-in architecture contract and stricter browser assertions prevent global motion changes from silently disabling Work again while preserving reduced-motion, delayed-JavaScript, and no-JavaScript access.", category: "fix", publishedAt: "2026-08-26" },
-  { id: "release-reliability-hardening", slug: "release-reliability-hardening", title: "Release reliability hardened across the public site and AI workspace", description: "Centralized date-only formatting on UTC so Learn and Changelog content renders identically on the server and in every visitor time zone. Public reveals now continuously reconcile the current viewport during scroll and responsive layout changes without prematurely consuming below-fold animation. The global AI command shortcut accepts the physical J key consistently across keyboard layouts, ignores key repeat, and retains the same shared workspace and approval boundary. Production-browser coverage exercises all 40 public route patterns and the complete AI workspace at desktop, mobile, dark, and reduced-motion settings.", category: "fix", publishedAt: "2026-08-26" },
-  { id: "fail-open-public-motion", slug: "fail-open-public-motion", title: "Public pages now stay visible through every loading path", description: "Rebuilt the public motion contract so content is present in prerendered HTML and stays readable before hydration, without JavaScript, during back-forward navigation, and with reduced motion. Shared reveals now fail open instead of stranding below-fold content, animated word masks arm only after the client is ready, and the complete Work system uses the same restrained entrance language. The mobile website assistant now behaves as a real modal with safe-area geometry, background isolation, keyboard focus containment, Escape, and focus restoration. Automated coverage verifies the full generated Learn catalog, every Work case, protected-route exclusions, accessibility, mobile and desktop layouts, and real navigation.", category: "improvement", publishedAt: "2026-08-25" },
-  { id: "operator-grade-ai-workspace", slug: "operator-grade-ai-workspace", title: "One professional AI workspace for questions, evidence, and control", description: "AI Command and AI Operations are now one coherent workspace with three views: Ask, Run history, and Capabilities. The existing shared conversation and approval runtime remains authoritative, while the run ledger adds redacted summaries, exact database filters, stable pagination, ordered tool evidence, honest degraded states, linked records, and safe failure responses. The capability view comes from the versioned tool registry and explicitly separates registered policy from live integration readiness. The full public admin demo uses these same components and APIs with detailed fictional runs on desktop and mobile; the old AI Operations URL remains a compatibility route.", category: "feature", publishedAt: "2026-08-25" },
-  { id: "professional-admin-demo-workspaces", slug: "professional-admin-demo-workspaces", title: "Three complete businesses in one public Command Center demo", description: "The full Command Center can now be explored publicly as three detailed fictional businesses: a children's enrichment studio, a roofing and exteriors company, and a growth consultancy. The demo uses the actual admin routes and responsive components rather than a parallel mock dashboard, with populated email, conversations, pipeline, bookings, campaigns, proposals, clients, analytics, integrations, settings, AI operations, and roadmap views. Every action stays inside isolated browser-session state, every workspace has a guided story and exact reset, and the four admin appearances work across desktop and mobile. Server-validated scenario routing keeps the public URL, shared admin shell, and browser runtime synchronized without hydration errors or access to protected admin services. The shorter interactive preview and the complete admin workspace now link to each other clearly.", category: "feature", publishedAt: "2026-08-25" },
-  { id: "selected-work-portfolio", slug: "selected-work-portfolio", title: "Selected Work rebuilt as an evidence-led portfolio", description: "Published six public project stories through one typed, reusable portfolio system, with Northern Trust preserved as an unlisted archive. WORK+SHELTER and SuperDebate receive flagship visual treatment with authentic product and operating-system captures, while every case uses truthful attribution, verified claims, project-specific art direction, responsive media, reduced-motion behavior, and clear connections to current Accelerate services. Search, sitemap, metadata, related work, and archive exclusions all derive from the same visibility contract.", category: "feature", publishedAt: "2026-08-25" },
-  { id: "booking-restored", slug: "booking-restored", title: "Booking is live again, on the right calendar", description: "Every Book a call surface now points at the correct scheduler. The link had been disabled after it was found pointing at an unrelated business while embedded on the contact page and handed out by the website assistant. The contact embed, the roofing embed, the assistant, and the qualifier all read one value, so booking can be turned on or off everywhere at once rather than drifting apart. A signed Calendly booking now reaches the operator queue, and a redelivered booking is recognised as the same meeting instead of notifying twice.", category: "fix", publishedAt: "2026-08-20" },
-  { id: "house-style-enforced-on-chat", slug: "house-style-enforced-on-chat", title: "House style enforced on assistant replies", description: "The website assistant now has its house style enforced as replies stream, not merely requested in its instructions. Prompt rules are guidance a model can drift from; this is applied to the outgoing text itself, while links, hyphenated words, dates, and numeric ranges pass through untouched. The conversation ledger records what was actually sent rather than what was first generated.", category: "improvement", publishedAt: "2026-08-20" },
-  { id: "autonomous-inbound-responder", slug: "autonomous-inbound-responder", title: "Approved response policies for inbound inquiries", description: "Added the ability to acknowledge a new inquiry within seconds without a person in the loop, built as a versioned policy the founder signs rather than an agent that is trusted. The policy fixes its trigger, limits, guardrails, wording, and model; any material change suspends it until the new version is approved. It refuses to act outside a first-touch inquiry, an active contact, a daily and per-contact ceiling, and business hours, and a draft that states pricing, commits to a time, or claims work already done is rejected before anyone reads it. Every refusal is recorded with its reason, not only every send. It ships switched off.", category: "feature", publishedAt: "2026-08-20" },
-  { id: "ai-tool-contract-enforced", slug: "ai-tool-contract-enforced", title: "AI tool contracts are now enforced, not advertised", description: "Tool schemas and impact levels were declared throughout the assistant layer and checked nowhere, so the system was safe only because every write happened to route through the approval queue. Tool calls are now validated against their declared schema before running, a tool marked read-only that tries to stage an action is refused, a tool that should propose but does not is refused, and destructive capability fails closed. Operational snapshots are bounded and now name any data they could not read instead of reporting an empty result as fact.", category: "improvement", publishedAt: "2026-08-20" },
-  { id: "assistant-run-ledger", slug: "assistant-run-ledger", title: "Every assistant conversation is now on the record", description: "The public website assistant is the one place an AI speaks to prospects unattended, and it kept no record of what it said. It now opens a run on the same ledger as the internal copilot, tees the streamed reply into it, and reaches a final state whether the answer completes, the provider fails, or the visitor closes the tab. The copilot also now knows the current date, returns what it gathered instead of discarding the answer when it runs out of steps, and names any actions it left awaiting approval.", category: "improvement", publishedAt: "2026-08-20" },
-  { id: "operational-alerting", slug: "operational-alerting", title: "Failures now reach the founder", description: "Operational failures were visible only inside the admin dashboard, behind a poll, to someone already looking. Job failures, recovered stalls, integration problems, and failed webhook deliveries now send an alert with its own delivery receipt, de-duplicated so a flapping subsystem produces one message rather than fifty. Health reporting was also corrected: it counted only outright failures, so a job stuck mid-run read as healthy, and failed webhook receipts were never read by any surface at all.", category: "improvement", publishedAt: "2026-08-19" },
-  { id: "campaign-engine-repair", slug: "campaign-engine-repair", title: "Outbound campaigns can send, recover, and stay within one budget", description: "Three independent faults meant a member added through the interface could never receive anything, while the scheduled run reported success. Members now carry a resolved contact and a real due time, a send that fails is retried with backoff instead of being terminally stopped, a claim abandoned by a crashed run is recovered rather than stranded, and one account-wide daily ceiling now governs every active campaign instead of each one carrying its own.", category: "fix", publishedAt: "2026-08-19" },
-  { id: "inquiry-capture-hardening", slug: "inquiry-capture-hardening", title: "No inquiry is reported saved unless it was", description: "Several public forms logged a database failure and returned success anyway, so a visitor was told their details were recorded when they were not. Every capture path now checks its write and reports honestly. A booking that produced no notification, caused by writing to a column that does not exist, was also corrected and proven end to end in production.", category: "fix", publishedAt: "2026-08-19" },
-  { id: "nonprofit-practice", slug: "nonprofit-practice", title: "A dedicated practice page for nonprofits", description: "Added a purpose-built page for nonprofit organisations covering donor follow-up, volunteer coordination, grant deadlines, and the operational load that falls on small teams, including the end-to-end command centre built for WORK+SHELTER.", category: "feature", publishedAt: "2026-08-19" },
-  { id: "gmail-cursor-recovery", slug: "gmail-cursor-recovery", title: "Gmail sync cursor and recovery semantics", description: "Gmail synchronization now records a durable history cursor only after a complete bounded run, derives changed threads from Gmail history without duplicate work, and exposes incremental, initial, or recovery mode with honest deferred and failure counts. Expired cursors use a bounded reconciliation path instead of silently skipping work.", category: "improvement", publishedAt: "2026-08-17" },
-  { id: "calendar-canonical-association", slug: "calendar-canonical-association", title: "Calendar events now associate through canonical identity", description: "Google Calendar synchronization now links a meeting only when exactly one canonical contact matches an attendee, records ambiguous and unmatched cases without guessing, and associates the current opportunity. A confirmed upcoming meeting safely stops pending campaign outreach once without creating or changing an external event or pipeline stage.", category: "improvement", publishedAt: "2026-08-17" },
-  { id: "gmail-reply-campaign-stop", slug: "gmail-reply-campaign-stop", title: "Gmail replies stop campaign follow-up", description: "Gmail synchronization now uses the shared exact primary/alternate-email resolver and only treats newly recorded inbound messages as reply facts. Those facts enter the canonical campaign-stop service, preserving the same receipt, audit, and send-claim safeguards as unsubscribe and Resend delivery failures.", category: "improvement", publishedAt: "2026-08-17" },
-  { id: "campaign-stop-claim-boundary", slug: "campaign-stop-claim-boundary", title: "Atomic campaign stop and send-claim boundary", description: "Campaign stop conditions and send claims now serialize on each canonical contact inside PostgreSQL. The claim verifies the contact is active and the campaign is still approved; a stop records terminal eligibility before another due step can claim. A controlled production check proves a stopped membership cannot be claimed.", category: "improvement", publishedAt: "2026-08-17" },
-  { id: "canonical-campaign-stop-service", slug: "canonical-campaign-stop-service", title: "Canonical campaign stop controls", description: "Campaign suppression now has one Revenue OS service instead of separate unsubscribe, delivery-webhook, and executor writes. It records why pending memberships stopped, preserves activity and audit evidence, and rechecks contact suppression plus campaign approval immediately before a claimed send reaches Resend.", category: "improvement", publishedAt: "2026-08-17" },
-  { id: "resend-delivery-ledger", slug: "resend-delivery-ledger", title: "Resend delivery ledger and campaign suppression", description: "The canonical sender now adds durable provider idempotency and Revenue OS tags to every Resend message. A signed, replay-safe webhook ledger records delivery outcomes, activity, and audit evidence, while hard bounces, complaints, and provider suppressions immediately prevent later campaign sends. Setup Center now distinguishes basic sending from live delivery feedback and documents the one Resend webhook configuration step.", category: "improvement", publishedAt: "2026-08-17" },
-  { id: "atomic-revenue-job-claims", slug: "atomic-revenue-job-claims", title: "Atomic claims for scheduled Revenue OS work", description: "Added one database-owned claim path for scheduled and on-demand Revenue OS jobs. Concurrent invocations now return the existing running receipt, while repeated deterministic keys return their completed receipt instead of starting a second execution. Cron and Workspace sync routes expose an honest skipped result when another worker already owns the job.", category: "improvement", publishedAt: "2026-08-17" },
-  { id: "revenue-schema-contract-verification", slug: "revenue-schema-contract-verification", title: "Verified Revenue OS schema contract", description: "Added a versioned, read-only production schema verifier and immutable verification receipts. It checks required tables, columns, constraints, indexes, PostgreSQL functions, and service-only policies; clearly reports unapplied migrations, metadata drift, or connectivity failure; and makes Setup Center show the exact verified contract version and latest successful check instead of trusting a single table query.", category: "improvement", publishedAt: "2026-08-17" },
-  { id: "approval-gated-ai-contact-import", slug: "approval-gated-ai-contact-import", title: "OpenRouter contact cleanup and approval import", description: "Added one founder-only Contact Import workspace for pasted lists, CSV, TSV, JSON, and messy notes. OpenRouter proposes normalized contacts, deterministic identity checks identify new versus existing records, and a literal-evidence guard strips unsupported AI fields before low-confidence or ambiguous rows default to excluded. The founder edits and approves an exact digest-bound snapshot before canonical writes; execution creates row-level receipts and safe partial retry without creating opportunities, campaigns, tasks, or messages. Standardized every active AI caller on one server-only OpenRouter gateway, configured encrypted production AI and cron credentials, applied and idempotently verified all pending production schemas, reached 100% required Setup readiness, and added a Keychain-backed migration command so future agents own migration execution through live verification.", category: "feature", publishedAt: "2026-08-16" },
-  { id: "revenue-os-agent-contract", slug: "revenue-os-agent-contract", title: "Universal agent engineering contract", description: "Codified one repository-wide framework for canonical data ownership, domain-service writes, automation claims and receipts, AI tool impact and confirmation, governed learning, failure semantics, verification, ticket pickup, evidence, and recovery. Added a core Revenue OS module map and a machine verifier that rejects thin or contradictory managed-card handoffs before implementation begins.", category: "improvement", publishedAt: "2026-08-16" },
-  { id: "admin-command-center-recovery", slug: "admin-command-center-recovery", title: "Professional Command Center recovery", description: "Rebuilt the admin interaction foundation around one responsive route registry, persisted collapsible sidebar, consistent entry motion, complete light/dark tokens, and one accessible portal dialog used by every modal and drawer. Restored Email Studio with editable drafts, rendered previews, explicit publishing, sent-message history, and compose handoff. Reworked Feature Board pointer/keyboard drag behavior and added one canonical compatibility bridge across Leads, Contacts, Chat, Clients, Subscribers, Resources, Partners, and Website Grades, including a unified person timeline and Pipeline deep-links. Verified all 25 registered admin routes at desktop and phone widths with Playwright.", category: "improvement", publishedAt: "2026-08-16" },
-  { id: "money-first-inbound-outreach", slug: "money-first-inbound-outreach", title: "Money-first inbound and outreach safety", description: "Contact, chat, and roofing inquiries now feed one canonical revenue loop with same-day follow-up. The contact page uses manual scheduling while Calendly is disabled. Campaign email adds durable idempotency, founder reply-to, one-click unsubscribe, immediate suppression, and a server-enforced one-step/10-per-day pilot limit.", category: "improvement", publishedAt: "2026-08-16" },
-  { id: "canonical-inbound-revenue-loop", slug: "canonical-inbound-revenue-loop", title: "Qualified inbound requests now enter the revenue work queue", description: "A roofing audit request now creates or enriches one canonical contact, company, and opportunity; retains source attribution; records an activity receipt and stage history; and creates a deduplicated same-day follow-up task for qualified prospects. The original nurture sequence remains non-blocking, so a delivery issue cannot lose the lead.", category: "improvement", publishedAt: "2026-08-16" },
-  { id: "turn-key-first-party-analytics", slug: "turn-key-first-party-analytics", title: "Turn-key first-party revenue analytics", description: "Analytics now works without a Plausible or other third-party analytics account. The public site records privacy-minimised page views and conversion events server-side, while the founder workspace keeps that traffic context separate from the canonical opportunity, source, stage, and won-revenue funnel. Missing attribution and an unapplied event schema are visibly flagged rather than shown as healthy zeroes.", category: "improvement", publishedAt: "2026-08-16" },
-  { id: "opportunity-provenance-ledger", slug: "opportunity-provenance-ledger", title: "Opportunity provenance from creation", description: "New opportunities now write an initial pipeline-stage event and canonical activity receipt at creation, preserving their origin, linked identity, starting stage, and value for future timelines and agent context.", category: "improvement", publishedAt: "2026-08-16" },
+  {
+    id: "admin-settings-control-polish",
+    slug: "admin-settings-control-polish",
+    title: "Settings controls now look and behave like production controls",
+    description:
+      "Rebuilt notification preferences around one accessible shared switch with a 48-by-28 pill track, a centered thumb, a full 44-pixel touch target, keyboard operation, visible focus, and a truthful busy state that prevents duplicate saves. Top-level Command Center pages no longer repeat their title as a one-item breadcrumb, while record-detail breadcrumbs remain intact. Settings also sheds its nested route animation and now stacks long configuration keys and editing actions safely on compact screens. The five-business desktop/mobile Command Center regression matrix verifies switch geometry, interaction, overflow, deep links, protected-request isolation, and runtime health.",
+    category: "fix",
+    publishedAt: "2026-08-31",
+  },
+  {
+    id: "home-hero-mobile-timing-parity",
+    slug: "home-hero-mobile-timing-parity",
+    title: "The homepage hero now keeps one animation rhythm on every screen",
+    description:
+      "Removed the compressed phone-only hero timeline that made the mobile entrance rush through the headline, strike, PROFIT reveal, underline, and strategy action in roughly half the authored desktop sequence. Mobile still uses its responsive type scale, composition, and proportional blur, but every entrance beat now inherits the exact desktop duration and delay. A dedicated production-browser contract compares the computed desktop and mobile timelines, captures the headline, PROFIT, and action frames at both widths, checks overflow and runtime errors, and verifies reduced-motion visitors receive the complete hero immediately.",
+    category: "fix",
+    publishedAt: "2026-08-31",
+  },
+  {
+    id: "admin-record-links-and-ai-workspace",
+    slug: "admin-record-links-and-ai-workspace",
+    title: "Client records open reliably and the AI workspace gets a focused operating surface",
+    description:
+      "Repaired the fictional Command Center detail contract so every client and pipeline link resolves the exact requested record across all five businesses; unknown client, opportunity, contact, AI run, proposal, campaign, email, import, and conversation IDs now fail honestly instead of substituting another fixture. Pipeline related-work links point to the real Today workspace, generated AI runs retain their own inspectable identity, and direct tenant reads remain safely restricted. Clients and client details now use the shared appearance-aware admin surfaces instead of the legacy glass and gold layer. The AI workspace removes the stacked explainer-card preamble, keeps a compact three-view switcher, restores conversation selection on phones, keeps the composer inside a bounded viewport-aware work area, and presents assistant answers as readable editorial output with visible evidence and follow-up actions. Automated coverage now opens every client and opportunity detail on desktop and mobile for every fictional business and separately proves invalid IDs cannot cross-link to another entity.",
+    category: "fix",
+    publishedAt: "2026-08-31",
+  },
+  {
+    id: "admin-layout-continuity",
+    slug: "admin-layout-continuity",
+    title: "Admin pages keep one coherent rhythm in every workspace",
+    description:
+      "Repaired the shared async content wrapper that had collapsed section spacing across Analytics, Bookings, Revenue Recovery, Pipeline, Integrations, Feature Board, and other loaded admin routes. The spacing contract now lives in the shared read primitive, so direct, cached, refreshing, live, and fictional-tenant views cannot silently push cards together. Bookings no longer leaks roofing language into other businesses, Analytics reflows its supporting note on phones, and the legacy Revenue cards and chart now use the same appearance-aware surfaces, ink, borders, and accent tokens as the rest of Command Center. Setup also receives the complete Google credential-health contract instead of crashing inside fictional workspaces. Inbox refresh no longer triggers a render-driven refetch loop: one click now performs one bounded read, exposes its busy state, and reliably returns the control to idle. Browser coverage measures real sibling gaps and overflow across the affected routes on desktop and mobile in Signal, Paper, and Night, while the complete five-business, 28-route desktop/mobile demo matrix verifies every enabled workspace and the Inbox refresh interaction.",
+    category: "fix",
+    publishedAt: "2026-08-31",
+  },
+  {
+    id: "mobile-chrome-navigation-performance",
+    slug: "mobile-chrome-navigation-performance",
+    title: "Mobile navigation no longer fights the page underneath it",
+    description:
+      "Rebuilt the public mobile menu around interruptible browser-native transitions, removed the full-page blur layer from route changes, stopped decorative ambient and logo loops from running continuously on phones, and limited the homepage spotlight to real touch interaction instead of every animation frame. The opaque menu now suspends rendering work behind it while keeping the closed drawer inert, route focus no longer draws a broken outline around page headings, and a persistent-profile performance gate exercises repeated navigation, rapid open-close interruption, fresh and returning profiles, reduced motion, long tasks, overflow, focus, and runtime errors under mobile CPU throttling.",
+    category: "fix",
+    publishedAt: "2026-08-31",
+  },
+  {
+    id: "tenant-openrouter-byok",
+    slug: "tenant-openrouter-byok",
+    title: "Each workspace can bring its own OpenRouter key",
+    description:
+      "Tenant administrators can now connect, verify, rotate, and revoke a dedicated OpenRouter API key from Integrations. Verification checks the key without generating tokens; storage encrypts it against the exact tenant, provider, and credential field; and the plaintext never returns to the browser. Every AI workflow resolves the active workspace before provider traffic, so client usage is billed to the client's OpenRouter account and a missing or revoked client key fails closed. Accelerate retains a clearly labelled bootstrap-only platform fallback while tenants move onto their own spend controls.",
+    category: "feature",
+    publishedAt: "2026-08-31",
+  },
+  {
+    id: "tenant-admin-invitations",
+    slug: "tenant-admin-invitations",
+    title: "Client workspace invitations are ready for real operators",
+    description:
+      "Platform administration can now add a client operator through a branded, one-time invitation delivered by the verified Accelerate sender. New accounts, existing confirmed accounts, and previously unconfirmed accounts each follow an explicit path; pending invitations have a safe resend control, delivery outcomes carry provider receipts, and uncertain outcomes tell the founder to reconcile instead of sending twice. Acceptance activates exactly one matching membership and workspace, while suspension, revocation, and the shared-database isolation boundary continue to fail closed.",
+    category: "feature",
+    publishedAt: "2026-08-31",
+  },
+  {
+    id: "grounded-ai-context-contracts",
+    slug: "grounded-ai-context-contracts",
+    title: "AI generation paths now carry stricter evidence and context boundaries",
+    description:
+      "Revenue Copilot, public chat, growth plans, proposal drafts, content briefs, contact imports, and first-touch responses now use explicit source allowlists and fixed context budgets whenever AI generation is configured. Live tool results carry source receipts; unsupported final answers degrade visibly instead of being presented as grounded; prices must match the published service catalog exactly; and imported rows, visitor messages, and inquiry text remain untrusted data rather than instructions. The materially stricter first-touch responder policy advances to version 2 and remains paused until that exact policy is reviewed and approved.",
+    category: "improvement",
+    publishedAt: "2026-08-31",
+  },
+  {
+    id: "tenant-workspaces-and-revenue-recovery",
+    slug: "tenant-workspaces-and-revenue-recovery",
+    title: "Command Center is ready for secure client workspaces and revenue recovery",
+    description:
+      "Command Center now runs as one shared application with explicit, isolated client workspaces: tenant-scoped records, memberships, provider credentials, public intake, webhook routing, jobs, and suspension guards keep each business separate. The new Revenue Recovery workflow turns reviewed historical contacts into bounded, approval-gated reactivation campaigns for stale leads, unsold estimates, no-shows, dormant customers, and lapsed clients. It tracks replies, bookings, reopened opportunities, and wins back to the originating campaign, then puts the next human response in the priority queue. Campaign setup now separates the verified sending identity from the monitored reply inbox and refuses activation until both are ready.",
+    category: "feature",
+    publishedAt: "2026-08-31",
+  },
+  {
+    id: "admin-surfaces-and-email-authoring",
+    slug: "admin-surfaces-and-email-authoring",
+    title: "Admin surfaces and Email Studio now share a deliberate system",
+    description:
+      "Operational cards now choose a semantic surface role—flat, raised, or outlined—while every appearance supplies the matching radius, shadow, and edge treatment. Legacy cards resolve through the same contract, so a theme change cannot split the workspace into visual generations. Email Studio now authors typed sections instead of raw body markup; one renderer produces its exact preview, founder test message, and future published sends, while demo edits remain entirely fictional and local. Mobile receipts clear the navigation dock rather than covering it.",
+    category: "improvement",
+    publishedAt: "2026-08-28",
+  },
+  {
+    id: "navigation-cache-and-motion-continuity",
+    slug: "navigation-cache-and-motion-continuity",
+    title: "Navigation stays smooth in returning browser profiles",
+    description:
+      "Replaced post-paint route animation startup with one pre-paint CSS sequence for the public site, founder workspace, and fictional demos. Admin overlays now remain mounted for their complete entrance and exit lifecycles, refresh controls use the shared compact header position on mobile, and reduced-motion preferences no longer disable unrelated interface feedback. Prebuilt production releases now preserve one build-time Next.js deployment identity and fail closed before upload if the server output could substitute a competing runtime identity. Persistent-profile and frame-sampled browser tests cover public navigation, cached admin navigation, dialog entry and exit, and mobile continuity.",
+    category: "fix",
+    publishedAt: "2026-08-28",
+  },
+  {
+    id: "admin-cold-load-continuity",
+    slug: "admin-cold-load-continuity",
+    title: "Cold admin loads now preserve the destination instead of flashing placeholders",
+    description:
+      "Fast Command Center reads now resolve without showing a skeleton at all. When a read is genuinely slow, one shared async-region primitive waits briefly, fades in a destination-shaped placeholder, and then crossfades to retained or ready content; Today keeps the same 2-by-2 mobile summary geometry throughout. Frame-by-frame browser coverage now forces an uncached route and verifies cold-load visibility, same-frame navigation feedback, sequential blur-and-rise motion, focus, scroll reset, mobile dock movement, and reduced motion against the rendered application.",
+    category: "fix",
+    publishedAt: "2026-08-28",
+  },
+  {
+    id: "interface-reliability-and-brand-refresh",
+    slug: "interface-reliability-and-brand-refresh",
+    title: "Shared interface foundations now stay coherent across every route",
+    description:
+      "Repaired the viewport-owned notification layer, restored viewport-timed public reveals on industry pages, isolated the fictional-demo launcher theme from the global site preference, and gave every Today demo filter meaningful interactive work. Selected Work now uses one rounded media treatment and a header-aware hero rhythm in both themes. The 404 experience and social-share cards were rebuilt in the current Accelerate system, with one dynamic Open Graph source supplying consistent, optimized imagery across the site.",
+    category: "fix",
+    publishedAt: "2026-08-28",
+  },
+  {
+    id: "admin-motion-and-composer-standard",
+    slug: "admin-motion-and-composer-standard",
+    title: "Admin navigation now feels continuous and intentional",
+    description:
+      "The founder workspace and every fictional demo now acknowledge the intended destination immediately, then resolve through one perceptible, sequential blur-and-rise entrance on direct loads and later navigation. Page identity remains visible while unresolved data uses regional geometry, and shared cancellable queries retain useful results across revisits and refreshes. The mobile dock moves as one glass selection surface, yields the bottom edge to notifications instead of overlapping them, and More opens one accessible side drawer. Today and notification queues no longer repeat decorative icons; AI commands and conversation replies share one focused composer surface. Browser contracts enforce the motion sequence, loading ownership, overlay collision rules, semantic icon use, and shared messaging controls.",
+    category: "fix",
+    publishedAt: "2026-08-27",
+  },
+  {
+    id: "continuous-navigation-runtime",
+    slug: "continuous-navigation-runtime",
+    title: "Navigation now behaves like one continuous application",
+    description:
+      "Public pages, the founder workspace, and all three fictional demos now share one navigation runtime. New destinations begin at the top, browser history restores the exact prior reading position, admin navigation stays inside its application viewport, and demo links remain in the selected fictional business without hard reloads. Slow admin transitions now render one route-aware, tokenized skeleton with the same geometry as the destination instead of a blank frame or generic spinner. The real destination then resolves through one restrained, legible blur-and-rise sequence; fast prefetched routes skip the fallback, reduced motion remains immediate, and focus moves only after the committed page heading exists. AI marks are now reserved for explicit AI entry points, while approvals, notifications, prompts, and queue rows use their actual operational meaning.",
+    category: "improvement",
+    publishedAt: "2026-08-27",
+  },
+  {
+    id: "work-motion-ownership-repair",
+    slug: "work-motion-ownership-repair",
+    title: "Every Work story now moves as one coherent system",
+    description:
+      "Repaired the Work index and all case studies so cards, chapters, proof, calls to action, and standalone media animate when they actually enter the viewport. One shared public observer now owns trigger behavior, while Work supplies one explicit visual recipe; nested card-and-media entrances and inherited homepage timing have been removed. A checked-in architecture contract and stricter browser assertions prevent global motion changes from silently disabling Work again while preserving reduced-motion, delayed-JavaScript, and no-JavaScript access.",
+    category: "fix",
+    publishedAt: "2026-08-26",
+  },
+  {
+    id: "release-reliability-hardening",
+    slug: "release-reliability-hardening",
+    title: "Release reliability hardened across the public site and AI workspace",
+    description:
+      "Centralized date-only formatting on UTC so Learn and Changelog content renders identically on the server and in every visitor time zone. Public reveals now continuously reconcile the current viewport during scroll and responsive layout changes without prematurely consuming below-fold animation. The global AI command shortcut accepts the physical J key consistently across keyboard layouts, ignores key repeat, and retains the same shared workspace and approval boundary. Production-browser coverage exercises all 40 public route patterns and the complete AI workspace at desktop, mobile, dark, and reduced-motion settings.",
+    category: "fix",
+    publishedAt: "2026-08-26",
+  },
+  {
+    id: "fail-open-public-motion",
+    slug: "fail-open-public-motion",
+    title: "Public pages now stay visible through every loading path",
+    description:
+      "Rebuilt the public motion contract so content is present in prerendered HTML and stays readable before hydration, without JavaScript, during back-forward navigation, and with reduced motion. Shared reveals now fail open instead of stranding below-fold content, animated word masks arm only after the client is ready, and the complete Work system uses the same restrained entrance language. The mobile website assistant now behaves as a real modal with safe-area geometry, background isolation, keyboard focus containment, Escape, and focus restoration. Automated coverage verifies the full generated Learn catalog, every Work case, protected-route exclusions, accessibility, mobile and desktop layouts, and real navigation.",
+    category: "improvement",
+    publishedAt: "2026-08-25",
+  },
+  {
+    id: "operator-grade-ai-workspace",
+    slug: "operator-grade-ai-workspace",
+    title: "One professional AI workspace for questions, evidence, and control",
+    description:
+      "AI Command and AI Operations are now one coherent workspace with three views: Ask, Run history, and Capabilities. The existing shared conversation and approval runtime remains authoritative, while the run ledger adds redacted summaries, exact database filters, stable pagination, ordered tool evidence, honest degraded states, linked records, and safe failure responses. The capability view comes from the versioned tool registry and explicitly separates registered policy from live integration readiness. The full public admin demo uses these same components and APIs with detailed fictional runs on desktop and mobile; the old AI Operations URL remains a compatibility route.",
+    category: "feature",
+    publishedAt: "2026-08-25",
+  },
+  {
+    id: "professional-admin-demo-workspaces",
+    slug: "professional-admin-demo-workspaces",
+    title: "Three complete businesses in one public Command Center demo",
+    description:
+      "The full Command Center can now be explored publicly as three detailed fictional businesses: a children's enrichment studio, a roofing and exteriors company, and a growth consultancy. The demo uses the actual admin routes and responsive components rather than a parallel mock dashboard, with populated email, conversations, pipeline, bookings, campaigns, proposals, clients, analytics, integrations, settings, AI operations, and roadmap views. Every action stays inside isolated browser-session state, every workspace has a guided story and exact reset, and the four admin appearances work across desktop and mobile. Server-validated scenario routing keeps the public URL, shared admin shell, and browser runtime synchronized without hydration errors or access to protected admin services. The shorter interactive preview and the complete admin workspace now link to each other clearly.",
+    category: "feature",
+    publishedAt: "2026-08-25",
+  },
+  {
+    id: "selected-work-portfolio",
+    slug: "selected-work-portfolio",
+    title: "Selected Work rebuilt as an evidence-led portfolio",
+    description:
+      "Published six public project stories through one typed, reusable portfolio system, with Northern Trust preserved as an unlisted archive. WORK+SHELTER and SuperDebate receive flagship visual treatment with authentic product and operating-system captures, while every case uses truthful attribution, verified claims, project-specific art direction, responsive media, reduced-motion behavior, and clear connections to current Accelerate services. Search, sitemap, metadata, related work, and archive exclusions all derive from the same visibility contract.",
+    category: "feature",
+    publishedAt: "2026-08-25",
+  },
+  {
+    id: "booking-restored",
+    slug: "booking-restored",
+    title: "Booking is live again, on the right calendar",
+    description:
+      "Every Book a call surface now points at the correct scheduler. The link had been disabled after it was found pointing at an unrelated business while embedded on the contact page and handed out by the website assistant. The contact embed, the roofing embed, the assistant, and the qualifier all read one value, so booking can be turned on or off everywhere at once rather than drifting apart. A signed Calendly booking now reaches the operator queue, and a redelivered booking is recognised as the same meeting instead of notifying twice.",
+    category: "fix",
+    publishedAt: "2026-08-20",
+  },
+  {
+    id: "house-style-enforced-on-chat",
+    slug: "house-style-enforced-on-chat",
+    title: "House style enforced on assistant replies",
+    description:
+      "The website assistant now has its house style enforced as replies stream, not merely requested in its instructions. Prompt rules are guidance a model can drift from; this is applied to the outgoing text itself, while links, hyphenated words, dates, and numeric ranges pass through untouched. The conversation ledger records what was actually sent rather than what was first generated.",
+    category: "improvement",
+    publishedAt: "2026-08-20",
+  },
+  {
+    id: "autonomous-inbound-responder",
+    slug: "autonomous-inbound-responder",
+    title: "Approved response policies for inbound inquiries",
+    description:
+      "Added the ability to acknowledge a new inquiry within seconds without a person in the loop, built as a versioned policy the founder signs rather than an agent that is trusted. The policy fixes its trigger, limits, guardrails, wording, and model; any material change suspends it until the new version is approved. It refuses to act outside a first-touch inquiry, an active contact, a daily and per-contact ceiling, and business hours, and a draft that states pricing, commits to a time, or claims work already done is rejected before anyone reads it. Every refusal is recorded with its reason, not only every send. It ships switched off.",
+    category: "feature",
+    publishedAt: "2026-08-20",
+  },
+  {
+    id: "ai-tool-contract-enforced",
+    slug: "ai-tool-contract-enforced",
+    title: "AI tool contracts are now enforced, not advertised",
+    description:
+      "Tool schemas and impact levels were declared throughout the assistant layer and checked nowhere, so the system was safe only because every write happened to route through the approval queue. Tool calls are now validated against their declared schema before running, a tool marked read-only that tries to stage an action is refused, a tool that should propose but does not is refused, and destructive capability fails closed. Operational snapshots are bounded and now name any data they could not read instead of reporting an empty result as fact.",
+    category: "improvement",
+    publishedAt: "2026-08-20",
+  },
+  {
+    id: "assistant-run-ledger",
+    slug: "assistant-run-ledger",
+    title: "Every assistant conversation is now on the record",
+    description:
+      "The public website assistant is the one place an AI speaks to prospects unattended, and it kept no record of what it said. It now opens a run on the same ledger as the internal copilot, tees the streamed reply into it, and reaches a final state whether the answer completes, the provider fails, or the visitor closes the tab. The copilot also now knows the current date, returns what it gathered instead of discarding the answer when it runs out of steps, and names any actions it left awaiting approval.",
+    category: "improvement",
+    publishedAt: "2026-08-20",
+  },
+  {
+    id: "operational-alerting",
+    slug: "operational-alerting",
+    title: "Failures now reach the founder",
+    description:
+      "Operational failures were visible only inside the admin dashboard, behind a poll, to someone already looking. Job failures, recovered stalls, integration problems, and failed webhook deliveries now send an alert with its own delivery receipt, de-duplicated so a flapping subsystem produces one message rather than fifty. Health reporting was also corrected: it counted only outright failures, so a job stuck mid-run read as healthy, and failed webhook receipts were never read by any surface at all.",
+    category: "improvement",
+    publishedAt: "2026-08-19",
+  },
+  {
+    id: "campaign-engine-repair",
+    slug: "campaign-engine-repair",
+    title: "Outbound campaigns can send, recover, and stay within one budget",
+    description:
+      "Three independent faults meant a member added through the interface could never receive anything, while the scheduled run reported success. Members now carry a resolved contact and a real due time, a send that fails is retried with backoff instead of being terminally stopped, a claim abandoned by a crashed run is recovered rather than stranded, and one account-wide daily ceiling now governs every active campaign instead of each one carrying its own.",
+    category: "fix",
+    publishedAt: "2026-08-19",
+  },
+  {
+    id: "inquiry-capture-hardening",
+    slug: "inquiry-capture-hardening",
+    title: "No inquiry is reported saved unless it was",
+    description:
+      "Several public forms logged a database failure and returned success anyway, so a visitor was told their details were recorded when they were not. Every capture path now checks its write and reports honestly. A booking that produced no notification, caused by writing to a column that does not exist, was also corrected and proven end to end in production.",
+    category: "fix",
+    publishedAt: "2026-08-19",
+  },
+  {
+    id: "nonprofit-practice",
+    slug: "nonprofit-practice",
+    title: "A dedicated practice page for nonprofits",
+    description:
+      "Added a purpose-built page for nonprofit organisations covering donor follow-up, volunteer coordination, grant deadlines, and the operational load that falls on small teams, including the end-to-end command centre built for WORK+SHELTER.",
+    category: "feature",
+    publishedAt: "2026-08-19",
+  },
+  {
+    id: "gmail-cursor-recovery",
+    slug: "gmail-cursor-recovery",
+    title: "Gmail sync cursor and recovery semantics",
+    description:
+      "Gmail synchronization now records a durable history cursor only after a complete bounded run, derives changed threads from Gmail history without duplicate work, and exposes incremental, initial, or recovery mode with honest deferred and failure counts. Expired cursors use a bounded reconciliation path instead of silently skipping work.",
+    category: "improvement",
+    publishedAt: "2026-08-17",
+  },
+  {
+    id: "calendar-canonical-association",
+    slug: "calendar-canonical-association",
+    title: "Calendar events now associate through canonical identity",
+    description:
+      "Google Calendar synchronization now links a meeting only when exactly one canonical contact matches an attendee, records ambiguous and unmatched cases without guessing, and associates the current opportunity. A confirmed upcoming meeting safely stops pending campaign outreach once without creating or changing an external event or pipeline stage.",
+    category: "improvement",
+    publishedAt: "2026-08-17",
+  },
+  {
+    id: "gmail-reply-campaign-stop",
+    slug: "gmail-reply-campaign-stop",
+    title: "Gmail replies stop campaign follow-up",
+    description:
+      "Gmail synchronization now uses the shared exact primary/alternate-email resolver and only treats newly recorded inbound messages as reply facts. Those facts enter the canonical campaign-stop service, preserving the same receipt, audit, and send-claim safeguards as unsubscribe and Resend delivery failures.",
+    category: "improvement",
+    publishedAt: "2026-08-17",
+  },
+  {
+    id: "campaign-stop-claim-boundary",
+    slug: "campaign-stop-claim-boundary",
+    title: "Atomic campaign stop and send-claim boundary",
+    description:
+      "Campaign stop conditions and send claims now serialize on each canonical contact inside PostgreSQL. The claim verifies the contact is active and the campaign is still approved; a stop records terminal eligibility before another due step can claim. A controlled production check proves a stopped membership cannot be claimed.",
+    category: "improvement",
+    publishedAt: "2026-08-17",
+  },
+  {
+    id: "canonical-campaign-stop-service",
+    slug: "canonical-campaign-stop-service",
+    title: "Canonical campaign stop controls",
+    description:
+      "Campaign suppression now has one Revenue OS service instead of separate unsubscribe, delivery-webhook, and executor writes. It records why pending memberships stopped, preserves activity and audit evidence, and rechecks contact suppression plus campaign approval immediately before a claimed send reaches Resend.",
+    category: "improvement",
+    publishedAt: "2026-08-17",
+  },
+  {
+    id: "resend-delivery-ledger",
+    slug: "resend-delivery-ledger",
+    title: "Resend delivery ledger and campaign suppression",
+    description:
+      "The canonical sender now adds durable provider idempotency and Revenue OS tags to every Resend message. A signed, replay-safe webhook ledger records delivery outcomes, activity, and audit evidence, while hard bounces, complaints, and provider suppressions immediately prevent later campaign sends. Setup Center now distinguishes basic sending from live delivery feedback and documents the one Resend webhook configuration step.",
+    category: "improvement",
+    publishedAt: "2026-08-17",
+  },
+  {
+    id: "atomic-revenue-job-claims",
+    slug: "atomic-revenue-job-claims",
+    title: "Atomic claims for scheduled Revenue OS work",
+    description:
+      "Added one database-owned claim path for scheduled and on-demand Revenue OS jobs. Concurrent invocations now return the existing running receipt, while repeated deterministic keys return their completed receipt instead of starting a second execution. Cron and Workspace sync routes expose an honest skipped result when another worker already owns the job.",
+    category: "improvement",
+    publishedAt: "2026-08-17",
+  },
+  {
+    id: "revenue-schema-contract-verification",
+    slug: "revenue-schema-contract-verification",
+    title: "Verified Revenue OS schema contract",
+    description:
+      "Added a versioned, read-only production schema verifier and immutable verification receipts. It checks required tables, columns, constraints, indexes, PostgreSQL functions, and service-only policies; clearly reports unapplied migrations, metadata drift, or connectivity failure; and makes Setup Center show the exact verified contract version and latest successful check instead of trusting a single table query.",
+    category: "improvement",
+    publishedAt: "2026-08-17",
+  },
+  {
+    id: "approval-gated-ai-contact-import",
+    slug: "approval-gated-ai-contact-import",
+    title: "OpenRouter contact cleanup and approval import",
+    description:
+      "Added one founder-only Contact Import workspace for pasted lists, CSV, TSV, JSON, and messy notes. OpenRouter proposes normalized contacts, deterministic identity checks identify new versus existing records, and a literal-evidence guard strips unsupported AI fields before low-confidence or ambiguous rows default to excluded. The founder edits and approves an exact digest-bound snapshot before canonical writes; execution creates row-level receipts and safe partial retry without creating opportunities, campaigns, tasks, or messages. Standardized every active AI caller on one server-only OpenRouter gateway, configured encrypted production AI and cron credentials, applied and idempotently verified all pending production schemas, reached 100% required Setup readiness, and added a Keychain-backed migration command so future agents own migration execution through live verification.",
+    category: "feature",
+    publishedAt: "2026-08-16",
+  },
+  {
+    id: "revenue-os-agent-contract",
+    slug: "revenue-os-agent-contract",
+    title: "Universal agent engineering contract",
+    description:
+      "Codified one repository-wide framework for canonical data ownership, domain-service writes, automation claims and receipts, AI tool impact and confirmation, governed learning, failure semantics, verification, ticket pickup, evidence, and recovery. Added a core Revenue OS module map and a machine verifier that rejects thin or contradictory managed-card handoffs before implementation begins.",
+    category: "improvement",
+    publishedAt: "2026-08-16",
+  },
+  {
+    id: "admin-command-center-recovery",
+    slug: "admin-command-center-recovery",
+    title: "Professional Command Center recovery",
+    description:
+      "Rebuilt the admin interaction foundation around one responsive route registry, persisted collapsible sidebar, consistent entry motion, complete light/dark tokens, and one accessible portal dialog used by every modal and drawer. Restored Email Studio with editable drafts, rendered previews, explicit publishing, sent-message history, and compose handoff. Reworked Feature Board pointer/keyboard drag behavior and added one canonical compatibility bridge across Leads, Contacts, Chat, Clients, Subscribers, Resources, Partners, and Website Grades, including a unified person timeline and Pipeline deep-links. Verified all 25 registered admin routes at desktop and phone widths with Playwright.",
+    category: "improvement",
+    publishedAt: "2026-08-16",
+  },
+  {
+    id: "money-first-inbound-outreach",
+    slug: "money-first-inbound-outreach",
+    title: "Money-first inbound and outreach safety",
+    description:
+      "Contact, chat, and roofing inquiries now feed one canonical revenue loop with same-day follow-up. The contact page uses manual scheduling while Calendly is disabled. Campaign email adds durable idempotency, founder reply-to, one-click unsubscribe, immediate suppression, and a server-enforced one-step/10-per-day pilot limit.",
+    category: "improvement",
+    publishedAt: "2026-08-16",
+  },
+  {
+    id: "canonical-inbound-revenue-loop",
+    slug: "canonical-inbound-revenue-loop",
+    title: "Qualified inbound requests now enter the revenue work queue",
+    description:
+      "A roofing audit request now creates or enriches one canonical contact, company, and opportunity; retains source attribution; records an activity receipt and stage history; and creates a deduplicated same-day follow-up task for qualified prospects. The original nurture sequence remains non-blocking, so a delivery issue cannot lose the lead.",
+    category: "improvement",
+    publishedAt: "2026-08-16",
+  },
+  {
+    id: "turn-key-first-party-analytics",
+    slug: "turn-key-first-party-analytics",
+    title: "Turn-key first-party revenue analytics",
+    description:
+      "Analytics now works without a Plausible or other third-party analytics account. The public site records privacy-minimised page views and conversion events server-side, while the founder workspace keeps that traffic context separate from the canonical opportunity, source, stage, and won-revenue funnel. Missing attribution and an unapplied event schema are visibly flagged rather than shown as healthy zeroes.",
+    category: "improvement",
+    publishedAt: "2026-08-16",
+  },
+  {
+    id: "opportunity-provenance-ledger",
+    slug: "opportunity-provenance-ledger",
+    title: "Opportunity provenance from creation",
+    description:
+      "New opportunities now write an initial pipeline-stage event and canonical activity receipt at creation, preserving their origin, linked identity, starting stage, and value for future timelines and agent context.",
+    category: "improvement",
+    publishedAt: "2026-08-16",
+  },
   {
     id: "canonical-task-service",
     slug: "canonical-task-service",

@@ -34,7 +34,9 @@ export function OpsConsole({
             <span className="text-gold">● {label}</span> · {name} ops
           </span>
         </div>
-        <span className="font-mono text-[0.55rem] uppercase tracking-[0.2em] text-white-muted">built for you</span>
+        <span className="font-mono text-[0.55rem] uppercase tracking-[0.2em] text-white-muted">
+          built for you
+        </span>
       </div>
 
       {/* the bespoke feed — restreams whenever `name` changes */}
@@ -56,17 +58,21 @@ export function OpsConsole({
               }}
               className="flex items-center gap-3 py-3"
             >
-              <span className="font-mono text-[0.62rem] tabular-nums text-white-muted">{e.time}</span>
-              <span className="font-mono text-sm leading-none" style={{ color: `rgb(${c.rgb})` }}>{c.glyph}</span>
-              <span className="min-w-0 flex-1 truncate font-mono text-[0.78rem] text-white-secondary">{e.label}</span>
+              <span className="font-mono text-[0.62rem] tabular-nums text-white-muted">
+                {e.time}
+              </span>
+              <span className="font-mono text-sm leading-none" style={{ color: `rgb(${c.rgb})` }}>
+                {c.glyph}
+              </span>
+              <span className="min-w-0 flex-1 truncate font-mono text-[0.78rem] text-white-secondary">
+                {e.label}
+              </span>
             </motion.li>
           );
         })}
       </motion.ul>
 
-      {footer && (
-        <div className="border-t border-border-glass px-5 py-4">{footer}</div>
-      )}
+      {footer && <div className="border-t border-border-glass px-5 py-4">{footer}</div>}
     </div>
   );
 }

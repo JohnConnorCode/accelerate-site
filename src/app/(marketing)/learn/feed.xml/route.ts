@@ -18,7 +18,7 @@ export async function GET() {
       <pubDate>${new Date(article.frontmatter.date).toUTCString()}</pubDate>
       <category>${CATEGORY_LABELS[article.frontmatter.category]}</category>
       <author>john@acceleratewith.us (${article.frontmatter.author})</author>
-    </item>`
+    </item>`,
     )
     .join("");
 

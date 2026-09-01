@@ -33,7 +33,17 @@ export function ThemeToggle({ variant = "default", collapsed = false }: ThemeTog
   useEffect(() => setMounted(true), []);
 
   if (!mounted) {
-    return <div className={adminSidebar ? (collapsed ? "size-10" : "min-h-10 w-full") : "h-9 w-9 min-h-[44px] min-w-[44px]"} />;
+    return (
+      <div
+        className={
+          adminSidebar
+            ? collapsed
+              ? "size-10"
+              : "min-h-10 w-full"
+            : "h-9 w-9 min-h-[44px] min-w-[44px]"
+        }
+      />
+    );
   }
 
   return (
@@ -50,7 +60,11 @@ export function ThemeToggle({ variant = "default", collapsed = false }: ThemeTog
           animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
           exit={{ opacity: 0, scale: 0.25, filter: "blur(4px)" }}
           transition={{ type: "spring", duration: 0.3, bounce: 0 }}
-          className={adminSidebar ? "flex size-4 shrink-0 items-center justify-center" : "absolute inset-0 flex items-center justify-center"}
+          className={
+            adminSidebar
+              ? "flex size-4 shrink-0 items-center justify-center"
+              : "absolute inset-0 flex items-center justify-center"
+          }
         >
           {isLight ? (
             <Moon className={`h-4 w-4 ${adminSidebar ? "text-white/72" : "text-white-primary"}`} />
@@ -59,7 +73,9 @@ export function ThemeToggle({ variant = "default", collapsed = false }: ThemeTog
           )}
         </motion.span>
       </AnimatePresence>
-      {adminSidebar && !collapsed && <span className="text-xs font-medium">{isLight ? "Dark mode" : "Light mode"}</span>}
+      {adminSidebar && !collapsed && (
+        <span className="text-xs font-medium">{isLight ? "Dark mode" : "Light mode"}</span>
+      )}
     </button>
   );
 }

@@ -40,7 +40,7 @@ export function Logo({
         aria-hidden
         className={cn(
           "logo-word font-sans font-bold uppercase",
-          size === "sm" ? "text-base" : "text-lg"
+          size === "sm" ? "text-base" : "text-lg",
         )}
       >
         {WORD.split("").map((ch, i) => (

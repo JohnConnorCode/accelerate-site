@@ -17,7 +17,10 @@ export function ChatBubble({ onClick }: ChatBubbleProps) {
           strokeLinejoin="round"
         />
       </svg>
-      <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-emerald-400" aria-hidden="true" />
+      <span
+        className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-emerald-400"
+        aria-hidden="true"
+      />
     </button>
   );
 }

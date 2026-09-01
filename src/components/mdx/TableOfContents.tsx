@@ -66,7 +66,7 @@ export function TableOfContents() {
           }
         }
       },
-      { rootMargin: "-80px 0px -80% 0px" }
+      { rootMargin: "-80px 0px -80% 0px" },
     );
 
     for (const heading of headings) {
@@ -83,9 +83,7 @@ export function TableOfContents() {
     <nav className="bg-[var(--surface-bg)] p-5 shadow-[var(--card-shadow)]">
       <div className="flex items-center gap-2 mb-4">
         <div className="h-4 w-0.5 bg-[var(--fg)]" />
-        <h4 className="font-display text-sm font-semibold text-white-primary">
-          On this page
-        </h4>
+        <h4 className="font-display text-sm font-semibold text-white-primary">On this page</h4>
       </div>
       <ul className="space-y-1 border-l border-border-glass ml-0.5">
         {headings.map((heading) => (
@@ -97,7 +95,7 @@ export function TableOfContents() {
                 heading.level === 3 ? "pl-6" : "pl-4",
                 activeId === heading.id
                   ? "translate-x-0.5 border-l-[var(--fg)] font-medium text-heading"
-                  : "text-white-muted hover:text-white-secondary border-l-transparent"
+                  : "text-white-muted hover:text-white-secondary border-l-transparent",
               )}
             >
               {heading.text}

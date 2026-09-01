@@ -5,28 +5,28 @@ import { useTheme } from "next-themes";
 import { prefersReducedMotion } from "@/lib/utils";
 
 interface Star {
-  x: number;        // 0-1 normalized
-  y: number;        // 0-1 normalized (within sky area)
+  x: number; // 0-1 normalized
+  y: number; // 0-1 normalized (within sky area)
   size: number;
   baseOpacity: number;
   twinkleSpeed: number;
   twinklePhase: number;
-  depth: number;    // parallax layer (0 = far, 1 = near)
+  depth: number; // parallax layer (0 = far, 1 = near)
   r: number;
   g: number;
   b: number;
   // Click effect state
   targetX: number;
   targetY: number;
-  sizeBoost: number;  // multiplicative, decays back to 1
+  sizeBoost: number; // multiplicative, decays back to 1
 }
 
 interface ShootingStar {
-  x: number;       // current pixel position
+  x: number; // current pixel position
   y: number;
-  vx: number;      // velocity in pixels/frame
+  vx: number; // velocity in pixels/frame
   vy: number;
-  life: number;    // frames remaining
+  life: number; // frames remaining
   maxLife: number;
   size: number;
   tailLen: number; // trail length in pixels
@@ -40,7 +40,7 @@ const CLICK_SIZE_BOOST = 2.2;
 const CLICK_DECAY = 0.97;
 
 // Shooting star config
-const SHOOT_CHANCE = 0.003;    // chance per frame (~1 every 5-6 seconds at 60fps)
+const SHOOT_CHANCE = 0.003; // chance per frame (~1 every 5-6 seconds at 60fps)
 const SHOOT_MIN_LIFE = 40;
 const SHOOT_MAX_LIFE = 80;
 
@@ -154,7 +154,9 @@ export default function HeroCanvas() {
           twinkleSpeed: 0.4 + Math.random() * 2.0,
           twinklePhase: Math.random() * Math.PI * 2,
           depth,
-          r, g, b,
+          r,
+          g,
+          b,
           targetX: x,
           targetY: y,
           sizeBoost: 1,
@@ -196,7 +198,7 @@ export default function HeroCanvas() {
         horizonFrac.current = 0.58;
         setGridHeight("42%");
       } else if (aspect > 0.8) {
-        horizonFrac.current = 0.50;
+        horizonFrac.current = 0.5;
         setGridHeight("50%");
       } else {
         horizonFrac.current = 0.45;
@@ -248,10 +250,7 @@ export default function HeroCanvas() {
         // Subtle atmospheric nebula band — adds depth to mid-sky
         const nebulaY = horizonY * 0.35;
         const nebulaH = horizonY * 0.4;
-        const nebula = ctx.createRadialGradient(
-          w * 0.4, nebulaY, 0,
-          w * 0.4, nebulaY, w * 0.5,
-        );
+        const nebula = ctx.createRadialGradient(w * 0.4, nebulaY, 0, w * 0.4, nebulaY, w * 0.5);
         nebula.addColorStop(0, "rgba(30,25,50,0.12)");
         nebula.addColorStop(0.4, "rgba(25,20,45,0.06)");
         nebula.addColorStop(1, "rgba(20,15,35,0)");
@@ -294,15 +293,20 @@ export default function HeroCanvas() {
           s.sizeBoost = 1;
         }
 
-        const twinkle = 0.5 + 0.5 * (0.5 + 0.5 * Math.sin(seconds * s.twinkleSpeed + s.twinklePhase));
+        const twinkle =
+          0.5 + 0.5 * (0.5 + 0.5 * Math.sin(seconds * s.twinkleSpeed + s.twinklePhase));
         let alpha = s.baseOpacity * twinkle;
         if (alpha < 0.02) continue;
 
         // Light mode: use teal colors, same star rendering (no blobs)
-        let sr = s.r, sg = s.g, sb = s.b;
+        let sr = s.r,
+          sg = s.g,
+          sb = s.b;
         if (!isDark) {
           const lc = LIGHT_STAR_COLORS[i % LIGHT_STAR_COLORS.length]!;
-          sr = lc[0]; sg = lc[1]; sb = lc[2];
+          sr = lc[0];
+          sg = lc[1];
+          sb = lc[2];
           // Scale opacity for visibility on light bg — still crisp, not blobby
           alpha *= 0.5 + s.depth * 0.5;
         }
@@ -320,7 +324,7 @@ export default function HeroCanvas() {
         // Subtle glow on brighter/near stars only (both modes)
         if ((s.baseOpacity > 0.4 && sz > 0.8) || s.sizeBoost > 1.1) {
           const glowAlpha = isDark
-            ? alpha * 0.10 * Math.max(1, s.sizeBoost * 0.5)
+            ? alpha * 0.1 * Math.max(1, s.sizeBoost * 0.5)
             : alpha * 0.08 * Math.max(1, s.sizeBoost * 0.5);
           ctx.beginPath();
           ctx.arc(px, py, sz * 3, 0, Math.PI * 2);
@@ -366,8 +370,14 @@ export default function HeroCanvas() {
         const ssAlpha = fadeIn * fadeOut;
 
         // Trail: line from current position back along velocity
-        const tailX = ss.x - (ss.vx * d * ss.tailLen) / (Math.abs(ss.vx * d) + Math.abs(ss.vy * d)) * (ss.size + 0.5);
-        const tailY = ss.y - (ss.vy * d * ss.tailLen) / (Math.abs(ss.vx * d) + Math.abs(ss.vy * d)) * (ss.size + 0.5);
+        const tailX =
+          ss.x -
+          ((ss.vx * d * ss.tailLen) / (Math.abs(ss.vx * d) + Math.abs(ss.vy * d))) *
+            (ss.size + 0.5);
+        const tailY =
+          ss.y -
+          ((ss.vy * d * ss.tailLen) / (Math.abs(ss.vx * d) + Math.abs(ss.vy * d))) *
+            (ss.size + 0.5);
 
         const trailGrad = ctx.createLinearGradient(tailX, tailY, ss.x, ss.y);
         if (isDark) {
@@ -413,10 +423,7 @@ export default function HeroCanvas() {
 
       if (isDark) {
         // Soft diffused glow centered on horizon — stronger for visibility
-        const glow = ctx.createRadialGradient(
-          w * 0.5, horizonY, 0,
-          w * 0.5, horizonY, w * 0.5,
-        );
+        const glow = ctx.createRadialGradient(w * 0.5, horizonY, 0, w * 0.5, horizonY, w * 0.5);
         glow.addColorStop(0, `rgba(212,175,55,${0.14 * breathe})`);
         glow.addColorStop(0.2, `rgba(212,175,55,${0.07 * breathe})`);
         glow.addColorStop(0.5, `rgba(200,160,45,${0.025 * breathe})`);
@@ -452,10 +459,7 @@ export default function HeroCanvas() {
         // Light mode — atmospheric teal horizon glow
 
         // Radial glow centered at horizon
-        const glow = ctx.createRadialGradient(
-          w * 0.5, horizonY, 0,
-          w * 0.5, horizonY, w * 0.55,
-        );
+        const glow = ctx.createRadialGradient(w * 0.5, horizonY, 0, w * 0.5, horizonY, w * 0.55);
         glow.addColorStop(0, `rgba(11,122,122,${0.18 * breathe})`);
         glow.addColorStop(0.15, `rgba(11,122,122,${0.12 * breathe})`);
         glow.addColorStop(0.35, `rgba(15,135,140,${0.06 * breathe})`);
@@ -494,18 +498,31 @@ export default function HeroCanvas() {
         const glowRadius = w * 0.18;
         const gAlpha = isDark ? 0.07 : 0.16;
         const gridGlow = ctx.createRadialGradient(
-          gridMouseX, gridMouseY, 0,
-          gridMouseX, gridMouseY, glowRadius,
+          gridMouseX,
+          gridMouseY,
+          0,
+          gridMouseX,
+          gridMouseY,
+          glowRadius,
         );
-        gridGlow.addColorStop(0, isDark
-          ? `rgba(212,175,55,${gAlpha * breathe})`
-          : `rgba(11,122,122,${gAlpha * breathe})`);
-        gridGlow.addColorStop(0.5, isDark
-          ? `rgba(212,175,55,${gAlpha * 0.3 * breathe})`
-          : `rgba(11,122,122,${gAlpha * 0.3 * breathe})`);
+        gridGlow.addColorStop(
+          0,
+          isDark ? `rgba(212,175,55,${gAlpha * breathe})` : `rgba(11,122,122,${gAlpha * breathe})`,
+        );
+        gridGlow.addColorStop(
+          0.5,
+          isDark
+            ? `rgba(212,175,55,${gAlpha * 0.3 * breathe})`
+            : `rgba(11,122,122,${gAlpha * 0.3 * breathe})`,
+        );
         gridGlow.addColorStop(1, "rgba(0,0,0,0)");
         ctx.fillStyle = gridGlow;
-        ctx.fillRect(gridMouseX - glowRadius, gridMouseY - glowRadius, glowRadius * 2, glowRadius * 2);
+        ctx.fillRect(
+          gridMouseX - glowRadius,
+          gridMouseY - glowRadius,
+          glowRadius * 2,
+          glowRadius * 2,
+        );
       }
 
       animId.current = requestAnimationFrame(draw);
@@ -523,15 +540,9 @@ export default function HeroCanvas() {
   }, [onMove, onLeave, onClick, isDark]);
 
   return (
-    <div
-      data-hero-bg
-      className="absolute inset-0 -z-10 overflow-hidden pointer-events-none"
-    >
+    <div data-hero-bg className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
       {/* Stars + horizon glow canvas */}
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 w-full h-full pointer-events-auto"
-      />
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-auto" />
 
       {/* Tron perspective grid floor — dynamically aligned with canvas horizon */}
       <div
@@ -539,8 +550,10 @@ export default function HeroCanvas() {
         style={{
           height: gridHeight,
           overflow: "hidden",
-          maskImage: "linear-gradient(to bottom, transparent 0%, black 3%, black 80%, transparent 100%)",
-          WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 3%, black 80%, transparent 100%)",
+          maskImage:
+            "linear-gradient(to bottom, transparent 0%, black 3%, black 80%, transparent 100%)",
+          WebkitMaskImage:
+            "linear-gradient(to bottom, transparent 0%, black 3%, black 80%, transparent 100%)",
         }}
       >
         <div

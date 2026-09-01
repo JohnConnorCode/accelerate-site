@@ -148,10 +148,12 @@ export function isOpenRouterConfigured(): boolean {
 async function requestApiKey(input: OpenRouterRequest): Promise<string> {
   if (input.database) {
     const credential = await resolveOpenRouterCredential(input.database);
-    if (!credential) throw new OpenRouterError("OpenRouter is not configured for this workspace.", 503);
+    if (!credential)
+      throw new OpenRouterError("OpenRouter is not configured for this workspace.", 503);
     return credential.apiKey;
   }
-  if (process.env.NODE_ENV === "production") throw new OpenRouterError("OpenRouter execution requires an explicit tenant context.", 503);
+  if (process.env.NODE_ENV === "production")
+    throw new OpenRouterError("OpenRouter execution requires an explicit tenant context.", 503);
   const key = process.env.OPENROUTER_API_KEY?.trim();
   if (!key) throw new OpenRouterError("OpenRouter is not configured.", 503);
   return key;
@@ -164,15 +166,20 @@ function boundedMessage(message: string): string {
 function boundedProviderMessage(payload: unknown): string {
   if (!payload || typeof payload !== "object") return "OpenRouter request failed";
   const candidate = payload as { error?: { message?: unknown }; message?: unknown };
-  const message = typeof candidate.error?.message === "string"
-    ? candidate.error.message
-    : typeof candidate.message === "string"
-      ? candidate.message
-      : "OpenRouter request failed";
+  const message =
+    typeof candidate.error?.message === "string"
+      ? candidate.error.message
+      : typeof candidate.message === "string"
+        ? candidate.message
+        : "OpenRouter request failed";
   return boundedMessage(message);
 }
 
-async function attemptChat(input: OpenRouterRequest, model: string, apiKey: string): Promise<OpenRouterResponse> {
+async function attemptChat(
+  input: OpenRouterRequest,
+  model: string,
+  apiKey: string,
+): Promise<OpenRouterResponse> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 45_000);
   const startedAt = Date.now();
@@ -185,25 +192,33 @@ async function attemptChat(input: OpenRouterRequest, model: string, apiKey: stri
         model,
         // Provider-side failover: OpenRouter tries the fallback itself if the
         // primary is down, which recovers faster than our own retry loop.
-        ...(fallbackModel && fallbackModel !== model ? { models: [model, fallbackModel], route: "fallback" } : {}),
+        ...(fallbackModel && fallbackModel !== model
+          ? { models: [model, fallbackModel], route: "fallback" }
+          : {}),
         messages: input.messages,
         max_tokens: Math.min(Math.max(input.maxTokens ?? 1200, 1), 8000),
         temperature: input.temperature ?? 0.2,
         ...(input.tools?.length ? { tools: input.tools, tool_choice: "auto" } : {}),
-        ...(input.responseFormat ? {
-          response_format: input.responseFormat,
-          provider: { require_parameters: true },
-        } : {}),
+        ...(input.responseFormat
+          ? {
+              response_format: input.responseFormat,
+              provider: { require_parameters: true },
+            }
+          : {}),
       }),
       signal: combineSignals(controller.signal, input.signal),
     });
     const requestId = response.headers.get("x-request-id");
-    const payload = await response.json().catch(() => null) as OpenRouterResponse | null;
+    const payload = (await response.json().catch(() => null)) as OpenRouterResponse | null;
     if (!response.ok || !payload) {
       throw new OpenRouterError(boundedProviderMessage(payload), response.status || 502, requestId);
     }
     if (!Array.isArray(payload.choices) || !payload.choices[0]?.message) {
-      throw new OpenRouterError("OpenRouter returned no assistant message", 502, requestId || payload.id || null);
+      throw new OpenRouterError(
+        "OpenRouter returned no assistant message",
+        502,
+        requestId || payload.id || null,
+      );
     }
     return payload;
   } catch (error) {
@@ -213,7 +228,10 @@ async function attemptChat(input: OpenRouterRequest, model: string, apiKey: stri
       if (input.signal?.aborted) throw new OpenRouterError("OpenRouter request was cancelled", 499);
       throw new OpenRouterError(`OpenRouter timed out after ${Date.now() - startedAt}ms`, 504);
     }
-    throw new OpenRouterError(error instanceof Error ? boundedMessage(error.message) : "OpenRouter request failed", 502);
+    throw new OpenRouterError(
+      error instanceof Error ? boundedMessage(error.message) : "OpenRouter request failed",
+      502,
+    );
   } finally {
     clearTimeout(timeout);
   }
@@ -229,7 +247,8 @@ export async function openRouterChat(input: OpenRouterRequest): Promise<OpenRout
     } catch (error) {
       if (!(error instanceof OpenRouterError)) throw error;
       lastError = error;
-      const recoverable = isRetryableStatus(error.status) && attempt < MAX_ATTEMPTS && !input.signal?.aborted;
+      const recoverable =
+        isRetryableStatus(error.status) && attempt < MAX_ATTEMPTS && !input.signal?.aborted;
       if (!recoverable) throw error;
       await backoff(attempt);
     }
@@ -276,7 +295,9 @@ export async function openRouterChatStream(
       headers: headers(apiKey),
       body: JSON.stringify({
         model,
-        ...(fallbackModel && fallbackModel !== model ? { models: [model, fallbackModel], route: "fallback" } : {}),
+        ...(fallbackModel && fallbackModel !== model
+          ? { models: [model, fallbackModel], route: "fallback" }
+          : {}),
         messages: input.messages,
         max_tokens: Math.min(Math.max(input.maxTokens ?? 1200, 1), 8000),
         temperature: input.temperature ?? 0.2,
@@ -308,8 +329,11 @@ export async function openRouterChatStream(
         const raw = line.slice(5).trim();
         if (!raw || raw === "[DONE]") continue;
         let chunk: OpenRouterStreamChunk;
-        try { chunk = JSON.parse(raw) as OpenRouterStreamChunk; }
-        catch { continue; }
+        try {
+          chunk = JSON.parse(raw) as OpenRouterStreamChunk;
+        } catch {
+          continue;
+        }
         if (chunk.id) id = chunk.id;
         if (chunk.model) resolvedModel = chunk.model;
         if (chunk.usage) usage = chunk.usage;
@@ -348,14 +372,22 @@ export async function openRouterChatStream(
       id,
       model: resolvedModel,
       usage,
-      choices: [{
-        finish_reason: finishReason,
-        message: {
-          role: "assistant",
-          content: content || null,
-          ...(calls.size ? { tool_calls: [...calls.entries()].sort(([a], [b]) => a - b).map(([, call]) => call) } : {}),
+      choices: [
+        {
+          finish_reason: finishReason,
+          message: {
+            role: "assistant",
+            content: content || null,
+            ...(calls.size
+              ? {
+                  tool_calls: [...calls.entries()]
+                    .sort(([a], [b]) => a - b)
+                    .map(([, call]) => call),
+                }
+              : {}),
+          },
         },
-      }],
+      ],
     };
   } catch (error) {
     if (error instanceof OpenRouterError) throw error;
@@ -363,17 +395,22 @@ export async function openRouterChatStream(
       if (input.signal?.aborted) throw new OpenRouterError("OpenRouter request was cancelled", 499);
       throw new OpenRouterError(`OpenRouter timed out after ${Date.now() - startedAt}ms`, 504);
     }
-    throw new OpenRouterError(error instanceof Error ? boundedMessage(error.message) : "OpenRouter stream failed", 502);
+    throw new OpenRouterError(
+      error instanceof Error ? boundedMessage(error.message) : "OpenRouter stream failed",
+      502,
+    );
   } finally {
     clearTimeout(timeout);
   }
 }
 
-export async function openRouterJson<T>(input: OpenRouterRequest & {
-  schemaName: string;
-  schema: Record<string, unknown>;
-  validate: (value: unknown) => T;
-}): Promise<{ data: T; requestId: string; model: string; usage: OpenRouterUsage }> {
+export async function openRouterJson<T>(
+  input: OpenRouterRequest & {
+    schemaName: string;
+    schema: Record<string, unknown>;
+    validate: (value: unknown) => T;
+  },
+): Promise<{ data: T; requestId: string; model: string; usage: OpenRouterUsage }> {
   const response = await openRouterChat({
     ...input,
     responseFormat: {
@@ -400,7 +437,9 @@ export async function openRouterJson<T>(input: OpenRouterRequest & {
     };
   } catch (error) {
     throw new OpenRouterError(
-      error instanceof Error ? boundedMessage(error.message) : "OpenRouter returned an invalid structured payload",
+      error instanceof Error
+        ? boundedMessage(error.message)
+        : "OpenRouter returned an invalid structured payload",
       502,
       response.id,
     );
@@ -425,7 +464,9 @@ export async function openRouterTextStream(
       headers: headers(apiKey),
       body: JSON.stringify({
         model,
-        ...(fallbackModel && fallbackModel !== model ? { models: [model, fallbackModel], route: "fallback" } : {}),
+        ...(fallbackModel && fallbackModel !== model
+          ? { models: [model, fallbackModel], route: "fallback" }
+          : {}),
         messages: input.messages,
         max_tokens: Math.min(Math.max(input.maxTokens ?? 500, 1), 2000),
         temperature: input.temperature ?? 0.6,
@@ -437,14 +478,26 @@ export async function openRouterTextStream(
   } catch (error) {
     clearTimeout(timeout);
     if (error instanceof Error && error.name === "AbortError") {
-      throw new OpenRouterError(input.signal?.aborted ? "OpenRouter request was cancelled" : "OpenRouter timed out after 45000ms", input.signal?.aborted ? 499 : 504);
+      throw new OpenRouterError(
+        input.signal?.aborted
+          ? "OpenRouter request was cancelled"
+          : "OpenRouter timed out after 45000ms",
+        input.signal?.aborted ? 499 : 504,
+      );
     }
-    throw new OpenRouterError(error instanceof Error ? boundedMessage(error.message) : "OpenRouter stream failed", 502);
+    throw new OpenRouterError(
+      error instanceof Error ? boundedMessage(error.message) : "OpenRouter stream failed",
+      502,
+    );
   }
   if (!response.ok || !response.body) {
     clearTimeout(timeout);
     const payload = await response.json().catch(() => null);
-    throw new OpenRouterError(boundedProviderMessage(payload), response.status || 502, response.headers.get("x-request-id"));
+    throw new OpenRouterError(
+      boundedProviderMessage(payload),
+      response.status || 502,
+      response.headers.get("x-request-id"),
+    );
   }
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
@@ -511,7 +564,8 @@ function parseSseChunk(
       // Ignore non-JSON keepalive/provider metadata frames.
       continue;
     }
-    if ("error" in parsed) throw new OpenRouterError(boundedProviderMessage(parsed), 502, metadata.requestId);
+    if ("error" in parsed)
+      throw new OpenRouterError(boundedProviderMessage(parsed), 502, metadata.requestId);
     if (parsed.id) metadata.requestId = parsed.id;
     if (parsed.model) metadata.model = parsed.model;
     if (parsed.usage) metadata.usage = parsed.usage;

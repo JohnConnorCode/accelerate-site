@@ -19,7 +19,11 @@ for (const required of [
   assert.ok(contract.includes(required), `positioning contract lost required rule: ${required}`);
 }
 
-assert.equal(marketingPositioning.engagementModes.length, 4, "the homepage must present all four engagement modes");
+assert.equal(
+  marketingPositioning.engagementModes.length,
+  4,
+  "the homepage must present all four engagement modes",
+);
 assert.ok(
   marketingPositioning.engagementModes.every((mode) => mode.href.startsWith("/services")),
   "homepage engagement modes must route to Services, not a single product",

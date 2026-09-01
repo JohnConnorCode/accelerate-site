@@ -17,7 +17,16 @@ interface AdminAsyncRegionProps {
 }
 
 /** Fast reads never flash a skeleton; slower reads crossfade locally. */
-export function AdminAsyncRegion({ loading, hasData, loadingFallback, children, className, contentClassName, label = "Loading content", delayMs = 120 }: AdminAsyncRegionProps) {
+export function AdminAsyncRegion({
+  loading,
+  hasData,
+  loadingFallback,
+  children,
+  className,
+  contentClassName,
+  label = "Loading content",
+  delayMs = 120,
+}: AdminAsyncRegionProps) {
   const reducedMotion = useReducedMotion();
   const [showFallback, setShowFallback] = useState(false);
 
@@ -35,7 +44,15 @@ export function AdminAsyncRegion({ loading, hasData, loadingFallback, children, 
     <div className={className} aria-busy={loading && !hasData} aria-live="polite">
       <AnimatePresence initial={false} mode="wait">
         {hasData ? (
-          <motion.div key="ready" data-admin-async-state={loading ? "refreshing" : "ready"} className={cn(contentClassName)} initial={reducedMotion ? false : { opacity: 0, y: 8, filter: "blur(4px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} exit={reducedMotion ? undefined : { opacity: 0 }} transition={reducedMotion ? { duration: 0 } : { duration: 0.34, ease: adminEase }}>
+          <motion.div
+            key="ready"
+            data-admin-async-state={loading ? "refreshing" : "ready"}
+            className={cn(contentClassName)}
+            initial={reducedMotion ? false : { opacity: 0, y: 8, filter: "blur(4px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={reducedMotion ? undefined : { opacity: 0 }}
+            transition={reducedMotion ? { duration: 0 } : { duration: 0.34, ease: adminEase }}
+          >
             {children}
           </motion.div>
         ) : loading ? (
@@ -53,7 +70,11 @@ export function AdminAsyncRegion({ loading, hasData, loadingFallback, children, 
           >
             {loadingFallback}
           </motion.div>
-        ) : <span key="pending" className="sr-only" role="status">{label}</span>}
+        ) : (
+          <span key="pending" className="sr-only" role="status">
+            {label}
+          </span>
+        )}
       </AnimatePresence>
     </div>
   );

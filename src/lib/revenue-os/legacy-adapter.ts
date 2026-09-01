@@ -38,8 +38,12 @@ export async function attachRevenueLinkage<T extends LinkableRecord>(
 ): Promise<{ records: Array<T & { revenue_os: RevenueLinkage }>; schemaReady: boolean }> {
   const idField = options.idField ?? "id";
   const emailField = options.emailField ?? "email";
-  const sourceIds = [...new Set(records.map((record) => text(record[idField])).filter(Boolean))] as string[];
-  const emails = [...new Set(records.map((record) => normalizedEmail(record[emailField])).filter(Boolean))] as string[];
+  const sourceIds = [
+    ...new Set(records.map((record) => text(record[idField])).filter(Boolean)),
+  ] as string[];
+  const emails = [
+    ...new Set(records.map((record) => normalizedEmail(record[emailField])).filter(Boolean)),
+  ] as string[];
   const emptyLink = (): RevenueLinkage => ({
     contact_id: null,
     company_id: null,
@@ -49,7 +53,10 @@ export async function attachRevenueLinkage<T extends LinkableRecord>(
   });
 
   if (!records.length || (!sourceIds.length && !emails.length)) {
-    return { records: records.map((record) => ({ ...record, revenue_os: emptyLink() })), schemaReady: true };
+    return {
+      records: records.map((record) => ({ ...record, revenue_os: emptyLink() })),
+      schemaReady: true,
+    };
   }
 
   const [sourceContacts, emailContacts] = await Promise.all([
@@ -69,10 +76,18 @@ export async function attachRevenueLinkage<T extends LinkableRecord>(
   ]);
 
   if (sourceContacts.error || emailContacts.error) {
-    return { records: records.map((record) => ({ ...record, revenue_os: emptyLink() })), schemaReady: false };
+    return {
+      records: records.map((record) => ({ ...record, revenue_os: emptyLink() })),
+      schemaReady: false,
+    };
   }
 
-  type ContactRow = { id: string; company_id: string | null; primary_email: string | null; source_record_id: string | null };
+  type ContactRow = {
+    id: string;
+    company_id: string | null;
+    primary_email: string | null;
+    source_record_id: string | null;
+  };
   const contacts = [...(sourceContacts.data ?? []), ...(emailContacts.data ?? [])] as ContactRow[];
   const contactIds = [...new Set(contacts.map((contact) => contact.id))];
   const [sourceOpportunities, contactOpportunities, emailOpportunities] = await Promise.all([
@@ -101,7 +116,10 @@ export async function attachRevenueLinkage<T extends LinkableRecord>(
   ]);
 
   if (sourceOpportunities.error || contactOpportunities.error || emailOpportunities.error) {
-    return { records: records.map((record) => ({ ...record, revenue_os: emptyLink() })), schemaReady: false };
+    return {
+      records: records.map((record) => ({ ...record, revenue_os: emptyLink() })),
+      schemaReady: false,
+    };
   }
 
   type OpportunityRow = {
@@ -118,16 +136,25 @@ export async function attachRevenueLinkage<T extends LinkableRecord>(
     ...(contactOpportunities.data ?? []),
     ...(emailOpportunities.data ?? []),
   ] as OpportunityRow[];
-  const sourceContactMap = new Map(contacts.filter((row) => row.source_record_id).map((row) => [row.source_record_id!, row]));
-  const emailContactMap = new Map(contacts.filter((row) => row.primary_email).map((row) => [row.primary_email!.toLowerCase(), row]));
+  const sourceContactMap = new Map(
+    contacts.filter((row) => row.source_record_id).map((row) => [row.source_record_id!, row]),
+  );
+  const emailContactMap = new Map(
+    contacts
+      .filter((row) => row.primary_email)
+      .map((row) => [row.primary_email!.toLowerCase(), row]),
+  );
   const sourceOpportunityMap = new Map<string, OpportunityRow>();
   const contactOpportunityMap = new Map<string, OpportunityRow>();
   const emailOpportunityMap = new Map<string, OpportunityRow>();
   for (const opportunity of opportunities) {
-    if (opportunity.source_record_id && !sourceOpportunityMap.has(opportunity.source_record_id)) sourceOpportunityMap.set(opportunity.source_record_id, opportunity);
-    if (opportunity.contact_id && !contactOpportunityMap.has(opportunity.contact_id)) contactOpportunityMap.set(opportunity.contact_id, opportunity);
+    if (opportunity.source_record_id && !sourceOpportunityMap.has(opportunity.source_record_id))
+      sourceOpportunityMap.set(opportunity.source_record_id, opportunity);
+    if (opportunity.contact_id && !contactOpportunityMap.has(opportunity.contact_id))
+      contactOpportunityMap.set(opportunity.contact_id, opportunity);
     const opportunityEmail = normalizedEmail(opportunity.email);
-    if (opportunityEmail && !emailOpportunityMap.has(opportunityEmail)) emailOpportunityMap.set(opportunityEmail, opportunity);
+    if (opportunityEmail && !emailOpportunityMap.has(opportunityEmail))
+      emailOpportunityMap.set(opportunityEmail, opportunity);
   }
 
   return {
@@ -135,9 +162,16 @@ export async function attachRevenueLinkage<T extends LinkableRecord>(
     records: records.map((record) => {
       const sourceId = text(record[idField]);
       const email = normalizedEmail(record[emailField]);
-      const contact = (sourceId && sourceContactMap.get(sourceId)) || (email && emailContactMap.get(email)) || null;
+      const contact =
+        (sourceId && sourceContactMap.get(sourceId)) ||
+        (email && emailContactMap.get(email)) ||
+        null;
       const sourceOpportunity = sourceId ? sourceOpportunityMap.get(sourceId) : undefined;
-      const opportunity = sourceOpportunity || (contact ? contactOpportunityMap.get(contact.id) : undefined) || (email ? emailOpportunityMap.get(email) : undefined) || null;
+      const opportunity =
+        sourceOpportunity ||
+        (contact ? contactOpportunityMap.get(contact.id) : undefined) ||
+        (email ? emailOpportunityMap.get(email) : undefined) ||
+        null;
       return {
         ...record,
         revenue_os: {
@@ -145,7 +179,13 @@ export async function attachRevenueLinkage<T extends LinkableRecord>(
           company_id: opportunity?.company_id ?? contact?.company_id ?? null,
           opportunity_id: opportunity?.id ?? null,
           stage: opportunity?.stage ?? null,
-          linked_by: sourceOpportunity ? "source" : contact ? "identity" : opportunity ? "email" : null,
+          linked_by: sourceOpportunity
+            ? "source"
+            : contact
+              ? "identity"
+              : opportunity
+                ? "email"
+                : null,
         },
       };
     }),

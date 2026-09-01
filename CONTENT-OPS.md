@@ -9,17 +9,18 @@
 
 ### Key Metrics Per Article
 
-| Metric | Where to Find | What It Means |
-|--------|---------------|---------------|
-| Page views | Plausible > Pages | Raw traffic |
-| CTA Click rate | Goals > CTA Click (filter by page) | Content-to-action ratio |
-| Plan Builder Started | Goals (filter by page prop) | High-intent conversion |
-| Time on Page | Goals > Time on Page (filter by page) | Reader engagement |
-| Scroll Depth | Goals > Scroll Depth (filter by page) | How far readers scroll |
+| Metric               | Where to Find                         | What It Means           |
+| -------------------- | ------------------------------------- | ----------------------- |
+| Page views           | Plausible > Pages                     | Raw traffic             |
+| CTA Click rate       | Goals > CTA Click (filter by page)    | Content-to-action ratio |
+| Plan Builder Started | Goals (filter by page prop)           | High-intent conversion  |
+| Time on Page         | Goals > Time on Page (filter by page) | Reader engagement       |
+| Scroll Depth         | Goals > Scroll Depth (filter by page) | How far readers scroll  |
 
 ## Content-to-Conversion Attribution
 
 To see which articles drive plan builds:
+
 1. Go to Plausible > Goals > `Plan Generated`
 2. Click the goal to expand
 3. Look at **Properties > page** to see the referring page
@@ -28,6 +29,7 @@ To see which articles drive plan builds:
 ## CTA Placement Rules
 
 Every article should have:
+
 - **Mid-article CTA** (`<CTACard>`) at approximately 40% scroll depth
 - **End-of-article CTA** (`<CTACard>`) after the conclusion
 - CTAs should match the article's funnel stage:
@@ -38,12 +40,14 @@ Every article should have:
 ## Monthly Review Process
 
 ### Top 5 Performing Articles
+
 1. Sort articles by page views in Plausible
 2. Check which ones drive the most conversions
 3. Update with fresh data, new internal links, or expanded sections
 4. Consider creating follow-up content on similar topics
 
 ### Bottom 5 to Optimize
+
 1. Sort articles by page views (ascending)
 2. Check if SEO titles and descriptions are compelling
 3. Verify target keywords match search intent
@@ -76,6 +80,7 @@ Before publishing any article:
 ## UTM Tracking for Content Promotion
 
 When sharing articles on social media or email:
+
 - Always append UTM parameters to the URL
 - Format: `?utm_source=SOURCE&utm_medium=MEDIUM&utm_campaign=CAMPAIGN`
 - Examples:

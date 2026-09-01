@@ -60,17 +60,14 @@ export function ChatMessage({ message }: ChatMessageProps) {
       animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
       transition={{ duration: 0.3, ease: [0.2, 0, 0, 1] }}
       data-chat-role={message.role}
-      className={cn(
-        "flex",
-        isUser ? "justify-end" : "justify-start"
-      )}
+      className={cn("flex", isUser ? "justify-end" : "justify-start")}
     >
       <div
         className={cn(
           "max-w-[86%] whitespace-pre-wrap break-words px-4 py-2.5 text-sm leading-relaxed",
           isUser
             ? "bg-[var(--fg)] font-medium text-[var(--bg)]"
-            : "border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] text-white-secondary"
+            : "border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] text-white-secondary",
         )}
       >
         {isUser ? message.content : linkify(message.content)}

@@ -49,14 +49,22 @@ export default function UpdatePasswordPage() {
     >
       <div className="w-full max-w-md">
         <div className="mb-7 lg:hidden">
-          <p className="font-display text-lg font-semibold tracking-[-0.03em]">{tenant.brand.name}</p>
-          <p className="mt-1 font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-[var(--admin-muted)]">Private operations</p>
+          <p className="font-display text-lg font-semibold tracking-[-0.03em]">
+            {tenant.brand.name}
+          </p>
+          <p className="mt-1 font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-[var(--admin-muted)]">
+            Private operations
+          </p>
         </div>
         <AdminSurface padding="lg" className="admin-dialog-surface">
-          <div className="admin-action-mark mb-7"><LockKeyhole className="h-4.5 w-4.5" /></div>
+          <div className="admin-action-mark mb-7">
+            <LockKeyhole className="h-4.5 w-4.5" />
+          </div>
           <p className="admin-eyebrow">Secure access</p>
           <h1 className="admin-page-title text-[2rem]">Set a new password</h1>
-          <p className="admin-copy mb-7 mt-2 text-sm">Use at least eight characters, then confirm it to continue.</p>
+          <p className="admin-copy mb-7 mt-2 text-sm">
+            Use at least eight characters, then confirm it to continue.
+          </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -90,7 +98,11 @@ export default function UpdatePasswordPage() {
               />
             </div>
 
-            {error && <p className="text-sm text-error" role="alert">{error}</p>}
+            {error && (
+              <p className="text-sm text-error" role="alert">
+                {error}
+              </p>
+            )}
 
             <button
               type="submit"

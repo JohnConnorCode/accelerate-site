@@ -6,7 +6,13 @@
  * route can paint its final state before React runs the effect and appear to
  * pop in. CSS owns the bounded, compositor-friendly sequence instead.
  */
-export function AdminRouteStage({ routeKey, children }: { routeKey: string; children: React.ReactNode }) {
+export function AdminRouteStage({
+  routeKey,
+  children,
+}: {
+  routeKey: string;
+  children: React.ReactNode;
+}) {
   return (
     <div
       key={routeKey}

@@ -88,7 +88,9 @@ export default function ClientsPage() {
           className="min-h-11 rounded-xl bg-[var(--admin-surface)] px-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
         >
           {statusOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
           ))}
         </select>
         <div className="relative flex-1 max-w-xs">
@@ -107,11 +109,15 @@ export default function ClientsPage() {
       <div className="grid gap-4 sm:grid-cols-3 mb-6">
         <AdminSurface padding="sm">
           <p className="admin-eyebrow">Monthly recurring</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-[var(--admin-ink)]">${totalMRR.toLocaleString()}</p>
+          <p className="mt-1 text-xl font-semibold tabular-nums text-[var(--admin-ink)]">
+            ${totalMRR.toLocaleString()}
+          </p>
         </AdminSurface>
         <AdminSurface padding="sm">
           <p className="admin-eyebrow">Active clients</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-emerald-600 dark:text-emerald-300">{activeCount}</p>
+          <p className="mt-1 text-xl font-semibold tabular-nums text-emerald-600 dark:text-emerald-300">
+            {activeCount}
+          </p>
         </AdminSurface>
         <AdminSurface padding="sm">
           <p className="admin-eyebrow">Average MRR / client</p>
@@ -130,7 +136,16 @@ export default function ClientsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--admin-border)] bg-[var(--admin-surface-subtle)]">
-                  {['Business', 'Contact', 'Industry', 'MRR', 'Status', 'Since'].map((label, index) => <th key={label} className={`px-4 py-3 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)] ${index === 2 || index === 5 ? 'hidden sm:table-cell' : ''}`}>{label}</th>)}
+                  {["Business", "Contact", "Industry", "MRR", "Status", "Since"].map(
+                    (label, index) => (
+                      <th
+                        key={label}
+                        className={`px-4 py-3 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)] ${index === 2 || index === 5 ? "hidden sm:table-cell" : ""}`}
+                      >
+                        {label}
+                      </th>
+                    ),
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -150,7 +165,9 @@ export default function ClientsPage() {
                     <td className="px-3 py-2.5">
                       <div>
                         <p className="text-xs text-[var(--admin-ink)]">{client.contact_name}</p>
-                        <p className="text-[10px] text-[var(--admin-muted)]">{client.contact_email}</p>
+                        <p className="text-[10px] text-[var(--admin-muted)]">
+                          {client.contact_email}
+                        </p>
                       </div>
                     </td>
                     <td className="hidden px-3 py-2.5 text-xs capitalize text-[var(--admin-muted)] sm:table-cell">

@@ -9,7 +9,12 @@ interface DateRangeFilterProps {
   onDateToChange: (value: string) => void;
 }
 
-export function DateRangeFilter({ dateFrom, dateTo, onDateFromChange, onDateToChange }: DateRangeFilterProps) {
+export function DateRangeFilter({
+  dateFrom,
+  dateTo,
+  onDateFromChange,
+  onDateToChange,
+}: DateRangeFilterProps) {
   return (
     <div className="flex items-center gap-2">
       <Calendar className="h-4 w-4 text-white-muted shrink-0" />

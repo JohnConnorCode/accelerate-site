@@ -15,9 +15,7 @@ function authorizationError(error: string, status: number) {
   return NextResponse.json({ error }, { status });
 }
 
-export async function requireAdmin(): Promise<
-  AdminAuthorization | NextResponse
-> {
+export async function requireAdmin(): Promise<AdminAuthorization | NextResponse> {
   const supabase = await createServerSupabaseClient();
 
   const {
@@ -37,7 +35,9 @@ export async function requireAdmin(): Promise<
   const cookieStore = await cookies();
   const requestedSlug = (
     requestHeaders.get("x-tenant-slug") || cookieStore.get("accelerate-tenant-slug")?.value
-  )?.trim().toLowerCase();
+  )
+    ?.trim()
+    .toLowerCase();
   const isPlatformAdmin = isConfiguredAdmin(user.email);
 
   // Compatibility URLs resolve only to the bootstrap workspace. Client admins must always carry a

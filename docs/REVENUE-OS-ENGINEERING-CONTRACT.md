@@ -42,30 +42,30 @@ historical receipt and no longer governs implementation.
 
 ## Layer boundaries
 
-| Layer | Owns | Must not own |
-|---|---|---|
-| Entrypoints | Authentication, tenant resolution, payload parsing, validation, response mapping | Pipeline rules, identity merging, sending logic, provider health truth |
-| Domain services | Tenant-scoped invariants, transitions, deduplication, canonical writes | Rendering, route-specific response shapes, raw client credentials |
-| Execution | Claims, retries, terminal status, run summaries | Assuming a request or provider acknowledgement equals success |
-| Data ledgers | Canonical records, immutable events, receipts, provenance | Hidden derived state or destructive reconciliation |
-| Intelligence | Bounded context, registered tools, proposals, explanations | Raw database access, unregistered tools, direct external action |
-| Operator surfaces | Prioritization, review, confirmation, recovery | A second copy of business logic or analytics formulas |
+| Layer             | Owns                                                                             | Must not own                                                           |
+| ----------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Entrypoints       | Authentication, tenant resolution, payload parsing, validation, response mapping | Pipeline rules, identity merging, sending logic, provider health truth |
+| Domain services   | Tenant-scoped invariants, transitions, deduplication, canonical writes           | Rendering, route-specific response shapes, raw client credentials      |
+| Execution         | Claims, retries, terminal status, run summaries                                  | Assuming a request or provider acknowledgement equals success          |
+| Data ledgers      | Canonical records, immutable events, receipts, provenance                        | Hidden derived state or destructive reconciliation                     |
+| Intelligence      | Bounded context, registered tools, proposals, explanations                       | Raw database access, unregistered tools, direct external action        |
+| Operator surfaces | Prioritization, review, confirmation, recovery                                   | A second copy of business logic or analytics formulas                  |
 
 ## Canonical data ownership
 
-| Concern | Canonical data | Authoritative writer | Required evidence |
-|---|---|---|---|
-| Person identity | `contacts`, alternate emails, source provenance | `identity.ts` | Match precedence, ambiguity result, source IDs |
-| Business identity | `companies`, domain, research, qualification | `identity.ts` | Domain/source evidence; never display-name-only merge |
-| Revenue state | `opportunities`, `stage_events` | `pipeline.ts` | Valid transition, actor, source, reason, one stage event |
-| Work commitments | `tasks` | `tasks.ts` | Dedupe key, owner/context, due state, audit/activity |
-| Communication | `conversations`, `messages` | `communications.ts`, `google.ts` | Provider/thread ID, direction, status, idempotency key |
-| Operational history | `activities` | Domain service that caused the event | Stable external/source ID and canonical links |
-| Human/AI decisions | `action_queue` | `actions.ts`, `action-executor.ts` | Impact tier, approval, atomic claim, terminal result |
-| Automation health | `job_runs`, `source_runs`, `webhook_receipts` | `runs.ts` and integration adapters | Start, terminal status, summary/error, cursor/replay key |
-| AI trace and feedback | `agent_runs`, `agent_run_events` | `ai-agent.ts`, `agent-learning.ts` | Model/tool trace, bounded result, immutable rating |
-| Revenue reporting | canonical opportunity/events plus first-party `website_events` | `analytics.ts` | Window, cohort rules, unknown attribution, reconciliation |
-| Compatibility | Original source tables plus canonical linkage | `legacy-adapter.ts` | Source ID preservation and production parity before retirement |
+| Concern               | Canonical data                                                 | Authoritative writer                 | Required evidence                                              |
+| --------------------- | -------------------------------------------------------------- | ------------------------------------ | -------------------------------------------------------------- |
+| Person identity       | `contacts`, alternate emails, source provenance                | `identity.ts`                        | Match precedence, ambiguity result, source IDs                 |
+| Business identity     | `companies`, domain, research, qualification                   | `identity.ts`                        | Domain/source evidence; never display-name-only merge          |
+| Revenue state         | `opportunities`, `stage_events`                                | `pipeline.ts`                        | Valid transition, actor, source, reason, one stage event       |
+| Work commitments      | `tasks`                                                        | `tasks.ts`                           | Dedupe key, owner/context, due state, audit/activity           |
+| Communication         | `conversations`, `messages`                                    | `communications.ts`, `google.ts`     | Provider/thread ID, direction, status, idempotency key         |
+| Operational history   | `activities`                                                   | Domain service that caused the event | Stable external/source ID and canonical links                  |
+| Human/AI decisions    | `action_queue`                                                 | `actions.ts`, `action-executor.ts`   | Impact tier, approval, atomic claim, terminal result           |
+| Automation health     | `job_runs`, `source_runs`, `webhook_receipts`                  | `runs.ts` and integration adapters   | Start, terminal status, summary/error, cursor/replay key       |
+| AI trace and feedback | `agent_runs`, `agent_run_events`                               | `ai-agent.ts`, `agent-learning.ts`   | Model/tool trace, bounded result, immutable rating             |
+| Revenue reporting     | canonical opportunity/events plus first-party `website_events` | `analytics.ts`                       | Window, cohort rules, unknown attribution, reconciliation      |
+| Compatibility         | Original source tables plus canonical linkage                  | `legacy-adapter.ts`                  | Source ID preservation and production parity before retirement |
 
 Canonical IDs take precedence over normalized email. Email may assist resolution,
 but ambiguous matches fail into review. Compatibility tables are sources and
@@ -183,14 +183,14 @@ overflow.
 
 ## Failure semantics
 
-| State | Meaning | Required operator behavior |
-|---|---|---|
-| `success` | Intended bounded work completed with evidence | Show receipt and next expected work |
-| `partial` | Some intended work completed; bounded remainder exists | Show completed/deferred counts and recovery |
-| `skipped` | Work was safely unnecessary or stopped by policy | Show the reason and stop rule |
-| `failed` | Intended work did not complete | Preserve input/claim, safe error, and retry/reconcile path |
-| `degraded` | Capability works incompletely or evidence is stale | Keep unaffected paths available; identify missing capability |
-| `not_configured` | Optional/required dependency is absent | Explain accomplishment, exact setup, and whether flow is blocked |
+| State            | Meaning                                                | Required operator behavior                                       |
+| ---------------- | ------------------------------------------------------ | ---------------------------------------------------------------- |
+| `success`        | Intended bounded work completed with evidence          | Show receipt and next expected work                              |
+| `partial`        | Some intended work completed; bounded remainder exists | Show completed/deferred counts and recovery                      |
+| `skipped`        | Work was safely unnecessary or stopped by policy       | Show the reason and stop rule                                    |
+| `failed`         | Intended work did not complete                         | Preserve input/claim, safe error, and retry/reconcile path       |
+| `degraded`       | Capability works incompletely or evidence is stale     | Keep unaffected paths available; identify missing capability     |
+| `not_configured` | Optional/required dependency is absent                 | Explain accomplishment, exact setup, and whether flow is blocked |
 
 Never translate an exception into HTTP 200 plus a healthy status. Never expose
 secret values, provider tokens, or raw internal stack details in recovery UI.
@@ -218,16 +218,16 @@ analytics formula, AI execution path, or job ledger.
 
 ## Verification matrix
 
-| Change type | Minimum verification |
-|---|---|
-| Pure read/service | Typecheck, lint, deterministic service test, missing-schema/error path |
-| Internal mutation | Above plus authorization, validation, before/after audit, duplicate/concurrency path |
-| External action | Above plus confirmation, idempotency, provider failure, uncertain outcome, receipt reconciliation |
-| Cron/webhook/sync | Above plus auth/signature, replay, cursor/backlog, partial/failed terminal state |
-| AI tool | Registry/schema/impact tests, unknown-tool failure, bounded context, confirmation/executor parity |
-| Analytics | Window/cohort fixtures, unknown attribution, cross-screen reconciliation |
-| UI/interaction | Desktop/mobile Playwright, keyboard/focus, reduced motion, screenshots opened and reviewed |
-| Migration | Ordered/idempotent dry verification, schema readiness, compatibility and rollback/recovery notes |
+| Change type       | Minimum verification                                                                              |
+| ----------------- | ------------------------------------------------------------------------------------------------- |
+| Pure read/service | Typecheck, lint, deterministic service test, missing-schema/error path                            |
+| Internal mutation | Above plus authorization, validation, before/after audit, duplicate/concurrency path              |
+| External action   | Above plus confirmation, idempotency, provider failure, uncertain outcome, receipt reconciliation |
+| Cron/webhook/sync | Above plus auth/signature, replay, cursor/backlog, partial/failed terminal state                  |
+| AI tool           | Registry/schema/impact tests, unknown-tool failure, bounded context, confirmation/executor parity |
+| Analytics         | Window/cohort fixtures, unknown attribution, cross-screen reconciliation                          |
+| UI/interaction    | Desktop/mobile Playwright, keyboard/focus, reduced motion, screenshots opened and reviewed        |
+| Migration         | Ordered/idempotent dry verification, schema readiness, compatibility and rollback/recovery notes  |
 
 The Feature Board may legitimately show missing tests as remaining work. An agent
 must not silently treat a planned test as passing evidence.

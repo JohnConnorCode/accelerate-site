@@ -16,6 +16,7 @@ npm ci
 npm run verify:agent-contract
 npm run typecheck
 npm run lint
+npm run format:check
 npm run test:core
 npm run build
 ```

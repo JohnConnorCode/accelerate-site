@@ -84,10 +84,7 @@ declare global {
 // Event Tracking
 // ========================================
 
-export function trackEvent(
-  name: string,
-  props?: Record<string, string | number>
-) {
+export function trackEvent(name: string, props?: Record<string, string | number>) {
   sendFirstPartyEvent(name, props);
 }
 
@@ -99,33 +96,69 @@ function visitorId(): string {
     const value = crypto.randomUUID();
     sessionStorage.setItem(key, value);
     return value;
-  } catch { return crypto.randomUUID(); }
+  } catch {
+    return crypto.randomUUID();
+  }
 }
 
 function safeEventName(name: string) {
-  return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 80) || "event";
+  return (
+    name
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "")
+      .slice(0, 80) || "event"
+  );
 }
 
 function sendFirstPartyEvent(name: string, props?: Record<string, string | number>) {
   if (typeof window === "undefined" || window.location.pathname.startsWith("/admin")) return;
   const attribution = getUTMParams() || undefined;
-  const referrerHost = (() => { try { return document.referrer ? new URL(document.referrer).host : undefined; } catch { return undefined; } })();
-  const properties = Object.fromEntries(Object.entries(props || {}).filter(([key, value]) => key !== "page" && typeof value !== "undefined").slice(0, 12));
-  const payload = { eventId: crypto.randomUUID(), visitorId: visitorId(), name: safeEventName(name), path: window.location.pathname, referrerHost, attribution, properties };
-  void fetch("/api/analytics/events", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload), keepalive: true, credentials: "same-origin" }).catch(() => undefined);
+  const referrerHost = (() => {
+    try {
+      return document.referrer ? new URL(document.referrer).host : undefined;
+    } catch {
+      return undefined;
+    }
+  })();
+  const properties = Object.fromEntries(
+    Object.entries(props || {})
+      .filter(([key, value]) => key !== "page" && typeof value !== "undefined")
+      .slice(0, 12),
+  );
+  const payload = {
+    eventId: crypto.randomUUID(),
+    visitorId: visitorId(),
+    name: safeEventName(name),
+    path: window.location.pathname,
+    referrerHost,
+    attribution,
+    properties,
+  };
+  void fetch("/api/analytics/events", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(payload),
+    keepalive: true,
+    credentials: "same-origin",
+  }).catch(() => undefined);
 }
 
-export function trackConversion(
-  name: string,
-  props?: Record<string, string | number>
-) {
+export function trackConversion(name: string, props?: Record<string, string | number>) {
   if (typeof window === "undefined") return;
 
   const page = window.location.pathname;
   const allProps: Record<string, string | number> = { ...props, page };
 
   const attribution = getUTMParams();
-  if (attribution) Object.assign(allProps, Object.fromEntries(Object.entries(attribution).filter(([, value]) => typeof value === "string")));
+  if (attribution)
+    Object.assign(
+      allProps,
+      Object.fromEntries(
+        Object.entries(attribution).filter(([, value]) => typeof value === "string"),
+      ),
+    );
 
   // First-party Revenue OS collection is always attempted; it is non-blocking.
   trackEvent(name, allProps);

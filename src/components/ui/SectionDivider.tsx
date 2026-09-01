@@ -9,10 +9,7 @@ interface SectionDividerProps {
   className?: string;
 }
 
-export function SectionDivider({
-  variant = "line",
-  className,
-}: SectionDividerProps) {
+export function SectionDivider({ variant = "line", className }: SectionDividerProps) {
   if (variant === "none") return null;
 
   if (variant === "fade") {
@@ -29,19 +26,9 @@ export function SectionDivider({
   }
 
   if (variant === "glow") {
-    return (
-      <div
-        className={cn("section-divider-glow", className)}
-        aria-hidden="true"
-      />
-    );
+    return <div className={cn("section-divider-glow", className)} aria-hidden="true" />;
   }
 
   // Default: "line"
-  return (
-    <div
-      className={cn("section-divider", className)}
-      aria-hidden="true"
-    />
-  );
+  return <div className={cn("section-divider", className)} aria-hidden="true" />;
 }

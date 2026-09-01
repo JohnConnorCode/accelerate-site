@@ -20,7 +20,8 @@ interface ProposalData {
 }
 
 async function fetchProposal(token: string, tenantSlug?: string): Promise<ProposalData | null> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "https://www.acceleratewith.us";
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "https://www.acceleratewith.us";
   const endpoint = tenantSlug
     ? `/api/public/${encodeURIComponent(tenantSlug)}/proposal/${encodeURIComponent(token)}`
     : `/api/proposal/${encodeURIComponent(token)}`;
@@ -66,9 +67,7 @@ export default async function ProposalPage({
           <h1 className="text-2xl font-display font-bold text-white-primary mb-2">
             Proposal Not Found
           </h1>
-          <p className="text-white-muted">
-            This proposal link may have expired or been removed.
-          </p>
+          <p className="text-white-muted">This proposal link may have expired or been removed.</p>
         </div>
       </div>
     );
@@ -129,9 +128,15 @@ export default async function ProposalPage({
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-border-glass">
-                        <th className="text-left py-2 text-xs text-white-muted uppercase">Service</th>
-                        <th className="text-right py-2 text-xs text-white-muted uppercase">Monthly</th>
-                        <th className="text-right py-2 text-xs text-white-muted uppercase">One-Time</th>
+                        <th className="text-left py-2 text-xs text-white-muted uppercase">
+                          Service
+                        </th>
+                        <th className="text-right py-2 text-xs text-white-muted uppercase">
+                          Monthly
+                        </th>
+                        <th className="text-right py-2 text-xs text-white-muted uppercase">
+                          One-Time
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -163,7 +168,13 @@ export default async function ProposalPage({
           ))}
         </div>
 
-        <ProposalDecision token={token} status={proposal.status} apiBase={tenantSlug ? `/api/public/${encodeURIComponent(tenantSlug)}/proposal` : undefined} />
+        <ProposalDecision
+          token={token}
+          status={proposal.status}
+          apiBase={
+            tenantSlug ? `/api/public/${encodeURIComponent(tenantSlug)}/proposal` : undefined
+          }
+        />
 
         {/* Footer */}
         <footer className="mt-16 pt-8 border-t border-border-glass text-center">

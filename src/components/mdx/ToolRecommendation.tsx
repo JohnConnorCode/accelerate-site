@@ -30,20 +30,12 @@ export function ToolRecommendation({
     <div className="my-6 glass rounded-lg p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
-          <h3 className="font-display font-semibold text-white-primary m-0">
-            {name}
-          </h3>
+          <h3 className="font-display font-semibold text-white-primary m-0">{name}</h3>
           <p className="mt-1 mb-0 text-sm text-white-secondary">{description}</p>
-          {bestFor && (
-            <p className="mt-2 mb-0 text-xs text-white-muted">
-              Best for: {bestFor}
-            </p>
-          )}
+          {bestFor && <p className="mt-2 mb-0 text-xs text-white-muted">Best for: {bestFor}</p>}
         </div>
         <div className="text-right shrink-0">
-          <span className="text-sm font-semibold text-gold-gradient">
-            {pricing}
-          </span>
+          <span className="text-sm font-semibold text-gold-gradient">{pricing}</span>
           {link && (
             <a
               href={link}

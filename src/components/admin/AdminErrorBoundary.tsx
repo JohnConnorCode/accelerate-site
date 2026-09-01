@@ -43,11 +43,10 @@ export class AdminErrorBoundary extends Component<Props, State> {
           <h2 className="mt-4 text-balance text-lg font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">
             Something went wrong in this section
           </h2>
-          <p className="admin-copy mt-2 text-pretty text-sm">
-            {this.state.message}
-          </p>
+          <p className="admin-copy mt-2 text-pretty text-sm">{this.state.message}</p>
           <p className="admin-copy mt-3 text-xs">
-            No work was changed. Try the route again; if the issue persists, inspect Setup Center for a degraded dependency.
+            No work was changed. Try the route again; if the issue persists, inspect Setup Center
+            for a degraded dependency.
           </p>
           <div className="mt-4 flex justify-center gap-2">
             <button

@@ -3,10 +3,7 @@
 import type { ReactNode } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import {
-  heroReveal,
-  heroStaggerDramatic,
-} from "@/lib/animations";
+import { heroReveal, heroStaggerDramatic } from "@/lib/animations";
 import { StarField } from "@/components/ui/StarField";
 import { AmbientOrbs } from "@/components/ui/AmbientOrbs";
 import { BokehField } from "@/components/ui/BokehField";
@@ -79,7 +76,7 @@ export function PageHero({
       <section
         className={cn(
           "relative py-20 sm:py-28 min-h-[50vh] sm:min-h-[60vh] overflow-hidden",
-          className
+          className,
         )}
       >
         {/* Atmospheric background */}
@@ -121,9 +118,7 @@ export function PageHero({
                   {description}
                 </motion.p>
               )}
-              {children && (
-                <motion.div variants={itemVariant}>{children}</motion.div>
-              )}
+              {children && <motion.div variants={itemVariant}>{children}</motion.div>}
             </motion.div>
 
             {/* Visual — 2 cols */}
@@ -148,7 +143,7 @@ export function PageHero({
       <section
         className={cn(
           "relative flex items-center justify-center min-h-[50vh] sm:min-h-[60vh] overflow-hidden",
-          className
+          className,
         )}
       >
         {/* Background layers */}
@@ -169,18 +164,11 @@ export function PageHero({
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[var(--bg-base)] to-transparent pointer-events-none z-[5]" />
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center py-20 sm:py-28">
-          <motion.div
-            variants={heroStaggerDramatic}
-            initial="hidden"
-            animate="visible"
-          >
+          <motion.div variants={heroStaggerDramatic} initial="hidden" animate="visible">
             <motion.p variants={itemVariant} className="section-label">
               {label}
             </motion.p>
-            <motion.h1
-              variants={itemVariant}
-              className="page-heading leading-[1.1] mb-6"
-            >
+            <motion.h1 variants={itemVariant} className="page-heading leading-[1.1] mb-6">
               {title}
             </motion.h1>
             {description && (
@@ -191,9 +179,7 @@ export function PageHero({
                 {description}
               </motion.p>
             )}
-            {children && (
-              <motion.div variants={itemVariant}>{children}</motion.div>
-            )}
+            {children && <motion.div variants={itemVariant}>{children}</motion.div>}
           </motion.div>
         </div>
       </section>
@@ -205,7 +191,7 @@ export function PageHero({
       <section
         className={cn(
           "relative py-20 sm:py-28 min-h-[50vh] sm:min-h-[60vh] flex items-center overflow-hidden",
-          className
+          className,
         )}
       >
         {/* Sparse background */}
@@ -219,7 +205,10 @@ export function PageHero({
 
         {/* Accent watermark */}
         {accentText && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden" aria-hidden="true">
+          <div
+            className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden"
+            aria-hidden="true"
+          >
             <span className="font-display font-bold text-[15vw] leading-none text-white/[0.03] tracking-tight whitespace-nowrap">
               {accentText}
             </span>
@@ -227,11 +216,7 @@ export function PageHero({
         )}
 
         <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            variants={heroStaggerDramatic}
-            initial="hidden"
-            animate="visible"
-          >
+          <motion.div variants={heroStaggerDramatic} initial="hidden" animate="visible">
             <motion.p variants={itemVariant} className="section-label">
               {label}
             </motion.p>
@@ -250,9 +235,7 @@ export function PageHero({
                 {description}
               </motion.p>
             )}
-            {children && (
-              <motion.div variants={itemVariant}>{children}</motion.div>
-            )}
+            {children && <motion.div variants={itemVariant}>{children}</motion.div>}
           </motion.div>
         </div>
       </section>
@@ -262,30 +245,22 @@ export function PageHero({
   // Default: "centered" — upgraded with heroReveal animation
   return (
     <section
-      className={cn("relative py-20 sm:py-28 min-h-[50vh] sm:min-h-[60vh] flex items-center justify-center overflow-hidden", className)}
+      className={cn(
+        "relative py-20 sm:py-28 min-h-[50vh] sm:min-h-[60vh] flex items-center justify-center overflow-hidden",
+        className,
+      )}
     >
       {/* Atmospheric background */}
       <div className="absolute inset-0 pointer-events-none">
-        {hasCustomBg ? (
-          <HeroBackground type={background} />
-        ) : (
-          <DefaultBackground />
-        )}
+        {hasCustomBg ? <HeroBackground type={background} /> : <DefaultBackground />}
       </div>
 
       <div className="relative z-10 w-full max-w-4xl mx-auto px-4 sm:px-6 text-center">
-        <motion.div
-          variants={heroStaggerDramatic}
-          initial="hidden"
-          animate="visible"
-        >
+        <motion.div variants={heroStaggerDramatic} initial="hidden" animate="visible">
           <motion.p variants={itemVariant} className="section-label">
             {label}
           </motion.p>
-          <motion.h1
-            variants={itemVariant}
-            className="page-heading leading-[1.1] mb-6"
-          >
+          <motion.h1 variants={itemVariant} className="page-heading leading-[1.1] mb-6">
             {title}
           </motion.h1>
           {description && (
@@ -296,9 +271,7 @@ export function PageHero({
               {description}
             </motion.p>
           )}
-          {children && (
-            <motion.div variants={itemVariant}>{children}</motion.div>
-          )}
+          {children && <motion.div variants={itemVariant}>{children}</motion.div>}
         </motion.div>
       </div>
     </section>

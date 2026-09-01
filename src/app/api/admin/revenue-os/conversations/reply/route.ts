@@ -6,8 +6,16 @@ import { proposeAction } from "@/lib/revenue-os/actions";
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
-  const body = await request.json() as { conversationId?: string; body?: string; confirmed?: boolean };
-  if (!body.conversationId || !body.body?.trim()) return NextResponse.json({ error: "Conversation and reply body are required" }, { status: 400 });
+  const body = (await request.json()) as {
+    conversationId?: string;
+    body?: string;
+    confirmed?: boolean;
+  };
+  if (!body.conversationId || !body.body?.trim())
+    return NextResponse.json(
+      { error: "Conversation and reply body are required" },
+      { status: 400 },
+    );
   const supabase = auth.database;
   if (!body.confirmed) {
     const action = await proposeAction(supabase, {
@@ -34,6 +42,9 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json({ success: true, result });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Gmail reply failed" }, { status: 400 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Gmail reply failed" },
+      { status: 400 },
+    );
   }
 }

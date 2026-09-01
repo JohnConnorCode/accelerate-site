@@ -9,12 +9,14 @@ export const audiences: AudienceItem[] = [
   {
     icon: "Scale",
     name: "Law Firms",
-    examples: "Intake, follow-up, and client communication for firms that cannot miss the first call",
+    examples:
+      "Intake, follow-up, and client communication for firms that cannot miss the first call",
   },
   {
     icon: "Briefcase",
     name: "Professional Services",
-    examples: "Accountants, consultants, and advisors who want a pipeline that does not depend on referrals",
+    examples:
+      "Accountants, consultants, and advisors who want a pipeline that does not depend on referrals",
   },
   {
     icon: "Building2",

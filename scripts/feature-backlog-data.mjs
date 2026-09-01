@@ -52,17 +52,46 @@ const DEFAULT_CAPABILITY_BY_WORKSTREAM = {
 };
 
 const CAPABILITY_ALIASES = {
-  activity: "activity", analytics: "analytics", ai: "ai", approval: "automation",
-  auth: "security", automation: "automation", calendar: "scheduling", campaigns: "outreach",
-  clonable: "productization", config: "productization", confirmation: "automation",
-  contacts: "identity", conversations: "email", database: "data", dedupe: "reliability",
-  drive: "knowledge", email: "email", encryption: "security", gmail: "email",
-  google: "workspace", health: "reliability", identity: "identity", inbound: "inbound",
-  indexing: "knowledge", integrations: "integrations", observability: "reliability",
-  openrouter: "ai", pipeline: "pipeline", playwright: "testing", proposals: "proposals",
-  qa: "testing", reliability: "reliability", research: "knowledge", resilience: "reliability",
-  security: "security", setup: "setup", tasks: "tasks", testing: "testing",
-  "second-brain": "knowledge", webhooks: "integrations",
+  activity: "activity",
+  analytics: "analytics",
+  ai: "ai",
+  approval: "automation",
+  auth: "security",
+  automation: "automation",
+  calendar: "scheduling",
+  campaigns: "outreach",
+  clonable: "productization",
+  config: "productization",
+  confirmation: "automation",
+  contacts: "identity",
+  conversations: "email",
+  database: "data",
+  dedupe: "reliability",
+  drive: "knowledge",
+  email: "email",
+  encryption: "security",
+  gmail: "email",
+  google: "workspace",
+  health: "reliability",
+  identity: "identity",
+  inbound: "inbound",
+  indexing: "knowledge",
+  integrations: "integrations",
+  observability: "reliability",
+  openrouter: "ai",
+  pipeline: "pipeline",
+  playwright: "testing",
+  proposals: "proposals",
+  qa: "testing",
+  reliability: "reliability",
+  research: "knowledge",
+  resilience: "reliability",
+  security: "security",
+  setup: "setup",
+  tasks: "tasks",
+  testing: "testing",
+  "second-brain": "knowledge",
+  webhooks: "integrations",
 };
 
 // Loop One is the only active milestone. It is the shortest dependency-ordered
@@ -128,9 +157,7 @@ const LOOP_ONE_SET = new Set(LOOP_ONE);
 
 // Now stays small enough to scan. After Gate 0 ships, Wave 1 starts with
 // atomic claims. Remaining circuit work is Next; unrelated work is Later.
-export const NOW_KEYS = [
-  "google-oauth-first-sync",
-];
+export const NOW_KEYS = ["google-oauth-first-sync"];
 const NOW_SET = new Set(NOW_KEYS);
 
 export const SECOND_BRAIN_IMPLEMENTATIONS = {
@@ -162,30 +189,33 @@ export const SECOND_BRAIN_IMPLEMENTATIONS = {
     "autonomous-inbound-responder",
     "postmeeting-workflow",
   ],
-  "second-brain-learn": [
-    "agent-learning-feedback-loop",
-    "second-brain-act",
-  ],
-  "second-brain-trust": [
-    "second-brain-learn",
-    "audit-ledger-coverage",
-    "ai-run-traces",
-  ],
+  "second-brain-learn": ["agent-learning-feedback-loop", "second-brain-act"],
+  "second-brain-trust": ["second-brain-learn", "audit-ledger-coverage", "ai-run-traces"],
 };
 
 // The newest focused slice stays short and precedes the accumulated evidence,
 // so follow-up fixes remain reviewable without rewriting shipped history.
 const LATEST_IMPLEMENTATION_EVIDENCE = {
-  "admin-shell-design-system": "2026-08-31 deep-link and AI workspace follow-up: the shared fictional runtime now resolves exact client and opportunity detail records, rejects unknown entity IDs across nine API families without fixture substitution, preserves generated AI-run identity, exposes the canonical AI conversation ID, and routes pipeline Tasks to Today. Clients and client details moved from legacy glass/gold styling to shared semantic admin surfaces. The AI workspace removes the stacked explainer-card hierarchy, uses a compact three-view switcher, restores mobile conversation selection, keeps its composer in a viewport-aware primary work surface, and presents answers as readable editorial output with visible evidence actions. The expanded five-business desktop/mobile browser matrix opens every client and opportunity record and proves unknown IDs fail honestly. 2026-08-31 production receipt: exact product commit 8d5efaf9ab2e90c516652d7af900bb5353456e98 is READY as Vercel deployment dpl_BXLiwkJZ1FiJwuLANiUeamVAfPhy and aliased to https://www.acceleratewith.us. The canonical Inbox document exposes only release identity 8d5efaf9ab2e and the public changelog includes the repair. Live Northline browser QA passed every one of the 28 admin routes on desktop/mobile, including the assertion that one Inbox click issues one read and returns to idle. Live layout QA passed 13 affected routes across Signal, Paper, Night, desktop/mobile, reduced motion, measured sibling gaps, overflow, and runtime errors; the live Analytics mobile screenshot was inspected from /tmp/accelerate-admin-layout-continuity-live. The release audit found every local/remote agent branch contained in main and both retained stashes superseded by later commits. Implementation: moved top-level section rhythm into AdminReadBody's ready-state wrapper after the async motion boundary severed every route-level space-y contract. Analytics, Bookings, Revenue Recovery, Pipeline, Feature Board, Integrations, Tenants, Email Studio, record details, and Website Grades now inherit one gap rule across live/demo, cached, refreshing, desktop/mobile, and all appearances. Removed leaked roofing language from shared Bookings, made the Analytics supporting note reflow on phones, and migrated legacy Revenue cards/chart from public glass/gold/white tokens to AdminSurface plus admin semantic tokens. Setup's missing Google tokenHealth fixture no longer crashes fictional workspaces. Inbox no longer performs an eager refetch from an effect coupled to the changing React Query result; the query owns initial loading, while user, visibility, and operator-event refreshes use a stable refetch reference and truthful busy state. Before release, the complete five-business, 28-route desktop/mobile matrix passed populated content, theme ownership, Inbox refresh, isolation, focus containment, overflow, console errors, and protected-request escape with screenshots in /tmp/accelerate-full-admin-demo.",
-  "tenant-workspace-provisioning": "2026-08-31 production release receipt: commit 3da0be4 deployed READY as dpl_4zYBYVirPw6MJ6bK9kb2gznLQRYT and aliased to https://www.acceleratewith.us. Authenticated canonical-alias Playwright passed the tenant directory and keyboard resend path at 1440x1000 and 390x844 with mocked mutation boundaries, reduced motion, clean console state, and no overflow. Live readiness re-verified two active tenants, five active memberships, confirmation-required email Auth, confirmed founder access, verified Resend sender domain, and service-role-only lifecycle functions. The additive invitation audit idempotency index applied successfully and an immediate rerun proved it already existed. No client account or real invitation was created during QA.",
-  "ai-bounded-context": "2026-08-31 production release receipt: the complete bounded-context code shipped in READY deployment dpl_4zYBYVirPw6MJ6bK9kb2gznLQRYT on https://www.acceleratewith.us, and both public changelog entries are live. A canonical `/api/chat` smoke returned HTTP 200 but correctly used DEMO_MODE_REPLY because production has no OPENROUTER_API_KEY; `vercel pull` likewise returned no credential and no approved local/Keychain secret exists. The card therefore remains In Progress rather than claiming live model evidence. Exact remaining action: add the founder-owned OpenRouter credential to Vercel Production, redeploy, run `verify:ai-gateway`, then prove one grounded public response and one authenticated copilot answer with context-version/source receipts. No key was fabricated or exposed.",
-  "founder-note-capture": "2026-08-31 burn-in foundation complete; card intentionally remains In Progress. The global composer now opens directly with Cmd/Ctrl+Shift+M without conflicting with browser shortcuts, and every saved activity receipt records bounded open-to-save duration plus capture source while preserving the same request ID across visible-failure retry. `loadFounderKnowledgeNotes` and founder-only GET expose a bounded activity-backed reader with body, author, date, stable source receipt, and canonical attachments; incomplete provenance fails closed. Duplicate retries now repair a missing redacted audit receipt without duplicating a healthy one. `verify-founder-note-adoption.ts` reads only IDs, provenance, links, dates, and metadata—never note text—and separates the mechanical seven-day/sub-ten-second gate from explicit founder usefulness confirmation. The live read-only Accelerate report on 2026-08-31 returned pending with zero notes/measured captures, so no adoption claim was fabricated. Service tests, TypeScript, zero-warning lint, and authenticated repository Playwright pass; desktop/mobile/dark/reduced-motion screenshots in `/tmp/accelerate-founder-note` were opened and reviewed. Remaining: at least three measured real captures across three days after a seven-day observation window, median capture at or below ten seconds, and founder confirmation that retrieved notes are useful. No schema, provider, production mutation, or deployment occurred.",
-  "openrouter-ai-gateway": "2026-08-31 closure audit shipped locally: every named AI workflow resolves through the shared server-only adapter and source/package inspection finds no direct provider SDK. Strict structured calls require provider JSON Schema plus a domain validator; malformed and invalid responses fail before domain writes. The gateway now also preserves public-chat streaming request ID, resolved fallback model, token usage, duration, terminal outcome, and bounded/redacted errors in the shared run/event ledger. Streaming uses the same declared OpenRouter fallback and usage contract as non-streaming calls, including CRLF-safe SSE parsing and provider error frames. Setup reports primary/default and optional fallback model readiness without exposing the key; setup docs now define the fallback override. Verification passed: test:openrouter-resilience, test:agent-trace, test:agent-loop, test:ai-command-runtime, test:setup-status, TypeScript, zero-warning lint, agent/board contracts, production build, and diff check. Prior controlled production OpenRouter proof from 2026-08-16 and 2026-08-20 remains the provider receipt; this closure made no provider call, secret access, production mutation, or deployment.",
-  "public-site-motion-performance": "2026-08-31 homepage hero timing parity: removed the compressed phone-only animation overrides, so mobile now inherits the exact desktop word cascade (0.2–2.8s), productivity strike (3.85s), PROFIT (4.7s), underline (5.1s), and CTA (6.1s) while retaining responsive composition and proportional blur. A dedicated production-browser contract compares every computed duration and delay across 1440x900 and 390x844, captures three intermediate frames per viewport, checks overflow and console errors, and verifies reduced-motion completion; it passed with byte-equivalent timing snapshots. 2026-08-31 mobile Chrome incident repair: production cache provenance first ruled out mixed deployment IDs, service-worker control, disk-cached RSC payloads, and repeated document navigation across 120 Command Center transitions. The public shell then exposed the rendering fault: full-route blur plus 47 concurrent homepage animations and an unbounded mobile spotlight frame loop competed with the drawer. Public route handoff is now opacity-only; the mounted inert drawer uses interruptible CSS state transitions; the opaque cover suspends hidden-page painting; mobile decorative drift and logo loops are static; the spotlight runs continuously only for fine pointers and for a bounded response after touch; programmatic route focus no longer draws the broken native heading outline. New persistent public-profile QA covers primary public Links, rapid open/close interruption, long tasks, fresh parity, reduced motion, focus, overflow, runtime errors, and full-route filter state at 4x CPU. Optimized-build evidence: persistent drawer-open p95 125.5ms, route-commit p95 148.7ms, max 148.7ms, longest task 69ms; fresh p95 126.5/168.3ms; all checks passed. Open-menu and settled-route screenshots under /tmp/accelerate-public-release-trace were reviewed. 2026-08-30 hero entrance repair: PROFIT and the booking button use delayed CSS transitions off `.hero.loaded`. A prior first-paint visibility pass initialized that flag to true and marked the eyebrow `reveal-immediate`, so those two beats never left rest opacity. Restored `useState(false)`, the loaded eyebrow class, and a hero-only hide-until-loaded rule. Isolated webpack preview on 3020: desktop PROFIT opacity 0 at 1s, ~1 at 6.2s with CTA still 0, CTA 1 at 7.4s. Screenshots reviewed under /tmp/accelerate-hero-fix. Contract: `npx tsx scripts/test-navigation-runtime.ts` now fails if the hero starts loaded.",
-  "public-shell-route-consistency": "2026-08-30 public render split: marketing chrome lives in `src/app/(marketing)/layout.tsx` via MarketingChrome so admin and rewritten demo workspaces do not hydrate Header/Footer/Chat/Dock. Root `not-found.tsx` wraps NotFoundBody in MarketingChrome; `(marketing)/not-found.tsx` renders the body only. Isolated 3020 QA: unmatched `/this-route-does-not-exist` and nested `/learn/not-a-real-article-slug-zzzz` each have one site header and one footer. Learn listings still serialize ArticleSummary only. NOW remains tenant-config-seam. No live board apply, commit, push, or deploy.",
-  "cloneable-command-center-contract": "2026-08-30 architecture supersession: this card remains the immutable receipt for the former instance-per-client decision, but `shared-database-multi-tenancy-contract` now supersedes it by explicit founder direction. Its no-tenant guardrail must not be applied to the new architecture or child cards. The prior config-seam and install evidence remains useful migration input; it is no longer the active product shape.",
-  "tenant-config-seam": "2026-08-30 close: admin compose signatures now read tenant.founder.name and tenant.brand.name. The cloneability ratchet covers src/components/admin with an empty budget. Changing only tenant.brand/founder re-rendered login chrome and outbound email as Harbor Pipe Co with no Accelerate wordmark. Isolated 3020 login desktop/mobile and rendered email reviewed under /tmp/accelerate-tenant-rebrand. `npm run test:tenant-config` covers email chrome, compose signatures, sender/from, Plausible domain, siteUrl, campaign sender default, unsubscribe URL, Setup Vercel link, auth/admin chrome, copilot/chat persona, publicBooking, and the empty budget. Capability flags stay consumed-only: publicBooking is the one reader. Public marketing pages remain Accelerate-branded by contract. No live board apply, commit, push, or deploy.",
-  "audit-ledger-coverage": "2026-08-30 Wave 1 close: `listAuditHistory` filters actor, entity, action, source, and date and throws on ledger read failure. Proposal create/update/send, public view/accept/decline, calendar sync summaries, and settings PUT write before/after rows without proposal bodies, decline reasons, attendee payloads, or setting values. Public proposal GET still returns the proposal if the view audit write fails. `/admin/activity` is the founder audit ledger with query-backed filters; the fictional demo serves the same shape. Verification: `npm run test:audit` (11 checks); `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3020 npm run qa:audit-activity` (desktop/mobile filter, Back, reduced motion, overflow, console, no protected requests). Reviewed `/tmp/accelerate-audit-activity/activity-desktop.png` and `activity-mobile.png`. Isolated preview used because shared 3010 was down and 3011 is a 2026-08-28 `next start`. No production apply or deployment.",
+  "admin-shell-design-system":
+    "2026-08-31 deep-link and AI workspace follow-up: the shared fictional runtime now resolves exact client and opportunity detail records, rejects unknown entity IDs across nine API families without fixture substitution, preserves generated AI-run identity, exposes the canonical AI conversation ID, and routes pipeline Tasks to Today. Clients and client details moved from legacy glass/gold styling to shared semantic admin surfaces. The AI workspace removes the stacked explainer-card hierarchy, uses a compact three-view switcher, restores mobile conversation selection, keeps its composer in a viewport-aware primary work surface, and presents answers as readable editorial output with visible evidence actions. The expanded five-business desktop/mobile browser matrix opens every client and opportunity record and proves unknown IDs fail honestly. 2026-08-31 production receipt: exact product commit 8d5efaf9ab2e90c516652d7af900bb5353456e98 is READY as Vercel deployment dpl_BXLiwkJZ1FiJwuLANiUeamVAfPhy and aliased to https://www.acceleratewith.us. The canonical Inbox document exposes only release identity 8d5efaf9ab2e and the public changelog includes the repair. Live Northline browser QA passed every one of the 28 admin routes on desktop/mobile, including the assertion that one Inbox click issues one read and returns to idle. Live layout QA passed 13 affected routes across Signal, Paper, Night, desktop/mobile, reduced motion, measured sibling gaps, overflow, and runtime errors; the live Analytics mobile screenshot was inspected from /tmp/accelerate-admin-layout-continuity-live. The release audit found every local/remote agent branch contained in main and both retained stashes superseded by later commits. Implementation: moved top-level section rhythm into AdminReadBody's ready-state wrapper after the async motion boundary severed every route-level space-y contract. Analytics, Bookings, Revenue Recovery, Pipeline, Feature Board, Integrations, Tenants, Email Studio, record details, and Website Grades now inherit one gap rule across live/demo, cached, refreshing, desktop/mobile, and all appearances. Removed leaked roofing language from shared Bookings, made the Analytics supporting note reflow on phones, and migrated legacy Revenue cards/chart from public glass/gold/white tokens to AdminSurface plus admin semantic tokens. Setup's missing Google tokenHealth fixture no longer crashes fictional workspaces. Inbox no longer performs an eager refetch from an effect coupled to the changing React Query result; the query owns initial loading, while user, visibility, and operator-event refreshes use a stable refetch reference and truthful busy state. Before release, the complete five-business, 28-route desktop/mobile matrix passed populated content, theme ownership, Inbox refresh, isolation, focus containment, overflow, console errors, and protected-request escape with screenshots in /tmp/accelerate-full-admin-demo.",
+  "tenant-workspace-provisioning":
+    "2026-08-31 production release receipt: commit 3da0be4 deployed READY as dpl_4zYBYVirPw6MJ6bK9kb2gznLQRYT and aliased to https://www.acceleratewith.us. Authenticated canonical-alias Playwright passed the tenant directory and keyboard resend path at 1440x1000 and 390x844 with mocked mutation boundaries, reduced motion, clean console state, and no overflow. Live readiness re-verified two active tenants, five active memberships, confirmation-required email Auth, confirmed founder access, verified Resend sender domain, and service-role-only lifecycle functions. The additive invitation audit idempotency index applied successfully and an immediate rerun proved it already existed. No client account or real invitation was created during QA.",
+  "ai-bounded-context":
+    "2026-08-31 production release receipt: the complete bounded-context code shipped in READY deployment dpl_4zYBYVirPw6MJ6bK9kb2gznLQRYT on https://www.acceleratewith.us, and both public changelog entries are live. A canonical `/api/chat` smoke returned HTTP 200 but correctly used DEMO_MODE_REPLY because production has no OPENROUTER_API_KEY; `vercel pull` likewise returned no credential and no approved local/Keychain secret exists. The card therefore remains In Progress rather than claiming live model evidence. Exact remaining action: add the founder-owned OpenRouter credential to Vercel Production, redeploy, run `verify:ai-gateway`, then prove one grounded public response and one authenticated copilot answer with context-version/source receipts. No key was fabricated or exposed.",
+  "founder-note-capture":
+    "2026-08-31 burn-in foundation complete; card intentionally remains In Progress. The global composer now opens directly with Cmd/Ctrl+Shift+M without conflicting with browser shortcuts, and every saved activity receipt records bounded open-to-save duration plus capture source while preserving the same request ID across visible-failure retry. `loadFounderKnowledgeNotes` and founder-only GET expose a bounded activity-backed reader with body, author, date, stable source receipt, and canonical attachments; incomplete provenance fails closed. Duplicate retries now repair a missing redacted audit receipt without duplicating a healthy one. `verify-founder-note-adoption.ts` reads only IDs, provenance, links, dates, and metadata—never note text—and separates the mechanical seven-day/sub-ten-second gate from explicit founder usefulness confirmation. The live read-only Accelerate report on 2026-08-31 returned pending with zero notes/measured captures, so no adoption claim was fabricated. Service tests, TypeScript, zero-warning lint, and authenticated repository Playwright pass; desktop/mobile/dark/reduced-motion screenshots in `/tmp/accelerate-founder-note` were opened and reviewed. Remaining: at least three measured real captures across three days after a seven-day observation window, median capture at or below ten seconds, and founder confirmation that retrieved notes are useful. No schema, provider, production mutation, or deployment occurred.",
+  "openrouter-ai-gateway":
+    "2026-08-31 closure audit shipped locally: every named AI workflow resolves through the shared server-only adapter and source/package inspection finds no direct provider SDK. Strict structured calls require provider JSON Schema plus a domain validator; malformed and invalid responses fail before domain writes. The gateway now also preserves public-chat streaming request ID, resolved fallback model, token usage, duration, terminal outcome, and bounded/redacted errors in the shared run/event ledger. Streaming uses the same declared OpenRouter fallback and usage contract as non-streaming calls, including CRLF-safe SSE parsing and provider error frames. Setup reports primary/default and optional fallback model readiness without exposing the key; setup docs now define the fallback override. Verification passed: test:openrouter-resilience, test:agent-trace, test:agent-loop, test:ai-command-runtime, test:setup-status, TypeScript, zero-warning lint, agent/board contracts, production build, and diff check. Prior controlled production OpenRouter proof from 2026-08-16 and 2026-08-20 remains the provider receipt; this closure made no provider call, secret access, production mutation, or deployment.",
+  "public-site-motion-performance":
+    "2026-08-31 homepage hero timing parity: removed the compressed phone-only animation overrides, so mobile now inherits the exact desktop word cascade (0.2–2.8s), productivity strike (3.85s), PROFIT (4.7s), underline (5.1s), and CTA (6.1s) while retaining responsive composition and proportional blur. A dedicated production-browser contract compares every computed duration and delay across 1440x900 and 390x844, captures three intermediate frames per viewport, checks overflow and console errors, and verifies reduced-motion completion; it passed with byte-equivalent timing snapshots. 2026-08-31 mobile Chrome incident repair: production cache provenance first ruled out mixed deployment IDs, service-worker control, disk-cached RSC payloads, and repeated document navigation across 120 Command Center transitions. The public shell then exposed the rendering fault: full-route blur plus 47 concurrent homepage animations and an unbounded mobile spotlight frame loop competed with the drawer. Public route handoff is now opacity-only; the mounted inert drawer uses interruptible CSS state transitions; the opaque cover suspends hidden-page painting; mobile decorative drift and logo loops are static; the spotlight runs continuously only for fine pointers and for a bounded response after touch; programmatic route focus no longer draws the broken native heading outline. New persistent public-profile QA covers primary public Links, rapid open/close interruption, long tasks, fresh parity, reduced motion, focus, overflow, runtime errors, and full-route filter state at 4x CPU. Optimized-build evidence: persistent drawer-open p95 125.5ms, route-commit p95 148.7ms, max 148.7ms, longest task 69ms; fresh p95 126.5/168.3ms; all checks passed. Open-menu and settled-route screenshots under /tmp/accelerate-public-release-trace were reviewed. 2026-08-30 hero entrance repair: PROFIT and the booking button use delayed CSS transitions off `.hero.loaded`. A prior first-paint visibility pass initialized that flag to true and marked the eyebrow `reveal-immediate`, so those two beats never left rest opacity. Restored `useState(false)`, the loaded eyebrow class, and a hero-only hide-until-loaded rule. Isolated webpack preview on 3020: desktop PROFIT opacity 0 at 1s, ~1 at 6.2s with CTA still 0, CTA 1 at 7.4s. Screenshots reviewed under /tmp/accelerate-hero-fix. Contract: `npx tsx scripts/test-navigation-runtime.ts` now fails if the hero starts loaded.",
+  "public-shell-route-consistency":
+    "2026-08-30 public render split: marketing chrome lives in `src/app/(marketing)/layout.tsx` via MarketingChrome so admin and rewritten demo workspaces do not hydrate Header/Footer/Chat/Dock. Root `not-found.tsx` wraps NotFoundBody in MarketingChrome; `(marketing)/not-found.tsx` renders the body only. Isolated 3020 QA: unmatched `/this-route-does-not-exist` and nested `/learn/not-a-real-article-slug-zzzz` each have one site header and one footer. Learn listings still serialize ArticleSummary only. NOW remains tenant-config-seam. No live board apply, commit, push, or deploy.",
+  "cloneable-command-center-contract":
+    "2026-08-30 architecture supersession: this card remains the immutable receipt for the former instance-per-client decision, but `shared-database-multi-tenancy-contract` now supersedes it by explicit founder direction. Its no-tenant guardrail must not be applied to the new architecture or child cards. The prior config-seam and install evidence remains useful migration input; it is no longer the active product shape.",
+  "tenant-config-seam":
+    "2026-08-30 close: admin compose signatures now read tenant.founder.name and tenant.brand.name. The cloneability ratchet covers src/components/admin with an empty budget. Changing only tenant.brand/founder re-rendered login chrome and outbound email as Harbor Pipe Co with no Accelerate wordmark. Isolated 3020 login desktop/mobile and rendered email reviewed under /tmp/accelerate-tenant-rebrand. `npm run test:tenant-config` covers email chrome, compose signatures, sender/from, Plausible domain, siteUrl, campaign sender default, unsubscribe URL, Setup Vercel link, auth/admin chrome, copilot/chat persona, publicBooking, and the empty budget. Capability flags stay consumed-only: publicBooking is the one reader. Public marketing pages remain Accelerate-branded by contract. No live board apply, commit, push, or deploy.",
+  "audit-ledger-coverage":
+    "2026-08-30 Wave 1 close: `listAuditHistory` filters actor, entity, action, source, and date and throws on ledger read failure. Proposal create/update/send, public view/accept/decline, calendar sync summaries, and settings PUT write before/after rows without proposal bodies, decline reasons, attendee payloads, or setting values. Public proposal GET still returns the proposal if the view audit write fails. `/admin/activity` is the founder audit ledger with query-backed filters; the fictional demo serves the same shape. Verification: `npm run test:audit` (11 checks); `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3020 npm run qa:audit-activity` (desktop/mobile filter, Back, reduced motion, overflow, console, no protected requests). Reviewed `/tmp/accelerate-audit-activity/activity-desktop.png` and `activity-mobile.png`. Isolated preview used because shared 3010 was down and 3011 is a 2026-08-28 `next start`. No production apply or deployment.",
 };
 
 LATEST_IMPLEMENTATION_EVIDENCE["admin-shell-design-system"] =
@@ -199,21 +229,38 @@ LATEST_IMPLEMENTATION_EVIDENCE["admin-shell-design-system"] =
 // Fresh evidence is kept separate from the long-lived historical card notes so
 // focused follow-up slices stay reviewable without rewriting shipped history.
 const CURRENT_IMPLEMENTATION_EVIDENCE = {
-  "tenant-workspace-provisioning": "2026-08-31 invitation delivery completion: the platform lifecycle service creates branded one-time invite or magic-link credentials without Supabase default SMTP, records the exact pending membership before delivery, sends through the verified Resend identity with a tenant/user/request idempotency key, and returns distinct sent, failed, unknown, and existing-account outcomes with provider receipts. Delivery outcomes enter immutable platform audit history; uncertain provider or local-receipt outcomes refuse blind retry. Acceptance verifies the token server-side and binds tenant ID, canonical slug, Auth user, and normalized email before the atomic audited membership RPC. Pending memberships expose an accessible 40px keyboard resend action. Read-only production readiness proves email Auth enabled with confirmation required, a confirmed founder, two active tenants, five active memberships, and a verified Resend sender domain. Fixture-backed authenticated production-build QA proves keyboard resend, request identity, reduced motion, clean console state, no mutation, and no overflow at 1440x1000 and 390x844.",
-  "ai-bounded-context": "2026-08-31 completion candidate: Revenue Copilot, public chat, plans, proposals, content briefs, contact import, and first-touch responder now declare fixed context budgets, explicit source allowlists, and untrusted-data boundaries. Copilot tool results carry registered receipt provenance and final output is structurally enforced; invalid or invented citations degrade to an explicit partial answer. Plans and proposals reject money outside the typed published catalog and mismatched totals. Content briefs require allowed-source evidence and fact indexes. Contact imports preserve bounded source indexes and reject unsupported model fields before identity work. Responder v2 bounds every field and rejects invented pricing, results, capabilities, availability, timelines, prompt leakage, and links; its version bump suspends sends pending explicit reapproval. Focused AI, import, responder, gateway, command-runtime, TypeScript, and diff checks pass. Remaining before Shipped: deploy the exact verified release and capture production gateway/context evidence.",
-  "admin-shell-design-system": "2026-08-28 horizontal control-rail polish: Today Priority Queue, Pipeline views, and Contact intake now use the shared cross-browser scrollbar-hiding utility, preserving touch/trackpad scroll without the WebKit scrollbar flashing on mobile load. UX browser coverage checks both standard and WebKit computed scrollbar states before interacting with Today and captures the direct-load rail on desktop and mobile. 2026-08-28 cold-load perception repair: AdminAsyncRegion now behaviorally withholds local placeholders for 120ms instead of merely declaring a delayed animation, then crossfades only genuinely slow reads. Today owns one destination-shaped fallback whose mobile summary retains the final 2x2 geometry rather than stacking generic cards. The navigation filmstrip now exercises an uncached 650ms route, current WAAPI semantic stagger, cold-load fallback visibility, same-frame destination intent, retained committed content, focus, scroll reset, dock movement, and mobile/desktop frames; the corrected local run passed with 40ms mobile acknowledgement and screenshots were opened and inspected. 2026-08-28 perceptual-navigation completion: the root admin fallback is removed so committed work remains usable during route resolution; one AdminRouteStage owns direct-load and navigation blur/rise motion with a bounded 48ms semantic stagger; one AdminAsyncRegion delays local placeholders, preserves cached results during refetch, and animates ready data without page-level popping. Today uses retained shared queries, a true mobile 2x2 summary, an exploration-first demo hierarchy without setup noise or duplicate decision rails, and immediate optimistic updates. Pipeline uses the same compact 2x2 mobile summary. The responsive command palette renders as a safe-area-aware full-screen mobile command surface with immediate local results and a 120ms people debounce. Timed production-browser QA measured 39ms tap acknowledgement and verifies committed-route motion, no root fallback, search focus, phone geometry, and reduced motion. 2026-08-28 interaction-integrity repair: Today approval rows and arrows open the shared focus-managed review dialog with reactive deep links and deterministic close/focus return; contact rows open a complete relationship detail dialog; desktop notifications are compact and anchored beside their trigger while the inset mobile sheet traps focus and owns the dock edge; mobile More removes redundant Navigation/More labels and gives its top space to Search and Ask AI; semantic status messages keep standard admin ink over restrained status tints. The shared UX contract now prohibits controls without outcomes, detached overlays, hue-on-hue status copy, and arbitrary redundant interface labels. Browser QA covers desktop/mobile click paths, URL state, focus, overlay geometry, status contrast, public shell parity, and WCAG A/AA serious or critical violations. 2026-08-28 overlay repair: desktop and mobile alerts now share one body-portaled, viewport-owned notification primitive with placement-specific geometry, bounded scrolling, collision-free mobile dock ownership, and browser assertions for containment. 2026-08-27 permanent navigation, loading, and overlay architecture: NavigationRuntime exposes immediate destination intent, preserves committed accessibility state, and restores replacement-heading focus through the actual DOM handoff. AdminQueryProvider, useAdminQuery, and AdminPageLoading provide cancellable deduped reads, retained data, real destination headers, and regional loading geometry; Pipeline and Conversations adopt the shared read path. The glass mobile dock moves one shared active surface, yields the bottom edge to portaled notifications, and More remains a focus-contained right drawer. Shared composers and semantic repeated-list rules cover AI, Gmail, Today, and alerts.",
-  "full-admin-demo-runtime": "2026-08-28 demo parity and theme ownership: the launcher owns a dedicated prepaint theme preference instead of competing with the site or scenario appearance, reload sampling guards against dark/light flicker, and the shared Today queue now supplies replies, commitments, approvals, and proposals with functional filters and meaningful destinations. 2026-08-27 exploration-first simplification: intentionally removed the visible guided tour while preserving the complete shared admin route tree, scenario switching, reset, appearance controls, fictional-data safety boundary, and browser-session runtime.",
-  "public-site-motion-performance": "2026-08-28 mobile hero rhythm repair: removed the elastic viewport filler that cramped PROFIT against the headline and pushed the strategy CTA 92-184px away on phones. The closing group is now content-sized with explicit responsive spacing, keeps the CTA above the fold from 320x568 through 430x932, and browser geometry fails on either a cramped headline gap or a detached action. 2026-08-28 reveal lifecycle repair: shared word-mask headings now attach to the same viewport lifecycle as other public reveals, so below-fold industry headings remain armed until entry instead of completing offscreen. Browser coverage traverses the law-firm page at desktop, mobile, and reduced motion and verifies both heading and content entry timing.",
-  "selected-work-portfolio": "2026-08-28 visual-system follow-up: the Work index and every case now use one 14px media radius, theme-token surfaces, and a non-conflicting fixed-header offset. The public theme toggle uses the resolved preference, persists a real inversion, and browser coverage checks both theme states and media geometry.",
-  "full-admin-demo-scenarios": "2026-08-27 scenario-pack v3: the launcher and shared runtime now expose five separately authored operating models for roofing, injury law, advisory, real estate, and a nonprofit network. Each pack has distinct identity, animated mark, appearance, people, companies, opportunity values, next actions, conversations, tasks, approvals, campaigns, resources, and roadmap evidence. Exact copy duplication is contract-tested; the five-business 28-route desktop/mobile matrix, all five appearances, populated contact expansion, refresh/reset/isolation, and production build pass.",
+  "tenant-workspace-provisioning":
+    "2026-08-31 invitation delivery completion: the platform lifecycle service creates branded one-time invite or magic-link credentials without Supabase default SMTP, records the exact pending membership before delivery, sends through the verified Resend identity with a tenant/user/request idempotency key, and returns distinct sent, failed, unknown, and existing-account outcomes with provider receipts. Delivery outcomes enter immutable platform audit history; uncertain provider or local-receipt outcomes refuse blind retry. Acceptance verifies the token server-side and binds tenant ID, canonical slug, Auth user, and normalized email before the atomic audited membership RPC. Pending memberships expose an accessible 40px keyboard resend action. Read-only production readiness proves email Auth enabled with confirmation required, a confirmed founder, two active tenants, five active memberships, and a verified Resend sender domain. Fixture-backed authenticated production-build QA proves keyboard resend, request identity, reduced motion, clean console state, no mutation, and no overflow at 1440x1000 and 390x844.",
+  "ai-bounded-context":
+    "2026-08-31 completion candidate: Revenue Copilot, public chat, plans, proposals, content briefs, contact import, and first-touch responder now declare fixed context budgets, explicit source allowlists, and untrusted-data boundaries. Copilot tool results carry registered receipt provenance and final output is structurally enforced; invalid or invented citations degrade to an explicit partial answer. Plans and proposals reject money outside the typed published catalog and mismatched totals. Content briefs require allowed-source evidence and fact indexes. Contact imports preserve bounded source indexes and reject unsupported model fields before identity work. Responder v2 bounds every field and rejects invented pricing, results, capabilities, availability, timelines, prompt leakage, and links; its version bump suspends sends pending explicit reapproval. Focused AI, import, responder, gateway, command-runtime, TypeScript, and diff checks pass. Remaining before Shipped: deploy the exact verified release and capture production gateway/context evidence.",
+  "admin-shell-design-system":
+    "2026-08-28 horizontal control-rail polish: Today Priority Queue, Pipeline views, and Contact intake now use the shared cross-browser scrollbar-hiding utility, preserving touch/trackpad scroll without the WebKit scrollbar flashing on mobile load. UX browser coverage checks both standard and WebKit computed scrollbar states before interacting with Today and captures the direct-load rail on desktop and mobile. 2026-08-28 cold-load perception repair: AdminAsyncRegion now behaviorally withholds local placeholders for 120ms instead of merely declaring a delayed animation, then crossfades only genuinely slow reads. Today owns one destination-shaped fallback whose mobile summary retains the final 2x2 geometry rather than stacking generic cards. The navigation filmstrip now exercises an uncached 650ms route, current WAAPI semantic stagger, cold-load fallback visibility, same-frame destination intent, retained committed content, focus, scroll reset, dock movement, and mobile/desktop frames; the corrected local run passed with 40ms mobile acknowledgement and screenshots were opened and inspected. 2026-08-28 perceptual-navigation completion: the root admin fallback is removed so committed work remains usable during route resolution; one AdminRouteStage owns direct-load and navigation blur/rise motion with a bounded 48ms semantic stagger; one AdminAsyncRegion delays local placeholders, preserves cached results during refetch, and animates ready data without page-level popping. Today uses retained shared queries, a true mobile 2x2 summary, an exploration-first demo hierarchy without setup noise or duplicate decision rails, and immediate optimistic updates. Pipeline uses the same compact 2x2 mobile summary. The responsive command palette renders as a safe-area-aware full-screen mobile command surface with immediate local results and a 120ms people debounce. Timed production-browser QA measured 39ms tap acknowledgement and verifies committed-route motion, no root fallback, search focus, phone geometry, and reduced motion. 2026-08-28 interaction-integrity repair: Today approval rows and arrows open the shared focus-managed review dialog with reactive deep links and deterministic close/focus return; contact rows open a complete relationship detail dialog; desktop notifications are compact and anchored beside their trigger while the inset mobile sheet traps focus and owns the dock edge; mobile More removes redundant Navigation/More labels and gives its top space to Search and Ask AI; semantic status messages keep standard admin ink over restrained status tints. The shared UX contract now prohibits controls without outcomes, detached overlays, hue-on-hue status copy, and arbitrary redundant interface labels. Browser QA covers desktop/mobile click paths, URL state, focus, overlay geometry, status contrast, public shell parity, and WCAG A/AA serious or critical violations. 2026-08-28 overlay repair: desktop and mobile alerts now share one body-portaled, viewport-owned notification primitive with placement-specific geometry, bounded scrolling, collision-free mobile dock ownership, and browser assertions for containment. 2026-08-27 permanent navigation, loading, and overlay architecture: NavigationRuntime exposes immediate destination intent, preserves committed accessibility state, and restores replacement-heading focus through the actual DOM handoff. AdminQueryProvider, useAdminQuery, and AdminPageLoading provide cancellable deduped reads, retained data, real destination headers, and regional loading geometry; Pipeline and Conversations adopt the shared read path. The glass mobile dock moves one shared active surface, yields the bottom edge to portaled notifications, and More remains a focus-contained right drawer. Shared composers and semantic repeated-list rules cover AI, Gmail, Today, and alerts.",
+  "full-admin-demo-runtime":
+    "2026-08-28 demo parity and theme ownership: the launcher owns a dedicated prepaint theme preference instead of competing with the site or scenario appearance, reload sampling guards against dark/light flicker, and the shared Today queue now supplies replies, commitments, approvals, and proposals with functional filters and meaningful destinations. 2026-08-27 exploration-first simplification: intentionally removed the visible guided tour while preserving the complete shared admin route tree, scenario switching, reset, appearance controls, fictional-data safety boundary, and browser-session runtime.",
+  "public-site-motion-performance":
+    "2026-08-28 mobile hero rhythm repair: removed the elastic viewport filler that cramped PROFIT against the headline and pushed the strategy CTA 92-184px away on phones. The closing group is now content-sized with explicit responsive spacing, keeps the CTA above the fold from 320x568 through 430x932, and browser geometry fails on either a cramped headline gap or a detached action. 2026-08-28 reveal lifecycle repair: shared word-mask headings now attach to the same viewport lifecycle as other public reveals, so below-fold industry headings remain armed until entry instead of completing offscreen. Browser coverage traverses the law-firm page at desktop, mobile, and reduced motion and verifies both heading and content entry timing.",
+  "selected-work-portfolio":
+    "2026-08-28 visual-system follow-up: the Work index and every case now use one 14px media radius, theme-token surfaces, and a non-conflicting fixed-header offset. The public theme toggle uses the resolved preference, persists a real inversion, and browser coverage checks both theme states and media geometry.",
+  "full-admin-demo-scenarios":
+    "2026-08-27 scenario-pack v3: the launcher and shared runtime now expose five separately authored operating models for roofing, injury law, advisory, real estate, and a nonprofit network. Each pack has distinct identity, animated mark, appearance, people, companies, opportunity values, next actions, conversations, tasks, approvals, campaigns, resources, and roadmap evidence. Exact copy duplication is contract-tested; the five-business 28-route desktop/mobile matrix, all five appearances, populated contact expansion, refresh/reset/isolation, and production build pass.",
 };
 
 function taxonomyLabels({ key, workstream, phase, status, labels }) {
   const category = CATEGORY_BY_WORKSTREAM[workstream];
   const fallbackCapability = DEFAULT_CAPABILITY_BY_WORKSTREAM[workstream];
-  if (!category || !fallbackCapability) throw new Error(`Unknown workstream taxonomy for ${key}: ${workstream}`);
-  const milestone = status === "shipped" ? "done" : NOW_SET.has(key) ? "now" : LOOP_ONE_SET.has(key) ? "next" : "later";
-  const capabilities = [...new Set(labels.map((label) => CAPABILITY_ALIASES[label]).filter(Boolean))].slice(0, 2);
+  if (!category || !fallbackCapability)
+    throw new Error(`Unknown workstream taxonomy for ${key}: ${workstream}`);
+  const milestone =
+    status === "shipped"
+      ? "done"
+      : NOW_SET.has(key)
+        ? "now"
+        : LOOP_ONE_SET.has(key)
+          ? "next"
+          : "later";
+  const capabilities = [
+    ...new Set(labels.map((label) => CAPABILITY_ALIASES[label]).filter(Boolean)),
+  ].slice(0, 2);
   if (!capabilities.length) capabilities.push(fallbackCapability);
   return [
     `category:${category}`,
@@ -226,13 +273,30 @@ function taxonomyLabels({ key, workstream, phase, status, labels }) {
 // Everything outside the delivery circuit keeps its full specification in Later.
 // Shelving is not deletion or a judgement about value. Nothing is claimed until
 // an owner claims it, and the WIP limit remains two cards.
-function card({ key, title, workstream, phase, status = "backlog", priority = "medium", description, acceptance, dependencies = [], start, guardrails, owner = null, labels = [], evidence = null, verification = null }) {
+function card({
+  key,
+  title,
+  workstream,
+  phase,
+  status = "backlog",
+  priority = "medium",
+  description,
+  acceptance,
+  dependencies = [],
+  start,
+  guardrails,
+  owner = null,
+  labels = [],
+  evidence = null,
+  verification = null,
+}) {
   const effectiveStatus = status;
   const isLoopOne = LOOP_ONE_SET.has(key);
   const shelved = effectiveStatus !== "shipped" && !isLoopOne;
   if (!allowedStatuses.has(effectiveStatus)) throw new Error(`Invalid status for ${key}`);
   if (!allowedPriorities.has(priority)) throw new Error(`Invalid priority for ${key}`);
-  if (isLoopOne && effectiveStatus === "backlog") throw new Error(`Loop One card ${key} must be planned or further along`);
+  if (isLoopOne && effectiveStatus === "backlog")
+    throw new Error(`Loop One card ${key} must be planned or further along`);
   return {
     seed_key: key,
     title,
@@ -260,11 +324,19 @@ function card({ key, title, workstream, phase, status = "backlog", priority = "m
       "Architecture contract: docs/REVENUE-OS-ENGINEERING-CONTRACT.md. Agent procedure: docs/AGENT-TICKET-RUNBOOK.md. Module ownership: src/lib/revenue-os/README.md.",
       `Required verification: ${verification || "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; the closest scoped service/API/Playwright test named by this card; npm run build and git diff --check before Shipped. Data or automation changes must also prove invalid input, duplicate/replay, truthful failure receipts, and safe retry. UI changes require reviewed desktop/mobile screenshots."}`,
       "Stop conditions: pause and create or update a dependency card before adding a new provider, weakening authorization, performing a destructive migration, expanding real-recipient automation, or bypassing an authoritative domain service.",
-      ...([LATEST_IMPLEMENTATION_EVIDENCE[key], CURRENT_IMPLEMENTATION_EVIDENCE[key], evidence].filter(Boolean).length
-        ? [`Current implementation evidence: ${[LATEST_IMPLEMENTATION_EVIDENCE[key], CURRENT_IMPLEMENTATION_EVIDENCE[key], evidence].filter(Boolean).join(" ")}`]
+      ...([
+        LATEST_IMPLEMENTATION_EVIDENCE[key],
+        CURRENT_IMPLEMENTATION_EVIDENCE[key],
+        evidence,
+      ].filter(Boolean).length
+        ? [
+            `Current implementation evidence: ${[LATEST_IMPLEMENTATION_EVIDENCE[key], CURRENT_IMPLEMENTATION_EVIDENCE[key], evidence].filter(Boolean).join(" ")}`,
+          ]
         : []),
       "Agent handoff: claim the card by setting Owner, read linked services and migrations before editing, preserve unrelated worktree changes, attach test evidence in Internal notes, and move to Shipped only after every acceptance item is verified.",
-    ].filter(Boolean).join("\n\n"),
+    ]
+      .filter(Boolean)
+      .join("\n\n"),
     source: "revenue-os-master-plan",
     archived_at: null,
   };
@@ -272,41 +344,813 @@ function card({ key, title, workstream, phase, status = "backlog", priority = "m
 
 export const featureBacklog = [
   // Phase 0, truth, schema, and operating contract
-  card({ key: "revenue-os-production-migration", title: "Verify the production Revenue OS schema", workstream: "foundation", phase: 0, status: "shipped", priority: "high", description: "Confirm the canonical Revenue OS and Feature Board schemas are present in production and record the verification baseline.", acceptance: ["All canonical, receipt, audit, integration, and feature-board tables are queryable through the service role", "The migration order is documented and a rerun is idempotent", "Setup Center reports both schema checks ready without exposing credentials"], start: "migrations/20260816-revenue-os.sql; migrations/20260816-feature-board.sql; src/app/api/admin/setup/route.ts", guardrails: "Do not delete or rename legacy tables. A table existing is schema verification, not proof that an integration is operational.", labels: ["database", "verified"], evidence: "2026-08-16: production service-role queries and Setup Center schema checks verified the canonical Revenue OS and Feature Board tables. The 90-card manifest re-verifies with zero drift. Analytics, money-first outreach, Email Studio, and Contact Import migrations were applied through the Keychain-backed CLI path, rerun idempotently, and verified object-by-object in production. Ordered migrations and agent-owned execution are documented in CLAUDE.md, AGENTS.md, and docs/REVENUE-OS-SETUP.md." }),
-  card({ key: "feature-board-operational", title: "Operate the Feature Board as the delivery source of truth", workstream: "foundation", phase: 0, status: "shipped", priority: "high", description: "Maintain one durable roadmap with exact ordering, structured details, archival history, and agent-ready handoffs.", acceptance: ["Cards reorder within and across columns atomically", "Create, edit, filter, label, prioritize, and archive actions persist through authenticated APIs", "Desktop and mobile Playwright checks cover rendering, details, and cross-column drag"], start: "src/app/admin/features/page.tsx; src/app/api/admin/features/route.ts; scripts/qa-feature-board.mjs", guardrails: "Do not create a parallel roadmap in another document. User-created cards must never be overwritten by the curated seed.", labels: ["admin", "roadmap"], evidence: "2026-08-16: authenticated Feature Board Playwright verified desktop/mobile rendering, details, and cross-column drag persistence; the managed manifest applied and verified 88 active cards with no missing, drifted, or outside-manifest records." }),
-  card({ key: "schema-drift-verification", title: "Add schema-version and drift verification", workstream: "foundation", phase: 0, status: "shipped", priority: "high", description: "Make the deployed schema version and expected columns, constraints, functions, policies, and indexes reproducibly verifiable before shipping.", acceptance: ["A checked-in verifier fails on missing or incompatible Revenue OS objects", "The verifier distinguishes unapplied migration, drift, and connectivity failure", "Setup Center shows the verified version and last successful check"], dependencies: ["Verify the production Revenue OS schema"], start: "migrations/20260817-schema-verification.sql; src/lib/revenue-os/schema-contract.ts; scripts/verify-revenue-schema.ts; src/app/api/admin/setup/route.ts", guardrails: "Read metadata only; never auto-alter production during a verification run.", labels: ["database", "qa"], evidence: "2026-08-17: deterministic terminal-state coverage is complete in `src/lib/revenue-os/schema-contract.ts` and `scripts/test-schema-verification.ts` (`npm run test:schema-verification` now covers unapplied_migration, drift, connectivity_failure, stale/missing verification mapping, and mixed failure-then-connectivity classification). Production founder-auth Setup QA now passes at `PLAYWRIGHT_BASE_URL=https://www.acceleratewith.us npm run qa:setup-mobile` with schema status `ready`, 21 checks, and desktop/mobile screenshots written to `/tmp/accelerate-setup-qa/setup-desktop.png` and `/tmp/accelerate-setup-qa/setup-mobile.png`. Closure review 2026-08-18: all three acceptance criteria have production schema receipt and Setup Center evidence plus deterministic terminal-state coverage." }),
-  card({ key: "legacy-canonical-reconciliation", title: "Reconcile legacy records with the canonical model", workstream: "foundation", phase: 0, status: "shipped", priority: "high", description: "Prove row-count and field-level parity between legacy capture tables and canonical contacts, companies, opportunities, activities, and attribution.", acceptance: ["A report compares every legacy source type with canonical imports and identifies missing, duplicate, or ambiguous rows", "Original source record type and ID remain traceable", "Legacy reads are not retired until the report passes in production"], dependencies: ["Verify the production Revenue OS schema", "Implement deterministic contact and company identity resolution"], start: "migrations/20260816-revenue-os.sql; src/lib/revenue-os/identity.ts; legacy admin API routes", guardrails: "Do not delete legacy rows or silently merge ambiguous identities. Current zero-row production state should still produce a valid empty reconciliation report.", labels: ["migration", "data-quality"], evidence: "2026-08-18: deterministic fixture coverage in `scripts/test-legacy-reconciliation.ts` now verifies zero-row, matched, missing, duplicate-canonical, and ambiguous statuses while preserving `source_record_type`/`source_record_id`; added a dedicated report-builder path check for scope, canonical counts, and canonical-read error surfacing in the envelope. Added report persistence/export command in `scripts/legacy-reconciliation-report.ts` and `npm run report:legacy-reconciliation` (`--env-file=.env.local --output /tmp/legacy-reconciliation-report.json`) to produce `totalRows/matched/missing/ambiguous/duplicate`, canonical counts, and per-source read stats/errors. Verification passed: `npm run test:legacy-reconciliation`; `npm run report:legacy-reconciliation -- --output /tmp/legacy-reconciliation-report.json` (zero-row read-only run in this env); `legacy-canonical` report now always preserves `source_record_type` and `source_record_id`. Closure review 2026-08-18: the production read-only report ran cleanly across all eight legacy source tables (0 source rows, 0 canonical contacts/companies, 0 missing/ambiguous/duplicate rows, no read errors), which meets this card's explicitly valid zero-row production acceptance. Legacy reads remain preserved and must be rechecked before any retirement." }),
-  card({ key: "identity-resolution-service", title: "Implement deterministic contact and company identity resolution", workstream: "foundation", phase: 1, status: "shipped", priority: "urgent", owner: "Codex / Terra", description: "Create one identity resolver for UI, forms, syncs, webhooks, campaigns, and AI that handles alternate emails and refuses ambiguous matches.", acceptance: ["Exact provider ID, source ID, normalized email, alternate email, and domain matching follow a documented precedence", "Ambiguous matches return a reviewable conflict instead of merging", "Repeated inbound submissions and syncs resolve to the same canonical records"], dependencies: ["Verify the production Revenue OS schema"], start: "src/lib/revenue-os/identity.ts; src/lib/revenue-os/inbound.ts; src/app/api/qualify/route.ts", guardrails: "Never merge solely on display name. Preserve provenance and provide a manual resolution path.", labels: ["identity", "dedupe"], evidence: "2026-08-20: `src/lib/revenue-os/identity.ts` is the one resolver. Precedence is documented and exercised by `npm run test:identity-resolution`. An ambiguous match refuses rather than merging: ingestInboundLead throws 'Multiple open opportunities match this email; review the identity before merging.' Repeated submissions resolving to the same canonical records is proven live against production by `npm run verify:inbound-canonical`, which also asserts the activity receipts written on capture. Verified end to end on 2026-08-20 by submitting a real contact form to www.acceleratewith.us: one contact, one company, one opportunity, correctly linked." }),
-  card({ key: "pipeline-transition-service", title: "Finish the canonical pipeline transition service", workstream: "foundation", phase: 1, status: "shipped", priority: "high", description: "Route every opportunity stage change through one validated service with immutable history, reasons, and terminal-state rules.", acceptance: ["UI, AI, campaigns, calendar, proposals, and webhooks use the same transition function", "Invalid regressions and terminal-state changes are rejected server-side", "Each accepted transition goes through one atomic stage_event + audit write"], dependencies: ["Verify the production Revenue OS schema"], start: "src/lib/revenue-os/pipeline.ts; src/app/api/admin/revenue-os/pipeline/route.ts", guardrails: "Do not update opportunity stages directly from route handlers. Lost transitions require a reason; won/lost reopening requires an explicit policy.", labels: ["pipeline", "service"], evidence: "2026-08-17: canonical transition service now normalizes legacy stage inputs/outputs, enforces terminal reopen policy with optional explicit override, requires loss reasons, preserves closed/probability/loss metadata, and rejects unknown or stale state transitions. Proposal, calendar-viewed, Calendly webhook, admin bookings, and pipeline admin APIs now call transitionOpportunity before stage movement and map optimistic lock failures to 409. Added scripts/test-pipeline-transition.ts to cover loss validation, terminal reopen policy, legacy alias mapping, invalid transition blocking, optimistic concurrency, unknown-stage rejection, and API-level transition error mapping (409 stale / 400 invalid). Closure review 2026-08-18: every known stage-changing adapter calls transitionOpportunity, with loss/reopen/alias/invalid/stale behavior covered by scripts/test-pipeline-transition.ts, now runnable as npm run test:pipeline-transition (9 checks passing). 2026-08-19: re-confirmed in production by npm run verify:attribution-loop, which moves a real opportunity through the full new to won path via transitionOpportunity and verifies stage, probability-driven close timestamp, won value carry-over, and one immutable stage event per transition." }),
-  card({ key: "activity-ledger-normalization", title: "Normalize the cross-channel activity ledger", workstream: "foundation", phase: 1, status: "shipped", priority: "high", owner: "Codex", description: "Represent form submissions, messages, meetings, notes, proposal events, stage changes, tasks, and AI actions in one chronological activity contract.", acceptance: ["Every supported event has a stable source ID and canonical contact/company/opportunity links", "Duplicate webhooks and syncs do not duplicate activity", "Record timelines and AI context read from the same ordered ledger"], dependencies: ["Implement deterministic contact and company identity resolution", "Finish the canonical pipeline transition service"], start: "migrations/20260816-revenue-os.sql; src/app/api/admin/revenue-os/pipeline/route.ts; src/lib/revenue-os/tasks.ts", guardrails: "Keep immutable provider facts separate from editable human notes.", labels: ["activity", "timeline"], evidence: "Shipped locally 2026-08-23 and intentionally held for the next feature-batch deployment. Added authoritative `activities.ts` contract `revenue-os-activity-ledger.v1`: normalized bounded inputs, required stable source/external receipt identity, canonical links, concurrent replay reread, deterministic occurrence ordering, bounded pagination, and truthful database failures. Inbound, roofing, tasks, pipeline creation and transitions, founder notes, Resend, Gmail replies, campaign stops, proposal decisions, and contact import now use the one writer; a static ownership assertion prevents future direct inserts. Added founder-only `/api/admin/revenue-os/activity`, migrated the canonical contact timeline reader, and registered bounded read-only `get_record_timeline` so admin records and AI consume the same ordered evidence. Updated the module ownership map. Verification passed: `npm run test:activity-ledger` (validation, replay, failure, ownership and reader parity), pipeline transition, task/job, identity, founder note, AI tool gate, action execution and campaign-stop suites; local webhook/cron defense; founder-route source checks; TypeScript; lint; diff check; agent contract; and a 340-page production build. No schema change or deployment was performed." }),
-  card({ key: "communication-sender-service", title: "Finish one auditable communication sender", workstream: "foundation", phase: 1, status: "blocked", priority: "high", owner: "Grok-4.6-02-communication-sender-service", description: "Unify Gmail personal replies and Resend campaign/transactional sends behind validated services that record provider IDs and terminal results.", acceptance: ["Every send records channel, recipient, provider ID, idempotency key, result, and linked records", "Gmail replies preserve thread headers while Resend owns bulk and transactional delivery", "Retries cannot send a second copy after a successful provider receipt"], dependencies: ["Implement deterministic contact and company identity resolution"], start: "src/lib/revenue-os/communications.ts; src/lib/email/send.ts; src/lib/revenue-os/google.ts", guardrails: "Never hide provider failures or switch channels implicitly. Ad-hoc and AI-generated sends require confirmation.", labels: ["email", "service"], evidence: "2026-08-30 Wave 1: Gmail replies now claim a local processing row before the provider call, fail that row on provider error, and throw for reconcile-before-retry if Gmail accepted the message but the local receipt could not be recorded. Thread headers are built by `gmail-reply-mime.ts`: In-Reply-To and References wrap the original message id, subjects stay Re:, and raw MIME uses CRLF. Confirmed conversation replies and action-queue execution pass a deterministic idempotency key. `npx tsx scripts/test-gmail-reply-mime.ts` passed. Resend production re-verified: `npm run verify:recorded-send` providerId aba63fef-e6d7-4472-a913-147a769bd58e to delivered@resend.dev; `npm run verify:recorded-send-failure` left a failed receipt. Remaining before Shipped: one live founder-connected Gmail reply that proves those headers on a real thread. Blocked on Connect Google OAuth and complete the first Workspace sync. 2026-08-20: `sendRecordedEmail` in `src/lib/revenue-os/communications.ts` is the one sender. Every send records channel, recipient, provider id, idempotency key, result, and linked records, proven against the real Resend account by `npm run verify:recorded-send` (delivered@resend.dev, so no person is emailed). `npm run verify:recorded-send-failure` proves a rejected send leaves a failed receipt rather than a phantom success, and an idempotent replay returns the first receipt instead of delivering a second copy. Also fixed: Resend rejects tag values outside [A-Za-z0-9_-] and campaign templates are named `campaign:<id>:step:<n>`, which silently failed every campaign send until safeTagValue was added. NOT SHIPPED because acceptance criterion 2 is unverified: sendGmailReply exists but Google Workspace has never been connected, so thread-header preservation on replies has no evidence." }),
-  card({ key: "task-dedup-service", title: "Build the canonical task generator with deduplication", workstream: "foundation", phase: 1, status: "shipped", priority: "high", description: "Create tasks from humans, meetings, campaign exceptions, proposals, and AI without producing duplicate open commitments.", acceptance: ["Tasks link to the relevant contact, company, opportunity, proposal, or source run", "A deterministic dedupe key prevents equivalent open tasks", "Completion, reassignment, due dates, and source are audited"], dependencies: ["Normalize the cross-channel activity ledger"], start: "src/lib/revenue-os/tasks.ts; tasks schema in migrations/20260816-revenue-os.sql; src/lib/revenue-os/action-executor.ts", guardrails: "AI may propose tasks but must not create external commitments without the required confirmation tier.", labels: ["tasks", "dedupe"], evidence: "2026-08-20: `src/lib/revenue-os/tasks.ts` is the one task writer. Tasks link to contact, company, opportunity, and source. The deterministic dedupe key is proven by `npm run test:job-and-task-contracts`, including the case that matters most: dedupe is scoped to open tasks, so a completed follow-up does not suppress the next real one forever, and a task with no key is always created. Creation, completion, and snooze all write audit entries and activity receipts. Verified live on 2026-08-20: a production contact-form submission created exactly one high-priority follow-up task due the same day, with a task_created activity." }),
-  card({ key: "integration-capability-platform", title: "Build the provider capability platform and integration catalog", workstream: "foundation", phase: 1, status: "shipped", priority: "urgent", owner: "Codex", description: "Create the stable integration contract that lets the Command Center add, replace, degrade, and retire providers without leaking provider-specific assumptions into admin, AI, or domain workflows. Ship a truthful founder-facing catalog for live and planned capabilities before adding another provider.", acceptance: ["A versioned provider registry declares capabilities, scopes, cost posture, sync strategy, data classes, readiness checks, and operational limits for every live or planned provider", "One authoritative integration read model combines registry policy with live connection, run, webhook, and freshness evidence and never reports configuration presence as healthy", "The founder can inspect connected, degraded, available, and planned providers in a responsive Integrations workspace with capability-level state, freshness, scope, cost, and exact next actions", "AI and future adapters can consume the same capability availability contract without provider-specific UI branching", "Registry, read-model, authorization, missing-schema, stale-evidence, and responsive desktop/mobile behavior have deterministic verification"], dependencies: ["Finish Setup Center as the operational control plane", "Build the system-health report and freshness thresholds"], start: "src/lib/revenue-os/integrations.ts; src/app/api/admin/integrations/route.ts; src/app/admin/integrations/page.tsx; src/lib/admin/navigation.ts", guardrails: "This slice is read-only and must not connect a new provider, weaken founder authorization, expose secrets, pretend roadmap entries are installed, or move business logic into an integration adapter. Native APIs and webhooks remain the durable provider boundary; MCP and n8n remain optional edge adapters.", labels: ["integrations", "capabilities", "control-plane", "state-of-the-art"], evidence: "2026-08-23: shipped registry revenue-os-integrations.v1 with 14 native, next-wave, planned, and optional-edge providers. Every provider declares capabilities, direction/impact, scopes where applicable, cost posture, transports, data classes, limits, setup/reference links, and an ownership guardrail. The server-only catalog combines this policy with connection, source/job, webhook, message, first-party, AI-run, and schema-verification evidence; configuration alone is Available or Needs verification, and missing scopes, failures, missing tables, and stale receipts degrade explicitly. Added founder-only /api/admin/integrations, responsive /admin/integrations, System navigation, Setup cross-link, search, status filters, capability receipts, and expandable operating contracts. Verification passed: npm run test:integration-catalog; npx tsc --noEmit; npm run lint; npm run test:route-coverage; npm run verify:admin-tokens; npm run build; git diff --check; authenticated qa:integration-catalog and test:admin-parity -- --integrations. Desktop, mobile, planned-contract, search, reduced-motion, and dark screenshots in /tmp/accelerate-integration-catalog were opened and inspected with no overflow, console errors, or unexpected dialogs." }),
-  card({ key: "priority-selector-service", title: "Create the shared operator-priority selector", workstream: "foundation", phase: 1, status: "shipped", priority: "urgent", owner: "Codex", description: "Rank overdue commitments, unread replies, imminent meetings, proposal follow-up, campaign exceptions, and system warnings with one explainable policy.", acceptance: ["Today, navigation counters, AI ranking, and notifications consume the same selector", "Every ranked item exposes reason, urgency, source timestamp, and recommended next action", "Stable tie-breaking prevents items from jumping unpredictably"], dependencies: ["Normalize the cross-channel activity ledger", "Build the canonical task generator with deduplication"], start: "src/lib/revenue-os/queue.ts; src/app/api/admin/revenue-os/overview/route.ts; src/app/admin/today/page.tsx", guardrails: "Do not use opaque AI ranking for hard deadlines or unread replies. Rules must remain inspectable and testable.", labels: ["today", "priority"], evidence: "Shipped locally 2026-08-23; intentionally held for a later feature-batch deployment. `loadOperatorQueue` now deterministically ranks overdue tasks, unread replies, approvals, proposals, meetings within 48 hours, campaign recipients stopped after exhausted retries, and operational health concerns. Every returned item is runtime-validated for reason, urgency, source timestamp, safe admin link, and recommended next action; ordering is urgency, deadline, kind, source timestamp, then stable ID. Today renders the full explanation, navigation reads `/api/admin/revenue-os/priority`, the notification panel embeds the same top work, and `get_today_snapshot` remains the AI consumer. Live service-role verification surfaced `google-workspace-sync` as the current top critical system item. Verification passed: `npm run test:priority-selector`, notification and route contracts, TypeScript, lint, admin tokens, agent contract, local build, diff check, Today desktop/mobile parity, and the expanded Today interaction QA. Reviewed screenshots `/tmp/accel-shots/priority-attention-desktop.png`, `/tmp/accel-shots/priority-attention-mobile-reduced.png`, and `/tmp/accel-shots/today-command-center-mobile.png`; visual review found and fixed the previously clipped bell panel with explicit sidebar/mobile placement." }),
-  card({ key: "canonical-attribution", title: "Consolidate analytics on canonical source-to-revenue data", workstream: "foundation", phase: 2, status: "shipped", priority: "high", description: "Make every admin metric derive from the same canonical contacts, opportunities, stage events, campaigns, meetings, proposals, and won revenue.", acceptance: ["Source → qualified → meeting → proposal → win → revenue totals reconcile", "Legacy analytics and page counters do not disagree with the canonical service", "Unknown attribution and data-quality gaps are visible instead of dropped"], dependencies: ["Reconcile legacy records with the canonical model", "Finish the canonical pipeline transition service"], start: "src/lib/revenue-os/analytics.ts; src/app/api/admin/revenue-os/analytics/route.ts; migrations/20260816-first-party-analytics.sql", guardrails: "Do not join solely on email when a canonical ID exists. State metric timezone, window, and inclusion rules.", labels: ["analytics", "revenue"], evidence: "2026-08-20: `npm run verify:attribution-loop` passes against production and reconciles source through qualified, meeting, proposal, win, and revenue. Data-quality gaps are visible rather than dropped: the analytics surface previously reported 81 conversions at 56.6% when only 6 were real intent (4.2%), counting every form touch as a conversion; the canonical service now distinguishes them and shows unknown attribution explicitly. Legacy agreement is covered by the separately shipped legacy-canonical-reconciliation card." }),
-  card({ key: "atomic-execution-claims", title: "Enforce atomic claims and idempotency for jobs and actions", workstream: "foundation", phase: 1, status: "shipped", priority: "high", owner: "Grok-4.6-01-atomic-execution-claims", description: "Ensure campaigns, approvals, sync jobs, sends, and webhook processing claim work atomically before side effects.", acceptance: ["Concurrent workers cannot execute the same logical job or send twice", "Every run reaches a truthful terminal state with summary or error", "Stale claims have a bounded and audited recovery path"], dependencies: ["Verify the production Revenue OS schema"], start: "migrations/20260817-atomic-job-claims.sql; src/lib/revenue-os/runs.ts; src/lib/revenue-os/action-executor.ts; src/app/api/cron/", guardrails: "Never rely on HTTP 200 as proof of successful intended work.", labels: ["reliability", "idempotency"], evidence: "2026-08-29 Gate 0 follow-on: stale recoveries now write `execution.stale_claim_recovered` audit receipts. Job takeovers audit from startJobRun using recovered_from; campaign members stuck `sending` past 30 minutes return to active under the original send key and are audited; actions stuck `executing` close as failed and are audited so they cannot disable the queue. job_runs.recovered_from is part of the schema contract. Verification: npm run test:job-and-task-contracts; npm run test:action-execution; npm run test:job-claims (production concurrent claim + completed replay); npm run verify:stale-claim-recovery (production abandoned claim takeover, failed terminal receipt, recovered_from link, audit row); npx tsc --noEmit; lint; git diff --check. Provider-uncertainty reconciliation for Gmail replies remains on communication-sender-service. 2026-08-17: added the one shared database-owned job claim RPC and runs.ts outcome contract. The migration enforces one active job per job key plus deterministic completed-receipt replay; cron and founder-triggered Google sync now return truthful skipped results when another worker owns the job. Applied and reran the migration idempotently in production. Controlled production QA proved first claim, concurrent duplicate skip to the same running receipt, and completed deterministic replay (npm run test:job-claims)." }),
-  card({ key: "audit-ledger-coverage", title: "Complete before/after audit coverage for material changes", workstream: "foundation", phase: 1, status: "shipped", priority: "high", owner: "Grok-4.6-05-audit-ledger-coverage", description: "Record the actor, origin, target, before/after summary, and timestamp for every material founder, AI, automation, integration, and public action.", acceptance: ["Pipeline, campaigns, messages, calendar, proposals, settings, integrations, tasks, and Feature Board writes are covered", "Sensitive token and message content is redacted where appropriate", "The admin can filter audit history by actor, entity, action, source, and date"], dependencies: ["Verify the production Revenue OS schema"], start: "src/lib/revenue-os/audit.ts; mutation routes; admin activity pages", guardrails: "Audit failures must be observable; never serialize secrets or full OAuth tokens.", labels: ["audit", "security"], evidence: "2026-08-30 Wave 1: `recordAudit` now redacts token/secret/password/key fields and known provider prefixes, and throws when the ledger write fails instead of swallowing the error. `npm run test:audit` covers redaction and fail-closed writes. Remaining: proposal/calendar/Feature Board before-after coverage and Activity filters. 2026-08-16: shared audit writes cover canonical inbound, pipeline transitions, tasks, AI feedback/actions, campaign state, Google connection activity, and selected settings. Remaining: complete proposal/calendar/webhook/Feature Board before-after coverage, redaction tests, observable audit-write failures, and Activity filters." }),
-  card({ key: "legacy-api-adapters", title: "Back legacy admin reads with canonical adapters", workstream: "foundation", phase: 2, status: "planned", priority: "high", description: "Temporarily preserve legacy response shapes while sourcing data from canonical services until parity checks and UI conversion pass.", acceptance: ["Legacy pages return compatible fields derived from canonical records", "Adapter usage is instrumented so remaining consumers are known", "Retirement requires production reconciliation and replacement-route QA"], dependencies: ["Reconcile legacy records with the canonical model", "Consolidate analytics on canonical source-to-revenue data"], start: "src/lib/revenue-os/legacy-adapter.ts; src/app/api/admin/leads; bookings; inbox; contacts routes", guardrails: "Do not maintain dual-write business logic longer than necessary and never delete legacy tables in this task.", labels: ["compatibility", "migration"], evidence: "2026-08-16: added one server-only compatibility adapter that annotates Leads, Contact Submissions, Chat Inquiries, Clients, Subscribers, Resource Downloads, Partners, and Website Grades with canonical contact/company/opportunity linkage while preserving every response field and degrading safely if Revenue OS is unavailable. Contact detail now combines legacy source history with canonical opportunities, activities, messages, tasks, and a Pipeline deep-link. Remaining: adapter telemetry, production reconciliation, and retirement of legacy source queries after parity." }),
+  card({
+    key: "revenue-os-production-migration",
+    title: "Verify the production Revenue OS schema",
+    workstream: "foundation",
+    phase: 0,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Confirm the canonical Revenue OS and Feature Board schemas are present in production and record the verification baseline.",
+    acceptance: [
+      "All canonical, receipt, audit, integration, and feature-board tables are queryable through the service role",
+      "The migration order is documented and a rerun is idempotent",
+      "Setup Center reports both schema checks ready without exposing credentials",
+    ],
+    start:
+      "migrations/20260816-revenue-os.sql; migrations/20260816-feature-board.sql; src/app/api/admin/setup/route.ts",
+    guardrails:
+      "Do not delete or rename legacy tables. A table existing is schema verification, not proof that an integration is operational.",
+    labels: ["database", "verified"],
+    evidence:
+      "2026-08-16: production service-role queries and Setup Center schema checks verified the canonical Revenue OS and Feature Board tables. The 90-card manifest re-verifies with zero drift. Analytics, money-first outreach, Email Studio, and Contact Import migrations were applied through the Keychain-backed CLI path, rerun idempotently, and verified object-by-object in production. Ordered migrations and agent-owned execution are documented in CLAUDE.md, AGENTS.md, and docs/REVENUE-OS-SETUP.md.",
+  }),
+  card({
+    key: "feature-board-operational",
+    title: "Operate the Feature Board as the delivery source of truth",
+    workstream: "foundation",
+    phase: 0,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Maintain one durable roadmap with exact ordering, structured details, archival history, and agent-ready handoffs.",
+    acceptance: [
+      "Cards reorder within and across columns atomically",
+      "Create, edit, filter, label, prioritize, and archive actions persist through authenticated APIs",
+      "Desktop and mobile Playwright checks cover rendering, details, and cross-column drag",
+    ],
+    start:
+      "src/app/admin/features/page.tsx; src/app/api/admin/features/route.ts; scripts/qa-feature-board.mjs",
+    guardrails:
+      "Do not create a parallel roadmap in another document. User-created cards must never be overwritten by the curated seed.",
+    labels: ["admin", "roadmap"],
+    evidence:
+      "2026-08-16: authenticated Feature Board Playwright verified desktop/mobile rendering, details, and cross-column drag persistence; the managed manifest applied and verified 88 active cards with no missing, drifted, or outside-manifest records.",
+  }),
+  card({
+    key: "schema-drift-verification",
+    title: "Add schema-version and drift verification",
+    workstream: "foundation",
+    phase: 0,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Make the deployed schema version and expected columns, constraints, functions, policies, and indexes reproducibly verifiable before shipping.",
+    acceptance: [
+      "A checked-in verifier fails on missing or incompatible Revenue OS objects",
+      "The verifier distinguishes unapplied migration, drift, and connectivity failure",
+      "Setup Center shows the verified version and last successful check",
+    ],
+    dependencies: ["Verify the production Revenue OS schema"],
+    start:
+      "migrations/20260817-schema-verification.sql; src/lib/revenue-os/schema-contract.ts; scripts/verify-revenue-schema.ts; src/app/api/admin/setup/route.ts",
+    guardrails: "Read metadata only; never auto-alter production during a verification run.",
+    labels: ["database", "qa"],
+    evidence:
+      "2026-08-17: deterministic terminal-state coverage is complete in `src/lib/revenue-os/schema-contract.ts` and `scripts/test-schema-verification.ts` (`npm run test:schema-verification` now covers unapplied_migration, drift, connectivity_failure, stale/missing verification mapping, and mixed failure-then-connectivity classification). Production founder-auth Setup QA now passes at `PLAYWRIGHT_BASE_URL=https://www.acceleratewith.us npm run qa:setup-mobile` with schema status `ready`, 21 checks, and desktop/mobile screenshots written to `/tmp/accelerate-setup-qa/setup-desktop.png` and `/tmp/accelerate-setup-qa/setup-mobile.png`. Closure review 2026-08-18: all three acceptance criteria have production schema receipt and Setup Center evidence plus deterministic terminal-state coverage.",
+  }),
+  card({
+    key: "legacy-canonical-reconciliation",
+    title: "Reconcile legacy records with the canonical model",
+    workstream: "foundation",
+    phase: 0,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Prove row-count and field-level parity between legacy capture tables and canonical contacts, companies, opportunities, activities, and attribution.",
+    acceptance: [
+      "A report compares every legacy source type with canonical imports and identifies missing, duplicate, or ambiguous rows",
+      "Original source record type and ID remain traceable",
+      "Legacy reads are not retired until the report passes in production",
+    ],
+    dependencies: [
+      "Verify the production Revenue OS schema",
+      "Implement deterministic contact and company identity resolution",
+    ],
+    start:
+      "migrations/20260816-revenue-os.sql; src/lib/revenue-os/identity.ts; legacy admin API routes",
+    guardrails:
+      "Do not delete legacy rows or silently merge ambiguous identities. Current zero-row production state should still produce a valid empty reconciliation report.",
+    labels: ["migration", "data-quality"],
+    evidence:
+      "2026-08-18: deterministic fixture coverage in `scripts/test-legacy-reconciliation.ts` now verifies zero-row, matched, missing, duplicate-canonical, and ambiguous statuses while preserving `source_record_type`/`source_record_id`; added a dedicated report-builder path check for scope, canonical counts, and canonical-read error surfacing in the envelope. Added report persistence/export command in `scripts/legacy-reconciliation-report.ts` and `npm run report:legacy-reconciliation` (`--env-file=.env.local --output /tmp/legacy-reconciliation-report.json`) to produce `totalRows/matched/missing/ambiguous/duplicate`, canonical counts, and per-source read stats/errors. Verification passed: `npm run test:legacy-reconciliation`; `npm run report:legacy-reconciliation -- --output /tmp/legacy-reconciliation-report.json` (zero-row read-only run in this env); `legacy-canonical` report now always preserves `source_record_type` and `source_record_id`. Closure review 2026-08-18: the production read-only report ran cleanly across all eight legacy source tables (0 source rows, 0 canonical contacts/companies, 0 missing/ambiguous/duplicate rows, no read errors), which meets this card's explicitly valid zero-row production acceptance. Legacy reads remain preserved and must be rechecked before any retirement.",
+  }),
+  card({
+    key: "identity-resolution-service",
+    title: "Implement deterministic contact and company identity resolution",
+    workstream: "foundation",
+    phase: 1,
+    status: "shipped",
+    priority: "urgent",
+    owner: "Codex / Terra",
+    description:
+      "Create one identity resolver for UI, forms, syncs, webhooks, campaigns, and AI that handles alternate emails and refuses ambiguous matches.",
+    acceptance: [
+      "Exact provider ID, source ID, normalized email, alternate email, and domain matching follow a documented precedence",
+      "Ambiguous matches return a reviewable conflict instead of merging",
+      "Repeated inbound submissions and syncs resolve to the same canonical records",
+    ],
+    dependencies: ["Verify the production Revenue OS schema"],
+    start:
+      "src/lib/revenue-os/identity.ts; src/lib/revenue-os/inbound.ts; src/app/api/qualify/route.ts",
+    guardrails:
+      "Never merge solely on display name. Preserve provenance and provide a manual resolution path.",
+    labels: ["identity", "dedupe"],
+    evidence:
+      "2026-08-20: `src/lib/revenue-os/identity.ts` is the one resolver. Precedence is documented and exercised by `npm run test:identity-resolution`. An ambiguous match refuses rather than merging: ingestInboundLead throws 'Multiple open opportunities match this email; review the identity before merging.' Repeated submissions resolving to the same canonical records is proven live against production by `npm run verify:inbound-canonical`, which also asserts the activity receipts written on capture. Verified end to end on 2026-08-20 by submitting a real contact form to www.acceleratewith.us: one contact, one company, one opportunity, correctly linked.",
+  }),
+  card({
+    key: "pipeline-transition-service",
+    title: "Finish the canonical pipeline transition service",
+    workstream: "foundation",
+    phase: 1,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Route every opportunity stage change through one validated service with immutable history, reasons, and terminal-state rules.",
+    acceptance: [
+      "UI, AI, campaigns, calendar, proposals, and webhooks use the same transition function",
+      "Invalid regressions and terminal-state changes are rejected server-side",
+      "Each accepted transition goes through one atomic stage_event + audit write",
+    ],
+    dependencies: ["Verify the production Revenue OS schema"],
+    start: "src/lib/revenue-os/pipeline.ts; src/app/api/admin/revenue-os/pipeline/route.ts",
+    guardrails:
+      "Do not update opportunity stages directly from route handlers. Lost transitions require a reason; won/lost reopening requires an explicit policy.",
+    labels: ["pipeline", "service"],
+    evidence:
+      "2026-08-17: canonical transition service now normalizes legacy stage inputs/outputs, enforces terminal reopen policy with optional explicit override, requires loss reasons, preserves closed/probability/loss metadata, and rejects unknown or stale state transitions. Proposal, calendar-viewed, Calendly webhook, admin bookings, and pipeline admin APIs now call transitionOpportunity before stage movement and map optimistic lock failures to 409. Added scripts/test-pipeline-transition.ts to cover loss validation, terminal reopen policy, legacy alias mapping, invalid transition blocking, optimistic concurrency, unknown-stage rejection, and API-level transition error mapping (409 stale / 400 invalid). Closure review 2026-08-18: every known stage-changing adapter calls transitionOpportunity, with loss/reopen/alias/invalid/stale behavior covered by scripts/test-pipeline-transition.ts, now runnable as npm run test:pipeline-transition (9 checks passing). 2026-08-19: re-confirmed in production by npm run verify:attribution-loop, which moves a real opportunity through the full new to won path via transitionOpportunity and verifies stage, probability-driven close timestamp, won value carry-over, and one immutable stage event per transition.",
+  }),
+  card({
+    key: "activity-ledger-normalization",
+    title: "Normalize the cross-channel activity ledger",
+    workstream: "foundation",
+    phase: 1,
+    status: "shipped",
+    priority: "high",
+    owner: "Codex",
+    description:
+      "Represent form submissions, messages, meetings, notes, proposal events, stage changes, tasks, and AI actions in one chronological activity contract.",
+    acceptance: [
+      "Every supported event has a stable source ID and canonical contact/company/opportunity links",
+      "Duplicate webhooks and syncs do not duplicate activity",
+      "Record timelines and AI context read from the same ordered ledger",
+    ],
+    dependencies: [
+      "Implement deterministic contact and company identity resolution",
+      "Finish the canonical pipeline transition service",
+    ],
+    start:
+      "migrations/20260816-revenue-os.sql; src/app/api/admin/revenue-os/pipeline/route.ts; src/lib/revenue-os/tasks.ts",
+    guardrails: "Keep immutable provider facts separate from editable human notes.",
+    labels: ["activity", "timeline"],
+    evidence:
+      "Shipped locally 2026-08-23 and intentionally held for the next feature-batch deployment. Added authoritative `activities.ts` contract `revenue-os-activity-ledger.v1`: normalized bounded inputs, required stable source/external receipt identity, canonical links, concurrent replay reread, deterministic occurrence ordering, bounded pagination, and truthful database failures. Inbound, roofing, tasks, pipeline creation and transitions, founder notes, Resend, Gmail replies, campaign stops, proposal decisions, and contact import now use the one writer; a static ownership assertion prevents future direct inserts. Added founder-only `/api/admin/revenue-os/activity`, migrated the canonical contact timeline reader, and registered bounded read-only `get_record_timeline` so admin records and AI consume the same ordered evidence. Updated the module ownership map. Verification passed: `npm run test:activity-ledger` (validation, replay, failure, ownership and reader parity), pipeline transition, task/job, identity, founder note, AI tool gate, action execution and campaign-stop suites; local webhook/cron defense; founder-route source checks; TypeScript; lint; diff check; agent contract; and a 340-page production build. No schema change or deployment was performed.",
+  }),
+  card({
+    key: "communication-sender-service",
+    title: "Finish one auditable communication sender",
+    workstream: "foundation",
+    phase: 1,
+    status: "blocked",
+    priority: "high",
+    owner: "Grok-4.6-02-communication-sender-service",
+    description:
+      "Unify Gmail personal replies and Resend campaign/transactional sends behind validated services that record provider IDs and terminal results.",
+    acceptance: [
+      "Every send records channel, recipient, provider ID, idempotency key, result, and linked records",
+      "Gmail replies preserve thread headers while Resend owns bulk and transactional delivery",
+      "Retries cannot send a second copy after a successful provider receipt",
+    ],
+    dependencies: ["Implement deterministic contact and company identity resolution"],
+    start:
+      "src/lib/revenue-os/communications.ts; src/lib/email/send.ts; src/lib/revenue-os/google.ts",
+    guardrails:
+      "Never hide provider failures or switch channels implicitly. Ad-hoc and AI-generated sends require confirmation.",
+    labels: ["email", "service"],
+    evidence:
+      "2026-08-30 Wave 1: Gmail replies now claim a local processing row before the provider call, fail that row on provider error, and throw for reconcile-before-retry if Gmail accepted the message but the local receipt could not be recorded. Thread headers are built by `gmail-reply-mime.ts`: In-Reply-To and References wrap the original message id, subjects stay Re:, and raw MIME uses CRLF. Confirmed conversation replies and action-queue execution pass a deterministic idempotency key. `npx tsx scripts/test-gmail-reply-mime.ts` passed. Resend production re-verified: `npm run verify:recorded-send` providerId aba63fef-e6d7-4472-a913-147a769bd58e to delivered@resend.dev; `npm run verify:recorded-send-failure` left a failed receipt. Remaining before Shipped: one live founder-connected Gmail reply that proves those headers on a real thread. Blocked on Connect Google OAuth and complete the first Workspace sync. 2026-08-20: `sendRecordedEmail` in `src/lib/revenue-os/communications.ts` is the one sender. Every send records channel, recipient, provider id, idempotency key, result, and linked records, proven against the real Resend account by `npm run verify:recorded-send` (delivered@resend.dev, so no person is emailed). `npm run verify:recorded-send-failure` proves a rejected send leaves a failed receipt rather than a phantom success, and an idempotent replay returns the first receipt instead of delivering a second copy. Also fixed: Resend rejects tag values outside [A-Za-z0-9_-] and campaign templates are named `campaign:<id>:step:<n>`, which silently failed every campaign send until safeTagValue was added. NOT SHIPPED because acceptance criterion 2 is unverified: sendGmailReply exists but Google Workspace has never been connected, so thread-header preservation on replies has no evidence.",
+  }),
+  card({
+    key: "task-dedup-service",
+    title: "Build the canonical task generator with deduplication",
+    workstream: "foundation",
+    phase: 1,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Create tasks from humans, meetings, campaign exceptions, proposals, and AI without producing duplicate open commitments.",
+    acceptance: [
+      "Tasks link to the relevant contact, company, opportunity, proposal, or source run",
+      "A deterministic dedupe key prevents equivalent open tasks",
+      "Completion, reassignment, due dates, and source are audited",
+    ],
+    dependencies: ["Normalize the cross-channel activity ledger"],
+    start:
+      "src/lib/revenue-os/tasks.ts; tasks schema in migrations/20260816-revenue-os.sql; src/lib/revenue-os/action-executor.ts",
+    guardrails:
+      "AI may propose tasks but must not create external commitments without the required confirmation tier.",
+    labels: ["tasks", "dedupe"],
+    evidence:
+      "2026-08-20: `src/lib/revenue-os/tasks.ts` is the one task writer. Tasks link to contact, company, opportunity, and source. The deterministic dedupe key is proven by `npm run test:job-and-task-contracts`, including the case that matters most: dedupe is scoped to open tasks, so a completed follow-up does not suppress the next real one forever, and a task with no key is always created. Creation, completion, and snooze all write audit entries and activity receipts. Verified live on 2026-08-20: a production contact-form submission created exactly one high-priority follow-up task due the same day, with a task_created activity.",
+  }),
+  card({
+    key: "integration-capability-platform",
+    title: "Build the provider capability platform and integration catalog",
+    workstream: "foundation",
+    phase: 1,
+    status: "shipped",
+    priority: "urgent",
+    owner: "Codex",
+    description:
+      "Create the stable integration contract that lets the Command Center add, replace, degrade, and retire providers without leaking provider-specific assumptions into admin, AI, or domain workflows. Ship a truthful founder-facing catalog for live and planned capabilities before adding another provider.",
+    acceptance: [
+      "A versioned provider registry declares capabilities, scopes, cost posture, sync strategy, data classes, readiness checks, and operational limits for every live or planned provider",
+      "One authoritative integration read model combines registry policy with live connection, run, webhook, and freshness evidence and never reports configuration presence as healthy",
+      "The founder can inspect connected, degraded, available, and planned providers in a responsive Integrations workspace with capability-level state, freshness, scope, cost, and exact next actions",
+      "AI and future adapters can consume the same capability availability contract without provider-specific UI branching",
+      "Registry, read-model, authorization, missing-schema, stale-evidence, and responsive desktop/mobile behavior have deterministic verification",
+    ],
+    dependencies: [
+      "Finish Setup Center as the operational control plane",
+      "Build the system-health report and freshness thresholds",
+    ],
+    start:
+      "src/lib/revenue-os/integrations.ts; src/app/api/admin/integrations/route.ts; src/app/admin/integrations/page.tsx; src/lib/admin/navigation.ts",
+    guardrails:
+      "This slice is read-only and must not connect a new provider, weaken founder authorization, expose secrets, pretend roadmap entries are installed, or move business logic into an integration adapter. Native APIs and webhooks remain the durable provider boundary; MCP and n8n remain optional edge adapters.",
+    labels: ["integrations", "capabilities", "control-plane", "state-of-the-art"],
+    evidence:
+      "2026-08-23: shipped registry revenue-os-integrations.v1 with 14 native, next-wave, planned, and optional-edge providers. Every provider declares capabilities, direction/impact, scopes where applicable, cost posture, transports, data classes, limits, setup/reference links, and an ownership guardrail. The server-only catalog combines this policy with connection, source/job, webhook, message, first-party, AI-run, and schema-verification evidence; configuration alone is Available or Needs verification, and missing scopes, failures, missing tables, and stale receipts degrade explicitly. Added founder-only /api/admin/integrations, responsive /admin/integrations, System navigation, Setup cross-link, search, status filters, capability receipts, and expandable operating contracts. Verification passed: npm run test:integration-catalog; npx tsc --noEmit; npm run lint; npm run test:route-coverage; npm run verify:admin-tokens; npm run build; git diff --check; authenticated qa:integration-catalog and test:admin-parity -- --integrations. Desktop, mobile, planned-contract, search, reduced-motion, and dark screenshots in /tmp/accelerate-integration-catalog were opened and inspected with no overflow, console errors, or unexpected dialogs.",
+  }),
+  card({
+    key: "priority-selector-service",
+    title: "Create the shared operator-priority selector",
+    workstream: "foundation",
+    phase: 1,
+    status: "shipped",
+    priority: "urgent",
+    owner: "Codex",
+    description:
+      "Rank overdue commitments, unread replies, imminent meetings, proposal follow-up, campaign exceptions, and system warnings with one explainable policy.",
+    acceptance: [
+      "Today, navigation counters, AI ranking, and notifications consume the same selector",
+      "Every ranked item exposes reason, urgency, source timestamp, and recommended next action",
+      "Stable tie-breaking prevents items from jumping unpredictably",
+    ],
+    dependencies: [
+      "Normalize the cross-channel activity ledger",
+      "Build the canonical task generator with deduplication",
+    ],
+    start:
+      "src/lib/revenue-os/queue.ts; src/app/api/admin/revenue-os/overview/route.ts; src/app/admin/today/page.tsx",
+    guardrails:
+      "Do not use opaque AI ranking for hard deadlines or unread replies. Rules must remain inspectable and testable.",
+    labels: ["today", "priority"],
+    evidence:
+      "Shipped locally 2026-08-23; intentionally held for a later feature-batch deployment. `loadOperatorQueue` now deterministically ranks overdue tasks, unread replies, approvals, proposals, meetings within 48 hours, campaign recipients stopped after exhausted retries, and operational health concerns. Every returned item is runtime-validated for reason, urgency, source timestamp, safe admin link, and recommended next action; ordering is urgency, deadline, kind, source timestamp, then stable ID. Today renders the full explanation, navigation reads `/api/admin/revenue-os/priority`, the notification panel embeds the same top work, and `get_today_snapshot` remains the AI consumer. Live service-role verification surfaced `google-workspace-sync` as the current top critical system item. Verification passed: `npm run test:priority-selector`, notification and route contracts, TypeScript, lint, admin tokens, agent contract, local build, diff check, Today desktop/mobile parity, and the expanded Today interaction QA. Reviewed screenshots `/tmp/accel-shots/priority-attention-desktop.png`, `/tmp/accel-shots/priority-attention-mobile-reduced.png`, and `/tmp/accel-shots/today-command-center-mobile.png`; visual review found and fixed the previously clipped bell panel with explicit sidebar/mobile placement.",
+  }),
+  card({
+    key: "canonical-attribution",
+    title: "Consolidate analytics on canonical source-to-revenue data",
+    workstream: "foundation",
+    phase: 2,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Make every admin metric derive from the same canonical contacts, opportunities, stage events, campaigns, meetings, proposals, and won revenue.",
+    acceptance: [
+      "Source → qualified → meeting → proposal → win → revenue totals reconcile",
+      "Legacy analytics and page counters do not disagree with the canonical service",
+      "Unknown attribution and data-quality gaps are visible instead of dropped",
+    ],
+    dependencies: [
+      "Reconcile legacy records with the canonical model",
+      "Finish the canonical pipeline transition service",
+    ],
+    start:
+      "src/lib/revenue-os/analytics.ts; src/app/api/admin/revenue-os/analytics/route.ts; migrations/20260816-first-party-analytics.sql",
+    guardrails:
+      "Do not join solely on email when a canonical ID exists. State metric timezone, window, and inclusion rules.",
+    labels: ["analytics", "revenue"],
+    evidence:
+      "2026-08-20: `npm run verify:attribution-loop` passes against production and reconciles source through qualified, meeting, proposal, win, and revenue. Data-quality gaps are visible rather than dropped: the analytics surface previously reported 81 conversions at 56.6% when only 6 were real intent (4.2%), counting every form touch as a conversion; the canonical service now distinguishes them and shows unknown attribution explicitly. Legacy agreement is covered by the separately shipped legacy-canonical-reconciliation card.",
+  }),
+  card({
+    key: "atomic-execution-claims",
+    title: "Enforce atomic claims and idempotency for jobs and actions",
+    workstream: "foundation",
+    phase: 1,
+    status: "shipped",
+    priority: "high",
+    owner: "Grok-4.6-01-atomic-execution-claims",
+    description:
+      "Ensure campaigns, approvals, sync jobs, sends, and webhook processing claim work atomically before side effects.",
+    acceptance: [
+      "Concurrent workers cannot execute the same logical job or send twice",
+      "Every run reaches a truthful terminal state with summary or error",
+      "Stale claims have a bounded and audited recovery path",
+    ],
+    dependencies: ["Verify the production Revenue OS schema"],
+    start:
+      "migrations/20260817-atomic-job-claims.sql; src/lib/revenue-os/runs.ts; src/lib/revenue-os/action-executor.ts; src/app/api/cron/",
+    guardrails: "Never rely on HTTP 200 as proof of successful intended work.",
+    labels: ["reliability", "idempotency"],
+    evidence:
+      "2026-08-29 Gate 0 follow-on: stale recoveries now write `execution.stale_claim_recovered` audit receipts. Job takeovers audit from startJobRun using recovered_from; campaign members stuck `sending` past 30 minutes return to active under the original send key and are audited; actions stuck `executing` close as failed and are audited so they cannot disable the queue. job_runs.recovered_from is part of the schema contract. Verification: npm run test:job-and-task-contracts; npm run test:action-execution; npm run test:job-claims (production concurrent claim + completed replay); npm run verify:stale-claim-recovery (production abandoned claim takeover, failed terminal receipt, recovered_from link, audit row); npx tsc --noEmit; lint; git diff --check. Provider-uncertainty reconciliation for Gmail replies remains on communication-sender-service. 2026-08-17: added the one shared database-owned job claim RPC and runs.ts outcome contract. The migration enforces one active job per job key plus deterministic completed-receipt replay; cron and founder-triggered Google sync now return truthful skipped results when another worker owns the job. Applied and reran the migration idempotently in production. Controlled production QA proved first claim, concurrent duplicate skip to the same running receipt, and completed deterministic replay (npm run test:job-claims).",
+  }),
+  card({
+    key: "audit-ledger-coverage",
+    title: "Complete before/after audit coverage for material changes",
+    workstream: "foundation",
+    phase: 1,
+    status: "shipped",
+    priority: "high",
+    owner: "Grok-4.6-05-audit-ledger-coverage",
+    description:
+      "Record the actor, origin, target, before/after summary, and timestamp for every material founder, AI, automation, integration, and public action.",
+    acceptance: [
+      "Pipeline, campaigns, messages, calendar, proposals, settings, integrations, tasks, and Feature Board writes are covered",
+      "Sensitive token and message content is redacted where appropriate",
+      "The admin can filter audit history by actor, entity, action, source, and date",
+    ],
+    dependencies: ["Verify the production Revenue OS schema"],
+    start: "src/lib/revenue-os/audit.ts; mutation routes; admin activity pages",
+    guardrails: "Audit failures must be observable; never serialize secrets or full OAuth tokens.",
+    labels: ["audit", "security"],
+    evidence:
+      "2026-08-30 Wave 1: `recordAudit` now redacts token/secret/password/key fields and known provider prefixes, and throws when the ledger write fails instead of swallowing the error. `npm run test:audit` covers redaction and fail-closed writes. Remaining: proposal/calendar/Feature Board before-after coverage and Activity filters. 2026-08-16: shared audit writes cover canonical inbound, pipeline transitions, tasks, AI feedback/actions, campaign state, Google connection activity, and selected settings. Remaining: complete proposal/calendar/webhook/Feature Board before-after coverage, redaction tests, observable audit-write failures, and Activity filters.",
+  }),
+  card({
+    key: "legacy-api-adapters",
+    title: "Back legacy admin reads with canonical adapters",
+    workstream: "foundation",
+    phase: 2,
+    status: "planned",
+    priority: "high",
+    description:
+      "Temporarily preserve legacy response shapes while sourcing data from canonical services until parity checks and UI conversion pass.",
+    acceptance: [
+      "Legacy pages return compatible fields derived from canonical records",
+      "Adapter usage is instrumented so remaining consumers are known",
+      "Retirement requires production reconciliation and replacement-route QA",
+    ],
+    dependencies: [
+      "Reconcile legacy records with the canonical model",
+      "Consolidate analytics on canonical source-to-revenue data",
+    ],
+    start:
+      "src/lib/revenue-os/legacy-adapter.ts; src/app/api/admin/leads; bookings; inbox; contacts routes",
+    guardrails:
+      "Do not maintain dual-write business logic longer than necessary and never delete legacy tables in this task.",
+    labels: ["compatibility", "migration"],
+    evidence:
+      "2026-08-16: added one server-only compatibility adapter that annotates Leads, Contact Submissions, Chat Inquiries, Clients, Subscribers, Resource Downloads, Partners, and Website Grades with canonical contact/company/opportunity linkage while preserving every response field and degrading safely if Revenue OS is unavailable. Contact detail now combines legacy source history with canonical opportunities, activities, messages, tasks, and a Pipeline deep-link. Remaining: adapter telemetry, production reconciliation, and retirement of legacy source queries after parity.",
+  }),
 
   // Phase 2, focused founder admin
-  card({ key: "admin-shell-design-system", title: "Complete the shared professional admin system", workstream: "admin", phase: 2, status: "planned", priority: "high", description: "Finish one visual and interaction system for headers, surfaces, tables, filters, pills, dialogs, drawers, commands, and state feedback across every retained route.", acceptance: ["Retained routes use shared primitives and operational color semantics", "Interactive targets, focus rings, reduced motion, and responsive behavior meet the admin standard", "Legacy pages no longer look like separate product generations"], dependencies: ["Verify the production Revenue OS schema"], start: "src/app/admin/layout.tsx; src/app/globals.css; src/components/admin/", guardrails: "Use exact-property transitions and restrained motion. Do not restyle public marketing pages as part of this card.", labels: ["design-system", "accessibility"], evidence: "2026-08-27 shared navigation runtime: the live founder workspace and every fictional demo route now use one registered application scroll viewport, direct scenario-aware links, manual per-entry restoration, deterministic forward-to-top behavior, contextual route titles, accessible focus handoff, stable loading geometry, and one incoming route-motion owner. Demo navigation no longer relies on document click interception or hard reloads, and scenario switching replaces the fictional runtime without mixing business state. Static and browser navigation contracts cover desktop, mobile, reduced motion, history restoration, overflow, runtime errors, and scenario switching. 2026-08-27 end-to-end admin and demo polish: the mobile navigation is now a focus-contained, background-inert modal with deterministic focus return, unique desktop/mobile disclosure IDs, a less crowded header, in-drawer Search and Ask AI tools, and a wider native sheet. Route-aware accordion state always reveals the active destination after client navigation. The appearance chooser focuses the selected option and restores focus on close. Repaired two undefined shared theme tokens, aligned AI tab press behavior with the system standard, compacted live-admin identity so utilities remain contained across appearances, and refreshed stale redirect/sandbox QA assumptions. Verification passed: agent and demo contracts, TypeScript, zero-warning lint, admin token contract, 325-page production build, all three scenarios across 28 routes on desktop/mobile with all five appearances and protected-request isolation, authenticated 27-route desktop/mobile parity across Night, Signal, and Studio, embedded Command Center preview, Work portfolio motion/accessibility matrix, focus trapping, duplicate-ID checks, overflow, hit targets, keyboard, reduced motion, and reviewed screenshots. Production deployment pending. 2026-08-26: refined the shared desktop utility cluster into one contained sidebar header: identity remains primary, notification and collapse/expand controls are optically aligned at both rail widths, and the notification remains reachable when collapsed without leaving the viewport. Scenario identity now replaces the generic Accelerate lockup only inside fictional demo workspaces. Shared appearance and operational-state tokens repair warning, muted-surface, and navigation contrast without route-local overrides. The full three-scenario, 28-route desktop/mobile demo matrix passed with no overflow or runtime errors; expanded, collapsed, and mobile screenshots were reviewed. 2026-08-25: completed the focused shared-shell polish slice. The desktop collapse and notification controls now remain optically aligned and contained in the sidebar at both widths; the notification state is static instead of flashing; navigation labels, section headings, icons, and utilities have stronger hierarchy and contrast; a persistent Demo workspace action opens the full admin demo launcher at /demo/command-center in a new tab from expanded, collapsed, and mobile navigation; and the four-state appearance picker now has a type-safe fallback. Automated evidence: admin route parity passed all 27 registered routes on desktop and mobile; the Command Center demo interaction suite passed disclosure, simulated approval, grounded-response, reset, responsive, reduced-motion, overflow, and console checks; TypeScript, zero-warning lint, admin token validation, diff validation, and the 351-page production build passed. Visual evidence: /tmp/accelerate-admin-shell-qa/expanded-desktop.png, /tmp/accelerate-admin-shell-qa/collapsed-desktop.png, and /tmp/accelerate-admin-shell-qa/navigation-mobile.png. Route-local modernization remains on this broader card. Earlier evidence: shared route registry, page headers, tokenized surfaces, portal dialogs/drawers, responsive shell, mobile navigation, focus and reduced-motion behavior, and route-level states are active." }),
-  card({ key: "admin-overlay-motion-recovery", title: "Repair admin overlays, entry motion, tokens, and collapsible navigation", workstream: "admin", phase: 2, status: "shipped", priority: "high", description: "Replace route-local overlays and undefined visual tokens with one portal-based interaction system, intentional page entry motion, a responsive shell, and a persisted collapsible desktop sidebar.", acceptance: ["Every modal, confirmation, drawer, and command surface portals above route transforms, traps focus, restores focus, locks scrolling, and closes with Escape", "Every referenced admin token is defined in light and dark mode and the shell has no accidental black grid or header separator", "Desktop sidebar collapses to a usable icon rail and mobile navigation exposes the same destinations", "Desktop, narrow laptop, mobile, dark, and reduced-motion Playwright journeys show no clipping, overflow, or console errors"], dependencies: ["Complete the shared professional admin system"], start: "src/components/admin/AdminDialog.tsx; src/app/admin/layout.tsx; src/app/globals.css; src/lib/admin/motion.ts; src/lib/admin/navigation.ts", guardrails: "Use Radix focus behavior, exact-property transitions, 40px targets, concentric radii, and restrained motion. Do not leave a second modal primitive behind.", labels: ["modals", "motion", "responsive", "sidebar"], evidence: "2026-08-16 verified: centralized every admin modal, confirmation, drawer, compose surface, and command palette on the Radix body portal; fixed portal token inheritance and iframe compositing; added responsive/persisted sidebar collapse and mobile drawer close ownership; removed the grid, public progress line, and hard separator; and passed authenticated desktop/mobile, dark, reduced-motion, viewport, Escape, focus, and 25-route parity Playwright coverage with reviewed screenshots." }),
-  card({ key: "email-studio-runtime", title: "Restore Email Studio, sent history, and live template publishing", workstream: "admin", phase: 2, status: "blocked", priority: "high", owner: "Codex", description: "Give the founder one discoverable workspace to view, edit, preview, test, publish, restore, compose from, and audit transactional and sequence email without another provider account.", acceptance: ["Templates expose built-in, draft, and published state with desktop/mobile rendered previews and allow-listed merge variables", "Saving a draft never affects recipients; founder-only test send and explicit publish use the configured Resend connection", "Transactional and sequence send paths resolve the exact published version and safely fall back to built-in copy during schema failure", "Sent history shows recipient, subject, body, status, provider receipt, template, time, and linked context on desktop and mobile"], dependencies: ["Finish one auditable communication sender", "Repair admin overlays, entry motion, tokens, and collapsible navigation"], start: "migrations/20260816-email-studio.sql; src/lib/email/registry.ts; src/lib/email/runtime-template.ts; src/app/admin/emails/page.tsx", guardrails: "Use the proven Work+Shelter block-authoring model: a small typed block vocabulary, one render path for preview/test/send, and reusable layout starts. Test sends go only to the authenticated founder. Never store provider keys in templates or let draft edits change live sends implicitly.", labels: ["email", "templates", "delivery-history", "publishing"], evidence: "2026-08-29 coordinator park: Gate 0 moved this card from in_progress to blocked. Remaining before Shipped is a founder-authenticated production test-send/receipt plus the still-planned communication sender Gmail-thread evidence. Codex remains owner so the slice can resume without a second claim. 2026-08-28 demo-template refinement: customer-facing demo email now derives its brand, accent, domain, founder signature, and template copy from the active fictional scenario. The email-safe renderer uses a responsive, card-based layout and scenario-specific inquiry, appointment, proposal, and welcome templates rather than a generic Accelerate wrapper. Browser QA proves all five scenario previews render their own brand and do not leak Accelerate into the fictional customer mail; desktop/mobile Northline authoring and publish-confirmation coverage still passes. 2026-08-28 implementation: replaced raw body editing with typed heading, paragraph, button, divider, and spacer sections. A versioned compatible draft value preserves the existing schema; the same renderer now serves exact editor preview, founder test send, and new published sends, with code-owned transactional templates retaining their safe fallback. Demo mutations stay inside browser-session state and produce scenario-branded fictional email. Browser QA proves desktop/mobile authoring, save, exact mobile preview, no overflow, no console errors, no protected request escape, and no receipt/dock overlap. Contracts passed: agent contract, demo contract, email templates, email blocks, admin tokens, TypeScript, lint, diff, and 325-page production build. The card remains in progress because a founder-authenticated production test-send/receipt verification is still required before it can be honestly marked Shipped. Earlier evidence: 2026-08-16 added versioned draft/published schema, canonical registry/resolver, Email Studio editor/preview/history, founder test action, publish confirmation, compose handoff, and runtime adoption by transactional and sequence sends. Production migration applied twice successfully for idempotency; email_templates, email_template_versions, and publish_email_template are live through the service-role path." }),
-  card({ key: "feature-board-interaction-rebuild", title: "Rebuild Feature Board drag, details, and mobile interaction", workstream: "admin", phase: 2, status: "planned", priority: "high", description: "Make the managed backlog feel like a professional delivery tool with stable drag ownership, cross-column previews, reliable persistence, accessible movement, and a portal-based responsive detail editor.", acceptance: ["Mouse, touch, and keyboard movement works within and across columns, including empty columns and horizontal auto-scroll", "Dragged card retains its measured size, source placeholder and destination are clear, and drop animation never duplicates or jumps", "One atomic reorder persists after drop and visibly rolls back on failure", "Opening details before or after a drag never shifts, clips, or disables the board; mobile has an equivalent status/move control"], dependencies: ["Repair admin overlays, entry motion, tokens, and collapsible navigation"], start: "src/app/admin/features/page.tsx; src/components/admin/AdminDialog.tsx; scripts/qa-feature-board.mjs", guardrails: "Do not reorder hidden cards while filters are active. Preserve the managed manifest, audit RPC, source IDs, and user-created cards.", labels: ["kanban", "drag-drop", "feature-board", "mobile"], evidence: "2026-08-16: unified mouse/pen/touch on a distance-gated pointer sensor, retained keyboard movement, added live cross-column preview and atomic normalized persistence with rollback, removed the lingering drop clone that blocked post-drag clicks, and moved details to the shared portal editor. Authenticated Playwright proves cross-column movement, post-drop edit, desktop/mobile rendering, and modal integrity. Remaining before Shipped: add an explicit keyboard-move assertion and unsaved-change confirmation." }),
-  card({ key: "additional-tools-canonical-parity", title: "Modernize and canonically integrate every additional admin tool", workstream: "admin", phase: 2, status: "planned", priority: "high", description: "Bring Leads, Contacts, Inbox, Bookings, Clients, Chat Inquiries, Subscribers, Content, Resources, Partners, and Website Grades onto the shared responsive shell and connect revenue-bearing records to canonical contacts, companies, opportunities, activities, tasks, attribution, and Today.", acceptance: ["Every existing route is discoverable from the shared route registry and passes the same header, state, overlay, keyboard, responsive, and error contracts", "Revenue-bearing legacy reads use canonical adapters and every remaining legacy-only field has a documented parity disposition", "Inbound records link to canonical identity/opportunity/activity once without duplicate writes", "No route is hidden, deleted, or redirected until production row counts and primary actions reconcile"], dependencies: ["Back legacy admin reads with canonical adapters", "Repair admin overlays, entry motion, tokens, and collapsible navigation", "Implement deterministic contact and company identity resolution"], start: "src/lib/admin/navigation.ts; src/lib/revenue-os/legacy-adapter.ts; src/app/admin/*; src/app/api/admin/leads; contacts; inbox; bookings; clients; chat-leads; subscribers; content; resources; partners; website-grades", guardrails: "Additional tools are an active migration queue, not abandoned legacy. Preserve original source IDs and tables until parity is verified.", labels: ["route-audit", "legacy-parity", "canonical-data", "responsive"], evidence: "2026-08-26: consolidated Website submissions and List import into one responsive Contact intake workspace, repaired disclosure controls, populated the browser demo with 16 fictional contacts and canonical relationship histories, modernized the relationship timeline with shared admin surfaces, and added demo-contract regression coverage. The same route components remain authoritative for live and demo; only the demo data transport is intercepted. Also corrected Today’s oversized approval rail, repeated queue copy, warning semantics, and public dock collision. Verified with TypeScript, zero-warning lint, agent contract, admin demo contract, contact-import service contract, 29-route desktop/mobile demo QA, inspected desktop/mobile screenshots, and a 325-page production build. 2026-08-16: all 25 registered routes pass desktop/mobile Playwright parity; every overlay uses the shared portal contract; Chat Inquiries no longer overflows phones; and every person-bearing specialized API now exposes canonical Revenue OS linkage through one safe adapter. Manual Lead creation uses the shared identity/inbound/activity/task/audit services, single Lead stage changes synchronize through the canonical transition service, and Contact Timeline combines source history with canonical opportunities, activities, messages, tasks, and Pipeline deep-links. Remaining before shipment: atomic canonical handling for bulk Lead moves, extracting legacy Bookings substate from the controlled sales stage, field-level and row-count reconciliation in production, and adapter telemetry. No specialized source table or route is being deleted early." }),
-  card({ key: "today-operator-inbox", title: "Finish Today as the prioritized operator inbox", workstream: "admin", phase: 2, status: "shipped", priority: "urgent", owner: "Codex", description: "Make Today the founder’s single queue for overdue work, replies, meetings, proposals, campaign exceptions, approvals, and system warnings.", acceptance: ["Items use the shared priority selector and expose why they are ranked", "Each item opens the correct record or safe action without dead-end summaries", "Completion, snooze, approval, rejection, and refresh preserve consistent counters"], dependencies: ["Create the shared operator-priority selector", "Build the canonical task generator with deduplication"], start: "src/app/admin/today/page.tsx; src/app/api/admin/revenue-os/overview/route.ts; src/lib/revenue-os/queue.ts", guardrails: "Do not duplicate source records into a separate Today table. System warnings cannot be silently dismissed without a receipt.", labels: ["today", "operator-inbox"], evidence: "Shipped locally 2026-08-23 and intentionally held for the next feature-batch deployment. Today now has structured skeleton loading, distinct background refresh, last-success timestamp, last-good-data preservation, explicit degraded and fatal read states, recovery actions, useful empty-state destinations, abort/race protection, and focus query normalization. Approval items deep-link into the exact review dialog; proposals, conversations, campaigns, opportunities, clients, and contacts consume record-targeting links instead of dropping the operator on an unfiltered list. Approval, rejection, completion, and snooze remove items optimistically, then reconcile the shared queue and dispatch the navigation refresh event so counters do not flash stale after a successful mutation even when the follow-up read degrades. Verification passed: priority/notification/route contracts, admin tokens, agent contract, TypeScript, lint, diff check, 339-page production build, Today desktop/mobile parity, and expanded Playwright QA covering deep approval, approve, reject, complete, snooze, empty, degraded, fatal, retry, focus filtering, reduced motion, and console errors. Screenshots `/tmp/accel-shots/today-command-center-desktop.png` and `/tmp/accel-shots/today-command-center-mobile.png` were visually reviewed." }),
-  card({ key: "pipeline-stage-board", title: "Finish the canonical Pipeline workspace", workstream: "admin", phase: 2, status: "shipped", priority: "urgent", owner: "Codex", description: "Provide one industry-agnostic opportunity workspace with stage control, qualification, value, next actions, and consistent contact/company context.", acceptance: ["Pipeline lists and stage board use canonical opportunities only", "Stage changes invoke the transition service and show validation errors", "Search, filters, value totals, and mobile layouts remain usable with realistic data volumes"], dependencies: ["Finish the canonical pipeline transition service", "Implement deterministic contact and company identity resolution"], start: "src/app/admin/pipeline/page.tsx; src/app/api/admin/revenue-os/pipeline/route.ts", guardrails: "Roofing is a playbook/filter, never a separate stage model.", labels: ["pipeline", "workspace"], evidence: "Shipped locally 2026-08-23 and intentionally held for the next feature-batch deployment. Pipeline now opens as a canonical nine-stage board with per-stage opportunity counts and value totals, grounded contact/company/value/source/next-action cards, validated inline stage controls, a persistent board/list preference, exact `?opportunity=` resolution, search, and stage filtering. The horizontal board is inline-size-contained, snap-scrolling, and overscroll-contained on mobile rather than widening the route. The existing list remains available for dense comparison. All movement still calls the canonical transition service; rejected transitions retain the source stage and surface the service error. Verification passed: `npm run test:pipeline-workspace` with 27 realistic records, rejected and successful mutations, exact deep links, persisted view, search/filter counts, mobile containment and reduced motion; `npm run test:pipeline-transition`; `npm run test:identity-resolution`; all-route desktop/mobile parity; admin tokens; agent contract; TypeScript; lint; diff check; and the 339-page production build. Screenshots `/tmp/accel-shots/pipeline-stage-board-desktop.png` and `/tmp/accel-shots/pipeline-stage-board-mobile.png` were visually reviewed." }),
-  card({ key: "record-detail-workspace", title: "Build contextual contact, company, and opportunity details", workstream: "admin", phase: 2, status: "shipped", priority: "high", owner: "Codex", description: "Create responsive record details showing identity, qualification, value, timeline, conversations, meetings, proposals, tasks, research, attribution, and next action.", acceptance: ["A founder can navigate between linked contact, company, and opportunity without losing context", "Timeline events come from the canonical activity ledger", "Editing identity or next action validates conflicts and updates every dependent view"], dependencies: ["Normalize the cross-channel activity ledger", "Finish the canonical Pipeline workspace"], start: "src/lib/revenue-os/records.ts; src/app/api/admin/revenue-os/records/opportunity/[id]/route.ts; src/app/admin/pipeline/[id]/page.tsx; scripts/qa-record-detail-workspace.mjs", guardrails: "Use progressive disclosure on mobile; do not expose raw provider payloads or tokens.", labels: ["records", "timeline"], evidence: "Shipped locally 2026-08-23 and intentionally held for the next feature-batch deployment. Added `revenue-os-opportunity-record.v1`, one bounded founder-only read model and API for an opportunity, linked contact/company, tasks, conversations, meetings, proposals, and the canonical `revenue-os-activity-ledger.v1` timeline. Raw message bodies, provider metadata, attendee payloads, proposal content, and secrets are excluded by explicit selects. Pipeline cards/list rows and Today task/meeting priorities now deep-link to the exact cockpit. The responsive workspace provides persistent opportunity/contact/company/activity context, value and commitment metrics, audited next-action/date/value editing through `updateOpportunityDetails`, optimistic `updated_at` conflict refusal, success/error/retry/schema states, and progressively collapsible related sections. Identity is deliberately read-only until a separate ambiguity-safe identity mutation contract exists. Verification passed: TypeScript, lint, pipeline transition, priority selector, activity ledger, route coverage, founder access (20 checks), diff check, and deterministic Playwright failure/retry, canonical ordering, edit refresh, mobile overflow, keyboard target, and reduced-motion checks. Desktop/mobile screenshots were opened and inspected at `/tmp/accelerate-record-workspace`. No schema change or deployment was performed." }),
-  card({ key: "pipeline-saved-views", title: "Add useful Pipeline saved views and ownership filters", workstream: "admin", phase: 3, status: "shipped", priority: "high", owner: "Codex", description: "Support repeatable views for new inquiries, no next action, overdue follow-up, upcoming meetings, proposals, at-risk deals, wins, and nurture.", acceptance: ["Core system views have deterministic filters and counts", "Founder-created views persist filter, sort, and visible-column preferences", "Views work in table and mobile detail-card modes"], dependencies: ["Finish the canonical Pipeline workspace"], start: "src/lib/admin/pipelineViews.ts; src/app/admin/pipeline/page.tsx; src/app/api/admin/revenue-os/pipeline/route.ts", guardrails: "Saved views are filters over canonical data, not copied records.", labels: ["pipeline", "productivity"], evidence: "2026-08-24: shipped a competitive operator-view layer over canonical opportunities. src/lib/admin/pipelineViews.ts owns deterministic All, Needs attention, New, No next action, Overdue, Coming up, Proposals, At risk, Recent wins, and Nurture predicates, stable counts/sorts, normalized device persistence, and a 20-view bound. The Pipeline UI adds explainable queues, owner/stage/search filters, founder-named saved views, configurable fields and ordering, persisted board/list layout, deep-link preservation, 44px controls, and purpose-built mobile detail cards. The read route adds the next upcoming linked calendar event and reports calendar signal readiness while safely degrading to null on calendar read failure. No records are copied and no opaque AI score was introduced. Verification passed: npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:pipeline-saved-views; authenticated PLAYWRIGHT_BASE_URL=http://localhost:3010 npm run test:pipeline-workspace; npm run build; git diff --check. Playwright proved system queues/counts, owner filtering, customization, saved-view reload persistence, canonical transition rejection/success, search/stage filtering, exact record deep links, desktop board/list, mobile cards, reduced motion, and viewport containment with no console errors. Reviewed /tmp/accel-shots/pipeline-stage-board-desktop.png, pipeline-stage-board-mobile.png, and pipeline-list-mobile.png. Local feature only; no migration, provider activation, production write, or deployment was required." }),
-  card({ key: "conversations-operator-inbox", title: "Finish Conversations as the unified communication inbox", workstream: "admin", phase: 2, status: "planned", priority: "high", description: "Combine synchronized Gmail, inbound forms/messages, Resend activity, and manual communication into one founder inbox with record context and reply tools.", acceptance: ["Thread list supports unread, intent, assignment, record, campaign, and follow-up filters", "Opening a conversation shows ordered canonical messages and linked opportunity context", "Reply, draft, link/create record, next action, and local archive have actionable errors and receipts"], dependencies: ["Finish one auditable communication sender", "Import Gmail incrementally with cursor recovery"], start: "src/app/admin/conversations/page.tsx; src/app/api/admin/revenue-os/conversations/", guardrails: "Gmail remains person-to-person; Resend remains campaign/transactional. Local archive must not silently mutate Gmail unless explicitly designed.", labels: ["conversations", "gmail"], evidence: "2026-08-16: Conversations reads canonical threads/messages, exposes linked context/unread state, and provides confirmed Gmail reply plumbing through the shared Google sender; Email Studio covers auditable Resend history. Remaining: complete incremental Gmail data, record linking/create, intent/assignment filters, next-action/local archive flows, receipt reconciliation, and end-to-end reply tests." }),
-  card({ key: "campaign-workspace-ui", title: "Finish the Campaigns planning and control workspace", workstream: "admin", phase: 3, status: "planned", priority: "high", description: "Give the founder one place to define audience, sequence, policy, dry run, activation, enrollment, performance, pause, and exceptions.", acceptance: ["Draft, dry-run, active, paused, completed, and failed states are explicit", "Material edits visibly create a version requiring reapproval", "Recipient exclusions, pending sends, stops, and failures are inspectable"], dependencies: ["Enforce campaign policy envelopes and version reapproval", "Build campaign dry-run, exclusion, and sample personalization review"], start: "src/app/admin/campaigns/page.tsx; src/app/api/admin/revenue-os/campaigns/", guardrails: "Never schedule the whole sequence at Resend. Activation is not permission to exceed the displayed envelope.", labels: ["campaigns", "workspace"], evidence: "2026-08-16: Campaigns supports draft creation, sender/copy/policy editing, member enrollment, dry-run preview, confirmed activation proposal, pause, version/status presentation, and responsive states. Remaining: richer sequence editing, exception/member detail, reconciled performance, material-edit reapproval proof, and Playwright activation/pause/stop coverage." }),
-  card({ key: "proposal-workspace-ui", title: "Finish the founder Proposal workspace", workstream: "admin", phase: 3, status: "planned", priority: "high", description: "Support grounded draft, preview, versioning, send, view activity, accept/decline, expiry, and follow-up from the linked opportunity.", acceptance: ["Proposal state and linked opportunity are visible without switching legacy pages", "Preview exactly matches the public proposal and generated PDF", "Send and material revision follow confirmation and version rules"], dependencies: ["Complete the proposal lifecycle and version rules", "Make public proposal views and decisions idempotent"], start: "src/app/admin/proposals/page.tsx; src/app/proposal/[token]/page.tsx; proposal APIs", guardrails: "Payment collection is out of scope. AI cannot invent prices, terms, or customer facts.", labels: ["proposals", "workspace"], evidence: "2026-08-16: existing proposal admin supports draft generation/management and public token views with accept/decline surfaces; shared compose/dialog patterns are available. Remaining: canonical opportunity context, exact preview/PDF parity, immutable versions, confirmation-gated send receipts, expiry/supersede/follow-up, and lifecycle Playwright coverage." }),
-  card({ key: "analytics-workspace", title: "Rebuild Analytics around decisions and data quality", workstream: "admin", phase: 4, status: "shipped", priority: "high", owner: "Codex", description: "Present source-to-revenue funnel, campaign outcomes, forecast, response rates, meetings, proposals, wins, and data-quality warnings from one metric service.", acceptance: ["All cards and charts reconcile to canonical metric queries", "Date, source, campaign, stage, and owner filters have documented semantics", "Missing attribution, stale syncs, and impossible stage sequences are visible warnings"], dependencies: ["Consolidate analytics on canonical source-to-revenue data"], start: "src/app/admin/analytics/page.tsx; src/app/api/admin/revenue-os/analytics/route.ts; src/lib/revenue-os/analytics.ts", guardrails: "Do not decorate uncertain estimates as revenue facts. Use tabular numerals and accessible chart alternatives.", labels: ["analytics", "workspace"], evidence: "2026-08-24: shipped one canonical decision model for date, source, owner, campaign, and current-stage filters. src/lib/revenue-os/analytics.ts now owns filter semantics, canonical funnel/source facts, recorded probability-weighted open-pipeline forecast, quality counts, and factual reply coverage/median response time derived from ordered inbound and later outbound messages in linked conversations. The API bounds inputs, fails closed on founder access, and degrades communication and website signals independently without disguising missing evidence as zero. The workspace persists cohort filters, separates recorded pipeline and won revenue from a violet-tinted planning estimate with explicit method copy, adds communication performance, accessible textual funnel bars, source-to-revenue, visible missing attribution/owner/next-action plus unrecognized/no-op stage-history warnings, and states that record filters do not alter first-party website metrics. The inspected mobile pass found technically contained but unreadable squeezed filters; they were rebuilt as a full-width date control plus two-column mobile filter grid. Verification passed: npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:analytics-decision-model; npm run verify:attribution-loop with the controlled canonical create/progress/reconcile/cleanup fixture; authenticated PLAYWRIGHT_BASE_URL=http://localhost:3010 npm run test:analytics-workspace; npm run build (351 pages); git diff --check. Playwright proved source/owner filtering, changed canonical metrics, saved-filter reload, clear recovery, facts-vs-forecast copy, reply evidence, reduced motion, console cleanliness, and mobile containment. Desktop and corrected mobile screenshots were opened at /tmp/accelerate-analytics-workspace. No migration, provider activation, deployment, or uncontrolled production record mutation was performed." }),
-  card({ key: "admin-settings-consolidation", title: "Consolidate Settings and connection ownership", workstream: "admin", phase: 2, priority: "medium", description: "Give every integration, AI rule, notification preference, template, pipeline option, and audit view one authoritative admin surface.", acceptance: ["Duplicate and obsolete settings controls are removed or redirected", "Secrets remain environment-only or encrypted server-side", "Setup Center links directly to the authoritative setting or connection action"], dependencies: ["Finish Setup Center as the operational control plane"], start: "src/app/admin/settings; src/app/admin/setup; src/lib/admin/settings.ts", guardrails: "Do not display, round-trip, or persist plaintext secret values in admin_settings.", labels: ["settings", "setup"] }),
-  card({ key: "route-state-resilience", title: "Standardize loading, errors, retry, and preserved route state", workstream: "admin", phase: 3, status: "planned", priority: "high", description: "Make every core route retain useful context through refreshes and show actionable loading, empty, degraded, and error states.", acceptance: ["Core routes distinguish empty data, missing setup, provider degradation, and request failure", "Retry actions do not discard filters, selected records, or unsaved safe drafts", "Route transitions avoid key-based remount loops and stale-request races"], dependencies: ["Complete the shared professional admin system"], start: "src/components/admin/AdminReadBody.tsx; src/lib/admin/useAdminQuery.ts; src/app/admin/today/page.tsx; core admin pages; src/lib/admin/demo/runtime.ts", guardrails: "Never show a success-looking empty state when a provider or schema call failed.", labels: ["resilience", "ux"], evidence: "2026-08-29 coordinator park: Gate 0 moved this card off in_progress because it still depends on the unshipped admin shell and leftover More-tools pages remain. Owner cleared. 2026-08-28 loading-integrity slice: core admin/demo destinations now keep PageHeader mounted and use one shared read path. AdminReadBody wraps delayed regional skeletons, last-snapshot refetch, and fatal retry without replacing committed route identity. Today already used this pattern; Pipeline, Conversations, Analytics, Campaigns, Email Studio, Feature Board, opportunity records, Integrations, Inbox, Bookings, Activity, and Revenue now use useAdminQuery plus AdminReadBody instead of mount-only fetch and full-page AdminPageLoading. Demo fetch intercept installs idempotently before client reads and unknown admin APIs fail closed instead of returning a successful empty payload. Remaining before Shipped: convert the leftover More-tools pages (Leads, Chat inquiries, Subscribers, Partners, Website Grades, Clients, Content, Resources, Settings, Proposals, Delivery Runs, Setup, Contact detail) off early loading returns; browser QA of cold and cached Today → Pipeline → Conversations → Analytics on desktop and mobile." }),
-  card({ key: "admin-a11y-keyboard-mobile", title: "Complete keyboard, accessibility, reduced-motion, and mobile parity", workstream: "admin", phase: 4, priority: "high", description: "Verify every critical founder workflow without a mouse and at mobile breakpoints, including dialogs, drawers, tables, Kanban, command palette, and toasts.", acceptance: ["Logical focus order, visible focus, dialog trapping, labels, live regions, and Escape behavior pass", "Reduced motion removes nonessential movement without breaking state changes", "Desktop and mobile expose equivalent critical actions with at least 40px targets"], dependencies: ["Complete the shared professional admin system", "Standardize loading, errors, retry, and preserved route state"], start: "src/app/admin/layout.tsx; src/components/admin; Playwright QA", guardrails: "Do not hide essential actions behind hover-only controls.", labels: ["accessibility", "mobile"] }),
-  card({ key: "cloneable-command-center-contract", title: "Adopt instance-per-client cloning as the Command Center product shape", workstream: "productization", phase: 5, status: "shipped", priority: "high", owner: "Grok-4.6-06-cloneable-command-center-contract", description: "Preserve the evidence and consequences of the former instance-per-client decision. This historical card was explicitly superseded on 2026-08-30 by shared-database-multi-tenancy-contract and no longer governs new schema or authorization work.", acceptance: ["The former decision, rejected alternative, and consequences remain recorded", "The config seam, de-verticalized inbound, and install-runbook child cards remain traceable", "The superseding shared-database architecture card is named wherever an implementing agent could otherwise apply the historical prohibition"], dependencies: ["Verify the production Revenue OS schema", "Verify founder-only admin access and service-only data policies"], start: "docs/REVENUE-OS-ENGINEERING-CONTRACT.md; src/config/tenant.ts; docs/INSTALL-RUNBOOK.md", guardrails: "Historical receipt only. Do not remove its evidence, but do not use its former prohibition to block shared-database-multi-tenancy-contract or its child cards. Billing and custom domains remain out of scope until separately authorized.", labels: ["clonable", "architecture-decision", "template"], evidence: "2026-08-19: decision taken with the founder. Chosen shape was instance-per-client: own Vercel project and own Supabase database per client, one codebase, one config file per install. The audit identified the exact shared-database lift: tenant ownership and composite uniqueness across canonical tables plus replacement of founder-email/service-role-everywhere authorization. On 2026-08-30 the founder explicitly selected the formerly rejected shared-database alternative, with the current ADMIN_EMAIL retained as platform owner and client admins scoped by tenant membership. The new decision is owned by shared-database-multi-tenancy-contract; this card remains shipped as historical evidence." }),
-  card({ key: "tenant-config-seam", title: "Extract every business fact into one tenant configuration", workstream: "productization", phase: 2, status: "shipped", priority: "high", owner: "Grok-4.6-07-tenant-config-seam", description: "Create one typed configuration module that is the only place the brand, founder identity, offerings, industry playbooks, pipeline labels, AI persona, capability switches, and external project links appear, so a second installation is a config file rather than a search and replace across the codebase.", acceptance: ["A typed tenant config exists and is the single source for brand, founder and system actor identity, pipeline labels, playbooks, AI persona, capability flags, and external project links", "The admin, domain, and email layers read that config instead of literals, and the campaign sender, unsubscribe URL, Plausible domain, and Setup Center project links no longer default to Accelerate values", "verify:agent-contract fails when a new business literal is introduced under src/lib, src/app/admin, or src/app/api/admin, with a shrinking allowlist for sites not yet migrated", "Changing one config value visibly changes the admin chrome, the outbound email chrome, and the AI persona with no other code edit"], dependencies: ["Adopt instance-per-client cloning as the Command Center product shape"], start: "src/config/tenant.ts; src/lib/email/templates.ts; src/lib/email/resend.ts; src/lib/email/registry.ts; src/lib/revenue-os/communications.ts; src/lib/revenue-os/ai-agent.ts; src/lib/chat/system-prompt.ts; src/app/admin/layout.tsx; src/app/admin/setup/page.tsx; src/app/api/admin/setup/route.ts; scripts/verify-agent-contract.mjs", guardrails: "src/content and the public marketing pages are exempt, because those are Accelerate own-website copy and stay single-brand. Do not introduce a tenant identifier into any query, table, or route while doing this; the config is per-deployment, not per-row. Do not move secrets into the config; they stay environment-only. src/lib/booking.ts currently points at a Calendly link belonging to a different business and must be corrected here, not preserved.", labels: ["clonable", "config", "white-label"], verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:features; reviewed desktop and mobile screenshots of the admin shell and one rendered email after changing a config value. 2026-08-19: added src/config/tenant.ts as the one place a business fact may appear, holding brand, founder and system-actor identity, AI persona and voice, booking links, industry playbooks, and infrastructure deep links, with environment variables still winning over configuration. Migrated the call sites that would send wrong data on a second installation: Resend from/admin addresses, the whole customer and operator email chrome including wordmark, accent, title and footer, plan/resource/booking links, the campaign unsubscribe URL, the campaign sender name, the Plausible domain, the Revenue OS copilot system prompt, the system actor recorded on automated audit and activity rows, and the Setup Center deep links, which previously pointed every installation at one specific Vercel org and Supabase project ref. Fixed a live defect found here: src/lib/booking.ts handed out a Calendly event belonging to a different business (john-superdebate), reachable from the public chat prompt; the value now lives in config, is flagged in place, and still needs the correct event or null. Added a cloneability ratchet to scripts/verify-agent-contract.mjs: it counts business literals per file under src/lib, src/app/admin, and src/app/api/admin against a budget that may only shrink, and both directions were proven to fail (adding a literal to an at-zero file, and leaving a budget above the real count). Proof the seam works: changing only tenant.brand in a scratch script re-rendered the email chrome with a different business name, accent colour, footer and domain, with no occurrence of the original brand and no other code edit. Behaviour is unchanged in production: verify:inbound-canonical, verify:recorded-send and verify:attribution-loop all still pass after the migration. Remaining before Shipped: 41 literals across 18 files are still budgeted, chiefly the admin shell chrome (layout, login, update-password), the generative prompts for insights, content briefs and proposals, and the public chat prompt; the admin-chrome half of the fourth acceptance item is therefore not yet met. 2026-08-19 completion: every business literal under src/lib, src/app/admin, and src/app/api/admin is now gone; the ratchet budget in verify-agent-contract.mjs is empty, so any reintroduction fails the contract. Migrated the remainder: admin shell wordmark, collapsed logo mark, live-site link and login/update-password chrome; chat transcript speaker name; campaign sender default; every Setup Center guide step naming the domain, sender, site URL, OAuth callback or GA4 stream; the password reset subject; the insights, content brief, proposal and plan generative prompts; the public chat system prompt including its identity line, positioning paragraph and off-topic redirect; the chat lead-capture confirmation email; the OpenRouter referer and title; and the SEO and OG canonical base URLs, which would otherwise emit another business's canonical links. Added tenant.pipeline.stageLabels so a business can rename a stage (a law firm calling meeting a Consultation) while the canonical stage keys, transition rules, probabilities and analytics stay fixed, and proved a relabel changes only the label. Full rebrand proven end to end: setting tenant.brand and tenant.founder to a fictional plumbing company re-rendered the email chrome, the chat system prompt and the plan prompt under the new identity with no occurrence of the original brand and no other code edit. One honest limit worth recording: the public chat prompt also interpolates the product catalogue from src/content/packages.ts, where a package is itself named Accelerate, so a client installation must supply its own content as well as its own config. That split is deliberate: config holds facts, src/content holds tenant-authored copy. Behaviour unchanged in production: verify:inbound-canonical, verify:recorded-send, verify:attribution-loop, test:identity-resolution and test:pipeline-transition all pass. Remaining before Shipped: capability flags for turning whole surfaces on or off per installation, which are deliberately not added yet because dead configuration nothing reads is worse than none, as the unread BUSINESS_NAME seed proved.", evidence: "2026-08-20: `src/config/tenant.ts` exists and is the single source for brand, founder and system actor identity, AI persona, booking, pipeline stage labels, playbooks, and external project links. Helpers siteUrl/adminEmail/fromEmail/analyticsDomain/supabaseDashboard route the admin, domain, and email layers through it. Proven load-bearing on 2026-08-20: booking was disabled by setting one value to null after the scheduler URL was found pointing at an unrelated business, and re-enabled across the contact embed, roofing embed, website assistant, and qualifier by setting that one value back. NOT SHIPPED: acceptance criterion 3 does not exist yet (verify:agent-contract does not fail on a new business literal, and there is no shrinking allowlist), and capability flags were deliberately reverted rather than shipped as dead config." }),
+  card({
+    key: "admin-shell-design-system",
+    title: "Complete the shared professional admin system",
+    workstream: "admin",
+    phase: 2,
+    status: "planned",
+    priority: "high",
+    description:
+      "Finish one visual and interaction system for headers, surfaces, tables, filters, pills, dialogs, drawers, commands, and state feedback across every retained route.",
+    acceptance: [
+      "Retained routes use shared primitives and operational color semantics",
+      "Interactive targets, focus rings, reduced motion, and responsive behavior meet the admin standard",
+      "Legacy pages no longer look like separate product generations",
+    ],
+    dependencies: ["Verify the production Revenue OS schema"],
+    start: "src/app/admin/layout.tsx; src/app/globals.css; src/components/admin/",
+    guardrails:
+      "Use exact-property transitions and restrained motion. Do not restyle public marketing pages as part of this card.",
+    labels: ["design-system", "accessibility"],
+    evidence:
+      "2026-08-27 shared navigation runtime: the live founder workspace and every fictional demo route now use one registered application scroll viewport, direct scenario-aware links, manual per-entry restoration, deterministic forward-to-top behavior, contextual route titles, accessible focus handoff, stable loading geometry, and one incoming route-motion owner. Demo navigation no longer relies on document click interception or hard reloads, and scenario switching replaces the fictional runtime without mixing business state. Static and browser navigation contracts cover desktop, mobile, reduced motion, history restoration, overflow, runtime errors, and scenario switching. 2026-08-27 end-to-end admin and demo polish: the mobile navigation is now a focus-contained, background-inert modal with deterministic focus return, unique desktop/mobile disclosure IDs, a less crowded header, in-drawer Search and Ask AI tools, and a wider native sheet. Route-aware accordion state always reveals the active destination after client navigation. The appearance chooser focuses the selected option and restores focus on close. Repaired two undefined shared theme tokens, aligned AI tab press behavior with the system standard, compacted live-admin identity so utilities remain contained across appearances, and refreshed stale redirect/sandbox QA assumptions. Verification passed: agent and demo contracts, TypeScript, zero-warning lint, admin token contract, 325-page production build, all three scenarios across 28 routes on desktop/mobile with all five appearances and protected-request isolation, authenticated 27-route desktop/mobile parity across Night, Signal, and Studio, embedded Command Center preview, Work portfolio motion/accessibility matrix, focus trapping, duplicate-ID checks, overflow, hit targets, keyboard, reduced motion, and reviewed screenshots. Production deployment pending. 2026-08-26: refined the shared desktop utility cluster into one contained sidebar header: identity remains primary, notification and collapse/expand controls are optically aligned at both rail widths, and the notification remains reachable when collapsed without leaving the viewport. Scenario identity now replaces the generic Accelerate lockup only inside fictional demo workspaces. Shared appearance and operational-state tokens repair warning, muted-surface, and navigation contrast without route-local overrides. The full three-scenario, 28-route desktop/mobile demo matrix passed with no overflow or runtime errors; expanded, collapsed, and mobile screenshots were reviewed. 2026-08-25: completed the focused shared-shell polish slice. The desktop collapse and notification controls now remain optically aligned and contained in the sidebar at both widths; the notification state is static instead of flashing; navigation labels, section headings, icons, and utilities have stronger hierarchy and contrast; a persistent Demo workspace action opens the full admin demo launcher at /demo/command-center in a new tab from expanded, collapsed, and mobile navigation; and the four-state appearance picker now has a type-safe fallback. Automated evidence: admin route parity passed all 27 registered routes on desktop and mobile; the Command Center demo interaction suite passed disclosure, simulated approval, grounded-response, reset, responsive, reduced-motion, overflow, and console checks; TypeScript, zero-warning lint, admin token validation, diff validation, and the 351-page production build passed. Visual evidence: /tmp/accelerate-admin-shell-qa/expanded-desktop.png, /tmp/accelerate-admin-shell-qa/collapsed-desktop.png, and /tmp/accelerate-admin-shell-qa/navigation-mobile.png. Route-local modernization remains on this broader card. Earlier evidence: shared route registry, page headers, tokenized surfaces, portal dialogs/drawers, responsive shell, mobile navigation, focus and reduced-motion behavior, and route-level states are active.",
+  }),
+  card({
+    key: "admin-overlay-motion-recovery",
+    title: "Repair admin overlays, entry motion, tokens, and collapsible navigation",
+    workstream: "admin",
+    phase: 2,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Replace route-local overlays and undefined visual tokens with one portal-based interaction system, intentional page entry motion, a responsive shell, and a persisted collapsible desktop sidebar.",
+    acceptance: [
+      "Every modal, confirmation, drawer, and command surface portals above route transforms, traps focus, restores focus, locks scrolling, and closes with Escape",
+      "Every referenced admin token is defined in light and dark mode and the shell has no accidental black grid or header separator",
+      "Desktop sidebar collapses to a usable icon rail and mobile navigation exposes the same destinations",
+      "Desktop, narrow laptop, mobile, dark, and reduced-motion Playwright journeys show no clipping, overflow, or console errors",
+    ],
+    dependencies: ["Complete the shared professional admin system"],
+    start:
+      "src/components/admin/AdminDialog.tsx; src/app/admin/layout.tsx; src/app/globals.css; src/lib/admin/motion.ts; src/lib/admin/navigation.ts",
+    guardrails:
+      "Use Radix focus behavior, exact-property transitions, 40px targets, concentric radii, and restrained motion. Do not leave a second modal primitive behind.",
+    labels: ["modals", "motion", "responsive", "sidebar"],
+    evidence:
+      "2026-08-16 verified: centralized every admin modal, confirmation, drawer, compose surface, and command palette on the Radix body portal; fixed portal token inheritance and iframe compositing; added responsive/persisted sidebar collapse and mobile drawer close ownership; removed the grid, public progress line, and hard separator; and passed authenticated desktop/mobile, dark, reduced-motion, viewport, Escape, focus, and 25-route parity Playwright coverage with reviewed screenshots.",
+  }),
+  card({
+    key: "email-studio-runtime",
+    title: "Restore Email Studio, sent history, and live template publishing",
+    workstream: "admin",
+    phase: 2,
+    status: "blocked",
+    priority: "high",
+    owner: "Codex",
+    description:
+      "Give the founder one discoverable workspace to view, edit, preview, test, publish, restore, compose from, and audit transactional and sequence email without another provider account.",
+    acceptance: [
+      "Templates expose built-in, draft, and published state with desktop/mobile rendered previews and allow-listed merge variables",
+      "Saving a draft never affects recipients; founder-only test send and explicit publish use the configured Resend connection",
+      "Transactional and sequence send paths resolve the exact published version and safely fall back to built-in copy during schema failure",
+      "Sent history shows recipient, subject, body, status, provider receipt, template, time, and linked context on desktop and mobile",
+    ],
+    dependencies: [
+      "Finish one auditable communication sender",
+      "Repair admin overlays, entry motion, tokens, and collapsible navigation",
+    ],
+    start:
+      "migrations/20260816-email-studio.sql; src/lib/email/registry.ts; src/lib/email/runtime-template.ts; src/app/admin/emails/page.tsx",
+    guardrails:
+      "Use the proven Work+Shelter block-authoring model: a small typed block vocabulary, one render path for preview/test/send, and reusable layout starts. Test sends go only to the authenticated founder. Never store provider keys in templates or let draft edits change live sends implicitly.",
+    labels: ["email", "templates", "delivery-history", "publishing"],
+    evidence:
+      "2026-08-29 coordinator park: Gate 0 moved this card from in_progress to blocked. Remaining before Shipped is a founder-authenticated production test-send/receipt plus the still-planned communication sender Gmail-thread evidence. Codex remains owner so the slice can resume without a second claim. 2026-08-28 demo-template refinement: customer-facing demo email now derives its brand, accent, domain, founder signature, and template copy from the active fictional scenario. The email-safe renderer uses a responsive, card-based layout and scenario-specific inquiry, appointment, proposal, and welcome templates rather than a generic Accelerate wrapper. Browser QA proves all five scenario previews render their own brand and do not leak Accelerate into the fictional customer mail; desktop/mobile Northline authoring and publish-confirmation coverage still passes. 2026-08-28 implementation: replaced raw body editing with typed heading, paragraph, button, divider, and spacer sections. A versioned compatible draft value preserves the existing schema; the same renderer now serves exact editor preview, founder test send, and new published sends, with code-owned transactional templates retaining their safe fallback. Demo mutations stay inside browser-session state and produce scenario-branded fictional email. Browser QA proves desktop/mobile authoring, save, exact mobile preview, no overflow, no console errors, no protected request escape, and no receipt/dock overlap. Contracts passed: agent contract, demo contract, email templates, email blocks, admin tokens, TypeScript, lint, diff, and 325-page production build. The card remains in progress because a founder-authenticated production test-send/receipt verification is still required before it can be honestly marked Shipped. Earlier evidence: 2026-08-16 added versioned draft/published schema, canonical registry/resolver, Email Studio editor/preview/history, founder test action, publish confirmation, compose handoff, and runtime adoption by transactional and sequence sends. Production migration applied twice successfully for idempotency; email_templates, email_template_versions, and publish_email_template are live through the service-role path.",
+  }),
+  card({
+    key: "feature-board-interaction-rebuild",
+    title: "Rebuild Feature Board drag, details, and mobile interaction",
+    workstream: "admin",
+    phase: 2,
+    status: "planned",
+    priority: "high",
+    description:
+      "Make the managed backlog feel like a professional delivery tool with stable drag ownership, cross-column previews, reliable persistence, accessible movement, and a portal-based responsive detail editor.",
+    acceptance: [
+      "Mouse, touch, and keyboard movement works within and across columns, including empty columns and horizontal auto-scroll",
+      "Dragged card retains its measured size, source placeholder and destination are clear, and drop animation never duplicates or jumps",
+      "One atomic reorder persists after drop and visibly rolls back on failure",
+      "Opening details before or after a drag never shifts, clips, or disables the board; mobile has an equivalent status/move control",
+    ],
+    dependencies: ["Repair admin overlays, entry motion, tokens, and collapsible navigation"],
+    start:
+      "src/app/admin/features/page.tsx; src/components/admin/AdminDialog.tsx; scripts/qa-feature-board.mjs",
+    guardrails:
+      "Do not reorder hidden cards while filters are active. Preserve the managed manifest, audit RPC, source IDs, and user-created cards.",
+    labels: ["kanban", "drag-drop", "feature-board", "mobile"],
+    evidence:
+      "2026-08-16: unified mouse/pen/touch on a distance-gated pointer sensor, retained keyboard movement, added live cross-column preview and atomic normalized persistence with rollback, removed the lingering drop clone that blocked post-drag clicks, and moved details to the shared portal editor. Authenticated Playwright proves cross-column movement, post-drop edit, desktop/mobile rendering, and modal integrity. Remaining before Shipped: add an explicit keyboard-move assertion and unsaved-change confirmation.",
+  }),
+  card({
+    key: "additional-tools-canonical-parity",
+    title: "Modernize and canonically integrate every additional admin tool",
+    workstream: "admin",
+    phase: 2,
+    status: "planned",
+    priority: "high",
+    description:
+      "Bring Leads, Contacts, Inbox, Bookings, Clients, Chat Inquiries, Subscribers, Content, Resources, Partners, and Website Grades onto the shared responsive shell and connect revenue-bearing records to canonical contacts, companies, opportunities, activities, tasks, attribution, and Today.",
+    acceptance: [
+      "Every existing route is discoverable from the shared route registry and passes the same header, state, overlay, keyboard, responsive, and error contracts",
+      "Revenue-bearing legacy reads use canonical adapters and every remaining legacy-only field has a documented parity disposition",
+      "Inbound records link to canonical identity/opportunity/activity once without duplicate writes",
+      "No route is hidden, deleted, or redirected until production row counts and primary actions reconcile",
+    ],
+    dependencies: [
+      "Back legacy admin reads with canonical adapters",
+      "Repair admin overlays, entry motion, tokens, and collapsible navigation",
+      "Implement deterministic contact and company identity resolution",
+    ],
+    start:
+      "src/lib/admin/navigation.ts; src/lib/revenue-os/legacy-adapter.ts; src/app/admin/*; src/app/api/admin/leads; contacts; inbox; bookings; clients; chat-leads; subscribers; content; resources; partners; website-grades",
+    guardrails:
+      "Additional tools are an active migration queue, not abandoned legacy. Preserve original source IDs and tables until parity is verified.",
+    labels: ["route-audit", "legacy-parity", "canonical-data", "responsive"],
+    evidence:
+      "2026-08-26: consolidated Website submissions and List import into one responsive Contact intake workspace, repaired disclosure controls, populated the browser demo with 16 fictional contacts and canonical relationship histories, modernized the relationship timeline with shared admin surfaces, and added demo-contract regression coverage. The same route components remain authoritative for live and demo; only the demo data transport is intercepted. Also corrected Today’s oversized approval rail, repeated queue copy, warning semantics, and public dock collision. Verified with TypeScript, zero-warning lint, agent contract, admin demo contract, contact-import service contract, 29-route desktop/mobile demo QA, inspected desktop/mobile screenshots, and a 325-page production build. 2026-08-16: all 25 registered routes pass desktop/mobile Playwright parity; every overlay uses the shared portal contract; Chat Inquiries no longer overflows phones; and every person-bearing specialized API now exposes canonical Revenue OS linkage through one safe adapter. Manual Lead creation uses the shared identity/inbound/activity/task/audit services, single Lead stage changes synchronize through the canonical transition service, and Contact Timeline combines source history with canonical opportunities, activities, messages, tasks, and Pipeline deep-links. Remaining before shipment: atomic canonical handling for bulk Lead moves, extracting legacy Bookings substate from the controlled sales stage, field-level and row-count reconciliation in production, and adapter telemetry. No specialized source table or route is being deleted early.",
+  }),
+  card({
+    key: "today-operator-inbox",
+    title: "Finish Today as the prioritized operator inbox",
+    workstream: "admin",
+    phase: 2,
+    status: "shipped",
+    priority: "urgent",
+    owner: "Codex",
+    description:
+      "Make Today the founder’s single queue for overdue work, replies, meetings, proposals, campaign exceptions, approvals, and system warnings.",
+    acceptance: [
+      "Items use the shared priority selector and expose why they are ranked",
+      "Each item opens the correct record or safe action without dead-end summaries",
+      "Completion, snooze, approval, rejection, and refresh preserve consistent counters",
+    ],
+    dependencies: [
+      "Create the shared operator-priority selector",
+      "Build the canonical task generator with deduplication",
+    ],
+    start:
+      "src/app/admin/today/page.tsx; src/app/api/admin/revenue-os/overview/route.ts; src/lib/revenue-os/queue.ts",
+    guardrails:
+      "Do not duplicate source records into a separate Today table. System warnings cannot be silently dismissed without a receipt.",
+    labels: ["today", "operator-inbox"],
+    evidence:
+      "Shipped locally 2026-08-23 and intentionally held for the next feature-batch deployment. Today now has structured skeleton loading, distinct background refresh, last-success timestamp, last-good-data preservation, explicit degraded and fatal read states, recovery actions, useful empty-state destinations, abort/race protection, and focus query normalization. Approval items deep-link into the exact review dialog; proposals, conversations, campaigns, opportunities, clients, and contacts consume record-targeting links instead of dropping the operator on an unfiltered list. Approval, rejection, completion, and snooze remove items optimistically, then reconcile the shared queue and dispatch the navigation refresh event so counters do not flash stale after a successful mutation even when the follow-up read degrades. Verification passed: priority/notification/route contracts, admin tokens, agent contract, TypeScript, lint, diff check, 339-page production build, Today desktop/mobile parity, and expanded Playwright QA covering deep approval, approve, reject, complete, snooze, empty, degraded, fatal, retry, focus filtering, reduced motion, and console errors. Screenshots `/tmp/accel-shots/today-command-center-desktop.png` and `/tmp/accel-shots/today-command-center-mobile.png` were visually reviewed.",
+  }),
+  card({
+    key: "pipeline-stage-board",
+    title: "Finish the canonical Pipeline workspace",
+    workstream: "admin",
+    phase: 2,
+    status: "shipped",
+    priority: "urgent",
+    owner: "Codex",
+    description:
+      "Provide one industry-agnostic opportunity workspace with stage control, qualification, value, next actions, and consistent contact/company context.",
+    acceptance: [
+      "Pipeline lists and stage board use canonical opportunities only",
+      "Stage changes invoke the transition service and show validation errors",
+      "Search, filters, value totals, and mobile layouts remain usable with realistic data volumes",
+    ],
+    dependencies: [
+      "Finish the canonical pipeline transition service",
+      "Implement deterministic contact and company identity resolution",
+    ],
+    start: "src/app/admin/pipeline/page.tsx; src/app/api/admin/revenue-os/pipeline/route.ts",
+    guardrails: "Roofing is a playbook/filter, never a separate stage model.",
+    labels: ["pipeline", "workspace"],
+    evidence:
+      "Shipped locally 2026-08-23 and intentionally held for the next feature-batch deployment. Pipeline now opens as a canonical nine-stage board with per-stage opportunity counts and value totals, grounded contact/company/value/source/next-action cards, validated inline stage controls, a persistent board/list preference, exact `?opportunity=` resolution, search, and stage filtering. The horizontal board is inline-size-contained, snap-scrolling, and overscroll-contained on mobile rather than widening the route. The existing list remains available for dense comparison. All movement still calls the canonical transition service; rejected transitions retain the source stage and surface the service error. Verification passed: `npm run test:pipeline-workspace` with 27 realistic records, rejected and successful mutations, exact deep links, persisted view, search/filter counts, mobile containment and reduced motion; `npm run test:pipeline-transition`; `npm run test:identity-resolution`; all-route desktop/mobile parity; admin tokens; agent contract; TypeScript; lint; diff check; and the 339-page production build. Screenshots `/tmp/accel-shots/pipeline-stage-board-desktop.png` and `/tmp/accel-shots/pipeline-stage-board-mobile.png` were visually reviewed.",
+  }),
+  card({
+    key: "record-detail-workspace",
+    title: "Build contextual contact, company, and opportunity details",
+    workstream: "admin",
+    phase: 2,
+    status: "shipped",
+    priority: "high",
+    owner: "Codex",
+    description:
+      "Create responsive record details showing identity, qualification, value, timeline, conversations, meetings, proposals, tasks, research, attribution, and next action.",
+    acceptance: [
+      "A founder can navigate between linked contact, company, and opportunity without losing context",
+      "Timeline events come from the canonical activity ledger",
+      "Editing identity or next action validates conflicts and updates every dependent view",
+    ],
+    dependencies: [
+      "Normalize the cross-channel activity ledger",
+      "Finish the canonical Pipeline workspace",
+    ],
+    start:
+      "src/lib/revenue-os/records.ts; src/app/api/admin/revenue-os/records/opportunity/[id]/route.ts; src/app/admin/pipeline/[id]/page.tsx; scripts/qa-record-detail-workspace.mjs",
+    guardrails:
+      "Use progressive disclosure on mobile; do not expose raw provider payloads or tokens.",
+    labels: ["records", "timeline"],
+    evidence:
+      "Shipped locally 2026-08-23 and intentionally held for the next feature-batch deployment. Added `revenue-os-opportunity-record.v1`, one bounded founder-only read model and API for an opportunity, linked contact/company, tasks, conversations, meetings, proposals, and the canonical `revenue-os-activity-ledger.v1` timeline. Raw message bodies, provider metadata, attendee payloads, proposal content, and secrets are excluded by explicit selects. Pipeline cards/list rows and Today task/meeting priorities now deep-link to the exact cockpit. The responsive workspace provides persistent opportunity/contact/company/activity context, value and commitment metrics, audited next-action/date/value editing through `updateOpportunityDetails`, optimistic `updated_at` conflict refusal, success/error/retry/schema states, and progressively collapsible related sections. Identity is deliberately read-only until a separate ambiguity-safe identity mutation contract exists. Verification passed: TypeScript, lint, pipeline transition, priority selector, activity ledger, route coverage, founder access (20 checks), diff check, and deterministic Playwright failure/retry, canonical ordering, edit refresh, mobile overflow, keyboard target, and reduced-motion checks. Desktop/mobile screenshots were opened and inspected at `/tmp/accelerate-record-workspace`. No schema change or deployment was performed.",
+  }),
+  card({
+    key: "pipeline-saved-views",
+    title: "Add useful Pipeline saved views and ownership filters",
+    workstream: "admin",
+    phase: 3,
+    status: "shipped",
+    priority: "high",
+    owner: "Codex",
+    description:
+      "Support repeatable views for new inquiries, no next action, overdue follow-up, upcoming meetings, proposals, at-risk deals, wins, and nurture.",
+    acceptance: [
+      "Core system views have deterministic filters and counts",
+      "Founder-created views persist filter, sort, and visible-column preferences",
+      "Views work in table and mobile detail-card modes",
+    ],
+    dependencies: ["Finish the canonical Pipeline workspace"],
+    start:
+      "src/lib/admin/pipelineViews.ts; src/app/admin/pipeline/page.tsx; src/app/api/admin/revenue-os/pipeline/route.ts",
+    guardrails: "Saved views are filters over canonical data, not copied records.",
+    labels: ["pipeline", "productivity"],
+    evidence:
+      "2026-08-24: shipped a competitive operator-view layer over canonical opportunities. src/lib/admin/pipelineViews.ts owns deterministic All, Needs attention, New, No next action, Overdue, Coming up, Proposals, At risk, Recent wins, and Nurture predicates, stable counts/sorts, normalized device persistence, and a 20-view bound. The Pipeline UI adds explainable queues, owner/stage/search filters, founder-named saved views, configurable fields and ordering, persisted board/list layout, deep-link preservation, 44px controls, and purpose-built mobile detail cards. The read route adds the next upcoming linked calendar event and reports calendar signal readiness while safely degrading to null on calendar read failure. No records are copied and no opaque AI score was introduced. Verification passed: npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:pipeline-saved-views; authenticated PLAYWRIGHT_BASE_URL=http://localhost:3010 npm run test:pipeline-workspace; npm run build; git diff --check. Playwright proved system queues/counts, owner filtering, customization, saved-view reload persistence, canonical transition rejection/success, search/stage filtering, exact record deep links, desktop board/list, mobile cards, reduced motion, and viewport containment with no console errors. Reviewed /tmp/accel-shots/pipeline-stage-board-desktop.png, pipeline-stage-board-mobile.png, and pipeline-list-mobile.png. Local feature only; no migration, provider activation, production write, or deployment was required.",
+  }),
+  card({
+    key: "conversations-operator-inbox",
+    title: "Finish Conversations as the unified communication inbox",
+    workstream: "admin",
+    phase: 2,
+    status: "planned",
+    priority: "high",
+    description:
+      "Combine synchronized Gmail, inbound forms/messages, Resend activity, and manual communication into one founder inbox with record context and reply tools.",
+    acceptance: [
+      "Thread list supports unread, intent, assignment, record, campaign, and follow-up filters",
+      "Opening a conversation shows ordered canonical messages and linked opportunity context",
+      "Reply, draft, link/create record, next action, and local archive have actionable errors and receipts",
+    ],
+    dependencies: [
+      "Finish one auditable communication sender",
+      "Import Gmail incrementally with cursor recovery",
+    ],
+    start: "src/app/admin/conversations/page.tsx; src/app/api/admin/revenue-os/conversations/",
+    guardrails:
+      "Gmail remains person-to-person; Resend remains campaign/transactional. Local archive must not silently mutate Gmail unless explicitly designed.",
+    labels: ["conversations", "gmail"],
+    evidence:
+      "2026-08-16: Conversations reads canonical threads/messages, exposes linked context/unread state, and provides confirmed Gmail reply plumbing through the shared Google sender; Email Studio covers auditable Resend history. Remaining: complete incremental Gmail data, record linking/create, intent/assignment filters, next-action/local archive flows, receipt reconciliation, and end-to-end reply tests.",
+  }),
+  card({
+    key: "campaign-workspace-ui",
+    title: "Finish the Campaigns planning and control workspace",
+    workstream: "admin",
+    phase: 3,
+    status: "planned",
+    priority: "high",
+    description:
+      "Give the founder one place to define audience, sequence, policy, dry run, activation, enrollment, performance, pause, and exceptions.",
+    acceptance: [
+      "Draft, dry-run, active, paused, completed, and failed states are explicit",
+      "Material edits visibly create a version requiring reapproval",
+      "Recipient exclusions, pending sends, stops, and failures are inspectable",
+    ],
+    dependencies: [
+      "Enforce campaign policy envelopes and version reapproval",
+      "Build campaign dry-run, exclusion, and sample personalization review",
+    ],
+    start: "src/app/admin/campaigns/page.tsx; src/app/api/admin/revenue-os/campaigns/",
+    guardrails:
+      "Never schedule the whole sequence at Resend. Activation is not permission to exceed the displayed envelope.",
+    labels: ["campaigns", "workspace"],
+    evidence:
+      "2026-08-16: Campaigns supports draft creation, sender/copy/policy editing, member enrollment, dry-run preview, confirmed activation proposal, pause, version/status presentation, and responsive states. Remaining: richer sequence editing, exception/member detail, reconciled performance, material-edit reapproval proof, and Playwright activation/pause/stop coverage.",
+  }),
+  card({
+    key: "proposal-workspace-ui",
+    title: "Finish the founder Proposal workspace",
+    workstream: "admin",
+    phase: 3,
+    status: "planned",
+    priority: "high",
+    description:
+      "Support grounded draft, preview, versioning, send, view activity, accept/decline, expiry, and follow-up from the linked opportunity.",
+    acceptance: [
+      "Proposal state and linked opportunity are visible without switching legacy pages",
+      "Preview exactly matches the public proposal and generated PDF",
+      "Send and material revision follow confirmation and version rules",
+    ],
+    dependencies: [
+      "Complete the proposal lifecycle and version rules",
+      "Make public proposal views and decisions idempotent",
+    ],
+    start: "src/app/admin/proposals/page.tsx; src/app/proposal/[token]/page.tsx; proposal APIs",
+    guardrails:
+      "Payment collection is out of scope. AI cannot invent prices, terms, or customer facts.",
+    labels: ["proposals", "workspace"],
+    evidence:
+      "2026-08-16: existing proposal admin supports draft generation/management and public token views with accept/decline surfaces; shared compose/dialog patterns are available. Remaining: canonical opportunity context, exact preview/PDF parity, immutable versions, confirmation-gated send receipts, expiry/supersede/follow-up, and lifecycle Playwright coverage.",
+  }),
+  card({
+    key: "analytics-workspace",
+    title: "Rebuild Analytics around decisions and data quality",
+    workstream: "admin",
+    phase: 4,
+    status: "shipped",
+    priority: "high",
+    owner: "Codex",
+    description:
+      "Present source-to-revenue funnel, campaign outcomes, forecast, response rates, meetings, proposals, wins, and data-quality warnings from one metric service.",
+    acceptance: [
+      "All cards and charts reconcile to canonical metric queries",
+      "Date, source, campaign, stage, and owner filters have documented semantics",
+      "Missing attribution, stale syncs, and impossible stage sequences are visible warnings",
+    ],
+    dependencies: ["Consolidate analytics on canonical source-to-revenue data"],
+    start:
+      "src/app/admin/analytics/page.tsx; src/app/api/admin/revenue-os/analytics/route.ts; src/lib/revenue-os/analytics.ts",
+    guardrails:
+      "Do not decorate uncertain estimates as revenue facts. Use tabular numerals and accessible chart alternatives.",
+    labels: ["analytics", "workspace"],
+    evidence:
+      "2026-08-24: shipped one canonical decision model for date, source, owner, campaign, and current-stage filters. src/lib/revenue-os/analytics.ts now owns filter semantics, canonical funnel/source facts, recorded probability-weighted open-pipeline forecast, quality counts, and factual reply coverage/median response time derived from ordered inbound and later outbound messages in linked conversations. The API bounds inputs, fails closed on founder access, and degrades communication and website signals independently without disguising missing evidence as zero. The workspace persists cohort filters, separates recorded pipeline and won revenue from a violet-tinted planning estimate with explicit method copy, adds communication performance, accessible textual funnel bars, source-to-revenue, visible missing attribution/owner/next-action plus unrecognized/no-op stage-history warnings, and states that record filters do not alter first-party website metrics. The inspected mobile pass found technically contained but unreadable squeezed filters; they were rebuilt as a full-width date control plus two-column mobile filter grid. Verification passed: npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:analytics-decision-model; npm run verify:attribution-loop with the controlled canonical create/progress/reconcile/cleanup fixture; authenticated PLAYWRIGHT_BASE_URL=http://localhost:3010 npm run test:analytics-workspace; npm run build (351 pages); git diff --check. Playwright proved source/owner filtering, changed canonical metrics, saved-filter reload, clear recovery, facts-vs-forecast copy, reply evidence, reduced motion, console cleanliness, and mobile containment. Desktop and corrected mobile screenshots were opened at /tmp/accelerate-analytics-workspace. No migration, provider activation, deployment, or uncontrolled production record mutation was performed.",
+  }),
+  card({
+    key: "admin-settings-consolidation",
+    title: "Consolidate Settings and connection ownership",
+    workstream: "admin",
+    phase: 2,
+    priority: "medium",
+    description:
+      "Give every integration, AI rule, notification preference, template, pipeline option, and audit view one authoritative admin surface.",
+    acceptance: [
+      "Duplicate and obsolete settings controls are removed or redirected",
+      "Secrets remain environment-only or encrypted server-side",
+      "Setup Center links directly to the authoritative setting or connection action",
+    ],
+    dependencies: ["Finish Setup Center as the operational control plane"],
+    start: "src/app/admin/settings; src/app/admin/setup; src/lib/admin/settings.ts",
+    guardrails: "Do not display, round-trip, or persist plaintext secret values in admin_settings.",
+    labels: ["settings", "setup"],
+  }),
+  card({
+    key: "route-state-resilience",
+    title: "Standardize loading, errors, retry, and preserved route state",
+    workstream: "admin",
+    phase: 3,
+    status: "planned",
+    priority: "high",
+    description:
+      "Make every core route retain useful context through refreshes and show actionable loading, empty, degraded, and error states.",
+    acceptance: [
+      "Core routes distinguish empty data, missing setup, provider degradation, and request failure",
+      "Retry actions do not discard filters, selected records, or unsaved safe drafts",
+      "Route transitions avoid key-based remount loops and stale-request races",
+    ],
+    dependencies: ["Complete the shared professional admin system"],
+    start:
+      "src/components/admin/AdminReadBody.tsx; src/lib/admin/useAdminQuery.ts; src/app/admin/today/page.tsx; core admin pages; src/lib/admin/demo/runtime.ts",
+    guardrails: "Never show a success-looking empty state when a provider or schema call failed.",
+    labels: ["resilience", "ux"],
+    evidence:
+      "2026-08-29 coordinator park: Gate 0 moved this card off in_progress because it still depends on the unshipped admin shell and leftover More-tools pages remain. Owner cleared. 2026-08-28 loading-integrity slice: core admin/demo destinations now keep PageHeader mounted and use one shared read path. AdminReadBody wraps delayed regional skeletons, last-snapshot refetch, and fatal retry without replacing committed route identity. Today already used this pattern; Pipeline, Conversations, Analytics, Campaigns, Email Studio, Feature Board, opportunity records, Integrations, Inbox, Bookings, Activity, and Revenue now use useAdminQuery plus AdminReadBody instead of mount-only fetch and full-page AdminPageLoading. Demo fetch intercept installs idempotently before client reads and unknown admin APIs fail closed instead of returning a successful empty payload. Remaining before Shipped: convert the leftover More-tools pages (Leads, Chat inquiries, Subscribers, Partners, Website Grades, Clients, Content, Resources, Settings, Proposals, Delivery Runs, Setup, Contact detail) off early loading returns; browser QA of cold and cached Today → Pipeline → Conversations → Analytics on desktop and mobile.",
+  }),
+  card({
+    key: "admin-a11y-keyboard-mobile",
+    title: "Complete keyboard, accessibility, reduced-motion, and mobile parity",
+    workstream: "admin",
+    phase: 4,
+    priority: "high",
+    description:
+      "Verify every critical founder workflow without a mouse and at mobile breakpoints, including dialogs, drawers, tables, Kanban, command palette, and toasts.",
+    acceptance: [
+      "Logical focus order, visible focus, dialog trapping, labels, live regions, and Escape behavior pass",
+      "Reduced motion removes nonessential movement without breaking state changes",
+      "Desktop and mobile expose equivalent critical actions with at least 40px targets",
+    ],
+    dependencies: [
+      "Complete the shared professional admin system",
+      "Standardize loading, errors, retry, and preserved route state",
+    ],
+    start: "src/app/admin/layout.tsx; src/components/admin; Playwright QA",
+    guardrails: "Do not hide essential actions behind hover-only controls.",
+    labels: ["accessibility", "mobile"],
+  }),
+  card({
+    key: "cloneable-command-center-contract",
+    title: "Adopt instance-per-client cloning as the Command Center product shape",
+    workstream: "productization",
+    phase: 5,
+    status: "shipped",
+    priority: "high",
+    owner: "Grok-4.6-06-cloneable-command-center-contract",
+    description:
+      "Preserve the evidence and consequences of the former instance-per-client decision. This historical card was explicitly superseded on 2026-08-30 by shared-database-multi-tenancy-contract and no longer governs new schema or authorization work.",
+    acceptance: [
+      "The former decision, rejected alternative, and consequences remain recorded",
+      "The config seam, de-verticalized inbound, and install-runbook child cards remain traceable",
+      "The superseding shared-database architecture card is named wherever an implementing agent could otherwise apply the historical prohibition",
+    ],
+    dependencies: [
+      "Verify the production Revenue OS schema",
+      "Verify founder-only admin access and service-only data policies",
+    ],
+    start: "docs/REVENUE-OS-ENGINEERING-CONTRACT.md; src/config/tenant.ts; docs/INSTALL-RUNBOOK.md",
+    guardrails:
+      "Historical receipt only. Do not remove its evidence, but do not use its former prohibition to block shared-database-multi-tenancy-contract or its child cards. Billing and custom domains remain out of scope until separately authorized.",
+    labels: ["clonable", "architecture-decision", "template"],
+    evidence:
+      "2026-08-19: decision taken with the founder. Chosen shape was instance-per-client: own Vercel project and own Supabase database per client, one codebase, one config file per install. The audit identified the exact shared-database lift: tenant ownership and composite uniqueness across canonical tables plus replacement of founder-email/service-role-everywhere authorization. On 2026-08-30 the founder explicitly selected the formerly rejected shared-database alternative, with the current ADMIN_EMAIL retained as platform owner and client admins scoped by tenant membership. The new decision is owned by shared-database-multi-tenancy-contract; this card remains shipped as historical evidence.",
+  }),
+  card({
+    key: "tenant-config-seam",
+    title: "Extract every business fact into one tenant configuration",
+    workstream: "productization",
+    phase: 2,
+    status: "shipped",
+    priority: "high",
+    owner: "Grok-4.6-07-tenant-config-seam",
+    description:
+      "Create one typed configuration module that is the only place the brand, founder identity, offerings, industry playbooks, pipeline labels, AI persona, capability switches, and external project links appear, so a second installation is a config file rather than a search and replace across the codebase.",
+    acceptance: [
+      "A typed tenant config exists and is the single source for brand, founder and system actor identity, pipeline labels, playbooks, AI persona, capability flags, and external project links",
+      "The admin, domain, and email layers read that config instead of literals, and the campaign sender, unsubscribe URL, Plausible domain, and Setup Center project links no longer default to Accelerate values",
+      "verify:agent-contract fails when a new business literal is introduced under src/lib, src/app/admin, or src/app/api/admin, with a shrinking allowlist for sites not yet migrated",
+      "Changing one config value visibly changes the admin chrome, the outbound email chrome, and the AI persona with no other code edit",
+    ],
+    dependencies: ["Adopt instance-per-client cloning as the Command Center product shape"],
+    start:
+      "src/config/tenant.ts; src/lib/email/templates.ts; src/lib/email/resend.ts; src/lib/email/registry.ts; src/lib/revenue-os/communications.ts; src/lib/revenue-os/ai-agent.ts; src/lib/chat/system-prompt.ts; src/app/admin/layout.tsx; src/app/admin/setup/page.tsx; src/app/api/admin/setup/route.ts; scripts/verify-agent-contract.mjs",
+    guardrails:
+      "src/content and the public marketing pages are exempt, because those are Accelerate own-website copy and stay single-brand. Do not introduce a tenant identifier into any query, table, or route while doing this; the config is per-deployment, not per-row. Do not move secrets into the config; they stay environment-only. src/lib/booking.ts currently points at a Calendly link belonging to a different business and must be corrected here, not preserved.",
+    labels: ["clonable", "config", "white-label"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:features; reviewed desktop and mobile screenshots of the admin shell and one rendered email after changing a config value. 2026-08-19: added src/config/tenant.ts as the one place a business fact may appear, holding brand, founder and system-actor identity, AI persona and voice, booking links, industry playbooks, and infrastructure deep links, with environment variables still winning over configuration. Migrated the call sites that would send wrong data on a second installation: Resend from/admin addresses, the whole customer and operator email chrome including wordmark, accent, title and footer, plan/resource/booking links, the campaign unsubscribe URL, the campaign sender name, the Plausible domain, the Revenue OS copilot system prompt, the system actor recorded on automated audit and activity rows, and the Setup Center deep links, which previously pointed every installation at one specific Vercel org and Supabase project ref. Fixed a live defect found here: src/lib/booking.ts handed out a Calendly event belonging to a different business (john-superdebate), reachable from the public chat prompt; the value now lives in config, is flagged in place, and still needs the correct event or null. Added a cloneability ratchet to scripts/verify-agent-contract.mjs: it counts business literals per file under src/lib, src/app/admin, and src/app/api/admin against a budget that may only shrink, and both directions were proven to fail (adding a literal to an at-zero file, and leaving a budget above the real count). Proof the seam works: changing only tenant.brand in a scratch script re-rendered the email chrome with a different business name, accent colour, footer and domain, with no occurrence of the original brand and no other code edit. Behaviour is unchanged in production: verify:inbound-canonical, verify:recorded-send and verify:attribution-loop all still pass after the migration. Remaining before Shipped: 41 literals across 18 files are still budgeted, chiefly the admin shell chrome (layout, login, update-password), the generative prompts for insights, content briefs and proposals, and the public chat prompt; the admin-chrome half of the fourth acceptance item is therefore not yet met. 2026-08-19 completion: every business literal under src/lib, src/app/admin, and src/app/api/admin is now gone; the ratchet budget in verify-agent-contract.mjs is empty, so any reintroduction fails the contract. Migrated the remainder: admin shell wordmark, collapsed logo mark, live-site link and login/update-password chrome; chat transcript speaker name; campaign sender default; every Setup Center guide step naming the domain, sender, site URL, OAuth callback or GA4 stream; the password reset subject; the insights, content brief, proposal and plan generative prompts; the public chat system prompt including its identity line, positioning paragraph and off-topic redirect; the chat lead-capture confirmation email; the OpenRouter referer and title; and the SEO and OG canonical base URLs, which would otherwise emit another business's canonical links. Added tenant.pipeline.stageLabels so a business can rename a stage (a law firm calling meeting a Consultation) while the canonical stage keys, transition rules, probabilities and analytics stay fixed, and proved a relabel changes only the label. Full rebrand proven end to end: setting tenant.brand and tenant.founder to a fictional plumbing company re-rendered the email chrome, the chat system prompt and the plan prompt under the new identity with no occurrence of the original brand and no other code edit. One honest limit worth recording: the public chat prompt also interpolates the product catalogue from src/content/packages.ts, where a package is itself named Accelerate, so a client installation must supply its own content as well as its own config. That split is deliberate: config holds facts, src/content holds tenant-authored copy. Behaviour unchanged in production: verify:inbound-canonical, verify:recorded-send, verify:attribution-loop, test:identity-resolution and test:pipeline-transition all pass. Remaining before Shipped: capability flags for turning whole surfaces on or off per installation, which are deliberately not added yet because dead configuration nothing reads is worse than none, as the unread BUSINESS_NAME seed proved.",
+    evidence:
+      "2026-08-20: `src/config/tenant.ts` exists and is the single source for brand, founder and system actor identity, AI persona, booking, pipeline stage labels, playbooks, and external project links. Helpers siteUrl/adminEmail/fromEmail/analyticsDomain/supabaseDashboard route the admin, domain, and email layers through it. Proven load-bearing on 2026-08-20: booking was disabled by setting one value to null after the scheduler URL was found pointing at an unrelated business, and re-enabled across the contact embed, roofing embed, website assistant, and qualifier by setting that one value back. NOT SHIPPED: acceptance criterion 3 does not exist yet (verify:agent-contract does not fail on a new business literal, and there is no shrinking allowlist), and capability flags were deliberately reverted rather than shipped as dead config.",
+  }),
   card({
     key: "shared-database-multi-tenancy-contract",
     title: "Adopt shared-database multi-tenancy as the Command Center product shape",
@@ -315,18 +1159,27 @@ export const featureBacklog = [
     status: "shipped",
     priority: "urgent",
     owner: "Codex",
-    description: "Supersede the former instance-per-client decision with one application and Supabase database where Accelerate's configured founder remains platform owner, client admins are tenant members, and every operational path carries an explicit tenant context.",
+    description:
+      "Supersede the former instance-per-client decision with one application and Supabase database where Accelerate's configured founder remains platform owner, client admins are tenant members, and every operational path carries an explicit tenant context.",
     acceptance: [
       "The superseding decision, trust boundaries, platform-versus-tenant ownership, migration order, rollback, and exclusions are written where every implementation agent reads them",
       "Stable child cards exist for schema/backfill, tenant authorization, workspace provisioning, provider/public boundaries, and isolation cutover",
       "The former cloning card remains historical evidence but no active contract or verifier prohibits tenant IDs, membership roles, workspace routing, or cross-tenant filtering",
     ],
-    dependencies: ["Verify the production Revenue OS schema", "Verify founder-only admin access and service-only data policies", "Extract every business fact into one tenant configuration"],
-    start: "AGENTS.md; docs/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/AGENT-TICKET-RUNBOOK.md; src/lib/revenue-os/README.md; scripts/verify-agent-contract.mjs",
-    guardrails: "Do not add billing, custom domains, client-managed roles, cross-tenant analytics, or a second database. ADMIN_EMAIL stays the sole platform owner in v1. No tenant becomes active until database, API, provider, and browser isolation evidence passes.",
+    dependencies: [
+      "Verify the production Revenue OS schema",
+      "Verify founder-only admin access and service-only data policies",
+      "Extract every business fact into one tenant configuration",
+    ],
+    start:
+      "AGENTS.md; docs/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/AGENT-TICKET-RUNBOOK.md; src/lib/revenue-os/README.md; scripts/verify-agent-contract.mjs",
+    guardrails:
+      "Do not add billing, custom domains, client-managed roles, cross-tenant analytics, or a second database. ADMIN_EMAIL stays the sole platform owner in v1. No tenant becomes active until database, API, provider, and browser isolation evidence passes.",
     labels: ["database", "auth"],
-    evidence: "Shipped 2026-08-30 after explicit founder direction. `docs/MULTI-TENANCY-CONTRACT.md` now owns product, authority, data, request/RLS, configuration, provider, public traffic, failure, rollout, and rollback boundaries. AGENTS.md and the Revenue OS contract require it before schema/auth/routing work; the historical clone card is explicitly superseded; the Grok non-goal and config comments no longer contradict the active shape. Five stable child cards cover schema, auth, workspace, provider/public, and cutover. Verification passed: npm run verify:agent-contract; npm run test:feature-board-dependencies; source prohibition scan; git diff --check. The live 144-card board was reconciled and verified with zero drift.",
-    verification: "npm run verify:agent-contract; npm run test:feature-board-dependencies; npm run seed:features -- --verify; git diff --check.",
+    evidence:
+      "Shipped 2026-08-30 after explicit founder direction. `docs/MULTI-TENANCY-CONTRACT.md` now owns product, authority, data, request/RLS, configuration, provider, public traffic, failure, rollout, and rollback boundaries. AGENTS.md and the Revenue OS contract require it before schema/auth/routing work; the historical clone card is explicitly superseded; the Grok non-goal and config comments no longer contradict the active shape. Five stable child cards cover schema, auth, workspace, provider/public, and cutover. Verification passed: npm run verify:agent-contract; npm run test:feature-board-dependencies; source prohibition scan; git diff --check. The live 144-card board was reconciled and verified with zero drift.",
+    verification:
+      "npm run verify:agent-contract; npm run test:feature-board-dependencies; npm run seed:features -- --verify; git diff --check.",
   }),
   card({
     key: "tenant-control-plane-schema",
@@ -336,14 +1189,24 @@ export const featureBacklog = [
     status: "shipped",
     priority: "urgent",
     owner: "Codex",
-    description: "Add tenant, membership, ingest-key, and platform-audit tables; give every operational row explicit tenant ownership; and backfill the existing database into the Accelerate tenant without deleting or duplicating records.",
-    acceptance: ["Every operational table and RPC has explicit tenant ownership while platform-only tables remain named and unambiguous", "Existing rows backfill to Accelerate with row-count and relationship parity before tenant_id becomes non-null", "Global business uniqueness and claims become tenant-composite and composite foreign keys reject cross-tenant links", "The ordered migration is additive, idempotent, schema-verified, and recoverable without removing tenant data"],
+    description:
+      "Add tenant, membership, ingest-key, and platform-audit tables; give every operational row explicit tenant ownership; and backfill the existing database into the Accelerate tenant without deleting or duplicating records.",
+    acceptance: [
+      "Every operational table and RPC has explicit tenant ownership while platform-only tables remain named and unambiguous",
+      "Existing rows backfill to Accelerate with row-count and relationship parity before tenant_id becomes non-null",
+      "Global business uniqueness and claims become tenant-composite and composite foreign keys reject cross-tenant links",
+      "The ordered migration is additive, idempotent, schema-verified, and recoverable without removing tenant data",
+    ],
     dependencies: ["Adopt shared-database multi-tenancy as the Command Center product shape"],
-    start: "migrations; src/lib/revenue-os/schema-contract.ts; scripts/run-migration.mjs; scripts/verify-revenue-schema.ts; src/config/tenant.ts",
-    guardrails: "Never delete or merge existing rows, infer ownership from email, or make a tenant active before the backfill and constraint reports pass. Feature Board, schema verification, case studies, and changelog stay platform-global.",
+    start:
+      "migrations; src/lib/revenue-os/schema-contract.ts; scripts/run-migration.mjs; scripts/verify-revenue-schema.ts; src/config/tenant.ts",
+    guardrails:
+      "Never delete or merge existing rows, infer ownership from email, or make a tenant active before the backfill and constraint reports pass. Feature Board, schema verification, case studies, and changelog stay platform-global.",
     labels: ["database", "migration"],
-    evidence: "Shipped 2026-08-30. Added the tenant, membership, ingest-key, and platform-audit control plane plus explicit tenant ownership across all 49 currently installed operational tables and three ordered recovery tables. The deterministic Accelerate bootstrap backfilled production with zero null tenant rows; 48 composite foreign keys and 81 tenant indexes enforce relationship and identity boundaries, while Feature Board, schema verification, case studies, and changelog remain platform-global. The complete ordered migration ran successfully in isolated PostgreSQL before `npm run db:migrate -- migrations/20260830-shared-database-tenancy.sql` applied it to project skjypuwkceoiunyhhqlm. Live verification found the active Accelerate tenant, one founder membership, zero missing tenant columns, zero null tenant rows, and 49 tenant-member policies. Static migration, schema-state, TypeScript, and contract verification passed.",
-    verification: "npm run test:tenant-migration; npm run test:schema-verification; npm run db:verify-schema; npm run verify:agent-contract; npx tsc --noEmit; npm run lint; git diff --check.",
+    evidence:
+      "Shipped 2026-08-30. Added the tenant, membership, ingest-key, and platform-audit control plane plus explicit tenant ownership across all 49 currently installed operational tables and three ordered recovery tables. The deterministic Accelerate bootstrap backfilled production with zero null tenant rows; 48 composite foreign keys and 81 tenant indexes enforce relationship and identity boundaries, while Feature Board, schema verification, case studies, and changelog remain platform-global. The complete ordered migration ran successfully in isolated PostgreSQL before `npm run db:migrate -- migrations/20260830-shared-database-tenancy.sql` applied it to project skjypuwkceoiunyhhqlm. Live verification found the active Accelerate tenant, one founder membership, zero missing tenant columns, zero null tenant rows, and 49 tenant-member policies. Static migration, schema-state, TypeScript, and contract verification passed.",
+    verification:
+      "npm run test:tenant-migration; npm run test:schema-verification; npm run db:verify-schema; npm run verify:agent-contract; npx tsc --noEmit; npm run lint; git diff --check.",
   }),
   card({
     key: "tenant-context-authorization",
@@ -353,14 +1216,24 @@ export const featureBacklog = [
     status: "shipped",
     priority: "urgent",
     owner: "Codex",
-    description: "Replace founder-only service-role-everywhere access with explicit platform and tenant actors, tenant-bound authenticated database clients, RLS, and tenant-scoped system contexts for every domain read, write, claim, receipt, search, and export.",
-    acceptance: ["Tenant APIs require an authenticated active membership and an explicit tenant context that matches RLS", "A user with multiple memberships receives rows from exactly the requested tenant and cannot cross-link or mutate another tenant by URL, header, body, or record ID", "Interactive routes cannot create service-role clients and background/provider paths cannot execute without TenantSystemContext", "Revocation and suspension fail closed immediately without waiting for a JWT metadata refresh"],
+    description:
+      "Replace founder-only service-role-everywhere access with explicit platform and tenant actors, tenant-bound authenticated database clients, RLS, and tenant-scoped system contexts for every domain read, write, claim, receipt, search, and export.",
+    acceptance: [
+      "Tenant APIs require an authenticated active membership and an explicit tenant context that matches RLS",
+      "A user with multiple memberships receives rows from exactly the requested tenant and cannot cross-link or mutate another tenant by URL, header, body, or record ID",
+      "Interactive routes cannot create service-role clients and background/provider paths cannot execute without TenantSystemContext",
+      "Revocation and suspension fail closed immediately without waiting for a JWT metadata refresh",
+    ],
     dependencies: ["Build the tenant control plane and backfill Accelerate"],
-    start: "src/lib/admin/auth.ts; src/lib/supabase/server.ts; src/lib/revenue-os; src/app/api/admin; src/middleware.ts",
-    guardrails: "The tenant header selects context but never grants access. Never trust tenant IDs from a mutable request body, weaken demo isolation, expose service credentials, or leave an unscoped compatibility data API.",
+    start:
+      "src/lib/admin/auth.ts; src/lib/supabase/server.ts; src/lib/revenue-os; src/app/api/admin; src/middleware.ts",
+    guardrails:
+      "The tenant header selects context but never grants access. Never trust tenant IDs from a mutable request body, weaken demo isolation, expose service credentials, or leave an unscoped compatibility data API.",
     labels: ["auth", "security"],
-    evidence: "Shipped 2026-08-30. Canonical `/t/{slug}/admin/*` workspaces resolve authenticated membership in middleware, propagate tenant identity to PostgREST, and keep legacy `/admin` Accelerate/founder-only. `requireAdmin` rechecks active membership and active tenant on every API call, enters an AsyncLocalStorage TenantActor, and returns an authenticated RLS client; tenant inserts/upserts receive ownership automatically. All 56 interactive admin route files authorize before database construction. System/public routes require named TenantSystemContext helpers and their service clients auto-filter reads/updates/deletes plus attach ownership to writes. Tenant-aware security-definer job, campaign, import, and template RPCs require explicit context and were applied to production. A full scratch database with two users and two tenants proved same-tenant visibility, zero cross-tenant rows under a tampered header, and rejected cross-tenant insertion. `npm run test:tenant-isolation`, tenant migration tests, TypeScript, and production function verification passed.",
-    verification: "npm run test:tenant-isolation; npm run verify:founder-access; npm run test:api-contracts; npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check.",
+    evidence:
+      "Shipped 2026-08-30. Canonical `/t/{slug}/admin/*` workspaces resolve authenticated membership in middleware, propagate tenant identity to PostgREST, and keep legacy `/admin` Accelerate/founder-only. `requireAdmin` rechecks active membership and active tenant on every API call, enters an AsyncLocalStorage TenantActor, and returns an authenticated RLS client; tenant inserts/upserts receive ownership automatically. All 56 interactive admin route files authorize before database construction. System/public routes require named TenantSystemContext helpers and their service clients auto-filter reads/updates/deletes plus attach ownership to writes. Tenant-aware security-definer job, campaign, import, and template RPCs require explicit context and were applied to production. A full scratch database with two users and two tenants proved same-tenant visibility, zero cross-tenant rows under a tampered header, and rejected cross-tenant insertion. `npm run test:tenant-isolation`, tenant migration tests, TypeScript, and production function verification passed.",
+    verification:
+      "npm run test:tenant-isolation; npm run verify:founder-access; npm run test:api-contracts; npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check.",
   }),
   card({
     key: "tenant-workspace-provisioning",
@@ -370,14 +1243,24 @@ export const featureBacklog = [
     status: "shipped",
     priority: "high",
     owner: "Codex",
-    description: "Give the founder a platform tenant directory and invitation lifecycle, give client admins the complete tenant-scoped operator workspace, and make tenant identity visible and stable across navigation, cache, branding, setup, and recovery.",
-    acceptance: ["The founder can create, suspend, enter, invite, retry, and revoke tenants through audited services with no hard delete", "Client admins can use all tenant operations and settings but cannot see or call platform tenant management, platform health, or Feature Board", "Canonical workspace URLs, navigation, breadcrumbs, deep links, exports, and query caches retain one tenant and clear old tenant data before a switch", "Desktop and mobile QA proves invitation, single- and multi-membership routing, switching, focus, keyboard, reduced motion, and no stale-tenant flash"],
+    description:
+      "Give the founder a platform tenant directory and invitation lifecycle, give client admins the complete tenant-scoped operator workspace, and make tenant identity visible and stable across navigation, cache, branding, setup, and recovery.",
+    acceptance: [
+      "The founder can create, suspend, enter, invite, retry, and revoke tenants through audited services with no hard delete",
+      "Client admins can use all tenant operations and settings but cannot see or call platform tenant management, platform health, or Feature Board",
+      "Canonical workspace URLs, navigation, breadcrumbs, deep links, exports, and query caches retain one tenant and clear old tenant data before a switch",
+      "Desktop and mobile QA proves invitation, single- and multi-membership routing, switching, focus, keyboard, reduced motion, and no stale-tenant flash",
+    ],
     dependencies: ["Enforce tenant context through authentication and domain services"],
-    start: "src/app/admin/layout.tsx; src/components/admin/AdminShell.tsx; src/lib/admin/navigation.ts; src/lib/admin/fetchJson.ts; src/app/admin/login; src/app/auth/callback",
-    guardrails: "ADMIN_EMAIL is the only platform owner in v1. Tenant admins cannot manage memberships. Do not add granular roles, billing, custom domains, a duplicate admin tree, or pack-specific UI.",
+    start:
+      "src/app/admin/layout.tsx; src/components/admin/AdminShell.tsx; src/lib/admin/navigation.ts; src/lib/admin/fetchJson.ts; src/app/admin/login; src/app/auth/callback",
+    guardrails:
+      "ADMIN_EMAIL is the only platform owner in v1. Tenant admins cannot manage memberships. Do not add granular roles, billing, custom domains, a duplicate admin tree, or pack-specific UI.",
     labels: ["admin", "auth"],
-    evidence: "2026-08-31 lifecycle integrity pass: founder tenant mutations now delegate to one server-only lifecycle service backed by four transactional, service-role-only PostgreSQL RPCs and a typed failure contract with stable 400/404/409/502/500 responses that never exposes raw infrastructure errors. Workspace creation commits the tenant, founder membership, and audit receipt atomically; membership binding, status changes, and revocation lock their targets and commit with audit. Exact retries are data- and audit-idempotent, suspended tenants reject membership changes, archived tenants cannot reactivate, the bootstrap tenant cannot suspend/archive, and self-revocation fails closed. Existing unconfirmed Auth users remain invited rather than gaining active membership; directory lookup is bounded and paginated; a successful workspace plus failed external invitation returns a truthful retry warning. The additive migration is applied in production, and live verification proves all four functions are executable by `service_role` and by neither browser role. A disposable PostgreSQL cluster proved happy path, replay, lifecycle guards, atomic audit, revocation retry, and grants without touching production tenant rows. 2026-08-31 professional control-plane pass: Tenant operations now opens with lifecycle/admin metrics, searchable and filterable workspace inventory, explicit status/effect language, stable auto-slug preview, useful empty states, and responsive cards with coherent status, access, invitation, and creation hierarchy. Failed create/invite requests retain entered values; one mutation owns the control plane at a time; invitations are unavailable for suspended/archived tenants; archive is exposed without hard delete; and suspend, archive, and revoke require shared focus-trapped confirmations that state their exact effect. Fixture-backed authenticated production-build QA proves search, slug generation, mobile navigation, reduced motion, confirmation Escape, zero mutation, zero overflow, and clean console state at 1440x1000 and 390x844; all four refreshed screenshots in `/private/tmp/accelerate-tenant-workspaces` were inspected. Shipped 2026-08-30. The founder-only tenant directory creates provisioning workspaces, activates/suspends/archives without hard delete, and manages tenant-bound invitations and revocation through audited platform services. Canonical `/t/{slug}/admin/*` URLs preserve workspace identity through middleware, navigation, breadcrumbs, deep links, exports, and tenant-keyed query caches; the workspace selector performs a hard navigation so old tenant cache state cannot flash. Client admins retain the full operational route tree while Tenants, Setup Center, and Feature Board are hidden and rejected as platform surfaces. Auth callback activates matching invitations. No client was invited or activated.",
-    verification: "npm run test:tenant-lifecycle; npm run test:tenant-lifecycle:postgres; npm run verify:tenant-lifecycle; npm run qa:tenant-workspaces; npm run test:admin-parity; npm run test:navigation-runtime; npm run verify:admin-tokens; npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check.",
+    evidence:
+      "2026-08-31 lifecycle integrity pass: founder tenant mutations now delegate to one server-only lifecycle service backed by four transactional, service-role-only PostgreSQL RPCs and a typed failure contract with stable 400/404/409/502/500 responses that never exposes raw infrastructure errors. Workspace creation commits the tenant, founder membership, and audit receipt atomically; membership binding, status changes, and revocation lock their targets and commit with audit. Exact retries are data- and audit-idempotent, suspended tenants reject membership changes, archived tenants cannot reactivate, the bootstrap tenant cannot suspend/archive, and self-revocation fails closed. Existing unconfirmed Auth users remain invited rather than gaining active membership; directory lookup is bounded and paginated; a successful workspace plus failed external invitation returns a truthful retry warning. The additive migration is applied in production, and live verification proves all four functions are executable by `service_role` and by neither browser role. A disposable PostgreSQL cluster proved happy path, replay, lifecycle guards, atomic audit, revocation retry, and grants without touching production tenant rows. 2026-08-31 professional control-plane pass: Tenant operations now opens with lifecycle/admin metrics, searchable and filterable workspace inventory, explicit status/effect language, stable auto-slug preview, useful empty states, and responsive cards with coherent status, access, invitation, and creation hierarchy. Failed create/invite requests retain entered values; one mutation owns the control plane at a time; invitations are unavailable for suspended/archived tenants; archive is exposed without hard delete; and suspend, archive, and revoke require shared focus-trapped confirmations that state their exact effect. Fixture-backed authenticated production-build QA proves search, slug generation, mobile navigation, reduced motion, confirmation Escape, zero mutation, zero overflow, and clean console state at 1440x1000 and 390x844; all four refreshed screenshots in `/private/tmp/accelerate-tenant-workspaces` were inspected. Shipped 2026-08-30. The founder-only tenant directory creates provisioning workspaces, activates/suspends/archives without hard delete, and manages tenant-bound invitations and revocation through audited platform services. Canonical `/t/{slug}/admin/*` URLs preserve workspace identity through middleware, navigation, breadcrumbs, deep links, exports, and tenant-keyed query caches; the workspace selector performs a hard navigation so old tenant cache state cannot flash. Client admins retain the full operational route tree while Tenants, Setup Center, and Feature Board are hidden and rejected as platform surfaces. Auth callback activates matching invitations. No client was invited or activated.",
+    verification:
+      "npm run test:tenant-lifecycle; npm run test:tenant-lifecycle:postgres; npm run verify:tenant-lifecycle; npm run qa:tenant-workspaces; npm run test:admin-parity; npm run test:navigation-runtime; npm run verify:admin-tokens; npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check.",
   }),
   card({
     key: "tenant-provider-public-boundaries",
@@ -387,14 +1270,28 @@ export const featureBacklog = [
     status: "shipped",
     priority: "high",
     owner: "Codex",
-    description: "Resolve public capture, OAuth, provider credentials, sends, syncs, webhooks, cron, health, tokens, and idempotency through the owning tenant so no external effect or provider fact crosses a workspace.",
-    acceptance: ["Each tenant owns encrypted versioned provider credentials; only Accelerate may use temporary environment fallback during migration", "Signed rotatable ingest credentials bind tenant, surface, origin, expiry, and rate limit while legacy public routes resolve only to Accelerate", "OAuth state, webhook signatures and replay receipts, job claims, sends, sync cursors, public proposals, and unsubscribe tokens resolve tenant before mutation", "A provider failure, backlog, suspension, or replay in one tenant cannot block, retry, or mutate another tenant"],
-    dependencies: ["Ship tenant workspaces, switching, and founder provisioning", "Harden encrypted secret and token storage", "Enforce atomic claims and idempotency for jobs and actions"],
-    start: "src/lib/revenue-os/google.ts; src/lib/revenue-os/communications.ts; src/lib/revenue-os/runs.ts; src/app/api/webhooks; src/app/api/cron; public intake routes; integration_connections",
-    guardrails: "No credential plaintext, global provider fallback for client tenants, tenant identity from provider payloads, blind retries, or real-recipient tests. Supabase, cron wake-up, AI gateway, and encryption keyring remain platform infrastructure.",
+    description:
+      "Resolve public capture, OAuth, provider credentials, sends, syncs, webhooks, cron, health, tokens, and idempotency through the owning tenant so no external effect or provider fact crosses a workspace.",
+    acceptance: [
+      "Each tenant owns encrypted versioned provider credentials; only Accelerate may use temporary environment fallback during migration",
+      "Signed rotatable ingest credentials bind tenant, surface, origin, expiry, and rate limit while legacy public routes resolve only to Accelerate",
+      "OAuth state, webhook signatures and replay receipts, job claims, sends, sync cursors, public proposals, and unsubscribe tokens resolve tenant before mutation",
+      "A provider failure, backlog, suspension, or replay in one tenant cannot block, retry, or mutate another tenant",
+    ],
+    dependencies: [
+      "Ship tenant workspaces, switching, and founder provisioning",
+      "Harden encrypted secret and token storage",
+      "Enforce atomic claims and idempotency for jobs and actions",
+    ],
+    start:
+      "src/lib/revenue-os/google.ts; src/lib/revenue-os/communications.ts; src/lib/revenue-os/runs.ts; src/app/api/webhooks; src/app/api/cron; public intake routes; integration_connections",
+    guardrails:
+      "No credential plaintext, global provider fallback for client tenants, tenant identity from provider payloads, blind retries, or real-recipient tests. Supabase, cron wake-up, AI gateway, and encryption keyring remain platform infrastructure.",
     labels: ["integrations", "webhooks"],
-    evidence: "2026-08-31 tenant OpenRouter BYOK extension: tenant admins can verify, save, rotate, inspect, and revoke a workspace-owned OpenRouter key in Integrations. Verification uses OpenRouter's authenticated current-key metadata endpoint without generation spend; the v2 AES-GCM envelope authenticates tenant ID, provider, and field; plaintext never returns; versions and audit receipts advance on rotation. Every public, admin, import, copilot, plan, proposal, content, settings-test, and responder AI call now passes an explicit tenant database into the shared gateway. Client tenants cannot inherit the environment key, production refuses unscoped calls before provider traffic, bootstrap-only fallback is labelled, and disconnect disables it. Setup, the integration catalog, fictional demo, documentation, and public changelog consume the tenant-owned contract. Deterministic tests cover valid/invalid verification, wrong-tenant/provider ciphertext replay, tenant/platform/disabled policy, unscoped production refusal, gateway resilience, secret storage, catalog, setup, and provider boundaries. TypeScript, zero-warning lint, production build, board reconciliation, and authenticated desktop/mobile browser QA with reduced motion, dialog Escape, overflow, console, and screenshot inspection pass. No credential was entered, no model request was made, no migration was required, and no deployment occurred. Follow-up tenant-ai-sponsorship-control records explicit founder-funded budgets and kill switches rather than widening fallback. Prior shipped evidence remains in repository history: tenant-owned Resend/Calendly rotation and revocation, signed ingest keys, tenant-bound public routes/webhooks/jobs, provider receipts, just-in-time suspension checks, replay defense, and truthful delivery recovery were all verified without activating a real provider or recipient.",
-    verification: "npm run test:tenant-openrouter; npm run verify:tenant-providers; npm run test:openrouter-resilience; npm run verify:webhook-cron-defense; npm run test:job-claims; npm run test:campaign-stop-claims; npm run test:secret-storage; npm run test:integration-catalog; npm run test:admin-demo-contract; npm run qa:tenant-workspaces:browser; npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check.",
+    evidence:
+      "2026-08-31 tenant OpenRouter BYOK extension: tenant admins can verify, save, rotate, inspect, and revoke a workspace-owned OpenRouter key in Integrations. Verification uses OpenRouter's authenticated current-key metadata endpoint without generation spend; the v2 AES-GCM envelope authenticates tenant ID, provider, and field; plaintext never returns; versions and audit receipts advance on rotation. Every public, admin, import, copilot, plan, proposal, content, settings-test, and responder AI call now passes an explicit tenant database into the shared gateway. Client tenants cannot inherit the environment key, production refuses unscoped calls before provider traffic, bootstrap-only fallback is labelled, and disconnect disables it. Setup, the integration catalog, fictional demo, documentation, and public changelog consume the tenant-owned contract. Deterministic tests cover valid/invalid verification, wrong-tenant/provider ciphertext replay, tenant/platform/disabled policy, unscoped production refusal, gateway resilience, secret storage, catalog, setup, and provider boundaries. TypeScript, zero-warning lint, production build, board reconciliation, and authenticated desktop/mobile browser QA with reduced motion, dialog Escape, overflow, console, and screenshot inspection pass. No credential was entered, no model request was made, no migration was required, and no deployment occurred. Follow-up tenant-ai-sponsorship-control records explicit founder-funded budgets and kill switches rather than widening fallback. Prior shipped evidence remains in repository history: tenant-owned Resend/Calendly rotation and revocation, signed ingest keys, tenant-bound public routes/webhooks/jobs, provider receipts, just-in-time suspension checks, replay defense, and truthful delivery recovery were all verified without activating a real provider or recipient.",
+    verification:
+      "npm run test:tenant-openrouter; npm run verify:tenant-providers; npm run test:openrouter-resilience; npm run verify:webhook-cron-defense; npm run test:job-claims; npm run test:campaign-stop-claims; npm run test:secret-storage; npm run test:integration-catalog; npm run test:admin-demo-contract; npm run qa:tenant-workspaces:browser; npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check.",
   }),
   card({
     key: "tenant-isolation-cutover",
@@ -404,135 +1301,965 @@ export const featureBacklog = [
     status: "shipped",
     priority: "urgent",
     owner: "Codex",
-    description: "Run the complete database, API, browser, public, provider, and recovery matrix with controlled tenants, then activate client access only after every cross-tenant attempt fails closed and Accelerate behavior remains intact.",
-    acceptance: ["Two controlled tenants can hold identical identities, provider IDs, and logical idempotency keys without collision or visibility", "Founder, tenant admin, multi-membership, revoked, suspended, unauthenticated, tampered-context, replay, provider-failure, and rollback scenarios have deterministic evidence", "Every retained admin route and affected public/provider path passes desktop/mobile and direct API isolation coverage with no stale tenant content", "Production activation records migration, schema, isolation, provider, deployment, alias, and clean repository receipts; rollback suspends non-Accelerate effects without removing tenant data"],
+    description:
+      "Run the complete database, API, browser, public, provider, and recovery matrix with controlled tenants, then activate client access only after every cross-tenant attempt fails closed and Accelerate behavior remains intact.",
+    acceptance: [
+      "Two controlled tenants can hold identical identities, provider IDs, and logical idempotency keys without collision or visibility",
+      "Founder, tenant admin, multi-membership, revoked, suspended, unauthenticated, tampered-context, replay, provider-failure, and rollback scenarios have deterministic evidence",
+      "Every retained admin route and affected public/provider path passes desktop/mobile and direct API isolation coverage with no stale tenant content",
+      "Production activation records migration, schema, isolation, provider, deployment, alias, and clean repository receipts; rollback suspends non-Accelerate effects without removing tenant data",
+    ],
     dependencies: ["Tenant-isolate providers, public intake, webhooks, and jobs"],
-    start: "scripts; docs/REVENUE-OS-SETUP.md; Setup Center; tenant rollout controls; release handoff",
-    guardrails: "Do not invite a real client, enable their provider effects, migrate production, or deploy without explicit founder release authority. Never use uncontrolled production contacts or recipients for isolation tests.",
+    start:
+      "scripts; docs/REVENUE-OS-SETUP.md; Setup Center; tenant rollout controls; release handoff",
+    guardrails:
+      "Do not invite a real client, enable their provider effects, migrate production, or deploy without explicit founder release authority. Never use uncontrolled production contacts or recipients for isolation tests.",
     labels: ["testing", "security"],
-    evidence: "Shipped 2026-08-31. Production applies the shared schema, tenant authorization, public/provider boundaries, lifecycle RPCs, Revenue Recovery release, uniqueness-index cutover, and just-in-time suspension guard. Schema verification passed 402/402 (receipt 407abd6c-95b5-441f-8f9e-d58c54a2833b). The exact released source is 8a37624c67b81716aa6d23a7284b58d435f1429a; Vercel deployment dpl_ByzPBUJgQ54Sxh6YCEumRFtbLioi is Ready and the canonical alias serves deployment identity 8a37624c67b8. The complete post-deploy and pre-activation gates passed 23/23 and 28/28, with the unrelated Next.js investigation explicitly excluded at immutable commit 05e6fc8c189e8b512fa9adfa4a28e4abba2d34b4. Controlled live proof created only the reserved `.invalid` Alpha/Beta tenants: identical contact, revoked Resend provider ID, and idempotency key coexist; alpha sees one row, forged beta context sees none, and suspension fails closed. The browser workspace/provider matrix passed at desktop 1440 and mobile 390. After the clean pre-activation gate, the founder audited and activated `isolation-proof-alpha`; it remains active with zero connected providers and five activation audit receipts. No real client was invited and no provider credentials, send, webhook, or external effect was activated. PostgreSQL lifecycle/suspension, provider/webhook, tenant migration/isolation, and demo checks all pass.",
-    verification: "npm run test:tenant-migration; npm run test:tenant-isolation; npm run test:tenant-lifecycle; npm run test:tenant-lifecycle:postgres; npm run test:tenant-suspension; npm run test:tenant-suspension:postgres; npm run test:tenant-cutover; npm run verify:tenant-cutover -- --stage=repository --exclude-worktree=<branch>@<full-sha>; npm run verify:tenant-production-isolation -- --confirm-controlled-production-isolation; npm run verify:tenant-lifecycle; npm run db:verify-schema; npm run qa:tenant-workspaces; npm run verify:tenant-providers; npm run verify:webhook-cron-defense; npm run test:admin-demo-contract; npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check.",
+    evidence:
+      "Shipped 2026-08-31. Production applies the shared schema, tenant authorization, public/provider boundaries, lifecycle RPCs, Revenue Recovery release, uniqueness-index cutover, and just-in-time suspension guard. Schema verification passed 402/402 (receipt 407abd6c-95b5-441f-8f9e-d58c54a2833b). The exact released source is 8a37624c67b81716aa6d23a7284b58d435f1429a; Vercel deployment dpl_ByzPBUJgQ54Sxh6YCEumRFtbLioi is Ready and the canonical alias serves deployment identity 8a37624c67b8. The complete post-deploy and pre-activation gates passed 23/23 and 28/28, with the unrelated Next.js investigation explicitly excluded at immutable commit 05e6fc8c189e8b512fa9adfa4a28e4abba2d34b4. Controlled live proof created only the reserved `.invalid` Alpha/Beta tenants: identical contact, revoked Resend provider ID, and idempotency key coexist; alpha sees one row, forged beta context sees none, and suspension fails closed. The browser workspace/provider matrix passed at desktop 1440 and mobile 390. After the clean pre-activation gate, the founder audited and activated `isolation-proof-alpha`; it remains active with zero connected providers and five activation audit receipts. No real client was invited and no provider credentials, send, webhook, or external effect was activated. PostgreSQL lifecycle/suspension, provider/webhook, tenant migration/isolation, and demo checks all pass.",
+    verification:
+      "npm run test:tenant-migration; npm run test:tenant-isolation; npm run test:tenant-lifecycle; npm run test:tenant-lifecycle:postgres; npm run test:tenant-suspension; npm run test:tenant-suspension:postgres; npm run test:tenant-cutover; npm run verify:tenant-cutover -- --stage=repository --exclude-worktree=<branch>@<full-sha>; npm run verify:tenant-production-isolation -- --confirm-controlled-production-isolation; npm run verify:tenant-lifecycle; npm run db:verify-schema; npm run qa:tenant-workspaces; npm run verify:tenant-providers; npm run verify:webhook-cron-defense; npm run test:admin-demo-contract; npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check.",
   }),
-  card({ key: "de-vertical-inbound", title: "Turn the roofing ingestion path into a configurable playbook", workstream: "foundation", phase: 2, status: "planned", priority: "high", description: "Replace the vertical-specific inbound capture function with one generic qualification path that takes an industry playbook as data, so roofing becomes one configuration entry instead of an exported code path that every future installation inherits.", acceptance: ["One generic qualification ingest replaces the roofing-named input type and function, taking playbook key, industry, source tag, and next-action copy as data", "Existing roofing capture keeps identical canonical behaviour: the same source tags, dedupe keys, activity and audit receipts, proven by replaying a submission", "Admin copy and Setup Center guidance that names the vertical reads from the playbook rather than from literals", "A second playbook can be added in configuration alone with no change to the ingestion module"], dependencies: ["Extract every business fact into one tenant configuration", "Implement deterministic contact and company identity resolution"], start: "src/lib/revenue-os/inbound.ts; src/app/api/qualify/route.ts; src/app/admin/bookings/page.tsx; src/app/api/admin/bookings/route.ts; src/app/admin/setup/page.tsx", guardrails: "Do not change the canonical source tags or dedupe keys written for existing rows without a migration plan; changing them silently breaks idempotency and duplicates historical inquiries. Do not delete the roofing playbook, only relocate it into configuration.", labels: ["clonable", "playbook", "inbound"], verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; replaying the same qualification payload must produce exactly one canonical opportunity, one activity, and one task, matching the pre-change source tags." }),
-  card({ key: "install-runbook", title: "Prove a clean client installation end to end", workstream: "productization", phase: 5, status: "backlog", priority: "medium", description: "Document and automate the instance-per-client installation so a new business can be stood up from an empty Supabase project to a green Setup Center without copying any Accelerate data, and prove it with a repeatable smoke test.", acceptance: ["A written runbook covers creating the database, running every migration in its documented order, authoring the tenant config, setting the required environment variables, deploying, and walking Setup Center to ready", "A scripted clone smoke test runs the full migration order against a scratch database, boots with a fixture tenant config, and asserts inbound capture, Today, and a dry-run campaign with zero rows originating from Accelerate", "The smoke test fails loudly when a migration is missing, out of order, or not idempotent", "Setup Center guidance and external project links resolve correctly for an installation that is not Accelerate"], dependencies: ["Extract every business fact into one tenant configuration", "Turn the roofing ingestion path into a configurable playbook", "Finish Setup Center as the operational control plane"], start: "docs/INSTALL-RUNBOOK.md; migrations/; scripts/; src/config/tenant.ts; src/app/admin/setup", guardrails: "Never point the smoke test at the Accelerate production database, and never copy customer records, credentials, operational history, or audit rows into a new installation. A clean installation starts empty; seeding it with real data is a separate, explicitly authorized decision.", labels: ["clonable", "install", "smoke-test"], verification: "The clone smoke test must pass against a scratch database with zero Accelerate rows, and must be shown to fail when a migration is removed from the ordered list." }),
-  card({ key: "command-palette-tools", title: "Connect the command palette to real Revenue OS actions", workstream: "admin", phase: 3, status: "planned", priority: "medium", description: "Make search and commands navigate records, create tasks/opportunities, compose messages, open setup actions, and invoke safe AI reads.", acceptance: ["Commands are discoverable by plain-language keywords and keyboard navigation", "Record search uses canonical identities and never leaks unauthorized data", "Write commands enter the same validation and confirmation path as their page UI"], dependencies: ["Implement deterministic contact and company identity resolution", "Complete AI tool registry and impact tiers"], start: "src/app/admin/layout.tsx; RevenueAICommand.tsx; admin search API", guardrails: "Do not add command-only business logic or bypass confirmation gates.", labels: ["command-palette", "productivity"], evidence: "2026-08-16: Meta/Ctrl-K opens one accessible palette backed by the route registry; it supports keyboard navigation, route discovery, global compose, and AI command access. Remaining: canonical record search, direct create task/opportunity commands, setup recovery commands, safe AI reads, authorization/result tests, and shared confirmation for write commands." }),
+  card({
+    key: "de-vertical-inbound",
+    title: "Turn the roofing ingestion path into a configurable playbook",
+    workstream: "foundation",
+    phase: 2,
+    status: "planned",
+    priority: "high",
+    description:
+      "Replace the vertical-specific inbound capture function with one generic qualification path that takes an industry playbook as data, so roofing becomes one configuration entry instead of an exported code path that every future installation inherits.",
+    acceptance: [
+      "One generic qualification ingest replaces the roofing-named input type and function, taking playbook key, industry, source tag, and next-action copy as data",
+      "Existing roofing capture keeps identical canonical behaviour: the same source tags, dedupe keys, activity and audit receipts, proven by replaying a submission",
+      "Admin copy and Setup Center guidance that names the vertical reads from the playbook rather than from literals",
+      "A second playbook can be added in configuration alone with no change to the ingestion module",
+    ],
+    dependencies: [
+      "Extract every business fact into one tenant configuration",
+      "Implement deterministic contact and company identity resolution",
+    ],
+    start:
+      "src/lib/revenue-os/inbound.ts; src/app/api/qualify/route.ts; src/app/admin/bookings/page.tsx; src/app/api/admin/bookings/route.ts; src/app/admin/setup/page.tsx",
+    guardrails:
+      "Do not change the canonical source tags or dedupe keys written for existing rows without a migration plan; changing them silently breaks idempotency and duplicates historical inquiries. Do not delete the roofing playbook, only relocate it into configuration.",
+    labels: ["clonable", "playbook", "inbound"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; replaying the same qualification payload must produce exactly one canonical opportunity, one activity, and one task, matching the pre-change source tags.",
+  }),
+  card({
+    key: "install-runbook",
+    title: "Prove a clean client installation end to end",
+    workstream: "productization",
+    phase: 5,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Document and automate the instance-per-client installation so a new business can be stood up from an empty Supabase project to a green Setup Center without copying any Accelerate data, and prove it with a repeatable smoke test.",
+    acceptance: [
+      "A written runbook covers creating the database, running every migration in its documented order, authoring the tenant config, setting the required environment variables, deploying, and walking Setup Center to ready",
+      "A scripted clone smoke test runs the full migration order against a scratch database, boots with a fixture tenant config, and asserts inbound capture, Today, and a dry-run campaign with zero rows originating from Accelerate",
+      "The smoke test fails loudly when a migration is missing, out of order, or not idempotent",
+      "Setup Center guidance and external project links resolve correctly for an installation that is not Accelerate",
+    ],
+    dependencies: [
+      "Extract every business fact into one tenant configuration",
+      "Turn the roofing ingestion path into a configurable playbook",
+      "Finish Setup Center as the operational control plane",
+    ],
+    start:
+      "docs/INSTALL-RUNBOOK.md; migrations/; scripts/; src/config/tenant.ts; src/app/admin/setup",
+    guardrails:
+      "Never point the smoke test at the Accelerate production database, and never copy customer records, credentials, operational history, or audit rows into a new installation. A clean installation starts empty; seeding it with real data is a separate, explicitly authorized decision.",
+    labels: ["clonable", "install", "smoke-test"],
+    verification:
+      "The clone smoke test must pass against a scratch database with zero Accelerate rows, and must be shown to fail when a migration is removed from the ordered list.",
+  }),
+  card({
+    key: "command-palette-tools",
+    title: "Connect the command palette to real Revenue OS actions",
+    workstream: "admin",
+    phase: 3,
+    status: "planned",
+    priority: "medium",
+    description:
+      "Make search and commands navigate records, create tasks/opportunities, compose messages, open setup actions, and invoke safe AI reads.",
+    acceptance: [
+      "Commands are discoverable by plain-language keywords and keyboard navigation",
+      "Record search uses canonical identities and never leaks unauthorized data",
+      "Write commands enter the same validation and confirmation path as their page UI",
+    ],
+    dependencies: [
+      "Implement deterministic contact and company identity resolution",
+      "Complete AI tool registry and impact tiers",
+    ],
+    start: "src/app/admin/layout.tsx; RevenueAICommand.tsx; admin search API",
+    guardrails: "Do not add command-only business logic or bypass confirmation gates.",
+    labels: ["command-palette", "productivity"],
+    evidence:
+      "2026-08-16: Meta/Ctrl-K opens one accessible palette backed by the route registry; it supports keyboard navigation, route discovery, global compose, and AI command access. Remaining: canonical record search, direct create task/opportunity commands, setup recovery commands, safe AI reads, authorization/result tests, and shared confirmation for write commands.",
+  }),
 
   // Phase 2/3, Google Workspace and communication operations
-  card({ key: "google-oauth-first-sync", title: "Connect Google OAuth and complete the first Workspace sync", workstream: "google", phase: 2, status: "blocked", priority: "high", owner: "John", description: "Configure the founder-only Google connection with the minimum Gmail, Calendar, and selected-Drive scopes, then produce successful source receipts.", acceptance: ["OAuth state validates and encrypted refresh credentials are usable", "Setup Center shows the connected account, exact scopes, token health, and last successful sync", "Gmail and Calendar complete a first sync; Drive reads only explicitly saved folder IDs"], dependencies: ["Harden encrypted secret and token storage", "Finish Setup Center as the operational control plane"], start: "src/app/api/admin/google/authorize; callback; sync; src/lib/revenue-os/google.ts", guardrails: "A database row alone is never connected. Do not enable Calendly or broad Drive access.", labels: ["oauth", "founder-action"], evidence: "Blocked 2026-08-31 only on founder-owned Google Cloud credentials, deployment of those variables, and consent. `google-oauth-readiness.v1` now turns the handoff into one deterministic gate: five source checks pass for the exact minimum scopes, HMAC-authenticated expiring tenant-bound state, explicit tenant-composite connection/Calendar/Drive upserts, stable browser-safe failures, and the ten-folder Drive boundary. Setup reads provider and run evidence through the bootstrap tenant client while retaining platform-global checks on the platform client, so another tenant cannot make founder health ambiguous; its connected state now requires valid access and refresh envelopes and visibly renders the exact granted scopes, envelope health, token expiry, and source receipt timestamps without returning token values. Integrations now explains successful, cancelled, expired, unconfigured, reconnect, inactive-tenant, and generic failed OAuth returns without reflecting provider/database text. The read-only Production stage reports 6 passed / 7 blocked: bootstrap tenant active; no Google variable names, connection, token-envelope evidence, granted scopes, or Gmail/Calendar receipts; Drive settings unavailable because no connection exists. It lists only Vercel variable names and non-secret database booleans/statuses. No signed-in browser surface was available, so no OAuth consent, credential creation, deployment, provider read, or external mutation was attempted. Founder next action: create the Google OAuth web client with callback `https://www.acceleratewith.us/api/admin/google/callback`, add `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_TOKEN_ENCRYPTION_KEY` to Production, explicitly release that configuration, then authorize from the bootstrap Integrations workspace. Codex can run the connection test and first Gmail/Calendar sync immediately afterward; Drive remains not configured until explicit folder IDs are selected.", verification: "npm run test:google-oauth; npm run test:google-readiness; npm run verify:google-readiness; npm run verify:google-readiness -- --stage=production (expected blocked until founder credential/consent step); npm run test:gmail-sync-plan; npm run test:gmail-reply-mime; npm run test:secret-storage; npm run verify:tenant-providers; npm run verify:agent-contract; npm run seed:features -- --verify; npx tsc --noEmit; npm run lint; npm run build; git diff --check." }),
-  card({ key: "google-token-health-reconnect", title: "Add Google token health, scope drift, and reconnect recovery", workstream: "google", phase: 2, priority: "high", description: "Detect revoked credentials, missing scopes, refresh failures, and account changes, and guide the founder through safe reconnection.", acceptance: ["Connection status becomes degraded or revoked on real token failures", "Reconnect preserves local canonical records and records the new identity/scopes", "Setup Center shows last success, failure reason, and a working reconnect action"], dependencies: ["Connect Google OAuth and complete the first Workspace sync"], start: "src/lib/revenue-os/google.ts; Setup Center Google checks", guardrails: "Never log access or refresh tokens. Do not call a connection healthy based only on token presence.", labels: ["oauth", "recovery"] }),
-  card({ key: "gmail-incremental-sync", title: "Import Gmail incrementally with cursor recovery", workstream: "gmail", phase: 2, status: "blocked", priority: "high", description: "Persist Gmail history cursors, process oldest unseen work first, report deferred backlog, and safely recover expired cursors.", acceptance: ["Repeated syncs are idempotent and advance a durable history cursor only after processed work", "Expired or invalid history IDs trigger bounded recovery without duplicating messages", "Source receipts report fetched, processed, deferred, duplicate, and failed counts"], dependencies: ["Connect Google OAuth and complete the first Workspace sync", "Enforce atomic claims and idempotency for jobs and actions"], start: "src/lib/revenue-os/google.ts; src/app/api/admin/google/sync/route.ts; source_runs", guardrails: "Do not mark partial work as successful or skip older unseen messages to make freshness look better.", labels: ["sync", "reliability"], evidence: "2026-08-17: Gmail sync now captures a pre-work profile history cursor, derives unique affected thread IDs from Gmail history, and only persists the next cursor after a complete, non-deferred run. Expired history cursors use a bounded full-thread recovery path and retain the old cursor while backlog/failure remains. Source receipts report mode, cursor presence/advance, listed/stored/failed/deferred counts. Shared exact primary/alternate-email identity and campaign reply stops remain idempotent. Remaining: page-token persistence for deferred initial/history pages, oldest-unseen pagination proof, Gmail connection production setup, and live provider replay/failure fixtures." }),
-  card({ key: "gmail-pubsub-watch", title: "Add Gmail Pub/Sub watch renewal with scheduled fallback", workstream: "gmail", phase: 3, priority: "medium", description: "Use push notifications when configured, renew watches before expiry, and retain protected scheduled incremental sync as fallback.", acceptance: ["Push notifications validate identity and replay IDs before requesting sync", "Watch expiry and renewal are visible in health status", "A missed or unavailable push path is recovered by scheduled incremental sync"], dependencies: ["Import Gmail incrementally with cursor recovery", "Harden webhook, cron, replay, validation, and rate-limit defenses"], start: "Google webhook routes; vercel.json; source/job receipts", guardrails: "Push payloads trigger bounded sync work; they never become trusted message content.", labels: ["pubsub", "webhooks"] }),
-  card({ key: "gmail-thread-idempotency", status: "planned", title: "Preserve Gmail threading and message idempotency", workstream: "gmail", phase: 2, priority: "high", description: "Normalize Gmail threads and messages while retaining RFC message IDs, references, provider IDs, participants, and reply headers.", acceptance: ["One Gmail message produces one canonical message even across webhook, incremental sync, and reply receipt paths", "Replies stay in the original Gmail thread", "Thread chronology and inbound/outbound direction remain correct across aliases"], dependencies: ["Import Gmail incrementally with cursor recovery", "Finish one auditable communication sender"], start: "conversations/messages schema; Google sync and reply services", guardrails: "Do not synthesize threading solely from subject lines.", labels: ["threading", "idempotency"] }),
-  card({ key: "gmail-record-association", status: "planned", title: "Associate Gmail threads with canonical revenue records", workstream: "gmail", phase: 2, priority: "high", description: "Link participants and conversation context to contacts, companies, opportunities, campaigns, and proposals with review for ambiguity.", acceptance: ["Deterministic identity matches link automatically with recorded evidence", "Ambiguous or unknown participants enter a founder review action", "Manual link/create actions are audited and update downstream context"], dependencies: ["Implement deterministic contact and company identity resolution", "Preserve Gmail threading and message idempotency"], start: "src/lib/revenue-os/identity.ts; Conversations APIs and UI", guardrails: "Do not auto-create duplicate companies from consumer email domains or merge ambiguous contacts.", labels: ["identity", "conversations"] }),
-  card({ key: "gmail-reply-actions", title: "Finish reply, local archive, and follow-up actions in Conversations", workstream: "gmail", phase: 2, priority: "high", description: "Let the founder reply in-thread, link/create records, set next action, create a task, archive locally, and enroll permitted follow-up from one conversation.", acceptance: ["Reply preview shows exact recipients, thread, and content before the final send", "Successful replies write provider and canonical receipts once", "Failures retain the draft and expose a safe retry without duplicate sending"], dependencies: ["Preserve Gmail threading and message idempotency", "Associate Gmail threads with canonical revenue records"], start: "src/app/admin/conversations; conversations/reply API; communication sender", guardrails: "Do not mutate Gmail labels for local archive unless separately confirmed and documented.", labels: ["reply", "workflow"] }),
-  card({ key: "gmail-ai-triage-actions", title: "Add grounded AI drafting, intent classification, and next-action suggestions", workstream: "gmail", phase: 3, priority: "medium", description: "Use bounded thread and revenue context to draft replies, classify intent, summarize history, and propose follow-up without taking external action automatically.", acceptance: ["Drafts cite the conversation facts used and distinguish uncertainty", "Intent and next-action suggestions are editable and never silently move pipeline stage", "Every model run and accepted/rejected proposal is traceable"], dependencies: ["Finish reply, local archive, and follow-up actions in Conversations", "Enforce bounded AI context and grounding rules"], start: "RevenueAICommand.tsx; src/lib/revenue-os/ai-agent.ts; Conversations UI", guardrails: "AI must not invent pricing, availability, company facts, recipients, or commitments.", labels: ["ai", "triage"] }),
+  card({
+    key: "google-oauth-first-sync",
+    title: "Connect Google OAuth and complete the first Workspace sync",
+    workstream: "google",
+    phase: 2,
+    status: "blocked",
+    priority: "high",
+    owner: "John",
+    description:
+      "Configure the founder-only Google connection with the minimum Gmail, Calendar, and selected-Drive scopes, then produce successful source receipts.",
+    acceptance: [
+      "OAuth state validates and encrypted refresh credentials are usable",
+      "Setup Center shows the connected account, exact scopes, token health, and last successful sync",
+      "Gmail and Calendar complete a first sync; Drive reads only explicitly saved folder IDs",
+    ],
+    dependencies: [
+      "Harden encrypted secret and token storage",
+      "Finish Setup Center as the operational control plane",
+    ],
+    start: "src/app/api/admin/google/authorize; callback; sync; src/lib/revenue-os/google.ts",
+    guardrails:
+      "A database row alone is never connected. Do not enable Calendly or broad Drive access.",
+    labels: ["oauth", "founder-action"],
+    evidence:
+      "Blocked 2026-08-31 only on founder-owned Google Cloud credentials, deployment of those variables, and consent. `google-oauth-readiness.v1` now turns the handoff into one deterministic gate: five source checks pass for the exact minimum scopes, HMAC-authenticated expiring tenant-bound state, explicit tenant-composite connection/Calendar/Drive upserts, stable browser-safe failures, and the ten-folder Drive boundary. Setup reads provider and run evidence through the bootstrap tenant client while retaining platform-global checks on the platform client, so another tenant cannot make founder health ambiguous; its connected state now requires valid access and refresh envelopes and visibly renders the exact granted scopes, envelope health, token expiry, and source receipt timestamps without returning token values. Integrations now explains successful, cancelled, expired, unconfigured, reconnect, inactive-tenant, and generic failed OAuth returns without reflecting provider/database text. The read-only Production stage reports 6 passed / 7 blocked: bootstrap tenant active; no Google variable names, connection, token-envelope evidence, granted scopes, or Gmail/Calendar receipts; Drive settings unavailable because no connection exists. It lists only Vercel variable names and non-secret database booleans/statuses. No signed-in browser surface was available, so no OAuth consent, credential creation, deployment, provider read, or external mutation was attempted. Founder next action: create the Google OAuth web client with callback `https://www.acceleratewith.us/api/admin/google/callback`, add `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_TOKEN_ENCRYPTION_KEY` to Production, explicitly release that configuration, then authorize from the bootstrap Integrations workspace. Codex can run the connection test and first Gmail/Calendar sync immediately afterward; Drive remains not configured until explicit folder IDs are selected.",
+    verification:
+      "npm run test:google-oauth; npm run test:google-readiness; npm run verify:google-readiness; npm run verify:google-readiness -- --stage=production (expected blocked until founder credential/consent step); npm run test:gmail-sync-plan; npm run test:gmail-reply-mime; npm run test:secret-storage; npm run verify:tenant-providers; npm run verify:agent-contract; npm run seed:features -- --verify; npx tsc --noEmit; npm run lint; npm run build; git diff --check.",
+  }),
+  card({
+    key: "google-token-health-reconnect",
+    title: "Add Google token health, scope drift, and reconnect recovery",
+    workstream: "google",
+    phase: 2,
+    priority: "high",
+    description:
+      "Detect revoked credentials, missing scopes, refresh failures, and account changes, and guide the founder through safe reconnection.",
+    acceptance: [
+      "Connection status becomes degraded or revoked on real token failures",
+      "Reconnect preserves local canonical records and records the new identity/scopes",
+      "Setup Center shows last success, failure reason, and a working reconnect action",
+    ],
+    dependencies: ["Connect Google OAuth and complete the first Workspace sync"],
+    start: "src/lib/revenue-os/google.ts; Setup Center Google checks",
+    guardrails:
+      "Never log access or refresh tokens. Do not call a connection healthy based only on token presence.",
+    labels: ["oauth", "recovery"],
+  }),
+  card({
+    key: "gmail-incremental-sync",
+    title: "Import Gmail incrementally with cursor recovery",
+    workstream: "gmail",
+    phase: 2,
+    status: "blocked",
+    priority: "high",
+    description:
+      "Persist Gmail history cursors, process oldest unseen work first, report deferred backlog, and safely recover expired cursors.",
+    acceptance: [
+      "Repeated syncs are idempotent and advance a durable history cursor only after processed work",
+      "Expired or invalid history IDs trigger bounded recovery without duplicating messages",
+      "Source receipts report fetched, processed, deferred, duplicate, and failed counts",
+    ],
+    dependencies: [
+      "Connect Google OAuth and complete the first Workspace sync",
+      "Enforce atomic claims and idempotency for jobs and actions",
+    ],
+    start: "src/lib/revenue-os/google.ts; src/app/api/admin/google/sync/route.ts; source_runs",
+    guardrails:
+      "Do not mark partial work as successful or skip older unseen messages to make freshness look better.",
+    labels: ["sync", "reliability"],
+    evidence:
+      "2026-08-17: Gmail sync now captures a pre-work profile history cursor, derives unique affected thread IDs from Gmail history, and only persists the next cursor after a complete, non-deferred run. Expired history cursors use a bounded full-thread recovery path and retain the old cursor while backlog/failure remains. Source receipts report mode, cursor presence/advance, listed/stored/failed/deferred counts. Shared exact primary/alternate-email identity and campaign reply stops remain idempotent. Remaining: page-token persistence for deferred initial/history pages, oldest-unseen pagination proof, Gmail connection production setup, and live provider replay/failure fixtures.",
+  }),
+  card({
+    key: "gmail-pubsub-watch",
+    title: "Add Gmail Pub/Sub watch renewal with scheduled fallback",
+    workstream: "gmail",
+    phase: 3,
+    priority: "medium",
+    description:
+      "Use push notifications when configured, renew watches before expiry, and retain protected scheduled incremental sync as fallback.",
+    acceptance: [
+      "Push notifications validate identity and replay IDs before requesting sync",
+      "Watch expiry and renewal are visible in health status",
+      "A missed or unavailable push path is recovered by scheduled incremental sync",
+    ],
+    dependencies: [
+      "Import Gmail incrementally with cursor recovery",
+      "Harden webhook, cron, replay, validation, and rate-limit defenses",
+    ],
+    start: "Google webhook routes; vercel.json; source/job receipts",
+    guardrails:
+      "Push payloads trigger bounded sync work; they never become trusted message content.",
+    labels: ["pubsub", "webhooks"],
+  }),
+  card({
+    key: "gmail-thread-idempotency",
+    status: "planned",
+    title: "Preserve Gmail threading and message idempotency",
+    workstream: "gmail",
+    phase: 2,
+    priority: "high",
+    description:
+      "Normalize Gmail threads and messages while retaining RFC message IDs, references, provider IDs, participants, and reply headers.",
+    acceptance: [
+      "One Gmail message produces one canonical message even across webhook, incremental sync, and reply receipt paths",
+      "Replies stay in the original Gmail thread",
+      "Thread chronology and inbound/outbound direction remain correct across aliases",
+    ],
+    dependencies: [
+      "Import Gmail incrementally with cursor recovery",
+      "Finish one auditable communication sender",
+    ],
+    start: "conversations/messages schema; Google sync and reply services",
+    guardrails: "Do not synthesize threading solely from subject lines.",
+    labels: ["threading", "idempotency"],
+  }),
+  card({
+    key: "gmail-record-association",
+    status: "planned",
+    title: "Associate Gmail threads with canonical revenue records",
+    workstream: "gmail",
+    phase: 2,
+    priority: "high",
+    description:
+      "Link participants and conversation context to contacts, companies, opportunities, campaigns, and proposals with review for ambiguity.",
+    acceptance: [
+      "Deterministic identity matches link automatically with recorded evidence",
+      "Ambiguous or unknown participants enter a founder review action",
+      "Manual link/create actions are audited and update downstream context",
+    ],
+    dependencies: [
+      "Implement deterministic contact and company identity resolution",
+      "Preserve Gmail threading and message idempotency",
+    ],
+    start: "src/lib/revenue-os/identity.ts; Conversations APIs and UI",
+    guardrails:
+      "Do not auto-create duplicate companies from consumer email domains or merge ambiguous contacts.",
+    labels: ["identity", "conversations"],
+  }),
+  card({
+    key: "gmail-reply-actions",
+    title: "Finish reply, local archive, and follow-up actions in Conversations",
+    workstream: "gmail",
+    phase: 2,
+    priority: "high",
+    description:
+      "Let the founder reply in-thread, link/create records, set next action, create a task, archive locally, and enroll permitted follow-up from one conversation.",
+    acceptance: [
+      "Reply preview shows exact recipients, thread, and content before the final send",
+      "Successful replies write provider and canonical receipts once",
+      "Failures retain the draft and expose a safe retry without duplicate sending",
+    ],
+    dependencies: [
+      "Preserve Gmail threading and message idempotency",
+      "Associate Gmail threads with canonical revenue records",
+    ],
+    start: "src/app/admin/conversations; conversations/reply API; communication sender",
+    guardrails:
+      "Do not mutate Gmail labels for local archive unless separately confirmed and documented.",
+    labels: ["reply", "workflow"],
+  }),
+  card({
+    key: "gmail-ai-triage-actions",
+    title: "Add grounded AI drafting, intent classification, and next-action suggestions",
+    workstream: "gmail",
+    phase: 3,
+    priority: "medium",
+    description:
+      "Use bounded thread and revenue context to draft replies, classify intent, summarize history, and propose follow-up without taking external action automatically.",
+    acceptance: [
+      "Drafts cite the conversation facts used and distinguish uncertainty",
+      "Intent and next-action suggestions are editable and never silently move pipeline stage",
+      "Every model run and accepted/rejected proposal is traceable",
+    ],
+    dependencies: [
+      "Finish reply, local archive, and follow-up actions in Conversations",
+      "Enforce bounded AI context and grounding rules",
+    ],
+    start: "RevenueAICommand.tsx; src/lib/revenue-os/ai-agent.ts; Conversations UI",
+    guardrails:
+      "AI must not invent pricing, availability, company facts, recipients, or commitments.",
+    labels: ["ai", "triage"],
+  }),
 
-  card({ key: "calendar-sync-association", title: "Synchronize Calendar events and associate revenue records", workstream: "calendar", phase: 2, status: "blocked", priority: "high", description: "Import upcoming and recent Google Calendar events idempotently and link attendees to contacts and opportunities.", acceptance: ["Provider event updates and cancellations update one canonical event", "Attendee identity resolution records conflicts instead of guessing", "Today and record timelines show correct timezone, status, links, and opportunity context"], dependencies: ["Connect Google OAuth and complete the first Workspace sync", "Implement deterministic contact and company identity resolution"], start: "src/lib/revenue-os/google.ts; calendar_events schema; Today and record details", guardrails: "Do not create or change external events during read synchronization.", labels: ["sync", "meetings"], evidence: "2026-08-17: Google Calendar read sync now resolves attendees through the shared exact primary/alternate-email resolver, links only one unambiguous canonical contact and its current opportunity, and persists matched/unmatched/ambiguous evidence in event metadata. A new confirmed upcoming meeting stops pending campaign outreach through campaign-stops.ts once, but never changes Google Calendar or automatically changes pipeline stage. Remaining: live Workspace connection, cancellation/update behavior proof, event timeline/Today UI, timezone fixtures, and founder-confirmed external event mutations." }),
-  card({ key: "calendar-confirmation-flow", title: "Add confirmation-gated Calendar create, reschedule, and cancel", workstream: "calendar", phase: 3, status: "planned", priority: "high", description: "Allow UI and AI to propose exact event mutations while requiring founder confirmation of calendar, attendees, time, timezone, and action.", acceptance: ["No external event mutation occurs before explicit in-turn confirmation", "Approved mutations are idempotent and update local event/activity records once", "Provider conflicts or changed events force a refreshed confirmation"], dependencies: ["Synchronize Calendar events and associate revenue records", "Finish the shared AI confirmation system"], start: "action_queue; src/lib/revenue-os/actions.ts; Google Calendar service", guardrails: "Never infer attendee email or timezone when ambiguous. Calendly remains disabled.", labels: ["confirmation", "external-action"] }),
-  card({ key: "precall-briefs", title: "Generate grounded pre-call briefs", workstream: "calendar", phase: 3, priority: "high", description: "Assemble company research, qualification, pipeline history, conversation, proposal state, documents, and stated objectives into an actionable meeting brief.", acceptance: ["Briefs name their source records and flag missing or stale context", "The founder sees objectives, participants, history, risks, open questions, and recommended next step", "Brief generation is available from Today, event, and opportunity views"], dependencies: ["Synchronize Calendar events and associate revenue records", "Enforce bounded AI context and grounding rules"], start: "calendar_events; drive_documents; conversations; Revenue AI agent", guardrails: "Do not fabricate biographies, revenue, pain points, or prior commitments.", labels: ["ai", "meeting-prep"] }),
-  card({ key: "postmeeting-workflow", title: "Build post-meeting notes and commitment extraction", workstream: "calendar", phase: 3, priority: "high", description: "Prompt after meetings for notes, then extract commitments, tasks, follow-ups, stage suggestions, and proposal inputs for founder review.", acceptance: ["Meeting notes attach to event, opportunity, participants, and activity timeline", "Extracted tasks and stage changes remain proposals until confirmed", "Duplicate prompts and repeated extraction do not duplicate commitments"], dependencies: ["Synchronize Calendar events and associate revenue records", "Build the canonical task generator with deduplication", "Finish the shared AI confirmation system"], start: "Today queue; calendar events; action_queue; task service", guardrails: "Do not record inferred commitments as facts without founder confirmation.", labels: ["meetings", "follow-up"] }),
+  card({
+    key: "calendar-sync-association",
+    title: "Synchronize Calendar events and associate revenue records",
+    workstream: "calendar",
+    phase: 2,
+    status: "blocked",
+    priority: "high",
+    description:
+      "Import upcoming and recent Google Calendar events idempotently and link attendees to contacts and opportunities.",
+    acceptance: [
+      "Provider event updates and cancellations update one canonical event",
+      "Attendee identity resolution records conflicts instead of guessing",
+      "Today and record timelines show correct timezone, status, links, and opportunity context",
+    ],
+    dependencies: [
+      "Connect Google OAuth and complete the first Workspace sync",
+      "Implement deterministic contact and company identity resolution",
+    ],
+    start: "src/lib/revenue-os/google.ts; calendar_events schema; Today and record details",
+    guardrails: "Do not create or change external events during read synchronization.",
+    labels: ["sync", "meetings"],
+    evidence:
+      "2026-08-17: Google Calendar read sync now resolves attendees through the shared exact primary/alternate-email resolver, links only one unambiguous canonical contact and its current opportunity, and persists matched/unmatched/ambiguous evidence in event metadata. A new confirmed upcoming meeting stops pending campaign outreach through campaign-stops.ts once, but never changes Google Calendar or automatically changes pipeline stage. Remaining: live Workspace connection, cancellation/update behavior proof, event timeline/Today UI, timezone fixtures, and founder-confirmed external event mutations.",
+  }),
+  card({
+    key: "calendar-confirmation-flow",
+    title: "Add confirmation-gated Calendar create, reschedule, and cancel",
+    workstream: "calendar",
+    phase: 3,
+    status: "planned",
+    priority: "high",
+    description:
+      "Allow UI and AI to propose exact event mutations while requiring founder confirmation of calendar, attendees, time, timezone, and action.",
+    acceptance: [
+      "No external event mutation occurs before explicit in-turn confirmation",
+      "Approved mutations are idempotent and update local event/activity records once",
+      "Provider conflicts or changed events force a refreshed confirmation",
+    ],
+    dependencies: [
+      "Synchronize Calendar events and associate revenue records",
+      "Finish the shared AI confirmation system",
+    ],
+    start: "action_queue; src/lib/revenue-os/actions.ts; Google Calendar service",
+    guardrails: "Never infer attendee email or timezone when ambiguous. Calendly remains disabled.",
+    labels: ["confirmation", "external-action"],
+  }),
+  card({
+    key: "precall-briefs",
+    title: "Generate grounded pre-call briefs",
+    workstream: "calendar",
+    phase: 3,
+    priority: "high",
+    description:
+      "Assemble company research, qualification, pipeline history, conversation, proposal state, documents, and stated objectives into an actionable meeting brief.",
+    acceptance: [
+      "Briefs name their source records and flag missing or stale context",
+      "The founder sees objectives, participants, history, risks, open questions, and recommended next step",
+      "Brief generation is available from Today, event, and opportunity views",
+    ],
+    dependencies: [
+      "Synchronize Calendar events and associate revenue records",
+      "Enforce bounded AI context and grounding rules",
+    ],
+    start: "calendar_events; drive_documents; conversations; Revenue AI agent",
+    guardrails: "Do not fabricate biographies, revenue, pain points, or prior commitments.",
+    labels: ["ai", "meeting-prep"],
+  }),
+  card({
+    key: "postmeeting-workflow",
+    title: "Build post-meeting notes and commitment extraction",
+    workstream: "calendar",
+    phase: 3,
+    priority: "high",
+    description:
+      "Prompt after meetings for notes, then extract commitments, tasks, follow-ups, stage suggestions, and proposal inputs for founder review.",
+    acceptance: [
+      "Meeting notes attach to event, opportunity, participants, and activity timeline",
+      "Extracted tasks and stage changes remain proposals until confirmed",
+      "Duplicate prompts and repeated extraction do not duplicate commitments",
+    ],
+    dependencies: [
+      "Synchronize Calendar events and associate revenue records",
+      "Build the canonical task generator with deduplication",
+      "Finish the shared AI confirmation system",
+    ],
+    start: "Today queue; calendar events; action_queue; task service",
+    guardrails: "Do not record inferred commitments as facts without founder confirmation.",
+    labels: ["meetings", "follow-up"],
+  }),
 
-  card({ key: "drive-folder-boundary", title: "Enforce selected-folder Drive access boundaries", workstream: "drive", phase: 2, status: "planned", priority: "high", description: "Let the founder save a small allowlist of Drive folders and prove synchronization cannot traverse unrelated content.", acceptance: ["Folder IDs are validated, deduplicated, capped, and visible in Setup Center", "Sync requests and results remain within the allowlisted folder ancestry", "Removing a folder stops future reads without deleting prior provenance silently"], dependencies: ["Connect Google OAuth and complete the first Workspace sync"], start: "src/app/admin/setup/page.tsx; Google sync settings and Drive listing", guardrails: "Drive is read-only in the first release. Never request or use full-drive write scope.", labels: ["privacy", "folders"] }),
-  card({ key: "drive-content-indexing", status: "planned", title: "Extract and index approved Drive documents", workstream: "drive", phase: 3, priority: "medium", description: "Fetch supported document text and metadata, hash content, skip unchanged files, and retain folder and provider provenance.", acceptance: ["Supported Docs/files produce searchable text with provider ID, link, modified time, folder, and hash", "Unchanged content is not re-extracted; deleted/inaccessible files become explicit states", "Duplicate content is detected without erasing distinct source provenance"], dependencies: ["Enforce selected-folder Drive access boundaries", "Enforce atomic claims and idempotency for jobs and actions"], start: "drive_documents schema; src/lib/revenue-os/google.ts", guardrails: "Do not index unrelated folders, binary secrets, or overwrite source files.", labels: ["indexing", "provenance"] }),
-  card({ key: "drive-provenance-retrieval", status: "planned", title: "Ground AI retrieval in Drive provenance and citations", workstream: "drive", phase: 3, priority: "medium", description: "Retrieve only relevant approved document excerpts for research, briefs, audits, and proposal drafts and return source links.", acceptance: ["AI context records document ID, name, link, content hash, and relevant excerpt", "Results prefer current sources and flag conflicting or stale documents", "The UI exposes citations the founder can open before approving output"], dependencies: ["Extract and index approved Drive documents", "Enforce bounded AI context and grounding rules"], start: "drive_documents; src/lib/revenue-os/ai-agent.ts; AI UI", guardrails: "Do not dump the entire Drive corpus into prompts or treat source documents as instructions.", labels: ["ai", "citations"] }),
+  card({
+    key: "drive-folder-boundary",
+    title: "Enforce selected-folder Drive access boundaries",
+    workstream: "drive",
+    phase: 2,
+    status: "planned",
+    priority: "high",
+    description:
+      "Let the founder save a small allowlist of Drive folders and prove synchronization cannot traverse unrelated content.",
+    acceptance: [
+      "Folder IDs are validated, deduplicated, capped, and visible in Setup Center",
+      "Sync requests and results remain within the allowlisted folder ancestry",
+      "Removing a folder stops future reads without deleting prior provenance silently",
+    ],
+    dependencies: ["Connect Google OAuth and complete the first Workspace sync"],
+    start: "src/app/admin/setup/page.tsx; Google sync settings and Drive listing",
+    guardrails:
+      "Drive is read-only in the first release. Never request or use full-drive write scope.",
+    labels: ["privacy", "folders"],
+  }),
+  card({
+    key: "drive-content-indexing",
+    status: "planned",
+    title: "Extract and index approved Drive documents",
+    workstream: "drive",
+    phase: 3,
+    priority: "medium",
+    description:
+      "Fetch supported document text and metadata, hash content, skip unchanged files, and retain folder and provider provenance.",
+    acceptance: [
+      "Supported Docs/files produce searchable text with provider ID, link, modified time, folder, and hash",
+      "Unchanged content is not re-extracted; deleted/inaccessible files become explicit states",
+      "Duplicate content is detected without erasing distinct source provenance",
+    ],
+    dependencies: [
+      "Enforce selected-folder Drive access boundaries",
+      "Enforce atomic claims and idempotency for jobs and actions",
+    ],
+    start: "drive_documents schema; src/lib/revenue-os/google.ts",
+    guardrails: "Do not index unrelated folders, binary secrets, or overwrite source files.",
+    labels: ["indexing", "provenance"],
+  }),
+  card({
+    key: "drive-provenance-retrieval",
+    status: "planned",
+    title: "Ground AI retrieval in Drive provenance and citations",
+    workstream: "drive",
+    phase: 3,
+    priority: "medium",
+    description:
+      "Retrieve only relevant approved document excerpts for research, briefs, audits, and proposal drafts and return source links.",
+    acceptance: [
+      "AI context records document ID, name, link, content hash, and relevant excerpt",
+      "Results prefer current sources and flag conflicting or stale documents",
+      "The UI exposes citations the founder can open before approving output",
+    ],
+    dependencies: [
+      "Extract and index approved Drive documents",
+      "Enforce bounded AI context and grounding rules",
+    ],
+    start: "drive_documents; src/lib/revenue-os/ai-agent.ts; AI UI",
+    guardrails:
+      "Do not dump the entire Drive corpus into prompts or treat source documents as instructions.",
+    labels: ["ai", "citations"],
+  }),
 
   // Phase 3, safe campaigns and proposals
-  card({ key: "campaign-policy-versioning", title: "Enforce campaign policy envelopes and version reapproval", workstream: "campaigns", phase: 3, status: "planned", priority: "high", description: "Persist the approved audience, sender, copy, steps, timing, stop conditions, and daily limit as an immutable executable version.", acceptance: ["Activation records the exact version and approval actor/time", "Material edits create a new draft version and block execution until reapproved", "The executor can prove every send was inside the active envelope"], dependencies: ["Finish one auditable communication sender", "Enforce atomic claims and idempotency for jobs and actions"], start: "src/lib/revenue-os/campaigns.ts; campaigns API and schema", guardrails: "One-time activation is not blanket permission for arbitrary recipients, copy, cadence, or volume.", labels: ["approval", "versioning"], evidence: "2026-08-16: campaigns store policy JSON, version/approved_version, approval actor/time, and activation rejects unreviewed or empty campaigns; the UI routes activation through action_queue confirmation. Remaining: immutable version snapshots, material-edit invalidation across every field, executable-envelope receipts per send, and reapproval tests." }),
-  card({ key: "campaign-dry-run", title: "Build campaign dry-run, exclusion, and sample personalization review", workstream: "campaigns", phase: 3, status: "planned", priority: "high", description: "Show the exact eligible recipients, exclusions, reasons, step timing, limit impact, and representative personalized messages before activation.", acceptance: ["Dry-run output is derived from the same eligibility logic as execution", "Suppressed, invalid, duplicate, replied, booked, converted, and over-limit recipients show exclusion reasons", "Founder can inspect deterministic samples without sending"], dependencies: ["Enforce campaign policy envelopes and version reapproval", "Implement deterministic contact and company identity resolution"], start: "campaigns/preview API; Campaigns page", guardrails: "Dry run must have no external side effects and must not expose secret personalization context.", labels: ["preview", "safety"], evidence: "2026-08-16: the preview API and Campaigns workspace produce no-send eligible/excluded recipient review, policy/limit context, and rendered samples using shared campaign helpers. Remaining: one eligibility function shared verbatim with execution, complete suppression/reply/booking/conversion reasons, deterministic fixture coverage, and proof of zero side effects." }),
-  card({ key: "campaign-enrollment-personalization", title: "Complete campaign enrollment and bounded personalization", workstream: "campaigns", phase: 3, priority: "high", description: "Enroll canonical contacts once with auditable eligibility and generate only approved, fact-grounded personalization fields.", acceptance: ["Enrollment stores campaign version, contact, eligibility evidence, and initial state", "Duplicate membership and cross-campaign suppression rules are enforced", "Missing personalization facts exclude or use approved fallback copy rather than fabrication"], dependencies: ["Build campaign dry-run, exclusion, and sample personalization review", "Enforce bounded AI context and grounding rules"], start: "campaign_members; campaigns/members API; identity and AI services", guardrails: "Do not scrape or invent facts during send execution. Material audience changes require reapproval.", labels: ["enrollment", "personalization"] }),
-  card({ key: "campaign-jit-executor", title: "Finish the just-in-time internal campaign executor", workstream: "campaigns", phase: 3, status: "planned", priority: "high", description: "Claim due campaign steps internally, re-check policy and stop conditions at send time, enforce daily limits, and record terminal receipts.", acceptance: ["Future sends remain internal until due and can be prevented by pause or policy change", "Executor atomically claims one due step and records sent, skipped, deferred, or failed truthfully", "Timezone, cadence, retry, and daily-limit behavior are deterministic and tested"], dependencies: ["Enforce campaign policy envelopes and version reapproval", "Complete campaign enrollment and bounded personalization", "Enforce atomic claims and idempotency for jobs and actions"], start: "src/app/api/cron/revenue-campaigns; src/lib/revenue-os/action-executor.ts", guardrails: "Never pre-schedule the full sequence at Resend and never retry an uncertain provider result without idempotency evidence.", labels: ["executor", "queue"], evidence: "2026-08-20: the executor had never been able to send to anyone, and reported success while doing it. Three independent faults: members added through the admin UI carried a NULL contact_id because the UI posted a bare email, the claim RPC returns early on a NULL contact, and members got a NULL next_send_at because only activation backfills it. The executor then swallowed the failed claim with a bare `continue`, so the cron returned HTTP 200 with {sent:0,failed:0,stopped:0}. Resend also rejects tag values outside [A-Za-z0-9_-] and campaign templates are named `campaign:<id>:step:<n>`, so even a valid member would have failed. All fixed. Added: MAX_SEND_ATTEMPTS with hourly backoff so a failed send is retryable rather than terminally stopped, releaseStaleSendClaims so a member stranded in `sending` by a crashed run is recovered, and globalDailySendCap so N active campaigns cannot each send their own ceiling from one sending domain. Policy normalisation, the global cap, and template rendering are covered by `npm run test:job-and-task-contracts`; execution is proven against production by `npm run verify:campaign-execution`. NOT SHIPPED: timezone behaviour is not yet deterministic or tested." }),
-  card({ key: "campaign-stop-conditions", title: "Enforce every campaign stop condition immediately", workstream: "campaigns", phase: 3, status: "planned", priority: "high", description: "Stop future steps on reply, hard bounce, complaint, unsubscribe, manual pause, opportunity conversion, meeting booking, or policy invalidation.", acceptance: ["Each stop source changes member eligibility before the next send claim", "Stop reason, source receipt, time, and affected pending steps are visible", "Race tests prove a stop and send cannot both win incorrectly"], dependencies: ["Finish the just-in-time internal campaign executor", "Add Resend delivery webhooks and suppression receipts", "Complete campaign unsubscribe handling"], start: "campaign member state; messages; webhook routes; calendar/opportunity events", guardrails: "Do not rely on nightly cleanup for immediate safety stops.", labels: ["stops", "safety"], evidence: "2026-08-17: added src/lib/revenue-os/campaign-stops.ts as the only writer for pending campaign-member stop states. Public unsubscribe, Resend bounce/complaint/suppression, and opportunity progression now use one reason/status mapping, create canonical activity/audit evidence, and include sending claims. Migration 20260817-campaign-stop-claims.sql serializes stop and due-send claim decisions per canonical contact inside PostgreSQL; the claim validates active contact plus approved active campaign, and the lock-order correction avoids stop/claim deadlocks. Controlled production QA confirms a stopped membership cannot later claim a send. Remaining: Gmail reply and Calendar sources, campaign-level pause/policy invalidation receipts, contention/stale-claim recovery proof, visible exception counts, and production signed Resend webhook proof." }),
-  card({ key: "campaign-unsubscribe", title: "Complete campaign unsubscribe handling", workstream: "campaigns", phase: 3, status: "planned", priority: "high", description: "Provide one-click public unsubscribe, standards-compliant headers, durable suppression, and operator-visible receipts.", acceptance: ["List-Unsubscribe and one-click headers are present on eligible campaign mail", "A valid request suppresses the canonical contact idempotently and stops queued steps immediately", "Invalid/replayed requests disclose no recipient data and are logged safely"], dependencies: ["Finish the just-in-time internal campaign executor", "Harden webhook, cron, replay, validation, and rate-limit defenses"], start: "migrations/20260816-money-first-outreach.sql; src/app/api/unsubscribe/[token]/route.ts; src/lib/revenue-os/communications.ts", guardrails: "Unsubscribe must not require login. Never reveal whether an arbitrary email exists.", labels: ["compliance", "suppression"], evidence: "2026-08-16: added unguessable per-contact unsubscribe tokens, human GET and standards POST handling, List-Unsubscribe headers, visible email-body link, canonical communication suppression, immediate queued-member stops, and an audit receipt. Production migration applied twice successfully for idempotency; contacts.unsubscribe_token and messages.idempotency_key are live through the service-role path. Remaining: browser/API tests, suppression preview evidence, and operator-visible aggregate counts." }),
-  card({ key: "resend-webhooks", title: "Add Resend delivery webhooks and suppression receipts", workstream: "campaigns", phase: 3, status: "planned", priority: "high", description: "Verify and process delivered, bounced, complained, opened, and clicked events idempotently and connect hard failures to suppression.", acceptance: ["Provider signatures and replay IDs are verified before mutation", "One provider event produces one webhook receipt and activity result", "Hard bounce and complaint suppress future sends before another campaign claim"], dependencies: ["Finish one auditable communication sender", "Harden webhook, cron, replay, validation, and rate-limit defenses"], start: "webhook_receipts; Resend webhook route; message/activity schemas", guardrails: "Open and click signals are advisory analytics, not proof of human intent.", labels: ["resend", "webhooks"], evidence: "2026-08-17: shared sender now applies stable Resend idempotency keys and canonical message/conversation/campaign/source/template tags. Added signed raw-payload webhook route, atomic provider replay receipt, message delivery-state fields, canonical activity/audit results, and immediate campaign/contact suppression for bounce, complaint, and provider suppression. 2026-08-18: the webhook now rejects declared oversized bodies before parsing, processes hard-failure suppression as a required awaited operation, and never lets an older out-of-order event overwrite a newer delivery state; sender receipt persistence now fails closed into reconciliation after provider acceptance. Verification: npm run test:webhook-cron-defense; npm run test:campaign-stops; npx tsc --noEmit; npm run lint. Remaining: configure RESEND_WEBHOOK_SECRET and endpoint in Resend, production signed-event proof, campaign performance rollups, and reply/received-email handling." }),
-  card({ key: "campaign-performance-exceptions", title: "Expose campaign performance, exceptions, and recovery", workstream: "campaigns", phase: 4, priority: "high", description: "Report enrollment, sends, delivery, replies, stops, meetings, proposals, wins, failures, backlog, and recovery actions by approved version.", acceptance: ["Metrics reconcile to messages, receipts, member state, opportunities, and stage events", "Failed/deferred members show reason and safe next action", "Founder can pause immediately and inspect remaining unsent work"], dependencies: ["Enforce every campaign stop condition immediately", "Consolidate analytics on canonical source-to-revenue data"], start: "Campaigns UI; analytics service; job/webhook receipts", guardrails: "Do not compare versions without labeling policy changes or hide excluded recipients from denominators.", labels: ["analytics", "exceptions"] }),
+  card({
+    key: "campaign-policy-versioning",
+    title: "Enforce campaign policy envelopes and version reapproval",
+    workstream: "campaigns",
+    phase: 3,
+    status: "planned",
+    priority: "high",
+    description:
+      "Persist the approved audience, sender, copy, steps, timing, stop conditions, and daily limit as an immutable executable version.",
+    acceptance: [
+      "Activation records the exact version and approval actor/time",
+      "Material edits create a new draft version and block execution until reapproved",
+      "The executor can prove every send was inside the active envelope",
+    ],
+    dependencies: [
+      "Finish one auditable communication sender",
+      "Enforce atomic claims and idempotency for jobs and actions",
+    ],
+    start: "src/lib/revenue-os/campaigns.ts; campaigns API and schema",
+    guardrails:
+      "One-time activation is not blanket permission for arbitrary recipients, copy, cadence, or volume.",
+    labels: ["approval", "versioning"],
+    evidence:
+      "2026-08-16: campaigns store policy JSON, version/approved_version, approval actor/time, and activation rejects unreviewed or empty campaigns; the UI routes activation through action_queue confirmation. Remaining: immutable version snapshots, material-edit invalidation across every field, executable-envelope receipts per send, and reapproval tests.",
+  }),
+  card({
+    key: "campaign-dry-run",
+    title: "Build campaign dry-run, exclusion, and sample personalization review",
+    workstream: "campaigns",
+    phase: 3,
+    status: "planned",
+    priority: "high",
+    description:
+      "Show the exact eligible recipients, exclusions, reasons, step timing, limit impact, and representative personalized messages before activation.",
+    acceptance: [
+      "Dry-run output is derived from the same eligibility logic as execution",
+      "Suppressed, invalid, duplicate, replied, booked, converted, and over-limit recipients show exclusion reasons",
+      "Founder can inspect deterministic samples without sending",
+    ],
+    dependencies: [
+      "Enforce campaign policy envelopes and version reapproval",
+      "Implement deterministic contact and company identity resolution",
+    ],
+    start: "campaigns/preview API; Campaigns page",
+    guardrails:
+      "Dry run must have no external side effects and must not expose secret personalization context.",
+    labels: ["preview", "safety"],
+    evidence:
+      "2026-08-16: the preview API and Campaigns workspace produce no-send eligible/excluded recipient review, policy/limit context, and rendered samples using shared campaign helpers. Remaining: one eligibility function shared verbatim with execution, complete suppression/reply/booking/conversion reasons, deterministic fixture coverage, and proof of zero side effects.",
+  }),
+  card({
+    key: "campaign-enrollment-personalization",
+    title: "Complete campaign enrollment and bounded personalization",
+    workstream: "campaigns",
+    phase: 3,
+    priority: "high",
+    description:
+      "Enroll canonical contacts once with auditable eligibility and generate only approved, fact-grounded personalization fields.",
+    acceptance: [
+      "Enrollment stores campaign version, contact, eligibility evidence, and initial state",
+      "Duplicate membership and cross-campaign suppression rules are enforced",
+      "Missing personalization facts exclude or use approved fallback copy rather than fabrication",
+    ],
+    dependencies: [
+      "Build campaign dry-run, exclusion, and sample personalization review",
+      "Enforce bounded AI context and grounding rules",
+    ],
+    start: "campaign_members; campaigns/members API; identity and AI services",
+    guardrails:
+      "Do not scrape or invent facts during send execution. Material audience changes require reapproval.",
+    labels: ["enrollment", "personalization"],
+  }),
+  card({
+    key: "campaign-jit-executor",
+    title: "Finish the just-in-time internal campaign executor",
+    workstream: "campaigns",
+    phase: 3,
+    status: "planned",
+    priority: "high",
+    description:
+      "Claim due campaign steps internally, re-check policy and stop conditions at send time, enforce daily limits, and record terminal receipts.",
+    acceptance: [
+      "Future sends remain internal until due and can be prevented by pause or policy change",
+      "Executor atomically claims one due step and records sent, skipped, deferred, or failed truthfully",
+      "Timezone, cadence, retry, and daily-limit behavior are deterministic and tested",
+    ],
+    dependencies: [
+      "Enforce campaign policy envelopes and version reapproval",
+      "Complete campaign enrollment and bounded personalization",
+      "Enforce atomic claims and idempotency for jobs and actions",
+    ],
+    start: "src/app/api/cron/revenue-campaigns; src/lib/revenue-os/action-executor.ts",
+    guardrails:
+      "Never pre-schedule the full sequence at Resend and never retry an uncertain provider result without idempotency evidence.",
+    labels: ["executor", "queue"],
+    evidence:
+      "2026-08-20: the executor had never been able to send to anyone, and reported success while doing it. Three independent faults: members added through the admin UI carried a NULL contact_id because the UI posted a bare email, the claim RPC returns early on a NULL contact, and members got a NULL next_send_at because only activation backfills it. The executor then swallowed the failed claim with a bare `continue`, so the cron returned HTTP 200 with {sent:0,failed:0,stopped:0}. Resend also rejects tag values outside [A-Za-z0-9_-] and campaign templates are named `campaign:<id>:step:<n>`, so even a valid member would have failed. All fixed. Added: MAX_SEND_ATTEMPTS with hourly backoff so a failed send is retryable rather than terminally stopped, releaseStaleSendClaims so a member stranded in `sending` by a crashed run is recovered, and globalDailySendCap so N active campaigns cannot each send their own ceiling from one sending domain. Policy normalisation, the global cap, and template rendering are covered by `npm run test:job-and-task-contracts`; execution is proven against production by `npm run verify:campaign-execution`. NOT SHIPPED: timezone behaviour is not yet deterministic or tested.",
+  }),
+  card({
+    key: "campaign-stop-conditions",
+    title: "Enforce every campaign stop condition immediately",
+    workstream: "campaigns",
+    phase: 3,
+    status: "planned",
+    priority: "high",
+    description:
+      "Stop future steps on reply, hard bounce, complaint, unsubscribe, manual pause, opportunity conversion, meeting booking, or policy invalidation.",
+    acceptance: [
+      "Each stop source changes member eligibility before the next send claim",
+      "Stop reason, source receipt, time, and affected pending steps are visible",
+      "Race tests prove a stop and send cannot both win incorrectly",
+    ],
+    dependencies: [
+      "Finish the just-in-time internal campaign executor",
+      "Add Resend delivery webhooks and suppression receipts",
+      "Complete campaign unsubscribe handling",
+    ],
+    start: "campaign member state; messages; webhook routes; calendar/opportunity events",
+    guardrails: "Do not rely on nightly cleanup for immediate safety stops.",
+    labels: ["stops", "safety"],
+    evidence:
+      "2026-08-17: added src/lib/revenue-os/campaign-stops.ts as the only writer for pending campaign-member stop states. Public unsubscribe, Resend bounce/complaint/suppression, and opportunity progression now use one reason/status mapping, create canonical activity/audit evidence, and include sending claims. Migration 20260817-campaign-stop-claims.sql serializes stop and due-send claim decisions per canonical contact inside PostgreSQL; the claim validates active contact plus approved active campaign, and the lock-order correction avoids stop/claim deadlocks. Controlled production QA confirms a stopped membership cannot later claim a send. Remaining: Gmail reply and Calendar sources, campaign-level pause/policy invalidation receipts, contention/stale-claim recovery proof, visible exception counts, and production signed Resend webhook proof.",
+  }),
+  card({
+    key: "campaign-unsubscribe",
+    title: "Complete campaign unsubscribe handling",
+    workstream: "campaigns",
+    phase: 3,
+    status: "planned",
+    priority: "high",
+    description:
+      "Provide one-click public unsubscribe, standards-compliant headers, durable suppression, and operator-visible receipts.",
+    acceptance: [
+      "List-Unsubscribe and one-click headers are present on eligible campaign mail",
+      "A valid request suppresses the canonical contact idempotently and stops queued steps immediately",
+      "Invalid/replayed requests disclose no recipient data and are logged safely",
+    ],
+    dependencies: [
+      "Finish the just-in-time internal campaign executor",
+      "Harden webhook, cron, replay, validation, and rate-limit defenses",
+    ],
+    start:
+      "migrations/20260816-money-first-outreach.sql; src/app/api/unsubscribe/[token]/route.ts; src/lib/revenue-os/communications.ts",
+    guardrails:
+      "Unsubscribe must not require login. Never reveal whether an arbitrary email exists.",
+    labels: ["compliance", "suppression"],
+    evidence:
+      "2026-08-16: added unguessable per-contact unsubscribe tokens, human GET and standards POST handling, List-Unsubscribe headers, visible email-body link, canonical communication suppression, immediate queued-member stops, and an audit receipt. Production migration applied twice successfully for idempotency; contacts.unsubscribe_token and messages.idempotency_key are live through the service-role path. Remaining: browser/API tests, suppression preview evidence, and operator-visible aggregate counts.",
+  }),
+  card({
+    key: "resend-webhooks",
+    title: "Add Resend delivery webhooks and suppression receipts",
+    workstream: "campaigns",
+    phase: 3,
+    status: "planned",
+    priority: "high",
+    description:
+      "Verify and process delivered, bounced, complained, opened, and clicked events idempotently and connect hard failures to suppression.",
+    acceptance: [
+      "Provider signatures and replay IDs are verified before mutation",
+      "One provider event produces one webhook receipt and activity result",
+      "Hard bounce and complaint suppress future sends before another campaign claim",
+    ],
+    dependencies: [
+      "Finish one auditable communication sender",
+      "Harden webhook, cron, replay, validation, and rate-limit defenses",
+    ],
+    start: "webhook_receipts; Resend webhook route; message/activity schemas",
+    guardrails: "Open and click signals are advisory analytics, not proof of human intent.",
+    labels: ["resend", "webhooks"],
+    evidence:
+      "2026-08-17: shared sender now applies stable Resend idempotency keys and canonical message/conversation/campaign/source/template tags. Added signed raw-payload webhook route, atomic provider replay receipt, message delivery-state fields, canonical activity/audit results, and immediate campaign/contact suppression for bounce, complaint, and provider suppression. 2026-08-18: the webhook now rejects declared oversized bodies before parsing, processes hard-failure suppression as a required awaited operation, and never lets an older out-of-order event overwrite a newer delivery state; sender receipt persistence now fails closed into reconciliation after provider acceptance. Verification: npm run test:webhook-cron-defense; npm run test:campaign-stops; npx tsc --noEmit; npm run lint. Remaining: configure RESEND_WEBHOOK_SECRET and endpoint in Resend, production signed-event proof, campaign performance rollups, and reply/received-email handling.",
+  }),
+  card({
+    key: "campaign-performance-exceptions",
+    title: "Expose campaign performance, exceptions, and recovery",
+    workstream: "campaigns",
+    phase: 4,
+    priority: "high",
+    description:
+      "Report enrollment, sends, delivery, replies, stops, meetings, proposals, wins, failures, backlog, and recovery actions by approved version.",
+    acceptance: [
+      "Metrics reconcile to messages, receipts, member state, opportunities, and stage events",
+      "Failed/deferred members show reason and safe next action",
+      "Founder can pause immediately and inspect remaining unsent work",
+    ],
+    dependencies: [
+      "Enforce every campaign stop condition immediately",
+      "Consolidate analytics on canonical source-to-revenue data",
+    ],
+    start: "Campaigns UI; analytics service; job/webhook receipts",
+    guardrails:
+      "Do not compare versions without labeling policy changes or hide excluded recipients from denominators.",
+    labels: ["analytics", "exceptions"],
+  }),
 
-  card({ key: "proposal-lifecycle-service", title: "Complete the proposal lifecycle and version rules", workstream: "proposals", phase: 3, status: "planned", priority: "high", description: "Control draft, sent, viewed, accepted, declined, expired, and superseded states with linked contact, company, and opportunity.", acceptance: ["Every state transition is validated, idempotent, and recorded in proposal_events and audit_log", "Material edits after send create a new version and supersede the old one", "Accept/decline updates the opportunity through the pipeline service"], dependencies: ["Finish the canonical pipeline transition service", "Complete before/after audit coverage for material changes"], start: "proposal schema and APIs; src/app/admin/proposals; public proposal page", guardrails: "Payment is excluded. Do not mutate accepted proposals in place.", labels: ["lifecycle", "versioning"], evidence: "2026-08-16: proposal schema supports canonical links and proposal_events; existing admin/public routes cover draft, sent/viewed, and accept/decline basics. Remaining: one validated lifecycle service, immutable material revisions/superseding, expiry, audit parity, pipeline-service transitions, and duplicate/concurrency tests." }),
-  card({ key: "proposal-delivery-receipts", title: "Send proposals through the auditable communication service", workstream: "proposals", phase: 3, priority: "high", description: "Preview and confirm the exact recipient, version, public link, subject, and body before sending, then connect the provider receipt.", acceptance: ["Final send requires explicit confirmation and uses the canonical communication sender", "Proposal, message, activity, and provider ID link exactly once", "Uncertain or failed delivery retains a safe retry path without duplicate sends"], dependencies: ["Complete the proposal lifecycle and version rules", "Finish one auditable communication sender"], start: "proposal send APIs; EmailComposeModal; communication service", guardrails: "AI can draft but cannot choose pricing, terms, recipient, or final send autonomously.", labels: ["delivery", "confirmation"] }),
-  card({ key: "proposal-public-decisions", title: "Make public proposal views and decisions idempotent", workstream: "proposals", phase: 3, status: "planned", priority: "high", description: "Record public views safely and allow accept or decline without login or payment while preventing duplicate outcomes.", acceptance: ["View receipts are deduplicated with appropriate privacy controls", "Repeated accept/decline requests return the existing terminal outcome", "Expired or superseded links cannot change pipeline state"], dependencies: ["Complete the proposal lifecycle and version rules"], start: "src/app/api/proposal/[token]/route.ts; src/app/proposal/[token]/page.tsx", guardrails: "Tokens must be unguessable and never expose unrelated records. Decline reason is optional and sanitized.", labels: ["public", "idempotency"], evidence: "2026-08-16: public proposal pages use unguessable tokens and provide view/accept/decline behavior without payment. Remaining: idempotent database decision function, deduplicated privacy-bounded views, expired/superseded enforcement, existing-outcome responses, canonical pipeline/activity updates, and public replay tests." }),
-  card({ key: "proposal-pdf-expiry-followup", title: "Finish proposal PDF, expiry, superseding, and follow-up", workstream: "proposals", phase: 4, priority: "medium", description: "Generate matching PDFs, expire old versions predictably, and create deduplicated founder follow-up when proposal state changes or stalls.", acceptance: ["PDF content matches the approved public proposal version", "Expiry and superseding jobs produce proposal events and prevent stale decisions", "Viewed-but-unanswered and accepted/declined states generate the correct next action once"], dependencies: ["Make public proposal views and decisions idempotent", "Build the canonical task generator with deduplication"], start: "proposal PDF route; proposal_events; scheduled jobs; Today queue", guardrails: "Do not auto-send follow-up unless it is within an approved campaign envelope.", labels: ["pdf", "follow-up"] }),
+  card({
+    key: "proposal-lifecycle-service",
+    title: "Complete the proposal lifecycle and version rules",
+    workstream: "proposals",
+    phase: 3,
+    status: "planned",
+    priority: "high",
+    description:
+      "Control draft, sent, viewed, accepted, declined, expired, and superseded states with linked contact, company, and opportunity.",
+    acceptance: [
+      "Every state transition is validated, idempotent, and recorded in proposal_events and audit_log",
+      "Material edits after send create a new version and supersede the old one",
+      "Accept/decline updates the opportunity through the pipeline service",
+    ],
+    dependencies: [
+      "Finish the canonical pipeline transition service",
+      "Complete before/after audit coverage for material changes",
+    ],
+    start: "proposal schema and APIs; src/app/admin/proposals; public proposal page",
+    guardrails: "Payment is excluded. Do not mutate accepted proposals in place.",
+    labels: ["lifecycle", "versioning"],
+    evidence:
+      "2026-08-16: proposal schema supports canonical links and proposal_events; existing admin/public routes cover draft, sent/viewed, and accept/decline basics. Remaining: one validated lifecycle service, immutable material revisions/superseding, expiry, audit parity, pipeline-service transitions, and duplicate/concurrency tests.",
+  }),
+  card({
+    key: "proposal-delivery-receipts",
+    title: "Send proposals through the auditable communication service",
+    workstream: "proposals",
+    phase: 3,
+    priority: "high",
+    description:
+      "Preview and confirm the exact recipient, version, public link, subject, and body before sending, then connect the provider receipt.",
+    acceptance: [
+      "Final send requires explicit confirmation and uses the canonical communication sender",
+      "Proposal, message, activity, and provider ID link exactly once",
+      "Uncertain or failed delivery retains a safe retry path without duplicate sends",
+    ],
+    dependencies: [
+      "Complete the proposal lifecycle and version rules",
+      "Finish one auditable communication sender",
+    ],
+    start: "proposal send APIs; EmailComposeModal; communication service",
+    guardrails:
+      "AI can draft but cannot choose pricing, terms, recipient, or final send autonomously.",
+    labels: ["delivery", "confirmation"],
+  }),
+  card({
+    key: "proposal-public-decisions",
+    title: "Make public proposal views and decisions idempotent",
+    workstream: "proposals",
+    phase: 3,
+    status: "planned",
+    priority: "high",
+    description:
+      "Record public views safely and allow accept or decline without login or payment while preventing duplicate outcomes.",
+    acceptance: [
+      "View receipts are deduplicated with appropriate privacy controls",
+      "Repeated accept/decline requests return the existing terminal outcome",
+      "Expired or superseded links cannot change pipeline state",
+    ],
+    dependencies: ["Complete the proposal lifecycle and version rules"],
+    start: "src/app/api/proposal/[token]/route.ts; src/app/proposal/[token]/page.tsx",
+    guardrails:
+      "Tokens must be unguessable and never expose unrelated records. Decline reason is optional and sanitized.",
+    labels: ["public", "idempotency"],
+    evidence:
+      "2026-08-16: public proposal pages use unguessable tokens and provide view/accept/decline behavior without payment. Remaining: idempotent database decision function, deduplicated privacy-bounded views, expired/superseded enforcement, existing-outcome responses, canonical pipeline/activity updates, and public replay tests.",
+  }),
+  card({
+    key: "proposal-pdf-expiry-followup",
+    title: "Finish proposal PDF, expiry, superseding, and follow-up",
+    workstream: "proposals",
+    phase: 4,
+    priority: "medium",
+    description:
+      "Generate matching PDFs, expire old versions predictably, and create deduplicated founder follow-up when proposal state changes or stalls.",
+    acceptance: [
+      "PDF content matches the approved public proposal version",
+      "Expiry and superseding jobs produce proposal events and prevent stale decisions",
+      "Viewed-but-unanswered and accepted/declined states generate the correct next action once",
+    ],
+    dependencies: [
+      "Make public proposal views and decisions idempotent",
+      "Build the canonical task generator with deduplication",
+    ],
+    start: "proposal PDF route; proposal_events; scheduled jobs; Today queue",
+    guardrails: "Do not auto-send follow-up unless it is within an approved campaign envelope.",
+    labels: ["pdf", "follow-up"],
+  }),
 
   // Phase 3, safe AI command layer
   card({
-    key: "founder-note-capture", title: "Give the founder's own knowledge a way in", workstream: "intelligence", phase: 4, status: "in_progress", priority: "high", owner: "John",
-    description: "Every input the system has arrives from someone else: a form, a mailbox, a calendar. What the founder himself knows, a constraint a client mentioned, why a deal actually stalled, what was decided and rejected, has nowhere to go. That is the difference between a record of what happened to the business and a second brain. Add a plain capture surface: a note, optionally attached to a contact, company, or opportunity, stored with a date and retrievable later.",
-    acceptance: ["A note can be written in under ten seconds from anywhere in the admin", "A note can attach to a canonical record or stand alone", "Notes are activity receipts on the existing ledger rather than a new store", "A note is retrievable by the knowledge layer with its date and author intact", "Capture never fails silently; a note that did not save says so"],
+    key: "founder-note-capture",
+    title: "Give the founder's own knowledge a way in",
+    workstream: "intelligence",
+    phase: 4,
+    status: "in_progress",
+    priority: "high",
+    owner: "John",
+    description:
+      "Every input the system has arrives from someone else: a form, a mailbox, a calendar. What the founder himself knows, a constraint a client mentioned, why a deal actually stalled, what was decided and rejected, has nowhere to go. That is the difference between a record of what happened to the business and a second brain. Add a plain capture surface: a note, optionally attached to a contact, company, or opportunity, stored with a date and retrievable later.",
+    acceptance: [
+      "A note can be written in under ten seconds from anywhere in the admin",
+      "A note can attach to a canonical record or stand alone",
+      "Notes are activity receipts on the existing ledger rather than a new store",
+      "A note is retrievable by the knowledge layer with its date and author intact",
+      "Capture never fails silently; a note that did not save says so",
+    ],
     dependencies: [],
-    start: "the activities ledger; the command palette for the entry point; src/app/admin/today for placement",
-    guardrails: "This is the cheapest possible surface, not a notes product. It must not become a second content store or grow an editor. If it is slower than a text file the founder will not use it, and an unused capture surface is worse than none because it makes the knowledge layer look complete when it is empty.",
+    start:
+      "the activities ledger; the command palette for the entry point; src/app/admin/today for placement",
+    guardrails:
+      "This is the cheapest possible surface, not a notes product. It must not become a second content store or grow an editor. If it is slower than a text file the founder will not use it, and an unused capture surface is worse than none because it makes the knowledge layer look complete when it is empty.",
     labels: ["second-brain", "ingestion", "capture"],
-    evidence: "2026-08-23: implemented the canonical activity-backed capture path without a notes table. The founder-only POST route writes a dated founder_note activity with author, optional canonical contact/company/opportunity context, a source/external_id idempotency receipt, and a content-redacted audit row. The global command palette now opens a one-field composer from every admin route; optional person search returns canonical contacts first. Failed saves remain open with their text, attachment, and request ID intact for a safe retry. The shared toast layer was raised above dialogs and constrained inside narrow viewports. Deterministic service/API coverage passes with npm run test:founder-notes. Authenticated browser QA passes with npm run qa:founder-notes across desktop, 390px mobile, dark mode, reduced motion, canonical attachment, keyboard save, a simulated 503, same-key retry, overflow, and console assertions; inspected screenshots are in /tmp/accelerate-founder-note/.",
-    verification: "Implementation and browser evidence are complete. Keep In Progress until one week of real founder use proves under-ten-second capture and confirms the activity-backed notes are useful to the knowledge workflow."
+    evidence:
+      "2026-08-23: implemented the canonical activity-backed capture path without a notes table. The founder-only POST route writes a dated founder_note activity with author, optional canonical contact/company/opportunity context, a source/external_id idempotency receipt, and a content-redacted audit row. The global command palette now opens a one-field composer from every admin route; optional person search returns canonical contacts first. Failed saves remain open with their text, attachment, and request ID intact for a safe retry. The shared toast layer was raised above dialogs and constrained inside narrow viewports. Deterministic service/API coverage passes with npm run test:founder-notes. Authenticated browser QA passes with npm run qa:founder-notes across desktop, 390px mobile, dark mode, reduced motion, canonical attachment, keyboard save, a simulated 503, same-key retry, overflow, and console assertions; inspected screenshots are in /tmp/accelerate-founder-note/.",
+    verification:
+      "Implementation and browser evidence are complete. Keep In Progress until one week of real founder use proves under-ten-second capture and confirms the activity-backed notes are useful to the knowledge workflow.",
   }),
   card({
-    key: "second-brain-see", title: "Phase A: give the system eyes", workstream: "intelligence", phase: 4, status: "planned", priority: "high",
-    description: "The system sees only what arrives through its own forms. Gmail and Calendar sync exist in code but Google has never been connected, and there is nowhere for the founder's own notes to enter at all. A brain whose only sensory input is a contact form cannot be a second one. Connect Workspace, land threads and events as canonical activity through the existing resolver, and add a plain capture surface for notes.",
-    acceptance: ["A meeting taken shows up against the right opportunity with no manual entry", "An emailed thread resolves to the correct canonical contact, and an ambiguous one is recorded as ambiguous rather than guessed", "A note the founder writes is stored with a date and a subject and is retrievable later", "The two blocked sync cards leave blocked with live evidence"],
-    dependencies: ["Standardize every AI workflow on the OpenRouter gateway", "Give the founder's own knowledge a way in", "Connect Google OAuth and complete the first Workspace sync", "Import Gmail incrementally with cursor recovery", "Preserve Gmail threading and message idempotency", "Associate Gmail threads with canonical revenue records", "Synchronize Calendar events and associate revenue records"],
-    start: "src/lib/revenue-os/google.ts; the blocked gmail-incremental-sync and calendar-sync-association cards; src/lib/revenue-os/identity.ts for resolution",
-    guardrails: "Reuse resolveOrCreateIdentity. Never guess an association from a partial match; record the ambiguity. Message bodies are canonical activity, not a second copy of the mailbox.",
+    key: "second-brain-see",
+    title: "Phase A: give the system eyes",
+    workstream: "intelligence",
+    phase: 4,
+    status: "planned",
+    priority: "high",
+    description:
+      "The system sees only what arrives through its own forms. Gmail and Calendar sync exist in code but Google has never been connected, and there is nowhere for the founder's own notes to enter at all. A brain whose only sensory input is a contact form cannot be a second one. Connect Workspace, land threads and events as canonical activity through the existing resolver, and add a plain capture surface for notes.",
+    acceptance: [
+      "A meeting taken shows up against the right opportunity with no manual entry",
+      "An emailed thread resolves to the correct canonical contact, and an ambiguous one is recorded as ambiguous rather than guessed",
+      "A note the founder writes is stored with a date and a subject and is retrievable later",
+      "The two blocked sync cards leave blocked with live evidence",
+    ],
+    dependencies: [
+      "Standardize every AI workflow on the OpenRouter gateway",
+      "Give the founder's own knowledge a way in",
+      "Connect Google OAuth and complete the first Workspace sync",
+      "Import Gmail incrementally with cursor recovery",
+      "Preserve Gmail threading and message idempotency",
+      "Associate Gmail threads with canonical revenue records",
+      "Synchronize Calendar events and associate revenue records",
+    ],
+    start:
+      "src/lib/revenue-os/google.ts; the blocked gmail-incremental-sync and calendar-sync-association cards; src/lib/revenue-os/identity.ts for resolution",
+    guardrails:
+      "Reuse resolveOrCreateIdentity. Never guess an association from a partial match; record the ambiguity. Message bodies are canonical activity, not a second copy of the mailbox.",
     labels: ["second-brain", "ingestion"],
-    verification: "One real meeting and one real thread observed landing against the right records in production, plus the existing verify:inbound-canonical still green."
+    verification:
+      "One real meeting and one real thread observed landing against the right records in production, plus the existing verify:inbound-canonical still green.",
   }),
   card({
-    key: "second-brain-remember", title: "Phase B: a knowledge substrate with provenance", workstream: "intelligence", phase: 4, status: "planned", priority: "high",
-    description: "The system knows rows, not things. Ask what was agreed with a client last month or why a deal stalled and there is nowhere to look. Add a chunked, embedded, retrievable knowledge store where every chunk carries its source, its date, and its confidence. This is the single largest gap and the one that makes the phrase second brain mean anything.",
-    acceptance: ["Asking what we know about a company returns a grounded answer citing real records and notes", "It refuses rather than inventing when it has nothing, and says so plainly", "Every retrieved chunk carries source, date, and confidence", "When prose and the canonical record disagree, the canonical record wins and the disagreement is visible", "Retrieval is one service and one copilot tool, not a second read path"],
-    dependencies: ["Phase A: give the system eyes", "Give the founder's own knowledge a way in", "Enforce selected-folder Drive access boundaries", "Extract and index approved Drive documents", "Ground AI retrieval in Drive provenance and citations", "Enforce bounded AI context and grounding rules"],
-    start: "Supabase pgvector; src/lib/revenue-os/ai-tools.ts for the retrieval tool; the existing activities and messages tables as the first corpus",
-    guardrails: "An answer grounded in a stale note is worse than no answer, so recency and provenance are not optional. The model never receives an uncontrolled dump; retrieval is bounded like every other tool result.",
+    key: "second-brain-remember",
+    title: "Phase B: a knowledge substrate with provenance",
+    workstream: "intelligence",
+    phase: 4,
+    status: "planned",
+    priority: "high",
+    description:
+      "The system knows rows, not things. Ask what was agreed with a client last month or why a deal stalled and there is nowhere to look. Add a chunked, embedded, retrievable knowledge store where every chunk carries its source, its date, and its confidence. This is the single largest gap and the one that makes the phrase second brain mean anything.",
+    acceptance: [
+      "Asking what we know about a company returns a grounded answer citing real records and notes",
+      "It refuses rather than inventing when it has nothing, and says so plainly",
+      "Every retrieved chunk carries source, date, and confidence",
+      "When prose and the canonical record disagree, the canonical record wins and the disagreement is visible",
+      "Retrieval is one service and one copilot tool, not a second read path",
+    ],
+    dependencies: [
+      "Phase A: give the system eyes",
+      "Give the founder's own knowledge a way in",
+      "Enforce selected-folder Drive access boundaries",
+      "Extract and index approved Drive documents",
+      "Ground AI retrieval in Drive provenance and citations",
+      "Enforce bounded AI context and grounding rules",
+    ],
+    start:
+      "Supabase pgvector; src/lib/revenue-os/ai-tools.ts for the retrieval tool; the existing activities and messages tables as the first corpus",
+    guardrails:
+      "An answer grounded in a stale note is worse than no answer, so recency and provenance are not optional. The model never receives an uncontrolled dump; retrieval is bounded like every other tool result.",
     labels: ["second-brain", "memory", "retrieval"],
-    verification: "A fixture set of questions with known answers, including questions the system must refuse, and a staleness case where a note contradicts the canonical record."
+    verification:
+      "A fixture set of questions with known answers, including questions the system must refuse, and a staleness case where a note contradicts the canonical record.",
   }),
   card({
-    key: "second-brain-notice", title: "Phase C: notice without being asked", workstream: "intelligence", phase: 5, status: "planned", priority: "high",
-    description: "Every code path runs because a request arrived or a daily cron fired. Nothing notices a deal gone quiet, a promise unkept, three inquiries from one company, or a reliable client who has gone silent. Add a background loop producing a written synthesis: what changed, what it means, what is at risk, what needs the founder. Prose worth reading, not a digest of row counts.",
-    acceptance: ["The brief names the three things that matter and why, not a list of counts", "Every claim in it links to the record it came from", "A quiet day produces a short honest brief rather than manufactured urgency", "The loop reports partial and failed states like every other job and alerts on failure"],
-    dependencies: ["Phase B: a knowledge substrate with provenance", "Decide the scheduling substrate", "Generate grounded pre-call briefs", "Wire notification preferences into actual dispatch", "Deliver proactive operator briefs and leading indicators"],
-    start: "src/lib/revenue-os/health.ts and runs.ts for the job pattern; loadOperatorQueue for the signal set",
-    guardrails: "The Supabase Cron wake-up substrate is already shipped; reuse scheduler.ts and runs.ts rather than reopening that decision. This phase is a roll-up over proactive-operator-intelligence, not a second brief generator. Manufactured urgency is the failure mode to design against: a quiet day must read as quiet.",
+    key: "second-brain-notice",
+    title: "Phase C: notice without being asked",
+    workstream: "intelligence",
+    phase: 5,
+    status: "planned",
+    priority: "high",
+    description:
+      "Every code path runs because a request arrived or a daily cron fired. Nothing notices a deal gone quiet, a promise unkept, three inquiries from one company, or a reliable client who has gone silent. Add a background loop producing a written synthesis: what changed, what it means, what is at risk, what needs the founder. Prose worth reading, not a digest of row counts.",
+    acceptance: [
+      "The brief names the three things that matter and why, not a list of counts",
+      "Every claim in it links to the record it came from",
+      "A quiet day produces a short honest brief rather than manufactured urgency",
+      "The loop reports partial and failed states like every other job and alerts on failure",
+    ],
+    dependencies: [
+      "Phase B: a knowledge substrate with provenance",
+      "Decide the scheduling substrate",
+      "Generate grounded pre-call briefs",
+      "Wire notification preferences into actual dispatch",
+      "Deliver proactive operator briefs and leading indicators",
+    ],
+    start:
+      "src/lib/revenue-os/health.ts and runs.ts for the job pattern; loadOperatorQueue for the signal set",
+    guardrails:
+      "The Supabase Cron wake-up substrate is already shipped; reuse scheduler.ts and runs.ts rather than reopening that decision. This phase is a roll-up over proactive-operator-intelligence, not a second brief generator. Manufactured urgency is the failure mode to design against: a quiet day must read as quiet.",
     labels: ["second-brain", "cognition"],
-    verification: "A week of briefs read end to end, judged on whether any told the founder something not already known."
+    verification:
+      "A week of briefs read end to end, judged on whether any told the founder something not already known.",
   }),
   card({
-    key: "second-brain-act", title: "Phase D: a policy registry, not bespoke agents", workstream: "intelligence", phase: 5, status: "planned", priority: "medium",
-    description: "The inbound responder proved the pattern of a versioned founder-signed policy with an envelope, guardrails, a kill switch, and a recorded decision either way. But it is one module written by hand. Generalise it so adding a policy is declaring config and fixtures rather than writing another module and another test suite. Prove it with two more: a stalled-deal nudge and a commitment keeper.",
-    acceptance: ["A new policy ships without editing auto-responder.ts", "Every policy shares one approval surface, one kill switch, and one eval harness", "Each policy declares its own envelope and every decline rule is proven to fire", "A policy edit bumps its version and suspends it until re-approved, as campaigns already behave"],
-    dependencies: ["Generalize approved automation policies", "Phase A: give the system eyes", "Build post-meeting notes and commitment extraction"],
-    start: "src/lib/revenue-os/auto-responder.ts as the reference implementation; the approved policy version section of the engineering contract",
-    guardrails: "The envelope is the safety argument, so a policy with no proven decline rules does not ship. Nothing widens its own envelope and the model never edits a policy.",
+    key: "second-brain-act",
+    title: "Phase D: a policy registry, not bespoke agents",
+    workstream: "intelligence",
+    phase: 5,
+    status: "planned",
+    priority: "medium",
+    description:
+      "The inbound responder proved the pattern of a versioned founder-signed policy with an envelope, guardrails, a kill switch, and a recorded decision either way. But it is one module written by hand. Generalise it so adding a policy is declaring config and fixtures rather than writing another module and another test suite. Prove it with two more: a stalled-deal nudge and a commitment keeper.",
+    acceptance: [
+      "A new policy ships without editing auto-responder.ts",
+      "Every policy shares one approval surface, one kill switch, and one eval harness",
+      "Each policy declares its own envelope and every decline rule is proven to fire",
+      "A policy edit bumps its version and suspends it until re-approved, as campaigns already behave",
+    ],
+    dependencies: [
+      "Generalize approved automation policies",
+      "Phase A: give the system eyes",
+      "Build post-meeting notes and commitment extraction",
+    ],
+    start:
+      "src/lib/revenue-os/auto-responder.ts as the reference implementation; the approved policy version section of the engineering contract",
+    guardrails:
+      "The envelope is the safety argument, so a policy with no proven decline rules does not ship. Nothing widens its own envelope and the model never edits a policy.",
     labels: ["second-brain", "autonomy", "policy-version"],
-    verification: "The second and third policies each ship with a full decline-rule suite, and the responder is refactored onto the registry with its 12 rules still passing."
+    verification:
+      "The second and third policies each ship with a full decline-rule suite, and the responder is refactored onto the registry with its 12 rules still passing.",
   }),
   card({
-    key: "second-brain-learn", title: "Phase E: link action to outcome", workstream: "intelligence", phase: 6, status: "planned", priority: "medium",
-    description: "agent_learning records one bit per run, misattributed across every tool that run touched. Nothing links an action to what happened next: did the reply produce a booking, did the proposed task get done, did the stage move stick or get reverted. Without that link the system accumulates history and never improves, and calling it learning is decoration. Add outcome windows, per-tool attribution, and an eval set per policy.",
-    acceptance: ["Every autonomous or approved action has an outcome window and a measured result, including a measured nothing", "Attribution is per tool rather than per run", "A prompt or model change is accepted or rejected against a golden set instead of argued about", "Learning stays governed telemetry; no output becomes an instruction automatically"],
-    dependencies: ["Phase D: a policy registry, not bespoke agents", "Build the governed agent learning feedback loop", "Summarize meetings and extract reviewable commitments"],
-    start: "src/lib/revenue-os/agent-learning.ts; agent_runs and audit_log as the existing substrate",
-    guardrails: "The contract forbids autonomous prompt mutation and that stands. This produces evidence for a human decision, never a self-applied change. Outcome attribution is easy to get quietly wrong, so a measured result must be falsifiable.",
+    key: "second-brain-learn",
+    title: "Phase E: link action to outcome",
+    workstream: "intelligence",
+    phase: 6,
+    status: "planned",
+    priority: "medium",
+    description:
+      "agent_learning records one bit per run, misattributed across every tool that run touched. Nothing links an action to what happened next: did the reply produce a booking, did the proposed task get done, did the stage move stick or get reverted. Without that link the system accumulates history and never improves, and calling it learning is decoration. Add outcome windows, per-tool attribution, and an eval set per policy.",
+    acceptance: [
+      "Every autonomous or approved action has an outcome window and a measured result, including a measured nothing",
+      "Attribution is per tool rather than per run",
+      "A prompt or model change is accepted or rejected against a golden set instead of argued about",
+      "Learning stays governed telemetry; no output becomes an instruction automatically",
+    ],
+    dependencies: [
+      "Phase D: a policy registry, not bespoke agents",
+      "Build the governed agent learning feedback loop",
+      "Summarize meetings and extract reviewable commitments",
+    ],
+    start:
+      "src/lib/revenue-os/agent-learning.ts; agent_runs and audit_log as the existing substrate",
+    guardrails:
+      "The contract forbids autonomous prompt mutation and that stands. This produces evidence for a human decision, never a self-applied change. Outcome attribution is easy to get quietly wrong, so a measured result must be falsifiable.",
     labels: ["second-brain", "learning", "evals"],
-    verification: "A policy reports N outcomes from M actions with the linkage inspectable per action, and a deliberately worsened prompt is caught by its eval set."
+    verification:
+      "A policy reports N outcomes from M actions with the linkage inspectable per action, and a deliberately worsened prompt is caught by its eval set.",
   }),
   card({
-    key: "second-brain-trust", title: "Phase F: one accountable surface", workstream: "intelligence", phase: 6, status: "planned", priority: "medium",
-    description: "Audit rows exist for everything and there is nowhere that says, in sentences, what the system did today, why, and what it decided not to do. Trust is the real bottleneck on autonomy rather than capability, and nobody widens the scope of a system whose reasoning they cannot inspect. Build the narrative surface on the audit ledger and agent_runs, both of which already record enough.",
-    acceptance: ["The founder can answer what has this thing been doing without opening a table", "Declines appear as prominently as actions, since a policy that only shows what it did cannot be audited for what it wrongly skipped", "Every statement links to its underlying receipt", "Mistakes are surfaced rather than buried"],
-    dependencies: ["Phase E: link action to outcome", "Complete before/after audit coverage for material changes", "Complete AI run traces, tool evidence, errors, and usage"],
-    start: "audit_log; agent_runs and agent_run_events; the responder.declined entries already being written",
-    guardrails: "This is a read surface over existing receipts. It must not become a second ledger or a place where facts are recomputed differently from the services that produced them.",
+    key: "second-brain-trust",
+    title: "Phase F: one accountable surface",
+    workstream: "intelligence",
+    phase: 6,
+    status: "planned",
+    priority: "medium",
+    description:
+      "Audit rows exist for everything and there is nowhere that says, in sentences, what the system did today, why, and what it decided not to do. Trust is the real bottleneck on autonomy rather than capability, and nobody widens the scope of a system whose reasoning they cannot inspect. Build the narrative surface on the audit ledger and agent_runs, both of which already record enough.",
+    acceptance: [
+      "The founder can answer what has this thing been doing without opening a table",
+      "Declines appear as prominently as actions, since a policy that only shows what it did cannot be audited for what it wrongly skipped",
+      "Every statement links to its underlying receipt",
+      "Mistakes are surfaced rather than buried",
+    ],
+    dependencies: [
+      "Phase E: link action to outcome",
+      "Complete before/after audit coverage for material changes",
+      "Complete AI run traces, tool evidence, errors, and usage",
+    ],
+    start:
+      "audit_log; agent_runs and agent_run_events; the responder.declined entries already being written",
+    guardrails:
+      "This is a read surface over existing receipts. It must not become a second ledger or a place where facts are recomputed differently from the services that produced them.",
     labels: ["second-brain", "trust", "operator-surface"],
-    verification: "A week of activity reviewed through the surface alone, judged on whether anything material was invisible."
+    verification:
+      "A week of activity reviewed through the surface alone, judged on whether anything material was invisible.",
   }),
   card({
-    key: "scheduling-substrate-decision", title: "Decide the scheduling substrate", workstream: "platform", phase: 5, status: "shipped", priority: "high", owner: "Codex",
-    description: "Phases C through F need something to run when nobody is asking. Vercel Hobby gives exactly two cron slots at daily granularity and both are used by revenue-campaigns and google-workspace-sync. This is an architectural ceiling rather than a backlog item, and it blocks continuous cognition entirely. Three options: Vercel Pro, Supabase pg_cron with edge functions, or an external worker.",
-    acceptance: ["A substrate is chosen and the reasoning recorded", "A job can run on a cadence finer than daily", "The chosen path does not fork the one operating path the engineering contract requires"],
+    key: "scheduling-substrate-decision",
+    title: "Decide the scheduling substrate",
+    workstream: "platform",
+    phase: 5,
+    status: "shipped",
+    priority: "high",
+    owner: "Codex",
+    description:
+      "Phases C through F need something to run when nobody is asking. Vercel Hobby gives exactly two cron slots at daily granularity and both are used by revenue-campaigns and google-workspace-sync. This is an architectural ceiling rather than a backlog item, and it blocks continuous cognition entirely. Three options: Vercel Pro, Supabase pg_cron with edge functions, or an external worker.",
+    acceptance: [
+      "A substrate is chosen and the reasoning recorded",
+      "A job can run on a cadence finer than daily",
+      "The chosen path does not fork the one operating path the engineering contract requires",
+    ],
     dependencies: [],
-    start: "vercel.json (both cron slots); src/lib/revenue-os/runs.ts for the claim and receipt pattern any substrate must keep using",
-    guardrails: "Use Supabase Cron plus pg_net only as a secure wake-up adapter for a Vercel route. Domain work stays in Revenue OS services and every invocation keeps claiming atomically and writing receipts through withJobRun. The first sub-daily job is a read-only health snapshot; do not increase campaign or provider-action cadence under this card.",
+    start:
+      "vercel.json (both cron slots); src/lib/revenue-os/runs.ts for the claim and receipt pattern any substrate must keep using",
+    guardrails:
+      "Use Supabase Cron plus pg_net only as a secure wake-up adapter for a Vercel route. Domain work stays in Revenue OS services and every invocation keeps claiming atomically and writing receipts through withJobRun. The first sub-daily job is a read-only health snapshot; do not increase campaign or provider-action cadence under this card.",
     labels: ["platform", "infrastructure", "founder-decision"],
-    evidence: "Shipped 2026-08-23: Supabase Cron plus pg_net is the free-first cadence substrate and remains a wake adapter only; the authenticated Vercel route calls loadOperationalHealth through withJobRun. URL and bearer credential are encrypted in Vault, the configurator resolves the canonical host before storage so Authorization never crosses a redirect, and the obsolete two-argument claim RPC was removed to keep PostgREST unambiguous. Production automatically returned HTTP 200 at 18:30 UTC with successful job receipt 411f00a6-e05f-4b7a-bc91-b4c80b43603f, independently of the successful 18:17 cadence receipt b1414310-01d3-4450-8209-07bfdbf28549. Controlled production stale-claim takeover passed (dead c2690538-2aa1-498b-adb4-86ac17da8503, recovered by f71a5e9b-c67e-472b-98cb-d4971fea2970). The overload cleanup reran idempotently, schema contract revenue-os.2026-08-23.6 passed 209/209 with receipt 00f404ed-bbca-4794-8a48-6642577bc909, Setup production QA passed 22 checks, and scheduler, cron-defense, schema, stale-recovery, type, lint, build, and agent-contract checks passed.",
-    verification: "Closed from production behavior: selected architecture, encrypted configuration, canonical-origin defense, authenticated 15-minute automatic execution, two independent successful cadence receipts, deterministic replay, one shared domain/receipt path, stale-claim recovery, idempotent migration, and Setup/schema verification all passed."
+    evidence:
+      "Shipped 2026-08-23: Supabase Cron plus pg_net is the free-first cadence substrate and remains a wake adapter only; the authenticated Vercel route calls loadOperationalHealth through withJobRun. URL and bearer credential are encrypted in Vault, the configurator resolves the canonical host before storage so Authorization never crosses a redirect, and the obsolete two-argument claim RPC was removed to keep PostgREST unambiguous. Production automatically returned HTTP 200 at 18:30 UTC with successful job receipt 411f00a6-e05f-4b7a-bc91-b4c80b43603f, independently of the successful 18:17 cadence receipt b1414310-01d3-4450-8209-07bfdbf28549. Controlled production stale-claim takeover passed (dead c2690538-2aa1-498b-adb4-86ac17da8503, recovered by f71a5e9b-c67e-472b-98cb-d4971fea2970). The overload cleanup reran idempotently, schema contract revenue-os.2026-08-23.6 passed 209/209 with receipt 00f404ed-bbca-4794-8a48-6642577bc909, Setup production QA passed 22 checks, and scheduler, cron-defense, schema, stale-recovery, type, lint, build, and agent-contract checks passed.",
+    verification:
+      "Closed from production behavior: selected architecture, encrypted configuration, canonical-origin defense, authenticated 15-minute automatic execution, two independent successful cadence receipts, deterministic replay, one shared domain/receipt path, stale-claim recovery, idempotent migration, and Setup/schema verification all passed.",
   }),
   card({
     key: "autonomous-inbound-responder",
@@ -541,91 +2268,1033 @@ export const featureBacklog = [
     phase: 4,
     status: "planned",
     priority: "high",
-    description: "Acknowledge a first-touch inbound inquiry within seconds, grounded strictly in what the prospect wrote and the canonical record, executing inside a founder-approved response policy version rather than a per-message approval. The engineering contract permits an external action without per-instance confirmation only from inside an approved policy version, so the responder is not a trusted agent: it is a signed policy carrying the trigger, envelope, guardrails, template, and model, and any material edit bumps the version and suspends sending until re-approval, exactly as activateCampaign already behaves.",
+    description:
+      "Acknowledge a first-touch inbound inquiry within seconds, grounded strictly in what the prospect wrote and the canonical record, executing inside a founder-approved response policy version rather than a per-message approval. The engineering contract permits an external action without per-instance confirmation only from inside an approved policy version, so the responder is not a trusted agent: it is a signed policy carrying the trigger, envelope, guardrails, template, and model, and any material edit bumps the version and suspends sending until re-approval, exactly as activateCampaign already behaves.",
     acceptance: [
       "A real inbound produces a grounded reply within seconds with a provider receipt, a canonical activity, a pipeline stage move, and a dedupe-safe follow-up task",
       "Every envelope rule is proven to decline: not first touch, existing client, suppressed contact, a human already replied, per-day or per-contact cap reached, outside the allowed window",
       "A decision to decline is recorded with its reason, not just a decision to send, so the policy can be audited for what it wrongly skipped",
       "The kill switch halts sending mid-flight because it is read at execution rather than at scheduling",
       "The reply invents no pricing, availability, dates, commitments, or capabilities, proven against a fixture set including inquiries with thin or hostile input",
-      "A policy edit suspends sending until the new version is approved"
+      "A policy edit suspends sending until the new version is approved",
     ],
     dependencies: [
       "Standardize every AI workflow on the OpenRouter gateway",
       "Finish one auditable communication sender",
-      "Add Playwright journey for inbound capture and pipeline progression"
+      "Add Playwright journey for inbound capture and pipeline progression",
     ],
-    start: "src/lib/revenue-os/inbound.ts (ingestInboundLead is the trigger point); src/lib/revenue-os/communications.ts; src/lib/revenue-os/actions.ts; src/lib/admin/settings.ts for the kill switch",
-    guardrails: "Reuse sendRecordedEmail, transitionOpportunity, createRevenueTask, and recordAudit. Nothing gets its own write path. getSetting lets process.env win unconditionally, so the kill-switch key must not collide with an env var name or it can never be flipped from the admin; admin_settings.value is NOT NULL, so store the strings 'true'/'false'. Responding inline must never be able to lose the lead: the inquiry is persisted and the operator notified before any model call, and a responder failure is recorded and swallowed rather than propagated.",
+    start:
+      "src/lib/revenue-os/inbound.ts (ingestInboundLead is the trigger point); src/lib/revenue-os/communications.ts; src/lib/revenue-os/actions.ts; src/lib/admin/settings.ts for the kill switch",
+    guardrails:
+      "Reuse sendRecordedEmail, transitionOpportunity, createRevenueTask, and recordAudit. Nothing gets its own write path. getSetting lets process.env win unconditionally, so the kill-switch key must not collide with an env var name or it can never be flipped from the admin; admin_settings.value is NOT NULL, so store the strings 'true'/'false'. Responding inline must never be able to lose the lead: the inquiry is persisted and the operator notified before any model call, and a responder failure is recorded and swallowed rather than propagated.",
     labels: ["ai", "autonomy", "inbound", "policy-version"],
-    verification: "npm run test:responder-envelope (12 decline rules, 5 envelope boundaries, 12 grounding rejections; all 16 guards mutation-tested by removal) and npm run verify:responder (live gating against the real admin_settings table, sending to delivered@resend.dev and restoring the founder's switches afterwards)."
-    , evidence: "2026-08-20: built as an approved policy version rather than a trusted agent. RESPONDER_POLICY_VERSION pins trigger, envelope, guardrails, prompt, and model; sending requires both the kill switch on and an approved version matching exactly, so any material edit suspends replies until re-approval. Runs last inside ingestInboundLead with every failure recorded and swallowed, so a model outage cannot become a dropped inquiry. Declines are audited as carefully as sends. Send goes through sendRecordedEmail with an idempotency key pinned to the opportunity; the model call is traced on agent_runs. Migration 20260820-responder-policy.sql seeds both controls into Admin > Settings, disabled and unapproved. NOT YET PROVEN: the live generation leg. .env.local has no OPENROUTER_API_KEY and Vercel does not return sensitive variables to `pull`, so whether a real model reliably produces drafts the grounding check accepts is unmeasured. That evidence, plus one observed real inbound end to end in production, is required before this is switched on."
+    verification:
+      "npm run test:responder-envelope (12 decline rules, 5 envelope boundaries, 12 grounding rejections; all 16 guards mutation-tested by removal) and npm run verify:responder (live gating against the real admin_settings table, sending to delivered@resend.dev and restoring the founder's switches afterwards).",
+    evidence:
+      "2026-08-20: built as an approved policy version rather than a trusted agent. RESPONDER_POLICY_VERSION pins trigger, envelope, guardrails, prompt, and model; sending requires both the kill switch on and an approved version matching exactly, so any material edit suspends replies until re-approval. Runs last inside ingestInboundLead with every failure recorded and swallowed, so a model outage cannot become a dropped inquiry. Declines are audited as carefully as sends. Send goes through sendRecordedEmail with an idempotency key pinned to the opportunity; the model call is traced on agent_runs. Migration 20260820-responder-policy.sql seeds both controls into Admin > Settings, disabled and unapproved. NOT YET PROVEN: the live generation leg. .env.local has no OPENROUTER_API_KEY and Vercel does not return sensitive variables to `pull`, so whether a real model reliably produces drafts the grounding check accepts is unmeasured. That evidence, plus one observed real inbound end to end in production, is required before this is switched on.",
   }),
-  card({ key: "openrouter-ai-gateway", title: "Standardize every AI workflow on the OpenRouter gateway", workstream: "ai", phase: 3, status: "shipped", priority: "high", owner: "Codex", description: "Replace route-local model clients with one server-only OpenRouter gateway that owns authentication, model selection, structured outputs, timeouts, safe errors, attribution headers, and usage receipts for every Accelerate AI workflow.", acceptance: ["Contact import, Revenue Copilot, chat, plan generation, insights, content briefs, and proposal drafting call one shared OpenRouter adapter with no direct provider SDK execution", "Structured-output calls require a strict JSON schema and reject malformed or unvalidated model output before it reaches a domain service", "Setup Center reports OpenRouter key/model readiness without exposing secrets and a missing or failed provider leaves each workflow truthfully unavailable rather than silently switching providers", "AI traces retain OpenRouter request ID, resolved model, token usage, duration, and a bounded error summary where the workflow has a run ledger"], dependencies: ["Verify founder-only admin access and service-only data policies"], start: "src/lib/ai/openrouter.ts; src/lib/revenue-os/ai-agent.ts; src/app/api/chat/route.ts; src/app/api/generate-plan/route.ts; admin AI routes; Setup Center", guardrails: "OPENROUTER_API_KEY is environment-only. Do not retain a direct Anthropic fallback, leak prompts or keys, trust unvalidated JSON, or let a route select an unapproved provider. Model defaults may be overridden only through documented server configuration.", labels: ["openrouter", "provider", "structured-output", "ai-architecture"], evidence: "2026-08-16: implemented one server-only OpenRouter chat/structured-output/text-stream adapter with attribution headers, bounded errors, timeout, model overrides, request IDs, and usage. Revenue Copilot/tool loop, website chat, plan generator, insights, content brief, and proposal draft callers now use it; @anthropic-ai/sdk was removed and source search finds no direct provider client. Setup Center and Settings expose only OPENROUTER_API_KEY plus optional model overrides. The encrypted production Vercel credential is configured; both a direct strict structured-output health call and an authenticated production Contact Import workflow passed on openai/gpt-4.1-mini. The founder-only batch response and ledger retain provider, resolved model, OpenRouter request ID, and token usage. Typecheck, lint, production build, and Contact Import Playwright pass. 2026-08-20: provider-failure coverage now exists as `npm run test:openrouter-resilience` (transient retry with backoff, no retry on permanent failure, caller AbortSignal no longer detaching the request timeout, fallback model handed to OpenRouter). Trace parity closed: the public website chat was the one fully autonomous AI talking to prospects with no run ledger at all, and now opens an `agent_runs` row through the shared `agent-trace` writer and tees its stream so the reply, a client disconnect, and a provider failure all reach a terminal state. `api/admin/ai-insights` was deleted rather than traced; it read pre-canonical tables and returned HTTP 200 with a friendly string on error. Production gateway proven live end to end on 2026-08-20 by POSTing /api/chat on https://www.acceleratewith.us and receiving a grounded on-brand answer rather than DEMO_MODE_REPLY, which is the same property `verify:ai-gateway` checks; that script still cannot run locally because `.env.local` has no OPENROUTER_API_KEY and `.vercel/.env.production.local` returns it empty (Vercel does not return sensitive vars to `pull`)." }),
-  card({ key: "ai-contact-importer", title: "Import and clean ad hoc contacts with AI review and approval", workstream: "ai", phase: 3, status: "planned", priority: "high", description: "Give the founder one importer for pasted notes, copied lists, CSV/TSV, and JSON. Deterministic parsing runs first; OpenRouter proposes normalized contacts and company links; the founder edits, includes/excludes, and approves an immutable reviewed snapshot before canonical writes execute with row-level receipts.", acceptance: ["Founder can paste or upload bounded UTF-8 CSV, TSV, JSON, or messy text and receive an editable row preview with normalized name, email, phone, company, role, website, source, confidence, warnings, and create/update/skip decision", "Exact normalized-email and deterministic company-domain matches are shown before approval; ambiguous identities and invalid rows default to excluded and are never guessed or silently merged", "Analysis performs no contact/company writes, approval is bound to the exact selected-and-edited snapshot digest, and execute refuses a stale, unapproved, already-running, or already-completed batch", "Approved execution uses the canonical identity/import service, is replay-safe, writes row and batch terminal receipts plus audit/activity provenance, and never creates opportunities, enrolls campaigns, or sends messages", "Importer exposes missing OpenRouter configuration, parse/provider/schema failure, partial import, retryable failed rows, completed receipts, and history on responsive desktop/mobile surfaces", "Service/API tests cover invalid input, duplicate/replay, stale approval, ambiguous identity, provider failure, partial database failure, and safe resume; Playwright covers paste/upload review, editing, keyboard confirmation, reduced motion, and mobile layout"], dependencies: ["Standardize every AI workflow on the OpenRouter gateway", "Implement deterministic contact and company identity resolution", "Complete before/after audit coverage for material changes"], start: "migrations/20260816-contact-importer.sql; src/lib/revenue-os/contact-imports.ts; src/app/api/admin/revenue-os/contact-imports; src/app/admin/contact-imports; src/lib/admin/navigation.ts; Setup Center", guardrails: "AI is an extraction assistant, never the writer or approver. Apply the reviewed snapshot without rerunning AI. Bound source size and row count; redact raw source from logs; refuse ambiguous matches; leave blank update fields unchanged; do not create revenue opportunities, send email, enroll campaigns, or ingest unsupported binary files.", labels: ["contacts", "import", "approval", "dedupe", "openrouter"], evidence: "2026-08-16: implemented the idempotent migration, service-only batches/rows/events, atomic digest-bound claim RPC, OpenRouter strict extraction, hard field validation, intra-batch duplicate exclusion, primary/alternate-email and company-domain matching with ambiguity refusal, fill-blank canonical writes, source-row replay reconciliation, activity/audit receipts, founder-only API, responsive importer/history/editor, and explicit approval dialog. Production migration applied twice successfully for idempotency; all three tables and the exact claim RPC are live through the service-role path. A live model initially proposed unsupported example fields; a deterministic evidence guard now strips every value absent from its exact source row, downgrades invalid rows to low confidence, excludes them, and uses explicit Not provided placeholders. Regression tests cover the hallucinated-field case. Authenticated production Playwright verifies 9/9 required Setup readiness, live OpenRouter extraction, trace metadata, truthful review rendering, exclusion, zero contacts/opportunities/messages, controlled-batch cleanup, screenshots, and no settled-state console errors. Local Playwright also passes edit/save/approval/execution receipt at desktop/mobile and reduced motion. Remaining before Shipped: isolated-database fixture coverage for stale approval, ambiguous existing data, provider failure, concurrent claim, partial database failure, and safe resume." }),
-  card({ key: "ai-tool-registry", title: "Complete AI tool registry and impact tiers", workstream: "ai", phase: 3, status: "shipped", priority: "high", owner: "Codex", description: "Register bounded tools dynamically and classify reads, internal writes, external actions, and destructive actions with explicit schemas and permissions.", acceptance: ["Only registered tools are exposed for the current context and connection state", "Each tool declares impact tier, input schema, output schema, service target, and confirmation requirement", "Unregistered or unavailable tool calls fail closed and are traced"], dependencies: ["Complete before/after audit coverage for material changes"], start: "src/lib/revenue-os/ai-tools.ts; src/lib/revenue-os/ai-agent.ts; action_queue; RevenueAICommand.tsx", guardrails: "Tools must call validated services, never issue arbitrary database writes or unrestricted provider requests.", labels: ["tools", "permissions"], evidence: "2026-08-31 shipped locally: registry v3 declares input/output contracts, service target, provider-connection truth, impact tier, confirmation rule, and bounded tool packs for all seven tools. Dispatch rejects unknown, destructive, malformed, output-invalid, non-finite, and active-pack-unavailable calls before a result reaches the agent; unavailable calls use the existing bounded tool-error trace. The AI Workspace reports runtime availability and reviewed service boundaries, while Setup Center exposes the controlled-tool capability without implying provider execution health. Verification passed: test:ai-tool-gates, test:ai-operations, test:setup-status, test:agent-loop, test:ai-command-runtime, test:openrouter-resilience, TypeScript, zero-warning lint, agent/board contracts, production build, and diff check. Authenticated repository Playwright passed desktop/mobile/dark/reduced-motion/keyboard/overflow/console coverage; capabilities screenshots in /tmp/accelerate-ai-command were opened and reviewed. The QA fixture was updated to the runtime v3 contract and current mobile navigation. No schema, provider, production-data, or deployment change was required. 2026-08-16: created ai-tools.ts as the versioned registry for the six then-current tools. The registry supplied OpenRouter function schemas, impact tier, confirmation requirement, and one service-backed execution path; unknown names failed closed and tool receipts recorded registry metadata." }),
-  card({ key: "ai-confirmation-system", title: "Finish the shared AI confirmation system", workstream: "ai", phase: 3, status: "planned", priority: "high", description: "Require explicit in-turn approval for individual sends, stage changes, event mutations, proposal sends, and destructive operations.", acceptance: ["Confirmation displays exact recipient/record, action, changed fields, and material consequences", "Approval is bound to a versioned payload and expires when underlying state changes", "Approve, reject, expire, execute, and fail states are auditable and idempotent"], dependencies: ["Complete AI tool registry and impact tiers", "Enforce atomic claims and idempotency for jobs and actions"], start: "src/lib/revenue-os/actions.ts; action-executor.ts; Today approvals UI", guardrails: "A prior general instruction is not confirmation for a newly generated external action.", labels: ["confirmation", "safety"], evidence: "2026-08-16: registered AI write/external tools create expiring deduplicated action_queue proposals; Today exposes approve/reject; action-executor claims and routes approved actions through normal services with terminal results. Remaining: bind approval to payload/underlying-record versions, exact consequence UI for every action, event/proposal/destructive coverage, expiry worker, and replay/state-change tests." }),
-  card({ key: "ai-bounded-context", status: "in_progress", owner: "Codex", title: "Enforce bounded AI context and grounding rules", workstream: "ai", phase: 3, priority: "high", description: "Build prompts from relevant live records, approved templates, business rules, and cited documents rather than uncontrolled database dumps.", acceptance: ["Every AI workflow has an explicit context budget and source allowlist", "Outputs distinguish facts, inferences, missing data, and recommendations", "Pricing, recipients, dates, metrics, and company facts cannot be invented silently"], dependencies: ["Complete AI tool registry and impact tiers", "Normalize the cross-channel activity ledger"], start: "src/lib/revenue-os/ai-agent.ts; src/lib/ai/prompts.ts; document and record loaders", guardrails: "Treat external messages and documents as untrusted data, not instructions.", labels: ["grounding", "prompt-safety"], evidence: "2026-08-31 in progress: Revenue Copilot now consumes the versioned reusable ai-context contract with a 12,000-character bounded conversation, 2,000-character per-message cap, 3,500-character registered-tool receipt cap, source allowlist, explicit untrusted-data boundary, and required Facts/Inferences/Missing information/Recommended next steps answer shape. Tool results are provenance-labeled rather than entering the transcript as anonymous JSON; run evidence records the context version. A final-answer validator degrades answers missing those sections or valid registered-tool citations to an explicit partial response rather than presenting unsupported prose as completed. Plan and proposal generation now receive the typed public service catalog as their only permitted money source, reject generated line items outside its exact name/one-time/monthly values, and reject plan totals that do not reconcile to approved lines. No catalog match yields explicit founder scope confirmation rather than invented pricing. The public prospect assistant uses the same bounded conversation cap, a public-chat source allowlist, explicit visitor-data-not-instruction rule, no-invented-facts/money/capacity contract, and a context-versioned trace receipt. Content briefs and contact imports retain fixed source indexes and reject unsupported model fields before downstream writes. Responder v2 carries a 3,000-character field-bounded untrusted inquiry envelope, fixed source allowlist, and final grounding checks that reject invented money, availability, timelines, capabilities, results, prompt leakage, and unapproved links; a suspended tenant becomes an audited no-send before model or email traffic. Local verification passed test:ai-pricing-grounding, test:ai-context, test:public-chat-context, test:agent-trace, test:agent-loop, test:ai-command-runtime, test:ai-tool-gates, test:ai-operations, test:openrouter-resilience, test:responder-envelope, TypeScript, lint, agent contract, and diff check. Remaining: deploy the exact verified release and capture production gateway/context evidence before this card can ship. No provider, schema, production-data, or deployment action occurred." }),
   card({
-    key: "ai-command-runtime", title: "Build the persistent streamed AI command runtime", workstream: "ai", phase: 3, status: "shipped", priority: "high", owner: "Codex",
-    description: "Turn the one-shot Revenue Copilot into one founder-only runtime with durable conversations, page context, streamed run events, cancellation, bounded history, and the existing registered-tool and action-queue boundaries.",
-    acceptance: ["A conversation survives navigation and reload with ordered founder and assistant messages", "A turn streams run, answer, tool, proposal, completion, cancellation, and failure events with one run ID", "The same runtime accepts server-verified page context and remains usable when a tool or provider fails", "No model call writes business data directly and every proposal still enters action_queue"],
-    dependencies: ["Complete AI tool registry and impact tiers", "Enforce bounded AI context and grounding rules", "Standardize every AI workflow on the OpenRouter gateway"],
-    start: "src/lib/revenue-os/ai-agent.ts; src/lib/revenue-os/agent-trace.ts; admin Revenue OS AI APIs; additive AI conversation migration",
-    guardrails: "Keep transcript storage separate from the redacted run ledger. Do not trust client-supplied record facts, expose raw tool payloads, or add another provider.",
+    key: "openrouter-ai-gateway",
+    title: "Standardize every AI workflow on the OpenRouter gateway",
+    workstream: "ai",
+    phase: 3,
+    status: "shipped",
+    priority: "high",
+    owner: "Codex",
+    description:
+      "Replace route-local model clients with one server-only OpenRouter gateway that owns authentication, model selection, structured outputs, timeouts, safe errors, attribution headers, and usage receipts for every Accelerate AI workflow.",
+    acceptance: [
+      "Contact import, Revenue Copilot, chat, plan generation, insights, content briefs, and proposal drafting call one shared OpenRouter adapter with no direct provider SDK execution",
+      "Structured-output calls require a strict JSON schema and reject malformed or unvalidated model output before it reaches a domain service",
+      "Setup Center reports OpenRouter key/model readiness without exposing secrets and a missing or failed provider leaves each workflow truthfully unavailable rather than silently switching providers",
+      "AI traces retain OpenRouter request ID, resolved model, token usage, duration, and a bounded error summary where the workflow has a run ledger",
+    ],
+    dependencies: ["Verify founder-only admin access and service-only data policies"],
+    start:
+      "src/lib/ai/openrouter.ts; src/lib/revenue-os/ai-agent.ts; src/app/api/chat/route.ts; src/app/api/generate-plan/route.ts; admin AI routes; Setup Center",
+    guardrails:
+      "OPENROUTER_API_KEY is environment-only. Do not retain a direct Anthropic fallback, leak prompts or keys, trust unvalidated JSON, or let a route select an unapproved provider. Model defaults may be overridden only through documented server configuration.",
+    labels: ["openrouter", "provider", "structured-output", "ai-architecture"],
+    evidence:
+      "2026-08-16: implemented one server-only OpenRouter chat/structured-output/text-stream adapter with attribution headers, bounded errors, timeout, model overrides, request IDs, and usage. Revenue Copilot/tool loop, website chat, plan generator, insights, content brief, and proposal draft callers now use it; @anthropic-ai/sdk was removed and source search finds no direct provider client. Setup Center and Settings expose only OPENROUTER_API_KEY plus optional model overrides. The encrypted production Vercel credential is configured; both a direct strict structured-output health call and an authenticated production Contact Import workflow passed on openai/gpt-4.1-mini. The founder-only batch response and ledger retain provider, resolved model, OpenRouter request ID, and token usage. Typecheck, lint, production build, and Contact Import Playwright pass. 2026-08-20: provider-failure coverage now exists as `npm run test:openrouter-resilience` (transient retry with backoff, no retry on permanent failure, caller AbortSignal no longer detaching the request timeout, fallback model handed to OpenRouter). Trace parity closed: the public website chat was the one fully autonomous AI talking to prospects with no run ledger at all, and now opens an `agent_runs` row through the shared `agent-trace` writer and tees its stream so the reply, a client disconnect, and a provider failure all reach a terminal state. `api/admin/ai-insights` was deleted rather than traced; it read pre-canonical tables and returned HTTP 200 with a friendly string on error. Production gateway proven live end to end on 2026-08-20 by POSTing /api/chat on https://www.acceleratewith.us and receiving a grounded on-brand answer rather than DEMO_MODE_REPLY, which is the same property `verify:ai-gateway` checks; that script still cannot run locally because `.env.local` has no OPENROUTER_API_KEY and `.vercel/.env.production.local` returns it empty (Vercel does not return sensitive vars to `pull`).",
+  }),
+  card({
+    key: "ai-contact-importer",
+    title: "Import and clean ad hoc contacts with AI review and approval",
+    workstream: "ai",
+    phase: 3,
+    status: "planned",
+    priority: "high",
+    description:
+      "Give the founder one importer for pasted notes, copied lists, CSV/TSV, and JSON. Deterministic parsing runs first; OpenRouter proposes normalized contacts and company links; the founder edits, includes/excludes, and approves an immutable reviewed snapshot before canonical writes execute with row-level receipts.",
+    acceptance: [
+      "Founder can paste or upload bounded UTF-8 CSV, TSV, JSON, or messy text and receive an editable row preview with normalized name, email, phone, company, role, website, source, confidence, warnings, and create/update/skip decision",
+      "Exact normalized-email and deterministic company-domain matches are shown before approval; ambiguous identities and invalid rows default to excluded and are never guessed or silently merged",
+      "Analysis performs no contact/company writes, approval is bound to the exact selected-and-edited snapshot digest, and execute refuses a stale, unapproved, already-running, or already-completed batch",
+      "Approved execution uses the canonical identity/import service, is replay-safe, writes row and batch terminal receipts plus audit/activity provenance, and never creates opportunities, enrolls campaigns, or sends messages",
+      "Importer exposes missing OpenRouter configuration, parse/provider/schema failure, partial import, retryable failed rows, completed receipts, and history on responsive desktop/mobile surfaces",
+      "Service/API tests cover invalid input, duplicate/replay, stale approval, ambiguous identity, provider failure, partial database failure, and safe resume; Playwright covers paste/upload review, editing, keyboard confirmation, reduced motion, and mobile layout",
+    ],
+    dependencies: [
+      "Standardize every AI workflow on the OpenRouter gateway",
+      "Implement deterministic contact and company identity resolution",
+      "Complete before/after audit coverage for material changes",
+    ],
+    start:
+      "migrations/20260816-contact-importer.sql; src/lib/revenue-os/contact-imports.ts; src/app/api/admin/revenue-os/contact-imports; src/app/admin/contact-imports; src/lib/admin/navigation.ts; Setup Center",
+    guardrails:
+      "AI is an extraction assistant, never the writer or approver. Apply the reviewed snapshot without rerunning AI. Bound source size and row count; redact raw source from logs; refuse ambiguous matches; leave blank update fields unchanged; do not create revenue opportunities, send email, enroll campaigns, or ingest unsupported binary files.",
+    labels: ["contacts", "import", "approval", "dedupe", "openrouter"],
+    evidence:
+      "2026-08-16: implemented the idempotent migration, service-only batches/rows/events, atomic digest-bound claim RPC, OpenRouter strict extraction, hard field validation, intra-batch duplicate exclusion, primary/alternate-email and company-domain matching with ambiguity refusal, fill-blank canonical writes, source-row replay reconciliation, activity/audit receipts, founder-only API, responsive importer/history/editor, and explicit approval dialog. Production migration applied twice successfully for idempotency; all three tables and the exact claim RPC are live through the service-role path. A live model initially proposed unsupported example fields; a deterministic evidence guard now strips every value absent from its exact source row, downgrades invalid rows to low confidence, excludes them, and uses explicit Not provided placeholders. Regression tests cover the hallucinated-field case. Authenticated production Playwright verifies 9/9 required Setup readiness, live OpenRouter extraction, trace metadata, truthful review rendering, exclusion, zero contacts/opportunities/messages, controlled-batch cleanup, screenshots, and no settled-state console errors. Local Playwright also passes edit/save/approval/execution receipt at desktop/mobile and reduced motion. Remaining before Shipped: isolated-database fixture coverage for stale approval, ambiguous existing data, provider failure, concurrent claim, partial database failure, and safe resume.",
+  }),
+  card({
+    key: "ai-tool-registry",
+    title: "Complete AI tool registry and impact tiers",
+    workstream: "ai",
+    phase: 3,
+    status: "shipped",
+    priority: "high",
+    owner: "Codex",
+    description:
+      "Register bounded tools dynamically and classify reads, internal writes, external actions, and destructive actions with explicit schemas and permissions.",
+    acceptance: [
+      "Only registered tools are exposed for the current context and connection state",
+      "Each tool declares impact tier, input schema, output schema, service target, and confirmation requirement",
+      "Unregistered or unavailable tool calls fail closed and are traced",
+    ],
+    dependencies: ["Complete before/after audit coverage for material changes"],
+    start:
+      "src/lib/revenue-os/ai-tools.ts; src/lib/revenue-os/ai-agent.ts; action_queue; RevenueAICommand.tsx",
+    guardrails:
+      "Tools must call validated services, never issue arbitrary database writes or unrestricted provider requests.",
+    labels: ["tools", "permissions"],
+    evidence:
+      "2026-08-31 shipped locally: registry v3 declares input/output contracts, service target, provider-connection truth, impact tier, confirmation rule, and bounded tool packs for all seven tools. Dispatch rejects unknown, destructive, malformed, output-invalid, non-finite, and active-pack-unavailable calls before a result reaches the agent; unavailable calls use the existing bounded tool-error trace. The AI Workspace reports runtime availability and reviewed service boundaries, while Setup Center exposes the controlled-tool capability without implying provider execution health. Verification passed: test:ai-tool-gates, test:ai-operations, test:setup-status, test:agent-loop, test:ai-command-runtime, test:openrouter-resilience, TypeScript, zero-warning lint, agent/board contracts, production build, and diff check. Authenticated repository Playwright passed desktop/mobile/dark/reduced-motion/keyboard/overflow/console coverage; capabilities screenshots in /tmp/accelerate-ai-command were opened and reviewed. The QA fixture was updated to the runtime v3 contract and current mobile navigation. No schema, provider, production-data, or deployment change was required. 2026-08-16: created ai-tools.ts as the versioned registry for the six then-current tools. The registry supplied OpenRouter function schemas, impact tier, confirmation requirement, and one service-backed execution path; unknown names failed closed and tool receipts recorded registry metadata.",
+  }),
+  card({
+    key: "ai-confirmation-system",
+    title: "Finish the shared AI confirmation system",
+    workstream: "ai",
+    phase: 3,
+    status: "planned",
+    priority: "high",
+    description:
+      "Require explicit in-turn approval for individual sends, stage changes, event mutations, proposal sends, and destructive operations.",
+    acceptance: [
+      "Confirmation displays exact recipient/record, action, changed fields, and material consequences",
+      "Approval is bound to a versioned payload and expires when underlying state changes",
+      "Approve, reject, expire, execute, and fail states are auditable and idempotent",
+    ],
+    dependencies: [
+      "Complete AI tool registry and impact tiers",
+      "Enforce atomic claims and idempotency for jobs and actions",
+    ],
+    start: "src/lib/revenue-os/actions.ts; action-executor.ts; Today approvals UI",
+    guardrails:
+      "A prior general instruction is not confirmation for a newly generated external action.",
+    labels: ["confirmation", "safety"],
+    evidence:
+      "2026-08-16: registered AI write/external tools create expiring deduplicated action_queue proposals; Today exposes approve/reject; action-executor claims and routes approved actions through normal services with terminal results. Remaining: bind approval to payload/underlying-record versions, exact consequence UI for every action, event/proposal/destructive coverage, expiry worker, and replay/state-change tests.",
+  }),
+  card({
+    key: "ai-bounded-context",
+    status: "in_progress",
+    owner: "Codex",
+    title: "Enforce bounded AI context and grounding rules",
+    workstream: "ai",
+    phase: 3,
+    priority: "high",
+    description:
+      "Build prompts from relevant live records, approved templates, business rules, and cited documents rather than uncontrolled database dumps.",
+    acceptance: [
+      "Every AI workflow has an explicit context budget and source allowlist",
+      "Outputs distinguish facts, inferences, missing data, and recommendations",
+      "Pricing, recipients, dates, metrics, and company facts cannot be invented silently",
+    ],
+    dependencies: [
+      "Complete AI tool registry and impact tiers",
+      "Normalize the cross-channel activity ledger",
+    ],
+    start: "src/lib/revenue-os/ai-agent.ts; src/lib/ai/prompts.ts; document and record loaders",
+    guardrails: "Treat external messages and documents as untrusted data, not instructions.",
+    labels: ["grounding", "prompt-safety"],
+    evidence:
+      "2026-08-31 in progress: Revenue Copilot now consumes the versioned reusable ai-context contract with a 12,000-character bounded conversation, 2,000-character per-message cap, 3,500-character registered-tool receipt cap, source allowlist, explicit untrusted-data boundary, and required Facts/Inferences/Missing information/Recommended next steps answer shape. Tool results are provenance-labeled rather than entering the transcript as anonymous JSON; run evidence records the context version. A final-answer validator degrades answers missing those sections or valid registered-tool citations to an explicit partial response rather than presenting unsupported prose as completed. Plan and proposal generation now receive the typed public service catalog as their only permitted money source, reject generated line items outside its exact name/one-time/monthly values, and reject plan totals that do not reconcile to approved lines. No catalog match yields explicit founder scope confirmation rather than invented pricing. The public prospect assistant uses the same bounded conversation cap, a public-chat source allowlist, explicit visitor-data-not-instruction rule, no-invented-facts/money/capacity contract, and a context-versioned trace receipt. Content briefs and contact imports retain fixed source indexes and reject unsupported model fields before downstream writes. Responder v2 carries a 3,000-character field-bounded untrusted inquiry envelope, fixed source allowlist, and final grounding checks that reject invented money, availability, timelines, capabilities, results, prompt leakage, and unapproved links; a suspended tenant becomes an audited no-send before model or email traffic. Local verification passed test:ai-pricing-grounding, test:ai-context, test:public-chat-context, test:agent-trace, test:agent-loop, test:ai-command-runtime, test:ai-tool-gates, test:ai-operations, test:openrouter-resilience, test:responder-envelope, TypeScript, lint, agent contract, and diff check. Remaining: deploy the exact verified release and capture production gateway/context evidence before this card can ship. No provider, schema, production-data, or deployment action occurred.",
+  }),
+  card({
+    key: "ai-command-runtime",
+    title: "Build the persistent streamed AI command runtime",
+    workstream: "ai",
+    phase: 3,
+    status: "shipped",
+    priority: "high",
+    owner: "Codex",
+    description:
+      "Turn the one-shot Revenue Copilot into one founder-only runtime with durable conversations, page context, streamed run events, cancellation, bounded history, and the existing registered-tool and action-queue boundaries.",
+    acceptance: [
+      "A conversation survives navigation and reload with ordered founder and assistant messages",
+      "A turn streams run, answer, tool, proposal, completion, cancellation, and failure events with one run ID",
+      "The same runtime accepts server-verified page context and remains usable when a tool or provider fails",
+      "No model call writes business data directly and every proposal still enters action_queue",
+    ],
+    dependencies: [
+      "Complete AI tool registry and impact tiers",
+      "Enforce bounded AI context and grounding rules",
+      "Standardize every AI workflow on the OpenRouter gateway",
+    ],
+    start:
+      "src/lib/revenue-os/ai-agent.ts; src/lib/revenue-os/agent-trace.ts; admin Revenue OS AI APIs; additive AI conversation migration",
+    guardrails:
+      "Keep transcript storage separate from the redacted run ledger. Do not trust client-supplied record facts, expose raw tool payloads, or add another provider.",
     labels: ["ai", "reliability"],
-    verification: "npm run test:ai-command-runtime; npm run test:agent-loop; npm run test:agent-trace; npm run verify:founder-access; npx tsc --noEmit; npm run lint; git diff --check.",
-    evidence: "Current implementation evidence: additive founder-owned conversation/message schema, replay-safe message IDs, shared SSE contract, cancellable OpenRouter streaming with fragmented tool reconstruction, deterministic core/pipeline/outreach tool packs, bounded server-curated page context, proposal-only consequential actions, and linked provider/model/pack/duration run metadata are implemented locally. Runtime, loop, tool-gate, trace, schema, TypeScript, and lint checks pass. Remaining before closure: production migration and authenticated release verification are deliberately deferred to the next feature-batch deployment."
+    verification:
+      "npm run test:ai-command-runtime; npm run test:agent-loop; npm run test:agent-trace; npm run verify:founder-access; npx tsc --noEmit; npm run lint; git diff --check.",
+    evidence:
+      "Current implementation evidence: additive founder-owned conversation/message schema, replay-safe message IDs, shared SSE contract, cancellable OpenRouter streaming with fragmented tool reconstruction, deterministic core/pipeline/outreach tool packs, bounded server-curated page context, proposal-only consequential actions, and linked provider/model/pack/duration run metadata are implemented locally. Runtime, loop, tool-gate, trace, schema, TypeScript, and lint checks pass. Remaining before closure: production migration and authenticated release verification are deliberately deferred to the next feature-batch deployment.",
   }),
-  card({ key: "ai-run-traces", title: "Complete AI run traces, tool evidence, errors, and usage", workstream: "ai", phase: 3, status: "shipped", priority: "high", owner: "Codex", description: "Persist bounded run metadata, tools, inputs/results summaries, model usage, failures, and affected records for debugging and cost control.", acceptance: ["Every command has a run ID and ordered tool events", "Trace summaries redact secrets and excessive message/document content", "The admin can inspect model, tokens, duration, outcome, error, and affected records"], dependencies: ["Complete AI tool registry and impact tiers"], start: "agent_runs; agent_run_events; src/app/admin/ai-operations/page.tsx; src/app/api/admin/revenue-os/ai/runs/route.ts", guardrails: "Do not store full secret-bearing prompts or OAuth/provider credentials.", labels: ["observability", "cost"], evidence: "Verified 2026-08-25: the unified AI Workspace exposes redacted run summaries, exact database filters, opaque keyset pagination, ordered event evidence, model/tool/timing/token/outcome metadata, linked canonical records, and explicit missing-schema/truncation states. Internal database errors are replaced with safe browser messages and registry policy is not mislabeled as connection readiness. `npm run test:ai-operations` passes ten deterministic behavior groups; authenticated `npm run qa:ai-command` passes run inspection on desktop/mobile/dark/reduced-motion; the complete three-scenario demo matrix uses the same contract without protected requests or console errors." }),
   card({
-    key: "ai-command-workspace", title: "Ship one operator-grade AI workspace everywhere", workstream: "admin", phase: 3, status: "shipped", priority: "high", owner: "Codex",
-    description: "Use the shared command runtime from a dedicated AI workspace, a global command panel, and contextual record launchers with one conversation state and one approval boundary.",
-    acceptance: ["The founder can use the same thread from /admin/ai and a global Command-J panel", "Command-K remains navigation while Command-J owns AI, with accessible desktop and mobile behavior", "Messages expose live status, bounded tool evidence, sources, feedback, retry, and staged actions without raw provider payloads", "Opportunity Ask AI launches with canonical record context and all write proposals use the shared confirmation path"],
-    dependencies: ["Build the persistent streamed AI command runtime", "Complete AI run traces, tool evidence, errors, and usage"],
-    start: "src/app/admin/layout.tsx; src/components/admin/RevenueAICommand.tsx; src/app/admin/ai; opportunity record workspace",
-    guardrails: "Do not duplicate agent state per surface, merge AI into the navigation palette, accept arbitrary generated HTML, or hide when a model/tool fails.",
-    labels: ["ai"],
-    verification: "npm run qa:ai-command; npm run test:ai-command-runtime; npm run test:route-coverage; npx tsc --noEmit; npm run lint; reviewed desktop/mobile/dark/reduced-motion screenshots; git diff --check.",
-    evidence: "Verified 2026-08-25: `/admin/ai` is one responsive AI Workspace with Ask, Run history, and Capabilities views; `/admin/ai-operations` is a request-aware compatibility redirect. Ask, Command-J, Today, and opportunity launchers retain one provider, transcript, stream, and proposal boundary. Run history exposes bounded evidence and safe failures; Capabilities derives from the versioned registry and distinguishes policy from readiness. `npm run qa:ai-command` passes authenticated conversation streaming, tool evidence, staged approval, run detail, capability policy, keyboard panel, focus, desktop/mobile/dark/reduced-motion, overflow, and console checks. `npm run test:ai-command-runtime`, `npm run test:route-coverage`, `npm run test:ai-operations`, TypeScript, lint, and the full three-business admin demo matrix pass. Reviewed seven AI workspace screenshots in `/tmp/accelerate-ai-command` and loaded desktop/mobile dark screenshots in `/tmp/accelerate-ai-workspace`. 2026-08-26 release hardening: the shared Command-J listener now recognizes both the physical KeyJ code and normalized key value, rejects key repeat, and stops propagation after ownership. Fresh production-build QA passes Command-J, focus, desktop/mobile, dark, reduced motion, overflow, and console coverage."
+    key: "ai-run-traces",
+    title: "Complete AI run traces, tool evidence, errors, and usage",
+    workstream: "ai",
+    phase: 3,
+    status: "shipped",
+    priority: "high",
+    owner: "Codex",
+    description:
+      "Persist bounded run metadata, tools, inputs/results summaries, model usage, failures, and affected records for debugging and cost control.",
+    acceptance: [
+      "Every command has a run ID and ordered tool events",
+      "Trace summaries redact secrets and excessive message/document content",
+      "The admin can inspect model, tokens, duration, outcome, error, and affected records",
+    ],
+    dependencies: ["Complete AI tool registry and impact tiers"],
+    start:
+      "agent_runs; agent_run_events; src/app/admin/ai-operations/page.tsx; src/app/api/admin/revenue-os/ai/runs/route.ts",
+    guardrails: "Do not store full secret-bearing prompts or OAuth/provider credentials.",
+    labels: ["observability", "cost"],
+    evidence:
+      "Verified 2026-08-25: the unified AI Workspace exposes redacted run summaries, exact database filters, opaque keyset pagination, ordered event evidence, model/tool/timing/token/outcome metadata, linked canonical records, and explicit missing-schema/truncation states. Internal database errors are replaced with safe browser messages and registry policy is not mislabeled as connection readiness. `npm run test:ai-operations` passes ten deterministic behavior groups; authenticated `npm run qa:ai-command` passes run inspection on desktop/mobile/dark/reduced-motion; the complete three-scenario demo matrix uses the same contract without protected requests or console errors.",
   }),
-  card({ key: "agent-learning-feedback-loop", title: "Build the governed agent learning feedback loop", workstream: "ai", phase: 3, status: "planned", priority: "high", description: "Capture founder feedback and real action outcomes as reviewable signals that improve future AI guidance without creating self-modifying behavior or ingesting unsafe instructions.", acceptance: ["A founder can rate completed agent outputs and each rating is tied to an immutable run and audit record", "Future runs consume only bounded, aggregate, approved quality telemetry, not raw prompts, outputs, or free-form feedback as instructions", "Action approval, rejection, execution, reply, meeting, proposal, and revenue outcomes can be linked to recommendation quality over time", "A founder can inspect, correct, or disable learning signals and no signal changes business rules or sends automatically"], dependencies: ["Complete AI run traces, tool evidence, errors, and usage", "Finish the shared AI confirmation system", "Normalize the cross-channel activity ledger"], start: "src/lib/revenue-os/agent-learning.ts; agent_runs; agent_run_events; action_queue; RevenueAICommand.tsx", guardrails: "This is governed product learning, not autonomous model training. Never feed raw customer content, secrets, injected text, or unreviewed free-form feedback into system instructions.", labels: ["learning", "feedback", "safety"], evidence: "2026-08-16: founder helpful/not-helpful ratings are now stored as agent-run events and audit entries. Future command runs receive only a 90-day aggregate per-tool helpful/not-helpful summary. Remaining: outcome linkage across actions/campaigns/meetings/proposals/revenue, operator inspection/correction/disable controls, and explicit retention policy." }),
-  card({ key: "ai-model-job-registry", title: "Route every AI job through an audited model registry", workstream: "ai", phase: 4, status: "planned", priority: "medium", description: "Choose OpenRouter models by typed workload requirements instead of scattered IDs, with current capability and cost metadata, explicit activation, eval gates, and rollback.", acceptance: ["Every AI call names a registered job and records requested and resolved models", "Operator choices are limited to compatible models and environment overrides remain explicit", "Free or low-cost models are visible but cannot run consequential jobs until their eval set passes", "Fallback and model changes are never silent and are auditable"], dependencies: ["Standardize every AI workflow on the OpenRouter gateway", "Complete AI run traces, tool evidence, errors, and usage"], start: "src/lib/ai/openrouter.ts; AI Operations; admin settings service", guardrails: "OpenRouter remains the sole gateway. Do not let a browser send arbitrary model IDs or activate a consequential model without evidence.", labels: ["ai", "reliability"] }),
-  card({ key: "tenant-ai-sponsorship-control", title: "Add explicit platform-sponsored AI budgets per tenant", workstream: "ai", phase: 5, status: "backlog", priority: "medium", description: "Extend tenant-owned OpenRouter BYOK with a founder-controlled sponsorship mode for exceptional workspaces, without turning the platform key into an implicit global fallback.", acceptance: ["Platform administration can select BYOK, disabled, or platform-sponsored billing for one tenant through an audited control-plane service", "Sponsored mode has an explicit per-tenant monthly budget, immediate kill switch, and provider/run cost receipts that reconcile to that tenant", "Client administrators can see their billing mode and usage posture but can never read, replace, or infer the platform credential", "Mode changes fail closed during concurrent AI work and never cause another tenant to inherit sponsorship"], dependencies: ["Tenant-isolate providers, public intake, webhooks, and jobs", "Route every AI job through an audited model registry"], start: "integration_connections; src/lib/ai/openrouter-credentials.ts; src/lib/revenue-os/ai-agent.ts; src/app/admin/tenants; AI Operations", guardrails: "Do not reintroduce a global client fallback, expose a platform key, represent token counts as settled cost, or enable sponsorship without a budget and founder audit receipt. BYOK remains the default client mode.", labels: ["ai", "provider", "control-plane"] }),
-  card({ key: "ai-quality-control-plane", title: "Build the AI policy, exemplar, ambiguity, and quality control plane", workstream: "ai", phase: 4, status: "planned", priority: "high", description: "Give each AI surface versioned instructions, source rules, review requirements, curated examples, ambiguity handling, kill switches, and measurable quality outcomes.", acceptance: ["Each surface has an auditable enabled policy with output, review, must-include, never-mention, source, and instruction rules", "Commitment-sensitive drafting returns proceed, clarify, or escalate before generation", "Only manually curated exemplars influence future drafts", "Quality reports acceptance, edits, rejection reasons, safety failures, prompt growth, and cost by task"], dependencies: ["Ship one operator-grade AI workspace everywhere", "Build the governed agent learning feedback loop", "Route every AI job through an audited model registry"], start: "AI Operations; agent_run_events; admin settings policy service", guardrails: "No automatic exemplar promotion, self-modifying prompt, hidden fallback, or policy-controlled direct write.", labels: ["ai", "reliability"] }),
-  card({ key: "mcp-ai-tool-bridge", title: "Expose the governed tool registry through MCP", workstream: "integrations", phase: 4, status: "planned", priority: "medium", description: "Use the same versioned tool definitions for approved MCP clients and future external MCP sources so the Command Center can expand without creating parallel business logic.", acceptance: ["MCP schemas are derived from the canonical AI tool registry", "Approved clients can run bounded reads while writes only stage action_queue proposals", "External servers require registry, scope, health, rate-limit, and audit evidence", "Unknown tools, servers, scopes, and destructive requests fail closed"], dependencies: ["Build the provider capability platform and integration catalog", "Complete AI tool registry and impact tiers", "Verify founder-only admin access and service-only data policies"], start: "src/lib/revenue-os/ai-tools.ts; integration registry; MCP adapter", guardrails: "No arbitrary remote server connection, remote code execution, secret exposure, browser-held credential, or direct database write.", labels: ["integrations", "security"] }),
-  card({ key: "ai-company-research", title: "Build grounded company research and revenue-leak analysis", workstream: "ai", phase: 4, priority: "medium", description: "Research a company from approved sources, separate evidence from inference, and identify likely operational revenue leaks relevant to outreach or calls.", acceptance: ["Research records source URLs/documents, retrieval time, and confidence", "Claims unsupported by sources are labeled hypotheses", "Founder can save approved findings to company research without overwriting raw sources"], dependencies: ["Enforce bounded AI context and grounding rules"], start: "companies research fields; AI tool registry; approved web/document sources", guardrails: "Do not fabricate company size, technology, revenue, personnel, or pain points.", labels: ["research", "companies"] }),
-  card({ key: "ai-opportunity-ranking", title: "Rank today’s best opportunities with evidence", workstream: "ai", phase: 3, priority: "high", description: "Explain which opportunities deserve attention using the deterministic priority policy plus bounded qualitative evidence.", acceptance: ["Hard deadlines and system facts come from the shared priority selector", "AI explains evidence, uncertainty, and recommended next action", "Ranking cannot silently alter stage, value, probability, or tasks"], dependencies: ["Create the shared operator-priority selector", "Enforce bounded AI context and grounding rules"], start: "Today page; overview API; Revenue AI command", guardrails: "AI may refine explanations, not override deterministic safety and deadline ordering.", labels: ["ranking", "today"] }),
-  card({ key: "proactive-operator-intelligence", title: "Deliver proactive operator briefs and leading indicators", workstream: "ai", phase: 4, status: "planned", priority: "high", description: "Turn canonical changes into a concise, evidence-backed operating brief that tells the founder what changed, what is likely to matter next, why, and the safest next action before a deadline, revenue risk, or system failure becomes urgent.", acceptance: ["Daily, weekly, and material-change briefs compare versioned snapshots from the shared priority selector, canonical analytics, activity ledger, commitments, conversations, pipeline, campaigns, and system health without creating a second scoring system", "Every item separates observed fact, deterministic projection, and bounded hypothesis; exposes source time, confidence, assumptions, materiality, and an exact canonical record link", "Duplicate signals collapse into one evolving thread and notification thresholds prevent routine noise, while critical new evidence can surface immediately with an inspectable delivery receipt", "Recommended actions open the existing record or enter the shared confirmation/action queue; the brief never sends, mutates a deadline, or changes revenue state directly", "Backtest fixtures prove missed-deadline, buying-signal, proposal-expiry, pipeline-stall, forecast-risk, campaign-failure, and provider-degradation detection without invented facts or hindsight leakage", "The full admin demo provides a reconciled business-specific brief for every scenario and responsive QA covers desktop, mobile, keyboard, reduced motion, empty, degraded, stale, and recovery states"], dependencies: ["Phase B: a knowledge substrate with provenance", "Create the shared operator-priority selector", "Consolidate analytics on canonical source-to-revenue data", "Complete AI run traces, tool evidence, errors, and usage", "Enforce bounded AI context and grounding rules", "Build the system-health report and freshness thresholds"], start: "src/lib/revenue-os/queue.ts; src/lib/revenue-os/analytics.ts; src/lib/revenue-os/activities.ts; src/lib/revenue-os/scheduler.ts; AI Workspace; Today; Notifications; demo runtime", guardrails: "Predict only from timestamped canonical evidence and explicit assumptions. Never label an AI guess as a forecast, silently change deterministic urgency, notify repeatedly about unchanged evidence, or permit a brief to bypass confirmation and domain services.", labels: ["ai", "analytics"] }),
-  card({ key: "ai-message-drafting", title: "Draft personalized first-touch and reply messages safely", workstream: "ai", phase: 3, priority: "high", description: "Generate editable outreach and reply drafts from approved facts, templates, campaign policy, and conversation context.", acceptance: ["Draft identifies the recipient, goal, factual inputs, and template/policy source", "Unsupported personalization is excluded or clearly flagged", "Ad-hoc drafts require individual send confirmation; campaign drafts stay within the approved version"], dependencies: ["Enforce bounded AI context and grounding rules", "Finish one auditable communication sender"], start: "email templates; AI prompts; Conversations and Campaigns UIs", guardrails: "Do not invent case studies, results, relationships, urgency, pricing, or availability.", labels: ["drafting", "email"] }),
-  card({ key: "ai-meeting-intelligence", title: "Summarize meetings and extract reviewable commitments", workstream: "ai", phase: 4, priority: "high", description: "Turn notes and permitted conversation context into summaries, commitments, follow-ups, risks, and stage suggestions for founder review.", acceptance: ["Summary links to source notes/event and separates direct statements from interpretation", "Tasks and stage changes are proposed through confirmation and dedupe services", "Repeated runs do not create duplicate commitments"], dependencies: ["Build post-meeting notes and commitment extraction", "Finish the shared AI confirmation system"], start: "calendar events; activities; task and action services", guardrails: "No transcription ingestion is assumed unless separately configured and consented.", labels: ["meetings", "extraction"] }),
-  card({ key: "ai-proposal-audit", title: "Draft audits and proposals from approved evidence", workstream: "ai", phase: 4, priority: "medium", description: "Create structured audit and proposal drafts from notes, company research, selected documents, approved offers, and pricing inputs.", acceptance: ["Draft cites every material claim and identifies missing required input", "Pricing and commercial terms come only from founder-approved data", "Final preview, version, recipient, and send require explicit confirmation"], dependencies: ["Ground AI retrieval in Drive provenance and citations", "Complete the proposal lifecycle and version rules", "Finish the shared AI confirmation system"], start: "proposal generation API; Drive retrieval; pricing/settings sources", guardrails: "Never infer or optimize price autonomously and never overwrite a sent proposal version.", labels: ["proposals", "drafting"] }),
-  card({ key: "ai-analytics-setup-help", title: "Explain pipeline health, campaign results, forecast risk, and setup", workstream: "ai", phase: 4, priority: "medium", description: "Let the founder ask grounded questions about live metrics, failures, setup documentation, and recommended recovery actions.", acceptance: ["Metric answers cite canonical query window and filters", "Setup answers cite checked-in instructions and live capability status", "Suggested writes or external actions enter the standard confirmation path"], dependencies: ["Consolidate analytics on canonical source-to-revenue data", "Finish Setup Center as the operational control plane", "Enforce bounded AI context and grounding rules"], start: "Revenue AI command; analytics service; docs/REVENUE-OS-SETUP.md; Setup API", guardrails: "Do not call estimates facts or claim a provider is healthy from configuration presence alone.", labels: ["analytics", "setup"] }),
+  card({
+    key: "ai-command-workspace",
+    title: "Ship one operator-grade AI workspace everywhere",
+    workstream: "admin",
+    phase: 3,
+    status: "shipped",
+    priority: "high",
+    owner: "Codex",
+    description:
+      "Use the shared command runtime from a dedicated AI workspace, a global command panel, and contextual record launchers with one conversation state and one approval boundary.",
+    acceptance: [
+      "The founder can use the same thread from /admin/ai and a global Command-J panel",
+      "Command-K remains navigation while Command-J owns AI, with accessible desktop and mobile behavior",
+      "Messages expose live status, bounded tool evidence, sources, feedback, retry, and staged actions without raw provider payloads",
+      "Opportunity Ask AI launches with canonical record context and all write proposals use the shared confirmation path",
+    ],
+    dependencies: [
+      "Build the persistent streamed AI command runtime",
+      "Complete AI run traces, tool evidence, errors, and usage",
+    ],
+    start:
+      "src/app/admin/layout.tsx; src/components/admin/RevenueAICommand.tsx; src/app/admin/ai; opportunity record workspace",
+    guardrails:
+      "Do not duplicate agent state per surface, merge AI into the navigation palette, accept arbitrary generated HTML, or hide when a model/tool fails.",
+    labels: ["ai"],
+    verification:
+      "npm run qa:ai-command; npm run test:ai-command-runtime; npm run test:route-coverage; npx tsc --noEmit; npm run lint; reviewed desktop/mobile/dark/reduced-motion screenshots; git diff --check.",
+    evidence:
+      "Verified 2026-08-25: `/admin/ai` is one responsive AI Workspace with Ask, Run history, and Capabilities views; `/admin/ai-operations` is a request-aware compatibility redirect. Ask, Command-J, Today, and opportunity launchers retain one provider, transcript, stream, and proposal boundary. Run history exposes bounded evidence and safe failures; Capabilities derives from the versioned registry and distinguishes policy from readiness. `npm run qa:ai-command` passes authenticated conversation streaming, tool evidence, staged approval, run detail, capability policy, keyboard panel, focus, desktop/mobile/dark/reduced-motion, overflow, and console checks. `npm run test:ai-command-runtime`, `npm run test:route-coverage`, `npm run test:ai-operations`, TypeScript, lint, and the full three-business admin demo matrix pass. Reviewed seven AI workspace screenshots in `/tmp/accelerate-ai-command` and loaded desktop/mobile dark screenshots in `/tmp/accelerate-ai-workspace`. 2026-08-26 release hardening: the shared Command-J listener now recognizes both the physical KeyJ code and normalized key value, rejects key repeat, and stops propagation after ownership. Fresh production-build QA passes Command-J, focus, desktop/mobile, dark, reduced motion, overflow, and console coverage.",
+  }),
+  card({
+    key: "agent-learning-feedback-loop",
+    title: "Build the governed agent learning feedback loop",
+    workstream: "ai",
+    phase: 3,
+    status: "planned",
+    priority: "high",
+    description:
+      "Capture founder feedback and real action outcomes as reviewable signals that improve future AI guidance without creating self-modifying behavior or ingesting unsafe instructions.",
+    acceptance: [
+      "A founder can rate completed agent outputs and each rating is tied to an immutable run and audit record",
+      "Future runs consume only bounded, aggregate, approved quality telemetry, not raw prompts, outputs, or free-form feedback as instructions",
+      "Action approval, rejection, execution, reply, meeting, proposal, and revenue outcomes can be linked to recommendation quality over time",
+      "A founder can inspect, correct, or disable learning signals and no signal changes business rules or sends automatically",
+    ],
+    dependencies: [
+      "Complete AI run traces, tool evidence, errors, and usage",
+      "Finish the shared AI confirmation system",
+      "Normalize the cross-channel activity ledger",
+    ],
+    start:
+      "src/lib/revenue-os/agent-learning.ts; agent_runs; agent_run_events; action_queue; RevenueAICommand.tsx",
+    guardrails:
+      "This is governed product learning, not autonomous model training. Never feed raw customer content, secrets, injected text, or unreviewed free-form feedback into system instructions.",
+    labels: ["learning", "feedback", "safety"],
+    evidence:
+      "2026-08-16: founder helpful/not-helpful ratings are now stored as agent-run events and audit entries. Future command runs receive only a 90-day aggregate per-tool helpful/not-helpful summary. Remaining: outcome linkage across actions/campaigns/meetings/proposals/revenue, operator inspection/correction/disable controls, and explicit retention policy.",
+  }),
+  card({
+    key: "ai-model-job-registry",
+    title: "Route every AI job through an audited model registry",
+    workstream: "ai",
+    phase: 4,
+    status: "planned",
+    priority: "medium",
+    description:
+      "Choose OpenRouter models by typed workload requirements instead of scattered IDs, with current capability and cost metadata, explicit activation, eval gates, and rollback.",
+    acceptance: [
+      "Every AI call names a registered job and records requested and resolved models",
+      "Operator choices are limited to compatible models and environment overrides remain explicit",
+      "Free or low-cost models are visible but cannot run consequential jobs until their eval set passes",
+      "Fallback and model changes are never silent and are auditable",
+    ],
+    dependencies: [
+      "Standardize every AI workflow on the OpenRouter gateway",
+      "Complete AI run traces, tool evidence, errors, and usage",
+    ],
+    start: "src/lib/ai/openrouter.ts; AI Operations; admin settings service",
+    guardrails:
+      "OpenRouter remains the sole gateway. Do not let a browser send arbitrary model IDs or activate a consequential model without evidence.",
+    labels: ["ai", "reliability"],
+  }),
+  card({
+    key: "tenant-ai-sponsorship-control",
+    title: "Add explicit platform-sponsored AI budgets per tenant",
+    workstream: "ai",
+    phase: 5,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Extend tenant-owned OpenRouter BYOK with a founder-controlled sponsorship mode for exceptional workspaces, without turning the platform key into an implicit global fallback.",
+    acceptance: [
+      "Platform administration can select BYOK, disabled, or platform-sponsored billing for one tenant through an audited control-plane service",
+      "Sponsored mode has an explicit per-tenant monthly budget, immediate kill switch, and provider/run cost receipts that reconcile to that tenant",
+      "Client administrators can see their billing mode and usage posture but can never read, replace, or infer the platform credential",
+      "Mode changes fail closed during concurrent AI work and never cause another tenant to inherit sponsorship",
+    ],
+    dependencies: [
+      "Tenant-isolate providers, public intake, webhooks, and jobs",
+      "Route every AI job through an audited model registry",
+    ],
+    start:
+      "integration_connections; src/lib/ai/openrouter-credentials.ts; src/lib/revenue-os/ai-agent.ts; src/app/admin/tenants; AI Operations",
+    guardrails:
+      "Do not reintroduce a global client fallback, expose a platform key, represent token counts as settled cost, or enable sponsorship without a budget and founder audit receipt. BYOK remains the default client mode.",
+    labels: ["ai", "provider", "control-plane"],
+  }),
+  card({
+    key: "ai-quality-control-plane",
+    title: "Build the AI policy, exemplar, ambiguity, and quality control plane",
+    workstream: "ai",
+    phase: 4,
+    status: "planned",
+    priority: "high",
+    description:
+      "Give each AI surface versioned instructions, source rules, review requirements, curated examples, ambiguity handling, kill switches, and measurable quality outcomes.",
+    acceptance: [
+      "Each surface has an auditable enabled policy with output, review, must-include, never-mention, source, and instruction rules",
+      "Commitment-sensitive drafting returns proceed, clarify, or escalate before generation",
+      "Only manually curated exemplars influence future drafts",
+      "Quality reports acceptance, edits, rejection reasons, safety failures, prompt growth, and cost by task",
+    ],
+    dependencies: [
+      "Ship one operator-grade AI workspace everywhere",
+      "Build the governed agent learning feedback loop",
+      "Route every AI job through an audited model registry",
+    ],
+    start: "AI Operations; agent_run_events; admin settings policy service",
+    guardrails:
+      "No automatic exemplar promotion, self-modifying prompt, hidden fallback, or policy-controlled direct write.",
+    labels: ["ai", "reliability"],
+  }),
+  card({
+    key: "mcp-ai-tool-bridge",
+    title: "Expose the governed tool registry through MCP",
+    workstream: "integrations",
+    phase: 4,
+    status: "planned",
+    priority: "medium",
+    description:
+      "Use the same versioned tool definitions for approved MCP clients and future external MCP sources so the Command Center can expand without creating parallel business logic.",
+    acceptance: [
+      "MCP schemas are derived from the canonical AI tool registry",
+      "Approved clients can run bounded reads while writes only stage action_queue proposals",
+      "External servers require registry, scope, health, rate-limit, and audit evidence",
+      "Unknown tools, servers, scopes, and destructive requests fail closed",
+    ],
+    dependencies: [
+      "Build the provider capability platform and integration catalog",
+      "Complete AI tool registry and impact tiers",
+      "Verify founder-only admin access and service-only data policies",
+    ],
+    start: "src/lib/revenue-os/ai-tools.ts; integration registry; MCP adapter",
+    guardrails:
+      "No arbitrary remote server connection, remote code execution, secret exposure, browser-held credential, or direct database write.",
+    labels: ["integrations", "security"],
+  }),
+  card({
+    key: "ai-company-research",
+    title: "Build grounded company research and revenue-leak analysis",
+    workstream: "ai",
+    phase: 4,
+    priority: "medium",
+    description:
+      "Research a company from approved sources, separate evidence from inference, and identify likely operational revenue leaks relevant to outreach or calls.",
+    acceptance: [
+      "Research records source URLs/documents, retrieval time, and confidence",
+      "Claims unsupported by sources are labeled hypotheses",
+      "Founder can save approved findings to company research without overwriting raw sources",
+    ],
+    dependencies: ["Enforce bounded AI context and grounding rules"],
+    start: "companies research fields; AI tool registry; approved web/document sources",
+    guardrails: "Do not fabricate company size, technology, revenue, personnel, or pain points.",
+    labels: ["research", "companies"],
+  }),
+  card({
+    key: "ai-opportunity-ranking",
+    title: "Rank today’s best opportunities with evidence",
+    workstream: "ai",
+    phase: 3,
+    priority: "high",
+    description:
+      "Explain which opportunities deserve attention using the deterministic priority policy plus bounded qualitative evidence.",
+    acceptance: [
+      "Hard deadlines and system facts come from the shared priority selector",
+      "AI explains evidence, uncertainty, and recommended next action",
+      "Ranking cannot silently alter stage, value, probability, or tasks",
+    ],
+    dependencies: [
+      "Create the shared operator-priority selector",
+      "Enforce bounded AI context and grounding rules",
+    ],
+    start: "Today page; overview API; Revenue AI command",
+    guardrails:
+      "AI may refine explanations, not override deterministic safety and deadline ordering.",
+    labels: ["ranking", "today"],
+  }),
+  card({
+    key: "proactive-operator-intelligence",
+    title: "Deliver proactive operator briefs and leading indicators",
+    workstream: "ai",
+    phase: 4,
+    status: "planned",
+    priority: "high",
+    description:
+      "Turn canonical changes into a concise, evidence-backed operating brief that tells the founder what changed, what is likely to matter next, why, and the safest next action before a deadline, revenue risk, or system failure becomes urgent.",
+    acceptance: [
+      "Daily, weekly, and material-change briefs compare versioned snapshots from the shared priority selector, canonical analytics, activity ledger, commitments, conversations, pipeline, campaigns, and system health without creating a second scoring system",
+      "Every item separates observed fact, deterministic projection, and bounded hypothesis; exposes source time, confidence, assumptions, materiality, and an exact canonical record link",
+      "Duplicate signals collapse into one evolving thread and notification thresholds prevent routine noise, while critical new evidence can surface immediately with an inspectable delivery receipt",
+      "Recommended actions open the existing record or enter the shared confirmation/action queue; the brief never sends, mutates a deadline, or changes revenue state directly",
+      "Backtest fixtures prove missed-deadline, buying-signal, proposal-expiry, pipeline-stall, forecast-risk, campaign-failure, and provider-degradation detection without invented facts or hindsight leakage",
+      "The full admin demo provides a reconciled business-specific brief for every scenario and responsive QA covers desktop, mobile, keyboard, reduced motion, empty, degraded, stale, and recovery states",
+    ],
+    dependencies: [
+      "Phase B: a knowledge substrate with provenance",
+      "Create the shared operator-priority selector",
+      "Consolidate analytics on canonical source-to-revenue data",
+      "Complete AI run traces, tool evidence, errors, and usage",
+      "Enforce bounded AI context and grounding rules",
+      "Build the system-health report and freshness thresholds",
+    ],
+    start:
+      "src/lib/revenue-os/queue.ts; src/lib/revenue-os/analytics.ts; src/lib/revenue-os/activities.ts; src/lib/revenue-os/scheduler.ts; AI Workspace; Today; Notifications; demo runtime",
+    guardrails:
+      "Predict only from timestamped canonical evidence and explicit assumptions. Never label an AI guess as a forecast, silently change deterministic urgency, notify repeatedly about unchanged evidence, or permit a brief to bypass confirmation and domain services.",
+    labels: ["ai", "analytics"],
+  }),
+  card({
+    key: "ai-message-drafting",
+    title: "Draft personalized first-touch and reply messages safely",
+    workstream: "ai",
+    phase: 3,
+    priority: "high",
+    description:
+      "Generate editable outreach and reply drafts from approved facts, templates, campaign policy, and conversation context.",
+    acceptance: [
+      "Draft identifies the recipient, goal, factual inputs, and template/policy source",
+      "Unsupported personalization is excluded or clearly flagged",
+      "Ad-hoc drafts require individual send confirmation; campaign drafts stay within the approved version",
+    ],
+    dependencies: [
+      "Enforce bounded AI context and grounding rules",
+      "Finish one auditable communication sender",
+    ],
+    start: "email templates; AI prompts; Conversations and Campaigns UIs",
+    guardrails:
+      "Do not invent case studies, results, relationships, urgency, pricing, or availability.",
+    labels: ["drafting", "email"],
+  }),
+  card({
+    key: "ai-meeting-intelligence",
+    title: "Summarize meetings and extract reviewable commitments",
+    workstream: "ai",
+    phase: 4,
+    priority: "high",
+    description:
+      "Turn notes and permitted conversation context into summaries, commitments, follow-ups, risks, and stage suggestions for founder review.",
+    acceptance: [
+      "Summary links to source notes/event and separates direct statements from interpretation",
+      "Tasks and stage changes are proposed through confirmation and dedupe services",
+      "Repeated runs do not create duplicate commitments",
+    ],
+    dependencies: [
+      "Build post-meeting notes and commitment extraction",
+      "Finish the shared AI confirmation system",
+    ],
+    start: "calendar events; activities; task and action services",
+    guardrails: "No transcription ingestion is assumed unless separately configured and consented.",
+    labels: ["meetings", "extraction"],
+  }),
+  card({
+    key: "ai-proposal-audit",
+    title: "Draft audits and proposals from approved evidence",
+    workstream: "ai",
+    phase: 4,
+    priority: "medium",
+    description:
+      "Create structured audit and proposal drafts from notes, company research, selected documents, approved offers, and pricing inputs.",
+    acceptance: [
+      "Draft cites every material claim and identifies missing required input",
+      "Pricing and commercial terms come only from founder-approved data",
+      "Final preview, version, recipient, and send require explicit confirmation",
+    ],
+    dependencies: [
+      "Ground AI retrieval in Drive provenance and citations",
+      "Complete the proposal lifecycle and version rules",
+      "Finish the shared AI confirmation system",
+    ],
+    start: "proposal generation API; Drive retrieval; pricing/settings sources",
+    guardrails:
+      "Never infer or optimize price autonomously and never overwrite a sent proposal version.",
+    labels: ["proposals", "drafting"],
+  }),
+  card({
+    key: "ai-analytics-setup-help",
+    title: "Explain pipeline health, campaign results, forecast risk, and setup",
+    workstream: "ai",
+    phase: 4,
+    priority: "medium",
+    description:
+      "Let the founder ask grounded questions about live metrics, failures, setup documentation, and recommended recovery actions.",
+    acceptance: [
+      "Metric answers cite canonical query window and filters",
+      "Setup answers cite checked-in instructions and live capability status",
+      "Suggested writes or external actions enter the standard confirmation path",
+    ],
+    dependencies: [
+      "Consolidate analytics on canonical source-to-revenue data",
+      "Finish Setup Center as the operational control plane",
+      "Enforce bounded AI context and grounding rules",
+    ],
+    start: "Revenue AI command; analytics service; docs/REVENUE-OS-SETUP.md; Setup API",
+    guardrails:
+      "Do not call estimates facts or claim a provider is healthy from configuration presence alone.",
+    labels: ["analytics", "setup"],
+  }),
 
   // Phase 2/4, setup, security, health, and release discipline
-  card({ key: "setup-control-plane", title: "Finish Setup Center as the operational control plane", workstream: "setup", phase: 2, status: "shipped", priority: "high", owner: "Grok-4.6-03-setup-control-plane", description: "Group Core, Email, Google, AI, Campaigns, Proposals, Analytics, optional Booking, and Operations into actionable live capability checks.", acceptance: ["Every item reports Ready, Needs action, Degraded, Disabled, or Optional", "Each item explains value, checks behavior, shows last success/failure/next run, and links to exact setup", "Secrets remain masked while reconnect and safe test actions are available where appropriate"], dependencies: ["Verify the production Revenue OS schema"], start: "src/app/admin/setup/page.tsx; src/app/api/admin/setup/route.ts; docs/REVENUE-OS-SETUP.md", guardrails: "Variable presence alone is not behavioral readiness. Calendly stays optional and disabled.", labels: ["control-plane", "operations"], evidence: "2026-08-30 Wave 1 close: every Setup capability now carries a next-run receipt (`setupNextRun`) rendered beside last success/failure. Route contract tests prove each check declares next-run copy and the handler does not interpolate secret environment values. Reconnect/test probes and Google/proposal/webhook ping actions remain on Add safe behavioral tests and recovery actions to Setup Center. Calendly default/activation truth remains on Reconcile booking activation and health truth. 2026-08-30 Wave 1: Resend and campaign checks no longer treat environment presence as Ready. `resendDeliveryReadiness` requires an outbound message receipt; a failed latest send is Degraded. A failed `revenue-campaigns` job is Degraded. `npx tsx scripts/test-setup-status.ts` passed. Remaining: reconnect/test actions and Google/proposal/webhook behavioral probes, owned by Add safe behavioral tests and recovery actions to Setup Center; complete next-run copy on every check. 2026-08-16: Setup Center groups core schema/access/site, Resend, Google, AI, campaigns, proposals, first-party analytics, optional disabled Calendly, cron/operations, Feature Board, and Email Studio; it masks secrets and distinguishes ready/action/degraded/disabled/optional. Production now reports 9/9 required checks ready after live schema verification, encrypted OpenRouter activation, and a generated encrypted CRON_SECRET. Authenticated Playwright verified Setup, OpenRouter Contact Import behavior, full required readiness, screenshots, and no settled-state console errors. Remaining: behavioral tests for Google/proposals/webhooks, complete last-success/failure/next-run receipts, reconnect/test actions, and alert/health integration." }),
-  card({ key: "setup-behavioral-tests", title: "Add safe behavioral tests and recovery actions to Setup Center", workstream: "setup", phase: 4, priority: "high", description: "Give each provider and subsystem a bounded test that proves the intended capability and changes status on failure and recovery.", acceptance: ["Email, Google sources, AI, proposals, analytics, cron, and webhooks have reproducible checks", "Tests record receipts and never perform an undisclosed external action", "Failure and recovery update status, timestamps, error summary, and next step"], dependencies: ["Finish Setup Center as the operational control plane", "Build the system-health report and freshness thresholds"], start: "Setup API/UI; source_runs; job_runs; webhook_receipts", guardrails: "Do not send real customer messages or mutate calendars as a background health check.", labels: ["verification", "recovery"] }),
-  card({ key: "secret-storage-hardening", title: "Harden encrypted secret and token storage", workstream: "security", phase: 1, status: "shipped", priority: "high", owner: "Grok-4.6-04-secret-storage-hardening", description: "Keep provider secrets in environment configuration and encrypt refresh/access credentials server-side with rotation and redacted diagnostics.", acceptance: ["Recognized secret keys cannot be saved through admin settings", "Google tokens are encrypted at rest and decrypted only in server-only modules", "Logs, audit records, traces, and API responses never expose secret values"], dependencies: ["Verify the production Revenue OS schema"], start: "src/lib/revenue-os/encryption.ts; settings API; integration_connections", guardrails: "Do not reuse the service-role key as the long-term independent token encryption key in production.", labels: ["secrets", "encryption"], evidence: "2026-08-30 Wave 1: `RESEND_WEBHOOK_SECRET` joined the server-only key denylist so it cannot be saved through admin_settings. Encrypted envelopes stay `v1`; unknown versions and historical plaintext fail closed (`isEncryptedSecret` / `decryptSecret`). Google token reads refuse plaintext refresh/access tokens and tell the founder to reconnect. `npm run test:secret-storage` passed 10 checks. Token revocation cleanup remains on Add Google token health, scope drift, and reconnect recovery. 2026-08-17: removed the `GOOGLE_TOKEN_ENCRYPTION_KEY` fallback to `SUPABASE_SERVICE_ROLE_KEY` in `src/lib/revenue-os/encryption.ts`, added `isGoogleTokenEncryptionKeyConfigured()` and required it in Setup checks (`src/app/api/admin/setup/route.ts`, `src/app/api/admin/google/status/route.ts`), and added deterministic scoped tests in `scripts/test-secret-storage.ts` for key-configured encryption/decryption and fail-closed behavior when Google key is absent. Verification: `npm run test:secret-storage`; `NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-secret-storage.ts`. Remaining: independent production key verification evidence, rotation/versioning policy, redaction traces, historical plaintext migration, and token revocation cleanup." }),
-  card({ key: "founder-access-rls", title: "Verify founder-only admin access and service-only data policies", workstream: "security", phase: 1, status: "shipped", priority: "high", description: "Prove that only the configured founder can enter admin routes and APIs and that browser clients cannot use service-role capabilities.", acceptance: ["Founder succeeds while unauthenticated and other authenticated users fail on pages and APIs", "Canonical tables expose no blanket authenticated mutation policy", "Service-role keys and privileged operations remain server-only"], dependencies: ["Verify the production Revenue OS schema"], start: "src/middleware.ts; src/lib/admin/auth.ts; Revenue OS migrations; API routes", guardrails: "Do not weaken auth for local QA; use one-time test sessions and retain fail-closed behavior.", labels: ["auth", "rls"], evidence: "2026-08-18: expanded `scripts/test-founder-access.ts` to cover additional protected admin pages (`/admin/pipeline`, `/admin/settings`, `/admin/campaigns`) and APIs (`/api/admin/settings`, `/api/admin/analytics`, `/api/admin/revenue-os/overview`, `/api/admin/revenue-os/campaigns`) in addition to existing gates. Production proof command: `PLAYWRIGHT_BASE_URL=https://www.acceleratewith.us npm run test:founder-access`, which reports `checks:17` and `founder access, unauthenticated gates, authenticated fail-closed checks, browser-bundle service-role exposure checks, canonical admin policy audit covered` plus `founder-access-policy-audit: checked 0 authenticated policy rows; no mutating policies on canonical admin tables.` No service-role secrets were exposed in `.next/static`; no mutating authenticated canonical policies were found." }),
+  card({
+    key: "setup-control-plane",
+    title: "Finish Setup Center as the operational control plane",
+    workstream: "setup",
+    phase: 2,
+    status: "shipped",
+    priority: "high",
+    owner: "Grok-4.6-03-setup-control-plane",
+    description:
+      "Group Core, Email, Google, AI, Campaigns, Proposals, Analytics, optional Booking, and Operations into actionable live capability checks.",
+    acceptance: [
+      "Every item reports Ready, Needs action, Degraded, Disabled, or Optional",
+      "Each item explains value, checks behavior, shows last success/failure/next run, and links to exact setup",
+      "Secrets remain masked while reconnect and safe test actions are available where appropriate",
+    ],
+    dependencies: ["Verify the production Revenue OS schema"],
+    start:
+      "src/app/admin/setup/page.tsx; src/app/api/admin/setup/route.ts; docs/REVENUE-OS-SETUP.md",
+    guardrails:
+      "Variable presence alone is not behavioral readiness. Calendly stays optional and disabled.",
+    labels: ["control-plane", "operations"],
+    evidence:
+      "2026-08-30 Wave 1 close: every Setup capability now carries a next-run receipt (`setupNextRun`) rendered beside last success/failure. Route contract tests prove each check declares next-run copy and the handler does not interpolate secret environment values. Reconnect/test probes and Google/proposal/webhook ping actions remain on Add safe behavioral tests and recovery actions to Setup Center. Calendly default/activation truth remains on Reconcile booking activation and health truth. 2026-08-30 Wave 1: Resend and campaign checks no longer treat environment presence as Ready. `resendDeliveryReadiness` requires an outbound message receipt; a failed latest send is Degraded. A failed `revenue-campaigns` job is Degraded. `npx tsx scripts/test-setup-status.ts` passed. Remaining: reconnect/test actions and Google/proposal/webhook behavioral probes, owned by Add safe behavioral tests and recovery actions to Setup Center; complete next-run copy on every check. 2026-08-16: Setup Center groups core schema/access/site, Resend, Google, AI, campaigns, proposals, first-party analytics, optional disabled Calendly, cron/operations, Feature Board, and Email Studio; it masks secrets and distinguishes ready/action/degraded/disabled/optional. Production now reports 9/9 required checks ready after live schema verification, encrypted OpenRouter activation, and a generated encrypted CRON_SECRET. Authenticated Playwright verified Setup, OpenRouter Contact Import behavior, full required readiness, screenshots, and no settled-state console errors. Remaining: behavioral tests for Google/proposals/webhooks, complete last-success/failure/next-run receipts, reconnect/test actions, and alert/health integration.",
+  }),
+  card({
+    key: "setup-behavioral-tests",
+    title: "Add safe behavioral tests and recovery actions to Setup Center",
+    workstream: "setup",
+    phase: 4,
+    priority: "high",
+    description:
+      "Give each provider and subsystem a bounded test that proves the intended capability and changes status on failure and recovery.",
+    acceptance: [
+      "Email, Google sources, AI, proposals, analytics, cron, and webhooks have reproducible checks",
+      "Tests record receipts and never perform an undisclosed external action",
+      "Failure and recovery update status, timestamps, error summary, and next step",
+    ],
+    dependencies: [
+      "Finish Setup Center as the operational control plane",
+      "Build the system-health report and freshness thresholds",
+    ],
+    start: "Setup API/UI; source_runs; job_runs; webhook_receipts",
+    guardrails:
+      "Do not send real customer messages or mutate calendars as a background health check.",
+    labels: ["verification", "recovery"],
+  }),
+  card({
+    key: "secret-storage-hardening",
+    title: "Harden encrypted secret and token storage",
+    workstream: "security",
+    phase: 1,
+    status: "shipped",
+    priority: "high",
+    owner: "Grok-4.6-04-secret-storage-hardening",
+    description:
+      "Keep provider secrets in environment configuration and encrypt refresh/access credentials server-side with rotation and redacted diagnostics.",
+    acceptance: [
+      "Recognized secret keys cannot be saved through admin settings",
+      "Google tokens are encrypted at rest and decrypted only in server-only modules",
+      "Logs, audit records, traces, and API responses never expose secret values",
+    ],
+    dependencies: ["Verify the production Revenue OS schema"],
+    start: "src/lib/revenue-os/encryption.ts; settings API; integration_connections",
+    guardrails:
+      "Do not reuse the service-role key as the long-term independent token encryption key in production.",
+    labels: ["secrets", "encryption"],
+    evidence:
+      "2026-08-30 Wave 1: `RESEND_WEBHOOK_SECRET` joined the server-only key denylist so it cannot be saved through admin_settings. Encrypted envelopes stay `v1`; unknown versions and historical plaintext fail closed (`isEncryptedSecret` / `decryptSecret`). Google token reads refuse plaintext refresh/access tokens and tell the founder to reconnect. `npm run test:secret-storage` passed 10 checks. Token revocation cleanup remains on Add Google token health, scope drift, and reconnect recovery. 2026-08-17: removed the `GOOGLE_TOKEN_ENCRYPTION_KEY` fallback to `SUPABASE_SERVICE_ROLE_KEY` in `src/lib/revenue-os/encryption.ts`, added `isGoogleTokenEncryptionKeyConfigured()` and required it in Setup checks (`src/app/api/admin/setup/route.ts`, `src/app/api/admin/google/status/route.ts`), and added deterministic scoped tests in `scripts/test-secret-storage.ts` for key-configured encryption/decryption and fail-closed behavior when Google key is absent. Verification: `npm run test:secret-storage`; `NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-secret-storage.ts`. Remaining: independent production key verification evidence, rotation/versioning policy, redaction traces, historical plaintext migration, and token revocation cleanup.",
+  }),
+  card({
+    key: "founder-access-rls",
+    title: "Verify founder-only admin access and service-only data policies",
+    workstream: "security",
+    phase: 1,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Prove that only the configured founder can enter admin routes and APIs and that browser clients cannot use service-role capabilities.",
+    acceptance: [
+      "Founder succeeds while unauthenticated and other authenticated users fail on pages and APIs",
+      "Canonical tables expose no blanket authenticated mutation policy",
+      "Service-role keys and privileged operations remain server-only",
+    ],
+    dependencies: ["Verify the production Revenue OS schema"],
+    start: "src/middleware.ts; src/lib/admin/auth.ts; Revenue OS migrations; API routes",
+    guardrails:
+      "Do not weaken auth for local QA; use one-time test sessions and retain fail-closed behavior.",
+    labels: ["auth", "rls"],
+    evidence:
+      "2026-08-18: expanded `scripts/test-founder-access.ts` to cover additional protected admin pages (`/admin/pipeline`, `/admin/settings`, `/admin/campaigns`) and APIs (`/api/admin/settings`, `/api/admin/analytics`, `/api/admin/revenue-os/overview`, `/api/admin/revenue-os/campaigns`) in addition to existing gates. Production proof command: `PLAYWRIGHT_BASE_URL=https://www.acceleratewith.us npm run test:founder-access`, which reports `checks:17` and `founder access, unauthenticated gates, authenticated fail-closed checks, browser-bundle service-role exposure checks, canonical admin policy audit covered` plus `founder-access-policy-audit: checked 0 authenticated policy rows; no mutating policies on canonical admin tables.` No service-role secrets were exposed in `.next/static`; no mutating authenticated canonical policies were found.",
+  }),
 
-  card({ key: "webhook-cron-api-defense", title: "Harden webhook, cron, replay, validation, and rate-limit defenses", workstream: "security", phase: 2, priority: "high", description: "Apply provider signatures, OAuth state, replay IDs, cron secrets, strict payload validation, and bounded rate limits to every external entry point.", acceptance: ["Invalid signature/state/secret requests fail before mutation", "Replay produces the existing receipt without repeating side effects", "Malformed and oversized payloads fail with safe errors and observable receipts"], dependencies: ["Enforce atomic claims and idempotency for jobs and actions", "Harden encrypted secret and token storage"], start: "webhook routes; cron routes; src/lib/rate-limit.ts; validation modules", guardrails: "Never log raw secrets or return internal validation details to public callers.", labels: ["webhooks", "validation"], evidence: "2026-08-18: added deterministic oversized payload limits (413) to `src/app/api/webhooks/resend/route.ts` and `src/app/api/webhooks/calendly/route.ts`; `src/app/api/cron/google-workspace-sync` and `src/app/api/cron/revenue-campaigns` validate Bearer CRON secret and now have dedicated method-gate coverage in `scripts/test-webhook-cron-defense.ts`; introduced `test:api-contracts` and `test:webhook-cron-defense` scripts. Remaining in this slice: broader provider/provider-failure behavior and cron/health receipts in production contract scope." }),
-  card({ key: "notification-dispatch-preferences", title: "Wire notification preferences into actual dispatch", workstream: "operations", phase: 3, priority: "medium", description: "Ensure urgency, channel, quiet hours, and disabled preferences govern real notification creation and delivery rather than settings display only.", acceptance: ["Dispatch reads the authoritative preferences at execution time", "Critical security/health overrides are explicitly documented", "Delivery attempts, failures, dedupe, and acknowledged state are visible"], dependencies: ["Create the shared operator-priority selector", "Finish one auditable communication sender"], start: "admin notification schema/API; settings; action and job paths", guardrails: "Do not silently suppress required security alerts or send duplicates across retries.", labels: ["notifications", "preferences"] }),
-  card({ key: "system-health-report", status: "planned", title: "Build the system-health report and freshness thresholds", workstream: "operations", phase: 4, priority: "high", description: "Summarize sync freshness, job receipts, queue backlog, delivery failures, webhook failures, connection degradation, and alert deliverability.", acceptance: ["Each subsystem has an expected cadence and explicit healthy/degraded/stale rule", "Latest success, failure, backlog, and next expected execution link to receipts", "Health never reports green from configuration presence or HTTP status alone"], dependencies: ["Finish Setup Center as the operational control plane", "Enforce atomic claims and idempotency for jobs and actions"], start: "job_runs; source_runs; webhook_receipts; integration_connections; Setup Center", guardrails: "Unknown or missing evidence is not healthy.", labels: ["health", "observability"], evidence: "2026-08-20: health computation lifted out of the route handlers into `src/lib/revenue-os/health.ts` so a background job can reuse it. It previously lied by omission in two ways, both fixed: it counted only failed and partial job runs, so a job stuck `running` for hours read as healthy, and webhook_receipts recorded failures that no admin surface ever read. Both are now in the computation, with STALLED_JOB_MINUTES making the stale rule explicit, and the Setup operations capability reports degraded rather than ready when a job is stalled. Proven against production by `npm run verify:health-truth`. NOT SHIPPED: criterion 1 is only partly met, since not every subsystem has a declared expected cadence, and next expected execution is not surfaced." }),
-  card({ key: "operations-alerting", status: "planned", title: "Add actionable health alerts and recovery runbooks", workstream: "operations", phase: 4, priority: "high", description: "Notify the founder when syncs, jobs, delivery, webhooks, tokens, or queue freshness breach defined thresholds and link to recovery steps.", acceptance: ["Alerts deduplicate by subsystem and incident while updating ongoing state", "Recovery closes the incident only after a successful behavioral check", "Every alert links to the failing receipt, likely cause, and safe next action"], dependencies: ["Build the system-health report and freshness thresholds", "Wire notification preferences into actual dispatch"], start: "notifications; Setup Center; docs/REVENUE-OS-SETUP.md", guardrails: "Avoid alert storms and never include secrets or full customer messages.", labels: ["alerts", "runbooks"], evidence: "2026-08-20: `src/lib/revenue-os/alerts.ts` added. Nothing reached the founder before this: every failure signal was in-app only, behind a 30 second poll, visible only to someone already looking. Alerts now route through sendRecordedEmail so the alert itself gets a delivery receipt and an idempotency key, and fire on job failure, stale-claim takeover, integration failure, and failed webhook receipts. Deduplication was a prerequisite, not a nicety: admin_notifications had no unique index and no dedupe_key at all, so a flapping subsystem would have buried the founder. Added by migrations/20260820-notification-dedupe.sql with a partial unique index on unread rows. Alerting is best-effort throughout so it can never break the caller it is reporting on. Proven against production by `npm run verify:operational-alerts`. NOT SHIPPED: criterion 2 is not met, since recovery does not yet close an incident after a behavioral check, and alerts name the failing subsystem but do not yet link to the specific failing receipt." }),
+  card({
+    key: "webhook-cron-api-defense",
+    title: "Harden webhook, cron, replay, validation, and rate-limit defenses",
+    workstream: "security",
+    phase: 2,
+    priority: "high",
+    description:
+      "Apply provider signatures, OAuth state, replay IDs, cron secrets, strict payload validation, and bounded rate limits to every external entry point.",
+    acceptance: [
+      "Invalid signature/state/secret requests fail before mutation",
+      "Replay produces the existing receipt without repeating side effects",
+      "Malformed and oversized payloads fail with safe errors and observable receipts",
+    ],
+    dependencies: [
+      "Enforce atomic claims and idempotency for jobs and actions",
+      "Harden encrypted secret and token storage",
+    ],
+    start: "webhook routes; cron routes; src/lib/rate-limit.ts; validation modules",
+    guardrails: "Never log raw secrets or return internal validation details to public callers.",
+    labels: ["webhooks", "validation"],
+    evidence:
+      "2026-08-18: added deterministic oversized payload limits (413) to `src/app/api/webhooks/resend/route.ts` and `src/app/api/webhooks/calendly/route.ts`; `src/app/api/cron/google-workspace-sync` and `src/app/api/cron/revenue-campaigns` validate Bearer CRON secret and now have dedicated method-gate coverage in `scripts/test-webhook-cron-defense.ts`; introduced `test:api-contracts` and `test:webhook-cron-defense` scripts. Remaining in this slice: broader provider/provider-failure behavior and cron/health receipts in production contract scope.",
+  }),
+  card({
+    key: "notification-dispatch-preferences",
+    title: "Wire notification preferences into actual dispatch",
+    workstream: "operations",
+    phase: 3,
+    priority: "medium",
+    description:
+      "Ensure urgency, channel, quiet hours, and disabled preferences govern real notification creation and delivery rather than settings display only.",
+    acceptance: [
+      "Dispatch reads the authoritative preferences at execution time",
+      "Critical security/health overrides are explicitly documented",
+      "Delivery attempts, failures, dedupe, and acknowledged state are visible",
+    ],
+    dependencies: [
+      "Create the shared operator-priority selector",
+      "Finish one auditable communication sender",
+    ],
+    start: "admin notification schema/API; settings; action and job paths",
+    guardrails:
+      "Do not silently suppress required security alerts or send duplicates across retries.",
+    labels: ["notifications", "preferences"],
+  }),
+  card({
+    key: "system-health-report",
+    status: "planned",
+    title: "Build the system-health report and freshness thresholds",
+    workstream: "operations",
+    phase: 4,
+    priority: "high",
+    description:
+      "Summarize sync freshness, job receipts, queue backlog, delivery failures, webhook failures, connection degradation, and alert deliverability.",
+    acceptance: [
+      "Each subsystem has an expected cadence and explicit healthy/degraded/stale rule",
+      "Latest success, failure, backlog, and next expected execution link to receipts",
+      "Health never reports green from configuration presence or HTTP status alone",
+    ],
+    dependencies: [
+      "Finish Setup Center as the operational control plane",
+      "Enforce atomic claims and idempotency for jobs and actions",
+    ],
+    start: "job_runs; source_runs; webhook_receipts; integration_connections; Setup Center",
+    guardrails: "Unknown or missing evidence is not healthy.",
+    labels: ["health", "observability"],
+    evidence:
+      "2026-08-20: health computation lifted out of the route handlers into `src/lib/revenue-os/health.ts` so a background job can reuse it. It previously lied by omission in two ways, both fixed: it counted only failed and partial job runs, so a job stuck `running` for hours read as healthy, and webhook_receipts recorded failures that no admin surface ever read. Both are now in the computation, with STALLED_JOB_MINUTES making the stale rule explicit, and the Setup operations capability reports degraded rather than ready when a job is stalled. Proven against production by `npm run verify:health-truth`. NOT SHIPPED: criterion 1 is only partly met, since not every subsystem has a declared expected cadence, and next expected execution is not surfaced.",
+  }),
+  card({
+    key: "operations-alerting",
+    status: "planned",
+    title: "Add actionable health alerts and recovery runbooks",
+    workstream: "operations",
+    phase: 4,
+    priority: "high",
+    description:
+      "Notify the founder when syncs, jobs, delivery, webhooks, tokens, or queue freshness breach defined thresholds and link to recovery steps.",
+    acceptance: [
+      "Alerts deduplicate by subsystem and incident while updating ongoing state",
+      "Recovery closes the incident only after a successful behavioral check",
+      "Every alert links to the failing receipt, likely cause, and safe next action",
+    ],
+    dependencies: [
+      "Build the system-health report and freshness thresholds",
+      "Wire notification preferences into actual dispatch",
+    ],
+    start: "notifications; Setup Center; docs/REVENUE-OS-SETUP.md",
+    guardrails: "Avoid alert storms and never include secrets or full customer messages.",
+    labels: ["alerts", "runbooks"],
+    evidence:
+      "2026-08-20: `src/lib/revenue-os/alerts.ts` added. Nothing reached the founder before this: every failure signal was in-app only, behind a 30 second poll, visible only to someone already looking. Alerts now route through sendRecordedEmail so the alert itself gets a delivery receipt and an idempotency key, and fire on job failure, stale-claim takeover, integration failure, and failed webhook receipts. Deduplication was a prerequisite, not a nicety: admin_notifications had no unique index and no dedupe_key at all, so a flapping subsystem would have buried the founder. Added by migrations/20260820-notification-dedupe.sql with a partial unique index on unread rows. Alerting is best-effort throughout so it can never break the caller it is reporting on. Proven against production by `npm run verify:operational-alerts`. NOT SHIPPED: criterion 2 is not met, since recovery does not yet close an incident after a behavioral check, and alerts name the failing subsystem but do not yet link to the specific failing receipt.",
+  }),
 
-  card({ key: "revenue-os-tests", title: "Add Revenue OS service-level unit coverage", workstream: "qa", phase: 4, status: "planned", priority: "high", description: "Unit-test identity resolution, pipeline rules, task dedupe, priority selection, campaign eligibility/stops, AI impact tiers, and canonical metrics.", acceptance: ["Happy, ambiguous, duplicate, terminal, retry, and failure paths are covered", "Tests are deterministic and isolate provider/network behavior", "Regressions fail before build/deploy and document the operating contract"], dependencies: ["Implement deterministic contact and company identity resolution", "Create the shared operator-priority selector", "Enforce campaign policy envelopes and version reapproval"], start: "src/lib/revenue-os; test configuration and fixtures", guardrails: "Do not treat snapshot-only tests as business-rule coverage.", labels: ["unit-tests", "services"], evidence: "2026-08-20: coverage added where money is lost, not everywhere. Before this, 0 of 7 modules under src/lib/email had an executing test and only 8 of 26 Revenue OS modules asserted their own logic; action-executor.ts, the single place an approved row becomes a real side effect, had none at all. Added test:action-execution (11 checks), test:job-and-task-contracts (13), test:email-templates (19 templates, 8 checks), test:ai-tool-gates (10), test:agent-loop (6), test:agent-trace (8), test:responder-envelope (12 decline rules and 12 grounding rejections), test:chat-house-style, and test:house-style-copy. Every guard was mutation-tested: removed one at a time and confirmed to fail its test, because a guard that cannot fail on the bug it targets is worse than no guard. That process found two real gaps a first pass had missed, both cases where a terminal write was not scoped to the state it belongs to. Provider and network behaviour is isolated by a shared in-memory Supabase harness at scripts/lib/memory-supabase.ts and a fetch stub. Regressions fail before deploy through the pre-commit hook. NOT SHIPPED: the responder eval set does not exist, so the live generation leg is unmeasured." }),
-  card({ key: "api-contract-tests", title: "Add authenticated API contract and failure tests", workstream: "qa", phase: 4, priority: "high", description: "Exercise authentication, founder authorization, payload validation, idempotency, transition rejection, provider failure, and truthful errors for every material API.", acceptance: ["Unauthenticated and non-founder calls fail consistently", "Malformed, stale, replayed, and duplicate requests prove no unintended mutation", "External-provider failures return actionable errors and terminal receipts"], dependencies: ["Verify founder-only admin access and service-only data policies", "Harden webhook, cron, replay, validation, and rate-limit defenses"], start: "src/app/api; API test harness and Supabase fixtures", guardrails: "Never run destructive API tests against uncontrolled production data.", labels: ["api-tests", "security"], evidence: "2026-08-18: added `scripts/test-api-contract-basics.ts` and `test:api-contracts` script to cover unauthenticated admin API gates (`/api/admin/settings`, `/api/admin/revenue-os/pipeline`, `/api/admin/revenue-os/overview`, `/api/admin/analytics`), public route validation (`/api/qualify`, `/api/proposal/:token`), and webhook and method-contract gates (`GET /api/webhooks/resend`, `GET /api/webhooks/calendly`, `GET /api/qualify`, `DELETE /api/proposal/:token`). Remaining in this slice: production-safe fixture expansion for richer auth transition and idempotency contract cases." }),
-  card({ key: "playwright-inbound-pipeline", title: "Add Playwright journey for inbound capture and pipeline progression", workstream: "qa", phase: 4, status: "planned", priority: "high", description: "Prove a real inbound form creates one canonical identity and opportunity, preserves attribution, appears in Today/Pipeline, and progresses through validated stages.", acceptance: ["Duplicate submission does not duplicate canonical records or stage events", "Founder can inspect context, set next action, and move stages on desktop and mobile", "The journey records screenshots and fails on console errors"], dependencies: ["Reconcile legacy records with the canonical model", "Finish the canonical Pipeline workspace", "Finish Today as the prioritized operator inbox"], start: "public qualifier/contact forms; admin Today/Pipeline; Playwright", guardrails: "Use isolated test identities and clean them through a documented recoverable fixture process.", labels: ["playwright", "inbound"] }),
-  card({ key: "playwright-gmail-campaign", title: "Add Playwright journeys for Gmail linking, reply, campaign approval, pause, and stops", workstream: "qa", phase: 4, priority: "high", description: "Prove conversation association and reply controls plus campaign dry-run, activation, due execution, pause, and stop behavior.", acceptance: ["A synchronized thread links to the correct opportunity and a confirmed reply stays threaded", "Campaign preview and approved version match executed recipients and content", "Pause, reply, bounce, unsubscribe, booking, and conversion prevent future steps"], dependencies: ["Finish Conversations as the unified communication inbox", "Enforce every campaign stop condition immediately"], start: "Google/Resend fixtures or controlled test accounts; Conversations/Campaigns UI", guardrails: "Do not message uncontrolled recipients; use explicit sandbox/test identities.", labels: ["playwright", "campaigns"] }),
-  card({ key: "playwright-proposal-setup", title: "Add Playwright journeys for proposals and Setup recovery", workstream: "qa", phase: 4, priority: "high", description: "Verify proposal send/view/accept/decline and demonstrate that provider failure and recovery change Setup Center truthfully.", acceptance: ["Proposal actions are idempotent and update linked pipeline/activity once", "A simulated degraded connection shows failure detail and recovery action", "Desktop/mobile screenshots and console-error assertions are retained"], dependencies: ["Make public proposal views and decisions idempotent", "Add safe behavioral tests and recovery actions to Setup Center"], start: "proposal pages/APIs; Setup Center; Playwright harness", guardrails: "Tests must not send a real customer proposal or mutate a personal calendar.", labels: ["playwright", "proposals"] }),
-  card({ key: "a11y-visual-qa", title: "Add accessibility, reduced-motion, and visual regression coverage", workstream: "qa", phase: 4, priority: "medium", description: "Automate critical accessibility assertions and preserve desktop/mobile screenshots for the founder workflow surfaces.", acceptance: ["Keyboard and focus journeys cover navigation, dialogs, drawers, tables, Kanban, and confirmation", "Reduced-motion mode remains fully functional", "Visual review checks clipping, overflow, empty space, alignment, and state contrast"], dependencies: ["Complete keyboard, accessibility, reduced-motion, and mobile parity"], start: "Playwright; scripts/qa-feature-board.mjs; core admin routes", guardrails: "The Next.js development indicator is not a production UI defect; test actual application elements.", labels: ["accessibility", "visual-qa"] }),
-  card({ key: "ship-command", title: "Create one guarded Revenue OS ship command", workstream: "release", phase: 4, priority: "high", description: "Require typecheck, lint, unit/API/browser tests, build, migration dry run, deployment, and authenticated production smoke evidence in a deliberate release workflow.", acceptance: ["The command stops on the first failed required gate", "Migration and deployment targets are printed without secret values", "Production smoke verifies founder access and critical routes after deploy"], dependencies: ["Add Revenue OS service-level unit coverage", "Add authenticated API contract and failure tests", "Add Playwright journey for inbound capture and pipeline progression"], start: "package.json; DEPLOY.md; scripts/; Vercel and Supabase checks", guardrails: "Do not auto-deploy from ordinary test commands or bypass the documented Vercel account checks.", labels: ["release", "automation"] }),
-  card({ key: "production-browser-qa", title: "Run authenticated production admin QA on desktop and mobile", workstream: "release", phase: 5, status: "planned", priority: "high", owner: "John", description: "Exercise Today, Pipeline, Conversations, Campaigns, Proposals, Analytics, Setup Center, Settings, and Feature Board on the deployed founder account.", acceptance: ["Critical journeys pass at desktop and mobile breakpoints with no console errors", "Every unavailable provider state is accurate and actionable", "Evidence, discovered issues, deployment ID, and test time are recorded in the card notes"], dependencies: ["Create one guarded Revenue OS ship command", "Connect Google OAuth and complete the first Workspace sync"], start: "Production deployment; Playwright smoke scripts; Setup Center", guardrails: "Do not mark Shipped from local screenshots alone. Use controlled production test records.", labels: ["production", "smoke-test"] }),
-  card({ key: "production-burn-in", title: "Complete a 14-day automation health burn-in", workstream: "release", phase: 5, priority: "high", owner: "John", description: "Monitor campaign and Workspace jobs, provider receipts, retries, queue freshness, alert delivery, and audit history before increasing automation volume.", acceptance: ["Fourteen consecutive days have terminal expected receipts and no silent failures", "Every degraded incident has documented detection, response, recovery, and prevention", "Founder signs off on daily limits and operational runbooks before scale-up"], dependencies: ["Run authenticated production admin QA on desktop and mobile", "Build the system-health report and freshness thresholds", "Add actionable health alerts and recovery runbooks"], start: "Setup Center health; job/source/webhook receipts; Vercel cron; Feature Board notes", guardrails: "Do not increase campaign volume during unresolved degradation or missing receipt evidence.", labels: ["burn-in", "production"] }),
-  card({ key: "marketing-positioning-copy-reset", title: "Lock the full-service AI positioning and reset public marketing copy", workstream: "site", phase: 5, status: "shipped", priority: "urgent", owner: "Codex", description: "Rewrite the public marketing site around Accelerate's actual offer: understand each business, identify where AI and automation can free time or increase revenue, then advise, build, integrate, execute, train, and improve the custom solution. Keep the Command Center as one integrated solution rather than the company definition, and make the positioning durable for future agents.", acceptance: ["The homepage leads with the custom consulting, build, execution, and optimization offer; its second section routes to Services rather than only to Command Center capabilities", "Every non-editorial public marketing surface describes the same broad offer, and the Command Center page and homepage explicitly frame that product as one possible solution among workflows, agents, integrations, internal tools, training, and managed execution", "A checked-in positioning contract and failing static guard prevent Same X Different Y framing, Command Center-only positioning, and other recorded regressions", "The mobile hero keeps the approved animation while the eyebrow, headline, PROFIT treatment, and CTA form one balanced first-fold composition across short, standard, and tall phones"], dependencies: [], start: "docs/MARKETING-POSITIONING-CONTRACT.md; CLAUDE.md; src/components/home; src/components/sections; src/content; scripts/verify-guardrails.ts", guardrails: "Preserve the paper/ink editorial system and the hero scramble/strike/PROFIT treatment. Do not invent clients, dollar returns, percentages, or business history. Do not rewrite articles, admin, legal pages, changelog history, generated client artifacts, or transactional email content. Do not push or deploy unless asked.", labels: ["marketing", "copy", "positioning", "visual"], evidence: "2026-08-23: shipped the full public-positioning reset. Added docs/MARKETING-POSITIONING-CONTRACT.md to the required agent read order and verifier; centralized the offer in src/content/marketing-positioning.ts; added test:positioning-copy with mutation checks for the banned Same X Different Y pattern and Command Center-only service routing; and chained it into verify:guardrails. Rewrote homepage, Services, Industries and all 10 verticals, Command Center, About, Contact, Roofing, metadata, search, tenant copy, and the public assistant around custom strategy, systems, integrations, managed execution, training, and optimization. The homepage second section now presents four engagement modes and routes to Services; Command Center is explicitly one optional integrated solution. Mobile hero is content-sized with corrected header clearance, compact outcome/action spacing, and a faster phone-only reveal. test:marketing-qa passed eight public routes at 1440x900, 390x667, 390x844, and 430x932 with reduced motion, keyboard focus, overflow, request, and runtime checks; settled-motion screenshots were opened and inspected. Passing: verify:agent-contract, tsc, lint, guardrails, positioning copy, fabricated claims, house style, chat style, search, route coverage, 42/42 articles, production build, and diff check. No deployment was performed.", verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run verify:guardrails; npm run test:positioning-copy; npm run test:no-fabricated-claims; npm run test:house-style-copy; npm run test:search; npm run test:route-coverage; npm run verify:articles; npm run test:marketing-qa; npm run build; git diff --check." }),
-  card({ key: "site-capacity-visual-rebuild", title: "Rebuild the public site around capacity liberation and editorial visuals", workstream: "site", phase: 5, status: "blocked", priority: "high", owner: null, description: "Reframe Accelerate as the operator that absorbs routine work so teams can do the work only they can do, then rebuild the public homepage and supporting marketing surfaces so they are visually led, short, and free of dollar-ROI theater.", acceptance: ["Homepage states the capacity offer in one sentence, leads with stills and the Command Center, and uses 10 hours per person plus role-liberation as the only large numbers, labeled as typical or what we build toward", "No dollar ROI, invented client, or recycled 78 percent first-responder tattoo remains on the homepage, services chips, industry feeds, or the articles named in the claims pass", "npm run test:no-fabricated-claims and npm run verify:articles pass; desktop and mobile screenshots of the homepage show the new flow without console errors"], dependencies: [], start: "src/components/home; src/components/v2/studio/Studio.tsx; src/content/stats.ts; src/content/industry-feeds.ts; scripts/test-no-fabricated-claims.ts; CONTENT-GUIDE.md", guardrails: "Do not invent dollar recoveries or named clients. Do not generate portraits of clients. Do not restyle admin. Do not push or deploy unless asked. Keep the paper/ink editorial system; do not reintroduce gold gradients as a brand.", labels: ["marketing", "copy", "visual"], evidence: "2026-08-22: Split outcome, recorded rather than smoothed over. The visual half of this card is live in 764a783 and af14530: the paper/ink system, real photography for home services, law firms, professional services and real estate, native mobile chrome, site search, and the house-style and fabricated-claim guards. The capacity copy half was reverted the same day by founder decision. The homepage is back on its pre-rebuild composition (Evidence, Outcomes, Command Center, How We Work, Plan, Who, FAQ, Final CTA) with the original hero scramble, strike and PROFIT animation, and Services, Verticals and Industries are back on pre-rebuild copy. Acceptance item one (capacity offer in one sentence, 10 hours per person as the only large number) is therefore not met and is not being pursued. Cleanup applied on top of the revert, because the revert as left in the worktree would have carried fabricated evidence back onto the live homepage: PlanDeck restored to the guard-clean sample plan, removing $142,000 estimated annual lost revenue, 340% first-year ROI, 38% lead abandonment, 98% response time reduction and +24% conversion; the allowlist entry that had been added to scripts/test-no-fabricated-claims.ts to silence exactly those was removed, so that guard runs again with an empty allowlist; dollar-ROI phrasing removed from Plan.tsx and FinalCta.tsx; the founder-background sentence removed from Who.tsx. scripts/test-house-style-copy.ts was widened because it reported a pass while eleven em dashes sat in shipped copy. It read only quoted string literals across four directories, so JSX text and MDX article bodies were invisible to it. It now reads JSX text and MDX prose alongside literals across src/app, src/components, src/content, src/lib/email and src/lib/chat, skipping /api/ and bare-dash empty-cell placeholders; files inspected went from 98 to 309. Offences fixed: Plan.tsx, FinalCta.tsx, CommandCenter.tsx, Who.tsx, CommandCenterPage.tsx, RoofingCampaignPage.tsx, ChatPanel.tsx, admin/campaigns/page.tsx, two outbound templates in EmailComposeModal.tsx, and the articles edge-function-voice-ai.mdx and ai-context-system-unified-inbox.mdx. admin/contact-imports/page.tsx is allowlisted with a stated reason: its sample paste is deliberately messy parser input. Commands, all passing: verify:agent-contract, tsc --noEmit, lint, test:no-fabricated-claims, test:house-style-copy, verify:articles (42/42), git diff --check. Playwright at 1440x900 and 390x844 over home, services, industries and command center: no console errors, no page errors, no failed requests, no horizontal overflow, screenshots opened and inspected. Rendered-HTML sweep of 14 public routes plus the two edited articles returns zero em dashes. Remaining is a founder decision, not engineering work: the broad custom-service positioning is now owned by marketing-positioning-copy-reset. Do not reuse this card's Command Center-led acceptance as current copy direction.", verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:no-fabricated-claims; npm run verify:articles; npm run test:house-style-copy; git diff --check. Visual work: desktop and mobile homepage screenshots, console-error check, reduced-motion." }),
-  card({ key: "command-center-demo-mode", title: "Ship an isolated, persistent Command Center demo mode", workstream: "productization", phase: 5, status: "shipped", priority: "high", owner: "Codex", description: "Provide a shareable full-screen Command Center sandbox that demonstrates realistic operator workflows with fictional data, coherent session state, and an explicit safety boundary before any account or provider is connected.", acceptance: ["A public no-index demo route exercises Today, approvals, people, pipeline, grounded answers, meeting extraction, and the wider capability rail with no authentication workaround", "Every mutation is visibly simulated in browser session storage and the demo makes no admin, AI, cron, webhook, email, calendar, or provider request", "Progress survives view changes and refresh within the tab while one global reset restores the exact clean scenario", "The embedded Command Center demonstration links to the full workspace and both surfaces state that data is fictional and actions cannot affect live records", "Deterministic Playwright covers approval, grounded answer, refresh persistence, reset, person detail, meeting extraction, reduced motion, console errors, protected-request isolation, and desktop/mobile overflow"], dependencies: [], start: "src/app/command-center/demo; src/components/command-center/demo; src/components/sections/CommandCenterPage.tsx; scripts/qa-command-center-demo.mjs", guardrails: "Demo mode is a separate client-only adapter, never a weakened admin authorization path. Do not copy production records into fixtures, call a real model or provider, persist beyond session storage, imply simulated receipts are live, or create a second implementation of the Command Center.", labels: ["clonable", "testing"], evidence: "2026-08-24: added `/command-center/demo` as an immersive, no-index, client-only workspace reusing the existing CommandCenterDemo rather than duplicating admin or domain logic. Added versioned session state for selected view, explored core workflows, approval queue and edits, selected person, Ask transcript, and meeting extraction; state survives navigation and reload in one tab, closes with the tab, and one Reset action clears every demo key. Added an always-visible Safe demo badge, fictional-data disclosure, 5-step exploration progress, simulated-effect language, and isolated route chrome. The Command Center marketing page now links to the full demo. `npm run qa:command-center-demo` passed simulated approval, grounded/cited answer, reload persistence, global reset, mobile record exploration, meeting extraction, reduced motion, console, overflow, and an explicit assertion that no admin, AI, cron, webhook, or provider request occurs. Reviewed all four screenshots in `/tmp/accelerate-command-center-demo`; the visual pass found and removed global fixed header/footer/chat interference from the immersive route. TypeScript, zero-warning lint, 351-page production build, agent contract, and diff check pass. No deployment or production mutation was performed.", verification: "npm run qa:command-center-demo; npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check." }),
-  card({ key: "selected-work-portfolio", title: "Build the selected work portfolio", workstream: "site", phase: 5, status: "shipped", priority: "urgent", owner: "Codex", description: "Create Accelerate's six-project public Selected Work system, with Northern Trust preserved as an unlisted archive, as a proof layer for the operating, product, software, automation, growth, and emerging-technology experience behind the firm.", acceptance: ["The work index and six aligned public cases are derived from one typed content manifest, while the Northern Trust route remains available as a noindex archive", "Every public claim has approved wording in the source ledger and prohibited legacy claims are absent", "Every public case has authentic project evidence, individualized editorial composition, honest attribution, and an explicit connection to current Accelerate services", "Homepage, navigation, search, sitemap, metadata, robots, assistant context, and truthful legacy redirects expose public work while excluding the archive", "Desktop, tablet, and mobile portfolio QA covers accessibility, keyboard, reduced motion, errors, overflow, media behavior, archive metadata, search exclusion, and sitemap exclusion", "Typecheck, lint, guardrails, scoped portfolio tests, build, and diff check pass"], dependencies: [], start: "src/content/work.ts; src/app/work; src/components/work; docs/work-portfolio-sources.md; src/lib/search/index.ts", guardrails: "Do not invent metrics or portray founder-built or prior-role work as an Accelerate client engagement. Use only authentic project media when ownership is clear; never fabricate product screenshots. Do not alter unrelated admin work or deploy.", labels: ["marketing", "testing"], evidence: "2026-08-24: shipped a typed seven-record portfolio manifest with six public cases and Northern Trust retained as a direct noindex archive. The public index, homepage, related work, search, sitemap, assistant context, metadata, and service mapping derive from explicit visibility and service IDs, preventing the archive from leaking into public discovery. Rebuilt the shared case system with authentic first-party or archived media, honest conceptual diagrams for private software, individualized editorial compositions, high-contrast architecture bands, responsive image sizing, a one-image preload policy, click-to-load privacy-enhanced video, reduced-motion-safe interaction, visible critical content, relevant-service links, and truthful current/prior/founder-built attribution. SuperDebate now explains one five-surface product system with a real judging interface; WORK+SHELTER's operating architecture has a complete routing model; every public case maps to two current Accelerate services. Source and replacement-asset ledgers are in docs/work-portfolio-sources.md and docs/work-portfolio-asset-requests.md. Browser QA passed seven public routes at desktop 1440, tablet 834, and mobile 390 with WCAG A/AA serious/critical checks, keyboard, reduced motion, console/page errors, overflow, broken media, one-image preload, archive noindex/follow, archive exclusion from /work and sitemap, lazy YouTube behavior, and legacy redirect coverage. Opened and reviewed desktop light, mobile dark, WORK+SHELTER, SuperDebate, Green Goods, and archive screenshots in /tmp/accelerate-work-portfolio-qa. verify:agent-contract, TypeScript, lint, no-fabricated-claims, house-style, guardrails, positioning, search, route coverage, portfolio contract, browser QA, 351-page production build, and diff check pass. No deployment or production content mutation was performed.", verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:no-fabricated-claims; npm run test:house-style-copy; npm run verify:guardrails; npm run test:search; npm run test:route-coverage; npm run test:work-portfolio; npm run test:work-portfolio-qa; npm run build; git diff --check." }),
+  card({
+    key: "revenue-os-tests",
+    title: "Add Revenue OS service-level unit coverage",
+    workstream: "qa",
+    phase: 4,
+    status: "planned",
+    priority: "high",
+    description:
+      "Unit-test identity resolution, pipeline rules, task dedupe, priority selection, campaign eligibility/stops, AI impact tiers, and canonical metrics.",
+    acceptance: [
+      "Happy, ambiguous, duplicate, terminal, retry, and failure paths are covered",
+      "Tests are deterministic and isolate provider/network behavior",
+      "Regressions fail before build/deploy and document the operating contract",
+    ],
+    dependencies: [
+      "Implement deterministic contact and company identity resolution",
+      "Create the shared operator-priority selector",
+      "Enforce campaign policy envelopes and version reapproval",
+    ],
+    start: "src/lib/revenue-os; test configuration and fixtures",
+    guardrails: "Do not treat snapshot-only tests as business-rule coverage.",
+    labels: ["unit-tests", "services"],
+    evidence:
+      "2026-08-20: coverage added where money is lost, not everywhere. Before this, 0 of 7 modules under src/lib/email had an executing test and only 8 of 26 Revenue OS modules asserted their own logic; action-executor.ts, the single place an approved row becomes a real side effect, had none at all. Added test:action-execution (11 checks), test:job-and-task-contracts (13), test:email-templates (19 templates, 8 checks), test:ai-tool-gates (10), test:agent-loop (6), test:agent-trace (8), test:responder-envelope (12 decline rules and 12 grounding rejections), test:chat-house-style, and test:house-style-copy. Every guard was mutation-tested: removed one at a time and confirmed to fail its test, because a guard that cannot fail on the bug it targets is worse than no guard. That process found two real gaps a first pass had missed, both cases where a terminal write was not scoped to the state it belongs to. Provider and network behaviour is isolated by a shared in-memory Supabase harness at scripts/lib/memory-supabase.ts and a fetch stub. Regressions fail before deploy through the pre-commit hook. NOT SHIPPED: the responder eval set does not exist, so the live generation leg is unmeasured.",
+  }),
+  card({
+    key: "api-contract-tests",
+    title: "Add authenticated API contract and failure tests",
+    workstream: "qa",
+    phase: 4,
+    priority: "high",
+    description:
+      "Exercise authentication, founder authorization, payload validation, idempotency, transition rejection, provider failure, and truthful errors for every material API.",
+    acceptance: [
+      "Unauthenticated and non-founder calls fail consistently",
+      "Malformed, stale, replayed, and duplicate requests prove no unintended mutation",
+      "External-provider failures return actionable errors and terminal receipts",
+    ],
+    dependencies: [
+      "Verify founder-only admin access and service-only data policies",
+      "Harden webhook, cron, replay, validation, and rate-limit defenses",
+    ],
+    start: "src/app/api; API test harness and Supabase fixtures",
+    guardrails: "Never run destructive API tests against uncontrolled production data.",
+    labels: ["api-tests", "security"],
+    evidence:
+      "2026-08-18: added `scripts/test-api-contract-basics.ts` and `test:api-contracts` script to cover unauthenticated admin API gates (`/api/admin/settings`, `/api/admin/revenue-os/pipeline`, `/api/admin/revenue-os/overview`, `/api/admin/analytics`), public route validation (`/api/qualify`, `/api/proposal/:token`), and webhook and method-contract gates (`GET /api/webhooks/resend`, `GET /api/webhooks/calendly`, `GET /api/qualify`, `DELETE /api/proposal/:token`). Remaining in this slice: production-safe fixture expansion for richer auth transition and idempotency contract cases.",
+  }),
+  card({
+    key: "playwright-inbound-pipeline",
+    title: "Add Playwright journey for inbound capture and pipeline progression",
+    workstream: "qa",
+    phase: 4,
+    status: "planned",
+    priority: "high",
+    description:
+      "Prove a real inbound form creates one canonical identity and opportunity, preserves attribution, appears in Today/Pipeline, and progresses through validated stages.",
+    acceptance: [
+      "Duplicate submission does not duplicate canonical records or stage events",
+      "Founder can inspect context, set next action, and move stages on desktop and mobile",
+      "The journey records screenshots and fails on console errors",
+    ],
+    dependencies: [
+      "Reconcile legacy records with the canonical model",
+      "Finish the canonical Pipeline workspace",
+      "Finish Today as the prioritized operator inbox",
+    ],
+    start: "public qualifier/contact forms; admin Today/Pipeline; Playwright",
+    guardrails:
+      "Use isolated test identities and clean them through a documented recoverable fixture process.",
+    labels: ["playwright", "inbound"],
+  }),
+  card({
+    key: "playwright-gmail-campaign",
+    title: "Add Playwright journeys for Gmail linking, reply, campaign approval, pause, and stops",
+    workstream: "qa",
+    phase: 4,
+    priority: "high",
+    description:
+      "Prove conversation association and reply controls plus campaign dry-run, activation, due execution, pause, and stop behavior.",
+    acceptance: [
+      "A synchronized thread links to the correct opportunity and a confirmed reply stays threaded",
+      "Campaign preview and approved version match executed recipients and content",
+      "Pause, reply, bounce, unsubscribe, booking, and conversion prevent future steps",
+    ],
+    dependencies: [
+      "Finish Conversations as the unified communication inbox",
+      "Enforce every campaign stop condition immediately",
+    ],
+    start: "Google/Resend fixtures or controlled test accounts; Conversations/Campaigns UI",
+    guardrails: "Do not message uncontrolled recipients; use explicit sandbox/test identities.",
+    labels: ["playwright", "campaigns"],
+  }),
+  card({
+    key: "playwright-proposal-setup",
+    title: "Add Playwright journeys for proposals and Setup recovery",
+    workstream: "qa",
+    phase: 4,
+    priority: "high",
+    description:
+      "Verify proposal send/view/accept/decline and demonstrate that provider failure and recovery change Setup Center truthfully.",
+    acceptance: [
+      "Proposal actions are idempotent and update linked pipeline/activity once",
+      "A simulated degraded connection shows failure detail and recovery action",
+      "Desktop/mobile screenshots and console-error assertions are retained",
+    ],
+    dependencies: [
+      "Make public proposal views and decisions idempotent",
+      "Add safe behavioral tests and recovery actions to Setup Center",
+    ],
+    start: "proposal pages/APIs; Setup Center; Playwright harness",
+    guardrails: "Tests must not send a real customer proposal or mutate a personal calendar.",
+    labels: ["playwright", "proposals"],
+  }),
+  card({
+    key: "a11y-visual-qa",
+    title: "Add accessibility, reduced-motion, and visual regression coverage",
+    workstream: "qa",
+    phase: 4,
+    priority: "medium",
+    description:
+      "Automate critical accessibility assertions and preserve desktop/mobile screenshots for the founder workflow surfaces.",
+    acceptance: [
+      "Keyboard and focus journeys cover navigation, dialogs, drawers, tables, Kanban, and confirmation",
+      "Reduced-motion mode remains fully functional",
+      "Visual review checks clipping, overflow, empty space, alignment, and state contrast",
+    ],
+    dependencies: ["Complete keyboard, accessibility, reduced-motion, and mobile parity"],
+    start: "Playwright; scripts/qa-feature-board.mjs; core admin routes",
+    guardrails:
+      "The Next.js development indicator is not a production UI defect; test actual application elements.",
+    labels: ["accessibility", "visual-qa"],
+  }),
+  card({
+    key: "ship-command",
+    title: "Create one guarded Revenue OS ship command",
+    workstream: "release",
+    phase: 4,
+    priority: "high",
+    description:
+      "Require typecheck, lint, unit/API/browser tests, build, migration dry run, deployment, and authenticated production smoke evidence in a deliberate release workflow.",
+    acceptance: [
+      "The command stops on the first failed required gate",
+      "Migration and deployment targets are printed without secret values",
+      "Production smoke verifies founder access and critical routes after deploy",
+    ],
+    dependencies: [
+      "Add Revenue OS service-level unit coverage",
+      "Add authenticated API contract and failure tests",
+      "Add Playwright journey for inbound capture and pipeline progression",
+    ],
+    start: "package.json; DEPLOY.md; scripts/; Vercel and Supabase checks",
+    guardrails:
+      "Do not auto-deploy from ordinary test commands or bypass the documented Vercel account checks.",
+    labels: ["release", "automation"],
+  }),
+  card({
+    key: "production-browser-qa",
+    title: "Run authenticated production admin QA on desktop and mobile",
+    workstream: "release",
+    phase: 5,
+    status: "planned",
+    priority: "high",
+    owner: "John",
+    description:
+      "Exercise Today, Pipeline, Conversations, Campaigns, Proposals, Analytics, Setup Center, Settings, and Feature Board on the deployed founder account.",
+    acceptance: [
+      "Critical journeys pass at desktop and mobile breakpoints with no console errors",
+      "Every unavailable provider state is accurate and actionable",
+      "Evidence, discovered issues, deployment ID, and test time are recorded in the card notes",
+    ],
+    dependencies: [
+      "Create one guarded Revenue OS ship command",
+      "Connect Google OAuth and complete the first Workspace sync",
+    ],
+    start: "Production deployment; Playwright smoke scripts; Setup Center",
+    guardrails:
+      "Do not mark Shipped from local screenshots alone. Use controlled production test records.",
+    labels: ["production", "smoke-test"],
+  }),
+  card({
+    key: "production-burn-in",
+    title: "Complete a 14-day automation health burn-in",
+    workstream: "release",
+    phase: 5,
+    priority: "high",
+    owner: "John",
+    description:
+      "Monitor campaign and Workspace jobs, provider receipts, retries, queue freshness, alert delivery, and audit history before increasing automation volume.",
+    acceptance: [
+      "Fourteen consecutive days have terminal expected receipts and no silent failures",
+      "Every degraded incident has documented detection, response, recovery, and prevention",
+      "Founder signs off on daily limits and operational runbooks before scale-up",
+    ],
+    dependencies: [
+      "Run authenticated production admin QA on desktop and mobile",
+      "Build the system-health report and freshness thresholds",
+      "Add actionable health alerts and recovery runbooks",
+    ],
+    start: "Setup Center health; job/source/webhook receipts; Vercel cron; Feature Board notes",
+    guardrails:
+      "Do not increase campaign volume during unresolved degradation or missing receipt evidence.",
+    labels: ["burn-in", "production"],
+  }),
+  card({
+    key: "marketing-positioning-copy-reset",
+    title: "Lock the full-service AI positioning and reset public marketing copy",
+    workstream: "site",
+    phase: 5,
+    status: "shipped",
+    priority: "urgent",
+    owner: "Codex",
+    description:
+      "Rewrite the public marketing site around Accelerate's actual offer: understand each business, identify where AI and automation can free time or increase revenue, then advise, build, integrate, execute, train, and improve the custom solution. Keep the Command Center as one integrated solution rather than the company definition, and make the positioning durable for future agents.",
+    acceptance: [
+      "The homepage leads with the custom consulting, build, execution, and optimization offer; its second section routes to Services rather than only to Command Center capabilities",
+      "Every non-editorial public marketing surface describes the same broad offer, and the Command Center page and homepage explicitly frame that product as one possible solution among workflows, agents, integrations, internal tools, training, and managed execution",
+      "A checked-in positioning contract and failing static guard prevent Same X Different Y framing, Command Center-only positioning, and other recorded regressions",
+      "The mobile hero keeps the approved animation while the eyebrow, headline, PROFIT treatment, and CTA form one balanced first-fold composition across short, standard, and tall phones",
+    ],
+    dependencies: [],
+    start:
+      "docs/MARKETING-POSITIONING-CONTRACT.md; CLAUDE.md; src/components/home; src/components/sections; src/content; scripts/verify-guardrails.ts",
+    guardrails:
+      "Preserve the paper/ink editorial system and the hero scramble/strike/PROFIT treatment. Do not invent clients, dollar returns, percentages, or business history. Do not rewrite articles, admin, legal pages, changelog history, generated client artifacts, or transactional email content. Do not push or deploy unless asked.",
+    labels: ["marketing", "copy", "positioning", "visual"],
+    evidence:
+      "2026-08-23: shipped the full public-positioning reset. Added docs/MARKETING-POSITIONING-CONTRACT.md to the required agent read order and verifier; centralized the offer in src/content/marketing-positioning.ts; added test:positioning-copy with mutation checks for the banned Same X Different Y pattern and Command Center-only service routing; and chained it into verify:guardrails. Rewrote homepage, Services, Industries and all 10 verticals, Command Center, About, Contact, Roofing, metadata, search, tenant copy, and the public assistant around custom strategy, systems, integrations, managed execution, training, and optimization. The homepage second section now presents four engagement modes and routes to Services; Command Center is explicitly one optional integrated solution. Mobile hero is content-sized with corrected header clearance, compact outcome/action spacing, and a faster phone-only reveal. test:marketing-qa passed eight public routes at 1440x900, 390x667, 390x844, and 430x932 with reduced motion, keyboard focus, overflow, request, and runtime checks; settled-motion screenshots were opened and inspected. Passing: verify:agent-contract, tsc, lint, guardrails, positioning copy, fabricated claims, house style, chat style, search, route coverage, 42/42 articles, production build, and diff check. No deployment was performed.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run verify:guardrails; npm run test:positioning-copy; npm run test:no-fabricated-claims; npm run test:house-style-copy; npm run test:search; npm run test:route-coverage; npm run verify:articles; npm run test:marketing-qa; npm run build; git diff --check.",
+  }),
+  card({
+    key: "site-capacity-visual-rebuild",
+    title: "Rebuild the public site around capacity liberation and editorial visuals",
+    workstream: "site",
+    phase: 5,
+    status: "blocked",
+    priority: "high",
+    owner: null,
+    description:
+      "Reframe Accelerate as the operator that absorbs routine work so teams can do the work only they can do, then rebuild the public homepage and supporting marketing surfaces so they are visually led, short, and free of dollar-ROI theater.",
+    acceptance: [
+      "Homepage states the capacity offer in one sentence, leads with stills and the Command Center, and uses 10 hours per person plus role-liberation as the only large numbers, labeled as typical or what we build toward",
+      "No dollar ROI, invented client, or recycled 78 percent first-responder tattoo remains on the homepage, services chips, industry feeds, or the articles named in the claims pass",
+      "npm run test:no-fabricated-claims and npm run verify:articles pass; desktop and mobile screenshots of the homepage show the new flow without console errors",
+    ],
+    dependencies: [],
+    start:
+      "src/components/home; src/components/v2/studio/Studio.tsx; src/content/stats.ts; src/content/industry-feeds.ts; scripts/test-no-fabricated-claims.ts; CONTENT-GUIDE.md",
+    guardrails:
+      "Do not invent dollar recoveries or named clients. Do not generate portraits of clients. Do not restyle admin. Do not push or deploy unless asked. Keep the paper/ink editorial system; do not reintroduce gold gradients as a brand.",
+    labels: ["marketing", "copy", "visual"],
+    evidence:
+      "2026-08-22: Split outcome, recorded rather than smoothed over. The visual half of this card is live in 764a783 and af14530: the paper/ink system, real photography for home services, law firms, professional services and real estate, native mobile chrome, site search, and the house-style and fabricated-claim guards. The capacity copy half was reverted the same day by founder decision. The homepage is back on its pre-rebuild composition (Evidence, Outcomes, Command Center, How We Work, Plan, Who, FAQ, Final CTA) with the original hero scramble, strike and PROFIT animation, and Services, Verticals and Industries are back on pre-rebuild copy. Acceptance item one (capacity offer in one sentence, 10 hours per person as the only large number) is therefore not met and is not being pursued. Cleanup applied on top of the revert, because the revert as left in the worktree would have carried fabricated evidence back onto the live homepage: PlanDeck restored to the guard-clean sample plan, removing $142,000 estimated annual lost revenue, 340% first-year ROI, 38% lead abandonment, 98% response time reduction and +24% conversion; the allowlist entry that had been added to scripts/test-no-fabricated-claims.ts to silence exactly those was removed, so that guard runs again with an empty allowlist; dollar-ROI phrasing removed from Plan.tsx and FinalCta.tsx; the founder-background sentence removed from Who.tsx. scripts/test-house-style-copy.ts was widened because it reported a pass while eleven em dashes sat in shipped copy. It read only quoted string literals across four directories, so JSX text and MDX article bodies were invisible to it. It now reads JSX text and MDX prose alongside literals across src/app, src/components, src/content, src/lib/email and src/lib/chat, skipping /api/ and bare-dash empty-cell placeholders; files inspected went from 98 to 309. Offences fixed: Plan.tsx, FinalCta.tsx, CommandCenter.tsx, Who.tsx, CommandCenterPage.tsx, RoofingCampaignPage.tsx, ChatPanel.tsx, admin/campaigns/page.tsx, two outbound templates in EmailComposeModal.tsx, and the articles edge-function-voice-ai.mdx and ai-context-system-unified-inbox.mdx. admin/contact-imports/page.tsx is allowlisted with a stated reason: its sample paste is deliberately messy parser input. Commands, all passing: verify:agent-contract, tsc --noEmit, lint, test:no-fabricated-claims, test:house-style-copy, verify:articles (42/42), git diff --check. Playwright at 1440x900 and 390x844 over home, services, industries and command center: no console errors, no page errors, no failed requests, no horizontal overflow, screenshots opened and inspected. Rendered-HTML sweep of 14 public routes plus the two edited articles returns zero em dashes. Remaining is a founder decision, not engineering work: the broad custom-service positioning is now owned by marketing-positioning-copy-reset. Do not reuse this card's Command Center-led acceptance as current copy direction.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:no-fabricated-claims; npm run verify:articles; npm run test:house-style-copy; git diff --check. Visual work: desktop and mobile homepage screenshots, console-error check, reduced-motion.",
+  }),
+  card({
+    key: "command-center-demo-mode",
+    title: "Ship an isolated, persistent Command Center demo mode",
+    workstream: "productization",
+    phase: 5,
+    status: "shipped",
+    priority: "high",
+    owner: "Codex",
+    description:
+      "Provide a shareable full-screen Command Center sandbox that demonstrates realistic operator workflows with fictional data, coherent session state, and an explicit safety boundary before any account or provider is connected.",
+    acceptance: [
+      "A public no-index demo route exercises Today, approvals, people, pipeline, grounded answers, meeting extraction, and the wider capability rail with no authentication workaround",
+      "Every mutation is visibly simulated in browser session storage and the demo makes no admin, AI, cron, webhook, email, calendar, or provider request",
+      "Progress survives view changes and refresh within the tab while one global reset restores the exact clean scenario",
+      "The embedded Command Center demonstration links to the full workspace and both surfaces state that data is fictional and actions cannot affect live records",
+      "Deterministic Playwright covers approval, grounded answer, refresh persistence, reset, person detail, meeting extraction, reduced motion, console errors, protected-request isolation, and desktop/mobile overflow",
+    ],
+    dependencies: [],
+    start:
+      "src/app/command-center/demo; src/components/command-center/demo; src/components/sections/CommandCenterPage.tsx; scripts/qa-command-center-demo.mjs",
+    guardrails:
+      "Demo mode is a separate client-only adapter, never a weakened admin authorization path. Do not copy production records into fixtures, call a real model or provider, persist beyond session storage, imply simulated receipts are live, or create a second implementation of the Command Center.",
+    labels: ["clonable", "testing"],
+    evidence:
+      "2026-08-24: added `/command-center/demo` as an immersive, no-index, client-only workspace reusing the existing CommandCenterDemo rather than duplicating admin or domain logic. Added versioned session state for selected view, explored core workflows, approval queue and edits, selected person, Ask transcript, and meeting extraction; state survives navigation and reload in one tab, closes with the tab, and one Reset action clears every demo key. Added an always-visible Safe demo badge, fictional-data disclosure, 5-step exploration progress, simulated-effect language, and isolated route chrome. The Command Center marketing page now links to the full demo. `npm run qa:command-center-demo` passed simulated approval, grounded/cited answer, reload persistence, global reset, mobile record exploration, meeting extraction, reduced motion, console, overflow, and an explicit assertion that no admin, AI, cron, webhook, or provider request occurs. Reviewed all four screenshots in `/tmp/accelerate-command-center-demo`; the visual pass found and removed global fixed header/footer/chat interference from the immersive route. TypeScript, zero-warning lint, 351-page production build, agent contract, and diff check pass. No deployment or production mutation was performed.",
+    verification:
+      "npm run qa:command-center-demo; npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check.",
+  }),
+  card({
+    key: "selected-work-portfolio",
+    title: "Build the selected work portfolio",
+    workstream: "site",
+    phase: 5,
+    status: "shipped",
+    priority: "urgent",
+    owner: "Codex",
+    description:
+      "Create Accelerate's six-project public Selected Work system, with Northern Trust preserved as an unlisted archive, as a proof layer for the operating, product, software, automation, growth, and emerging-technology experience behind the firm.",
+    acceptance: [
+      "The work index and six aligned public cases are derived from one typed content manifest, while the Northern Trust route remains available as a noindex archive",
+      "Every public claim has approved wording in the source ledger and prohibited legacy claims are absent",
+      "Every public case has authentic project evidence, individualized editorial composition, honest attribution, and an explicit connection to current Accelerate services",
+      "Homepage, navigation, search, sitemap, metadata, robots, assistant context, and truthful legacy redirects expose public work while excluding the archive",
+      "Desktop, tablet, and mobile portfolio QA covers accessibility, keyboard, reduced motion, errors, overflow, media behavior, archive metadata, search exclusion, and sitemap exclusion",
+      "Typecheck, lint, guardrails, scoped portfolio tests, build, and diff check pass",
+    ],
+    dependencies: [],
+    start:
+      "src/content/work.ts; src/app/work; src/components/work; docs/work-portfolio-sources.md; src/lib/search/index.ts",
+    guardrails:
+      "Do not invent metrics or portray founder-built or prior-role work as an Accelerate client engagement. Use only authentic project media when ownership is clear; never fabricate product screenshots. Do not alter unrelated admin work or deploy.",
+    labels: ["marketing", "testing"],
+    evidence:
+      "2026-08-24: shipped a typed seven-record portfolio manifest with six public cases and Northern Trust retained as a direct noindex archive. The public index, homepage, related work, search, sitemap, assistant context, metadata, and service mapping derive from explicit visibility and service IDs, preventing the archive from leaking into public discovery. Rebuilt the shared case system with authentic first-party or archived media, honest conceptual diagrams for private software, individualized editorial compositions, high-contrast architecture bands, responsive image sizing, a one-image preload policy, click-to-load privacy-enhanced video, reduced-motion-safe interaction, visible critical content, relevant-service links, and truthful current/prior/founder-built attribution. SuperDebate now explains one five-surface product system with a real judging interface; WORK+SHELTER's operating architecture has a complete routing model; every public case maps to two current Accelerate services. Source and replacement-asset ledgers are in docs/work-portfolio-sources.md and docs/work-portfolio-asset-requests.md. Browser QA passed seven public routes at desktop 1440, tablet 834, and mobile 390 with WCAG A/AA serious/critical checks, keyboard, reduced motion, console/page errors, overflow, broken media, one-image preload, archive noindex/follow, archive exclusion from /work and sitemap, lazy YouTube behavior, and legacy redirect coverage. Opened and reviewed desktop light, mobile dark, WORK+SHELTER, SuperDebate, Green Goods, and archive screenshots in /tmp/accelerate-work-portfolio-qa. verify:agent-contract, TypeScript, lint, no-fabricated-claims, house-style, guardrails, positioning, search, route coverage, portfolio contract, browser QA, 351-page production build, and diff check pass. No deployment or production content mutation was performed.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:no-fabricated-claims; npm run test:house-style-copy; npm run verify:guardrails; npm run test:search; npm run test:route-coverage; npm run test:work-portfolio; npm run test:work-portfolio-qa; npm run build; git diff --check.",
+  }),
   card({
     key: "portfolio-art-direction-motion",
     title: "Give every portfolio case distinct art direction and restrained motion",
@@ -634,7 +3303,8 @@ export const featureBacklog = [
     status: "shipped",
     priority: "urgent",
     owner: "Codex",
-    description: "Refine the public Work index and six public cases into a more alive, editorial proof layer with project-specific visual worlds, stronger media composition, and restrained motion that remains fast, accessible, and recognizably Accelerate.",
+    description:
+      "Refine the public Work index and six public cases into a more alive, editorial proof layer with project-specific visual worlds, stronger media composition, and restrained motion that remains fast, accessible, and recognizably Accelerate.",
     acceptance: [
       "The Work index restores the approved project order and uses an intentional asymmetric editorial grid without sparse or orphaned cards",
       "All six public cases remain DRY and manifest-driven while exposing visibly distinct, brand-consistent art direction through typed configuration",
@@ -644,11 +3314,15 @@ export const featureBacklog = [
       "Typecheck, lint, positioning and claims guards, portfolio tests, production build, reviewed screenshots, and diff check pass",
     ],
     dependencies: ["Build the selected work portfolio"],
-    start: "src/content/work.ts; src/app/work; src/components/work; scripts/qa-work-portfolio.mjs; docs/work-portfolio-asset-requests.md",
-    guardrails: "Preserve truthful attribution and verified metrics. Do not fabricate product UI or imply prior work was an Accelerate client engagement. Keep Northern Trust as an unlisted noindex archive. Reuse the shared case system and existing authentic assets; do not create six bespoke page implementations, touch unrelated admin work, deploy, or depend on the unavailable Sparkblox site.",
+    start:
+      "src/content/work.ts; src/app/work; src/components/work; scripts/qa-work-portfolio.mjs; docs/work-portfolio-asset-requests.md",
+    guardrails:
+      "Preserve truthful attribution and verified metrics. Do not fabricate product UI or imply prior work was an Accelerate client engagement. Keep Northern Trust as an unlisted noindex archive. Reuse the shared case system and existing authentic assets; do not create six bespoke page implementations, touch unrelated admin work, deploy, or depend on the unavailable Sparkblox site.",
     labels: ["marketing", "visual", "testing"],
-    evidence: "2026-08-25: repaired and visually re-audited the complete public portfolio system after regression findings. WORK+SHELTER now uses the requested customer-site hero everywhere, presents the quote flow once, and separates customer experience, operating logic, and the custom command center into coherent chapters. SuperDebate now uses a natural wide hero without black bars and separates public product, product architecture, command-center, and event photography evidence. All case media use intrinsic dimensions and typed presentation roles, reject duplicate sources per page, animate through the shared reveal system with a fast-scroll fallback, and open in a section-scoped accessible lightbox with keyboard navigation, focus trapping, focus return, body scroll lock, captions, reduced-motion behavior, and touch-sized controls. Shared card and media elevation was reduced to soft layered shadows. The expanded Playwright suite passed across all seven public routes at four viewports, light and dark themes, normal and reduced motion, WCAG checks, source-aspect checks, duplicate-media checks, lightbox interaction, overflow, runtime errors, broken media, and archive exclusions. Guardrails, portfolio contracts, claims, positioning, search, route coverage, TypeScript, zero-warning lint, the 352-page production build, reviewed screenshots, and diff check passed. 2026-08-26: removed the timing regression and architectural ambiguity. One shared observer in `src/components/motion/useReveal.ts` owns public trigger behavior; Work configures explicit viewport timing through `WorkMotion.tsx` and one CSS recipe. Cards no longer double-animate nested cover media. `docs/WORK-MOTION-CONTRACT.md`, the static portfolio guard, and browser assertions now fail on homepage-hook coupling, nested entrances, missing armed states, viewport-entry failure, or any Work group/media completing without a Work animation. The seven-route, four-viewport, light/dark, normal/reduced-motion portfolio matrix and reviewed settled/in-progress screenshots pass locally.",
-    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:no-fabricated-claims; npm run test:house-style-copy; npm run verify:guardrails; npm run test:positioning-copy; npm run test:search; npm run test:route-coverage; npm run test:work-portfolio; npm run test:work-portfolio-qa; npm run build; git diff --check.",
+    evidence:
+      "2026-08-25: repaired and visually re-audited the complete public portfolio system after regression findings. WORK+SHELTER now uses the requested customer-site hero everywhere, presents the quote flow once, and separates customer experience, operating logic, and the custom command center into coherent chapters. SuperDebate now uses a natural wide hero without black bars and separates public product, product architecture, command-center, and event photography evidence. All case media use intrinsic dimensions and typed presentation roles, reject duplicate sources per page, animate through the shared reveal system with a fast-scroll fallback, and open in a section-scoped accessible lightbox with keyboard navigation, focus trapping, focus return, body scroll lock, captions, reduced-motion behavior, and touch-sized controls. Shared card and media elevation was reduced to soft layered shadows. The expanded Playwright suite passed across all seven public routes at four viewports, light and dark themes, normal and reduced motion, WCAG checks, source-aspect checks, duplicate-media checks, lightbox interaction, overflow, runtime errors, broken media, and archive exclusions. Guardrails, portfolio contracts, claims, positioning, search, route coverage, TypeScript, zero-warning lint, the 352-page production build, reviewed screenshots, and diff check passed. 2026-08-26: removed the timing regression and architectural ambiguity. One shared observer in `src/components/motion/useReveal.ts` owns public trigger behavior; Work configures explicit viewport timing through `WorkMotion.tsx` and one CSS recipe. Cards no longer double-animate nested cover media. `docs/WORK-MOTION-CONTRACT.md`, the static portfolio guard, and browser assertions now fail on homepage-hook coupling, nested entrances, missing armed states, viewport-entry failure, or any Work group/media completing without a Work animation. The seven-route, four-viewport, light/dark, normal/reduced-motion portfolio matrix and reviewed settled/in-progress screenshots pass locally.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:no-fabricated-claims; npm run test:house-style-copy; npm run verify:guardrails; npm run test:positioning-copy; npm run test:search; npm run test:route-coverage; npm run test:work-portfolio; npm run test:work-portfolio-qa; npm run build; git diff --check.",
   }),
   card({
     key: "public-site-motion-performance",
@@ -658,7 +3332,8 @@ export const featureBacklog = [
     status: "shipped",
     priority: "urgent",
     owner: "Codex",
-    description: "Make every public route immediately visible from prerendered HTML, remove hydration-gated route blanks, and give the full public site a coherent, mobile-safe entrance-motion system with especially complete coverage across Selected Work.",
+    description:
+      "Make every public route immediately visible from prerendered HTML, remove hydration-gated route blanks, and give the full public site a coherent, mobile-safe entrance-motion system with especially complete coverage across Selected Work.",
     acceptance: [
       "Every expected marketing, industry, learn, and Work route is statically prerendered or intentionally ISR-backed, with live token and authenticated routes explicitly excluded from the static contract",
       "Initial loads and client-side navigations never hide the page while waiting for hydration, and normal motion uses an immediate subtle route entrance with no outgoing wait",
@@ -669,18 +3344,170 @@ export const featureBacklog = [
       "Agent contract, TypeScript, lint, claims and positioning guards, portfolio tests, production build, prerender assertions, bundle evidence, and diff check pass",
     ],
     dependencies: ["Give every portfolio case distinct art direction and restrained motion"],
-    start: "src/components/layout/PageTransition.tsx; src/components/home/reveal.tsx; src/components/v2/studio/RevealHeading.tsx; src/components/work; src/components/chat; src/app/globals.css; scripts/qa-work-portfolio.mjs",
-    guardrails: "Keep prerendered content visible before hydration and when JavaScript fails. Do not enable full static export, experimental View Transitions, or another animation library. Preserve public positioning, truthful portfolio content, archive exclusions, live token routes, admin behavior, and unrelated worktree changes. Do not deploy unless asked.",
+    start:
+      "src/components/layout/PageTransition.tsx; src/components/home/reveal.tsx; src/components/v2/studio/RevealHeading.tsx; src/components/work; src/components/chat; src/app/globals.css; scripts/qa-work-portfolio.mjs",
+    guardrails:
+      "Keep prerendered content visible before hydration and when JavaScript fails. Do not enable full static export, experimental View Transitions, or another animation library. Preserve public positioning, truthful portfolio content, archive exclusions, live token routes, admin behavior, and unrelated worktree changes. Do not deploy unless asked.",
     labels: ["marketing", "visual", "performance", "testing"],
-    evidence: "2026-08-27 navigation architecture: public pages now share one fail-open route runtime with the founder workspace and fictional demos. It distinguishes initial hydration from client navigation, records per-entry scroll without replacing Next.js history state, restores Back and Forward after asynchronous layout growth, sends new destinations to the top, provides delayed progress and accessible focus feedback, and owns one restrained incoming entrance with a zero-motion reduced state. Browser coverage proves public forward and Back behavior at desktop, mobile, and reduced motion. 2026-08-26 final motion repair: the document receives one prepaint `motion-ready` gate before first paint, while `MotionRuntime` confirms hydration and a watchdog fails open. This removes the visible-hidden-visible eyebrow flash and restores one shared blur/rise reveal recipe without per-page readiness classes. Generic reveals exclude Work-owned reveals, and media parallax now keeps server and first-client markup identical before activating viewport-derived transforms. Public-motion passed 40 smoke routes, eight traversals, three motion/device profiles, delayed/no JavaScript, mobile chat, accessibility, and the delayed-hydration first-frame eyebrow regression. 2026-08-26 art-direction pass completed: one shared compositor-only `MediaParallax` primitive now adds overscanned, spring-smoothed scroll depth to homepage industry stills, homepage Selected Work, Work index covers, and case-study photography without adding another entrance owner or layout shift. Contain-fit product evidence uses a smaller travel range; reduced motion force-disables every parallax transform. Homepage Selected Work now has independently triggered heading/copy/CTA entrances and a four-card 7/5 then 5/7 editorial rhythm. The Work index uses asymmetric flagship and supporting grids with varied cinematic/editorial crops while preserving project order and mobile single-column flow. Industry stills gained interruptible saturation, scrim, copy-lift, and press feedback. The full-admin demo launcher was rebuilt as an on-brand ink-and-paper composition with a five-stage hero sequence, three staggered scenario cards, stronger mobile hierarchy, and a no-animation reduced-motion state. QA now measures parallax response, reduced-motion shutdown, Work-grid asymmetry, document-height-aware reveal timing, and launcher stagger completeness. The exhaustive Work matrix passed seven public routes plus archive across four viewports, light/dark, normal/reduced motion, media/lightbox, runtime, overflow, and accessibility. The full-admin scenario matrix passed the launcher plus 28 shared routes on desktop/mobile; settled desktop/mobile launcher and homepage/Work screenshots were opened and reviewed. The 325-page static/SSG production build, TypeScript, lint, static contracts, agent contract, and diff check passed. Earlier evidence: live instrumentation exposed the previous false-positive contract, with homepage elements firing at 101–105% of viewport height and Work content at 87–94%. The repaired shared observer uses a negative bottom root margin and one-shot entry at 76–78% viewport height; Work heroes and cards retain ordered semantic staggering and delayed/no-JavaScript fail-open behavior.",
-    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run verify:guardrails; npm run test:no-fabricated-claims; npm run test:positioning-copy; npm run test:work-portfolio; npm run test:public-motion; npm run test:work-portfolio-qa; npm run build; npm run verify:public-prerender; npx next experimental-analyze --output; git diff --check.",
+    evidence:
+      "2026-08-27 navigation architecture: public pages now share one fail-open route runtime with the founder workspace and fictional demos. It distinguishes initial hydration from client navigation, records per-entry scroll without replacing Next.js history state, restores Back and Forward after asynchronous layout growth, sends new destinations to the top, provides delayed progress and accessible focus feedback, and owns one restrained incoming entrance with a zero-motion reduced state. Browser coverage proves public forward and Back behavior at desktop, mobile, and reduced motion. 2026-08-26 final motion repair: the document receives one prepaint `motion-ready` gate before first paint, while `MotionRuntime` confirms hydration and a watchdog fails open. This removes the visible-hidden-visible eyebrow flash and restores one shared blur/rise reveal recipe without per-page readiness classes. Generic reveals exclude Work-owned reveals, and media parallax now keeps server and first-client markup identical before activating viewport-derived transforms. Public-motion passed 40 smoke routes, eight traversals, three motion/device profiles, delayed/no JavaScript, mobile chat, accessibility, and the delayed-hydration first-frame eyebrow regression. 2026-08-26 art-direction pass completed: one shared compositor-only `MediaParallax` primitive now adds overscanned, spring-smoothed scroll depth to homepage industry stills, homepage Selected Work, Work index covers, and case-study photography without adding another entrance owner or layout shift. Contain-fit product evidence uses a smaller travel range; reduced motion force-disables every parallax transform. Homepage Selected Work now has independently triggered heading/copy/CTA entrances and a four-card 7/5 then 5/7 editorial rhythm. The Work index uses asymmetric flagship and supporting grids with varied cinematic/editorial crops while preserving project order and mobile single-column flow. Industry stills gained interruptible saturation, scrim, copy-lift, and press feedback. The full-admin demo launcher was rebuilt as an on-brand ink-and-paper composition with a five-stage hero sequence, three staggered scenario cards, stronger mobile hierarchy, and a no-animation reduced-motion state. QA now measures parallax response, reduced-motion shutdown, Work-grid asymmetry, document-height-aware reveal timing, and launcher stagger completeness. The exhaustive Work matrix passed seven public routes plus archive across four viewports, light/dark, normal/reduced motion, media/lightbox, runtime, overflow, and accessibility. The full-admin scenario matrix passed the launcher plus 28 shared routes on desktop/mobile; settled desktop/mobile launcher and homepage/Work screenshots were opened and reviewed. The 325-page static/SSG production build, TypeScript, lint, static contracts, agent contract, and diff check passed. Earlier evidence: live instrumentation exposed the previous false-positive contract, with homepage elements firing at 101–105% of viewport height and Work content at 87–94%. The repaired shared observer uses a negative bottom root margin and one-shot entry at 76–78% viewport height; Work heroes and cards retain ordered semantic staggering and delayed/no-JavaScript fail-open behavior.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run verify:guardrails; npm run test:no-fabricated-claims; npm run test:positioning-copy; npm run test:work-portfolio; npm run test:public-motion; npm run test:work-portfolio-qa; npm run build; npm run verify:public-prerender; npx next experimental-analyze --output; git diff --check.",
   }),
-  card({ key: "agent-runbooks", title: "Maintain agent-ready architecture and recovery runbooks", workstream: "documentation", phase: 2, status: "shipped", priority: "high", description: "Document operating contracts, data ownership, dependencies, setup, failure recovery, testing, and safe change boundaries so another agent can resume without rediscovery.", acceptance: ["Each core service names its authoritative module, callers, invariants, and tests", "Setup and incident runbooks contain exact commands, expected evidence, and rollback/recovery", "Feature Board cards remain the live execution source and documentation links back to them"], dependencies: ["Verify the production Revenue OS schema"], start: "AGENTS.md; docs/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/AGENT-TICKET-RUNBOOK.md; docs/REVENUE-OS-SETUP.md; src/lib/revenue-os/README.md; scripts/verify-agent-contract.mjs", guardrails: "Do not duplicate mutable backlog status into prose. Never include secret values.", labels: ["documentation", "handoff", "architecture-contract"], evidence: "2026-08-16: established repository/app AGENTS entrypoints, one universal data/automation/intelligence engineering contract, an exact ticket pickup/evidence/recovery runbook, and a core module ownership map. npm run verify:agent-contract machine-checks required files, taxonomy, acceptance depth, architecture/verification/stop sections, owned in-progress cards, shipped/in-progress evidence, and founder-auth documentation consistency. All 90 managed cards inherit the contract and verification protocol." }),
-  card({ key: "open-source-release-readiness", title: "Prepare the repository for a safe public launch", workstream: "documentation", phase: 5, status: "planned", priority: "urgent", description: "Turn the production-derived private repository into a credible open-source project with a reproducible newcomer path, explicit licensing and asset boundaries, public-safe operations, automated security hygiene, and a reviewed GitHub community surface.", acceptance: ["README, architecture, self-hosting, contribution, conduct, security, deployment, licensing, and protected-asset guidance describe the real product and a safe path from clone to fictional demo", "A tracked environment template and generic database tooling let contributors use infrastructure they control without inheriting Accelerate deployment identifiers or credentials", "CI, dependency updates, issue forms, pull-request guidance, ownership, secret-pattern checks, and zero known npm advisories are active and pass from a clean checkout without private environment files", "Git history, tracked assets, customer and partner permissions, repository metadata, branch rules, vulnerability reporting, and final public visibility receive explicit maintainer review before launch"], dependencies: ["Maintain agent-ready architecture and recovery runbooks"], start: "README.md; LICENSE; ASSETS.md; SECURITY.md; CONTRIBUTING.md; .github/; .env.example; docs/ARCHITECTURE.md; docs/SELF-HOSTING.md; scripts/verify-open-source-readiness.mjs", guardrails: "Do not make the repository public, rewrite Git history, delete protected assets, change production visibility, or claim third-party asset rights without explicit maintainer approval. Never expose secrets or customer data. Keep production deployment behavior separate from contributor defaults.", labels: ["security", "testing"], evidence: "2026-08-31 initial readiness implementation: replaced the stock framework README; added MIT code licensing with explicit protected-brand/asset exclusions; created architecture, self-hosting, contribution, security, conduct, issue, pull-request, ownership, CI, Dependabot, and environment-template surfaces; removed stale private deployment/account instructions; made database tooling resolve contributor-owned Supabase targets; and added a tracked-file/secret-pattern repository gate. The current tree and all Git patches were scanned for high-confidence credentials; findings were test fixtures or false-positive identifiers. Production npm advisories were reduced from six to zero and the unused Puppeteer dependency was removed. Remaining before public visibility: clean-checkout CI proof, protected asset/customer permission review, GitHub metadata/security settings, branch rules after visibility change, and final history review." }),
-  card({ key: "full-admin-demo-runtime", title: "Build the isolated full-admin demo runtime", workstream: "productization", phase: 5, status: "shipped", priority: "urgent", owner: "Codex", description: "Render the real admin route tree through one safe live-or-demo runtime so shareable fictional workspaces reuse every production component without weakening founder authorization or reaching protected systems.", acceptance: ["A no-login no-index demo route renders the actual admin shell and route modules with scenario-aware navigation on desktop and mobile", "One centralized adapter handles all demo reads, writes, streams, and downloads while a runtime boundary blocks admin, analytics, provider, cron, webhook, email, calendar, and AI requests", "Every public standalone demo entrypoint resolves to the full admin demo launcher; the compact interactive preview remains embedded marketing context only", "A checked-in contract and automated guard distinguish the embedded product preview from the full admin demo and fail when reusable admin code bypasses the runtime"], dependencies: ["Complete the shared professional admin system"], start: "docs/ADMIN-DEMO-CONTRACT.md; src/app/admin/layout.tsx; src/middleware.ts; src/lib/admin; scripts/qa-admin-route-parity.mjs", guardrails: "Do not copy admin pages, weaken /admin authorization, call production APIs from demo mode, add shared-database tenancy, or deploy. Demo state is browser-session-only and visibly fictional.", labels: ["clonable", "testing"], evidence: "2026-08-27 navigation and mobile UX repair: removed the floating demo control, integrated business selection, guided tour, reset, and launcher beneath Appearance, repaired URL-derived active navigation and breadcrumbs across client navigation and browser history, made scenario changes replace the fictional runtime with a full workspace boundary, assigned Paper, Studio, and Signal defaults while preserving manual choices within a scenario session, added mobile drawer scroll lock and touch-safe controls, and tuned shared admin entrances to a 440-500ms blur and rise with a zero-animation reduced-motion state. The complete three-scenario 28-route desktop and mobile matrix, all five appearances, real-click navigation, accordion reliability, scenario switching, persistence, overflow, hit targets, protected-request isolation, TypeScript, lint, build, and visual review pass. No deployment was performed. 2026-08-26 rewrite hardening: validated internal demo rewrites now preserve their fictional scenario marker through middleware re-entry instead of falling through to founder login. The marker selects checked-in demo data only and does not authorize protected APIs. Shared page-transition and scroll-progress chrome now treats the rewritten route exactly like `/admin`, eliminating server/client tree divergence and hydration warnings. The three-scenario 28-route desktop/mobile matrix passed with no escaped protected/provider requests. 2026-08-26 incident repair: `/demo/command-center` is now the only public standalone demo destination. The obsolete `/command-center/demo` route permanently redirects to the full-admin launcher, and the public Command Center page exposes one unambiguous full-admin CTA while retaining the compact preview only as embedded context. Contract coverage fails on obsolete standalone links or render paths. The production build generated both routes statically; the admin-demo contract, embedded-preview QA, and one-scenario full-admin matrix passed 28 shared admin routes on desktop/mobile with protected-request isolation. Launcher, full workspace, and mobile screenshots were reviewed. Earlier evidence: 2026-08-25 shipped `/demo/command-center` as a no-index rewrite into the unchanged founder-only admin tree, wrapped by one browser-session runtime that intercepts admin reads, writes, AI streams, and exports before page effects run. The safety bar identifies the fictional business, switches scenarios, resets exact session state, opens the guided story, and links back to the launcher. Public header, footer, and chat chrome stay out of the workspace. Live `/admin` auth is unchanged; demo middleware adds noindex response headers, robots excludes `/demo`, and runtime guards block protected, analytics, chat, cron, webhook, and provider requests. `docs/ADMIN-DEMO-CONTRACT.md` is in the required agent read order and contract verifier." }),
-  card({ key: "full-admin-demo-scenarios", title: "Ship three complete full-admin demo scenarios", workstream: "productization", phase: 5, status: "shipped", priority: "high", description: "Populate the shared full-admin demo with three coherent fictional businesses whose emails, records, workflows, AI context, receipts, metrics, integrations, and guided stories reconcile across every enabled workspace.", acceptance: ["Kids enrichment, roofing and exteriors, and growth-studio packs each provide detailed tenant-specific records and complete simulated emails without custom page or handler forks", "Scenario URLs are shareable, session state is isolated and resettable per business, and switching scenarios never mixes records or progress", "Every enabled route is populated and its primary action works locally; all retained admin routes appear in at least one scenario", "Playwright proves each guided story, every enabled route, all appearances, mobile parity, refresh persistence, reset, cross-scenario isolation, and zero protected or provider requests"], dependencies: ["Build the isolated full-admin demo runtime"], start: "src/lib/admin/demo; src/components/admin; src/app/demo/command-center; scripts/qa-admin-demo.mjs", guardrails: "Use invented adult contacts and .example addresses only. Do not store sensitive child data, copy production content, use lorem ipsum, create pack-specific UI or operation handlers, or deploy.", labels: ["clonable", "testing"], evidence: "2026-08-26 identity polish: one reusable `DemoScenarioMark` now gives each fictional business a distinct animated SVG identity in the launcher, safety controls, expanded shell, collapsed rail, and mobile workspace. Sprout uses an organic draw/breathe sequence, Northline an architectural roof draw, and Harborline an ascending growth mark; all animations are compositor-friendly and fully disabled under reduced motion. Static contracts require all three variants and browser QA verifies distinct marks, workspace propagation, and no-animation reduced state. 2026-08-25: shipped Sprout & Spark Kids Studio, Northline Roofing & Exteriors, and Harborline Growth Studio as versioned data packs over one shared graph and runtime. Each has 30+ adult contacts, 18 opportunities, ten three-message conversations, 18 tasks, six approval actions, tenant-specific labels, complete email and campaign data, operational receipts, integrations, settings, roadmap, content, analytics, and a five-step guided story. Contract tests enforce reserved `.example` domains, counts, unique identities, and referential integrity. Browser QA covers the launcher, all three stories, 28 routes, desktop/mobile, Paper/Night/Signal/Studio appearances, populated views, animated logo, simulated approval, AI event streaming, refresh persistence, exact reset, cross-scenario isolation, overflow, console/runtime errors, and zero escaped protected requests. No deployment or production mutation was performed.", verification: "npm run test:admin-demo-contract; npm run qa:admin-demo; npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check." }),
-  card({ key: "five-business-admin-demo-suite", title: "Deliver five complete targeted business demo workspaces", workstream: "productization", phase: 5, status: "shipped", priority: "urgent", owner: "Codex", description: "Turn the full-admin demo into a five-business sales suite for home services, law firms, professional services, real estate, and nonprofits, with separately authored operating data, intentional default appearances, and a light/dark launcher that helps a visitor choose the right example.", acceptance: ["Northline Roofing, Alder Ridge Injury Law, Ledgerstone Accounting & Advisory, Hearthline Realty Group, and Common Table Community Network each expose the complete shared admin route tree with coherent business-specific records and no pack-specific UI or handler fork", "Every workspace starts in its declared default appearance, supports all five shared admin appearances, restores its own session choice after scenario switching, and returns to its default after an exact reset", "The launcher offers exactly five clear business cards whose surfaces, previews, controls, focus states, and contrast adapt completely in both light and dark mode without changing workspace appearance state", "Desktop and mobile Playwright proves every registered admin route for all five businesses plus simulated task, pipeline, reply, approval, AI, persistence, reset, cross-scenario isolation, reduced motion, overflow, console safety, and zero protected or provider requests"], dependencies: ["Build the isolated full-admin demo runtime", "Ship three complete full-admin demo scenarios"], start: "docs/ADMIN-DEMO-CONTRACT.md; src/lib/admin/demo; src/components/admin; src/app/demo/command-center; scripts/test-admin-demo-contract.ts; scripts/qa-admin-demo.mjs", guardrails: "Use invented adult contacts and reserved .example addresses only. Keep all effects browser-session-only and visibly simulated. Do not copy production or customer data, expose case-sensitive legal details, create scenario-specific pages or runtime handlers, weaken live admin authorization, add a provider or schema, or deploy.", labels: ["clonable", "testing"], evidence: "Shipped 2026-08-27: the launcher now presents exactly five targeted workspaces—Northline Roofing & Exteriors, Alder Ridge Injury Law, Ledgerstone Accounting & Advisory, Hearthline Realty Group, and Common Table Community Network—in a balanced 3+2 desktop grid and a clear mobile stack. Each pack has separately authored people, opportunities, conversations, tasks, decisions, content, resources, campaign context, metrics, and guided story over the unchanged shared 28-route admin and centralized safe runtime. Studio, Night, Frost, Signal, and Paper are intentional scenario defaults; each scenario stores its own appearance choice and exact reset clears both data and appearance, while launcher light/dark state remains separate. Every launcher surface, preview, control, focus treatment, icon, rule, and shadow adapts across light and dark. The exhaustive browser matrix passed all five businesses across all 28 admin routes on desktop and mobile, all shared appearances, per-business simulated approval/task/pipeline/reply/AI operations, refresh persistence, reset, scenario isolation, reduced motion, overflow, contextual navigation, console safety, and zero escaped protected/provider requests. Settled launcher and representative workspace screenshots were visually reviewed. The optimized production build generated 325 pages; admin-demo contract, navigation runtime, embedded Command Center QA, TypeScript, zero-warning lint, agent contract, and diff check passed. No deployment or production mutation was performed.", verification: "npm run test:admin-demo-contract; PLAYWRIGHT_BASE_URL=http://localhost:3010 npm run qa:admin-demo; PLAYWRIGHT_BASE_URL=http://localhost:3010 npm run test:navigation-runtime; PLAYWRIGHT_BASE_URL=http://localhost:3010 npm run qa:command-center-demo; npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run build; git diff --check." }),
-  card({ key: "public-shell-route-consistency", title: "Keep every public route inside the standard site shell", workstream: "site", phase: 5, status: "shipped", priority: "urgent", owner: "Codex", description: "Make public campaign, demo-selection, and marketing routes feel like one Accelerate site by applying the standard header, navigation, footer, chat, route progress, and responsive shell everywhere except authenticated or entered full-admin workspaces.", acceptance: ["The roofing campaign and full-admin demo launcher render the same public header/navigation and footer as the rest of the site without duplicate local branding", "Entered admin and fictional admin workspaces remain immersive and render only application chrome", "One shared pathname policy controls Header, Footer, Chat, Dock, route transitions, and scroll progress so route exceptions cannot drift independently", "Desktop and mobile browser QA proves shell presence, no overlap or overflow, keyboard navigation, reduced motion, WCAG A/AA critical checks, and clean console behavior on affected routes"], dependencies: [], start: "src/lib/navigation/public-chrome.ts; src/components/layout/Header.tsx; src/components/layout/Footer.tsx; src/components/home/Dock.tsx; src/components/chat/ChatWidget.tsx; src/app/roofing; src/app/demo/command-center", guardrails: "Preserve the roofing campaign's approved positioning and the demo launcher's fictional-data disclosure. Do not add marketing chrome inside /admin or an entered full-admin demo workspace, change live admin authorization, or deploy without an explicit request.", labels: ["marketing", "testing"], evidence: "Shipped 2026-08-28: one shared public-chrome predicate now governs Header, Footer, Chat, Dock, PageTransition, and ScrollProgress. /roofing and /demo/command-center render the standard public header and footer; the roofing page's duplicate local header/footer were removed; entered live and fictional admin workspaces retain application-only chrome. Roofing low-contrast microcopy and launcher light/dark card/preview tokens were raised to standard readable foregrounds. Automated evidence: qa:ux-integrity passed desktop/mobile shell presence, no duplicate chrome, admin isolation, interaction geometry, focus, computed status contrast, and WCAG A/AA serious/critical scans; navigation runtime passed desktop/mobile/reduced-motion route entrance, history restoration, focus, overflow, and hydration checks; the complete five-business, 28-route desktop/mobile production demo matrix passed all appearances and protected-request isolation; lint, TypeScript, admin-token verification, agent contract, and the optimized 325-page production build passed. Screenshots were reviewed under /tmp/accelerate-ux-integrity and /tmp/accelerate-full-admin-demo. No deployment was performed.", verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:navigation-runtime; npm run qa:ux-integrity; npm run qa:admin-demo; npm run build; git diff --check." }),
+  card({
+    key: "agent-runbooks",
+    title: "Maintain agent-ready architecture and recovery runbooks",
+    workstream: "documentation",
+    phase: 2,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Document operating contracts, data ownership, dependencies, setup, failure recovery, testing, and safe change boundaries so another agent can resume without rediscovery.",
+    acceptance: [
+      "Each core service names its authoritative module, callers, invariants, and tests",
+      "Setup and incident runbooks contain exact commands, expected evidence, and rollback/recovery",
+      "Feature Board cards remain the live execution source and documentation links back to them",
+    ],
+    dependencies: ["Verify the production Revenue OS schema"],
+    start:
+      "AGENTS.md; docs/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/AGENT-TICKET-RUNBOOK.md; docs/REVENUE-OS-SETUP.md; src/lib/revenue-os/README.md; scripts/verify-agent-contract.mjs",
+    guardrails: "Do not duplicate mutable backlog status into prose. Never include secret values.",
+    labels: ["documentation", "handoff", "architecture-contract"],
+    evidence:
+      "2026-08-16: established repository/app AGENTS entrypoints, one universal data/automation/intelligence engineering contract, an exact ticket pickup/evidence/recovery runbook, and a core module ownership map. npm run verify:agent-contract machine-checks required files, taxonomy, acceptance depth, architecture/verification/stop sections, owned in-progress cards, shipped/in-progress evidence, and founder-auth documentation consistency. All 90 managed cards inherit the contract and verification protocol.",
+  }),
+  card({
+    key: "open-source-release-readiness",
+    title: "Prepare the repository for a safe public launch",
+    workstream: "documentation",
+    phase: 5,
+    status: "planned",
+    priority: "urgent",
+    description:
+      "Turn the production-derived private repository into a credible open-source project with a reproducible newcomer path, explicit licensing and asset boundaries, public-safe operations, automated security hygiene, and a reviewed GitHub community surface.",
+    acceptance: [
+      "README, architecture, self-hosting, contribution, conduct, security, deployment, licensing, and protected-asset guidance describe the real product and a safe path from clone to fictional demo",
+      "A tracked environment template and generic database tooling let contributors use infrastructure they control without inheriting Accelerate deployment identifiers or credentials",
+      "CI, dependency updates, issue forms, pull-request guidance, ownership, secret-pattern checks, and zero known npm advisories are active and pass from a clean checkout without private environment files",
+      "Git history, tracked assets, customer and partner permissions, repository metadata, branch rules, vulnerability reporting, and final public visibility receive explicit maintainer review before launch",
+    ],
+    dependencies: ["Maintain agent-ready architecture and recovery runbooks"],
+    start:
+      "README.md; LICENSE; ASSETS.md; SECURITY.md; CONTRIBUTING.md; .github/; .env.example; docs/ARCHITECTURE.md; docs/SELF-HOSTING.md; scripts/verify-open-source-readiness.mjs",
+    guardrails:
+      "Do not make the repository public, rewrite Git history, delete protected assets, change production visibility, or claim third-party asset rights without explicit maintainer approval. Never expose secrets or customer data. Keep production deployment behavior separate from contributor defaults.",
+    labels: ["security", "testing"],
+    evidence:
+      "2026-08-31 initial readiness implementation: replaced the stock framework README; added MIT code licensing with explicit protected-brand/asset exclusions; created architecture, self-hosting, contribution, security, conduct, issue, pull-request, ownership, CI, Dependabot, and environment-template surfaces; removed stale private deployment/account instructions; made database tooling resolve contributor-owned Supabase targets; and added a tracked-file/secret-pattern repository gate. The current tree and all Git patches were scanned for high-confidence credentials; findings were test fixtures or false-positive identifiers. Production npm advisories were reduced from six to zero and the unused Puppeteer dependency was removed. Remaining before public visibility: clean-checkout CI proof, protected asset/customer permission review, GitHub metadata/security settings, branch rules after visibility change, and final history review.",
+  }),
+  card({
+    key: "full-admin-demo-runtime",
+    title: "Build the isolated full-admin demo runtime",
+    workstream: "productization",
+    phase: 5,
+    status: "shipped",
+    priority: "urgent",
+    owner: "Codex",
+    description:
+      "Render the real admin route tree through one safe live-or-demo runtime so shareable fictional workspaces reuse every production component without weakening founder authorization or reaching protected systems.",
+    acceptance: [
+      "A no-login no-index demo route renders the actual admin shell and route modules with scenario-aware navigation on desktop and mobile",
+      "One centralized adapter handles all demo reads, writes, streams, and downloads while a runtime boundary blocks admin, analytics, provider, cron, webhook, email, calendar, and AI requests",
+      "Every public standalone demo entrypoint resolves to the full admin demo launcher; the compact interactive preview remains embedded marketing context only",
+      "A checked-in contract and automated guard distinguish the embedded product preview from the full admin demo and fail when reusable admin code bypasses the runtime",
+    ],
+    dependencies: ["Complete the shared professional admin system"],
+    start:
+      "docs/ADMIN-DEMO-CONTRACT.md; src/app/admin/layout.tsx; src/middleware.ts; src/lib/admin; scripts/qa-admin-route-parity.mjs",
+    guardrails:
+      "Do not copy admin pages, weaken /admin authorization, call production APIs from demo mode, add shared-database tenancy, or deploy. Demo state is browser-session-only and visibly fictional.",
+    labels: ["clonable", "testing"],
+    evidence:
+      "2026-08-27 navigation and mobile UX repair: removed the floating demo control, integrated business selection, guided tour, reset, and launcher beneath Appearance, repaired URL-derived active navigation and breadcrumbs across client navigation and browser history, made scenario changes replace the fictional runtime with a full workspace boundary, assigned Paper, Studio, and Signal defaults while preserving manual choices within a scenario session, added mobile drawer scroll lock and touch-safe controls, and tuned shared admin entrances to a 440-500ms blur and rise with a zero-animation reduced-motion state. The complete three-scenario 28-route desktop and mobile matrix, all five appearances, real-click navigation, accordion reliability, scenario switching, persistence, overflow, hit targets, protected-request isolation, TypeScript, lint, build, and visual review pass. No deployment was performed. 2026-08-26 rewrite hardening: validated internal demo rewrites now preserve their fictional scenario marker through middleware re-entry instead of falling through to founder login. The marker selects checked-in demo data only and does not authorize protected APIs. Shared page-transition and scroll-progress chrome now treats the rewritten route exactly like `/admin`, eliminating server/client tree divergence and hydration warnings. The three-scenario 28-route desktop/mobile matrix passed with no escaped protected/provider requests. 2026-08-26 incident repair: `/demo/command-center` is now the only public standalone demo destination. The obsolete `/command-center/demo` route permanently redirects to the full-admin launcher, and the public Command Center page exposes one unambiguous full-admin CTA while retaining the compact preview only as embedded context. Contract coverage fails on obsolete standalone links or render paths. The production build generated both routes statically; the admin-demo contract, embedded-preview QA, and one-scenario full-admin matrix passed 28 shared admin routes on desktop/mobile with protected-request isolation. Launcher, full workspace, and mobile screenshots were reviewed. Earlier evidence: 2026-08-25 shipped `/demo/command-center` as a no-index rewrite into the unchanged founder-only admin tree, wrapped by one browser-session runtime that intercepts admin reads, writes, AI streams, and exports before page effects run. The safety bar identifies the fictional business, switches scenarios, resets exact session state, opens the guided story, and links back to the launcher. Public header, footer, and chat chrome stay out of the workspace. Live `/admin` auth is unchanged; demo middleware adds noindex response headers, robots excludes `/demo`, and runtime guards block protected, analytics, chat, cron, webhook, and provider requests. `docs/ADMIN-DEMO-CONTRACT.md` is in the required agent read order and contract verifier.",
+  }),
+  card({
+    key: "full-admin-demo-scenarios",
+    title: "Ship three complete full-admin demo scenarios",
+    workstream: "productization",
+    phase: 5,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Populate the shared full-admin demo with three coherent fictional businesses whose emails, records, workflows, AI context, receipts, metrics, integrations, and guided stories reconcile across every enabled workspace.",
+    acceptance: [
+      "Kids enrichment, roofing and exteriors, and growth-studio packs each provide detailed tenant-specific records and complete simulated emails without custom page or handler forks",
+      "Scenario URLs are shareable, session state is isolated and resettable per business, and switching scenarios never mixes records or progress",
+      "Every enabled route is populated and its primary action works locally; all retained admin routes appear in at least one scenario",
+      "Playwright proves each guided story, every enabled route, all appearances, mobile parity, refresh persistence, reset, cross-scenario isolation, and zero protected or provider requests",
+    ],
+    dependencies: ["Build the isolated full-admin demo runtime"],
+    start:
+      "src/lib/admin/demo; src/components/admin; src/app/demo/command-center; scripts/qa-admin-demo.mjs",
+    guardrails:
+      "Use invented adult contacts and .example addresses only. Do not store sensitive child data, copy production content, use lorem ipsum, create pack-specific UI or operation handlers, or deploy.",
+    labels: ["clonable", "testing"],
+    evidence:
+      "2026-08-26 identity polish: one reusable `DemoScenarioMark` now gives each fictional business a distinct animated SVG identity in the launcher, safety controls, expanded shell, collapsed rail, and mobile workspace. Sprout uses an organic draw/breathe sequence, Northline an architectural roof draw, and Harborline an ascending growth mark; all animations are compositor-friendly and fully disabled under reduced motion. Static contracts require all three variants and browser QA verifies distinct marks, workspace propagation, and no-animation reduced state. 2026-08-25: shipped Sprout & Spark Kids Studio, Northline Roofing & Exteriors, and Harborline Growth Studio as versioned data packs over one shared graph and runtime. Each has 30+ adult contacts, 18 opportunities, ten three-message conversations, 18 tasks, six approval actions, tenant-specific labels, complete email and campaign data, operational receipts, integrations, settings, roadmap, content, analytics, and a five-step guided story. Contract tests enforce reserved `.example` domains, counts, unique identities, and referential integrity. Browser QA covers the launcher, all three stories, 28 routes, desktop/mobile, Paper/Night/Signal/Studio appearances, populated views, animated logo, simulated approval, AI event streaming, refresh persistence, exact reset, cross-scenario isolation, overflow, console/runtime errors, and zero escaped protected requests. No deployment or production mutation was performed.",
+    verification:
+      "npm run test:admin-demo-contract; npm run qa:admin-demo; npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check.",
+  }),
+  card({
+    key: "five-business-admin-demo-suite",
+    title: "Deliver five complete targeted business demo workspaces",
+    workstream: "productization",
+    phase: 5,
+    status: "shipped",
+    priority: "urgent",
+    owner: "Codex",
+    description:
+      "Turn the full-admin demo into a five-business sales suite for home services, law firms, professional services, real estate, and nonprofits, with separately authored operating data, intentional default appearances, and a light/dark launcher that helps a visitor choose the right example.",
+    acceptance: [
+      "Northline Roofing, Alder Ridge Injury Law, Ledgerstone Accounting & Advisory, Hearthline Realty Group, and Common Table Community Network each expose the complete shared admin route tree with coherent business-specific records and no pack-specific UI or handler fork",
+      "Every workspace starts in its declared default appearance, supports all five shared admin appearances, restores its own session choice after scenario switching, and returns to its default after an exact reset",
+      "The launcher offers exactly five clear business cards whose surfaces, previews, controls, focus states, and contrast adapt completely in both light and dark mode without changing workspace appearance state",
+      "Desktop and mobile Playwright proves every registered admin route for all five businesses plus simulated task, pipeline, reply, approval, AI, persistence, reset, cross-scenario isolation, reduced motion, overflow, console safety, and zero protected or provider requests",
+    ],
+    dependencies: [
+      "Build the isolated full-admin demo runtime",
+      "Ship three complete full-admin demo scenarios",
+    ],
+    start:
+      "docs/ADMIN-DEMO-CONTRACT.md; src/lib/admin/demo; src/components/admin; src/app/demo/command-center; scripts/test-admin-demo-contract.ts; scripts/qa-admin-demo.mjs",
+    guardrails:
+      "Use invented adult contacts and reserved .example addresses only. Keep all effects browser-session-only and visibly simulated. Do not copy production or customer data, expose case-sensitive legal details, create scenario-specific pages or runtime handlers, weaken live admin authorization, add a provider or schema, or deploy.",
+    labels: ["clonable", "testing"],
+    evidence:
+      "Shipped 2026-08-27: the launcher now presents exactly five targeted workspaces—Northline Roofing & Exteriors, Alder Ridge Injury Law, Ledgerstone Accounting & Advisory, Hearthline Realty Group, and Common Table Community Network—in a balanced 3+2 desktop grid and a clear mobile stack. Each pack has separately authored people, opportunities, conversations, tasks, decisions, content, resources, campaign context, metrics, and guided story over the unchanged shared 28-route admin and centralized safe runtime. Studio, Night, Frost, Signal, and Paper are intentional scenario defaults; each scenario stores its own appearance choice and exact reset clears both data and appearance, while launcher light/dark state remains separate. Every launcher surface, preview, control, focus treatment, icon, rule, and shadow adapts across light and dark. The exhaustive browser matrix passed all five businesses across all 28 admin routes on desktop and mobile, all shared appearances, per-business simulated approval/task/pipeline/reply/AI operations, refresh persistence, reset, scenario isolation, reduced motion, overflow, contextual navigation, console safety, and zero escaped protected/provider requests. Settled launcher and representative workspace screenshots were visually reviewed. The optimized production build generated 325 pages; admin-demo contract, navigation runtime, embedded Command Center QA, TypeScript, zero-warning lint, agent contract, and diff check passed. No deployment or production mutation was performed.",
+    verification:
+      "npm run test:admin-demo-contract; PLAYWRIGHT_BASE_URL=http://localhost:3010 npm run qa:admin-demo; PLAYWRIGHT_BASE_URL=http://localhost:3010 npm run test:navigation-runtime; PLAYWRIGHT_BASE_URL=http://localhost:3010 npm run qa:command-center-demo; npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run build; git diff --check.",
+  }),
+  card({
+    key: "public-shell-route-consistency",
+    title: "Keep every public route inside the standard site shell",
+    workstream: "site",
+    phase: 5,
+    status: "shipped",
+    priority: "urgent",
+    owner: "Codex",
+    description:
+      "Make public campaign, demo-selection, and marketing routes feel like one Accelerate site by applying the standard header, navigation, footer, chat, route progress, and responsive shell everywhere except authenticated or entered full-admin workspaces.",
+    acceptance: [
+      "The roofing campaign and full-admin demo launcher render the same public header/navigation and footer as the rest of the site without duplicate local branding",
+      "Entered admin and fictional admin workspaces remain immersive and render only application chrome",
+      "One shared pathname policy controls Header, Footer, Chat, Dock, route transitions, and scroll progress so route exceptions cannot drift independently",
+      "Desktop and mobile browser QA proves shell presence, no overlap or overflow, keyboard navigation, reduced motion, WCAG A/AA critical checks, and clean console behavior on affected routes",
+    ],
+    dependencies: [],
+    start:
+      "src/lib/navigation/public-chrome.ts; src/components/layout/Header.tsx; src/components/layout/Footer.tsx; src/components/home/Dock.tsx; src/components/chat/ChatWidget.tsx; src/app/roofing; src/app/demo/command-center",
+    guardrails:
+      "Preserve the roofing campaign's approved positioning and the demo launcher's fictional-data disclosure. Do not add marketing chrome inside /admin or an entered full-admin demo workspace, change live admin authorization, or deploy without an explicit request.",
+    labels: ["marketing", "testing"],
+    evidence:
+      "Shipped 2026-08-28: one shared public-chrome predicate now governs Header, Footer, Chat, Dock, PageTransition, and ScrollProgress. /roofing and /demo/command-center render the standard public header and footer; the roofing page's duplicate local header/footer were removed; entered live and fictional admin workspaces retain application-only chrome. Roofing low-contrast microcopy and launcher light/dark card/preview tokens were raised to standard readable foregrounds. Automated evidence: qa:ux-integrity passed desktop/mobile shell presence, no duplicate chrome, admin isolation, interaction geometry, focus, computed status contrast, and WCAG A/AA serious/critical scans; navigation runtime passed desktop/mobile/reduced-motion route entrance, history restoration, focus, overflow, and hydration checks; the complete five-business, 28-route desktop/mobile production demo matrix passed all appearances and protected-request isolation; lint, TypeScript, admin-token verification, agent contract, and the optimized 325-page production build passed. Screenshots were reviewed under /tmp/accelerate-ux-integrity and /tmp/accelerate-full-admin-demo. No deployment was performed.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:navigation-runtime; npm run qa:ux-integrity; npm run qa:admin-demo; npm run build; git diff --check.",
+  }),
 
   // Twelve-month Command Center extension program. These cards are canonical
   // specifications; the Grok execution guide only sequences their stable keys.
@@ -692,7 +3519,8 @@ export const featureBacklog = [
     status: "shipped",
     owner: "Grok-4.6-01-feature-board-dependency-integrity",
     priority: "urgent",
-    description: "Make the managed Feature Board safe for lower-context workers by validating dependency direction, delivery-circuit ordering, roll-up ownership, milestone notes, and documentation references before a card can be claimed.",
+    description:
+      "Make the managed Feature Board safe for lower-context workers by validating dependency direction, delivery-circuit ordering, roll-up ownership, milestone notes, and documentation references before a card can be claimed.",
     acceptance: [
       "Contract verification rejects missing, circular, forward-milestone, and dependency-order violations with the affected stable keys",
       "Every active card has satisfied dependencies, one owner, accurate current evidence, and a milestone note matching its managed label",
@@ -700,11 +3528,15 @@ export const featureBacklog = [
       "A coordinator resolves live/manifest drift intentionally and records a zero-drift verification without archiving unrelated active work",
     ],
     dependencies: [],
-    start: "scripts/feature-backlog-data.mjs; scripts/verify-agent-contract.mjs; docs/FEATURE-BOARD-TAXONOMY.md; docs/REVENUE-OS-SETUP.md; docs/GROK-4.6-COMMAND-CENTER-EXECUTION-PLAN.md",
-    guardrails: "Do not infer completion from old evidence, rewrite active owners, apply the live manifest blindly, or turn the execution guide into a mutable roadmap. Dependency-status repairs require evidence or an explicit coordinator decision.",
+    start:
+      "scripts/feature-backlog-data.mjs; scripts/verify-agent-contract.mjs; docs/FEATURE-BOARD-TAXONOMY.md; docs/REVENUE-OS-SETUP.md; docs/GROK-4.6-COMMAND-CENTER-EXECUTION-PLAN.md",
+    guardrails:
+      "Do not infer completion from old evidence, rewrite active owners, apply the live manifest blindly, or turn the execution guide into a mutable roadmap. Dependency-status repairs require evidence or an explicit coordinator decision.",
     labels: ["database", "testing"],
-    verification: "npm run verify:agent-contract; npm run seed:features; npx tsx scripts/test-feature-board-dependencies.ts; git diff --check. Live --verify evidence is coordinator-only after reviewing drift; never use --apply as a test.",
-    evidence: "2026-08-29 Gate 0: added scripts/lib/feature-board-graph.mjs and scripts/test-feature-board-dependencies.ts. Contract verification now rejects missing titles, cycles, forward-milestone edges, delivery-circuit order inversions, unsatisfied in-progress dependencies, milestone-note mismatches, Now keys outside the circuit, and Second Brain roll-ups that do not name their implementation cards. Synthetic fixtures cover those failure classes; the live 138-card manifest is required to pass. Coordinator ownership review: live admin-shell-design-system in_progress/Codex/Now was parked to planned with owner cleared; live email-studio-runtime stayed with Codex but moved to blocked pending production test-send and the unshipped communication sender; route-state-resilience was parked to planned with owner cleared. Delivery-circuit order now places pipeline, setup, communication sender, and audit coverage before their dependents. Now is only atomic-execution-claims. Stale hard-coded board counts were already removed from setup docs. Coordinator apply inserted 19 missing cards, updated 119 managed cards, archived 0 outside-manifest rows. npm run seed:features -- --verify then reported expected 138, activeManaged 138, missing [], drifted [], outsideManifest [].",
+    verification:
+      "npm run verify:agent-contract; npm run seed:features; npx tsx scripts/test-feature-board-dependencies.ts; git diff --check. Live --verify evidence is coordinator-only after reviewing drift; never use --apply as a test.",
+    evidence:
+      "2026-08-29 Gate 0: added scripts/lib/feature-board-graph.mjs and scripts/test-feature-board-dependencies.ts. Contract verification now rejects missing titles, cycles, forward-milestone edges, delivery-circuit order inversions, unsatisfied in-progress dependencies, milestone-note mismatches, Now keys outside the circuit, and Second Brain roll-ups that do not name their implementation cards. Synthetic fixtures cover those failure classes; the live 138-card manifest is required to pass. Coordinator ownership review: live admin-shell-design-system in_progress/Codex/Now was parked to planned with owner cleared; live email-studio-runtime stayed with Codex but moved to blocked pending production test-send and the unshipped communication sender; route-state-resilience was parked to planned with owner cleared. Delivery-circuit order now places pipeline, setup, communication sender, and audit coverage before their dependents. Now is only atomic-execution-claims. Stale hard-coded board counts were already removed from setup docs. Coordinator apply inserted 19 missing cards, updated 119 managed cards, archived 0 outside-manifest rows. npm run seed:features -- --verify then reported expected 138, activeManaged 138, missing [], drifted [], outsideManifest [].",
   }),
   card({
     key: "booking-mode-contract-reconciliation",
@@ -712,17 +3544,25 @@ export const featureBacklog = [
     workstream: "integrations",
     phase: 2,
     priority: "high",
-    description: "Make public booking, Calendly attribution, tenant configuration, Setup Center, and admin guidance agree on one optional activation model with truthful behavioral health and a complete manual fallback.",
+    description:
+      "Make public booking, Calendly attribution, tenant configuration, Setup Center, and admin guidance agree on one optional activation model with truthful behavioral health and a complete manual fallback.",
     acceptance: [
       "One tenant-owned booking mode controls every public embed and admin instruction, with disabled and manual fallback states remaining usable",
       "Calendly embed availability is distinct from API and webhook attribution readiness, and Ready requires fresh signed booking or cancellation evidence",
       "Setup, integration catalog, documentation, and runtime defaults no longer contradict one another",
-      "Desktop and mobile QA proves enabled, disabled, not-configured, degraded, and recovered behavior without exposing tokens"],
-    dependencies: ["Finish Setup Center as the operational control plane", "Extract every business fact into one tenant configuration"],
-    start: "src/config/tenant.ts; src/lib/booking.ts; src/app/admin/setup; src/app/api/webhooks/calendly; public contact and qualifier surfaces; docs/REVENUE-OS-SETUP.md",
-    guardrails: "Do not activate Calendly API access, create credentials, remove manual scheduling, or describe an embed as verified attribution. Provider activation remains founder-controlled.",
+      "Desktop and mobile QA proves enabled, disabled, not-configured, degraded, and recovered behavior without exposing tokens",
+    ],
+    dependencies: [
+      "Finish Setup Center as the operational control plane",
+      "Extract every business fact into one tenant configuration",
+    ],
+    start:
+      "src/config/tenant.ts; src/lib/booking.ts; src/app/admin/setup; src/app/api/webhooks/calendly; public contact and qualifier surfaces; docs/REVENUE-OS-SETUP.md",
+    guardrails:
+      "Do not activate Calendly API access, create credentials, remove manual scheduling, or describe an embed as verified attribution. Provider activation remains founder-controlled.",
     labels: ["calendar", "reliability"],
-    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-booking-mode-contract.ts; PLAYWRIGHT_BASE_URL=http://localhost:3010 node scripts/qa-booking-mode.mjs; npm run build; git diff --check.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-booking-mode-contract.ts; PLAYWRIGHT_BASE_URL=http://localhost:3010 node scripts/qa-booking-mode.mjs; npm run build; git diff --check.",
   }),
   card({
     key: "task-operator-workspace",
@@ -730,17 +3570,25 @@ export const featureBacklog = [
     workstream: "admin",
     phase: 2,
     priority: "high",
-    description: "Give the founder one complete commitments workspace for open, overdue, snoozed, completed, and record-linked tasks while keeping tasks.ts as the only writer and repairing every existing Tasks destination.",
+    description:
+      "Give the founder one complete commitments workspace for open, overdue, snoozed, completed, and record-linked tasks while keeping tasks.ts as the only writer and repairing every existing Tasks destination.",
     acceptance: [
       "A registered /admin/tasks route lists and filters commitments by state, due window, priority, source, and canonical record with truthful loading and recovery states",
       "Create, edit, complete, snooze, and reopen call tasks.ts, record audit/activity evidence, and remain dedupe-safe; the workspace offers no hard delete",
       "Opportunity, Today, search, notification, and AI links open the exact task or filtered Tasks workspace",
-      "All five demo scenarios support the primary operations with simulated receipts, and desktop/mobile keyboard QA passes"],
-    dependencies: ["Build the canonical task generator with deduplication", "Standardize loading, errors, retry, and preserved route state"],
-    start: "src/lib/revenue-os/tasks.ts; src/app/api/admin/tasks/route.ts; src/lib/admin/navigation.ts; src/app/admin/today; src/app/admin/pipeline/[id]; src/lib/admin/demo",
-    guardrails: "Do not add a second task table, calculate priority independently of queue.ts, hard-delete commitments, or make demo operations reach protected APIs.",
+      "All five demo scenarios support the primary operations with simulated receipts, and desktop/mobile keyboard QA passes",
+    ],
+    dependencies: [
+      "Build the canonical task generator with deduplication",
+      "Standardize loading, errors, retry, and preserved route state",
+    ],
+    start:
+      "src/lib/revenue-os/tasks.ts; src/app/api/admin/tasks/route.ts; src/lib/admin/navigation.ts; src/app/admin/today; src/app/admin/pipeline/[id]; src/lib/admin/demo",
+    guardrails:
+      "Do not add a second task table, calculate priority independently of queue.ts, hard-delete commitments, or make demo operations reach protected APIs.",
     labels: ["tasks", "admin"],
-    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-task-workspace-contract.ts; PLAYWRIGHT_BASE_URL=http://localhost:3010 node --env-file=.env.local scripts/qa-task-workspace.mjs; npm run test:admin-demo-contract; npm run build; git diff --check.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-task-workspace-contract.ts; PLAYWRIGHT_BASE_URL=http://localhost:3010 node --env-file=.env.local scripts/qa-task-workspace.mjs; npm run test:admin-demo-contract; npm run build; git diff --check.",
   }),
   card({
     key: "identity-review-workbench",
@@ -748,17 +3596,25 @@ export const featureBacklog = [
     workstream: "foundation",
     phase: 2,
     priority: "high",
-    description: "Turn ambiguous and unmatched Gmail, Calendar, import, form, and compatibility identities into a bounded founder review queue with evidence-backed link, create, no-match, and defer decisions.",
+    description:
+      "Turn ambiguous and unmatched Gmail, Calendar, import, form, and compatibility identities into a bounded founder review queue with evidence-backed link, create, no-match, and defer decisions.",
     acceptance: [
       "One bounded read model lists unresolved identity items by source, age, candidate records, match evidence, and downstream work held for review",
       "Founder decisions call identity.ts with canonical IDs, are optimistic-concurrency protected, idempotent on replay, and write immutable decision and audit evidence",
       "Link, create, no-match, and defer are supported; merge and delete remain unavailable",
-      "Resolving an item updates downstream context once without guessing from names or silently discarding provenance"],
-    dependencies: ["Implement deterministic contact and company identity resolution", "Build contextual contact, company, and opportunity details"],
-    start: "src/lib/revenue-os/identity.ts; src/lib/revenue-os/records.ts; contact import identity decisions; Google association receipts; src/app/admin/contacts",
-    guardrails: "Never merge or delete records in this card, never match by display name alone, and never let an AI decision resolve identity without founder confirmation.",
+      "Resolving an item updates downstream context once without guessing from names or silently discarding provenance",
+    ],
+    dependencies: [
+      "Implement deterministic contact and company identity resolution",
+      "Build contextual contact, company, and opportunity details",
+    ],
+    start:
+      "src/lib/revenue-os/identity.ts; src/lib/revenue-os/records.ts; contact import identity decisions; Google association receipts; src/app/admin/contacts",
+    guardrails:
+      "Never merge or delete records in this card, never match by display name alone, and never let an AI decision resolve identity without founder confirmation.",
     labels: ["identity", "reliability"],
-    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-identity-review.ts; PLAYWRIGHT_BASE_URL=http://localhost:3010 node --env-file=.env.local scripts/qa-identity-review.mjs; npm run build; git diff --check.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-identity-review.ts; PLAYWRIGHT_BASE_URL=http://localhost:3010 node --env-file=.env.local scripts/qa-identity-review.mjs; npm run build; git diff --check.",
   }),
   card({
     key: "data-quality-repair-center",
@@ -766,17 +3622,26 @@ export const featureBacklog = [
     workstream: "admin",
     phase: 3,
     priority: "high",
-    description: "Turn missing attribution, missing owners or next actions, orphan links, impossible stage history, duplicate candidates, and failed reconciliation into exact inspectable records with safe service-owned repair paths.",
+    description:
+      "Turn missing attribution, missing owners or next actions, orphan links, impossible stage history, duplicate candidates, and failed reconciliation into exact inspectable records with safe service-owned repair paths.",
     acceptance: [
       "Every quality count drills into bounded canonical records with rule, evidence time, source, materiality, and an exact record link",
       "Supported repairs call identity, pipeline, task, attribution, or reconciliation services and record before/after audit plus activity evidence",
       "Ambiguous identity routes to the review workbench and unsupported or destructive repairs fail closed",
-      "Bulk-looking work shows an exact preview and per-record result rather than hiding partial failure"],
-    dependencies: ["Build the identity review workbench", "Reconcile analytics with canonical stage history", "Modernize and canonically integrate every additional admin tool"],
-    start: "src/lib/revenue-os/analytics.ts; src/lib/revenue-os/identity.ts; src/lib/revenue-os/legacy-reconciliation.ts; src/app/admin/analytics; src/app/admin/activity",
-    guardrails: "Do not calculate a second set of quality rules in the UI, guess identity, rewrite immutable provider facts, or perform destructive cleanup.",
+      "Bulk-looking work shows an exact preview and per-record result rather than hiding partial failure",
+    ],
+    dependencies: [
+      "Build the identity review workbench",
+      "Reconcile analytics with canonical stage history",
+      "Modernize and canonically integrate every additional admin tool",
+    ],
+    start:
+      "src/lib/revenue-os/analytics.ts; src/lib/revenue-os/identity.ts; src/lib/revenue-os/legacy-reconciliation.ts; src/app/admin/analytics; src/app/admin/activity",
+    guardrails:
+      "Do not calculate a second set of quality rules in the UI, guess identity, rewrite immutable provider facts, or perform destructive cleanup.",
     labels: ["analytics", "reliability"],
-    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-data-quality-repair.ts; PLAYWRIGHT_BASE_URL=http://localhost:3010 node --env-file=.env.local scripts/qa-data-quality-repair.mjs; npm run build; git diff --check.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-data-quality-repair.ts; PLAYWRIGHT_BASE_URL=http://localhost:3010 node --env-file=.env.local scripts/qa-data-quality-repair.mjs; npm run build; git diff --check.",
   }),
   card({
     key: "stage-history-analytics-reconciliation",
@@ -784,17 +3649,25 @@ export const featureBacklog = [
     workstream: "intelligence",
     phase: 2,
     priority: "high",
-    description: "Make funnel progression, furthest stage reached, time in stage, regressions, stale movement, and forecast inputs derive from canonical stage_events while current-stage reporting remains explicitly current state.",
+    description:
+      "Make funnel progression, furthest stage reached, time in stage, regressions, stale movement, and forecast inputs derive from canonical stage_events while current-stage reporting remains explicitly current state.",
     acceptance: [
       "Analytics distinguishes current stage from furthest verified stage and documents cohort and transition semantics",
       "Time-in-stage, regression, impossible-sequence, and stalled-pipeline results derive from ordered stage events with deterministic fixtures",
       "Today, Pipeline, Revenue, Analytics, and AI receive the shared metrics instead of route-local formulas",
-      "Missing or incomplete history is visible and never silently reconstructed from current state"],
-    dependencies: ["Rebuild Analytics around decisions and data quality", "Normalize the cross-channel activity ledger"],
-    start: "src/lib/revenue-os/analytics.ts; src/lib/revenue-os/pipeline.ts; stage_events; src/app/admin/analytics; src/app/api/admin/revenue",
-    guardrails: "Do not overwrite recorded stage history, infer events that do not exist, or present scenario estimates as revenue facts.",
+      "Missing or incomplete history is visible and never silently reconstructed from current state",
+    ],
+    dependencies: [
+      "Rebuild Analytics around decisions and data quality",
+      "Normalize the cross-channel activity ledger",
+    ],
+    start:
+      "src/lib/revenue-os/analytics.ts; src/lib/revenue-os/pipeline.ts; stage_events; src/app/admin/analytics; src/app/api/admin/revenue",
+    guardrails:
+      "Do not overwrite recorded stage history, infer events that do not exist, or present scenario estimates as revenue facts.",
     labels: ["analytics", "database"],
-    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-stage-history-analytics.ts; npm run test:analytics-decision-model; PLAYWRIGHT_BASE_URL=http://localhost:3010 npm run test:analytics-workspace; npm run build; git diff --check.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-stage-history-analytics.ts; npm run test:analytics-decision-model; PLAYWRIGHT_BASE_URL=http://localhost:3010 npm run test:analytics-workspace; npm run build; git diff --check.",
   }),
   card({
     key: "incident-receipt-recovery-console",
@@ -802,17 +3675,25 @@ export const featureBacklog = [
     workstream: "operations",
     phase: 3,
     priority: "high",
-    description: "Give the founder one evidence graph from a health alert or failed action to its job, source, webhook, message, action, audit, and provider receipts, with only bounded and explicitly safe recovery operations.",
+    description:
+      "Give the founder one evidence graph from a health alert or failed action to its job, source, webhook, message, action, audit, and provider receipts, with only bounded and explicitly safe recovery operations.",
     acceptance: [
       "An incident links to the exact execution chain, redacted error, last success, backlog, next expected run, and affected canonical records",
       "Recovery distinguishes retry, reconcile, resume, dismiss, and escalate, and exposes only operations supported by the authoritative service",
       "Uncertain provider outcomes require reconciliation before retry and repeated recovery requests reuse the original logical key",
-      "Incidents close only after fresh behavioral evidence and retain immutable history of attempted recovery"],
-    dependencies: ["Build the system-health report and freshness thresholds", "Complete before/after audit coverage for material changes"],
-    start: "src/lib/revenue-os/health.ts; src/lib/revenue-os/runs.ts; src/lib/revenue-os/audit.ts; job_runs; source_runs; webhook_receipts; action_queue; Setup Center",
-    guardrails: "Do not expose secrets or raw payloads, invent generic retry buttons, erase failed receipts, or allow destructive recovery against uncontrolled production data.",
+      "Incidents close only after fresh behavioral evidence and retain immutable history of attempted recovery",
+    ],
+    dependencies: [
+      "Build the system-health report and freshness thresholds",
+      "Complete before/after audit coverage for material changes",
+    ],
+    start:
+      "src/lib/revenue-os/health.ts; src/lib/revenue-os/runs.ts; src/lib/revenue-os/audit.ts; job_runs; source_runs; webhook_receipts; action_queue; Setup Center",
+    guardrails:
+      "Do not expose secrets or raw payloads, invent generic retry buttons, erase failed receipts, or allow destructive recovery against uncontrolled production data.",
     labels: ["observability", "automation"],
-    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-incident-recovery.ts; PLAYWRIGHT_BASE_URL=http://localhost:3010 node --env-file=.env.local scripts/qa-incident-recovery.mjs; npm run build; git diff --check.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-incident-recovery.ts; PLAYWRIGHT_BASE_URL=http://localhost:3010 node --env-file=.env.local scripts/qa-incident-recovery.mjs; npm run build; git diff --check.",
   }),
   card({
     key: "operating-goals-scorecards",
@@ -820,17 +3701,25 @@ export const featureBacklog = [
     workstream: "intelligence",
     phase: 4,
     priority: "high",
-    description: "Let the founder set versioned period goals for recorded revenue, qualified inquiries, response time, meetings, proposals, wins, and delivery commitments, then compare them with canonical actuals and named data gaps.",
+    description:
+      "Let the founder set versioned period goals for recorded revenue, qualified inquiries, response time, meetings, proposals, wins, and delivery commitments, then compare them with canonical actuals and named data gaps.",
     acceptance: [
       "Goals are founder-authored, versioned by metric and period, validated against a controlled metric registry, and audited without altering historical actuals",
       "Scorecards call analytics.ts for actuals and show target, actual, variance, pace, window, and missing evidence",
       "Editing a goal never changes pipeline probabilities, stage history, revenue records, or prior goal versions",
-      "Today, Analytics, AI reads, and demos consume the same bounded scorecard read model"],
-    dependencies: ["Consolidate analytics on canonical source-to-revenue data", "Rebuild Analytics around decisions and data quality"],
-    start: "src/lib/revenue-os/analytics.ts; src/app/admin/analytics; src/app/admin/today; admin settings service; migrations",
-    guardrails: "Do not let AI edit targets, convert projections into actuals, or introduce a route-local score formula. Missing data remains visible.",
+      "Today, Analytics, AI reads, and demos consume the same bounded scorecard read model",
+    ],
+    dependencies: [
+      "Consolidate analytics on canonical source-to-revenue data",
+      "Rebuild Analytics around decisions and data quality",
+    ],
+    start:
+      "src/lib/revenue-os/analytics.ts; src/app/admin/analytics; src/app/admin/today; admin settings service; migrations",
+    guardrails:
+      "Do not let AI edit targets, convert projections into actuals, or introduce a route-local score formula. Missing data remains visible.",
     labels: ["analytics", "pipeline"],
-    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-operating-goals.ts; PLAYWRIGHT_BASE_URL=http://localhost:3010 node --env-file=.env.local scripts/qa-operating-scorecards.mjs; npm run build; git diff --check.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-operating-goals.ts; PLAYWRIGHT_BASE_URL=http://localhost:3010 node --env-file=.env.local scripts/qa-operating-scorecards.mjs; npm run build; git diff --check.",
   }),
   card({
     key: "forecast-scenario-planner",
@@ -838,17 +3727,25 @@ export const featureBacklog = [
     workstream: "intelligence",
     phase: 4,
     priority: "medium",
-    description: "Add base, upside, and downside planning scenarios whose versioned assumptions operate on canonical open-pipeline facts while remaining visibly separate from recorded forecast and won revenue.",
+    description:
+      "Add base, upside, and downside planning scenarios whose versioned assumptions operate on canonical open-pipeline facts while remaining visibly separate from recorded forecast and won revenue.",
     acceptance: [
       "Each scenario records owner, period, version, assumptions, included opportunity IDs, calculation time, and superseded state",
       "Scenario output reuses analytics.ts and separates recorded facts, deterministic projections, and manual assumptions",
       "Opportunity changes mark affected scenarios stale instead of silently recalculating an approved version",
-      "Comparisons show variance to goals and actuals with accessible tabular alternatives and no implied certainty"],
-    dependencies: ["Add operating goals and scorecards", "Reconcile analytics with canonical stage history"],
-    start: "src/lib/revenue-os/analytics.ts; src/app/admin/analytics; opportunities; stage_events; migrations",
-    guardrails: "Do not mutate opportunity values or probabilities from a scenario, overwrite historical versions, or describe scenario output as booked revenue.",
+      "Comparisons show variance to goals and actuals with accessible tabular alternatives and no implied certainty",
+    ],
+    dependencies: [
+      "Add operating goals and scorecards",
+      "Reconcile analytics with canonical stage history",
+    ],
+    start:
+      "src/lib/revenue-os/analytics.ts; src/app/admin/analytics; opportunities; stage_events; migrations",
+    guardrails:
+      "Do not mutate opportunity values or probabilities from a scenario, overwrite historical versions, or describe scenario output as booked revenue.",
     labels: ["analytics", "pipeline"],
-    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-forecast-scenarios.ts; PLAYWRIGHT_BASE_URL=http://localhost:3010 node --env-file=.env.local scripts/qa-forecast-scenarios.mjs; npm run build; git diff --check.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-forecast-scenarios.ts; PLAYWRIGHT_BASE_URL=http://localhost:3010 node --env-file=.env.local scripts/qa-forecast-scenarios.mjs; npm run build; git diff --check.",
   }),
   card({
     key: "won-to-delivery-handoff",
@@ -856,17 +3753,26 @@ export const featureBacklog = [
     workstream: "operations",
     phase: 3,
     priority: "high",
-    description: "Turn one canonically won opportunity into one inspectable client engagement with onboarding milestones, commitments, source context, and a receipted handoff without creating a second identity or sales pipeline.",
+    description:
+      "Turn one canonically won opportunity into one inspectable client engagement with onboarding milestones, commitments, source context, and a receipted handoff without creating a second identity or sales pipeline.",
     acceptance: [
       "A confirmed won transition can create or return one idempotent engagement linked to the opportunity, contact, company, proposal, and originating receipts",
       "A versioned onboarding template creates deduplicated milestones and tasks through tasks.ts with owner, due state, and source",
       "Partial handoff preserves completed work, names the bounded remainder, and supports safe replay without duplicate commitments",
-      "The record workspace and demo expose engagement status, next milestone, blockers, and exact handoff receipt"],
-    dependencies: ["Finish the canonical pipeline transition service", "Build the canonical task generator with deduplication", "Build contextual contact, company, and opportunity details"],
-    start: "src/lib/revenue-os/pipeline.ts; src/lib/revenue-os/tasks.ts; src/lib/revenue-os/records.ts; legacy clients compatibility; migrations; opportunity record workspace",
-    guardrails: "Do not dual-write a second contact/company identity, overload opportunity stages with delivery state, contact a client automatically, or retire the legacy clients table before reconciliation.",
+      "The record workspace and demo expose engagement status, next milestone, blockers, and exact handoff receipt",
+    ],
+    dependencies: [
+      "Finish the canonical pipeline transition service",
+      "Build the canonical task generator with deduplication",
+      "Build contextual contact, company, and opportunity details",
+    ],
+    start:
+      "src/lib/revenue-os/pipeline.ts; src/lib/revenue-os/tasks.ts; src/lib/revenue-os/records.ts; legacy clients compatibility; migrations; opportunity record workspace",
+    guardrails:
+      "Do not dual-write a second contact/company identity, overload opportunity stages with delivery state, contact a client automatically, or retire the legacy clients table before reconciliation.",
     labels: ["tasks", "pipeline"],
-    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-delivery-handoff.ts; PLAYWRIGHT_BASE_URL=http://localhost:3010 node --env-file=.env.local scripts/qa-delivery-handoff.mjs; npm run build; git diff --check.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-delivery-handoff.ts; PLAYWRIGHT_BASE_URL=http://localhost:3010 node --env-file=.env.local scripts/qa-delivery-handoff.mjs; npm run build; git diff --check.",
   }),
   card({
     key: "client-success-lifecycle-workspace",
@@ -874,17 +3780,26 @@ export const featureBacklog = [
     workstream: "operations",
     phase: 3,
     priority: "high",
-    description: "Extend the command center beyond the sale with one canonical workspace for onboarding progress, delivery commitments, client communication, risks, outcomes, renewal timing, expansion evidence, and referral follow-up.",
+    description:
+      "Extend the command center beyond the sale with one canonical workspace for onboarding progress, delivery commitments, client communication, risks, outcomes, renewal timing, expansion evidence, and referral follow-up.",
     acceptance: [
       "Each client workspace derives identity, engagement, tasks, conversations, activities, proposals, and revenue context through canonical IDs",
       "Health is an explainable read model of commitments, communication, milestones, incidents, and explicit founder input rather than an opaque AI score",
       "Renewal, expansion, and referral signals create reviewable tasks or action proposals and never contact a client directly",
-      "Empty, active, at-risk, paused, completed, and degraded states reconcile in all demo scenarios and responsive QA"],
-    dependencies: ["Create the won-to-delivery handoff", "Finish one auditable communication sender", "Finish Conversations as the unified communication inbox"],
-    start: "engagement read model; src/lib/revenue-os/tasks.ts; src/lib/revenue-os/activities.ts; src/lib/revenue-os/communications.ts; src/app/admin/clients; demo scenarios",
-    guardrails: "Do not create a second CRM, duplicate communication history, infer satisfaction from opens/clicks, or automate renewal outreach without confirmation or an approved policy.",
+      "Empty, active, at-risk, paused, completed, and degraded states reconcile in all demo scenarios and responsive QA",
+    ],
+    dependencies: [
+      "Create the won-to-delivery handoff",
+      "Finish one auditable communication sender",
+      "Finish Conversations as the unified communication inbox",
+    ],
+    start:
+      "engagement read model; src/lib/revenue-os/tasks.ts; src/lib/revenue-os/activities.ts; src/lib/revenue-os/communications.ts; src/app/admin/clients; demo scenarios",
+    guardrails:
+      "Do not create a second CRM, duplicate communication history, infer satisfaction from opens/clicks, or automate renewal outreach without confirmation or an approved policy.",
     labels: ["tasks", "pipeline"],
-    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-client-success.ts; PLAYWRIGHT_BASE_URL=http://localhost:3010 node --env-file=.env.local scripts/qa-client-success.mjs; npm run test:admin-demo-contract; npm run build; git diff --check.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-client-success.ts; PLAYWRIGHT_BASE_URL=http://localhost:3010 node --env-file=.env.local scripts/qa-client-success.mjs; npm run test:admin-demo-contract; npm run build; git diff --check.",
   }),
   card({
     key: "governed-bulk-operator-actions",
@@ -892,17 +3807,26 @@ export const featureBacklog = [
     workstream: "operations",
     phase: 3,
     priority: "medium",
-    description: "Support carefully bounded multi-record task, ownership, stage, suppression, and campaign operations through exact previews, version-bound confirmation, per-record claims, receipts, partial failure, and safe retry.",
+    description:
+      "Support carefully bounded multi-record task, ownership, stage, suppression, and campaign operations through exact previews, version-bound confirmation, per-record claims, receipts, partial failure, and safe retry.",
     acceptance: [
       "Every bulk operation resolves an exact immutable candidate snapshot and shows inclusions, exclusions, changes, and consequences before confirmation",
       "Execution calls the existing per-record domain service with a batch key plus deterministic row keys and records one terminal result per record",
       "Partial failure preserves successful work, exposes the remainder, and retries only failed or unclaimed rows",
-      "Stale records invalidate or exclude the affected row; no bulk operation guesses identity or bypasses transition, suppression, or confirmation rules"],
-    dependencies: ["Enforce atomic claims and idempotency for jobs and actions", "Complete before/after audit coverage for material changes", "Build the identity review workbench"],
-    start: "src/lib/revenue-os/actions.ts; src/lib/revenue-os/pipeline.ts; src/lib/revenue-os/tasks.ts; src/lib/revenue-os/campaign-stops.ts; action queue UI",
-    guardrails: "No hard delete, silent all-or-nothing claim, direct provider loop, hidden exclusion, or unbounded recipient set. Provider effects still require their normal policy or confirmation.",
+      "Stale records invalidate or exclude the affected row; no bulk operation guesses identity or bypasses transition, suppression, or confirmation rules",
+    ],
+    dependencies: [
+      "Enforce atomic claims and idempotency for jobs and actions",
+      "Complete before/after audit coverage for material changes",
+      "Build the identity review workbench",
+    ],
+    start:
+      "src/lib/revenue-os/actions.ts; src/lib/revenue-os/pipeline.ts; src/lib/revenue-os/tasks.ts; src/lib/revenue-os/campaign-stops.ts; action queue UI",
+    guardrails:
+      "No hard delete, silent all-or-nothing claim, direct provider loop, hidden exclusion, or unbounded recipient set. Provider effects still require their normal policy or confirmation.",
     labels: ["automation", "reliability"],
-    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-bulk-operator-actions.ts; PLAYWRIGHT_BASE_URL=http://localhost:3010 node --env-file=.env.local scripts/qa-bulk-operator-actions.mjs; npm run build; git diff --check.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-bulk-operator-actions.ts; PLAYWRIGHT_BASE_URL=http://localhost:3010 node --env-file=.env.local scripts/qa-bulk-operator-actions.mjs; npm run build; git diff --check.",
   }),
   card({
     key: "automation-policy-registry",
@@ -910,17 +3834,26 @@ export const featureBacklog = [
     workstream: "security",
     phase: 4,
     priority: "high",
-    description: "Replace bespoke autonomous modules with one versioned registry for bounded triggers, envelopes, eligibility, stop rules, templates, models, eval fixtures, approvals, kill switches, decisions, and execution receipts.",
+    description:
+      "Replace bespoke autonomous modules with one versioned registry for bounded triggers, envelopes, eligibility, stop rules, templates, models, eval fixtures, approvals, kill switches, decisions, and execution receipts.",
     acceptance: [
       "A typed policy definition declares trigger, envelope, guardrails, model job, template, eval set, version, approval, and execution service",
       "Material edits bump the version and suspend execution until founder reapproval; the kill switch is reread immediately before every side effect",
       "The registry records act and decline decisions, shares one evaluation harness and approval surface, and fails unknown policy types closed",
-      "Inbound response, stalled-deal nudge, and commitment keeper use the registry without duplicating claim, audit, or receipt logic"],
-    dependencies: ["Enforce campaign policy envelopes and version reapproval", "Answer every inbound inquiry inside an approved response policy", "Finish the shared AI confirmation system"],
-    start: "src/lib/revenue-os/auto-responder.ts; src/lib/revenue-os/campaigns.ts; src/lib/revenue-os/actions.ts; approved policy contract; migrations",
-    guardrails: "Models never edit policy, widen envelopes, choose recipients outside deterministic eligibility, or bypass the normal service. New policies require fixtures and founder approval.",
+      "Inbound response, stalled-deal nudge, and commitment keeper use the registry without duplicating claim, audit, or receipt logic",
+    ],
+    dependencies: [
+      "Enforce campaign policy envelopes and version reapproval",
+      "Answer every inbound inquiry inside an approved response policy",
+      "Finish the shared AI confirmation system",
+    ],
+    start:
+      "src/lib/revenue-os/auto-responder.ts; src/lib/revenue-os/campaigns.ts; src/lib/revenue-os/actions.ts; approved policy contract; migrations",
+    guardrails:
+      "Models never edit policy, widen envelopes, choose recipients outside deterministic eligibility, or bypass the normal service. New policies require fixtures and founder approval.",
     labels: ["automation", "security"],
-    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-automation-policy-registry.ts; npm run test:responder-envelope; npm run build; git diff --check.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-automation-policy-registry.ts; npm run test:responder-envelope; npm run build; git diff --check.",
   }),
   card({
     key: "client-instance-portability",
@@ -928,17 +3861,26 @@ export const featureBacklog = [
     workstream: "productization",
     phase: 5,
     priority: "medium",
-    description: "Give each instance a bounded secret-free export and a scratch-instance restore proof covering canonical records, immutable provenance, approved configuration, templates, and schema version without copying Accelerate or another client's data.",
+    description:
+      "Give each instance a bounded secret-free export and a scratch-instance restore proof covering canonical records, immutable provenance, approved configuration, templates, and schema version without copying Accelerate or another client's data.",
     acceptance: [
       "A versioned export manifest names included tables, row counts, hashes, schema contract, tenant configuration, exclusions, and redacted fields",
       "Secrets, OAuth tokens, provider credentials, raw sensitive payloads, and environment values are never exported",
       "A scratch restore preserves canonical IDs, links, immutable receipts, template versions, and reconciliation counts without producing external effects",
-      "Export and restore are resumable, idempotent, auditable, and verified against a non-Accelerate fixture tenant"],
-    dependencies: ["Prove a clean client installation end to end", "Add schema-version and drift verification", "Extract every business fact into one tenant configuration"],
-    start: "docs/INSTALL-RUNBOOK.md; migrations; schema contract; src/config/tenant.ts; canonical table map; scripts",
-    guardrails: "Do not export secrets, copy production data into uncontrolled storage, restore into the Accelerate project, reassign canonical IDs, or trigger sends, webhooks, syncs, or automation during restore.",
+      "Export and restore are resumable, idempotent, auditable, and verified against a non-Accelerate fixture tenant",
+    ],
+    dependencies: [
+      "Prove a clean client installation end to end",
+      "Add schema-version and drift verification",
+      "Extract every business fact into one tenant configuration",
+    ],
+    start:
+      "docs/INSTALL-RUNBOOK.md; migrations; schema contract; src/config/tenant.ts; canonical table map; scripts",
+    guardrails:
+      "Do not export secrets, copy production data into uncontrolled storage, restore into the Accelerate project, reassign canonical IDs, or trigger sends, webhooks, syncs, or automation during restore.",
     labels: ["clonable", "security"],
-    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-client-instance-portability.ts; npm run build; git diff --check. Restore proof must target an explicit scratch project and record redacted row-count/hash evidence.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-client-instance-portability.ts; npm run build; git diff --check. Restore proof must target an explicit scratch project and record redacted row-count/hash evidence.",
   }),
   card({
     key: "integration-adapter-contract",
@@ -946,17 +3888,26 @@ export const featureBacklog = [
     workstream: "integrations",
     phase: 3,
     priority: "high",
-    description: "Define one typed provider adapter boundary for scoped connection state, incremental reads, external actions, cursors, rate limits, receipts, reconciliation, health, and canonical service mapping before adding another provider.",
+    description:
+      "Define one typed provider adapter boundary for scoped connection state, incremental reads, external actions, cursors, rate limits, receipts, reconciliation, health, and canonical service mapping before adding another provider.",
     acceptance: [
       "The adapter contract separates provider connection, bounded pull or webhook input, canonical normalization, external execution, reconciliation, and behavioral health",
       "Every invocation authenticates, claims through runs.ts, preserves provider IDs, honors rate limits, and terminates success, partial, skipped, or failed",
       "The integration registry exposes scopes, data classes, cost posture, freshness, setup, and recovery without treating configuration as Ready",
-      "A fixture adapter proves duplicate, replay, cursor expiry, throttling, uncertain outcome, scope drift, and safe recovery"],
-    dependencies: ["Build the provider capability platform and integration catalog", "Enforce atomic claims and idempotency for jobs and actions", "Harden encrypted secret and token storage"],
-    start: "src/lib/revenue-os/integration-registry.ts; src/lib/revenue-os/integrations.ts; src/lib/revenue-os/runs.ts; src/lib/revenue-os/google.ts",
-    guardrails: "Do not add a universal raw-provider store, hidden dual ownership, credential passthrough, provider-specific business rules, or activate a new provider in this card.",
+      "A fixture adapter proves duplicate, replay, cursor expiry, throttling, uncertain outcome, scope drift, and safe recovery",
+    ],
+    dependencies: [
+      "Build the provider capability platform and integration catalog",
+      "Enforce atomic claims and idempotency for jobs and actions",
+      "Harden encrypted secret and token storage",
+    ],
+    start:
+      "src/lib/revenue-os/integration-registry.ts; src/lib/revenue-os/integrations.ts; src/lib/revenue-os/runs.ts; src/lib/revenue-os/google.ts",
+    guardrails:
+      "Do not add a universal raw-provider store, hidden dual ownership, credential passthrough, provider-specific business rules, or activate a new provider in this card.",
     labels: ["integrations", "reliability"],
-    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-integration-adapter-contract.ts; npm run test:integration-catalog; npm run build; git diff --check.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-integration-adapter-contract.ts; npm run test:integration-catalog; npm run build; git diff --check.",
   }),
   card({
     key: "microsoft-365-workspace-parity",
@@ -964,17 +3915,26 @@ export const featureBacklog = [
     workstream: "integrations",
     phase: 4,
     priority: "medium",
-    description: "Map Outlook mail, Outlook Calendar, and selected OneDrive or SharePoint content through Microsoft Graph into the same canonical communication, scheduling, identity, knowledge, run, and receipt services used by Google.",
+    description:
+      "Map Outlook mail, Outlook Calendar, and selected OneDrive or SharePoint content through Microsoft Graph into the same canonical communication, scheduling, identity, knowledge, run, and receipt services used by Google.",
     acceptance: [
       "Founder-approved delegated scopes, encrypted tokens, account identity, scope drift, reconnect, and behavioral health are visible without exposing credentials",
       "Delta synchronization, change notifications, throttling, cursor recovery, message threading, event updates, and file provenance are replay-safe",
       "Confirmed replies and calendar mutations use canonical services and receipts; selected files stay within explicit allowlists",
-      "Google and Microsoft records reconcile through provider IDs and canonical identity without creating parallel inbox, calendar, or knowledge stores"],
-    dependencies: ["Define the provider integration adapter contract", "Finish one auditable communication sender", "Implement deterministic contact and company identity resolution"],
-    start: "integration adapter contract; src/lib/revenue-os/google.ts as behavior reference; integration registry; Setup Center; conversations and record timelines",
-    guardrails: "Remain Later until separately authorized. Do not request tenant-wide application permissions, ingest unrestricted SharePoint, introduce a second CRM, or activate credentials during implementation without founder approval.",
+      "Google and Microsoft records reconcile through provider IDs and canonical identity without creating parallel inbox, calendar, or knowledge stores",
+    ],
+    dependencies: [
+      "Define the provider integration adapter contract",
+      "Finish one auditable communication sender",
+      "Implement deterministic contact and company identity resolution",
+    ],
+    start:
+      "integration adapter contract; src/lib/revenue-os/google.ts as behavior reference; integration registry; Setup Center; conversations and record timelines",
+    guardrails:
+      "Remain Later until separately authorized. Do not request tenant-wide application permissions, ingest unrestricted SharePoint, introduce a second CRM, or activate credentials during implementation without founder approval.",
     labels: ["gmail", "calendar"],
-    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-microsoft-365-adapter.ts; npm run test:integration-catalog; npm run build; git diff --check. Production receipts require separate founder activation.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-microsoft-365-adapter.ts; npm run test:integration-catalog; npm run build; git diff --check. Production receipts require separate founder activation.",
   }),
   card({
     key: "stripe-revenue-reconciliation",
@@ -982,17 +3942,26 @@ export const featureBacklog = [
     workstream: "integrations",
     phase: 4,
     priority: "medium",
-    description: "Link Stripe customers, invoices, subscriptions, payments, refunds, and disputes to canonical companies and opportunities so recorded payment truth can reconcile with pipeline and delivery without making Stripe the CRM.",
+    description:
+      "Link Stripe customers, invoices, subscriptions, payments, refunds, and disputes to canonical companies and opportunities so recorded payment truth can reconcile with pipeline and delivery without making Stripe the CRM.",
     acceptance: [
       "Signed out-of-order webhooks and bounded backfill produce one immutable provider event per Stripe event ID with safe replay and reconciliation",
       "Deterministic customer and metadata evidence links canonical records while ambiguous matches enter review",
       "Analytics separates contracted, invoiced, paid, refunded, disputed, and pipeline values and exposes unknown or stale linkage",
-      "The integration is read and reconciliation first; no charge, refund, invoice, or subscription mutation is available"],
-    dependencies: ["Define the provider integration adapter contract", "Consolidate analytics on canonical source-to-revenue data", "Complete before/after audit coverage for material changes"],
-    start: "integration adapter contract; integration registry; analytics.ts; identity.ts; webhook receipts; Setup Center",
-    guardrails: "Remain Later until separately authorized. Use restricted credentials, never store card data, never infer paid state from pipeline, and do not add Stripe write actions.",
+      "The integration is read and reconciliation first; no charge, refund, invoice, or subscription mutation is available",
+    ],
+    dependencies: [
+      "Define the provider integration adapter contract",
+      "Consolidate analytics on canonical source-to-revenue data",
+      "Complete before/after audit coverage for material changes",
+    ],
+    start:
+      "integration adapter contract; integration registry; analytics.ts; identity.ts; webhook receipts; Setup Center",
+    guardrails:
+      "Remain Later until separately authorized. Use restricted credentials, never store card data, never infer paid state from pipeline, and do not add Stripe write actions.",
     labels: ["analytics", "integrations"],
-    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-stripe-reconciliation.ts; npm run test:integration-catalog; npm run build; git diff --check. Production webhook evidence requires separate founder activation.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-stripe-reconciliation.ts; npm run test:integration-catalog; npm run build; git diff --check. Production webhook evidence requires separate founder activation.",
   }),
   card({
     key: "slack-notification-approval-surface",
@@ -1000,17 +3969,26 @@ export const featureBacklog = [
     workstream: "integrations",
     phase: 4,
     priority: "medium",
-    description: "Deliver selected briefs, operational alerts, and expiring approval links to founder-approved Slack destinations while keeping the Command Center as the durable notification, decision, and action ledger.",
+    description:
+      "Deliver selected briefs, operational alerts, and expiring approval links to founder-approved Slack destinations while keeping the Command Center as the durable notification, decision, and action ledger.",
     acceptance: [
       "Only allowlisted workspaces and destinations receive bounded redacted notifications that respect quiet hours, urgency, dedupe, and delivery preferences",
       "Slack buttons carry expiring audience-bound references and open or stage the exact Command Center decision; Slack never executes the domain action directly",
       "Delivery, failure, retry, revocation, and scope drift write canonical receipts and behavioral health",
-      "Message content excludes secrets, raw customer payloads, uncontrolled document text, and unnecessary personal data"],
-    dependencies: ["Define the provider integration adapter contract", "Wire notification preferences into actual dispatch", "Finish the shared AI confirmation system"],
-    start: "integration adapter contract; notification preferences; actions.ts; Setup Center; integration registry",
-    guardrails: "Remain Later until separately authorized. Slack is a delivery surface, never the audit log, action queue, workflow engine, or source of canonical state.",
+      "Message content excludes secrets, raw customer payloads, uncontrolled document text, and unnecessary personal data",
+    ],
+    dependencies: [
+      "Define the provider integration adapter contract",
+      "Wire notification preferences into actual dispatch",
+      "Finish the shared AI confirmation system",
+    ],
+    start:
+      "integration adapter contract; notification preferences; actions.ts; Setup Center; integration registry",
+    guardrails:
+      "Remain Later until separately authorized. Slack is a delivery surface, never the audit log, action queue, workflow engine, or source of canonical state.",
     labels: ["integrations", "approval"],
-    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-slack-notification-adapter.ts; npm run test:integration-catalog; npm run build; git diff --check. Production delivery evidence requires separate founder activation.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-slack-notification-adapter.ts; npm run test:integration-catalog; npm run build; git diff --check. Production delivery evidence requires separate founder activation.",
   }),
   card({
     key: "notion-knowledge-source",
@@ -1018,17 +3996,26 @@ export const featureBacklog = [
     workstream: "integrations",
     phase: 4,
     priority: "medium",
-    description: "Index only founder-approved Notion pages and databases into the shared knowledge substrate with provider provenance, edit and permission propagation, citations, recency, and explicit deletion or inaccessible states.",
+    description:
+      "Index only founder-approved Notion pages and databases into the shared knowledge substrate with provider provenance, edit and permission propagation, citations, recency, and explicit deletion or inaccessible states.",
     acceptance: [
       "Only explicitly shared roots are traversed and every chunk retains page, block, parent, URL, edited time, content hash, and permission provenance",
       "Incremental sync skips unchanged content, respects rate limits, and marks deleted, moved, or inaccessible sources without erasing prior provenance",
       "Retrieval uses the shared knowledge service, exposes openable citations, and makes conflicts with canonical records visible",
-      "Generated summaries never write back to Notion or become instructions automatically"],
-    dependencies: ["Define the provider integration adapter contract", "Phase B: a knowledge substrate with provenance", "Ground AI retrieval in Drive provenance and citations"],
-    start: "integration adapter contract; knowledge substrate; Drive indexing and retrieval patterns; integration registry; Setup Center",
-    guardrails: "Remain Later until separately authorized. Do not ingest an entire workspace, bypass page permissions, create a parallel vector store, write to Notion, or promote content into system instructions.",
+      "Generated summaries never write back to Notion or become instructions automatically",
+    ],
+    dependencies: [
+      "Define the provider integration adapter contract",
+      "Phase B: a knowledge substrate with provenance",
+      "Ground AI retrieval in Drive provenance and citations",
+    ],
+    start:
+      "integration adapter contract; knowledge substrate; Drive indexing and retrieval patterns; integration registry; Setup Center",
+    guardrails:
+      "Remain Later until separately authorized. Do not ingest an entire workspace, bypass page permissions, create a parallel vector store, write to Notion, or promote content into system instructions.",
     labels: ["second-brain", "integrations"],
-    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-notion-knowledge-adapter.ts; npm run test:integration-catalog; npm run build; git diff --check. Production sync evidence requires separate founder activation.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-notion-knowledge-adapter.ts; npm run test:integration-catalog; npm run build; git diff --check. Production sync evidence requires separate founder activation.",
   }),
 ];
 
@@ -1039,7 +4026,8 @@ for (const feature of featureBacklog) {
   const circuitIndex = LOOP_ONE.indexOf(feature.seed_key);
   // Every status column follows the dependency circuit first, then the stable
   // manifest order. This makes the board order agree with the handoff notes.
-  feature.sort_order = circuitIndex >= 0 ? (circuitIndex + 1) * 1000 : (LOOP_ONE.length + count + 1) * 1000;
+  feature.sort_order =
+    circuitIndex >= 0 ? (circuitIndex + 1) * 1000 : (LOOP_ONE.length + count + 1) * 1000;
 }
 
 export function validateFeatureBacklog() {
@@ -1047,23 +4035,34 @@ export function validateFeatureBacklog() {
   for (const feature of featureBacklog) {
     if (keys.has(feature.seed_key)) throw new Error(`Duplicate feature key: ${feature.seed_key}`);
     keys.add(feature.seed_key);
-    if (!feature.title || !feature.description || !feature.acceptance_criteria || !feature.notes) throw new Error(`Incomplete feature: ${feature.seed_key}`);
-    if (feature.labels.length < 4 || feature.labels.length > 5) throw new Error(`Invalid taxonomy label count: ${feature.seed_key}`);
+    if (!feature.title || !feature.description || !feature.acceptance_criteria || !feature.notes)
+      throw new Error(`Incomplete feature: ${feature.seed_key}`);
+    if (feature.labels.length < 4 || feature.labels.length > 5)
+      throw new Error(`Invalid taxonomy label count: ${feature.seed_key}`);
     for (const prefix of ["category:", "milestone:", "phase:"]) {
-      if (feature.labels.filter((label) => label.startsWith(prefix)).length !== 1) throw new Error(`${feature.seed_key} must have exactly one ${prefix} label`);
+      if (feature.labels.filter((label) => label.startsWith(prefix)).length !== 1)
+        throw new Error(`${feature.seed_key} must have exactly one ${prefix} label`);
     }
-    if (feature.labels.filter((label) => label.startsWith("capability:")).length < 1 || feature.labels.filter((label) => label.startsWith("capability:")).length > 2) throw new Error(`${feature.seed_key} must have one or two capability labels`);
+    if (
+      feature.labels.filter((label) => label.startsWith("capability:")).length < 1 ||
+      feature.labels.filter((label) => label.startsWith("capability:")).length > 2
+    )
+      throw new Error(`${feature.seed_key} must have one or two capability labels`);
   }
   for (const key of LOOP_ONE) {
-    if (!keys.has(key)) throw new Error(`Loop One names ${key}, which is not a card in this manifest`);
+    if (!keys.has(key))
+      throw new Error(`Loop One names ${key}, which is not a card in this manifest`);
   }
   if (new Set(LOOP_ONE).size !== LOOP_ONE.length) throw new Error("Loop One has duplicate keys");
   for (const key of NOW_KEYS) {
-    if (!LOOP_ONE_SET.has(key)) throw new Error(`NOW_KEYS includes ${key}, which is not on the delivery circuit`);
+    if (!LOOP_ONE_SET.has(key))
+      throw new Error(`NOW_KEYS includes ${key}, which is not on the delivery circuit`);
   }
   const claimed = featureBacklog.filter((feature) => feature.status === "in_progress");
   if (claimed.length > 2) {
-    throw new Error(`WIP limit exceeded: ${claimed.length} cards in progress (${claimed.map((feature) => feature.seed_key).join(", ")}). Finish or park one first.`);
+    throw new Error(
+      `WIP limit exceeded: ${claimed.length} cards in progress (${claimed.map((feature) => feature.seed_key).join(", ")}). Finish or park one first.`,
+    );
   }
   return { total: featureBacklog.length, byStatus: Object.fromEntries([...countsByStatus]) };
 }

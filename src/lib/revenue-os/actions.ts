@@ -40,20 +40,23 @@ export async function sweepExpiredActions(supabase: SupabaseClient): Promise<num
   return data?.length ?? 0;
 }
 
-export async function proposeAction(supabase: SupabaseClient, input: {
-  actionType: string;
-  title: string;
-  description?: string;
-  urgency?: ActionUrgency;
-  payload: Record<string, unknown>;
-  reasoning?: string;
-  sourceContext: string;
-  entityType?: string;
-  entityId?: string;
-  dedupeKey?: string;
-  proposedBy?: string;
-  expiresAt?: string;
-}) {
+export async function proposeAction(
+  supabase: SupabaseClient,
+  input: {
+    actionType: string;
+    title: string;
+    description?: string;
+    urgency?: ActionUrgency;
+    payload: Record<string, unknown>;
+    reasoning?: string;
+    sourceContext: string;
+    entityType?: string;
+    entityId?: string;
+    dedupeKey?: string;
+    proposedBy?: string;
+    expiresAt?: string;
+  },
+) {
   const row = {
     action_type: input.actionType,
     title: input.title,
@@ -78,7 +81,12 @@ export async function proposeAction(supabase: SupabaseClient, input: {
         const retried = await supabase.from("action_queue").insert(row).select("*").single();
         if (!retried.error && retried.data) return retried.data;
       }
-      const { data: existing } = await supabase.from("action_queue").select("*").eq("dedupe_key", input.dedupeKey).eq("status", "pending").maybeSingle();
+      const { data: existing } = await supabase
+        .from("action_queue")
+        .select("*")
+        .eq("dedupe_key", input.dedupeKey)
+        .eq("status", "pending")
+        .maybeSingle();
       if (existing) return existing;
     }
     throw new Error(error.message);
@@ -93,7 +101,8 @@ export async function recoverStaleExecutingActions(supabase: SupabaseClient): Pr
     .from("action_queue")
     .update({
       status: "failed",
-      error: "Action abandoned before reporting a terminal state and was recovered by a later claim",
+      error:
+        "Action abandoned before reporting a terminal state and was recovered by a later claim",
       updated_at: now,
     })
     .eq("status", "executing")
@@ -113,14 +122,25 @@ export async function recoverStaleExecutingActions(supabase: SupabaseClient): Pr
   return data?.length ?? 0;
 }
 
-export async function claimApprovedAction(supabase: SupabaseClient, id: string, actorEmail: string) {
+export async function claimApprovedAction(
+  supabase: SupabaseClient,
+  id: string,
+  actorEmail: string,
+) {
   await recoverStaleExecutingActions(supabase);
   const now = new Date().toISOString();
-  const { data, error } = await supabase.from("action_queue").update({
-    status: "executing",
-    approved_by: actorEmail,
-    approved_at: now,
-  }).eq("id", id).eq("status", "pending").or(`expires_at.is.null,expires_at.gt.${now}`).select("*").maybeSingle();
+  const { data, error } = await supabase
+    .from("action_queue")
+    .update({
+      status: "executing",
+      approved_by: actorEmail,
+      approved_at: now,
+    })
+    .eq("id", id)
+    .eq("status", "pending")
+    .or(`expires_at.is.null,expires_at.gt.${now}`)
+    .select("*")
+    .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) throw new Error("This action was already handled or has expired");
   await recordAudit(supabase, {
@@ -134,27 +154,52 @@ export async function claimApprovedAction(supabase: SupabaseClient, id: string, 
 }
 
 export async function finishAction(supabase: SupabaseClient, id: string, result: unknown) {
-  const { error } = await supabase.from("action_queue").update({
-    status: "executed",
-    executed_at: new Date().toISOString(),
-    result,
-    error: null,
-  }).eq("id", id).eq("status", "executing");
+  const { error } = await supabase
+    .from("action_queue")
+    .update({
+      status: "executed",
+      executed_at: new Date().toISOString(),
+      result,
+      error: null,
+    })
+    .eq("id", id)
+    .eq("status", "executing");
   if (error) throw new Error(error.message);
 }
 
 export async function failAction(supabase: SupabaseClient, id: string, errorMessage: string) {
-  await supabase.from("action_queue").update({ status: "failed", error: errorMessage }).eq("id", id).eq("status", "executing");
+  await supabase
+    .from("action_queue")
+    .update({ status: "failed", error: errorMessage })
+    .eq("id", id)
+    .eq("status", "executing");
 }
 
-export async function rejectAction(supabase: SupabaseClient, id: string, actorEmail: string, reason?: string) {
-  const { data, error } = await supabase.from("action_queue").update({
-    status: "rejected",
-    approved_by: actorEmail,
-    approved_at: new Date().toISOString(),
-    result: reason ? { reason } : {},
-  }).eq("id", id).eq("status", "pending").select("id").maybeSingle();
+export async function rejectAction(
+  supabase: SupabaseClient,
+  id: string,
+  actorEmail: string,
+  reason?: string,
+) {
+  const { data, error } = await supabase
+    .from("action_queue")
+    .update({
+      status: "rejected",
+      approved_by: actorEmail,
+      approved_at: new Date().toISOString(),
+      result: reason ? { reason } : {},
+    })
+    .eq("id", id)
+    .eq("status", "pending")
+    .select("id")
+    .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) throw new Error("This action was already handled");
-  await recordAudit(supabase, { actorEmail, action: "action.rejected", entityType: "action_queue", entityId: id, metadata: { reason } });
+  await recordAudit(supabase, {
+    actorEmail,
+    action: "action.rejected",
+    entityType: "action_queue",
+    entityId: id,
+    metadata: { reason },
+  });
 }

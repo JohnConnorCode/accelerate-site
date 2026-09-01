@@ -42,12 +42,36 @@ const settingSections = [
 ];
 
 const notificationSettings = [
-  { key: "NOTIFY_NEW_LEADS", label: "New lead submitted", description: "Get notified when someone completes the plan builder" },
-  { key: "NOTIFY_NEW_CONTACTS", label: "New contact form", description: "Get notified on new contact form submissions" },
-  { key: "NOTIFY_HOT_LEADS", label: "Hot leads", description: "Alert when a lead scores 70+ (hot)" },
-  { key: "NOTIFY_PROPOSAL_VIEWED", label: "Proposal viewed", description: "Alert when a prospect views a shared proposal" },
-  { key: "NOTIFY_TASK_OVERDUE", label: "Task overdue", description: "Alert when a follow-up task passes its due date" },
-  { key: "NOTIFY_CONTRACT_EXPIRING", label: "Contract expiring", description: "Alert when a client contract is expiring within 30 days" },
+  {
+    key: "NOTIFY_NEW_LEADS",
+    label: "New lead submitted",
+    description: "Get notified when someone completes the plan builder",
+  },
+  {
+    key: "NOTIFY_NEW_CONTACTS",
+    label: "New contact form",
+    description: "Get notified on new contact form submissions",
+  },
+  {
+    key: "NOTIFY_HOT_LEADS",
+    label: "Hot leads",
+    description: "Alert when a lead scores 70+ (hot)",
+  },
+  {
+    key: "NOTIFY_PROPOSAL_VIEWED",
+    label: "Proposal viewed",
+    description: "Alert when a prospect views a shared proposal",
+  },
+  {
+    key: "NOTIFY_TASK_OVERDUE",
+    label: "Task overdue",
+    description: "Alert when a follow-up task passes its due date",
+  },
+  {
+    key: "NOTIFY_CONTRACT_EXPIRING",
+    label: "Contract expiring",
+    description: "Alert when a client contract is expiring within 30 days",
+  },
 ];
 
 export default function SettingsPage() {
@@ -183,25 +207,30 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <PageHeader title="Settings" subtitle="Control notification preferences and the configuration that powers the operating system." />
+      <PageHeader
+        title="Settings"
+        subtitle="Control notification preferences and the configuration that powers the operating system."
+      />
 
       <div className="space-y-6">
         {/* Notification Preferences */}
         <div>
           <AdminSurface padding="lg">
             <div className="flex items-center gap-3 mb-5">
-              <span className="grid size-10 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] dark:bg-white/[0.06]"><Bell className="size-4" /></span>
-              <div><p className="admin-eyebrow">Operating preferences</p><h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">
-                Notifications
-              </h2></div>
+              <span className="grid size-10 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] dark:bg-white/[0.06]">
+                <Bell className="size-4" />
+              </span>
+              <div>
+                <p className="admin-eyebrow">Operating preferences</p>
+                <h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">
+                  Notifications
+                </h2>
+              </div>
             </div>
 
             <div className="divide-y divide-[var(--admin-border)] overflow-hidden rounded-xl bg-[var(--admin-surface-subtle)] shadow-[var(--admin-shadow-border)]">
               {notificationSettings.map((pref) => (
-                <div
-                  key={pref.key}
-                  className="flex items-center justify-between gap-4 px-4 py-4"
-                >
+                <div key={pref.key} className="flex items-center justify-between gap-4 px-4 py-4">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-[var(--admin-ink)]">{pref.label}</p>
                     <p className="admin-copy mt-1 text-pretty text-xs">{pref.description}</p>
@@ -219,15 +248,18 @@ export default function SettingsPage() {
         </div>
 
         {settingSections.map((section) => (
-          <div
-            key={section.title}
-          >
+          <div key={section.title}>
             <AdminSurface padding="lg">
               <div className="flex items-center gap-3 mb-5">
-                <span className="grid size-10 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] dark:bg-white/[0.06]"><section.icon className="size-4" /></span>
-                <div><p className="admin-eyebrow">Configuration</p><h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">
-                  {section.title}
-                </h2></div>
+                <span className="grid size-10 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] dark:bg-white/[0.06]">
+                  <section.icon className="size-4" />
+                </span>
+                <div>
+                  <p className="admin-eyebrow">Configuration</p>
+                  <h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">
+                    {section.title}
+                  </h2>
+                </div>
               </div>
 
               <div className="divide-y divide-[var(--admin-border)] overflow-hidden rounded-xl bg-[var(--admin-surface-subtle)] shadow-[var(--admin-shadow-border)]">
@@ -238,10 +270,7 @@ export default function SettingsPage() {
                   const isTestable = key === "OPENROUTER_API_KEY" || key === "RESEND_API_KEY";
 
                   return (
-                    <div
-                      key={key}
-                      className="px-4 py-4"
-                    >
+                    <div key={key} className="px-4 py-4">
                       <div className="flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:items-start">
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
@@ -298,9 +327,7 @@ export default function SettingsPage() {
                           ) : (
                             <p className="mt-2 break-all font-mono text-xs text-[var(--admin-ink)]">
                               {setting?.value || (
-                                <span className="text-[var(--admin-muted)] italic">
-                                  Not set
-                                </span>
+                                <span className="text-[var(--admin-muted)] italic">Not set</span>
                               )}
                             </p>
                           )}

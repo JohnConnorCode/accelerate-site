@@ -168,8 +168,8 @@ export function TaskWidget() {
                           task.related_type === "lead"
                             ? "/admin/leads"
                             : task.related_type === "client"
-                            ? `/admin/clients/${task.related_id}`
-                            : `/admin/contacts/${encodeURIComponent(task.related_name)}`
+                              ? `/admin/clients/${task.related_id}`
+                              : `/admin/contacts/${encodeURIComponent(task.related_name)}`
                         }
                         className="text-[10px] text-white-muted hover:text-gold-light transition-colors truncate"
                       >
@@ -179,7 +179,12 @@ export function TaskWidget() {
                   </div>
                 </div>
 
-                <span className={cn("text-[10px] font-medium shrink-0", priorityColors[task.priority] || "text-white-muted")}>
+                <span
+                  className={cn(
+                    "text-[10px] font-medium shrink-0",
+                    priorityColors[task.priority] || "text-white-muted",
+                  )}
+                >
                   {task.priority}
                 </span>
               </motion.div>

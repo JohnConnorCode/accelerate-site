@@ -9,24 +9,18 @@ import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import Link from "next/link";
 import { ChevronRight, Clock, Calendar, User } from "lucide-react";
-import {
-  getAllArticles,
-  getArticleBySlug,
-  getRelatedArticles,
-  CATEGORY_LABELS,
-} from "@/lib/mdx";
-import {
-  generateArticleJsonLd,
-  generateBreadcrumbJsonLd,
-} from "@/lib/seo";
+import { getAllArticles, getArticleBySlug, getRelatedArticles, CATEGORY_LABELS } from "@/lib/mdx";
+import { generateArticleJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 import { formatDateOnly } from "@/lib/date-format";
 import { SectionDivider } from "@/components/ui/SectionDivider";
+import { AnimateOnScroll, EntranceGroup, EntranceItem } from "@/components/ui/AnimateOnScroll";
 import {
-  AnimateOnScroll,
-  EntranceGroup,
-  EntranceItem,
-} from "@/components/ui/AnimateOnScroll";
-import { Section, Eyebrow, Heading, BookCallButton, CallTerms } from "@/components/v2/studio/primitives";
+  Section,
+  Eyebrow,
+  Heading,
+  BookCallButton,
+  CallTerms,
+} from "@/components/v2/studio/primitives";
 import { TableOfContents } from "@/components/mdx/TableOfContents";
 import { RelatedArticles } from "@/components/mdx/RelatedArticles";
 import { ArticleTracker } from "@/components/ArticleTracker";
@@ -67,9 +61,7 @@ function getContextualLink(frontmatter: {
   const { category } = frontmatter;
 
   if (category === "industry") {
-    const haystack = [frontmatter.slug, ...frontmatter.tags]
-      .join(" ")
-      .toLowerCase();
+    const haystack = [frontmatter.slug, ...frontmatter.tags].join(" ").toLowerCase();
     if (/\blaw\b|legal|attorney|injury/.test(haystack)) {
       return { href: "/industries/law-firms", label: "See AI for law firms" };
     }
@@ -140,11 +132,7 @@ export async function generateMetadata({
   });
 }
 
-export default async function ArticlePage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const article = getArticleBySlug(slug);
   if (!article) notFound();
@@ -165,10 +153,7 @@ export default async function ArticlePage({
       parseFrontmatter: false,
       mdxOptions: {
         remarkPlugins: [remarkGfm],
-        rehypePlugins: [
-          rehypeSlug,
-          [rehypeAutolinkHeadings, { behavior: "wrap" }],
-        ],
+        rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: "wrap" }]],
       },
     },
   });
@@ -209,29 +194,29 @@ export default async function ArticlePage({
       {/* Article Hero Header                                                 */}
       {/* ------------------------------------------------------------------ */}
       <section className="page-offset-roomy relative overflow-hidden pb-16 sm:pb-20">
-        <div className="pointer-events-none absolute inset-x-0 top-28 h-px bg-[var(--rule)]" aria-hidden="true" />
+        <div
+          className="pointer-events-none absolute inset-x-0 top-28 h-px bg-[var(--rule)]"
+          aria-hidden="true"
+        />
 
         <div className="relative z-10 mx-auto max-w-[80rem] px-6 lg:px-10">
           <EntranceGroup className="max-w-4xl" delay={0.04}>
             <EntranceItem>
               <nav className="mb-10 flex min-h-10 items-center gap-1.5 overflow-hidden font-mono text-[0.64rem] uppercase tracking-[0.12em] text-white-muted">
-              <Link
-                href="/learn"
-                className="hover:text-white-secondary transition-colors"
-              >
-                Learn
-              </Link>
-              <ChevronRight className="h-3 w-3" />
-              <Link
-                href={`/learn/category/${frontmatter.category}`}
-                className="hover:text-white-secondary transition-colors"
-              >
-                {CATEGORY_LABELS[frontmatter.category]}
-              </Link>
-              <ChevronRight className="h-3 w-3" />
-              <span className="max-w-[180px] truncate text-white-secondary sm:max-w-[320px]">
-                {frontmatter.title}
-              </span>
+                <Link href="/learn" className="hover:text-white-secondary transition-colors">
+                  Learn
+                </Link>
+                <ChevronRight className="h-3 w-3" />
+                <Link
+                  href={`/learn/category/${frontmatter.category}`}
+                  className="hover:text-white-secondary transition-colors"
+                >
+                  {CATEGORY_LABELS[frontmatter.category]}
+                </Link>
+                <ChevronRight className="h-3 w-3" />
+                <span className="max-w-[180px] truncate text-white-secondary sm:max-w-[320px]">
+                  {frontmatter.title}
+                </span>
               </nav>
             </EntranceItem>
 
@@ -312,10 +297,7 @@ export default async function ArticlePage({
             {/* Main Content */}
             <div className="min-w-0 max-w-[46rem] flex-1">
               <AnimateOnScroll>
-                <div
-                  data-article-content
-                  className="prose-dark"
-                >
+                <div data-article-content className="prose-dark">
                   {mdxContent}
                 </div>
               </AnimateOnScroll>
@@ -335,7 +317,13 @@ export default async function ArticlePage({
                     <p className="text-xs text-white-muted mb-4">
                       We build these systems for small businesses every day.
                     </p>
-                    <ArticleCTA slug={slug} href="/contact" variant="primary" size="sm" className="w-full">
+                    <ArticleCTA
+                      slug={slug}
+                      href="/contact"
+                      variant="primary"
+                      size="sm"
+                      className="w-full"
+                    >
                       Talk to Us
                     </ArticleCTA>
                     {contextualLink && (
@@ -368,9 +356,8 @@ export default async function ArticlePage({
           </div>
           <div className="flex flex-col gap-7">
             <p className="text-lg leading-relaxed text-white-secondary">
-              Book a free 30-minute strategy call. We&apos;ll learn your
-              business and tell you exactly where AI can drive growth. No
-              pitch, no obligation.
+              Book a free 30-minute strategy call. We&apos;ll learn your business and tell you
+              exactly where AI can drive growth. No pitch, no obligation.
             </p>
             <BookCallButton location="article" />
             <CallTerms />

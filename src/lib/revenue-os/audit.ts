@@ -1,7 +1,14 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export const AUDIT_SOURCES = ["admin", "ai", "automation", "webhook", "migration", "public"] as const;
+export const AUDIT_SOURCES = [
+  "admin",
+  "ai",
+  "automation",
+  "webhook",
+  "migration",
+  "public",
+] as const;
 export type AuditSource = (typeof AUDIT_SOURCES)[number];
 
 export interface AuditEvent {
@@ -50,12 +57,14 @@ export interface AuditHistoryResult {
 }
 
 const REDACTED = "[redacted]";
-const SENSITIVE_KEY = /token|secret|password|authorization|api[_-]?key|refresh|access_token|private[_-]?key|cookie|body_text|body_html|raw_mime/i;
+const SENSITIVE_KEY =
+  /token|secret|password|authorization|api[_-]?key|refresh|access_token|private[_-]?key|cookie|body_text|body_html|raw_mime/i;
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 const DEFAULT_LIMIT = 100;
 const MAX_LIMIT = 200;
 const OPTION_SCAN = 500;
-const AUDIT_COLUMNS = "id,actor_email,action,entity_type,entity_id,source,before_state,after_state,metadata,created_at";
+const AUDIT_COLUMNS =
+  "id,actor_email,action,entity_type,entity_id,source,before_state,after_state,metadata,created_at";
 
 export function redactAuditValue(value: unknown, key = ""): unknown {
   if (SENSITIVE_KEY.test(key)) return REDACTED;
@@ -66,20 +75,30 @@ export function redactAuditValue(value: unknown, key = ""): unknown {
   }
   if (Array.isArray(value)) return value.map((entry) => redactAuditValue(entry, key));
   if (value && typeof value === "object") {
-    return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([childKey, child]) => [childKey, redactAuditValue(child, childKey)]));
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([childKey, child]) => [
+        childKey,
+        redactAuditValue(child, childKey),
+      ]),
+    );
   }
   return value;
 }
 
-export function proposalAuditSummary(proposal: {
-  title?: unknown;
-  status?: unknown;
-  client_name?: unknown;
-  total_one_time?: unknown;
-  total_monthly?: unknown;
-  lead_id?: unknown;
-  opportunity_id?: unknown;
-} | null | undefined) {
+export function proposalAuditSummary(
+  proposal:
+    | {
+        title?: unknown;
+        status?: unknown;
+        client_name?: unknown;
+        total_one_time?: unknown;
+        total_monthly?: unknown;
+        lead_id?: unknown;
+        opportunity_id?: unknown;
+      }
+    | null
+    | undefined,
+) {
   if (!proposal) return null;
   return {
     title: proposal.title ?? null,
@@ -93,7 +112,11 @@ export function proposalAuditSummary(proposal: {
 }
 
 function uniqueSorted(values: Array<string | null | undefined>) {
-  return [...new Set(values.map((value) => value?.trim()).filter((value): value is string => Boolean(value)))].sort((left, right) => left.localeCompare(right));
+  return [
+    ...new Set(
+      values.map((value) => value?.trim()).filter((value): value is string => Boolean(value)),
+    ),
+  ].sort((left, right) => left.localeCompare(right));
 }
 
 function dateBound(value: string | undefined, edge: "start" | "end") {
@@ -117,9 +140,16 @@ export async function recordAudit(supabase: SupabaseClient, event: AuditEvent): 
   if (error) throw new Error(`Audit write failed: ${error.message}`);
 }
 
-export async function listAuditHistory(supabase: SupabaseClient, filters: AuditHistoryFilters = {}): Promise<AuditHistoryResult> {
+export async function listAuditHistory(
+  supabase: SupabaseClient,
+  filters: AuditHistoryFilters = {},
+): Promise<AuditHistoryResult> {
   const limit = Math.min(MAX_LIMIT, Math.max(1, filters.limit ?? DEFAULT_LIMIT));
-  let query = supabase.from("audit_log").select(AUDIT_COLUMNS).order("created_at", { ascending: false }).limit(limit);
+  let query = supabase
+    .from("audit_log")
+    .select(AUDIT_COLUMNS)
+    .order("created_at", { ascending: false })
+    .limit(limit);
   if (filters.actor) query = query.eq("actor_email", filters.actor);
   if (filters.entityType) query = query.eq("entity_type", filters.entityType);
   if (filters.entityId) query = query.eq("entity_id", filters.entityId);
@@ -132,7 +162,11 @@ export async function listAuditHistory(supabase: SupabaseClient, filters: AuditH
 
   const [{ data, error }, options] = await Promise.all([
     query,
-    supabase.from("audit_log").select("actor_email,action,entity_type,source").order("created_at", { ascending: false }).limit(OPTION_SCAN),
+    supabase
+      .from("audit_log")
+      .select("actor_email,action,entity_type,source")
+      .order("created_at", { ascending: false })
+      .limit(OPTION_SCAN),
   ]);
   if (error) throw new Error(`Audit read failed: ${error.message}`);
   if (options.error) throw new Error(`Audit read failed: ${options.error.message}`);

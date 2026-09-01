@@ -23,21 +23,19 @@ function Chevron({ x, opacity }: { x: number; opacity: number }) {
 
 export default function AppleIcon() {
   return new ImageResponse(
-    (
-      <div
-        style={{
-          display: "flex",
-          position: "relative",
-          width: 180,
-          height: 180,
-          background: "#07080A",
-        }}
-      >
-        <Chevron x={22} opacity={0.3} />
-        <Chevron x={62} opacity={0.6} />
-        <Chevron x={102} opacity={1} />
-      </div>
-    ),
+    <div
+      style={{
+        display: "flex",
+        position: "relative",
+        width: 180,
+        height: 180,
+        background: "#07080A",
+      }}
+    >
+      <Chevron x={22} opacity={0.3} />
+      <Chevron x={62} opacity={0.6} />
+      <Chevron x={102} opacity={1} />
+    </div>,
     { ...size },
   );
 }

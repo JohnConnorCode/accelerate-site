@@ -9,7 +9,9 @@ export async function GET() {
   const supabase = auth.database;
   const { data, error } = await supabase
     .from("solution_requests")
-    .select("contact_name, contact_email, contact_phone, business_name, industry, lead_status, notes, created_at")
+    .select(
+      "contact_name, contact_email, contact_phone, business_name, industry, lead_status, notes, created_at",
+    )
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -18,20 +20,19 @@ export async function GET() {
   }
 
   const headers = ["Name", "Email", "Phone", "Business", "Industry", "Status", "Notes", "Date"];
-  const rows = (data || []).map(
-    (r: Record<string, unknown>) =>
-      [
-        r.contact_name,
-        r.contact_email,
-        r.contact_phone || "",
-        r.business_name || "",
-        r.industry,
-        r.lead_status || "new",
-        String(r.notes || "").replace(/"/g, '""'),
-        new Date(r.created_at as string).toLocaleDateString(),
-      ]
-        .map((v) => `"${sanitizeCsv(String(v))}"`)
-        .join(",")
+  const rows = (data || []).map((r: Record<string, unknown>) =>
+    [
+      r.contact_name,
+      r.contact_email,
+      r.contact_phone || "",
+      r.business_name || "",
+      r.industry,
+      r.lead_status || "new",
+      String(r.notes || "").replace(/"/g, '""'),
+      new Date(r.created_at as string).toLocaleDateString(),
+    ]
+      .map((v) => `"${sanitizeCsv(String(v))}"`)
+      .join(","),
   );
 
   const csv = [headers.join(","), ...rows].join("\n");

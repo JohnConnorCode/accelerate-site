@@ -23,7 +23,10 @@ const REPLACEMENTS: Array<[RegExp, string]> = [
 ];
 
 export function applyHouseStyle(text: string): string {
-  return REPLACEMENTS.reduce((current, [pattern, replacement]) => current.replace(pattern, replacement), text);
+  return REPLACEMENTS.reduce(
+    (current, [pattern, replacement]) => current.replace(pattern, replacement),
+    text,
+  );
 }
 
 /**

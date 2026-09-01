@@ -15,7 +15,8 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
     if (!record) return NextResponse.json({ error: "Opportunity not found" }, { status: 404 });
     return NextResponse.json({ schemaReady: true, record });
   } catch (error) {
-    if (isMissingRevenueSchema(error)) return NextResponse.json({ schemaReady: false, record: null });
+    if (isMissingRevenueSchema(error))
+      return NextResponse.json({ schemaReady: false, record: null });
     console.error("Opportunity record read failed", error);
     return NextResponse.json({ error: "Could not load the opportunity record" }, { status: 500 });
   }
@@ -25,7 +26,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
   const { id } = await params;
-  const body = await request.json().catch(() => null) as Record<string, unknown> | null;
+  const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
   if (!body) return NextResponse.json({ error: "A valid JSON body is required" }, { status: 400 });
 
   const nextAction = body.nextAction;
@@ -33,18 +34,36 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     return NextResponse.json({ error: "Next action must be text" }, { status: 400 });
   }
   if (typeof nextAction === "string" && nextAction.trim().length > 500) {
-    return NextResponse.json({ error: "Next action is limited to 500 characters" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Next action is limited to 500 characters" },
+      { status: 400 },
+    );
   }
   const nextActionAt = body.nextActionAt;
-  if (nextActionAt !== undefined && nextActionAt !== null && (typeof nextActionAt !== "string" || Number.isNaN(Date.parse(nextActionAt)))) {
+  if (
+    nextActionAt !== undefined &&
+    nextActionAt !== null &&
+    (typeof nextActionAt !== "string" || Number.isNaN(Date.parse(nextActionAt)))
+  ) {
     return NextResponse.json({ error: "Next action time is invalid" }, { status: 400 });
   }
   const estimatedValue = body.estimatedValue;
-  if (estimatedValue !== undefined && (!Number.isFinite(Number(estimatedValue)) || Number(estimatedValue) < 0 || Number(estimatedValue) > 1_000_000_000)) {
-    return NextResponse.json({ error: "Estimated value must be between 0 and 1,000,000,000" }, { status: 400 });
+  if (
+    estimatedValue !== undefined &&
+    (!Number.isFinite(Number(estimatedValue)) ||
+      Number(estimatedValue) < 0 ||
+      Number(estimatedValue) > 1_000_000_000)
+  ) {
+    return NextResponse.json(
+      { error: "Estimated value must be between 0 and 1,000,000,000" },
+      { status: 400 },
+    );
   }
   const expectedUpdatedAt = body.expectedUpdatedAt;
-  if (expectedUpdatedAt !== undefined && (typeof expectedUpdatedAt !== "string" || Number.isNaN(Date.parse(expectedUpdatedAt)))) {
+  if (
+    expectedUpdatedAt !== undefined &&
+    (typeof expectedUpdatedAt !== "string" || Number.isNaN(Date.parse(expectedUpdatedAt)))
+  ) {
     return NextResponse.json({ error: "Record version is invalid" }, { status: 400 });
   }
 
@@ -52,8 +71,18 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     await updateOpportunityDetails(auth.database, {
       id,
       actorEmail: auth.user.email || "founder",
-      nextAction: typeof nextAction === "string" ? nextAction.trim() || null : nextAction === null ? null : undefined,
-      nextActionAt: typeof nextActionAt === "string" ? new Date(nextActionAt).toISOString() : nextActionAt === null ? null : undefined,
+      nextAction:
+        typeof nextAction === "string"
+          ? nextAction.trim() || null
+          : nextAction === null
+            ? null
+            : undefined,
+      nextActionAt:
+        typeof nextActionAt === "string"
+          ? new Date(nextActionAt).toISOString()
+          : nextActionAt === null
+            ? null
+            : undefined,
       estimatedValue: estimatedValue === undefined ? undefined : Number(estimatedValue),
       expectedUpdatedAt: typeof expectedUpdatedAt === "string" ? expectedUpdatedAt : undefined,
     });
@@ -62,6 +91,15 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     return NextResponse.json({ schemaReady: true, record });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Could not update the opportunity";
-    return NextResponse.json({ error: message }, { status: /changed while you were editing/i.test(message) ? 409 : /not found/i.test(message) ? 404 : 400 });
+    return NextResponse.json(
+      { error: message },
+      {
+        status: /changed while you were editing/i.test(message)
+          ? 409
+          : /not found/i.test(message)
+            ? 404
+            : 400,
+      },
+    );
   }
 }

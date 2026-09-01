@@ -32,17 +32,12 @@ const WORD_COUNT_RANGES: Record<string, { min: number; max: number }> = {
 
 // Named-client references were removed site-wide (fabricated/non-consented);
 // articles must never reintroduce them, and /results was retired.
-const BANNED_CLIENT_REFERENCES = [
-  /farrell/i,
-  /sparkblox/i,
-  /montoya/i,
-  /\/results\//,
-];
+const BANNED_CLIENT_REFERENCES = [/farrell/i, /sparkblox/i, /montoya/i, /\/results\//];
 
-const INTERNAL_LINK_PATTERN =
-  /\]\(\s*\/(learn|services|industries|contact|plan-builder)[^)]*\)/g;
+const INTERNAL_LINK_PATTERN = /\]\(\s*\/(learn|services|industries|contact|plan-builder)[^)]*\)/g;
 
-const MDX_COMPONENT_PATTERN = /<(CTACard|StatHighlight|Callout|StepByStep|Step|ComparisonTable|QuoteBlock|ToolRecommendation|CodeBlock|VideoEmbed)/g;
+const MDX_COMPONENT_PATTERN =
+  /<(CTACard|StatHighlight|Callout|StepByStep|Step|ComparisonTable|QuoteBlock|ToolRecommendation|CodeBlock|VideoEmbed)/g;
 
 const CTA_CARD_PATTERN = /<CTACard/g;
 
@@ -107,9 +102,7 @@ function verifyArticle(filename: string): ArticleResult {
 
   // --- Slug matches filename ---
   if (data.slug && data.slug !== slug) {
-    failures.push(
-      `Slug mismatch: frontmatter slug "${data.slug}" != filename "${slug}"`
-    );
+    failures.push(`Slug mismatch: frontmatter slug "${data.slug}" != filename "${slug}"`);
   }
 
   // --- Date format ---
@@ -138,7 +131,7 @@ function verifyArticle(filename: string): ArticleResult {
     const expectedPillar = CATEGORY_PILLAR_MAP[data.category];
     if (expectedPillar && data.pillar !== expectedPillar) {
       failures.push(
-        `Category/pillar mismatch: "${data.category}" should pair with "${expectedPillar}", got "${data.pillar}"`
+        `Category/pillar mismatch: "${data.category}" should pair with "${expectedPillar}", got "${data.pillar}"`,
       );
     }
   }
@@ -146,9 +139,7 @@ function verifyArticle(filename: string): ArticleResult {
   // --- Funnel stage valid ---
   if (
     data.funnelStage &&
-    !VALID_FUNNEL_STAGES.includes(
-      data.funnelStage as (typeof VALID_FUNNEL_STAGES)[number]
-    )
+    !VALID_FUNNEL_STAGES.includes(data.funnelStage as (typeof VALID_FUNNEL_STAGES)[number])
   ) {
     failures.push(`Invalid funnelStage: "${data.funnelStage}"`);
   }
@@ -169,23 +160,21 @@ function verifyArticle(filename: string): ArticleResult {
   if (range) {
     if (wordCount < range.min) {
       warnings.push(
-        `Word count ${wordCount} below ${data.funnelStage} range (${range.min}-${range.max})`
+        `Word count ${wordCount} below ${data.funnelStage} range (${range.min}-${range.max})`,
       );
     }
     if (wordCount > range.max) {
       warnings.push(
-        `Word count ${wordCount} above ${data.funnelStage} range (${range.min}-${range.max})`
+        `Word count ${wordCount} above ${data.funnelStage} range (${range.min}-${range.max})`,
       );
     }
   }
 
   // --- Banned client references (removed site-wide, must not reappear) ---
-  const bannedHit = BANNED_CLIENT_REFERENCES.find((pattern) =>
-    pattern.test(content)
-  );
+  const bannedHit = BANNED_CLIENT_REFERENCES.find((pattern) => pattern.test(content));
   if (bannedHit) {
     failures.push(
-      `Banned client/case-study reference found (${bannedHit}) — named clients were removed site-wide`
+      `Banned client/case-study reference found (${bannedHit}) — named clients were removed site-wide`,
     );
   }
 
@@ -208,7 +197,7 @@ function verifyArticle(filename: string): ArticleResult {
   const linkCount = internalLinks ? internalLinks.length : 0;
   if (linkCount < 2) {
     failures.push(
-      `Only ${linkCount} internal link(s) found (need at least 2 to /learn/, /services/, /industries/, /contact, /plan-builder)`
+      `Only ${linkCount} internal link(s) found (need at least 2 to /learn/, /services/, /industries/, /contact, /plan-builder)`,
     );
   }
 
@@ -233,7 +222,7 @@ function verifyArticle(filename: string): ArticleResult {
           .join("\n").length;
         if (lineOffset > frontmatterEnd) {
           failures.push(
-            `Found standalone "leads" on line ${i + 1}: "${line.trim().substring(0, 80)}..."`
+            `Found standalone "leads" on line ${i + 1}: "${line.trim().substring(0, 80)}..."`,
           );
           break; // Report only first occurrence
         }
@@ -293,9 +282,7 @@ function main() {
   }
 
   console.log(`\n${"─".repeat(60)}`);
-  console.log(
-    `Results: ${passCount} passed, ${failCount} failed out of ${files.length} articles`
-  );
+  console.log(`Results: ${passCount} passed, ${failCount} failed out of ${files.length} articles`);
 
   if (failCount > 0) {
     console.log(`\n❌ ${failCount} article(s) failed verification.\n`);

@@ -4,7 +4,8 @@ import { transitionOpportunity, transitionStatusFromError } from "@/lib/revenue-
 
 export async function POST(request: NextRequest) {
   const { token } = (await request.json().catch(() => ({}))) as { token?: string };
-  if (!token || token.length > 64) return NextResponse.json({ error: "Invalid token" }, { status: 400 });
+  if (!token || token.length > 64)
+    return NextResponse.json({ error: "Invalid token" }, { status: 400 });
 
   const supabase = createBootstrapServiceRoleClient("legacy-public-qualifier-calendar");
   const { data: opportunity } = await supabase
@@ -25,7 +26,10 @@ export async function POST(request: NextRequest) {
       reason: "Qualification page viewed",
     });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Transition blocked by current stage" }, { status: transitionStatusFromError(error) });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Transition blocked by current stage" },
+      { status: transitionStatusFromError(error) },
+    );
   }
 
   return NextResponse.json({ success: true });

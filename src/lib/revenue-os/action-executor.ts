@@ -8,15 +8,30 @@ import { sendGmailReply } from "./google";
 import { REVENUE_STAGES, type RevenueStage } from "./types";
 import { createRevenueTask } from "./tasks";
 
-function stringValue(payload: Record<string, unknown>, key: string, required = true): string | undefined {
+function stringValue(
+  payload: Record<string, unknown>,
+  key: string,
+  required = true,
+): string | undefined {
   const value = typeof payload[key] === "string" ? payload[key].trim() : "";
   if (required && !value) throw new Error(`${key} is required`);
   return value || undefined;
 }
 
-export const APPROVABLE_ACTIONS = ["send_email", "send_gmail_reply", "transition_opportunity", "create_task", "update_next_action", "activate_campaign"] as const;
+export const APPROVABLE_ACTIONS = [
+  "send_email",
+  "send_gmail_reply",
+  "transition_opportunity",
+  "create_task",
+  "update_next_action",
+  "activate_campaign",
+] as const;
 
-export async function approveAndExecuteAction(supabase: SupabaseClient, id: string, actorEmail: string) {
+export async function approveAndExecuteAction(
+  supabase: SupabaseClient,
+  id: string,
+  actorEmail: string,
+) {
   const action = await claimApprovedAction(supabase, id, actorEmail);
   const payload = action.payload as Record<string, unknown>;
   try {
@@ -43,7 +58,8 @@ export async function approveAndExecuteAction(supabase: SupabaseClient, id: stri
         break;
       case "transition_opportunity": {
         const stage = stringValue(payload, "stage")!;
-        if (!REVENUE_STAGES.includes(stage as RevenueStage)) throw new Error("Invalid pipeline stage");
+        if (!REVENUE_STAGES.includes(stage as RevenueStage))
+          throw new Error("Invalid pipeline stage");
         result = await transitionOpportunity(supabase, {
           id: stringValue(payload, "opportunityId")!,
           to: stage as RevenueStage,
@@ -55,14 +71,30 @@ export async function approveAndExecuteAction(supabase: SupabaseClient, id: stri
         break;
       }
       case "create_task": {
-        result = await createRevenueTask(supabase, { title: stringValue(payload, "title")!, description: stringValue(payload, "description", false), dueDate: stringValue(payload, "dueDate", false), priority: ["high", "medium", "low"].includes(String(payload.priority)) ? payload.priority as "high" | "medium" | "low" : "medium", opportunityId: stringValue(payload, "opportunityId", false), source: "ai", dedupeKey: stringValue(payload, "dedupeKey", false), actorEmail });
+        result = await createRevenueTask(supabase, {
+          title: stringValue(payload, "title")!,
+          description: stringValue(payload, "description", false),
+          dueDate: stringValue(payload, "dueDate", false),
+          priority: ["high", "medium", "low"].includes(String(payload.priority))
+            ? (payload.priority as "high" | "medium" | "low")
+            : "medium",
+          opportunityId: stringValue(payload, "opportunityId", false),
+          source: "ai",
+          dedupeKey: stringValue(payload, "dedupeKey", false),
+          actorEmail,
+        });
         break;
       }
       case "update_next_action": {
-        const { data, error } = await supabase.from("opportunities").update({
-          next_action: stringValue(payload, "nextAction")!,
-          next_action_at: stringValue(payload, "nextActionAt", false) ?? null,
-        }).eq("id", stringValue(payload, "opportunityId")!).select("id,next_action,next_action_at").single();
+        const { data, error } = await supabase
+          .from("opportunities")
+          .update({
+            next_action: stringValue(payload, "nextAction")!,
+            next_action_at: stringValue(payload, "nextActionAt", false) ?? null,
+          })
+          .eq("id", stringValue(payload, "opportunityId")!)
+          .select("id,next_action,next_action_at")
+          .single();
         if (error) throw new Error(error.message);
         result = data;
         break;

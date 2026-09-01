@@ -29,7 +29,7 @@ export function calculateLeadScore(lead: LeadData): number {
   // +15 detailed intake responses (has 5+ filled fields)
   if (lead.intake_data) {
     const filledFields = Object.values(lead.intake_data).filter(
-      (v) => v !== undefined && v !== null && v !== ""
+      (v) => v !== undefined && v !== null && v !== "",
     ).length;
     if (filledFields >= 5) score += 15;
   }

@@ -5,12 +5,25 @@ excerpt: "Invoices, intake forms, contracts, receipts. If your team still re-typ
 date: "2026-05-25"
 category: "automation"
 pillar: "Automation"
-tags: ["AI document processing", "data entry automation", "document automation", "invoice processing", "workflow automation"]
+tags:
+  [
+    "AI document processing",
+    "data entry automation",
+    "document automation",
+    "invoice processing",
+    "workflow automation",
+  ]
 author: "John Connor"
 authorRole: "Founder, Accelerate"
 seoTitle: "AI Document Processing for Small Business (How-To, 2026)"
 seoDescription: "Stop hand-keying invoices, contracts, and intake forms. A practical playbook for automating document processing with AI, with tools, steps, and the pitfalls."
-targetKeywords: ["AI document processing", "automate data entry", "document automation small business", "AI invoice processing"]
+targetKeywords:
+  [
+    "AI document processing",
+    "automate data entry",
+    "document automation small business",
+    "AI invoice processing",
+  ]
 funnelStage: "consideration"
 ---
 
@@ -42,9 +55,24 @@ You do not need an enterprise contract to do this. The stack breaks into three l
 <ComparisonTable
   headers={["Layer", "What it does", "Options", "Starting cost"]}
   rows={[
-    ["Extraction model", "Reads the document, returns structured fields with confidence", "Claude (vision), GPT-4o (vision), Google Document AI, AWS Textract", "Pay-per-page or per-token, often pennies per document"],
-    ["Orchestration", "Watches the inbox/folder, calls the model, routes results, writes to your system", "Make, n8n, Zapier", "Free to ~$50/mo"],
-    ["System of record", "Where the clean data lands", "QuickBooks, HubSpot, Airtable, your CRM", "You already pay for this"]
+    [
+      "Extraction model",
+      "Reads the document, returns structured fields with confidence",
+      "Claude (vision), GPT-4o (vision), Google Document AI, AWS Textract",
+      "Pay-per-page or per-token, often pennies per document",
+    ],
+    [
+      "Orchestration",
+      "Watches the inbox/folder, calls the model, routes results, writes to your system",
+      "Make, n8n, Zapier",
+      "Free to ~$50/mo",
+    ],
+    [
+      "System of record",
+      "Where the clean data lands",
+      "QuickBooks, HubSpot, Airtable, your CRM",
+      "You already pay for this",
+    ],
   ]}
 />
 
@@ -93,6 +121,7 @@ The confidence routing in step 4 is the whole game. It is the difference between
 Here is the failure mode that turns document automation into a disaster: you set the system to auto-approve everything, the AI hits 96% accuracy, and you call it done. That sounds great until you do the math. At 96%, one in every 25 documents has a silent error. Process 500 invoices a month and that is 20 wrong payments, due dates, or amounts flowing into your books with nobody looking. The 4% you ignored is exactly where the expensive mistakes hide, because hard-to-read documents are both the ones the AI gets wrong AND the ones a human would have caught.
 
 The fix is the confidence threshold, because 100% accuracy stays out of reach. Set it high (we usually start at 0.90 per field), auto-approve only what clears it, and send everything below it to a person. You are not trying to make the AI perfect. You are using it to handle the 80 to 90% it is genuinely certain about, so humans spend their time only on the handful that actually need judgment.
+
 </Callout>
 
 ## What most people get wrong
@@ -106,7 +135,12 @@ Three mistakes show up over and over, and all three come from treating extractio
 **They extract everything instead of what they need.** More fields feels safer. It is the opposite. Every field you extract is a field that can come back wrong and a field a human has to verify in the review queue. If your system of record only needs five fields, extract five fields. The discipline of "only what gets typed today" keeps the human review step fast enough that people actually do it.
 
 <Callout type="warning" title="On contracts specifically">
-Contracts are where blind extraction is most dangerous. Pulling the parties, the effective date, and the renewal date from a contract is reasonable to automate. Deciding whether an indemnification clause is acceptable is not, and no confidence score should let it through unreviewed. For contracts, automate the data fields and the routing (this contract goes to legal, that renewal date creates a reminder task), but keep a human on anything that requires interpreting what the words mean. Automate the filing, not the judgment.
+  Contracts are where blind extraction is most dangerous. Pulling the parties, the effective date,
+  and the renewal date from a contract is reasonable to automate. Deciding whether an
+  indemnification clause is acceptable is not, and no confidence score should let it through
+  unreviewed. For contracts, automate the data fields and the routing (this contract goes to legal,
+  that renewal date creates a reminder task), but keep a human on anything that requires
+  interpreting what the words mean. Automate the filing, not the judgment.
 </Callout>
 
 <CTACard

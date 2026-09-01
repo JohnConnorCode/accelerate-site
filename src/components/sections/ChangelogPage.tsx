@@ -14,10 +14,10 @@ const categoryConfig: Record<
   ChangelogEntry["category"],
   { label: string; icon: LucideIcon; accent: string }
 > = {
-  feature:      { label: "Shipped",    icon: Sparkles,  accent: "text-gold" },
-  improvement:  { label: "Sharpened",  icon: Wrench,    accent: "text-white-muted" },
-  fix:          { label: "Fixed",      icon: Bug,       accent: "text-white-muted" },
-  announcement: { label: "News",       icon: Megaphone, accent: "text-white-muted" },
+  feature: { label: "Shipped", icon: Sparkles, accent: "text-gold" },
+  improvement: { label: "Sharpened", icon: Wrench, accent: "text-white-muted" },
+  fix: { label: "Fixed", icon: Bug, accent: "text-white-muted" },
+  announcement: { label: "News", icon: Megaphone, accent: "text-white-muted" },
 };
 
 const fmtDate = (s: string) =>
@@ -42,8 +42,8 @@ export function ChangelogPage() {
             What we&apos;ve been <span className="display-italic">building.</span>
           </Heading>
           <p className="mt-6 max-w-sm text-lg leading-relaxed text-white-secondary">
-            New capabilities, sharper systems, and what we&apos;re shipping for
-            the businesses we run alongside. We move fast and share the work.
+            New capabilities, sharper systems, and what we&apos;re shipping for the businesses we
+            run alongside. We move fast and share the work.
           </p>
           <Link
             href="/changelog/rss.xml"
@@ -63,7 +63,10 @@ export function ChangelogPage() {
             return (
               <div key={monthKey} className="relative">
                 {/* month node on the rail */}
-                <span aria-hidden className="absolute -left-[2.45rem] top-1 h-2.5 w-2.5 rounded-full bg-gold ring-4 ring-[var(--bg-base)] sm:-left-[2.95rem]" />
+                <span
+                  aria-hidden
+                  className="absolute -left-[2.45rem] top-1 h-2.5 w-2.5 rounded-full bg-gold ring-4 ring-[var(--bg-base)] sm:-left-[2.95rem]"
+                />
                 <p className="mb-5 font-mono text-[0.66rem] uppercase tracking-[0.22em] text-gold">
                   {monthLabel}
                 </p>
@@ -87,11 +90,18 @@ export function ChangelogPage() {
                               <h3 className="font-display text-base font-semibold tracking-[-0.01em] text-heading">
                                 {entry.title}
                               </h3>
-                              <span className={cn("font-mono text-[0.6rem] uppercase tracking-[0.18em]", config.accent)}>
+                              <span
+                                className={cn(
+                                  "font-mono text-[0.6rem] uppercase tracking-[0.18em]",
+                                  config.accent,
+                                )}
+                              >
                                 {config.label}
                               </span>
                             </div>
-                            <p className="mb-2 text-sm leading-relaxed text-white-secondary">{entry.description}</p>
+                            <p className="mb-2 text-sm leading-relaxed text-white-secondary">
+                              {entry.description}
+                            </p>
                             <p className="text-xs text-white-muted">{fmtDate(entry.publishedAt)}</p>
                           </div>
                         </div>

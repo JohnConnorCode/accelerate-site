@@ -45,28 +45,31 @@ const bentoSpan = [
 export function ServicesOverview() {
   const gridRef = useRef<HTMLDivElement>(null);
 
-  useGSAP(() => {
-    if (!gridRef.current) return;
-    if (prefersReducedMotion()) return;
+  useGSAP(
+    () => {
+      if (!gridRef.current) return;
+      if (prefersReducedMotion()) return;
 
-    const cards = gridRef.current.querySelectorAll("[data-service-card]");
-    gsap.fromTo(
-      cards,
-      { opacity: 0, y: 28 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.55,
-        stagger: 0.08,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: gridRef.current,
-          start: "top 82%",
-          toggleActions: "play none none none",
+      const cards = gridRef.current.querySelectorAll("[data-service-card]");
+      gsap.fromTo(
+        cards,
+        { opacity: 0, y: 28 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.55,
+          stagger: 0.08,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: gridRef.current,
+            start: "top 82%",
+            toggleActions: "play none none none",
+          },
         },
-      }
-    );
-  }, { scope: gridRef });
+      );
+    },
+    { scope: gridRef },
+  );
 
   return (
     <section className="relative py-24 sm:py-28 bg-bg-base overflow-hidden">
@@ -77,13 +80,10 @@ export function ServicesOverview() {
         {/* Left-aligned header — breaks the centered rhythm */}
         <AnimateOnScroll className="mb-12 max-w-2xl">
           <SectionMarker n="02" label="Services" className="mb-5" />
-          <h2 className="section-heading">
-            Six systems that run your business
-          </h2>
+          <h2 className="section-heading">Six systems that run your business</h2>
           <p className="section-description">
-            We find the highest-impact opportunities in your operations, then
-            build the systems that capture them, scoped to your tools, your
-            team, and your goals.
+            We find the highest-impact opportunities in your operations, then build the systems that
+            capture them, scoped to your tools, your team, and your goals.
           </p>
         </AnimateOnScroll>
 
@@ -131,7 +131,11 @@ export function ServicesOverview() {
           })}
         </div>
 
-        <AnimateOnScroll variants={fadeUp} delay={0.15} className="mt-12 flex flex-wrap items-center gap-4">
+        <AnimateOnScroll
+          variants={fadeUp}
+          delay={0.15}
+          className="mt-12 flex flex-wrap items-center gap-4"
+        >
           <Link href="/contact">
             <Button variant="primary" size="lg">
               Book a Free Strategy Call

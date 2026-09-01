@@ -4,7 +4,14 @@ import Image from "next/image";
 import { Rocket, TrendingUp, Handshake } from "lucide-react";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 import { HeroEntranceItem, PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
-import { Section, Container, Eyebrow, Heading, BookCallButton, CallTerms } from "@/components/v2/studio/primitives";
+import {
+  Section,
+  Container,
+  Eyebrow,
+  Heading,
+  BookCallButton,
+  CallTerms,
+} from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { HERO_HEADING } from "@/lib/type-recipes";
 
@@ -34,7 +41,8 @@ const NARRATIVE = [
     label: "the resume",
     body: (
       <p>
-        Twelve years building software companies. Products past a hundred thousand users, a venture round, and a marketplace that still runs.
+        Twelve years building software companies. Products past a hundred thousand users, a venture
+        round, and a marketplace that still runs.
       </p>
     ),
   },
@@ -43,15 +51,13 @@ const NARRATIVE = [
     body: (
       <>
         <p>
-          But resumes don&apos;t tell you much. What matters is why Accelerate
-          exists. I have seen up close how much revenue small businesses lose to
-          slow follow-up, missed inquiries, and websites that look fine but
-          bring in nothing. It is not a theoretical problem to me.
+          But resumes don&apos;t tell you much. What matters is why Accelerate exists. I have seen
+          up close how much revenue small businesses lose to slow follow-up, missed inquiries, and
+          websites that look fine but bring in nothing. It is not a theoretical problem to me.
         </p>
         <p>
-          So I built the systems those businesses actually needed, and they
-          worked. Then other owners started asking, &ldquo;Can you set that up
-          for me too?&rdquo;
+          So I built the systems those businesses actually needed, and they worked. Then other
+          owners started asking, &ldquo;Can you set that up for me too?&rdquo;
         </p>
       </>
     ),
@@ -61,14 +67,14 @@ const NARRATIVE = [
     body: (
       <>
         <p>
-          We&apos;re not trying to be the biggest agency. We take on a limited
-          number of clients so we can actually operate alongside each one. When
-          your AI agent gives a wrong answer at 11 PM, we fix it by morning.
-          When your pipeline dips, we dig into the data before you even notice.
+          We&apos;re not trying to be the biggest agency. We take on a limited number of clients so
+          we can actually operate alongside each one. When your AI agent gives a wrong answer at 11
+          PM, we fix it by morning. When your pipeline dips, we dig into the data before you even
+          notice.
         </p>
         <p className="font-medium text-white-primary">
-          This isn&apos;t a set-it-and-forget-it shop. We&apos;re on the hook after
-          launch, which is the only part that is hard.
+          This isn&apos;t a set-it-and-forget-it shop. We&apos;re on the hook after launch, which is
+          the only part that is hard.
         </p>
       </>
     ),
@@ -87,8 +93,12 @@ function FounderCard() {
           className="h-full w-full object-cover"
         />
       </div>
-      <h2 className="font-display text-2xl font-bold tracking-[-0.03em] text-heading">John Connor</h2>
-      <p className="mt-1 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-white-muted">Founder</p>
+      <h2 className="font-display text-2xl font-bold tracking-[-0.03em] text-heading">
+        John Connor
+      </h2>
+      <p className="mt-1 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-white-muted">
+        Founder
+      </p>
       <p className="mt-3 text-sm leading-relaxed text-white-muted">
         Tech builder. Business owner. Operator.
       </p>
@@ -105,19 +115,23 @@ export function AboutPageContent() {
         <Container width="wide">
           <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
             <div className="min-w-0">
-              <HeroEntranceItem step={1}><Eyebrow className="mb-7">about accelerate</Eyebrow></HeroEntranceItem>
-              <HeroEntranceItem step={2}><RevealHeading
-                as="h1"
-                className={HERO_HEADING}
-                lead="AI should fit the business,"
-                accent="not the other way around."
-                entrance="parent"
-              /></HeroEntranceItem>
+              <HeroEntranceItem step={1}>
+                <Eyebrow className="mb-7">about accelerate</Eyebrow>
+              </HeroEntranceItem>
+              <HeroEntranceItem step={2}>
+                <RevealHeading
+                  as="h1"
+                  className={HERO_HEADING}
+                  lead="AI should fit the business,"
+                  accent="not the other way around."
+                  entrance="parent"
+                />
+              </HeroEntranceItem>
               <HeroEntranceItem step={3}>
                 <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                  We combine strategy, engineering, and hands-on execution. We
-                  help a team decide where AI belongs, build the right custom
-                  solution, and stay involved until it works in the real operation.
+                  We combine strategy, engineering, and hands-on execution. We help a team decide
+                  where AI belongs, build the right custom solution, and stay involved until it
+                  works in the real operation.
                 </p>
               </HeroEntranceItem>
             </div>
@@ -135,7 +149,9 @@ export function AboutPageContent() {
           {NARRATIVE.map((seg, i) => (
             <AnimateOnScroll key={seg.label} delay={i * 0.06}>
               <div className="border-l border-[color-mix(in_srgb,var(--fg)_18%,transparent)] pl-6">
-                <p className="mb-3 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white-muted">{seg.label}</p>
+                <p className="mb-3 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white-muted">
+                  {seg.label}
+                </p>
                 <div className="flex flex-col gap-4 text-base leading-relaxed text-white-secondary">
                   {seg.body}
                 </div>
@@ -151,7 +167,9 @@ export function AboutPageContent() {
           <div className="border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] p-8 text-center sm:p-12">
             <Eyebrow className="mb-6 inline-block">our mission</Eyebrow>
             <p className="font-display text-2xl leading-relaxed text-white-primary sm:text-3xl">
-              Useful AI starts with understanding the work. We find where time is being consumed or revenue is being missed, then choose the smallest solution that can make a meaningful difference.
+              Useful AI starts with understanding the work. We find where time is being consumed or
+              revenue is being missed, then choose the smallest solution that can make a meaningful
+              difference.
             </p>
           </div>
         </AnimateOnScroll>
@@ -179,9 +197,7 @@ export function AboutPageContent() {
                 <h3 className="font-display text-xl font-bold tracking-[-0.01em] text-heading">
                   {v.title}
                 </h3>
-                <p className="text-sm leading-relaxed text-white-secondary">
-                  {v.description}
-                </p>
+                <p className="text-sm leading-relaxed text-white-secondary">{v.description}</p>
               </AnimateOnScroll>
             );
           })}
@@ -199,8 +215,8 @@ export function AboutPageContent() {
           </div>
           <div className="flex flex-col gap-7">
             <p className="text-lg leading-relaxed text-white-secondary">
-              Thirty minutes about how the business works, what the team wants
-              to change, and where AI or automation may be useful.
+              Thirty minutes about how the business works, what the team wants to change, and where
+              AI or automation may be useful.
             </p>
             <BookCallButton location="about" />
             <CallTerms />

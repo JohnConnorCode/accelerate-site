@@ -8,8 +8,10 @@ export function isValidEmail(email: string): boolean {
   if (!email || typeof email !== "string") return false;
   const trimmed = email.trim();
   if (trimmed.length > 254) return false;
-  return /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(trimmed) &&
+  return (
+    /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(trimmed) &&
     !trimmed.includes("..") &&
     !trimmed.startsWith(".") &&
-    !trimmed.includes(".@");
+    !trimmed.includes(".@")
+  );
 }

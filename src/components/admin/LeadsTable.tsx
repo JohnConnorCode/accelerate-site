@@ -3,15 +3,7 @@
 import { useState, Fragment, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "@/components/admin/AdminLink";
-import {
-  ChevronDown,
-  ChevronUp,
-  Search,
-  Download,
-  ArrowUpDown,
-  Trash2,
-  Users,
-} from "lucide-react";
+import { ChevronDown, ChevronUp, Search, Download, ArrowUpDown, Trash2, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { calculateLeadScore, getScoreColor, getScoreLabel } from "@/lib/admin/lead-scoring";
 import { PIPELINE_STAGES } from "@/lib/admin/pipeline-stages";
@@ -45,7 +37,10 @@ interface LeadsTableProps {
   total: number;
   page: number;
   totalPages: number;
-  onUpdateLead: (id: string, data: { lead_status?: string; notes?: string; estimated_value?: number }) => void;
+  onUpdateLead: (
+    id: string,
+    data: { lead_status?: string; notes?: string; estimated_value?: number },
+  ) => void;
   onBulkStatus: (ids: string[], status: string) => Promise<boolean>;
   onBulkDelete: (ids: string[]) => Promise<boolean>;
   onPageChange: (page: number) => void;
@@ -178,9 +173,7 @@ export function LeadsTable({
             exit={{ opacity: 0, height: 0 }}
           >
             <GlassCard padding="sm" hover="none" className="flex flex-wrap items-center gap-3 mb-3">
-              <span className="text-sm text-white-secondary">
-                {selectedIds.size} selected
-              </span>
+              <span className="text-sm text-white-secondary">{selectedIds.size} selected</span>
               <select
                 value={bulkStatus}
                 onChange={(e) => setBulkStatus(e.target.value)}
@@ -195,15 +188,18 @@ export function LeadsTable({
                   </option>
                 ))}
               </select>
-              <Button variant="primary" size="sm" onClick={handleBulkUpdate} disabled={!bulkStatus || bulkBusy}>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleBulkUpdate}
+                disabled={!bulkStatus || bulkBusy}
+              >
                 Apply
               </Button>
 
               {confirmDelete ? (
                 <span className="inline-flex items-center gap-2">
-                  <span className="text-sm text-white-secondary">
-                    Delete {selectedIds.size}?
-                  </span>
+                  <span className="text-sm text-white-secondary">Delete {selectedIds.size}?</span>
                   <Button
                     variant="secondary"
                     size="sm"
@@ -213,7 +209,12 @@ export function LeadsTable({
                   >
                     {bulkBusy ? "Deleting..." : "Confirm"}
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => setConfirmDelete(false)} disabled={bulkBusy}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setConfirmDelete(false)}
+                    disabled={bulkBusy}
+                  >
                     Cancel
                   </Button>
                 </span>
@@ -283,11 +284,12 @@ export function LeadsTable({
                 <span className="flex items-center gap-1">
                   Score
                   <ArrowUpDown
-                    className={cn("h-3 w-3", scoreSort ? "text-white-primary" : "text-white-muted/50")}
+                    className={cn(
+                      "h-3 w-3",
+                      scoreSort ? "text-white-primary" : "text-white-muted/50",
+                    )}
                   />
-                  {scoreSort && (
-                    <span className="text-[10px] text-white-muted">{scoreSort}</span>
-                  )}
+                  {scoreSort && <span className="text-[10px] text-white-muted">{scoreSort}</span>}
                 </span>
               </th>
               <SortHeader
@@ -322,9 +324,7 @@ export function LeadsTable({
                     animate={{ opacity: 1 }}
                     transition={{ delay: index * 0.03 }}
                     className="border-b border-border-glass hover:bg-white/[0.02] cursor-pointer transition-colors"
-                    onClick={() =>
-                      setExpandedId(expandedId === lead.id ? null : lead.id)
-                    }
+                    onClick={() => setExpandedId(expandedId === lead.id ? null : lead.id)}
                   >
                     <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                       <input
@@ -337,9 +337,7 @@ export function LeadsTable({
                     </td>
                     <td className="px-4 py-3">
                       <div>
-                        <p className="text-white-primary font-medium">
-                          {lead.contact_name}
-                        </p>
+                        <p className="text-white-primary font-medium">{lead.contact_name}</p>
                         <Link
                           href={`/admin/contacts/${encodeURIComponent(lead.contact_email)}`}
                           onClick={(e) => e.stopPropagation()}
@@ -349,14 +347,14 @@ export function LeadsTable({
                         </Link>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-white-secondary">
-                      {lead.business_name || "-"}
-                    </td>
+                    <td className="px-4 py-3 text-white-secondary">{lead.business_name || "-"}</td>
                     <td className="px-4 py-3 text-white-secondary capitalize">
                       {lead.industry.replace(/_/g, " ")}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={cn("text-xs font-semibold rounded-full px-2 py-0.5", scoreColor)}>
+                      <span
+                        className={cn("text-xs font-semibold rounded-full px-2 py-0.5", scoreColor)}
+                      >
                         {label} {score}
                       </span>
                     </td>
@@ -393,17 +391,10 @@ export function LeadsTable({
             })}
           </tbody>
         </table>
-        {filtered.length === 0 && (
-          <EmptyState message="No leads found" icon={Users} />
-        )}
+        {filtered.length === 0 && <EmptyState message="No leads found" icon={Users} />}
       </GlassCard>
 
-      <Pagination
-        page={page}
-        totalPages={totalPages}
-        total={total}
-        onPageChange={onPageChange}
-      />
+      <Pagination page={page} totalPages={totalPages} total={total} onPageChange={onPageChange} />
     </div>
   );
 }
@@ -416,13 +407,7 @@ interface SortHeaderProps {
   sortOrder: string;
 }
 
-function SortHeader({
-  field,
-  children,
-  onSort,
-  sortField,
-  sortOrder,
-}: SortHeaderProps) {
+function SortHeader({ field, children, onSort, sortField, sortOrder }: SortHeaderProps) {
   const active = sortField === field;
   return (
     <th

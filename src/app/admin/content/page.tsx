@@ -34,9 +34,7 @@ export default function AdminContentPage() {
 
   const handleStatusChange = async (id: string, newStatus: ContentStatus) => {
     setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, status: newStatus } : item
-      )
+      prev.map((item) => (item.id === id ? { ...item, status: newStatus } : item)),
     );
 
     try {
@@ -88,11 +86,7 @@ export default function AdminContentPage() {
   }
 
   return (
-    <motion.div
-      initial={false}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <PageHeader
         title="Content Calendar"
         actions={
@@ -110,11 +104,7 @@ export default function AdminContentPage() {
         }
       />
 
-      <ContentKanban
-        items={items}
-        onStatusChange={handleStatusChange}
-        onEdit={handleEdit}
-      />
+      <ContentKanban items={items} onStatusChange={handleStatusChange} onEdit={handleEdit} />
 
       <ContentItemForm
         key={editingItem?.id ?? "new"}

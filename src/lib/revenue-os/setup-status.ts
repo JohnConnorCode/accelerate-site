@@ -2,8 +2,18 @@ export type SetupStatus = "ready" | "action" | "degraded" | "optional" | "disabl
 
 export function resendDeliveryReadiness(input: {
   configured: boolean;
-  lastOutbound?: { status: string; sent_at: string | null; created_at?: string | null; provider_id?: string | null } | null;
-}): { status: SetupStatus; description: string; lastSuccessAt: string | null; lastFailure: string | null } {
+  lastOutbound?: {
+    status: string;
+    sent_at: string | null;
+    created_at?: string | null;
+    provider_id?: string | null;
+  } | null;
+}): {
+  status: SetupStatus;
+  description: string;
+  lastSuccessAt: string | null;
+  lastFailure: string | null;
+} {
   if (!input.configured) {
     return {
       status: "action",
@@ -16,7 +26,8 @@ export function resendDeliveryReadiness(input: {
   if (!last) {
     return {
       status: "action",
-      description: "A server-only API key and verified sender are configured, but no outbound delivery receipt exists yet. Configuration is not delivery health.",
+      description:
+        "A server-only API key and verified sender are configured, but no outbound delivery receipt exists yet. Configuration is not delivery health.",
       lastSuccessAt: null,
       lastFailure: null,
     };
@@ -24,27 +35,30 @@ export function resendDeliveryReadiness(input: {
   if (last.status === "sent") {
     return {
       status: "ready",
-      description: "Resend accepted an outbound message and a local receipt recorded the provider id.",
+      description:
+        "Resend accepted an outbound message and a local receipt recorded the provider id.",
       lastSuccessAt: last.sent_at ?? last.created_at ?? null,
       lastFailure: null,
     };
   }
   return {
     status: "degraded",
-    description: "The latest outbound send did not reach a sent receipt. Review the failed message before treating email as healthy.",
+    description:
+      "The latest outbound send did not reach a sent receipt. Review the failed message before treating email as healthy.",
     lastSuccessAt: null,
     lastFailure: `Latest outbound message is ${last.status}${last.provider_id ? "" : " without a provider id"}.`,
   };
 }
 
-export function setupNextRun(kind:
-  | "config"
-  | "schema-verify"
-  | "cron-job"
-  | "health-snapshot"
-  | "gmail-sync"
-  | "outbound-send"
-  | "public-event"
+export function setupNextRun(
+  kind:
+    | "config"
+    | "schema-verify"
+    | "cron-job"
+    | "health-snapshot"
+    | "gmail-sync"
+    | "outbound-send"
+    | "public-event",
 ): string {
   switch (kind) {
     case "config":
@@ -72,28 +86,32 @@ export function calendlyAttributionReadiness(input: {
   if (input.bookingMode === "disabled") {
     return {
       status: "disabled",
-      description: "Public self-booking is paused. Attribution stays off until the embed is re-enabled.",
+      description:
+        "Public self-booking is paused. Attribution stays off until the embed is re-enabled.",
       lastSuccessAt: null,
     };
   }
   if (input.bookingMode === "manual") {
     return {
       status: "optional",
-      description: "The founder schedules by reply. Calendly API tokens are not required and are not treated as ready.",
+      description:
+        "The founder schedules by reply. Calendly API tokens are not required and are not treated as ready.",
       lastSuccessAt: null,
     };
   }
   if (!input.webhookConfigured) {
     return {
       status: "action",
-      description: "The public embed is on. Signed Calendly webhooks are still required before booking and cancellation attribution can be Ready.",
+      description:
+        "The public embed is on. Signed Calendly webhooks are still required before booking and cancellation attribution can be Ready.",
       lastSuccessAt: null,
     };
   }
   if (!input.lastSignedReceipt) {
     return {
       status: "action",
-      description: "A webhook secret is configured, but no signed booking or cancellation receipt exists yet. Tokens are not attribution health.",
+      description:
+        "A webhook secret is configured, but no signed booking or cancellation receipt exists yet. Tokens are not attribution health.",
       lastSuccessAt: null,
     };
   }

@@ -24,14 +24,16 @@ export function ConversionFunnel({ funnel }: ConversionFunnelProps) {
       <div className="space-y-2">
         {stageData.map((stage, i) => {
           // Funnel width based on ratio to first stage
-          const funnelWidth = Math.max((stage.count / Math.max(firstCount, 1)) * 100, stage.count > 0 ? 8 : 2);
+          const funnelWidth = Math.max(
+            (stage.count / Math.max(firstCount, 1)) * 100,
+            stage.count > 0 ? 8 : 2,
+          );
           const prevCount = i > 0 ? stageData[i - 1]!.count : 0;
-          const dropOff = i > 0 && prevCount > 0
-            ? Math.round(((prevCount - stage.count) / prevCount) * 100)
-            : null;
-          const convRate = firstCount > 0
-            ? Math.round((stage.count / firstCount) * 100)
-            : 0;
+          const dropOff =
+            i > 0 && prevCount > 0
+              ? Math.round(((prevCount - stage.count) / prevCount) * 100)
+              : null;
+          const convRate = firstCount > 0 ? Math.round((stage.count / firstCount) * 100) : 0;
 
           return (
             <div key={stage.key}>
@@ -39,9 +41,7 @@ export function ConversionFunnel({ funnel }: ConversionFunnelProps) {
                 <span className="text-white-secondary">{stage.label}</span>
                 <div className="flex items-center gap-2">
                   <span className="text-white-primary font-medium">{stage.count}</span>
-                  {i > 0 && (
-                    <span className="text-white-muted">({convRate}%)</span>
-                  )}
+                  {i > 0 && <span className="text-white-muted">({convRate}%)</span>}
                   {dropOff !== null && dropOff > 0 && (
                     <span className="text-red-400 text-[10px]">-{dropOff}%</span>
                   )}

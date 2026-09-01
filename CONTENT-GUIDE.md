@@ -60,36 +60,36 @@ funnelStage: "awareness"
 
 ### Field Reference
 
-| Field | Required | Type | Notes |
-|-------|----------|------|-------|
-| `title` | Yes | string | Article headline. 50-70 chars ideal for SERPs. |
-| `slug` | Yes | string | URL path. Must match filename (without `.mdx`). Lowercase, hyphens only. |
-| `excerpt` | Yes | string | 1-2 sentences. Shown on cards, in OG tags, and RSS. |
-| `date` | Yes | `YYYY-MM-DD` | Publish date. Future dates = scheduled. |
-| `category` | Yes | enum | One of: `lead-generation`, `automation`, `ai-tools`, `industry`, `foundational`, `local-seo` |
-| `pillar` | Yes | enum | One of: `Lead Gen`, `Automation`, `AI Tools`, `Industry`, `Foundational`, `Local SEO` |
-| `tags` | Yes | string[] | 3-6 tags. Used for filtering, related articles, and tag pages. |
-| `author` | Yes | string | Author name. |
-| `authorRole` | No | string | e.g. "Founder, Accelerate" |
-| `seoTitle` | No | string | Custom meta title. Falls back to `title` if omitted. |
-| `seoDescription` | No | string | Custom meta description. Falls back to `excerpt`. |
-| `targetKeywords` | Yes | string[] | 2-4 keywords. Used in JSON-LD schema. |
-| `funnelStage` | Yes | enum | `awareness` (educational), `consideration` (comparison/how-to), `decision` (buy/hire) |
-| `featured` | No | boolean | If `true`, shown as featured card on /learn. Only 1 article should be featured at a time. |
-| `updatedDate` | No | `YYYY-MM-DD` | Set when substantially updating an existing article. |
+| Field            | Required | Type         | Notes                                                                                        |
+| ---------------- | -------- | ------------ | -------------------------------------------------------------------------------------------- |
+| `title`          | Yes      | string       | Article headline. 50-70 chars ideal for SERPs.                                               |
+| `slug`           | Yes      | string       | URL path. Must match filename (without `.mdx`). Lowercase, hyphens only.                     |
+| `excerpt`        | Yes      | string       | 1-2 sentences. Shown on cards, in OG tags, and RSS.                                          |
+| `date`           | Yes      | `YYYY-MM-DD` | Publish date. Future dates = scheduled.                                                      |
+| `category`       | Yes      | enum         | One of: `lead-generation`, `automation`, `ai-tools`, `industry`, `foundational`, `local-seo` |
+| `pillar`         | Yes      | enum         | One of: `Lead Gen`, `Automation`, `AI Tools`, `Industry`, `Foundational`, `Local SEO`        |
+| `tags`           | Yes      | string[]     | 3-6 tags. Used for filtering, related articles, and tag pages.                               |
+| `author`         | Yes      | string       | Author name.                                                                                 |
+| `authorRole`     | No       | string       | e.g. "Founder, Accelerate"                                                                   |
+| `seoTitle`       | No       | string       | Custom meta title. Falls back to `title` if omitted.                                         |
+| `seoDescription` | No       | string       | Custom meta description. Falls back to `excerpt`.                                            |
+| `targetKeywords` | Yes      | string[]     | 2-4 keywords. Used in JSON-LD schema.                                                        |
+| `funnelStage`    | Yes      | enum         | `awareness` (educational), `consideration` (comparison/how-to), `decision` (buy/hire)        |
+| `featured`       | No       | boolean      | If `true`, shown as featured card on /learn. Only 1 article should be featured at a time.    |
+| `updatedDate`    | No       | `YYYY-MM-DD` | Set when substantially updating an existing article.                                         |
 
 ### Category / Pillar Mapping
 
 These must stay paired correctly:
 
-| category | pillar |
-|----------|--------|
-| `lead-generation` | `Lead Gen` |
-| `automation` | `Automation` |
-| `ai-tools` | `AI Tools` |
-| `industry` | `Industry` |
-| `foundational` | `Foundational` |
-| `local-seo` | `Local SEO` |
+| category          | pillar         |
+| ----------------- | -------------- |
+| `lead-generation` | `Lead Gen`     |
+| `automation`      | `Automation`   |
+| `ai-tools`        | `AI Tools`     |
+| `industry`        | `Industry`     |
+| `foundational`    | `Foundational` |
+| `local-seo`       | `Local SEO`    |
 
 ---
 
@@ -148,11 +148,11 @@ Walks through a real client scenario from start to finish. Shows the thinking, t
 
 These are ranges, not targets. Shorter is fine if the article is complete. Longer is fine if every word earns its place.
 
-| Funnel Stage | Word Count | Rationale |
-|-------------|-----------|-----------|
-| **Awareness** | 1,500-2,500 | Educational. Cast a wide net. Don't overload beginners. |
+| Funnel Stage      | Word Count  | Rationale                                                       |
+| ----------------- | ----------- | --------------------------------------------------------------- |
+| **Awareness**     | 1,500-2,500 | Educational. Cast a wide net. Don't overload beginners.         |
 | **Consideration** | 2,500-4,000 | High search intent. These readers want depth — give it to them. |
-| **Decision** | 1,200-2,000 | Focused and action-oriented. Don't dilute the ask with filler. |
+| **Decision**      | 1,200-2,000 | Focused and action-oriented. Don't dilute the ask with filler.  |
 
 ---
 
@@ -304,7 +304,7 @@ Colored callout box for tips, warnings, or important notes.
 
 ```mdx
 <Callout type="tip" title="The 80/20 Rule">
-Let AI handle 80% of the drafting. Spend your effort on the 20% that makes it personal.
+  Let AI handle 80% of the drafting. Spend your effort on the 20% that makes it personal.
 </Callout>
 ```
 
@@ -392,7 +392,7 @@ Code snippets with syntax highlighting and copy button.
 
 ```mdx
 <CodeBlock language="bash" title="Install the CLI">
-npm install -g @accelerate/cli
+  npm install -g @accelerate/cli
 </CodeBlock>
 ```
 
@@ -436,14 +436,14 @@ To debug events locally, enable Plausible debug mode by adding `?plausible_debug
 
 ### Current content mix (for reference):
 
-| Category | Count target | Purpose |
-|----------|-------------|---------|
-| `foundational` | 15-20% | "What is X?" — attracts beginners, awareness stage |
-| `lead-generation` | 15-20% | Client acquisition tactics — consideration/decision |
-| `automation` | 15-20% | Workflow and process automation — awareness/consideration |
-| `ai-tools` | 20-25% | Tool reviews and comparisons — high search intent |
-| `industry` | 15-20% | Vertical-specific guides — targets niche searches |
-| `local-seo` | 10-15% | Local search optimization — drives local traffic |
+| Category          | Count target | Purpose                                                   |
+| ----------------- | ------------ | --------------------------------------------------------- |
+| `foundational`    | 15-20%       | "What is X?" — attracts beginners, awareness stage        |
+| `lead-generation` | 15-20%       | Client acquisition tactics — consideration/decision       |
+| `automation`      | 15-20%       | Workflow and process automation — awareness/consideration |
+| `ai-tools`        | 20-25%       | Tool reviews and comparisons — high search intent         |
+| `industry`        | 15-20%       | Vertical-specific guides — targets niche searches         |
+| `local-seo`       | 10-15%       | Local search optimization — drives local traffic          |
 
 ### Funnel stage balance:
 
@@ -468,11 +468,11 @@ src/content/articles/{slug}.mdx
 
 ## Content Tooling
 
-| Tool | Command / Path | Purpose |
-|------|---------------|---------|
-| Article verifier | `npm run verify:articles` | Automated pass/fail check for all articles (frontmatter, components, proof points, internal links, "leads" detection) |
-| Claims | `scripts/test-no-fabricated-claims.ts` | Bans dollar ROI theater, invented clients, recycled 78% first-responder copy, and the antithesis construction |
-| ArticleCTA component | `src/components/ArticleCTA.tsx` | Tracked page-level CTA — wraps Link+Button with Plausible `Page CTA Click` event |
+| Tool                 | Command / Path                         | Purpose                                                                                                               |
+| -------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Article verifier     | `npm run verify:articles`              | Automated pass/fail check for all articles (frontmatter, components, proof points, internal links, "leads" detection) |
+| Claims               | `scripts/test-no-fabricated-claims.ts` | Bans dollar ROI theater, invented clients, recycled 78% first-responder copy, and the antithesis construction         |
+| ArticleCTA component | `src/components/ArticleCTA.tsx`        | Tracked page-level CTA — wraps Link+Button with Plausible `Page CTA Click` event                                      |
 
 Run `npm run verify:articles` before pushing any article. All 34 articles (published and scheduled) must pass.
 

@@ -44,12 +44,14 @@ Then inspect persistent origin state before changing it:
 
 ```js
 const registrations = await navigator.serviceWorker.getRegistrations();
-console.table(registrations.map((registration) => ({
-  scope: registration.scope,
-  active: registration.active?.scriptURL,
-  waiting: registration.waiting?.scriptURL,
-  installing: registration.installing?.scriptURL,
-})));
+console.table(
+  registrations.map((registration) => ({
+    scope: registration.scope,
+    active: registration.active?.scriptURL,
+    waiting: registration.waiting?.scriptURL,
+    installing: registration.installing?.scriptURL,
+  })),
+);
 console.log("controller", navigator.serviceWorker.controller?.scriptURL);
 console.log("caches", await caches.keys());
 ```

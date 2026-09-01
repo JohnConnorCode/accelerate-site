@@ -73,11 +73,7 @@ export default function PartnersPage() {
   }
 
   return (
-    <motion.div
-      initial={false}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <PageHeader
         title="Partner Applications"
         actions={
@@ -99,12 +95,24 @@ export default function PartnersPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border-glass">
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Name</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Company</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Type</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Status</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Date</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Actions</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                Name
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                Company
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                Type
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                Status
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                Date
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -124,9 +132,7 @@ export default function PartnersPage() {
                 </td>
                 <td className="px-4 py-3 text-white-secondary">
                   {partner.company}
-                  {partner.website && (
-                    <p className="text-xs text-white-muted">{partner.website}</p>
-                  )}
+                  {partner.website && <p className="text-xs text-white-muted">{partner.website}</p>}
                 </td>
                 <td className="px-4 py-3 text-white-secondary capitalize">
                   {partner.partner_type}
@@ -169,7 +175,12 @@ export default function PartnersPage() {
       </GlassCard>
 
       {toast && (
-        <Toast message={toast.message} type={toast.type} isVisible={true} onClose={() => setToast(null)} />
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          isVisible={true}
+          onClose={() => setToast(null)}
+        />
       )}
     </motion.div>
   );

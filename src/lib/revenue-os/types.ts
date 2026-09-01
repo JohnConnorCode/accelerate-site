@@ -14,11 +14,14 @@ export const REVENUE_STAGES = [
 
 export type RevenueStage = (typeof REVENUE_STAGES)[number];
 
-const DEFAULT_STAGE_META: Record<RevenueStage, {
-  label: string;
-  probability: number;
-  tone: "neutral" | "info" | "attention" | "success" | "danger";
-}> = {
+const DEFAULT_STAGE_META: Record<
+  RevenueStage,
+  {
+    label: string;
+    probability: number;
+    tone: "neutral" | "info" | "attention" | "success" | "danger";
+  }
+> = {
   new: { label: "New", probability: 10, tone: "neutral" },
   contacted: { label: "Contacted", probability: 20, tone: "info" },
   qualified: { label: "Qualified", probability: 40, tone: "info" },
@@ -111,7 +114,16 @@ export interface OperatorQueueItem {
 
 export interface SetupCapability {
   id: string;
-  group: "core" | "email" | "google" | "ai" | "campaigns" | "proposals" | "analytics" | "booking" | "operations";
+  group:
+    | "core"
+    | "email"
+    | "google"
+    | "ai"
+    | "campaigns"
+    | "proposals"
+    | "analytics"
+    | "booking"
+    | "operations";
   label: string;
   description: string;
   accomplishes: string;

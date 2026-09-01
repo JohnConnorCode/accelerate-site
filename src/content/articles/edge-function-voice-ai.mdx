@@ -5,12 +5,14 @@ excerpt: "How we rebuilt our Voice AI architecture to merge transcription and cl
 date: "2026-08-16"
 category: "automation"
 pillar: "Automation"
-tags: ["voice ai", "edge functions", "ai architecture", "latency optimization", "call classification"]
+tags:
+  ["voice ai", "edge functions", "ai architecture", "latency optimization", "call classification"]
 author: "John Connor"
 authorRole: "Founder, Accelerate"
 seoTitle: "Voice AI Architecture: Edge Functions for Zero Latency"
 seoDescription: "Learn how merging transcription and classification into a single edge function call reduces Voice AI latency and improves contextual accuracy."
-targetKeywords: ["voice ai architecture", "edge function ai", "ai call classification", "low latency voice ai"]
+targetKeywords:
+  ["voice ai architecture", "edge function ai", "ai call classification", "low latency voice ai"]
 funnelStage: "decision"
 ---
 
@@ -20,7 +22,10 @@ For the past year, most of the industry has settled for this "good enough" laten
 
 At Accelerate, we realized that optimizing each individual service was no longer enough. The architecture itself was the bottleneck. We needed to fundamentally change how Voice AI processes data.
 
-<StatHighlight value="Confidence" label="has to be high enough to act, or the call goes to a person" />
+<StatHighlight
+  value="Confidence"
+  label="has to be high enough to act, or the call goes to a person"
+/>
 
 ## The Problem with the Relay Race Architecture
 
@@ -33,9 +38,13 @@ When transcription and classification are handled as two separate steps, the tra
   rows={[
     ["Transcription", "Separate API call (e.g., Whisper)", "Merged in Edge Function"],
     ["Classification", "Separate API call (e.g., GPT-4)", "Merged in Edge Function"],
-    ["User Context", "Fetched sequentially after transcription", "Injected in real-time at the edge"],
+    [
+      "User Context",
+      "Fetched sequentially after transcription",
+      "Injected in real-time at the edge",
+    ],
     ["Average Latency", "1.5s - 3.0s", "Under 500ms"],
-    ["Confidence Threshold", "Typically ~0.65", "Strictly enforced at 0.85"]
+    ["Confidence Threshold", "Typically ~0.65", "Strictly enforced at 0.85"],
   ]}
 />
 
@@ -49,16 +58,24 @@ By pushing this logic to the edge, executing code physically closer to the calle
 
 <StepByStep>
   <Step number={1} title="The Call Connects">
-    The moment the phone rings, our Edge Function instantly retrieves the caller's ID and fetches their active projects and contact history from the AI Context System. This happens before they even say "hello."
+    The moment the phone rings, our Edge Function instantly retrieves the caller's ID and fetches
+    their active projects and contact history from the AI Context System. This happens before they
+    even say "hello."
   </Step>
   <Step number={2} title="Contextual Injection">
-    This user context is dynamically injected into the system prompt of the Edge Function. The AI now knows exactly who is calling, what quotes they have pending, and what terminology they are likely to use.
+    This user context is dynamically injected into the system prompt of the Edge Function. The AI
+    now knows exactly who is calling, what quotes they have pending, and what terminology they are
+    likely to use.
   </Step>
   <Step number={3} title="Unified Processing">
-    As the caller speaks, the audio is processed by a single multimodal model that handles both transcription and intent classification simultaneously. Because the model already knows the caller has an active "roofing quote," it correctly interprets the muffled audio as "roof" instead of "room."
+    As the caller speaks, the audio is processed by a single multimodal model that handles both
+    transcription and intent classification simultaneously. Because the model already knows the
+    caller has an active "roofing quote," it correctly interprets the muffled audio as "roof"
+    instead of "room."
   </Step>
   <Step number={4} title="Immediate Response">
-    The classification is finalized in under 500ms, triggering the text-to-speech engine to respond instantly. The conversation flows naturally, without the dreaded bot pause.
+    The classification is finalized in under 500ms, triggering the text-to-speech engine to respond
+    instantly. The conversation flows naturally, without the dreaded bot pause.
   </Step>
 </StepByStep>
 
@@ -71,7 +88,11 @@ By injecting real-time user context (projects, past conversations, contact detai
 This architectural shift allowed us to raise our internal confidence threshold for automated actions from a shaky 0.65 to a strict **0.85**.
 
 <Callout type="important" title="The 0.85 Confidence Threshold">
-In machine learning, confidence scores dictate whether an AI takes an action autonomously or escalates to a human. At a 0.65 threshold, the AI frequently makes "best guesses" that lead to misrouted calls or incorrect calendar bookings. By injecting context, our model now hits 0.85+ confidence on over 92% of standard inquiries, virtually eliminating hallucinated actions while maintaining full automation.
+  In machine learning, confidence scores dictate whether an AI takes an action autonomously or
+  escalates to a human. At a 0.65 threshold, the AI frequently makes "best guesses" that lead to
+  misrouted calls or incorrect calendar bookings. By injecting context, our model now hits 0.85+
+  confidence on over 92% of standard inquiries, virtually eliminating hallucinated actions while
+  maintaining full automation.
 </Callout>
 
 When an AI receptionist confidently knows who is calling and why, it can execute complex workflows, like updating a specific project scope in your CRM or scheduling a follow-up for a pending invoice, without second-guessing itself.

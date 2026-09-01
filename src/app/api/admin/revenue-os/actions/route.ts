@@ -12,9 +12,14 @@ export async function GET() {
   // `expired` status, so dead proposals stayed `pending` and kept their dedupe
   // key, permanently blocking the same action from ever being staged again.
   await sweepExpiredActions(supabase);
-  const { data, error } = await supabase.from("action_queue").select("*").order("created_at", { ascending: false }).limit(100);
+  const { data, error } = await supabase
+    .from("action_queue")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(100);
   if (error) {
-    if (isMissingRevenueSchema(error)) return NextResponse.json({ schemaReady: false, actions: [] });
+    if (isMissingRevenueSchema(error))
+      return NextResponse.json({ schemaReady: false, actions: [] });
     return NextResponse.json({ error: "Could not load actions" }, { status: 500 });
   }
   return NextResponse.json({ schemaReady: true, actions: data ?? [] });
@@ -23,8 +28,13 @@ export async function GET() {
 export async function PATCH(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
-  const body = await request.json() as { id?: string; decision?: "approve" | "reject"; reason?: string };
-  if (!body.id || !["approve", "reject"].includes(body.decision || "")) return NextResponse.json({ error: "Action id and decision are required" }, { status: 400 });
+  const body = (await request.json()) as {
+    id?: string;
+    decision?: "approve" | "reject";
+    reason?: string;
+  };
+  if (!body.id || !["approve", "reject"].includes(body.decision || ""))
+    return NextResponse.json({ error: "Action id and decision are required" }, { status: 400 });
   const supabase = auth.database;
   try {
     if (body.decision === "reject") {
@@ -34,6 +44,9 @@ export async function PATCH(request: NextRequest) {
     const result = await approveAndExecuteAction(supabase, body.id, auth.user.email || "founder");
     return NextResponse.json({ success: true, result });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Could not handle action" }, { status: 400 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Could not handle action" },
+      { status: 400 },
+    );
   }
 }

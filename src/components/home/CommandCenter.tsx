@@ -18,12 +18,13 @@ import { marketingPositioning } from "@/content/marketing-positioning";
    it lives below the fold. It still server-renders, so there is no hole in the
    page while the chunk arrives. */
 const CommandCenterDemo = dynamic(
-  () => import("@/components/command-center/demo/CommandCenterDemo").then((m) => m.CommandCenterDemo),
+  () =>
+    import("@/components/command-center/demo/CommandCenterDemo").then((m) => m.CommandCenterDemo),
   {
     loading: () => (
       <div className="min-h-[560px] border border-[var(--rule)] bg-[#0B0B0B]" aria-hidden="true" />
     ),
-  }
+  },
 );
 
 export function CommandCenter() {
@@ -45,7 +46,8 @@ export function CommandCenter() {
               {marketingPositioning.commandCenter.description}
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.18} style={{ marginTop: 16 }}>
-              The live sandbox shows that integrated option. Clear the approval queue, open a workflow, or search the records.
+              The live sandbox shows that integrated option. Clear the approval queue, open a
+              workflow, or search the records.
             </Reveal>
           </div>
         </div>
@@ -54,14 +56,18 @@ export function CommandCenter() {
           <CommandCenterDemo />
         </Reveal>
 
-        <Reveal rv as="div" delay={0.16} className="flex flex-wrap gap-x-6 gap-y-3" style={{ marginTop: "clamp(22px,2.6vw,32px)" }}>
+        <Reveal
+          rv
+          as="div"
+          delay={0.16}
+          className="flex flex-wrap gap-x-6 gap-y-3"
+          style={{ marginTop: "clamp(22px,2.6vw,32px)" }}
+        >
           <Link href="/command-center" className="ink-sweep text-[15.5px] text-[var(--fg)]">
-            Explore the Command Center{" "}
-            <span aria-hidden="true">&rarr;</span>
+            Explore the Command Center <span aria-hidden="true">&rarr;</span>
           </Link>
           <Link href="/demo/command-center" className="ink-sweep text-[15.5px] text-[var(--fg)]">
-            Try the full admin demo{" "}
-            <span aria-hidden="true">&rarr;</span>
+            Try the full admin demo <span aria-hidden="true">&rarr;</span>
           </Link>
         </Reveal>
       </div>

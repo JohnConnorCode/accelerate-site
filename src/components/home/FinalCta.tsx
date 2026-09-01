@@ -29,7 +29,8 @@ export function FinalCta() {
           </span>
         </h2>
         <Reveal rv as="p" className="lede" delay={0.13}>
-          Thirty minutes with the people who would advise, build, or run the work. You leave with the recommendation in writing. Yours to keep either way.
+          Thirty minutes with the people who would advise, build, or run the work. You leave with
+          the recommendation in writing. Yours to keep either way.
         </Reveal>
         <Reveal rv delay={0.19}>
           <Link
@@ -37,7 +38,10 @@ export function FinalCta() {
             onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "final_cta" })}
             className="btn btn-inv"
           >
-            Book a free strategy session <span className="arw" aria-hidden="true">→</span>
+            Book a free strategy session{" "}
+            <span className="arw" aria-hidden="true">
+              →
+            </span>
           </Link>
         </Reveal>
       </div>

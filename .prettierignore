@@ -1,0 +1,11 @@
+node_modules
+.next
+.next-*
+out
+build
+coverage
+test-results
+playwright-report
+public
+package-lock.json
+supabase/.temp

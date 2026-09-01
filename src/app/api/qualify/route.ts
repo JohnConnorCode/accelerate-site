@@ -2,16 +2,35 @@ import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
 import { scheduleEmailSequence } from "@/lib/email/sequences";
-import { isValidWorkEmail, normalizeEmail, normalizeWebsite, qualifyRoofingOpportunity, type RoofingQualifierInput } from "@/lib/opportunities";
+import {
+  isValidWorkEmail,
+  normalizeEmail,
+  normalizeWebsite,
+  qualifyRoofingOpportunity,
+  type RoofingQualifierInput,
+} from "@/lib/opportunities";
 import { bookingMode } from "@/lib/booking";
 import { recordAudit } from "@/lib/revenue-os/audit";
 import { ingestRoofingQualification } from "@/lib/revenue-os/inbound";
 
 const ALLOWED_ROLES = new Set([
-  "owner", "founder", "president", "general_manager", "operations", "marketing", "team_member", "vendor",
+  "owner",
+  "founder",
+  "president",
+  "general_manager",
+  "operations",
+  "marketing",
+  "team_member",
+  "vendor",
 ]);
 const ALLOWED_REVENUE = new Set(["under_1m", "1m_3m", "3m_10m", "10m_plus"]);
-const ALLOWED_LEAKS = new Set(["slow_response", "estimate_followup", "after_hours", "scheduling", "visibility"]);
+const ALLOWED_LEAKS = new Set([
+  "slow_response",
+  "estimate_followup",
+  "after_hours",
+  "scheduling",
+  "visibility",
+]);
 
 export async function POST(request: NextRequest) {
   let body: RoofingQualifierInput;
@@ -28,12 +47,19 @@ export async function POST(request: NextRequest) {
   const companyWebsite = normalizeWebsite(body.companyWebsite || "");
 
   if (!isValidWorkEmail(email)) {
-    return NextResponse.json({ error: "Use your company email so we can match the audit to the business." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Use your company email so we can match the audit to the business." },
+      { status: 400 },
+    );
   }
   if (!companyWebsite) {
     return NextResponse.json({ error: "Enter a valid company website." }, { status: 400 });
   }
-  if (!ALLOWED_ROLES.has(body.role) || !ALLOWED_REVENUE.has(body.revenueBand) || !ALLOWED_LEAKS.has(body.primaryLeak)) {
+  if (
+    !ALLOWED_ROLES.has(body.role) ||
+    !ALLOWED_REVENUE.has(body.revenueBand) ||
+    !ALLOWED_LEAKS.has(body.primaryLeak)
+  ) {
     return NextResponse.json({ error: "Complete every qualification field." }, { status: 400 });
   }
 
@@ -44,10 +70,26 @@ export async function POST(request: NextRequest) {
   const supabase = createBootstrapServiceRoleClient("legacy-public-qualifier");
   let ingestion;
   try {
-    ingestion = await ingestRoofingQualification(supabase, { email, companyWebsite, role: body.role, revenueBand: body.revenueBand, primaryLeak: body.primaryLeak, messageVariant: body.messageVariant, qualifierToken: nanoid(24), utm: body.utm, qualification });
+    ingestion = await ingestRoofingQualification(supabase, {
+      email,
+      companyWebsite,
+      role: body.role,
+      revenueBand: body.revenueBand,
+      primaryLeak: body.primaryLeak,
+      messageVariant: body.messageVariant,
+      qualifierToken: nanoid(24),
+      utm: body.utm,
+      qualification,
+    });
   } catch (error) {
-    console.error("[qualify] canonical inbound ingestion failed:", error instanceof Error ? error.message : error);
-    return NextResponse.json({ error: "We couldn't save this yet. Please try again." }, { status: 500 });
+    console.error(
+      "[qualify] canonical inbound ingestion failed:",
+      error instanceof Error ? error.message : error,
+    );
+    return NextResponse.json(
+      { error: "We couldn't save this yet. Please try again." },
+      { status: 500 },
+    );
   }
   const opportunity = ingestion.opportunity;
 
@@ -65,9 +107,16 @@ export async function POST(request: NextRequest) {
     if (notificationError) {
       console.error("[qualify] failed to create admin notification:", notificationError.message);
       await recordAudit(supabase, {
-        actorEmail: "system", action: "notification.failed", entityType: "opportunity",
-        entityId: opportunity.id, source: "webhook",
-        metadata: { surface: "roofing_qualifier", qualified: qualification.qualified, error: notificationError.message },
+        actorEmail: "system",
+        action: "notification.failed",
+        entityType: "opportunity",
+        entityId: opportunity.id,
+        source: "webhook",
+        metadata: {
+          surface: "roofing_qualifier",
+          qualified: qualification.qualified,
+          error: notificationError.message,
+        },
       });
     }
 
@@ -76,7 +125,9 @@ export async function POST(request: NextRequest) {
       await scheduleEmailSequence({
         email,
         sequenceType: qualification.qualified
-          ? calendlyEnabled ? "booking_nurture" : "manual_audit_followup"
+          ? calendlyEnabled
+            ? "booking_nurture"
+            : "manual_audit_followup"
           : "roofing_nurture",
         metadata: {
           planLink: `https://www.acceleratewith.us/roofing?resume=${opportunity.qualifier_token || ""}#book`,

@@ -35,13 +35,33 @@ Pricing is where these platforms diverge the most, and it is often the deciding 
 <ComparisonTable
   headers={["Feature", "Zapier", "Make.com", "n8n"]}
   rows={[
-    ["Free tier", "100 tasks/month, 5 Zaps", "1,000 ops/month, 2 scenarios", "Unlimited (self-hosted)"],
+    [
+      "Free tier",
+      "100 tasks/month, 5 Zaps",
+      "1,000 ops/month, 2 scenarios",
+      "Unlimited (self-hosted)",
+    ],
     ["Entry paid plan", "$19.99/mo (750 tasks)", "$9/mo (10,000 ops)", "$20/mo (cloud hosted)"],
-    ["Mid-tier plan", "$49/mo (2,000 tasks)", "$16/mo (10,000 ops, unlimited scenarios)", "$50/mo (more executions)"],
-    ["Business plan", "$69/mo (2,000 tasks + premium)", "$29/mo (10,000 ops + teams)", "Custom enterprise pricing"],
-    ["How usage is counted", "Per task (each action in a Zap)", "Per operation (each module run)", "Per workflow execution"],
+    [
+      "Mid-tier plan",
+      "$49/mo (2,000 tasks)",
+      "$16/mo (10,000 ops, unlimited scenarios)",
+      "$50/mo (more executions)",
+    ],
+    [
+      "Business plan",
+      "$69/mo (2,000 tasks + premium)",
+      "$29/mo (10,000 ops + teams)",
+      "Custom enterprise pricing",
+    ],
+    [
+      "How usage is counted",
+      "Per task (each action in a Zap)",
+      "Per operation (each module run)",
+      "Per workflow execution",
+    ],
     ["Multi-step on free plan", "No (paid only)", "Yes", "Yes"],
-    ["Team features", "From $69/mo", "From $29/mo", "Free (self-hosted)"]
+    ["Team features", "From $69/mo", "From $29/mo", "Free (self-hosted)"],
   ]}
 />
 
@@ -58,7 +78,9 @@ If you get 200 inquiries per month, here is what it costs on each platform:
 At 1,000 inquiries per month, Zapier costs $49 to $69/month while Make.com stays under $16/month and n8n remains free if self-hosted.
 
 <Callout type="tip" title="Watch for Hidden Costs on Zapier">
-Zapier counts every step in a multi-step workflow as a separate task. A 5-step Zap that runs 100 times uses 500 tasks, not 100. Make.com counts similarly with operations, but their generous free tier absorbs much more. n8n counts per execution regardless of how many steps are inside.
+  Zapier counts every step in a multi-step workflow as a separate task. A 5-step Zap that runs 100
+  times uses 500 tasks, not 100. Make.com counts similarly with operations, but their generous free
+  tier absorbs much more. n8n counts per execution regardless of how many steps are inside.
 </Callout>
 
 ## Ease of Use
@@ -100,7 +122,7 @@ For someone comfortable with technology, n8n is the most powerful builder of the
     ["Shopify", "Yes", "Yes", "Yes"],
     ["Facebook / Instagram", "Yes", "Yes", "Yes"],
     ["Custom API connections", "Limited", "Full HTTP module", "Full HTTP node + custom code"],
-    ["Webhooks", "Paid only", "Free tier", "Free"]
+    ["Webhooks", "Paid only", "Free tier", "Free"],
   ]}
 />
 

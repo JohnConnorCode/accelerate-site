@@ -59,20 +59,14 @@ export function ContactForm() {
       clearUTMParams();
       setSubmitted(true);
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Something went wrong. Please try again."
-      );
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
   ) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -87,15 +81,14 @@ export function ContactForm() {
           <h3
             className="text-2xl font-bold text-heading"
             style={{
-              fontFamily:
-                "var(--font-jost), var(--font-inter), sans-serif",
+              fontFamily: "var(--font-jost), var(--font-inter), sans-serif",
             }}
           >
             On its way to John
           </h3>
           <p className="text-white-secondary max-w-md mx-auto">
-            John will review the company and reply personally within one business day.
-            Reply with two times that work for you and he will schedule the call directly.
+            John will review the company and reply personally within one business day. Reply with
+            two times that work for you and he will schedule the call directly.
           </p>
         </div>
       </div>
@@ -122,18 +115,64 @@ export function ContactForm() {
 
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
-            <label htmlFor="companyName" className="mb-1.5 block text-sm font-medium text-white-secondary">Company</label>
-            <Input type="text" id="companyName" name="companyName" required value={formData.companyName} onChange={handleChange} placeholder="Company name" />
+            <label
+              htmlFor="companyName"
+              className="mb-1.5 block text-sm font-medium text-white-secondary"
+            >
+              Company
+            </label>
+            <Input
+              type="text"
+              id="companyName"
+              name="companyName"
+              required
+              value={formData.companyName}
+              onChange={handleChange}
+              placeholder="Company name"
+            />
           </div>
           <div>
-            <label htmlFor="companyWebsite" className="mb-1.5 block text-sm font-medium text-white-secondary">Website</label>
-            <Input type="text" id="companyWebsite" name="companyWebsite" required value={formData.companyWebsite} onChange={handleChange} placeholder="company.com" />
+            <label
+              htmlFor="companyWebsite"
+              className="mb-1.5 block text-sm font-medium text-white-secondary"
+            >
+              Website
+            </label>
+            <Input
+              type="text"
+              id="companyWebsite"
+              name="companyWebsite"
+              required
+              value={formData.companyWebsite}
+              onChange={handleChange}
+              placeholder="company.com"
+            />
           </div>
         </div>
 
         <div>
-          <label htmlFor="primaryProblem" className="block text-sm font-medium text-white-secondary mb-1.5">Where would help matter most?</label>
-          <Select id="primaryProblem" name="primaryProblem" required value={formData.primaryProblem} onChange={handleChange} placeholder="Choose the closest fit" options={[{ value: "strategy", label: "Figuring out where AI fits" }, { value: "automation", label: "Automating or connecting workflows" }, { value: "custom_solution", label: "Building a custom AI tool or agent" }, { value: "execution", label: "Getting ongoing work executed" }, { value: "training", label: "Training and enabling the team" }, { value: "other", label: "Something else" }]} />
+          <label
+            htmlFor="primaryProblem"
+            className="block text-sm font-medium text-white-secondary mb-1.5"
+          >
+            Where would help matter most?
+          </label>
+          <Select
+            id="primaryProblem"
+            name="primaryProblem"
+            required
+            value={formData.primaryProblem}
+            onChange={handleChange}
+            placeholder="Choose the closest fit"
+            options={[
+              { value: "strategy", label: "Figuring out where AI fits" },
+              { value: "automation", label: "Automating or connecting workflows" },
+              { value: "custom_solution", label: "Building a custom AI tool or agent" },
+              { value: "execution", label: "Getting ongoing work executed" },
+              { value: "training", label: "Training and enabling the team" },
+              { value: "other", label: "Something else" },
+            ]}
+          />
         </div>
 
         <div>
@@ -152,7 +191,10 @@ export function ContactForm() {
         </div>
 
         <div>
-          <label htmlFor="businessType" className="block text-sm font-medium text-white-secondary mb-1.5">
+          <label
+            htmlFor="businessType"
+            className="block text-sm font-medium text-white-secondary mb-1.5"
+          >
             Business Type
           </label>
           <Select
@@ -173,7 +215,10 @@ export function ContactForm() {
         </div>
 
         <div>
-          <label htmlFor="message" className="block text-sm font-medium text-white-secondary mb-1.5">
+          <label
+            htmlFor="message"
+            className="block text-sm font-medium text-white-secondary mb-1.5"
+          >
             Message
           </label>
           <Textarea

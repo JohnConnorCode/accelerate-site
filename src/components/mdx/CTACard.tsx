@@ -30,7 +30,9 @@ export function CTACard({
       <p className="cta-band-copy">{description}</p>
       <Link href={href} onClick={handleClick} className="btn">
         {buttonText}
-        <span className="arw" aria-hidden="true">→</span>
+        <span className="arw" aria-hidden="true">
+          →
+        </span>
       </Link>
     </aside>
   );

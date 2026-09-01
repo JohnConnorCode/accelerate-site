@@ -8,7 +8,7 @@ Security fixes are applied to the latest commit on `main`. This project does not
 
 Do not open a public issue for a suspected vulnerability or include customer data, credentials, exploit payloads, or provider responses in public logs.
 
-Use GitHub private vulnerability reporting when it is available after the repository becomes public. Until then, email [john@acceleratewith.us](mailto:john@acceleratewith.us) with the subject `Accelerate security report`.
+Use [GitHub private vulnerability reporting](https://github.com/JohnConnorCode/accelerate-site/security/advisories/new), or email [john@acceleratewith.us](mailto:john@acceleratewith.us) with the subject `Accelerate security report`.
 
 Please include:
 

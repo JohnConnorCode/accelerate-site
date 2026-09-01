@@ -3,11 +3,7 @@ export const revalidate = 3600;
 import type { Metadata } from "next";
 import { seoMetadata } from "@/lib/og";
 import { notFound } from "next/navigation";
-import {
-  getArticlesByCategory,
-  getAllCategories,
-  CATEGORY_LABELS,
-} from "@/lib/mdx";
+import { getArticlesByCategory, getAllCategories, CATEGORY_LABELS } from "@/lib/mdx";
 import { generateBreadcrumbJsonLd } from "@/lib/seo";
 import type { ArticleCategory } from "@/lib/types";
 import { LearningArchive } from "@/components/sections/LearningArchive";
@@ -35,11 +31,7 @@ export async function generateMetadata({
   });
 }
 
-export default async function CategoryPage({
-  params,
-}: {
-  params: Promise<{ category: string }>;
-}) {
+export default async function CategoryPage({ params }: { params: Promise<{ category: string }> }) {
   const { category } = await params;
   const label = CATEGORY_LABELS[category as ArticleCategory];
   if (!label) notFound();

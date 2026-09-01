@@ -42,7 +42,9 @@ export function LearningArchive({
             </EntranceItem>
             <EntranceItem>
               <div className="mt-8 flex flex-col gap-4 border-t border-[var(--rule)] pt-6 sm:flex-row sm:items-center sm:justify-between">
-                <p className="max-w-xl text-pretty leading-relaxed text-white-secondary">{description}</p>
+                <p className="max-w-xl text-pretty leading-relaxed text-white-secondary">
+                  {description}
+                </p>
                 <p className="shrink-0 font-mono text-xs tabular-nums uppercase tracking-[0.14em] text-white-muted">
                   {articles.length} {articles.length === 1 ? "guide" : "guides"}
                 </p>

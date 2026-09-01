@@ -8,7 +8,13 @@ interface AdminSwitchProps {
   className?: string;
 }
 
-export function AdminSwitch({ checked, onCheckedChange, label, disabled = false, className }: AdminSwitchProps) {
+export function AdminSwitch({
+  checked,
+  onCheckedChange,
+  label,
+  disabled = false,
+  className,
+}: AdminSwitchProps) {
   return (
     <button
       type="button"
@@ -29,7 +35,12 @@ export function AdminSwitch({ checked, onCheckedChange, label, disabled = false,
           checked ? "bg-[var(--admin-ink)]" : "bg-black/10 dark:bg-white/12",
         )}
       >
-        <span className={cn("absolute left-1 top-1 block size-5 rounded-[10px] bg-[var(--admin-surface)] shadow-[0_1px_2px_rgba(0,0,0,0.24)] transition-transform duration-150 ease-out", checked && "translate-x-5")} />
+        <span
+          className={cn(
+            "absolute left-1 top-1 block size-5 rounded-[10px] bg-[var(--admin-surface)] shadow-[0_1px_2px_rgba(0,0,0,0.24)] transition-transform duration-150 ease-out",
+            checked && "translate-x-5",
+          )}
+        />
       </span>
     </button>
   );

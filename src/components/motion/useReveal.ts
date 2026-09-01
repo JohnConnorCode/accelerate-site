@@ -45,11 +45,16 @@ export function useRevealLifecycle<T extends HTMLElement>({
       window.removeEventListener("resize", revealIfEntered);
     };
     const revealIfEntered = () => {
-      const atDocumentEnd = window.scrollY > 0 && window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
-      if (element.getBoundingClientRect().top <= window.innerHeight * triggerRatio || atDocumentEnd) reveal();
+      const atDocumentEnd =
+        window.scrollY > 0 &&
+        window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+      if (element.getBoundingClientRect().top <= window.innerHeight * triggerRatio || atDocumentEnd)
+        reveal();
     };
     const observer = new IntersectionObserver(
-      (entries) => { if (entries[0]?.isIntersecting) reveal(); },
+      (entries) => {
+        if (entries[0]?.isIntersecting) reveal();
+      },
       { rootMargin, threshold },
     );
 
@@ -58,7 +63,9 @@ export function useRevealLifecycle<T extends HTMLElement>({
     window.addEventListener("scroll", revealIfEntered, { passive: true });
     window.addEventListener("resize", revealIfEntered);
     const frame = window.requestAnimationFrame(revealIfEntered);
-    const onPageShow = (event: PageTransitionEvent) => { if (event.persisted) reveal(); };
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) reveal();
+    };
     window.addEventListener("pageshow", onPageShow);
 
     return () => {

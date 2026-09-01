@@ -4,12 +4,18 @@ export function gmailMessageIdHeader(externalId: string | null | undefined): str
   return id ? `<${id}>` : null;
 }
 
-export function buildGmailReplySubject(conversationSubject: string | null | undefined, latestSubject: string | null | undefined): string {
+export function buildGmailReplySubject(
+  conversationSubject: string | null | undefined,
+  latestSubject: string | null | undefined,
+): string {
   const subject = (conversationSubject || latestSubject || "Your message").trim() || "Your message";
   return /^re:/i.test(subject) ? subject : `Re: ${subject}`;
 }
 
-export function buildGmailReferencesHeader(previous: string | null | undefined, latestExternalId: string | null | undefined): string | null {
+export function buildGmailReferencesHeader(
+  previous: string | null | undefined,
+  latestExternalId: string | null | undefined,
+): string | null {
   const latest = gmailMessageIdHeader(latestExternalId);
   const tokens = `${previous ?? ""} ${latest ?? ""}`.split(/\s+/).filter(Boolean);
   const unique: string[] = [];
@@ -38,7 +44,9 @@ export function buildGmailReplyRaw(input: {
     "Content-Type: text/plain; charset=UTF-8",
     "",
     input.body,
-  ].filter((line): line is string => line !== null).join("\r\n");
+  ]
+    .filter((line): line is string => line !== null)
+    .join("\r\n");
 }
 
 export function prepareGmailReply(input: {
@@ -58,7 +66,10 @@ export function prepareGmailReply(input: {
   }
   const subject = buildGmailReplySubject(input.conversationSubject, input.latest.subject);
   const inReplyTo = gmailMessageIdHeader(input.latest.external_id);
-  const references = buildGmailReferencesHeader(input.latest.references_header, input.latest.external_id);
+  const references = buildGmailReferencesHeader(
+    input.latest.references_header,
+    input.latest.external_id,
+  );
   return {
     subject,
     inReplyTo,

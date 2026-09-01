@@ -9,7 +9,12 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { Toast } from "@/components/ui/Toast";
-import type { ContentCalendarItem, ContentStatus, ArticleCategory, ArticlePillar } from "@/lib/types";
+import type {
+  ContentCalendarItem,
+  ContentStatus,
+  ArticleCategory,
+  ArticlePillar,
+} from "@/lib/types";
 
 interface ContentItemFormProps {
   open: boolean;
@@ -56,29 +61,23 @@ export function ContentItemForm({ open, item, onSave, onDelete, onClose }: Conte
   const [slug, setSlug] = useState(item?.slug || "");
   const [status, setStatus] = useState<ContentStatus>(item?.status || "idea");
   const [category, setCategory] = useState<ArticleCategory | "">(
-    (item?.category as ArticleCategory) || ""
+    (item?.category as ArticleCategory) || "",
   );
-  const [pillar, setPillar] = useState<ArticlePillar | "">(
-    (item?.pillar as ArticlePillar) || ""
-  );
+  const [pillar, setPillar] = useState<ArticlePillar | "">((item?.pillar as ArticlePillar) || "");
   const [funnelStage, setFunnelStage] = useState(item?.funnel_stage || "");
   const [targetPublishDate, setTargetPublishDate] = useState(
-    item?.target_publish_date?.split("T")[0] || ""
+    item?.target_publish_date?.split("T")[0] || "",
   );
   const [actualPublishDate, setActualPublishDate] = useState(
-    item?.actual_publish_date?.split("T")[0] || ""
+    item?.actual_publish_date?.split("T")[0] || "",
   );
   const [author, setAuthor] = useState(item?.author || "");
-  const [keywords, setKeywords] = useState(
-    item?.target_keywords?.join(", ") || ""
-  );
+  const [keywords, setKeywords] = useState(item?.target_keywords?.join(", ") || "");
   const [notes, setNotes] = useState(item?.notes || "");
   const [seoTitle, setSeoTitle] = useState(item?.seo_title || "");
-  const [seoDescription, setSeoDescription] = useState(
-    item?.seo_description || ""
-  );
+  const [seoDescription, setSeoDescription] = useState(item?.seo_description || "");
   const [wordCountTarget, setWordCountTarget] = useState(
-    item?.word_count_target?.toString() || "1500"
+    item?.word_count_target?.toString() || "1500",
   );
   const [saving, setSaving] = useState(false);
   const [generatingBrief, setGeneratingBrief] = useState(false);
@@ -135,7 +134,7 @@ export function ContentItemForm({ open, item, onSave, onDelete, onClose }: Conte
         setNotes((prev) =>
           prev
             ? `${prev}\n\n--- AI Brief ---\n${brief.outline.join("\n")}`
-            : `--- AI Brief ---\n${brief.outline.join("\n")}`
+            : `--- AI Brief ---\n${brief.outline.join("\n")}`,
         );
       }
       setToast({ message: "AI brief generated", type: "success" });
@@ -157,7 +156,14 @@ export function ContentItemForm({ open, item, onSave, onDelete, onClose }: Conte
   };
 
   return (
-    <AdminDialog open={open} onClose={onClose} title={item ? "Edit content" : "New content"} align="right" maxWidth="md" className="h-full">
+    <AdminDialog
+      open={open}
+      onClose={onClose}
+      title={item ? "Edit content" : "New content"}
+      align="right"
+      maxWidth="md"
+      className="h-full"
+    >
       <div className="h-full w-full overflow-y-auto bg-[var(--admin-surface)] p-5 shadow-[-24px_0_70px_-34px_rgba(0,0,0,0.6)] sm:p-6">
         <div className="flex items-center justify-between mb-6">
           <h3 className="font-display text-lg font-semibold text-white-primary">
@@ -326,31 +332,36 @@ export function ContentItemForm({ open, item, onSave, onDelete, onClose }: Conte
         </form>
 
         {/* Delete confirmation */}
-        <AdminDialog open={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)} title="Delete content?" maxWidth="sm">
-                <AdminSurface padding="lg" className="admin-dialog-surface">
-                  <h4 className="font-display text-white-primary font-semibold mb-2">Delete Content?</h4>
-                  <p className="text-sm text-white-muted mb-4">
-                    This action cannot be undone. The content item will be permanently deleted.
-                  </p>
-                  <div className="flex gap-3">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => setShowDeleteConfirm(false)}
-                      className="flex-1"
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={handleDelete}
-                      className="flex-1 text-red-300 hover:bg-red-500/20"
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </AdminSurface>
+        <AdminDialog
+          open={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          title="Delete content?"
+          maxWidth="sm"
+        >
+          <AdminSurface padding="lg" className="admin-dialog-surface">
+            <h4 className="font-display text-white-primary font-semibold mb-2">Delete Content?</h4>
+            <p className="text-sm text-white-muted mb-4">
+              This action cannot be undone. The content item will be permanently deleted.
+            </p>
+            <div className="flex gap-3">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleDelete}
+                className="flex-1 text-red-300 hover:bg-red-500/20"
+              >
+                Delete
+              </Button>
+            </div>
+          </AdminSurface>
         </AdminDialog>
 
         {toast && (

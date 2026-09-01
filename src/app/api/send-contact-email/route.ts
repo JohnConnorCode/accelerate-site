@@ -15,40 +15,54 @@ export async function POST(request: NextRequest) {
 
   try {
     const formData = await request.json();
-    const { name, email, message, businessType, companyName, companyWebsite, primaryProblem, utm } = formData;
+    const { name, email, message, businessType, companyName, companyWebsite, primaryProblem, utm } =
+      formData;
 
-    if (typeof name !== "string" || !name.trim() || typeof email !== "string" || typeof message !== "string" || !message.trim() || typeof companyName !== "string" || !companyName.trim() || typeof companyWebsite !== "string" || !companyWebsite.trim() || typeof primaryProblem !== "string" || !primaryProblem.trim()) {
-      return NextResponse.json(
-        { error: "Name, email, and message are required" },
-        { status: 400 }
-      );
+    if (
+      typeof name !== "string" ||
+      !name.trim() ||
+      typeof email !== "string" ||
+      typeof message !== "string" ||
+      !message.trim() ||
+      typeof companyName !== "string" ||
+      !companyName.trim() ||
+      typeof companyWebsite !== "string" ||
+      !companyWebsite.trim() ||
+      typeof primaryProblem !== "string" ||
+      !primaryProblem.trim()
+    ) {
+      return NextResponse.json({ error: "Name, email, and message are required" }, { status: 400 });
     }
 
     if (!isValidEmail(email)) {
-      return NextResponse.json(
-        { error: "Please provide a valid email address." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Please provide a valid email address." }, { status: 400 });
     }
 
     // Save to Supabase
     if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
       const supabase = createBootstrapServiceRoleClient("legacy-public-contact");
 
-      const { data: submission, error: dbError } = await supabase.from("contact_submissions").insert({
-        name,
-        email,
-        business_type: businessType || null,
-        message,
-        utm_source: utm?.utm_source || null,
-        utm_medium: utm?.utm_medium || null,
-        utm_campaign: utm?.utm_campaign || null,
-      }).select("id").single();
+      const { data: submission, error: dbError } = await supabase
+        .from("contact_submissions")
+        .insert({
+          name,
+          email,
+          business_type: businessType || null,
+          message,
+          utm_source: utm?.utm_source || null,
+          utm_medium: utm?.utm_medium || null,
+          utm_campaign: utm?.utm_campaign || null,
+        })
+        .select("id")
+        .single();
       // Surface insert failures instead of swallowing them (a missing column or
       // dead project would otherwise look like a successful submission).
       if (dbError) {
         console.error("contact_submissions insert FAILED:", dbError.message);
-        return NextResponse.json({ error: "We couldn't save your request yet. Please try again." }, { status: 500 });
+        return NextResponse.json(
+          { error: "We couldn't save your request yet. Please try again." },
+          { status: 500 },
+        );
       }
 
       // The inquiry is already persisted above. A canonical ingestion failure
@@ -57,25 +71,51 @@ export async function POST(request: NextRequest) {
       // loudly to the operator instead, and keep serving the visitor.
       let canonicalFailure: string | null = null;
       try {
-        await ingestInboundLead(supabase, { name: name.trim(), email: email.trim(), companyName: companyName.trim(), website: companyWebsite.trim(), industry: businessType || null, source: "contact_form", sourceRecordId: submission.id, summary: `${primaryProblem}: ${message.trim()}`, utm });
+        await ingestInboundLead(supabase, {
+          name: name.trim(),
+          email: email.trim(),
+          companyName: companyName.trim(),
+          website: companyWebsite.trim(),
+          industry: businessType || null,
+          source: "contact_form",
+          sourceRecordId: submission.id,
+          summary: `${primaryProblem}: ${message.trim()}`,
+          utm,
+        });
       } catch (ingestError) {
         canonicalFailure = ingestError instanceof Error ? ingestError.message : String(ingestError);
-        console.error("[contact] canonical inbound ingestion FAILED (submission preserved):", canonicalFailure);
+        console.error(
+          "[contact] canonical inbound ingestion FAILED (submission preserved):",
+          canonicalFailure,
+        );
         await recordAudit(supabase, {
-          actorEmail: "system", action: "inbound.canonical_failed", entityType: "contact_submission",
-          entityId: submission.id, source: "webhook",
+          actorEmail: "system",
+          action: "inbound.canonical_failed",
+          entityType: "contact_submission",
+          entityId: submission.id,
+          source: "webhook",
           metadata: { inbound_source: "contact_form", error: canonicalFailure },
         });
       }
 
       // Create admin notification
-      supabase.from("admin_notifications").insert({
-        type: "new_contact",
-        title: canonicalFailure ? `New contact from ${name} (needs manual entry)` : `New contact from ${name}`,
-        description: canonicalFailure ? `Canonical capture failed: ${canonicalFailure}`.slice(0, 200) : message.substring(0, 100),
-        link: "/admin/today",
-        priority: canonicalFailure ? "urgent" : "info",
-      }).then(() => {}, () => {});
+      supabase
+        .from("admin_notifications")
+        .insert({
+          type: "new_contact",
+          title: canonicalFailure
+            ? `New contact from ${name} (needs manual entry)`
+            : `New contact from ${name}`,
+          description: canonicalFailure
+            ? `Canonical capture failed: ${canonicalFailure}`.slice(0, 200)
+            : message.substring(0, 100),
+          link: "/admin/today",
+          priority: canonicalFailure ? "urgent" : "info",
+        })
+        .then(
+          () => {},
+          () => {},
+        );
     }
 
     // Send email notifications (non-blocking — form succeeds even if email fails)
@@ -88,9 +128,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Failed to process contact submission:", error);
-    return NextResponse.json(
-      { error: "Failed to send message" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to send message" }, { status: 500 });
   }
 }

@@ -23,11 +23,7 @@ export const QUALIFYING_ROLES = new Set([
   "marketing",
 ]);
 
-export const QUALIFYING_REVENUE_BANDS = new Set([
-  "1m_3m",
-  "3m_10m",
-  "10m_plus",
-]);
+export const QUALIFYING_REVENUE_BANDS = new Set(["1m_3m", "3m_10m", "10m_plus"]);
 
 export interface RoofingQualifierInput {
   email: string;
@@ -60,7 +56,10 @@ export function normalizeWebsite(value: string): string | null {
 export function isValidWorkEmail(value: string): boolean {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return false;
   const domain = value.split("@")[1]?.toLowerCase();
-  return Boolean(domain && !new Set(["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com"]).has(domain));
+  return Boolean(
+    domain &&
+    !new Set(["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com"]).has(domain),
+  );
 }
 
 export function qualifyRoofingOpportunity(role: string, revenueBand: string) {

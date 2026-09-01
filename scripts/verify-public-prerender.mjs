@@ -6,7 +6,9 @@ let manifest;
 try {
   manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
 } catch (error) {
-  console.error(`public prerender verification requires a completed production build: ${error instanceof Error ? error.message : error}`);
+  console.error(
+    `public prerender verification requires a completed production build: ${error instanceof Error ? error.message : error}`,
+  );
   process.exit(1);
 }
 
@@ -60,19 +62,29 @@ if (missing.length) {
   process.exit(1);
 }
 
-const learnRoutes = [...prerendered].filter((route) => route === "/learn" || route.startsWith("/learn/"));
-const workRoutes = [...prerendered].filter((route) => route === "/work" || route.startsWith("/work/"));
+const learnRoutes = [...prerendered].filter(
+  (route) => route === "/learn" || route.startsWith("/learn/"),
+);
+const workRoutes = [...prerendered].filter(
+  (route) => route === "/work" || route.startsWith("/work/"),
+);
 if (learnRoutes.length < 195) {
-  console.error(`expected the complete generated Learn catalog, found ${learnRoutes.length} prerendered routes`);
+  console.error(
+    `expected the complete generated Learn catalog, found ${learnRoutes.length} prerendered routes`,
+  );
   process.exit(1);
 }
 if (workRoutes.length !== 8) {
-  console.error(`expected the Work index plus seven cases, found ${workRoutes.length} prerendered routes`);
+  console.error(
+    `expected the Work index plus seven cases, found ${workRoutes.length} prerendered routes`,
+  );
   process.exit(1);
 }
 
 const livePatterns = ["/plan/[token]", "/proposal/[token]"];
-const appPaths = JSON.parse(readFileSync(join(process.cwd(), ".next", "server", "app-paths-manifest.json"), "utf8"));
+const appPaths = JSON.parse(
+  readFileSync(join(process.cwd(), ".next", "server", "app-paths-manifest.json"), "utf8"),
+);
 for (const pattern of livePatterns) {
   if (prerendered.has(pattern) || !appPaths[`${pattern}/page`]) {
     console.error(`live token route did not remain an on-demand application page: ${pattern}`);
@@ -87,4 +99,17 @@ for (const route of prerendered) {
   }
 }
 
-console.log(JSON.stringify({ requiredPublicRoutes: required.length, learnRoutes: learnRoutes.length, workRoutes: workRoutes.length, intentionalLivePatterns: livePatterns, protectedRoutesExcluded: true, result: "passed" }, null, 2));
+console.log(
+  JSON.stringify(
+    {
+      requiredPublicRoutes: required.length,
+      learnRoutes: learnRoutes.length,
+      workRoutes: workRoutes.length,
+      intentionalLivePatterns: livePatterns,
+      protectedRoutesExcluded: true,
+      result: "passed",
+    },
+    null,
+    2,
+  ),
+);

@@ -18,17 +18,16 @@ export async function GET() {
   }
 
   const headers = ["Email", "Source", "Status", "Subscribed", "Unsubscribed"];
-  const rows = (data || []).map(
-    (r: Record<string, unknown>) =>
-      [
-        r.email,
-        r.source || "website",
-        r.unsubscribed_at ? "Unsubscribed" : "Active",
-        new Date(r.subscribed_at as string).toLocaleDateString(),
-        r.unsubscribed_at ? new Date(r.unsubscribed_at as string).toLocaleDateString() : "",
-      ]
-        .map((v) => `"${sanitizeCsv(String(v))}"`)
-        .join(",")
+  const rows = (data || []).map((r: Record<string, unknown>) =>
+    [
+      r.email,
+      r.source || "website",
+      r.unsubscribed_at ? "Unsubscribed" : "Active",
+      new Date(r.subscribed_at as string).toLocaleDateString(),
+      r.unsubscribed_at ? new Date(r.unsubscribed_at as string).toLocaleDateString() : "",
+    ]
+      .map((v) => `"${sanitizeCsv(String(v))}"`)
+      .join(","),
   );
 
   const csv = [headers.join(","), ...rows].join("\n");

@@ -27,7 +27,7 @@ input is a contact form cannot be a second one.
 
 ### 2. It has no memory, only records
 
-It knows rows. It does not know *things*. Ask it what was agreed with a client
+It knows rows. It does not know _things_. Ask it what was agreed with a client
 last month, what their constraint is, why a deal stalled in March, and it has
 nowhere to look. `get_today_snapshot` reads tables and returns counts. There is
 no unstructured store, no retrieval, no notion of "what I know about X."
@@ -68,7 +68,7 @@ and any claim that it is "learning" is decoration.
 ### 6. Trust has no surface
 
 Audit rows exist for everything. There is no place that says, in sentences,
-*here is what I did today, here is why, and here is what I decided not to do.*
+_here is what I did today, here is why, and here is what I decided not to do._
 
 Trust is the actual bottleneck on autonomy, not capability. Nobody hands more
 scope to a system whose reasoning they cannot inspect, and they are right not to.

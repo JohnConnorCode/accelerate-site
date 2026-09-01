@@ -8,10 +8,7 @@ export async function GET() {
   if (auth instanceof NextResponse) return auth;
 
   const supabase = auth.database;
-  const { data, error } = await supabase
-    .from("admin_settings")
-    .select("*")
-    .order("key");
+  const { data, error } = await supabase.from("admin_settings").select("*").order("key");
 
   if (error) {
     console.error("Database error:", error.message);
@@ -21,11 +18,19 @@ export async function GET() {
   // Secret values are never returned, even masked; a mask still leaks length
   // and encourages treating the database as a secret store.
   const settings = (data || []).map(
-    (s: { key: string; value: string; is_secret: boolean; description: string; updated_at: string }) => ({
+    (s: {
+      key: string;
+      value: string;
+      is_secret: boolean;
+      description: string;
+      updated_at: string;
+    }) => ({
       ...s,
       value: s.is_secret || SERVER_ONLY_SECRET_KEYS.has(s.key) ? "" : s.value,
-      configured: SERVER_ONLY_SECRET_KEYS.has(s.key) ? Boolean(process.env[s.key]) : Boolean(s.value),
-    })
+      configured: SERVER_ONLY_SECRET_KEYS.has(s.key)
+        ? Boolean(process.env[s.key])
+        : Boolean(s.value),
+    }),
   );
 
   return NextResponse.json({ settings });
@@ -57,10 +62,7 @@ export async function PUT(request: NextRequest) {
 
   const { error } = await supabase
     .from("admin_settings")
-    .upsert(
-      { key, value, updated_at: new Date().toISOString() },
-      { onConflict: "key" }
-    );
+    .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: "key" });
 
   if (error) {
     console.error("Database error:", error.message);

@@ -47,7 +47,8 @@ export function HowWeWork() {
               <span className="it">making it better.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              The shape of the engagement follows the problem. The solution may be advice, a focused build, training, ongoing execution, or a combination.
+              The shape of the engagement follows the problem. The solution may be advice, a focused
+              build, training, ongoing execution, or a combination.
             </Reveal>
           </div>
         </div>

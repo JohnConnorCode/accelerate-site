@@ -21,7 +21,14 @@ import { cn } from "@/lib/utils";
  * want. Cmd/Ctrl+K or / opens it, arrows move, Enter navigates, Escape closes.
  */
 
-const GROUP_ORDER: SearchGroup[] = ["Pages", "Industries", "Services", "Packages", "Articles", "Changelog"];
+const GROUP_ORDER: SearchGroup[] = [
+  "Pages",
+  "Industries",
+  "Services",
+  "Packages",
+  "Articles",
+  "Changelog",
+];
 
 /** Shown before anything is typed: the things people actually look for. */
 const SUGGESTED = ["Pricing", "Nonprofits", "Book a call", "Command Center"];
@@ -34,16 +41,30 @@ function useSearchIndex(open: boolean) {
     if (!open || entries || failed) return;
     let cancelled = false;
     fetch("/api/search")
-      .then((response) => (response.ok ? response.json() : Promise.reject(new Error(String(response.status)))))
-      .then((data: { entries: SearchEntry[] }) => { if (!cancelled) setEntries(data.entries ?? []); })
-      .catch(() => { if (!cancelled) setFailed(true); });
-    return () => { cancelled = true; };
+      .then((response) =>
+        response.ok ? response.json() : Promise.reject(new Error(String(response.status))),
+      )
+      .then((data: { entries: SearchEntry[] }) => {
+        if (!cancelled) setEntries(data.entries ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [open, entries, failed]);
 
   return { entries, failed };
 }
 
-export function SearchDialog({ open, onOpenChangeAction }: { open: boolean; onOpenChangeAction: (next: boolean) => void }) {
+export function SearchDialog({
+  open,
+  onOpenChangeAction,
+}: {
+  open: boolean;
+  onOpenChangeAction: (next: boolean) => void;
+}) {
   const router = useAppNavigation();
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
@@ -63,7 +84,10 @@ export function SearchDialog({ open, onOpenChangeAction }: { open: boolean; onOp
       if (!buckets.has(entry.group)) buckets.set(entry.group, []);
       buckets.get(entry.group)!.push(entry);
     }
-    return GROUP_ORDER.filter((group) => buckets.has(group)).map((group) => ({ group, items: buckets.get(group)! }));
+    return GROUP_ORDER.filter((group) => buckets.has(group)).map((group) => ({
+      group,
+      items: buckets.get(group)!,
+    }));
   }, [results]);
 
   const flat = useMemo(() => grouped.flatMap((bucket) => bucket.items), [grouped]);
@@ -72,20 +96,31 @@ export function SearchDialog({ open, onOpenChangeAction }: { open: boolean; onOp
   // point past the end of a shrinking result list.
   const activeIndex = flat.length ? Math.min(active, flat.length - 1) : 0;
 
-  const setOpen = useCallback((next: boolean) => {
-    if (!next) { setQuery(""); setActive(0); }
-    onOpenChangeAction(next);
-  }, [onOpenChangeAction]);
+  const setOpen = useCallback(
+    (next: boolean) => {
+      if (!next) {
+        setQuery("");
+        setActive(0);
+      }
+      onOpenChangeAction(next);
+    },
+    [onOpenChangeAction],
+  );
 
   // Keep the highlighted row in view when arrowing past the fold.
   useEffect(() => {
-    listRef.current?.querySelector<HTMLElement>('[data-active="true"]')?.scrollIntoView({ block: "nearest" });
+    listRef.current
+      ?.querySelector<HTMLElement>('[data-active="true"]')
+      ?.scrollIntoView({ block: "nearest" });
   }, [activeIndex]);
 
-  const go = useCallback((entry: SearchEntry) => {
-    setOpen(false);
-    router.push(entry.href);
-  }, [setOpen, router]);
+  const go = useCallback(
+    (entry: SearchEntry) => {
+      setOpen(false);
+      router.push(entry.href);
+    },
+    [setOpen, router],
+  );
 
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === "ArrowDown") {
@@ -108,7 +143,9 @@ export function SearchDialog({ open, onOpenChangeAction }: { open: boolean; onOp
           <Dialog.Portal forceMount>
             <Dialog.Overlay asChild>
               <motion.div
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 transition={{ duration: 0.18 }}
                 className="fixed inset-0 z-[100] bg-[rgba(11,11,11,0.5)] backdrop-blur-[4px]"
               />
@@ -124,17 +161,23 @@ export function SearchDialog({ open, onOpenChangeAction }: { open: boolean; onOp
               >
                 <Dialog.Title className="sr-only">Search</Dialog.Title>
                 <Dialog.Description className="sr-only">
-                  Search pages, industries, and articles. Use the arrow keys to move and Enter to open.
+                  Search pages, industries, and articles. Use the arrow keys to move and Enter to
+                  open.
                 </Dialog.Description>
 
                 <div className="flex items-center gap-3 border-b border-[var(--rule)] px-5 dark:border-[var(--rule-dark)]">
-                  {entries === null && !failed
-                    ? <Loader2 className="size-[18px] shrink-0 animate-spin text-[var(--soft)]" />
-                    : <Search className="size-[18px] shrink-0 text-[var(--soft)]" />}
+                  {entries === null && !failed ? (
+                    <Loader2 className="size-[18px] shrink-0 animate-spin text-[var(--soft)]" />
+                  ) : (
+                    <Search className="size-[18px] shrink-0 text-[var(--soft)]" />
+                  )}
                   <input
                     autoFocus
                     value={query}
-                    onChange={(event) => { setQuery(event.target.value); setActive(0); }}
+                    onChange={(event) => {
+                      setQuery(event.target.value);
+                      setActive(0);
+                    }}
                     placeholder="Search pages, industries, and articles"
                     aria-label="Search query"
                     className="h-16 w-full bg-transparent font-[var(--body)] text-[17px] text-[var(--fg)] outline-none placeholder:text-[var(--soft)]"
@@ -144,23 +187,34 @@ export function SearchDialog({ open, onOpenChangeAction }: { open: boolean; onOp
                   </kbd>
                 </div>
 
-                <div ref={listRef} className="max-h-[min(26rem,54vh)] overflow-y-auto overscroll-contain">
+                <div
+                  ref={listRef}
+                  className="max-h-[min(26rem,54vh)] overflow-y-auto overscroll-contain"
+                >
                   {failed && (
                     <p className="px-5 py-10 text-center font-[var(--body)] text-[14px] text-[var(--mid)]">
                       Search is unavailable right now. Try the navigation, or{" "}
-                      <a href="/contact" className="underline underline-offset-4">get in touch</a>.
+                      <a href="/contact" className="underline underline-offset-4">
+                        get in touch
+                      </a>
+                      .
                     </p>
                   )}
 
                   {!failed && !query.trim() && (
                     <div className="px-5 py-6">
-                      <p className="font-[var(--util)] text-[10px] uppercase tracking-[0.14em] text-[var(--soft)]">Try</p>
+                      <p className="font-[var(--util)] text-[10px] uppercase tracking-[0.14em] text-[var(--soft)]">
+                        Try
+                      </p>
                       <div className="mt-3 flex flex-wrap gap-2">
                         {SUGGESTED.map((suggestion) => (
                           <button
                             key={suggestion}
                             type="button"
-                            onClick={() => { setQuery(suggestion); setActive(0); }}
+                            onClick={() => {
+                              setQuery(suggestion);
+                              setActive(0);
+                            }}
                             className="rounded-full border border-[var(--rule)] px-3 py-1.5 font-[var(--body)] text-[13px] text-[var(--mid)] transition-colors hover:border-[var(--fg)] hover:text-[var(--fg)] dark:border-[var(--rule-dark)]"
                           >
                             {suggestion}
@@ -172,8 +226,12 @@ export function SearchDialog({ open, onOpenChangeAction }: { open: boolean; onOp
 
                   {!failed && query.trim() && entries !== null && flat.length === 0 && (
                     <p className="px-5 py-10 text-center font-[var(--body)] text-[14px] text-[var(--mid)]">
-                      Nothing matches <span className="text-[var(--fg)]">{query}</span>. Try a different word, or{" "}
-                      <a href="/contact" className="underline underline-offset-4">ask us directly</a>.
+                      Nothing matches <span className="text-[var(--fg)]">{query}</span>. Try a
+                      different word, or{" "}
+                      <a href="/contact" className="underline underline-offset-4">
+                        ask us directly
+                      </a>
+                      .
                     </p>
                   )}
 
@@ -194,16 +252,24 @@ export function SearchDialog({ open, onOpenChangeAction }: { open: boolean; onOp
                             onClick={() => go(entry)}
                             className={cn(
                               "flex w-full items-center gap-3 px-5 py-2.5 text-left transition-colors",
-                              isActive ? "bg-[var(--surface-bg-strong)]" : "hover:bg-[var(--surface-bg)]",
+                              isActive
+                                ? "bg-[var(--surface-bg-strong)]"
+                                : "hover:bg-[var(--surface-bg)]",
                             )}
                           >
                             <span className="min-w-0 flex-1">
-                              <span className="block truncate font-[var(--body)] text-[15px] text-[var(--fg)]">{entry.title}</span>
+                              <span className="block truncate font-[var(--body)] text-[15px] text-[var(--fg)]">
+                                {entry.title}
+                              </span>
                               {entry.description && (
-                                <span className="mt-0.5 block truncate font-[var(--body)] text-[13px] text-[var(--soft)]">{entry.description}</span>
+                                <span className="mt-0.5 block truncate font-[var(--body)] text-[13px] text-[var(--soft)]">
+                                  {entry.description}
+                                </span>
                               )}
                             </span>
-                            {isActive && <CornerDownLeft className="size-3.5 shrink-0 text-[var(--soft)]" />}
+                            {isActive && (
+                              <CornerDownLeft className="size-3.5 shrink-0 text-[var(--soft)]" />
+                            )}
                           </button>
                         );
                       })}
@@ -212,9 +278,16 @@ export function SearchDialog({ open, onOpenChangeAction }: { open: boolean; onOp
                 </div>
 
                 <div className="hidden items-center gap-4 border-t border-[var(--rule)] px-5 py-2.5 font-[var(--util)] text-[10px] uppercase tracking-[0.1em] text-[var(--soft)] sm:flex dark:border-[var(--rule-dark)]">
-                  <span className="flex items-center gap-1"><ArrowUp className="size-3" /><ArrowDown className="size-3" /> Move</span>
-                  <span className="flex items-center gap-1"><CornerDownLeft className="size-3" /> Open</span>
-                  <span className="ml-auto">{flat.length ? `${flat.length} result${flat.length === 1 ? "" : "s"}` : ""}</span>
+                  <span className="flex items-center gap-1">
+                    <ArrowUp className="size-3" />
+                    <ArrowDown className="size-3" /> Move
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <CornerDownLeft className="size-3" /> Open
+                  </span>
+                  <span className="ml-auto">
+                    {flat.length ? `${flat.length} result${flat.length === 1 ? "" : "s"}` : ""}
+                  </span>
                 </div>
               </motion.div>
             </Dialog.Content>
@@ -233,7 +306,9 @@ export function useSearchShortcut(onOpen: () => void) {
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
-      const typing = target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
+      const typing =
+        target &&
+        (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
       if ((event.key === "k" || event.key === "K") && (event.metaKey || event.ctrlKey)) {
         event.preventDefault();
         onOpen();
