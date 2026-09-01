@@ -141,11 +141,14 @@ export default function AdminShell({
         .map((section) => ({
           ...section,
           links: section.links.filter(
-            (link) => isPlatformAdmin || !["features", "tenants", "setup"].includes(link.id),
+            (link) =>
+              isPlatformAdmin ||
+              (scenarioId && link.id === "features") ||
+              !["features", "tenants", "setup"].includes(link.id),
           ),
         }))
         .filter((section) => section.links.length > 0),
-    [isPlatformAdmin],
+    [isPlatformAdmin, scenarioId],
   );
   const visibleNavLinks = useMemo(
     () => visibleNavSections.flatMap((section) => section.links),
