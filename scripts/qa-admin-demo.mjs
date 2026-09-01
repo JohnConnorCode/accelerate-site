@@ -108,8 +108,7 @@ for (const scenario of scenarios) {
       if (!state.logo) failures.push(`${scenario} ${label} ${route}: shared animated logo is missing`);
       if (!state.heading || !state.title.startsWith(`${state.heading} | `) || !state.title.endsWith(" Demo")) failures.push(`${scenario} ${label} ${route}: contextual title does not match its page heading (${state.title})`);
       if (route === "integrations" && label === "desktop") {
-        const crumbLabels = await page.getByRole("navigation", { name: "Breadcrumb" }).locator("a").allTextContents();
-        if (crumbLabels.length !== 1 || crumbLabels[0]?.trim() !== "Integrations") failures.push(`${scenario} desktop integrations: breadcrumb must reflect the real top-level route, got ${crumbLabels.join(" / ") || "none"}`);
+        if (await page.getByRole("navigation", { name: "Breadcrumb" }).count()) failures.push(`${scenario} desktop integrations: redundant top-level breadcrumb repeats the page title`);
       }
       const expectedActiveHref = `/demo/command-center/${scenario}/${route}`;
       if (await page.locator(`.admin-nav-link[href="${expectedActiveHref}"]`).count()) {
@@ -162,6 +161,31 @@ for (const scenario of scenarios) {
         }, undefined, { timeout: 5_000 });
         const refreshCount = await page.evaluate(() => window.__accelerateInboxRefreshCount);
         if (refreshCount !== 1) failures.push(`${scenario} ${label} inbox: one refresh click issued ${refreshCount} reads`);
+      }
+      if (route === "settings") {
+        const switches = page.getByRole("switch");
+        if (await switches.count() !== 6) failures.push(`${scenario} ${label} settings: expected six semantic notification switches`);
+        const geometry = await switches.evaluateAll((nodes) => nodes.map((button) => {
+          const track = button.firstElementChild;
+          const thumb = track?.firstElementChild;
+          const buttonRect = button.getBoundingClientRect();
+          const trackRect = track?.getBoundingClientRect();
+          const thumbRect = thumb?.getBoundingClientRect();
+          return {
+            button: { width: buttonRect.width, height: buttonRect.height },
+            track: trackRect ? { width: trackRect.width, height: trackRect.height } : null,
+            thumb: thumbRect ? { width: thumbRect.width, height: thumbRect.height } : null,
+            contained: Boolean(trackRect && thumbRect && thumbRect.left >= trackRect.left && thumbRect.right <= trackRect.right && thumbRect.top >= trackRect.top && thumbRect.bottom <= trackRect.bottom),
+          };
+        }));
+        if (geometry.some((item) => item.button.width < 40 || item.button.height < 40 || item.track?.width !== 48 || item.track?.height !== 28 || item.thumb?.width !== 20 || item.thumb?.height !== 20 || !item.contained)) failures.push(`${scenario} ${label} settings: switch geometry is distorted (${JSON.stringify(geometry)})`);
+        if (label === "desktop" && await page.getByRole("navigation", { name: "Breadcrumb" }).count()) failures.push(`${scenario} desktop settings: duplicate Settings breadcrumb remains above the Settings heading`);
+        const firstSwitch = switches.first();
+        const before = await firstSwitch.getAttribute("aria-checked");
+        await firstSwitch.focus();
+        await page.keyboard.press("Space");
+        await page.waitForFunction((value) => document.querySelector('[role="switch"]')?.getAttribute("aria-checked") !== value, before);
+        if (scenario === "northline-roofing") await page.screenshot({ path: `${output}/${scenario}-${label}-settings.png`, fullPage: false });
       }
       if (route === "today") {
         for (const label of ["All work", "Replies", "Commitments", "Approvals", "Proposals"]) {
@@ -258,7 +282,7 @@ for (const scenario of scenarios) {
           await controlsScope.locator(`a.admin-nav-link[href="${inboxHref}"]`).click();
           await page.waitForURL(new RegExp(`/demo/command-center/${scenario}/inbox$`));
           if (await page.locator('.admin-nav-link[aria-current="page"]').first().getAttribute("href") !== inboxHref) failures.push(`${scenario} ${label}: client navigation left the wrong sidebar item active`);
-          if (label === "desktop" && !await page.getByRole("navigation", { name: "Breadcrumb" }).getByText("Inbox", { exact: true }).count()) failures.push(`${scenario} ${label}: client navigation left a stale breadcrumb`);
+          if (label === "desktop" && await page.getByRole("navigation", { name: "Breadcrumb" }).count()) failures.push(`${scenario} ${label}: top-level Inbox navigation rendered a redundant breadcrumb`);
           await page.goBack({ waitUntil: "domcontentloaded" });
           await page.waitForURL(new RegExp(`/demo/command-center/${scenario}/today$`));
           if (await page.locator('.admin-nav-link[aria-current="page"]').first().getAttribute("href") !== todayHref) failures.push(`${scenario} ${label}: back navigation left the wrong sidebar item active`);

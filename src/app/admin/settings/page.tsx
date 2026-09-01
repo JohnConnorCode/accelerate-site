@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { motion } from "framer-motion";
 import { Key, Mail, Globe, Building2, Loader2, CheckCircle, XCircle, Bell } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
@@ -9,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Toast } from "@/components/ui/Toast";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { AdminSwitch } from "@/components/admin/AdminSwitch";
 
 interface Setting {
   key: string;
@@ -60,6 +60,7 @@ export default function SettingsPage() {
   const [testResults, setTestResults] = useState<Record<string, "success" | "error">>({});
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [notifyPrefs, setNotifyPrefs] = useState<Record<string, boolean>>({});
+  const [savingNotifyPrefs, setSavingNotifyPrefs] = useState<Set<string>>(() => new Set());
 
   const fetchSettings = useCallback(async () => {
     try {
@@ -142,9 +143,10 @@ export default function SettingsPage() {
     }
   };
 
-  const handleNotifyToggle = async (key: string) => {
-    const newValue = !notifyPrefs[key];
+  const handleNotifyToggle = async (key: string, newValue: boolean) => {
+    if (savingNotifyPrefs.has(key)) return;
     setNotifyPrefs((prev) => ({ ...prev, [key]: newValue }));
+    setSavingNotifyPrefs((prev) => new Set(prev).add(key));
 
     try {
       const response = await fetch("/api/admin/settings", {
@@ -157,6 +159,12 @@ export default function SettingsPage() {
       // Revert on failure
       setNotifyPrefs((prev) => ({ ...prev, [key]: !newValue }));
       setToast({ message: "Failed to update preference", type: "error" });
+    } finally {
+      setSavingNotifyPrefs((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
     }
   };
 
@@ -174,19 +182,12 @@ export default function SettingsPage() {
   }
 
   return (
-    <motion.div
-      initial={false}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <div>
       <PageHeader title="Settings" subtitle="Control notification preferences and the configuration that powers the operating system." />
 
       <div className="space-y-6">
         {/* Notification Preferences */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+        <div>
           <AdminSurface padding="lg">
             <div className="flex items-center gap-3 mb-5">
               <span className="grid size-10 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] dark:bg-white/[0.06]"><Bell className="size-4" /></span>
@@ -205,33 +206,21 @@ export default function SettingsPage() {
                     <p className="text-sm font-semibold text-[var(--admin-ink)]">{pref.label}</p>
                     <p className="admin-copy mt-1 text-pretty text-xs">{pref.description}</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleNotifyToggle(pref.key)}
-                    aria-pressed={Boolean(notifyPrefs[pref.key])}
-                    aria-label={`${notifyPrefs[pref.key] ? "Disable" : "Enable"} ${pref.label} notification`}
-                    className={`relative inline-flex size-11 shrink-0 items-center rounded-full p-1 transition-[background-color,transform] duration-150 active:scale-[0.96] ${
-                      notifyPrefs[pref.key] ? "bg-[var(--admin-ink)]" : "bg-black/15 dark:bg-white/15"
-                    }`}
-                  >
-                    <span
-                      className={`inline-block size-5 rounded-full bg-[var(--admin-surface)] shadow-[0_1px_2px_rgba(0,0,0,0.2)] transition-transform duration-150 ${
-                        notifyPrefs[pref.key] ? "translate-x-5" : "translate-x-0"
-                      }`}
-                    />
-                  </button>
+                  <AdminSwitch
+                    checked={Boolean(notifyPrefs[pref.key])}
+                    onCheckedChange={(checked) => void handleNotifyToggle(pref.key, checked)}
+                    label={`${notifyPrefs[pref.key] ? "Disable" : "Enable"} ${pref.label} notification`}
+                    disabled={savingNotifyPrefs.has(pref.key)}
+                  />
                 </div>
               ))}
             </div>
           </AdminSurface>
-        </motion.div>
+        </div>
 
-        {settingSections.map((section, sectionIdx) => (
-          <motion.div
+        {settingSections.map((section) => (
+          <div
             key={section.title}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: (sectionIdx + 1) * 0.1 }}
           >
             <AdminSurface padding="lg">
               <div className="flex items-center gap-3 mb-5">
@@ -253,10 +242,10 @@ export default function SettingsPage() {
                       key={key}
                       className="px-4 py-4"
                     >
-                      <div className="flex items-start justify-between gap-4">
+                      <div className="flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:items-start">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="font-mono text-xs font-semibold text-[var(--admin-ink)]">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="break-all font-mono text-xs font-semibold text-[var(--admin-ink)]">
                               {key}
                             </p>
                             {setting?.is_secret && (
@@ -279,7 +268,7 @@ export default function SettingsPage() {
                           </p>
 
                           {isEditing ? (
-                            <div className="mt-3 flex gap-2">
+                            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                               <Input
                                 type={setting?.is_secret ? "password" : "text"}
                                 value={editValue}
@@ -318,7 +307,7 @@ export default function SettingsPage() {
                         </div>
 
                         {!isEditing && (
-                          <div className="flex gap-2 shrink-0">
+                          <div className="flex shrink-0 justify-end gap-2">
                             {isTestable && (
                               <Button
                                 variant="secondary"
@@ -351,7 +340,7 @@ export default function SettingsPage() {
                 })}
               </div>
             </AdminSurface>
-          </motion.div>
+          </div>
         ))}
       </div>
 
@@ -363,6 +352,6 @@ export default function SettingsPage() {
           onClose={() => setToast(null)}
         />
       )}
-    </motion.div>
+    </div>
   );
 }
