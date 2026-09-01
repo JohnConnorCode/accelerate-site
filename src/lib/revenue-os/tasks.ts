@@ -13,23 +13,76 @@ type OperatorTask = {
   opportunity_id: string | null;
 };
 
-export async function createRevenueTask(supabase: SupabaseClient, input: {
-  title: string; description?: string | null; dueDate?: string | null; dueTime?: string | null; priority?: "high" | "medium" | "low";
-  relatedType?: string | null; relatedId?: string | null; relatedName?: string | null; opportunityId?: string | null;
-  source: string; dedupeKey?: string | null; actorEmail: string;
-}) {
+export async function createRevenueTask(
+  supabase: SupabaseClient,
+  input: {
+    title: string;
+    description?: string | null;
+    dueDate?: string | null;
+    dueTime?: string | null;
+    priority?: "high" | "medium" | "low";
+    relatedType?: string | null;
+    relatedId?: string | null;
+    relatedName?: string | null;
+    opportunityId?: string | null;
+    source: string;
+    dedupeKey?: string | null;
+    actorEmail: string;
+  },
+) {
   const title = input.title.trim();
   if (!title) throw new Error("Task title is required");
   if (input.dedupeKey) {
-    const { data: existing, error } = await supabase.from("tasks").select("*").eq("dedupe_key", input.dedupeKey).in("status", ["pending", "snoozed"]).maybeSingle();
+    const { data: existing, error } = await supabase
+      .from("tasks")
+      .select("*")
+      .eq("dedupe_key", input.dedupeKey)
+      .in("status", ["pending", "snoozed"])
+      .maybeSingle();
     if (error) throw new Error(error.message);
     if (existing) return { task: existing, deduplicated: true };
   }
-  const { data: task, error } = await supabase.from("tasks").insert({ title, description: input.description || null, due_date: input.dueDate || null, due_time: input.dueTime || null, priority: input.priority || "medium", related_type: input.relatedType || null, related_id: input.relatedId || null, related_name: input.relatedName || null, opportunity_id: input.opportunityId || null, source: input.source, dedupe_key: input.dedupeKey || null }).select("*").single();
+  const { data: task, error } = await supabase
+    .from("tasks")
+    .insert({
+      title,
+      description: input.description || null,
+      due_date: input.dueDate || null,
+      due_time: input.dueTime || null,
+      priority: input.priority || "medium",
+      related_type: input.relatedType || null,
+      related_id: input.relatedId || null,
+      related_name: input.relatedName || null,
+      opportunity_id: input.opportunityId || null,
+      source: input.source,
+      dedupe_key: input.dedupeKey || null,
+    })
+    .select("*")
+    .single();
   if (error) throw new Error(error.message);
-  await recordAudit(supabase, { actorEmail: input.actorEmail, action: "task.created", entityType: "task", entityId: task.id, after: task, metadata: { source: input.source, dedupe_key: input.dedupeKey || null } });
-  await recordActivity(supabase, { activityType: "task_created", title: `Task created: ${title}`, summary: input.description || null, opportunityId: input.opportunityId || null, source: input.source, actorEmail: input.actorEmail, externalId: `task:${task.id}:created`, metadata: { task_id: task.id, priority: task.priority } })
-    .catch((error) => console.error("[revenue-os/tasks] activity receipt failed", error instanceof Error ? error.message : error));
+  await recordAudit(supabase, {
+    actorEmail: input.actorEmail,
+    action: "task.created",
+    entityType: "task",
+    entityId: task.id,
+    after: task,
+    metadata: { source: input.source, dedupe_key: input.dedupeKey || null },
+  });
+  await recordActivity(supabase, {
+    activityType: "task_created",
+    title: `Task created: ${title}`,
+    summary: input.description || null,
+    opportunityId: input.opportunityId || null,
+    source: input.source,
+    actorEmail: input.actorEmail,
+    externalId: `task:${task.id}:created`,
+    metadata: { task_id: task.id, priority: task.priority },
+  }).catch((error) =>
+    console.error(
+      "[revenue-os/tasks] activity receipt failed",
+      error instanceof Error ? error.message : error,
+    ),
+  );
   return { task, deduplicated: false };
 }
 
@@ -45,7 +98,10 @@ async function loadOpenTask(supabase: SupabaseClient, id: string): Promise<Opera
   return data;
 }
 
-export async function completeOperatorTask(supabase: SupabaseClient, input: { id: string; actorEmail: string }) {
+export async function completeOperatorTask(
+  supabase: SupabaseClient,
+  input: { id: string; actorEmail: string },
+) {
   const before = await loadOpenTask(supabase, input.id);
   const completedAt = new Date().toISOString();
   const { data: task, error } = await supabase
@@ -57,13 +113,35 @@ export async function completeOperatorTask(supabase: SupabaseClient, input: { id
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!task) throw new Error("This task changed while you were working. Refresh and try again.");
-  await recordAudit(supabase, { actorEmail: input.actorEmail, action: "task.completed", entityType: "task", entityId: input.id, before, after: task });
-  await recordActivity(supabase, { activityType: "task_completed", title: `Task completed: ${task.title}`, opportunityId: task.opportunity_id, source: "admin", actorEmail: input.actorEmail, externalId: `task:${task.id}:completed`, metadata: { task_id: task.id } })
-    .catch((error) => console.error("[revenue-os/tasks] completion activity receipt failed", error instanceof Error ? error.message : error));
+  await recordAudit(supabase, {
+    actorEmail: input.actorEmail,
+    action: "task.completed",
+    entityType: "task",
+    entityId: input.id,
+    before,
+    after: task,
+  });
+  await recordActivity(supabase, {
+    activityType: "task_completed",
+    title: `Task completed: ${task.title}`,
+    opportunityId: task.opportunity_id,
+    source: "admin",
+    actorEmail: input.actorEmail,
+    externalId: `task:${task.id}:completed`,
+    metadata: { task_id: task.id },
+  }).catch((error) =>
+    console.error(
+      "[revenue-os/tasks] completion activity receipt failed",
+      error instanceof Error ? error.message : error,
+    ),
+  );
   return task;
 }
 
-export async function snoozeOperatorTask(supabase: SupabaseClient, input: { id: string; until: string; actorEmail: string }) {
+export async function snoozeOperatorTask(
+  supabase: SupabaseClient,
+  input: { id: string; until: string; actorEmail: string },
+) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.until)) throw new Error("Choose a valid snooze date");
   const today = new Date().toISOString().slice(0, 10);
   if (input.until <= today) throw new Error("Choose a snooze date after today");
@@ -77,8 +155,28 @@ export async function snoozeOperatorTask(supabase: SupabaseClient, input: { id: 
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!task) throw new Error("This task changed while you were working. Refresh and try again.");
-  await recordAudit(supabase, { actorEmail: input.actorEmail, action: "task.snoozed", entityType: "task", entityId: input.id, before, after: task, metadata: { until: input.until } });
-  await recordActivity(supabase, { activityType: "task_snoozed", title: `Task snoozed: ${task.title}`, opportunityId: task.opportunity_id, source: "admin", actorEmail: input.actorEmail, externalId: `task:${task.id}:snoozed:${input.until}`, metadata: { task_id: task.id, until: input.until } })
-    .catch((error) => console.error("[revenue-os/tasks] snooze activity receipt failed", error instanceof Error ? error.message : error));
+  await recordAudit(supabase, {
+    actorEmail: input.actorEmail,
+    action: "task.snoozed",
+    entityType: "task",
+    entityId: input.id,
+    before,
+    after: task,
+    metadata: { until: input.until },
+  });
+  await recordActivity(supabase, {
+    activityType: "task_snoozed",
+    title: `Task snoozed: ${task.title}`,
+    opportunityId: task.opportunity_id,
+    source: "admin",
+    actorEmail: input.actorEmail,
+    externalId: `task:${task.id}:snoozed:${input.until}`,
+    metadata: { task_id: task.id, until: input.until },
+  }).catch((error) =>
+    console.error(
+      "[revenue-os/tasks] snooze activity receipt failed",
+      error instanceof Error ? error.message : error,
+    ),
+  );
   return task;
 }

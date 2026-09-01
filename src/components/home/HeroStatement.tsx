@@ -30,7 +30,9 @@ export function HeroStatement() {
     <section ref={ref} className={`hero-statement${revealed ? " is-revealed" : ""}`}>
       <div className="wrap">
         <p className="hero-statement-copy">
-          We identify where work is slow or revenue is missed, then build and improve the smallest useful system. That can include CRM connections, voice-to-text workflows, or better inquiry capture.
+          We identify where work is slow or revenue is missed, then build and improve the smallest
+          useful system. That can include CRM connections, voice-to-text workflows, or better
+          inquiry capture.
         </p>
       </div>
     </section>

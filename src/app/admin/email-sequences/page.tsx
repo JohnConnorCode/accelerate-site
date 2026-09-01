@@ -36,7 +36,13 @@ interface Stats {
 
 export default function EmailSequencesPage() {
   const [sequences, setSequences] = useState<EmailSequence[]>([]);
-  const [stats, setStats] = useState<Stats>({ active: 0, completed: 0, paused: 0, unsubscribed: 0, total: 0 });
+  const [stats, setStats] = useState<Stats>({
+    active: 0,
+    completed: 0,
+    paused: 0,
+    unsubscribed: 0,
+    total: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -75,12 +81,11 @@ export default function EmailSequencesPage() {
   }
 
   return (
-    <motion.div
-      initial={false}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <PageHeader title="Email Sequences" subtitle="Monitor every active nurture path and its delivery lifecycle." />
+    <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+      <PageHeader
+        title="Email Sequences"
+        subtitle="Monitor every active nurture path and its delivery lifecycle."
+      />
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-4 mb-6">
@@ -94,7 +99,10 @@ export default function EmailSequencesPage() {
       <div className="flex gap-3 mb-4">
         <Select
           value={typeFilter}
-          onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setTypeFilter(e.target.value);
+            setPage(1);
+          }}
           options={[
             { value: "all", label: "All Types" },
             { value: "plan_nurture", label: "Plan Nurture" },
@@ -105,7 +113,10 @@ export default function EmailSequencesPage() {
         />
         <Select
           value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setStatusFilter(e.target.value);
+            setPage(1);
+          }}
           options={[
             { value: "all", label: "All Statuses" },
             { value: "completed", label: "Completed" },
@@ -122,11 +133,21 @@ export default function EmailSequencesPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border-glass">
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Email</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Type</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Emails</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Status</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Enrolled</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                Email
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                Type
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                Emails
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                Status
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                Enrolled
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -144,16 +165,12 @@ export default function EmailSequencesPage() {
                   <td className="px-4 py-3 text-white-secondary capitalize">
                     {seq.sequence_type?.replace(/_/g, " ")}
                   </td>
-                  <td className="px-4 py-3 text-white-secondary">
-                    {emailCount} emails
-                  </td>
+                  <td className="px-4 py-3 text-white-secondary">{emailCount} emails</td>
                   <td className="px-4 py-3">
                     <StatusBadge status={seq.status} />
                   </td>
                   <td className="px-4 py-3 text-white-muted text-xs">
-                    {seq.created_at
-                      ? new Date(seq.created_at).toLocaleDateString()
-                      : "-"}
+                    {seq.created_at ? new Date(seq.created_at).toLocaleDateString() : "-"}
                   </td>
                 </motion.tr>
               );
@@ -168,7 +185,12 @@ export default function EmailSequencesPage() {
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       {toast && (
-        <Toast message={toast.message} type={toast.type} isVisible={true} onClose={() => setToast(null)} />
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          isVisible={true}
+          onClose={() => setToast(null)}
+        />
       )}
     </motion.div>
   );

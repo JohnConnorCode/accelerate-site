@@ -36,10 +36,22 @@ export async function GET(request: NextRequest) {
 
   // Stats — five parallel COUNT queries instead of pulling every row.
   const [activeRes, completedRes, pausedRes, unsubRes, totalRes] = await Promise.all([
-    supabase.from("email_sequences").select("id", { count: "exact", head: true }).eq("status", "active"),
-    supabase.from("email_sequences").select("id", { count: "exact", head: true }).eq("status", "completed"),
-    supabase.from("email_sequences").select("id", { count: "exact", head: true }).eq("status", "paused"),
-    supabase.from("email_sequences").select("id", { count: "exact", head: true }).eq("status", "unsubscribed"),
+    supabase
+      .from("email_sequences")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "active"),
+    supabase
+      .from("email_sequences")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "completed"),
+    supabase
+      .from("email_sequences")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "paused"),
+    supabase
+      .from("email_sequences")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "unsubscribed"),
     supabase.from("email_sequences").select("id", { count: "exact", head: true }),
   ]);
   const stats = {

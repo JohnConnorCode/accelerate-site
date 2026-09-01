@@ -3,7 +3,14 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowUpRight, Building2, CircleAlert, CircleCheckBig, User } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  Building2,
+  CircleAlert,
+  CircleCheckBig,
+  User,
+} from "lucide-react";
 import Link from "@/components/admin/AdminLink";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { ContactTimeline } from "@/components/admin/ContactTimeline";
@@ -22,7 +29,14 @@ interface TimelineItem {
 interface CanonicalProfile {
   schemaReady: boolean;
   status: "connected" | "unlinked" | "ambiguous" | "degraded";
-  contact: { id: string; full_name: string; lifecycle_stage: string; communication_status: string; next_action: string | null; next_action_at: string | null } | null;
+  contact: {
+    id: string;
+    full_name: string;
+    lifecycle_stage: string;
+    communication_status: string;
+    next_action: string | null;
+    next_action_at: string | null;
+  } | null;
   company: { id: string; name: string; domain: string | null; industry: string | null } | null;
   opportunities: Array<{ id: string; stage: string; estimated_value: number; won_value: number }>;
 }
@@ -61,11 +75,7 @@ export default function ContactTimelinePage() {
   }
 
   return (
-    <motion.div
-      initial={false}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <div className="mb-4">
         <Link
           href="/admin/contacts"
@@ -76,21 +86,26 @@ export default function ContactTimelinePage() {
         </Link>
       </div>
 
-      <PageHeader title="Contact relationship" subtitle="A unified record of the conversations, opportunities, and work connected to this person." />
+      <PageHeader
+        title="Contact relationship"
+        subtitle="A unified record of the conversations, opportunities, and work connected to this person."
+      />
 
       <AdminSurface padding="md" className="mb-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-3">
-          <div className="grid size-10 shrink-0 place-items-center rounded-full bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]">
-            <User className="size-4" />
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-[var(--admin-ink)]">{canonical?.contact?.full_name || email}</p>
-            {canonical?.contact && <p className="admin-copy truncate text-xs">{email}</p>}
-            <p className="admin-copy text-xs">
-              {timeline.length} interaction{timeline.length !== 1 ? "s" : ""} found
-            </p>
-          </div>
+            <div className="grid size-10 shrink-0 place-items-center rounded-full bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]">
+              <User className="size-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-[var(--admin-ink)]">
+                {canonical?.contact?.full_name || email}
+              </p>
+              {canonical?.contact && <p className="admin-copy truncate text-xs">{email}</p>}
+              <p className="admin-copy text-xs">
+                {timeline.length} interaction{timeline.length !== 1 ? "s" : ""} found
+              </p>
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:justify-end">
             {canonical?.status === "connected" ? (
@@ -99,7 +114,12 @@ export default function ContactTimelinePage() {
               </span>
             ) : (
               <span className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-amber-500/10 px-3 text-xs font-semibold text-amber-800 dark:text-amber-300">
-                <CircleAlert className="h-3.5 w-3.5" /> {canonical?.status === "ambiguous" ? "Identity review needed" : canonical?.status === "degraded" ? "Revenue OS unavailable" : "Not linked yet"}
+                <CircleAlert className="h-3.5 w-3.5" />{" "}
+                {canonical?.status === "ambiguous"
+                  ? "Identity review needed"
+                  : canonical?.status === "degraded"
+                    ? "Revenue OS unavailable"
+                    : "Not linked yet"}
               </span>
             )}
             {canonical?.company && (

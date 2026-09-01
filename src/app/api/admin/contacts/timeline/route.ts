@@ -17,22 +17,52 @@ export async function GET(request: NextRequest) {
 
   const canonicalContactResult = await supabase
     .from("contacts")
-    .select("id,full_name,primary_email,phone,company_id,lifecycle_stage,communication_status,last_interaction_at,next_action,next_action_at")
+    .select(
+      "id,full_name,primary_email,phone,company_id,lifecycle_stage,communication_status,last_interaction_at,next_action,next_action_at",
+    )
     .ilike("primary_email", email.trim().toLowerCase())
     .limit(2);
   const canonicalSchemaReady = !canonicalContactResult.error;
   const ambiguousIdentity = (canonicalContactResult.data?.length ?? 0) > 1;
-  const canonicalContact = !ambiguousIdentity ? canonicalContactResult.data?.[0] ?? null : null;
+  const canonicalContact = !ambiguousIdentity ? (canonicalContactResult.data?.[0] ?? null) : null;
 
-  const [canonicalCompanyResult, canonicalOpportunityResult, canonicalActivityResult, canonicalConversationResult, canonicalTaskResult] = canonicalContact
+  const [
+    canonicalCompanyResult,
+    canonicalOpportunityResult,
+    canonicalActivityResult,
+    canonicalConversationResult,
+    canonicalTaskResult,
+  ] = canonicalContact
     ? await Promise.all([
         canonicalContact.company_id
-          ? supabase.from("companies").select("id,name,domain,industry,website").eq("id", canonicalContact.company_id).maybeSingle()
+          ? supabase
+              .from("companies")
+              .select("id,name,domain,industry,website")
+              .eq("id", canonicalContact.company_id)
+              .maybeSingle()
           : Promise.resolve({ data: null, error: null }),
-        supabase.from("opportunities").select("id,name,stage,estimated_value,won_value,next_action,next_action_at,source,created_at").eq("contact_id", canonicalContact.id).order("created_at", { ascending: false }),
-        loadActivityTimeline(supabase, { contactId: canonicalContact.id, limit: 200 }).then((data) => ({ data, error: null })).catch((error) => ({ data: [], error })),
-        supabase.from("conversations").select("id,channel,subject,status,last_message_at,opportunity_id").eq("contact_id", canonicalContact.id).order("last_message_at", { ascending: false }).limit(100),
-        supabase.from("tasks").select("id,title,description,status,due_date,priority,created_at,opportunity_id").eq("contact_id", canonicalContact.id).order("created_at", { ascending: false }).limit(100),
+        supabase
+          .from("opportunities")
+          .select(
+            "id,name,stage,estimated_value,won_value,next_action,next_action_at,source,created_at",
+          )
+          .eq("contact_id", canonicalContact.id)
+          .order("created_at", { ascending: false }),
+        loadActivityTimeline(supabase, { contactId: canonicalContact.id, limit: 200 })
+          .then((data) => ({ data, error: null }))
+          .catch((error) => ({ data: [], error })),
+        supabase
+          .from("conversations")
+          .select("id,channel,subject,status,last_message_at,opportunity_id")
+          .eq("contact_id", canonicalContact.id)
+          .order("last_message_at", { ascending: false })
+          .limit(100),
+        supabase
+          .from("tasks")
+          .select("id,title,description,status,due_date,priority,created_at,opportunity_id")
+          .eq("contact_id", canonicalContact.id)
+          .order("created_at", { ascending: false })
+          .limit(100),
       ])
     : [
         { data: null, error: null },
@@ -43,14 +73,21 @@ export async function GET(request: NextRequest) {
       ];
 
   if (canonicalActivityResult.error) {
-    return NextResponse.json({ error: "The canonical activity timeline could not be loaded" }, { status: 500 });
+    return NextResponse.json(
+      { error: "The canonical activity timeline could not be loaded" },
+      { status: 500 },
+    );
   }
 
-  const conversationIds = (canonicalConversationResult.data || []).map((conversation) => conversation.id);
+  const conversationIds = (canonicalConversationResult.data || []).map(
+    (conversation) => conversation.id,
+  );
   const canonicalMessageResult = conversationIds.length
     ? await supabase
         .from("messages")
-        .select("id,conversation_id,direction,subject,body_text,status,sent_at,received_at,created_at")
+        .select(
+          "id,conversation_id,direction,subject,body_text,status,sent_at,received_at,created_at",
+        )
         .in("conversation_id", conversationIds)
         .order("created_at", { ascending: false })
         .limit(200)
@@ -80,10 +117,7 @@ export async function GET(request: NextRequest) {
       .from("subscribers")
       .select("id, source, subscribed_at, unsubscribed_at")
       .eq("email", email),
-    supabase
-      .from("chat_leads")
-      .select("id, name, conversation, created_at")
-      .eq("email", email),
+    supabase.from("chat_leads").select("id, name, conversation, created_at").eq("email", email),
     supabase
       .from("resource_downloads")
       .select("id, resource_id, name, downloaded_at")
@@ -92,10 +126,7 @@ export async function GET(request: NextRequest) {
       .from("email_sequences")
       .select("id, sequence_type, status, created_at")
       .eq("email", email),
-    supabase
-      .from("website_grades")
-      .select("id, url, overall_score, created_at")
-      .eq("email", email),
+    supabase.from("website_grades").select("id, url, overall_score, created_at").eq("email", email),
     supabase
       .from("tasks")
       .select("id, title, description, status, due_date, priority, created_at")
@@ -136,7 +167,9 @@ export async function GET(request: NextRequest) {
       description: activity.summary || `Revenue OS activity · ${activity.source}`,
       timestamp: activity.occurred_at,
       sourceId: activity.id,
-      link: activity.opportunity_id ? `/admin/pipeline?search=${encodeURIComponent(email)}` : "/admin/activity",
+      link: activity.opportunity_id
+        ? `/admin/pipeline?search=${encodeURIComponent(email)}`
+        : "/admin/activity",
     });
   }
 
@@ -279,7 +312,13 @@ export async function GET(request: NextRequest) {
     email,
     canonical: {
       schemaReady: canonicalSchemaReady,
-      status: !canonicalSchemaReady ? "degraded" : ambiguousIdentity ? "ambiguous" : canonicalContact ? "connected" : "unlinked",
+      status: !canonicalSchemaReady
+        ? "degraded"
+        : ambiguousIdentity
+          ? "ambiguous"
+          : canonicalContact
+            ? "connected"
+            : "unlinked",
       contact: canonicalContact,
       company: canonicalCompanyResult.data,
       opportunities: canonicalOpportunityResult.data || [],

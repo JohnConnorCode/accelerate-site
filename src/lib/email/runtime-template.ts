@@ -11,7 +11,10 @@ export interface ResolvedEmailTemplate {
   html: string;
 }
 
-export async function resolveEmailTemplate(templateKey: string, variables: Record<string, string>): Promise<ResolvedEmailTemplate> {
+export async function resolveEmailTemplate(
+  templateKey: string,
+  variables: Record<string, string>,
+): Promise<ResolvedEmailTemplate> {
   const definition = getEmailTemplateDefinition(templateKey);
   if (!definition) throw new Error(`Unknown email template: ${templateKey}`);
 
@@ -19,14 +22,20 @@ export async function resolveEmailTemplate(templateKey: string, variables: Recor
     const supabase = createBootstrapServiceRoleClient("runtime-email-template");
     const { data, error } = await supabase
       .from("email_templates")
-      .select("current_published_version, email_template_versions!email_templates_current_published_version_fkey(id, subject_template, body_template)")
+      .select(
+        "current_published_version, email_template_versions!email_templates_current_published_version_fkey(id, subject_template, body_template)",
+      )
       .eq("template_key", templateKey)
       .maybeSingle();
     if (!error && data?.current_published_version) {
-      const version = Array.isArray(data.email_template_versions) ? data.email_template_versions[0] : data.email_template_versions;
+      const version = Array.isArray(data.email_template_versions)
+        ? data.email_template_versions[0]
+        : data.email_template_versions;
       if (version) {
         const subject = replaceEmailVariables(version.subject_template, variables);
-        const blocks = parseStoredEmailBlocks(version.body_template) || blocksFromPlainText(version.body_template);
+        const blocks =
+          parseStoredEmailBlocks(version.body_template) ||
+          blocksFromPlainText(version.body_template);
         const { text, html } = await renderEmailBlocks(blocks, variables);
         return { templateKey, versionId: version.id, source: "published", subject, text, html };
       }

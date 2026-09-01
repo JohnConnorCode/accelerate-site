@@ -53,11 +53,21 @@ const CONTENT_BRIEF_SCHEMA = {
   additionalProperties: false,
   required: ["outline", "seoTitle", "seoDescription", "wordCount", "keyTakeaways", "grounding"],
   properties: {
-    outline: { type: "array", minItems: 3, maxItems: 12, items: { type: "string", minLength: 1, maxLength: 240 } },
+    outline: {
+      type: "array",
+      minItems: 3,
+      maxItems: 12,
+      items: { type: "string", minLength: 1, maxLength: 240 },
+    },
     seoTitle: { type: "string", minLength: 1, maxLength: 60 },
     seoDescription: { type: "string", minLength: 1, maxLength: 160 },
     wordCount: { type: "integer", minimum: 500, maximum: 5000 },
-    keyTakeaways: { type: "array", minItems: 3, maxItems: 8, items: { type: "string", minLength: 1, maxLength: 300 } },
+    keyTakeaways: {
+      type: "array",
+      minItems: 3,
+      maxItems: 8,
+      items: { type: "string", minLength: 1, maxLength: 300 },
+    },
     grounding: {
       type: "object",
       additionalProperties: false,
@@ -87,11 +97,19 @@ const CONTENT_BRIEF_SCHEMA = {
             required: ["statement", "basedOnFactIndexes"],
             properties: {
               statement: { type: "string", minLength: 1, maxLength: 300 },
-              basedOnFactIndexes: { type: "array", maxItems: 8, items: { type: "integer", minimum: 0, maximum: 7 } },
+              basedOnFactIndexes: {
+                type: "array",
+                maxItems: 8,
+                items: { type: "integer", minimum: 0, maximum: 7 },
+              },
             },
           },
         },
-        missingData: { type: "array", maxItems: 8, items: { type: "string", minLength: 1, maxLength: 240 } },
+        missingData: {
+          type: "array",
+          maxItems: 8,
+          items: { type: "string", minLength: 1, maxLength: 240 },
+        },
         recommendations: {
           type: "array",
           minItems: 1,
@@ -102,7 +120,11 @@ const CONTENT_BRIEF_SCHEMA = {
             required: ["statement", "basedOnFactIndexes"],
             properties: {
               statement: { type: "string", minLength: 1, maxLength: 300 },
-              basedOnFactIndexes: { type: "array", maxItems: 8, items: { type: "integer", minimum: 0, maximum: 7 } },
+              basedOnFactIndexes: {
+                type: "array",
+                maxItems: 8,
+                items: { type: "integer", minimum: 0, maximum: 7 },
+              },
             },
           },
         },
@@ -115,7 +137,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-function parseBoundedText(value: unknown, label: string, maximum: number, required = false): string | null {
+function parseBoundedText(
+  value: unknown,
+  label: string,
+  maximum: number,
+  required = false,
+): string | null {
   if (value === undefined || value === null || value === "") {
     if (required) throw new Error(`${label} is required`);
     return null;
@@ -126,7 +153,8 @@ function parseBoundedText(value: unknown, label: string, maximum: number, requir
     if (required) throw new Error(`${label} is required`);
     return null;
   }
-  if (normalized.length > maximum) throw new Error(`${label} must be ${maximum} characters or fewer`);
+  if (normalized.length > maximum)
+    throw new Error(`${label} must be ${maximum} characters or fewer`);
   return normalized;
 }
 
@@ -138,7 +166,9 @@ export function parseContentBriefInput(value: unknown): ContentBriefInput {
     category: parseBoundedText(value.category, "Category", MAX_CATEGORY_CHARS),
   };
   if (JSON.stringify(input).length > MAX_CONTENT_BRIEF_SOURCE_CHARS) {
-    throw new Error(`Content brief source must be ${MAX_CONTENT_BRIEF_SOURCE_CHARS} characters or fewer`);
+    throw new Error(
+      `Content brief source must be ${MAX_CONTENT_BRIEF_SOURCE_CHARS} characters or fewer`,
+    );
   }
   return input;
 }
@@ -150,7 +180,13 @@ function assertString(value: unknown, label: string, maximum: number): string {
   return value.trim();
 }
 
-function assertStringArray(value: unknown, label: string, minimum: number, maximum: number, itemMaximum: number): string[] {
+function assertStringArray(
+  value: unknown,
+  label: string,
+  minimum: number,
+  maximum: number,
+  itemMaximum: number,
+): string[] {
   if (!Array.isArray(value) || value.length < minimum || value.length > maximum) {
     throw new Error(`OpenRouter returned an invalid ${label}`);
   }
@@ -182,20 +218,33 @@ function assertFact(value: unknown, input: ContentBriefInput): GroundedFact {
     source: value.source,
     evidence: assertString(value.evidence, "grounded fact evidence", 240),
   } satisfies GroundedFact;
-  if (!sourceText(input, fact.source).toLocaleLowerCase().includes(fact.evidence.toLocaleLowerCase())) {
+  if (
+    !sourceText(input, fact.source).toLocaleLowerCase().includes(fact.evidence.toLocaleLowerCase())
+  ) {
     throw new Error("OpenRouter cited evidence that is absent from the allowed source");
   }
   return fact;
 }
 
-function assertGroundedReferences(value: unknown, label: string, factCount: number, minimum: number): GroundedReference[] {
+function assertGroundedReferences(
+  value: unknown,
+  label: string,
+  factCount: number,
+  minimum: number,
+): GroundedReference[] {
   if (!Array.isArray(value) || value.length < minimum || value.length > 8) {
     throw new Error(`OpenRouter returned invalid ${label}`);
   }
   return value.map((item) => {
     if (!isRecord(item)) throw new Error(`OpenRouter returned invalid ${label}`);
     assertExactKeys(item, ["statement", "basedOnFactIndexes"], label);
-    if (!Array.isArray(item.basedOnFactIndexes) || item.basedOnFactIndexes.length > 8 || item.basedOnFactIndexes.some((index) => !Number.isInteger(index) || Number(index) < 0 || Number(index) >= factCount)) {
+    if (
+      !Array.isArray(item.basedOnFactIndexes) ||
+      item.basedOnFactIndexes.length > 8 ||
+      item.basedOnFactIndexes.some(
+        (index) => !Number.isInteger(index) || Number(index) < 0 || Number(index) >= factCount,
+      )
+    ) {
       throw new Error(`OpenRouter returned ${label} with an invalid fact reference`);
     }
     return {
@@ -206,7 +255,8 @@ function assertGroundedReferences(value: unknown, label: string, factCount: numb
 }
 
 function assertNoUnsupportedSensitiveClaims(brief: ContentBrief, input: ContentBriefInput) {
-  const allowed = `${sourceText(input, "admin_request")} ${sourceText(input, "published_positioning")}`.toLocaleLowerCase();
+  const allowed =
+    `${sourceText(input, "admin_request")} ${sourceText(input, "published_positioning")}`.toLocaleLowerCase();
   const generated = JSON.stringify({
     outline: brief.outline,
     seoTitle: brief.seoTitle,
@@ -224,7 +274,9 @@ function assertNoUnsupportedSensitiveClaims(brief: ContentBrief, input: ContentB
   for (const pattern of patterns) {
     for (const match of generated.matchAll(pattern)) {
       if (!allowed.includes(match[0].toLocaleLowerCase())) {
-        throw new Error("OpenRouter returned an unsupported price, metric, date, or recipient claim");
+        throw new Error(
+          "OpenRouter returned an unsupported price, metric, date, or recipient claim",
+        );
       }
     }
   }
@@ -232,13 +284,29 @@ function assertNoUnsupportedSensitiveClaims(brief: ContentBrief, input: ContentB
 
 export function validateContentBrief(value: unknown, input: ContentBriefInput): ContentBrief {
   if (!isRecord(value)) throw new Error("OpenRouter returned an invalid content brief");
-  assertExactKeys(value, ["outline", "seoTitle", "seoDescription", "wordCount", "keyTakeaways", "grounding"], "content brief");
-  if (!Number.isInteger(value.wordCount) || Number(value.wordCount) < 500 || Number(value.wordCount) > 5000) {
+  assertExactKeys(
+    value,
+    ["outline", "seoTitle", "seoDescription", "wordCount", "keyTakeaways", "grounding"],
+    "content brief",
+  );
+  if (
+    !Number.isInteger(value.wordCount) ||
+    Number(value.wordCount) < 500 ||
+    Number(value.wordCount) > 5000
+  ) {
     throw new Error("OpenRouter returned an invalid word count");
   }
   if (!isRecord(value.grounding)) throw new Error("OpenRouter returned invalid grounding");
-  assertExactKeys(value.grounding, ["facts", "inferences", "missingData", "recommendations"], "grounding");
-  if (!Array.isArray(value.grounding.facts) || value.grounding.facts.length < 1 || value.grounding.facts.length > 8) {
+  assertExactKeys(
+    value.grounding,
+    ["facts", "inferences", "missingData", "recommendations"],
+    "grounding",
+  );
+  if (
+    !Array.isArray(value.grounding.facts) ||
+    value.grounding.facts.length < 1 ||
+    value.grounding.facts.length > 8
+  ) {
     throw new Error("OpenRouter returned invalid grounded facts");
   }
   const facts = value.grounding.facts.map((fact) => assertFact(fact, input));
@@ -250,9 +318,19 @@ export function validateContentBrief(value: unknown, input: ContentBriefInput): 
     keyTakeaways: assertStringArray(value.keyTakeaways, "key takeaways", 3, 8, 300),
     grounding: {
       facts,
-      inferences: assertGroundedReferences(value.grounding.inferences, "inferences", facts.length, 0),
+      inferences: assertGroundedReferences(
+        value.grounding.inferences,
+        "inferences",
+        facts.length,
+        0,
+      ),
       missingData: assertStringArray(value.grounding.missingData, "missing data", 0, 8, 240),
-      recommendations: assertGroundedReferences(value.grounding.recommendations, "recommendations", facts.length, 1),
+      recommendations: assertGroundedReferences(
+        value.grounding.recommendations,
+        "recommendations",
+        facts.length,
+        1,
+      ),
     },
   };
   assertNoUnsupportedSensitiveClaims(brief, input);
@@ -285,9 +363,11 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (!await isTenantOpenRouterConfigured(auth.database)) {
+  if (!(await isTenantOpenRouterConfigured(auth.database))) {
     return NextResponse.json(
-      { error: "OpenRouter is not configured for this workspace. Add its API key in Integrations." },
+      {
+        error: "OpenRouter is not configured for this workspace. Add its API key in Integrations.",
+      },
       { status: 400 },
     );
   }
@@ -305,7 +385,10 @@ export async function POST(request: NextRequest) {
         ].join("\n"),
       },
     ];
-    if (messages.reduce((total, message) => total + message.content.length, 0) > MAX_CONTENT_BRIEF_CONTEXT_CHARS) {
+    if (
+      messages.reduce((total, message) => total + message.content.length, 0) >
+      MAX_CONTENT_BRIEF_CONTEXT_CHARS
+    ) {
       throw new Error("Content brief context exceeded its fixed budget");
     }
     const response = await openRouterJson({

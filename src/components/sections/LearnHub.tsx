@@ -77,7 +77,9 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const [email, setEmail] = useState("");
-  const [subscribeStatus, setSubscribeStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [subscribeStatus, setSubscribeStatus] = useState<"idle" | "loading" | "success" | "error">(
+    "idle",
+  );
   const [subscribeError, setSubscribeError] = useState("");
 
   const filtered = articles.filter((article) => {
@@ -152,7 +154,8 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
               <EntranceGroup delay={0.18}>
                 <EntranceItem>
                   <p className="mt-7 max-w-xl text-pretty text-lg leading-relaxed text-white-secondary">
-                    Clear field notes for putting AI into a business that already has customers, deadlines, and a reputation to protect.
+                    Clear field notes for putting AI into a business that already has customers,
+                    deadlines, and a reputation to protect.
                   </p>
                 </EntranceItem>
                 <EntranceItem>
@@ -194,7 +197,10 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                     <span>{formatDate(featuredArticle.frontmatter.date)}</span>
                     <span className="ml-auto inline-flex items-center gap-2 text-heading">
                       Read guide
-                      <ArrowUpRight className="h-4 w-4 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+                      <ArrowUpRight
+                        className="h-4 w-4 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                        aria-hidden="true"
+                      />
                     </span>
                   </div>
                 </Link>
@@ -212,20 +218,31 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
               Find the next useful move.
             </Heading>
             <p className="mt-4 max-w-xl text-pretty leading-relaxed text-white-secondary">
-              Search a problem or narrow the library by topic. Every guide favors practical decisions over trend watching.
+              Search a problem or narrow the library by topic. Every guide favors practical
+              decisions over trend watching.
             </p>
           </div>
-          <p className="font-mono text-xs tabular-nums uppercase tracking-[0.14em] text-white-muted" aria-live="polite">
+          <p
+            className="font-mono text-xs tabular-nums uppercase tracking-[0.14em] text-white-muted"
+            aria-live="polite"
+          >
             {filtered.length} {filtered.length === 1 ? "result" : "results"}
           </p>
         </div>
 
         <div className="mt-10 border-y border-[var(--rule)] py-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-wrap gap-2" role="group" aria-label="Filter articles by category">
+            <div
+              className="flex flex-wrap gap-2"
+              role="group"
+              aria-label="Filter articles by category"
+            >
               <button
                 type="button"
-                onClick={() => { setActiveCategory("all"); setPage(1); }}
+                onClick={() => {
+                  setActiveCategory("all");
+                  setPage(1);
+                }}
                 aria-pressed={activeCategory === "all"}
                 className={cn("topic-filter", activeCategory === "all" && "is-active")}
               >
@@ -235,7 +252,10 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                 <button
                   key={category}
                   type="button"
-                  onClick={() => { setActiveCategory(category); setPage(1); }}
+                  onClick={() => {
+                    setActiveCategory(category);
+                    setPage(1);
+                  }}
                   aria-pressed={activeCategory === category}
                   className={cn("topic-filter", activeCategory === category && "is-active")}
                 >
@@ -246,12 +266,18 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
 
             <label className="relative block w-full lg:w-72">
               <span className="sr-only">Search the learning library</span>
-              <Search className="pointer-events-none absolute left-0 top-1/2 h-4 w-4 -translate-y-1/2 text-white-muted" aria-hidden="true" />
+              <Search
+                className="pointer-events-none absolute left-0 top-1/2 h-4 w-4 -translate-y-1/2 text-white-muted"
+                aria-hidden="true"
+              />
               <input
                 type="search"
                 placeholder="Search the library"
                 value={searchQuery}
-                onChange={(event) => { setSearchQuery(event.target.value); setPage(1); }}
+                onChange={(event) => {
+                  setSearchQuery(event.target.value);
+                  setPage(1);
+                }}
                 className="h-11 w-full border-b border-[var(--rule)] bg-transparent pl-7 pr-2 text-sm text-heading outline-none transition-[border-color] duration-200 placeholder:text-white-muted focus:border-[var(--fg)]"
               />
             </label>
@@ -272,7 +298,11 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
               <button
                 type="button"
                 className="mt-3 min-h-10 text-sm text-white-secondary underline underline-offset-4 transition-colors hover:text-heading"
-                onClick={() => { setSearchQuery(""); setActiveCategory("all"); setPage(1); }}
+                onClick={() => {
+                  setSearchQuery("");
+                  setActiveCategory("all");
+                  setPage(1);
+                }}
               >
                 Clear the filters
               </button>
@@ -325,7 +355,8 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
               Skip the learning curve. We can build it with you.
             </h2>
             <p className="mt-5 max-w-xl text-pretty leading-relaxed opacity-70">
-              Use the guides to sharpen your thinking, then bring us the messy operational part. We design, ship, and run the system.
+              Use the guides to sharpen your thinking, then bring us the messy operational part. We
+              design, ship, and run the system.
             </p>
           </div>
           <Link href="/services" className="btn btn-inv shrink-0">
@@ -336,7 +367,10 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
 
       <Section width="text" divide>
         <div className="grid gap-8 md:grid-cols-[auto_1fr] md:items-start">
-          <span className="grid h-12 w-12 place-items-center bg-[var(--fg)] text-[var(--bg)]" aria-hidden="true">
+          <span
+            className="grid h-12 w-12 place-items-center bg-[var(--fg)] text-[var(--bg)]"
+            aria-hidden="true"
+          >
             <Mail className="h-5 w-5" />
           </span>
           <div>
@@ -348,7 +382,10 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
             </p>
 
             {subscribeStatus === "success" ? (
-              <div className="mt-7 flex min-h-12 items-center gap-2 text-sm text-[var(--success)]" role="status">
+              <div
+                className="mt-7 flex min-h-12 items-center gap-2 text-sm text-[var(--success)]"
+                role="status"
+              >
                 <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
                 You&rsquo;re on the list.
               </div>
@@ -380,12 +417,16 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                     {subscribeStatus === "loading" ? (
                       <Loader2 className="h-4 w-4 animate-spin" aria-label="Subscribing" />
                     ) : (
-                      <>Subscribe <ArrowRight className="h-4 w-4" aria-hidden="true" /></>
+                      <>
+                        Subscribe <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                      </>
                     )}
                   </button>
                 </div>
                 {subscribeStatus === "error" && subscribeError && (
-                  <p className="mt-2 text-sm text-[var(--error)]" role="alert">{subscribeError}</p>
+                  <p className="mt-2 text-sm text-[var(--error)]" role="alert">
+                    {subscribeError}
+                  </p>
                 )}
               </form>
             )}

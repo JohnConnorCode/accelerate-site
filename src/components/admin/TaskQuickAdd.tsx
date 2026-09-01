@@ -13,7 +13,13 @@ interface TaskQuickAddProps {
   compact?: boolean;
 }
 
-export function TaskQuickAdd({ relatedType, relatedId, relatedName, onTaskCreated, compact }: TaskQuickAddProps) {
+export function TaskQuickAdd({
+  relatedType,
+  relatedId,
+  relatedName,
+  onTaskCreated,
+  compact,
+}: TaskQuickAddProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -65,7 +71,9 @@ export function TaskQuickAdd({ relatedType, relatedId, relatedName, onTaskCreate
   }
 
   return (
-    <div className={`rounded-lg border border-border-glass bg-white/[0.03] p-3 ${compact ? "" : "mt-2"}`}>
+    <div
+      className={`rounded-lg border border-border-glass bg-white/[0.03] p-3 ${compact ? "" : "mt-2"}`}
+    >
       <Input
         type="text"
         value={title}
@@ -104,7 +112,12 @@ export function TaskQuickAdd({ relatedType, relatedId, relatedName, onTaskCreate
         <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)}>
           Cancel
         </Button>
-        <Button variant="primary" size="sm" onClick={handleSubmit} disabled={saving || !title.trim()}>
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={handleSubmit}
+          disabled={saving || !title.trim()}
+        >
           {saving ? "Adding..." : "Add"}
         </Button>
       </div>

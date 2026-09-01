@@ -141,7 +141,8 @@ export const tenant: TenantConfig = {
     publicBooking: true,
   },
   ai: {
-    businessDescriptor: "Accelerate, an AI strategy, solutions, and execution partner for small business",
+    businessDescriptor:
+      "Accelerate, an AI strategy, solutions, and execution partner for small business",
     voice: "Be concise and operational. Never call the business an agency.",
     positioning:
       "Accelerate learns how a small business works, identifies where AI and automation can free time or increase revenue, then advises, builds, integrates, runs, trains, and improves the right custom solution. We do not call ourselves an agency, and we do not force every business into the same product.",
@@ -184,8 +185,10 @@ export const tenant: TenantConfig = {
 /** Environment wins over configuration, so one deployment can be retargeted without a code change. */
 export const siteUrl = () => process.env.NEXT_PUBLIC_SITE_URL || tenant.brand.siteUrl;
 export const adminEmail = () => process.env.ADMIN_EMAIL || tenant.founder.email;
-export const fromEmail = () => process.env.RESEND_FROM_EMAIL || `${tenant.brand.name} <${tenant.founder.email}>`;
-export const analyticsDomain = () => process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN || tenant.brand.domain;
+export const fromEmail = () =>
+  process.env.RESEND_FROM_EMAIL || `${tenant.brand.name} <${tenant.founder.email}>`;
+export const analyticsDomain = () =>
+  process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN || tenant.brand.domain;
 
 /**
  * Deep link into this installation's Supabase dashboard. Falls back to the
@@ -194,5 +197,7 @@ export const analyticsDomain = () => process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN ||
  */
 export function supabaseDashboard(path = ""): string {
   const ref = tenant.external.supabaseProjectRef;
-  return ref ? `https://supabase.com/dashboard/project/${ref}${path}` : "https://supabase.com/dashboard/projects";
+  return ref
+    ? `https://supabase.com/dashboard/project/${ref}${path}`
+    : "https://supabase.com/dashboard/projects";
 }

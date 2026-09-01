@@ -39,9 +39,7 @@ interface ProposalEditorProps {
 export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
   const pathname = usePathname();
   const [title, setTitle] = useState(proposal.title);
-  const [sections, setSections] = useState<ProposalSection[]>(
-    proposal.content?.sections || []
-  );
+  const [sections, setSections] = useState<ProposalSection[]>(proposal.content?.sections || []);
   const [totalMonthly, setTotalMonthly] = useState(proposal.total_monthly?.toString() || "0");
   const [totalOneTime, setTotalOneTime] = useState(proposal.total_one_time?.toString() || "0");
   const [saving, setSaving] = useState(false);
@@ -75,9 +73,7 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
   };
 
   const updateSection = (idx: number, field: string, value: unknown) => {
-    setSections((prev) =>
-      prev.map((s, i) => (i === idx ? { ...s, [field]: value } : s))
-    );
+    setSections((prev) => prev.map((s, i) => (i === idx ? { ...s, [field]: value } : s)));
   };
 
   const removeSection = (idx: number) => {
@@ -89,8 +85,11 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
   };
 
   const tenantSlug = pathname.match(/^\/t\/([^/]+)\/admin(?:\/|$)/)?.[1];
-  const sharePath = tenantSlug ? `/t/${tenantSlug}/proposal/${proposal.share_token}` : `/proposal/${proposal.share_token}`;
-  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}${sharePath}` : sharePath;
+  const sharePath = tenantSlug
+    ? `/t/${tenantSlug}/proposal/${proposal.share_token}`
+    : `/proposal/${proposal.share_token}`;
+  const shareUrl =
+    typeof window !== "undefined" ? `${window.location.origin}${sharePath}` : sharePath;
 
   return (
     <div className="space-y-6">
@@ -130,7 +129,10 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
             {shareUrl}
           </code>
           <button
-            onClick={() => { navigator.clipboard.writeText(shareUrl); setToast({ message: "Link copied!", type: "success" }); }}
+            onClick={() => {
+              navigator.clipboard.writeText(shareUrl);
+              setToast({ message: "Link copied!", type: "success" });
+            }}
             className="text-xs text-gold-light hover:text-gold cursor-pointer shrink-0"
           >
             Copy

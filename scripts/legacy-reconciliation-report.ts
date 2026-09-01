@@ -2,7 +2,10 @@
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { DEFAULT_LEGACY_CAPTURE_SOURCES, buildLegacyCanonicalReconciliationReport } from "../src/lib/revenue-os/legacy-reconciliation";
+import {
+  DEFAULT_LEGACY_CAPTURE_SOURCES,
+  buildLegacyCanonicalReconciliationReport,
+} from "../src/lib/revenue-os/legacy-reconciliation";
 import { createServiceRoleClient } from "../src/lib/supabase/server";
 
 function getArg(name: string): string | undefined {
@@ -19,7 +22,12 @@ function getArg(name: string): string | undefined {
 function parseSources(): typeof DEFAULT_LEGACY_CAPTURE_SOURCES {
   const sourceArg = getArg("--sources");
   if (!sourceArg) return DEFAULT_LEGACY_CAPTURE_SOURCES;
-  const requested = new Set(sourceArg.split(",").map((source) => source.trim()).filter(Boolean));
+  const requested = new Set(
+    sourceArg
+      .split(",")
+      .map((source) => source.trim())
+      .filter(Boolean),
+  );
   return DEFAULT_LEGACY_CAPTURE_SOURCES.filter((source) => requested.has(source.sourceRecordType));
 }
 

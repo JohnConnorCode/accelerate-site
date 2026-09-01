@@ -1,13 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import {
-  Wrench,
-  Briefcase,
-  Scale,
-  Building2,
-  HeartHandshake,
-} from "lucide-react";
+import { Wrench, Briefcase, Scale, Building2, HeartHandshake } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap-init";
@@ -27,29 +21,33 @@ const iconMap: Record<string, LucideIcon> = {
 export function WhoThisIsFor() {
   const listRef = useRef<HTMLDivElement>(null);
 
-  useGSAP(() => {
-    if (!listRef.current) return;
-    if (prefersReducedMotion()) return;
+  useGSAP(
+    () => {
+      if (!listRef.current) return;
+      if (prefersReducedMotion()) return;
 
-    const items = listRef.current.querySelectorAll("[data-audience-card]");
+      const items = listRef.current.querySelectorAll("[data-audience-card]");
 
-    gsap.fromTo(items,
-      { opacity: 0, x: 40 },
-      {
-        opacity: 1,
-        x: 0,
-        duration: 0.5,
-        delay: 0.25,
-        stagger: 0.07,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: listRef.current,
-          start: "top 80%",
-          toggleActions: "play none none none",
+      gsap.fromTo(
+        items,
+        { opacity: 0, x: 40 },
+        {
+          opacity: 1,
+          x: 0,
+          duration: 0.5,
+          delay: 0.25,
+          stagger: 0.07,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: listRef.current,
+            start: "top 80%",
+            toggleActions: "play none none none",
+          },
         },
-      }
-    );
-  }, { scope: listRef });
+      );
+    },
+    { scope: listRef },
+  );
 
   return (
     <section className="relative py-24 bg-[var(--bg-section-warm)] overflow-hidden">
@@ -61,19 +59,16 @@ export function WhoThisIsFor() {
             label="Who This Is For"
             heading={
               <>
-                You&apos;re Doing <span className="text-gold-gradient">$200K to $10M</span>.
-                Now What?
+                You&apos;re Doing <span className="text-gold-gradient">$200K to $10M</span>. Now
+                What?
               </>
             }
-            description="You have real revenue and real customers. You just don&apos;t have the time, team, or tech to run everything the way you know it should run."
+            description="You have real revenue and real customers. You just don't have the time, team, or tech to run everything the way you know it should run."
             className="mb-16"
           />
         </ScrollReveal>
 
-        <div
-          ref={listRef}
-          className="grid grid-cols-1 md:grid-cols-2 gap-3"
-        >
+        <div ref={listRef} className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {audiences.map((audience) => {
             const Icon = iconMap[audience.icon];
             if (!Icon) return null;

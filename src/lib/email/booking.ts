@@ -3,13 +3,17 @@ import { getResend, FROM_EMAIL } from "@/lib/email/resend";
 import type { Resend } from "resend";
 
 /** Path of the vertical playbook these booking emails belong to. */
-const roofingPath = () => tenant.playbooks.find((playbook) => playbook.key === "roofing")?.path ?? "/";
+const roofingPath = () =>
+  tenant.playbooks.find((playbook) => playbook.key === "roofing")?.path ?? "/";
 
-export async function scheduleAuditPrepEmail(input: {
-  email: string;
-  scheduledAt: string;
-  eventKey: string;
-}, resend: Resend = getResend()) {
+export async function scheduleAuditPrepEmail(
+  input: {
+    email: string;
+    scheduledAt: string;
+    eventKey: string;
+  },
+  resend: Resend = getResend(),
+) {
   const meeting = new Date(input.scheduledAt);
   if (Number.isNaN(meeting.getTime())) return;
   const preferred = new Date(meeting.getTime() - 24 * 60 * 60 * 1000);
@@ -35,17 +39,24 @@ ${tenant.brand.name}`,
   });
 }
 
-export async function sendNoShowRebookEmail(input: { email: string; opportunityId: string; token: string }) {
-  await getResend().emails.send({
-    from: FROM_EMAIL,
-    to: input.email,
-    subject: "Want to find another time?",
-    text: `It looks like we missed each other. No problem.
+export async function sendNoShowRebookEmail(input: {
+  email: string;
+  opportunityId: string;
+  token: string;
+}) {
+  await getResend().emails.send(
+    {
+      from: FROM_EMAIL,
+      to: input.email,
+      subject: "Want to find another time?",
+      text: `It looks like we missed each other. No problem.
 
 If the revenue leak audit is still useful, choose another time here:
 ${siteUrl()}${roofingPath()}?resume=${input.token}#book
 
 ${tenant.founder.name}
 ${tenant.brand.name}`,
-  }, { idempotencyKey: `roofing-no-show/${input.opportunityId}` });
+    },
+    { idempotencyKey: `roofing-no-show/${input.opportunityId}` },
+  );
 }

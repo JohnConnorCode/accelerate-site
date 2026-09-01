@@ -17,19 +17,14 @@ export default function PrivacyPage() {
         </h1>
 
         <div className="prose-invert space-y-6 text-white-secondary text-sm leading-relaxed">
-          <p className="text-white-muted text-xs">
-            Last updated: February 28, 2026
-          </p>
+          <p className="text-white-muted text-xs">Last updated: February 28, 2026</p>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-white-primary">
-              1. Information We Collect
-            </h2>
+            <h2 className="text-lg font-semibold text-white-primary">1. Information We Collect</h2>
             <p>
-              We collect information you voluntarily provide when you use our
-              services, including your name, email address, phone number,
-              business information, and website URL. We also collect usage data
-              through cookies and analytics tools when you visit our website.
+              We collect information you voluntarily provide when you use our services, including
+              your name, email address, phone number, business information, and website URL. We also
+              collect usage data through cookies and analytics tools when you visit our website.
             </p>
           </section>
 
@@ -48,50 +43,39 @@ export default function PrivacyPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-white-primary">
-              3. Data Sharing
-            </h2>
+            <h2 className="text-lg font-semibold text-white-primary">3. Data Sharing</h2>
             <p>
-              We do not sell your personal information. We may share data with
-              trusted third-party service providers (such as email delivery and
-              analytics services) solely to operate our business. All
-              third-party providers are contractually obligated to protect your
+              We do not sell your personal information. We may share data with trusted third-party
+              service providers (such as email delivery and analytics services) solely to operate
+              our business. All third-party providers are contractually obligated to protect your
               data.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-white-primary">
-              4. Cookies
-            </h2>
+            <h2 className="text-lg font-semibold text-white-primary">4. Cookies</h2>
             <p>
-              We use cookies and similar technologies to operate our website
-              and to understand how it&apos;s used through analytics tools such
-              as Google Analytics, Meta Pixel, and Plausible. You can control or
-              block cookies through your browser settings, and opt out of
-              specific analytics providers using their own opt-out tools.
+              We use cookies and similar technologies to operate our website and to understand how
+              it&apos;s used through analytics tools such as Google Analytics, Meta Pixel, and
+              Plausible. You can control or block cookies through your browser settings, and opt out
+              of specific analytics providers using their own opt-out tools.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-white-primary">
-              5. Data Security
-            </h2>
+            <h2 className="text-lg font-semibold text-white-primary">5. Data Security</h2>
             <p>
-              We implement industry-standard security measures to protect your
-              information, including encrypted data transmission (TLS/SSL),
-              secure database storage, and access controls. However, no method
-              of transmission over the internet is 100% secure.
+              We implement industry-standard security measures to protect your information,
+              including encrypted data transmission (TLS/SSL), secure database storage, and access
+              controls. However, no method of transmission over the internet is 100% secure.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-white-primary">
-              6. Your Rights
-            </h2>
+            <h2 className="text-lg font-semibold text-white-primary">6. Your Rights</h2>
             <p>
-              You have the right to access, correct, or delete your personal
-              information. To exercise these rights, contact us at{" "}
+              You have the right to access, correct, or delete your personal information. To
+              exercise these rights, contact us at{" "}
               <a
                 href="mailto:john@acceleratewith.us"
                 className="text-gold-light underline underline-offset-2"
@@ -103,12 +87,9 @@ export default function PrivacyPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-white-primary">
-              7. Contact Us
-            </h2>
+            <h2 className="text-lg font-semibold text-white-primary">7. Contact Us</h2>
             <p>
-              If you have questions about this privacy policy, please contact us
-              at{" "}
+              If you have questions about this privacy policy, please contact us at{" "}
               <a
                 href="mailto:john@acceleratewith.us"
                 className="text-gold-light underline underline-offset-2"

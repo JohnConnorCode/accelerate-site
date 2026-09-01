@@ -18,11 +18,12 @@ function hydrateEnvFromLocalFile(filePath: string) {
     const value = match[2];
     if (key === undefined || value === undefined) continue;
     if (process.env[key] === undefined) {
-      process.env[key] = value.startsWith('"') && value.endsWith('"')
-        ? value.slice(1, -1)
-        : value.startsWith("'") && value.endsWith("'")
+      process.env[key] =
+        value.startsWith('"') && value.endsWith('"')
           ? value.slice(1, -1)
-          : value;
+          : value.startsWith("'") && value.endsWith("'")
+            ? value.slice(1, -1)
+            : value;
     }
   }
 }
@@ -110,9 +111,11 @@ function runAuthenticatedMutationPolicyAudit() {
   const mutationRows = policyRows.filter((row) => MUTATION_COMMANDS.has(row.cmd.toUpperCase()));
   const violations = mutationRows.filter((row) => {
     const predicate = `${row.qual || ""} ${row.with_check || ""}`;
-    return row.policyname !== "Tenant member access"
-      || !predicate.includes("private.request_tenant_id()")
-      || !predicate.includes("private.has_active_tenant_membership(tenant_id)");
+    return (
+      row.policyname !== "Tenant member access" ||
+      !predicate.includes("private.request_tenant_id()") ||
+      !predicate.includes("private.has_active_tenant_membership(tenant_id)")
+    );
   });
   if (violations.length > 0) {
     const detail = violations
@@ -121,7 +124,9 @@ function runAuthenticatedMutationPolicyAudit() {
     throw new Error(`Authenticated mutation policies missing tenant-membership guards: ${detail}`);
   }
 
-  console.log(`founder-access-policy-audit: checked ${policyRows.length} authenticated policy rows; every mutation is tenant- and membership-bound.`);
+  console.log(
+    `founder-access-policy-audit: checked ${policyRows.length} authenticated policy rows; every mutation is tenant- and membership-bound.`,
+  );
 }
 
 function runPolicyAuditRows() {
@@ -193,10 +198,20 @@ if (!process.env.ADMIN_EMAIL) {
   throw new Error("ADMIN_EMAIL is required for founder-access control tests.");
 }
 const configuredFounderEmail = process.env.ADMIN_EMAIL;
-const nonFounderEmail = configuredFounderEmail.toLowerCase().startsWith("founder") ? "ops@example.com" : "founder@example.com";
+const nonFounderEmail = configuredFounderEmail.toLowerCase().startsWith("founder")
+  ? "ops@example.com"
+  : "founder@example.com";
 
-assert.equal(isConfiguredAdmin(`  ${configuredFounderEmail}  `), true, "Configured admin email should pass a normalized auth match.");
-assert.equal(isConfiguredAdmin(nonFounderEmail), false, "Non-founder email should fail the configured-admin predicate.");
+assert.equal(
+  isConfiguredAdmin(`  ${configuredFounderEmail}  `),
+  true,
+  "Configured admin email should pass a normalized auth match.",
+);
+assert.equal(
+  isConfiguredAdmin(nonFounderEmail),
+  false,
+  "Non-founder email should fail the configured-admin predicate.",
+);
 
 async function collectChunks(root: string): Promise<string[]> {
   if (!existsSync(root)) return [];
@@ -205,7 +220,7 @@ async function collectChunks(root: string): Promise<string[]> {
   for (const entry of entries) {
     const fullPath = join(root, entry.name);
     if (entry.isDirectory()) {
-      files.push(...await collectChunks(fullPath));
+      files.push(...(await collectChunks(fullPath)));
       continue;
     }
     if (fullPath.endsWith(".js") || fullPath.endsWith(".mjs") || fullPath.endsWith(".js.gz")) {
@@ -231,18 +246,20 @@ function normalizeCookieEntries(source?: string): CookieEnvelope[] {
       domain: String((cookie as Record<string, unknown>).domain ?? "localhost"),
       path: String((cookie as Record<string, unknown>).path ?? "/"),
       expires: Number((cookie as Record<string, unknown>).expires ?? 0),
-      httpOnly: typeof (cookie as Record<string, unknown>).httpOnly === "boolean"
-        ? Boolean((cookie as Record<string, unknown>).httpOnly)
-        : false,
-      secure: typeof (cookie as Record<string, unknown>).secure === "boolean"
-        ? Boolean((cookie as Record<string, unknown>).secure)
-        : false,
-      sameSite: (
-        ((cookie) => {
-          const candidate = (cookie as Record<string, unknown>).sameSite;
-          return candidate === "Strict" || candidate === "Lax" || candidate === "None" ? candidate : "Lax";
-        })((cookie as Record<string, unknown>)) as CookieEnvelope["sameSite"]
-      ),
+      httpOnly:
+        typeof (cookie as Record<string, unknown>).httpOnly === "boolean"
+          ? Boolean((cookie as Record<string, unknown>).httpOnly)
+          : false,
+      secure:
+        typeof (cookie as Record<string, unknown>).secure === "boolean"
+          ? Boolean((cookie as Record<string, unknown>).secure)
+          : false,
+      sameSite: ((cookie) => {
+        const candidate = (cookie as Record<string, unknown>).sameSite;
+        return candidate === "Strict" || candidate === "Lax" || candidate === "None"
+          ? candidate
+          : "Lax";
+      })(cookie as Record<string, unknown>) as CookieEnvelope["sameSite"],
     }))
     .filter((cookie) => cookie.name && cookie.domain);
 }
@@ -260,23 +277,32 @@ function toBase64CookiePayload(payload: unknown, baseUrl: string): CookieEnvelop
   if (!projectRef) return [];
   const expiresAt = Number((payload as { expires_at?: string | number }).expires_at);
   const expires = Number.isFinite(expiresAt) && expiresAt > 0 ? expiresAt : 0;
-  return [{
-    name: `sb-${projectRef}-auth-token`,
-    value: `base64-${Buffer.from(JSON.stringify(payload)).toString("base64url")}`,
-    domain: new URL(baseUrl).hostname,
-    path: "/",
-    expires,
-    httpOnly: true,
-    secure: false,
-    sameSite: "Lax",
-  }];
+  return [
+    {
+      name: `sb-${projectRef}-auth-token`,
+      value: `base64-${Buffer.from(JSON.stringify(payload)).toString("base64url")}`,
+      domain: new URL(baseUrl).hostname,
+      path: "/",
+      expires,
+      httpOnly: true,
+      secure: false,
+      sameSite: "Lax",
+    },
+  ];
 }
 
-async function loadSessionCookiesFromSupabase(email: string, baseUrl: string): Promise<CookieEnvelope[]> {
+async function loadSessionCookiesFromSupabase(
+  email: string,
+  baseUrl: string,
+): Promise<CookieEnvelope[]> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return [];
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    {
+      auth: { autoRefreshToken: false, persistSession: false },
+    },
+  );
   const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
     type: "magiclink",
     email,
@@ -292,11 +318,18 @@ async function loadSessionCookiesFromSupabase(email: string, baseUrl: string): P
   return toBase64CookiePayload(verified.session, baseUrl);
 }
 
-async function pickNonFounderAdminEmailFromSupabase(founderEmail: string): Promise<string | undefined> {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return undefined;
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
+async function pickNonFounderAdminEmailFromSupabase(
+  founderEmail: string,
+): Promise<string | undefined> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY)
+    return undefined;
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    {
+      auth: { autoRefreshToken: false, persistSession: false },
+    },
+  );
   const founderEmailLower = founderEmail.toLowerCase().trim();
   const { data, error } = await supabase.auth.admin.listUsers();
   if (error || !data?.users?.length) return undefined;
@@ -321,13 +354,20 @@ function isLocalAppHost(): boolean {
   }
 }
 
-async function createDisposableNonFounderUserIfPossible(founderEmail: string): Promise<DisposableNonFounderSession | undefined> {
+async function createDisposableNonFounderUserIfPossible(
+  founderEmail: string,
+): Promise<DisposableNonFounderSession | undefined> {
   if (!isLocalAppHost()) return undefined;
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return undefined;
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY)
+    return undefined;
 
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    {
+      auth: { autoRefreshToken: false, persistSession: false },
+    },
+  );
   const email = `nonfounder-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}@example.com`;
   if (email.toLowerCase().trim() === founderEmail.toLowerCase().trim()) return undefined;
 
@@ -343,9 +383,13 @@ async function createDisposableNonFounderUserIfPossible(founderEmail: string): P
 
 async function deleteDisposableNonFounderUser(userId: string) {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return;
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    {
+      auth: { autoRefreshToken: false, persistSession: false },
+    },
+  );
   await supabase.auth.admin.deleteUser(userId, true);
 }
 
@@ -354,31 +398,41 @@ async function resolveNonFounderAuthContext(
 ): Promise<{ cookies: CookieEnvelope[]; disposableUserId?: string }> {
   const explicitNonFounderEmail = process.env.NONFOUNDER_ADMIN_EMAIL?.trim().toLowerCase();
   if (explicitNonFounderEmail && explicitNonFounderEmail !== founderEmail.toLowerCase()) {
-    console.log(`Using explicit NONFOUNDER_ADMIN_EMAIL for non-founder fail-closed assertion: ${explicitNonFounderEmail}`);
+    console.log(
+      `Using explicit NONFOUNDER_ADMIN_EMAIL for non-founder fail-closed assertion: ${explicitNonFounderEmail}`,
+    );
     return { cookies: await loadSessionCookiesFromSupabase(explicitNonFounderEmail, BASE_URL) };
   }
 
   const discoveredEmail = await pickNonFounderAdminEmailFromSupabase(founderEmail);
   if (discoveredEmail && discoveredEmail !== founderEmail.toLowerCase()) {
-    console.log(`Auto-selected non-founder auth user for fail-closed assertion: ${discoveredEmail}`);
+    console.log(
+      `Auto-selected non-founder auth user for fail-closed assertion: ${discoveredEmail}`,
+    );
     return { cookies: await loadSessionCookiesFromSupabase(discoveredEmail, BASE_URL) };
   }
 
   if (!isLocalAppHost()) {
-    console.log("No non-founder auth user available for authenticated fail-closed branch. Set NONFOUNDER_ADMIN_EMAIL or NONFOUNDER_ADMIN_COOKIES to exercise this assertion.");
+    console.log(
+      "No non-founder auth user available for authenticated fail-closed branch. Set NONFOUNDER_ADMIN_EMAIL or NONFOUNDER_ADMIN_COOKIES to exercise this assertion.",
+    );
     return { cookies: [] };
   }
 
   const disposable = await createDisposableNonFounderUserIfPossible(founderEmail);
   if (!disposable) {
-    console.log("Could not create a disposable non-founder auth user in local auth; skipping authenticated fail-closed assertion.");
+    console.log(
+      "Could not create a disposable non-founder auth user in local auth; skipping authenticated fail-closed assertion.",
+    );
     return { cookies: [] };
   }
 
   const cookies = await loadSessionCookiesFromSupabase(disposable.email, BASE_URL);
   if (!cookies.length) {
     await deleteDisposableNonFounderUser(disposable.userId);
-    console.log("Could not mint a disposable non-founder session cookie; skipping authenticated fail-closed assertion.");
+    console.log(
+      "Could not mint a disposable non-founder session cookie; skipping authenticated fail-closed assertion.",
+    );
     return { cookies: [] };
   }
   return { cookies, disposableUserId: disposable.userId };
@@ -390,7 +444,9 @@ async function assertAuthenticatedSessionFailure(
   label: string,
 ) {
   if (!cookies.length) {
-    console.log(`${label} not set or invalid; skipping authenticated fail-closed assertion for non-founder path.`);
+    console.log(
+      `${label} not set or invalid; skipping authenticated fail-closed assertion for non-founder path.`,
+    );
     return;
   }
   const context = await browser.newContext({
@@ -409,7 +465,10 @@ async function assertAuthenticatedSessionFailure(
   }
   for (const apiPath of representativeApis) {
     const response = await context.request.get(`${BASE_URL}${apiPath}`);
-    assert.ok(response.status() === 401 || response.status() === 403, `Authenticated non-founder request to ${apiPath} should fail closed with 401/403; got ${response.status()}.`);
+    assert.ok(
+      response.status() === 401 || response.status() === 403,
+      `Authenticated non-founder request to ${apiPath} should fail closed with 401/403; got ${response.status()}.`,
+    );
   }
   await context.close();
 }
@@ -429,7 +488,11 @@ async function assertAuthenticatedSessionSuccess(
   });
   const page = await context.newPage();
   const response = await page.goto(`${BASE_URL}/admin/setup`, { waitUntil: "domcontentloaded" });
-  assert.equal(response?.status(), 200, "Founder-authenticated session should load protected admin pages.");
+  assert.equal(
+    response?.status(),
+    200,
+    "Founder-authenticated session should load protected admin pages.",
+  );
   await context.close();
 }
 
@@ -441,7 +504,8 @@ const main = async () => {
     founderCookies = await loadSessionCookiesFromSupabase(configuredFounderEmail, BASE_URL);
   }
   if (!nonFounderCookies.length) {
-    const { cookies, disposableUserId } = await resolveNonFounderAuthContext(configuredFounderEmail);
+    const { cookies, disposableUserId } =
+      await resolveNonFounderAuthContext(configuredFounderEmail);
     nonFounderCookies = cookies;
     disposableNonFounderUserId = disposableUserId;
   }
@@ -466,12 +530,17 @@ const main = async () => {
 
     for (const apiPath of representativeApis) {
       const response = await context.request.get(`${BASE_URL}${apiPath}`);
-      assert.ok(response.status() === 401 || response.status() === 403, `Unauthenticated API request to ${apiPath} should fail closed with 401/403; got ${response.status()}.`);
+      assert.ok(
+        response.status() === 401 || response.status() === 403,
+        `Unauthenticated API request to ${apiPath} should fail closed with 401/403; got ${response.status()}.`,
+      );
     }
 
     const chunksRoot = ".next/static";
     if (!existsSync(chunksRoot)) {
-      throw new Error("Browser bundle artifacts not found. Run npm run build before founder-access static coverage.");
+      throw new Error(
+        "Browser bundle artifacts not found. Run npm run build before founder-access static coverage.",
+      );
     }
 
     const sensitiveEnvValues = [
@@ -508,7 +577,9 @@ const main = async () => {
       }
       for (const pattern of forbiddenBundlePatterns) {
         if (pattern.test(body)) {
-          throw new Error(`Browser bundle ${chunk} appears to contain client-readable server env reference (${pattern}).`);
+          throw new Error(
+            `Browser bundle ${chunk} appears to contain client-readable server env reference (${pattern}).`,
+          );
         }
       }
     }
@@ -518,22 +589,29 @@ const main = async () => {
     if (canRunPolicyAudit) {
       runAuthenticatedMutationPolicyAudit();
     } else {
-      console.log("Skipping canonical admin policy audit due DB access or local environment constraints.");
+      console.log(
+        "Skipping canonical admin policy audit due DB access or local environment constraints.",
+      );
     }
-    const checks = representativePages.length
-      + representativeApis.length
-      + 1
-      + (founderCookies.length ? 1 : 0)
-      + (nonFounderCookies.length ? 1 : 0)
-      + (canRunPolicyAudit ? 1 : 0);
+    const checks =
+      representativePages.length +
+      representativeApis.length +
+      1 +
+      (founderCookies.length ? 1 : 0) +
+      (nonFounderCookies.length ? 1 : 0) +
+      (canRunPolicyAudit ? 1 : 0);
     const coverageMessage = [
       "founder access, unauthenticated gates, authenticated fail-closed checks, browser-bundle service-role exposure checks",
-      canRunPolicyAudit ? "canonical admin policy audit covered" : "canonical admin policy audit skipped (environment constraints)",
+      canRunPolicyAudit
+        ? "canonical admin policy audit covered"
+        : "canonical admin policy audit skipped (environment constraints)",
     ].join(", ");
-    console.log(JSON.stringify({
-      checks,
-      result: coverageMessage,
-    }));
+    console.log(
+      JSON.stringify({
+        checks,
+        result: coverageMessage,
+      }),
+    );
   } finally {
     if (disposableNonFounderUserId) {
       await deleteDisposableNonFounderUser(disposableNonFounderUserId).catch(() => {
@@ -544,7 +622,6 @@ const main = async () => {
     await context.close();
     await browser.close();
   }
-
 };
 
 void main();

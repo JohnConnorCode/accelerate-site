@@ -23,7 +23,9 @@ const ctx = await browser.newContext({
   colorScheme: theme === "light" ? "light" : "dark",
 });
 await ctx.addInitScript((t) => {
-  try { localStorage.setItem("theme", t); } catch {}
+  try {
+    localStorage.setItem("theme", t);
+  } catch {}
 }, theme);
 const page = await ctx.newPage();
 await page.goto(`${base}${path}`, { waitUntil: "networkidle", timeout: 60000 });

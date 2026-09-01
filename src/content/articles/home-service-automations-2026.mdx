@@ -10,7 +10,8 @@ author: "John Connor"
 authorRole: "Founder, Accelerate"
 seoTitle: "5 Must-Have Home Service Automations in 2026"
 seoDescription: "The 5 automations every HVAC, plumbing, roofing, and electrical business needs in 2026. Real results, step-by-step setup, and expected ROI."
-targetKeywords: ["home service automations", "contractor automations 2026", "HVAC plumbing roofing automation"]
+targetKeywords:
+  ["home service automations", "contractor automations 2026", "HVAC plumbing roofing automation"]
 funnelStage: "consideration"
 ---
 
@@ -28,16 +29,22 @@ These are not futuristic or complicated. Each one can be set up in a week or les
 
 <StepByStep>
   <Step number={1} title="Missed call is detected">
-    Your phone system (or VoIP provider) detects an unanswered call and triggers the automation. This works with most modern phone systems including Google Voice, OpenPhone, Dialpad, and ServiceTitan's built-in phone features.
+    Your phone system (or VoIP provider) detects an unanswered call and triggers the automation.
+    This works with most modern phone systems including Google Voice, OpenPhone, Dialpad, and
+    ServiceTitan's built-in phone features.
   </Step>
   <Step number={2} title="Text message sent within 60 seconds">
-    The caller receives a text: "Hey, sorry we missed your call at [Business Name]. We're currently on a job. How can we help? You can describe your issue here or book a time that works for you: [booking link]"
+    The caller receives a text: "Hey, sorry we missed your call at [Business Name]. We're currently
+    on a job. How can we help? You can describe your issue here or book a time that works for you:
+    [booking link]"
   </Step>
   <Step number={3} title="Conversation continues via text">
-    If the caller replies, the conversation can be handled by your team when available, or by an AI agent that qualifies the inquiry and books an appointment automatically.
+    If the caller replies, the conversation can be handled by your team when available, or by an AI
+    agent that qualifies the inquiry and books an appointment automatically.
   </Step>
   <Step number={4} title="Contact is logged in CRM">
-    The caller's number, the time of the missed call, and the text conversation are all logged in your CRM so nothing falls through the cracks.
+    The caller's number, the time of the missed call, and the text conversation are all logged in
+    your CRM so nothing falls through the cracks.
   </Step>
 </StepByStep>
 
@@ -55,30 +62,45 @@ Most contractors send one estimate and never follow up. Or they follow up once, 
 
 <StepByStep>
   <Step number={1} title="Estimate is sent">
-    You create and send the estimate through your normal process. The automation detects the sent estimate (via your estimating tool's API, a webhook, or a manual trigger in your CRM).
+    You create and send the estimate through your normal process. The automation detects the sent
+    estimate (via your estimating tool's API, a webhook, or a manual trigger in your CRM).
   </Step>
   <Step number={2} title="48-hour check-in">
-    If the estimate has not been accepted: "Hi [Name], just checking in on the estimate we sent for your [service]. Happy to answer any questions. Here's the estimate link if you need it again: [link]"
+    If the estimate has not been accepted: "Hi [Name], just checking in on the estimate we sent for
+    your [service]. Happy to answer any questions. Here's the estimate link if you need it again:
+    [link]"
   </Step>
   <Step number={3} title="5-day follow-up with value add">
-    "Hi [Name], wanted to share a quick note. [Relevant tip or seasonal info about their service need]. If you are ready to move forward on the [service] estimate, we have availability next week: [booking link]"
+    "Hi [Name], wanted to share a quick note. [Relevant tip or seasonal info about their service
+    need]. If you are ready to move forward on the [service] estimate, we have availability next
+    week: [booking link]"
   </Step>
   <Step number={4} title="10-day final follow-up">
-    "Hi [Name], just a final check-in on the [service] estimate from [date]. We'd love to help with this project. If timing isn't right now, no worries at all -- just reply when you're ready and we'll get you on the schedule."
+    "Hi [Name], just a final check-in on the [service] estimate from [date]. We'd love to help with
+    this project. If timing isn't right now, no worries at all -- just reply when you're ready and
+    we'll get you on the schedule."
   </Step>
   <Step number={5} title="Sequence ends or job is booked">
-    If the homeowner books or declines at any point, the sequence stops automatically. No more messages after a clear "no" or a booked appointment.
+    If the homeowner books or declines at any point, the sequence stops automatically. No more
+    messages after a clear "no" or a booked appointment.
   </Step>
 </StepByStep>
 
 **Expected results:** The sequence does the chasing you already know you should do. Size it with your own numbers: how many estimates go out, how many get a second touch today, and what an average job is worth.
 
-<StatHighlight value="Second touch" label="on every estimate, without waiting for someone to have an evening" />
+<StatHighlight
+  value="Second touch"
+  label="on every estimate, without waiting for someone to have an evening"
+/>
 
 **Tools needed:** Estimating tool or CRM with API access, automation platform, SMS and/or email sending tool. ServiceTitan, Jobber, and Housecall Pro all support triggers for sent estimates. If you use something simpler, a manual CRM update can trigger the sequence.
 
 <Callout type="tip" title="Personalize the Follow-Up">
-Generic "just checking in" messages get ignored. Reference the specific service, the property address, or something you noticed during the assessment. "I noticed your gutters also need attention -- we can bundle that with the roof repair for a better price" is 10 times more effective than "following up on your estimate." Your automation tool can pull these details from your CRM to personalize each message automatically.
+  Generic "just checking in" messages get ignored. Reference the specific service, the property
+  address, or something you noticed during the assessment. "I noticed your gutters also need
+  attention -- we can bundle that with the roof repair for a better price" is 10 times more
+  effective than "following up on your estimate." Your automation tool can pull these details from
+  your CRM to personalize each message automatically.
 </Callout>
 
 ## 3. Automated Review Requests After Job Completion
@@ -89,16 +111,22 @@ Generic "just checking in" messages get ignored. Reference the specific service,
 
 <StepByStep>
   <Step number={1} title="Job is marked complete">
-    Your technician or office staff marks the job as done in your CRM, project management tool, or invoicing system. This triggers the automation.
+    Your technician or office staff marks the job as done in your CRM, project management tool, or
+    invoicing system. This triggers the automation.
   </Step>
   <Step number={2} title="Review request sent 2 hours later">
-    The homeowner receives a text: "Thanks for choosing [Business Name] for your [service type]! If you had a great experience, would you mind leaving us a quick review? It takes about 30 seconds: [direct Google review link]"
+    The homeowner receives a text: "Thanks for choosing [Business Name] for your [service type]! If
+    you had a great experience, would you mind leaving us a quick review? It takes about 30 seconds:
+    [direct Google review link]"
   </Step>
   <Step number={3} title="Reminder at 48 hours if no review">
-    If the homeowner has not left a review: "Hi [Name], just a quick reminder about the review for [Business Name]. Your feedback helps other homeowners find reliable [service type] professionals. Here's the link again: [link]"
+    If the homeowner has not left a review: "Hi [Name], just a quick reminder about the review for
+    [Business Name]. Your feedback helps other homeowners find reliable [service type]
+    professionals. Here's the link again: [link]"
   </Step>
   <Step number={4} title="Thank you message after review">
-    If a new review is detected (via Google Business Profile API monitoring), the homeowner receives a thank-you message. This closes the loop professionally.
+    If a new review is detected (via Google Business Profile API monitoring), the homeowner receives
+    a thank-you message. This closes the loop professionally.
   </Step>
 </StepByStep>
 
@@ -116,25 +144,36 @@ Your past client list is your most valuable marketing asset, and it costs nothin
 
 <StepByStep>
   <Step number={1} title="Segment clients by service type and date">
-    Your CRM data tells you who got what service and when. The automation segments clients: "All HVAC installations from 12+ months ago" or "All gutter cleaning clients who haven't booked in the last 10 months."
+    Your CRM data tells you who got what service and when. The automation segments clients: "All
+    HVAC installations from 12+ months ago" or "All gutter cleaning clients who haven't booked in
+    the last 10 months."
   </Step>
   <Step number={2} title="Seasonal campaign triggers automatically">
-    When the calendar hits your defined date (e.g., September 1 for fall gutter cleaning, April 1 for spring AC tune-ups), the campaign sends to the relevant segment.
+    When the calendar hits your defined date (e.g., September 1 for fall gutter cleaning, April 1
+    for spring AC tune-ups), the campaign sends to the relevant segment.
   </Step>
   <Step number={3} title="Multi-touch outreach">
-    Day 1: Text message with seasonal offer. Day 3: Email with more detail and a booking link. Day 7: Final reminder text for non-responders. Each message is personalized with the client's name and the specific service they previously received.
+    Day 1: Text message with seasonal offer. Day 3: Email with more detail and a booking link. Day
+    7: Final reminder text for non-responders. Each message is personalized with the client's name
+    and the specific service they previously received.
   </Step>
   <Step number={4} title="Booking and tracking">
-    Clients who book are removed from the campaign. Campaign performance (sent, opened, booked) is tracked so you can optimize the messaging and timing for the next season.
+    Clients who book are removed from the campaign. Campaign performance (sent, opened, booked) is
+    tracked so you can optimize the messaging and timing for the next season.
   </Step>
 </StepByStep>
 
 **Expected results:** Past clients already know you. A seasonal note at the right time is cheaper than finding a new one. Size it with the list you have and what a tune-up bills at.
 
-<StatHighlight value="Past clients" label="reached when the season actually calls for the work you already did for them" />
+<StatHighlight
+  value="Past clients"
+  label="reached when the season actually calls for the work you already did for them"
+/>
 
 <Callout type="important" title="The Lifetime Value Play">
-Seasonal re-engagement is about staying top-of-mind. The client who books a $150 tune-up this spring is the client who calls you for a $12,000 system replacement next year instead of searching Google and finding your competitor. Re-engagement protects lifetime value.
+  Seasonal re-engagement is about staying top-of-mind. The client who books a $150 tune-up this
+  spring is the client who calls you for a $12,000 system replacement next year instead of searching
+  Google and finding your competitor. Re-engagement protects lifetime value.
 </Callout>
 
 ## 5. Appointment Reminders That Cut No-Shows
@@ -145,16 +184,22 @@ Seasonal re-engagement is about staying top-of-mind. The client who books a $150
 
 <StepByStep>
   <Step number={1} title="Appointment is booked">
-    Whether booked through your website, by phone, or through an AI agent, the appointment triggers an immediate confirmation: "Your [service] appointment with [Business Name] is confirmed for [date] at [time]. Reply C to confirm, R to reschedule, or X to cancel."
+    Whether booked through your website, by phone, or through an AI agent, the appointment triggers
+    an immediate confirmation: "Your [service] appointment with [Business Name] is confirmed for
+    [date] at [time]. Reply C to confirm, R to reschedule, or X to cancel."
   </Step>
   <Step number={2} title="24-hour reminder">
-    "Reminder: Your [service] appointment with [Business Name] is tomorrow at [time]. Our technician [name] will arrive in a [vehicle description]. Please ensure access to [relevant area]. Reply R to reschedule if needed."
+    "Reminder: Your [service] appointment with [Business Name] is tomorrow at [time]. Our technician
+    [name] will arrive in a [vehicle description]. Please ensure access to [relevant area]. Reply R
+    to reschedule if needed."
   </Step>
   <Step number={3} title="2-hour reminder">
-    "Hi [Name], just a heads up -- [technician name] from [Business Name] will be arriving at your home in about 2 hours for your [service] appointment. See you soon!"
+    "Hi [Name], just a heads up -- [technician name] from [Business Name] will be arriving at your
+    home in about 2 hours for your [service] appointment. See you soon!"
   </Step>
   <Step number={4} title="Cancellation triggers rebooking workflow">
-    If the homeowner cancels or reschedules, the system immediately opens the slot in your calendar and can notify waitlisted clients that an earlier appointment is available.
+    If the homeowner cancels or reschedules, the system immediately opens the slot in your calendar
+    and can notify waitlisted clients that an earlier appointment is available.
   </Step>
 </StepByStep>
 

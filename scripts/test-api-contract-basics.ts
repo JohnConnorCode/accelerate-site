@@ -13,11 +13,12 @@ function hydrateEnvFromLocalFile(filePath: string) {
     const value = match[2];
     if (key === undefined || value === undefined) continue;
     if (process.env[key] === undefined) {
-      process.env[key] = value.startsWith('"') && value.endsWith('"')
-        ? value.slice(1, -1)
-        : value.startsWith("'") && value.endsWith("'")
+      process.env[key] =
+        value.startsWith('"') && value.endsWith('"')
           ? value.slice(1, -1)
-          : value;
+          : value.startsWith("'") && value.endsWith("'")
+            ? value.slice(1, -1)
+            : value;
     }
   }
 }
@@ -37,7 +38,11 @@ async function post(path: string, options: Parameters<typeof fetch>[1]) {
   });
 }
 
-async function expectStatus(responsePromise: Promise<Response>, expected: number | number[], label: string) {
+async function expectStatus(
+  responsePromise: Promise<Response>,
+  expected: number | number[],
+  label: string,
+) {
   const response = await responsePromise;
   const status = response.status;
   if (Array.isArray(expected)) {
@@ -92,21 +97,33 @@ async function expectStatus(responsePromise: Promise<Response>, expected: number
   assert.equal(invalidQualifyResponse.status, 400, "/api/qualify invalid field set");
 
   checks.push("proposal public GET returns 404 for unknown token");
-  await expectStatus(get("/api/proposal/test-token-does-not-exist-01"), 404, "/api/proposal/:token unknown token");
+  await expectStatus(
+    get("/api/proposal/test-token-does-not-exist-01"),
+    404,
+    "/api/proposal/:token unknown token",
+  );
 
   checks.push("proposal public POST unknown token rejected with 404");
   const unknownProposalDecisionResponse = post("/api/proposal/test-token-does-not-exist-01", {
     body: JSON.stringify({ decision: "accepted" }),
     headers: { "content-type": "application/json" },
   });
-  await expectStatus(unknownProposalDecisionResponse, 404, "/api/proposal/:token unknown token response");
+  await expectStatus(
+    unknownProposalDecisionResponse,
+    404,
+    "/api/proposal/:token unknown token response",
+  );
 
   checks.push("proposal public POST malformed payload rejected with 400");
   const malformedProposalResponse = post("/api/proposal/known-token-mock", {
     body: malformedBody,
     headers: { "content-type": "application/json" },
   });
-  await expectStatus(malformedProposalResponse, 400, "/api/proposal/:token malformed decision payload");
+  await expectStatus(
+    malformedProposalResponse,
+    400,
+    "/api/proposal/:token malformed decision payload",
+  );
 
   checks.push("qualify route rejects unsupported method");
   await expectStatus(get("/api/qualify"), 405, "/api/qualify method gate");
@@ -137,9 +154,11 @@ async function expectStatus(responsePromise: Promise<Response>, expected: number
   });
   await expectStatus(malformedWebsite, 400, "/api/qualify invalid companyWebsite");
 
-  console.log(JSON.stringify({
-    result: "api-contract-basics checks covered",
-    checks,
-    baseUrl: BASE_URL,
-  }));
+  console.log(
+    JSON.stringify({
+      result: "api-contract-basics checks covered",
+      checks,
+      baseUrl: BASE_URL,
+    }),
+  );
 })();

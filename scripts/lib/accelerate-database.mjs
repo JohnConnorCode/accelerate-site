@@ -13,26 +13,53 @@ function projectRefFromUrl() {
 }
 
 export const PROJECT_REF = process.env.SUPABASE_PROJECT_REF?.trim() || projectRefFromUrl();
-export const POOLER_HOST = process.env.SUPABASE_DB_HOST?.trim() || "aws-1-us-east-1.pooler.supabase.com";
+export const POOLER_HOST =
+  process.env.SUPABASE_DB_HOST?.trim() || "aws-1-us-east-1.pooler.supabase.com";
 export const POOLER_PORT = process.env.SUPABASE_DB_PORT?.trim() || "5432";
-export const DATABASE_USER = process.env.SUPABASE_DB_USER?.trim() || (PROJECT_REF ? `postgres.${PROJECT_REF}` : "");
-export const KEYCHAIN_SERVICE = process.env.SUPABASE_DB_KEYCHAIN_SERVICE?.trim() || "accelerate-supabase-db-password";
+export const DATABASE_USER =
+  process.env.SUPABASE_DB_USER?.trim() || (PROJECT_REF ? `postgres.${PROJECT_REF}` : "");
+export const KEYCHAIN_SERVICE =
+  process.env.SUPABASE_DB_KEYCHAIN_SERVICE?.trim() || "accelerate-supabase-db-password";
 export const repoRoot = resolve(fileURLToPath(new URL("../..", import.meta.url)));
 
 export function readDatabasePassword() {
-  const configured = process.env.SUPABASE_DB_PASSWORD?.trim() || process.env.ACCELERATE_SUPABASE_DB_PASSWORD?.trim();
+  const configured =
+    process.env.SUPABASE_DB_PASSWORD?.trim() || process.env.ACCELERATE_SUPABASE_DB_PASSWORD?.trim();
   if (configured) return configured;
-  if (!DATABASE_USER) throw new Error("SUPABASE_PROJECT_REF or NEXT_PUBLIC_SUPABASE_URL is required for database tooling.");
-  if (process.platform !== "darwin") throw new Error("SUPABASE_DB_PASSWORD is required outside macOS.");
+  if (!DATABASE_USER)
+    throw new Error(
+      "SUPABASE_PROJECT_REF or NEXT_PUBLIC_SUPABASE_URL is required for database tooling.",
+    );
+  if (process.platform !== "darwin")
+    throw new Error("SUPABASE_DB_PASSWORD is required outside macOS.");
 
-  const result = spawnSync("security", ["find-generic-password", "-a", DATABASE_USER, "-s", KEYCHAIN_SERVICE, "-w"], { encoding: "utf8" });
-  if (result.status !== 0 || !result.stdout.trim()) throw new Error(`database password is not available in Keychain service ${KEYCHAIN_SERVICE}`);
+  const result = spawnSync(
+    "security",
+    ["find-generic-password", "-a", DATABASE_USER, "-s", KEYCHAIN_SERVICE, "-w"],
+    { encoding: "utf8" },
+  );
+  if (result.status !== 0 || !result.stdout.trim())
+    throw new Error(`database password is not available in Keychain service ${KEYCHAIN_SERVICE}`);
   return result.stdout.trim();
 }
 
 export function psqlArgs(extra = []) {
-  if (!PROJECT_REF || !POOLER_HOST || !DATABASE_USER) throw new Error("Supabase database target is incomplete. See .env.example.");
-  return ["-X", "-h", POOLER_HOST, "-p", POOLER_PORT, "-U", DATABASE_USER, "-d", "postgres", "--set", "ON_ERROR_STOP=on", ...extra];
+  if (!PROJECT_REF || !POOLER_HOST || !DATABASE_USER)
+    throw new Error("Supabase database target is incomplete. See .env.example.");
+  return [
+    "-X",
+    "-h",
+    POOLER_HOST,
+    "-p",
+    POOLER_PORT,
+    "-U",
+    DATABASE_USER,
+    "-d",
+    "postgres",
+    "--set",
+    "ON_ERROR_STOP=on",
+    ...extra,
+  ];
 }
 
 export function runPsql(extra = [], { input } = {}) {

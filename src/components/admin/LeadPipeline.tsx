@@ -32,9 +32,7 @@ export function LeadPipeline({ pipeline, pipelineValues }: LeadPipelineProps) {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: i * 0.06 }}
               >
-                <span className="text-xs text-white-muted w-20 shrink-0">
-                  {stage.label}
-                </span>
+                <span className="text-xs text-white-muted w-20 shrink-0">{stage.label}</span>
                 <div className="flex-1 h-7 rounded-md bg-white/5 overflow-hidden relative">
                   <motion.div
                     className={`h-full ${stage.color} rounded-md`}
@@ -46,9 +44,7 @@ export function LeadPipeline({ pipeline, pipelineValues }: LeadPipelineProps) {
                   <span className="absolute inset-0 flex items-center px-3 text-xs font-medium text-white-primary">
                     {count}
                     {value > 0 && (
-                      <span className="ml-1.5 text-white-muted">
-                        · ${value.toLocaleString()}
-                      </span>
+                      <span className="ml-1.5 text-white-muted">· ${value.toLocaleString()}</span>
                     )}
                   </span>
                 </div>

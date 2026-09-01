@@ -61,15 +61,43 @@ export interface PipelineSystemView {
 
 export const SYSTEM_PIPELINE_VIEWS: readonly PipelineSystemView[] = [
   { id: "all", label: "All", description: "Every canonical opportunity" },
-  { id: "attention", label: "Needs attention", description: "Open work that is overdue, due soon, or missing a next action" },
+  {
+    id: "attention",
+    label: "Needs attention",
+    description: "Open work that is overdue, due soon, or missing a next action",
+  },
   { id: "new", label: "New inquiries", description: "Unworked opportunities in the New stage" },
-  { id: "missing-next-action", label: "No next action", description: "Open opportunities without a specific next step and date" },
-  { id: "overdue", label: "Overdue", description: "Open opportunities with a next action in the past" },
-  { id: "upcoming", label: "Coming up", description: "A next action or meeting falls within the next seven days" },
+  {
+    id: "missing-next-action",
+    label: "No next action",
+    description: "Open opportunities without a specific next step and date",
+  },
+  {
+    id: "overdue",
+    label: "Overdue",
+    description: "Open opportunities with a next action in the past",
+  },
+  {
+    id: "upcoming",
+    label: "Coming up",
+    description: "A next action or meeting falls within the next seven days",
+  },
   { id: "proposals", label: "Proposals", description: "Proposal and negotiation work" },
-  { id: "at-risk", label: "At risk", description: "Active opportunities quiet for at least fourteen days with no near-term meeting" },
-  { id: "recent-wins", label: "Recent wins", description: "Won opportunities closed in the last thirty days" },
-  { id: "nurture", label: "Nurture", description: "Opportunities intentionally waiting for a later cycle" },
+  {
+    id: "at-risk",
+    label: "At risk",
+    description: "Active opportunities quiet for at least fourteen days with no near-term meeting",
+  },
+  {
+    id: "recent-wins",
+    label: "Recent wins",
+    description: "Won opportunities closed in the last thirty days",
+  },
+  {
+    id: "nurture",
+    label: "Nurture",
+    description: "Opportunities intentionally waiting for a later cycle",
+  },
 ] as const;
 
 export const PIPELINE_VISIBLE_FIELDS: readonly { id: PipelineVisibleField; label: string }[] = [
@@ -93,9 +121,22 @@ export const DEFAULT_PIPELINE_VIEW: PipelineViewState = {
 
 const LAST_VIEW_KEY = "accelerate:pipeline-view-state:v1";
 const SAVED_VIEWS_KEY = "accelerate:pipeline-saved-views:v1";
-const OPEN_STAGES = new Set<RevenueStage>(["new", "contacted", "qualified", "meeting", "proposal", "negotiation", "nurture"]);
+const OPEN_STAGES = new Set<RevenueStage>([
+  "new",
+  "contacted",
+  "qualified",
+  "meeting",
+  "proposal",
+  "negotiation",
+  "nurture",
+]);
 const SYSTEM_VIEW_IDS = new Set(SYSTEM_PIPELINE_VIEWS.map((view) => view.id));
-const SORT_FIELDS = new Set<PipelineSortField>(["next_action_at", "created_at", "estimated_value", "name"]);
+const SORT_FIELDS = new Set<PipelineSortField>([
+  "next_action_at",
+  "created_at",
+  "estimated_value",
+  "name",
+]);
 const VISIBLE_FIELDS = new Set(PIPELINE_VISIBLE_FIELDS.map((field) => field.id));
 
 function stageOf(item: PipelineViewOpportunity): RevenueStage | null {
@@ -118,7 +159,11 @@ function isWithin(value: string | null | undefined, start: number, end: number):
   return time !== null && time >= start && time <= end;
 }
 
-export function matchesPipelineSystemView(item: PipelineViewOpportunity, view: PipelineSystemViewId, now = new Date()): boolean {
+export function matchesPipelineSystemView(
+  item: PipelineViewOpportunity,
+  view: PipelineSystemViewId,
+  now = new Date(),
+): boolean {
   const nowTime = now.getTime();
   const sevenDays = 7 * 24 * 60 * 60 * 1000;
   const fourteenDays = 14 * 24 * 60 * 60 * 1000;
@@ -127,19 +172,26 @@ export function matchesPipelineSystemView(item: PipelineViewOpportunity, view: P
   const nextActionTime = timestamp(item.next_action_at);
   const hasCompleteNextAction = Boolean(item.next_action?.trim()) && nextActionTime !== null;
   const overdue = isOpen(item) && nextActionTime !== null && nextActionTime < nowTime;
-  const dueSoon = isOpen(item) && (
-    isWithin(item.next_action_at, nowTime, nowTime + sevenDays)
-    || isWithin(item.next_meeting_at, nowTime, nowTime + sevenDays)
-  );
+  const dueSoon =
+    isOpen(item) &&
+    (isWithin(item.next_action_at, nowTime, nowTime + sevenDays) ||
+      isWithin(item.next_meeting_at, nowTime, nowTime + sevenDays));
 
   switch (view) {
-    case "all": return true;
-    case "attention": return isOpen(item) && (!hasCompleteNextAction || overdue || dueSoon);
-    case "new": return stage === "new";
-    case "missing-next-action": return isOpen(item) && !hasCompleteNextAction;
-    case "overdue": return overdue;
-    case "upcoming": return dueSoon;
-    case "proposals": return stage === "proposal" || stage === "negotiation";
+    case "all":
+      return true;
+    case "attention":
+      return isOpen(item) && (!hasCompleteNextAction || overdue || dueSoon);
+    case "new":
+      return stage === "new";
+    case "missing-next-action":
+      return isOpen(item) && !hasCompleteNextAction;
+    case "overdue":
+      return overdue;
+    case "upcoming":
+      return dueSoon;
+    case "proposals":
+      return stage === "proposal" || stage === "negotiation";
     case "at-risk": {
       if (!isOpen(item) || stage === "nurture") return false;
       const lastSignal = timestamp(item.last_activity_at) ?? timestamp(item.created_at);
@@ -148,27 +200,45 @@ export function matchesPipelineSystemView(item: PipelineViewOpportunity, view: P
     }
     case "recent-wins": {
       const closed = timestamp(item.closed_at) ?? timestamp(item.updated_at);
-      return stage === "won" && closed !== null && closed >= nowTime - thirtyDays && closed <= nowTime;
+      return (
+        stage === "won" && closed !== null && closed >= nowTime - thirtyDays && closed <= nowTime
+      );
     }
-    case "nurture": return stage === "nurture";
+    case "nurture":
+      return stage === "nurture";
   }
 }
 
-function compareNullable(a: number | null, b: number | null, direction: PipelineSortDirection): number {
+function compareNullable(
+  a: number | null,
+  b: number | null,
+  direction: PipelineSortDirection,
+): number {
   if (a === null && b === null) return 0;
   if (a === null) return 1;
   if (b === null) return -1;
   return direction === "asc" ? a - b : b - a;
 }
 
-export function applyPipelineView<T extends PipelineViewOpportunity>(items: readonly T[], state: PipelineViewState, now = new Date()): T[] {
+export function applyPipelineView<T extends PipelineViewOpportunity>(
+  items: readonly T[],
+  state: PipelineViewState,
+  now = new Date(),
+): T[] {
   const query = state.search.trim().toLowerCase();
   const filtered = items.filter((item) => {
     if (!matchesPipelineSystemView(item, state.systemView, now)) return false;
     if (state.stage !== "all" && stageOf(item) !== state.stage) return false;
     if (state.owner !== "all" && (item.owner_email || "unassigned") !== state.owner) return false;
     if (!query) return true;
-    return [item.id, item.name, item.email, item.contact?.full_name, item.company?.name, item.company?.domain]
+    return [
+      item.id,
+      item.name,
+      item.email,
+      item.contact?.full_name,
+      item.company?.name,
+      item.company?.domain,
+    ]
       .filter(Boolean)
       .join(" ")
       .toLowerCase()
@@ -178,36 +248,70 @@ export function applyPipelineView<T extends PipelineViewOpportunity>(items: read
   return filtered.sort((a, b) => {
     let result = 0;
     if (state.sortField === "estimated_value") {
-      result = state.sortDirection === "asc"
-        ? Number(a.estimated_value || 0) - Number(b.estimated_value || 0)
-        : Number(b.estimated_value || 0) - Number(a.estimated_value || 0);
+      result =
+        state.sortDirection === "asc"
+          ? Number(a.estimated_value || 0) - Number(b.estimated_value || 0)
+          : Number(b.estimated_value || 0) - Number(a.estimated_value || 0);
     } else if (state.sortField === "name") {
       const aName = a.name || a.company?.name || "";
       const bName = b.name || b.company?.name || "";
-      result = state.sortDirection === "asc" ? aName.localeCompare(bName) : bName.localeCompare(aName);
+      result =
+        state.sortDirection === "asc" ? aName.localeCompare(bName) : bName.localeCompare(aName);
     } else {
-      result = compareNullable(timestamp(a[state.sortField]), timestamp(b[state.sortField]), state.sortDirection);
+      result = compareNullable(
+        timestamp(a[state.sortField]),
+        timestamp(b[state.sortField]),
+        state.sortDirection,
+      );
     }
     return result || a.id.localeCompare(b.id);
   });
 }
 
-export function countPipelineSystemViews(items: readonly PipelineViewOpportunity[], now = new Date()): Record<PipelineSystemViewId, number> {
-  return Object.fromEntries(SYSTEM_PIPELINE_VIEWS.map((view) => [view.id, items.filter((item) => matchesPipelineSystemView(item, view.id, now)).length])) as Record<PipelineSystemViewId, number>;
+export function countPipelineSystemViews(
+  items: readonly PipelineViewOpportunity[],
+  now = new Date(),
+): Record<PipelineSystemViewId, number> {
+  return Object.fromEntries(
+    SYSTEM_PIPELINE_VIEWS.map((view) => [
+      view.id,
+      items.filter((item) => matchesPipelineSystemView(item, view.id, now)).length,
+    ]),
+  ) as Record<PipelineSystemViewId, number>;
 }
 
 function normalizeState(value: unknown): PipelineViewState {
   if (!value || typeof value !== "object") return { ...DEFAULT_PIPELINE_VIEW };
   const candidate = value as Partial<PipelineViewState>;
   const visibleFields = Array.isArray(candidate.visibleFields)
-    ? candidate.visibleFields.filter((field): field is PipelineVisibleField => VISIBLE_FIELDS.has(field as PipelineVisibleField))
+    ? candidate.visibleFields.filter((field): field is PipelineVisibleField =>
+        VISIBLE_FIELDS.has(field as PipelineVisibleField),
+      )
     : DEFAULT_PIPELINE_VIEW.visibleFields;
   return {
-    systemView: SYSTEM_VIEW_IDS.has(candidate.systemView as PipelineSystemViewId) ? candidate.systemView as PipelineSystemViewId : "all",
-    stage: candidate.stage === "all" || ["new", "contacted", "qualified", "meeting", "proposal", "negotiation", "won", "lost", "nurture"].includes(String(candidate.stage)) ? candidate.stage as PipelineViewState["stage"] : "all",
+    systemView: SYSTEM_VIEW_IDS.has(candidate.systemView as PipelineSystemViewId)
+      ? (candidate.systemView as PipelineSystemViewId)
+      : "all",
+    stage:
+      candidate.stage === "all" ||
+      [
+        "new",
+        "contacted",
+        "qualified",
+        "meeting",
+        "proposal",
+        "negotiation",
+        "won",
+        "lost",
+        "nurture",
+      ].includes(String(candidate.stage))
+        ? (candidate.stage as PipelineViewState["stage"])
+        : "all",
     search: typeof candidate.search === "string" ? candidate.search.slice(0, 200) : "",
     owner: typeof candidate.owner === "string" ? candidate.owner.slice(0, 320) : "all",
-    sortField: SORT_FIELDS.has(candidate.sortField as PipelineSortField) ? candidate.sortField as PipelineSortField : DEFAULT_PIPELINE_VIEW.sortField,
+    sortField: SORT_FIELDS.has(candidate.sortField as PipelineSortField)
+      ? (candidate.sortField as PipelineSortField)
+      : DEFAULT_PIPELINE_VIEW.sortField,
     sortDirection: candidate.sortDirection === "desc" ? "desc" : "asc",
     visibleFields: visibleFields.length ? visibleFields : DEFAULT_PIPELINE_VIEW.visibleFields,
     layout: candidate.layout === "list" ? "list" : "board",
@@ -250,8 +354,19 @@ export function loadSavedPipelineViews(): SavedPipelineView[] {
   return value.flatMap((item) => {
     if (!item || typeof item !== "object") return [];
     const candidate = item as Partial<SavedPipelineView>;
-    if (typeof candidate.id !== "string" || typeof candidate.name !== "string" || !candidate.name.trim()) return [];
-    return [{ id: candidate.id, name: candidate.name.trim().slice(0, 60), state: normalizeState(candidate.state) }];
+    if (
+      typeof candidate.id !== "string" ||
+      typeof candidate.name !== "string" ||
+      !candidate.name.trim()
+    )
+      return [];
+    return [
+      {
+        id: candidate.id,
+        name: candidate.name.trim().slice(0, 60),
+        state: normalizeState(candidate.state),
+      },
+    ];
   });
 }
 
@@ -264,7 +379,10 @@ export function savePipelineView(name: string, state: PipelineViewState): SavedP
     name: trimmed,
     state: normalizeState(state),
   };
-  const next = [...existing.filter((item) => item.name.toLowerCase() !== trimmed.toLowerCase()), view].slice(-20);
+  const next = [
+    ...existing.filter((item) => item.name.toLowerCase() !== trimmed.toLowerCase()),
+    view,
+  ].slice(-20);
   writeJson(SAVED_VIEWS_KEY, next);
   return next;
 }

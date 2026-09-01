@@ -12,17 +12,49 @@ export async function GET(request: NextRequest) {
   const params = new URL(request.url).searchParams;
   const days = Math.min(365, Math.max(7, Number(params.get("days")) || 30));
   const requestedStage = bounded(params.get("stage"));
-  const stage = requestedStage && REVENUE_STAGES.includes(requestedStage as RevenueStage) ? requestedStage : undefined;
+  const stage =
+    requestedStage && REVENUE_STAGES.includes(requestedStage as RevenueStage)
+      ? requestedStage
+      : undefined;
   try {
     const supabase = auth.database;
-    const revenue = await loadRevenueAnalytics(supabase, { days, source: bounded(params.get("source")), owner: bounded(params.get("owner")), campaign: bounded(params.get("campaign")), stage });
+    const revenue = await loadRevenueAnalytics(supabase, {
+      days,
+      source: bounded(params.get("source")),
+      owner: bounded(params.get("owner")),
+      campaign: bounded(params.get("campaign")),
+      stage,
+    });
     try {
-      return NextResponse.json({ schemaReady: true, ...revenue, web: await loadWebsiteAnalytics(supabase, days) });
+      return NextResponse.json({
+        schemaReady: true,
+        ...revenue,
+        web: await loadWebsiteAnalytics(supabase, days),
+      });
     } catch {
-      return NextResponse.json({ schemaReady: true, ...revenue, web: { status: "degraded", reason: "First-party event storage is not ready. Apply the analytics migration; no vendor key is required.", pageViews: null, visitors: null, conversions: null, engagementEvents: null, conversionRate: null, topPages: [], sources: [], conversionEvents: [], eventCount: null, lastCapturedAt: null } });
+      return NextResponse.json({
+        schemaReady: true,
+        ...revenue,
+        web: {
+          status: "degraded",
+          reason:
+            "First-party event storage is not ready. Apply the analytics migration; no vendor key is required.",
+          pageViews: null,
+          visitors: null,
+          conversions: null,
+          engagementEvents: null,
+          conversionRate: null,
+          topPages: [],
+          sources: [],
+          conversionEvents: [],
+          eventCount: null,
+          lastCapturedAt: null,
+        },
+      });
     }
   } catch (error) {
-    if (isMissingRevenueSchema(error)) return NextResponse.json({ schemaReady: false, funnel: null, sources: [], web: null });
+    if (isMissingRevenueSchema(error))
+      return NextResponse.json({ schemaReady: false, funnel: null, sources: [], web: null });
     return NextResponse.json({ error: "Could not load canonical analytics" }, { status: 500 });
   }
 }

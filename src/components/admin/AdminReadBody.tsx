@@ -29,12 +29,17 @@ export function AdminReadBody({
 }: AdminReadBodyProps) {
   if (!hasData && error && !loading) {
     return (
-      <AdminSurface tone="attention" className="mx-auto flex max-w-2xl flex-col items-start gap-4 p-6 sm:flex-row sm:items-center">
+      <AdminSurface
+        tone="attention"
+        className="mx-auto flex max-w-2xl flex-col items-start gap-4 p-6 sm:flex-row sm:items-center"
+      >
         <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-rose-500/10 text-rose-700 dark:text-rose-300">
           <TriangleAlert className="size-5" />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-semibold text-[var(--admin-ink)]">This workspace could not be loaded</h2>
+          <h2 className="text-sm font-semibold text-[var(--admin-ink)]">
+            This workspace could not be loaded
+          </h2>
           <p className="admin-copy mt-1 text-sm">{error} Filters and drafts were not discarded.</p>
           {onRetry && (
             <button
@@ -53,10 +58,15 @@ export function AdminReadBody({
   return (
     <div className="admin-read-body">
       {error && hasData && (
-        <AdminSurface tone="attention" className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+        <AdminSurface
+          tone="attention"
+          className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center"
+        >
           <TriangleAlert className="size-5 shrink-0 text-amber-600" />
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-[var(--admin-ink)]">Showing the last successful snapshot</p>
+            <p className="text-sm font-semibold text-[var(--admin-ink)]">
+              Showing the last successful snapshot
+            </p>
             <p className="admin-copy mt-0.5 text-xs">{error} Existing data remains visible.</p>
           </div>
           {onRetry && (
@@ -71,7 +81,13 @@ export function AdminReadBody({
           )}
         </AdminSurface>
       )}
-      <AdminAsyncRegion loading={loading} hasData={hasData} loadingFallback={loadingFallback} label={label} contentClassName="admin-content-stack">
+      <AdminAsyncRegion
+        loading={loading}
+        hasData={hasData}
+        loadingFallback={loadingFallback}
+        label={label}
+        contentClassName="admin-content-stack"
+      >
         {children}
       </AdminAsyncRegion>
     </div>

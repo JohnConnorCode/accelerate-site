@@ -49,7 +49,10 @@ function readPositions(): PositionMap {
   if (positionCache) return positionCache;
   const entries: Array<[string, number]> = [];
   try {
-    const parsed = JSON.parse(sessionStorage.getItem(POSITION_KEY) || "{}") as Record<string, unknown>;
+    const parsed = JSON.parse(sessionStorage.getItem(POSITION_KEY) || "{}") as Record<
+      string,
+      unknown
+    >;
     for (const [id, value] of Object.entries(parsed).slice(-MAX_PERSISTED_POSITIONS)) {
       if (Number.isFinite(value)) entries.push([id, Math.max(0, Math.round(Number(value)))]);
     }
@@ -97,7 +100,7 @@ function writePosition(id: string, value: number) {
 
 function currentHistoryState(): NavigationState {
   const value = history.state;
-  return value && typeof value === "object" ? value as NavigationState : {};
+  return value && typeof value === "object" ? (value as NavigationState) : {};
 }
 
 function ensureEntryId() {
@@ -148,13 +151,16 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
     writePosition(currentEntryId.current, getScrollPosition());
   }, [getScrollPosition]);
 
-  const beginNavigation = useCallback((nextIntent: NavigationIntent) => {
-    saveCurrentPosition();
-    intent.current = nextIntent;
-    setHasNavigated(true);
-    setPendingHref(nextIntent.href);
-    setPending(true);
-  }, [saveCurrentPosition]);
+  const beginNavigation = useCallback(
+    (nextIntent: NavigationIntent) => {
+      saveCurrentPosition();
+      intent.current = nextIntent;
+      setHasNavigated(true);
+      setPendingHref(nextIntent.href);
+      setPending(true);
+    },
+    [saveCurrentPosition],
+  );
 
   const registerAdminScroller = useCallback((node: HTMLElement | null) => {
     adminScroller.current = node;
@@ -176,7 +182,8 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
 
     const onPopState = (event: PopStateEvent) => {
       saveCurrentPosition();
-      const state = event.state && typeof event.state === "object" ? event.state as NavigationState : {};
+      const state =
+        event.state && typeof event.state === "object" ? (event.state as NavigationState) : {};
       popTargetId.current = state[ENTRY_KEY] || null;
       intent.current = { href: location.href, kind: "pop", scroll: "restore" };
       setHasNavigated(true);
@@ -230,7 +237,11 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
     let focusedTarget: HTMLElement | null = null;
 
     const recordedIntent = intent.current;
-    const nextIntent = recordedIntent || { href: location.href, kind: "push" as const, scroll: "top" as const };
+    const nextIntent = recordedIntent || {
+      href: location.href,
+      kind: "push" as const,
+      scroll: "top" as const,
+    };
     const state = currentHistoryState();
     let nextId = state[ENTRY_KEY];
     // Next preserves arbitrary fields from the previous history state when it
@@ -269,7 +280,9 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
     setPending(false);
 
     const focusDestination = () => {
-      const root = isAdminPath(pathname) ? adminScroller.current : document.getElementById("main-content");
+      const root = isAdminPath(pathname)
+        ? adminScroller.current
+        : document.getElementById("main-content");
       if (root?.querySelector("[data-admin-route-loading]")) return false;
       const heading = root?.querySelector<HTMLElement>("h1, [data-route-heading]");
       // Client admin pages may commit a local data placeholder before their
@@ -279,10 +292,11 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
       const focusTarget = heading || root;
       if (!restoresHistory && focusTarget) {
         const active = document.activeElement;
-        const canRefocus = !focusedTarget
-          || active === document.body
-          || active === focusedTarget
-          || !document.contains(focusedTarget);
+        const canRefocus =
+          !focusedTarget ||
+          active === document.body ||
+          active === focusedTarget ||
+          !document.contains(focusedTarget);
         if (canRefocus) {
           if (!focusTarget.hasAttribute("tabindex")) focusTarget.setAttribute("tabindex", "-1");
           focusTarget.focus({ preventScroll: true });
@@ -297,7 +311,9 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
     // commit without guessing at network time or delaying interaction.
     focusFrame = requestAnimationFrame(() => {
       focusFrame = requestAnimationFrame(() => {
-        const root = isAdminPath(pathname) ? adminScroller.current : document.getElementById("main-content");
+        const root = isAdminPath(pathname)
+          ? adminScroller.current
+          : document.getElementById("main-content");
         if (!restoresHistory && root) {
           // A client-data boundary can replace an already-focused heading after
           // the first commit. Keep the route-scoped observer alive until the next
@@ -319,20 +335,39 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
     };
   }, [getScrollPosition, pathname, setScrollPosition]);
 
-  const value = useMemo<NavigationRuntimeValue>(() => ({
-    pending: pending || loadingBoundaries.size > 0,
-    pendingHref,
-    shouldAnimateRoute: hasNavigated,
-    beginNavigation,
-    registerAdminScroller,
-    registerLoadingBoundary,
-  }), [beginNavigation, hasNavigated, loadingBoundaries, pending, pendingHref, registerAdminScroller, registerLoadingBoundary]);
+  const value = useMemo<NavigationRuntimeValue>(
+    () => ({
+      pending: pending || loadingBoundaries.size > 0,
+      pendingHref,
+      shouldAnimateRoute: hasNavigated,
+      beginNavigation,
+      registerAdminScroller,
+      registerLoadingBoundary,
+    }),
+    [
+      beginNavigation,
+      hasNavigated,
+      loadingBoundaries,
+      pending,
+      pendingHref,
+      registerAdminScroller,
+      registerLoadingBoundary,
+    ],
+  );
 
   return (
     <NavigationRuntimeContext.Provider value={value}>
       {children}
-      <div className="navigation-progress" data-active={pending ? "true" : "false"} aria-hidden="true"><span /></div>
-      <p className="sr-only" aria-live="polite" aria-atomic="true">{announcement}</p>
+      <div
+        className="navigation-progress"
+        data-active={pending ? "true" : "false"}
+        aria-hidden="true"
+      >
+        <span />
+      </div>
+      <p className="sr-only" aria-live="polite" aria-atomic="true">
+        {announcement}
+      </p>
     </NavigationRuntimeContext.Provider>
   );
 }

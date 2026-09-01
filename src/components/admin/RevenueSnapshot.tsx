@@ -13,7 +13,12 @@ interface RevenueSnapshotProps {
   activeClients?: number;
 }
 
-export function RevenueSnapshot({ pipeline, pipelineValues, clientMRR = 0, activeClients = 0 }: RevenueSnapshotProps) {
+export function RevenueSnapshot({
+  pipeline,
+  pipelineValues,
+  clientMRR = 0,
+  activeClients = 0,
+}: RevenueSnapshotProps) {
   const totalPipelineValue = Object.entries(pipelineValues)
     .filter(([key]) => key !== "lost")
     .reduce((sum, [, val]) => sum + val, 0);
@@ -103,9 +108,10 @@ export function RevenueSnapshot({ pipeline, pipelineValues, clientMRR = 0, activ
           {stageData.map((stage, i) => {
             const width = (stage.count / maxCount) * 100;
             const prevCount = i > 0 ? stageData[i - 1]!.count : 0;
-            const dropOff = i > 0 && prevCount > 0
-              ? Math.round(((prevCount - stage.count) / prevCount) * 100)
-              : null;
+            const dropOff =
+              i > 0 && prevCount > 0
+                ? Math.round(((prevCount - stage.count) / prevCount) * 100)
+                : null;
 
             return (
               <div key={stage.key} className="flex items-center gap-3">

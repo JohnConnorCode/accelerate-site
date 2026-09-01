@@ -94,8 +94,16 @@ export function ChatWidget() {
   useEffect(() => {
     if (!isOpen) return;
     const prev = document.body.style.overflow;
-    const background = Array.from(document.querySelectorAll<HTMLElement>("body > header, body > main, body > footer, body > * > header, body > * > main, body > * > footer, .mobile-dock"));
-    const prior = background.map((node) => ({ node, inert: node.inert, ariaHidden: node.getAttribute("aria-hidden") }));
+    const background = Array.from(
+      document.querySelectorAll<HTMLElement>(
+        "body > header, body > main, body > footer, body > * > header, body > * > main, body > * > footer, .mobile-dock",
+      ),
+    );
+    const prior = background.map((node) => ({
+      node,
+      inert: node.inert,
+      ariaHidden: node.getAttribute("aria-hidden"),
+    }));
     for (const { node } of prior) {
       node.inert = true;
       node.setAttribute("aria-hidden", "true");
@@ -119,7 +127,7 @@ export function ChatWidget() {
       ref={rootRef}
       className={cn(
         "chat-widget-root fixed z-[80] transition-[bottom,right] duration-300",
-        isOpen && "is-open !z-[1000]"
+        isOpen && "is-open !z-[1000]",
       )}
     >
       <AnimatePresence initial={false}>

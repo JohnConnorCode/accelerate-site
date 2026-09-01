@@ -34,12 +34,7 @@ function shouldIgnore(target: EventTarget | null): boolean {
   }
   if (!(target instanceof HTMLElement)) return false;
   const tag = target.tagName;
-  return (
-    tag === "INPUT" ||
-    tag === "TEXTAREA" ||
-    tag === "SELECT" ||
-    target.isContentEditable
-  );
+  return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target.isContentEditable;
 }
 
 export function AdminShortcuts() {
@@ -121,38 +116,38 @@ export function AdminShortcuts() {
   }, [router, pathname, helpOpen]);
 
   return (
-    <AdminDialog open={helpOpen} onClose={closeHelp} title="Keyboard shortcuts" ariaLabel="Keyboard shortcuts" maxWidth="sm">
-          <AdminSurface padding="lg" className="admin-dialog-surface rounded-[20px]">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-[var(--admin-ink)]">
-                Keyboard Shortcuts
-              </h2>
-              <button
-                onClick={closeHelp}
-                aria-label="Close shortcuts"
-                className="admin-icon-button"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <ul className="space-y-2">
-              {SHORTCUT_HELP.map((s) => (
-                <li key={s.label} className="flex items-center justify-between gap-4">
-                  <span className="text-sm text-[var(--admin-muted)]">{s.label}</span>
-                  <span className="flex items-center gap-1">
-                    {s.keys.map((k) => (
-                      <kbd
-                        key={k}
-                        className="inline-flex min-w-[1.5rem] justify-center rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-0.5 font-mono text-[11px] font-medium text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]"
-                      >
-                        {k}
-                      </kbd>
-                    ))}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </AdminSurface>
+    <AdminDialog
+      open={helpOpen}
+      onClose={closeHelp}
+      title="Keyboard shortcuts"
+      ariaLabel="Keyboard shortcuts"
+      maxWidth="sm"
+    >
+      <AdminSurface padding="lg" className="admin-dialog-surface rounded-[20px]">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-semibold text-[var(--admin-ink)]">Keyboard Shortcuts</h2>
+          <button onClick={closeHelp} aria-label="Close shortcuts" className="admin-icon-button">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <ul className="space-y-2">
+          {SHORTCUT_HELP.map((s) => (
+            <li key={s.label} className="flex items-center justify-between gap-4">
+              <span className="text-sm text-[var(--admin-muted)]">{s.label}</span>
+              <span className="flex items-center gap-1">
+                {s.keys.map((k) => (
+                  <kbd
+                    key={k}
+                    className="inline-flex min-w-[1.5rem] justify-center rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-0.5 font-mono text-[11px] font-medium text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]"
+                  >
+                    {k}
+                  </kbd>
+                ))}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </AdminSurface>
     </AdminDialog>
   );
 }

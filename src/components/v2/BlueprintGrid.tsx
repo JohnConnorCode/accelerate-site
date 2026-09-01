@@ -15,8 +15,8 @@ export function BlueprintGrid({
     fade === "center"
       ? "radial-gradient(circle at 50% 40%, black, transparent 78%)"
       : fade === "top"
-      ? "linear-gradient(to bottom, black, transparent 85%)"
-      : undefined;
+        ? "linear-gradient(to bottom, black, transparent 85%)"
+        : undefined;
 
   return (
     <div

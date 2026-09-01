@@ -16,7 +16,10 @@ const baseEnv = {
   OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
 };
 
-function setEnv(key: "GOOGLE_TOKEN_ENCRYPTION_KEY" | "SUPABASE_SERVICE_ROLE_KEY" | "OPENROUTER_API_KEY", value: string | undefined) {
+function setEnv(
+  key: "GOOGLE_TOKEN_ENCRYPTION_KEY" | "SUPABASE_SERVICE_ROLE_KEY" | "OPENROUTER_API_KEY",
+  value: string | undefined,
+) {
   if (value === undefined) {
     delete process.env[key];
     return;
@@ -24,7 +27,14 @@ function setEnv(key: "GOOGLE_TOKEN_ENCRYPTION_KEY" | "SUPABASE_SERVICE_ROLE_KEY"
   process.env[key] = value;
 }
 
-function withEnv<T>(next: { GOOGLE_TOKEN_ENCRYPTION_KEY?: string; SUPABASE_SERVICE_ROLE_KEY?: string; OPENROUTER_API_KEY?: string }, body: () => T): T {
+function withEnv<T>(
+  next: {
+    GOOGLE_TOKEN_ENCRYPTION_KEY?: string;
+    SUPABASE_SERVICE_ROLE_KEY?: string;
+    OPENROUTER_API_KEY?: string;
+  },
+  body: () => T,
+): T {
   const snapshot = {
     GOOGLE_TOKEN_ENCRYPTION_KEY: process.env.GOOGLE_TOKEN_ENCRYPTION_KEY,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -62,7 +72,11 @@ const roundTrip = withEnv(
     };
   },
 );
-assert.equal(roundTrip.decrypted, "provider-token-value", "Token encryption/decryption should be deterministic for a configured secret key.");
+assert.equal(
+  roundTrip.decrypted,
+  "provider-token-value",
+  "Token encryption/decryption should be deterministic for a configured secret key.",
+);
 
 withEnv(
   {
@@ -85,13 +99,31 @@ withEnv(
 );
 
 withEnv(
-  { GOOGLE_TOKEN_ENCRYPTION_KEY: "unit-secret-key", SUPABASE_SERVICE_ROLE_KEY: "super-fallback", OPENROUTER_API_KEY: baseEnv.OPENROUTER_API_KEY },
+  {
+    GOOGLE_TOKEN_ENCRYPTION_KEY: "unit-secret-key",
+    SUPABASE_SERVICE_ROLE_KEY: "super-fallback",
+    OPENROUTER_API_KEY: baseEnv.OPENROUTER_API_KEY,
+  },
   () => {
-    const encrypted = encryptTenantSecret("tenant-provider-token", "tenant-a", "openrouter", "api_key");
+    const encrypted = encryptTenantSecret(
+      "tenant-provider-token",
+      "tenant-a",
+      "openrouter",
+      "api_key",
+    );
     assert.equal(isTenantEncryptedSecret(encrypted), true);
-    assert.equal(decryptTenantSecret(encrypted, "tenant-a", "openrouter", "api_key"), "tenant-provider-token");
-    assert.throws(() => decryptTenantSecret(encrypted, "tenant-b", "openrouter", "api_key"), "tenant-scoped ciphertext must not decrypt in another workspace");
-    assert.throws(() => decryptTenantSecret(encrypted, "tenant-a", "resend", "api_key"), "tenant-scoped ciphertext must not move between providers");
+    assert.equal(
+      decryptTenantSecret(encrypted, "tenant-a", "openrouter", "api_key"),
+      "tenant-provider-token",
+    );
+    assert.throws(
+      () => decryptTenantSecret(encrypted, "tenant-b", "openrouter", "api_key"),
+      "tenant-scoped ciphertext must not decrypt in another workspace",
+    );
+    assert.throws(
+      () => decryptTenantSecret(encrypted, "tenant-a", "resend", "api_key"),
+      "tenant-scoped ciphertext must not move between providers",
+    );
   },
 );
 
@@ -119,19 +151,42 @@ assert.equal(
 assert.equal(maskSecret(""), "", "Empty secret values should stay empty.");
 assert.equal(maskSecret("a"), "****", "Very short secret values remain fully masked.");
 assert.equal(maskSecret("short12"), "****", "Short secret values remain fully masked.");
-assert.equal(maskSecret("very_long_secret_value"), "ver****lue", "Long secret masking should show first 3 and last 3 chars.");
+assert.equal(
+  maskSecret("very_long_secret_value"),
+  "ver****lue",
+  "Long secret masking should show first 3 and last 3 chars.",
+);
 
-assert.equal(SERVER_ONLY_SECRET_KEYS.has("RESEND_WEBHOOK_SECRET"), true, "Webhook secrets must not be writable through admin_settings");
+assert.equal(
+  SERVER_ONLY_SECRET_KEYS.has("RESEND_WEBHOOK_SECRET"),
+  true,
+  "Webhook secrets must not be writable through admin_settings",
+);
 assert.equal(SERVER_ONLY_SECRET_KEYS.has("GOOGLE_TOKEN_ENCRYPTION_KEY"), true);
 
 withEnv(
-  { GOOGLE_TOKEN_ENCRYPTION_KEY: "unit-secret-key", SUPABASE_SERVICE_ROLE_KEY: "super-fallback", OPENROUTER_API_KEY: baseEnv.OPENROUTER_API_KEY },
+  {
+    GOOGLE_TOKEN_ENCRYPTION_KEY: "unit-secret-key",
+    SUPABASE_SERVICE_ROLE_KEY: "super-fallback",
+    OPENROUTER_API_KEY: baseEnv.OPENROUTER_API_KEY,
+  },
   () => {
     const encrypted = encryptSecret("provider-token-value");
     assert.equal(isEncryptedSecret(encrypted), true);
-    assert.equal(isEncryptedSecret("plaintext-refresh-token"), false, "historical plaintext must not be treated as an encrypted envelope");
-    assert.throws(() => decryptSecret("plaintext-refresh-token"), /Unsupported encrypted secret format/);
-    assert.throws(() => decryptSecret(encrypted.replace(/^v1\./, "v9.")), /Unsupported encrypted secret format/, "unknown versions fail closed");
+    assert.equal(
+      isEncryptedSecret("plaintext-refresh-token"),
+      false,
+      "historical plaintext must not be treated as an encrypted envelope",
+    );
+    assert.throws(
+      () => decryptSecret("plaintext-refresh-token"),
+      /Unsupported encrypted secret format/,
+    );
+    assert.throws(
+      () => decryptSecret(encrypted.replace(/^v1\./, "v9.")),
+      /Unsupported encrypted secret format/,
+      "unknown versions fail closed",
+    );
   },
 );
 

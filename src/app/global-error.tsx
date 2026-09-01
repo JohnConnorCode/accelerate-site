@@ -41,7 +41,9 @@ export default function GlobalError({
           <p style={{ color: "rgba(255,255,255,0.6)", marginBottom: "2rem" }}>
             An unexpected error occurred. Please try again or return to the home page.
           </p>
-          <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
+          <div
+            style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}
+          >
             <button
               onClick={reset}
               style={{

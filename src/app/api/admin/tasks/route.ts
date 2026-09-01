@@ -54,17 +54,40 @@ export async function POST(request: NextRequest) {
   const supabase = auth.database;
   const body = await request.json();
 
-  const { title, description, due_date, due_time, priority, related_type, related_id, related_name } = body;
+  const {
+    title,
+    description,
+    due_date,
+    due_time,
+    priority,
+    related_type,
+    related_id,
+    related_name,
+  } = body;
 
   if (!title) {
     return NextResponse.json({ error: "Title is required" }, { status: 400 });
   }
 
   try {
-    const result = await createRevenueTask(supabase, { title, description, dueDate: due_date, dueTime: due_time, priority: ["high", "medium", "low"].includes(priority) ? priority : "medium", relatedType: related_type, relatedId: related_id, relatedName: related_name, source: "manual", actorEmail: auth.user.email || "founder" });
+    const result = await createRevenueTask(supabase, {
+      title,
+      description,
+      dueDate: due_date,
+      dueTime: due_time,
+      priority: ["high", "medium", "low"].includes(priority) ? priority : "medium",
+      relatedType: related_type,
+      relatedId: related_id,
+      relatedName: related_name,
+      source: "manual",
+      actorEmail: auth.user.email || "founder",
+    });
     return NextResponse.json(result);
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Database operation failed" }, { status: 400 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Database operation failed" },
+      { status: 400 },
+    );
   }
 }
 

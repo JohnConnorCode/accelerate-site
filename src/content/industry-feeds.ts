@@ -4,18 +4,17 @@
    signature live-console motif stays consistent and DRY across the site.
    Keyed by the same slug used in /industries/[slug] and the switchboard. */
 
-export type Channel =
-  | "capture" | "book" | "text" | "follow" | "review" | "won" | "paid";
+export type Channel = "capture" | "book" | "text" | "follow" | "review" | "won" | "paid";
 
 /* Each channel carries its own color — same language as the hero ops feed. */
 export const CHANNEL: Record<Channel, { glyph: string; rgb: string }> = {
   capture: { glyph: "◆", rgb: "96,165,250" }, // blue — captured
-  book:    { glyph: "✓", rgb: "190,242,100" }, // lime — booked
-  text:    { glyph: "→", rgb: "34,211,238" },  // cyan — messaged
-  follow:  { glyph: "↻", rgb: "167,139,250" }, // violet — followed up
-  review:  { glyph: "★", rgb: "251,191,36" },  // amber — reviews
-  won:     { glyph: "✦", rgb: "163,230,53" },  // bright lime — deals
-  paid:    { glyph: "＄", rgb: "52,211,153" },  // emerald — money in
+  book: { glyph: "✓", rgb: "190,242,100" }, // lime — booked
+  text: { glyph: "→", rgb: "34,211,238" }, // cyan — messaged
+  follow: { glyph: "↻", rgb: "167,139,250" }, // violet — followed up
+  review: { glyph: "★", rgb: "251,191,36" }, // amber — reviews
+  won: { glyph: "✦", rgb: "163,230,53" }, // bright lime — deals
+  paid: { glyph: "＄", rgb: "52,211,153" }, // emerald — money in
 };
 
 export type FeedEvent = { time: string; channel: Channel; label: string };

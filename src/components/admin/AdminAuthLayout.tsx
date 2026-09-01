@@ -19,12 +19,20 @@ export function AdminAuthLayout({
     <div className="admin-shell grid min-h-screen lg:grid-cols-[minmax(360px,0.8fr)_minmax(520px,1.2fr)]">
       <aside className="admin-auth-brand relative hidden overflow-hidden p-10 lg:flex lg:flex-col lg:justify-between xl:p-14">
         <div className="relative z-10">
-          <p className="font-display text-lg font-semibold tracking-[-0.03em]">{tenant.brand.name}</p>
-          <p className="admin-auth-brand-faint mt-1 font-mono text-[9px] font-semibold uppercase tracking-[0.16em]">Private operations</p>
+          <p className="font-display text-lg font-semibold tracking-[-0.03em]">
+            {tenant.brand.name}
+          </p>
+          <p className="admin-auth-brand-faint mt-1 font-mono text-[9px] font-semibold uppercase tracking-[0.16em]">
+            Private operations
+          </p>
         </div>
         <div className="relative z-10 max-w-md">
-          <p className="admin-auth-brand-faint mb-5 font-mono text-[10px] font-semibold uppercase tracking-[0.15em]">{eyebrow}</p>
-          <h1 className="max-w-[12ch] font-display text-5xl font-semibold leading-[0.98] tracking-[-0.055em] xl:text-6xl">{title}</h1>
+          <p className="admin-auth-brand-faint mb-5 font-mono text-[10px] font-semibold uppercase tracking-[0.15em]">
+            {eyebrow}
+          </p>
+          <h1 className="max-w-[12ch] font-display text-5xl font-semibold leading-[0.98] tracking-[-0.055em] xl:text-6xl">
+            {title}
+          </h1>
           <p className="admin-auth-brand-muted mt-6 max-w-sm text-sm leading-relaxed">{copy}</p>
         </div>
         <div className="admin-auth-brand-faint relative z-10 flex items-center gap-2 text-[11px]">

@@ -21,19 +21,40 @@ export async function POST(request: NextRequest) {
       try {
         const result = await runWithTenantRequestContext(context, async () => {
           const supabase = createServiceRoleClient(context);
-          return withJobRun(supabase, "system-health-snapshot", async () => {
-            const health = await loadOperationalHealth(supabase);
-            const summary = summarizeOperationalHealth(health);
-            return { value: summary, summary };
-          }, healthSnapshotClaimKey());
+          return withJobRun(
+            supabase,
+            "system-health-snapshot",
+            async () => {
+              const health = await loadOperationalHealth(supabase);
+              const summary = summarizeOperationalHealth(health);
+              return { value: summary, summary };
+            },
+            healthSnapshotClaimKey(),
+          );
         });
-        tenants.push({ tenant: context.tenantSlug, status: result.claimed ? "completed" : "skipped", runId: result.runId, summary: result.value });
+        tenants.push({
+          tenant: context.tenantSlug,
+          status: result.claimed ? "completed" : "skipped",
+          runId: result.runId,
+          summary: result.value,
+        });
       } catch (error) {
-        tenants.push({ tenant: context.tenantSlug, status: "failed", error: error instanceof Error ? error.message : "Health snapshot failed" });
+        tenants.push({
+          tenant: context.tenantSlug,
+          status: "failed",
+          error: error instanceof Error ? error.message : "Health snapshot failed",
+        });
       }
     }
-    return NextResponse.json({ success: true, tenants, failed: tenants.filter((tenant) => tenant.status === "failed").length });
+    return NextResponse.json({
+      success: true,
+      tenants,
+      failed: tenants.filter((tenant) => tenant.status === "failed").length,
+    });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Health snapshot failed" }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Health snapshot failed" },
+      { status: 500 },
+    );
   }
 }

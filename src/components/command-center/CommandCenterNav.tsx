@@ -68,7 +68,7 @@ export function CommandCenterNav() {
   // being read rather than what's merely visible somewhere on screen.
   useEffect(() => {
     const els = SECTIONS.map((s) => document.getElementById(s.id)).filter(
-      (el): el is HTMLElement => el !== null
+      (el): el is HTMLElement => el !== null,
     );
     if (els.length === 0) return;
     const observer = new IntersectionObserver(
@@ -76,11 +76,11 @@ export function CommandCenterNav() {
         const visibleEntries = entries.filter((e) => e.isIntersecting);
         if (visibleEntries.length === 0) return;
         const topMost = visibleEntries.reduce((a, b) =>
-          a.boundingClientRect.top < b.boundingClientRect.top ? a : b
+          a.boundingClientRect.top < b.boundingClientRect.top ? a : b,
         );
         setActive(topMost.target.id);
       },
-      { rootMargin: "-35% 0px -55% 0px", threshold: 0 }
+      { rootMargin: "-35% 0px -55% 0px", threshold: 0 },
     );
     els.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
@@ -138,10 +138,15 @@ export function CommandCenterNav() {
           </div>
           <Link
             href="/contact"
-            onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "command_center_nav" })}
+            onClick={() =>
+              trackConversion("Strategy Call CTA Clicked", { location: "command_center_nav" })
+            }
             className="btn btn-inv ml-1 shrink-0 whitespace-nowrap !px-4 !py-2.5 !text-[10px] sm:!px-5 sm:!py-3"
           >
-            <span>Book</span> <span className="arw hidden sm:inline-block" aria-hidden="true">→</span>
+            <span>Book</span>{" "}
+            <span className="arw hidden sm:inline-block" aria-hidden="true">
+              →
+            </span>
           </Link>
         </motion.nav>
       )}

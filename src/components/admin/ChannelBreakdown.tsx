@@ -12,13 +12,7 @@ interface ChannelBreakdownProps {
   channels: Channel[];
 }
 
-const barColors = [
-  "bg-blue-500",
-  "bg-green-500",
-  "bg-yellow-500",
-  "bg-purple-500",
-  "bg-cyan-500",
-];
+const barColors = ["bg-blue-500", "bg-green-500", "bg-yellow-500", "bg-purple-500", "bg-cyan-500"];
 
 export function ChannelBreakdown({ channels }: ChannelBreakdownProps) {
   const maxCount = Math.max(...channels.map((c) => c.count), 1);
@@ -26,9 +20,7 @@ export function ChannelBreakdown({ channels }: ChannelBreakdownProps) {
 
   return (
     <GlassCard hover="none">
-      <h3 className="font-display text-sm font-semibold text-white-primary mb-4">
-        Lead Sources
-      </h3>
+      <h3 className="font-display text-sm font-semibold text-white-primary mb-4">Lead Sources</h3>
       <div className="space-y-3">
         {channels.map((channel, i) => {
           const width = (channel.count / maxCount) * 100;

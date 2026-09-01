@@ -41,6 +41,9 @@ jobs:
       - name: Lint
         run: npm run lint -- --max-warnings=0
 
+      - name: Check formatting
+        run: npm run format:check
+
       - name: Run core contract suite
         run: npm run test:core
 

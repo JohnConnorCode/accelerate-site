@@ -4,15 +4,20 @@ import { recordAudit } from "./audit";
 
 export type AgentFeedbackRating = "helpful" | "not_helpful";
 
-export async function recordAgentFeedback(supabase: SupabaseClient, input: { runId: string; rating: AgentFeedbackRating; actorEmail: string }) {
+export async function recordAgentFeedback(
+  supabase: SupabaseClient,
+  input: { runId: string; rating: AgentFeedbackRating; actorEmail: string },
+) {
   const { data: run, error: runError } = await supabase
     .from("agent_runs")
     .select("id,status,actor_email,tool_names")
     .eq("id", input.runId)
     .maybeSingle();
   if (runError) throw new Error(runError.message);
-  if (!run || run.status !== "completed") throw new Error("Only a completed agent response can receive feedback");
-  if (run.actor_email && run.actor_email !== input.actorEmail) throw new Error("This agent run belongs to another operator");
+  if (!run || run.status !== "completed")
+    throw new Error("Only a completed agent response can receive feedback");
+  if (run.actor_email && run.actor_email !== input.actorEmail)
+    throw new Error("This agent run belongs to another operator");
 
   const { data: existing, error: existingError } = await supabase
     .from("agent_run_events")
@@ -51,17 +56,25 @@ export async function loadAgentLearningSignals(supabase: SupabaseClient): Promis
     .gte("created_at", since)
     .order("created_at", { ascending: false })
     .limit(100);
-  if (error || !events?.length) return "No founder feedback has been recorded yet. Keep following the grounded tool and confirmation rules.";
+  if (error || !events?.length)
+    return "No founder feedback has been recorded yet. Keep following the grounded tool and confirmation rules.";
 
   const runIds = [...new Set(events.map((event) => event.run_id))];
-  const { data: runs, error: runsError } = await supabase.from("agent_runs").select("id,tool_names").in("id", runIds);
-  if (runsError || !runs?.length) return "Founder feedback exists, but no safe aggregate is available. Keep following the grounded tool and confirmation rules.";
+  const { data: runs, error: runsError } = await supabase
+    .from("agent_runs")
+    .select("id,tool_names")
+    .in("id", runIds);
+  if (runsError || !runs?.length)
+    return "Founder feedback exists, but no safe aggregate is available. Keep following the grounded tool and confirmation rules.";
 
-  const toolsByRun = new Map(runs.map((run) => [run.id, Array.isArray(run.tool_names) ? run.tool_names : []]));
+  const toolsByRun = new Map(
+    runs.map((run) => [run.id, Array.isArray(run.tool_names) ? run.tool_names : []]),
+  );
   const counts = new Map<string, { helpful: number; notHelpful: number }>();
   for (const event of events) {
     const output = event.output as { rating?: unknown } | null;
-    const rating = output?.rating === "helpful" || output?.rating === "not_helpful" ? output.rating : null;
+    const rating =
+      output?.rating === "helpful" || output?.rating === "not_helpful" ? output.rating : null;
     if (!rating) continue;
     for (const tool of toolsByRun.get(event.run_id) ?? []) {
       const current = counts.get(tool) ?? { helpful: 0, notHelpful: 0 };

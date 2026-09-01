@@ -24,9 +24,9 @@ rediscovering architecture or inventing new write paths.
 9. `docs/NAVIGATION-RUNTIME-CONTRACT.md` before changing links, history,
    scroll restoration, route focus, loading states, or page transitions.
 10. `docs/ADMIN-DEMO-CONTRACT.md` before changing either demo, the admin runtime,
-   admin navigation, demo fixtures, or demo QA.
+    admin navigation, demo fixtures, or demo QA.
 11. `docs/WORK-MOTION-CONTRACT.md` before changing Work pages, public reveal
-   primitives, scroll behavior, or portfolio animation QA.
+    primitives, scroll behavior, or portfolio animation QA.
 
 Run `npm run verify:agent-contract` before implementation. If it fails, repair
 the contract or card detail before changing product behavior.

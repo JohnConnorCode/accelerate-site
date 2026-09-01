@@ -31,7 +31,8 @@ const sourceRecordId = randomUUID();
 const failures: string[] = [];
 
 function check(label: string, condition: boolean, detail?: unknown) {
-  if (!condition) failures.push(detail === undefined ? label : `${label} (got: ${JSON.stringify(detail)})`);
+  if (!condition)
+    failures.push(detail === undefined ? label : `${label} (got: ${JSON.stringify(detail)})`);
   return condition;
 }
 
@@ -41,14 +42,20 @@ function check(label: string, condition: boolean, detail?: unknown) {
  * for manual inspection can be torn down without hand-written SQL.
  */
 async function purge(supabase: ReturnType<typeof createServiceRoleClient>, companyId?: string) {
-  const { data: opportunities } = await supabase.from("opportunities").select("id").like("email", `${TEST_EMAIL_PREFIX}%`);
+  const { data: opportunities } = await supabase
+    .from("opportunities")
+    .select("id")
+    .like("email", `${TEST_EMAIL_PREFIX}%`);
   for (const opportunity of opportunities ?? []) {
     for (const table of ["tasks", "activities", "stage_events"]) {
       const { error } = await supabase.from(table).delete().eq("opportunity_id", opportunity.id);
       if (error) throw new Error(`cleanup ${table}: ${error.message}`);
     }
   }
-  for (const [table, column, pattern] of [["opportunities", "email", `${TEST_EMAIL_PREFIX}%`], ["contacts", "primary_email", `${TEST_EMAIL_PREFIX}%`]] as const) {
+  for (const [table, column, pattern] of [
+    ["opportunities", "email", `${TEST_EMAIL_PREFIX}%`],
+    ["contacts", "primary_email", `${TEST_EMAIL_PREFIX}%`],
+  ] as const) {
     const { error } = await supabase.from(table).delete().like(column, pattern);
     if (error) throw new Error(`cleanup ${table}: ${error.message}`);
   }
@@ -64,8 +71,21 @@ async function main() {
 
   if (cleanupOnly) {
     await purge(supabase);
-    const { data: leftover } = await supabase.from("contacts").select("id").like("primary_email", `${TEST_EMAIL_PREFIX}%`);
-    console.log(JSON.stringify({ mode: "cleanup", leftoverContacts: leftover?.length ?? 0, result: (leftover?.length ?? 0) === 0 ? "clean" : "incomplete" }, null, 2));
+    const { data: leftover } = await supabase
+      .from("contacts")
+      .select("id")
+      .like("primary_email", `${TEST_EMAIL_PREFIX}%`);
+    console.log(
+      JSON.stringify(
+        {
+          mode: "cleanup",
+          leftoverContacts: leftover?.length ?? 0,
+          result: (leftover?.length ?? 0) === 0 ? "clean" : "incomplete",
+        },
+        null,
+        2,
+      ),
+    );
     if (leftover?.length) process.exit(1);
     return;
   }
@@ -74,10 +94,14 @@ async function main() {
   // that would mean a previous run failed to clean up, and deleting now could
   // remove something a human is still looking at.
   const { data: preexisting, error: preError } = await supabase
-    .from("contacts").select("id,primary_email").like("primary_email", `${TEST_EMAIL_PREFIX}%`);
+    .from("contacts")
+    .select("id,primary_email")
+    .like("primary_email", `${TEST_EMAIL_PREFIX}%`);
   if (preError) throw new Error(`Could not check for prior verification rows: ${preError.message}`);
   if (preexisting?.length) {
-    throw new Error(`Found ${preexisting.length} leftover verification contact(s). Inspect and remove them before rerunning: ${preexisting.map((row) => row.primary_email).join(", ")}`);
+    throw new Error(
+      `Found ${preexisting.length} leftover verification contact(s). Inspect and remove them before rerunning: ${preexisting.map((row) => row.primary_email).join(", ")}`,
+    );
   }
 
   const input = {
@@ -94,19 +118,38 @@ async function main() {
 
   // --- First capture -------------------------------------------------------
   const first = await ingestInboundLead(supabase, input);
-  check("first capture reports a new opportunity, not an existing one", first.existing === false, first.existing);
+  check(
+    "first capture reports a new opportunity, not an existing one",
+    first.existing === false,
+    first.existing,
+  );
   const opportunityId = first.opportunity.id;
   const contactId = first.identity.contact.id;
   const companyId = first.identity.company.id;
 
-  check("opportunity starts in the new stage", first.opportunity.stage === "new", first.opportunity.stage);
-  check("opportunity carries a next action", Boolean(first.opportunity.next_action), first.opportunity.next_action);
+  check(
+    "opportunity starts in the new stage",
+    first.opportunity.stage === "new",
+    first.opportunity.stage,
+  );
+  check(
+    "opportunity carries a next action",
+    Boolean(first.opportunity.next_action),
+    first.opportunity.next_action,
+  );
   check("opportunity links to the canonical contact", first.opportunity.contact_id === contactId);
   check("opportunity links to the canonical company", first.opportunity.company_id === companyId);
-  check("attribution is preserved from utm", first.opportunity.utm_campaign === `loop-one-${runId}`, first.opportunity.utm_campaign);
+  check(
+    "attribution is preserved from utm",
+    first.opportunity.utm_campaign === `loop-one-${runId}`,
+    first.opportunity.utm_campaign,
+  );
 
   async function countWhere(table: string, column: string, value: string) {
-    const { count, error } = await supabase.from(table).select("*", { count: "exact", head: true }).eq(column, value);
+    const { count, error } = await supabase
+      .from(table)
+      .select("*", { count: "exact", head: true })
+      .eq(column, value);
     if (error) throw new Error(`${table}: ${error.message}`);
     return count ?? 0;
   }
@@ -116,7 +159,10 @@ async function main() {
   // on the activity types rather than a raw total, so this stays meaningful if
   // another receipt is added later.
   async function activityTypes() {
-    const { data, error } = await supabase.from("activities").select("activity_type").eq("opportunity_id", opportunityId);
+    const { data, error } = await supabase
+      .from("activities")
+      .select("activity_type")
+      .eq("opportunity_id", opportunityId);
     if (error) throw new Error(`activities: ${error.message}`);
     const tally: Record<string, number> = {};
     for (const row of data ?? []) tally[row.activity_type] = (tally[row.activity_type] ?? 0) + 1;
@@ -132,12 +178,23 @@ async function main() {
   const afterFirst = await childCounts();
   check("one stage event recorded", afterFirst.stageEvents === 1, afterFirst.stageEvents);
   check("one follow-up task created", afterFirst.tasks === 1, afterFirst.tasks);
-  check("one form submission activity recorded", afterFirst.activities.form_submission === 1, afterFirst.activities);
-  check("one task created activity recorded", afterFirst.activities.task_created === 1, afterFirst.activities);
+  check(
+    "one form submission activity recorded",
+    afterFirst.activities.form_submission === 1,
+    afterFirst.activities,
+  );
+  check(
+    "one task created activity recorded",
+    afterFirst.activities.task_created === 1,
+    afterFirst.activities,
+  );
 
   // --- Replay: the same submission must not duplicate anything -------------
   const second = await ingestInboundLead(supabase, input);
-  check("replay resolves to the same opportunity", second.opportunity.id === opportunityId, { first: opportunityId, second: second.opportunity.id });
+  check("replay resolves to the same opportunity", second.opportunity.id === opportunityId, {
+    first: opportunityId,
+    second: second.opportunity.id,
+  });
   check("replay resolves to the same contact", second.identity.contact.id === contactId);
   check("replay reports the opportunity as existing", second.existing === true, second.existing);
 
@@ -145,9 +202,21 @@ async function main() {
     ...(await childCounts()),
     contacts: await countWhere("contacts", "primary_email", email),
   };
-  check("replay does not duplicate the stage event", afterReplay.stageEvents === 1, afterReplay.stageEvents);
-  check("replay does not duplicate the form submission activity", afterReplay.activities.form_submission === 1, afterReplay.activities);
-  check("replay does not duplicate the task created activity", afterReplay.activities.task_created === 1, afterReplay.activities);
+  check(
+    "replay does not duplicate the stage event",
+    afterReplay.stageEvents === 1,
+    afterReplay.stageEvents,
+  );
+  check(
+    "replay does not duplicate the form submission activity",
+    afterReplay.activities.form_submission === 1,
+    afterReplay.activities,
+  );
+  check(
+    "replay does not duplicate the task created activity",
+    afterReplay.activities.task_created === 1,
+    afterReplay.activities,
+  );
   check("replay does not duplicate the open task", afterReplay.tasks === 1, afterReplay.tasks);
   check("replay does not duplicate the contact", afterReplay.contacts === 1, afterReplay.contacts);
 
@@ -160,56 +229,113 @@ async function main() {
   const ambiguousEmail = `${TEST_EMAIL_PREFIX}+amb-${runId}@example.invalid`;
   for (let i = 0; i < 2; i += 1) {
     const { error } = await supabase.from("opportunities").insert({
-      name: `Ambiguity probe ${runId} ${i}`, email: ambiguousEmail, stage: "new", pipeline: "sales",
-      source: "verification", source_detail: "ambiguity-probe",
+      name: `Ambiguity probe ${runId} ${i}`,
+      email: ambiguousEmail,
+      stage: "new",
+      pipeline: "sales",
+      source: "verification",
+      source_detail: "ambiguity-probe",
     });
     if (error) throw new Error(`ambiguity probe insert: ${error.message}`);
   }
 
   let ingestThrew = "";
   try {
-    await ingestInboundLead(supabase, { ...input, email: ambiguousEmail, sourceRecordId: randomUUID() });
+    await ingestInboundLead(supabase, {
+      ...input,
+      email: ambiguousEmail,
+      sourceRecordId: randomUUID(),
+    });
   } catch (error) {
     ingestThrew = error instanceof Error ? error.message : String(error);
   }
-  check("ambiguous identity makes canonical ingestion fail rather than guess", ingestThrew.includes("Multiple open opportunities"), ingestThrew || "(did not throw)");
+  check(
+    "ambiguous identity makes canonical ingestion fail rather than guess",
+    ingestThrew.includes("Multiple open opportunities"),
+    ingestThrew || "(did not throw)",
+  );
 
   const { error: degradedAuditError } = await supabase.from("audit_log").insert({
-    actor_email: "system", action: "inbound.canonical_failed", entity_type: "contact_submission",
-    entity_id: null, source: "webhook", metadata: { inbound_source: "contact_form", error: ingestThrew, verification_run: runId },
+    actor_email: "system",
+    action: "inbound.canonical_failed",
+    entity_type: "contact_submission",
+    entity_id: null,
+    source: "webhook",
+    metadata: { inbound_source: "contact_form", error: ingestThrew, verification_run: runId },
   });
-  check("the degraded-capture audit receipt is accepted", !degradedAuditError, degradedAuditError?.message);
+  check(
+    "the degraded-capture audit receipt is accepted",
+    !degradedAuditError,
+    degradedAuditError?.message,
+  );
 
-  const { data: degradedNotice, error: degradedNoticeError } = await supabase.from("admin_notifications").insert({
-    type: "new_contact", title: `Verification ${runId} (needs manual entry)`,
-    description: "Canonical capture failed", link: "/admin/today", priority: "urgent",
-  }).select("id").single();
-  check("the degraded-capture operator notification is accepted", !degradedNoticeError, degradedNoticeError?.message);
+  const { data: degradedNotice, error: degradedNoticeError } = await supabase
+    .from("admin_notifications")
+    .insert({
+      type: "new_contact",
+      title: `Verification ${runId} (needs manual entry)`,
+      description: "Canonical capture failed",
+      link: "/admin/today",
+      priority: "urgent",
+    })
+    .select("id")
+    .single();
+  check(
+    "the degraded-capture operator notification is accepted",
+    !degradedNoticeError,
+    degradedNoticeError?.message,
+  );
 
   // --- Cleanup -------------------------------------------------------------
   let cleanup = `skipped (--keep). Opportunity ${opportunityId} is left in place; run npm run verify:inbound-canonical -- --cleanup to remove it.`;
   if (!keep) {
     await purge(supabase, companyId);
-    if (degradedNotice?.id) await supabase.from("admin_notifications").delete().eq("id", degradedNotice.id);
+    if (degradedNotice?.id)
+      await supabase.from("admin_notifications").delete().eq("id", degradedNotice.id);
 
-    const { count: strayOpportunities } = await supabase.from("opportunities").select("*", { count: "exact", head: true }).like("email", `${TEST_EMAIL_PREFIX}%`);
-    check("cleanup removed every verification opportunity", (strayOpportunities ?? 0) === 0, strayOpportunities);
-    const { data: leftover } = await supabase.from("contacts").select("id").like("primary_email", `${TEST_EMAIL_PREFIX}%`);
-    check("cleanup removed every verification contact", (leftover?.length ?? 0) === 0, leftover?.length);
+    const { count: strayOpportunities } = await supabase
+      .from("opportunities")
+      .select("*", { count: "exact", head: true })
+      .like("email", `${TEST_EMAIL_PREFIX}%`);
+    check(
+      "cleanup removed every verification opportunity",
+      (strayOpportunities ?? 0) === 0,
+      strayOpportunities,
+    );
+    const { data: leftover } = await supabase
+      .from("contacts")
+      .select("id")
+      .like("primary_email", `${TEST_EMAIL_PREFIX}%`);
+    check(
+      "cleanup removed every verification contact",
+      (leftover?.length ?? 0) === 0,
+      leftover?.length,
+    );
     cleanup = "removed";
   }
 
-  console.log(JSON.stringify({
-    runId,
-    opportunityId,
-    checks: {
-      firstCapture: afterFirst,
-      afterReplay: { stageEvents: afterReplay.stageEvents, activities: afterReplay.activities, tasks: afterReplay.tasks, contacts: afterReplay.contacts },
-    },
-    cleanup,
-    note: "Audit rows are intentionally retained; audit history is immutable.",
-    result: failures.length ? "failed" : "passed",
-  }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        runId,
+        opportunityId,
+        checks: {
+          firstCapture: afterFirst,
+          afterReplay: {
+            stageEvents: afterReplay.stageEvents,
+            activities: afterReplay.activities,
+            tasks: afterReplay.tasks,
+            contacts: afterReplay.contacts,
+          },
+        },
+        cleanup,
+        note: "Audit rows are intentionally retained; audit history is immutable.",
+        result: failures.length ? "failed" : "passed",
+      },
+      null,
+      2,
+    ),
+  );
 
   if (failures.length) {
     console.error(`\nInbound canonical verification failed ${failures.length} check(s):`);
@@ -219,7 +345,12 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error("Inbound canonical verification errored:", error instanceof Error ? error.message : error);
-  console.error(`Run id ${runId} may have left rows behind. Look for ${TEST_EMAIL_PREFIX}% in contacts.`);
+  console.error(
+    "Inbound canonical verification errored:",
+    error instanceof Error ? error.message : error,
+  );
+  console.error(
+    `Run id ${runId} may have left rows behind. Look for ${TEST_EMAIL_PREFIX}% in contacts.`,
+  );
   process.exit(1);
 });

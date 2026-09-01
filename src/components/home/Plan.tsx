@@ -35,7 +35,9 @@ export function Plan() {
               You leave the first session with a written plan.
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 18 }}>
-              Thirty minutes. You describe how the business runs and what you want to change. We identify where AI or automation fits, recommend the right kind of solution, and put the next steps in writing. Yours to keep either way.
+              Thirty minutes. You describe how the business runs and what you want to change. We
+              identify where AI or automation fits, recommend the right kind of solution, and put
+              the next steps in writing. Yours to keep either way.
             </Reveal>
             <ul className="plan-list">
               {/* Each item gets its own <Reveal> — its own scroll trigger —
@@ -61,7 +63,10 @@ export function Plan() {
                 onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "plan" })}
                 className="btn"
               >
-                Book a free strategy session <span className="arw" aria-hidden="true">→</span>
+                Book a free strategy session{" "}
+                <span className="arw" aria-hidden="true">
+                  →
+                </span>
               </Link>
             </Reveal>
           </div>

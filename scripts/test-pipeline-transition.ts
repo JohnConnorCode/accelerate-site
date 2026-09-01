@@ -142,19 +142,73 @@ function memorySupabase(rows: Record<string, Row[]>, onRead?: ReadHook) {
 }
 
 async function run() {
-  const pipelineRoute = readFileSync(new URL("../src/app/api/admin/revenue-os/pipeline/route.ts", import.meta.url), "utf8");
-  assert.match(pipelineRoute, /createOpportunity\(/, "Pipeline API must use the canonical creation service.");
-  assert.match(pipelineRoute, /updateOpportunityDetails\(/, "Pipeline API must use the canonical detail-update service.");
-  assert.doesNotMatch(pipelineRoute, /from\("opportunities"\)\.insert\(/, "Pipeline API must not create opportunities directly.");
-  assert.doesNotMatch(pipelineRoute, /from\("opportunities"\)\.update\(/, "Pipeline API must not update opportunities directly.");
+  const pipelineRoute = readFileSync(
+    new URL("../src/app/api/admin/revenue-os/pipeline/route.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(
+    pipelineRoute,
+    /createOpportunity\(/,
+    "Pipeline API must use the canonical creation service.",
+  );
+  assert.match(
+    pipelineRoute,
+    /updateOpportunityDetails\(/,
+    "Pipeline API must use the canonical detail-update service.",
+  );
+  assert.doesNotMatch(
+    pipelineRoute,
+    /from\("opportunities"\)\.insert\(/,
+    "Pipeline API must not create opportunities directly.",
+  );
+  assert.doesNotMatch(
+    pipelineRoute,
+    /from\("opportunities"\)\.update\(/,
+    "Pipeline API must not update opportunities directly.",
+  );
 
   const db = memorySupabase({
     opportunities: [
-      { id: "o1", stage: "qualified", probability: 40, won_value: 0, estimated_value: 7500, loss_reason: null },
-      { id: "o2", stage: "qualified", probability: 40, won_value: 0, estimated_value: 2500, loss_reason: null },
-      { id: "o3", stage: "lost", probability: 0, won_value: 0, estimated_value: 0, loss_reason: "legacy-close" },
-      { id: "o4", stage: "qualified", probability: 40, won_value: 0, estimated_value: 2000, loss_reason: null },
-      { id: "o5", stage: "qualified", probability: 40, won_value: 0, estimated_value: 1250, loss_reason: null },
+      {
+        id: "o1",
+        stage: "qualified",
+        probability: 40,
+        won_value: 0,
+        estimated_value: 7500,
+        loss_reason: null,
+      },
+      {
+        id: "o2",
+        stage: "qualified",
+        probability: 40,
+        won_value: 0,
+        estimated_value: 2500,
+        loss_reason: null,
+      },
+      {
+        id: "o3",
+        stage: "lost",
+        probability: 0,
+        won_value: 0,
+        estimated_value: 0,
+        loss_reason: "legacy-close",
+      },
+      {
+        id: "o4",
+        stage: "qualified",
+        probability: 40,
+        won_value: 0,
+        estimated_value: 2000,
+        loss_reason: null,
+      },
+      {
+        id: "o5",
+        stage: "qualified",
+        probability: 40,
+        won_value: 0,
+        estimated_value: 1250,
+        loss_reason: null,
+      },
     ],
     stage_events: [],
     audit_log: [],
@@ -174,9 +228,15 @@ async function run() {
   assert.equal(rows(db, "stage_events")[0]?.from_stage, "qualified");
   assert.equal(rows(db, "stage_events")[0]?.to_stage, "lost");
   assert.equal(rows(db, "stage_events")[0]?.actor_email, "founder@example.com");
-  assert.equal((rows(db, "stage_events")[0]?.metadata as { loss_reason?: string } | undefined)?.loss_reason, "Duplicate lead source");
+  assert.equal(
+    (rows(db, "stage_events")[0]?.metadata as { loss_reason?: string } | undefined)?.loss_reason,
+    "Duplicate lead source",
+  );
   assert.equal(rows(db, "audit_log").length, 1);
-  assert.equal((rows(db, "audit_log")[0] as { action?: string } | undefined)?.action, "opportunity.stage_changed");
+  assert.equal(
+    (rows(db, "audit_log")[0] as { action?: string } | undefined)?.action,
+    "opportunity.stage_changed",
+  );
 
   await assert.rejects(
     () =>
@@ -250,15 +310,27 @@ async function run() {
     "Invalid transition must be blocked.",
   );
 
-  const staleDb = memorySupabase({
-    opportunities: [{ id: "o6", stage: "qualified", probability: 40, won_value: 0, estimated_value: 1500, loss_reason: null }],
-    stage_events: [],
-    audit_log: [],
-  }, ({ table, rawRows }) => {
-    if (table !== "opportunities") return;
-    const row = rawRows.find((entry) => entry.id === "o6");
-    if (row) row.stage = "won";
-  });
+  const staleDb = memorySupabase(
+    {
+      opportunities: [
+        {
+          id: "o6",
+          stage: "qualified",
+          probability: 40,
+          won_value: 0,
+          estimated_value: 1500,
+          loss_reason: null,
+        },
+      ],
+      stage_events: [],
+      audit_log: [],
+    },
+    ({ table, rawRows }) => {
+      if (table !== "opportunities") return;
+      const row = rawRows.find((entry) => entry.id === "o6");
+      if (row) row.stage = "won";
+    },
+  );
 
   await assert.rejects(
     () =>
@@ -287,7 +359,9 @@ async function run() {
   );
 
   assert.equal(
-    transitionStatusFromError(new Error("The opportunity changed while you were editing it. Refresh and try again.")),
+    transitionStatusFromError(
+      new Error("The opportunity changed while you were editing it. Refresh and try again."),
+    ),
     409,
     "Transition failures for optimistic concurrency map to 409.",
   );
@@ -297,19 +371,21 @@ async function run() {
     "Other transition failures map to 400 for bad request.",
   );
 
-  console.log(JSON.stringify({
-    checks: [
-      "loss reason is required for lost",
-      "reopen policy blocks by default",
-      "reopen requires reason",
-      "terminal reopen is explicitly allowed with reason",
-      "legacy stage input is canonicalized",
-      "invalid transition is rejected",
-      "optimistic concurrency is detected",
-      "unknown input stage is rejected",
-      "transition error mapping returns 409 for stale writes",
-    ],
-  }));
+  console.log(
+    JSON.stringify({
+      checks: [
+        "loss reason is required for lost",
+        "reopen policy blocks by default",
+        "reopen requires reason",
+        "terminal reopen is explicitly allowed with reason",
+        "legacy stage input is canonicalized",
+        "invalid transition is rejected",
+        "optimistic concurrency is detected",
+        "unknown input stage is rejected",
+        "transition error mapping returns 409 for stale writes",
+      ],
+    }),
+  );
 }
 
 run().catch((error) => {

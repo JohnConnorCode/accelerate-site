@@ -51,7 +51,7 @@ export function ClientDetail({ client, onUpdate }: ClientDetailProps) {
           { label: "Access credentials shared", done: false },
           { label: "Systems integrated", done: false },
           { label: "First deliverable sent", done: false },
-        ]
+        ],
   );
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -79,7 +79,7 @@ export function ClientDetail({ client, onUpdate }: ClientDetailProps) {
 
   const toggleChecklistItem = (idx: number) => {
     setChecklist((prev) =>
-      prev.map((item, i) => (i === idx ? { ...item, done: !item.done } : item))
+      prev.map((item, i) => (i === idx ? { ...item, done: !item.done } : item)),
     );
   };
 
@@ -119,7 +119,9 @@ export function ClientDetail({ client, onUpdate }: ClientDetailProps) {
           </div>
 
           <div>
-            <label className="mb-1 block text-xs text-[var(--admin-muted)]">Monthly Value (MRR)</label>
+            <label className="mb-1 block text-xs text-[var(--admin-muted)]">
+              Monthly Value (MRR)
+            </label>
             <div className="relative">
               <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--admin-muted)]" />
               <input
@@ -178,9 +180,17 @@ export function ClientDetail({ client, onUpdate }: ClientDetailProps) {
       <AdminSurface padding="md">
         <h4 className="admin-eyebrow mb-3">Contact information</h4>
         <div className="space-y-1 text-sm text-[var(--admin-ink)]">
-          <p><span className="text-[var(--admin-muted)]">Name:</span> {client.contact_name}</p>
-          <p><span className="text-[var(--admin-muted)]">Email:</span> {client.contact_email}</p>
-          {client.contact_phone && <p><span className="text-[var(--admin-muted)]">Phone:</span> {client.contact_phone}</p>}
+          <p>
+            <span className="text-[var(--admin-muted)]">Name:</span> {client.contact_name}
+          </p>
+          <p>
+            <span className="text-[var(--admin-muted)]">Email:</span> {client.contact_email}
+          </p>
+          {client.contact_phone && (
+            <p>
+              <span className="text-[var(--admin-muted)]">Phone:</span> {client.contact_phone}
+            </p>
+          )}
         </div>
       </AdminSurface>
 
@@ -217,7 +227,9 @@ export function ClientDetail({ client, onUpdate }: ClientDetailProps) {
                 ) : (
                   <Circle className="h-4 w-4 shrink-0 text-[var(--admin-muted)]" />
                 )}
-                <span className={`text-sm ${item.done ? "text-[var(--admin-muted)] line-through" : "text-[var(--admin-ink)]"}`}>
+                <span
+                  className={`text-sm ${item.done ? "text-[var(--admin-muted)] line-through" : "text-[var(--admin-ink)]"}`}
+                >
                   {item.label}
                 </span>
               </button>
@@ -242,11 +254,7 @@ export function ClientDetail({ client, onUpdate }: ClientDetailProps) {
       </div>
 
       {/* Follow-up Task */}
-      <TaskQuickAdd
-        relatedType="client"
-        relatedId={client.id}
-        relatedName={client.contact_name}
-      />
+      <TaskQuickAdd relatedType="client" relatedId={client.id} relatedName={client.contact_name} />
 
       {toast && (
         <Toast

@@ -1,8 +1,7 @@
 import type { NextConfig } from "next";
 import createMDX from "@next/mdx";
 
-const rawDeploymentId = process.env.NEXT_DEPLOYMENT_ID
-  || process.env.VERCEL_GIT_COMMIT_SHA;
+const rawDeploymentId = process.env.NEXT_DEPLOYMENT_ID || process.env.VERCEL_GIT_COMMIT_SHA;
 // Vercel custom deployment IDs for prebuilt output are user-managed values:
 // they cannot use Vercel's reserved `dpl_` prefix and are capped at 32 chars.
 const deploymentId = rawDeploymentId?.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 32);
@@ -88,10 +87,7 @@ const nextConfig: NextConfig = {
 const withMDX = createMDX({
   options: {
     remarkPlugins: ["remark-gfm"],
-    rehypePlugins: [
-      "rehype-slug",
-      ["rehype-autolink-headings", { behavior: "wrap" }],
-    ],
+    rehypePlugins: ["rehype-slug", ["rehype-autolink-headings", { behavior: "wrap" }]],
   },
 });
 

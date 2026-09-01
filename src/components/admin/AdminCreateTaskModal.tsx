@@ -54,61 +54,70 @@ export function AdminCreateTaskModal() {
   };
 
   return (
-    <AdminDialog open={open} onClose={close} title="Create task" labelledBy="admin-task-title" maxWidth="sm">
-            <AdminSurface padding="lg" className="admin-dialog-surface">
-              <div className="mb-5 flex items-start justify-between gap-4">
-                <div>
-                  <p className="admin-eyebrow">Quick create</p>
-                  <h2 id="admin-task-title" className="admin-dialog-title">Add a follow-up</h2>
-                </div>
-                <button
-                  type="button"
-                  onClick={close}
-                  className="admin-icon-button"
-                  aria-label="Close"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-              <form className="space-y-4" onSubmit={submit}>
-                <Input
-                  label="What needs to happen?"
-                  value={title}
-                  onChange={(event) => setTitle(event.target.value)}
-                  placeholder="Call back, send proposal, review submission…"
-                  autoFocus
-                />
-                <div className="grid grid-cols-2 gap-3">
-                  <label className="admin-field-label">
-                    <span><Calendar className="h-3.5 w-3.5" /> Due date</span>
-                    <input
-                      type="date"
-                      value={dueDate}
-                      onChange={(event) => setDueDate(event.target.value)}
-                      className="admin-field"
-                    />
-                  </label>
-                  <label className="admin-field-label">
-                    <span><Flag className="h-3.5 w-3.5" /> Priority</span>
-                    <select
-                      value={priority}
-                      onChange={(event) => setPriority(event.target.value)}
-                      className="admin-field"
-                    >
-                      <option value="high">High</option>
-                      <option value="medium">Medium</option>
-                      <option value="low">Low</option>
-                    </select>
-                  </label>
-                </div>
-                <div className="flex justify-end gap-2 pt-1">
-                  <Button type="button" variant="ghost" size="sm" onClick={close}>Cancel</Button>
-                  <Button type="submit" size="sm" disabled={saving || !title.trim()}>
-                    {saving ? "Adding…" : "Add task"}
-                  </Button>
-                </div>
-              </form>
-            </AdminSurface>
+    <AdminDialog
+      open={open}
+      onClose={close}
+      title="Create task"
+      labelledBy="admin-task-title"
+      maxWidth="sm"
+    >
+      <AdminSurface padding="lg" className="admin-dialog-surface">
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div>
+            <p className="admin-eyebrow">Quick create</p>
+            <h2 id="admin-task-title" className="admin-dialog-title">
+              Add a follow-up
+            </h2>
+          </div>
+          <button type="button" onClick={close} className="admin-icon-button" aria-label="Close">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <form className="space-y-4" onSubmit={submit}>
+          <Input
+            label="What needs to happen?"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder="Call back, send proposal, review submission…"
+            autoFocus
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <label className="admin-field-label">
+              <span>
+                <Calendar className="h-3.5 w-3.5" /> Due date
+              </span>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(event) => setDueDate(event.target.value)}
+                className="admin-field"
+              />
+            </label>
+            <label className="admin-field-label">
+              <span>
+                <Flag className="h-3.5 w-3.5" /> Priority
+              </span>
+              <select
+                value={priority}
+                onChange={(event) => setPriority(event.target.value)}
+                className="admin-field"
+              >
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </label>
+          </div>
+          <div className="flex justify-end gap-2 pt-1">
+            <Button type="button" variant="ghost" size="sm" onClick={close}>
+              Cancel
+            </Button>
+            <Button type="submit" size="sm" disabled={saving || !title.trim()}>
+              {saving ? "Adding…" : "Add task"}
+            </Button>
+          </div>
+        </form>
+      </AdminSurface>
     </AdminDialog>
   );
 }

@@ -4,13 +4,7 @@
    Category colors reuse the CHANNEL rgb language from industry-feeds.ts so the
    catalog reads as the same system as the ops console. */
 
-export type CapabilityCategory =
-  | "capture"
-  | "organize"
-  | "act"
-  | "learn"
-  | "connect"
-  | "govern";
+export type CapabilityCategory = "capture" | "organize" | "act" | "learn" | "connect" | "govern";
 
 export interface CategoryMeta {
   id: CapabilityCategory;
@@ -21,12 +15,42 @@ export interface CategoryMeta {
 }
 
 export const CATEGORY_META: CategoryMeta[] = [
-  { id: "capture", label: "Capture", blurb: "It sees what happens.", glyph: "◆", rgb: "96,165,250" },
-  { id: "organize", label: "Organize", blurb: "It files it correctly.", glyph: "▤", rgb: "167,139,250" },
+  {
+    id: "capture",
+    label: "Capture",
+    blurb: "It sees what happens.",
+    glyph: "◆",
+    rgb: "96,165,250",
+  },
+  {
+    id: "organize",
+    label: "Organize",
+    blurb: "It files it correctly.",
+    glyph: "▤",
+    rgb: "167,139,250",
+  },
   { id: "act", label: "Act", blurb: "It does the work and waits.", glyph: "✦", rgb: "163,230,53" },
-  { id: "learn", label: "Learn", blurb: "It gets better at your business.", glyph: "↻", rgb: "34,211,238" },
-  { id: "connect", label: "Connect", blurb: "You reach it from anywhere.", glyph: "⌘", rgb: "251,191,36" },
-  { id: "govern", label: "Govern", blurb: "Autonomy you dial up, fully audited.", glyph: "✓", rgb: "52,211,153" },
+  {
+    id: "learn",
+    label: "Learn",
+    blurb: "It gets better at your business.",
+    glyph: "↻",
+    rgb: "34,211,238",
+  },
+  {
+    id: "connect",
+    label: "Connect",
+    blurb: "You reach it from anywhere.",
+    glyph: "⌘",
+    rgb: "251,191,36",
+  },
+  {
+    id: "govern",
+    label: "Govern",
+    blurb: "Autonomy you dial up, fully audited.",
+    glyph: "✓",
+    rgb: "52,211,153",
+  },
 ];
 
 export interface Capability {
@@ -102,8 +126,7 @@ export const capabilities: Capability[] = [
     id: "pipeline",
     category: "organize",
     title: "Deals and pipeline",
-    detail:
-      "Stages, values, and what has actually moved. Not what you remember moving.",
+    detail: "Stages, values, and what has actually moved. Not what you remember moving.",
   },
   {
     id: "projects",
@@ -199,8 +222,7 @@ export const capabilities: Capability[] = [
     id: "automations",
     category: "act",
     title: "Rules that fire on their own",
-    detail:
-      "When a deal hits a stage, the things that always happen next just happen.",
+    detail: "When a deal hits a stage, the things that always happen next just happen.",
   },
   {
     id: "queue",
@@ -244,8 +266,7 @@ export const capabilities: Capability[] = [
     id: "brief",
     category: "learn",
     title: "A brief every morning",
-    detail:
-      "What happened, what is owed, and what it intends to do about it today.",
+    detail: "What happened, what is owed, and what it intends to do about it today.",
   },
   {
     id: "precall",
@@ -274,8 +295,7 @@ export const capabilities: Capability[] = [
     id: "web",
     category: "connect",
     title: "The web app",
-    detail:
-      "A dashboard, a daily view, and one inbox holding everything that is waiting on you.",
+    detail: "A dashboard, a daily view, and one inbox holding everything that is waiting on you.",
   },
   {
     id: "chat",
@@ -295,8 +315,7 @@ export const capabilities: Capability[] = [
     id: "sms",
     category: "connect",
     title: "Text message",
-    detail:
-      "Ask a question, log a call, get a briefing. From your phone, with nothing to install.",
+    detail: "Ask a question, log a call, get a briefing. From your phone, with nothing to install.",
   },
   {
     id: "api",
@@ -308,8 +327,7 @@ export const capabilities: Capability[] = [
     id: "reports",
     category: "connect",
     title: "Reports by email",
-    detail:
-      "Weekly and monthly, to you or to the whole team, with nobody assembling them.",
+    detail: "Weekly and monthly, to you or to the whole team, with nobody assembling them.",
   },
 
   // Govern
@@ -324,15 +342,13 @@ export const capabilities: Capability[] = [
     id: "killswitch",
     category: "govern",
     title: "A switch on every AI feature",
-    detail:
-      "Turn any single part of it off in one click. Everything else keeps running.",
+    detail: "Turn any single part of it off in one click. Everything else keeps running.",
   },
   {
     id: "own-db",
     category: "govern",
     title: "Your own database",
-    detail:
-      "Your records live in a database of your own, separate from every other client.",
+    detail: "Your records live in a database of your own, separate from every other client.",
   },
   {
     id: "roles",
@@ -351,8 +367,7 @@ export const capabilities: Capability[] = [
     id: "ownership",
     category: "govern",
     title: "You own all of it",
-    detail:
-      "The accounts, the data, the export. Leaving is a download, not a negotiation.",
+    detail: "The accounts, the data, the export. Leaving is a download, not a negotiation.",
   },
 ];
 

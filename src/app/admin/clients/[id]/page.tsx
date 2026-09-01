@@ -48,13 +48,15 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
 
   const fetchClient = useCallback(async () => {
     try {
-      const data = await fetchJson<{ client?: Client | null }>(`/api/admin/clients?id=${encodeURIComponent(id)}`);
+      const data = await fetchJson<{ client?: Client | null }>(
+        `/api/admin/clients?id=${encodeURIComponent(id)}`,
+      );
       setClient(data.client || null);
 
       // Fetch timeline for this client's email
       if (data.client?.contact_email) {
         const timelineData = await fetchJson<{ timeline?: TimelineItem[] }>(
-          `/api/admin/contacts/timeline?email=${encodeURIComponent(data.client.contact_email)}`
+          `/api/admin/contacts/timeline?email=${encodeURIComponent(data.client.contact_email)}`,
         );
         setTimeline(timelineData.timeline || []);
       }
@@ -92,8 +94,15 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
     return (
       <div className="space-y-4">
         <PageHeader title="Client Not Found" />
-        <AdminSurface tone="subtle"><p className="text-sm text-[var(--admin-muted)]">This client does not exist or is outside the current workspace.</p></AdminSurface>
-        <Link href="/admin/clients" className="inline-flex min-h-10 items-center text-sm font-semibold text-[var(--admin-ink)]">
+        <AdminSurface tone="subtle">
+          <p className="text-sm text-[var(--admin-muted)]">
+            This client does not exist or is outside the current workspace.
+          </p>
+        </AdminSurface>
+        <Link
+          href="/admin/clients"
+          className="inline-flex min-h-10 items-center text-sm font-semibold text-[var(--admin-ink)]"
+        >
           Back to Clients
         </Link>
       </div>
@@ -112,10 +121,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
         </Link>
       </div>
 
-      <PageHeader
-        title={client.business_name}
-        subtitle={client.contact_name}
-      />
+      <PageHeader title={client.business_name} subtitle={client.contact_name} />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">

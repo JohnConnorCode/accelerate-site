@@ -73,16 +73,19 @@ export function ContactTimeline({ items }: ContactTimelineProps) {
               data-contact-timeline-item
             >
               <Link href={item.link} className="relative block">
-                <div className={`absolute left-2.5 top-4 z-10 grid size-5 place-items-center rounded-full shadow-[0_0_0_3px_var(--admin-canvas)] ${config.emphasis ? "bg-amber-500/14 text-amber-700 dark:text-amber-300" : "bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)]"}`}>
+                <div
+                  className={`absolute left-2.5 top-4 z-10 grid size-5 place-items-center rounded-full shadow-[0_0_0_3px_var(--admin-canvas)] ${config.emphasis ? "bg-amber-500/14 text-amber-700 dark:text-amber-300" : "bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)]"}`}
+                >
                   <Icon className="h-3 w-3" />
                 </div>
-                <AdminSurface padding="sm" className="group ml-10 transition-[box-shadow,transform] duration-200 hover:-translate-y-px hover:shadow-[var(--admin-shadow-hover)]">
+                <AdminSurface
+                  padding="sm"
+                  className="group ml-10 transition-[box-shadow,transform] duration-200 hover:-translate-y-px hover:shadow-[var(--admin-shadow-hover)]"
+                >
                   <div className="flex items-start gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                        <span className="admin-eyebrow text-[9px]">
-                          {item.type}
-                        </span>
+                        <span className="admin-eyebrow text-[9px]">{item.type}</span>
                         <span className="text-[10px] tabular-nums text-[var(--admin-muted)]">
                           {new Date(item.timestamp).toLocaleDateString("en-US", {
                             month: "short",

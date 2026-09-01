@@ -45,12 +45,13 @@ const serviceDatabase = createClient(
 const projectRef = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname.split(".")[0];
 const cookieKey = `sb-${projectRef}-auth-token`;
 const cookieValue = `base64-${Buffer.from(JSON.stringify(verified.session)).toString("base64url")}`;
-const cookieChunks = cookieValue.length <= 3180
-  ? [{ name: cookieKey, value: cookieValue }]
-  : Array.from({ length: Math.ceil(cookieValue.length / 3180) }, (_, index) => ({
-      name: `${cookieKey}.${index}`,
-      value: cookieValue.slice(index * 3180, (index + 1) * 3180),
-    }));
+const cookieChunks =
+  cookieValue.length <= 3180
+    ? [{ name: cookieKey, value: cookieValue }]
+    : Array.from({ length: Math.ceil(cookieValue.length / 3180) }, (_, index) => ({
+        name: `${cookieKey}.${index}`,
+        value: cookieValue.slice(index * 3180, (index + 1) * 3180),
+      }));
 
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({
@@ -58,14 +59,16 @@ const context = await browser.newContext({
   colorScheme: "light",
 });
 const origin = new URL(base);
-await context.addCookies(cookieChunks.map((cookie) => ({
-  ...cookie,
-  domain: origin.hostname,
-  path: "/",
-  httpOnly: false,
-  secure: origin.protocol === "https:",
-  sameSite: "Lax",
-})));
+await context.addCookies(
+  cookieChunks.map((cookie) => ({
+    ...cookie,
+    domain: origin.hostname,
+    path: "/",
+    httpOnly: false,
+    secure: origin.protocol === "https:",
+    sameSite: "Lax",
+  })),
+);
 const page = await context.newPage();
 const failures = [];
 page.on("console", (message) => {
@@ -111,7 +114,10 @@ try {
   await page.getByText("OpenRouter intelligence gateway").waitFor();
   await page.screenshot({ path: `${outputDirectory}/production-setup-ready.png`, fullPage: true });
 
-  await page.goto(`${base}/admin/contact-imports`, { waitUntil: "domcontentloaded", timeout: 60_000 });
+  await page.goto(`${base}/admin/contact-imports`, {
+    waitUntil: "domcontentloaded",
+    timeout: 60_000,
+  });
   await page.getByRole("heading", { name: "Contact intake", exact: true }).waitFor();
   const importerRead = await page.evaluate(async () => {
     const response = await fetch("/api/admin/revenue-os/contact-imports");
@@ -143,7 +149,9 @@ try {
   ]);
   const payload = await response.json();
   if (response.status() !== 201 || payload.schemaReady !== true || !payload.batch?.id) {
-    throw new Error(`Production importer analysis failed with ${response.status()}: ${payload.error || "unknown error"}`);
+    throw new Error(
+      `Production importer analysis failed with ${response.status()}: ${payload.error || "unknown error"}`,
+    );
   }
   batchId = payload.batch.id;
   if (!Array.isArray(payload.batch.rows) || payload.batch.rows.length !== 1) {
@@ -166,7 +174,10 @@ try {
     if (reviewed?.[field]) throw new Error(`Production importer invented unsupported ${field}`);
   }
   await page.getByRole("heading", { name: "Review rows" }).waitFor();
-  await page.screenshot({ path: `${outputDirectory}/production-contact-import-review.png`, fullPage: true });
+  await page.screenshot({
+    path: `${outputDirectory}/production-contact-import-review.png`,
+    fullPage: true,
+  });
 } finally {
   if (batchId) {
     const error = await removeControlledBatch(batchId);
@@ -182,7 +193,10 @@ try {
   await browser.close();
 }
 
-if (failures.length) throw new Error(`Production Contact Import QA errors:\n${failures.join("\n")}`);
+if (failures.length)
+  throw new Error(`Production Contact Import QA errors:\n${failures.join("\n")}`);
 console.log(`${outputDirectory}/production-setup-ready.png`);
 console.log(`${outputDirectory}/production-contact-import-review.png`);
-console.log("Production Setup readiness, OpenRouter extraction, review rendering, and controlled-batch cleanup passed.");
+console.log(
+  "Production Setup readiness, OpenRouter extraction, review rendering, and controlled-batch cleanup passed.",
+);

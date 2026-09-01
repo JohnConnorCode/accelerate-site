@@ -28,7 +28,11 @@ try {
     tagline: "Plumbing operations",
     emailFooter: "Harbor Pipe Co · Practical plumbing systems",
   });
-  Object.assign(tenant.founder, { name: "Mara", fullName: "Mara Chen", email: "mara@harborpipe.example" });
+  Object.assign(tenant.founder, {
+    name: "Mara",
+    fullName: "Mara Chen",
+    email: "mara@harborpipe.example",
+  });
   Object.assign(tenant.ai, {
     businessDescriptor: "Harbor Pipe Co, a plumbing operations partner",
     voice: "Be practical and specific about pipes.",
@@ -49,7 +53,9 @@ try {
   assert.match(fromEmail(), /Harbor Pipe Co <mara@harborpipe\.example>/);
   assert.equal(analyticsDomain(), "harborpipe.example");
   assert.equal(siteUrl(), "https://harborpipe.example");
-  const compose = emailComposeTemplates().map((template) => template.body).join("\n");
+  const compose = emailComposeTemplates()
+    .map((template) => template.body)
+    .join("\n");
   harborCompose = compose;
   assert.match(compose, /Mara\nHarbor Pipe Co/);
   assert.doesNotMatch(compose, /\bJohn\b/);
@@ -67,7 +73,11 @@ try {
   else process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN = originalPlausible;
 }
 
-assert.equal(tenant.brand.name, originalBrand.name, "tenant mutation in this test must be restored");
+assert.equal(
+  tenant.brand.name,
+  originalBrand.name,
+  "tenant mutation in this test must be restored",
+);
 
 mkdirSync("/tmp/accelerate-tenant-rebrand", { recursive: true });
 writeFileSync("/tmp/accelerate-tenant-rebrand/harbor-email.html", harborEmailHtml);
@@ -94,19 +104,61 @@ assert.match(booking, /tenant\.capabilities\.publicBooking/);
 assert.match(booking, /export function bookingMode/);
 assert.equal(typeof hasScheduler(), "boolean");
 
-assert.match(readFileSync("src/app/api/admin/revenue-os/campaigns/route.ts", "utf8"), /sender_name:[\s\S]*tenant\.brand\.name/);
+assert.match(
+  readFileSync("src/app/api/admin/revenue-os/campaigns/route.ts", "utf8"),
+  /sender_name:[\s\S]*tenant\.brand\.name/,
+);
 const communications = readFileSync("src/lib/revenue-os/communications.ts", "utf8");
-assert.match(communications, /tenantScopeForDatabase\(supabase\)/, "campaign unsubscribe links must resolve the database tenant scope");
-assert.match(communications, /\/api\/public\/\$\{scope\.slug\}\/unsubscribe\//, "tenant campaign unsubscribe links must remain tenant-scoped");
-assert.match(communications, /getTenantFromEmail\(supabase\)/, "the canonical sender must resolve the workspace sender identity");
-assert.match(communications, /getTenantReplyToEmail\(supabase\)/, "campaign replies must resolve the workspace reply inbox");
-assert.match(readFileSync("src/lib/email/resend.ts", "utf8"), /export async function getTenantFromEmail/, "tenant sender identity must be resolved at the provider boundary");
-assert.match(readFileSync("src/lib/email/resend.ts", "utf8"), /export async function getTenantReplyToEmail/, "tenant reply routing must be resolved at the provider boundary");
-assert.doesNotMatch(readFileSync("src/lib/revenue-os/campaigns.ts", "utf8"), /replyTo: campaign\.sender_email/, "campaign delivery identity must not silently become the reply inbox");
-assert.match(readFileSync("src/lib/revenue-os/campaigns.ts", "utf8"), /getTenantReplyToEmail\(supabase\)/, "campaign activation must verify a monitored reply inbox before members become due");
-assert.match(readFileSync("src/app/api/admin/tenant/providers/route.ts", "utf8"), /replyToEmail/, "provider configuration must collect a monitored workspace reply inbox");
+assert.match(
+  communications,
+  /tenantScopeForDatabase\(supabase\)/,
+  "campaign unsubscribe links must resolve the database tenant scope",
+);
+assert.match(
+  communications,
+  /\/api\/public\/\$\{scope\.slug\}\/unsubscribe\//,
+  "tenant campaign unsubscribe links must remain tenant-scoped",
+);
+assert.match(
+  communications,
+  /getTenantFromEmail\(supabase\)/,
+  "the canonical sender must resolve the workspace sender identity",
+);
+assert.match(
+  communications,
+  /getTenantReplyToEmail\(supabase\)/,
+  "campaign replies must resolve the workspace reply inbox",
+);
+assert.match(
+  readFileSync("src/lib/email/resend.ts", "utf8"),
+  /export async function getTenantFromEmail/,
+  "tenant sender identity must be resolved at the provider boundary",
+);
+assert.match(
+  readFileSync("src/lib/email/resend.ts", "utf8"),
+  /export async function getTenantReplyToEmail/,
+  "tenant reply routing must be resolved at the provider boundary",
+);
+assert.doesNotMatch(
+  readFileSync("src/lib/revenue-os/campaigns.ts", "utf8"),
+  /replyTo: campaign\.sender_email/,
+  "campaign delivery identity must not silently become the reply inbox",
+);
+assert.match(
+  readFileSync("src/lib/revenue-os/campaigns.ts", "utf8"),
+  /getTenantReplyToEmail\(supabase\)/,
+  "campaign activation must verify a monitored reply inbox before members become due",
+);
+assert.match(
+  readFileSync("src/app/api/admin/tenant/providers/route.ts", "utf8"),
+  /replyToEmail/,
+  "provider configuration must collect a monitored workspace reply inbox",
+);
 assert.match(readFileSync("src/app/api/admin/plausible/route.ts", "utf8"), /analyticsDomain\(\)/);
-assert.match(readFileSync("src/app/admin/setup/page.tsx", "utf8"), /tenant\.external\.vercelProjectUrl/);
+assert.match(
+  readFileSync("src/app/admin/setup/page.tsx", "utf8"),
+  /tenant\.external\.vercelProjectUrl/,
+);
 assert.match(harborCompose, /Mara/);
 
 for (const file of [
@@ -126,20 +178,26 @@ assert.match(ratchet, /const BRAND_BUDGET = \{\n  \/\/ Empty on purpose/);
 assert.match(ratchet, /src\/components\/admin/);
 assert.doesNotMatch(ratchet, /BRAND_BUDGET = \{[\s\S]*?"src\//);
 
-console.log(JSON.stringify({
-  result: "passed",
-  checks: [
-    "email-chrome-rebrand",
-    "founder-name-rebrand",
-    "compose-signature-rebrand",
-    "sender-and-analytics-rebrand",
-    "admin-chrome-reads-tenant",
-    "auth-chrome-reads-tenant",
-    "copilot-persona-reads-tenant",
-    "chat-persona-reads-tenant",
-    "public-booking-capability",
-    "campaign-sender-unsubscribe-plausible-setup-links",
-    "empty-literal-budget",
-    "admin-components-in-ratchet",
-  ],
-}, null, 2));
+console.log(
+  JSON.stringify(
+    {
+      result: "passed",
+      checks: [
+        "email-chrome-rebrand",
+        "founder-name-rebrand",
+        "compose-signature-rebrand",
+        "sender-and-analytics-rebrand",
+        "admin-chrome-reads-tenant",
+        "auth-chrome-reads-tenant",
+        "copilot-persona-reads-tenant",
+        "chat-persona-reads-tenant",
+        "public-booking-capability",
+        "campaign-sender-unsubscribe-plausible-setup-links",
+        "empty-literal-budget",
+        "admin-components-in-ratchet",
+      ],
+    },
+    null,
+    2,
+  ),
+);

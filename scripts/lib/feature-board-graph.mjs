@@ -2,7 +2,9 @@ const NO_DEPENDENCY_SENTINEL = "None";
 const MILESTONE_RANK = { now: 0, next: 1, later: 2, done: 3 };
 
 export function milestoneOf(card) {
-  return card.labels.find((label) => label.startsWith("milestone:"))?.slice("milestone:".length) ?? null;
+  return (
+    card.labels.find((label) => label.startsWith("milestone:"))?.slice("milestone:".length) ?? null
+  );
 }
 
 export function parseDependencyTitles(card) {
@@ -12,7 +14,10 @@ export function parseDependencyTitles(card) {
   if (!line) return [];
   const declared = line.slice("Dependencies: ".length).trim();
   if (!declared || declared.startsWith(NO_DEPENDENCY_SENTINEL)) return [];
-  return declared.split(";").map((item) => item.trim()).filter(Boolean);
+  return declared
+    .split(";")
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 export function buildDependencyGraph(cards) {
@@ -82,7 +87,8 @@ export function findLoopOrderViolations(loopKeys, edges) {
     for (const depKey of depKeys) {
       const depPosition = index.get(depKey);
       if (depPosition == null) continue;
-      if (depPosition >= position) violations.push({ from: key, to: depKey, fromIndex: position, toIndex: depPosition });
+      if (depPosition >= position)
+        violations.push({ from: key, to: depKey, fromIndex: position, toIndex: depPosition });
     }
   }
   return violations;
@@ -95,7 +101,11 @@ export function findActiveDependencyViolations(cards, edges) {
     for (const depKey of edges.get(card.seed_key) ?? []) {
       const dependency = byKey.get(depKey);
       if (!dependency || dependency.status !== "shipped") {
-        violations.push({ from: card.seed_key, to: depKey, status: dependency?.status ?? "missing" });
+        violations.push({
+          from: card.seed_key,
+          to: depKey,
+          status: dependency?.status ?? "missing",
+        });
       }
     }
   }
@@ -105,7 +115,9 @@ export function findActiveDependencyViolations(cards, edges) {
 export function findMilestoneNoteMismatches(cards) {
   return cards.flatMap((card) => {
     const label = milestoneOf(card);
-    const note = String(card.notes || "").match(/Board milestone: (Now|Next|Later|Done)/)?.[1]?.toLowerCase();
+    const note = String(card.notes || "")
+      .match(/Board milestone: (Now|Next|Later|Done)/)?.[1]
+      ?.toLowerCase();
     if (!label || !note || label === note) return [];
     return [{ key: card.seed_key, label, note }];
   });
@@ -121,16 +133,28 @@ export function findSecondBrainRollupGaps(cards, requiredImplementations) {
       continue;
     }
     for (const implementationKey of implementationKeys) {
-      if (!byKey.has(implementationKey)) gaps.push({ key, missing: implementationKey, reason: "implementation card does not exist" });
+      if (!byKey.has(implementationKey))
+        gaps.push({
+          key,
+          missing: implementationKey,
+          reason: "implementation card does not exist",
+        });
       else if (!card.notes.includes(`card:${implementationKey}`)) {
-        gaps.push({ key, missing: implementationKey, reason: "roll-up notes do not name the implementation card" });
+        gaps.push({
+          key,
+          missing: implementationKey,
+          reason: "roll-up notes do not name the implementation card",
+        });
       }
     }
   }
   return gaps;
 }
 
-export function collectFeatureBoardIntegrityFailures(cards, { loopKeys, nowKeys, secondBrainImplementations }) {
+export function collectFeatureBoardIntegrityFailures(
+  cards,
+  { loopKeys, nowKeys, secondBrainImplementations },
+) {
   const failures = [];
   const graph = buildDependencyGraph(cards);
 
@@ -141,29 +165,43 @@ export function collectFeatureBoardIntegrityFailures(cards, { loopKeys, nowKeys,
     failures.push(`Circular Feature Board dependency: ${cycle.join(" -> ")}`);
   }
   for (const item of findForwardMilestoneViolations(cards, graph.edges)) {
-    failures.push(`[${item.from}] milestone:${item.fromMilestone} depends on later [${item.to}] milestone:${item.toMilestone}`);
+    failures.push(
+      `[${item.from}] milestone:${item.fromMilestone} depends on later [${item.to}] milestone:${item.toMilestone}`,
+    );
   }
   for (const item of findLoopOrderViolations(loopKeys, graph.edges)) {
-    failures.push(`[${item.from}] delivery-circuit step ${item.fromIndex + 1} depends on later circuit card [${item.to}] step ${item.toIndex + 1}`);
+    failures.push(
+      `[${item.from}] delivery-circuit step ${item.fromIndex + 1} depends on later circuit card [${item.to}] step ${item.toIndex + 1}`,
+    );
   }
   for (const item of findActiveDependencyViolations(cards, graph.edges)) {
-    failures.push(`[${item.from}] is in progress but depends on unsatisfied [${item.to}] (${item.status})`);
+    failures.push(
+      `[${item.from}] is in progress but depends on unsatisfied [${item.to}] (${item.status})`,
+    );
   }
   for (const card of cards.filter((item) => item.status === "in_progress")) {
     if (!card.owner?.trim()) failures.push(`[${card.seed_key}] is in progress without an Owner`);
     if (!String(card.notes).includes("Current implementation evidence:")) {
-      failures.push(`[${card.seed_key}] is in progress without current/remaining implementation evidence`);
+      failures.push(
+        `[${card.seed_key}] is in progress without current/remaining implementation evidence`,
+      );
     }
   }
   for (const item of findMilestoneNoteMismatches(cards)) {
-    failures.push(`[${item.key}] milestone label ${item.label} does not match notes (${item.note})`);
+    failures.push(
+      `[${item.key}] milestone label ${item.label} does not match notes (${item.note})`,
+    );
   }
   for (const key of nowKeys) {
-    if (!loopKeys.includes(key)) failures.push(`NOW_KEYS includes ${key}, which is not on the delivery circuit`);
+    if (!loopKeys.includes(key))
+      failures.push(`NOW_KEYS includes ${key}, which is not on the delivery circuit`);
   }
-  if (nowKeys.length > 4) failures.push(`NOW_KEYS has ${nowKeys.length} cards; keep Now small enough to scan`);
+  if (nowKeys.length > 4)
+    failures.push(`NOW_KEYS has ${nowKeys.length} cards; keep Now small enough to scan`);
   for (const item of findSecondBrainRollupGaps(cards, secondBrainImplementations)) {
-    failures.push(`[${item.key}] roll-up is missing ${item.missing}${item.reason ? ` (${item.reason})` : ""}`);
+    failures.push(
+      `[${item.key}] roll-up is missing ${item.missing}${item.reason ? ` (${item.reason})` : ""}`,
+    );
   }
   return failures;
 }

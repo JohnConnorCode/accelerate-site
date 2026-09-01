@@ -58,7 +58,12 @@ export function AdminDialog({
   }, [open]);
 
   return (
-    <Dialog.Root open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
+    <Dialog.Root
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+    >
       <AnimatePresence mode="sync">
         {open && (
           <Dialog.Portal forceMount>
@@ -94,9 +99,15 @@ export function AdminDialog({
                   )}
                   data-admin-overlay="dialog"
                   data-admin-overlay-align={align}
-                  initial={align === "right" ? { opacity: 0, x: 32 } : { opacity: 0, y: 18, scale: 0.975 }}
-                  animate={align === "right" ? { opacity: 1, x: 0 } : { opacity: 1, y: 0, scale: 1 }}
-                  exit={align === "right" ? { opacity: 0, x: 20 } : { opacity: 0, y: 10, scale: 0.985 }}
+                  initial={
+                    align === "right" ? { opacity: 0, x: 32 } : { opacity: 0, y: 18, scale: 0.975 }
+                  }
+                  animate={
+                    align === "right" ? { opacity: 1, x: 0 } : { opacity: 1, y: 0, scale: 1 }
+                  }
+                  exit={
+                    align === "right" ? { opacity: 0, x: 20 } : { opacity: 0, y: 10, scale: 0.985 }
+                  }
                   transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <Dialog.Title asChild>

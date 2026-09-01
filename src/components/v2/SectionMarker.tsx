@@ -14,7 +14,7 @@ export function SectionMarker({
     <span
       className={cn(
         "inline-flex items-center gap-2 font-mono text-[0.7rem] uppercase tracking-[0.3em] text-[var(--gold-base)]",
-        className
+        className,
       )}
     >
       <span className="text-[var(--white-muted)]">[</span>

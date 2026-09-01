@@ -48,7 +48,8 @@ const routes = [
 // must remain absent from this route matrix as well as from the rendered nav.
 const mobilePrimarySlugs = new Set(["today", "pipeline", "conversations", "inbox"]);
 
-if (!Number.isFinite(iterations) || iterations < 4) throw new Error("--iterations must be at least 4");
+if (!Number.isFinite(iterations) || iterations < 4)
+  throw new Error("--iterations must be at least 4");
 await mkdir(output, { recursive: true });
 
 const percentile = (values, fraction) => {
@@ -56,8 +57,10 @@ const percentile = (values, fraction) => {
   const sorted = [...values].sort((a, b) => a - b);
   return sorted[Math.min(sorted.length - 1, Math.ceil(sorted.length * fraction) - 1)];
 };
-const lowerHeaders = (headers = {}) => Object.fromEntries(Object.entries(headers).map(([key, value]) => [key.toLowerCase(), value]));
-const isCommandCenterRsc = (request) => request.isRsc && new URL(request.url).pathname.startsWith("/demo/command-center/");
+const lowerHeaders = (headers = {}) =>
+  Object.fromEntries(Object.entries(headers).map(([key, value]) => [key.toLowerCase(), value]));
+const isCommandCenterRsc = (request) =>
+  request.isRsc && new URL(request.url).pathname.startsWith("/demo/command-center/");
 const serializeRequest = (request, servedFromCache) => ({
   ...request,
   servedFromCache: servedFromCache.has(request.requestId),
@@ -72,7 +75,8 @@ const serializeRequest = (request, servedFromCache) => ({
 
 async function inspectBrowserStorage(page) {
   return page.evaluate(async () => {
-    const registrations = "serviceWorker" in navigator ? await navigator.serviceWorker.getRegistrations() : [];
+    const registrations =
+      "serviceWorker" in navigator ? await navigator.serviceWorker.getRegistrations() : [];
     const cacheNames = "caches" in globalThis ? await caches.keys() : [];
     const cacheEntries = [];
     for (const name of cacheNames) {
@@ -94,22 +98,40 @@ async function inspectBrowserStorage(page) {
 }
 
 async function waitForRouteSettled(page, previousKey, expected) {
-  await page.waitForURL((url) => url.pathname.endsWith(`/${expected.slug}`), { waitUntil: "commit", timeout: 15_000 });
-  await page.waitForFunction(({ oldKey, slug }) => {
-    const stage = document.querySelector("[data-admin-route-stage]");
-    const key = stage?.getAttribute("data-admin-route-key") || "";
-    return Boolean(stage && key !== oldKey && (key.endsWith(`/${slug}`) || location.pathname.endsWith(`/${slug}`)));
-  }, { oldKey: previousKey, slug: expected.slug }, { timeout: 15_000 });
+  await page.waitForURL((url) => url.pathname.endsWith(`/${expected.slug}`), {
+    waitUntil: "commit",
+    timeout: 15_000,
+  });
+  await page.waitForFunction(
+    ({ oldKey, slug }) => {
+      const stage = document.querySelector("[data-admin-route-stage]");
+      const key = stage?.getAttribute("data-admin-route-key") || "";
+      return Boolean(
+        stage &&
+        key !== oldKey &&
+        (key.endsWith(`/${slug}`) || location.pathname.endsWith(`/${slug}`)),
+      );
+    },
+    { oldKey: previousKey, slug: expected.slug },
+    { timeout: 15_000 },
+  );
   const committedAt = Date.now();
   const stage = page.locator("[data-admin-route-stage]");
   await stage.evaluate(async (node) => {
-    await Promise.all(node.getAnimations({ subtree: false }).map((animation) => animation.finished.catch(() => undefined)));
+    await Promise.all(
+      node
+        .getAnimations({ subtree: false })
+        .map((animation) => animation.finished.catch(() => undefined)),
+    );
   });
   const settledAt = Date.now();
   const rendered = await page.evaluate(() => ({
     pathname: location.pathname,
-    heading: document.querySelector(".admin-main h1")?.textContent?.replace(/\s+/g, " ").trim() || "",
-    routeKey: document.querySelector("[data-admin-route-stage]")?.getAttribute("data-admin-route-key") || "",
+    heading:
+      document.querySelector(".admin-main h1")?.textContent?.replace(/\s+/g, " ").trim() || "",
+    routeKey:
+      document.querySelector("[data-admin-route-stage]")?.getAttribute("data-admin-route-key") ||
+      "",
   }));
   return { committedAt, settledAt, rendered };
 }
@@ -121,19 +143,26 @@ async function runProfile({ label, userDataDir, cacheDisabled, seedLegacyPositio
     reducedMotion: "no-preference",
   });
   if (seedLegacyPositions) {
-    await context.addInitScript(({ key, count }) => {
-      try {
-        const positions = {};
-        for (let index = 0; index < count; index += 1) positions[`legacy-${index}`] = index % 1_000;
-        sessionStorage.setItem(key, JSON.stringify(positions));
-      } catch {
-        // Sandboxed third-party frames do not expose same-origin storage.
-      }
-    }, { key: "accelerate:navigation-positions", count: 5_000 });
+    await context.addInitScript(
+      ({ key, count }) => {
+        try {
+          const positions = {};
+          for (let index = 0; index < count; index += 1)
+            positions[`legacy-${index}`] = index % 1_000;
+          sessionStorage.setItem(key, JSON.stringify(positions));
+        } catch {
+          // Sandboxed third-party frames do not expose same-origin storage.
+        }
+      },
+      { key: "accelerate:navigation-positions", count: 5_000 },
+    );
   }
-  const page = context.pages()[0] || await context.newPage();
+  const page = context.pages()[0] || (await context.newPage());
   const session = await context.newCDPSession(page);
-  await session.send("Network.enable", { maxTotalBufferSize: 100_000_000, maxResourceBufferSize: 10_000_000 });
+  await session.send("Network.enable", {
+    maxTotalBufferSize: 100_000_000,
+    maxResourceBufferSize: 10_000_000,
+  });
   await session.send("Network.setCacheDisabled", { cacheDisabled });
 
   const requests = new Map();
@@ -142,9 +171,17 @@ async function runProfile({ label, userDataDir, cacheDisabled, seedLegacyPositio
   session.on("Network.requestServedFromCache", ({ requestId }) => servedFromCache.add(requestId));
   session.on("Network.requestWillBeSent", (event) => {
     const headers = lowerHeaders(event.request.headers);
-    const isRsc = event.request.url.includes("_rsc=") || headers.rsc === "1" || headers.accept?.includes("text/x-component");
+    const isRsc =
+      event.request.url.includes("_rsc=") ||
+      headers.rsc === "1" ||
+      headers.accept?.includes("text/x-component");
     const record = requests.get(event.requestId) || { redirects: [] };
-    if (event.redirectResponse) record.redirects.push({ url: event.redirectResponse.url, status: event.redirectResponse.status, headers: lowerHeaders(event.redirectResponse.headers) });
+    if (event.redirectResponse)
+      record.redirects.push({
+        url: event.redirectResponse.url,
+        status: event.redirectResponse.status,
+        headers: lowerHeaders(event.redirectResponse.headers),
+      });
     Object.assign(record, {
       requestId: event.requestId,
       url: event.request.url,
@@ -185,15 +222,23 @@ async function runProfile({ label, userDataDir, cacheDisabled, seedLegacyPositio
   });
   page.on("pageerror", (error) => runtimeErrors.push(error.message));
   page.on("console", (message) => {
-    if (message.type() === "error" && !message.text().includes("net::ERR_FAILED")) runtimeErrors.push(message.text());
+    if (message.type() === "error" && !message.text().includes("net::ERR_FAILED"))
+      runtimeErrors.push(message.text());
   });
 
-  await page.goto(`${base}/demo/command-center/northline-roofing/today`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+  await page.goto(`${base}/demo/command-center/northline-roofing/today`, {
+    waitUntil: "domcontentloaded",
+    timeout: 30_000,
+  });
   if (new URL(base).hostname === "localhost") {
     await page.evaluate(() => {
-      const removeDevelopmentPortal = () => document.querySelectorAll("nextjs-portal").forEach((node) => node.remove());
+      const removeDevelopmentPortal = () =>
+        document.querySelectorAll("nextjs-portal").forEach((node) => node.remove());
       removeDevelopmentPortal();
-      new MutationObserver(removeDevelopmentPortal).observe(document.documentElement, { childList: true, subtree: true });
+      new MutationObserver(removeDevelopmentPortal).observe(document.documentElement, {
+        childList: true,
+        subtree: true,
+      });
     });
   }
   await page.locator(".admin-shell").waitFor();
@@ -214,26 +259,36 @@ async function runProfile({ label, userDataDir, cacheDisabled, seedLegacyPositio
       await page.locator("#admin-mobile-navigation").waitFor();
       link = page.locator(`#admin-mobile-navigation a[href$="/${expected.slug}"]`).first();
       const sectionButton = link.locator("xpath=ancestor::section[1]").getByRole("button").first();
-      if (await sectionButton.getAttribute("aria-expanded") === "false") await sectionButton.click();
+      if ((await sectionButton.getAttribute("aria-expanded")) === "false")
+        await sectionButton.click();
     }
     await link.waitFor();
     await link.evaluate((node) => {
-      node.addEventListener("click", () => {
-        document.documentElement.dataset.qaNavigationClickAt = String(Date.now());
-      }, { capture: true, once: true });
+      node.addEventListener(
+        "click",
+        () => {
+          document.documentElement.dataset.qaNavigationClickAt = String(Date.now());
+        },
+        { capture: true, once: true },
+      );
     });
-    const previousKey = await page.locator("[data-admin-route-stage]").getAttribute("data-admin-route-key");
+    const previousKey = await page
+      .locator("[data-admin-route-stage]")
+      .getAttribute("data-admin-route-key");
     await link.click({ noWaitAfter: true });
     const clickAt = Number(await page.locator("html").getAttribute("data-qa-navigation-click-at"));
     const acknowledgedAt = Date.now();
     const settled = await waitForRouteSettled(page, previousKey, expected);
     await page.waitForTimeout(40);
-    const navigationRequests = [...requests.values()].filter((request) =>
-      !consumedRequestIds.has(request.requestId)
-      && request.startWallMs >= clickAt - 150
-      && request.startWallMs <= settled.settledAt + 500
-      && (request.isRsc || request.type === "Document"),
-    ).map((request) => serializeRequest(request, servedFromCache));
+    const navigationRequests = [...requests.values()]
+      .filter(
+        (request) =>
+          !consumedRequestIds.has(request.requestId) &&
+          request.startWallMs >= clickAt - 150 &&
+          request.startWallMs <= settled.settledAt + 500 &&
+          (request.isRsc || request.type === "Document"),
+      )
+      .map((request) => serializeRequest(request, servedFromCache));
     for (const request of navigationRequests) consumedRequestIds.add(request.requestId);
     steps.push({
       index: index + 1,
@@ -253,13 +308,22 @@ async function runProfile({ label, userDataDir, cacheDisabled, seedLegacyPositio
   const storageAfter = await inspectBrowserStorage(page);
   const navigationPositionStorage = await page.evaluate(() => {
     const raw = sessionStorage.getItem("accelerate:navigation-positions") || "{}";
-    try { return { bytes: raw.length, entries: Object.keys(JSON.parse(raw)).length }; }
-    catch { return { bytes: raw.length, entries: -1 }; }
+    try {
+      return { bytes: raw.length, entries: Object.keys(JSON.parse(raw)).length };
+    } catch {
+      return { bytes: raw.length, entries: -1 };
+    }
   });
   const network = [...requests.values()]
     .filter((request) => request.isRsc || request.type === "Document")
     .map((request) => serializeRequest(request, servedFromCache));
-  const releaseIds = [...new Set([...requests.values()].flatMap((request) => [...request.url.matchAll(/[?&]dpl=([A-Za-z0-9_-]+)/g)].map((match) => match[1])))];
+  const releaseIds = [
+    ...new Set(
+      [...requests.values()].flatMap((request) =>
+        [...request.url.matchAll(/[?&]dpl=([A-Za-z0-9_-]+)/g)].map((match) => match[1]),
+      ),
+    ),
+  ];
   const summary = {
     label,
     phase,
@@ -267,14 +331,30 @@ async function runProfile({ label, userDataDir, cacheDisabled, seedLegacyPositio
     cacheDisabled,
     iterations,
     releaseIds,
-    acknowledgeP95Ms: percentile(steps.map((step) => step.acknowledgeMs), 0.95),
-    commitMedianMs: percentile(steps.map((step) => step.commitMs), 0.5),
-    commitP95Ms: percentile(steps.map((step) => step.commitMs), 0.95),
+    acknowledgeP95Ms: percentile(
+      steps.map((step) => step.acknowledgeMs),
+      0.95,
+    ),
+    commitMedianMs: percentile(
+      steps.map((step) => step.commitMs),
+      0.5,
+    ),
+    commitP95Ms: percentile(
+      steps.map((step) => step.commitMs),
+      0.95,
+    ),
     commitMaxMs: Math.max(...steps.map((step) => step.commitMs)),
-    documentNavigations: steps.flatMap((step) => step.requests).filter((request) => request.type === "Document").length,
+    documentNavigations: steps
+      .flatMap((step) => step.requests)
+      .filter((request) => request.type === "Document").length,
     rscRequests: network.filter(isCommandCenterRsc).length,
-    cachedRscResponses: network.filter((request) => isCommandCenterRsc(request) && (request.fromDiskCache || request.servedFromCache)).length,
-    serviceWorkerRscResponses: network.filter((request) => isCommandCenterRsc(request) && request.fromServiceWorker).length,
+    cachedRscResponses: network.filter(
+      (request) =>
+        isCommandCenterRsc(request) && (request.fromDiskCache || request.servedFromCache),
+    ).length,
+    serviceWorkerRscResponses: network.filter(
+      (request) => isCommandCenterRsc(request) && request.fromServiceWorker,
+    ).length,
     navigationPositionStorage,
     runtimeErrors,
   };
@@ -285,14 +365,30 @@ async function runProfile({ label, userDataDir, cacheDisabled, seedLegacyPositio
   return trace;
 }
 
-const configurations = cacheMode === "matrix"
-  ? [
-      { label: "persistent-cache-enabled", userDataDir: profile, cacheDisabled: false, seedLegacyPositions: true },
-      { label: "persistent-cache-disabled", userDataDir: profile, cacheDisabled: true },
-      { label: "persistent-cache-reenabled", userDataDir: profile, cacheDisabled: false },
-      { label: "fresh-cache-enabled", userDataDir: await mkdtemp(join(tmpdir(), "accelerate-fresh-browser-profile-")), cacheDisabled: false },
-    ]
-  : [{ label: `${phase}-cache-${cacheMode}`, userDataDir: profile, cacheDisabled: cacheMode === "disabled" }];
+const configurations =
+  cacheMode === "matrix"
+    ? [
+        {
+          label: "persistent-cache-enabled",
+          userDataDir: profile,
+          cacheDisabled: false,
+          seedLegacyPositions: true,
+        },
+        { label: "persistent-cache-disabled", userDataDir: profile, cacheDisabled: true },
+        { label: "persistent-cache-reenabled", userDataDir: profile, cacheDisabled: false },
+        {
+          label: "fresh-cache-enabled",
+          userDataDir: await mkdtemp(join(tmpdir(), "accelerate-fresh-browser-profile-")),
+          cacheDisabled: false,
+        },
+      ]
+    : [
+        {
+          label: `${phase}-cache-${cacheMode}`,
+          userDataDir: profile,
+          cacheDisabled: cacheMode === "disabled",
+        },
+      ];
 
 const traces = [];
 for (const configuration of configurations) traces.push(await runProfile(configuration));
@@ -300,57 +396,130 @@ for (const configuration of configurations) traces.push(await runProfile(configu
 const failures = [];
 for (const trace of traces) {
   const { summary, storageBefore, network, steps } = trace;
-  if (storageBefore.controller || storageBefore.registrations.length || storageBefore.caches.length) failures.push(`${summary.label}: unexpected service worker or Cache Storage controls the origin (${JSON.stringify(storageBefore)})`);
-  if (summary.runtimeErrors.length) failures.push(`${summary.label}: runtime errors (${summary.runtimeErrors.join(" | ")})`);
-  if (summary.releaseIds.length > 1) failures.push(`${summary.label}: mixed deployment identities (${summary.releaseIds.join(", ")})`);
-  if (summary.documentNavigations) failures.push(`${summary.label}: ${summary.documentNavigations} repeated document navigation(s) replaced client routing`);
-  if (!summary.cacheDisabled && summary.cachedRscResponses) failures.push(`${summary.label}: ${summary.cachedRscResponses} RSC response(s) came from browser cache`);
-  if (summary.serviceWorkerRscResponses) failures.push(`${summary.label}: ${summary.serviceWorkerRscResponses} RSC response(s) came from a service worker`);
-  if (summary.navigationPositionStorage.entries < 0 || summary.navigationPositionStorage.entries > 64) failures.push(`${summary.label}: returning-profile navigation receipts were not bounded (${JSON.stringify(summary.navigationPositionStorage)})`);
+  if (storageBefore.controller || storageBefore.registrations.length || storageBefore.caches.length)
+    failures.push(
+      `${summary.label}: unexpected service worker or Cache Storage controls the origin (${JSON.stringify(storageBefore)})`,
+    );
+  if (summary.runtimeErrors.length)
+    failures.push(`${summary.label}: runtime errors (${summary.runtimeErrors.join(" | ")})`);
+  if (summary.releaseIds.length > 1)
+    failures.push(
+      `${summary.label}: mixed deployment identities (${summary.releaseIds.join(", ")})`,
+    );
+  if (summary.documentNavigations)
+    failures.push(
+      `${summary.label}: ${summary.documentNavigations} repeated document navigation(s) replaced client routing`,
+    );
+  if (!summary.cacheDisabled && summary.cachedRscResponses)
+    failures.push(
+      `${summary.label}: ${summary.cachedRscResponses} RSC response(s) came from browser cache`,
+    );
+  if (summary.serviceWorkerRscResponses)
+    failures.push(
+      `${summary.label}: ${summary.serviceWorkerRscResponses} RSC response(s) came from a service worker`,
+    );
+  if (
+    summary.navigationPositionStorage.entries < 0 ||
+    summary.navigationPositionStorage.entries > 64
+  )
+    failures.push(
+      `${summary.label}: returning-profile navigation receipts were not bounded (${JSON.stringify(summary.navigationPositionStorage)})`,
+    );
   for (const step of steps) {
-    if (!step.rendered.pathname.endsWith(`/${step.destination}`) || !step.rendered.routeKey.endsWith(`/${step.destination}`)) failures.push(`${summary.label} step ${step.index}: URL and committed route disagree (${JSON.stringify(step.rendered)})`);
-    if (!step.rendered.heading) failures.push(`${summary.label} step ${step.index}: committed route has no heading`);
+    if (
+      !step.rendered.pathname.endsWith(`/${step.destination}`) ||
+      !step.rendered.routeKey.endsWith(`/${step.destination}`)
+    )
+      failures.push(
+        `${summary.label} step ${step.index}: URL and committed route disagree (${JSON.stringify(step.rendered)})`,
+      );
+    if (!step.rendered.heading)
+      failures.push(`${summary.label} step ${step.index}: committed route has no heading`);
   }
   for (const request of network.filter(isCommandCenterRsc)) {
-    if (request.mimeType && !request.mimeType.includes("text/x-component")) failures.push(`${summary.label}: RSC request returned ${request.mimeType} for ${request.url}`);
-    if (request.cacheControl && !/no-store|private/.test(request.cacheControl)) failures.push(`${summary.label}: reusable RSC cache policy ${request.cacheControl} for ${request.url}`);
-    if (request.vary && !request.vary.toLowerCase().includes("rsc")) failures.push(`${summary.label}: RSC response lacks Vary separation (${request.vary}) for ${request.url}`);
+    if (request.mimeType && !request.mimeType.includes("text/x-component"))
+      failures.push(
+        `${summary.label}: RSC request returned ${request.mimeType} for ${request.url}`,
+      );
+    if (request.cacheControl && !/no-store|private/.test(request.cacheControl))
+      failures.push(
+        `${summary.label}: reusable RSC cache policy ${request.cacheControl} for ${request.url}`,
+      );
+    if (request.vary && !request.vary.toLowerCase().includes("rsc"))
+      failures.push(
+        `${summary.label}: RSC response lacks Vary separation (${request.vary}) for ${request.url}`,
+      );
   }
   for (const slug of new Set(steps.map((step) => step.destination))) {
-    const observed = network.some((request) => isCommandCenterRsc(request) && new URL(request.url).pathname.endsWith(`/${slug}`));
-    if (!observed) failures.push(`${summary.label}: no RSC payload was observed for visited route ${slug}`);
+    const observed = network.some(
+      (request) =>
+        isCommandCenterRsc(request) && new URL(request.url).pathname.endsWith(`/${slug}`),
+    );
+    if (!observed)
+      failures.push(`${summary.label}: no RSC payload was observed for visited route ${slug}`);
   }
   if (enforceBudget) {
-    if (summary.acknowledgeP95Ms > 100) failures.push(`${summary.label}: click acknowledgement p95 ${summary.acknowledgeP95Ms}ms exceeds 100ms`);
-    if (summary.commitP95Ms > 750) failures.push(`${summary.label}: route commit p95 ${summary.commitP95Ms}ms exceeds 750ms`);
-    if (summary.commitMaxMs > 1_500) failures.push(`${summary.label}: route commit max ${summary.commitMaxMs}ms exceeds 1500ms`);
+    if (summary.acknowledgeP95Ms > 100)
+      failures.push(
+        `${summary.label}: click acknowledgement p95 ${summary.acknowledgeP95Ms}ms exceeds 100ms`,
+      );
+    if (summary.commitP95Ms > 750)
+      failures.push(`${summary.label}: route commit p95 ${summary.commitP95Ms}ms exceeds 750ms`);
+    if (summary.commitMaxMs > 1_500)
+      failures.push(`${summary.label}: route commit max ${summary.commitMaxMs}ms exceeds 1500ms`);
   }
 }
 
 if (traces.length > 1) {
-  const persistent = traces.find((trace) => trace.summary.label === "persistent-cache-reenabled")?.summary;
+  const persistent = traces.find(
+    (trace) => trace.summary.label === "persistent-cache-reenabled",
+  )?.summary;
   const fresh = traces.find((trace) => trace.summary.label === "fresh-cache-enabled")?.summary;
   if (persistent && fresh && enforceBudget) {
     const allowed = Math.max(fresh.commitP95Ms * 1.2, fresh.commitP95Ms + 150);
-    if (persistent.commitP95Ms > allowed) failures.push(`persistent profile commit p95 ${persistent.commitP95Ms}ms is materially slower than fresh ${fresh.commitP95Ms}ms (allowed ${allowed.toFixed(0)}ms)`);
+    if (persistent.commitP95Ms > allowed)
+      failures.push(
+        `persistent profile commit p95 ${persistent.commitP95Ms}ms is materially slower than fresh ${fresh.commitP95Ms}ms (allowed ${allowed.toFixed(0)}ms)`,
+      );
   }
 }
 
 const historyFile = join(output, "release-history.json");
-const history = await readFile(historyFile, "utf8").then(JSON.parse).catch(() => []);
+const history = await readFile(historyFile, "utf8")
+  .then(JSON.parse)
+  .catch(() => []);
 if (expectReleaseChange) {
   const previous = [...history].reverse().find((entry) => entry.phase !== phase);
   const previousIds = new Set(previous?.traces.flatMap((trace) => trace.releaseIds) || []);
   const currentIds = new Set(traces.flatMap((trace) => trace.summary.releaseIds));
-  if (!previous || !previousIds.size || !currentIds.size) failures.push("release-change QA requires populated deployment identities in both phases");
-  if ([...currentIds].some((id) => previousIds.has(id))) failures.push(`release-change QA retained the previous deployment identity (${[...currentIds].filter((id) => previousIds.has(id)).join(", ")})`);
+  if (!previous || !previousIds.size || !currentIds.size)
+    failures.push("release-change QA requires populated deployment identities in both phases");
+  if ([...currentIds].some((id) => previousIds.has(id)))
+    failures.push(
+      `release-change QA retained the previous deployment identity (${[...currentIds].filter((id) => previousIds.has(id)).join(", ")})`,
+    );
 }
 history.push({ at: new Date().toISOString(), phase, traces: traces.map((trace) => trace.summary) });
 await writeFile(historyFile, `${JSON.stringify(history.slice(-20), null, 2)}\n`);
-await writeFile(join(output, "summary.json"), `${JSON.stringify({ result: failures.length ? "failed" : "passed", phase, traces: traces.map((trace) => trace.summary), failures }, null, 2)}\n`);
+await writeFile(
+  join(output, "summary.json"),
+  `${JSON.stringify({ result: failures.length ? "failed" : "passed", phase, traces: traces.map((trace) => trace.summary), failures }, null, 2)}\n`,
+);
 
 if (failures.length) {
   console.error(`Persistent profile QA failed:\n- ${failures.join("\n- ")}`);
   process.exit(1);
 }
-console.log(JSON.stringify({ result: "passed", phase, profile, traces: traces.map((trace) => trace.summary), artifacts: output }, null, 2));
+console.log(
+  JSON.stringify(
+    {
+      result: "passed",
+      phase,
+      profile,
+      traces: traces.map((trace) => trace.summary),
+      artifacts: output,
+    },
+    null,
+    2,
+  ),
+);

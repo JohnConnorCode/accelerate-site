@@ -15,10 +15,7 @@ export async function POST(request: NextRequest) {
     const { name, email, company, website, partnerType, message, utm } = body;
 
     if (!name || !email || !company || !partnerType || !message) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     if (
@@ -31,15 +28,12 @@ export async function POST(request: NextRequest) {
     ) {
       return NextResponse.json(
         { error: "One or more fields exceed the maximum allowed length." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!isValidEmail(email)) {
-      return NextResponse.json(
-        { error: "Invalid email address" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
     }
 
     // Save to Supabase if configured
@@ -62,16 +56,21 @@ export async function POST(request: NextRequest) {
         // An application we never stored is an application we never received.
         if (dbError) {
           console.error("partner_applications insert FAILED:", dbError.message);
-          return NextResponse.json({ error: "We could not save your application. Please try again." }, { status: 500 });
+          return NextResponse.json(
+            { error: "We could not save your application. Please try again." },
+            { status: 500 },
+          );
         }
 
         // Create admin notification (fire and forget)
-        Promise.resolve(supabase.from("admin_notifications").insert({
-          type: "new_partner",
-          title: `New partner application: ${name}`,
-          description: `${company}: ${partnerType}`,
-          link: "/admin/partners",
-        })).catch(() => {});
+        Promise.resolve(
+          supabase.from("admin_notifications").insert({
+            type: "new_partner",
+            title: `New partner application: ${name}`,
+            description: `${company}: ${partnerType}`,
+            link: "/admin/partners",
+          }),
+        ).catch(() => {});
       } catch (e) {
         console.warn("Supabase insert failed:", e);
       }
@@ -80,9 +79,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Partner application error:", error);
-    return NextResponse.json(
-      { error: "Failed to submit application" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to submit application" }, { status: 500 });
   }
 }

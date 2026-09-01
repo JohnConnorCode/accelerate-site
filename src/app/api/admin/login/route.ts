@@ -82,9 +82,12 @@ export async function POST(request: NextRequest) {
     .eq("user_id", data.user.id)
     .eq("status", "active");
   const activeSlugs = (memberships || []).flatMap((membership) => {
-    const linked = membership.tenants as unknown as { slug?: string; status?: string } | Array<{ slug?: string; status?: string }>;
+    const linked = membership.tenants as unknown as
+      { slug?: string; status?: string } | Array<{ slug?: string; status?: string }>;
     const tenantRows = Array.isArray(linked) ? linked : [linked];
-    return tenantRows.filter((tenant) => tenant?.status === "active" && tenant.slug).map((tenant) => tenant.slug!);
+    return tenantRows
+      .filter((tenant) => tenant?.status === "active" && tenant.slug)
+      .map((tenant) => tenant.slug!);
   });
 
   if (!isConfiguredAdmin(data.user.email) && activeSlugs.length === 0) {
@@ -96,9 +99,10 @@ export async function POST(request: NextRequest) {
     return response;
   }
 
-  const defaultSlug = isConfiguredAdmin(data.user.email) && activeSlugs.includes("accelerate")
-    ? "accelerate"
-    : activeSlugs[0];
+  const defaultSlug =
+    isConfiguredAdmin(data.user.email) && activeSlugs.includes("accelerate")
+      ? "accelerate"
+      : activeSlugs[0];
   if (defaultSlug) response.headers.set("x-workspace-path", `/t/${defaultSlug}/admin/today`);
 
   return response;

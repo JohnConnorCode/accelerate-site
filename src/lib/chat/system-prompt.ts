@@ -11,7 +11,10 @@ function engagementModesBlock(): string {
 
 function publicWorkBlock(): string {
   return publicWorkProjects
-    .map((project) => `- ${project.name} (${project.relationship}, ${project.timeline}): ${project.cardHeadline}${project.proof ? ` Documented proof: ${project.proof}.` : ""}`)
+    .map(
+      (project) =>
+        `- ${project.name} (${project.relationship}, ${project.timeline}): ${project.cardHeadline}${project.proof ? ` Documented proof: ${project.proof}.` : ""}`,
+    )
     .join("\n");
 }
 

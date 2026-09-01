@@ -44,5 +44,9 @@ export function HeroEntranceItem({
   step: 1 | 2 | 3 | 4 | 5;
   className?: string;
 }) {
-  return <div className={className} data-hero-step={step}>{children}</div>;
+  return (
+    <div className={className} data-hero-step={step}>
+      {children}
+    </div>
+  );
 }

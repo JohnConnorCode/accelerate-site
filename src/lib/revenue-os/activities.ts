@@ -55,24 +55,34 @@ export interface ActivityTimelineFilter {
   limit?: number;
 }
 
-const ACTIVITY_COLUMNS = "id,activity_type,title,summary,contact_id,company_id,opportunity_id,conversation_id,proposal_id,campaign_id,source,actor_email,external_id,metadata,occurred_at,created_at";
+const ACTIVITY_COLUMNS =
+  "id,activity_type,title,summary,contact_id,company_id,opportunity_id,conversation_id,proposal_id,campaign_id,source,actor_email,external_id,metadata,occurred_at,created_at";
 
 function normalizedInput(input: ActivityLedgerInput) {
   const activityType = input.activityType.trim();
   const title = input.title.trim();
   const source = input.source.trim();
   const externalId = input.externalId.trim();
-  if (!ACTIVITY_TYPE_PATTERN.test(activityType)) throw new Error("Activity type must be a stable snake_case identifier");
+  if (!ACTIVITY_TYPE_PATTERN.test(activityType))
+    throw new Error("Activity type must be a stable snake_case identifier");
   if (!title) throw new Error("Activity title is required");
-  if (title.length > MAX_TITLE_LENGTH) throw new Error(`Activity titles are limited to ${MAX_TITLE_LENGTH} characters`);
-  if (!SOURCE_PATTERN.test(source)) throw new Error("Activity source must be a stable lowercase identifier");
+  if (title.length > MAX_TITLE_LENGTH)
+    throw new Error(`Activity titles are limited to ${MAX_TITLE_LENGTH} characters`);
+  if (!SOURCE_PATTERN.test(source))
+    throw new Error("Activity source must be a stable lowercase identifier");
   if (!externalId) throw new Error("Activity external ID is required for replay safety");
-  if (externalId.length > 500) throw new Error("Activity external IDs are limited to 500 characters");
+  if (externalId.length > 500)
+    throw new Error("Activity external IDs are limited to 500 characters");
   const summary = input.summary?.trim() || null;
-  if (summary && summary.length > MAX_SUMMARY_LENGTH) throw new Error(`Activity summaries are limited to ${MAX_SUMMARY_LENGTH.toLocaleString()} characters`);
+  if (summary && summary.length > MAX_SUMMARY_LENGTH)
+    throw new Error(
+      `Activity summaries are limited to ${MAX_SUMMARY_LENGTH.toLocaleString()} characters`,
+    );
   const metadata = input.metadata ?? {};
-  if (!metadata || Array.isArray(metadata) || typeof metadata !== "object") throw new Error("Activity metadata must be an object");
-  if (JSON.stringify(metadata).length > MAX_METADATA_BYTES) throw new Error("Activity metadata is too large");
+  if (!metadata || Array.isArray(metadata) || typeof metadata !== "object")
+    throw new Error("Activity metadata must be an object");
+  if (JSON.stringify(metadata).length > MAX_METADATA_BYTES)
+    throw new Error("Activity metadata is too large");
   const occurredAt = input.occurredAt ?? new Date().toISOString();
   if (Number.isNaN(Date.parse(occurredAt))) throw new Error("Activity occurrence time is invalid");
   return {
@@ -93,8 +103,17 @@ function normalizedInput(input: ActivityLedgerInput) {
   };
 }
 
-async function findActivityReceipt(supabase: SupabaseClient, source: string, externalId: string): Promise<ActivityLedgerRecord | null> {
-  const { data, error } = await supabase.from("activities").select(ACTIVITY_COLUMNS).eq("source", source).eq("external_id", externalId).maybeSingle();
+async function findActivityReceipt(
+  supabase: SupabaseClient,
+  source: string,
+  externalId: string,
+): Promise<ActivityLedgerRecord | null> {
+  const { data, error } = await supabase
+    .from("activities")
+    .select(ACTIVITY_COLUMNS)
+    .eq("source", source)
+    .eq("external_id", externalId)
+    .maybeSingle();
   if (error) throw new Error(error.message);
   return data as ActivityLedgerRecord | null;
 }
@@ -104,12 +123,19 @@ async function findActivityReceipt(supabase: SupabaseClient, source: string, ext
  * one `(source, external_id)` receipt; concurrent retries return that receipt
  * instead of inventing another timeline event.
  */
-export async function recordActivity(supabase: SupabaseClient, input: ActivityLedgerInput): Promise<{ activity: ActivityLedgerRecord; duplicate: boolean }> {
+export async function recordActivity(
+  supabase: SupabaseClient,
+  input: ActivityLedgerInput,
+): Promise<{ activity: ActivityLedgerRecord; duplicate: boolean }> {
   const row = normalizedInput(input);
   const existing = await findActivityReceipt(supabase, row.source, row.external_id);
   if (existing) return { activity: existing, duplicate: true };
 
-  const { data, error } = await supabase.from("activities").insert(row).select(ACTIVITY_COLUMNS).single();
+  const { data, error } = await supabase
+    .from("activities")
+    .insert(row)
+    .select(ACTIVITY_COLUMNS)
+    .single();
   if (!error && data) return { activity: data as ActivityLedgerRecord, duplicate: false };
 
   // A concurrent writer may have won the unique `(source, external_id)` race.
@@ -120,8 +146,18 @@ export async function recordActivity(supabase: SupabaseClient, input: ActivityLe
 }
 
 /** Bounded, deterministic reader shared by record workspaces and AI context. */
-export async function loadActivityTimeline(supabase: SupabaseClient, filter: ActivityTimelineFilter): Promise<ActivityLedgerRecord[]> {
-  const links = [filter.contactId, filter.companyId, filter.opportunityId, filter.conversationId, filter.proposalId, filter.campaignId].filter(Boolean);
+export async function loadActivityTimeline(
+  supabase: SupabaseClient,
+  filter: ActivityTimelineFilter,
+): Promise<ActivityLedgerRecord[]> {
+  const links = [
+    filter.contactId,
+    filter.companyId,
+    filter.opportunityId,
+    filter.conversationId,
+    filter.proposalId,
+    filter.campaignId,
+  ].filter(Boolean);
   if (!links.length) throw new Error("A canonical record ID is required to load activity");
   const limit = Math.min(200, Math.max(1, Math.trunc(filter.limit ?? 50)));
   let query = supabase.from("activities").select(ACTIVITY_COLUMNS);
@@ -135,7 +171,10 @@ export async function loadActivityTimeline(supabase: SupabaseClient, filter: Act
     if (Number.isNaN(Date.parse(filter.before))) throw new Error("Activity cursor is invalid");
     query = query.lt("occurred_at", new Date(filter.before).toISOString());
   }
-  const { data, error } = await query.order("occurred_at", { ascending: false }).order("id", { ascending: false }).limit(limit);
+  const { data, error } = await query
+    .order("occurred_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(limit);
   if (error) throw new Error(error.message);
   return (data ?? []) as ActivityLedgerRecord[];
 }

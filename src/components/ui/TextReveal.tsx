@@ -61,8 +61,7 @@ export function TextReveal({
       >
         {units.map((unit, i) => {
           const isGold =
-            splitBy === "word" &&
-            goldSet.has(unit.text.toLowerCase().replace(/[^a-z]/g, ""));
+            splitBy === "word" && goldSet.has(unit.text.toLowerCase().replace(/[^a-z]/g, ""));
           return (
             <motion.span
               key={i}
@@ -76,7 +75,7 @@ export function TextReveal({
               className={cn(
                 "inline-block",
                 isGold && "text-gold-gradient",
-                splitBy === "word" && "mr-[0.25em]"
+                splitBy === "word" && "mr-[0.25em]",
               )}
               aria-hidden="true"
             >

@@ -12,45 +12,33 @@ export async function GET(request: NextRequest) {
   const since = new Date(now.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
 
   // Fetch all channel data in parallel
-  const [
-    leadsRes,
-    contactsRes,
-    chatLeadsRes,
-    gradesRes,
-    resourcesRes,
-    industryRes,
-    pipelineRes,
-  ] = await Promise.all([
-    supabase
-      .from("solution_requests")
-      .select("id, lead_status, created_at, industry, contacted_at", { count: "exact" })
-      .gte("created_at", since),
-    supabase
-      .from("contact_submissions")
-      .select("id", { count: "exact", head: true })
-      .gte("created_at", since),
-    supabase
-      .from("chat_leads")
-      .select("id", { count: "exact", head: true })
-      .gte("created_at", since),
-    supabase
-      .from("website_grades")
-      .select("id", { count: "exact", head: true })
-      .gte("created_at", since),
-    supabase
-      .from("resource_downloads")
-      .select("id", { count: "exact", head: true })
-      .gte("downloaded_at", since),
-    // Full industry breakdown
-    supabase
-      .from("solution_requests")
-      .select("industry")
-      .gte("created_at", since),
-    // Full pipeline for funnel
-    supabase
-      .from("solution_requests")
-      .select("lead_status"),
-  ]);
+  const [leadsRes, contactsRes, chatLeadsRes, gradesRes, resourcesRes, industryRes, pipelineRes] =
+    await Promise.all([
+      supabase
+        .from("solution_requests")
+        .select("id, lead_status, created_at, industry, contacted_at", { count: "exact" })
+        .gte("created_at", since),
+      supabase
+        .from("contact_submissions")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", since),
+      supabase
+        .from("chat_leads")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", since),
+      supabase
+        .from("website_grades")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", since),
+      supabase
+        .from("resource_downloads")
+        .select("id", { count: "exact", head: true })
+        .gte("downloaded_at", since),
+      // Full industry breakdown
+      supabase.from("solution_requests").select("industry").gte("created_at", since),
+      // Full pipeline for funnel
+      supabase.from("solution_requests").select("lead_status"),
+    ]);
 
   // Channel breakdown
   const channels = [
@@ -81,18 +69,22 @@ export async function GET(request: NextRequest) {
   // Average time to first contact (hours)
   let totalContactTime = 0;
   let contactedCount = 0;
-  (leadsRes.data || []).forEach((r: { created_at: string; contacted_at?: string; lead_status: string }) => {
-    if (r.contacted_at) {
-      const created = new Date(r.created_at).getTime();
-      const contacted = new Date(r.contacted_at).getTime();
-      const diffHours = (contacted - created) / (1000 * 60 * 60);
-      if (diffHours > 0 && diffHours < 720) { // cap at 30 days
-        totalContactTime += diffHours;
-        contactedCount++;
+  (leadsRes.data || []).forEach(
+    (r: { created_at: string; contacted_at?: string; lead_status: string }) => {
+      if (r.contacted_at) {
+        const created = new Date(r.created_at).getTime();
+        const contacted = new Date(r.contacted_at).getTime();
+        const diffHours = (contacted - created) / (1000 * 60 * 60);
+        if (diffHours > 0 && diffHours < 720) {
+          // cap at 30 days
+          totalContactTime += diffHours;
+          contactedCount++;
+        }
       }
-    }
-  });
-  const avgTimeToContact = contactedCount > 0 ? Math.round(totalContactTime / contactedCount) : null;
+    },
+  );
+  const avgTimeToContact =
+    contactedCount > 0 ? Math.round(totalContactTime / contactedCount) : null;
 
   return NextResponse.json({
     channels,

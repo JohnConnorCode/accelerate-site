@@ -85,7 +85,10 @@ export function Dock() {
             onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "dock" })}
             className="btn btn-inv shrink-0 whitespace-nowrap !px-5 !py-3 !text-[10px]"
           >
-            Book <span className="arw" aria-hidden="true">→</span>
+            Book{" "}
+            <span className="arw" aria-hidden="true">
+              →
+            </span>
           </Link>
         </motion.aside>
       )}

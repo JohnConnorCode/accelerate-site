@@ -27,11 +27,7 @@ export async function POST(request: NextRequest) {
   const supabase = auth.database;
   const body = await request.json();
 
-  const { data, error } = await supabase
-    .from("content_calendar")
-    .insert(body)
-    .select()
-    .single();
+  const { data, error } = await supabase.from("content_calendar").insert(body).select().single();
 
   if (error) {
     console.error("Database error:", error.message);
@@ -80,10 +76,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "Missing item id" }, { status: 400 });
   }
 
-  const { error } = await supabase
-    .from("content_calendar")
-    .delete()
-    .eq("id", id);
+  const { error } = await supabase.from("content_calendar").delete().eq("id", id);
 
   if (error) {
     console.error("Database error:", error.message);

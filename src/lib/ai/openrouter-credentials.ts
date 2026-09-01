@@ -26,7 +26,10 @@ export interface OpenRouterKeyMetadata {
 }
 
 export class OpenRouterCredentialError extends Error {
-  constructor(message: string, public readonly status = 503) {
+  constructor(
+    message: string,
+    public readonly status = 503,
+  ) {
     super(message);
     this.name = "OpenRouterCredentialError";
   }
@@ -45,17 +48,29 @@ export function resolveOpenRouterCredentialPolicy(input: {
 }): OpenRouterCredential | null {
   const { tenantId, connection } = input;
   if (connection?.status === "connected") {
-    const encrypted = connection.encrypted_credentials && typeof connection.encrypted_credentials === "object"
-      ? (connection.encrypted_credentials as Record<string, unknown>).api_key
-      : null;
-    if (typeof encrypted !== "string" || !encrypted) throw new OpenRouterCredentialError("The tenant OpenRouter connection has no usable encrypted key.");
+    const encrypted =
+      connection.encrypted_credentials && typeof connection.encrypted_credentials === "object"
+        ? (connection.encrypted_credentials as Record<string, unknown>).api_key
+        : null;
+    if (typeof encrypted !== "string" || !encrypted)
+      throw new OpenRouterCredentialError(
+        "The tenant OpenRouter connection has no usable encrypted key.",
+      );
     try {
-      return { apiKey: decryptTenantSecret(encrypted, tenantId, PROVIDER, "api_key"), source: "tenant", tenantId };
+      return {
+        apiKey: decryptTenantSecret(encrypted, tenantId, PROVIDER, "api_key"),
+        source: "tenant",
+        tenantId,
+      };
     } catch {
-      throw new OpenRouterCredentialError("The tenant OpenRouter credential could not be decrypted.");
+      throw new OpenRouterCredentialError(
+        "The tenant OpenRouter credential could not be decrypted.",
+      );
     }
   }
-  const allowPlatform = tenantId === ACCELERATE_TENANT_ID && (!connection || connection.environment_fallback_allowed === true);
+  const allowPlatform =
+    tenantId === ACCELERATE_TENANT_ID &&
+    (!connection || connection.environment_fallback_allowed === true);
   const platformKey = allowPlatform ? input.platformKey?.trim() : "";
   return platformKey ? { apiKey: platformKey, source: "platform", tenantId } : null;
 }
@@ -68,27 +83,41 @@ function boundedText(value: unknown, max = 160): string | null {
   return typeof value === "string" && value.trim() ? value.trim().slice(0, max) : null;
 }
 
-export async function validateOpenRouterApiKey(apiKey: string, signal?: AbortSignal): Promise<OpenRouterKeyMetadata> {
+export async function validateOpenRouterApiKey(
+  apiKey: string,
+  signal?: AbortSignal,
+): Promise<OpenRouterKeyMetadata> {
   const key = apiKey.trim();
   if (!/^sk-or-v1-[A-Za-z0-9_-]{20,}$/.test(key)) {
     throw new OpenRouterCredentialError("Enter a valid OpenRouter API key.", 400);
   }
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 12_000);
-  const mergedSignal = signal && typeof AbortSignal.any === "function"
-    ? AbortSignal.any([signal, controller.signal])
-    : controller.signal;
+  const mergedSignal =
+    signal && typeof AbortSignal.any === "function"
+      ? AbortSignal.any([signal, controller.signal])
+      : controller.signal;
   try {
     const response = await fetch("https://openrouter.ai/api/v1/key", {
       headers: { Authorization: `Bearer ${key}` },
       signal: mergedSignal,
       cache: "no-store",
     });
-    const payload = await response.json().catch(() => null) as { data?: Record<string, unknown> } | null;
+    const payload = (await response.json().catch(() => null)) as {
+      data?: Record<string, unknown>;
+    } | null;
     if (!response.ok || !payload?.data) {
-      if (response.status === 401 || response.status === 403) throw new OpenRouterCredentialError("OpenRouter rejected this API key.", 400);
-      if (response.status === 429) throw new OpenRouterCredentialError("OpenRouter is rate limiting key verification. Try again shortly.", 429);
-      throw new OpenRouterCredentialError("OpenRouter could not verify the key right now. Try again.", 502);
+      if (response.status === 401 || response.status === 403)
+        throw new OpenRouterCredentialError("OpenRouter rejected this API key.", 400);
+      if (response.status === 429)
+        throw new OpenRouterCredentialError(
+          "OpenRouter is rate limiting key verification. Try again shortly.",
+          429,
+        );
+      throw new OpenRouterCredentialError(
+        "OpenRouter could not verify the key right now. Try again.",
+        502,
+      );
     }
     return {
       label: boundedText(payload.data.label),
@@ -101,18 +130,28 @@ export async function validateOpenRouterApiKey(apiKey: string, signal?: AbortSig
     };
   } catch (error) {
     if (error instanceof OpenRouterCredentialError) throw error;
-    if (error instanceof Error && error.name === "AbortError") throw new OpenRouterCredentialError("OpenRouter key verification timed out. Try again.", 504);
-    throw new OpenRouterCredentialError("OpenRouter could not verify the key right now. Try again.", 502);
+    if (error instanceof Error && error.name === "AbortError")
+      throw new OpenRouterCredentialError("OpenRouter key verification timed out. Try again.", 504);
+    throw new OpenRouterCredentialError(
+      "OpenRouter could not verify the key right now. Try again.",
+      502,
+    );
   } finally {
     clearTimeout(timeout);
   }
 }
 
-export async function resolveOpenRouterCredential(database: SupabaseClient): Promise<OpenRouterCredential | null> {
+export async function resolveOpenRouterCredential(
+  database: SupabaseClient,
+): Promise<OpenRouterCredential | null> {
   const tenantId = tenantIdForDatabase(database);
-  if (!tenantId) throw new OpenRouterCredentialError("OpenRouter execution requires an explicit tenant database context.");
+  if (!tenantId)
+    throw new OpenRouterCredentialError(
+      "OpenRouter execution requires an explicit tenant database context.",
+    );
   await assertActiveTenantExecution(database, PROVIDER);
-  const { data: connection, error } = await database.from("integration_connections")
+  const { data: connection, error } = await database
+    .from("integration_connections")
     .select("status,encrypted_credentials,environment_fallback_allowed")
     .eq("provider", PROVIDER)
     .maybeSingle();

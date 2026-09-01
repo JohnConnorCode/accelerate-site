@@ -13,12 +13,7 @@ import { Logo } from "@/components/ui/Logo";
 import { verticals } from "@/content/verticals";
 import { FEATURED_INDUSTRY_SLUGS } from "@/content/industry-visuals";
 import { SearchDialog, useSearchShortcut } from "@/components/search/SearchDialog";
-import {
-  headerEntrance,
-  headerLogoReveal,
-  headerNavItem,
-  headerCtaReveal,
-} from "@/lib/animations";
+import { headerEntrance, headerLogoReveal, headerNavItem, headerCtaReveal } from "@/lib/animations";
 import { isApplicationWorkspace } from "@/lib/navigation/public-chrome";
 
 interface NavChild {
@@ -108,7 +103,7 @@ export function Header() {
         animate="visible"
         className={cn(
           "site-header fixed top-0 left-0 right-0 z-[90] transition-[background-color,backdrop-filter,box-shadow] duration-300",
-          scrolled && "is-scrolled shadow-[0_12px_40px_rgba(11,11,11,0.08)]"
+          scrolled && "is-scrolled shadow-[0_12px_40px_rgba(11,11,11,0.08)]",
         )}
         style={{
           backgroundColor: scrolled ? "var(--header-bg-scrolled)" : "transparent",
@@ -144,7 +139,7 @@ export function Header() {
                       focusRing,
                       pathname.startsWith("/industries")
                         ? "text-[var(--text-nav-hover)]"
-                        : "text-[var(--text-nav)] hover:text-[var(--text-nav-hover)]"
+                        : "text-[var(--text-nav)] hover:text-[var(--text-nav-hover)]",
                     )}
                     aria-expanded={openDropdown === link.label}
                     aria-haspopup="true"
@@ -154,7 +149,7 @@ export function Header() {
                     <ChevronDown
                       className={cn(
                         "h-3.5 w-3.5 transition-transform duration-300",
-                        openDropdown === link.label && "rotate-180"
+                        openDropdown === link.label && "rotate-180",
                       )}
                     />
                     <span
@@ -162,7 +157,7 @@ export function Header() {
                         navUnderline,
                         pathname.startsWith("/industries")
                           ? "scale-x-100"
-                          : "scale-x-0 group-hover/nav:scale-x-100"
+                          : "scale-x-0 group-hover/nav:scale-x-100",
                       )}
                     />
                   </button>
@@ -210,19 +205,21 @@ export function Header() {
                       focusRing,
                       isActive(link.href)
                         ? "text-[var(--text-nav-hover)]"
-                        : "text-[var(--text-nav)] hover:text-[var(--text-nav-hover)]"
+                        : "text-[var(--text-nav)] hover:text-[var(--text-nav-hover)]",
                     )}
                   >
                     {link.label}
                     <span
                       className={cn(
                         navUnderline,
-                        isActive(link.href) ? "scale-x-100" : "scale-x-0 group-hover/nav:scale-x-100"
+                        isActive(link.href)
+                          ? "scale-x-100"
+                          : "scale-x-0 group-hover/nav:scale-x-100",
                       )}
                     />
                   </Link>
                 </motion.div>
-              )
+              ),
             )}
           </nav>
 
@@ -233,7 +230,10 @@ export function Header() {
               onClick={() => setSearchOpen(true)}
               aria-label="Search the site"
               title="Search (press / or Cmd K)"
-              className={cn("grid size-9 place-items-center rounded-lg text-[var(--text-nav)] transition-colors hover:text-[var(--text-nav-hover)] hover:bg-[var(--bg-hover-subtle)] cursor-pointer", focusRing)}
+              className={cn(
+                "grid size-9 place-items-center rounded-lg text-[var(--text-nav)] transition-colors hover:text-[var(--text-nav-hover)] hover:bg-[var(--bg-hover-subtle)] cursor-pointer",
+                focusRing,
+              )}
             >
               <Search className="size-[18px]" />
             </button>
@@ -243,7 +243,10 @@ export function Header() {
               onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "header" })}
               className="btn btn-sm"
             >
-              Book a call <span className="arw" aria-hidden="true">→</span>
+              Book a call{" "}
+              <span className="arw" aria-hidden="true">
+                →
+              </span>
             </Link>
           </motion.div>
 
@@ -253,13 +256,19 @@ export function Header() {
               type="button"
               onClick={() => setSearchOpen(true)}
               aria-label="Search the site"
-              className={cn("relative flex h-11 w-11 items-center justify-center cursor-pointer rounded-lg transition-transform duration-150 active:scale-[0.96]", focusRing)}
+              className={cn(
+                "relative flex h-11 w-11 items-center justify-center cursor-pointer rounded-lg transition-transform duration-150 active:scale-[0.96]",
+                focusRing,
+              )}
             >
               <Search className="size-[19px] text-[var(--text-nav)]" />
             </motion.button>
             <motion.button
               variants={headerCtaReveal}
-              className={cn("relative flex h-11 w-11 items-center justify-center cursor-pointer rounded-lg transition-transform duration-150 active:scale-[0.96]", focusRing)}
+              className={cn(
+                "relative flex h-11 w-11 items-center justify-center cursor-pointer rounded-lg transition-transform duration-150 active:scale-[0.96]",
+                focusRing,
+              )}
               onClick={() => setMobileOpen(true)}
               aria-label="Open navigation menu"
             >
@@ -275,11 +284,7 @@ export function Header() {
       </motion.header>
 
       {/* Mobile Nav Overlay */}
-      <MobileNav
-        isOpen={mobileOpen}
-        onClose={() => setMobileOpen(false)}
-        navLinks={navLinks}
-      />
+      <MobileNav isOpen={mobileOpen} onClose={() => setMobileOpen(false)} navLinks={navLinks} />
 
       <SearchDialog open={searchOpen} onOpenChangeAction={setSearchOpen} />
     </>

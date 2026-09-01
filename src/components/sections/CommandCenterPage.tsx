@@ -13,12 +13,7 @@ import { CapabilityCatalog } from "@/components/command-center/CapabilityCatalog
 import { CommandCenterDemo } from "@/components/command-center/demo/CommandCenterDemo";
 import { CommandCenterNav } from "@/components/command-center/CommandCenterNav";
 import { commandCenterFaqs } from "@/content/command-center-faq";
-import {
-  LOOP_STEPS,
-  TRUST_LADDER,
-  MARQUEE_ITEMS,
-  WHO_ITS_FOR,
-} from "@/content/command-center";
+import { LOOP_STEPS, TRUST_LADDER, MARQUEE_ITEMS, WHO_ITS_FOR } from "@/content/command-center";
 import type { MouseEvent } from "react";
 
 /* /command-center, built on the homepage editorial system (.sect / .wrap /
@@ -82,7 +77,11 @@ function Hero() {
 
   return (
     <section ref={sectionRef} className={`hero cc-hero${loaded ? " loaded" : ""}`} id="top">
-      <motion.div className="hero-field" aria-hidden="true" style={reduced ? undefined : { y: gridDrift }}>
+      <motion.div
+        className="hero-field"
+        aria-hidden="true"
+        style={reduced ? undefined : { y: gridDrift }}
+      >
         <div className="hero-grid-base" />
         <div className="hero-grid-lit" />
         <span className="hero-tick hero-tick-tl" />
@@ -111,28 +110,43 @@ function Hero() {
               <span className="h1-word-row">
                 {["More", "every", "month."].map((w, i) => (
                   <span key={w} className="word">
-                    <span className="it" style={{ "--d": `${0.46 + i * 0.08}s` } as CSSProperties}>{w}</span>
+                    <span className="it" style={{ "--d": `${0.46 + i * 0.08}s` } as CSSProperties}>
+                      {w}
+                    </span>
                   </span>
                 ))}
               </span>
             </h1>
-            <div className={`rv${loaded ? " in" : ""} flex flex-col gap-5`} style={{ "--d": ".5s", marginTop: 26 } as CSSProperties}>
+            <div
+              className={`rv${loaded ? " in" : ""} flex flex-col gap-5`}
+              style={{ "--d": ".5s", marginTop: 26 } as CSSProperties}
+            >
               <p className="lede text-balance">
-                The Command Center is one integrated solution we build for businesses that need shared context and connected execution. It is not a required starting point or the right answer for every team.
+                The Command Center is one integrated solution we build for businesses that need
+                shared context and connected execution. It is not a required starting point or the
+                right answer for every team.
               </p>
               <p className="lede text-balance">
-                It captures communications, advances the pipeline, drafts follow-ups, and files meeting notes before you have opened the laptop.
+                It captures communications, advances the pipeline, drafts follow-ups, and files
+                meeting notes before you have opened the laptop.
               </p>
               <p className="lede text-balance hidden sm:block">
-                Smart approvals route the judgment calls to you and let the routine earn the right to run itself. We build it around your business and install it running.
+                Smart approvals route the judgment calls to you and let the routine earn the right
+                to run itself. We build it around your business and install it running.
               </p>
             </div>
-            <div className={`rv${loaded ? " in" : ""}`} style={{ "--d": ".62s", marginTop: 32 } as CSSProperties}>
+            <div
+              className={`rv${loaded ? " in" : ""}`}
+              style={{ "--d": ".62s", marginTop: 32 } as CSSProperties}
+            >
               <BookCallButton location="command_center_hero" />
             </div>
           </div>
 
-          <div className={`rv${loaded ? " in" : ""} min-w-0`} style={{ "--d": ".38s" } as CSSProperties}>
+          <div
+            className={`rv${loaded ? " in" : ""} min-w-0`}
+            style={{ "--d": ".38s" } as CSSProperties}
+          >
             <ApprovalQueue />
           </div>
         </div>
@@ -178,7 +192,9 @@ function Problem() {
               when the work <span className="it">needs one.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              A focused workflow is enough for many teams. The Command Center fits when communications, records, approvals, and recurring work need durable context across the operation.
+              A focused workflow is enough for many teams. The Command Center fits when
+              communications, records, approvals, and recurring work need durable context across the
+              operation.
             </Reveal>
           </div>
         </div>
@@ -207,7 +223,9 @@ function Built() {
               <span className="it">already runs.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              Off-the-shelf software asks you to change how you work. We put the system into the tools, channels, and rules you already have. From day one it knows your clients and speaks the trade.
+              Off-the-shelf software asks you to change how you work. We put the system into the
+              tools, channels, and rules you already have. From day one it knows your clients and
+              speaks the trade.
             </Reveal>
           </div>
         </div>
@@ -234,14 +252,21 @@ function Demo() {
               <span className="it">actually changes.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              Try the live sandbox below. Approve draft emails, update deal stages, query records, or process meeting notes in seconds. For your business, this runs in the background with your real data, contacts, and workflow.
+              Try the live sandbox below. Approve draft emails, update deal stages, query records,
+              or process meeting notes in seconds. For your business, this runs in the background
+              with your real data, contacts, and workflow.
             </Reveal>
           </div>
         </div>
         <Reveal rv as="div" delay={0.1} style={{ marginTop: "clamp(32px,4vw,54px)" }}>
           <CommandCenterDemo />
           <div className="mt-4 flex justify-end">
-            <Link href="/demo/command-center" className="inline-flex min-h-12 items-center rounded-xl bg-[var(--fg)] px-5 text-xs font-semibold text-[var(--bg)] transition-[opacity,transform] hover:opacity-80 active:scale-[0.96]">Open the full admin demo →</Link>
+            <Link
+              href="/demo/command-center"
+              className="inline-flex min-h-12 items-center rounded-xl bg-[var(--fg)] px-5 text-xs font-semibold text-[var(--bg)] transition-[opacity,transform] hover:opacity-80 active:scale-[0.96]"
+            >
+              Open the full admin demo →
+            </Link>
           </div>
         </Reveal>
       </div>
@@ -267,7 +292,9 @@ function HowItWorks() {
               that <span className="it">runs your work.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              Most tools wait around for you to ask. Your custom system stays ahead: capturing context, staging drafts, and queueing every next action so you can clear a morning of admin in minutes.
+              Most tools wait around for you to ask. Your custom system stays ahead: capturing
+              context, staging drafts, and queueing every next action so you can clear a morning of
+              admin in minutes.
             </Reveal>
           </div>
         </div>
@@ -289,7 +316,6 @@ function HowItWorks() {
             </Reveal>
           ))}
         </div>
-
       </div>
     </section>
   );
@@ -313,7 +339,9 @@ function TrustLadder() {
               Autonomy that <span className="it">compounds.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              The queue starts strict and gets smarter. As the system nails your voice and your calls, whole categories of routine work graduate to running on their own, and your attention goes only where it is genuinely worth attention.
+              The queue starts strict and gets smarter. As the system nails your voice and your
+              calls, whole categories of routine work graduate to running on their own, and your
+              attention goes only where it is genuinely worth attention.
             </Reveal>
           </div>
         </div>
@@ -350,7 +378,8 @@ function Catalog() {
               for your <span className="it">entire operation.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              What we put in first is whatever is trapping the team: intake, the pipeline, follow-up. Then we expand as the week actually comes back.
+              What we put in first is whatever is trapping the team: intake, the pipeline,
+              follow-up. Then we expand as the week actually comes back.
             </Reveal>
           </div>
         </div>
@@ -378,7 +407,9 @@ function Proof() {
               <span className="it">own business.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              We run our own agency on this system every day: intake, call notes, follow-ups, proposals. On the strategy call we will screen-share the live production system so you can see how it actually runs.
+              We run our own agency on this system every day: intake, call notes, follow-ups,
+              proposals. On the strategy call we will screen-share the live production system so you
+              can see how it actually runs.
             </Reveal>
           </div>
         </div>
@@ -418,7 +449,8 @@ function WhoItsFor() {
               ))}
             </ul>
             <Reveal rv as="p" className="lede" delay={0.1}>
-              A full operations team gets more out of this, not less. The routine work runs itself, so people spend the week on what actually needs a person.
+              A full operations team gets more out of this, not less. The routine work runs itself,
+              so people spend the week on what actually needs a person.
             </Reveal>
           </div>
         </div>
@@ -501,7 +533,8 @@ function Closing() {
             </span>
           </h2>
           <Reveal rv as="p" className="lede" delay={0.1}>
-            A free strategy session, thirty minutes. We map where your team loses the week and write the plan for taking that work over. Yours to keep either way.
+            A free strategy session, thirty minutes. We map where your team loses the week and write
+            the plan for taking that work over. Yours to keep either way.
           </Reveal>
           <Reveal rv as="div" delay={0.16}>
             <BookCallButton variant="inverse" location="command_center_closing" />

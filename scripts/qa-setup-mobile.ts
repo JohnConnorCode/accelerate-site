@@ -15,11 +15,12 @@ function hydrateEnvFromLocalFile(filePath: string) {
     const value = match[2];
     if (!key || !value) continue;
     if (process.env[key] === undefined) {
-      process.env[key] = value.startsWith('"') && value.endsWith('"')
-        ? value.slice(1, -1)
-        : value.startsWith("'") && value.endsWith("'")
+      process.env[key] =
+        value.startsWith('"') && value.endsWith('"')
           ? value.slice(1, -1)
-          : value;
+          : value.startsWith("'") && value.endsWith("'")
+            ? value.slice(1, -1)
+            : value;
     }
   }
 }
@@ -35,7 +36,13 @@ type Cookie = {
   sameSite: "Strict" | "Lax" | "None";
 };
 
-type SetupCheck = { id: string; label: string; status: "ready" | "action" | "degraded" | "optional" | "disabled"; description?: string; lastFailure?: string | null };
+type SetupCheck = {
+  id: string;
+  label: string;
+  status: "ready" | "action" | "degraded" | "optional" | "disabled";
+  description?: string;
+  lastFailure?: string | null;
+};
 type SetupResponse = {
   checks: SetupCheck[];
   summary: { launchReady: boolean; requiredReady: number; requiredTotal: number };
@@ -44,7 +51,11 @@ type SetupResponse = {
     connected: boolean;
     settings: { drive_folder_ids?: string[] };
     scopes: string[];
-    tokenHealth: { accessEnvelopeValid: boolean; refreshEnvelopeValid: boolean; expiresAt: string | null };
+    tokenHealth: {
+      accessEnvelopeValid: boolean;
+      refreshEnvelopeValid: boolean;
+      expiresAt: string | null;
+    };
   } | null;
 };
 
@@ -92,7 +103,9 @@ function parseCookieEnvelope(raw: string): Cookie[] {
         expires: Number(cookie.expires ?? 0),
         httpOnly: Boolean(cookie.httpOnly),
         secure: Boolean(cookie.secure),
-        sameSite: ["Strict", "Lax", "None"].includes(String(cookie.sameSite)) ? String(cookie.sameSite) as Cookie["sameSite"] : "Lax",
+        sameSite: ["Strict", "Lax", "None"].includes(String(cookie.sameSite))
+          ? (String(cookie.sameSite) as Cookie["sameSite"])
+          : "Lax",
       };
     })
     .filter((cookie): cookie is Cookie => Boolean(cookie));
@@ -144,11 +157,17 @@ async function loadFounderCookies() {
   if (explicit.length) return explicit;
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error("NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required to mint a founder session.");
+    throw new Error(
+      "NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required to mint a founder session.",
+    );
   }
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    {
+      auth: { autoRefreshToken: false, persistSession: false },
+    },
+  );
   const link = await supabase.auth.admin.generateLink({
     type: "magiclink",
     email: ADMIN_EMAIL!,
@@ -164,7 +183,9 @@ async function loadFounderCookies() {
     type: "magiclink",
   });
   if (verifyError || !verified?.session) {
-    throw new Error(verifyError?.message || "Could not exchange founder magic-link for a server session.");
+    throw new Error(
+      verifyError?.message || "Could not exchange founder magic-link for a server session.",
+    );
   }
   const cookies = toBase64CookiePayload(verified.session, BASE_URL);
   if (!cookies.length) {
@@ -189,7 +210,7 @@ async function runSetupMobileChecks() {
     await browser.close();
     throw new Error(`Authenticated /api/admin/setup request failed with ${response.status()}`);
   }
-  const payload = await response.json() as SetupResponse;
+  const payload = (await response.json()) as SetupResponse;
   if (!Array.isArray(payload.checks)) throw new Error("Setup response missing checks array.");
   const schemaCheck = payload.checks.find((check) => check.id === "schema");
   if (!schemaCheck) {
@@ -221,24 +242,37 @@ async function runSetupMobileChecks() {
     });
     await applyFounderCookies(context, BASE_URL, viewportCookies);
     const page = await context.newPage();
-    const visualPayload = viewport === "desktop" ? {
-      ...payload,
-      google: {
-        accountEmail: "workspace-qa@example.invalid",
-        connected: true,
-        settings: { drive_folder_ids: [] },
-        scopes: [
-          "openid",
-          "email",
-          "https://www.googleapis.com/auth/gmail.readonly",
-          "https://www.googleapis.com/auth/gmail.send",
-          "https://www.googleapis.com/auth/calendar.events",
-          "https://www.googleapis.com/auth/drive.readonly",
-        ],
-        tokenHealth: { accessEnvelopeValid: true, refreshEnvelopeValid: true, expiresAt: "2026-08-31T15:30:00.000Z" },
-      },
-    } : payload;
-    await page.route("**/api/admin/setup", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(visualPayload) }));
+    const visualPayload =
+      viewport === "desktop"
+        ? {
+            ...payload,
+            google: {
+              accountEmail: "workspace-qa@example.invalid",
+              connected: true,
+              settings: { drive_folder_ids: [] },
+              scopes: [
+                "openid",
+                "email",
+                "https://www.googleapis.com/auth/gmail.readonly",
+                "https://www.googleapis.com/auth/gmail.send",
+                "https://www.googleapis.com/auth/calendar.events",
+                "https://www.googleapis.com/auth/drive.readonly",
+              ],
+              tokenHealth: {
+                accessEnvelopeValid: true,
+                refreshEnvelopeValid: true,
+                expiresAt: "2026-08-31T15:30:00.000Z",
+              },
+            },
+          }
+        : payload;
+    await page.route("**/api/admin/setup", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(visualPayload),
+      }),
+    );
     page.on("console", (message) => {
       if (message.type() === "error") {
         violations.push(`${viewport}: console error ${message.text()}`);
@@ -248,12 +282,17 @@ async function runSetupMobileChecks() {
       violations.push(`${viewport}: page error ${error.message}`);
     });
 
-    const response = await page.goto(`${BASE_URL}/admin/setup`, { waitUntil: "domcontentloaded", timeout: 60_000 });
+    const response = await page.goto(`${BASE_URL}/admin/setup`, {
+      waitUntil: "domcontentloaded",
+      timeout: 60_000,
+    });
     if (!response || !response.ok()) {
       await context.close();
       await apiContext.close();
       await browser.close();
-      throw new Error(`Setup page navigation failed for ${viewport}: ${response?.status() || "none"}`);
+      throw new Error(
+        `Setup page navigation failed for ${viewport}: ${response?.status() || "none"}`,
+      );
     }
 
     await page.getByRole("heading", { name: "Setup Center" }).waitFor({ timeout: 20_000 });
@@ -269,7 +308,8 @@ async function runSetupMobileChecks() {
     const state = await page.evaluate(() => ({
       title: Boolean(document.querySelector("h1")),
       schemaCard: Boolean(document.querySelector('[id="schema"]')),
-      hasSettledCards: !!document.querySelectorAll('[id="supabase"] [class*="rounded-full"]').length,
+      hasSettledCards: !!document.querySelectorAll('[id="supabase"] [class*="rounded-full"]')
+        .length,
       overflowPx: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
     }));
 
@@ -287,7 +327,9 @@ async function runSetupMobileChecks() {
     if (viewport === "desktop") {
       const googleControl = page.locator('[id="google"]');
       await googleControl.getByText("Encrypted credential health", { exact: true }).waitFor();
-      await googleControl.getByText("https://www.googleapis.com/auth/drive.readonly", { exact: true }).waitFor();
+      await googleControl
+        .getByText("https://www.googleapis.com/auth/drive.readonly", { exact: true })
+        .waitFor();
       await googleControl.screenshot({ path: `${outDir}/setup-google-connected.png` });
     }
     await context.close();

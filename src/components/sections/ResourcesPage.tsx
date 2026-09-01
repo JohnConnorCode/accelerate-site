@@ -5,7 +5,14 @@ import { Download, ArrowUpRight, ClipboardCheck, Zap, BarChart3 } from "lucide-r
 import type { LucideIcon } from "lucide-react";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 import { HeroEntranceItem, PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
-import { Section, Container, Eyebrow, Heading, BookCallButton, CallTerms } from "@/components/v2/studio/primitives";
+import {
+  Section,
+  Container,
+  Eyebrow,
+  Heading,
+  BookCallButton,
+  CallTerms,
+} from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { HERO_HEADING } from "@/lib/type-recipes";
 import { leadMagnets } from "@/content/lead-magnets";
@@ -28,60 +35,68 @@ export function ResourcesPage() {
       {/* hero — statement left, the featured resource (lead with your best) right */}
       <PublicHeroEntrance className="page-offset-roomy relative overflow-hidden pb-24">
         <Container width="wide">
-        <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
-          <div className="min-w-0">
-            <HeroEntranceItem step={1}><Eyebrow className="mb-7">free resources</Eyebrow></HeroEntranceItem>
-            <HeroEntranceItem step={2}><RevealHeading
-              as="h1"
-              className={HERO_HEADING}
-              lead="Tools you can use"
-              accent="today."
-              entrance="parent"
-            /></HeroEntranceItem>
-            <HeroEntranceItem step={3}>
-              <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                Checklists, guides, and head-to-head comparisons, built for
-                owners making real decisions about AI and automation.
-              </p>
-            </HeroEntranceItem>
-          </div>
-
-          {featured && (() => {
-            const FeaturedIcon = iconMap[featured.icon] || Download;
-            return (
-              <HeroEntranceItem
-                step={3}
-                className="relative overflow-hidden rounded-3xl border border-border-gold/50 bg-[color-mix(in_srgb,var(--gold-base)_5%,var(--bg-elevated))] p-7 backdrop-blur-md sm:p-8"
-              >
-                <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold to-transparent opacity-70" />
-                <div className="mb-5 flex items-center gap-3">
-                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)] text-gold">
-                    <FeaturedIcon className="h-6 w-6" strokeWidth={1.75} />
-                  </span>
-                  <span className="font-mono text-[0.6rem] uppercase tracking-[0.2em] text-gold">
-                    Featured · {categoryLabels[featured.category]}
-                  </span>
-                </div>
-                <h2 className="font-display text-2xl font-bold tracking-[-0.02em] text-heading">
-                  {featured.title}
-                </h2>
-                <p className="mt-1 text-sm text-gold-light">{featured.subtitle}</p>
-                <p className="mt-4 text-sm leading-relaxed text-white-secondary">
-                  {featured.description}
-                </p>
-                <button
-                  type="button"
-                  data-cursor="link"
-                  onClick={() => setGatedResource(featured.id)}
-                  className="group mt-6 inline-flex items-center gap-2.5 rounded-full bg-gold px-7 py-3.5 text-sm font-semibold text-btn-text transition-opacity hover:opacity-90"
-                >
-                  <Download className="h-4 w-4" />
-                  Download free
-                </button>
+          <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+            <div className="min-w-0">
+              <HeroEntranceItem step={1}>
+                <Eyebrow className="mb-7">free resources</Eyebrow>
               </HeroEntranceItem>
-            );
-          })()}
-        </div>
+              <HeroEntranceItem step={2}>
+                <RevealHeading
+                  as="h1"
+                  className={HERO_HEADING}
+                  lead="Tools you can use"
+                  accent="today."
+                  entrance="parent"
+                />
+              </HeroEntranceItem>
+              <HeroEntranceItem step={3}>
+                <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
+                  Checklists, guides, and head-to-head comparisons, built for owners making real
+                  decisions about AI and automation.
+                </p>
+              </HeroEntranceItem>
+            </div>
+
+            {featured &&
+              (() => {
+                const FeaturedIcon = iconMap[featured.icon] || Download;
+                return (
+                  <HeroEntranceItem
+                    step={3}
+                    className="relative overflow-hidden rounded-3xl border border-border-gold/50 bg-[color-mix(in_srgb,var(--gold-base)_5%,var(--bg-elevated))] p-7 backdrop-blur-md sm:p-8"
+                  >
+                    <span
+                      aria-hidden
+                      className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold to-transparent opacity-70"
+                    />
+                    <div className="mb-5 flex items-center gap-3">
+                      <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_70%,transparent)] text-gold">
+                        <FeaturedIcon className="h-6 w-6" strokeWidth={1.75} />
+                      </span>
+                      <span className="font-mono text-[0.6rem] uppercase tracking-[0.2em] text-gold">
+                        Featured · {categoryLabels[featured.category]}
+                      </span>
+                    </div>
+                    <h2 className="font-display text-2xl font-bold tracking-[-0.02em] text-heading">
+                      {featured.title}
+                    </h2>
+                    <p className="mt-1 text-sm text-gold-light">{featured.subtitle}</p>
+                    <p className="mt-4 text-sm leading-relaxed text-white-secondary">
+                      {featured.description}
+                    </p>
+                    <button
+                      type="button"
+                      data-cursor="link"
+                      onClick={() => setGatedResource(featured.id)}
+                      className="group mt-6 inline-flex items-center gap-2.5 rounded-full bg-gold px-7 py-3.5 text-sm font-semibold text-btn-text transition-opacity hover:opacity-90"
+                    >
+                      <Download className="h-4 w-4" />
+                      Download free
+                    </button>
+                  </HeroEntranceItem>
+                );
+              })()}
+          </div>
         </Container>
       </PublicHeroEntrance>
 
@@ -140,9 +155,8 @@ export function ResourcesPage() {
           </div>
           <div className="flex flex-col gap-7">
             <p className="text-lg leading-relaxed text-white-secondary">
-              Book a free 30-minute strategy session and we&apos;ll map where AI
-              and automation could free time or increase revenue, then identify
-              the most useful next step.
+              Book a free 30-minute strategy session and we&apos;ll map where AI and automation
+              could free time or increase revenue, then identify the most useful next step.
             </p>
             <BookCallButton location="resources" />
             <CallTerms />
@@ -152,10 +166,7 @@ export function ResourcesPage() {
 
       {/* gated download modal */}
       {gatedResource && (
-        <ResourceGate
-          resourceId={gatedResource}
-          onClose={() => setGatedResource(null)}
-        />
+        <ResourceGate resourceId={gatedResource} onClose={() => setGatedResource(null)} />
       )}
     </>
   );

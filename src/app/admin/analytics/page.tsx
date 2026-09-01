@@ -1,7 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertTriangle, BarChart3, CircleDollarSign, Clock3, Eye, FilterX, MessageCircleReply, RefreshCw, Target, Users } from "lucide-react";
+import {
+  AlertTriangle,
+  BarChart3,
+  CircleDollarSign,
+  Clock3,
+  Eye,
+  FilterX,
+  MessageCircleReply,
+  RefreshCw,
+  Target,
+  Users,
+} from "lucide-react";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
@@ -13,35 +24,188 @@ import { REVENUE_STAGE_META, REVENUE_STAGES } from "@/lib/revenue-os/types";
 type Rank = { label: string; count: number };
 type FilterState = { days: number; source: string; owner: string; campaign: string; stage: string };
 type Data = {
-  schemaReady: boolean; windowDays: number; cohort: string;
-  funnel: { opportunities: number; qualified: number; meetings: number; proposals: number; won: number; wonRevenue: number; pipelineValue: number };
-  rates: { qualified: number | null; meeting: number | null; proposal: number | null; win: number | null; inquiryToWin: number | null };
+  schemaReady: boolean;
+  windowDays: number;
+  cohort: string;
+  funnel: {
+    opportunities: number;
+    qualified: number;
+    meetings: number;
+    proposals: number;
+    won: number;
+    wonRevenue: number;
+    pipelineValue: number;
+  };
+  rates: {
+    qualified: number | null;
+    meeting: number | null;
+    proposal: number | null;
+    win: number | null;
+    inquiryToWin: number | null;
+  };
   attribution: { missing: number };
   forecast: { weightedPipeline: number; unweightedPipeline: number; method: string };
-  communication: { status: "ready" | "degraded"; reason?: string; inboundConversations: number; repliedConversations: number; replyRate: number | null; medianResponseHours: number | null };
-  quality: { missingAttribution: number; missingOwner: number; missingNextAction: number; unrecognizedStage: number; impossibleStageSequences: number | null };
+  communication: {
+    status: "ready" | "degraded";
+    reason?: string;
+    inboundConversations: number;
+    repliedConversations: number;
+    replyRate: number | null;
+    medianResponseHours: number | null;
+  };
+  quality: {
+    missingAttribution: number;
+    missingOwner: number;
+    missingNextAction: number;
+    unrecognizedStage: number;
+    impossibleStageSequences: number | null;
+  };
   filterOptions: { sources: string[]; owners: string[]; campaigns: string[]; stages: string[] };
-  appliedFilters: { source: string | null; owner: string | null; campaign: string | null; stage: string | null };
+  appliedFilters: {
+    source: string | null;
+    owner: string | null;
+    campaign: string | null;
+    stage: string | null;
+  };
   sources: { source: string; opportunities: number; won: number; revenue: number }[];
-  web: null | { status: "ready" | "degraded"; reason?: string; pageViews: number | null; visitors: number | null; conversions: number | null; engagementEvents: number | null; conversionRate: number | null; topPages: Rank[]; sources: Rank[]; conversionEvents: Rank[]; eventCount: number | null; lastCapturedAt: string | null };
+  web: null | {
+    status: "ready" | "degraded";
+    reason?: string;
+    pageViews: number | null;
+    visitors: number | null;
+    conversions: number | null;
+    engagementEvents: number | null;
+    conversionRate: number | null;
+    topPages: Rank[];
+    sources: Rank[];
+    conversionEvents: Rank[];
+    eventCount: number | null;
+    lastCapturedAt: string | null;
+  };
 };
 
-const DEFAULT_FILTERS: FilterState = { days: 30, source: "all", owner: "all", campaign: "all", stage: "all" };
+const DEFAULT_FILTERS: FilterState = {
+  days: 30,
+  source: "all",
+  owner: "all",
+  campaign: "all",
+  stage: "all",
+};
 const STORAGE_KEY = "accelerate:analytics-filters:v1";
-const money = (value: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value || 0);
-const rate = (value: number | null) => value === null ? "N/A" : `${value}%`;
-const hours = (value: number | null) => value === null ? "N/A" : value < 1 ? `${Math.round(value * 60)} min` : `${value} hr`;
+const money = (value: number) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value || 0);
+const rate = (value: number | null) => (value === null ? "N/A" : `${value}%`);
+const hours = (value: number | null) =>
+  value === null ? "N/A" : value < 1 ? `${Math.round(value * 60)} min` : `${value} hr`;
 
-function Metric({ label, value, icon: Icon, note, tone = "default" }: { label: string; value: string | number; icon: typeof Users; note?: string; tone?: "default" | "estimate" }) {
-  return <AdminSurface padding="lg" className={tone === "estimate" ? "bg-violet-500/[0.035]" : undefined}><div className="flex justify-between gap-3"><div><p className="admin-eyebrow">{label}</p><p className="mt-3 text-3xl font-semibold tabular-nums tracking-[-0.04em] text-[var(--admin-ink)]">{value}</p>{note && <p className="admin-copy mt-1.5 max-w-[32ch] text-pretty text-[11px] leading-4">{note}</p>}</div><Icon className="mt-0.5 size-4 text-[var(--admin-muted)]" /></div></AdminSurface>;
+function Metric({
+  label,
+  value,
+  icon: Icon,
+  note,
+  tone = "default",
+}: {
+  label: string;
+  value: string | number;
+  icon: typeof Users;
+  note?: string;
+  tone?: "default" | "estimate";
+}) {
+  return (
+    <AdminSurface
+      padding="lg"
+      className={tone === "estimate" ? "bg-violet-500/[0.035]" : undefined}
+    >
+      <div className="flex justify-between gap-3">
+        <div>
+          <p className="admin-eyebrow">{label}</p>
+          <p className="mt-3 text-3xl font-semibold tabular-nums tracking-[-0.04em] text-[var(--admin-ink)]">
+            {value}
+          </p>
+          {note && (
+            <p className="admin-copy mt-1.5 max-w-[32ch] text-pretty text-[11px] leading-4">
+              {note}
+            </p>
+          )}
+        </div>
+        <Icon className="mt-0.5 size-4 text-[var(--admin-muted)]" />
+      </div>
+    </AdminSurface>
+  );
 }
 
-function FilterSelect({ label, value, options, onChange, labels }: { label: string; value: string; options: string[]; onChange: (value: string) => void; labels?: Record<string, string> }) {
-  return <label className="min-w-0 flex-1 sm:flex-none"><span className="sr-only">{label}</span><select aria-label={label} value={value} onChange={(event) => onChange(event.target.value)} className="min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] outline-none transition-[border-color,box-shadow] duration-150 focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10 sm:w-auto"><option value="all">{label}: All</option>{options.map((option) => <option key={option} value={option}>{labels?.[option] || option}</option>)}</select></label>;
+function FilterSelect({
+  label,
+  value,
+  options,
+  onChange,
+  labels,
+}: {
+  label: string;
+  value: string;
+  options: string[];
+  onChange: (value: string) => void;
+  labels?: Record<string, string>;
+}) {
+  return (
+    <label className="min-w-0 flex-1 sm:flex-none">
+      <span className="sr-only">{label}</span>
+      <select
+        aria-label={label}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] outline-none transition-[border-color,box-shadow] duration-150 focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10 sm:w-auto"
+      >
+        <option value="all">{label}: All</option>
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {labels?.[option] || option}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
 }
 
-function RankedList({ title, rows, suffix = "" }: { title: string; rows: Rank[]; suffix?: string }) {
-  return <AdminSurface padding="none" className="overflow-hidden"><div className="p-5"><p className="admin-eyebrow">First-party web data</p><h2 className="mt-1 text-balance text-base font-semibold">{title}</h2></div><div className="divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)]">{rows.length ? rows.map((row) => <div key={row.label} className="flex items-center justify-between gap-4 px-5 py-3.5 text-sm"><span className="min-w-0 truncate font-medium">{row.label}</span><span className="shrink-0 tabular-nums text-[var(--admin-muted)]">{row.count}{suffix}</span></div>) : <p className="p-5 text-sm text-[var(--admin-muted)]">No data in this window yet.</p>}</div></AdminSurface>;
+function RankedList({
+  title,
+  rows,
+  suffix = "",
+}: {
+  title: string;
+  rows: Rank[];
+  suffix?: string;
+}) {
+  return (
+    <AdminSurface padding="none" className="overflow-hidden">
+      <div className="p-5">
+        <p className="admin-eyebrow">First-party web data</p>
+        <h2 className="mt-1 text-balance text-base font-semibold">{title}</h2>
+      </div>
+      <div className="divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)]">
+        {rows.length ? (
+          rows.map((row) => (
+            <div
+              key={row.label}
+              className="flex items-center justify-between gap-4 px-5 py-3.5 text-sm"
+            >
+              <span className="min-w-0 truncate font-medium">{row.label}</span>
+              <span className="shrink-0 tabular-nums text-[var(--admin-muted)]">
+                {row.count}
+                {suffix}
+              </span>
+            </div>
+          ))
+        ) : (
+          <p className="p-5 text-sm text-[var(--admin-muted)]">No data in this window yet.</p>
+        )}
+      </div>
+    </AdminSurface>
+  );
 }
 
 export default function AnalyticsPage() {
@@ -49,47 +213,433 @@ export default function AnalyticsPage() {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       try {
-        const stored = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || "null") as Partial<FilterState> | null;
+        const stored = JSON.parse(
+          window.localStorage.getItem(STORAGE_KEY) || "null",
+        ) as Partial<FilterState> | null;
         if (!stored) return;
-        setFilters({ ...DEFAULT_FILTERS, ...stored, days: [7, 30, 90, 365].includes(Number(stored.days)) ? Number(stored.days) : 30 });
-      } catch { /* keep defaults */ }
+        setFilters({
+          ...DEFAULT_FILTERS,
+          ...stored,
+          days: [7, 30, 90, 365].includes(Number(stored.days)) ? Number(stored.days) : 30,
+        });
+      } catch {
+        /* keep defaults */
+      }
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
-  useEffect(() => { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(filters)); }, [filters]);
-  const query = useMemo(() => { const params = new URLSearchParams({ days: String(filters.days) }); for (const key of ["source", "owner", "campaign", "stage"] as const) if (filters[key] !== "all") params.set(key, filters[key]); return params.toString(); }, [filters]);
-  const analyticsQuery = useAdminQuery<Data>(["admin", "analytics", query], `/api/admin/revenue-os/analytics?${query}`);
+  useEffect(() => {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(filters));
+  }, [filters]);
+  const query = useMemo(() => {
+    const params = new URLSearchParams({ days: String(filters.days) });
+    for (const key of ["source", "owner", "campaign", "stage"] as const)
+      if (filters[key] !== "all") params.set(key, filters[key]);
+    return params.toString();
+  }, [filters]);
+  const analyticsQuery = useAdminQuery<Data>(
+    ["admin", "analytics", query],
+    `/api/admin/revenue-os/analytics?${query}`,
+  );
   const data = analyticsQuery.data ?? null;
   const loading = analyticsQuery.isPending;
   const error = analyticsQuery.error?.message || "";
-  const load = useCallback(async () => { await analyticsQuery.refetch(); }, [analyticsQuery]);
-  const activeFilterCount = [filters.source, filters.owner, filters.campaign, filters.stage].filter((value) => value !== "all").length;
-  const qualityRows = data ? [
-    { label: "Missing attribution", count: data.quality.missingAttribution, detail: "No canonical source or source detail" },
-    { label: "Unassigned owner", count: data.quality.missingOwner, detail: "Open opportunities without an owner" },
-    { label: "No committed next action", count: data.quality.missingNextAction, detail: "Open opportunities missing an action or date" },
-    { label: "Unrecognized stage", count: data.quality.unrecognizedStage, detail: "Current stage cannot be canonicalized" },
-    { label: "Impossible stage event", count: data.quality.impossibleStageSequences, detail: "Unknown or no-op transition in stage history" },
-  ] : [];
+  const load = useCallback(async () => {
+    await analyticsQuery.refetch();
+  }, [analyticsQuery]);
+  const activeFilterCount = [filters.source, filters.owner, filters.campaign, filters.stage].filter(
+    (value) => value !== "all",
+  ).length;
+  const qualityRows = data
+    ? [
+        {
+          label: "Missing attribution",
+          count: data.quality.missingAttribution,
+          detail: "No canonical source or source detail",
+        },
+        {
+          label: "Unassigned owner",
+          count: data.quality.missingOwner,
+          detail: "Open opportunities without an owner",
+        },
+        {
+          label: "No committed next action",
+          count: data.quality.missingNextAction,
+          detail: "Open opportunities missing an action or date",
+        },
+        {
+          label: "Unrecognized stage",
+          count: data.quality.unrecognizedStage,
+          detail: "Current stage cannot be canonicalized",
+        },
+        {
+          label: "Impossible stage event",
+          count: data.quality.impossibleStageSequences,
+          detail: "Unknown or no-op transition in stage history",
+        },
+      ]
+    : [];
   const issues = qualityRows.reduce((sum, row) => sum + Number(row.count || 0), 0);
 
-  const funnel = data?.funnel; const web = data?.web;
-  return <div className="space-y-7 pb-10">
-    <PageHeader title="Analytics" subtitle="Revenue facts, operating estimates, and data-quality gaps from the same canonical records." utilityActions={<button type="button" onClick={() => void load()} disabled={analyticsQuery.isFetching} aria-label="Refresh analytics" className="admin-icon-button shadow-[var(--admin-shadow-border)]"><RefreshCw className={analyticsQuery.isFetching ? "size-3.5 animate-spin" : "size-3.5"} /></button>} />
-    <AdminReadBody loading={loading} hasData={Boolean(data)} error={error} onRetry={() => void load()} refreshing={analyticsQuery.isFetching} loadingFallback={<LoadingSkeleton variant="page" />} label="Loading analytics">
-    {data && !data.schemaReady ? <RevenueSetupGate /> : data && <>
+  const funnel = data?.funnel;
+  const web = data?.web;
+  return (
+    <div className="space-y-7 pb-10">
+      <PageHeader
+        title="Analytics"
+        subtitle="Revenue facts, operating estimates, and data-quality gaps from the same canonical records."
+        utilityActions={
+          <button
+            type="button"
+            onClick={() => void load()}
+            disabled={analyticsQuery.isFetching}
+            aria-label="Refresh analytics"
+            className="admin-icon-button shadow-[var(--admin-shadow-border)]"
+          >
+            <RefreshCw
+              className={analyticsQuery.isFetching ? "size-3.5 animate-spin" : "size-3.5"}
+            />
+          </button>
+        }
+      />
+      <AdminReadBody
+        loading={loading}
+        hasData={Boolean(data)}
+        error={error}
+        onRetry={() => void load()}
+        refreshing={analyticsQuery.isFetching}
+        loadingFallback={<LoadingSkeleton variant="page" />}
+        label="Loading analytics"
+      >
+        {data && !data.schemaReady ? (
+          <RevenueSetupGate />
+        ) : (
+          data && (
+            <>
+              <AdminSurface padding="none" className="overflow-hidden">
+                <div className="flex flex-col gap-4 p-4 sm:p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="admin-eyebrow">Cohort controls</p>
+                      <h2 className="mt-1 text-balance text-base font-semibold">
+                        Decide which revenue book you are reviewing
+                      </h2>
+                    </div>
+                    {activeFilterCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFilters((current) => ({ ...DEFAULT_FILTERS, days: current.days }))
+                        }
+                        className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)] transition-[color,box-shadow,transform] duration-150 hover:text-[var(--admin-ink)] hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"
+                      >
+                        <FilterX className="size-4" />
+                        Clear {activeFilterCount} filters
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                    <div
+                      className="grid grid-cols-4 rounded-xl p-1 shadow-[var(--admin-shadow-border)]"
+                      aria-label="Analytics date window"
+                    >
+                      {[7, 30, 90, 365].map((days) => (
+                        <button
+                          key={days}
+                          type="button"
+                          aria-pressed={filters.days === days}
+                          onClick={() => setFilters((current) => ({ ...current, days }))}
+                          className={`min-h-10 rounded-lg px-2 text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96] sm:px-3 ${filters.days === days ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]" : "text-[var(--admin-muted)] hover:text-[var(--admin-ink)]"}`}
+                        >
+                          {days === 365 ? "1 year" : `${days} days`}
+                        </button>
+                      ))}
+                    </div>
+                    {data && (
+                      <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap">
+                        <FilterSelect
+                          label="Source"
+                          value={filters.source}
+                          options={data.filterOptions.sources}
+                          onChange={(source) => setFilters((current) => ({ ...current, source }))}
+                        />
+                        <FilterSelect
+                          label="Owner"
+                          value={filters.owner}
+                          options={data.filterOptions.owners}
+                          onChange={(owner) => setFilters((current) => ({ ...current, owner }))}
+                        />
+                        <FilterSelect
+                          label="Campaign"
+                          value={filters.campaign}
+                          options={data.filterOptions.campaigns}
+                          onChange={(campaign) =>
+                            setFilters((current) => ({ ...current, campaign }))
+                          }
+                        />
+                        <FilterSelect
+                          label="Stage"
+                          value={filters.stage}
+                          options={data.filterOptions.stages}
+                          labels={Object.fromEntries(
+                            REVENUE_STAGES.map((stage) => [stage, REVENUE_STAGE_META[stage].label]),
+                          )}
+                          onChange={(stage) => setFilters((current) => ({ ...current, stage }))}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <p className="admin-copy text-pretty text-xs">{data?.cohort}</p>
+                </div>
+              </AdminSurface>
 
-    <AdminSurface padding="none" className="overflow-hidden"><div className="flex flex-col gap-4 p-4 sm:p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="admin-eyebrow">Cohort controls</p><h2 className="mt-1 text-balance text-base font-semibold">Decide which revenue book you are reviewing</h2></div>{activeFilterCount > 0 && <button type="button" onClick={() => setFilters((current) => ({ ...DEFAULT_FILTERS, days: current.days }))} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)] transition-[color,box-shadow,transform] duration-150 hover:text-[var(--admin-ink)] hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"><FilterX className="size-4" />Clear {activeFilterCount} filters</button>}</div><div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap"><div className="grid grid-cols-4 rounded-xl p-1 shadow-[var(--admin-shadow-border)]" aria-label="Analytics date window">{[7, 30, 90, 365].map((days) => <button key={days} type="button" aria-pressed={filters.days === days} onClick={() => setFilters((current) => ({ ...current, days }))} className={`min-h-10 rounded-lg px-2 text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96] sm:px-3 ${filters.days === days ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]" : "text-[var(--admin-muted)] hover:text-[var(--admin-ink)]"}`}>{days === 365 ? "1 year" : `${days} days`}</button>)}</div>{data && <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap"><FilterSelect label="Source" value={filters.source} options={data.filterOptions.sources} onChange={(source) => setFilters((current) => ({ ...current, source }))} /><FilterSelect label="Owner" value={filters.owner} options={data.filterOptions.owners} onChange={(owner) => setFilters((current) => ({ ...current, owner }))} /><FilterSelect label="Campaign" value={filters.campaign} options={data.filterOptions.campaigns} onChange={(campaign) => setFilters((current) => ({ ...current, campaign }))} /><FilterSelect label="Stage" value={filters.stage} options={data.filterOptions.stages} labels={Object.fromEntries(REVENUE_STAGES.map((stage) => [stage, REVENUE_STAGE_META[stage].label]))} onChange={(stage) => setFilters((current) => ({ ...current, stage }))} /></div>}</div><p className="admin-copy text-pretty text-xs">{data?.cohort}</p></div></AdminSurface>
+              {funnel && (
+                <>
+                  <section>
+                    <div className="mb-3">
+                      <p className="admin-eyebrow">Revenue decision layer</p>
+                      <h2 className="mt-1 text-balance text-xl font-semibold">
+                        Facts and forecast for this cohort
+                      </h2>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                      <Metric
+                        label="Pipeline value"
+                        value={money(funnel.pipelineValue)}
+                        icon={CircleDollarSign}
+                        note="Recorded open estimated value"
+                      />
+                      <Metric
+                        label="Weighted forecast"
+                        value={money(data.forecast.weightedPipeline)}
+                        icon={BarChart3}
+                        tone="estimate"
+                        note={data.forecast.method}
+                      />
+                      <Metric
+                        label="Won revenue"
+                        value={money(funnel.wonRevenue)}
+                        icon={Target}
+                        note="Recorded outcomes only"
+                      />
+                      <Metric
+                        label="Inquiry-to-win"
+                        value={rate(data.rates.inquiryToWin)}
+                        icon={Users}
+                        note={`${funnel.won} of ${funnel.opportunities} opportunities`}
+                      />
+                    </div>
+                  </section>
+                  <section>
+                    <div className="mb-3">
+                      <p className="admin-eyebrow">Communication performance</p>
+                      <h2 className="mt-1 text-balance text-xl font-semibold">
+                        Do inbound conversations receive a reply?
+                      </h2>
+                    </div>
+                    {data.communication.status === "degraded" ? (
+                      <AdminSurface tone="attention" className="flex gap-3">
+                        <AlertTriangle className="size-4 shrink-0" />
+                        <p className="text-sm">{data.communication.reason}</p>
+                      </AdminSurface>
+                    ) : (
+                      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                        <Metric
+                          label="Inbound conversations"
+                          value={data.communication.inboundConversations}
+                          icon={MessageCircleReply}
+                        />
+                        <Metric
+                          label="Replied"
+                          value={data.communication.repliedConversations}
+                          icon={MessageCircleReply}
+                        />
+                        <Metric
+                          label="Reply coverage"
+                          value={rate(data.communication.replyRate)}
+                          icon={Target}
+                          note="A later outbound message exists in the same canonical conversation"
+                        />
+                        <Metric
+                          label="Median response"
+                          value={hours(data.communication.medianResponseHours)}
+                          icon={Clock3}
+                          note="Elapsed time from first inbound message to first later outbound reply"
+                        />
+                      </div>
+                    )}
+                  </section>
+                  <AdminSurface padding="none" className="overflow-hidden">
+                    <div className="p-5">
+                      <p className="admin-eyebrow">Funnel progression</p>
+                      <h2 className="mt-1 text-balance text-lg font-semibold">
+                        What the selected cohort has reached
+                      </h2>
+                    </div>
+                    <div className="grid border-t border-[var(--admin-border)] sm:grid-cols-5">
+                      {[
+                        ["Qualified", funnel.qualified, data.rates.qualified],
+                        ["Meetings", funnel.meetings, data.rates.meeting],
+                        ["Proposals", funnel.proposals, data.rates.proposal],
+                        ["Won", funnel.won, data.rates.win],
+                        ["Revenue", money(funnel.wonRevenue), null],
+                      ].map(([label, value, conversion]) => (
+                        <div
+                          key={String(label)}
+                          className="border-b border-[var(--admin-border)] p-5 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0"
+                        >
+                          <p className="admin-eyebrow">{label}</p>
+                          <p className="mt-2 text-2xl font-semibold tabular-nums">{value}</p>
+                          {conversion !== null && (
+                            <>
+                              <p className="mt-1 text-xs tabular-nums text-[var(--admin-muted)]">
+                                {rate(conversion as number | null)} from prior stage
+                              </p>
+                              <div
+                                role="img"
+                                aria-label={`${label}: ${rate(conversion as number | null)} from prior stage`}
+                                className="mt-3 h-1.5 overflow-hidden rounded-full bg-black/[0.06] dark:bg-white/[0.08]"
+                              >
+                                <div
+                                  className="h-full rounded-full bg-[var(--admin-ink)]"
+                                  style={{
+                                    width: `${Math.max(0, Math.min(100, Number(conversion || 0)))}%`,
+                                  }}
+                                />
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </AdminSurface>
+                  <div className="grid gap-4 xl:grid-cols-2">
+                    <AdminSurface padding="none" className="overflow-hidden">
+                      <div className="flex items-start justify-between gap-3 p-5">
+                        <div>
+                          <p className="admin-eyebrow">Revenue attribution</p>
+                          <h2 className="mt-1 text-balance text-lg font-semibold">
+                            Source to revenue
+                          </h2>
+                        </div>
+                        {data.attribution.missing ? (
+                          <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-semibold tabular-nums text-amber-700 dark:text-amber-300">
+                            {data.attribution.missing} unassigned
+                          </span>
+                        ) : null}
+                      </div>
+                      <div className="divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)]">
+                        {data.sources.map((source) => (
+                          <div
+                            key={source.source}
+                            className="grid grid-cols-[1fr_auto_auto] gap-4 px-5 py-3.5 text-sm"
+                          >
+                            <span className="min-w-0 truncate font-semibold">{source.source}</span>
+                            <span className="tabular-nums text-[var(--admin-muted)]">
+                              {source.opportunities} opps
+                            </span>
+                            <span className="tabular-nums font-semibold">
+                              {money(source.revenue)}
+                            </span>
+                          </div>
+                        ))}
+                        {!data.sources.length && (
+                          <p className="p-5 text-sm text-[var(--admin-muted)]">
+                            No canonical opportunities in this cohort.
+                          </p>
+                        )}
+                      </div>
+                    </AdminSurface>
+                    <AdminSurface padding="none" className="overflow-hidden">
+                      <div className="flex items-start justify-between gap-3 p-5">
+                        <div>
+                          <p className="admin-eyebrow">Data quality</p>
+                          <h2 className="mt-1 text-balance text-lg font-semibold">
+                            What could distort the decision
+                          </h2>
+                        </div>
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-xs font-semibold tabular-nums ${issues ? "bg-amber-500/10 text-amber-700 dark:text-amber-300" : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"}`}
+                        >
+                          {issues ? `${issues} issues` : "No known issues"}
+                        </span>
+                      </div>
+                      <div className="divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)]">
+                        {qualityRows.map((row) => (
+                          <div
+                            key={row.label}
+                            className="flex items-start justify-between gap-4 px-5 py-3.5"
+                          >
+                            <div>
+                              <p className="text-sm font-semibold">{row.label}</p>
+                              <p className="admin-copy mt-0.5 text-pretty text-xs">{row.detail}</p>
+                            </div>
+                            <span className="font-mono text-sm font-semibold tabular-nums">
+                              {row.count === null ? "—" : row.count}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </AdminSurface>
+                  </div>
+                </>
+              )}
 
-    {funnel && <><section><div className="mb-3"><p className="admin-eyebrow">Revenue decision layer</p><h2 className="mt-1 text-balance text-xl font-semibold">Facts and forecast for this cohort</h2></div><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><Metric label="Pipeline value" value={money(funnel.pipelineValue)} icon={CircleDollarSign} note="Recorded open estimated value" /><Metric label="Weighted forecast" value={money(data.forecast.weightedPipeline)} icon={BarChart3} tone="estimate" note={data.forecast.method} /><Metric label="Won revenue" value={money(funnel.wonRevenue)} icon={Target} note="Recorded outcomes only" /><Metric label="Inquiry-to-win" value={rate(data.rates.inquiryToWin)} icon={Users} note={`${funnel.won} of ${funnel.opportunities} opportunities`} /></div></section>
-      <section><div className="mb-3"><p className="admin-eyebrow">Communication performance</p><h2 className="mt-1 text-balance text-xl font-semibold">Do inbound conversations receive a reply?</h2></div>{data.communication.status === "degraded" ? <AdminSurface tone="attention" className="flex gap-3"><AlertTriangle className="size-4 shrink-0" /><p className="text-sm">{data.communication.reason}</p></AdminSurface> : <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><Metric label="Inbound conversations" value={data.communication.inboundConversations} icon={MessageCircleReply} /><Metric label="Replied" value={data.communication.repliedConversations} icon={MessageCircleReply} /><Metric label="Reply coverage" value={rate(data.communication.replyRate)} icon={Target} note="A later outbound message exists in the same canonical conversation" /><Metric label="Median response" value={hours(data.communication.medianResponseHours)} icon={Clock3} note="Elapsed time from first inbound message to first later outbound reply" /></div>}</section>
-      <AdminSurface padding="none" className="overflow-hidden"><div className="p-5"><p className="admin-eyebrow">Funnel progression</p><h2 className="mt-1 text-balance text-lg font-semibold">What the selected cohort has reached</h2></div><div className="grid border-t border-[var(--admin-border)] sm:grid-cols-5">{[["Qualified", funnel.qualified, data.rates.qualified], ["Meetings", funnel.meetings, data.rates.meeting], ["Proposals", funnel.proposals, data.rates.proposal], ["Won", funnel.won, data.rates.win], ["Revenue", money(funnel.wonRevenue), null]].map(([label, value, conversion]) => <div key={String(label)} className="border-b border-[var(--admin-border)] p-5 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0"><p className="admin-eyebrow">{label}</p><p className="mt-2 text-2xl font-semibold tabular-nums">{value}</p>{conversion !== null && <><p className="mt-1 text-xs tabular-nums text-[var(--admin-muted)]">{rate(conversion as number | null)} from prior stage</p><div role="img" aria-label={`${label}: ${rate(conversion as number | null)} from prior stage`} className="mt-3 h-1.5 overflow-hidden rounded-full bg-black/[0.06] dark:bg-white/[0.08]"><div className="h-full rounded-full bg-[var(--admin-ink)]" style={{ width: `${Math.max(0, Math.min(100, Number(conversion || 0)))}%` }} /></div></>}</div>)}</div></AdminSurface>
-      <div className="grid gap-4 xl:grid-cols-2"><AdminSurface padding="none" className="overflow-hidden"><div className="flex items-start justify-between gap-3 p-5"><div><p className="admin-eyebrow">Revenue attribution</p><h2 className="mt-1 text-balance text-lg font-semibold">Source to revenue</h2></div>{data.attribution.missing ? <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-semibold tabular-nums text-amber-700 dark:text-amber-300">{data.attribution.missing} unassigned</span> : null}</div><div className="divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)]">{data.sources.map((source) => <div key={source.source} className="grid grid-cols-[1fr_auto_auto] gap-4 px-5 py-3.5 text-sm"><span className="min-w-0 truncate font-semibold">{source.source}</span><span className="tabular-nums text-[var(--admin-muted)]">{source.opportunities} opps</span><span className="tabular-nums font-semibold">{money(source.revenue)}</span></div>)}{!data.sources.length && <p className="p-5 text-sm text-[var(--admin-muted)]">No canonical opportunities in this cohort.</p>}</div></AdminSurface>
-        <AdminSurface padding="none" className="overflow-hidden"><div className="flex items-start justify-between gap-3 p-5"><div><p className="admin-eyebrow">Data quality</p><h2 className="mt-1 text-balance text-lg font-semibold">What could distort the decision</h2></div><span className={`rounded-full px-2.5 py-1 text-xs font-semibold tabular-nums ${issues ? "bg-amber-500/10 text-amber-700 dark:text-amber-300" : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"}`}>{issues ? `${issues} issues` : "No known issues"}</span></div><div className="divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)]">{qualityRows.map((row) => <div key={row.label} className="flex items-start justify-between gap-4 px-5 py-3.5"><div><p className="text-sm font-semibold">{row.label}</p><p className="admin-copy mt-0.5 text-pretty text-xs">{row.detail}</p></div><span className="font-mono text-sm font-semibold tabular-nums">{row.count === null ? "—" : row.count}</span></div>)}</div></AdminSurface></div></>}
-
-    {web?.status === "degraded" && <AdminSurface tone="attention" className="flex gap-3"><AlertTriangle className="mt-0.5 size-4 shrink-0" /><div><p className="font-semibold">Website measurement needs attention</p><p className="admin-copy mt-1 text-pretty text-sm">{web.reason}</p></div></AdminSurface>}
-    {web?.status === "ready" && <><section><div className="mb-3 flex flex-col items-start gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-4"><div><p className="admin-eyebrow">Website activity</p><h2 className="mt-1 text-balance text-xl font-semibold">Traffic and intent signals</h2></div><p className="text-left text-xs text-[var(--admin-muted)] sm:text-right">Date filter only · privacy-minimised first-party capture</p></div><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><Metric label="Visitors" value={web.visitors ?? "—"} icon={Users} /><Metric label="Page views" value={web.pageViews ?? "—"} icon={Eye} /><Metric label="Intent actions" value={web.conversions ?? "—"} icon={Target} note="CTA clicks and form starts. Reading and scrolling remain engagement." /><Metric label="Intent rate" value={rate(web.conversionRate)} icon={BarChart3} note={web.engagementEvents != null ? `${web.engagementEvents} engagement events excluded` : undefined} /></div></section><div className="grid gap-4 xl:grid-cols-3"><RankedList title="Top conversion events" rows={web.conversionEvents} /><RankedList title="Top landing pages" rows={web.topPages} suffix=" views" /><RankedList title="Traffic sources" rows={web.sources} suffix=" events" /></div></>}
-    </>}
-    </AdminReadBody>
-  </div>;
+              {web?.status === "degraded" && (
+                <AdminSurface tone="attention" className="flex gap-3">
+                  <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+                  <div>
+                    <p className="font-semibold">Website measurement needs attention</p>
+                    <p className="admin-copy mt-1 text-pretty text-sm">{web.reason}</p>
+                  </div>
+                </AdminSurface>
+              )}
+              {web?.status === "ready" && (
+                <>
+                  <section>
+                    <div className="mb-3 flex flex-col items-start gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+                      <div>
+                        <p className="admin-eyebrow">Website activity</p>
+                        <h2 className="mt-1 text-balance text-xl font-semibold">
+                          Traffic and intent signals
+                        </h2>
+                      </div>
+                      <p className="text-left text-xs text-[var(--admin-muted)] sm:text-right">
+                        Date filter only · privacy-minimised first-party capture
+                      </p>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                      <Metric label="Visitors" value={web.visitors ?? "—"} icon={Users} />
+                      <Metric label="Page views" value={web.pageViews ?? "—"} icon={Eye} />
+                      <Metric
+                        label="Intent actions"
+                        value={web.conversions ?? "—"}
+                        icon={Target}
+                        note="CTA clicks and form starts. Reading and scrolling remain engagement."
+                      />
+                      <Metric
+                        label="Intent rate"
+                        value={rate(web.conversionRate)}
+                        icon={BarChart3}
+                        note={
+                          web.engagementEvents != null
+                            ? `${web.engagementEvents} engagement events excluded`
+                            : undefined
+                        }
+                      />
+                    </div>
+                  </section>
+                  <div className="grid gap-4 xl:grid-cols-3">
+                    <RankedList title="Top conversion events" rows={web.conversionEvents} />
+                    <RankedList title="Top landing pages" rows={web.topPages} suffix=" views" />
+                    <RankedList title="Traffic sources" rows={web.sources} suffix=" events" />
+                  </div>
+                </>
+              )}
+            </>
+          )
+        )}
+      </AdminReadBody>
+    </div>
+  );
 }

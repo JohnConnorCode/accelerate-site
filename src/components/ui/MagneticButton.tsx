@@ -14,11 +14,7 @@ interface MagneticButtonProps {
  * Wraps any child (typically a Link + Button) with a magnetic cursor-follow effect.
  * The inner element subtly tracks the cursor position on hover.
  */
-export function MagneticButton({
-  children,
-  className,
-  strength = 0.3,
-}: MagneticButtonProps) {
+export function MagneticButton({ children, className, strength = 0.3 }: MagneticButtonProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   const onMouseMove = useCallback(
@@ -34,7 +30,7 @@ export function MagneticButton({
       el.style.setProperty("--mag-x", `${(e.clientX - cx) * strength}px`);
       el.style.setProperty("--mag-y", `${(e.clientY - cy) * strength}px`);
     },
-    [strength]
+    [strength],
   );
 
   const onMouseLeave = useCallback(() => {

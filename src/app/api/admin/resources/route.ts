@@ -44,7 +44,9 @@ export async function GET(request: NextRequest) {
     page,
     stats: {
       totalDownloads: count || 0,
-      uniqueUsers: new Set((uniqueRows || []).map((row) => row.email?.trim().toLowerCase()).filter(Boolean)).size,
+      uniqueUsers: new Set(
+        (uniqueRows || []).map((row) => row.email?.trim().toLowerCase()).filter(Boolean),
+      ).size,
     },
   });
 }

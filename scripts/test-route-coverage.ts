@@ -28,21 +28,33 @@ for (const surface of SURFACES) {
   const source = readFileSync(surface.file, "utf8");
 
   // A hardcoded industry path is the defect itself, whatever else the file does.
-  const hardcoded = [...source.matchAll(/["'`]\/industries\/([a-z0-9-]+)["'`]/g)].map((match) => match[1]!);
+  const hardcoded = [...source.matchAll(/["'`]\/industries\/([a-z0-9-]+)["'`]/g)].map(
+    (match) => match[1]!,
+  );
   if (hardcoded.length) {
-    failures.push(`${surface.file}: hardcodes ${hardcoded.length} industry path(s) (${[...new Set(hardcoded)].join(", ")}). Derive from verticals instead, or the next industry ships invisible.`);
+    failures.push(
+      `${surface.file}: hardcodes ${hardcoded.length} industry path(s) (${[...new Set(hardcoded)].join(", ")}). Derive from verticals instead, or the next industry ships invisible.`,
+    );
   }
 
-  const derives = /verticals\s*\.\s*map|\.\.\.\s*INDUSTRY_LINKS|INDUSTRY_LINKS/.test(source) && /from "@\/content\/verticals"/.test(source);
+  const derives =
+    /verticals\s*\.\s*map|\.\.\.\s*INDUSTRY_LINKS|INDUSTRY_LINKS/.test(source) &&
+    /from "@\/content\/verticals"/.test(source);
   if (!derives) {
-    failures.push(`${surface.file}: ${surface.what} does not derive its industry links from the vertical content.`);
+    failures.push(
+      `${surface.file}: ${surface.what} does not derive its industry links from the vertical content.`,
+    );
   }
 }
 
 // Every vertical needs a slug that can actually resolve to a route.
 for (const vertical of verticals) {
-  if (!/^[a-z0-9-]+$/.test(vertical.slug)) failures.push(`vertical "${vertical.name}" has a slug that will not route cleanly: ${vertical.slug}`);
-  if (!vertical.name.trim()) failures.push(`vertical ${vertical.slug} has no name, so its nav entry would be blank`);
+  if (!/^[a-z0-9-]+$/.test(vertical.slug))
+    failures.push(
+      `vertical "${vertical.name}" has a slug that will not route cleanly: ${vertical.slug}`,
+    );
+  if (!vertical.name.trim())
+    failures.push(`vertical ${vertical.slug} has no name, so its nav entry would be blank`);
 }
 
 const slugs = verticals.map((vertical) => vertical.slug);
@@ -56,5 +68,11 @@ if (failures.length) {
   for (const failure of failures) console.error(`- ${failure}`);
   process.exitCode = 1;
 } else {
-  console.log(JSON.stringify({ verticals: verticals.length, surfacesChecked: SURFACES.length, result: "passed" }, null, 2));
+  console.log(
+    JSON.stringify(
+      { verticals: verticals.length, surfacesChecked: SURFACES.length, result: "passed" },
+      null,
+      2,
+    ),
+  );
 }

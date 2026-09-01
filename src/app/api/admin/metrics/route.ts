@@ -65,25 +65,13 @@ export async function GET(request: NextRequest) {
       .select("id", { count: "exact", head: true })
       .eq("lead_status", "won")
       .gte("created_at", monthStart),
-    supabase
-      .from("chat_leads")
-      .select("id", { count: "exact", head: true }),
-    supabase
-      .from("partner_applications")
-      .select("id", { count: "exact", head: true }),
-    supabase
-      .from("website_grades")
-      .select("id", { count: "exact", head: true }),
+    supabase.from("chat_leads").select("id", { count: "exact", head: true }),
+    supabase.from("partner_applications").select("id", { count: "exact", head: true }),
+    supabase.from("website_grades").select("id", { count: "exact", head: true }),
     // Pipeline with estimated_value for revenue
-    supabase
-      .from("solution_requests")
-      .select("lead_status, estimated_value"),
-    supabase
-      .from("solution_requests")
-      .select("industry"),
-    supabase
-      .from("email_sequences")
-      .select("status"),
+    supabase.from("solution_requests").select("lead_status, estimated_value"),
+    supabase.from("solution_requests").select("industry"),
+    supabase.from("email_sequences").select("status"),
     // Previous week count (7-14 days ago)
     supabase
       .from("solution_requests")
@@ -99,7 +87,9 @@ export async function GET(request: NextRequest) {
     // New leads for priorities (with scoring data)
     supabase
       .from("solution_requests")
-      .select("id, contact_name, contact_email, contact_phone, industry, lead_status, created_at, ai_plan, intake_data, view_count")
+      .select(
+        "id, contact_name, contact_email, contact_phone, industry, lead_status, created_at, ai_plan, intake_data, view_count",
+      )
       .eq("lead_status", "new")
       .order("created_at", { ascending: false })
       .limit(20),
@@ -120,9 +110,7 @@ export async function GET(request: NextRequest) {
       .eq("status", "pending")
       .lt("due_date", new Date().toISOString().split("T")[0]!),
     // Active clients with MRR
-    supabase
-      .from("clients")
-      .select("id, monthly_value, status"),
+    supabase.from("clients").select("id, monthly_value, status"),
     // Stalled proposals: sent/viewed but no response after 3+ days
     supabase
       .from("proposals")
@@ -133,8 +121,13 @@ export async function GET(request: NextRequest) {
   ]);
 
   // Client stats
-  const activeClients = (clientsRes.data || []).filter((c: { status: string }) => c.status === "active");
-  const totalMRR = activeClients.reduce((sum: number, c: { monthly_value?: number }) => sum + (c.monthly_value || 0), 0);
+  const activeClients = (clientsRes.data || []).filter(
+    (c: { status: string }) => c.status === "active",
+  );
+  const totalMRR = activeClients.reduce(
+    (sum: number, c: { monthly_value?: number }) => sum + (c.monthly_value || 0),
+    0,
+  );
 
   // Chart data for configurable days
   const daysAgo = new Date(now.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
@@ -150,9 +143,8 @@ export async function GET(request: NextRequest) {
     const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
     const dateStr = date.toISOString().split("T")[0]!;
     const count =
-      recentLeads?.filter(
-        (l: { created_at: string }) => l.created_at.startsWith(dateStr)
-      ).length || 0;
+      recentLeads?.filter((l: { created_at: string }) => l.created_at.startsWith(dateStr)).length ||
+      0;
     chartData.push({
       date: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
       leads: count,
@@ -193,9 +185,7 @@ export async function GET(request: NextRequest) {
   const plansGenerated = totalRes.count || 0;
   const wonThisMonth = wonMonthRes.count || 0;
   const conversionRate =
-    leadsMonth > 0
-      ? `${Math.round((wonThisMonth / leadsMonth) * 100)}%`
-      : "0%";
+    leadsMonth > 0 ? `${Math.round((wonThisMonth / leadsMonth) * 100)}%` : "0%";
 
   // Trends
   const prevWeekCount = prevWeekRes.count || 0;
@@ -217,39 +207,41 @@ export async function GET(request: NextRequest) {
 
   const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
 
-  (newLeadsRes.data || []).forEach((lead: {
-    id: string;
-    contact_name: string;
-    contact_email: string;
-    contact_phone?: string;
-    industry: string;
-    created_at: string;
-    ai_plan?: unknown;
-    intake_data?: Record<string, unknown>;
-    view_count?: number;
-  }) => {
-    const score = calculateLeadScore(lead);
-    const createdAt = new Date(lead.created_at);
-    const isHot = score >= 70;
-    const isStale = createdAt < fortyEightHoursAgo;
+  (newLeadsRes.data || []).forEach(
+    (lead: {
+      id: string;
+      contact_name: string;
+      contact_email: string;
+      contact_phone?: string;
+      industry: string;
+      created_at: string;
+      ai_plan?: unknown;
+      intake_data?: Record<string, unknown>;
+      view_count?: number;
+    }) => {
+      const score = calculateLeadScore(lead);
+      const createdAt = new Date(lead.created_at);
+      const isHot = score >= 70;
+      const isStale = createdAt < fortyEightHoursAgo;
 
-    if (isHot || isStale) {
-      const diffMs = now.getTime() - createdAt.getTime();
-      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-      const timeAgo = diffHours < 24 ? `${diffHours}h ago` : `${Math.floor(diffHours / 24)}d ago`;
+      if (isHot || isStale) {
+        const diffMs = now.getTime() - createdAt.getTime();
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const timeAgo = diffHours < 24 ? `${diffHours}h ago` : `${Math.floor(diffHours / 24)}d ago`;
 
-      priorities.push({
-        id: lead.id,
-        name: lead.contact_name,
-        email: lead.contact_email,
-        score,
-        scoreLabel: score >= 70 ? "Hot" : score >= 40 ? "Warm" : "Cold",
-        type: isHot ? "hot_lead" : "stale_lead",
-        timeAgo,
-        link: "/admin/leads",
-      });
-    }
-  });
+        priorities.push({
+          id: lead.id,
+          name: lead.contact_name,
+          email: lead.contact_email,
+          score,
+          scoreLabel: score >= 70 ? "Hot" : score >= 40 ? "Warm" : "Cold",
+          type: isHot ? "hot_lead" : "stale_lead",
+          timeAgo,
+          link: "/admin/leads",
+        });
+      }
+    },
+  );
 
   // Sort by score desc, take top 5
   priorities.sort((a, b) => b.score - a.score);

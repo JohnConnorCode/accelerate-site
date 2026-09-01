@@ -21,7 +21,7 @@ interface SequenceEnrollment {
  * - Returns Resend email IDs for tracking/cancellation
  */
 export async function scheduleEmailSequence(
-  enrollment: SequenceEnrollment
+  enrollment: SequenceEnrollment,
 ): Promise<{ sequenceId: string; emailIds: string[] }> {
   const { email, sequenceType, metadata } = enrollment;
   const steps = emailSequences[sequenceType];
@@ -47,7 +47,10 @@ export async function scheduleEmailSequence(
       ...metadata,
       email,
     };
-    const resolved = await resolveEmailTemplate(`${sequenceType.replaceAll("_", "-")}-${step.stepNumber}`, variables);
+    const resolved = await resolveEmailTemplate(
+      `${sequenceType.replaceAll("_", "-")}-${step.stepNumber}`,
+      variables,
+    );
 
     const idempotencyKey = `${sequenceType}/${email}/${step.stepNumber}/${sequenceId}`;
 
@@ -74,10 +77,7 @@ export async function scheduleEmailSequence(
       });
 
       if (error) {
-        console.error(
-          `Failed to schedule step ${step.stepNumber} for ${email}:`,
-          error
-        );
+        console.error(`Failed to schedule step ${step.stepNumber} for ${email}:`, error);
         continue;
       }
 
@@ -85,10 +85,7 @@ export async function scheduleEmailSequence(
         emailIds.push(data.id);
       }
     } catch (err) {
-      console.error(
-        `Error scheduling step ${step.stepNumber} for ${email}:`,
-        err
-      );
+      console.error(`Error scheduling step ${step.stepNumber} for ${email}:`, err);
     }
   }
 
@@ -107,7 +104,8 @@ export async function cancelScheduledSequences(
 ): Promise<void> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return;
 
-  const supabase = dependencies?.database || createBootstrapServiceRoleClient("legacy-email-sequence-cancel");
+  const supabase =
+    dependencies?.database || createBootstrapServiceRoleClient("legacy-email-sequence-cancel");
   const { data } = await supabase
     .from("email_sequences")
     .select("id, metadata")
@@ -119,7 +117,9 @@ export async function cancelScheduledSequences(
   const resend = dependencies?.resend || getResend();
   for (const sequence of data) {
     const ids = Array.isArray(sequence.metadata?.resend_email_ids)
-      ? sequence.metadata.resend_email_ids.filter((id: unknown): id is string => typeof id === "string")
+      ? sequence.metadata.resend_email_ids.filter(
+          (id: unknown): id is string => typeof id === "string",
+        )
       : [];
     await Promise.allSettled(ids.map((id: string) => resend.emails.cancel(id)));
     await supabase.from("email_sequences").update({ status: "paused" }).eq("id", sequence.id);
@@ -129,12 +129,9 @@ export async function cancelScheduledSequences(
 async function saveSequenceRecord(
   sequenceId: string,
   enrollment: SequenceEnrollment,
-  emailIds: string[]
+  emailIds: string[],
 ): Promise<void> {
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.SUPABASE_SERVICE_ROLE_KEY
-  ) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return;
   }
 

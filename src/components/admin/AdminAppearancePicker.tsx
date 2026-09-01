@@ -17,11 +17,41 @@ const appearances: Array<{
   icon: typeof Sun;
   previewClass: string;
 }> = [
-  { id: "light", label: "Paper", description: "Clear editorial workspace", icon: Sun, previewClass: "bg-[#f3f3f0] text-[#0b0b0b]" },
-  { id: "dark", label: "Night", description: "Low-light operating view", icon: Moon, previewClass: "bg-[#10100f] text-[#fbfbfa]" },
-  { id: "signal", label: "Signal", description: "Focused violet operations", icon: Sparkles, previewClass: "bg-[#171225] text-[#f3edff]" },
-  { id: "studio", label: "Studio", description: "Bright project workspace", icon: Palette, previewClass: "bg-[#f4f7fc] text-[#18233c]" },
-  { id: "frost", label: "Frost", description: "Luminous violet workspace", icon: Snowflake, previewClass: "bg-gradient-to-br from-white to-[#ece7ff] text-[#6b3ff2]" },
+  {
+    id: "light",
+    label: "Paper",
+    description: "Clear editorial workspace",
+    icon: Sun,
+    previewClass: "bg-[#f3f3f0] text-[#0b0b0b]",
+  },
+  {
+    id: "dark",
+    label: "Night",
+    description: "Low-light operating view",
+    icon: Moon,
+    previewClass: "bg-[#10100f] text-[#fbfbfa]",
+  },
+  {
+    id: "signal",
+    label: "Signal",
+    description: "Focused violet operations",
+    icon: Sparkles,
+    previewClass: "bg-[#171225] text-[#f3edff]",
+  },
+  {
+    id: "studio",
+    label: "Studio",
+    description: "Bright project workspace",
+    icon: Palette,
+    previewClass: "bg-[#f4f7fc] text-[#18233c]",
+  },
+  {
+    id: "frost",
+    label: "Frost",
+    description: "Luminous violet workspace",
+    icon: Snowflake,
+    previewClass: "bg-gradient-to-br from-white to-[#ece7ff] text-[#6b3ff2]",
+  },
 ];
 
 function isAdminAppearance(theme: string | undefined): theme is AdminAppearance {
@@ -44,8 +74,13 @@ export function AdminAppearancePicker({
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelId = useId();
-  const currentTheme = isAdminAppearance(theme) ? theme : isAdminAppearance(resolvedTheme) ? resolvedTheme : "light";
-  const current = appearances.find((appearance) => appearance.id === currentTheme) ?? appearances[0]!;
+  const currentTheme = isAdminAppearance(theme)
+    ? theme
+    : isAdminAppearance(resolvedTheme)
+      ? resolvedTheme
+      : "light";
+  const current =
+    appearances.find((appearance) => appearance.id === currentTheme) ?? appearances[0]!;
 
   // next-themes resolves its stored preference only in the browser.
   // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -88,7 +123,8 @@ export function AdminAppearancePicker({
           canvas
             ? "admin-icon-button size-10 justify-center text-[var(--admin-ink)] focus-visible:ring-[var(--admin-ink)]"
             : "admin-nav-utility focus-visible:ring-[var(--admin-nav-accent)]",
-          !canvas && (collapsed ? "size-10 justify-center px-0" : "w-full justify-between gap-3 px-2.5"),
+          !canvas &&
+            (collapsed ? "size-10 justify-center px-0" : "w-full justify-between gap-3 px-2.5"),
         )}
         aria-haspopup="dialog"
         aria-expanded={open}
@@ -100,7 +136,15 @@ export function AdminAppearancePicker({
           <current.icon className="size-4 shrink-0" aria-hidden="true" />
           {!collapsed && !canvas && <span className="truncate font-medium">{current.label}</span>}
         </span>
-        {!collapsed && !canvas && <ChevronUp className={cn("size-3.5 shrink-0 opacity-55 transition-transform duration-200", open && "rotate-180")} aria-hidden="true" />}
+        {!collapsed && !canvas && (
+          <ChevronUp
+            className={cn(
+              "size-3.5 shrink-0 opacity-55 transition-transform duration-200",
+              open && "rotate-180",
+            )}
+            aria-hidden="true"
+          />
+        )}
       </button>
 
       <AnimatePresence initial={false}>
@@ -124,8 +168,12 @@ export function AdminAppearancePicker({
             )}
           >
             <div className="px-2 pb-2 pt-1">
-              <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--admin-nav-faint)]">Appearance</p>
-              <p className="mt-1 text-[11px] leading-4 text-[var(--admin-nav-muted)]">One operating system, five focused working environments.</p>
+              <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--admin-nav-faint)]">
+                Appearance
+              </p>
+              <p className="mt-1 text-[11px] leading-4 text-[var(--admin-nav-muted)]">
+                One operating system, five focused working environments.
+              </p>
             </div>
             <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="Admin appearance">
               {appearances.map((appearance) => {
@@ -148,13 +196,27 @@ export function AdminAppearancePicker({
                       selected && "is-selected",
                     )}
                   >
-                    <span className={cn("mb-2 flex h-8 items-center rounded-[8px] px-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]", appearance.previewClass)}>
+                    <span
+                      className={cn(
+                        "mb-2 flex h-8 items-center rounded-[8px] px-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]",
+                        appearance.previewClass,
+                      )}
+                    >
                       <Icon className="size-3.5" aria-hidden="true" />
                       <span className="ml-1.5 h-1.5 w-9 rounded-full bg-current opacity-30" />
                     </span>
-                    <span className="block pr-5 text-[11px] font-semibold text-[var(--admin-nav-ink)]">{appearance.label}</span>
-                    <span className="mt-0.5 block text-[9px] leading-3 text-[var(--admin-nav-muted)]">{appearance.description}</span>
-                    {selected && <Check className="absolute right-2.5 top-[3.25rem] size-3.5 text-[var(--admin-nav-accent)]" aria-hidden="true" />}
+                    <span className="block pr-5 text-[11px] font-semibold text-[var(--admin-nav-ink)]">
+                      {appearance.label}
+                    </span>
+                    <span className="mt-0.5 block text-[9px] leading-3 text-[var(--admin-nav-muted)]">
+                      {appearance.description}
+                    </span>
+                    {selected && (
+                      <Check
+                        className="absolute right-2.5 top-[3.25rem] size-3.5 text-[var(--admin-nav-accent)]"
+                        aria-hidden="true"
+                      />
+                    )}
                   </button>
                 );
               })}

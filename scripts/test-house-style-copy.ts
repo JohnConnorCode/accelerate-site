@@ -31,10 +31,22 @@ const SKIP_PATH = /\/api\//;
  * added here needs a reason, because the list is how the rule gets hollowed out.
  */
 const ALLOWED: Array<{ path: string; why: string }> = [
-  { path: "src/lib/chat/sanitize.ts", why: "defines the rewrite, so it must contain the character it replaces" },
-  { path: "src/lib/revenue-os/auto-responder.ts", why: "grounding rule that rejects a generated draft containing one" },
-  { path: "src/lib/chat/system-prompt.ts", why: "states the rule to the model, so it must quote the character it bans" },
-  { path: "src/app/admin/contact-imports/page.tsx", why: "sample pasted input for the importer, deliberately messy so the parser is shown handling it" },
+  {
+    path: "src/lib/chat/sanitize.ts",
+    why: "defines the rewrite, so it must contain the character it replaces",
+  },
+  {
+    path: "src/lib/revenue-os/auto-responder.ts",
+    why: "grounding rule that rejects a generated draft containing one",
+  },
+  {
+    path: "src/lib/chat/system-prompt.ts",
+    why: "states the rule to the model, so it must quote the character it bans",
+  },
+  {
+    path: "src/app/admin/contact-imports/page.tsx",
+    why: "sample pasted input for the importer, deliberately messy so the parser is shown handling it",
+  },
 ];
 
 /**
@@ -44,11 +56,13 @@ const ALLOWED: Array<{ path: string; why: string }> = [
  * missed literal fails open rather than blocking a commit wrongly.
  */
 function stringLiterals(source: string): string[] {
-  const withoutComments = source
-    .replace(/\/\*[\s\S]*?\*\//g, " ")
-    .replace(/^\s*\/\/.*$/gm, " ");
+  const withoutComments = source.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " ");
   const found: string[] = [];
-  for (const pattern of [/"((?:[^"\\\n]|\\.)*)"/g, /'((?:[^'\\\n]|\\.)*)'/g, /`((?:[^`\\]|\\.)*)`/g]) {
+  for (const pattern of [
+    /"((?:[^"\\\n]|\\.)*)"/g,
+    /'((?:[^'\\\n]|\\.)*)'/g,
+    /`((?:[^`\\]|\\.)*)`/g,
+  ]) {
     for (const match of withoutComments.matchAll(pattern)) {
       if (match[1]) found.push(match[1]);
     }
@@ -101,7 +115,11 @@ function isEmptyValuePlaceholder(text: string): boolean {
 function sourceFiles(dir: string): string[] {
   const found: string[] = [];
   let entries: string[];
-  try { entries = readdirSync(dir); } catch { return found; }
+  try {
+    entries = readdirSync(dir);
+  } catch {
+    return found;
+  }
   for (const entry of entries) {
     const full = join(dir, entry);
     if (statSync(full).isDirectory()) found.push(...sourceFiles(full));
@@ -137,12 +155,23 @@ for (const root of COPY_ROOTS) {
   }
 }
 
-assert.ok(inspected > 200, `only inspected ${inspected} files, so this guard is probably pointed at the wrong place`);
+assert.ok(
+  inspected > 200,
+  `only inspected ${inspected} files, so this guard is probably pointed at the wrong place`,
+);
 
 if (offenders.length) {
-  console.error(`House style: found ${offenders.length} em dash(es) in copy. Use a comma, a full stop, or a colon.`);
+  console.error(
+    `House style: found ${offenders.length} em dash(es) in copy. Use a comma, a full stop, or a colon.`,
+  );
   for (const offender of offenders) console.error(`- ${offender}`);
   process.exitCode = 1;
 } else {
-  console.log(JSON.stringify({ filesInspected: inspected, allowlisted: ALLOWED.length, result: "passed" }, null, 2));
+  console.log(
+    JSON.stringify(
+      { filesInspected: inspected, allowlisted: ALLOWED.length, result: "passed" },
+      null,
+      2,
+    ),
+  );
 }

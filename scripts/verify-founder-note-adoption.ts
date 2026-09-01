@@ -17,16 +17,25 @@ async function main() {
   const database = createBootstrapServiceRoleClient("founder-note-adoption-report");
   const report = await loadFounderNoteAdoptionReport(database, { founderUsefulnessConfirmed });
 
-  console.log(JSON.stringify({
-    result: report.cardReady ? "ready" : "pending",
-    privacy: "No note titles or bodies were selected.",
-    ...report,
-  }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        result: report.cardReady ? "ready" : "pending",
+        privacy: "No note titles or bodies were selected.",
+        ...report,
+      },
+      null,
+      2,
+    ),
+  );
 
   if (requireReady && !report.cardReady) process.exitCode = 1;
 }
 
 main().catch((error) => {
-  console.error("Founder-note adoption report failed:", error instanceof Error ? error.message : error);
+  console.error(
+    "Founder-note adoption report failed:",
+    error instanceof Error ? error.message : error,
+  );
   process.exitCode = 1;
 });

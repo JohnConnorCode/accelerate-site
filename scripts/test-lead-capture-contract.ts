@@ -70,18 +70,25 @@ for (const file of LEAD_ROUTES) {
       const body = guardBody(source, match.index);
       if (!REACTS.test(body)) {
         const line = source.slice(0, match.index).split("\n").length;
-        failures.push(`${file}:${line} guards "${variable}" but only logs. A failed lead write must refuse the request or escalate to the operator.`);
+        failures.push(
+          `${file}:${line} guards "${variable}" but only logs. A failed lead write must refuse the request or escalate to the operator.`,
+        );
       }
     }
   }
 }
 
-assert.ok(guardsChecked > 0, "found no error guards in the lead routes, so this contract is not actually checking anything");
+assert.ok(
+  guardsChecked > 0,
+  "found no error guards in the lead routes, so this contract is not actually checking anything",
+);
 
 if (failures.length) {
   console.error(`Lead capture contract failed with ${failures.length} issue(s):`);
   for (const failure of failures) console.error(`- ${failure}`);
   process.exitCode = 1;
 } else {
-  console.log(JSON.stringify({ routes: LEAD_ROUTES.length, guardsChecked, result: "passed" }, null, 2));
+  console.log(
+    JSON.stringify({ routes: LEAD_ROUTES.length, guardsChecked, result: "passed" }, null, 2),
+  );
 }

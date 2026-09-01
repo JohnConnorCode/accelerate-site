@@ -9,18 +9,33 @@ const browser = await chromium.launch({ headless: true });
 const failures = [];
 
 async function openDemo(viewport, label) {
-  const context = await browser.newContext({ viewport, reducedMotion: "reduce", colorScheme: "light" });
+  const context = await browser.newContext({
+    viewport,
+    reducedMotion: "reduce",
+    colorScheme: "light",
+  });
   const page = await context.newPage();
-  page.on("console", (message) => { if (message.type() === "error") failures.push(`${label} console: ${message.text().split("\n")[0]}`); });
+  page.on("console", (message) => {
+    if (message.type() === "error")
+      failures.push(`${label} console: ${message.text().split("\n")[0]}`);
+  });
   page.on("pageerror", (error) => failures.push(`${label} page: ${error.message.split("\n")[0]}`));
   page.on("request", (request) => {
     const pathname = new URL(request.url()).pathname;
-    if (pathname.startsWith("/api/admin") || pathname === "/api/chat" || pathname.startsWith("/api/cron") || pathname.startsWith("/api/webhooks")) {
+    if (
+      pathname.startsWith("/api/admin") ||
+      pathname === "/api/chat" ||
+      pathname.startsWith("/api/cron") ||
+      pathname.startsWith("/api/webhooks")
+    ) {
       failures.push(`${label}: demo attempted protected/provider request ${pathname}`);
     }
   });
   await page.route("**/api/analytics/events", (route) => route.fulfill({ status: 204, body: "" }));
-  await page.goto(`${base}/command-center#demo`, { waitUntil: "domcontentloaded", timeout: 60_000 });
+  await page.goto(`${base}/command-center#demo`, {
+    waitUntil: "domcontentloaded",
+    timeout: 60_000,
+  });
   const demo = page.locator("#demo .cc").first();
   await demo.scrollIntoViewIfNeeded();
   await demo.getByText("Fictional sample data.", { exact: false }).waitFor();
@@ -34,15 +49,25 @@ async function openDemo(viewport, label) {
 {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await context.newPage();
-  await page.goto(`${base}/command-center/demo`, { waitUntil: "domcontentloaded", timeout: 60_000 });
-  if (new URL(page.url()).pathname !== "/demo/command-center") failures.push("legacy standalone preview did not redirect to the full admin demo launcher");
-  await page.getByRole("heading", { name: "Explore the full admin through five real operating models." }).waitFor();
+  await page.goto(`${base}/command-center/demo`, {
+    waitUntil: "domcontentloaded",
+    timeout: 60_000,
+  });
+  if (new URL(page.url()).pathname !== "/demo/command-center")
+    failures.push("legacy standalone preview did not redirect to the full admin demo launcher");
+  await page
+    .getByRole("heading", { name: "Explore the full admin through five real operating models." })
+    .waitFor();
   await context.close();
 }
 
 async function assertNoOverflow(page, label) {
-  const state = await page.evaluate(() => ({ width: document.documentElement.scrollWidth, viewport: window.innerWidth }));
-  if (state.width > state.viewport + 2) failures.push(`${label}: document overflow ${state.width}px > ${state.viewport}px`);
+  const state = await page.evaluate(() => ({
+    width: document.documentElement.scrollWidth,
+    viewport: window.innerWidth,
+  }));
+  if (state.width > state.viewport + 2)
+    failures.push(`${label}: document overflow ${state.width}px > ${state.viewport}px`);
 }
 
 const desktop = await openDemo({ width: 1440, height: 1000 }, "desktop");
@@ -50,12 +75,16 @@ await desktop.demo.getByRole("button", { name: "Approve", exact: true }).first()
 await desktop.demo.getByRole("heading", { name: "5 waiting on you" }).waitFor();
 await desktop.demo.getByRole("button", { name: "Ask", exact: true }).first().click();
 await desktop.demo.getByRole("button", { name: "What did I agree to with Northwind?" }).click();
-const groundedAnswer = "Three things. A March 3 start date, the reporting piece split out as its own line so Marcus can approve it separately, and a training day in week two rather than week one. Sarah is taking the revised scope to Marcus this week. She has not committed to a number yet.";
+const groundedAnswer =
+  "Three things. A March 3 start date, the reporting piece split out as its own line so Marcus can approve it separately, and a training day in week two rather than week one. Sarah is taking the revised scope to Marcus this week. She has not committed to a number yet.";
 await desktop.demo.getByText(groundedAnswer, { exact: true }).waitFor();
 await desktop.demo.getByLabel("Ask the Command Center").fill("What did we promise Northwind?");
 await desktop.demo.locator("form").getByRole("button", { name: "Ask", exact: true }).click();
 await desktop.demo.getByText(groundedAnswer, { exact: true }).nth(1).waitFor();
-await desktop.page.screenshot({ path: `${outDir}/demo-grounded-answer-desktop.png`, fullPage: true });
+await desktop.page.screenshot({
+  path: `${outDir}/demo-grounded-answer-desktop.png`,
+  fullPage: true,
+});
 await assertNoOverflow(desktop.page, "desktop answer");
 
 await desktop.page.reload({ waitUntil: "domcontentloaded" });
@@ -63,9 +92,11 @@ await desktop.demo.getByText(groundedAnswer, { exact: true }).first().waitFor();
 await desktop.demo.getByText(/2 \/ 5 explored/).waitFor();
 await desktop.demo.getByRole("button", { name: "Reset" }).click();
 await desktop.demo.getByRole("heading", { name: "6 waiting on you" }).waitFor();
-if (await desktop.demo.getByText("Simulated outcome recorded", { exact: true }).count()) failures.push("desktop: global reset retained the completed-story outcome");
+if (await desktop.demo.getByText("Simulated outcome recorded", { exact: true }).count())
+  failures.push("desktop: global reset retained the completed-story outcome");
 await desktop.demo.getByRole("button", { name: "Ask", exact: true }).first().click();
-if (await desktop.demo.getByText(groundedAnswer, { exact: true }).count()) failures.push("desktop: global reset retained the prior AI answer");
+if (await desktop.demo.getByText(groundedAnswer, { exact: true }).count())
+  failures.push("desktop: global reset retained the prior AI answer");
 await desktop.page.screenshot({ path: `${outDir}/demo-reset-desktop.png`, fullPage: true });
 await desktop.context.close();
 
@@ -111,11 +142,17 @@ for (const [view, action] of connectedViews) {
 }
 await mobile.demo.getByLabel("Demo view", { exact: true }).selectOption("tasks");
 await mobile.demo.getByRole("heading", { name: "Tasks", exact: true }).waitFor();
-await mobile.demo.getByRole("button", { name: /Mark Split reporting into its own line reviewed/ }).click();
-await mobile.demo.getByRole("button", { name: "Reviewed Split reporting into its own line" }).waitFor();
+await mobile.demo
+  .getByRole("button", { name: /Mark Split reporting into its own line reviewed/ })
+  .click();
+await mobile.demo
+  .getByRole("button", { name: "Reviewed Split reporting into its own line" })
+  .waitFor();
 await assertNoOverflow(mobile.page, "mobile tasks");
 await mobile.demo.getByLabel("Demo view", { exact: true }).selectOption("activity");
-await mobile.demo.getByText("Every simulated material decision carries a source and receipt.", { exact: true }).waitFor();
+await mobile.demo
+  .getByText("Every simulated material decision carries a source and receipt.", { exact: true })
+  .waitFor();
 await mobile.demo.getByRole("button", { name: "Reset" }).click();
 await mobile.demo.getByLabel("Demo view", { exact: true }).selectOption("inbox");
 await mobile.demo.getByRole("button", { name: "Stage a reply", exact: true }).waitFor();
@@ -123,4 +160,33 @@ await mobile.context.close();
 
 await browser.close();
 if (failures.length) throw new Error(`Command Center demo QA failures:\n${failures.join("\n")}`);
-console.log(JSON.stringify({ result: "passed", screenshots: [`${outDir}/demo-grounded-answer-desktop.png`, `${outDir}/demo-reset-desktop.png`, `${outDir}/demo-people-mobile.png`, `${outDir}/demo-meeting-mobile.png`], checks: ["fictional-data disclosure", "no protected/provider requests", "simulated approval", "grounded answer variations", "session refresh", "global reset", "all connected workspace views", "receipt activity", "mobile person detail", "meeting extraction", "reduced motion", "overflow", "console"] }, null, 2));
+console.log(
+  JSON.stringify(
+    {
+      result: "passed",
+      screenshots: [
+        `${outDir}/demo-grounded-answer-desktop.png`,
+        `${outDir}/demo-reset-desktop.png`,
+        `${outDir}/demo-people-mobile.png`,
+        `${outDir}/demo-meeting-mobile.png`,
+      ],
+      checks: [
+        "fictional-data disclosure",
+        "no protected/provider requests",
+        "simulated approval",
+        "grounded answer variations",
+        "session refresh",
+        "global reset",
+        "all connected workspace views",
+        "receipt activity",
+        "mobile person detail",
+        "meeting extraction",
+        "reduced motion",
+        "overflow",
+        "console",
+      ],
+    },
+    null,
+    2,
+  ),
+);

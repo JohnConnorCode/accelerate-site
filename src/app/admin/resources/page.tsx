@@ -76,11 +76,7 @@ export default function ResourcesPage() {
   }
 
   return (
-    <motion.div
-      initial={false}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <PageHeader title="Resource Downloads" subtitle={`${total} total downloads`} />
 
       <div className="grid gap-4 sm:grid-cols-2 mb-6">
@@ -120,10 +116,18 @@ export default function ResourcesPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border-glass">
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Name</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Email</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Resource</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">Date</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                Name
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                Email
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                Resource
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                Date
+              </th>
             </tr>
           </thead>
           <tbody>

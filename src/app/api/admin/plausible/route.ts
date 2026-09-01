@@ -25,17 +25,17 @@ export async function GET() {
       // Top pages today
       fetch(
         `https://plausible.io/api/v1/stats/breakdown?site_id=${domain}&period=day&property=event:page&limit=5&metrics=visitors`,
-        { headers }
+        { headers },
       ),
       // Top sources today
       fetch(
         `https://plausible.io/api/v1/stats/breakdown?site_id=${domain}&period=day&property=visit:source&limit=5&metrics=visitors`,
-        { headers }
+        { headers },
       ),
       // Goal conversions (7 days)
       fetch(
         `https://plausible.io/api/v1/stats/breakdown?site_id=${domain}&period=7d&property=event:goal&metrics=visitors,events`,
-        { headers }
+        { headers },
       ),
     ]);
 
@@ -67,9 +67,6 @@ export async function GET() {
       goals,
     });
   } catch {
-    return NextResponse.json(
-      { error: "Failed to fetch Plausible data" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch Plausible data" }, { status: 500 });
   }
 }

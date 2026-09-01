@@ -22,7 +22,7 @@ export async function GET() {
       <guid isPermaLink="false">${entry.id}</guid>
       <pubDate>${new Date(entry.publishedAt).toUTCString()}</pubDate>
       <category>${escapeXml(entry.category)}</category>
-    </item>`
+    </item>`,
     )
     .join("\n");
 

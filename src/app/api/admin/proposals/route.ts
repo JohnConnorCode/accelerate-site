@@ -12,23 +12,16 @@ export async function GET(request: NextRequest) {
   const id = searchParams.get("id");
 
   if (id) {
-    const { data, error } = await supabase
-      .from("proposals")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const { data, error } = await supabase.from("proposals").select("*").eq("id", id).single();
 
     if (error) {
       console.error("Database error:", error.message);
-    return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
+      return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
     }
     return NextResponse.json({ proposal: data });
   }
 
-  let query = supabase
-    .from("proposals")
-    .select("*")
-    .order("created_at", { ascending: false });
+  let query = supabase.from("proposals").select("*").order("created_at", { ascending: false });
 
   if (status && status !== "all") {
     query = query.eq("status", status);
@@ -41,10 +34,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
 
-  const totalOneTime = (data || []).reduce((s: number, p: { total_one_time?: number; status: string }) =>
-    p.status !== "declined" ? s + (p.total_one_time || 0) : s, 0);
-  const totalMonthly = (data || []).reduce((s: number, p: { total_monthly?: number; status: string }) =>
-    p.status !== "declined" ? s + (p.total_monthly || 0) : s, 0);
+  const totalOneTime = (data || []).reduce(
+    (s: number, p: { total_one_time?: number; status: string }) =>
+      p.status !== "declined" ? s + (p.total_one_time || 0) : s,
+    0,
+  );
+  const totalMonthly = (data || []).reduce(
+    (s: number, p: { total_monthly?: number; status: string }) =>
+      p.status !== "declined" ? s + (p.total_monthly || 0) : s,
+    0,
+  );
 
   return NextResponse.json({
     proposals: data || [],
@@ -114,7 +113,14 @@ export async function PATCH(request: NextRequest) {
 
   const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
 
-  const allowedFields = ["title", "content", "total_one_time", "total_monthly", "status", "client_name"];
+  const allowedFields = [
+    "title",
+    "content",
+    "total_one_time",
+    "total_monthly",
+    "status",
+    "client_name",
+  ];
   for (const field of allowedFields) {
     if (updates[field] !== undefined) {
       updateData[field] = updates[field];

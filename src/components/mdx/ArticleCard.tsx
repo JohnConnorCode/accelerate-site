@@ -17,11 +17,7 @@ const formatDate = (date: string) =>
     year: "numeric",
   });
 
-export function ArticleCard({
-  article,
-  index,
-  showCategory = true,
-}: ArticleCardProps) {
+export function ArticleCard({ article, index, showCategory = true }: ArticleCardProps) {
   return (
     <Link
       href={`/learn/${article.slug}`}
@@ -31,9 +27,7 @@ export function ArticleCard({
       <div className="mb-8 flex items-start justify-between gap-4">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-white-muted">
           {showCategory && (
-            <span className="text-heading">
-              {CATEGORY_LABELS[article.frontmatter.category]}
-            </span>
+            <span className="text-heading">{CATEGORY_LABELS[article.frontmatter.category]}</span>
           )}
           <span>{formatDate(article.frontmatter.date)}</span>
         </div>
@@ -58,7 +52,10 @@ export function ArticleCard({
         </span>
         <span className="inline-flex items-center gap-2 text-heading">
           Read guide
-          <ArrowUpRight className="h-4 w-4 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+          <ArrowUpRight
+            className="h-4 w-4 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+            aria-hidden="true"
+          />
         </span>
       </div>
     </Link>

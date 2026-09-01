@@ -21,10 +21,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="w-full">
         {label && (
-          <label
-            htmlFor={id}
-            className="block text-sm text-white-secondary mb-2"
-          >
+          <label htmlFor={id} className="block text-sm text-white-secondary mb-2">
             {label}
           </label>
         )}
@@ -39,7 +36,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
               "focus:outline-none focus:border-gold focus:ring-1 focus:ring-[var(--gold-base)]/30",
               "transition-[border-color,box-shadow] duration-200",
               error && "border-[var(--error)]",
-              className
+              className,
             )}
             {...props}
           >
@@ -49,23 +46,17 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
               </option>
             )}
             {options.map((opt) => (
-              <option
-                key={opt.value}
-                value={opt.value}
-                className="bg-bg-subtle"
-              >
+              <option key={opt.value} value={opt.value} className="bg-bg-subtle">
                 {opt.label}
               </option>
             ))}
           </select>
           <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white-muted pointer-events-none" />
         </div>
-        {error && (
-          <p className="mt-1.5 text-sm text-[var(--error)]">{error}</p>
-        )}
+        {error && <p className="mt-1.5 text-sm text-[var(--error)]">{error}</p>}
       </div>
     );
-  }
+  },
 );
 
 Select.displayName = "Select";

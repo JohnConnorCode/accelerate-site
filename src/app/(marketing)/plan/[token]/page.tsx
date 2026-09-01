@@ -9,17 +9,12 @@ interface PageProps {
 }
 
 async function fetchPlan(token: string): Promise<SolutionRequest | null> {
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  ) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return null;
   }
 
   try {
-    const { createServerSupabaseClient } = await import(
-      "@/lib/supabase/server"
-    );
+    const { createServerSupabaseClient } = await import("@/lib/supabase/server");
     const supabase = await createServerSupabaseClient();
 
     // Only select the columns this public page actually renders. Avoid
@@ -42,10 +37,7 @@ async function fetchPlan(token: string): Promise<SolutionRequest | null> {
 }
 
 async function incrementViewCount(token: string) {
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.SUPABASE_SERVICE_ROLE_KEY
-  ) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return;
   }
 
@@ -53,7 +45,7 @@ async function incrementViewCount(token: string) {
     const { createClient } = await import("@supabase/supabase-js");
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
     );
 
     // Increment view count (non-critical, best-effort)
@@ -82,26 +74,21 @@ async function incrementViewCount(token: string) {
   }
 }
 
-export async function generateMetadata({
-  params,
-}: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { token } = await params;
   const plan = await fetchPlan(token);
 
   if (!plan || !plan.ai_plan) {
     return {
       title: "Growth Plan",
-      description:
-        "View your personalized digital growth plan from Accelerate.",
+      description: "View your personalized digital growth plan from Accelerate.",
     };
   }
 
   const summary = plan.ai_plan.executiveSummary.slice(0, 155) + "...";
 
   return {
-    title: plan.business_name
-      ? `Growth Plan for ${plan.business_name}`
-      : "Your Growth Plan",
+    title: plan.business_name ? `Growth Plan for ${plan.business_name}` : "Your Growth Plan",
     description: summary,
     openGraph: {
       title: plan.business_name
@@ -115,25 +102,21 @@ export async function generateMetadata({
 export default async function PlanPage({ params }: PageProps) {
   const { token } = await params;
 
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  ) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-4">
         <div className="glass-prominent rounded-xl p-8 max-w-md w-full text-center space-y-4">
           <h1
             className="text-2xl font-bold text-heading"
             style={{
-              fontFamily:
-                "var(--font-jost), var(--font-inter), sans-serif",
+              fontFamily: "var(--font-jost), var(--font-inter), sans-serif",
             }}
           >
             Plan Viewer Not Available
           </h1>
           <p className="text-white-muted text-sm">
-            The plan viewing system is not configured yet. Reach out and we
-            will get you a fresh copy of your plan.
+            The plan viewing system is not configured yet. Reach out and we will get you a fresh
+            copy of your plan.
           </p>
           <Link
             href="/contact"
@@ -156,15 +139,14 @@ export default async function PlanPage({ params }: PageProps) {
           <h1
             className="text-2xl font-bold text-heading"
             style={{
-              fontFamily:
-                "var(--font-jost), var(--font-inter), sans-serif",
+              fontFamily: "var(--font-jost), var(--font-inter), sans-serif",
             }}
           >
             Plan Not Found
           </h1>
           <p className="text-white-muted text-sm">
-            We could not find a plan with this link. It may have expired or the
-            URL may be incorrect.
+            We could not find a plan with this link. It may have expired or the URL may be
+            incorrect.
           </p>
           <Link
             href="/contact"

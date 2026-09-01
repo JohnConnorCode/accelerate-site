@@ -51,7 +51,7 @@ export function AnimateOnScroll({
           },
         },
       }
-    : variants ?? fadeUp;
+    : (variants ?? fadeUp);
 
   return (
     <Component

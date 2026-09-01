@@ -16,11 +16,7 @@ const orbPositions = [
   { top: "10%", right: "30%", size: 160 },
 ];
 
-export function AmbientOrbs({
-  count = 3,
-  color = "gold",
-  className,
-}: AmbientOrbsProps) {
+export function AmbientOrbs({ count = 3, color = "gold", className }: AmbientOrbsProps) {
   const orbs = orbPositions.slice(0, Math.min(count, 5));
   const bg =
     color === "gold"
@@ -31,7 +27,7 @@ export function AmbientOrbs({
     <div
       className={cn(
         "absolute inset-0 overflow-hidden pointer-events-none motion-safe:block motion-reduce:hidden",
-        className
+        className,
       )}
       aria-hidden="true"
     >
@@ -40,7 +36,9 @@ export function AmbientOrbs({
           key={i}
           className={cn(
             "absolute rounded-full",
-            i % 2 === 0 ? "animate-[drift-1_28s_ease-in-out_infinite]" : "animate-[drift-2_25s_ease-in-out_infinite]"
+            i % 2 === 0
+              ? "animate-[drift-1_28s_ease-in-out_infinite]"
+              : "animate-[drift-2_25s_ease-in-out_infinite]",
           )}
           style={{
             top: pos.top,

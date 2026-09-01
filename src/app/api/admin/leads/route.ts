@@ -7,10 +7,7 @@ import { canonicalStage, transitionOpportunity } from "@/lib/revenue-os/pipeline
 import type { RevenueStage } from "@/lib/revenue-os/types";
 
 // Statuses a lead can be set to: canonical pipeline stages plus "lost".
-const VALID_LEAD_STATUSES = new Set<string>([
-  ...PIPELINE_STAGES.map((s) => s.key),
-  "lost",
-]);
+const VALID_LEAD_STATUSES = new Set<string>([...PIPELINE_STAGES.map((s) => s.key), "lost"]);
 const MAX_BULK_IDS = 200;
 
 /** Validate a bulk `ids` payload: must be a non-empty array of strings, capped. */
@@ -104,7 +101,8 @@ export async function POST(request: NextRequest) {
   const supabase = auth.database;
   const body = await request.json();
 
-  const { contact_name, contact_email, contact_phone, business_name, industry, source, notes } = body;
+  const { contact_name, contact_email, contact_phone, business_name, industry, source, notes } =
+    body;
 
   if (!contact_name || !contact_email) {
     return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
@@ -179,10 +177,7 @@ export async function PATCH(request: NextRequest) {
     const updateData: Record<string, unknown> = { lead_status: body.lead_status };
     if (body.lead_status === "contacted") updateData.contacted_at = new Date().toISOString();
 
-    const { error } = await supabase
-      .from("solution_requests")
-      .update(updateData)
-      .in("id", ids);
+    const { error } = await supabase.from("solution_requests").update(updateData).in("id", ids);
 
     if (error) {
       console.error("Database error:", error.message);
@@ -226,7 +221,12 @@ export async function PATCH(request: NextRequest) {
         });
       } catch (transitionError) {
         return NextResponse.json(
-          { error: transitionError instanceof Error ? transitionError.message : "Could not update canonical pipeline" },
+          {
+            error:
+              transitionError instanceof Error
+                ? transitionError.message
+                : "Could not update canonical pipeline",
+          },
           { status: 409 },
         );
       }
@@ -302,10 +302,7 @@ export async function DELETE(request: NextRequest) {
     );
   }
 
-  const { error } = await supabase
-    .from("solution_requests")
-    .delete()
-    .in("id", ids);
+  const { error } = await supabase.from("solution_requests").delete().in("id", ids);
 
   if (error) {
     console.error("Database error:", error.message);

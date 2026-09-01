@@ -28,17 +28,7 @@ const sizeClasses: Record<ButtonSize, string> = {
 };
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    {
-      variant = "primary",
-      size = "md",
-      pulse = false,
-      className,
-      children,
-      ...props
-    },
-    ref
-  ) => {
+  ({ variant = "primary", size = "md", pulse = false, className, children, ...props }, ref) => {
     return (
       <button
         ref={ref}
@@ -49,14 +39,14 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           variantClasses[variant],
           sizeClasses[size],
           pulse && "pulse-gold",
-          className
+          className,
         )}
         {...props}
       >
         {children}
       </button>
     );
-  }
+  },
 );
 
 Button.displayName = "Button";

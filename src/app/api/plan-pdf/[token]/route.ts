@@ -8,7 +8,7 @@ import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
 // so we generate a clean HTML document that the browser can print to PDF
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ token: string }> }
+  { params }: { params: Promise<{ token: string }> },
 ) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
   const { success } = rateLimit(ip, 20, 60 * 60 * 1000);
@@ -69,7 +69,7 @@ function escapeHtml(str: string): string {
 function generatePlanHTML(
   plan: DigitalGrowthPlan,
   businessName: string,
-  contactName: string
+  contactName: string,
 ): string {
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("en-US", {
@@ -230,7 +230,7 @@ function generatePlanHTML(
           <span>Investment: <strong>${escapeHtml(rec.pricingDisplay)}</strong></span>
         </div>
       </div>
-    `
+    `,
       )
       .join("")}
   </div>
@@ -247,7 +247,7 @@ function generatePlanHTML(
           <p>${escapeHtml(phase.description)}</p>
         </div>
       </div>
-    `
+    `,
       )
       .join("")}
   </div>
@@ -284,7 +284,7 @@ function generatePlanHTML(
             <td>${rec.pricingOneTime ? formatCurrency(rec.pricingOneTime) : "-"}</td>
             <td>${rec.pricingMonthly ? formatCurrency(rec.pricingMonthly) + "/mo" : "-"}</td>
           </tr>
-        `
+        `,
           )
           .join("")}
         <tr class="total">

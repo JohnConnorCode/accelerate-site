@@ -53,7 +53,7 @@ export function CountUp({ target, className }: { target: string; className?: str
         }
         requestAnimationFrame(tick);
       },
-      { rootMargin: "0px 0px -10% 0px", threshold: 0.3 }
+      { rootMargin: "0px 0px -10% 0px", threshold: 0.3 },
     );
     observer.observe(el);
     return () => observer.disconnect();

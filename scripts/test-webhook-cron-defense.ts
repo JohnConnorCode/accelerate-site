@@ -14,11 +14,12 @@ function hydrateEnvFromLocalFile(filePath: string) {
     const value = match[2];
     if (key === undefined || value === undefined) continue;
     if (process.env[key] === undefined) {
-      process.env[key] = value.startsWith('"') && value.endsWith('"')
-        ? value.slice(1, -1)
-        : value.startsWith("'") && value.endsWith("'")
+      process.env[key] =
+        value.startsWith('"') && value.endsWith('"')
           ? value.slice(1, -1)
-          : value;
+          : value.startsWith("'") && value.endsWith("'")
+            ? value.slice(1, -1)
+            : value;
     }
   }
 }
@@ -43,7 +44,11 @@ async function get(path: string, headers?: Record<string, string>) {
   return response;
 }
 
-async function expectStatus(responsePromise: Promise<Response>, expected: number | number[], label: string) {
+async function expectStatus(
+  responsePromise: Promise<Response>,
+  expected: number | number[],
+  label: string,
+) {
   const response = await responsePromise;
   const status = response.status;
   if (Array.isArray(expected)) {
@@ -81,9 +86,20 @@ async function expectStatus(responsePromise: Promise<Response>, expected: number
 
   const healthCronRoute = "/api/cron/system-health-snapshot";
   checks.push(`${healthCronRoute} rejects missing Bearer secret (401)`);
-  await expectStatus(post(healthCronRoute, { headers: { "content-type": "application/json" }, body: "{}" }), 401, `${healthCronRoute} missing authorization`);
+  await expectStatus(
+    post(healthCronRoute, { headers: { "content-type": "application/json" }, body: "{}" }),
+    401,
+    `${healthCronRoute} missing authorization`,
+  );
   checks.push(`${healthCronRoute} rejects invalid Bearer secret (401)`);
-  await expectStatus(post(healthCronRoute, { headers: { authorization: "Bearer invalid-secret", "content-type": "application/json" }, body: "{}" }), 401, `${healthCronRoute} invalid authorization`);
+  await expectStatus(
+    post(healthCronRoute, {
+      headers: { authorization: "Bearer invalid-secret", "content-type": "application/json" },
+      body: "{}",
+    }),
+    401,
+    `${healthCronRoute} invalid authorization`,
+  );
   checks.push(`${healthCronRoute} rejects GET method`);
   await expectStatus(get(healthCronRoute), 405, `${healthCronRoute} method not allowed`);
 
@@ -107,13 +123,17 @@ async function expectStatus(responsePromise: Promise<Response>, expected: number
   // is a configuration gap, not a test failure, and it must be said out loud
   // rather than passing quietly as "fail-closed, good".
   if (unsecured === 503) {
-    notes.push(`${BASE_URL} has no CALENDLY_WEBHOOK_SECRET configured: the booking webhook rejects everything, so no booking reaches the system`);
+    notes.push(
+      `${BASE_URL} has no CALENDLY_WEBHOOK_SECRET configured: the booking webhook rejects everything, so no booking reaches the system`,
+    );
   }
 
   if (!calendlySecret) {
     // The checks below post a real signed payload, so they need the same secret
     // the target uses. Say what was not covered instead of reporting a pass.
-    notes.push("skipped calendly signed-payload coverage (invalid-secret, malformed body, replay idempotency, oversize) because CALENDLY_WEBHOOK_SECRET is not set locally");
+    notes.push(
+      "skipped calendly signed-payload coverage (invalid-secret, malformed body, replay idempotency, oversize) because CALENDLY_WEBHOOK_SECRET is not set locally",
+    );
   } else {
     checks.push("calendly webhook rejects invalid query secret (401)");
     await expectStatus(
@@ -125,15 +145,28 @@ async function expectStatus(responsePromise: Promise<Response>, expected: number
       `${calendlyRoute}?secret=wrong`,
     );
 
-    const calendlySecretHeaders = { "content-type": "application/json", "x-accelerate-webhook-secret": calendlySecret };
+    const calendlySecretHeaders = {
+      "content-type": "application/json",
+      "x-accelerate-webhook-secret": calendlySecret,
+    };
 
-    checks.push("calendly webhook accepts the local secret before rejecting malformed JSON (400), or rejects a target-mismatched secret (401)");
+    checks.push(
+      "calendly webhook accepts the local secret before rejecting malformed JSON (400), or rejects a target-mismatched secret (401)",
+    );
     const malformedBody = "{ this-is-not-json }";
-    const malformedResult = await post(calendlyRoute, { body: malformedBody, headers: calendlySecretHeaders });
-    assert.ok([400, 401].includes(malformedResult.status), `${calendlyRoute} malformed payload expected 400 with a matching secret or 401 when the target uses another secret, got ${malformedResult.status}`);
+    const malformedResult = await post(calendlyRoute, {
+      body: malformedBody,
+      headers: calendlySecretHeaders,
+    });
+    assert.ok(
+      [400, 401].includes(malformedResult.status),
+      `${calendlyRoute} malformed payload expected 400 with a matching secret or 401 when the target uses another secret, got ${malformedResult.status}`,
+    );
 
     if (malformedResult.status === 401) {
-      notes.push(`skipped Calendly signed-payload semantics because ${BASE_URL} does not accept the CALENDLY_WEBHOOK_SECRET loaded by this process`);
+      notes.push(
+        `skipped Calendly signed-payload semantics because ${BASE_URL} does not accept the CALENDLY_WEBHOOK_SECRET loaded by this process`,
+      );
     } else {
       checks.push("calendly webhook rejects unsupported payload (400) with valid secret");
       await expectStatus(
@@ -145,10 +178,13 @@ async function expectStatus(responsePromise: Promise<Response>, expected: number
         `${calendlyRoute} valid secret header (unsupported payload)`,
       );
 
-      const allowReplayMutation = /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:|\/|$)/.test(BASE_URL)
-        || process.env.WEBHOOK_DEFENSE_ALLOW_REPLAY_QA === "1";
+      const allowReplayMutation =
+        /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:|\/|$)/.test(BASE_URL) ||
+        process.env.WEBHOOK_DEFENSE_ALLOW_REPLAY_QA === "1";
       if (!allowReplayMutation) {
-        notes.push("skipped Calendly replay mutation against a non-local target; set WEBHOOK_DEFENSE_ALLOW_REPLAY_QA=1 only for an explicitly authorized disposable QA target");
+        notes.push(
+          "skipped Calendly replay mutation against a non-local target; set WEBHOOK_DEFENSE_ALLOW_REPLAY_QA=1 only for an explicitly authorized disposable QA target",
+        );
       } else {
         checks.push("calendly webhook ignores replayed payload after first receipt");
         const replayToken = `replay-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -174,24 +210,46 @@ async function expectStatus(responsePromise: Promise<Response>, expected: number
         const secondReplay = await post(calendlyRoute, replayBody);
         assert.equal(secondReplay.status, 200, `${calendlyRoute} repeated replay`);
         const secondReplayBody = await secondReplay.json();
-        assert.equal(secondReplayBody.duplicate, true, `${calendlyRoute} should report duplicate=true on replay`);
+        assert.equal(
+          secondReplayBody.duplicate,
+          true,
+          `${calendlyRoute} should report duplicate=true on replay`,
+        );
         if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-          const service = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+          const service = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL,
+            process.env.SUPABASE_SERVICE_ROLE_KEY,
+          );
           const [notificationCleanup, receiptCleanup] = await Promise.all([
             service.from("admin_notifications").delete().ilike("description", `%${replayToken}%`),
-            service.from("calendly_webhook_receipts").delete().eq("id", `invitee.created:calendly://webhook-demo/${replayToken}`),
+            service
+              .from("calendly_webhook_receipts")
+              .delete()
+              .eq("id", `invitee.created:calendly://webhook-demo/${replayToken}`),
           ]);
-          assert.equal(notificationCleanup.error, null, "Calendly replay QA notification cleanup failed");
+          assert.equal(
+            notificationCleanup.error,
+            null,
+            "Calendly replay QA notification cleanup failed",
+          );
           assert.equal(receiptCleanup.error, null, "Calendly replay QA receipt cleanup failed");
         }
       }
     }
   }
 
-  checks.push("calendly webhook rejects oversized payload before signature parsing (413 if configured / 503 unconfigured)");
-  const calendlyOversizedPayload = JSON.stringify({ event: "invitee.created", payload: { marker: "x".repeat(120_000) } });
+  checks.push(
+    "calendly webhook rejects oversized payload before signature parsing (413 if configured / 503 unconfigured)",
+  );
+  const calendlyOversizedPayload = JSON.stringify({
+    event: "invitee.created",
+    payload: { marker: "x".repeat(120_000) },
+  });
   await expectStatus(
-    post(calendlyRoute, { body: calendlyOversizedPayload, headers: { "content-type": "application/json" } }),
+    post(calendlyRoute, {
+      body: calendlyOversizedPayload,
+      headers: { "content-type": "application/json" },
+    }),
     [413, 503],
     `${calendlyRoute} oversized payload`,
   );
@@ -218,7 +276,9 @@ async function expectStatus(responsePromise: Promise<Response>, expected: number
       `${resendRoute} missing signature`,
     );
     if (unsigned === 503) {
-      notes.push(`${BASE_URL} has no RESEND_WEBHOOK_SECRET configured: delivery, bounce, and complaint events are all rejected, so suppression never fires`);
+      notes.push(
+        `${BASE_URL} has no RESEND_WEBHOOK_SECRET configured: delivery, bounce, and complaint events are all rejected, so suppression never fires`,
+      );
     }
 
     checks.push("resend webhook refuses a forged signature (503 unconfigured / 401 configured)");
@@ -237,7 +297,10 @@ async function expectStatus(responsePromise: Promise<Response>, expected: number
     );
 
     checks.push("resend webhook rejects oversized payload (413 if configured)");
-    const oversizedPayload = JSON.stringify({ type: "email.delivered", payload: { marker: "x".repeat(120_000) } });
+    const oversizedPayload = JSON.stringify({
+      type: "email.delivered",
+      payload: { marker: "x".repeat(120_000) },
+    });
     const oversizedResult = await post(resendRoute, {
       body: oversizedPayload,
       headers: {
@@ -256,10 +319,12 @@ async function expectStatus(responsePromise: Promise<Response>, expected: number
     );
   }
 
-  console.log(JSON.stringify({
-    result: "webhook-cron-defense focused security checks covered",
-    checks,
-    notes,
-    baseUrl: BASE_URL,
-  }));
+  console.log(
+    JSON.stringify({
+      result: "webhook-cron-defense focused security checks covered",
+      checks,
+      notes,
+      baseUrl: BASE_URL,
+    }),
+  );
 })();

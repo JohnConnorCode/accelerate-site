@@ -26,7 +26,7 @@ export function useMagnetic(strength = 0.3) {
       el.style.setProperty("--mag-x", `${dx}px`);
       el.style.setProperty("--mag-y", `${dy}px`);
     },
-    [strength]
+    [strength],
   );
 
   const onMouseLeave = useCallback(() => {

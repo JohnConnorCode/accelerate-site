@@ -10,7 +10,7 @@ export function demoAppearanceKey(scenarioId: DemoScenarioId) {
 export function readDemoAppearance(scenarioId: DemoScenarioId): DemoAppearance {
   const saved = window.sessionStorage.getItem(demoAppearanceKey(scenarioId));
   return saved && appearances.has(saved as DemoAppearance)
-    ? saved as DemoAppearance
+    ? (saved as DemoAppearance)
     : DEMO_SCENARIOS[scenarioId].appearance;
 }
 

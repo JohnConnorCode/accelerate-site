@@ -98,31 +98,18 @@ export function InteractiveGridField({ className }: { className?: string }) {
 
           ctx.beginPath();
           ctx.arc(x, y, size, 0, Math.PI * 2);
-          ctx.fillStyle =
-            alpha > 0.35 ? `rgba(${accent},${alpha})` : `rgba(${dot},${alpha})`;
+          ctx.fillStyle = alpha > 0.35 ? `rgba(${accent},${alpha})` : `rgba(${dot},${alpha})`;
           ctx.fill();
         }
       }
 
       // soft glow around pointer
       if (pointer.active) {
-        const g = ctx.createRadialGradient(
-          pointer.x,
-          pointer.y,
-          0,
-          pointer.x,
-          pointer.y,
-          RADIUS
-        );
+        const g = ctx.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, RADIUS);
         g.addColorStop(0, `rgba(${accent},0.10)`);
         g.addColorStop(1, `rgba(${accent},0)`);
         ctx.fillStyle = g;
-        ctx.fillRect(
-          pointer.x - RADIUS,
-          pointer.y - RADIUS,
-          RADIUS * 2,
-          RADIUS * 2
-        );
+        ctx.fillRect(pointer.x - RADIUS, pointer.y - RADIUS, RADIUS * 2, RADIUS * 2);
       }
 
       raf = requestAnimationFrame(draw);

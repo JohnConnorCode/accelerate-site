@@ -51,7 +51,11 @@ const PROPOSAL_SCHEMA = {
         properties: {
           title: { type: "string", maxLength: 120 },
           content: { type: ["string", "null"], maxLength: 5000 },
-          items: { type: ["array", "null"], maxItems: 30, items: { type: "string", maxLength: 500 } },
+          items: {
+            type: ["array", "null"],
+            maxItems: 30,
+            items: { type: "string", maxLength: 500 },
+          },
           pricing: {
             type: ["array", "null"],
             maxItems: 20,
@@ -73,9 +77,22 @@ const PROPOSAL_SCHEMA = {
 } as const;
 
 function validateProposal(value: unknown) {
-  if (!value || typeof value !== "object" || !Array.isArray((value as { sections?: unknown }).sections)) throw new Error("OpenRouter returned an invalid proposal draft");
-  const proposal = value as { sections: Array<{ title: string; content?: string | null; items?: string[] | null; pricing?: Array<{ item: string; monthly: number; oneTime: number }> | null }> };
-  for (const section of proposal.sections) if (section.pricing) assertApprovedPricingRows(section.pricing);
+  if (
+    !value ||
+    typeof value !== "object" ||
+    !Array.isArray((value as { sections?: unknown }).sections)
+  )
+    throw new Error("OpenRouter returned an invalid proposal draft");
+  const proposal = value as {
+    sections: Array<{
+      title: string;
+      content?: string | null;
+      items?: string[] | null;
+      pricing?: Array<{ item: string; monthly: number; oneTime: number }> | null;
+    }>;
+  };
+  for (const section of proposal.sections)
+    if (section.pricing) assertApprovedPricingRows(section.pricing);
   return proposal;
 }
 
@@ -84,7 +101,11 @@ export async function POST(request: NextRequest) {
   if (auth instanceof NextResponse) return auth;
 
   const adminKey = auth.user.email ?? auth.user.id;
-  const { success } = rateLimit(`admin-proposal-gen:${adminKey}`, GENERATE_LIMIT, GENERATE_WINDOW_MS);
+  const { success } = rateLimit(
+    `admin-proposal-gen:${adminKey}`,
+    GENERATE_LIMIT,
+    GENERATE_WINDOW_MS,
+  );
   if (!success) {
     return NextResponse.json(
       { error: "Rate limit reached (30 proposals/hour). Wait a moment and try again." },
@@ -110,8 +131,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Lead not found" }, { status: 404 });
   }
 
-  if (!await isTenantOpenRouterConfigured(supabase)) {
-    return NextResponse.json({ error: "OpenRouter is not configured for this workspace. Add its API key in Integrations." }, { status: 503 });
+  if (!(await isTenantOpenRouterConfigured(supabase))) {
+    return NextResponse.json(
+      {
+        error: "OpenRouter is not configured for this workspace. Add its API key in Integrations.",
+      },
+      { status: 503 },
+    );
   }
 
   try {
@@ -156,8 +182,8 @@ Generate the proposal JSON for this client now. Make it specific to their indust
 
     let totalMonthly = 0;
     let totalOneTime = 0;
-    const investmentSection = proposalContent.sections?.find(
-      (s: { title: string }) => s.title.toLowerCase().includes("investment"),
+    const investmentSection = proposalContent.sections?.find((s: { title: string }) =>
+      s.title.toLowerCase().includes("investment"),
     );
     if (investmentSection?.pricing) {
       for (const item of investmentSection.pricing) {

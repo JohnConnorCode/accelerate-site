@@ -7,15 +7,25 @@ for (const invariant of [
   'requestHeaders.set("x-tenant-id", tenantId)',
   'requestHeaders.set("x-tenant-slug", tenantSlug)',
   'supabaseResponse.cookies.set("accelerate-tenant-slug"',
-  '/^(features|tenants|setup)',
-]) assert.ok(middleware.includes(invariant), `workspace middleware is missing ${invariant}`);
+  "/^(features|tenants|setup)",
+])
+  assert.ok(middleware.includes(invariant), `workspace middleware is missing ${invariant}`);
 
 const link = readFileSync("src/components/admin/AdminLink.tsx", "utf8");
-assert.ok(link.includes("`/t/${workspaceSlug}/admin/${suffix || \"today\"}`"), "admin links must retain canonical workspace URLs");
+assert.ok(
+  link.includes('`/t/${workspaceSlug}/admin/${suffix || "today"}`'),
+  "admin links must retain canonical workspace URLs",
+);
 
 const contract = readFileSync("docs/MULTI-TENANCY-CONTRACT.md", "utf8");
-assert.ok(contract.includes("`/t/{tenantSlug}/admin/{route}`"), "the tenancy contract must name the implemented canonical workspace URL");
-assert.ok(!contract.includes("/admin/workspaces/:tenantSlug"), "the retired workspace URL must not remain authoritative");
+assert.ok(
+  contract.includes("`/t/{tenantSlug}/admin/{route}`"),
+  "the tenancy contract must name the implemented canonical workspace URL",
+);
+assert.ok(
+  !contract.includes("/admin/workspaces/:tenantSlug"),
+  "the retired workspace URL must not remain authoritative",
+);
 
 const shell = readFileSync("src/components/admin/AdminShell.tsx", "utf8");
 for (const invariant of [
@@ -23,7 +33,8 @@ for (const invariant of [
   "window.location.assign(`/t/${slug}/admin/${suffix}`)",
   '["features", "tenants", "setup"]',
   '<MotionConfig reducedMotion="user">',
-]) assert.ok(shell.includes(invariant), `workspace shell is missing ${invariant}`);
+])
+  assert.ok(shell.includes(invariant), `workspace shell is missing ${invariant}`);
 
 const tenantApi = readFileSync("src/app/api/admin/tenants/route.ts", "utf8");
 for (const invariant of [
@@ -36,7 +47,8 @@ for (const invariant of [
   "inviteTenantAdmin",
   "revokeTenantAdmin",
   "setTenantLifecycleStatus",
-]) assert.ok(tenantApi.includes(invariant), `tenant lifecycle is missing ${invariant}`);
+])
+  assert.ok(tenantApi.includes(invariant), `tenant lifecycle is missing ${invariant}`);
 
 const callback = readFileSync("src/app/auth/callback/route.ts", "utf8");
 for (const invariant of [
@@ -44,8 +56,13 @@ for (const invariant of [
   "activateInvitedTenantMembership",
   "tenantSlug: workspace",
   "copyResponseCookies",
-]) assert.ok(callback.includes(invariant), `invitation callback is missing ${invariant}`);
-assert.doesNotMatch(callback, /from\("tenant_memberships"\)[\s\S]{0,200}\.update\(/, "invitation callback must not directly mutate memberships");
+])
+  assert.ok(callback.includes(invariant), `invitation callback is missing ${invariant}`);
+assert.doesNotMatch(
+  callback,
+  /from\("tenant_memberships"\)[\s\S]{0,200}\.update\(/,
+  "invitation callback must not directly mutate memberships",
+);
 
 const directory = readFileSync("src/app/admin/tenants/page.tsx", "utf8");
 for (const invariant of [
@@ -57,11 +74,35 @@ for (const invariant of [
   "Invitations are disabled while this workspace is",
   "Resend invitation to",
   "requestId: crypto.randomUUID()",
-]) assert.ok(directory.includes(invariant), `tenant directory is missing the robust lifecycle behavior ${invariant}`);
+])
+  assert.ok(
+    directory.includes(invariant),
+    `tenant directory is missing the robust lifecycle behavior ${invariant}`,
+  );
 const styles = readFileSync("src/app/globals.css", "utf8");
-const secondaryControl = styles.slice(styles.indexOf(".admin-secondary-control {"), styles.indexOf(".admin-action-mark"));
-assert.ok(secondaryControl.includes("min-height: 40px"), "secondary tenant controls must preserve a usable hit area");
-assert.ok(secondaryControl.includes("transition-property: background-color, color, box-shadow, transform, opacity"), "secondary tenant controls must animate only intentional properties");
-assert.ok(!secondaryControl.includes("transition: all"), "secondary tenant controls must never transition every property");
+const secondaryControl = styles.slice(
+  styles.indexOf(".admin-secondary-control {"),
+  styles.indexOf(".admin-action-mark"),
+);
+assert.ok(
+  secondaryControl.includes("min-height: 40px"),
+  "secondary tenant controls must preserve a usable hit area",
+);
+assert.ok(
+  secondaryControl.includes(
+    "transition-property: background-color, color, box-shadow, transform, opacity",
+  ),
+  "secondary tenant controls must animate only intentional properties",
+);
+assert.ok(
+  !secondaryControl.includes("transition: all"),
+  "secondary tenant controls must never transition every property",
+);
 
-console.log(JSON.stringify({ result: "passed", canonicalWorkspace: "/t/{slug}/admin/*", platformRoutesHidden: 3 }));
+console.log(
+  JSON.stringify({
+    result: "passed",
+    canonicalWorkspace: "/t/{slug}/admin/*",
+    platformRoutesHidden: 3,
+  }),
+);

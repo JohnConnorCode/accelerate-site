@@ -8,11 +8,7 @@ import {
   DragOverlay,
   DragStartEvent,
 } from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-  useSortable,
-} from "@dnd-kit/sortable";
+import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -40,8 +36,7 @@ function SortableCard({
   item: ContentCalendarItem;
   onEdit: (item: ContentCalendarItem) => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: item.id });
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: item.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -63,18 +58,12 @@ function SortableCard({
           <GripVertical className="h-3.5 w-3.5" />
         </button>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-white-primary truncate">
-            {item.title}
-          </p>
+          <p className="text-sm font-medium text-white-primary truncate">{item.title}</p>
           <div className="mt-1 flex items-center gap-2 text-xs text-white-muted">
             {item.category && (
-              <span className="capitalize">
-                {item.category.replace(/-/g, " ")}
-              </span>
+              <span className="capitalize">{item.category.replace(/-/g, " ")}</span>
             )}
-            {item.word_count_target && (
-              <span>{item.word_count_target} words</span>
-            )}
+            {item.word_count_target && <span>{item.word_count_target} words</span>}
           </div>
         </div>
         <button
@@ -91,18 +80,12 @@ function SortableCard({
 function ContentCard({ item }: { item: ContentCalendarItem }) {
   return (
     <div className="glass rounded-lg p-3 opacity-80">
-      <p className="text-sm font-medium text-white-primary truncate">
-        {item.title}
-      </p>
+      <p className="text-sm font-medium text-white-primary truncate">{item.title}</p>
     </div>
   );
 }
 
-export function ContentKanban({
-  items,
-  onStatusChange,
-  onEdit,
-}: ContentKanbanProps) {
+export function ContentKanban({ items, onStatusChange, onEdit }: ContentKanbanProps) {
   const [activeItem, setActiveItem] = useState<ContentCalendarItem | null>(null);
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -148,20 +131,13 @@ export function ContentKanban({
         {columns.map((col) => {
           const columnItems = items.filter((i) => i.status === col.status);
           return (
-            <div
-              key={col.status}
-              className="w-64 shrink-0"
-            >
+            <div key={col.status} className="w-64 shrink-0">
               <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-semibold text-white-primary">
-                    {col.label}
-                  </h3>
+                  <h3 className="text-sm font-semibold text-white-primary">{col.label}</h3>
                   <StatusBadge status={col.status} />
                 </div>
-                <span className="text-xs text-white-muted">
-                  {columnItems.length}
-                </span>
+                <span className="text-xs text-white-muted">{columnItems.length}</span>
               </div>
               <SortableContext
                 id={col.status}
@@ -171,15 +147,11 @@ export function ContentKanban({
                 <div
                   className={cn(
                     "min-h-[200px] space-y-2 rounded-lg border border-border-glass p-2",
-                    columnItems.length === 0 && "border-dashed"
+                    columnItems.length === 0 && "border-dashed",
                   )}
                 >
                   {columnItems.map((item) => (
-                    <SortableCard
-                      key={item.id}
-                      item={item}
-                      onEdit={onEdit}
-                    />
+                    <SortableCard key={item.id} item={item} onEdit={onEdit} />
                   ))}
                 </div>
               </SortableContext>
@@ -188,9 +160,7 @@ export function ContentKanban({
         })}
       </div>
 
-      <DragOverlay>
-        {activeItem ? <ContentCard item={activeItem} /> : null}
-      </DragOverlay>
+      <DragOverlay>{activeItem ? <ContentCard item={activeItem} /> : null}</DragOverlay>
     </DndContext>
   );
 }

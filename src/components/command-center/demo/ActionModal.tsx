@@ -64,7 +64,7 @@ export function ActionModal({
       if (e.key !== "Tab" || !panelRef.current) return;
       // Keep tabbing inside the dialog while it is open.
       const focusable = panelRef.current.querySelectorAll<HTMLElement>(
-        'button, textarea, [href], input, [tabindex]:not([tabindex="-1"])'
+        'button, textarea, [href], input, [tabindex]:not([tabindex="-1"])',
       );
       if (focusable.length === 0) return;
       const first = focusable[0]!;
@@ -119,7 +119,10 @@ export function ActionModal({
             transition={{ duration: 0.3, ease: EASE }}
             className="relative flex max-h-[calc(100dvh-12px)] w-full max-w-[620px] flex-col overflow-hidden rounded-t-[20px] border border-white/15 bg-[#0B0B0B] pb-[env(safe-area-inset-bottom)] shadow-[0_50px_120px_-40px_rgba(0,0,0,.8)] sm:max-h-[88vh] sm:rounded-[16px] sm:pb-0"
           >
-            <div className="mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-white/25 sm:hidden" aria-hidden="true" />
+            <div
+              className="mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-white/25 sm:hidden"
+              aria-hidden="true"
+            />
             <Header action={action} edited={edited} mode={mode} onClose={onClose} />
 
             {mode === "detail" ? (
@@ -144,14 +147,16 @@ export function ActionModal({
                   </Field>
                 ) : (
                   <Field label="What approving does">
-                    <p className="text-[0.86rem] leading-relaxed text-white/80">{whatItDoes(action)}</p>
+                    <p className="text-[0.86rem] leading-relaxed text-white/80">
+                      {whatItDoes(action)}
+                    </p>
                   </Field>
                 )}
 
                 <Field label="What it will not do">
                   <p className="text-[0.86rem] leading-relaxed text-white/55">
-                    Nothing else. It will not contact anyone not named here, and it will not
-                    touch another record to make this one work.
+                    Nothing else. It will not contact anyone not named here, and it will not touch
+                    another record to make this one work.
                   </p>
                 </Field>
               </div>
@@ -357,7 +362,9 @@ function FeedbackPanel({
         <button
           type="button"
           disabled={!picked}
-          onClick={() => picked && onSubmit(picked.label, picked.learned.replace("{who}", action.who))}
+          onClick={() =>
+            picked && onSubmit(picked.label, picked.learned.replace("{who}", action.who))
+          }
           className="flex min-h-11 items-center gap-2 border border-white/35 bg-white/10 px-3.5 py-2 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-white transition-[background-color,border-color,color,transform] hover:bg-white/25 active:scale-[0.96] disabled:opacity-35"
         >
           <Check className="h-3.5 w-3.5" strokeWidth={2} />

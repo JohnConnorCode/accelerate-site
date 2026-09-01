@@ -30,16 +30,17 @@ function walk(dir: string, exts: string[], out: string[] = []): string[] {
 
 /** Strip // line comments and block comments so we only check real copy. */
 function stripComments(src: string): string {
-  return src
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/(^|[^:])\/\/.*$/gm, "$1");
+  return src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
 }
 
 // ── 1. Banned copy ──────────────────────────────────────────────────────────
 // John's hard rules: Accelerate is channel-agnostic (never call-centric in
 // identity/product copy), and the CTA is "strategy call", never "discovery".
 const BANNED: { re: RegExp; why: string }[] = [
-  { re: /every call answered/i, why: 'call-centric ("every call answered") — use channel-agnostic' },
+  {
+    re: /every call answered/i,
+    why: 'call-centric ("every call answered") — use channel-agnostic',
+  },
   { re: /answer(?:ed|s)? every call/i, why: 'call-centric ("answer every call")' },
   { re: /missed[ -]calls?\b/i, why: 'call-centric ("missed call")' },
   { re: /incoming calls?\b/i, why: 'call-centric ("incoming call")' },
@@ -70,21 +71,31 @@ for (const file of walk(ARTICLES, [".mdx"])) {
   const slug = path.basename(file, ".mdx");
   const title: string = data.seoTitle || data.title || "";
   const desc: string = data.seoDescription || data.excerpt || "";
-  if (title.length > 60) failures.push(`SEO TITLE   ${slug}: ${title.length} chars > 60 (truncates in search)`);
-  if (desc.length > 160) failures.push(`SEO DESC    ${slug}: ${desc.length} chars > 160 (truncates in search)`);
-  if (desc.length > 0 && desc.length < 70) failures.push(`SEO DESC    ${slug}: ${desc.length} chars < 70 (thin snippet)`);
+  if (title.length > 60)
+    failures.push(`SEO TITLE   ${slug}: ${title.length} chars > 60 (truncates in search)`);
+  if (desc.length > 160)
+    failures.push(`SEO DESC    ${slug}: ${desc.length} chars > 160 (truncates in search)`);
+  if (desc.length > 0 && desc.length < 70)
+    failures.push(`SEO DESC    ${slug}: ${desc.length} chars < 70 (thin snippet)`);
 }
 
 // ── 3. API DB-write error handling ──────────────────────────────────────────
 // Every route that inserts/upserts must inspect the returned error, or a DB
 // failure silently returns success and the lead is lost (the June bug).
-const apiRoutes = walk(path.join(ROOT, "src/app/api"), [".ts"]).filter((f) => f.endsWith("route.ts"));
+const apiRoutes = walk(path.join(ROOT, "src/app/api"), [".ts"]).filter((f) =>
+  f.endsWith("route.ts"),
+);
 for (const file of apiRoutes) {
   const body = fs.readFileSync(file, "utf8");
   const writes = /\.(insert|upsert)\s*\(/.test(body);
   if (!writes) continue;
-  const checksError = /(?:error:\s*\w+|\bdbError\b|\binsertError\b|if\s*\(\s*\w*[Ee]rror)/.test(body);
-  if (!checksError) failures.push(`DB ERROR    ${path.relative(ROOT, file)}: writes to DB but never checks the returned error`);
+  const checksError = /(?:error:\s*\w+|\bdbError\b|\binsertError\b|if\s*\(\s*\w*[Ee]rror)/.test(
+    body,
+  );
+  if (!checksError)
+    failures.push(
+      `DB ERROR    ${path.relative(ROOT, file)}: writes to DB but never checks the returned error`,
+    );
 }
 
 // ── Report ──────────────────────────────────────────────────────────────────
@@ -94,4 +105,6 @@ if (failures.length) {
   console.error("");
   process.exit(1);
 }
-console.log("✅ Guardrails passed — no banned copy, SEO lengths in range, all DB routes error-checked.");
+console.log(
+  "✅ Guardrails passed — no banned copy, SEO lengths in range, all DB routes error-checked.",
+);

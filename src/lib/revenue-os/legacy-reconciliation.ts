@@ -3,7 +3,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { domainFromEmailOrWebsite, normalizeEmail } from "./db";
 
 export type LegacyReconciliationRecordType = "contact" | "company";
-export type LegacyReconciliationStatus = "matched" | "missing" | "ambiguous_identity" | "duplicate_canonical";
+export type LegacyReconciliationStatus =
+  "matched" | "missing" | "ambiguous_identity" | "duplicate_canonical";
 
 export type LegacyCaptureRow = {
   source_record_type: string;
@@ -77,7 +78,12 @@ export type LegacyReconciliationEnvelope = LegacyReconciliationReport & {
 };
 
 export const DEFAULT_LEGACY_CAPTURE_SOURCES: LegacyCaptureSourceConfig[] = [
-  { sourceRecordType: "solution_request", table: "solution_requests", emailField: "contact_email", companyDomainField: "contact_email" },
+  {
+    sourceRecordType: "solution_request",
+    table: "solution_requests",
+    emailField: "contact_email",
+    companyDomainField: "contact_email",
+  },
   { sourceRecordType: "contact_form", table: "contact_submissions", emailField: "email" },
   { sourceRecordType: "chat", table: "chat_leads", emailField: "email" },
   { sourceRecordType: "partner_application", table: "partner_applications", emailField: "email" },
@@ -93,10 +99,15 @@ function toText(value: unknown): string | null {
   return trimmed || null;
 }
 
-function extractLegacySourceRow(row: Record<string, unknown>, config: LegacyCaptureSourceConfig): LegacyCaptureRow {
+function extractLegacySourceRow(
+  row: Record<string, unknown>,
+  config: LegacyCaptureSourceConfig,
+): LegacyCaptureRow {
   const id = toText(row[config.idField ?? "id"]);
   const email = toText(row[config.emailField ?? "email"]) ?? "";
-  const companyDomainFromUrl = config.companyDomainField ? toText(row[config.companyDomainField]) : null;
+  const companyDomainFromUrl = config.companyDomainField
+    ? toText(row[config.companyDomainField])
+    : null;
   const companyDomainFromWebsite = config.websiteField ? toText(row[config.websiteField]) : null;
   const companyDomain = companyDomainFromUrl
     ? domainFromEmailOrWebsite(undefined, companyDomainFromUrl)
@@ -136,7 +147,7 @@ async function fetchLegacyRows(
     };
   }
   const mappedRows = (data ?? [])
-    .map((row) => extractLegacySourceRow((row as unknown) as Record<string, unknown>, config))
+    .map((row) => extractLegacySourceRow(row as unknown as Record<string, unknown>, config))
     .filter((row) => row.source_record_id);
   return {
     rows: mappedRows,
@@ -148,7 +159,9 @@ async function fetchLegacyRows(
   };
 }
 
-async function loadCanonicalContactRows(supabase: SupabaseClient): Promise<{ rows: CanonicalContact[]; error?: string }> {
+async function loadCanonicalContactRows(
+  supabase: SupabaseClient,
+): Promise<{ rows: CanonicalContact[]; error?: string }> {
   const { data, error } = await supabase
     .from("contacts")
     .select("id, full_name, primary_email, company_id, source_record_type, source_record_id");
@@ -156,7 +169,9 @@ async function loadCanonicalContactRows(supabase: SupabaseClient): Promise<{ row
   return { rows: (data ?? []) as CanonicalContact[] };
 }
 
-async function loadCanonicalCompanyRows(supabase: SupabaseClient): Promise<{ rows: CanonicalCompany[]; error?: string }> {
+async function loadCanonicalCompanyRows(
+  supabase: SupabaseClient,
+): Promise<{ rows: CanonicalCompany[]; error?: string }> {
   const { data, error } = await supabase
     .from("companies")
     .select("id, name, domain, source_record_type, source_record_id");
@@ -164,7 +179,14 @@ async function loadCanonicalCompanyRows(supabase: SupabaseClient): Promise<{ row
   return { rows: (data ?? []) as CanonicalCompany[] };
 }
 
-function classifyAndSummarize(summaryCandidates: Array<{ sourceRecordType: string; table: string; rowsRead: number; error?: string; }>) {
+function classifyAndSummarize(
+  summaryCandidates: Array<{
+    sourceRecordType: string;
+    table: string;
+    rowsRead: number;
+    error?: string;
+  }>,
+) {
   const errors = summaryCandidates
     .filter((candidate) => candidate.error)
     .map((candidate) => `[${candidate.table}] ${candidate.error}`);
@@ -192,10 +214,34 @@ export async function buildLegacyCanonicalReconciliationReport(
   const legacyRows = sourceReads.flatMap((read) => read.rows);
   const canonicalContacts = canonicalContactsResult.rows;
   const canonicalCompanies = canonicalCompaniesResult.rows;
-  const { errors } = classifyAndSummarize(sourceStats.concat([
-    canonicalContactsResult.error ? { sourceRecordType: "canonical-contacts", table: "contacts", rowsRead: canonicalContacts.length, error: canonicalContactsResult.error } : { sourceRecordType: "canonical-contacts", table: "contacts", rowsRead: canonicalContacts.length },
-    canonicalCompaniesResult.error ? { sourceRecordType: "canonical-companies", table: "companies", rowsRead: canonicalCompanies.length, error: canonicalCompaniesResult.error } : { sourceRecordType: "canonical-companies", table: "companies", rowsRead: canonicalCompanies.length },
-  ]));
+  const { errors } = classifyAndSummarize(
+    sourceStats.concat([
+      canonicalContactsResult.error
+        ? {
+            sourceRecordType: "canonical-contacts",
+            table: "contacts",
+            rowsRead: canonicalContacts.length,
+            error: canonicalContactsResult.error,
+          }
+        : {
+            sourceRecordType: "canonical-contacts",
+            table: "contacts",
+            rowsRead: canonicalContacts.length,
+          },
+      canonicalCompaniesResult.error
+        ? {
+            sourceRecordType: "canonical-companies",
+            table: "companies",
+            rowsRead: canonicalCompanies.length,
+            error: canonicalCompaniesResult.error,
+          }
+        : {
+            sourceRecordType: "canonical-companies",
+            table: "companies",
+            rowsRead: canonicalCompanies.length,
+          },
+    ]),
+  );
 
   const report = reconcileLegacyCanonicalRows(legacyRows, canonicalContacts, canonicalCompanies);
   return {
@@ -210,7 +256,9 @@ export async function buildLegacyCanonicalReconciliationReport(
   };
 }
 
-export function serializeLegacyReconciliationReport(report: LegacyReconciliationReport | LegacyReconciliationEnvelope) {
+export function serializeLegacyReconciliationReport(
+  report: LegacyReconciliationReport | LegacyReconciliationEnvelope,
+) {
   return JSON.stringify(report, null, 2);
 }
 
@@ -221,7 +269,10 @@ function normalizeText(value: string | null | undefined) {
 }
 
 function matchCandidateBySource(row: LegacyCaptureRow, candidate: CanonicalIdentitySource) {
-  return candidate.source_record_type === row.source_record_type && candidate.source_record_id === row.source_record_id;
+  return (
+    candidate.source_record_type === row.source_record_type &&
+    candidate.source_record_id === row.source_record_id
+  );
 }
 
 function matchCandidateByNormalizedEmail(row: LegacyCaptureRow, candidate: CanonicalContact) {
@@ -237,9 +288,11 @@ function matchCandidateByDomain(row: LegacyCaptureRow, candidate: CanonicalCompa
   const rowDomainFromLegacyField = normalizeText(row.company_domain);
 
   return (
-    matchCandidateBySource(row, candidate)
-    || (candidateDomain && rowDomainFromLegacyField && candidateDomain === rowDomainFromLegacyField)
-    || (candidateDomain && rowDomainFromEmailOrWebsite && normalizeText(rowDomainFromEmailOrWebsite) === candidateDomain)
+    matchCandidateBySource(row, candidate) ||
+    (candidateDomain && rowDomainFromLegacyField && candidateDomain === rowDomainFromLegacyField) ||
+    (candidateDomain &&
+      rowDomainFromEmailOrWebsite &&
+      normalizeText(rowDomainFromEmailOrWebsite) === candidateDomain)
   );
 }
 
@@ -270,11 +323,13 @@ function classify(candidates: CanonicalIdentitySource[]) {
 }
 
 function withCanonicalCandidates(rows: CanonicalIdentitySource[]) {
-  return deduplicateCanonicalIds(rows.map((candidate) => ({
-    id: candidate.id,
-    source_record_type: candidate.source_record_type,
-    source_record_id: candidate.source_record_id,
-  })));
+  return deduplicateCanonicalIds(
+    rows.map((candidate) => ({
+      id: candidate.id,
+      source_record_type: candidate.source_record_type,
+      source_record_id: candidate.source_record_id,
+    })),
+  );
 }
 
 export function reconcileLegacyCanonicalRows(
@@ -284,8 +339,9 @@ export function reconcileLegacyCanonicalRows(
 ): LegacyReconciliationReport {
   const rows: LegacyReconciliationRow[] = legacyRows.map((row) => {
     const contactCandidates = withCanonicalCandidates(
-      canonicalContacts.filter((candidate) =>
-        matchCandidateBySource(row, candidate) || matchCandidateByNormalizedEmail(row, candidate),
+      canonicalContacts.filter(
+        (candidate) =>
+          matchCandidateBySource(row, candidate) || matchCandidateByNormalizedEmail(row, candidate),
       ),
     );
     if (contactCandidates.length) {

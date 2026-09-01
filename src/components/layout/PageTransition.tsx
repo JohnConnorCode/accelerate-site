@@ -33,7 +33,9 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
         "route-entry",
         shouldAnimateRoute ? "is-entering" : "",
         isLeaving ? "is-leaving" : "",
-      ].filter(Boolean).join(" ")}
+      ]
+        .filter(Boolean)
+        .join(" ")}
       data-route-entry={pathname}
       data-navigation-pending={isLeaving ? "true" : "false"}
     >

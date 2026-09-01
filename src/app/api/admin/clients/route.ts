@@ -14,11 +14,7 @@ export async function GET(request: NextRequest) {
 
   // Single client fetch
   if (id) {
-    const { data, error } = await supabase
-      .from("clients")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const { data, error } = await supabase.from("clients").select("*").eq("id", id).single();
 
     if (error) {
       console.error("Database error:", error.message);
@@ -34,10 +30,7 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  let query = supabase
-    .from("clients")
-    .select("*")
-    .order("created_at", { ascending: false });
+  let query = supabase.from("clients").select("*").order("created_at", { ascending: false });
 
   if (status && status !== "all") {
     query = query.eq("status", status);
@@ -45,7 +38,7 @@ export async function GET(request: NextRequest) {
 
   if (search) {
     query = query.or(
-      `business_name.ilike.%${search}%,contact_name.ilike.%${search}%,contact_email.ilike.%${search}%`
+      `business_name.ilike.%${search}%,contact_name.ilike.%${search}%,contact_email.ilike.%${search}%`,
     );
   }
 
@@ -58,7 +51,10 @@ export async function GET(request: NextRequest) {
 
   // Calculate MRR total
   const activeClients = (data || []).filter((c: { status?: string }) => c.status === "active");
-  const totalMRR = activeClients.reduce((sum: number, c: { monthly_value?: number }) => sum + (c.monthly_value || 0), 0);
+  const totalMRR = activeClients.reduce(
+    (sum: number, c: { monthly_value?: number }) => sum + (c.monthly_value || 0),
+    0,
+  );
 
   const linked = await attachRevenueLinkage(supabase, data || [], {
     sourceRecordType: "client",
@@ -98,7 +94,7 @@ export async function POST(request: NextRequest) {
   if (!business_name || !contact_name || !contact_email) {
     return NextResponse.json(
       { error: "Business name, contact name, and email are required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -144,9 +140,19 @@ export async function PATCH(request: NextRequest) {
   const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
 
   const allowedFields = [
-    "status", "business_name", "contact_name", "contact_email", "contact_phone",
-    "industry", "monthly_value", "one_time_value", "contract_start", "contract_end",
-    "services", "onboarding_checklist", "notes",
+    "status",
+    "business_name",
+    "contact_name",
+    "contact_email",
+    "contact_phone",
+    "industry",
+    "monthly_value",
+    "one_time_value",
+    "contract_start",
+    "contract_end",
+    "services",
+    "onboarding_checklist",
+    "notes",
   ];
 
   for (const field of allowedFields) {

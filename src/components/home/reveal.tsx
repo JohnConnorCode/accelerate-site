@@ -11,7 +11,7 @@ import { useRevealLifecycle } from "@/components/motion/useReveal";
  */
 export function useRv<T extends HTMLElement = HTMLElement>(
   threshold = 0.02,
-  rootMargin = "0px 0px -22% 0px"
+  rootMargin = "0px 0px -22% 0px",
 ) {
   return useRevealLifecycle<T>({ threshold, rootMargin });
 }
@@ -53,7 +53,13 @@ export function Reveal({
   const cls = [rv ? "rv" : "", className].filter(Boolean).join(" ");
   const mergedStyle = { ...(delay != null ? delayStyle(delay) : null), ...style };
   return (
-    <Tag ref={ref} className={cls} style={mergedStyle} data-motion-role={rv ? "group" : undefined} {...rest}>
+    <Tag
+      ref={ref}
+      className={cls}
+      style={mergedStyle}
+      data-motion-role={rv ? "group" : undefined}
+      {...rest}
+    >
       {children}
     </Tag>
   );

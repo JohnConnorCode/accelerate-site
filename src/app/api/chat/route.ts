@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getOpenRouterModel, openRouterTextStream, type OpenRouterStreamMetadata } from "@/lib/ai/openrouter";
+import {
+  getOpenRouterModel,
+  openRouterTextStream,
+  type OpenRouterStreamMetadata,
+} from "@/lib/ai/openrouter";
 import { isTenantOpenRouterConfigured } from "@/lib/ai/openrouter-credentials";
-import { finishAgentRun, recordAgentRunEvent, startAgentRun, traceTextStream } from "@/lib/revenue-os/agent-trace";
+import {
+  finishAgentRun,
+  recordAgentRunEvent,
+  startAgentRun,
+  traceTextStream,
+} from "@/lib/revenue-os/agent-trace";
 import { rateLimit } from "@/lib/rate-limit";
 import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
 import { ingestInboundLead } from "@/lib/revenue-os/inbound";
@@ -13,7 +22,11 @@ import { DEMO_MODE_REPLY, ERROR_REPLY } from "@/lib/chat/fallbacks";
 import { handleChatLeadCapture } from "@/lib/chat/lead-capture";
 import { enforceHouseStyle } from "@/lib/chat/sanitize";
 import type { ChatMessage } from "@/lib/types";
-import { AI_CONTEXT_VERSION, boundFounderConversation, buildPublicChatGroundingContract } from "@/lib/revenue-os/ai-context";
+import {
+  AI_CONTEXT_VERSION,
+  boundFounderConversation,
+  buildPublicChatGroundingContract,
+} from "@/lib/revenue-os/ai-context";
 
 // Hobby functions default to a 10s ceiling, and a streamed reply routinely runs
 // longer than that. Without this the visitor's answer is cut off mid-sentence.
@@ -43,16 +56,17 @@ export async function POST(request: NextRequest) {
   const key = clientKey(request);
   const { success } = rateLimit(`chat-post:${key}`, 30, 60 * 60 * 1000);
   if (!success) {
-    return plainText(
-      "You're sending messages too fast. Give it a few seconds and try again.",
-      429,
-    );
+    return plainText("You're sending messages too fast. Give it a few seconds and try again.", 429);
   }
 
   try {
     const { messages } = await request.json();
 
-    if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_CONVERSATION_MESSAGES) {
+    if (
+      !Array.isArray(messages) ||
+      messages.length === 0 ||
+      messages.length > MAX_CONVERSATION_MESSAGES
+    ) {
       return plainText(
         `Invalid messages: must be an array of 1 to ${MAX_CONVERSATION_MESSAGES} items.`,
         400,
@@ -61,7 +75,8 @@ export async function POST(request: NextRequest) {
 
     for (const msg of messages) {
       if (
-        typeof msg !== "object" || msg === null ||
+        typeof msg !== "object" ||
+        msg === null ||
         (msg.role !== "user" && msg.role !== "assistant") ||
         typeof msg.content !== "string" ||
         msg.content.length === 0 ||
@@ -83,7 +98,7 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = createBootstrapServiceRoleClient("legacy-public-chat");
-    if (!await isTenantOpenRouterConfigured(supabase)) {
+    if (!(await isTenantOpenRouterConfigured(supabase))) {
       return plainText(DEMO_MODE_REPLY);
     }
     const boundedConversation = boundFounderConversation(messages);
@@ -102,28 +117,34 @@ export async function POST(request: NextRequest) {
     let readableStream: ReadableStream<Uint8Array>;
     let streamMetadata: OpenRouterStreamMetadata | null = null;
     try {
-      readableStream = await openRouterTextStream({
-        database: supabase,
-        model: process.env.OPENROUTER_CHAT_MODEL,
-        maxTokens: MAX_TOKENS,
-        temperature: TEMPERATURE,
-        messages: [
-          { role: "system", content: `${SYSTEM_PROMPT}\n\n${buildPublicChatGroundingContract()}` },
-          ...boundedConversation,
-        ],
-      }, (metadata) => {
-        streamMetadata = metadata;
-        void recordAgentRunEvent(supabase, run, {
-          eventType: "model_response",
-          output: {
-            provider: "openrouter",
-            request_id: metadata.requestId,
-            model: metadata.model,
-            usage: metadata.usage,
-            context_version: AI_CONTEXT_VERSION,
-          },
-        });
-      });
+      readableStream = await openRouterTextStream(
+        {
+          database: supabase,
+          model: process.env.OPENROUTER_CHAT_MODEL,
+          maxTokens: MAX_TOKENS,
+          temperature: TEMPERATURE,
+          messages: [
+            {
+              role: "system",
+              content: `${SYSTEM_PROMPT}\n\n${buildPublicChatGroundingContract()}`,
+            },
+            ...boundedConversation,
+          ],
+        },
+        (metadata) => {
+          streamMetadata = metadata;
+          void recordAgentRunEvent(supabase, run, {
+            eventType: "model_response",
+            output: {
+              provider: "openrouter",
+              request_id: metadata.requestId,
+              model: metadata.model,
+              usage: metadata.usage,
+              context_version: AI_CONTEXT_VERSION,
+            },
+          });
+        },
+      );
     } catch (error) {
       // The outer catch would return ERROR_REPLY but leave this run `running`
       // forever, which is exactly the stuck-row problem the ledger is meant to
@@ -138,15 +159,18 @@ export async function POST(request: NextRequest) {
     // guarantee and an em dash reaching a prospect is the clearest possible tell
     // that nobody wrote this. Tracing wraps the sanitised stream so the ledger
     // records what was actually sent, not what the model first produced.
-    return new Response(traceTextStream(enforceHouseStyle(readableStream), supabase, run, () => ({
-      inputTokens: streamMetadata?.usage.prompt_tokens,
-      outputTokens: streamMetadata?.usage.completion_tokens,
-    })), {
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-        "Transfer-Encoding": "chunked",
+    return new Response(
+      traceTextStream(enforceHouseStyle(readableStream), supabase, run, () => ({
+        inputTokens: streamMetadata?.usage.prompt_tokens,
+        outputTokens: streamMetadata?.usage.completion_tokens,
+      })),
+      {
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Transfer-Encoding": "chunked",
+        },
       },
-    });
+    );
   } catch (error) {
     console.error("[chat] POST error:", error);
     return plainText(ERROR_REPLY, 500);
@@ -176,10 +200,7 @@ export async function PUT(request: NextRequest) {
     }
 
     if (!isValidEmail(email)) {
-      return NextResponse.json(
-        { error: "Invalid email address." },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Invalid email address." }, { status: 400 });
     }
 
     if (!Array.isArray(conversation) || conversation.length === 0 || conversation.length > 50) {
@@ -213,14 +234,26 @@ export async function PUT(request: NextRequest) {
     // the side effects below, which are how anyone finds out the inquiry exists.
     let canonicalOpportunityId: string | undefined;
     try {
-      const canonical = await ingestInboundLead(supabase, { name: name.trim(), email: email.trim(), source: "chat", sourceRecordId: inserted.id, summary: (conversation as ChatMessage[]).find((message) => message.role === "user")?.content || "Website chat inquiry", utm });
+      const canonical = await ingestInboundLead(supabase, {
+        name: name.trim(),
+        email: email.trim(),
+        source: "chat",
+        sourceRecordId: inserted.id,
+        summary:
+          (conversation as ChatMessage[]).find((message) => message.role === "user")?.content ||
+          "Website chat inquiry",
+        utm,
+      });
       canonicalOpportunityId = canonical.opportunity.id;
     } catch (ingestError) {
       const detail = ingestError instanceof Error ? ingestError.message : String(ingestError);
       console.error("[chat] canonical inbound ingestion FAILED (lead preserved):", detail);
       await recordAudit(supabase, {
-        actorEmail: "system", action: "inbound.canonical_failed", entityType: "chat_lead",
-        entityId: inserted.id, source: "webhook",
+        actorEmail: "system",
+        action: "inbound.canonical_failed",
+        entityType: "chat_lead",
+        entityId: inserted.id,
+        source: "webhook",
         metadata: { inbound_source: "chat", error: detail },
       });
     }
@@ -239,10 +272,7 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ success: true, id: inserted.id, sideEffects });
   } catch (error) {
     console.error("[chat] PUT error:", error);
-    return NextResponse.json(
-      { error: "Failed to save lead" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to save lead" }, { status: 500 });
   }
 }
 

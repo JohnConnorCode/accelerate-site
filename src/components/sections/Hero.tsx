@@ -9,50 +9,48 @@ import { gsap } from "@/lib/gsap-init";
 import { prefersReducedMotion } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { InteractiveGridField } from "@/components/v2/InteractiveGridField";
-import {
-  heroReveal,
-  heroTagline,
-  heroHeadline,
-  heroStaggerDramatic,
-} from "@/lib/animations";
+import { heroReveal, heroTagline, heroHeadline, heroStaggerDramatic } from "@/lib/animations";
 import { trackConversion } from "@/lib/analytics";
 
 export function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  useGSAP(() => {
-    if (!sectionRef.current || !contentRef.current) return;
-    if (prefersReducedMotion()) return;
+  useGSAP(
+    () => {
+      if (!sectionRef.current || !contentRef.current) return;
+      if (prefersReducedMotion()) return;
 
-    gsap.to(contentRef.current, {
-      opacity: 0,
-      y: -80,
-      scale: 0.97,
-      ease: "none",
-      scrollTrigger: {
-        trigger: sectionRef.current,
-        start: "top top",
-        end: "50% top",
-        scrub: 0.5,
-      },
-    });
-
-    const bgEl = sectionRef.current.querySelector("[data-hero-bg]");
-    if (bgEl) {
-      gsap.to(bgEl, {
+      gsap.to(contentRef.current, {
         opacity: 0,
-        y: 80,
+        y: -80,
+        scale: 0.97,
         ease: "none",
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top top",
-          end: "bottom top",
+          end: "50% top",
           scrub: 0.5,
         },
       });
-    }
-  }, { scope: sectionRef });
+
+      const bgEl = sectionRef.current.querySelector("[data-hero-bg]");
+      if (bgEl) {
+        gsap.to(bgEl, {
+          opacity: 0,
+          y: 80,
+          ease: "none",
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top top",
+            end: "bottom top",
+            scrub: 0.5,
+          },
+        });
+      }
+    },
+    { scope: sectionRef },
+  );
 
   return (
     <section
@@ -70,8 +68,7 @@ export function Hero() {
         <div
           className="hero-glow absolute left-1/2 top-[42%] h-[520px] w-[min(820px,100vw)]"
           style={{
-            background:
-              "radial-gradient(circle, rgba(var(--accent-rgb),0.18) 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(var(--accent-rgb),0.18) 0%, transparent 70%)",
           }}
         />
         <InteractiveGridField className="absolute inset-0 h-full w-full" />
@@ -79,8 +76,7 @@ export function Hero() {
         <div
           className="pointer-events-none absolute inset-0"
           style={{
-            background:
-              "radial-gradient(circle at 50% 42%, transparent 52%, var(--bg-base) 92%)",
+            background: "radial-gradient(circle at 50% 42%, transparent 52%, var(--bg-base) 92%)",
           }}
         />
       </div>
@@ -89,11 +85,7 @@ export function Hero() {
         ref={contentRef}
         className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center pointer-events-none"
       >
-        <motion.div
-          variants={heroStaggerDramatic}
-          initial="hidden"
-          animate="visible"
-        >
+        <motion.div variants={heroStaggerDramatic} initial="hidden" animate="visible">
           <motion.p
             variants={heroTagline}
             className="font-mono text-xs sm:text-sm font-medium text-gold tracking-wide mb-5"
@@ -115,10 +107,10 @@ export function Hero() {
             variants={heroReveal}
             className="text-lg sm:text-xl text-white-secondary max-w-2xl mx-auto leading-relaxed mb-10"
           >
-            We solve your technology problems, automate the busywork, and turn
-            more of your inquiries into booked revenue. The AI systems that{" "}
-            <span className="text-heading font-semibold">drive your business</span>{" "}
-            and make you money.
+            We solve your technology problems, automate the busywork, and turn more of your
+            inquiries into booked revenue. The AI systems that{" "}
+            <span className="text-heading font-semibold">drive your business</span> and make you
+            money.
           </motion.p>
 
           <motion.div
@@ -128,7 +120,13 @@ export function Hero() {
             <Link
               href="/contact"
               className="pointer-events-auto"
-              onClick={() => trackConversion("CTA Click", { section: "Hero", cta_text: "Book a Free Strategy Call", href: "/contact" })}
+              onClick={() =>
+                trackConversion("CTA Click", {
+                  section: "Hero",
+                  cta_text: "Book a Free Strategy Call",
+                  href: "/contact",
+                })
+              }
             >
               <Button variant="primary" size="lg" className="w-full sm:w-auto">
                 Book a Free Strategy Call
@@ -138,7 +136,13 @@ export function Hero() {
             <Link
               href="/industries"
               className="pointer-events-auto"
-              onClick={() => trackConversion("CTA Click", { section: "Hero", cta_text: "See what we build", href: "/industries" })}
+              onClick={() =>
+                trackConversion("CTA Click", {
+                  section: "Hero",
+                  cta_text: "See what we build",
+                  href: "/industries",
+                })
+              }
             >
               <Button
                 variant="secondary"
@@ -156,11 +160,17 @@ export function Hero() {
             className="flex flex-wrap items-center justify-center gap-x-3 sm:gap-x-6 gap-y-2 text-xs uppercase tracking-[0.15em] sm:tracking-[0.2em] text-white-muted pointer-events-auto"
           >
             <span className="hidden sm:inline">AI strategy &amp; delivery</span>
-            <span className="hidden sm:inline text-white-muted" aria-hidden="true">|</span>
+            <span className="hidden sm:inline text-white-muted" aria-hidden="true">
+              |
+            </span>
             <span className="hidden sm:inline">Working from day one</span>
-            <span className="hidden sm:inline text-white-muted" aria-hidden="true">|</span>
+            <span className="hidden sm:inline text-white-muted" aria-hidden="true">
+              |
+            </span>
             <span className="hidden sm:inline">Transparent pricing</span>
-            <span className="hidden sm:inline text-white-muted" aria-hidden="true">|</span>
+            <span className="hidden sm:inline text-white-muted" aria-hidden="true">
+              |
+            </span>
             <span className="hidden sm:inline">Free strategy call</span>
           </motion.div>
         </motion.div>

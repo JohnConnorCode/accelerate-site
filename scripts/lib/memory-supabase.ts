@@ -22,11 +22,16 @@ function orPredicate(expression: string): (row: Row) => boolean {
     return (row: Row) => {
       const actual = row[column ?? ""];
       switch (op) {
-        case "is": return value === "null" ? actual === null || actual === undefined : actual === value;
-        case "eq": return String(actual) === value;
-        case "gt": return actual !== null && actual !== undefined && String(actual) > value;
-        case "lt": return actual !== null && actual !== undefined && String(actual) < value;
-        default: throw new Error(`memory-supabase: unsupported or() operator "${op}" in "${clause}"`);
+        case "is":
+          return value === "null" ? actual === null || actual === undefined : actual === value;
+        case "eq":
+          return String(actual) === value;
+        case "gt":
+          return actual !== null && actual !== undefined && String(actual) > value;
+        case "lt":
+          return actual !== null && actual !== undefined && String(actual) < value;
+        default:
+          throw new Error(`memory-supabase: unsupported or() operator "${op}" in "${clause}"`);
       }
     };
   });
@@ -43,9 +48,15 @@ export class MemorySupabase {
   }
 
   /** Make every query against `table` return this error, as supabase-js would. */
-  fail(table: string, error: QueryFailure) { this.failures[table] = error; }
-  recover(table: string) { delete this.failures[table]; }
-  rows(table: string): Row[] { return this.tables[table] ?? []; }
+  fail(table: string, error: QueryFailure) {
+    this.failures[table] = error;
+  }
+  recover(table: string) {
+    delete this.failures[table];
+  }
+  rows(table: string): Row[] {
+    return this.tables[table] ?? [];
+  }
 
   /**
    * Stub a Postgres function. The atomic claims live in RPCs, so anything
@@ -67,14 +78,22 @@ export class MemorySupabase {
         this.rpcCalls.push({ name, args });
         const handler = this.procedures[name];
         const settle = (resolve: (result: { data: unknown; error: unknown }) => unknown) => {
-          if (!handler) return resolve({ data: null, error: { message: `memory-supabase: no stub registered for rpc "${name}"` } });
+          if (!handler)
+            return resolve({
+              data: null,
+              error: { message: `memory-supabase: no stub registered for rpc "${name}"` },
+            });
           try {
             const value = handler(args);
             // A handler may return `{ error }` to simulate a failing function.
-            if (value && typeof value === "object" && "error" in (value as Row)) return resolve(value as { data: unknown; error: unknown });
+            if (value && typeof value === "object" && "error" in (value as Row))
+              return resolve(value as { data: unknown; error: unknown });
             return resolve({ data: value, error: null });
           } catch (error) {
-            return resolve({ data: null, error: { message: error instanceof Error ? error.message : String(error) } });
+            return resolve({
+              data: null,
+              error: { message: error instanceof Error ? error.message : String(error) },
+            });
           }
         };
         const self: Record<string, unknown> = {};
@@ -100,26 +119,59 @@ export class MemorySupabase {
     const chain = () => self;
     for (const method of ["select", "range", "filter"]) self[method] = chain;
 
-    self.single = self.maybeSingle = () => { one = true; return self; };
-    self.limit = (count: number) => { cap = count; return self; };
+    self.single = self.maybeSingle = () => {
+      one = true;
+      return self;
+    };
+    self.limit = (count: number) => {
+      cap = count;
+      return self;
+    };
     self.order = (column: string, options?: { ascending?: boolean }) => {
       sort = { column, ascending: options?.ascending !== false };
       return self;
     };
 
-    self.eq = (column: string, value: unknown) => { filters.push((row) => row[column] === value); return self; };
-    self.neq = (column: string, value: unknown) => { filters.push((row) => row[column] !== value); return self; };
-    self.gt = (column: string, value: string) => { filters.push((row) => row[column] != null && String(row[column]) > value); return self; };
-    self.gte = (column: string, value: string) => { filters.push((row) => row[column] != null && String(row[column]) >= value); return self; };
-    self.lt = (column: string, value: string) => { filters.push((row) => row[column] != null && String(row[column]) < value); return self; };
-    self.lte = (column: string, value: string) => { filters.push((row) => row[column] != null && String(row[column]) <= value); return self; };
-    self.in = (column: string, values: unknown[]) => { filters.push((row) => values.includes(row[column])); return self; };
-    self.is = (column: string, value: unknown) => { filters.push((row) => (value === null ? row[column] == null : row[column] === value)); return self; };
+    self.eq = (column: string, value: unknown) => {
+      filters.push((row) => row[column] === value);
+      return self;
+    };
+    self.neq = (column: string, value: unknown) => {
+      filters.push((row) => row[column] !== value);
+      return self;
+    };
+    self.gt = (column: string, value: string) => {
+      filters.push((row) => row[column] != null && String(row[column]) > value);
+      return self;
+    };
+    self.gte = (column: string, value: string) => {
+      filters.push((row) => row[column] != null && String(row[column]) >= value);
+      return self;
+    };
+    self.lt = (column: string, value: string) => {
+      filters.push((row) => row[column] != null && String(row[column]) < value);
+      return self;
+    };
+    self.lte = (column: string, value: string) => {
+      filters.push((row) => row[column] != null && String(row[column]) <= value);
+      return self;
+    };
+    self.in = (column: string, values: unknown[]) => {
+      filters.push((row) => values.includes(row[column]));
+      return self;
+    };
+    self.is = (column: string, value: unknown) => {
+      filters.push((row) => (value === null ? row[column] == null : row[column] === value));
+      return self;
+    };
     self.not = (column: string, _operator: string, value: unknown) => {
       filters.push((row) => (value === null ? row[column] != null : row[column] !== value));
       return self;
     };
-    self.or = (expression: string) => { filters.push(orPredicate(expression)); return self; };
+    self.or = (expression: string) => {
+      filters.push(orPredicate(expression));
+      return self;
+    };
     // Array containment, as used for `recipient_emails`.
     self.contains = (column: string, values: unknown[]) => {
       filters.push((row) => {
@@ -129,9 +181,20 @@ export class MemorySupabase {
       return self;
     };
 
-    self.insert = (next: Row) => { op = "insert"; payload = next; return self; };
-    self.update = (next: Row) => { op = "update"; payload = next; return self; };
-    self.delete = () => { op = "delete"; return self; };
+    self.insert = (next: Row) => {
+      op = "insert";
+      payload = next;
+      return self;
+    };
+    self.update = (next: Row) => {
+      op = "update";
+      payload = next;
+      return self;
+    };
+    self.delete = () => {
+      op = "delete";
+      return self;
+    };
     /**
      * Upsert on a composite conflict target, as the communication sender uses
      * to make an idempotent retry reuse its conversation. `ignoreDuplicates`
@@ -141,7 +204,10 @@ export class MemorySupabase {
     self.upsert = (next: Row, options?: { onConflict?: string; ignoreDuplicates?: boolean }) => {
       op = "upsert";
       payload = next;
-      conflictColumns = (options?.onConflict ?? "").split(",").map((column) => column.trim()).filter(Boolean);
+      conflictColumns = (options?.onConflict ?? "")
+        .split(",")
+        .map((column) => column.trim())
+        .filter(Boolean);
       ignoreDuplicates = Boolean(options?.ignoreDuplicates);
       return self;
     };
@@ -152,7 +218,9 @@ export class MemorySupabase {
 
       if (op === "upsert") {
         const existing = conflictColumns.length
-          ? this.tables[table]!.find((row) => conflictColumns.every((column) => row[column] === payload[column]))
+          ? this.tables[table]!.find((row) =>
+              conflictColumns.every((column) => row[column] === payload[column]),
+            )
           : undefined;
         if (existing) {
           // Postgres returns nothing for an ignored duplicate, and the caller
@@ -167,14 +235,31 @@ export class MemorySupabase {
       }
 
       if (op === "insert") {
-        if (table === "ai_messages" && payload.client_message_id && this.tables[table]!.some((row) => row.conversation_id === payload.conversation_id && row.client_message_id === payload.client_message_id)) {
-          return resolve({ data: null, error: { code: "23505", message: "duplicate AI client message" } });
+        if (
+          table === "ai_messages" &&
+          payload.client_message_id &&
+          this.tables[table]!.some(
+            (row) =>
+              row.conversation_id === payload.conversation_id &&
+              row.client_message_id === payload.client_message_id,
+          )
+        ) {
+          return resolve({
+            data: null,
+            error: { code: "23505", message: "duplicate AI client message" },
+          });
         }
         // Honour the partial unique index the real action_queue carries: one
         // pending row per dedupe key. Several tests hinge on that constraint.
         const key = payload.dedupe_key;
-        if (key && this.tables[table]!.some((row) => row.dedupe_key === key && row.status === "pending")) {
-          return resolve({ data: null, error: { code: "23505", message: "duplicate key value violates unique constraint" } });
+        if (
+          key &&
+          this.tables[table]!.some((row) => row.dedupe_key === key && row.status === "pending")
+        ) {
+          return resolve({
+            data: null,
+            error: { code: "23505", message: "duplicate key value violates unique constraint" },
+          });
         }
         const row: Row = { id: `row-${++this.sequence}`, status: "pending", ...payload };
         this.tables[table]!.push(row);
@@ -189,7 +274,9 @@ export class MemorySupabase {
       }
       if (sort) {
         const { column, ascending } = sort;
-        matched = [...matched].sort((a, b) => (String(a[column]) < String(b[column]) ? -1 : 1) * (ascending ? 1 : -1));
+        matched = [...matched].sort(
+          (a, b) => (String(a[column]) < String(b[column]) ? -1 : 1) * (ascending ? 1 : -1),
+        );
       }
       if (cap !== null) matched = matched.slice(0, cap);
       return resolve({ data: one ? (matched[0] ?? null) : matched, error: null });

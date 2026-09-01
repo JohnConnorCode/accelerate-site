@@ -1,7 +1,16 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { AlertTriangle, Flame, Clock, Inbox, Handshake, ArrowRight, CheckSquare, FileCheck } from "lucide-react";
+import {
+  AlertTriangle,
+  Flame,
+  Clock,
+  Inbox,
+  Handshake,
+  ArrowRight,
+  CheckSquare,
+  FileCheck,
+} from "lucide-react";
 import Link from "@/components/admin/AdminLink";
 import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -26,8 +35,19 @@ interface TodaysPrioritiesProps {
   stalledProposals?: number;
 }
 
-export function TodaysPriorities({ priorities, unreadContacts, pendingPartners, overdueTasks = 0, stalledProposals = 0 }: TodaysPrioritiesProps) {
-  const hasItems = priorities.length > 0 || unreadContacts > 0 || pendingPartners > 0 || overdueTasks > 0 || stalledProposals > 0;
+export function TodaysPriorities({
+  priorities,
+  unreadContacts,
+  pendingPartners,
+  overdueTasks = 0,
+  stalledProposals = 0,
+}: TodaysPrioritiesProps) {
+  const hasItems =
+    priorities.length > 0 ||
+    unreadContacts > 0 ||
+    pendingPartners > 0 ||
+    overdueTasks > 0 ||
+    stalledProposals > 0;
 
   if (!hasItems) return null;
 
@@ -92,17 +112,16 @@ export function TodaysPriorities({ priorities, unreadContacts, pendingPartners, 
                     <Clock className="h-4 w-4 text-yellow-400 shrink-0" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white-primary font-medium truncate">
-                      {item.name}
-                    </p>
+                    <p className="text-sm text-white-primary font-medium truncate">{item.name}</p>
                     <p className="text-xs text-white-muted">
-                      {item.type === "hot_lead" ? "Hot lead, needs contact" : "Stuck in new, 48h+"} · {item.timeAgo}
+                      {item.type === "hot_lead" ? "Hot lead, needs contact" : "Stuck in new, 48h+"}{" "}
+                      · {item.timeAgo}
                     </p>
                   </div>
                   <span
                     className={cn(
                       "text-xs font-semibold rounded-full px-2 py-0.5 shrink-0",
-                      getScoreColor(item.score)
+                      getScoreColor(item.score),
                     )}
                   >
                     {item.scoreLabel} {item.score}

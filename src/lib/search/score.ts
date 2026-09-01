@@ -35,16 +35,18 @@ const GROUP_PRIORITY: Record<SearchGroup, number> = {
 };
 
 export function normalize(value: string): string {
-  return value
-    .toLowerCase()
-    .normalize("NFKD")
-    // Strip accents so "cafe" finds "café".
-    .replace(/[̀-ͯ]/g, "")
-    // Hyphens and slashes become spaces so "follow-up" and "follow up" agree.
-    .replace(/[-/_]+/g, " ")
-    .replace(/[^a-z0-9\s]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+  return (
+    value
+      .toLowerCase()
+      .normalize("NFKD")
+      // Strip accents so "cafe" finds "café".
+      .replace(/[̀-ͯ]/g, "")
+      // Hyphens and slashes become spaces so "follow-up" and "follow up" agree.
+      .replace(/[-/_]+/g, " ")
+      .replace(/[^a-z0-9\s]/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+  );
 }
 
 /**
@@ -55,7 +57,24 @@ export function normalize(value: string): string {
  * Dropped only when something is left over: a search for "the" should still
  * search for "the" rather than silently returning everything.
  */
-const STOPWORDS = new Set(["a", "an", "the", "of", "for", "and", "to", "in", "on", "at", "is", "it", "my", "our", "your", "with"]);
+const STOPWORDS = new Set([
+  "a",
+  "an",
+  "the",
+  "of",
+  "for",
+  "and",
+  "to",
+  "in",
+  "on",
+  "at",
+  "is",
+  "it",
+  "my",
+  "our",
+  "your",
+  "with",
+]);
 
 export function queryTerms(query: string): string[] {
   const all = normalize(query).split(" ").filter(Boolean);
@@ -63,11 +82,19 @@ export function queryTerms(query: string): string[] {
   return meaningful.length ? meaningful : all;
 }
 
-function scoreField(haystack: string, term: string, weights: { exact: number; prefix?: number; word?: number; contains: number }): number {
+function scoreField(
+  haystack: string,
+  term: string,
+  weights: { exact: number; prefix?: number; word?: number; contains: number },
+): number {
   if (!haystack) return 0;
   if (haystack === term) return weights.exact;
   if (weights.prefix && haystack.startsWith(term)) return weights.prefix;
-  if (weights.word && new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`).test(haystack)) return weights.word;
+  if (
+    weights.word &&
+    new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`).test(haystack)
+  )
+    return weights.word;
   if (haystack.includes(term)) return weights.contains;
   return 0;
 }
@@ -99,7 +126,13 @@ export function scoreEntry(entry: SearchEntry, terms: string[]): number {
     });
 
     for (const keyword of keywords) {
-      best = Math.max(best, scoreField(keyword, term, { exact: WEIGHTS.keywordExact, contains: WEIGHTS.keywordContains }));
+      best = Math.max(
+        best,
+        scoreField(keyword, term, {
+          exact: WEIGHTS.keywordExact,
+          contains: WEIGHTS.keywordContains,
+        }),
+      );
     }
 
     if (!best && description.includes(term)) best = WEIGHTS.descriptionContains;
@@ -129,7 +162,8 @@ export function searchEntries(entries: SearchEntry[], query: string, limit = 24)
   scored.sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
     // Deterministic beyond score, so results do not shuffle on rerender.
-    if (a.entry.date && b.entry.date && a.entry.date !== b.entry.date) return b.entry.date.localeCompare(a.entry.date);
+    if (a.entry.date && b.entry.date && a.entry.date !== b.entry.date)
+      return b.entry.date.localeCompare(a.entry.date);
     return a.entry.title.localeCompare(b.entry.title);
   });
 
@@ -141,7 +175,16 @@ export function highlight(text: string, query: string): Array<{ text: string; ma
   const terms = queryTerms(query);
   if (!terms.length) return [{ text, match: false }];
 
-  const pattern = new RegExp(`(${terms.map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`, "gi");
+  const pattern = new RegExp(
+    `(${terms.map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`,
+    "gi",
+  );
   const parts = text.split(pattern);
-  return parts.filter(Boolean).map((part) => ({ text: part, match: pattern.test(part) && normalize(part).length > 0 && terms.some((term) => normalize(part) === term) }));
+  return parts.filter(Boolean).map((part) => ({
+    text: part,
+    match:
+      pattern.test(part) &&
+      normalize(part).length > 0 &&
+      terms.some((term) => normalize(part) === term),
+  }));
 }

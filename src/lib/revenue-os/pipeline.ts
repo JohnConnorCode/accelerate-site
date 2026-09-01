@@ -26,7 +26,9 @@ export function canonicalStage(stage: string): RevenueStage | null {
 export function canTransition(from: string, to: string): boolean {
   const canonicalFrom = canonicalStage(from);
   const canonicalTo = canonicalStage(to);
-  return canonicalFrom && canonicalTo ? canonicalFrom === canonicalTo || TRANSITIONS[canonicalFrom].includes(canonicalTo) : false;
+  return canonicalFrom && canonicalTo
+    ? canonicalFrom === canonicalTo || TRANSITIONS[canonicalFrom].includes(canonicalTo)
+    : false;
 }
 
 const TERMINAL_REOPEN_POLICY: Record<"won" | "lost", readonly RevenueStage[]> = {
@@ -38,9 +40,17 @@ function isTerminalStage(stage: RevenueStage) {
   return stage === "won" || stage === "lost";
 }
 
-function requireReopenEligibility(from: RevenueStage, to: RevenueStage, reason: string | undefined, allowReopen: boolean) {
+function requireReopenEligibility(
+  from: RevenueStage,
+  to: RevenueStage,
+  reason: string | undefined,
+  allowReopen: boolean,
+) {
   if (!isTerminalStage(from) || from === to) return;
-  if (!allowReopen) throw new Error(`Reopen policy for terminal-stage opportunities is disabled for ${from}->${to}.`);
+  if (!allowReopen)
+    throw new Error(
+      `Reopen policy for terminal-stage opportunities is disabled for ${from}->${to}.`,
+    );
   if (!reason?.trim()) throw new Error(`A reason is required to reopen ${from} opportunities.`);
   if (!TERMINAL_REOPEN_POLICY[from].includes(to)) {
     throw new Error(`Reopening ${from} opportunities to ${to} is not allowed by policy.`);
@@ -77,31 +87,65 @@ export async function createOpportunity(
     industry: input.industry ?? null,
     source,
   });
-  const { data, error } = await supabase.from("opportunities").insert({
-    name: input.opportunityName?.trim() || identity.company.name,
-    contact_id: identity.contact.id,
-    company_id: identity.company.id,
-    email,
-    stage: "new",
-    source,
-    estimated_value: Math.max(0, Number(input.estimatedValue) || 0),
-    next_action: input.nextAction ?? null,
-    next_action_at: input.nextActionAt ?? null,
-    owner_email: input.actorEmail,
-  }).select("*").single();
+  const { data, error } = await supabase
+    .from("opportunities")
+    .insert({
+      name: input.opportunityName?.trim() || identity.company.name,
+      contact_id: identity.contact.id,
+      company_id: identity.company.id,
+      email,
+      stage: "new",
+      source,
+      estimated_value: Math.max(0, Number(input.estimatedValue) || 0),
+      next_action: input.nextAction ?? null,
+      next_action_at: input.nextActionAt ?? null,
+      owner_email: input.actorEmail,
+    })
+    .select("*")
+    .single();
   if (error) throw new Error(error.message);
 
   await Promise.all([
-    recordAudit(supabase, { actorEmail: input.actorEmail, action: "opportunity.created", entityType: "opportunity", entityId: data.id, after: data }),
-    supabase.from("stage_events").insert({ opportunity_id: data.id, from_stage: null, to_stage: "new", source, actor_email: input.actorEmail, reason: "Opportunity created" }),
-    recordActivity(supabase, { activityType: "opportunity_created", title: `Opportunity created: ${data.name || identity.company.name}`, opportunityId: data.id, contactId: identity.contact.id, companyId: identity.company.id, source, actorEmail: input.actorEmail, externalId: `opportunity:${data.id}:created`, metadata: { stage: "new", estimated_value: data.estimated_value } }),
+    recordAudit(supabase, {
+      actorEmail: input.actorEmail,
+      action: "opportunity.created",
+      entityType: "opportunity",
+      entityId: data.id,
+      after: data,
+    }),
+    supabase.from("stage_events").insert({
+      opportunity_id: data.id,
+      from_stage: null,
+      to_stage: "new",
+      source,
+      actor_email: input.actorEmail,
+      reason: "Opportunity created",
+    }),
+    recordActivity(supabase, {
+      activityType: "opportunity_created",
+      title: `Opportunity created: ${data.name || identity.company.name}`,
+      opportunityId: data.id,
+      contactId: identity.contact.id,
+      companyId: identity.company.id,
+      source,
+      actorEmail: input.actorEmail,
+      externalId: `opportunity:${data.id}:created`,
+      metadata: { stage: "new", estimated_value: data.estimated_value },
+    }),
   ]);
   return data;
 }
 
 export async function updateOpportunityDetails(
   supabase: SupabaseClient,
-  input: { id: string; actorEmail: string; nextAction?: string | null; nextActionAt?: string | null; estimatedValue?: number | null; expectedUpdatedAt?: string },
+  input: {
+    id: string;
+    actorEmail: string;
+    nextAction?: string | null;
+    nextActionAt?: string | null;
+    estimatedValue?: number | null;
+    expectedUpdatedAt?: string;
+  },
 ) {
   const allowed: Record<string, unknown> = {};
   if (input.nextAction !== undefined) {
@@ -110,31 +154,53 @@ export async function updateOpportunityDetails(
     allowed.next_action = value;
   }
   if (input.nextActionAt !== undefined) {
-    if (input.nextActionAt && Number.isNaN(Date.parse(input.nextActionAt))) throw new Error("Next action time is invalid");
+    if (input.nextActionAt && Number.isNaN(Date.parse(input.nextActionAt)))
+      throw new Error("Next action time is invalid");
     allowed.next_action_at = input.nextActionAt ? new Date(input.nextActionAt).toISOString() : null;
   }
   if (input.estimatedValue !== undefined) {
     const value = input.estimatedValue ?? 0;
-    if (!Number.isFinite(value) || value < 0 || value > 1_000_000_000) throw new Error("Estimated value must be between 0 and 1,000,000,000");
+    if (!Number.isFinite(value) || value < 0 || value > 1_000_000_000)
+      throw new Error("Estimated value must be between 0 and 1,000,000,000");
     allowed.estimated_value = value;
   }
   if (!Object.keys(allowed).length) throw new Error("No valid updates supplied");
 
-  const { data: before, error: beforeError } = await supabase.from("opportunities").select("*").eq("id", input.id).maybeSingle();
+  const { data: before, error: beforeError } = await supabase
+    .from("opportunities")
+    .select("*")
+    .eq("id", input.id)
+    .maybeSingle();
   if (beforeError) throw new Error(beforeError.message);
   if (!before) throw new Error("Opportunity not found");
   let update = supabase.from("opportunities").update(allowed).eq("id", input.id);
   if (input.expectedUpdatedAt) update = update.eq("updated_at", input.expectedUpdatedAt);
   const { data, error } = await update.select("*").maybeSingle();
   if (error) throw new Error(error.message);
-  if (!data) throw new Error("The opportunity changed while you were editing it. Refresh and try again.");
-  await recordAudit(supabase, { actorEmail: input.actorEmail, action: "opportunity.updated", entityType: "opportunity", entityId: input.id, before, after: data });
+  if (!data)
+    throw new Error("The opportunity changed while you were editing it. Refresh and try again.");
+  await recordAudit(supabase, {
+    actorEmail: input.actorEmail,
+    action: "opportunity.updated",
+    entityType: "opportunity",
+    entityId: input.id,
+    before,
+    after: data,
+  });
   return data;
 }
 
 export async function transitionOpportunity(
   supabase: SupabaseClient,
-  input: { id: string; to: string; actorEmail: string; source?: string; reason?: string; lossReason?: string; allowTerminalReopen?: boolean },
+  input: {
+    id: string;
+    to: string;
+    actorEmail: string;
+    source?: string;
+    reason?: string;
+    lossReason?: string;
+    allowTerminalReopen?: boolean;
+  },
 ) {
   const { data: current, error: readError } = await supabase
     .from("opportunities")
@@ -150,7 +216,12 @@ export async function transitionOpportunity(
   if (!canTransition(current.stage, canonicalTo)) {
     throw new Error(`Cannot move an opportunity from ${current.stage} to ${input.to}`);
   }
-  requireReopenEligibility(canonicalFrom, canonicalTo, input.reason, Boolean(input.allowTerminalReopen));
+  requireReopenEligibility(
+    canonicalFrom,
+    canonicalTo,
+    input.reason,
+    Boolean(input.allowTerminalReopen),
+  );
   if (canonicalTo === "lost" && !input.lossReason?.trim()) {
     throw new Error("A loss reason is required when closing an opportunity as lost");
   }
@@ -164,7 +235,8 @@ export async function transitionOpportunity(
   };
   if (canonicalTo === "lost") patch.loss_reason = input.lossReason!.trim();
   if (canonicalTo !== "lost") patch.loss_reason = null;
-  if (canonicalTo === "won" && Number(current.won_value || 0) === 0) patch.won_value = Number(current.estimated_value || 0);
+  if (canonicalTo === "won" && Number(current.won_value || 0) === 0)
+    patch.won_value = Number(current.estimated_value || 0);
 
   const { data: updated, error: updateError } = await supabase
     .from("opportunities")
@@ -174,7 +246,8 @@ export async function transitionOpportunity(
     .select("*")
     .maybeSingle();
   if (updateError) throw new Error(updateError.message);
-  if (!updated) throw new Error("The opportunity changed while you were editing it. Refresh and try again.");
+  if (!updated)
+    throw new Error("The opportunity changed while you were editing it. Refresh and try again.");
 
   await Promise.all([
     supabase.from("stage_events").insert({
@@ -203,7 +276,11 @@ export async function transitionOpportunity(
       source: input.source ?? "admin",
       actorEmail: input.actorEmail,
       externalId: `opportunity:${input.id}:stage:${canonicalFrom}:${canonicalTo}:${now}`,
-      metadata: { from_stage: canonicalFrom, to_stage: canonicalTo, loss_reason: input.lossReason?.trim() || null },
+      metadata: {
+        from_stage: canonicalFrom,
+        to_stage: canonicalTo,
+        loss_reason: input.lossReason?.trim() || null,
+      },
       occurredAt: now,
     }),
   ]);

@@ -29,18 +29,11 @@ export function SectionHeader({
           <Eyebrow>{label}</Eyebrow>
         </div>
       )}
-      <h2
-        className={cn(
-          "mb-4",
-          size === "large" ? "page-heading" : "section-heading"
-        )}
-      >
+      <h2 className={cn("mb-4", size === "large" ? "page-heading" : "section-heading")}>
         {heading}
       </h2>
       {description && (
-        <p className={cn("section-description", centered && "mx-auto")}>
-          {description}
-        </p>
+        <p className={cn("section-description", centered && "mx-auto")}>{description}</p>
       )}
     </div>
   );

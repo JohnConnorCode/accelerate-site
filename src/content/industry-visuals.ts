@@ -24,7 +24,10 @@ export const INDUSTRY_VISUALS = {
       alt: "A construction crew working on a roof against an open sky",
     },
     stills: [
-      { src: "/images/home-services/site.jpg", alt: "A building under construction with crews on site" },
+      {
+        src: "/images/home-services/site.jpg",
+        alt: "A building under construction with crews on site",
+      },
     ],
   },
   "law-firms": {
@@ -45,8 +48,14 @@ export const INDUSTRY_VISUALS = {
       alt: "A desk with notebooks, a laptop, and working papers",
     },
     stills: [
-      { src: "/images/professional-services/office.jpg", alt: "An empty office with long windows and desks" },
-      { src: "/images/professional-services/desk.jpg", alt: "Hands working through papers at a desk" },
+      {
+        src: "/images/professional-services/office.jpg",
+        alt: "An empty office with long windows and desks",
+      },
+      {
+        src: "/images/professional-services/desk.jpg",
+        alt: "Hands working through papers at a desk",
+      },
     ],
   },
   "real-estate": {
@@ -57,7 +66,10 @@ export const INDUSTRY_VISUALS = {
     },
     stills: [
       { src: "/images/real-estate/house.jpg", alt: "A house at dusk with the lights on" },
-      { src: "/images/real-estate/interior.jpg", alt: "A living room with large windows and a sofa" },
+      {
+        src: "/images/real-estate/interior.jpg",
+        alt: "A living room with large windows and a sofa",
+      },
     ],
   },
   nonprofits: {
@@ -67,7 +79,10 @@ export const INDUSTRY_VISUALS = {
       alt: "Volunteers packing donated goods at a community table",
     },
     stills: [
-      { src: "/images/nonprofits/packing.jpg", alt: "A volunteer packing food into bags for distribution" },
+      {
+        src: "/images/nonprofits/packing.jpg",
+        alt: "A volunteer packing food into bags for distribution",
+      },
       { src: "/images/nonprofits/sorting.jpg", alt: "Volunteers organizing donated fresh produce" },
     ],
   },

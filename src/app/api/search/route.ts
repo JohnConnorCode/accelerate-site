@@ -17,6 +17,9 @@ export async function GET() {
     // A search index that fails to build must not take a page down with it. The
     // dialog degrades to telling the visitor search is unavailable.
     console.error("[search] index build failed:", error instanceof Error ? error.message : error);
-    return NextResponse.json({ entries: [], error: "Search is unavailable right now." }, { status: 503 });
+    return NextResponse.json(
+      { entries: [], error: "Search is unavailable right now." },
+      { status: 503 },
+    );
   }
 }

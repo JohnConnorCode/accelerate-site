@@ -23,13 +23,16 @@ export function Placeholder({
       data-image-prompt={prompt}
       className={cn(
         "relative flex items-center justify-center overflow-hidden rounded-2xl border border-dashed border-border-gold bg-[var(--bg-elevated)]",
-        className
+        className,
       )}
     >
       <div
         aria-hidden
         className="absolute inset-0"
-        style={{ background: "radial-gradient(circle at 30% 25%, rgba(var(--accent-rgb),0.2), transparent 70%)" }}
+        style={{
+          background:
+            "radial-gradient(circle at 30% 25%, rgba(var(--accent-rgb),0.2), transparent 70%)",
+        }}
       />
       <div className="relative max-w-[82%] text-center">
         <span className="font-mono text-[0.6rem] uppercase tracking-[0.28em] text-gold">

@@ -9,6 +9,9 @@ export async function GET() {
   try {
     return NextResponse.json(await loadIntegrationCatalog(auth.database));
   } catch {
-    return NextResponse.json({ error: "The integration catalog could not be loaded." }, { status: 500 });
+    return NextResponse.json(
+      { error: "The integration catalog could not be loaded." },
+      { status: 500 },
+    );
   }
 }

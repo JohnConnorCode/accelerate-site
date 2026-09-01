@@ -22,15 +22,19 @@ const comparisons = [
   },
   {
     label: "Your Revenue",
-    before: "Inquiries slip through the cracks. Follow-ups get missed. You're losing jobs every week.",
-    after: "Every inquiry answered in minutes. Every follow-up automatic. Revenue captured, not lost.",
+    before:
+      "Inquiries slip through the cracks. Follow-ups get missed. You're losing jobs every week.",
+    after:
+      "Every inquiry answered in minutes. Every follow-up automatic. Revenue captured, not lost.",
     metric: "10",
     metricLabel: "hours back per person, per week",
   },
   {
     label: "Your Team",
-    before: "You need a marketer, a receptionist, and an ops manager, but can't justify three salaries.",
-    after: "AI agents handle intake, follow-ups, content, and scheduling. A full team without the payroll.",
+    before:
+      "You need a marketer, a receptionist, and an ops manager, but can't justify three salaries.",
+    after:
+      "AI agents handle intake, follow-ups, content, and scheduling. A full team without the payroll.",
     metric: "3",
     metricLabel: "roles, one system",
   },
@@ -46,49 +50,54 @@ const comparisons = [
 export function ProblemSolution() {
   const sectionRef = useRef<HTMLElement>(null);
 
-  useGSAP(() => {
-    if (!sectionRef.current) return;
-    if (prefersReducedMotion()) return;
+  useGSAP(
+    () => {
+      if (!sectionRef.current) return;
+      if (prefersReducedMotion()) return;
 
-    const leftPanel = sectionRef.current.querySelector("[data-panel-left]");
-    const rightPanel = sectionRef.current.querySelector("[data-panel-right]");
+      const leftPanel = sectionRef.current.querySelector("[data-panel-left]");
+      const rightPanel = sectionRef.current.querySelector("[data-panel-right]");
 
-    if (leftPanel) {
-      gsap.fromTo(leftPanel,
-        { opacity: 0, x: -60 },
-        {
-          opacity: 1,
-          x: 0,
-          duration: 0.8,
-          delay: 0.2,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 75%",
-            toggleActions: "play none none none",
+      if (leftPanel) {
+        gsap.fromTo(
+          leftPanel,
+          { opacity: 0, x: -60 },
+          {
+            opacity: 1,
+            x: 0,
+            duration: 0.8,
+            delay: 0.2,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: "top 75%",
+              toggleActions: "play none none none",
+            },
           },
-        }
-      );
-    }
+        );
+      }
 
-    if (rightPanel) {
-      gsap.fromTo(rightPanel,
-        { opacity: 0, x: 60 },
-        {
-          opacity: 1,
-          x: 0,
-          duration: 0.8,
-          delay: 0.35,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 75%",
-            toggleActions: "play none none none",
+      if (rightPanel) {
+        gsap.fromTo(
+          rightPanel,
+          { opacity: 0, x: 60 },
+          {
+            opacity: 1,
+            x: 0,
+            duration: 0.8,
+            delay: 0.35,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: "top 75%",
+              toggleActions: "play none none none",
+            },
           },
-        }
-      );
-    }
-  }, { scope: sectionRef });
+        );
+      }
+    },
+    { scope: sectionRef },
+  );
 
   return (
     <section ref={sectionRef} className="relative py-20 bg-bg-base overflow-hidden">
@@ -99,8 +108,7 @@ export function ProblemSolution() {
             label="Before & After"
             heading={
               <>
-                Stop Losing Revenue to{" "}
-                <span className="text-gold">Broken Processes</span>
+                Stop Losing Revenue to <span className="text-gold">Broken Processes</span>
               </>
             }
           />

@@ -88,7 +88,11 @@ export function ApprovalQueue({
       ref={ref}
       className="deck"
       onPointerMove={handlePointerMove}
-      onPointerLeave={() => { mouseX.set(0); mouseY.set(0); setPaused(false); }}
+      onPointerLeave={() => {
+        mouseX.set(0);
+        mouseY.set(0);
+        setPaused(false);
+      }}
       onMouseEnter={() => setPaused(true)}
       onTouchStart={() => setPaused((p) => !p)}
       style={reduced ? undefined : { rotateX, rotateY, transformStyle: "preserve-3d" }}
@@ -110,7 +114,11 @@ export function ApprovalQueue({
                 layout={!reduced}
                 initial={reduced ? false : { opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={reduced ? undefined : { opacity: 0, x: 26, transition: { duration: 0.32, ease: EASE } }}
+                exit={
+                  reduced
+                    ? undefined
+                    : { opacity: 0, x: 26, transition: { duration: 0.32, ease: EASE } }
+                }
                 transition={{ duration: 0.45, ease: EASE, delay: reduced ? 0 : i * 0.04 }}
                 className="cc-qrow"
               >
@@ -140,9 +148,7 @@ export function ApprovalQueue({
         <span>
           {footer[0]} <b>{approved}</b>
         </span>
-        <span>
-          {footer[1]}
-        </span>
+        <span>{footer[1]}</span>
       </div>
     </motion.div>
   );

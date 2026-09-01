@@ -5,7 +5,13 @@ import { findCanonicalContactByEmail } from "./identity";
 import { recordActivity } from "./activities";
 
 export const FOUNDER_NOTE_MAX_LENGTH = 5_000;
-export const FOUNDER_NOTE_CAPTURE_SOURCES = ["command_palette", "keyboard_shortcut", "ai_answer", "record_context", "unknown"] as const;
+export const FOUNDER_NOTE_CAPTURE_SOURCES = [
+  "command_palette",
+  "keyboard_shortcut",
+  "ai_answer",
+  "record_context",
+  "unknown",
+] as const;
 export const FOUNDER_NOTE_KNOWLEDGE_CONTRACT = "founder-knowledge-notes.v1";
 export type FounderNoteCaptureSource = (typeof FOUNDER_NOTE_CAPTURE_SOURCES)[number];
 
@@ -72,16 +78,27 @@ interface FounderNoteQueryFilter {
   limit?: number;
 }
 
-const NOTE_COLUMNS = "id,title,summary,actor_email,occurred_at,contact_id,company_id,opportunity_id,external_id,metadata";
+const NOTE_COLUMNS =
+  "id,title,summary,actor_email,occurred_at,contact_id,company_id,opportunity_id,external_id,metadata";
 
-function captureMetadata(value: unknown): { durationMs: number | null; source: FounderNoteCaptureSource } {
-  const metadata = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
-  const duration = typeof metadata.capture_duration_ms === "number" && Number.isFinite(metadata.capture_duration_ms)
-    ? Math.max(0, Math.trunc(metadata.capture_duration_ms))
-    : null;
-  const source = typeof metadata.capture_source === "string" && FOUNDER_NOTE_CAPTURE_SOURCES.includes(metadata.capture_source as FounderNoteCaptureSource)
-    ? metadata.capture_source as FounderNoteCaptureSource
-    : "unknown";
+function captureMetadata(value: unknown): {
+  durationMs: number | null;
+  source: FounderNoteCaptureSource;
+} {
+  const metadata =
+    value && typeof value === "object" && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {};
+  const duration =
+    typeof metadata.capture_duration_ms === "number" &&
+    Number.isFinite(metadata.capture_duration_ms)
+      ? Math.max(0, Math.trunc(metadata.capture_duration_ms))
+      : null;
+  const source =
+    typeof metadata.capture_source === "string" &&
+    FOUNDER_NOTE_CAPTURE_SOURCES.includes(metadata.capture_source as FounderNoteCaptureSource)
+      ? (metadata.capture_source as FounderNoteCaptureSource)
+      : "unknown";
   return { durationMs: duration, source };
 }
 
@@ -111,7 +128,9 @@ async function ensureFounderNoteAudit(
   note: Record<string, unknown>,
   input: Pick<CaptureFounderNoteInput, "actorEmail" | "requestId">,
 ): Promise<void> {
-  const { data, error } = await supabase.from("audit_log").select("id")
+  const { data, error } = await supabase
+    .from("audit_log")
+    .select("id")
     .eq("action", "founder_note_created")
     .eq("entity_type", "activity")
     .eq("entity_id", String(note.id))
@@ -135,19 +154,31 @@ async function ensureFounderNoteAudit(
   });
 }
 
-export async function captureFounderNote(supabase: SupabaseClient, input: CaptureFounderNoteInput): Promise<FounderNoteReceipt> {
+export async function captureFounderNote(
+  supabase: SupabaseClient,
+  input: CaptureFounderNoteInput,
+): Promise<FounderNoteReceipt> {
   const body = input.body.trim();
   if (!body) throw new Error("Write something before saving the note");
-  if (body.length > FOUNDER_NOTE_MAX_LENGTH) throw new Error(`Notes are limited to ${FOUNDER_NOTE_MAX_LENGTH.toLocaleString()} characters`);
+  if (body.length > FOUNDER_NOTE_MAX_LENGTH)
+    throw new Error(`Notes are limited to ${FOUNDER_NOTE_MAX_LENGTH.toLocaleString()} characters`);
   if (!input.requestId.trim()) throw new Error("A note request ID is required");
-  if (input.captureDurationMs !== undefined && input.captureDurationMs !== null && (!Number.isFinite(input.captureDurationMs) || input.captureDurationMs < 0 || input.captureDurationMs > 3_600_000)) {
+  if (
+    input.captureDurationMs !== undefined &&
+    input.captureDurationMs !== null &&
+    (!Number.isFinite(input.captureDurationMs) ||
+      input.captureDurationMs < 0 ||
+      input.captureDurationMs > 3_600_000)
+  ) {
     throw new Error("Capture duration must be between zero and one hour");
   }
   const captureSource = input.captureSource ?? "unknown";
-  if (!FOUNDER_NOTE_CAPTURE_SOURCES.includes(captureSource)) throw new Error("Capture source is not recognized");
+  if (!FOUNDER_NOTE_CAPTURE_SOURCES.includes(captureSource))
+    throw new Error("Capture source is not recognized");
 
   const externalId = `founder-note:${input.requestId.trim()}`;
-  const { data: existing, error: existingError } = await supabase.from("activities")
+  const { data: existing, error: existingError } = await supabase
+    .from("activities")
     .select(NOTE_COLUMNS)
     .eq("source", "admin_note")
     .eq("external_id", externalId)
@@ -165,25 +196,33 @@ export async function captureFounderNote(supabase: SupabaseClient, input: Captur
   if (input.contactEmail) {
     const contact = await findCanonicalContactByEmail(supabase, input.contactEmail);
     if (!contact) throw new Error("No canonical contact matches that email");
-    if (contactId && contactId !== contact.id) throw new Error("The selected contact does not match the supplied contact ID");
+    if (contactId && contactId !== contact.id)
+      throw new Error("The selected contact does not match the supplied contact ID");
     contactId = contact.id;
   }
 
   if (opportunityId) {
-    const { data: opportunity, error } = await supabase.from("opportunities")
+    const { data: opportunity, error } = await supabase
+      .from("opportunities")
       .select("id,contact_id,company_id")
       .eq("id", opportunityId)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!opportunity) throw new Error("The selected opportunity no longer exists");
-    if (contactId && opportunity.contact_id && contactId !== opportunity.contact_id) throw new Error("The selected contact and opportunity do not match");
-    if (companyId && opportunity.company_id && companyId !== opportunity.company_id) throw new Error("The selected company and opportunity do not match");
+    if (contactId && opportunity.contact_id && contactId !== opportunity.contact_id)
+      throw new Error("The selected contact and opportunity do not match");
+    if (companyId && opportunity.company_id && companyId !== opportunity.company_id)
+      throw new Error("The selected company and opportunity do not match");
     contactId = contactId ?? opportunity.contact_id ?? null;
     companyId = companyId ?? opportunity.company_id ?? null;
   }
 
   if (contactId && !companyId) {
-    const { data: contact, error } = await supabase.from("contacts").select("id,company_id").eq("id", contactId).maybeSingle();
+    const { data: contact, error } = await supabase
+      .from("contacts")
+      .select("id,company_id")
+      .eq("id", contactId)
+      .maybeSingle();
     if (error) throw new Error(error.message);
     if (!contact) throw new Error("The selected contact no longer exists");
     companyId = contact.company_id ?? null;
@@ -227,7 +266,9 @@ export async function loadFounderKnowledgeNotes(
   filter: FounderNoteQueryFilter = {},
 ): Promise<FounderKnowledgeNote[]> {
   const limit = Math.min(100, Math.max(1, Math.trunc(filter.limit ?? 25)));
-  let query = supabase.from("activities").select(NOTE_COLUMNS)
+  let query = supabase
+    .from("activities")
+    .select(NOTE_COLUMNS)
     .eq("activity_type", "founder_note")
     .eq("source", "admin_note");
   if (filter.contactId) query = query.eq("contact_id", filter.contactId);
@@ -237,10 +278,18 @@ export async function loadFounderKnowledgeNotes(
     if (Number.isNaN(Date.parse(filter.before))) throw new Error("Founder note cursor is invalid");
     query = query.lt("occurred_at", new Date(filter.before).toISOString());
   }
-  const { data, error } = await query.order("occurred_at", { ascending: false }).order("id", { ascending: false }).limit(limit);
+  const { data, error } = await query
+    .order("occurred_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(limit);
   if (error) throw new Error(error.message);
   return (data ?? []).map((row) => {
-    if (typeof row.summary !== "string" || !row.summary.trim() || typeof row.actor_email !== "string" || Number.isNaN(Date.parse(String(row.occurred_at)))) {
+    if (
+      typeof row.summary !== "string" ||
+      !row.summary.trim() ||
+      typeof row.actor_email !== "string" ||
+      Number.isNaN(Date.parse(String(row.occurred_at)))
+    ) {
       throw new Error("Founder note provenance is incomplete");
     }
     return {
@@ -263,7 +312,8 @@ export async function loadFounderNoteAdoptionReport(
   options: { now?: Date; founderUsefulnessConfirmed?: boolean } = {},
 ): Promise<FounderNoteAdoptionReport> {
   const now = options.now ?? new Date();
-  const { data, error } = await supabase.from("activities")
+  const { data, error } = await supabase
+    .from("activities")
     .select("id,actor_email,occurred_at,contact_id,company_id,opportunity_id,metadata")
     .eq("activity_type", "founder_note")
     .eq("source", "admin_note")
@@ -271,23 +321,43 @@ export async function loadFounderNoteAdoptionReport(
     .limit(500);
   if (error) throw new Error(error.message);
   const rows = data ?? [];
-  const measured = rows.map((row) => ({ row, capture: captureMetadata(row.metadata) })).filter((entry) => entry.capture.durationMs !== null);
-  const durations = measured.map((entry) => entry.capture.durationMs as number).sort((left, right) => left - right);
-  const medianCaptureMs = durations.length ? durations[Math.floor((durations.length - 1) / 2)]! : null;
-  const firstMeasuredAt = measured.length ? Date.parse(String(measured[0]!.row.occurred_at)) : Number.NaN;
-  const observationDays = Number.isFinite(firstMeasuredAt) ? Math.max(0, (now.getTime() - firstMeasuredAt) / 86_400_000) : 0;
-  const activeDays = new Set(measured.map((entry) => String(entry.row.occurred_at).slice(0, 10))).size;
+  const measured = rows
+    .map((row) => ({ row, capture: captureMetadata(row.metadata) }))
+    .filter((entry) => entry.capture.durationMs !== null);
+  const durations = measured
+    .map((entry) => entry.capture.durationMs as number)
+    .sort((left, right) => left - right);
+  const medianCaptureMs = durations.length
+    ? durations[Math.floor((durations.length - 1) / 2)]!
+    : null;
+  const firstMeasuredAt = measured.length
+    ? Date.parse(String(measured[0]!.row.occurred_at))
+    : Number.NaN;
+  const observationDays = Number.isFinite(firstMeasuredAt)
+    ? Math.max(0, (now.getTime() - firstMeasuredAt) / 86_400_000)
+    : 0;
+  const activeDays = new Set(measured.map((entry) => String(entry.row.occurred_at).slice(0, 10)))
+    .size;
   const fastCaptureCount = durations.filter((duration) => duration <= 10_000).length;
-  const speedEvidenceReady = observationDays >= 7 && measured.length >= 3 && activeDays >= 3 && medianCaptureMs !== null && medianCaptureMs <= 10_000;
+  const speedEvidenceReady =
+    observationDays >= 7 &&
+    measured.length >= 3 &&
+    activeDays >= 3 &&
+    medianCaptureMs !== null &&
+    medianCaptureMs <= 10_000;
   const founderUsefulnessConfirmed = options.founderUsefulnessConfirmed === true;
   const reasons = [
     observationDays < 7 && "Seven days have not elapsed since the first measured capture.",
     measured.length < 3 && "At least three measured founder captures are required.",
     activeDays < 3 && "Measured captures must span at least three distinct days.",
-    medianCaptureMs !== null && medianCaptureMs > 10_000 && "Median open-to-save time is above ten seconds.",
+    medianCaptureMs !== null &&
+      medianCaptureMs > 10_000 &&
+      "Median open-to-save time is above ten seconds.",
     !founderUsefulnessConfirmed && "Founder usefulness confirmation is still required.",
   ].filter(Boolean) as string[];
-  const attachedCount = rows.filter((row) => row.contact_id || row.company_id || row.opportunity_id).length;
+  const attachedCount = rows.filter(
+    (row) => row.contact_id || row.company_id || row.opportunity_id,
+  ).length;
   return {
     contract: FOUNDER_NOTE_KNOWLEDGE_CONTRACT,
     generatedAt: now.toISOString(),
@@ -299,7 +369,10 @@ export async function loadFounderNoteAdoptionReport(
     fastCaptureCount,
     attachedCount,
     standaloneCount: rows.length - attachedCount,
-    retrievableCount: rows.filter((row) => typeof row.actor_email === "string" && !Number.isNaN(Date.parse(String(row.occurred_at)))).length,
+    retrievableCount: rows.filter(
+      (row) =>
+        typeof row.actor_email === "string" && !Number.isNaN(Date.parse(String(row.occurred_at))),
+    ).length,
     speedEvidenceReady,
     founderUsefulnessConfirmed,
     cardReady: speedEvidenceReady && founderUsefulnessConfirmed,

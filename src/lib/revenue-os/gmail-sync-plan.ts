@@ -62,14 +62,21 @@ function uniqueBounded(ids: Array<string | null | undefined>, limit: number): st
   return result;
 }
 
-export function gmailThreadIdsFromHistoryPage(history: GmailHistoryPage | null | undefined, maxThreads = 100): string[] {
-  const ids = history?.history?.flatMap((entry) =>
-    (entry.messagesAdded ?? []).map((added) => added.message?.threadId),
-  ) ?? [];
+export function gmailThreadIdsFromHistoryPage(
+  history: GmailHistoryPage | null | undefined,
+  maxThreads = 100,
+): string[] {
+  const ids =
+    history?.history?.flatMap((entry) =>
+      (entry.messagesAdded ?? []).map((added) => added.message?.threadId),
+    ) ?? [];
   return uniqueBounded(ids, boundedLimit(maxThreads));
 }
 
-export function gmailThreadIdsFromListPage(list: GmailThreadListPage | null | undefined, maxThreads = 100): string[] {
+export function gmailThreadIdsFromListPage(
+  list: GmailThreadListPage | null | undefined,
+  maxThreads = 100,
+): string[] {
   // Gmail's list endpoint is newest-first. Process oldest first so a partial
   // run makes steady progress through the backlog and keeps operator history
   // chronological.

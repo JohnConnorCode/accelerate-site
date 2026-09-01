@@ -1,8 +1,13 @@
 # Accelerate Revenue OS
 
+[![CI](https://github.com/JohnConnorCode/accelerate-site/actions/workflows/ci.yml/badge.svg)](https://github.com/JohnConnorCode/accelerate-site/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 An open-source, multi-tenant operating system for service businesses: CRM, pipeline, inbox, campaigns, proposals, analytics, AI-assisted operations, and a public marketing site in one Next.js application.
 
 [Live site](https://www.acceleratewith.us) · [Interactive fictional demo](https://www.acceleratewith.us/demo/command-center) · [Architecture](docs/ARCHITECTURE.md) · [Self-hosting](docs/SELF-HOSTING.md)
+
+![The Today command center, showing a founder's priority queue, open pipeline value, and pending approvals for a fictional roofing company workspace.](docs/images/command-center-workspace.png)
 
 > **Project status:** Active and production-derived. The fictional demo works without provider credentials. Running a connected workspace requires your own Supabase project and optional provider accounts. Review the security and tenancy contracts before using real customer data.
 
@@ -51,15 +56,15 @@ Never copy production credentials into a fork. See [Self-hosting](docs/SELF-HOST
 
 ## Useful commands
 
-| Command | Purpose |
-| --- | --- |
-| `npm run dev` | Start the local development server |
-| `npm run build` | Create a production build with an immutable release identity |
-| `npm run lint` | Run ESLint |
-| `npm run typecheck` | Run TypeScript without emitting files |
-| `npm run test:core` | Run the environment-independent contract suite |
-| `npm run verify:oss` | Check open-source repository hygiene and secret patterns |
-| `npm run qa:admin-demo -- --one` | Exercise one complete fictional workspace in Playwright |
+| Command                          | Purpose                                                      |
+| -------------------------------- | ------------------------------------------------------------ |
+| `npm run dev`                    | Start the local development server                           |
+| `npm run build`                  | Create a production build with an immutable release identity |
+| `npm run lint`                   | Run ESLint                                                   |
+| `npm run typecheck`              | Run TypeScript without emitting files                        |
+| `npm run test:core`              | Run the environment-independent contract suite               |
+| `npm run verify:oss`             | Check open-source repository hygiene and secret patterns     |
+| `npm run qa:admin-demo -- --one` | Exercise one complete fictional workspace in Playwright      |
 
 ## Architecture at a glance
 

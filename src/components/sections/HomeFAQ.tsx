@@ -16,11 +16,7 @@ export function HomeFAQ() {
       <div className="orb-white -top-32 -right-48 opacity-40" />
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal animation="fade-up">
-          <SectionHeader
-            align="left"
-            heading="Common Questions"
-            className="mb-12"
-          />
+          <SectionHeader align="left" heading="Common Questions" className="mb-12" />
         </ScrollReveal>
 
         <ScrollReveal animation="fade-up" delay={0.15}>

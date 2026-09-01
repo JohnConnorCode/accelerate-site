@@ -10,10 +10,7 @@ interface AuditResult {
   error: { message: string } | null;
 }
 
-async function tryAuditLog(
-  fn: () => Promise<AuditResult>,
-  label: string,
-): Promise<boolean> {
+async function tryAuditLog(fn: () => Promise<AuditResult>, label: string): Promise<boolean> {
   for (let attempt = 0; attempt < 2; attempt++) {
     const res = await fn();
     if (!res.error) return true;

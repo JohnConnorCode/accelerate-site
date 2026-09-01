@@ -24,25 +24,37 @@ export function encryptSecret(value: string): string {
   const cipher = createCipheriv("aes-256-gcm", key(), iv);
   const encrypted = Buffer.concat([cipher.update(value, "utf8"), cipher.final()]);
   const tag = cipher.getAuthTag();
-  return [VERSION, iv.toString("base64url"), tag.toString("base64url"), encrypted.toString("base64url")].join(".");
+  return [
+    VERSION,
+    iv.toString("base64url"),
+    tag.toString("base64url"),
+    encrypted.toString("base64url"),
+  ].join(".");
 }
 
 export function isEncryptedSecret(value: string): boolean {
   const [version, ivValue, tagValue, encryptedValue] = value.split(".");
-  return Boolean(version && SUPPORTED_VERSIONS.has(version) && ivValue && tagValue && encryptedValue);
+  return Boolean(
+    version && SUPPORTED_VERSIONS.has(version) && ivValue && tagValue && encryptedValue,
+  );
 }
 
 export function decryptSecret(value: string): string {
   if (!isEncryptedSecret(value)) throw new Error("Unsupported encrypted secret format");
   const [version, ivValue, tagValue, encryptedValue] = value.split(".");
-  if (!version || !ivValue || !tagValue || !encryptedValue || !SUPPORTED_VERSIONS.has(version)) throw new Error("Unsupported encrypted secret format");
+  if (!version || !ivValue || !tagValue || !encryptedValue || !SUPPORTED_VERSIONS.has(version))
+    throw new Error("Unsupported encrypted secret format");
   const decipher = createDecipheriv("aes-256-gcm", key(), Buffer.from(ivValue, "base64url"));
   decipher.setAuthTag(Buffer.from(tagValue, "base64url"));
-  return Buffer.concat([decipher.update(Buffer.from(encryptedValue, "base64url")), decipher.final()]).toString("utf8");
+  return Buffer.concat([
+    decipher.update(Buffer.from(encryptedValue, "base64url")),
+    decipher.final(),
+  ]).toString("utf8");
 }
 
 function tenantSecretScope(tenantId: string, provider: string, field: string): Buffer {
-  if (!tenantId.trim() || !provider.trim() || !field.trim()) throw new Error("Tenant secret scope is incomplete");
+  if (!tenantId.trim() || !provider.trim() || !field.trim())
+    throw new Error("Tenant secret scope is incomplete");
   return Buffer.from(`tenant:${tenantId}:provider:${provider}:field:${field}`, "utf8");
 }
 
@@ -51,13 +63,23 @@ function tenantSecretScope(tenantId: string, provider: string, field: string): B
  * authenticated data binds ciphertext to its tenant, provider, and field, so a
  * copied database value cannot be decrypted in another workspace or slot.
  */
-export function encryptTenantSecret(value: string, tenantId: string, provider: string, field: string): string {
+export function encryptTenantSecret(
+  value: string,
+  tenantId: string,
+  provider: string,
+  field: string,
+): string {
   const iv = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", key(), iv);
   cipher.setAAD(tenantSecretScope(tenantId, provider, field));
   const encrypted = Buffer.concat([cipher.update(value, "utf8"), cipher.final()]);
   const tag = cipher.getAuthTag();
-  return [SCOPED_VERSION, iv.toString("base64url"), tag.toString("base64url"), encrypted.toString("base64url")].join(".");
+  return [
+    SCOPED_VERSION,
+    iv.toString("base64url"),
+    tag.toString("base64url"),
+    encrypted.toString("base64url"),
+  ].join(".");
 }
 
 export function isTenantEncryptedSecret(value: string): boolean {
@@ -65,12 +87,20 @@ export function isTenantEncryptedSecret(value: string): boolean {
   return Boolean(version === SCOPED_VERSION && ivValue && tagValue && encryptedValue);
 }
 
-export function decryptTenantSecret(value: string, tenantId: string, provider: string, field: string): string {
+export function decryptTenantSecret(
+  value: string,
+  tenantId: string,
+  provider: string,
+  field: string,
+): string {
   if (!isTenantEncryptedSecret(value)) throw new Error("Unsupported tenant secret format");
   const [, ivValue, tagValue, encryptedValue] = value.split(".");
   if (!ivValue || !tagValue || !encryptedValue) throw new Error("Unsupported tenant secret format");
   const decipher = createDecipheriv("aes-256-gcm", key(), Buffer.from(ivValue, "base64url"));
   decipher.setAAD(tenantSecretScope(tenantId, provider, field));
   decipher.setAuthTag(Buffer.from(tagValue, "base64url"));
-  return Buffer.concat([decipher.update(Buffer.from(encryptedValue, "base64url")), decipher.final()]).toString("utf8");
+  return Buffer.concat([
+    decipher.update(Buffer.from(encryptedValue, "base64url")),
+    decipher.final(),
+  ]).toString("utf8");
 }

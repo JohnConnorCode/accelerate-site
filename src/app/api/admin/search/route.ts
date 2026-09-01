@@ -35,11 +35,7 @@ export async function GET(request: NextRequest) {
       .select("name, email")
       .or(`name.ilike.${pattern},email.ilike.${pattern}`)
       .limit(5),
-    supabase
-      .from("subscribers")
-      .select("email")
-      .ilike("email", pattern)
-      .limit(5),
+    supabase.from("subscribers").select("email").ilike("email", pattern).limit(5),
     supabase
       .from("chat_leads")
       .select("name, email")
@@ -66,7 +62,9 @@ export async function GET(request: NextRequest) {
   // Canonical results win deduplication so quick actions never attach to a
   // legacy-only person when the shared identity already exists.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (canonicalRes.data || []).forEach((r: any) => { if (r.primary_email) addResult(r.full_name, r.primary_email, "Canonical contact"); });
+  (canonicalRes.data || []).forEach((r: any) => {
+    if (r.primary_email) addResult(r.full_name, r.primary_email, "Canonical contact");
+  });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (leadsRes.data || []).forEach((r: any) => addResult(r.contact_name, r.contact_email, "Lead"));
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

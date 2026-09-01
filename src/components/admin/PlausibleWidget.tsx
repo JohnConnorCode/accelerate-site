@@ -81,9 +81,7 @@ export function PlausibleWidget() {
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-xs text-white-secondary font-medium">
-            {data.realtime} live
-          </span>
+          <span className="text-xs text-white-secondary font-medium">{data.realtime} live</span>
         </div>
       </div>
 
@@ -103,9 +101,7 @@ export function PlausibleWidget() {
                 <span className="text-white-muted font-mono ml-2">{p.visitors}</span>
               </div>
             ))}
-            {data.topPages.length === 0 && (
-              <p className="text-xs text-white-muted">No data yet</p>
-            )}
+            {data.topPages.length === 0 && <p className="text-xs text-white-muted">No data yet</p>}
           </div>
         </div>
 
@@ -132,7 +128,9 @@ export function PlausibleWidget() {
         <div>
           <div className="flex items-center gap-1.5 mb-2">
             <Target className="w-3.5 h-3.5 text-white-muted" />
-            <span className="text-xs text-white-muted uppercase tracking-wider">Conversions (7d)</span>
+            <span className="text-xs text-white-muted uppercase tracking-wider">
+              Conversions (7d)
+            </span>
           </div>
           <div className="space-y-1.5">
             {data.goals.slice(0, 5).map((g) => (

@@ -6,11 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Reveal } from "@/components/home/reveal";
-import {
-  CATEGORY_META,
-  capabilities,
-  type CapabilityCategory,
-} from "@/content/command-center";
+import { CATEGORY_META, capabilities, type CapabilityCategory } from "@/content/command-center";
 
 /* The full surface, filterable. Follows the house filter pattern from
    LearnHub (pill row + search + AnimatePresence keyed on the filter).
@@ -66,14 +62,19 @@ export function CapabilityCatalog() {
       "rounded-full px-4 py-1.5 text-sm transition-colors",
       isActive
         ? "border border-fg bg-[color-mix(in_srgb,var(--fg)_10%,transparent)] text-heading"
-        : "border border-rule text-mid hover:border-fg hover:text-heading"
+        : "border border-rule text-mid hover:border-fg hover:text-heading",
     );
 
   return (
     <>
       <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap gap-2">
-          <button type="button" data-cursor="link" onClick={() => setActive("all")} className={pill(active === "all")}>
+          <button
+            type="button"
+            data-cursor="link"
+            onClick={() => setActive("all")}
+            className={pill(active === "all")}
+          >
             Everything <span className="opacity-50">{capabilities.length}</span>
           </button>
           {CATEGORY_META.map((cat) => (
@@ -155,7 +156,11 @@ export function CapabilityCatalog() {
                       }}
                     >
                       <summary>
-                        <span className="cc-cat" style={{ color: `rgb(${g.rgb})` }} aria-hidden="true">
+                        <span
+                          className="cc-cat"
+                          style={{ color: `rgb(${g.rgb})` }}
+                          aria-hidden="true"
+                        >
                           {g.glyph}
                         </span>
                         <span className="cc-sum-title">{cap.title}</span>
@@ -165,7 +170,9 @@ export function CapabilityCatalog() {
                         <div>
                           <p>
                             {cap.detail}
-                            {cap.gated && <span className="cc-chip cc-chip-inline">Smart approval</span>}
+                            {cap.gated && (
+                              <span className="cc-chip cc-chip-inline">Smart approval</span>
+                            )}
                           </p>
                         </div>
                       </div>

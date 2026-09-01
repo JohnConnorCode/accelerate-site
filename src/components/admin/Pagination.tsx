@@ -11,7 +11,13 @@ interface PaginationProps {
   pageSize?: number;
 }
 
-export function Pagination({ page, totalPages, onPageChange, total, pageSize = 25 }: PaginationProps) {
+export function Pagination({
+  page,
+  totalPages,
+  onPageChange,
+  total,
+  pageSize = 25,
+}: PaginationProps) {
   if (totalPages <= 1) return null;
 
   return (

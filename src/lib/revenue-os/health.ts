@@ -42,10 +42,21 @@ export interface HealthConcern {
 export interface OperationalHealth {
   status: HealthStatus;
   attentionCount: number;
-  integrations: Array<{ provider: string; status: string; lastSuccessAt: string | null; lastError: string | null }>;
+  integrations: Array<{
+    provider: string;
+    status: string;
+    lastSuccessAt: string | null;
+    lastError: string | null;
+  }>;
   sourceRuns: HealthRunView[];
   jobRuns: HealthRunView[];
-  webhookFailures: Array<{ id: string; provider: string; eventType: string | null; error: string | null; receivedAt: string | null }>;
+  webhookFailures: Array<{
+    id: string;
+    provider: string;
+    eventType: string | null;
+    error: string | null;
+    receivedAt: string | null;
+  }>;
   /** Everything wrong, in a form an alert can be built from. */
   concerns: HealthConcern[];
 }
@@ -67,14 +78,37 @@ function isStalled(status: string, startedAt: string | null): boolean {
 }
 
 export async function loadOperationalHealth(supabase: SupabaseClient): Promise<OperationalHealth> {
-  const webhookSince = new Date(Date.now() - WEBHOOK_FAILURE_LOOKBACK_HOURS * 3_600_000).toISOString();
+  const webhookSince = new Date(
+    Date.now() - WEBHOOK_FAILURE_LOOKBACK_HOURS * 3_600_000,
+  ).toISOString();
   const [integrationResult, sourceRunsResult, jobRunsResult, webhookResult] = await Promise.all([
-    supabase.from("integration_connections").select("provider,status,last_success_at,last_error,updated_at"),
-    supabase.from("source_runs").select("source_key,status,started_at,finished_at,error").order("started_at", { ascending: false }).limit(30),
-    supabase.from("job_runs").select("job_key,status,claimed_at,finished_at,error").order("claimed_at", { ascending: false }).limit(30),
-    supabase.from("webhook_receipts").select("id,provider,event_type,error,received_at").eq("status", "failed").gte("received_at", webhookSince).order("received_at", { ascending: false }).limit(20),
+    supabase
+      .from("integration_connections")
+      .select("provider,status,last_success_at,last_error,updated_at"),
+    supabase
+      .from("source_runs")
+      .select("source_key,status,started_at,finished_at,error")
+      .order("started_at", { ascending: false })
+      .limit(30),
+    supabase
+      .from("job_runs")
+      .select("job_key,status,claimed_at,finished_at,error")
+      .order("claimed_at", { ascending: false })
+      .limit(30),
+    supabase
+      .from("webhook_receipts")
+      .select("id,provider,event_type,error,received_at")
+      .eq("status", "failed")
+      .gte("received_at", webhookSince)
+      .order("received_at", { ascending: false })
+      .limit(20),
   ]);
-  const firstError = [integrationResult.error, sourceRunsResult.error, jobRunsResult.error, webhookResult.error].find(Boolean);
+  const firstError = [
+    integrationResult.error,
+    sourceRunsResult.error,
+    jobRunsResult.error,
+    webhookResult.error,
+  ].find(Boolean);
   if (firstError) throw new Error(firstError.message);
 
   const integrations = integrationResult.data ?? [];
@@ -107,7 +141,11 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
 
   const concerns: HealthConcern[] = [];
   for (const integration of integrations) {
-    if (integration.status === "degraded" || integration.status === "revoked" || integration.last_error) {
+    if (
+      integration.status === "degraded" ||
+      integration.status === "revoked" ||
+      integration.last_error
+    ) {
       concerns.push({
         kind: "integration",
         key: String(integration.provider),
@@ -118,7 +156,12 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
   }
   for (const run of sourceRuns) {
     if (run.status === "failed" || run.status === "partial") {
-      concerns.push({ kind: "source", key: run.key, detail: run.error || `Last sync reported ${run.status}`, observedAt: run.finishedAt || run.startedAt });
+      concerns.push({
+        kind: "source",
+        key: run.key,
+        detail: run.error || `Last sync reported ${run.status}`,
+        observedAt: run.finishedAt || run.startedAt,
+      });
     }
   }
   for (const run of jobRuns) {
@@ -130,7 +173,12 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
         observedAt: run.startedAt,
       });
     } else if (run.status === "failed" || run.status === "partial") {
-      concerns.push({ kind: "job", key: run.key, detail: run.error || `Last run reported ${run.status}`, observedAt: run.finishedAt || run.startedAt });
+      concerns.push({
+        kind: "job",
+        key: run.key,
+        detail: run.error || `Last run reported ${run.status}`,
+        observedAt: run.finishedAt || run.startedAt,
+      });
     }
   }
   for (const failure of webhookFailures) {

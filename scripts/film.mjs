@@ -21,7 +21,11 @@ const ctx = await browser.newContext({
   colorScheme: theme === "light" ? "light" : "dark",
   reducedMotion: "no-preference",
 });
-await ctx.addInitScript((t) => { try { localStorage.setItem("theme", t); } catch {} }, theme);
+await ctx.addInitScript((t) => {
+  try {
+    localStorage.setItem("theme", t);
+  } catch {}
+}, theme);
 const page = await ctx.newPage();
 // emulate a real pointer near center so the interactive grid lights up
 await page.goto(`${base}${path}`, { waitUntil: "networkidle", timeout: 60000 });

@@ -148,50 +148,19 @@ export interface BlogPostMeta {
 // ========================================
 
 export type Industry =
-  | "home_services"
-  | "law_firm"
-  | "professional_services"
-  | "real_estate"
-  | "other";
+  "home_services" | "law_firm" | "professional_services" | "real_estate" | "other";
 
-export type BusinessAge =
-  | "less_than_1"
-  | "1_to_3"
-  | "3_to_10"
-  | "10_plus";
+export type BusinessAge = "less_than_1" | "1_to_3" | "3_to_10" | "10_plus";
 
-export type TeamSize =
-  | "just_me"
-  | "2_to_5"
-  | "6_to_15"
-  | "16_to_50"
-  | "50_plus";
+export type TeamSize = "just_me" | "2_to_5" | "6_to_15" | "16_to_50" | "50_plus";
 
-export type RevenueRange =
-  | "under_100k"
-  | "100k_500k"
-  | "500k_1m"
-  | "1m_5m"
-  | "5m_plus";
+export type RevenueRange = "under_100k" | "100k_500k" | "500k_1m" | "1m_5m" | "5m_plus";
 
-export type WebsiteStatus =
-  | "works_well"
-  | "outdated"
-  | "no_leads"
-  | "no_website";
+export type WebsiteStatus = "works_well" | "outdated" | "no_leads" | "no_website";
 
-export type Timeline =
-  | "asap"
-  | "within_30"
-  | "within_90"
-  | "exploring";
+export type Timeline = "asap" | "within_30" | "within_90" | "exploring";
 
-export type BudgetRange =
-  | "under_2500"
-  | "2500_5000"
-  | "5000_10000"
-  | "10000_25000"
-  | "25000_plus";
+export type BudgetRange = "under_2500" | "2500_5000" | "5000_10000" | "10000_25000" | "25000_plus";
 
 export type ContactMethod = "email" | "phone" | "text";
 
@@ -519,20 +488,10 @@ export interface CookiePreferences {
 // ========================================
 
 export type ArticleCategory =
-  | "lead-generation"
-  | "automation"
-  | "ai-tools"
-  | "industry"
-  | "foundational"
-  | "local-seo";
+  "lead-generation" | "automation" | "ai-tools" | "industry" | "foundational" | "local-seo";
 
 export type ArticlePillar =
-  | "Lead Gen"
-  | "Automation"
-  | "AI Tools"
-  | "Industry"
-  | "Foundational"
-  | "Local SEO";
+  "Lead Gen" | "Automation" | "AI Tools" | "Industry" | "Foundational" | "Local SEO";
 
 export interface ArticleFrontmatter {
   title: string;
@@ -630,11 +589,7 @@ export interface AdminSetting {
 // ========================================
 
 export type ConversationInputType =
-  | "option-cards"
-  | "chip-select"
-  | "bubble-buttons"
-  | "text-input"
-  | "contact-panel";
+  "option-cards" | "chip-select" | "bubble-buttons" | "text-input" | "contact-panel";
 
 export interface QuestionDef {
   id: string;

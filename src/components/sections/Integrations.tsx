@@ -42,29 +42,33 @@ const iconMap: Record<string, LucideIcon> = {
 export function Integrations() {
   const gridRef = useRef<HTMLDivElement>(null);
 
-  useGSAP(() => {
-    if (!gridRef.current) return;
-    if (prefersReducedMotion()) return;
+  useGSAP(
+    () => {
+      if (!gridRef.current) return;
+      if (prefersReducedMotion()) return;
 
-    const cards = gridRef.current.querySelectorAll("[data-tool-card]");
+      const cards = gridRef.current.querySelectorAll("[data-tool-card]");
 
-    gsap.fromTo(cards,
-      { opacity: 0, scale: 0.8 },
-      {
-        opacity: 1,
-        scale: 1,
-        duration: 0.4,
-        delay: 0.2,
-        stagger: 0.04,
-        ease: "back.out(1.5)",
-        scrollTrigger: {
-          trigger: gridRef.current,
-          start: "top 85%",
-          toggleActions: "play none none none",
+      gsap.fromTo(
+        cards,
+        { opacity: 0, scale: 0.8 },
+        {
+          opacity: 1,
+          scale: 1,
+          duration: 0.4,
+          delay: 0.2,
+          stagger: 0.04,
+          ease: "back.out(1.5)",
+          scrollTrigger: {
+            trigger: gridRef.current,
+            start: "top 85%",
+            toggleActions: "play none none none",
+          },
         },
-      }
-    );
-  }, { scope: gridRef });
+      );
+    },
+    { scope: gridRef },
+  );
 
   return (
     <section className="relative py-24 bg-[var(--bg-section-deep)] overflow-hidden">
@@ -78,7 +82,7 @@ export function Integrations() {
                 Your Stack. <span className="text-gold-gradient">Our Glue.</span>
               </>
             }
-            description="We&apos;re tool-agnostic. We connect to your existing stack and recommend what actually fits, not what pays us a commission."
+            description="We're tool-agnostic. We connect to your existing stack and recommend what actually fits, not what pays us a commission."
             className="mb-12"
           />
         </ScrollReveal>

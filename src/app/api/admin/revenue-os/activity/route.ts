@@ -21,11 +21,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       contract: ACTIVITY_LEDGER_CONTRACT,
       activities,
-      nextCursor: activities.length ? activities.at(-1)?.occurred_at ?? null : null,
+      nextCursor: activities.length ? (activities.at(-1)?.occurred_at ?? null) : null,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "The activity timeline could not be loaded";
+    const message =
+      error instanceof Error ? error.message : "The activity timeline could not be loaded";
     const invalid = /required|invalid/i.test(message);
-    return NextResponse.json({ error: invalid ? message : "The activity timeline could not be loaded" }, { status: invalid ? 400 : 500 });
+    return NextResponse.json(
+      { error: invalid ? message : "The activity timeline could not be loaded" },
+      { status: invalid ? 400 : 500 },
+    );
   }
 }

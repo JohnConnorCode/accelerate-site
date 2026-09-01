@@ -10,7 +10,8 @@ author: "John Connor"
 authorRole: "Founder, Accelerate"
 seoTitle: "What Is Workflow Automation? | Plain-English Guide"
 seoDescription: "Learn what workflow automation is, see 6 real examples, and discover how to eliminate repetitive tasks that cost your business 20+ hours per week."
-targetKeywords: ["workflow automation", "what is workflow automation", "business process automation"]
+targetKeywords:
+  ["workflow automation", "what is workflow automation", "business process automation"]
 funnelStage: "awareness"
 ---
 
@@ -22,7 +23,10 @@ You already automate things in your personal life. Your bank sends you a text wh
 
 The work still gets done. You just stop being the one doing it.
 
-<StatHighlight value="20+ hrs/week" label="time the average small business owner spends on tasks that could be automated" />
+<StatHighlight
+  value="20+ hrs/week"
+  label="time the average small business owner spends on tasks that could be automated"
+/>
 
 ## Why It Matters Right Now
 
@@ -73,7 +77,8 @@ These are not theoretical. These are automations we build for clients every week
 **Result:** Every new client gets the same professional onboarding experience, and nothing falls through the cracks during the handoff.
 
 <Callout type="tip" title="Start With the Bottleneck">
-You do not need to automate everything at once. Pick the one task that costs you the most time or loses you the most money. Automate that first. Then move to the next one.
+  You do not need to automate everything at once. Pick the one task that costs you the most time or
+  loses you the most money. Automate that first. Then move to the next one.
 </Callout>
 
 ## Manual vs. Automated: What Changes
@@ -81,11 +86,31 @@ You do not need to automate everything at once. Pick the one task that costs you
 <ComparisonTable
   headers={["Task", "Manual Process", "Automated Process"]}
   rows={[
-    ["Payment reminders", "Remember to check invoices, write individual emails, track who paid", "System checks daily, sends reminders on schedule, marks paid automatically"],
-    ["Lead follow-up", "Check form submissions, remember to call back, write emails by hand", "Instant notification to you, instant confirmation to prospect, nurture sequence runs automatically"],
-    ["Missed calls", "Check voicemail later, call back when you remember", "Text sent within 60 seconds, booking link included, caller info logged in CRM"],
-    ["Review requests", "Remember to ask after every job, send individual messages", "Automatic request 2 hours after job completion, direct link to review page"],
-    ["Estimate follow-up", "Try to remember who you sent estimates to, write follow-up emails", "Automated sequence at 2, 5, and 10 days with escalating urgency"]
+    [
+      "Payment reminders",
+      "Remember to check invoices, write individual emails, track who paid",
+      "System checks daily, sends reminders on schedule, marks paid automatically",
+    ],
+    [
+      "Lead follow-up",
+      "Check form submissions, remember to call back, write emails by hand",
+      "Instant notification to you, instant confirmation to prospect, nurture sequence runs automatically",
+    ],
+    [
+      "Missed calls",
+      "Check voicemail later, call back when you remember",
+      "Text sent within 60 seconds, booking link included, caller info logged in CRM",
+    ],
+    [
+      "Review requests",
+      "Remember to ask after every job, send individual messages",
+      "Automatic request 2 hours after job completion, direct link to review page",
+    ],
+    [
+      "Estimate follow-up",
+      "Try to remember who you sent estimates to, write follow-up emails",
+      "Automated sequence at 2, 5, and 10 days with escalating urgency",
+    ],
   ]}
 />
 
@@ -97,19 +122,25 @@ You do not need to hire a developer or buy expensive software. Here is the proce
 
 <StepByStep>
   <Step number={1} title="Identify the trigger">
-    What event starts the process? A form submission, a missed call, an invoice going overdue, a job being marked complete. Pick one specific trigger.
+    What event starts the process? A form submission, a missed call, an invoice going overdue, a job
+    being marked complete. Pick one specific trigger.
   </Step>
   <Step number={2} title="Define the action">
-    What should happen when that trigger fires? Send an email, send a text, create a task, notify your team, add a record to your CRM. Be specific about the exact action and its timing.
+    What should happen when that trigger fires? Send an email, send a text, create a task, notify
+    your team, add a record to your CRM. Be specific about the exact action and its timing.
   </Step>
   <Step number={3} title="Choose your tool">
-    For simple automations, [Zapier, Make, or n8n](/learn/zapier-vs-make-vs-n8n) can connect your existing apps without code. For more complex workflows involving AI, custom logic, or multiple branching paths, you will need a more robust setup.
+    For simple automations, [Zapier, Make, or n8n](/learn/zapier-vs-make-vs-n8n) can connect your
+    existing apps without code. For more complex workflows involving AI, custom logic, or multiple
+    branching paths, you will need a more robust setup.
   </Step>
   <Step number={4} title="Build and test">
-    Set up the automation in your chosen tool. Run it with test data. Check that the email goes out, the text arrives, and the CRM updates correctly. Fix anything that does not work.
+    Set up the automation in your chosen tool. Run it with test data. Check that the email goes out,
+    the text arrives, and the CRM updates correctly. Fix anything that does not work.
   </Step>
   <Step number={5} title="Monitor for a week">
-    Watch the automation run on real data for a week. Check for edge cases: what happens if the form has a blank email field? What if the invoice amount is zero? Refine as needed.
+    Watch the automation run on real data for a week. Check for edge cases: what happens if the form
+    has a blank email field? What if the invoice amount is zero? Refine as needed.
   </Step>
 </StepByStep>
 
@@ -118,12 +149,14 @@ You do not need to hire a developer or buy expensive software. Here is the proce
 Here is the honest breakdown.
 
 **DIY works when:**
+
 - You have one or two simple automations (form to email, payment reminders)
 - Your tools already integrate natively (QuickBooks has built-in reminders, for example)
 - You have time to set up, test, and maintain the workflows
 - You are comfortable troubleshooting when something breaks
 
 **Managed automation makes sense when:**
+
 - You need 5 or more workflows working together across multiple tools
 - Your automations involve AI (chatbots, voice agents, intelligent routing)
 - You do not have time to build and maintain them yourself
@@ -132,7 +165,10 @@ Here is the honest breakdown.
 Most of the businesses I work with start DIY, hit a wall when things get complex, and then bring in a team to build and manage the system properly. There is no wrong approach. The wrong approach is doing nothing.
 
 <Callout type="important" title="The Hidden Cost of DIY">
-The biggest cost of DIY automation is not the tools -- it is the maintenance. Automations break when apps update their APIs, when you change your CRM, or when edge cases pop up that you did not anticipate. Someone needs to monitor and fix these. If that someone is you, factor that time into your "savings."
+  The biggest cost of DIY automation is not the tools -- it is the maintenance. Automations break
+  when apps update their APIs, when you change your CRM, or when edge cases pop up that you did not
+  anticipate. Someone needs to monitor and fix these. If that someone is you, factor that time into
+  your "savings."
 </Callout>
 
 ## How Accelerate Handles Workflow Automation
@@ -143,7 +179,10 @@ That means your missed call text-back connects to your CRM which connects to you
 
 We also manage the system after it is built. When something breaks, we fix it. When your business changes, we update it. You focus on running your business.
 
-<StatHighlight value="10 hrs" label="a week per person, typical on the workflows we take on, so the same team can book and do the work" />
+<StatHighlight
+  value="10 hrs"
+  label="a week per person, typical on the workflows we take on, so the same team can book and do the work"
+/>
 
 ## What Stacked Automation Looks Like in Practice
 

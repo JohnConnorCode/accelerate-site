@@ -26,16 +26,16 @@ Route handlers, UI components, cron endpoints, webhooks, and AI tools are adapte
 
 ## Source map
 
-| Area | Location | Responsibility |
-| --- | --- | --- |
-| Routes | `src/app/` | HTTP, rendering, authentication adapters |
-| Admin UI | `src/components/admin/` | Shared workspace interaction and presentation |
-| Domain services | `src/lib/revenue-os/` | Canonical reads, writes, validation, receipts |
-| Tenancy | `src/lib/tenancy/` | Tenant resolution, lifecycle, ingest, provider scope |
-| Bootstrap identity | `src/config/tenant.ts` | Original deployment defaults; no secrets |
-| Database | `supabase/`, `migrations/` | Ordered, additive PostgreSQL changes |
-| Contracts and QA | `scripts/` | Service contracts, drift checks, Playwright journeys |
-| Product documentation | `docs/` | Setup, threat boundaries, operating contracts |
+| Area                  | Location                   | Responsibility                                       |
+| --------------------- | -------------------------- | ---------------------------------------------------- |
+| Routes                | `src/app/`                 | HTTP, rendering, authentication adapters             |
+| Admin UI              | `src/components/admin/`    | Shared workspace interaction and presentation        |
+| Domain services       | `src/lib/revenue-os/`      | Canonical reads, writes, validation, receipts        |
+| Tenancy               | `src/lib/tenancy/`         | Tenant resolution, lifecycle, ingest, provider scope |
+| Bootstrap identity    | `src/config/tenant.ts`     | Original deployment defaults; no secrets             |
+| Database              | `supabase/`, `migrations/` | Ordered, additive PostgreSQL changes                 |
+| Contracts and QA      | `scripts/`                 | Service contracts, drift checks, Playwright journeys |
+| Product documentation | `docs/`                    | Setup, threat boundaries, operating contracts        |
 
 ## Tenancy
 
