@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Check, ArrowUpRight } from "lucide-react";
 import {
@@ -9,6 +10,7 @@ import {
   AccordionContent,
 } from "@/components/ui/Accordion";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
+import { CodeBlock } from "@/components/mdx/CodeBlock";
 import { HeroEntranceItem, PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
 import {
   Section,
@@ -21,7 +23,13 @@ import {
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { HERO_HEADING } from "@/lib/type-recipes";
 import { cn } from "@/lib/utils";
-import { OPEN_SOURCE_PATHS, openSourceFaqs } from "@/content/open-source";
+import {
+  OPEN_SOURCE_PATHS,
+  OPEN_SOURCE_STATS,
+  TECH_STACK,
+  QUICK_START,
+  openSourceFaqs,
+} from "@/content/open-source";
 import type { OpenSourcePath } from "@/content/open-source";
 import { trackConversion } from "@/lib/analytics";
 
@@ -86,51 +94,83 @@ export function OpenSourcePageContent() {
     <>
       <PublicHeroEntrance className="page-offset-roomy relative overflow-hidden pb-20">
         <Container width="wide">
-          <div className="min-w-0 max-w-3xl">
-            <HeroEntranceItem step={1}>
-              <Eyebrow className="mb-7">open source</Eyebrow>
-            </HeroEntranceItem>
-            <HeroEntranceItem step={2}>
-              <RevealHeading
-                as="h1"
-                className={HERO_HEADING}
-                lead="The Command Center is"
-                accent="open source."
-                entrance="parent"
-              />
-            </HeroEntranceItem>
-            <HeroEntranceItem step={3}>
-              <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                The application behind our own agency, real code that runs a real business, is
-                published under the MIT license. Run it yourself and own every part of it, or have
-                us build and run a custom version for your business.
-              </p>
-            </HeroEntranceItem>
-            <HeroEntranceItem step={4}>
-              <div className="mt-9 flex flex-wrap items-center gap-6">
-                <a
-                  href="https://github.com/JohnConnorCode/accelerate-site"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  data-cursor="link"
-                  onClick={() => trackConversion("Open Source Hero GitHub Click")}
-                  className="btn"
-                >
-                  View the repository
-                  <ArrowUpRight className="h-4 w-4" />
-                </a>
-                <Link
-                  href="/command-center"
-                  data-cursor="link"
-                  className="text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-gold hover:underline"
-                >
-                  See the full product
-                </Link>
+          <div className="grid min-w-0 items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+            <div className="min-w-0">
+              <HeroEntranceItem step={1}>
+                <Eyebrow className="mb-7">open source</Eyebrow>
+              </HeroEntranceItem>
+              <HeroEntranceItem step={2}>
+                <RevealHeading
+                  as="h1"
+                  className={HERO_HEADING}
+                  lead="The Command Center is"
+                  accent="open source."
+                  entrance="parent"
+                />
+              </HeroEntranceItem>
+              <HeroEntranceItem step={3}>
+                <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
+                  The application behind our own agency, real code that runs a real business, is
+                  published under the MIT license. Run it yourself and own every part of it, or have
+                  us build and run a custom version for your business.
+                </p>
+              </HeroEntranceItem>
+              <HeroEntranceItem step={4}>
+                <div className="mt-9 flex flex-wrap items-center gap-6">
+                  <a
+                    href="https://github.com/JohnConnorCode/accelerate-site"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-cursor="link"
+                    onClick={() => trackConversion("Open Source Hero GitHub Click")}
+                    className="btn"
+                  >
+                    View the repository
+                    <ArrowUpRight className="h-4 w-4" />
+                  </a>
+                  <Link
+                    href="/command-center"
+                    data-cursor="link"
+                    className="text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-gold hover:underline"
+                  >
+                    See the full product
+                  </Link>
+                </div>
+              </HeroEntranceItem>
+            </div>
+            <HeroEntranceItem step={3} className="relative min-w-0">
+              <div className="overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.35)]">
+                <Image
+                  src="/images/open-source/feature-board.png"
+                  alt="The Feature Board kanban, showing the open, dependency-ordered roadmap inside a demo workspace."
+                  width={1400}
+                  height={875}
+                  className="h-auto w-full"
+                  priority
+                />
               </div>
+              <p className="mt-3 text-center font-mono text-[0.6rem] uppercase tracking-[0.18em] text-white-muted">
+                The Feature Board, in a demo workspace
+              </p>
             </HeroEntranceItem>
           </div>
         </Container>
       </PublicHeroEntrance>
+
+      {/* stats */}
+      <Section width="wide" className="pt-0">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-8 border-y border-[color-mix(in_srgb,var(--fg)_12%,transparent)] py-10 sm:grid-cols-4">
+          {OPEN_SOURCE_STATS.map((stat, i) => (
+            <AnimateOnScroll key={stat.label} as="div" delay={i * 0.05} className="text-center">
+              <p className="font-display text-4xl font-extrabold tracking-[-0.02em] text-heading sm:text-5xl">
+                {stat.value}
+              </p>
+              <p className="mt-2 text-sm font-semibold text-white-secondary">{stat.label}</p>
+              <p className="mt-0.5 text-xs leading-snug text-white-muted">{stat.detail}</p>
+            </AnimateOnScroll>
+          ))}
+        </div>
+      </Section>
 
       {/* two paths */}
       <Section width="wide">
@@ -149,10 +189,52 @@ export function OpenSourcePageContent() {
         </div>
       </Section>
 
+      {/* quick start */}
+      <Section width="wide" divide>
+        <div className="grid min-w-0 items-start gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
+          <div className="min-w-0">
+            <Eyebrow className="mb-6">running in minutes</Eyebrow>
+            <Heading size={2} as="h2" className="max-w-md">
+              Four commands to a running workspace.
+            </Heading>
+            <p className="mt-5 max-w-md text-base leading-relaxed text-white-muted">
+              The public site and fictional demo run with zero external services. Connecting a real
+              workspace with your own Supabase project is a second step, fully documented in the
+              repository.
+            </p>
+            <a
+              href="https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/SELF-HOSTING.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-cursor="link"
+              className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-gold hover:underline"
+            >
+              Read the self-hosting docs
+              <ArrowUpRight className="h-3.5 w-3.5" />
+            </a>
+          </div>
+          <AnimateOnScroll as="div" delay={0.08} className="min-w-0">
+            <CodeBlock language="bash" title="terminal">
+              {QUICK_START}
+            </CodeBlock>
+            <div className="mt-8 flex flex-wrap gap-2">
+              {TECH_STACK.map((tech) => (
+                <span
+                  key={tech}
+                  className="rounded-full border border-[color-mix(in_srgb,var(--fg)_16%,transparent)] px-3.5 py-1.5 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-white-muted"
+                >
+                  {tech}
+                </span>
+              ))}
+            </div>
+          </AnimateOnScroll>
+        </div>
+      </Section>
+
       {/* why the source is open */}
       <Section width="wide" divide className="bg-[var(--bg-section-warm)]">
-        <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
-          <div>
+        <div className="grid min-w-0 gap-12 lg:grid-cols-2 lg:gap-16">
+          <div className="min-w-0">
             <Eyebrow className="mb-6">why it&apos;s open</Eyebrow>
             <Heading size={2} as="h2" className="max-w-lg">
               Own your data. Own your AI spend.
