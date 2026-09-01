@@ -276,12 +276,16 @@ function CurrentSurface() {
             >
               <div className="flex items-start justify-between gap-4">
                 <span className="label text-[var(--mid)]">{surface.label}</span>
-                <span className="font-mono text-xs tabular-nums text-[var(--soft)]">{surface.n}</span>
+                <span className="font-mono text-xs tabular-nums text-[var(--soft)]">
+                  {surface.n}
+                </span>
               </div>
               <h3 className="mt-10 text-[1.35rem] font-medium leading-[1.08] tracking-[-0.03em] text-[var(--heading)] text-balance">
                 {surface.title}
               </h3>
-              <p className="mt-4 text-[15px] leading-[1.55] text-[var(--mid)] text-pretty">{surface.body}</p>
+              <p className="mt-4 text-[15px] leading-[1.55] text-[var(--mid)] text-pretty">
+                {surface.body}
+              </p>
             </Reveal>
           ))}
         </div>

@@ -315,7 +315,8 @@ export const capabilities: Capability[] = [
     id: "sms",
     category: "connect",
     title: "A mobile-ready workspace",
-    detail: "Use the same Today queue, inbox, pipeline, records, and setup controls from a responsive browser surface with no separate mobile app to maintain.",
+    detail:
+      "Use the same Today queue, inbox, pipeline, records, and setup controls from a responsive browser surface with no separate mobile app to maintain.",
   },
   {
     id: "api",
@@ -327,7 +328,8 @@ export const capabilities: Capability[] = [
     id: "reports",
     category: "connect",
     title: "Decision-ready analytics",
-    detail: "See source, owner, campaign, stage, communication, forecast, attribution, and data-quality signals together, with the metric semantics documented.",
+    detail:
+      "See source, owner, campaign, stage, communication, forecast, attribution, and data-quality signals together, with the metric semantics documented.",
   },
 
   // Govern
@@ -348,7 +350,8 @@ export const capabilities: Capability[] = [
     id: "own-db",
     category: "govern",
     title: "Shared infrastructure, isolated tenant data",
-    detail: "One maintained application and database serves the system, while tenant context, membership checks, composite ownership, and row-level policies keep each business's records isolated.",
+    detail:
+      "One maintained application and database serves the system, while tenant context, membership checks, composite ownership, and row-level policies keep each business's records isolated.",
   },
   {
     id: "roles",
