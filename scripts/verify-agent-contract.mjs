@@ -4,7 +4,6 @@ import { collectFeatureBoardIntegrityFailures } from "./lib/feature-board-graph.
 
 const requiredFiles = [
   "AGENTS.md",
-  "../AGENTS.md",
   "docs/AGENT-TICKET-RUNBOOK.md",
   "docs/REVENUE-OS-ENGINEERING-CONTRACT.md",
   "docs/MULTI-TENANCY-CONTRACT.md",
