@@ -363,6 +363,10 @@ export default function AdminShell({
     (slug: string) => {
       if (!slug || slug === workspaceSlug) return;
       const suffix = effectivePathname.replace(/^\/admin\/?/, "") || "today";
+      // A full navigation resets every tenant-scoped client cache and context
+      // provider; a client-side route push could carry state across the tenant
+      // boundary this switch is crossing.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.assign(`/t/${slug}/admin/${suffix}`);
     },
     [effectivePathname, workspaceSlug],

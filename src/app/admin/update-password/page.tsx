@@ -38,6 +38,9 @@ export default function UpdatePasswordPage() {
       return;
     }
 
+    // A full navigation forces the server to re-read the fresh auth cookie;
+    // a client-side route push can render the admin shell against stale auth state.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     window.location.href = "/admin";
   };
 
