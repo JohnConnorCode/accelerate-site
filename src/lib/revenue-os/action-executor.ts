@@ -8,6 +8,7 @@ import { sendGmailReply } from "./google";
 import { REVENUE_STAGES, type RevenueStage } from "./types";
 import { createRevenueTask } from "./tasks";
 import { applyLayoutChange } from "./admin-layout";
+import { captureFounderNote } from "./notes";
 
 function stringValue(
   payload: Record<string, unknown>,
@@ -27,6 +28,7 @@ export const APPROVABLE_ACTIONS = [
   "update_next_action",
   "activate_campaign",
   "admin_layout_change",
+  "create_founder_note",
 ] as const;
 
 export async function approveAndExecuteAction(
@@ -109,6 +111,17 @@ export async function approveAndExecuteAction(
           scope: stringValue(payload, "scope")!,
           doc: payload.doc,
           actorEmail,
+        });
+        break;
+      case "create_founder_note":
+        result = await captureFounderNote(supabase, {
+          requestId: id,
+          body: stringValue(payload, "body")!,
+          actorEmail,
+          contactId: stringValue(payload, "contactId", false) ?? null,
+          companyId: stringValue(payload, "companyId", false) ?? null,
+          opportunityId: stringValue(payload, "opportunityId", false) ?? null,
+          captureSource: "ai_answer",
         });
         break;
       default:

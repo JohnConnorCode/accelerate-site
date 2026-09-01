@@ -172,6 +172,24 @@ async function main() {
 
   await rejects(
     () =>
+      executeRegisteredRevenueTool(context(stubSupabase()), "propose_founder_note", {
+        contactId: "contact-1",
+      }),
+    'requires "body"',
+    "a note with no body is meaningless and must be rejected",
+  );
+
+  const noteProposal = await executeRegisteredRevenueTool(
+    context(stubSupabase()),
+    "propose_founder_note",
+    { body: "Called back, wants a revised quote by Friday.", opportunityId: "opp-1" },
+  );
+  assert.equal((noteProposal.output as { id: string }).id, "queued-action-id");
+  assert.equal(noteProposal.tool.impact, "internal_write");
+  assertImpactHonoured(noteProposal.tool, noteProposal.output);
+
+  await rejects(
+    () =>
       executeRegisteredRevenueTool(
         { ...context(stubSupabase()), toolPack: "core" },
         "propose_stage_change",
@@ -275,6 +293,20 @@ async function main() {
   assert.ok(
     source.indexOf('impact === "destructive"') < source.indexOf("validateToolInput(tool.name"),
     "the destructive check must come before schema validation, so a destructive tool cannot be reached by a well-formed call",
+  );
+
+  // Every propose_* tool must have a matching executor case, or an approved
+  // proposal sits forever with no way to actually apply it.
+  const executorSource = readFileSync("src/lib/revenue-os/action-executor.ts", "utf8");
+  assert.match(
+    executorSource,
+    /"create_founder_note"/,
+    "create_founder_note must be declared in APPROVABLE_ACTIONS or an approved note can never execute",
+  );
+  assert.match(
+    executorSource,
+    /case "create_founder_note":[\s\S]{0,200}captureFounderNote\(/,
+    "the create_founder_note case must call captureFounderNote, the same service the manual note UI uses",
   );
 
   // ---- Snapshot bounds and honest read failures ---------------------------
@@ -406,6 +438,8 @@ async function main() {
           "impact-read",
           "impact-write",
           "destructive-fail-closed",
+          "founder-note-schema",
+          "founder-note-executor-wiring",
           "snapshot-bounds",
           "snapshot-read-errors",
         ],

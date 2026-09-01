@@ -6,6 +6,7 @@ import { loadOperatorQueue } from "./queue";
 import { REVENUE_STAGES } from "./types";
 import { loadActivityTimeline } from "./activities";
 import { ADMIN_LAYOUT_SCOPES, proposeLayoutChange } from "./admin-layout";
+import { FOUNDER_NOTE_MAX_LENGTH } from "./notes";
 
 export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v3";
 export const REVENUE_TOOL_PACKS = ["core", "pipeline", "outreach"] as const;
@@ -449,6 +450,51 @@ const registry: AiToolRegistration[] = [
     },
   },
   {
+    name: "propose_founder_note",
+    description:
+      "Stage a founder note for approval. Once approved it is saved as an immutable timeline entry, optionally attached to a contact, company, or opportunity.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        body: { type: "string", maxLength: FOUNDER_NOTE_MAX_LENGTH },
+        contactId: { type: "string" },
+        companyId: { type: "string" },
+        opportunityId: { type: "string" },
+        reasoning: { type: "string" },
+      },
+      required: ["body"],
+      additionalProperties: false,
+    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.action-queue",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }, input) => {
+      const body = value(input, "body");
+      if (!body) throw new Error("body is required");
+      const firstLine = body.split(/\r?\n/, 1)[0]?.trim() || "Founder note";
+      const title = firstLine.length > 80 ? `${firstLine.slice(0, 77)}…` : firstLine;
+      const contactId = value(input, "contactId");
+      const companyId = value(input, "companyId");
+      const opportunityId = value(input, "opportunityId");
+      return proposeAction(supabase, {
+        actionType: "create_founder_note",
+        title,
+        description: value(input, "reasoning"),
+        urgency: "low",
+        payload: { body, contactId, companyId, opportunityId },
+        reasoning: value(input, "reasoning"),
+        sourceContext: "admin_ai",
+        entityType: opportunityId ? "opportunity" : contactId ? "contact" : undefined,
+        entityId: opportunityId || contactId,
+        dedupeKey: `ai-note:${opportunityId || contactId || companyId || "standalone"}:${body.slice(0, 80)}`,
+        proposedBy: actorEmail,
+        expiresAt: new Date(Date.now() + 86400000).toISOString(),
+      });
+    },
+  },
+  {
     name: "propose_stage_change",
     description: "Stage a pipeline movement for founder approval. Evidence must be included.",
     inputSchema: {
@@ -591,6 +637,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "get_record_timeline",
     "propose_task",
     "propose_layout_change",
+    "propose_founder_note",
   ],
   pipeline: [
     "get_today_snapshot",
