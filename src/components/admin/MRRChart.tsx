@@ -56,10 +56,7 @@ export function MRRChart({ data }: MRRChartProps) {
                   color: "var(--admin-ink)",
                   fontSize: 12,
                 }}
-                formatter={(value: number | undefined) => [
-                  `$${(value ?? 0).toLocaleString()}`,
-                  "MRR",
-                ]}
+                formatter={(value) => [`$${(Number(value) || 0).toLocaleString()}`, "MRR"]}
               />
               <Line
                 type="monotone"
