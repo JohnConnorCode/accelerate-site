@@ -305,11 +305,18 @@ export const capabilities: Capability[] = [
       "Ask what you agreed with a client in March. Get the answer with the source it came from, not a plausible guess.",
   },
   {
+    id: "modules",
+    category: "govern",
+    title: "Turn capabilities on and off per workspace",
+    detail:
+      "Proposals, campaigns, bookings, recovery, and the rest are modules a workspace enables or disables. Turning one off removes its navigation, closes its routes, and marks its AI tools unavailable to the assistant and to any connected external one.",
+  },
+  {
     id: "mcp",
     category: "connect",
-    title: "A grounded AI workspace",
+    title: "Your own assistant, connected over MCP",
     detail:
-      "Ask about the records in context, inspect the sources and tool evidence, and keep proposed actions inside the same approval and audit boundary as the rest of the workspace.",
+      "Claude Desktop, Claude Code, ChatGPT, Cursor, and Antigravity connect over the Model Context Protocol and reach the same registered tools the workspace uses. Reads return bounded queries with their sources; anything that would change a record or send a message becomes a staged proposal in the same approval queue.",
   },
   {
     id: "sms",
