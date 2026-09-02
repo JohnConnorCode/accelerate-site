@@ -50,6 +50,10 @@ export interface CommandAgentOptions {
   surface?: string;
   conversationId?: string | null;
   pageContext?: CommandPageContext | null;
+  /** The calling tenant's active module configuration, so a disabled module's
+   * AI tools are unavailable to the agent exactly as they are to the UI and
+   * to MCP. Falls back to every optional module enabled when omitted. */
+  tenantConfig?: { modules?: Partial<Record<string, boolean>> } | null;
   signal?: AbortSignal;
   onRunStarted?: (event: { runId: string | null; model: string; pack: RevenueToolPackId }) => void;
   onAssistantDelta?: (delta: string) => void;
@@ -243,7 +247,7 @@ export async function runRevenueCommandAgent(
         }
         try {
           const { output, tool } = await executeRegisteredRevenueTool(
-            { supabase, actorEmail, toolPack: selectedPack },
+            { supabase, actorEmail, toolPack: selectedPack, tenantConfig: options.tenantConfig },
             name,
             toolInput,
           );

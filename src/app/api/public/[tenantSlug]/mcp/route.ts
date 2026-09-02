@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createPlatformServiceRoleClient } from "@/lib/supabase/server";
+import { timingSafeEqual } from "node:crypto";
+import { createServiceRoleClient } from "@/lib/supabase/server";
 import {
   handleMcpRequest,
   REVENUE_OS_MCP_SERVER_INFO,
@@ -7,8 +8,8 @@ import {
   type McpJsonRpcRequest,
 } from "@/lib/revenue-os/mcp-server";
 import { tenant as defaultTenant } from "@/config/tenant";
-import { ACCELERATE_TENANT_SLUG } from "@/lib/tenancy/constants";
-import { runWithTenantRequestContext, accelerateSystemContext } from "@/lib/tenancy/context";
+import { resolveTenantProviderSecrets } from "@/lib/tenancy/providers";
+import { runWithTenantRequestContext, type TenantSystemContext } from "@/lib/tenancy/context";
 
 export const runtime = "nodejs";
 
@@ -19,52 +20,46 @@ export const runtime = "nodejs";
  * that an operator can point their Claude Desktop / ChatGPT / Antigravity config at,
  * completely separate from other tenants.
  *
- * Authentication: Bearer token matching the tenant's REVENUE_OS_API_KEY secret
- * stored in integration_connections with provider = 'mcp'.
+ * Authentication: Bearer token matching the tenant's own MCP key, generated once
+ * from /admin/integrations and stored encrypted in integration_connections under
+ * provider = 'mcp'. Resolved through resolveTenantProviderSecrets, the same helper
+ * every other tenant-scoped provider (Resend, Calendly, WhatsApp, HubSpot) uses, so
+ * the key is read back through the same encrypted envelope, never plaintext.
  */
+
+function timingSafeStringEqual(a: string, b: string): boolean {
+  const bufferA = Buffer.from(a);
+  const bufferB = Buffer.from(b);
+  // timingSafeEqual throws on length mismatch; compare against a same-length
+  // dummy first so a wrong-length token can't short-circuit before the
+  // constant-time comparison runs.
+  if (bufferA.length !== bufferB.length) {
+    timingSafeEqual(bufferA, Buffer.alloc(bufferA.length));
+    return false;
+  }
+  return timingSafeEqual(bufferA, bufferB);
+}
 
 async function resolveTenantMcpAuth(
   tenantSlug: string,
   authHeader: string | null,
-): Promise<{ actorEmail: string; tenantSlug: string } | null> {
+): Promise<{ actorEmail: string; context: TenantSystemContext } | null> {
   if (!authHeader?.startsWith("Bearer ")) return null;
   const token = authHeader.slice(7).trim();
   if (!token) return null;
 
-  // Platform-scoped lookup — the MCP API key is stored per-tenant in integration_connections
-  const platform = createPlatformServiceRoleClient("mcp-tenant-auth");
-  const { data: tenantRow } = await platform
-    .from("tenants")
-    .select("id,slug,status")
-    .eq("slug", tenantSlug)
-    .maybeSingle();
-  if (!tenantRow || tenantRow.status !== "active") return null;
+  const resolved = await resolveTenantProviderSecrets(tenantSlug, "mcp");
+  if (!resolved) return null;
 
-  const { data: conn } = await platform
-    .from("integration_connections")
-    .select("status,encrypted_credentials,environment_fallback_allowed")
-    .eq("tenant_id", tenantRow.id)
-    .eq("provider", "mcp")
-    .maybeSingle();
-
-  // Allow environment variable fallback for the platform's own tenant
-  const allowEnv =
-    tenantRow.slug === ACCELERATE_TENANT_SLUG && (!conn || conn.environment_fallback_allowed);
-
-  let configuredKey: string | null = null;
-  if (conn?.status === "connected" && conn.encrypted_credentials) {
-    const creds = conn.encrypted_credentials as Record<string, unknown>;
-    configuredKey = typeof creds.api_key === "string" ? creds.api_key : null;
-  }
-  if (!configuredKey && allowEnv) {
-    configuredKey = process.env.REVENUE_OS_API_KEY || process.env.MCP_API_KEY || null;
-  }
-
-  if (!configuredKey || token !== configuredKey) return null;
+  const configuredKey =
+    resolved.apiKey || (resolved.allowEnvironment ? process.env.REVENUE_OS_API_KEY || process.env.MCP_API_KEY || null : null);
+  if (!configuredKey || !timingSafeStringEqual(token, configuredKey)) return null;
 
   return {
     actorEmail: defaultTenant.founder.email,
-    tenantSlug: tenantRow.slug,
+    // The resolved context carries the tenant this key actually belongs to,
+    // never a hardcoded platform tenant — this is the isolation boundary.
+    context: resolved.context,
   };
 }
 
@@ -78,8 +73,7 @@ export async function GET(
     server: REVENUE_OS_MCP_SERVER_INFO,
     protocolVersion: MCP_PROTOCOL_VERSION,
     endpoint: `/api/public/${tenantSlug}/mcp`,
-    auth: "Bearer token (tenant REVENUE_OS_API_KEY)",
-    docs: "https://github.com/acceleratewith/revenue-os/docs/mcp",
+    auth: "Bearer token (tenant MCP key, generated from /admin/integrations)",
   });
 }
 
@@ -125,16 +119,20 @@ export async function POST(
     );
   }
 
-  const supabase = createPlatformServiceRoleClient(`mcp-tenant:${tenantSlug}`);
-  const tenantContext = accelerateSystemContext(`mcp-tenant:${tenantSlug}`);
-
-  return runWithTenantRequestContext(tenantContext, async () => {
+  return runWithTenantRequestContext(auth.context, async () => {
+    // Tenant-bound: createServiceRoleClient(systemContext) resolves the request
+    // context set above and binds every table read/write to auth.context.tenantId,
+    // instead of the unbound platform client this endpoint used before.
+    const supabase = createServiceRoleClient(auth.context);
     const response = await handleMcpRequest(body, {
       supabase,
       actorEmail: auth.actorEmail,
-      tenantSlug: auth.tenantSlug,
+      tenantSlug: auth.context.tenantSlug,
       tenantConfig: defaultTenant,
     });
+    // handleMcpRequest returns null for a true notification (no id member),
+    // which per JSON-RPC 2.0 must not receive a response body at all.
+    if (response === null) return new NextResponse(null, { status: 204 });
     return NextResponse.json(response);
   });
 }

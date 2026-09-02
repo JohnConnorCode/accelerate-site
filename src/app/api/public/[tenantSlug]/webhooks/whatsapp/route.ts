@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { createPlatformServiceRoleClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/server";
 import { resolveTenantProviderSecrets } from "@/lib/tenancy/providers";
 import { runWithTenantRequestContext } from "@/lib/tenancy/context";
 import { ingestWhatsAppMessage } from "@/lib/revenue-os/integration-adapters";
@@ -75,7 +75,9 @@ export async function POST(
   }
 
   return runWithTenantRequestContext(provider.context, async () => {
-    const supabase = createPlatformServiceRoleClient("whatsapp-webhook");
+    // Tenant-bound: an unbound platform client would let this write land with
+    // no tenant_id, exactly the bug this file shared with the HubSpot webhook.
+    const supabase = createServiceRoleClient(provider.context);
     const receipts: string[] = [];
     const errors: string[] = [];
 

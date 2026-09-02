@@ -45,7 +45,12 @@ async function main() {
   // Refusal on invalid WhatsApp payload
   let refusedMissingField = false;
   try {
-    await ingestWhatsAppMessage(db, { messageId: "", fromPhoneNumber: "", body: "", timestamp: "" });
+    await ingestWhatsAppMessage(db, {
+      messageId: "",
+      fromPhoneNumber: "",
+      body: "",
+      timestamp: "",
+    });
   } catch (err) {
     refusedMissingField = true;
     const message = err instanceof Error ? err.message : String(err);
@@ -101,10 +106,11 @@ async function main() {
     },
   ];
 
-  const summary = await importHubSpotBatch(db, {
-    contacts: rawContacts,
-    deals: rawDeals,
-  });
+  const summary = await importHubSpotBatch(
+    db,
+    { contacts: rawContacts, deals: rawDeals },
+    "system@test.invalid",
+  );
 
   assert.equal(summary.contactsTotal, 3);
   assert.equal(summary.contactsImported, 2);
@@ -113,11 +119,32 @@ async function main() {
   assert.equal(summary.dealsImported, 2);
   assert.equal(summary.dealsSkipped, 0);
 
+  // The real bug this once shipped with: opportunities has no title/value/
+  // source_id/status columns, and "inquiry" is not a permitted stage. A fake
+  // that accepts arbitrary column names hides that entirely unless the
+  // written row is actually inspected against the real column names.
+  const { data: writtenDeal } = await db
+    .from("opportunities")
+    .select("name,estimated_value,stage,contact_id,source,source_detail")
+    .eq("source_detail", "hubspot:hs-deal-1")
+    .maybeSingle();
+  assert.ok(writtenDeal, "the imported deal must be readable back by source_detail");
+  assert.equal(writtenDeal.name, "Commercial Roof Dispatch AI");
+  assert.equal(writtenDeal.estimated_value, 15000);
+  assert.equal(
+    writtenDeal.stage,
+    "new",
+    "must use a stage opportunities_stage_check actually permits",
+  );
+  assert.ok(writtenDeal.contact_id, "the deal must link to its resolved contact");
+  assert.equal(writtenDeal.source, "hubspot_import");
+
   // 3. Idempotency on second import run
-  const replaySummary = await importHubSpotBatch(db, {
-    contacts: rawContacts,
-    deals: rawDeals,
-  });
+  const replaySummary = await importHubSpotBatch(
+    db,
+    { contacts: rawContacts, deals: rawDeals },
+    "system@test.invalid",
+  );
   assert.equal(replaySummary.dealsSkipped, 2, "Existing deals must be skipped on rerun");
 
   console.log("All Integration Adapters tests passed successfully!");

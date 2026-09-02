@@ -31,11 +31,18 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // reason to fail the shell. Demo scenarios never read or write real tenant
   // admin_settings, keeping the live/demo boundary untouched.
   let navLayoutOverride: LayoutDoc | null = null;
+  // The real tenant row's config.modules, not the static compile-time default.
+  // Previously nothing ever supplied this, so every module resolved to
+  // enabled everywhere regardless of what a tenant had disabled.
+  let moduleConfig: { modules?: Partial<Record<string, boolean>> } | null = null;
   if (!demoScenarioId) {
     try {
       const auth = await requireAdmin();
       if (!(auth instanceof NextResponse)) {
         navLayoutOverride = await getCurrentLayout(auth.database, "nav.sidebar");
+        moduleConfig = {
+          modules: (auth.tenant.config?.modules as Partial<Record<string, boolean>>) ?? {},
+        };
       }
     } catch {
       navLayoutOverride = null;
@@ -51,6 +58,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         workspaceName={workspaceName}
         isPlatformAdmin={isPlatformAdmin}
         navLayoutOverride={navLayoutOverride}
+        moduleConfig={moduleConfig}
       >
         {children}
       </AdminShell>

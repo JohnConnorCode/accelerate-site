@@ -94,7 +94,10 @@ async function main() {
 
     // Tampered body
     const tamperedBody = Buffer.from(body + " tampered");
-    assert.ok(!verifySigSync(tamperedBody, APP_SECRET, validSig), "Tampered body must fail WhatsApp sig");
+    assert.ok(
+      !verifySigSync(tamperedBody, APP_SECRET, validSig),
+      "Tampered body must fail WhatsApp sig",
+    );
 
     // Missing header
     assert.ok(!verifySigSync(rawBody, APP_SECRET, null), "Missing header must fail");
@@ -149,13 +152,24 @@ async function main() {
 
   // 3. Integration adapter edge cases
   {
-    const mem = new MemorySupabase({ contacts: [], companies: [], opportunities: [], activities: [], inquiries: [] });
+    const mem = new MemorySupabase({
+      contacts: [],
+      companies: [],
+      opportunities: [],
+      activities: [],
+      inquiries: [],
+    });
     const db = mem.client as Parameters<typeof ingestWhatsAppMessage>[0];
 
     // Empty body WhatsApp message — must reject
     let rejected = false;
     try {
-      await ingestWhatsAppMessage(db, { messageId: "wamid.1", fromPhoneNumber: "+15551234567", body: "", timestamp: new Date().toISOString() });
+      await ingestWhatsAppMessage(db, {
+        messageId: "wamid.1",
+        fromPhoneNumber: "+15551234567",
+        body: "",
+        timestamp: new Date().toISOString(),
+      });
     } catch (err) {
       rejected = true;
       const msg = err instanceof Error ? err.message : String(err);
@@ -178,11 +192,23 @@ async function main() {
     const invalidContacts: HubSpotRawContact[] = [
       { id: "hs-invalid", properties: { firstname: "No", lastname: "ContactInfo" } },
     ];
-    const invalidSummary = await importHubSpotBatch(db, { contacts: invalidContacts, deals: [] });
-    assert.equal(invalidSummary.contactsSkipped, 1, "Contact with no email and no phone must be skipped");
+    const invalidSummary = await importHubSpotBatch(
+      db,
+      { contacts: invalidContacts, deals: [] },
+      "system@test.invalid",
+    );
+    assert.equal(
+      invalidSummary.contactsSkipped,
+      1,
+      "Contact with no email and no phone must be skipped",
+    );
 
     // Completely empty import batch — must succeed with zero counts
-    const emptySummary = await importHubSpotBatch(db, { contacts: [], deals: [] });
+    const emptySummary = await importHubSpotBatch(
+      db,
+      { contacts: [], deals: [] },
+      "system@test.invalid",
+    );
     assert.equal(emptySummary.contactsTotal, 0);
     assert.equal(emptySummary.dealsTotal, 0);
     assert.equal(emptySummary.errors.length, 0);
@@ -190,7 +216,13 @@ async function main() {
 
   // 4. Concurrent duplicate WhatsApp events — idempotency
   {
-    const mem = new MemorySupabase({ contacts: [], companies: [], opportunities: [], activities: [], inquiries: [] });
+    const mem = new MemorySupabase({
+      contacts: [],
+      companies: [],
+      opportunities: [],
+      activities: [],
+      inquiries: [],
+    });
     const db = mem.client as Parameters<typeof ingestWhatsAppMessage>[0];
 
     const duplicatePayload: WhatsAppIncomingMessagePayload = {
@@ -207,13 +239,18 @@ async function main() {
     // Both must resolve (no crash), and both must reference same contact
     assert.ok(r1.contact?.id, "First duplicate must resolve contact");
     assert.ok(r2.contact?.id, "Second duplicate must resolve contact");
-    assert.equal(r1.contact.id, r2.contact.id, "Duplicate payload must resolve to identical contact ID");
-    // Contact table must not have duplicates
-    const contactRows = mem.rows("contacts");
-    const uniqueSourceIds = new Set(contactRows.map((r) => r.source_record_id));
     assert.equal(
-      uniqueSourceIds.size,
+      r1.contact.id,
+      r2.contact.id,
+      "Duplicate payload must resolve to identical contact ID",
+    );
+    // Contact table must not have duplicates. Phone-only identity (no
+    // sourceRecordId, no email — this is what a real WhatsApp payload looks
+    // like) now dedupes through findCanonicalContactByPhone.
+    const contactRows = mem.rows("contacts");
+    assert.equal(
       contactRows.length,
+      1,
       "No duplicate contacts must be created from duplicate events",
     );
   }
@@ -226,52 +263,73 @@ async function main() {
 
     // Null id request (notification-style) — must still respond without crashing
     const nullIdReq: McpJsonRpcRequest = { jsonrpc: "2.0", id: null, method: "ping" };
-    const nullIdRes = await handleMcpRequest(nullIdReq, ctx);
+    const nullIdRes = (await handleMcpRequest(nullIdReq, ctx))!;
     assert.equal(nullIdRes.id, null, "Null id must be echoed back");
     assert.ok(!nullIdRes.error, "Ping with null id must not error");
 
     // Unknown resource URI — must return INVALID_PARAMS, not crash
     const badResourceReq: McpJsonRpcRequest = {
-      jsonrpc: "2.0", id: 99, method: "resources/read",
+      jsonrpc: "2.0",
+      id: 99,
+      method: "resources/read",
       params: { uri: "revenue-os://nonexistent/path" },
     };
-    const badResourceRes = await handleMcpRequest(badResourceReq, ctx);
+    const badResourceRes = (await handleMcpRequest(badResourceReq, ctx))!;
     assert.equal(badResourceRes.error?.code, MCP_ERROR_CODES.INVALID_PARAMS);
 
     // Unknown prompt name — must return INVALID_PARAMS
     const badPromptReq: McpJsonRpcRequest = {
-      jsonrpc: "2.0", id: 100, method: "prompts/get",
+      jsonrpc: "2.0",
+      id: 100,
+      method: "prompts/get",
       params: { name: "nonexistent_prompt" },
     };
-    const badPromptRes = await handleMcpRequest(badPromptReq, ctx);
+    const badPromptRes = (await handleMcpRequest(badPromptReq, ctx))!;
     assert.equal(badPromptRes.error?.code, MCP_ERROR_CODES.INVALID_PARAMS);
 
     // Empty tool name — must return INVALID_PARAMS (not 500)
     const emptyToolReq: McpJsonRpcRequest = {
-      jsonrpc: "2.0", id: 101, method: "tools/call",
+      jsonrpc: "2.0",
+      id: 101,
+      method: "tools/call",
       params: { name: "" },
     };
-    const emptyToolRes = await handleMcpRequest(emptyToolReq, ctx);
+    const emptyToolRes = (await handleMcpRequest(emptyToolReq, ctx))!;
     assert.equal(emptyToolRes.error?.code, MCP_ERROR_CODES.INVALID_PARAMS);
 
-    // Unregistered tool name — must return error (module/tool not found), not crash
+    // Unregistered tool name — per MCP spec, a tool's own failure (including
+    // "no such tool") is a normal tools/call result with isError: true content,
+    // not a JSON-RPC-level error. A JSON-RPC error here would look to the model
+    // like the protocol itself broke, not like its tool call failed.
     const unknownToolReq: McpJsonRpcRequest = {
-      jsonrpc: "2.0", id: 102, method: "tools/call",
+      jsonrpc: "2.0",
+      id: 102,
+      method: "tools/call",
       params: { name: "delete_all_data", arguments: {} },
     };
-    const unknownToolRes = await handleMcpRequest(unknownToolReq, ctx);
-    assert.ok(unknownToolRes.error, "Unknown tool must return an error response");
-    // Must not be a hard 500 — must be INTERNAL_ERROR or INVALID_PARAMS
+    const unknownToolRes = (await handleMcpRequest(unknownToolReq, ctx))!;
+    assert.equal(
+      unknownToolRes.error,
+      undefined,
+      "Unknown tool must not be a transport-level error",
+    );
+    const unknownToolResult = unknownToolRes.result as {
+      content: Array<{ type: string; text: string }>;
+      isError: boolean;
+    };
+    assert.equal(unknownToolResult.isError, true, "Unknown tool must be reported as isError: true");
     assert.ok(
-      [MCP_ERROR_CODES.INTERNAL_ERROR, MCP_ERROR_CODES.INVALID_PARAMS].includes(unknownToolRes.error.code),
-      `Unknown tool must return INTERNAL_ERROR or INVALID_PARAMS, got: ${unknownToolRes.error.code}`,
+      unknownToolResult.content[0]?.text,
+      "Unknown tool result must explain the failure in its content",
     );
 
     // notifications/initialized — must return ok, not crash (it's a one-way notification)
     const initNotifReq: McpJsonRpcRequest = {
-      jsonrpc: "2.0", id: 103, method: "notifications/initialized",
+      jsonrpc: "2.0",
+      id: 103,
+      method: "notifications/initialized",
     };
-    const initNotifRes = await handleMcpRequest(initNotifReq, ctx);
+    const initNotifRes = (await handleMcpRequest(initNotifReq, ctx))!;
     assert.ok(!initNotifRes.error, "notifications/initialized must not error");
   }
 

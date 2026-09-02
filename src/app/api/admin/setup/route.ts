@@ -26,6 +26,11 @@ import {
   setupNextRun,
 } from "@/lib/revenue-os/setup-status";
 import { listRevenueAiCapabilities } from "@/lib/revenue-os/ai-tools";
+import {
+  handleMcpRequest,
+  MCP_REVENUE_OS_PROMPTS,
+  MCP_REVENUE_OS_RESOURCES,
+} from "@/lib/revenue-os/mcp-server";
 import { resolveOpenRouterCredential } from "@/lib/ai/openrouter-credentials";
 
 interface SourceRunRow {
@@ -70,6 +75,23 @@ export async function GET() {
     configured("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET") &&
     isGoogleTokenEncryptionKeyConfigured();
   const revenueAiCapabilities = listRevenueAiCapabilities();
+  // A real probe, not a hardcoded "ready": dispatch tools/list through the
+  // exact handler /api/mcp and every tenant MCP endpoint use.
+  let mcpProbeStatus: SetupCapability["status"] = "action";
+  let mcpProbeToolCount = 0;
+  try {
+    const mcpProbe = await handleMcpRequest(
+      { jsonrpc: "2.0", id: "setup-probe", method: "tools/list" },
+      { supabase, actorEmail: "setup-check@internal" },
+    );
+    const probeTools = (mcpProbe?.result as { tools?: unknown[] } | undefined)?.tools;
+    if (Array.isArray(probeTools) && probeTools.length > 0) {
+      mcpProbeStatus = "ready";
+      mcpProbeToolCount = probeTools.length;
+    }
+  } catch {
+    mcpProbeStatus = "action";
+  }
   const openRouterCredential = supabaseConfigured
     ? await resolveOpenRouterCredential(supabase).catch(() => null)
     : null;
@@ -562,10 +584,13 @@ export async function GET() {
       id: "mcp_server",
       group: "ai",
       label: "Model Context Protocol (MCP) server",
-      description: `Active MCP JSON-RPC 2.0 server exposing ${revenueAiCapabilities.length} registered AI tools, 3 live bounded resources, and 4 operator prompt workflows to Claude Desktop, Claude Code, ChatGPT, Cursor, and Antigravity.`,
+      description:
+        mcpProbeStatus === "ready"
+          ? `A live tools/list probe confirmed the MCP JSON-RPC 2.0 server, exposing ${mcpProbeToolCount} registered AI tools, ${MCP_REVENUE_OS_RESOURCES.length} live bounded resources, and ${MCP_REVENUE_OS_PROMPTS.length} operator prompt workflows to Claude Desktop, Claude Code, ChatGPT, Cursor, and Antigravity.`
+          : "A live tools/list probe against the MCP JSON-RPC 2.0 server did not return a tool list. Check server logs before connecting an external assistant.",
       accomplishes:
         "Enables external AI assistants to safely query bounded workspace state and stage proposals in action_queue without direct database writes.",
-      status: "ready",
+      status: mcpProbeStatus,
       required: false,
       keys: ["REVENUE_OS_API_KEY", "/api/mcp", "scripts/revenue-os-mcp.ts"],
       nextRun: setupNextRun("config"),

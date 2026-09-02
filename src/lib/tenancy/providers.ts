@@ -5,7 +5,7 @@ import { ACCELERATE_TENANT_ID, type TenantSystemContext } from "@/lib/tenancy/co
 
 export async function resolveTenantProviderSecrets(
   tenantSlug: string,
-  provider: "resend" | "calendly" | "whatsapp" | "hubspot",
+  provider: "resend" | "calendly" | "whatsapp" | "hubspot" | "mcp",
 ) {
   const platform = createPlatformServiceRoleClient(`provider-resolver:${provider}`);
   const { data: tenant } = await platform

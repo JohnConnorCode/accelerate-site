@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import Link from "@/components/admin/AdminLink";
 import {
@@ -38,7 +39,11 @@ import { fetchJson } from "@/lib/admin/fetchJson";
 import { toast } from "@/lib/admin/useToast";
 import type { IntegrationCatalog, IntegrationView } from "@/lib/revenue-os/integrations";
 import type { IntegrationStatus } from "@/lib/revenue-os/integration-registry";
-import { REVENUE_OS_MODULES, type RevenueOSModule, type ModuleCategory } from "@/lib/revenue-os/modules";
+import {
+  REVENUE_OS_MODULES,
+  type RevenueOSModule,
+  type ModuleCategory,
+} from "@/lib/revenue-os/modules";
 import { cn } from "@/lib/utils";
 import { TenantProviderControls } from "@/components/admin/TenantProviderControls";
 
@@ -393,7 +398,17 @@ function ProviderCard({
   );
 }
 
-function ModuleCard({ module }: { module: RevenueOSModule }) {
+function ModuleCard({
+  module,
+  enabled,
+  pending,
+  onToggle,
+}: {
+  module: RevenueOSModule;
+  enabled: boolean;
+  pending: boolean;
+  onToggle: (moduleId: string, enabled: boolean) => void;
+}) {
   const categoryLabels: Record<ModuleCategory, string> = {
     revenue: "Revenue Operations",
     delivery: "Delivery & Fulfillment",
@@ -435,9 +450,31 @@ function ModuleCard({ module }: { module: RevenueOSModule }) {
               </p>
             </div>
           </div>
-          <span className="shrink-0 rounded-lg bg-black/[0.035] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.08em] text-[var(--admin-muted)] dark:bg-white/[0.05]">
-            {module.isCore ? "Always Active" : "Enabled"}
-          </span>
+          {module.isCore ? (
+            <span className="shrink-0 rounded-lg bg-black/[0.035] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.08em] text-[var(--admin-muted)] dark:bg-white/[0.05]">
+              Always Active
+            </span>
+          ) : (
+            <button
+              type="button"
+              role="switch"
+              aria-checked={enabled}
+              aria-label={`${enabled ? "Disable" : "Enable"} ${module.name}`}
+              disabled={pending}
+              onClick={() => onToggle(module.id, !enabled)}
+              className={cn(
+                "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-60",
+                enabled ? "bg-emerald-600" : "bg-black/[0.15] dark:bg-white/[0.18]",
+              )}
+            >
+              <span
+                className={cn(
+                  "inline-block size-4.5 transform rounded-full bg-white shadow transition-transform",
+                  enabled ? "translate-x-6" : "translate-x-1",
+                )}
+              />
+            </button>
+          )}
         </div>
 
         <p className="admin-copy mt-4 text-pretty text-sm leading-6">{module.description}</p>
@@ -481,10 +518,15 @@ function ModuleCard({ module }: { module: RevenueOSModule }) {
 
 export default function IntegrationsPage() {
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const integrationsQuery = useAdminQuery<IntegrationCatalog>(
     ["admin", "integrations"],
     "/api/admin/integrations",
   );
+  const modulesQuery = useAdminQuery<{
+    modules: string[];
+    overrides: Partial<Record<string, boolean>>;
+  }>(["admin", "tenant-modules"], "/api/admin/tenant/modules");
   const data = integrationsQuery.data ?? null;
   const loading = integrationsQuery.isPending;
   const error = integrationsQuery.error?.message || "";
@@ -493,6 +535,34 @@ export default function IntegrationsPage() {
   const [moduleFilter, setModuleFilter] = useState<string>("all");
   const [query, setQuery] = useState("");
   const [googleSyncSource, setGoogleSyncSource] = useState<GoogleSyncSource | null>(null);
+  const [pendingModuleId, setPendingModuleId] = useState<string | null>(null);
+
+  const enabledModuleIds = useMemo(
+    () => new Set(modulesQuery.data?.modules ?? REVENUE_OS_MODULES.map((mod) => mod.id)),
+    [modulesQuery.data],
+  );
+
+  const toggleModule = useCallback(
+    async (moduleId: string, enabled: boolean) => {
+      setPendingModuleId(moduleId);
+      try {
+        await fetchJson("/api/admin/tenant/modules", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ moduleId, enabled }),
+        });
+        await queryClient.invalidateQueries({ queryKey: ["admin", "tenant-modules"] });
+        toast.success(`${enabled ? "Enabled" : "Disabled"} module`);
+      } catch (toggleError) {
+        toast.error(
+          toggleError instanceof Error ? toggleError.message : "The module could not be updated.",
+        );
+      } finally {
+        setPendingModuleId(null);
+      }
+    },
+    [queryClient],
+  );
   const googleResult =
     searchParams.get("google_connected") === "1"
       ? googleResultMessages.connected
@@ -559,13 +629,7 @@ export default function IntegrationsPage() {
         moduleFilter === mod.category;
       const matchesQuery =
         !needle ||
-        [
-          mod.name,
-          mod.description,
-          mod.category,
-          ...(mod.routes ?? []),
-          ...(mod.aiToolNames ?? []),
-        ]
+        [mod.name, mod.description, mod.category, ...(mod.routes ?? []), ...(mod.aiToolNames ?? [])]
           .join(" ")
           .toLowerCase()
           .includes(needle);
@@ -584,10 +648,26 @@ export default function IntegrationsPage() {
   const moduleFilters = [
     { id: "all", label: "All Modules", count: REVENUE_OS_MODULES.length },
     { id: "core", label: "Core", count: REVENUE_OS_MODULES.filter((m) => m.isCore).length },
-    { id: "pluggable", label: "Pluggable", count: REVENUE_OS_MODULES.filter((m) => !m.isCore).length },
-    { id: "revenue", label: "Revenue", count: REVENUE_OS_MODULES.filter((m) => m.category === "revenue").length },
-    { id: "delivery", label: "Delivery", count: REVENUE_OS_MODULES.filter((m) => m.category === "delivery").length },
-    { id: "intelligence", label: "AI & Context", count: REVENUE_OS_MODULES.filter((m) => m.category === "intelligence").length },
+    {
+      id: "pluggable",
+      label: "Pluggable",
+      count: REVENUE_OS_MODULES.filter((m) => !m.isCore).length,
+    },
+    {
+      id: "revenue",
+      label: "Revenue",
+      count: REVENUE_OS_MODULES.filter((m) => m.category === "revenue").length,
+    },
+    {
+      id: "delivery",
+      label: "Delivery",
+      count: REVENUE_OS_MODULES.filter((m) => m.category === "delivery").length,
+    },
+    {
+      id: "intelligence",
+      label: "AI & Context",
+      count: REVENUE_OS_MODULES.filter((m) => m.category === "intelligence").length,
+    },
   ];
 
   return (
@@ -884,7 +964,13 @@ export default function IntegrationsPage() {
             {modules.length ? (
               <section className="grid items-start gap-4 xl:grid-cols-2">
                 {modules.map((mod) => (
-                  <ModuleCard key={mod.id} module={mod} />
+                  <ModuleCard
+                    key={mod.id}
+                    module={mod}
+                    enabled={mod.isCore || enabledModuleIds.has(mod.id)}
+                    pending={pendingModuleId === mod.id}
+                    onToggle={toggleModule}
+                  />
                 ))}
               </section>
             ) : (

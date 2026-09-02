@@ -153,6 +153,7 @@
     "verify:tenant-lifecycle": "node scripts/verify-tenant-lifecycle.mjs",
     "verify:tenant-user-readiness": "node --env-file=.env.local scripts/verify-tenant-user-readiness.mjs",
     "verify:tenant-production-isolation": "node --env-file=.env.local scripts/verify-tenant-production-isolation.mjs",
+    "verify:mcp-tenant-isolation": "NODE_OPTIONS=--conditions=react-server npx tsx --env-file=.env.local scripts/verify-mcp-tenant-isolation.ts",
     "verify:tenant-providers": "npx tsx scripts/verify-tenant-providers.ts",
     "verify:tenant-cutover": "node scripts/verify-tenant-cutover-readiness.mjs",
     "test:tenant-cutover": "node scripts/test-tenant-cutover-readiness.mjs",

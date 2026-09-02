@@ -2,13 +2,15 @@
 /**
  * Standalone Stdio Model Context Protocol (MCP) Server Runner
  *
- * Usage with Claude Desktop or Claude Code:
+ * Usage with Claude Desktop or Claude Code (see docs/self-hosting/MCP-SETUP.md
+ * for the full guide, including why --conditions=react-server is required):
  * {
  *   "mcpServers": {
  *     "revenue-os": {
  *       "command": "npx",
  *       "args": ["tsx", "scripts/revenue-os-mcp.ts"],
  *       "env": {
+ *         "NODE_OPTIONS": "--conditions=react-server",
  *         "ADMIN_EMAIL": "john@acceleratewith.us",
  *         "NEXT_PUBLIC_SUPABASE_URL": "...",
  *         "SUPABASE_SERVICE_ROLE_KEY": "..."
@@ -16,18 +18,23 @@
  *     }
  *   }
  * }
+ *
+ * This must not call createServerSupabaseClient(): that function reads
+ * next/headers' cookies(), which throws outside a Next.js request scope, and
+ * this process runs as a plain Node child process launched by the MCP
+ * client, never inside one. createServiceRoleClient(accelerateSystemContext)
+ * reads SUPABASE_SERVICE_ROLE_KEY directly instead, which is also the
+ * variable this file's own docs above already told an operator to set.
  */
 import readline from "node:readline";
-import { createServerSupabaseClient } from "../src/lib/supabase/server";
-import {
-  handleMcpRequest,
-  type McpJsonRpcRequest,
-} from "../src/lib/revenue-os/mcp-server";
+import { createServiceRoleClient } from "../src/lib/supabase/server";
+import { accelerateSystemContext } from "../src/lib/tenancy/context";
+import { handleMcpRequest, type McpJsonRpcRequest } from "../src/lib/revenue-os/mcp-server";
 import { tenant } from "../src/config/tenant";
 
 async function main() {
   process.stderr.write("[revenue-os-mcp] Initializing MCP stdio bridge...\n");
-  const supabase = await createServerSupabaseClient();
+  const supabase = createServiceRoleClient(accelerateSystemContext("mcp-stdio"));
   const actorEmail = process.env.ADMIN_EMAIL || tenant.founder.email;
 
   const context = {
@@ -52,7 +59,9 @@ async function main() {
     try {
       const request = JSON.parse(trimmed) as McpJsonRpcRequest;
       const response = await handleMcpRequest(request, context);
-      process.stdout.write(JSON.stringify(response) + "\n");
+      // A true notification (no id member) returns null and must not write
+      // any response line at all, per JSON-RPC 2.0.
+      if (response !== null) process.stdout.write(JSON.stringify(response) + "\n");
     } catch (err) {
       process.stderr.write(`[revenue-os-mcp] Error processing line: ${err}\n`);
       const errorResponse = {

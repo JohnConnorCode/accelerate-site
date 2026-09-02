@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { createPlatformServiceRoleClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/server";
 import { resolveTenantProviderSecrets } from "@/lib/tenancy/providers";
 import { runWithTenantRequestContext } from "@/lib/tenancy/context";
 import { importHubSpotBatch } from "@/lib/revenue-os/integration-adapters";
+import { tenant } from "@/config/tenant";
 import type { HubSpotRawContact, HubSpotRawDeal } from "@/lib/revenue-os/integration-adapters";
 
 export const runtime = "nodejs";
@@ -83,7 +84,10 @@ export async function POST(
   }
 
   return runWithTenantRequestContext(provider.context, async () => {
-    const supabase = createPlatformServiceRoleClient("hubspot-webhook");
+    // Tenant-bound, not the unbound platform client: every insert/select this
+    // adapter makes must carry provider.context.tenantId, or a contact/deal
+    // imported here lands with no tenant_id at all.
+    const supabase = createServiceRoleClient(provider.context);
 
     // HubSpot webhooks only emit change notifications (objectId + subscriptionType).
     // We batch by type and import the minimal contact/deal shapes we have from the event.
@@ -118,10 +122,11 @@ export async function POST(
       return NextResponse.json({ received: true, imported: 0, reason: "no actionable properties" });
     }
 
-    const summary = await importHubSpotBatch(supabase, {
-      contacts: filteredContacts,
-      deals: filteredDeals,
-    });
+    const summary = await importHubSpotBatch(
+      supabase,
+      { contacts: filteredContacts, deals: filteredDeals },
+      tenant.founder.systemActorEmail,
+    );
 
     return NextResponse.json({
       received: true,

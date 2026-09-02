@@ -101,6 +101,9 @@ export async function POST(request: NextRequest) {
             surface: "admin_command_stream",
             conversationId: turn.conversationId,
             pageContext,
+            tenantConfig: {
+              modules: (auth.tenant.config?.modules as Partial<Record<string, boolean>>) ?? {},
+            },
             signal: request.signal,
             onRunStarted: (event) => send({ type: "run_started", ...event }),
             onAssistantDelta: (delta) => send({ type: "assistant_delta", delta }),

@@ -88,7 +88,7 @@ async function main() {
     method: "initialize",
     params: { clientInfo: { name: "claude-desktop", version: "0.1.0" } },
   };
-  const initRes = await handleMcpRequest(initReq, context);
+  const initRes = (await handleMcpRequest(initReq, context))!;
   assert.equal(initRes.jsonrpc, "2.0");
   assert.equal(initRes.id, 1);
   const initResult = initRes.result as InitResult;
@@ -102,9 +102,12 @@ async function main() {
     id: 2,
     method: "tools/list",
   };
-  const toolsRes = await handleMcpRequest(toolsReq, context);
+  const toolsRes = (await handleMcpRequest(toolsReq, context))!;
   const toolsResult = toolsRes.result as ToolsListResult;
-  assert.ok(Array.isArray(toolsResult.tools) && toolsResult.tools.length >= 10, "Tools list must return registered tools");
+  assert.ok(
+    Array.isArray(toolsResult.tools) && toolsResult.tools.length >= 10,
+    "Tools list must return registered tools",
+  );
   assert.ok(toolsResult.tools.some((t) => t.name === "get_today_snapshot"));
   assert.ok(toolsResult.tools.some((t) => t.name === "search_pipeline"));
   assert.ok(toolsResult.tools.some((t) => t.name === "search_contacts"));
@@ -119,7 +122,7 @@ async function main() {
     id: 3,
     method: "resources/list",
   };
-  const resListRes = await handleMcpRequest(resListReq, context);
+  const resListRes = (await handleMcpRequest(resListReq, context))!;
   const resListResult = resListRes.result as ResourcesListResult;
   assert.ok(Array.isArray(resListResult.resources) && resListResult.resources.length >= 2);
   assert.ok(resListResult.resources.some((r) => r.uri === "revenue-os://today/snapshot"));
@@ -130,11 +133,15 @@ async function main() {
     method: "resources/read",
     params: { uri: "revenue-os://system/modules" },
   };
-  const resReadRes = await handleMcpRequest(resReadReq, context);
+  const resReadRes = (await handleMcpRequest(resReadReq, context))!;
   const resReadResult = resReadRes.result as ResourceReadResult;
   assert.ok(resReadResult.contents[0]?.text);
-  const parsedModuleDoc = JSON.parse(resReadResult.contents[0].text) as { activeModules: unknown[] };
-  assert.ok(Array.isArray(parsedModuleDoc.activeModules) && parsedModuleDoc.activeModules.length > 0);
+  const parsedModuleDoc = JSON.parse(resReadResult.contents[0].text) as {
+    activeModules: unknown[];
+  };
+  assert.ok(
+    Array.isArray(parsedModuleDoc.activeModules) && parsedModuleDoc.activeModules.length > 0,
+  );
 
   // 4. Prompts listing and getting
   const promptsListReq: McpJsonRpcRequest = {
@@ -142,7 +149,7 @@ async function main() {
     id: 5,
     method: "prompts/list",
   };
-  const promptsListRes = await handleMcpRequest(promptsListReq, context);
+  const promptsListRes = (await handleMcpRequest(promptsListReq, context))!;
   const promptsResult = promptsListRes.result as PromptsListResult;
   assert.ok(Array.isArray(promptsResult.prompts) && promptsResult.prompts.length >= 4);
   assert.ok(promptsResult.prompts.some((p) => p.name === "daily_operator_triage"));
@@ -154,7 +161,7 @@ async function main() {
     method: "prompts/get",
     params: { name: "triage_inbox_conversations" },
   };
-  const promptGetRes = await handleMcpRequest(promptGetReq, context);
+  const promptGetRes = (await handleMcpRequest(promptGetReq, context))!;
   const promptGetResult = promptGetRes.result as PromptGetResult;
   assert.ok(promptGetResult.messages[0]?.content?.text);
   assert.match(promptGetResult.messages[0].content.text, /search_conversations/);
@@ -165,7 +172,7 @@ async function main() {
     id: 7,
     method: "unknown/method",
   };
-  const unknownMethodRes = await handleMcpRequest(unknownMethodReq, context);
+  const unknownMethodRes = (await handleMcpRequest(unknownMethodReq, context))!;
   assert.equal(unknownMethodRes.error?.code, MCP_ERROR_CODES.METHOD_NOT_FOUND);
 
   const missingToolReq: McpJsonRpcRequest = {
@@ -174,8 +181,33 @@ async function main() {
     method: "tools/call",
     params: { name: "" },
   };
-  const missingToolRes = await handleMcpRequest(missingToolReq, context);
+  const missingToolRes = (await handleMcpRequest(missingToolReq, context))!;
   assert.equal(missingToolRes.error?.code, MCP_ERROR_CODES.INVALID_PARAMS);
+
+  // 9. True JSON-RPC notification (no id member at all): per spec, must not
+  // receive a response body. handleMcpRequest signals this by returning null;
+  // the two HTTP routes turn that into a 204 with no body.
+  const trueNotification = {
+    jsonrpc: "2.0",
+    method: "notifications/initialized",
+  } as McpJsonRpcRequest;
+  const trueNotificationRes = await handleMcpRequest(trueNotification, context);
+  assert.equal(
+    trueNotificationRes,
+    null,
+    "A true notification (no id) must return null, not a response body",
+  );
+
+  // A client that mistakenly attaches an id to the same method still gets a
+  // normal response, for compatibility.
+  const notifWithId: McpJsonRpcRequest = {
+    jsonrpc: "2.0",
+    id: 999,
+    method: "notifications/initialized",
+  };
+  const notifWithIdRes = (await handleMcpRequest(notifWithId, context))!;
+  assert.ok(notifWithIdRes, "notifications/initialized with an id must still respond");
+  assert.equal(notifWithIdRes.id, 999);
 
   console.log("All MCP Server tests passed successfully!");
 }

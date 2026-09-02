@@ -124,6 +124,7 @@ export default function AdminShell({
   workspaceName,
   isPlatformAdmin,
   navLayoutOverride = null,
+  moduleConfig = null,
 }: {
   children: React.ReactNode;
   demoScenarioId: DemoScenarioId | null;
@@ -132,6 +133,10 @@ export default function AdminShell({
   workspaceName: string;
   isPlatformAdmin: boolean;
   navLayoutOverride?: LayoutDoc | null;
+  /** The request-scoped tenant's real module configuration. Falls back to the
+   * static compile-time default (every optional module enabled) only when
+   * unavailable, e.g. a demo scenario, which never reads real tenant config. */
+  moduleConfig?: { modules?: Partial<Record<string, boolean>> } | null;
 }) {
   const pathname = usePathname();
   const pathnameScenario = pathname.match(/^\/demo\/command-center\/([^/]+)/)?.[1] || "";
@@ -152,9 +157,9 @@ export default function AdminShell({
         ),
       }))
       .filter((section) => section.links.length > 0);
-    const moduleFiltered = filterNavSectionsByTenant(roleFiltered, tenant);
+    const moduleFiltered = filterNavSectionsByTenant(roleFiltered, moduleConfig ?? tenant);
     return applyNavLayoutOverride(moduleFiltered, navLayoutOverride);
-  }, [isPlatformAdmin, scenarioId, navLayoutOverride]);
+  }, [isPlatformAdmin, scenarioId, navLayoutOverride, moduleConfig]);
   const visibleNavLinks = useMemo(
     () => visibleNavSections.flatMap((section) => section.links),
     [visibleNavSections],

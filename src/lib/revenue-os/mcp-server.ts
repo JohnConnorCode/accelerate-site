@@ -83,7 +83,8 @@ export const MCP_REVENUE_OS_RESOURCES = [
 export const MCP_REVENUE_OS_PROMPTS = [
   {
     name: "daily_operator_triage",
-    description: "Review today's operator queue, outstanding action proposals, and unread conversations.",
+    description:
+      "Review today's operator queue, outstanding action proposals, and unread conversations.",
     arguments: [],
   },
   {
@@ -92,19 +93,22 @@ export const MCP_REVENUE_OS_PROMPTS = [
     arguments: [
       {
         name: "stage",
-        description: "Optional specific pipeline stage to analyze (e.g., inquiry, qualified, proposal, negotiation)",
+        description:
+          "Optional specific pipeline stage to analyze (e.g., inquiry, qualified, proposal, negotiation)",
         required: false,
       },
     ],
   },
   {
     name: "reactivate_stale_deals",
-    description: "Find stale opportunities and draft grounded recovery outreach for founder approval.",
+    description:
+      "Find stale opportunities and draft grounded recovery outreach for founder approval.",
     arguments: [],
   },
   {
     name: "triage_inbox_conversations",
-    description: "Inspect unread conversations, analyze customer intent, and draft grounded reply proposals for founder review.",
+    description:
+      "Inspect unread conversations, analyze customer intent, and draft grounded reply proposals for founder review.",
     arguments: [],
   },
 ] as const;
@@ -115,7 +119,7 @@ export const MCP_REVENUE_OS_PROMPTS = [
 export async function handleMcpRequest(
   request: McpJsonRpcRequest,
   context: McpServerContext,
-): Promise<McpJsonRpcResponse> {
+): Promise<McpJsonRpcResponse | null> {
   const { id, method, params = {} } = request;
 
   try {
@@ -141,7 +145,10 @@ export async function handleMcpRequest(
       }
 
       case "notifications/initialized": {
-        // Notification, no response required
+        // A true JSON-RPC 2.0 notification carries no id member at all and
+        // MUST NOT receive a response. A client that mistakenly attaches an
+        // id still gets one back, for compatibility.
+        if (id === undefined) return null;
         return { jsonrpc: "2.0", id, result: { initialized: true } };
       }
 
@@ -178,30 +185,54 @@ export async function handleMcpRequest(
           };
         }
 
-        const execution = await executeRegisteredRevenueTool(
-          {
-            supabase: context.supabase,
-            actorEmail: context.actorEmail,
-            toolPack: context.toolPack,
-            tenantConfig: context.tenantConfig,
-          },
-          toolName,
-          toolArguments,
-        );
+        // A tool's own failure (bad input, a validation guard, a domain-service
+        // rejection) is not a transport-level error: MCP's spec has the model see
+        // it as a normal tools/call result with isError: true, so the model can
+        // read the message and retry, instead of a JSON-RPC error that looks like
+        // the protocol itself broke.
+        try {
+          const execution = await executeRegisteredRevenueTool(
+            {
+              supabase: context.supabase,
+              actorEmail: context.actorEmail,
+              toolPack: context.toolPack,
+              tenantConfig: context.tenantConfig,
+            },
+            toolName,
+            toolArguments,
+          );
 
-        return {
-          jsonrpc: "2.0",
-          id,
-          result: {
-            content: [
-              {
-                type: "text",
-                text: JSON.stringify(execution.output, null, 2),
-              },
-            ],
-            isError: false,
-          },
-        };
+          return {
+            jsonrpc: "2.0",
+            id,
+            result: {
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify(execution.output, null, 2),
+                },
+              ],
+              isError: false,
+            },
+          };
+        } catch (toolError) {
+          return {
+            jsonrpc: "2.0",
+            id,
+            result: {
+              content: [
+                {
+                  type: "text",
+                  text:
+                    toolError instanceof Error
+                      ? toolError.message
+                      : `${toolName} failed for an unknown reason.`,
+                },
+              ],
+              isError: true,
+            },
+          };
+        }
       }
 
       case "resources/list": {
@@ -257,11 +288,15 @@ export async function handleMcpRequest(
                 {
                   uri,
                   mimeType: "application/json",
-                  text: JSON.stringify({
-                    contract: "revenue-os-knowledge.v1",
-                    grounding: "strict",
-                    untrustedDataBoundary: true,
-                  }, null, 2),
+                  text: JSON.stringify(
+                    {
+                      contract: "revenue-os-knowledge.v1",
+                      grounding: "strict",
+                      untrustedDataBoundary: true,
+                    },
+                    null,
+                    2,
+                  ),
                 },
               ],
             },
