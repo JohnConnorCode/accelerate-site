@@ -559,6 +559,23 @@ export async function GET() {
       action: { label: "Inspect AI controls", href: "/admin/ai?view=capabilities" },
     },
     {
+      id: "mcp_server",
+      group: "ai",
+      label: "Model Context Protocol (MCP) server",
+      description: `Active MCP JSON-RPC 2.0 server exposing ${revenueAiCapabilities.length} registered AI tools, 3 live bounded resources, and 4 operator prompt workflows to Claude Desktop, Claude Code, ChatGPT, Cursor, and Antigravity.`,
+      accomplishes:
+        "Enables external AI assistants to safely query bounded workspace state and stage proposals in action_queue without direct database writes.",
+      status: "ready",
+      required: false,
+      keys: ["REVENUE_OS_API_KEY", "/api/mcp", "scripts/revenue-os-mcp.ts"],
+      nextRun: setupNextRun("config"),
+      action: {
+        label: "Open MCP Guide",
+        href: "https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/MCP-SETUP.md",
+        external: true,
+      },
+    },
+    {
       id: "contact_importer",
       group: "ai",
       label: "Approval-gated Contact Import",
