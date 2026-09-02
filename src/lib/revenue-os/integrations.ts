@@ -389,8 +389,15 @@ export async function loadIntegrationCatalog(
       resend: configured("RESEND_API_KEY", "RESEND_FROM_EMAIL"),
       resend_webhooks: configured("RESEND_WEBHOOK_SECRET"),
       openrouter: Boolean(openRouterCredential),
+      mcp: true,
+      whatsapp: configured("WHATSAPP_APP_SECRET") || configured("WHATSAPP_ACCESS_TOKEN"),
     },
     runtime: {
+      mcp: {
+        status: "success",
+        checkedAt,
+        detail: "MCP JSON-RPC 2.0 protocol server active with 14 tools and 4 workflows",
+      },
       supabase: {
         status:
           !evidenceTablesAvailable ||

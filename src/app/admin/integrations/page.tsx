@@ -16,12 +16,14 @@ import {
   FolderOpen,
   ExternalLink,
   FileText,
+  Layers,
   MailCheck,
   Mail,
   MessageSquare,
   Network,
   RefreshCw,
   Search,
+  Shield,
   TriangleAlert,
   WalletCards,
   Workflow,
@@ -36,6 +38,7 @@ import { fetchJson } from "@/lib/admin/fetchJson";
 import { toast } from "@/lib/admin/useToast";
 import type { IntegrationCatalog, IntegrationView } from "@/lib/revenue-os/integrations";
 import type { IntegrationStatus } from "@/lib/revenue-os/integration-registry";
+import { REVENUE_OS_MODULES, type RevenueOSModule, type ModuleCategory } from "@/lib/revenue-os/modules";
 import { cn } from "@/lib/utils";
 import { TenantProviderControls } from "@/components/admin/TenantProviderControls";
 
@@ -390,6 +393,92 @@ function ProviderCard({
   );
 }
 
+function ModuleCard({ module }: { module: RevenueOSModule }) {
+  const categoryLabels: Record<ModuleCategory, string> = {
+    revenue: "Revenue Operations",
+    delivery: "Delivery & Fulfillment",
+    intelligence: "AI & Intelligence",
+    sources: "Ingress & Sources",
+    system: "System & Core",
+  };
+
+  return (
+    <AdminSurface padding="none" className="overflow-hidden">
+      <div className="p-4 sm:p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex min-w-0 items-start gap-3.5">
+            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] shadow-sm dark:bg-white/[0.065]">
+              {module.isCore ? (
+                <Shield className="size-[19px] text-emerald-600 dark:text-emerald-400" />
+              ) : (
+                <Layers className="size-[19px] text-[var(--admin-ink)]" />
+              )}
+            </span>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-balance text-base font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">
+                  {module.name}
+                </h2>
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em]",
+                    module.isCore
+                      ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                      : "bg-sky-500/10 text-sky-700 dark:text-sky-300",
+                  )}
+                >
+                  {module.isCore ? "Core Module" : "Pluggable Module"}
+                </span>
+              </div>
+              <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--admin-muted)]">
+                {categoryLabels[module.category]}
+              </p>
+            </div>
+          </div>
+          <span className="shrink-0 rounded-lg bg-black/[0.035] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.08em] text-[var(--admin-muted)] dark:bg-white/[0.05]">
+            {module.isCore ? "Always Active" : "Enabled"}
+          </span>
+        </div>
+
+        <p className="admin-copy mt-4 text-pretty text-sm leading-6">{module.description}</p>
+
+        {module.routes && module.routes.length > 0 && (
+          <div className="mt-4">
+            <p className="admin-eyebrow mb-1.5 text-[10px]">Managed Admin Routes</p>
+            <div className="flex flex-wrap gap-1.5">
+              {module.routes.map((route) => (
+                <Link
+                  key={route}
+                  href={route}
+                  className="inline-flex items-center gap-1 rounded-md bg-black/[0.04] px-2 py-1 font-mono text-[10px] text-[var(--admin-ink)] transition-colors hover:bg-black/[0.08] dark:bg-white/[0.06] dark:hover:bg-white/[0.12]"
+                >
+                  {route} <ArrowRight className="size-2.5 opacity-60" />
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {module.aiToolNames && module.aiToolNames.length > 0 && (
+          <div className="mt-3.5">
+            <p className="admin-eyebrow mb-1.5 text-[10px]">Controlled AI Tools</p>
+            <div className="flex flex-wrap gap-1.5">
+              {module.aiToolNames.map((tool) => (
+                <span
+                  key={tool}
+                  className="rounded-md bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] font-medium text-emerald-700 dark:text-emerald-300"
+                >
+                  {tool}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </AdminSurface>
+  );
+}
+
 export default function IntegrationsPage() {
   const searchParams = useSearchParams();
   const integrationsQuery = useAdminQuery<IntegrationCatalog>(
@@ -399,7 +488,9 @@ export default function IntegrationsPage() {
   const data = integrationsQuery.data ?? null;
   const loading = integrationsQuery.isPending;
   const error = integrationsQuery.error?.message || "";
+  const [activeTab, setActiveTab] = useState<"providers" | "modules">("providers");
   const [filter, setFilter] = useState<Filter>("all");
+  const [moduleFilter, setModuleFilter] = useState<string>("all");
   const [query, setQuery] = useState("");
   const [googleSyncSource, setGoogleSyncSource] = useState<GoogleSyncSource | null>(null);
   const googleResult =
@@ -458,6 +549,30 @@ export default function IntegrationsPage() {
     });
   }, [data, filter, query]);
 
+  const modules = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    return REVENUE_OS_MODULES.filter((mod) => {
+      const matchesFilter =
+        moduleFilter === "all" ||
+        (moduleFilter === "core" && mod.isCore) ||
+        (moduleFilter === "pluggable" && !mod.isCore) ||
+        moduleFilter === mod.category;
+      const matchesQuery =
+        !needle ||
+        [
+          mod.name,
+          mod.description,
+          mod.category,
+          ...(mod.routes ?? []),
+          ...(mod.aiToolNames ?? []),
+        ]
+          .join(" ")
+          .toLowerCase()
+          .includes(needle);
+      return matchesFilter && matchesQuery;
+    });
+  }, [moduleFilter, query]);
+
   const filters: Array<{ id: Filter; label: string; count?: number }> = [
     { id: "all", label: "All", count: data?.summary.total },
     { id: "operational", label: "Ready", count: data?.summary.ready },
@@ -466,11 +581,20 @@ export default function IntegrationsPage() {
     { id: "planned", label: "Planned", count: data?.summary.planned },
   ];
 
+  const moduleFilters = [
+    { id: "all", label: "All Modules", count: REVENUE_OS_MODULES.length },
+    { id: "core", label: "Core", count: REVENUE_OS_MODULES.filter((m) => m.isCore).length },
+    { id: "pluggable", label: "Pluggable", count: REVENUE_OS_MODULES.filter((m) => !m.isCore).length },
+    { id: "revenue", label: "Revenue", count: REVENUE_OS_MODULES.filter((m) => m.category === "revenue").length },
+    { id: "delivery", label: "Delivery", count: REVENUE_OS_MODULES.filter((m) => m.category === "delivery").length },
+    { id: "intelligence", label: "AI & Context", count: REVENUE_OS_MODULES.filter((m) => m.category === "intelligence").length },
+  ];
+
   return (
     <div className="space-y-7 pb-10">
       <PageHeader
-        title="Integrations"
-        subtitle="One capability map for the tools that power the Command Center. Ready means behavior was verified, not merely that a key exists."
+        title="Integrations & Modules"
+        subtitle="One unified management console for providers, AI agents, and pluggable business capabilities."
         actions={
           <button
             type="button"
@@ -483,6 +607,45 @@ export default function IntegrationsPage() {
           </button>
         }
       />
+
+      <div className="flex gap-2 border-b border-[var(--admin-border)] pb-2" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === "providers"}
+          onClick={() => {
+            setActiveTab("providers");
+            setQuery("");
+          }}
+          className={cn(
+            "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-[background-color,color] duration-150",
+            activeTab === "providers"
+              ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]"
+              : "text-[var(--admin-muted)] hover:bg-black/[0.04] hover:text-[var(--admin-ink)] dark:hover:bg-white/[0.055]",
+          )}
+        >
+          <Workflow className="size-3.5" />
+          Provider Integrations ({data?.summary.total ?? 0})
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === "modules"}
+          onClick={() => {
+            setActiveTab("modules");
+            setQuery("");
+          }}
+          className={cn(
+            "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-[background-color,color] duration-150",
+            activeTab === "modules"
+              ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]"
+              : "text-[var(--admin-muted)] hover:bg-black/[0.04] hover:text-[var(--admin-ink)] dark:hover:bg-white/[0.055]",
+          )}
+        >
+          <Layers className="size-3.5" />
+          Pluggable Modules ({REVENUE_OS_MODULES.length})
+        </button>
+      </div>
 
       {googleResult && (
         <AdminSurface tone={googleResult.tone} className="flex items-start gap-3" role="status">
@@ -498,7 +661,7 @@ export default function IntegrationsPage() {
         </AdminSurface>
       )}
 
-      <TenantProviderControls />
+      {activeTab === "providers" && <TenantProviderControls />}
 
       <AdminReadBody
         loading={loading}
@@ -509,7 +672,7 @@ export default function IntegrationsPage() {
         loadingFallback={<LoadingSkeleton variant="page" />}
         label="Loading integrations"
       >
-        {data && (
+        {data && activeTab === "providers" && (
           <>
             {!data.evidenceAvailable && (
               <AdminSurface tone="attention" className="flex items-start gap-3">
@@ -647,6 +810,101 @@ export default function IntegrationsPage() {
               Registry {data.registryVersion} · evidence generated{" "}
               {new Date(data.generatedAt).toLocaleString()}
             </p>
+          </>
+        )}
+
+        {activeTab === "modules" && (
+          <>
+            <section className="grid gap-3 sm:grid-cols-3">
+              <AdminSurface padding="md">
+                <p className="admin-eyebrow">Total Modules</p>
+                <p className="mt-3 font-mono text-3xl font-semibold tabular-nums tracking-[-0.045em] text-[var(--admin-ink)]">
+                  {REVENUE_OS_MODULES.length}
+                </p>
+                <p className="admin-copy mt-1 text-xs">Modular capabilities available</p>
+              </AdminSurface>
+              <AdminSurface padding="md">
+                <p className="admin-eyebrow">Core Modules</p>
+                <p className="mt-3 font-mono text-3xl font-semibold tabular-nums tracking-[-0.045em] text-emerald-600 dark:text-emerald-300">
+                  {REVENUE_OS_MODULES.filter((m) => m.isCore).length}
+                </p>
+                <p className="admin-copy mt-1 text-xs">Immutable system backbone</p>
+              </AdminSurface>
+              <AdminSurface padding="md">
+                <p className="admin-eyebrow">Pluggable Business Modules</p>
+                <p className="mt-3 font-mono text-3xl font-semibold tabular-nums tracking-[-0.045em] text-sky-600 dark:text-sky-300">
+                  {REVENUE_OS_MODULES.filter((m) => !m.isCore).length}
+                </p>
+                <p className="admin-copy mt-1 text-xs">Tenant-configurable plugins</p>
+              </AdminSurface>
+            </section>
+
+            <AdminSurface
+              padding="sm"
+              className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between"
+            >
+              <div
+                className="flex max-w-full gap-1 overflow-x-auto pb-1 lg:pb-0"
+                role="tablist"
+                aria-label="Module category filter"
+              >
+                {moduleFilters.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={moduleFilter === item.id}
+                    onClick={() => setModuleFilter(item.id)}
+                    className={cn(
+                      "inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]",
+                      moduleFilter === item.id
+                        ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]"
+                        : "text-[var(--admin-muted)] hover:bg-black/[0.04] hover:text-[var(--admin-ink)] dark:hover:bg-white/[0.055]",
+                    )}
+                  >
+                    <span>{item.label}</span>
+                    <span className="font-mono text-[9px] tabular-nums opacity-65">
+                      {item.count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <label className="relative block w-full lg:w-72">
+                <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-[var(--admin-muted)]" />
+                <span className="sr-only">Search modules</span>
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Search modules or routes"
+                  className="min-h-11 w-full rounded-xl bg-black/[0.035] pl-9 pr-3 text-sm text-[var(--admin-ink)] outline-none shadow-[var(--admin-shadow-border)] transition-[box-shadow] duration-150 placeholder:text-[var(--admin-muted)] focus:shadow-[var(--admin-shadow-border-hover)] dark:bg-white/[0.045]"
+                />
+              </label>
+            </AdminSurface>
+
+            {modules.length ? (
+              <section className="grid items-start gap-4 xl:grid-cols-2">
+                {modules.map((mod) => (
+                  <ModuleCard key={mod.id} module={mod} />
+                ))}
+              </section>
+            ) : (
+              <AdminSurface className="py-14 text-center">
+                <Search className="mx-auto size-5 text-[var(--admin-muted)]" />
+                <p className="mt-3 text-sm font-semibold text-[var(--admin-ink)]">
+                  No modules match this filter
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setModuleFilter("all");
+                    setQuery("");
+                  }}
+                  className="mt-3 min-h-10 text-xs font-semibold underline underline-offset-4"
+                >
+                  Clear filters
+                </button>
+              </AdminSurface>
+            )}
           </>
         )}
       </AdminReadBody>
