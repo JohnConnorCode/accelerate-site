@@ -686,27 +686,27 @@ export default function ConversationsPage() {
                             </div>
                           </div>
                         ) : (
-                          <div className="admin-composer">
-                            <textarea
-                              value={reply}
-                              onChange={(event) => setReply(event.target.value)}
-                              rows={3}
-                              placeholder="Write a reply or notes. Nothing sends without confirmation."
-                              className="admin-composer-field text-xs"
-                            />
-                            <div className="flex items-center justify-between border-t border-[var(--admin-border)] pt-2">
-                              <span className="text-[11px] text-[var(--admin-muted)]">
-                                Replies create audited receipts on the activity ledger.
-                              </span>
+                          <div>
+                            <div className="admin-composer">
+                              <textarea
+                                value={reply}
+                                onChange={(event) => setReply(event.target.value)}
+                                rows={3}
+                                placeholder="Write a reply or notes. Nothing sends without confirmation."
+                                className="admin-composer-field text-xs"
+                              />
                               <button
                                 type="button"
                                 onClick={() => setReviewing(true)}
                                 disabled={!reply.trim()}
-                                className="admin-composer-action px-3.5 py-1.5 text-xs font-semibold"
+                                className="admin-composer-action px-3.5 text-xs font-semibold"
                               >
                                 Review & Send
                               </button>
                             </div>
+                            <p className="mt-2 px-1 text-[11px] text-[var(--admin-muted)]">
+                              Replies create audited receipts on the activity ledger.
+                            </p>
                           </div>
                         )}
                       </footer>

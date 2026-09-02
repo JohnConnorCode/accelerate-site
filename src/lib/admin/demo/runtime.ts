@@ -471,10 +471,21 @@ function conversations(pack: DemoScenarioPack, state: DemoState, selected: strin
       metadata: { contact_email: contact.email },
     };
   });
+  // Mirrors the stats loop in src/lib/revenue-os/conversations.ts so the demo
+  // tab counts (Open/Waiting/Resolved/Archived/Unread) aren't stuck at zero
+  // while the list beside them is visibly full.
+  const stats = {
+    total: rows.length,
+    open: rows.filter((row) => row.status === "open").length,
+    waiting: rows.filter((row) => row.status === "waiting").length,
+    resolved: rows.filter((row) => row.status === "resolved").length,
+    archived: rows.filter((row) => row.status === "archived").length,
+    unread: rows.filter((row) => row.unread_count > 0).length,
+  };
   const active = selected
     ? pack.conversations.find((item) => item.id === selected)
     : pack.conversations[0];
-  if (!active) return { schemaReady: true, conversations: rows, messages: [] };
+  if (!active) return { schemaReady: true, conversations: rows, stats, messages: [] };
   const contact = person(pack, active.personId);
   const messages = [
     ...active.messages,
@@ -496,7 +507,7 @@ function conversations(pack: DemoScenarioPack, state: DemoState, selected: strin
     received_at: item.direction === "inbound" ? item.at : null,
     created_at: item.at,
   }));
-  return { schemaReady: true, conversations: rows, messages };
+  return { schemaReady: true, conversations: rows, stats, messages };
 }
 function analytics(pack: DemoScenarioPack, state: DemoState) {
   const rows = opportunityRows(pack, state);
