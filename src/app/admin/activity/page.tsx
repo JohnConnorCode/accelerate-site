@@ -81,7 +81,9 @@ function changeSummary(entry: AuditHistoryEntry) {
     .filter((key) => before[key] !== after[key])
     .slice(0, 4);
   if (keys.length)
-    return keys.map((key) => `${key} ${before[key] ?? "—"} → ${after[key] ?? "—"}`).join(" · ");
+    return keys
+      .map((key) => `${key} ${before[key] ?? "none"} → ${after[key] ?? "none"}`)
+      .join(" · ");
   return (
     scalarEntries(entry.after)
       .slice(0, 4)
