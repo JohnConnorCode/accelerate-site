@@ -706,12 +706,157 @@ const registry: AiToolRegistration[] = [
         reasoning: value(input, "reasoning"),
       }),
   },
+  {
+    name: "search_contacts",
+    description: "Search contacts and associated company details by name, email, or phone.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        query: { type: "string" },
+        email: { type: "string" },
+        phone: { type: "string" },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.contact-search",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const query = (value(input, "query") || "").replace(/[,%]/g, "");
+      const email = value(input, "email");
+      const phone = value(input, "phone");
+      let builder = supabase
+        .from("contacts")
+        .select("id,full_name,primary_email,phone,title,company_id,created_at")
+        .limit(25);
+      if (email) {
+        builder = builder.ilike("primary_email", `%${email}%`);
+      } else if (phone) {
+        builder = builder.ilike("phone", `%${phone}%`);
+      } else if (query) {
+        builder = builder.or(`full_name.ilike.%${query}%,primary_email.ilike.%${query}%`);
+      }
+      const { data, error } = await builder;
+      if (error) throw new Error(error.message);
+      return (data ?? []).map((row) => ({
+        id: row.id,
+        name: row.full_name,
+        email: row.primary_email,
+        phone: row.phone,
+        title: row.title,
+        companyId: row.company_id,
+        createdAt: row.created_at,
+      }));
+    },
+  },
+  {
+    name: "search_conversations",
+    description: "Search omnichannel conversations and inbound messages by status or unread state.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        status: { type: "string", enum: ["open", "resolved", "archived"] },
+        unreadOnly: { type: "boolean" },
+        query: { type: "string" },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.conversations-search",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      let builder = supabase
+        .from("conversations")
+        .select("id,subject,channel,status,unread_count,last_message_at,contact_id,opportunity_id")
+        .order("last_message_at", { ascending: false, nullsFirst: false })
+        .limit(25);
+      if (typeof input.status === "string") {
+        builder = builder.eq("status", input.status);
+      }
+      if (input.unreadOnly === true) {
+        builder = builder.gt("unread_count", 0);
+      }
+      const { data, error } = await builder;
+      if (error) throw new Error(error.message);
+      return data ?? [];
+    },
+  },
+  {
+    name: "get_pending_actions",
+    description: "List pending proposals currently in the action_queue awaiting founder review.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.action-queue-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }) => {
+      const { data, error } = await supabase
+        .from("action_queue")
+        .select("id,action_type,title,description,urgency,reasoning,created_at,expires_at")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(25);
+      if (error) throw new Error(error.message);
+      return data ?? [];
+    },
+  },
+  {
+    name: "propose_conversation_reply",
+    description: "Stage a reply to an active conversation thread for founder approval. This never sends directly.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        conversationId: { type: "string" },
+        body: { type: "string" },
+        reasoning: { type: "string" },
+      },
+      required: ["conversationId", "body", "reasoning"],
+      additionalProperties: false,
+    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.action-queue",
+    connectionRequirement: "none",
+    impact: "external_action",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }, input) => {
+      const conversationId = value(input, "conversationId")!;
+      const body = value(input, "body")!;
+      const reasoning = value(input, "reasoning") || "";
+      const { data: conv } = await supabase
+        .from("conversations")
+        .select("id,subject,channel")
+        .eq("id", conversationId)
+        .maybeSingle();
+
+      return proposeAction(supabase, {
+        actionType: "send_gmail_reply",
+        title: `Reply to: ${conv?.subject || "Conversation"}`,
+        description: previewOf(body),
+        urgency: "normal",
+        payload: { conversationId, body, reasoning },
+        reasoning,
+        sourceContext: "admin_ai",
+        entityType: "conversation",
+        entityId: conversationId,
+        dedupeKey: `ai-reply:${conversationId}:${body.slice(0, 80)}`,
+        proposedBy: actorEmail,
+        expiresAt: new Date(Date.now() + 86400000).toISOString(),
+      });
+    },
+  },
 ];
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
     "get_today_snapshot",
     "search_pipeline",
+    "search_contacts",
+    "get_pending_actions",
     "get_record_timeline",
     "search_knowledge_base",
     "propose_task",
@@ -721,6 +866,8 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   pipeline: [
     "get_today_snapshot",
     "search_pipeline",
+    "search_contacts",
+    "get_pending_actions",
     "get_record_timeline",
     "search_knowledge_base",
     "propose_task",
@@ -729,10 +876,14 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   outreach: [
     "get_today_snapshot",
     "search_pipeline",
+    "search_contacts",
+    "search_conversations",
+    "get_pending_actions",
     "get_record_timeline",
     "search_knowledge_base",
     "propose_task",
     "propose_send_email",
+    "propose_conversation_reply",
     "propose_campaign_activation",
   ],
 };

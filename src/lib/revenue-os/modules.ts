@@ -54,7 +54,14 @@ export const REVENUE_OS_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["today", "inbox", "activity"],
     routes: ["/admin/today", "/admin/inbox", "/admin/activity"],
-    aiToolNames: ["get_today_snapshot", "get_record_timeline", "propose_task", "propose_layout_change", "propose_founder_note"],
+    aiToolNames: [
+      "get_today_snapshot",
+      "get_record_timeline",
+      "get_pending_actions",
+      "propose_task",
+      "propose_layout_change",
+      "propose_founder_note",
+    ],
   },
   {
     id: "core-pipeline",
@@ -76,7 +83,7 @@ export const REVENUE_OS_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["conversations"],
     routes: ["/admin/conversations"],
-    aiToolNames: ["propose_send_email"],
+    aiToolNames: ["propose_send_email", "search_conversations", "propose_conversation_reply"],
   },
   {
     id: "core-contacts",
@@ -87,6 +94,7 @@ export const REVENUE_OS_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["contacts"],
     routes: ["/admin/contacts"],
+    aiToolNames: ["search_contacts"],
   },
   {
     id: "core-intelligence",

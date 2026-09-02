@@ -102,6 +102,11 @@ export const MCP_REVENUE_OS_PROMPTS = [
     description: "Find stale opportunities and draft grounded recovery outreach for founder approval.",
     arguments: [],
   },
+  {
+    name: "triage_inbox_conversations",
+    description: "Inspect unread conversations, analyze customer intent, and draft grounded reply proposals for founder review.",
+    arguments: [],
+  },
 ] as const;
 
 /**
@@ -308,6 +313,11 @@ export async function handleMcpRequest(
           systemInstructions =
             "Identify lost or stale opportunities from the pipeline. Propose grounded, personalized reactivation outreach " +
             "for founder review using propose_send_email.";
+        } else if (promptName === "triage_inbox_conversations") {
+          systemInstructions =
+            "Call search_conversations with unreadOnly: true to inspect unread messages. " +
+            "For each unread conversation, evaluate the context with get_record_timeline and search_knowledge_base, " +
+            "then draft a suggested reply using propose_conversation_reply for founder approval.";
         }
 
         return {

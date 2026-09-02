@@ -104,9 +104,13 @@ async function main() {
   };
   const toolsRes = await handleMcpRequest(toolsReq, context);
   const toolsResult = toolsRes.result as ToolsListResult;
-  assert.ok(Array.isArray(toolsResult.tools) && toolsResult.tools.length >= 7, "Tools list must return registered tools");
+  assert.ok(Array.isArray(toolsResult.tools) && toolsResult.tools.length >= 10, "Tools list must return registered tools");
   assert.ok(toolsResult.tools.some((t) => t.name === "get_today_snapshot"));
   assert.ok(toolsResult.tools.some((t) => t.name === "search_pipeline"));
+  assert.ok(toolsResult.tools.some((t) => t.name === "search_contacts"));
+  assert.ok(toolsResult.tools.some((t) => t.name === "search_conversations"));
+  assert.ok(toolsResult.tools.some((t) => t.name === "get_pending_actions"));
+  assert.ok(toolsResult.tools.some((t) => t.name === "propose_conversation_reply"));
   assert.ok(toolsResult.tools.some((t) => t.name === "propose_task"));
 
   // 3. Resources listing and reading
@@ -140,18 +144,20 @@ async function main() {
   };
   const promptsListRes = await handleMcpRequest(promptsListReq, context);
   const promptsResult = promptsListRes.result as PromptsListResult;
-  assert.ok(Array.isArray(promptsResult.prompts) && promptsResult.prompts.length >= 2);
+  assert.ok(Array.isArray(promptsResult.prompts) && promptsResult.prompts.length >= 4);
   assert.ok(promptsResult.prompts.some((p) => p.name === "daily_operator_triage"));
+  assert.ok(promptsResult.prompts.some((p) => p.name === "triage_inbox_conversations"));
 
   const promptGetReq: McpJsonRpcRequest = {
     jsonrpc: "2.0",
     id: 6,
     method: "prompts/get",
-    params: { name: "daily_operator_triage" },
+    params: { name: "triage_inbox_conversations" },
   };
   const promptGetRes = await handleMcpRequest(promptGetReq, context);
   const promptGetResult = promptGetRes.result as PromptGetResult;
   assert.ok(promptGetResult.messages[0]?.content?.text);
+  assert.match(promptGetResult.messages[0].content.text, /search_conversations/);
 
   // 5. Error handling
   const unknownMethodReq: McpJsonRpcRequest = {

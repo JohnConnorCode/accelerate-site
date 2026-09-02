@@ -241,11 +241,15 @@ In Antigravity CLI or IDE, declare Revenue OS in your `~/.gemini/antigravity/con
 | :--- | :--- | :--- |
 | `get_today_snapshot` | Read | Retrieves urgent tasks, pending approvals, and unread inbound messages. |
 | `search_pipeline` | Read | Filter and search opportunities by stage, query, or activity date. |
+| `search_contacts` | Read | Search contacts and associated company details by name, email, or phone. |
+| `search_conversations` | Read | Search omnichannel conversations and inbound messages by status or unread state. |
+| `get_pending_actions` | Read | List pending proposals currently in the `action_queue` awaiting founder review. |
 | `get_record_timeline` | Read | Retrieves chronological activity history for a specific contact or company. |
 | `search_knowledge_base` | Read | Searches Grounding Substrate and founder notes with provenance. |
 | `propose_task` | Proposal | Stages a new task with due date and priority for founder approval. |
 | `propose_stage_change` | Proposal | Stages an opportunity stage movement with required transition notes. |
 | `propose_send_email` | Proposal | Drafts an outbound email with subject and body for founder review. |
+| `propose_conversation_reply` | Proposal | Stages a reply to an active conversation thread for founder approval. |
 | `propose_campaign_activation` | Proposal | Stages campaign state changes. |
 | `propose_founder_note` | Proposal | Stages a founder note attachment to a contact or company record. |
 | `propose_layout_change` | Proposal | Stages workspace layout overrides. |
@@ -265,3 +269,4 @@ In Antigravity CLI or IDE, declare Revenue OS in your `~/.gemini/antigravity/con
 | `daily_operator_triage` | Walks the assistant through evaluating today's priorities and staging necessary follow-ups. |
 | `pipeline_health_check` | Analyzes stuck opportunities or those lacking next actions. |
 | `reactivate_stale_deals` | Identifies stale/lost deals and drafts personalized recovery outreach for founder approval. |
+| `triage_inbox_conversations` | Inspects unread conversations, analyzes context, and drafts suggested replies for founder approval. |
