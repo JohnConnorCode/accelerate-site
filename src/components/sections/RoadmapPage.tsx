@@ -15,6 +15,11 @@ interface RoadmapCard {
 }
 
 const STATUS_ORDER: FeatureStatus[] = ["in_progress", "planned", "blocked", "backlog", "shipped"];
+/** Only the two smallest, most immediately relevant buckets (what's being
+ *  built right now, and what's stuck) stay fully expanded by default. The
+ *  rest are one click away, never hidden, just not forced on every visitor
+ *  before they can reach anything else. */
+const COLLAPSIBLE_STATUSES = new Set<FeatureStatus>(["backlog", "shipped", "planned"]);
 
 function acceptanceLines(card: RoadmapCard): string[] {
   return card.acceptance_criteria
@@ -28,10 +33,26 @@ function categoryLabel(card: RoadmapCard): string | null {
   return category ? category.slice("category:".length) : null;
 }
 
-function RoadmapCardRow({ card }: { card: RoadmapCard }) {
+function RoadmapCardBody({ card }: { card: RoadmapCard }) {
+  return (
+    <>
+      <p className="mt-2 text-sm text-body">{card.description}</p>
+      <ul className="mt-4 space-y-1.5">
+        {acceptanceLines(card).map((line) => (
+          <li key={line} className="flex gap-2 text-sm text-body">
+            <span aria-hidden className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-current" />
+            {line}
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
+function RoadmapCardHeader({ card }: { card: RoadmapCard }) {
   const category = categoryLabel(card);
   return (
-    <div className="rounded-[20px] border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] bg-[color-mix(in_srgb,var(--fg)_4%,transparent)] p-6">
+    <>
       <div className="flex flex-wrap items-center gap-2">
         {category && (
           <span className="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-white-muted">
@@ -45,16 +66,44 @@ function RoadmapCardRow({ card }: { card: RoadmapCard }) {
       <h3 className="mt-2 font-display text-lg font-semibold tracking-[-0.02em] text-heading">
         {card.title}
       </h3>
-      <p className="mt-2 text-sm text-body">{card.description}</p>
-      <ul className="mt-4 space-y-1.5">
-        {acceptanceLines(card).map((line) => (
-          <li key={line} className="flex gap-2 text-sm text-body">
-            <span aria-hidden className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-current" />
-            {line}
-          </li>
-        ))}
-      </ul>
-    </div>
+    </>
+  );
+}
+
+/**
+ * `collapsible` is for statuses with no natural size limit (today: backlog,
+ * 92 cards and growing, and shipped, the project's full shipped history).
+ * Rendering those in full, unconditionally, is what made this page tens of
+ * thousands of pixels tall the moment the backlog carried more than a
+ * handful of entries — every card's full description and every acceptance
+ * line, all expanded, all the time. Collapsing behind <details> keeps every
+ * word reachable (nothing is summarized or reworded, matching this page's
+ * own stated promise) without forcing a visitor to scroll past all of it to
+ * reach anything else.
+ */
+function RoadmapCardRow({ card, collapsible }: { card: RoadmapCard; collapsible: boolean }) {
+  const className =
+    "rounded-[20px] border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] bg-[color-mix(in_srgb,var(--fg)_4%,transparent)] p-6";
+  if (!collapsible) {
+    return (
+      <div className={className}>
+        <RoadmapCardHeader card={card} />
+        <RoadmapCardBody card={card} />
+      </div>
+    );
+  }
+  return (
+    <details className={`group ${className}`}>
+      <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+        <RoadmapCardHeader card={card} />
+      </summary>
+      <p className="mt-2 text-xs text-white-muted group-open:hidden">
+        Full description and acceptance criteria →
+      </p>
+      <div className="hidden group-open:block">
+        <RoadmapCardBody card={card} />
+      </div>
+    </details>
   );
 }
 
@@ -103,7 +152,11 @@ export function RoadmapPageContent() {
             </AnimateOnScroll>
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
               {list.map((card) => (
-                <RoadmapCardRow key={card.seed_key} card={card} />
+                <RoadmapCardRow
+                  key={card.seed_key}
+                  card={card}
+                  collapsible={COLLAPSIBLE_STATUSES.has(status)}
+                />
               ))}
             </div>
           </Section>
