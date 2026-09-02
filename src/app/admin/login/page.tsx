@@ -21,6 +21,7 @@ function LoginForm() {
   const redirect =
     rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/admin";
   const resetFailed = searchParams.get("error") === "reset_failed";
+  const notConfigured = searchParams.get("error") === "not_configured";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,140 +105,164 @@ function LoginForm() {
             <div className="admin-action-mark mb-7">
               <LockKeyhole className="h-4.5 w-4.5" />
             </div>
-            <p className="admin-eyebrow">Secure access</p>
-            <h1 className="admin-page-title text-[2rem]">
-              {resetMode ? "Reset your password" : "Sign in to operations"}
-            </h1>
-            <p className="admin-copy mb-7 mt-2 text-sm">
-              {resetMode
-                ? "We'll send a secure recovery link to the admin email."
-                : "Use the configured admin account to continue."}
-            </p>
-
-            <div aria-live="polite">
-              {resetFailed && !error && !success && (
-                <p className="text-sm text-error mb-4" role="alert">
-                  Password reset link expired or was invalid. Please try again.
+            {notConfigured ? (
+              <>
+                <p className="admin-eyebrow">Setup needed</p>
+                <h1 className="admin-page-title text-[2rem]">Connect your Supabase project</h1>
+                <p className="admin-copy mb-2 mt-2 text-sm">
+                  This deployment isn&apos;t connected to a Supabase project yet, so there is no
+                  admin account to sign in with.
                 </p>
-              )}
-            </div>
-
-            {resetMode ? (
-              <form onSubmit={handleResetPassword} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-medium text-[var(--admin-muted)] mb-1.5">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    autoComplete="email"
-                    className="admin-field min-h-11"
-                    placeholder={tenant.founder.email}
-                  />
-                </div>
-
-                {error && (
-                  <p className="text-sm text-error" role="alert">
-                    {error}
-                  </p>
-                )}
-                {success && (
-                  <p className="text-sm text-[var(--admin-ink)]" role="status">
-                    {success}
-                  </p>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="admin-action-control w-full cursor-pointer px-4"
-                >
-                  {loading ? (
-                    "Sending…"
-                  ) : (
-                    <>
-                      Send reset link <ArrowRight className="h-3.5 w-3.5" />
-                    </>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setResetMode(false);
-                    setError("");
-                    setSuccess("");
-                  }}
-                  className="min-h-10 w-full cursor-pointer text-sm text-[var(--admin-muted)] transition-colors hover:text-[var(--admin-ink)]"
-                >
-                  Back to sign in
-                </button>
-              </form>
+                <p className="admin-copy mb-7 text-sm">
+                  Follow{" "}
+                  <code className="rounded bg-[var(--admin-surface-muted)] px-1 py-0.5 text-xs">
+                    docs/SELF-HOSTING.md
+                  </code>{" "}
+                  in this repository to create a project, apply migrations, and set{" "}
+                  <code className="rounded bg-[var(--admin-surface-muted)] px-1 py-0.5 text-xs">
+                    ADMIN_EMAIL
+                  </code>
+                  .
+                </p>
+              </>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-medium text-[var(--admin-muted)] mb-1.5">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    autoComplete="email"
-                    className="admin-field min-h-11"
-                    placeholder={tenant.founder.email}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-[var(--admin-muted)] mb-1.5">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    autoComplete="current-password"
-                    className="admin-field min-h-11"
-                    placeholder="Enter password"
-                  />
-                </div>
+              <>
+                <p className="admin-eyebrow">Secure access</p>
+                <h1 className="admin-page-title text-[2rem]">
+                  {resetMode ? "Reset your password" : "Sign in to operations"}
+                </h1>
+                <p className="admin-copy mb-7 mt-2 text-sm">
+                  {resetMode
+                    ? "We'll send a secure recovery link to the admin email."
+                    : "Use the configured admin account to continue."}
+                </p>
 
-                {error && (
-                  <p className="text-sm text-error" role="alert">
-                    {error}
-                  </p>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="admin-action-control w-full cursor-pointer px-4"
-                >
-                  {loading ? (
-                    "Signing in…"
-                  ) : (
-                    <>
-                      Enter Command Center <ArrowRight className="h-3.5 w-3.5" />
-                    </>
+                <div aria-live="polite">
+                  {resetFailed && !error && !success && (
+                    <p className="text-sm text-error mb-4" role="alert">
+                      Password reset link expired or was invalid. Please try again.
+                    </p>
                   )}
-                </button>
+                </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setResetMode(true);
-                    setError("");
-                  }}
-                  className="min-h-10 w-full cursor-pointer text-sm text-[var(--admin-muted)] transition-colors hover:text-[var(--admin-ink)]"
-                >
-                  Forgot password?
-                </button>
-              </form>
+                {resetMode ? (
+                  <form onSubmit={handleResetPassword} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--admin-muted)] mb-1.5">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        autoComplete="email"
+                        className="admin-field min-h-11"
+                        placeholder={tenant.founder.email}
+                      />
+                    </div>
+
+                    {error && (
+                      <p className="text-sm text-error" role="alert">
+                        {error}
+                      </p>
+                    )}
+                    {success && (
+                      <p className="text-sm text-[var(--admin-ink)]" role="status">
+                        {success}
+                      </p>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="admin-action-control w-full cursor-pointer px-4"
+                    >
+                      {loading ? (
+                        "Sending…"
+                      ) : (
+                        <>
+                          Send reset link <ArrowRight className="h-3.5 w-3.5" />
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResetMode(false);
+                        setError("");
+                        setSuccess("");
+                      }}
+                      className="min-h-10 w-full cursor-pointer text-sm text-[var(--admin-muted)] transition-colors hover:text-[var(--admin-ink)]"
+                    >
+                      Back to sign in
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--admin-muted)] mb-1.5">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        autoComplete="email"
+                        className="admin-field min-h-11"
+                        placeholder={tenant.founder.email}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--admin-muted)] mb-1.5">
+                        Password
+                      </label>
+                      <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        autoComplete="current-password"
+                        className="admin-field min-h-11"
+                        placeholder="Enter password"
+                      />
+                    </div>
+
+                    {error && (
+                      <p className="text-sm text-error" role="alert">
+                        {error}
+                      </p>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="admin-action-control w-full cursor-pointer px-4"
+                    >
+                      {loading ? (
+                        "Signing in…"
+                      ) : (
+                        <>
+                          Enter Command Center <ArrowRight className="h-3.5 w-3.5" />
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResetMode(true);
+                        setError("");
+                      }}
+                      className="min-h-10 w-full cursor-pointer text-sm text-[var(--admin-muted)] transition-colors hover:text-[var(--admin-ink)]"
+                    >
+                      Forgot password?
+                    </button>
+                  </form>
+                )}
+              </>
             )}
           </AdminSurface>
           <p className="mt-5 text-center text-[11px] text-[var(--admin-muted)]">

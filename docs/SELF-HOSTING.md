@@ -2,6 +2,8 @@
 
 This guide separates safe local exploration from a connected deployment. Do not point a fork at the original Accelerate database, Vercel project, provider accounts, domains, or customer records.
 
+The fastest path to seeing this running is the Deploy with Vercel button in [README.md](../README.md#quick-start): it needs no environment variables and boots straight to the marketing site and fictional demo. This guide covers the rest, connecting a real workspace, whether you got there through that button or `npm ci && npm run dev` below.
+
 ## 1. Explore locally
 
 ```bash

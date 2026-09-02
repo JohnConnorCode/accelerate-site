@@ -43,6 +43,14 @@ See [Roadmap](#roadmap) below for what's shipped, in progress, and planned next.
 
 ## Quick start
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FJohnConnorCode%2Faccelerate-site&project-name=my-revenue-os&repository-name=my-revenue-os&demo-title=Accelerate%20Revenue%20OS&demo-description=Self-hosted%20revenue%20operations%2C%20CRM%2C%20and%20AI%20workspace&demo-url=https%3A%2F%2Fwww.acceleratewith.us%2Fdemo%2Fcommand-center)
+
+The button deploys with no environment variables required: it boots straight to the public marketing site and the fictional demo, and any admin route redirects to a clearly labeled "connect your Supabase project" screen instead of erroring. Add your own Supabase project's variables in the new Vercel project's settings when you're ready for a real workspace, then follow [Self-hosting](docs/SELF-HOSTING.md).
+
+This repository ships with automatic Git deployments off (`git.deploymentEnabled: false` in `vercel.json`), which exists to keep the maintainer's own production project on a separate prebuilt release path. It carries over to your fork's Vercel project too, so a `git push` after the first deploy won't redeploy until you turn Git deployments back on in your new project's **Settings → Git**.
+
+Or run it locally instead:
+
 Requirements: Node.js 22+, npm 10+, and Git.
 
 ```bash
@@ -99,7 +107,7 @@ Route handlers and UI components are thin adapters, nothing more. Every business
 
 You can explore the same kanban UI the founder uses, populated with representative fictional data, inside any [demo workspace](https://www.acceleratewith.us/demo/command-center) under **System → Feature Board**. The live founder board at `/admin/features` requires authentication, so it isn't publicly browsable.
 
-The near-term priority is a genuine one-click deploy path (`one-click-vercel-deploy` and `guided-first-run-setup` in the manifest): a working workspace straight from this README, with zero terminal steps required.
+The Deploy with Vercel button above ships `one-click-vercel-deploy`. `guided-first-run-setup` is next: an in-product guided flow to connect Supabase and create the first admin account without a terminal, for the deployment above once you're ready to go beyond the demo.
 
 ## Security model
 
