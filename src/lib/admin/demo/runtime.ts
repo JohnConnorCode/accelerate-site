@@ -1045,87 +1045,188 @@ function aiRunDetail(pack: DemoScenarioPack, state: DemoState, runId: string) {
   };
 }
 
+/** Mirrors the `label()` helper in
+ *  src/app/api/admin/revenue-os/ai/capabilities/route.ts so a demo card reads
+ *  identically to the real one. Keep both in sync if either changes. */
+function capabilityLabel(name: string): string {
+  return name
+    .replace(/^get_/, "Read ")
+    .replace(/^search_/, "Search ")
+    .replace(/^propose_/, "Stage ")
+    .replace(/_/g, " ");
+}
+
+/** Kept in sync by hand with the real registry in
+ *  src/lib/revenue-os/ai-tools.ts (AI_TOOL_REGISTRY_VERSION,
+ *  registry, PACK_TOOL_NAMES) since the demo has no server context to read
+ *  it from live. Every real tool is available in the fictional workspace. */
 function aiCapabilities() {
-  const rows = [
+  const rows: Array<
+    [
+      name: string,
+      description: string,
+      impact: "read" | "internal_write" | "external_action",
+      confirmationRequired: boolean,
+      packs: string[],
+      serviceTarget: string,
+    ]
+  > = [
     [
       "get_today_snapshot",
-      "Read today snapshot",
-      "Read the prioritized operator queue and current revenue summary.",
+      "Read the founder's prioritized operator queue and a summary of current revenue state. Returns counts and the top items, not the full database.",
       "read",
       false,
-      ["core"],
+      ["core", "pipeline", "outreach"],
+      "revenue-os.operator-queue",
     ],
     [
       "search_pipeline",
-      "Search pipeline",
-      "Find canonical opportunities by company, stage, or contact.",
+      "Search live opportunities by company or email. Never invent a record or metric.",
       "read",
       false,
-      ["pipeline"],
+      ["core", "pipeline", "outreach"],
+      "revenue-os.pipeline-search",
     ],
     [
       "get_record_timeline",
-      "Read record timeline",
-      "Inspect bounded activity evidence for one canonical record.",
+      "Read the bounded canonical activity timeline for one contact, company, or opportunity. Every item includes its source receipt and occurrence time.",
       "read",
       false,
-      ["core", "pipeline"],
+      ["core", "pipeline", "outreach"],
+      "revenue-os.activity-ledger",
+    ],
+    [
+      "search_knowledge_base",
+      "Query grounded knowledge with provenance across companies, contacts, opportunities, founder notes, and activity timeline. Returns tagged chunks with confidence and recency or refuses cleanly.",
+      "read",
+      false,
+      ["core", "pipeline", "outreach"],
+      "revenue-os.knowledge-retrieval",
+    ],
+    [
+      "search_contacts",
+      "Search contacts and associated company details by name, email, or phone.",
+      "read",
+      false,
+      ["core", "pipeline", "outreach"],
+      "revenue-os.contact-search",
+    ],
+    [
+      "search_conversations",
+      "Search omnichannel conversations and inbound messages by status or unread state.",
+      "read",
+      false,
+      ["outreach"],
+      "revenue-os.conversations-search",
+    ],
+    [
+      "get_pending_actions",
+      "List pending proposals currently in the action_queue awaiting founder review.",
+      "read",
+      false,
+      ["core", "pipeline", "outreach"],
+      "revenue-os.action-queue-read",
     ],
     [
       "propose_task",
-      "Stage task",
-      "Prepare an operator task for founder review.",
+      "Stage a concrete operator task for approval.",
+      "internal_write",
+      true,
+      ["core", "pipeline", "outreach"],
+      "revenue-os.action-queue",
+    ],
+    [
+      "propose_task_update",
+      "Stage a change to an existing task for approval: mark it complete, snooze it to a later date, or edit its title, priority, or due date. Never changes the task directly; the founder approves it from the review queue like every other proposal.",
+      "internal_write",
+      true,
+      ["core", "pipeline", "outreach"],
+      "revenue-os.action-queue",
+    ],
+    [
+      "propose_founder_note",
+      "Stage a founder note for approval. Once approved it is saved as an immutable timeline entry, optionally attached to a contact, company, or opportunity.",
       "internal_write",
       true,
       ["core"],
+      "revenue-os.action-queue",
+    ],
+    [
+      "propose_layout_change",
+      "Stage a reorder or show/hide change to a bounded admin layout region (sidebar navigation or the Today page) for founder approval. Only known ids for the given scope may be referenced; required regions can never be hidden.",
+      "internal_write",
+      true,
+      ["core"],
+      "revenue-os.action-queue",
     ],
     [
       "propose_stage_change",
-      "Stage pipeline change",
-      "Prepare an evidence-backed pipeline movement for review.",
+      "Stage a pipeline movement for founder approval. Evidence must be included.",
       "internal_write",
       true,
       ["pipeline"],
+      "revenue-os.action-queue",
     ],
     [
       "propose_send_email",
-      "Stage email",
-      "Prepare an outbound email without sending it directly.",
+      "Stage an outbound email for founder approval. This never sends directly.",
       "external_action",
       true,
       ["outreach"],
+      "revenue-os.action-queue",
+    ],
+    [
+      "propose_conversation_reply",
+      "Stage a reply to an active conversation thread for founder approval. This never sends directly.",
+      "external_action",
+      true,
+      ["outreach"],
+      "revenue-os.action-queue",
     ],
     [
       "propose_campaign_activation",
-      "Stage campaign activation",
-      "Prepare activation of a reviewed campaign version.",
+      "Stage activation of a reviewed campaign version for founder approval.",
       "external_action",
       true,
       ["outreach"],
+      "revenue-os.action-queue",
     ],
-  ].map(([name, label, description, impact, confirmationRequired, packs]) => ({
-    name,
-    label,
-    description,
-    impact,
-    confirmationRequired,
-    packs,
-    state: "registered_policy",
-    operationalReadiness: "not_evaluated",
-  }));
+  ];
+  const capabilities = rows.map(
+    ([name, description, impact, confirmationRequired, packs, serviceTarget]) => ({
+      name,
+      label: capabilityLabel(name),
+      description,
+      impact,
+      confirmationRequired,
+      packs,
+      serviceTarget,
+      connectionRequirement: "none" as const,
+      state: "available" as const,
+      operationalReadiness: "ready" as const,
+      availabilityReason:
+        "Available through the bounded Revenue OS service; no provider connection is called directly.",
+    }),
+  );
   return {
-    registryVersion: "revenue-os-tools.v2",
-    scope: "registry_policy",
-    readinessEvaluated: false,
-    capabilities: rows,
+    registryVersion: "revenue-os-tools.v4",
+    scope: "runtime_registry",
+    readinessEvaluated: true,
+    capabilities,
     safety: {
-      registeredReads: 3,
-      registeredInternalWrites: 2,
-      registeredExternalActions: 2,
+      registeredReads: capabilities.filter((c) => c.impact === "read").length,
+      registeredInternalWrites: capabilities.filter((c) => c.impact === "internal_write").length,
+      registeredExternalActions: capabilities.filter((c) => c.impact === "external_action").length,
       registeredDestructiveActions: 0,
-      readsMayExecuteDirectly: true,
-      writesRequireApproval: true,
-      externalActionsRequireApproval: true,
+      readsMayExecuteDirectly: capabilities.some(
+        (c) => c.impact === "read" && !c.confirmationRequired,
+      ),
+      writesRequireApproval: capabilities
+        .filter((c) => c.impact === "internal_write")
+        .every((c) => c.confirmationRequired),
+      externalActionsRequireApproval: capabilities
+        .filter((c) => c.impact === "external_action")
+        .every((c) => c.confirmationRequired),
       destructiveActionsAvailable: false,
     },
   };
