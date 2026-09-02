@@ -7,30 +7,30 @@ rediscovering architecture or inventing new write paths.
 If the repo isn't running yet, none of this is reachable: `/admin/features`
 in step 1 below requires a deployed or locally running instance with
 migrations applied and a founder account. Follow
-[docs/SELF-HOSTING.md](docs/SELF-HOSTING.md) first, then come back here.
+[docs/self-hosting/SELF-HOSTING.md](docs/self-hosting/SELF-HOSTING.md) first, then come back here.
 
 ## Read in this order
 
 1. The claimed card in `/admin/features` and its matching entry in
    `scripts/feature-backlog-data.mjs`.
-2. `docs/AGENT-TICKET-RUNBOOK.md` for the pickup, execution, evidence, and handoff
+2. `docs/contributing/AGENT-TICKET-RUNBOOK.md` for the pickup, execution, evidence, and handoff
    procedure.
-3. `docs/FEATURE-BOARD-TAXONOMY.md` before adding, relabeling, promoting, or
+3. `docs/contracts/FEATURE-BOARD-TAXONOMY.md` before adding, relabeling, promoting, or
    reorganizing backlog cards.
-4. `docs/REVENUE-OS-ENGINEERING-CONTRACT.md` for data, automation, AI, security,
+4. `docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md` for data, automation, AI, security,
    and failure invariants.
-5. `docs/MULTI-TENANCY-CONTRACT.md` before changing schema, authorization,
+5. `docs/contracts/MULTI-TENANCY-CONTRACT.md` before changing schema, authorization,
    admin routing, public intake, integrations, jobs, or tenant configuration.
 6. `src/lib/revenue-os/README.md` for authoritative modules and callers.
-7. `docs/REVENUE-OS-SETUP.md` when the ticket touches schema, providers, secrets,
+7. `docs/self-hosting/REVENUE-OS-SETUP.md` when the ticket touches schema, providers, secrets,
    health, or production activation.
-8. `docs/MARKETING-POSITIONING-CONTRACT.md` before changing any public marketing
+8. `docs/contracts/MARKETING-POSITIONING-CONTRACT.md` before changing any public marketing
    copy, metadata, search description, public assistant positioning, or CTA.
-9. `docs/NAVIGATION-RUNTIME-CONTRACT.md` before changing links, history,
+9. `docs/contracts/NAVIGATION-RUNTIME-CONTRACT.md` before changing links, history,
    scroll restoration, route focus, loading states, or page transitions.
-10. `docs/ADMIN-DEMO-CONTRACT.md` before changing either demo, the admin runtime,
+10. `docs/contracts/ADMIN-DEMO-CONTRACT.md` before changing either demo, the admin runtime,
     admin navigation, demo fixtures, or demo QA.
-11. `docs/WORK-MOTION-CONTRACT.md` before changing Work pages, public reveal
+11. `docs/contracts/WORK-MOTION-CONTRACT.md` before changing Work pages, public reveal
     primitives, scroll behavior, or portfolio animation QA.
 
 Run `npm run verify:agent-contract` before implementation. If it fails, repair
@@ -66,7 +66,7 @@ Every capability follows this sequence:
 - Do not create a second roadmap. Newly discovered work becomes a detailed card
   with a stable key, dependencies, starting points, guardrails, acceptance, and
   verification evidence.
-- Keep managed labels inside `docs/FEATURE-BOARD-TAXONOMY.md`: one milestone,
+- Keep managed labels inside `docs/contracts/FEATURE-BOARD-TAXONOMY.md`: one milestone,
   category, phase, and one or two reusable capabilities. Never add one-off labels.
 - Do not mark a card `shipped` until every acceptance item has attached evidence.
   Local success cannot satisfy an acceptance item that explicitly requires

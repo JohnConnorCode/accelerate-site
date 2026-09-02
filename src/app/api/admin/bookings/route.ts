@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireAdminForModule } from "@/lib/admin/module-guard";
 import {
   canonicalStage,
   transitionOpportunity,
@@ -9,7 +9,7 @@ import { OPPORTUNITY_STAGES } from "@/lib/opportunities";
 import { sendNoShowRebookEmail } from "@/lib/email/booking";
 
 export async function GET(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("bookings");
   if (auth instanceof NextResponse) return auth;
 
   const days = Math.min(
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("bookings");
   if (auth instanceof NextResponse) return auth;
   const body = (await request.json()) as {
     id?: string;

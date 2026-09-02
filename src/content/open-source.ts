@@ -24,6 +24,8 @@ export const OPEN_SOURCE_PATHS: OpenSourcePath[] = [
       "The complete source, MIT licensed, no seat limits or usage tiers",
       "CRM, pipeline, inbox, campaigns, proposals, and analytics in one application",
       "AI operations with approval gates and an audit trail, using your own OpenRouter key",
+      "A Model Context Protocol server, so Claude Desktop, Claude Code, ChatGPT, Cursor, and Antigravity reach the same tools under the same approval rules",
+      "Pluggable modules a workspace turns on and off, extendable from a manifest without forking",
       "37 ordered database migrations and full documentation for tenancy and security",
       "A public roadmap, with acceptance criteria written out for every planned change",
     ],
@@ -60,8 +62,8 @@ export interface OpenSourceStat {
     against the repo before changing a number here. */
 export const OPEN_SOURCE_STATS: OpenSourceStat[] = [
   { value: "37", label: "Ordered migrations", detail: "Every schema change, in sequence" },
-  { value: "101", label: "Automated checks", detail: "Test and verification scripts" },
-  { value: "94K", label: "Lines of TypeScript", detail: "Across 534 source files" },
+  { value: "134", label: "Automated checks", detail: "Test and verification scripts" },
+  { value: "101K", label: "Lines of TypeScript", detail: "Across 561 source files" },
   { value: "MIT", label: "Fully open license", detail: "No seat limits, no usage tiers" },
 ];
 
@@ -73,6 +75,7 @@ export const TECH_STACK = [
   "Supabase",
   "TanStack Query",
   "OpenRouter",
+  "Model Context Protocol",
   "Resend",
   "Playwright",
 ];
@@ -91,7 +94,17 @@ export const openSourceFaqs: FAQ[] = [
   {
     question: "What does self-hosting actually require?",
     answer:
-      "Node.js, a Supabase project you control, and running the 37 documented migrations. A one-click deploy path that removes the terminal step entirely is on the public roadmap now.",
+      "Node.js, a Supabase project you control, and running the 37 documented migrations. There is also a Deploy with Vercel button in the README that needs no environment variables at all: it boots straight to the marketing site and the fictional demo, then points you at the setup path when you are ready to connect a real workspace.",
+  },
+  {
+    question: "Can I point Claude or ChatGPT at my own workspace?",
+    answer:
+      "Yes. The repository ships a Model Context Protocol server, with setup guides for Claude Desktop, Claude Code, ChatGPT's native Connectors, Cursor, and Antigravity. Read tools return bounded queries. Anything that would change a record, complete or reschedule a task, or send a message becomes a staged proposal in the approval queue instead, so an outside assistant works under the same rules the interface does.",
+  },
+  {
+    question: "Can I add my own features without forking?",
+    answer:
+      "Yes. A module registers from a JSON manifest that declares its navigation, routes, and AI tools, and the build validates it. Your module inherits the approval queue, the audit ledger, and per-workspace enable and disable without any change to core. The contributing guide covers modules, integration adapters, and AI tools.",
   },
   {
     question: "Can I self-host it now and bring you in later?",
@@ -101,7 +114,7 @@ export const openSourceFaqs: FAQ[] = [
   {
     question: "How mature is the codebase?",
     answer:
-      "It runs a real, working agency today: 101 automated test and verification scripts, ordered migrations with a documented rollback path, tenant isolation enforced at the database level, and a public commit history you can read before you decide anything.",
+      "It runs a real, working agency today. Every automated test and verification script in the repository runs against it, migrations are ordered with a documented rollback path, tenant isolation is enforced at the database level, and the commit history is public to read before you decide anything.",
   },
   {
     question: "Why not just build this myself?",

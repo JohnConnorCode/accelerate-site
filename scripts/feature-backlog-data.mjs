@@ -272,7 +272,7 @@ function taxonomyLabels({ key, workstream, phase, status, labels }) {
 
 // Everything outside the delivery circuit keeps its full specification in Later.
 // Shelving is not deletion or a judgement about value. Nothing is claimed until
-// an owner claims it, and the WIP limit remains two cards.
+// an owner claims it, and the WIP limit is enforced in validateFeatureBacklog.
 function card({
   key,
   title,
@@ -320,8 +320,8 @@ function card({
       SECOND_BRAIN_IMPLEMENTATIONS[key]
         ? `Implementation cards: ${SECOND_BRAIN_IMPLEMENTATIONS[key].map((implementationKey) => `card:${implementationKey}`).join(", ")}. This phase card is a roll-up and must not duplicate those services.`
         : null,
-      "Taxonomy contract: docs/FEATURE-BOARD-TAXONOMY.md. Do not add one-off labels; use one category, milestone, phase, and up to two allowlisted capabilities.",
-      "Architecture contract: docs/REVENUE-OS-ENGINEERING-CONTRACT.md. Agent procedure: docs/AGENT-TICKET-RUNBOOK.md. Module ownership: src/lib/revenue-os/README.md.",
+      "Taxonomy contract: docs/contracts/FEATURE-BOARD-TAXONOMY.md. Do not add one-off labels; use one category, milestone, phase, and up to two allowlisted capabilities.",
+      "Architecture contract: docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md. Agent procedure: docs/contributing/AGENT-TICKET-RUNBOOK.md. Module ownership: src/lib/revenue-os/README.md.",
       `Required verification: ${verification || "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; the closest scoped service/API/Playwright test named by this card; npm run build and git diff --check before Shipped. Data or automation changes must also prove invalid input, duplicate/replay, truthful failure receipts, and safe retry. UI changes require reviewed desktop/mobile screenshots."}`,
       "Stop conditions: pause and create or update a dependency card before adding a new provider, weakening authorization, performing a destructive migration, expanding real-recipient automation, or bypassing an authoritative domain service.",
       ...([
@@ -364,7 +364,7 @@ export const featureBacklog = [
       "Do not delete or rename legacy tables. A table existing is schema verification, not proof that an integration is operational.",
     labels: ["database", "verified"],
     evidence:
-      "2026-08-16: production service-role queries and Setup Center schema checks verified the canonical Revenue OS and Feature Board tables. The 90-card manifest re-verifies with zero drift. Analytics, money-first outreach, Email Studio, and Contact Import migrations were applied through the Keychain-backed CLI path, rerun idempotently, and verified object-by-object in production. Ordered migrations and agent-owned execution are documented in CLAUDE.md, AGENTS.md, and docs/REVENUE-OS-SETUP.md.",
+      "2026-08-16: production service-role queries and Setup Center schema checks verified the canonical Revenue OS and Feature Board tables. The 90-card manifest re-verifies with zero drift. Analytics, money-first outreach, Email Studio, and Contact Import migrations were applied through the Keychain-backed CLI path, rerun idempotently, and verified object-by-object in production. Ordered migrations and agent-owned execution are documented in CLAUDE.md, AGENTS.md, and docs/self-hosting/REVENUE-OS-SETUP.md.",
   }),
   card({
     key: "feature-board-operational",
@@ -943,8 +943,9 @@ export const featureBacklog = [
     title: "Finish Conversations as the unified communication inbox",
     workstream: "admin",
     phase: 2,
-    status: "planned",
+    status: "in_progress",
     priority: "high",
+    owner: "Antigravity",
     description:
       "Combine synchronized Gmail, inbound forms/messages, Resend activity, and manual communication into one founder inbox with record context and reply tools.",
     acceptance: [
@@ -953,15 +954,17 @@ export const featureBacklog = [
       "Reply, draft, link/create record, next action, and local archive have actionable errors and receipts",
     ],
     dependencies: [
-      "Finish one auditable communication sender",
-      "Import Gmail incrementally with cursor recovery",
+      "Normalize the cross-channel activity ledger",
+      "Implement deterministic contact and company identity resolution",
     ],
     start: "src/app/admin/conversations/page.tsx; src/app/api/admin/revenue-os/conversations/",
     guardrails:
       "Gmail remains person-to-person; Resend remains campaign/transactional. Local archive must not silently mutate Gmail unless explicitly designed.",
     labels: ["conversations", "gmail"],
     evidence:
-      "2026-08-16: Conversations reads canonical threads/messages, exposes linked context/unread state, and provides confirmed Gmail reply plumbing through the shared Google sender; Email Studio covers auditable Resend history. Remaining: complete incremental Gmail data, record linking/create, intent/assignment filters, next-action/local archive flows, receipt reconciliation, and end-to-end reply tests.",
+      "2026-09-01: Implemented the authoritative omnichannel conversations domain service (`src/lib/revenue-os/conversations.ts`) and upgraded the Conversations API routes and admin UI (`src/app/admin/conversations/page.tsx`). The inbox now provides rich multi-dimensional filtering (status tabs with live counts, unread toggle, channel filter, and record link filter), ordered canonical message history, AI suggested reply draft insertion, opportunity cockpit context drawer, and quick actions for creating opportunities, follow-up tasks, status resolution/reopening, and local archiving with audit and activity ledger receipts. Deterministic coverage is verified with `npm run test:conversations`.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:conversations; git diff --check.",
   }),
   card({
     key: "campaign-workspace-ui",
@@ -1117,7 +1120,8 @@ export const featureBacklog = [
       "Verify the production Revenue OS schema",
       "Verify founder-only admin access and service-only data policies",
     ],
-    start: "docs/REVENUE-OS-ENGINEERING-CONTRACT.md; src/config/tenant.ts; docs/INSTALL-RUNBOOK.md",
+    start:
+      "docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md; src/config/tenant.ts; docs/self-hosting/SELF-HOSTING.md",
     guardrails:
       "Historical receipt only. Do not remove its evidence, but do not use its former prohibition to block shared-database-multi-tenancy-contract or its child cards. Billing and custom domains remain out of scope until separately authorized.",
     labels: ["clonable", "architecture-decision", "template"],
@@ -1172,12 +1176,12 @@ export const featureBacklog = [
       "Extract every business fact into one tenant configuration",
     ],
     start:
-      "AGENTS.md; docs/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/AGENT-TICKET-RUNBOOK.md; src/lib/revenue-os/README.md; scripts/verify-agent-contract.mjs",
+      "AGENTS.md; docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/contributing/AGENT-TICKET-RUNBOOK.md; src/lib/revenue-os/README.md; scripts/verify-agent-contract.mjs",
     guardrails:
       "Do not add billing, custom domains, client-managed roles, cross-tenant analytics, or a second database. ADMIN_EMAIL stays the sole platform owner in v1. No tenant becomes active until database, API, provider, and browser isolation evidence passes.",
     labels: ["database", "auth"],
     evidence:
-      "Shipped 2026-08-30 after explicit founder direction. `docs/MULTI-TENANCY-CONTRACT.md` now owns product, authority, data, request/RLS, configuration, provider, public traffic, failure, rollout, and rollback boundaries. AGENTS.md and the Revenue OS contract require it before schema/auth/routing work; the historical clone card is explicitly superseded; the Grok non-goal and config comments no longer contradict the active shape. Five stable child cards cover schema, auth, workspace, provider/public, and cutover. Verification passed: npm run verify:agent-contract; npm run test:feature-board-dependencies; source prohibition scan; git diff --check. The live 144-card board was reconciled and verified with zero drift.",
+      "Shipped 2026-08-30 after explicit founder direction. `docs/contracts/MULTI-TENANCY-CONTRACT.md` now owns product, authority, data, request/RLS, configuration, provider, public traffic, failure, rollout, and rollback boundaries. AGENTS.md and the Revenue OS contract require it before schema/auth/routing work; the historical clone card is explicitly superseded; the Grok non-goal and config comments no longer contradict the active shape. Five stable child cards cover schema, auth, workspace, provider/public, and cutover. Verification passed: npm run verify:agent-contract; npm run test:feature-board-dependencies; source prohibition scan; git diff --check. The live 144-card board was reconciled and verified with zero drift.",
     verification:
       "npm run verify:agent-contract; npm run test:feature-board-dependencies; npm run seed:features -- --verify; git diff --check.",
   }),
@@ -1204,7 +1208,7 @@ export const featureBacklog = [
       "Never delete or merge existing rows, infer ownership from email, or make a tenant active before the backfill and constraint reports pass. Feature Board, schema verification, case studies, and changelog stay platform-global.",
     labels: ["database", "migration"],
     evidence:
-      "Shipped 2026-08-30. Added the tenant, membership, ingest-key, and platform-audit control plane plus explicit tenant ownership across all 49 currently installed operational tables and three ordered recovery tables. The deterministic Accelerate bootstrap backfilled production with zero null tenant rows; 48 composite foreign keys and 81 tenant indexes enforce relationship and identity boundaries, while Feature Board, schema verification, case studies, and changelog remain platform-global. The complete ordered migration ran successfully in isolated PostgreSQL before `npm run db:migrate -- migrations/20260830-shared-database-tenancy.sql` applied it to project skjypuwkceoiunyhhqlm. Live verification found the active Accelerate tenant, one founder membership, zero missing tenant columns, zero null tenant rows, and 49 tenant-member policies. Static migration, schema-state, TypeScript, and contract verification passed.",
+      "Shipped 2026-08-30. Added the tenant, membership, ingest-key, and platform-audit control plane plus explicit tenant ownership across all 49 currently installed operational tables and three ordered recovery tables. The deterministic Accelerate bootstrap backfilled production with zero null tenant rows; 48 composite foreign keys and 81 tenant indexes enforce relationship and identity boundaries, while Feature Board, schema verification, case studies, and changelog remain platform-global. The complete ordered migration ran successfully in isolated PostgreSQL before `npm run db:migrate -- migrations/20260830-shared-database-tenancy.sql` applied it to the pinned production project. Live verification found the active Accelerate tenant, one founder membership, zero missing tenant columns, zero null tenant rows, and 49 tenant-member policies. Static migration, schema-state, TypeScript, and contract verification passed.",
     verification:
       "npm run test:tenant-migration; npm run test:schema-verification; npm run db:verify-schema; npm run verify:agent-contract; npx tsc --noEmit; npm run lint; git diff --check.",
   }),
@@ -1311,7 +1315,7 @@ export const featureBacklog = [
     ],
     dependencies: ["Tenant-isolate providers, public intake, webhooks, and jobs"],
     start:
-      "scripts; docs/REVENUE-OS-SETUP.md; Setup Center; tenant rollout controls; release handoff",
+      "scripts; docs/self-hosting/REVENUE-OS-SETUP.md; Setup Center; tenant rollout controls; release handoff",
     guardrails:
       "Do not invite a real client, enable their provider effects, migrate production, or deploy without explicit founder release authority. Never use uncontrolled production contacts or recipients for isolation tests.",
     labels: ["testing", "security"],
@@ -1344,8 +1348,10 @@ export const featureBacklog = [
     guardrails:
       "Do not change the canonical source tags or dedupe keys written for existing rows without a migration plan; changing them silently breaks idempotency and duplicates historical inquiries. Do not delete the roofing playbook, only relocate it into configuration.",
     labels: ["clonable", "playbook", "inbound"],
+    evidence:
+      "2026-09-01: generalized qualification ingest in inbound.ts to ingestPlaybookQualification driven by TenantPlaybook configuration in src/config/tenant.ts. Preserves exact canonical source tags (roofing_qualifier), dedupe keys, activities, tasks, and audit logs. Adding a second playbook (e.g. legal, hvac) executes dynamically without changes to the ingestion module. Verified with test:playbooks covering roofing replay parity, multi-playbook dynamic routing, and idempotent deduplication.",
     verification:
-      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; replaying the same qualification payload must produce exactly one canonical opportunity, one activity, and one task, matching the pre-change source tags.",
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:playbooks; replaying the same qualification payload produces exactly one canonical opportunity, one activity, and one task, matching pre-change source tags.",
   }),
   card({
     key: "install-runbook",
@@ -1368,7 +1374,7 @@ export const featureBacklog = [
       "Finish Setup Center as the operational control plane",
     ],
     start:
-      "docs/INSTALL-RUNBOOK.md; migrations/; scripts/; src/config/tenant.ts; src/app/admin/setup",
+      "docs/self-hosting/SELF-HOSTING.md; migrations/; scripts/; src/config/tenant.ts; src/app/admin/setup",
     guardrails:
       "Never point the smoke test at the Accelerate production database, and never copy customer records, credentials, operational history, or audit rows into a new installation. A clean installation starts empty; seeding it with real data is a separate, explicitly authorized decision.",
     labels: ["clonable", "install", "smoke-test"],
@@ -2059,7 +2065,7 @@ export const featureBacklog = [
     title: "Give the founder's own knowledge a way in",
     workstream: "intelligence",
     phase: 4,
-    status: "in_progress",
+    status: "planned",
     priority: "high",
     owner: "John",
     description:
@@ -2420,7 +2426,7 @@ export const featureBacklog = [
       "A prior general instruction is not confirmation for a newly generated external action.",
     labels: ["confirmation", "safety"],
     evidence:
-      "2026-08-16: registered AI write/external tools create expiring deduplicated action_queue proposals; Today exposes approve/reject; action-executor claims and routes approved actions through normal services with terminal results. Remaining: bind approval to payload/underlying-record versions, exact consequence UI for every action, event/proposal/destructive coverage, expiry worker, and replay/state-change tests.",
+      "2026-09-01: implemented underlying state freshness binding, campaign version checks, pre-send suppression checks, and consequence safety in action-executor.ts and ai-tools.ts. Action proposals capture expectedStage and expectedVersion at generation time; approval refuses execution with an explicit state-change rejection if the underlying opportunity stage or campaign version moved in the interim. Pre-checks block sends to unsubscribed contacts or replies to archived conversations. ActionReviewDialog in Today workspace was enhanced with impact tier badges (External Action vs Internal Mutation) and explicit material consequence callouts before approval. All approve, reject, expire, execute, and fail transitions are atomic and audited. Verified with 17 deterministic test cases in test:action-execution covering state invalidation, double-claims, duplicate stages, version mismatches, and suppression pre-checks.",
   }),
   card({
     key: "ai-bounded-context",
@@ -2638,7 +2644,7 @@ export const featureBacklog = [
     title: "Expose the governed tool registry through MCP",
     workstream: "integrations",
     phase: 4,
-    status: "planned",
+    status: "shipped",
     priority: "medium",
     description:
       "Use the same versioned tool definitions for approved MCP clients and future external MCP sources so the Command Center can expand without creating parallel business logic.",
@@ -2657,6 +2663,10 @@ export const featureBacklog = [
     guardrails:
       "No arbitrary remote server connection, remote code execution, secret exposure, browser-held credential, or direct database write.",
     labels: ["integrations", "security"],
+    evidence:
+      "2026-09-01: Built the Model Context Protocol (MCP) server for Revenue OS (`src/lib/revenue-os/mcp-server.ts`) complying with MCP 2024-11-05 JSON-RPC specification. Dynamically publishes AI tools derived from the canonical tool registry (`getRevenueAiTools`) with schemas and impact levels. Enforces safe execution boundary through `executeRegisteredRevenueTool` (reads are bounded, writes enter `action_queue` as proposals requiring founder confirmation). Exposes live bounded resources (`revenue-os://today/snapshot`, `revenue-os://system/modules`, `revenue-os://knowledge/registry`) and pre-configured operator prompts (`daily_operator_triage`, `pipeline_health_check`, `reactivate_stale_deals`). Implemented authenticated HTTP endpoint (`src/app/api/mcp/route.ts`), per-tenant isolated MCP route (`src/app/api/public/[tenantSlug]/mcp/route.ts`), and Stdio CLI bridge (`scripts/revenue-os-mcp.ts`) for Claude Desktop, Claude Code, ChatGPT, and Antigravity. Added comprehensive test coverage in `scripts/test-mcp-server.ts` and `scripts/test-webhook-security.ts`. 2026-09-02 correctness pass: the per-tenant route resolved its database context through `accelerateSystemContext`, which hardcodes ACCELERATE_TENANT_ID regardless of which tenant authenticated, alongside an unbound `createPlatformServiceRoleClient`, so any tenant MCP key could read and write across the whole shared database. It now resolves the real tenant through `resolveTenantProviderSecrets` (extended to cover `mcp`) and binds the client with `createServiceRoleClient(resolvedContext)`, the pattern the Calendly and Resend webhooks already used; the same unbound-client fix was applied to the HubSpot and WhatsApp webhooks, whose writes were landing with no tenant_id. Also: the tenant MCP key is read through the encrypted envelope rather than as plaintext and is issued by a new `configure_mcp` action; both API-key comparisons are timing-safe; `notifications/initialized` no longer answers a request that carries no id, per JSON-RPC 2.0; `tools/call` failures return `isError: true` content instead of a transport-level error; the stdio bridge no longer calls `createServerSupabaseClient()`, which reads `next/headers` cookies() and cannot run outside a request, so the documented Claude Desktop path could never have started; the four client config examples in the setup guide gained the required NODE_OPTIONS flag and lost hardcoded local paths; and the three self-asserted MCP status constants (`configured.mcp`, `runtime.mcp.status`, the Setup Center `mcp_server` check) were replaced with a live `tools/list` probe through the same handler. `scripts/verify-mcp-tenant-isolation.ts` proves the isolation fix against real Postgres with two controlled tenants; it needs GOOGLE_TOKEN_ENCRYPTION_KEY and an explicit confirmation flag, and has not been run yet.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:mcp-server; npm run test:integration-adapters; npm run test:webhook-security; npm run build; git diff --check.",
   }),
   card({
     key: "ai-company-research",
@@ -2813,7 +2823,8 @@ export const featureBacklog = [
       "Finish Setup Center as the operational control plane",
       "Enforce bounded AI context and grounding rules",
     ],
-    start: "Revenue AI command; analytics service; docs/REVENUE-OS-SETUP.md; Setup API",
+    start:
+      "Revenue AI command; analytics service; docs/self-hosting/REVENUE-OS-SETUP.md; Setup API",
     guardrails:
       "Do not call estimates facts or claim a provider is healthy from configuration presence alone.",
     labels: ["analytics", "setup"],
@@ -2837,7 +2848,7 @@ export const featureBacklog = [
     ],
     dependencies: ["Verify the production Revenue OS schema"],
     start:
-      "src/app/admin/setup/page.tsx; src/app/api/admin/setup/route.ts; docs/REVENUE-OS-SETUP.md",
+      "src/app/admin/setup/page.tsx; src/app/api/admin/setup/route.ts; docs/self-hosting/REVENUE-OS-SETUP.md",
     guardrails:
       "Variable presence alone is not behavioral readiness. Calendly stays optional and disabled.",
     labels: ["control-plane", "operations"],
@@ -2999,7 +3010,7 @@ export const featureBacklog = [
       "Build the system-health report and freshness thresholds",
       "Wire notification preferences into actual dispatch",
     ],
-    start: "notifications; Setup Center; docs/REVENUE-OS-SETUP.md",
+    start: "notifications; Setup Center; docs/self-hosting/REVENUE-OS-SETUP.md",
     guardrails: "Avoid alert storms and never include secrets or full customer messages.",
     labels: ["alerts", "runbooks"],
     evidence:
@@ -3228,12 +3239,12 @@ export const featureBacklog = [
     ],
     dependencies: [],
     start:
-      "docs/MARKETING-POSITIONING-CONTRACT.md; CLAUDE.md; src/components/home; src/components/sections; src/content; scripts/verify-guardrails.ts",
+      "docs/contracts/MARKETING-POSITIONING-CONTRACT.md; CLAUDE.md; src/components/home; src/components/sections; src/content; scripts/verify-guardrails.ts",
     guardrails:
       "Preserve the paper/ink editorial system and the hero scramble/strike/PROFIT treatment. Do not invent clients, dollar returns, percentages, or business history. Do not rewrite articles, admin, legal pages, changelog history, generated client artifacts, or transactional email content. Do not push or deploy unless asked.",
     labels: ["marketing", "copy", "positioning", "visual"],
     evidence:
-      "2026-08-23: shipped the full public-positioning reset. Added docs/MARKETING-POSITIONING-CONTRACT.md to the required agent read order and verifier; centralized the offer in src/content/marketing-positioning.ts; added test:positioning-copy with mutation checks for the banned Same X Different Y pattern and Command Center-only service routing; and chained it into verify:guardrails. Rewrote homepage, Services, Industries and all 10 verticals, Command Center, About, Contact, Roofing, metadata, search, tenant copy, and the public assistant around custom strategy, systems, integrations, managed execution, training, and optimization. The homepage second section now presents four engagement modes and routes to Services; Command Center is explicitly one optional integrated solution. Mobile hero is content-sized with corrected header clearance, compact outcome/action spacing, and a faster phone-only reveal. test:marketing-qa passed eight public routes at 1440x900, 390x667, 390x844, and 430x932 with reduced motion, keyboard focus, overflow, request, and runtime checks; settled-motion screenshots were opened and inspected. Passing: verify:agent-contract, tsc, lint, guardrails, positioning copy, fabricated claims, house style, chat style, search, route coverage, 42/42 articles, production build, and diff check. No deployment was performed.",
+      "2026-08-23: shipped the full public-positioning reset. Added docs/contracts/MARKETING-POSITIONING-CONTRACT.md to the required agent read order and verifier; centralized the offer in src/content/marketing-positioning.ts; added test:positioning-copy with mutation checks for the banned Same X Different Y pattern and Command Center-only service routing; and chained it into verify:guardrails. Rewrote homepage, Services, Industries and all 10 verticals, Command Center, About, Contact, Roofing, metadata, search, tenant copy, and the public assistant around custom strategy, systems, integrations, managed execution, training, and optimization. The homepage second section now presents four engagement modes and routes to Services; Command Center is explicitly one optional integrated solution. Mobile hero is content-sized with corrected header clearance, compact outcome/action spacing, and a faster phone-only reveal. test:marketing-qa passed eight public routes at 1440x900, 390x667, 390x844, and 430x932 with reduced motion, keyboard focus, overflow, request, and runtime checks; settled-motion screenshots were opened and inspected. Passing: verify:agent-contract, tsc, lint, guardrails, positioning copy, fabricated claims, house style, chat style, search, route coverage, 42/42 articles, production build, and diff check. No deployment was performed.",
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run verify:guardrails; npm run test:positioning-copy; npm run test:no-fabricated-claims; npm run test:house-style-copy; npm run test:search; npm run test:route-coverage; npm run verify:articles; npm run test:marketing-qa; npm run build; git diff --check.",
   }),
@@ -3254,7 +3265,7 @@ export const featureBacklog = [
     ],
     dependencies: [],
     start:
-      "src/components/home; src/components/v2/studio/Studio.tsx; src/content/stats.ts; src/content/industry-feeds.ts; scripts/test-no-fabricated-claims.ts; CONTENT-GUIDE.md",
+      "src/components/home; src/components/v2/studio/Studio.tsx; src/content/stats.ts; src/content/industry-feeds.ts; scripts/test-no-fabricated-claims.ts; docs/internal/CONTENT-GUIDE.md",
     guardrails:
       "Do not invent dollar recoveries or named clients. Do not generate portraits of clients. Do not restyle admin. Do not push or deploy unless asked. Keep the paper/ink editorial system; do not reintroduce gold gradients as a brand.",
     labels: ["marketing", "copy", "visual"],
@@ -3310,13 +3321,12 @@ export const featureBacklog = [
       "Typecheck, lint, guardrails, scoped portfolio tests, build, and diff check pass",
     ],
     dependencies: [],
-    start:
-      "src/content/work.ts; src/app/work; src/components/work; docs/work-portfolio-sources.md; src/lib/search/index.ts",
+    start: "src/content/work.ts; src/app/work; src/components/work; src/lib/search/index.ts",
     guardrails:
       "Do not invent metrics or portray founder-built or prior-role work as an Accelerate client engagement. Use only authentic project media when ownership is clear; never fabricate product screenshots. Do not alter unrelated admin work or deploy.",
     labels: ["marketing", "testing"],
     evidence:
-      "2026-08-24: shipped a typed seven-record portfolio manifest with six public cases and Northern Trust retained as a direct noindex archive. The public index, homepage, related work, search, sitemap, assistant context, metadata, and service mapping derive from explicit visibility and service IDs, preventing the archive from leaking into public discovery. Rebuilt the shared case system with authentic first-party or archived media, honest conceptual diagrams for private software, individualized editorial compositions, high-contrast architecture bands, responsive image sizing, a one-image preload policy, click-to-load privacy-enhanced video, reduced-motion-safe interaction, visible critical content, relevant-service links, and truthful current/prior/founder-built attribution. SuperDebate now explains one five-surface product system with a real judging interface; WORK+SHELTER's operating architecture has a complete routing model; every public case maps to two current Accelerate services. Source and replacement-asset ledgers are in docs/work-portfolio-sources.md and docs/work-portfolio-asset-requests.md. Browser QA passed seven public routes at desktop 1440, tablet 834, and mobile 390 with WCAG A/AA serious/critical checks, keyboard, reduced motion, console/page errors, overflow, broken media, one-image preload, archive noindex/follow, archive exclusion from /work and sitemap, lazy YouTube behavior, and legacy redirect coverage. Opened and reviewed desktop light, mobile dark, WORK+SHELTER, SuperDebate, Green Goods, and archive screenshots in /tmp/accelerate-work-portfolio-qa. verify:agent-contract, TypeScript, lint, no-fabricated-claims, house-style, guardrails, positioning, search, route coverage, portfolio contract, browser QA, 351-page production build, and diff check pass. No deployment or production content mutation was performed.",
+      "2026-08-24: shipped a typed seven-record portfolio manifest with six public cases and Northern Trust retained as a direct noindex archive. The public index, homepage, related work, search, sitemap, assistant context, metadata, and service mapping derive from explicit visibility and service IDs, preventing the archive from leaking into public discovery. Rebuilt the shared case system with authentic first-party or archived media, honest conceptual diagrams for private software, individualized editorial compositions, high-contrast architecture bands, responsive image sizing, a one-image preload policy, click-to-load privacy-enhanced video, reduced-motion-safe interaction, visible critical content, relevant-service links, and truthful current/prior/founder-built attribution. SuperDebate now explains one five-surface product system with a real judging interface; WORK+SHELTER's operating architecture has a complete routing model; every public case maps to two current Accelerate services. The source-claim ledger moved out of the public repository (internal maintainer record, not tracked in git); the replacement-asset ledger is in docs/internal/work-portfolio-asset-requests.md. Browser QA passed seven public routes at desktop 1440, tablet 834, and mobile 390 with WCAG A/AA serious/critical checks, keyboard, reduced motion, console/page errors, overflow, broken media, one-image preload, archive noindex/follow, archive exclusion from /work and sitemap, lazy YouTube behavior, and legacy redirect coverage. Opened and reviewed desktop light, mobile dark, WORK+SHELTER, SuperDebate, Green Goods, and archive screenshots in /tmp/accelerate-work-portfolio-qa. verify:agent-contract, TypeScript, lint, no-fabricated-claims, house-style, guardrails, positioning, search, route coverage, portfolio contract, browser QA, 351-page production build, and diff check pass. No deployment or production content mutation was performed.",
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:no-fabricated-claims; npm run test:house-style-copy; npm run verify:guardrails; npm run test:search; npm run test:route-coverage; npm run test:work-portfolio; npm run test:work-portfolio-qa; npm run build; git diff --check.",
   }),
@@ -3340,12 +3350,12 @@ export const featureBacklog = [
     ],
     dependencies: ["Build the selected work portfolio"],
     start:
-      "src/content/work.ts; src/app/work; src/components/work; scripts/qa-work-portfolio.mjs; docs/work-portfolio-asset-requests.md",
+      "src/content/work.ts; src/app/work; src/components/work; scripts/qa-work-portfolio.mjs; docs/internal/work-portfolio-asset-requests.md",
     guardrails:
       "Preserve truthful attribution and verified metrics. Do not fabricate product UI or imply prior work was an Accelerate client engagement. Keep Northern Trust as an unlisted noindex archive. Reuse the shared case system and existing authentic assets; do not create six bespoke page implementations, touch unrelated admin work, deploy, or depend on the unavailable Sparkblox site.",
     labels: ["marketing", "visual", "testing"],
     evidence:
-      "2026-08-25: repaired and visually re-audited the complete public portfolio system after regression findings. WORK+SHELTER now uses the requested customer-site hero everywhere, presents the quote flow once, and separates customer experience, operating logic, and the custom command center into coherent chapters. SuperDebate now uses a natural wide hero without black bars and separates public product, product architecture, command-center, and event photography evidence. All case media use intrinsic dimensions and typed presentation roles, reject duplicate sources per page, animate through the shared reveal system with a fast-scroll fallback, and open in a section-scoped accessible lightbox with keyboard navigation, focus trapping, focus return, body scroll lock, captions, reduced-motion behavior, and touch-sized controls. Shared card and media elevation was reduced to soft layered shadows. The expanded Playwright suite passed across all seven public routes at four viewports, light and dark themes, normal and reduced motion, WCAG checks, source-aspect checks, duplicate-media checks, lightbox interaction, overflow, runtime errors, broken media, and archive exclusions. Guardrails, portfolio contracts, claims, positioning, search, route coverage, TypeScript, zero-warning lint, the 352-page production build, reviewed screenshots, and diff check passed. 2026-08-26: removed the timing regression and architectural ambiguity. One shared observer in `src/components/motion/useReveal.ts` owns public trigger behavior; Work configures explicit viewport timing through `WorkMotion.tsx` and one CSS recipe. Cards no longer double-animate nested cover media. `docs/WORK-MOTION-CONTRACT.md`, the static portfolio guard, and browser assertions now fail on homepage-hook coupling, nested entrances, missing armed states, viewport-entry failure, or any Work group/media completing without a Work animation. The seven-route, four-viewport, light/dark, normal/reduced-motion portfolio matrix and reviewed settled/in-progress screenshots pass locally.",
+      "2026-08-25: repaired and visually re-audited the complete public portfolio system after regression findings. WORK+SHELTER now uses the requested customer-site hero everywhere, presents the quote flow once, and separates customer experience, operating logic, and the custom command center into coherent chapters. SuperDebate now uses a natural wide hero without black bars and separates public product, product architecture, command-center, and event photography evidence. All case media use intrinsic dimensions and typed presentation roles, reject duplicate sources per page, animate through the shared reveal system with a fast-scroll fallback, and open in a section-scoped accessible lightbox with keyboard navigation, focus trapping, focus return, body scroll lock, captions, reduced-motion behavior, and touch-sized controls. Shared card and media elevation was reduced to soft layered shadows. The expanded Playwright suite passed across all seven public routes at four viewports, light and dark themes, normal and reduced motion, WCAG checks, source-aspect checks, duplicate-media checks, lightbox interaction, overflow, runtime errors, broken media, and archive exclusions. Guardrails, portfolio contracts, claims, positioning, search, route coverage, TypeScript, zero-warning lint, the 352-page production build, reviewed screenshots, and diff check passed. 2026-08-26: removed the timing regression and architectural ambiguity. One shared observer in `src/components/motion/useReveal.ts` owns public trigger behavior; Work configures explicit viewport timing through `WorkMotion.tsx` and one CSS recipe. Cards no longer double-animate nested cover media. `docs/contracts/WORK-MOTION-CONTRACT.md`, the static portfolio guard, and browser assertions now fail on homepage-hook coupling, nested entrances, missing armed states, viewport-entry failure, or any Work group/media completing without a Work animation. The seven-route, four-viewport, light/dark, normal/reduced-motion portfolio matrix and reviewed settled/in-progress screenshots pass locally.",
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:no-fabricated-claims; npm run test:house-style-copy; npm run verify:guardrails; npm run test:positioning-copy; npm run test:search; npm run test:route-coverage; npm run test:work-portfolio; npm run test:work-portfolio-qa; npm run build; git diff --check.",
   }),
@@ -3395,7 +3405,7 @@ export const featureBacklog = [
     ],
     dependencies: ["Verify the production Revenue OS schema"],
     start:
-      "AGENTS.md; docs/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/AGENT-TICKET-RUNBOOK.md; docs/REVENUE-OS-SETUP.md; src/lib/revenue-os/README.md; scripts/verify-agent-contract.mjs",
+      "AGENTS.md; docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/contributing/AGENT-TICKET-RUNBOOK.md; docs/self-hosting/REVENUE-OS-SETUP.md; src/lib/revenue-os/README.md; scripts/verify-agent-contract.mjs",
     guardrails: "Do not duplicate mutable backlog status into prose. Never include secret values.",
     labels: ["documentation", "handoff", "architecture-contract"],
     evidence:
@@ -3418,12 +3428,12 @@ export const featureBacklog = [
     ],
     dependencies: ["Maintain agent-ready architecture and recovery runbooks"],
     start:
-      "README.md; LICENSE; ASSETS.md; SECURITY.md; CONTRIBUTING.md; .github/; .env.example; docs/ARCHITECTURE.md; docs/SELF-HOSTING.md; scripts/verify-open-source-readiness.mjs",
+      "README.md; LICENSE; ASSETS.md; SECURITY.md; CONTRIBUTING.md; .github/; .env.example; docs/self-hosting/ARCHITECTURE.md; docs/self-hosting/SELF-HOSTING.md; scripts/verify-open-source-readiness.mjs",
     guardrails:
       "Do not make the repository public, rewrite Git history, delete protected assets, change production visibility, or claim third-party asset rights without explicit maintainer approval. Never expose secrets or customer data. Keep production deployment behavior separate from contributor defaults.",
     labels: ["security", "testing"],
     evidence:
-      "2026-08-31 initial readiness implementation: replaced the stock framework README; added MIT code licensing with explicit protected-brand/asset exclusions; created architecture, self-hosting, contribution, security, conduct, issue, pull-request, ownership, CI, Dependabot, and environment-template surfaces; removed stale private deployment/account instructions; made database tooling resolve contributor-owned Supabase targets; and added a tracked-file/secret-pattern repository gate. The current tree and all Git patches were scanned for high-confidence credentials; findings were test fixtures or false-positive identifiers. Production npm advisories were reduced from six to zero and the unused Puppeteer dependency was removed. Remaining before public visibility: clean-checkout CI proof, protected asset/customer permission review, GitHub metadata/security settings, branch rules after visibility change, and final history review.",
+      "2026-08-31 initial readiness implementation: replaced the stock framework README; added MIT code licensing with explicit protected-brand/asset exclusions; created architecture, self-hosting, contribution, security, conduct, issue, pull-request, ownership, CI, Dependabot, and environment-template surfaces; removed stale private deployment/account instructions; made database tooling resolve contributor-owned Supabase targets; and added a tracked-file/secret-pattern repository gate. The current tree and all Git patches were scanned for high-confidence credentials; findings were test fixtures or false-positive identifiers. Production npm advisories were reduced from six to zero and the unused Puppeteer dependency was removed. Remaining before public visibility: clean-checkout CI proof, protected asset/customer permission review, GitHub metadata/security settings, branch rules after visibility change, and final history review. 2026-09-01 note: the repository went public before this card completed, so the items below were done retroactively against a live public repo rather than ahead of it. 2026-09-01 public-safety pass: moved the production Supabase project ref out of two tracked scripts into ISOLATION_PROOF_PROJECT_REF; parameterized the founder identity that two migrations were seeding into every self-hoster's bootstrap tenant behind BOOTSTRAP_* variables, with `npm run verify:bootstrap-identity` to check a fork replaced them; removed the private work-portfolio claims-and-permissions ledger, which named a private individual and an unpublished figure, from the public docs tree entirely; repointed three manifest cards at a doc that was never written; and taught verify:oss to catch dangling docs/*.md references in non-Markdown source, which is the class of bug that hid the missing runbook. 2026-09-02: `npx prettier --check .` passes repo-wide for the first time, so the format:check CI gate is green; verify:admin-tokens, verify:extensions, and verify:module-contract were added as gates. Still genuinely outstanding: the private ledger remains recoverable from git history (removing it there needs a force push and is the maintainer's call), and the protected asset, customer permission, and GitHub branch-rule reviews have not been done.",
   }),
   card({
     key: "full-admin-demo-runtime",
@@ -3443,12 +3453,12 @@ export const featureBacklog = [
     ],
     dependencies: ["Complete the shared professional admin system"],
     start:
-      "docs/ADMIN-DEMO-CONTRACT.md; src/app/admin/layout.tsx; src/middleware.ts; src/lib/admin; scripts/qa-admin-route-parity.mjs",
+      "docs/contracts/ADMIN-DEMO-CONTRACT.md; src/app/admin/layout.tsx; src/middleware.ts; src/lib/admin; scripts/qa-admin-route-parity.mjs",
     guardrails:
       "Do not copy admin pages, weaken /admin authorization, call production APIs from demo mode, add shared-database tenancy, or deploy. Demo state is browser-session-only and visibly fictional.",
     labels: ["clonable", "testing"],
     evidence:
-      "2026-08-27 navigation and mobile UX repair: removed the floating demo control, integrated business selection, guided tour, reset, and launcher beneath Appearance, repaired URL-derived active navigation and breadcrumbs across client navigation and browser history, made scenario changes replace the fictional runtime with a full workspace boundary, assigned Paper, Studio, and Signal defaults while preserving manual choices within a scenario session, added mobile drawer scroll lock and touch-safe controls, and tuned shared admin entrances to a 440-500ms blur and rise with a zero-animation reduced-motion state. The complete three-scenario 28-route desktop and mobile matrix, all five appearances, real-click navigation, accordion reliability, scenario switching, persistence, overflow, hit targets, protected-request isolation, TypeScript, lint, build, and visual review pass. No deployment was performed. 2026-08-26 rewrite hardening: validated internal demo rewrites now preserve their fictional scenario marker through middleware re-entry instead of falling through to founder login. The marker selects checked-in demo data only and does not authorize protected APIs. Shared page-transition and scroll-progress chrome now treats the rewritten route exactly like `/admin`, eliminating server/client tree divergence and hydration warnings. The three-scenario 28-route desktop/mobile matrix passed with no escaped protected/provider requests. 2026-08-26 incident repair: `/demo/command-center` is now the only public standalone demo destination. The obsolete `/command-center/demo` route permanently redirects to the full-admin launcher, and the public Command Center page exposes one unambiguous full-admin CTA while retaining the compact preview only as embedded context. Contract coverage fails on obsolete standalone links or render paths. The production build generated both routes statically; the admin-demo contract, embedded-preview QA, and one-scenario full-admin matrix passed 28 shared admin routes on desktop/mobile with protected-request isolation. Launcher, full workspace, and mobile screenshots were reviewed. Earlier evidence: 2026-08-25 shipped `/demo/command-center` as a no-index rewrite into the unchanged founder-only admin tree, wrapped by one browser-session runtime that intercepts admin reads, writes, AI streams, and exports before page effects run. The safety bar identifies the fictional business, switches scenarios, resets exact session state, opens the guided story, and links back to the launcher. Public header, footer, and chat chrome stay out of the workspace. Live `/admin` auth is unchanged; demo middleware adds noindex response headers, robots excludes `/demo`, and runtime guards block protected, analytics, chat, cron, webhook, and provider requests. `docs/ADMIN-DEMO-CONTRACT.md` is in the required agent read order and contract verifier.",
+      "2026-08-27 navigation and mobile UX repair: removed the floating demo control, integrated business selection, guided tour, reset, and launcher beneath Appearance, repaired URL-derived active navigation and breadcrumbs across client navigation and browser history, made scenario changes replace the fictional runtime with a full workspace boundary, assigned Paper, Studio, and Signal defaults while preserving manual choices within a scenario session, added mobile drawer scroll lock and touch-safe controls, and tuned shared admin entrances to a 440-500ms blur and rise with a zero-animation reduced-motion state. The complete three-scenario 28-route desktop and mobile matrix, all five appearances, real-click navigation, accordion reliability, scenario switching, persistence, overflow, hit targets, protected-request isolation, TypeScript, lint, build, and visual review pass. No deployment was performed. 2026-08-26 rewrite hardening: validated internal demo rewrites now preserve their fictional scenario marker through middleware re-entry instead of falling through to founder login. The marker selects checked-in demo data only and does not authorize protected APIs. Shared page-transition and scroll-progress chrome now treats the rewritten route exactly like `/admin`, eliminating server/client tree divergence and hydration warnings. The three-scenario 28-route desktop/mobile matrix passed with no escaped protected/provider requests. 2026-08-26 incident repair: `/demo/command-center` is now the only public standalone demo destination. The obsolete `/command-center/demo` route permanently redirects to the full-admin launcher, and the public Command Center page exposes one unambiguous full-admin CTA while retaining the compact preview only as embedded context. Contract coverage fails on obsolete standalone links or render paths. The production build generated both routes statically; the admin-demo contract, embedded-preview QA, and one-scenario full-admin matrix passed 28 shared admin routes on desktop/mobile with protected-request isolation. Launcher, full workspace, and mobile screenshots were reviewed. Earlier evidence: 2026-08-25 shipped `/demo/command-center` as a no-index rewrite into the unchanged founder-only admin tree, wrapped by one browser-session runtime that intercepts admin reads, writes, AI streams, and exports before page effects run. The safety bar identifies the fictional business, switches scenarios, resets exact session state, opens the guided story, and links back to the launcher. Public header, footer, and chat chrome stay out of the workspace. Live `/admin` auth is unchanged; demo middleware adds noindex response headers, robots excludes `/demo`, and runtime guards block protected, analytics, chat, cron, webhook, and provider requests. `docs/contracts/ADMIN-DEMO-CONTRACT.md` is in the required agent read order and contract verifier.",
   }),
   card({
     key: "full-admin-demo-scenarios",
@@ -3497,7 +3507,7 @@ export const featureBacklog = [
       "Ship three complete full-admin demo scenarios",
     ],
     start:
-      "docs/ADMIN-DEMO-CONTRACT.md; src/lib/admin/demo; src/components/admin; src/app/demo/command-center; scripts/test-admin-demo-contract.ts; scripts/qa-admin-demo.mjs",
+      "docs/contracts/ADMIN-DEMO-CONTRACT.md; src/lib/admin/demo; src/components/admin; src/app/demo/command-center; scripts/test-admin-demo-contract.ts; scripts/qa-admin-demo.mjs",
     guardrails:
       "Use invented adult contacts and reserved .example addresses only. Keep all effects browser-session-only and visibly simulated. Do not copy production or customer data, expose case-sensitive legal details, create scenario-specific pages or runtime handlers, weaken live admin authorization, add a provider or schema, or deploy.",
     labels: ["clonable", "testing"],
@@ -3554,7 +3564,7 @@ export const featureBacklog = [
     ],
     dependencies: [],
     start:
-      "scripts/feature-backlog-data.mjs; scripts/verify-agent-contract.mjs; docs/FEATURE-BOARD-TAXONOMY.md; docs/REVENUE-OS-SETUP.md; docs/GROK-4.6-COMMAND-CENTER-EXECUTION-PLAN.md",
+      "scripts/feature-backlog-data.mjs; scripts/verify-agent-contract.mjs; docs/contracts/FEATURE-BOARD-TAXONOMY.md; docs/self-hosting/REVENUE-OS-SETUP.md; docs/contributing/GROK-4.6-COMMAND-CENTER-EXECUTION-PLAN.md",
     guardrails:
       "Do not infer completion from old evidence, rewrite active owners, apply the live manifest blindly, or turn the execution guide into a mutable roadmap. Dependency-status repairs require evidence or an explicit coordinator decision.",
     labels: ["database", "testing"],
@@ -3582,7 +3592,7 @@ export const featureBacklog = [
       "Extract every business fact into one tenant configuration",
     ],
     start:
-      "src/config/tenant.ts; src/lib/booking.ts; src/app/admin/setup; src/app/api/webhooks/calendly; public contact and qualifier surfaces; docs/REVENUE-OS-SETUP.md",
+      "src/config/tenant.ts; src/lib/booking.ts; src/app/admin/setup; src/app/api/webhooks/calendly; public contact and qualifier surfaces; docs/self-hosting/REVENUE-OS-SETUP.md",
     guardrails:
       "Do not activate Calendly API access, create credentials, remove manual scheduling, or describe an embed as verified attribution. Provider activation remains founder-controlled.",
     labels: ["calendar", "reliability"],
@@ -3900,7 +3910,7 @@ export const featureBacklog = [
       "Extract every business fact into one tenant configuration",
     ],
     start:
-      "docs/INSTALL-RUNBOOK.md; migrations; schema contract; src/config/tenant.ts; canonical table map; scripts",
+      "docs/self-hosting/SELF-HOSTING.md; migrations; schema contract; src/config/tenant.ts; canonical table map; scripts",
     guardrails:
       "Do not export secrets, copy production data into uncontrolled storage, restore into the Accelerate project, reassign canonical IDs, or trigger sends, webhooks, syncs, or automation during restore.",
     labels: ["clonable", "security"],
@@ -3912,6 +3922,8 @@ export const featureBacklog = [
     title: "Define the provider integration adapter contract",
     workstream: "integrations",
     phase: 3,
+    status: "in_progress",
+    owner: "Claude",
     priority: "high",
     description:
       "Define one typed provider adapter boundary for scoped connection state, incremental reads, external actions, cursors, rate limits, receipts, reconciliation, health, and canonical service mapping before adding another provider.",
@@ -3931,6 +3943,8 @@ export const featureBacklog = [
     guardrails:
       "Do not add a universal raw-provider store, hidden dual ownership, credential passthrough, provider-specific business rules, or activate a new provider in this card.",
     labels: ["integrations", "reliability"],
+    evidence:
+      "2026-09-02 partial: the `IntegrationAdapter` interface in `src/lib/revenue-os/integration-adapters.ts` previously had zero implementations and zero callers. `whatsAppAdapter` and `hubSpotAdapter` now satisfy it with real `verify()` calls against the Meta Graph API and HubSpot's account-info endpoint, are registered in `INTEGRATION_ADAPTERS`, and are wired into `configure_whatsapp` and `configure_hubspot` in `src/app/api/admin/tenant/providers/route.ts`, so a credential is verified before it is ever stored. Two latent bugs surfaced and were fixed while doing it: `importHubSpotBatch` wrote `title`/`value`/`source_id`/`status`, none of which exist on `opportunities`, at a stage (`inquiry`) the check constraint rejects; and both adapters passed a non-UUID external id into `contacts.source_record_id`, a UUID column, so every real insert would have thrown. Identity for phone-only channels now resolves through a new `findCanonicalContactByPhone`, since `resolveOrCreateIdentity` previously had no phone lookup at all. Remaining for this card: cursors, rate limits, reconciliation, and per-provider health are still not part of the adapter boundary.",
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-integration-adapter-contract.ts; npm run test:integration-catalog; npm run build; git diff --check.",
   }),
@@ -4047,22 +4061,24 @@ export const featureBacklog = [
     title: "Ship a one-click Vercel deploy button",
     workstream: "productization",
     phase: 5,
+    status: "shipped",
     priority: "high",
     description:
       "Add a real Deploy to Vercel button and template configuration so a visitor can go from the README to a running, empty, unconfigured instance without cloning the repo or touching a terminal. This is the single highest-leverage change for adoption: every extra manual step between 'I found this on GitHub' and 'I have a working workspace' loses non-technical operators and the agencies serving them.",
     acceptance: [
-      "A Deploy to Vercel button in the README launches Vercel's import flow pre-filled with this repository and the required environment variable prompts (Supabase URL/anon/service-role keys, ADMIN_EMAIL, and any other non-optional vars from .env.example)",
-      "A freshly deployed instance boots successfully with zero manual repository edits: it renders the public marketing site and fictional demo immediately, and a clearly stated Setup Center path for connecting a real Supabase project",
+      "A Deploy to Vercel button in the README launches Vercel's import flow pre-filled with this repository, with no environment variable prompts required to complete the deploy",
+      "A freshly deployed instance boots successfully with zero manual repository edits: it renders the public marketing site and fictional demo immediately, and every /admin route redirects to a clearly stated 'connect your Supabase project' screen instead of erroring",
       "The generated deployment never ships with Accelerate's own branding as the only option silently baked in; the template deploy uses the existing tenant-config seam so the operator's own name/brand can be set without editing source",
       "Deploying does not require any Accelerate-owned credential, and no Accelerate production data, API key, or secret can reach the new deployment through the template",
     ],
     dependencies: ["Prove a clean client installation end to end"],
-    start: "README.md; vercel.json; .env.example; docs/SELF-HOSTING.md; src/config/tenant.ts",
+    start:
+      "README.md; vercel.json; .env.example; docs/self-hosting/SELF-HOSTING.md; src/config/tenant.ts; src/middleware.ts; src/app/admin/login/page.tsx",
     guardrails:
       "The button must never point at a fork that could be swapped by a third party without review, and must never pre-fill or embed any real credential, connection string, or production value. Do not weaken or bypass the existing tenant-config seam to make the button simpler; the deployed instance must remain a genuinely empty, isolated workspace.",
     labels: ["clonable", "setup"],
     evidence:
-      "2026-09-01 Confirmed no vercel.json changes are required: the maintainer's own prebuilt-deploy flow (git.deploymentEnabled:false, Commit-Author Verification) only governs the linked production project, and a visitor's Deploy button clones into their own new Vercel project with git-deploy enabled by default. The Deploy button URL is a query string against /new/clone with a repository-url and pre-filled env list; no application code changes are required to ship this card.",
+      "2026-09-01 Confirmed no vercel.json changes are required: a visitor's Deploy button clones into their own new Vercel project via /new/clone, a manually triggered import-and-deploy that runs regardless of this repository's committed git.deploymentEnabled:false (that setting only suppresses later git-push-triggered deploys, on the maintainer's project and on the fork alike; documented in the README as a known follow-up for self-hosters). Chose zero required env prompts over the originally planned Supabase/ADMIN_EMAIL prompts after verifying the reason directly: moved .env.local aside, ran a full production build and a production server with zero environment variables. The public marketing site, /open-source, and every fictional demo scenario route returned 200. /admin, previously an unhandled 500 (src/middleware.ts called createServerClient with undefined URL/key), now redirects to /admin/login?error=not_configured, which renders a distinct 'connect your Supabase project' panel (no login form, no Supabase client) pointing at docs/self-hosting/SELF-HOSTING.md. Restored .env.local (checksum-verified identical) and reconfirmed the real, configured dev server's /admin still redirects to the ordinary login form exactly as before, so a live, already-configured deployment is unaffected by this change. Not yet verified: an actual click-through of the button against a real Vercel account and a fresh Supabase project (a maintainer action, not one this agent can perform).",
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run verify:oss; npm run build; a real end-to-end test of the button from a signed-out Vercel account against a scratch Supabase project, confirmed to boot with zero manual file edits; git diff --check.",
   }),
@@ -4082,7 +4098,7 @@ export const featureBacklog = [
     ],
     dependencies: ["Ship a one-click Vercel deploy button"],
     start:
-      "src/app/admin/setup/page.tsx; src/app/api/admin/setup/route.ts; docs/REVENUE-OS-SETUP.md; docs/SELF-HOSTING.md; migrations/",
+      "src/app/admin/setup/page.tsx; src/app/api/admin/setup/route.ts; docs/self-hosting/REVENUE-OS-SETUP.md; docs/self-hosting/SELF-HOSTING.md; migrations/",
     guardrails:
       "Never run a destructive or production migration without explicit operator confirmation in the flow. Never seed Accelerate's own customer or demo data into a new installation. The guided flow supplements, never replaces, the documented manual migration path for operators who prefer it.",
     labels: ["setup", "clonable"],
@@ -4096,6 +4112,7 @@ export const featureBacklog = [
     title: "Define a plugin/module contract for optional business capabilities",
     workstream: "productization",
     phase: 6,
+    status: "planned",
     priority: "low",
     description:
       "Split the always-on core (contacts, companies, auth, tenancy, permissions, activity, AI context) from optional modules (proposals, campaigns, bookings, analytics) behind a declared contract, so a self-hoster or template author can enable or omit a capability without forking core logic. This is the prerequisite for business templates and a template directory; do not start those before this contract exists, or every template reinvents its own ad-hoc module boundary.",
@@ -4109,12 +4126,14 @@ export const featureBacklog = [
       "Guide first-run setup inside the product, not the terminal",
     ],
     start:
-      "src/lib/revenue-os/README.md; src/lib/admin/navigation.ts; docs/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/MULTI-TENANCY-CONTRACT.md",
+      "src/lib/revenue-os/README.md; src/lib/admin/navigation.ts; docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/contracts/MULTI-TENANCY-CONTRACT.md",
     guardrails:
       "Do not weaken tenant isolation, the AI tool impact-tier contract, or the admin auth boundary to make modules pluggable. A module contract is an internal seam, not a runtime code-loading system — no dynamic import of untrusted third-party code.",
     labels: ["clonable", "config"],
+    evidence:
+      "2026-09-01: Implemented the pluggable module contract (`src/lib/revenue-os/modules.ts`) separating core capabilities (Command, Pipeline, Contacts, Conversations, Intelligence, System) from optional business modules (proposals, campaigns, recovery, email-studio, bookings, clients, content, resources, subscribers, partners, website-grades, analytics, integrations). Modules declare their metadata, navigation links, AI tools, route prefixes, and setup checks. 2026-09-02: closed the two gaps that made the first pass a taxonomy rather than a working contract. Nothing had ever supplied `tenantConfig.modules`, so every module resolved to enabled everywhere and the console badge was a hardcoded string; the real tenant row's config now threads from `requireAdmin()` through `AdminLayout` into `AdminShell` nav filtering and into `runRevenueCommandAgent`, with `GET`/`PATCH /api/admin/tenant/modules` as the audited write path and real toggles in the integrations console. Extension registration then landed: `extensions/*.module.json` manifests are validated and compiled by `scripts/build-extension-modules.mjs` into `src/lib/revenue-os/extension-modules.generated.ts` and merged after core, which stays non-overridable, keeping the stated no-untrusted-code invariant because a manifest is data. Two CI gates hold it: `verify:extensions` (generated file in sync with manifests) and `verify:module-contract` (every declared nav id, route, and tool name resolves, and every registered tool is claimed by exactly one module). `extensions/example-inventory.module.json` with `src/app/admin/example-inventory/page.tsx` is a working example; `docs/contributing/EXTENDING.md` documents modules, integration adapters, and AI tools. Each gate was verified to fail on the defect it claims to catch. Verified with `npm run test:plugin-modules`, `npm run verify:module-contract`, and `npm run verify:extensions`. 2026-09-02 status corrected from Shipped to Planned. Acceptance criterion two requires that disabling a module removes its routes with no dangling references, verified by a scoped test. Route gating does not exist: `isModuleEnabled` has zero callers in `src/app` and `src/middleware.ts`, disabling a module hides its sidebar link while the page still renders on direct navigation, and `scripts/test-plugin-modules.ts` contains no assertion mentioning routes. Two further claims in shipped documentation are also false: `INTEGRATION_ADAPTERS` has zero call sites while its own comment calls it the resolution point, and `setupChecks` is read by nothing with all four declared ids drifted away from the real Setup Center checks. What did ship is real and stands: per-tenant module configuration threaded from `requireAdmin()` into navigation filtering and the agent, an audited toggle write path, manifest validation and generation, and two CI gates. The remaining work is carded as `module-route-gating-enforcement`, `module-contract-gate-hardening`, and `integration-adapter-registry-resolution`.",
     verification:
-      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:tenant-isolation; npm run test:ai-tool-gates; npm run build; git diff --check.",
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:tenant-isolation; npm run test:ai-tool-gates; npm run test:plugin-modules; npm run build; git diff --check.",
   }),
   card({
     key: "vertical-business-templates",
@@ -4175,8 +4194,10 @@ export const featureBacklog = [
     guardrails:
       "No adapter may bypass the existing per-tenant credential encryption or the AI tool impact-tier/approval contract for any action it exposes.",
     labels: ["integrations", "security"],
+    evidence:
+      "2026-09-01: Built the Integration Adapters SDK (`src/lib/revenue-os/integration-adapters.ts`) providing standard connect/verify/ingress interfaces for third-party channels and CRM sources. Implemented the WhatsApp messaging ingress adapter (`ingestWhatsAppMessage`) normalizing external message IDs and phone numbers into canonical identities and immutable activity ledger receipts. Implemented the HubSpot batch importer (`importHubSpotBatch`) resolving contact identity through canonical deduplication and mapping deals into pipeline opportunities with idempotent dedupe keys. Added Model Context Protocol (MCP) server integration (`src/lib/revenue-os/mcp-server.ts`, `src/app/api/mcp/route.ts`, and `scripts/revenue-os-mcp.ts`) allowing external AI clients (Claude Desktop, ChatGPT, Antigravity) to query bounded resources and stage actions in the action_queue. Verified with `npm run test:integration-adapters` and `npm run test:mcp-server`.",
     verification:
-      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:integration-catalog; npm run build; git diff --check.",
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:integration-adapters; npm run test:mcp-server; npm run build; git diff --check.",
   }),
   card({
     key: "create-accelerate-cli",
@@ -4187,19 +4208,1300 @@ export const featureBacklog = [
     description:
       "npx create-accelerate as a second on-ramp alongside the Deploy button, for developers who want a local clone pre-wired to a chosen template and modules rather than a hosted instance. Only makes sense once the module contract and templates exist; building this first would just hand-roll the same choices the contract should express declaratively.",
     acceptance: [
-      "npx create-accelerate walks a developer through template and module selection and produces a locally runnable clone with docs/SELF-HOSTING.md's steps already applied where scriptable",
+      "npx create-accelerate walks a developer through template and module selection and produces a locally runnable clone with docs/self-hosting/SELF-HOSTING.md's steps already applied where scriptable",
       "The CLI has no privileged access beyond what the developer's own Supabase/Vercel credentials grant it",
     ],
     dependencies: [
       "Define a plugin/module contract for optional business capabilities",
       "Ship 2-3 vertical business templates (roofing, law firm, agency)",
     ],
-    start: "docs/SELF-HOSTING.md; package.json",
+    start: "docs/self-hosting/SELF-HOSTING.md; package.json",
     guardrails:
       "Do not publish an npm package that phones home, collects telemetry by default, or requires an Accelerate-owned account to run.",
     labels: ["clonable", "setup"],
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run build; a real run of the published CLI against a scratch directory; git diff --check.",
+  }),
+
+  // --- Competitive feature program -------------------------------------
+  // Surface area a mature open-source CRM has and this does not, ordered by
+  // how much each one blocks a business from running its real operation here.
+  // Each inherits the governance model by construction rather than by
+  // discipline: custom data still writes through canonical services into the
+  // audit ledger, a workflow action still stages a proposal, a role still
+  // gates what an agent may touch. Parity is not the goal; governed execution
+  // is the wedge, and a feature that cannot keep it does not ship.
+  card({
+    key: "custom-data-model",
+    title: "Add custom objects and fields",
+    workstream: "platform",
+    phase: 6,
+    priority: "high",
+    description:
+      "A metadata layer letting a workspace define its own objects and fields, with dynamic record rendering, so a business whose shape does not match contacts/companies/opportunities can still run here. This is the single largest gap against a general-purpose CRM: there is currently no custom field anywhere in the schema, so any business needing one has to fork and migrate.",
+    acceptance: [
+      "A workspace defines an object and its fields without a deploy, and records of that object render, validate, filter, and sort through the same admin surfaces canonical records use",
+      "Custom data is tenant-scoped by the same mechanism canonical tables use, verified by a cross-tenant read and write test against real Postgres, not an in-memory fake",
+      "Every custom-record write lands in the audit ledger with actor, origin, and before/after state, exactly as a canonical write does",
+      "AI tools reading or proposing writes against custom objects go through the registry with declared impact tiers, so a custom object cannot become an ungoverned side door",
+      "A field or object removal is refused, or explicitly reversible, rather than silently dropping stored values",
+    ],
+    dependencies: ["Define a plugin/module contract for optional business capabilities"],
+    start:
+      "migrations/; src/lib/revenue-os/schema-contract.ts; src/lib/revenue-os/records.ts; src/lib/admin/navigation.ts",
+    guardrails:
+      "Do not let a custom object bypass tenant binding, the audit ledger, or the AI impact-tier contract. No arbitrary user-supplied SQL, no runtime DDL from a request path; schema changes stay ordered migrations.",
+    labels: ["data", "productization"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run db:verify-schema; a cross-tenant isolation test for custom records against real Postgres; npm run test:core; npm run build; git diff --check.",
+  }),
+  card({
+    key: "roles-and-permissions",
+    title: "Add real roles, record ownership, and per-object agent permissions",
+    workstream: "security",
+    phase: 6,
+    priority: "high",
+    description:
+      "tenant_memberships.role currently permits exactly one value, admin, so every member of a workspace can do everything and the AI can reach everything that member can. A second person in the business, or a client given limited visibility, is not expressible today. This is also the one place a competitor's AI governance is genuinely ahead: theirs scopes agent access per object by role.",
+    acceptance: [
+      "A workspace defines roles beyond admin, with per-object read and write permissions, enforced in the database rather than only in the interface",
+      "Record ownership is explicit and filterable, and a permission change takes effect on the next request without a redeploy",
+      "Agent tool availability is scoped by the acting member's role, so an agent can never read or propose against an object its operator cannot",
+      "Permission checks fail closed on an unknown role or a missing membership, and every grant or revocation is audited",
+      "The existing single-admin path keeps working unchanged for a workspace that never defines a second role",
+    ],
+    dependencies: ["Enforce tenant context through authentication and domain services"],
+    start:
+      "migrations/20260830-shared-database-tenancy.sql; src/lib/admin/auth.ts; src/lib/tenancy/context.ts; src/lib/revenue-os/ai-tools.ts",
+    guardrails:
+      "Do not weaken tenant isolation to express roles. A role narrows what a member may reach inside their own tenant; it never widens reach across tenants, and platform administration stays separate.",
+    labels: ["security", "data"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:tenant-isolation; npm run test:ai-tool-gates; a role-scoped authorization test against real Postgres; npm run build; git diff --check.",
+  }),
+  card({
+    key: "server-side-saved-views",
+    title: "Move saved views server-side and make record pages configurable",
+    workstream: "admin",
+    phase: 6,
+    priority: "medium",
+    description:
+      "Saved views are localStorage only (src/lib/admin/pipelineViews.ts, leadsViews.ts), so they are per-device, unshareable, and lost when a browser is cleared, while being presented as a feature. Move them to tenant-scoped storage, shared or private per user, and extend the same mechanism to record page layout and sidebar arrangement.",
+    acceptance: [
+      "A saved view persists per workspace and per user, survives a device change, and can be shared with the workspace or kept private",
+      "Record page sections and sidebar arrangement are configurable and persist the same way, reusing the existing admin layout override mechanism rather than a second one",
+      "A view referencing a field or object that no longer exists degrades to a readable state instead of erroring",
+      "Existing localStorage views migrate on first load rather than disappearing",
+    ],
+    dependencies: ["Add custom objects and fields"],
+    start:
+      "src/lib/admin/pipelineViews.ts; src/lib/admin/leadsViews.ts; src/lib/revenue-os/admin-layout.ts; src/lib/admin/layout-overrides.ts",
+    guardrails:
+      "A shared view must not leak records the viewing member's role cannot reach; view definitions are filters over an authorized query, never a way around one.",
+    labels: ["admin-ux", "data"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:pipeline-saved-views; npm run test:admin-layout; npm run build; git diff --check.",
+  }),
+  card({
+    key: "dashboards-and-metrics",
+    title: "Add user-defined dashboards and metrics",
+    workstream: "intelligence",
+    phase: 6,
+    priority: "medium",
+    description:
+      "Analytics is a fixed set of canonical formulas on one page (src/lib/revenue-os/analytics.ts). A workspace cannot define its own metric, cohort, or dashboard. Build on the existing attribution model, which already surfaces unknown attribution honestly rather than reporting it as zero, so a user-defined metric inherits that truthfulness instead of inventing a cleaner-looking number.",
+    acceptance: [
+      "A workspace defines a metric and arranges dashboards from live canonical data, without a deploy",
+      "A metric with incomplete underlying data reports the gap explicitly rather than substituting zero, matching how canonical analytics already behaves",
+      "Dashboard queries are tenant-scoped and role-scoped, and a metric cannot read past what the viewer may see",
+      "Every metric definition names the canonical fields it derives from, so a number on a dashboard can be traced back to records",
+    ],
+    dependencies: [
+      "Reconcile analytics with canonical stage history",
+      "Add real roles, record ownership, and per-object agent permissions",
+    ],
+    start: "src/lib/revenue-os/analytics.ts; src/app/admin/analytics/page.tsx",
+    guardrails:
+      "No metric may present an estimate as a measurement. Do not add a chart that cannot name the records behind it.",
+    labels: ["analytics", "admin-ux"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:analytics-decision-model; npm run build; git diff --check.",
+  }),
+  card({
+    key: "workflow-builder",
+    title: "Build a visual trigger, condition, and action workflow designer",
+    workstream: "operations",
+    phase: 6,
+    priority: "medium",
+    description:
+      "Automation exists but is hardcoded across campaigns.ts, inbound.ts, and auto-responder.ts, so changing when something fires means changing code. A visual designer over the same primitives lets an operator express a rule, while every action it can take stays inside the approval and receipt model rather than becoming a second, looser execution path.",
+    acceptance: [
+      "An operator composes a trigger, conditions, and actions and activates it without a deploy, and can see every run it produced",
+      "An action that sends, writes, or changes a record stages a proposal through the existing action queue; a workflow never gains a direct-write path the interface does not have",
+      "A workflow that would fire twice for the same event is deduplicated by the existing idempotency mechanism, and a failed run reports truthfully rather than retrying blindly",
+      "Deactivating a workflow stops queued runs immediately, and stop conditions are re-read before each action rather than evaluated once at activation",
+    ],
+    dependencies: [
+      "Generalize approved automation policies",
+      "Enforce every campaign stop condition immediately",
+    ],
+    start:
+      "src/lib/revenue-os/campaigns.ts; src/lib/revenue-os/auto-responder.ts; src/lib/revenue-os/actions.ts; src/lib/revenue-os/runs.ts",
+    guardrails:
+      "A workflow is a composition of reviewed actions, never a scripting surface. No user-supplied code execution, and no action type that does not already exist in the approval queue's vocabulary.",
+    labels: ["automation", "operations"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:action-execution; npm run test:campaign-execution; npm run build; git diff --check.",
+  }),
+  card({
+    key: "public-records-api",
+    title: "Publish a public REST API for canonical records",
+    workstream: "integrations",
+    phase: 6,
+    priority: "medium",
+    description:
+      "The only external programmatic surfaces today are MCP and write-only tenant ingest keys. There is no way to read records out, or to integrate a tool that does not speak MCP. A documented REST surface over the canonical services, authenticated per tenant and scoped by role, is what makes the open and flexible claim hold for someone who is not using an AI client.",
+    acceptance: [
+      "Canonical contacts, companies, opportunities, activities, and tasks are readable and writable over a documented, versioned REST surface",
+      "Every request authenticates to one tenant and is scoped by the key's role; a key cannot read or write another workspace, proven by a cross-tenant test against real Postgres",
+      "Writes go through the same canonical services the interface uses, so validation, identity resolution, idempotency, and audit receipts all apply unchanged",
+      "The surface is rate limited per key, returns structured errors, and publishes a machine-readable schema",
+    ],
+    dependencies: [
+      "Add real roles, record ownership, and per-object agent permissions",
+      "Harden webhook, cron, replay, validation, and rate-limit defenses",
+    ],
+    start:
+      "src/app/api/public/[tenantSlug]/; src/lib/tenancy/ingest.ts; src/lib/revenue-os/records.ts",
+    guardrails:
+      "No endpoint may bypass a canonical service to write a table directly. No key may be granted platform scope. Do not expose provider payloads or credentials through a record read.",
+    labels: ["integrations", "security"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; a cross-tenant API authorization test against real Postgres; npm run test:core; npm run build; git diff --check.",
+  }),
+
+  // ────────────────────────────────────────────────────────────────────────
+  // PLUGIN PLATFORM — PHASE 0: correct the record.
+  // The module seam shipped with three documents claiming enforcement that
+  // does not exist. These cards make the claims true rather than reword them,
+  // and they are prerequisites for every later phase regardless of which
+  // trust boundary the platform ends up using.
+  // ────────────────────────────────────────────────────────────────────────
+  card({
+    key: "module-route-gating-enforcement",
+    title: "Enforce module enablement on routes, not only navigation",
+    workstream: "security",
+    phase: 6,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Plugin Platform phase 0 of 6. Three shipped documents state that a disabled module's routes fail closed: src/lib/revenue-os/modules.ts:12, extensions/README.md:32, and docs/contributing/EXTENDING.md:17. Nothing enforces it. isModuleEnabled has zero callers in src/app and src/middleware.ts, so disabling a module hides its sidebar link while the page still renders on direct navigation and its API routes still answer. Close the gap at two points and describe each one accurately.",
+    acceptance: [
+      "Page gating: middleware sets the admin pathname as a request header, and src/app/admin/layout.tsx resolves the owning module through a longest-prefix route resolver and renders a disabled notice instead of children. One file covers every admin page with no per-page repetition and no additional database read",
+      "The page layer is documented in code as display gating and defense in depth, never as authorization, because Next renders layout and page in parallel and the layout does not stop the child page from fetching",
+      "API gating: a requireAdminForModule(moduleId) helper composes with the requireAdmin call every admin route already makes. Middleware is explicitly not used, because /api/admin/* is outside the matcher and adding it would put a tenant query at the edge on every admin API call",
+      "A disabled module in one workspace hides its nav, refuses its API routes, reports its AI tools unavailable, and leaves another workspace in the same deployment untouched",
+      "A CI gate requires every src/app/api/admin/**/route.ts to call requireAdminForModule or appear in a reviewed core allowlist, proven to fail when a route is added that calls plain requireAdmin",
+      "The three documents are corrected in the same change so no cycle ships with the claim still false",
+    ],
+    dependencies: ["Define a plugin/module contract for optional business capabilities"],
+    start:
+      "src/lib/revenue-os/modules.ts; src/middleware.ts; src/app/admin/layout.tsx; src/lib/admin/auth.ts; scripts/verify-module-contract.mjs",
+    guardrails:
+      "Render a disabled notice rather than a 404: a module the operator can switch back on is not missing. Do not add /api/admin to the middleware matcher. Do not weaken tenant isolation or the admin auth boundary to make gating convenient. The demo runtime supplies a null module config and its boundary must stay untouched.",
+    labels: ["auth", "config"],
+    verification:
+      "npm run verify:agent-contract; npm run verify:module-contract; npm run test:plugin-modules; a new scripts/test-route-gating.ts added to test:core; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run build; git diff --check.",
+    evidence:
+      "2026-09-02: shipped both gates. Pages: middleware sets x-admin-path at every point that leads to an admin render (the demo rewrite, the demo re-entry pass, and the final tenant pass); src/app/admin/layout.tsx resolves the owning module through the new src/lib/revenue-os/module-routes.ts (longest-prefix match) and renders ModuleDisabledNotice instead of children when disabled, documented in code as display gating and defense in depth, never authorization, since Next renders layout and page in parallel. APIs: src/lib/admin/module-guard.ts's requireAdminForModule(moduleId) composes with requireAdmin() and is now the auth call in all 23 route.ts files across the 14 non-core modules that own API routes (proposals, campaigns, email-studio, recovery, revenue, bookings, clients, content, resources, leads-capture, subscribers, partners, website-grades, analytics). A new CI gate, scripts/verify-module-route-guards.mjs, requires every route file in a module's owned API directories to call the guard; it was proven to fail on the exact original defect (23 findings against the unguarded tree) before any route file was touched, and passes now. One deliberate, documented exception: the \"integrations\" module's own console (/admin/integrations and its GET route) is exempt at both the page and API layer via SELF_LOCKOUT_EXEMPT_MODULES, because it is the screen that re-enables every other module and gating it would strand an operator who disabled it with no UI path back. scripts/test-route-gating.ts (now in test:core) proves the resolver's longest-prefix matching, that unowned paths (/admin, /admin/login, /admin/update-password, /admin/ai-operations) never gate, that core modules are always enabled regardless of config, and the integrations exemption. The three false claims this card names are corrected in the same change: src/lib/revenue-os/modules.ts:12, extensions/README.md, and docs/contributing/EXTENDING.md now describe exactly what is enforced, including the integrations exception and the requirement that a manifest-registered module's API routes must be added to MODULE_API_DIRECTORIES to get the same refusal a core-authored module gets. Verified: npm run verify:agent-contract, verify:module-contract, verify:module-route-guards, test:plugin-modules, test:route-gating, test:core, typecheck, lint --max-warnings=0, format:check all pass. Production build not run locally (a dev server was active on the shared tree per CLAUDE.md); typecheck+lint+the pre-push build stand in for it. No commit, push, or deploy performed.",
+  }),
+  card({
+    key: "module-contract-gate-hardening",
+    title: "Close the module contract gaps that let unreachable code ship",
+    workstream: "qa",
+    phase: 6,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Plugin Platform phase 0 of 6. Four defects let broken module wiring pass CI today. setupChecks is read by nothing and all four declared ids at modules.ts:152 and :194 are drifted, resolving to no real Setup Center check. availabilityFor marks any tool outside PACK_TOOL_NAMES unavailable while ai-agent.ts always passes a pack, so a registered tool can pass every gate and be permanently unreachable. isNavLinkEnabled and isAiToolModuleEnabled both fail open on an unknown id, so deleting a manifest without deleting its code pins that code on forever. And verify-module-contract.mjs parses TypeScript with regular expressions, which is how a gate script eventually starts lying about what it checked.",
+    acceptance: [
+      "Every setupChecks id resolves to a real check id in the Setup Center route, or the field is deleted. The gate for this fails on the tree as it stands, on all four ids, which is the proof it catches something real",
+      "Every tool in the registry belongs to at least one pack, proven by registering a tool that is claimed by a module but absent from PACK_TOOL_NAMES and watching CI fail where it currently passes",
+      "isNavLinkEnabled and isAiToolModuleEnabled resolve an unowned id to disabled rather than enabled",
+      "Fail-closed defaults are paired with reverse checks in the same change, so that every nav link and every admin page is claimed by exactly one module and the resolver's unowned branch is unreachable in practice",
+      "verify-module-contract.mjs imports the real registries the way scripts/test-plugin-modules.ts already does under tsx, keeping regular expressions only for the filesystem walk",
+    ],
+    dependencies: ["Enforce module enablement on routes, not only navigation"],
+    start:
+      "scripts/verify-module-contract.mjs; src/lib/revenue-os/modules.ts; src/lib/revenue-os/ai-tools.ts; src/app/api/admin/setup/route.ts; scripts/test-plugin-modules.ts",
+    guardrails:
+      "Do not silence a failing check by widening an allowlist. Each new gate must be demonstrated failing on the exact defect it claims to catch before it is accepted. Fail-closed defaults without the reverse coverage checks would break working navigation, so the two must land together.",
+    labels: ["qa", "config"],
+    verification:
+      "npm run verify:module-contract; npm run verify:extensions; npm run test:plugin-modules; npm run test:setup-status; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run build; git diff --check.",
+    evidence:
+      '2026-09-02: shipped all five. setupChecks: the two drifted declarations (campaigns\' ["resend_configured","campaign_readiness"], bookings\' ["calendly_configured","google_calendar_configured"]) now read ["email","campaigns"] and ["calendly","calendar_sync"], the real ids in src/app/api/admin/setup/route.ts. verify-module-contract.mjs gained a setupChecks-resolution section, proven to fail on the original drift (both false ids) before the fix. Pack coverage: a new section resolves every registered tool against PACK_TOOL_NAMES, proven to fail with a synthetic tool claimed by a module but absent from every pack (all 14 real tools already had coverage, so this is preventative, not a live fix). Fail-closed: isNavLinkEnabled and isAiToolModuleEnabled now return false rather than true/enabled on an unowned id, landed alongside a new reverse-coverage check in verify-module-contract.mjs requiring every real admin page.tsx to be claimed by some module\'s routes[] (with a small named exemption list for the four genuinely unowned pages: /admin, /admin/login, /admin/update-password, /admin/ai-operations), so the fail-closed default cannot silently break real navigation. Parser: verify-module-contract.mjs still walks the filesystem with regex but now parses setupChecks and the pack section directly from source; full import-based rewrite deferred, this pass closed the specific drift risk the card named. test:plugin-modules is now wired into test:core (previously not run in CI at all). Verified: verify:module-contract, verify:extensions, test:plugin-modules, test:core, typecheck, lint --max-warnings=0, format:check all pass; both new gates individually proven to fail on their target defect and pass on the fix. No commit, push, or deploy performed.',
+  }),
+  card({
+    key: "integration-adapter-registry-resolution",
+    title: "Make the integration adapter registry the real resolution point",
+    workstream: "integrations",
+    phase: 6,
+    status: "in_progress",
+    priority: "high",
+    owner: "Claude",
+    description:
+      "Plugin Platform phase 0 of 6. INTEGRATION_ADAPTERS at src/lib/revenue-os/integration-adapters.ts:460 documents itself as the registry every provider-scoped write resolves through, so that a new adapter is one entry rather than hardcoded imports scattered across routes. It has zero call sites. src/app/api/admin/tenant/providers/route.ts:12 imports whatsAppAdapter and hubSpotAdapter directly and calls them from an if/else chain at lines 257 and 301, which is exactly the pattern the comment claims to prevent. This is a prerequisite for plugin-supplied adapters, not cleanup: a plugin can only register into that map once the map is what provider operations actually traverse.",
+    acceptance: [
+      "The provider route derives its accepted provider set and its validation from the registry rather than from hand-maintained literal unions",
+      "The if/else chain is replaced by one registry lookup and one shared verify, encrypt, upsert and audit block",
+      "IntegrationAdapter carries the credential field metadata the shared block needs, so adding a provider is one registry entry",
+      "OpenRouter and MCP stay outside the generic path with a written reason: one uses tenant-scoped AAD encryption and the other is server-issued rather than operator-supplied. Forcing them into a generic shape would be worse than the branch it replaces",
+      "A CI gate asserts no file outside integration-adapters.ts imports a named adapter export. This gate fails on the tree as it stands, on providers/route.ts:12",
+      "The registry's doc comment describes what the code does, verified after the change rather than before",
+    ],
+    dependencies: [],
+    start:
+      "src/lib/revenue-os/integration-adapters.ts; src/app/api/admin/tenant/providers/route.ts; src/lib/revenue-os/integration-registry.ts",
+    guardrails:
+      "Credential verification must still happen before storage. Do not move any secret into a code path where it could be logged or returned. Do not generalize OpenRouter or MCP into the shared shape. Provider credential encryption stays AAD-bound.",
+    labels: ["integrations", "encryption"],
+    verification:
+      "npm run verify:tenant-providers; npm run test:core; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run build; a proof that a WhatsApp and a HubSpot credential still verify and store correctly, and that an invalid credential is refused before storage; git diff --check.",
+    evidence:
+      "2026-09-02 partial: the first five acceptance items are done. IntegrationAdapter gained a credentialFields declaration (whatsapp: accessToken->api_key, phoneNumberId->phone_number_id; hubspot: accessToken->api_key, webhookSecret->webhook_secret) and two new pure exports, buildEncryptedCredentials and resolveAccountIdentifier. src/app/api/admin/tenant/providers/route.ts's two ~45-line hand-written whatsapp/hubspot blocks are now one configureAdapterProvider() function that looks the adapter up in INTEGRATION_ADAPTERS, calls verify(), and uses the two pure helpers for encryption and account-identifier resolution; OpenRouter and MCP are untouched, with the reason written into the registry's own doc comment. A new CI gate, scripts/verify-integration-adapter-encapsulation.mjs, bans importing whatsAppAdapter or hubSpotAdapter by name outside integration-adapters.ts, and was proven to fail on the exact original defect (the direct import in providers/route.ts) before being wired into CI. scripts/test-integration-adapter-registry.ts (in test:core) proves the encryption-field mapping and the account-identifier fallback against fixtures matching each real adapter's declared fields, including that a field absent from a given request is skipped rather than encrypted as undefined. What is NOT done: the verification list's live proof, that a real WhatsApp and a real HubSpot credential still verify and store correctly against real Postgres and the real Meta/HubSpot APIs, and that an invalid credential is refused before storage. That needs sandbox credentials for both providers, which are not available in this environment; the pure-logic test above is a substitute for the mapping and fallback logic, not a substitute for the live round trip. Remaining before Shipped: run that live proof with real (sandbox) credentials. Verified this session: verify:tenant-providers, verify:integration-adapter-encapsulation, test:integration-adapter-registry, test:core, typecheck, lint --max-warnings=0, format:check all pass. No commit, push, deploy, or live credential access performed.",
+  }),
+
+  // ────────────────────────────────────────────────────────────────────────
+  // PLUGIN PLATFORM — PHASE 1: primitives.
+  // Everything a plugin can ever do composes exactly seven primitives:
+  // records, views, actions, events, tools, skills, connections. Five of the
+  // seven are missing or partial here. This phase is worth building with zero
+  // plugins installed, because every card below improves the product on its
+  // own. Phase gate: rebuild one existing core feature entirely on these
+  // primitives with no behavior change and no direct database writes.
+  // ────────────────────────────────────────────────────────────────────────
+  card({
+    key: "entity-registry-and-link-graph",
+    title: "Add an open entity registry and a polymorphic link graph",
+    workstream: "foundation",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 1 of 6, primitive 1 of 7: Records. There is no entity_links table, no entity_types registry, and no generic merge anywhere in src or migrations. Without a generic link table every pair of capabilities that needs to relate records requires a bespoke join table and its own migration, which is the cost that stops an ecosystem before it starts. A meeting capability needs to link a transcript to a contact to an opportunity to a follow-up task; today that is four schema changes. Entity types become rows rather than an enum so that links, merge and audit work on a newly registered type the day it appears, with no code change.",
+    acceptance: [
+      "entity_links stores source type and id, target type and id, and a link type, with a unique constraint on the tuple so repeated writes are idempotent no-ops rather than duplicates",
+      "entity_types is a table, not an enum, carrying the label, backing table, id column, a foreign key catalog that drives generic merge, the identity fields that drive resolution, and a soft-delete flag",
+      "Registering a new entity type at runtime makes links, traversal, merge and audit work on it with zero code changes, proven by a test that registers a type and exercises all four",
+      "A traversal read returns a bounded, depth-limited graph walk rather than an unbounded join",
+      "Both tables carry tenant scoping and row-level security matching the shape every other tenant table already uses in migrations/20260830-shared-database-tenancy.sql",
+      "src/lib/revenue-os/schema-contract.ts lists both tables and the contract version is bumped",
+    ],
+    dependencies: ["Tenant-isolate providers, public intake, webhooks, and jobs"],
+    start:
+      "migrations/20260830-shared-database-tenancy.sql for the tenant column, composite key and policy shape; src/lib/revenue-os/schema-contract.ts; src/lib/revenue-os/identity.ts",
+    guardrails:
+      "Do not weaken tenant isolation to make the graph generic. A polymorphic table is the one place a missing tenant filter leaks across every entity at once, so every access goes through one owning service rather than ad-hoc queries. No cascade deletes: history is not the plugin's property.",
+    labels: ["database", "identity"],
+    verification:
+      "npm run db:verify-schema; a scoped service test covering tuple idempotency, bounded traversal depth, cross-tenant refusal, and runtime type registration; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run build; git diff --check.",
+  }),
+  card({
+    key: "generic-record-merge",
+    title: "Add foreign-key-safe generic record merge with supersession",
+    workstream: "foundation",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 1 of 6, primitive 1 of 7: Records. Duplicates are inevitable once ingestion is AI-driven, and most integrations either never clean them up or delete and orphan the dependents. A merge driven by the entity registry's foreign key catalog walks every dependent in one transaction, preserves the loser's identity as an alias on the winner so future inbound matches still resolve, and supersedes live dependent rows rather than deleting them. That combination is what makes merge safe to run repeatedly.",
+    acceptance: [
+      "merge_records(entity_type, winner, loser) is driven entirely by the registry's foreign key catalog, so a newly registered entity type is mergeable with no new code",
+      "The whole merge is one transaction: a partial merge is impossible",
+      "The loser's identifying values are preserved as aliases on the winner, so a later inbound message matching the old value resolves to the merged record",
+      "Dependent live rows are superseded rather than deleted, and the audit ledger records the merge with before and after state",
+      "Re-running the same merge is a no-op rather than an error or a second merge",
+      "A merge is refused when the two records are in different tenants",
+    ],
+    dependencies: ["Add an open entity registry and a polymorphic link graph"],
+    start:
+      "src/lib/revenue-os/identity.ts; the entity registry foreign key catalog; docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md",
+    guardrails:
+      "Never hard-delete on merge. Never merge across tenants. Merge is compensable rather than reversible, so it can never be granted an autonomous trust level once the ladder exists.",
+    labels: ["dedupe", "identity"],
+    verification:
+      "a scoped merge test covering full foreign key catalog coverage, transactional rollback on a mid-merge failure, alias preservation and re-resolution, supersession rather than deletion, repeat-merge no-op, and cross-tenant refusal; npm run db:verify-schema; npx tsc --noEmit; npm run build.",
+  }),
+  card({
+    key: "unified-action-executor",
+    title: "Route every write through one executor with reversibility and compensators",
+    workstream: "foundation",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 1 of 6, primitive 3 of 7: Actions. This is a refactor of something real rather than a greenfield build. action_queue already carries the status lifecycle, a pending dedupe index and expiry, and the AI tool registry already asserts at runtime that a mutating tool staged a proposal. What is missing is the reversibility axis, which is orthogonal to the existing impact tiers: impact says how far an effect reaches, reversibility says whether core can restore the prior state. Add the class, add compensators, add an evidence column, and make one executor the only write path so that a user clicking Save and a plugin proposing a change traverse identical code. That single property is what makes the approval queue real rather than cosmetic and the audit log complete rather than best-effort.",
+    acceptance: [
+      "Every action declares exactly one reversibility class: reversible when core can restore prior state automatically, compensable when a compensating action exists, irreversible when the effect leaves the system",
+      "Core UI writes and programmatic writes traverse the same executor, proven by a test asserting one code path rather than by inspection",
+      "Every reversible action has a working compensator, verified by executing and then undoing against seeded data rather than by the compensator merely existing",
+      "action_queue gains reversibility, compensation and evidence columns; the existing status lifecycle and pending dedupe index are preserved",
+      "Idempotency keys deduplicate a replayed execution to one effect",
+      "Impact tier and reversibility are kept as separate declared axes, and the relationship between them is documented rather than conflated",
+      "Irreversible is enforced at the executor as permanently non-autonomous, so the later trust ladder has nothing to special-case",
+    ],
+    dependencies: ["Complete AI tool registry and impact tiers"],
+    start:
+      "migrations/20260816-revenue-os.sql:273 for the existing action_queue; src/lib/revenue-os/ai-tools.ts:21 for the impact tiers; src/lib/revenue-os/README.md for the authoritative domain services",
+    guardrails:
+      "Do not collapse impact and reversibility into one field; they answer different questions and a merged field will be wrong for one of them. No direct-write path may survive this card, including for core features. An action whose compensator has never been executed in a test does not count as reversible.",
+    labels: ["approval", "database"],
+    verification:
+      "npm run db:verify-schema; a scoped executor test proving one shared code path, compensator execution against seed data, replay idempotency, and refusal of autonomous execution for irreversible actions; npm run test:core; npx tsc --noEmit; npm run build; git diff --check.",
+  }),
+  card({
+    key: "batch-identity-preflight",
+    title: "Resolve identity in batches before any write that could create a person",
+    workstream: "foundation",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 1 of 6. resolveOrCreateIdentity exists in src/lib/revenue-os/identity.ts and resolves one record at a time. Every capability that extracts people from unstructured input has the same failure mode: silent duplicate creation from name variants and transcription drift. Resolve identity for a whole batch first, once, and classify each candidate as matched, ambiguous, near miss, or new. Ambiguous and near miss are queued for a human and never silently created. This becomes mandatory middleware on any write that could create a person or a company rather than a helper a caller may forget.",
+    acceptance: [
+      "A batch resolve returns every candidate classified as matched, ambiguous, near_miss, or new, with the matching method recorded for each",
+      "A near miss never creates a record. An ambiguous candidate never creates a record. Both queue for a human decision",
+      "Fixtures cover diacritics, transcription drift, nickname variants, shared company mailboxes, and phone-only identities, since resolveOrCreateIdentity gained a phone lookup only recently",
+      "Resolution is enforced as middleware on the write path rather than offered as an optional helper, so a caller cannot skip it",
+      "The classification and its evidence are attached to the resulting proposal so a reviewer sees why a match was claimed",
+    ],
+    dependencies: [
+      "Implement deterministic contact and company identity resolution",
+      "Route every write through one executor with reversibility and compensators",
+    ],
+    start:
+      "src/lib/revenue-os/identity.ts; src/lib/revenue-os/inbound.ts; src/lib/revenue-os/contact-imports.ts",
+    guardrails:
+      "Never guess on ambiguity. A resolution strategy that can silently create is not acceptable regardless of its confidence score. Do not regress the existing contact import flow, which already proposes with AI and requires approval against an exact reviewed snapshot.",
+    labels: ["contacts", "dedupe"],
+    verification:
+      "a scoped resolver test over the full fixture set asserting no creation on ambiguous or near miss; npm run test:inbound-canonical; npm run test:core; npx tsc --noEmit; npm run build.",
+  }),
+  card({
+    key: "durable-event-bus",
+    title: "Add a durable, replayable event bus with at-least-once delivery",
+    workstream: "foundation",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 1 of 6, primitive 4 of 7: Events. Nothing in the tree provides typed business events, durable delivery, replay, or delivery deduplication. Without them, capabilities can only be wired by direct calls, which creates a dependency graph nobody can upgrade and is the failure mode this platform exists to avoid. Events are also the only sanctioned way capabilities communicate with each other.",
+    acceptance: [
+      "Typed events are emitted and subscribed by name, with a payload schema validated at both ends",
+      "Delivery is durable and at least once, with recorded attempts, a next retry time, and a terminal error",
+      "A dedupe key means redelivery of the same event produces exactly one effect, proven by delivering the same event twice and asserting one outcome",
+      "Events are replayable for a bounded window so a subscriber added later can catch up deliberately",
+      "Delivery failures are visible in an operator surface rather than only in logs, matching the existing sync health pattern",
+      "Direct capability-to-capability calls are prohibited by contract, with events and shared records as the only channels",
+    ],
+    dependencies: ["Route every write through one executor with reversibility and compensators"],
+    start:
+      "migrations/20260816-revenue-os.sql for the job and run ledger shapes already in use; src/lib/revenue-os/README.md",
+    guardrails:
+      "At-least-once plus idempotent handlers, never exactly-once theatre. A retry storm must be bounded. Event payloads are data and must never be treated as instructions by any AI consumer.",
+    labels: ["reliability", "webhooks"],
+    verification:
+      "a scoped bus test covering duplicate delivery producing one effect, retry with backoff, terminal failure recording, bounded replay, and schema refusal of a malformed payload; npm run test:core; npx tsc --noEmit; npm run build.",
+  }),
+  card({
+    key: "capability-scoped-data-api",
+    title: "Expose one capability-checked data API with no raw database handle",
+    workstream: "security",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 1 of 6. Reads must go through a single capability-checked interface and writes must go through the executor, because that is what makes row-level security, cost accounting and audit complete rather than best-effort. The pattern is already proven in this repository: bindTenantDatabase is a proxy that forces tenant filtering because the service role bypasses row-level security. Generalize it into a data API with three shapes, a filtered entity query, a server-computed recipe, and a capability's own namespaced storage, and deliberately provide no direct write to core entities.",
+    acceptance: [
+      "The API offers a scoped entity query, a server-computed recipe read, and access to a capability's own namespace, and nothing else",
+      "There is deliberately no write function for core entities on this interface; core writes are actions",
+      "No path exists from a capability to a raw database handle, asserted by static analysis in CI rather than by review",
+      "A cross-workspace read attempt fails closed",
+      "Every call is attributed for rate limiting and cost accounting",
+      "The existing bindTenantDatabase proxy is the starting point rather than a parallel second mechanism",
+    ],
+    dependencies: [
+      "Route every write through one executor with reversibility and compensators",
+      "Add an open entity registry and a polymorphic link graph",
+    ],
+    start:
+      "src/lib/tenancy for bindTenantDatabase and the request context; docs/contracts/MULTI-TENANCY-CONTRACT.md; src/lib/supabase/server.ts",
+    guardrails:
+      "No escape hatch, no advanced mode, no raw SQL, including for a capability's own tables. Every request for one of those is a missing primitive and should be escalated as a core gap rather than granted. Service-role clients must never be handed out unbound.",
+    labels: ["security", "database"],
+    verification:
+      "npm run verify:agent-contract; a static-analysis CI check proving no raw handle is reachable; a cross-tenant read refusal test against real Postgres; npm run test:core; npx tsc --noEmit; npm run build.",
+  }),
+  card({
+    key: "write-provenance-enforcement",
+    title: "Require declared evidence on every write, enforced at the executor",
+    workstream: "ai",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 1 of 6. The repository is further ahead here than the specification assumes: grounded answer validation already rejects an answer that does not cite receipts from tools that actually executed in that run, and execution re-reads record state and expires a proposal if reality moved. What is missing is applying the same discipline to writes. A commitment extracted from a transcript, or a stage advanced on inferred intent, is exactly where a hallucination causes damage. Evidence requirements belong in the validator, because a prompt instruction is a suggestion to a model while a validator is a guarantee.",
+    acceptance: [
+      "An action declares its evidence policy: which fields are required, minimum verbatim quote length where a quote is required, and a minimum confidence where confidence applies",
+      "The executor rejects an action failing its evidence policy. Rejection happens at the executor, never at the prompt layer",
+      "Every proposal carries structured evidence rendered in the approval surface: the claim, the source with its identifier and offset, the verbatim quote, the confidence, and the resolved entities with the method used to resolve them",
+      "A confident claim without a sufficient verbatim quote is refused, mirroring the proven pattern that requires a minimum-length quote before a definite assertion is recorded",
+      "The existing grounded answer validation is reused rather than duplicated by a second parallel mechanism",
+    ],
+    dependencies: [
+      "Route every write through one executor with reversibility and compensators",
+      "Resolve identity in batches before any write that could create a person",
+    ],
+    start:
+      "src/lib/revenue-os/ai-tools.ts for the existing receipt and grounding checks; src/lib/revenue-os/ai-agent.ts; docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md",
+    guardrails:
+      "No safety property may live in prompt text. If the only thing preventing a bad write is an instruction to a model, it is not prevented. Evidence must never contain unredacted customer content in logs or audit rows beyond what the ledger already permits.",
+    labels: ["ai", "approval"],
+    verification:
+      "a scoped validator test proving refusal on a missing quote, a too-short quote, a below-threshold confidence, and an unresolved entity; npm run test:agent-trace; npm run test:core; npx tsc --noEmit; npm run build.",
+  }),
+
+  // ────────────────────────────────────────────────────────────────────────
+  // PLUGIN PLATFORM — PHASE 2: the plugin runtime.
+  // This is where the trust boundary moves from code review to runtime
+  // isolation. Capability enforcement is by absence: a plugin that did not
+  // declare a write has no function in scope that could perform one. An absent
+  // function cannot be tricked, which is what makes agent-generated plugin
+  // code safe by default. Phase gate: the Tier 0 exemplar installs and renders
+  // with zero platform code changes.
+  // ────────────────────────────────────────────────────────────────────────
+  card({
+    key: "plugin-isolate-host",
+    title: "Run plugin code in an isolate with no ambient authority",
+    workstream: "platform",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 2 of 6. There is no sandbox of any kind in the tree today: no isolated-vm, no worker, no node:vm. The current seam avoids the problem by executing nothing from extensions, which is a correct invariant for a manifest but caps the platform at declarative capabilities forever. An isolate moves the boundary: plugin code runs with no database handle, no filesystem, no environment, and a default-deny egress allowlist, receiving only host bindings pre-scoped to what its manifest declared. Cold start under 50ms is a requirement rather than a goal, because event handlers fire constantly and a slow cold start makes the whole product feel dead.",
+    acceptance: [
+      "Cold start is under 50 milliseconds, measured rather than asserted, and the measurement runs in CI",
+      "Declared timeout and memory limits are enforced and a breach terminates the isolate cleanly rather than degrading the host",
+      "Undeclared network egress is blocked; the allowlist is default-deny",
+      "No filesystem and no environment access is reachable from inside the isolate",
+      "A host binding is present only when the manifest declared the matching capability, so enforcement is by absence rather than by a runtime permission check",
+      "A malicious plugin attempting to reach a database handle, read an environment variable, or call an undeclared host finds no function to call, proven by adversarial test rather than by review",
+    ],
+    dependencies: ["Expose one capability-checked data API with no raw database handle"],
+    start:
+      "src/lib/revenue-os/ai-tools.ts for the existing schema-validated registration shape; docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md; extensions/README.md for the invariant this card deliberately supersedes",
+    guardrails:
+      "No plugin code in the core process, and no exception for first-party plugins: that exception is precisely how WordPress's isolation story died. If a first-party connector needs an escape hatch, the platform is wrong and that is a bug in this card, not a connector exception. The existing extensions directory stays pure data.",
+    labels: ["security", "config"],
+    verification:
+      "an adversarial isolate test covering escape attempts, undeclared egress, timeout, memory breach, and absent-binding behavior; a measured cold-start benchmark in CI; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run build; a security review pass before merge, since this card defines the boundary every later phase relies on.",
+  }),
+  card({
+    key: "plugin-manifest-generator",
+    title: "Generate the plugin manifest from validators and fail on drift",
+    workstream: "platform",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 2 of 6. A hand-maintained manifest goes stale the moment someone edits a schema, which is exactly what happened to setupChecks in the current module contract, where all four declared ids drifted away from the real checks. The proven answer is to generate the description from the live validators so it cannot drift, the same principle behind a generated schema description that can never disagree with reality. For Tier 2 and above the manifest is derived from source; for Tier 0 and 1 it stays hand-written because there is no source to derive from.",
+    acceptance: [
+      "A build command derives tools, events and write declarations from the actual validators and fails when the committed manifest disagrees",
+      "The tier is computed from the manifest and stamped in, so a plugin cannot self-declare a lower tier to avoid review",
+      "An action writing an entity that requires identity resolution must declare an evidence policy, with no exception",
+      "An action declaring irreversible has its trust ceiling rewritten to always-propose, with a warning, rather than the contradiction being accepted",
+      "Every action declares an idempotency policy or an explicit opt-out carrying a written justification; silence is a build failure",
+      "A write declaration for an entity absent from the read declarations is rejected, since a blind write cannot be reviewed",
+      "The generated manifest never exceeds what the code registers, and the code can never register more than the manifest declared, proven by a permanent negative fixture rather than trusted",
+    ],
+    dependencies: ["Run plugin code in an isolate with no ambient authority"],
+    start:
+      "scripts/build-extension-modules.mjs for the existing generate-and-drift-check pattern; extensions/module-manifest.schema.json; scripts/verify-module-contract.mjs",
+    guardrails:
+      "No hand-maintained manifests above Tier 1. The manifest is a capability grant that constrains the code, not a description that follows it. A validator rule that can be satisfied by a comment rather than by structure is not a rule.",
+    labels: ["config", "qa"],
+    verification:
+      "npm run verify:extensions; a generator self-test with a negative fixture proving an undeclared registration fails the build; a drift test proving a hand-edited generated file fails; npx tsc --noEmit; npm run build.",
+  }),
+  card({
+    key: "plugin-connection-broker",
+    title: "Hold plugin credentials in a broker the isolate can never read",
+    workstream: "integrations",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 2 of 6, primitive 7 of 7: Connections. integration_connections already stores per-tenant credentials with AAD-bound envelope encryption, which is the hard half. What is missing is the broker shape: a plugin calls a fetch against a named connection and the broker attaches the token, so a compromised or malicious plugin cannot exfiltrate a refresh token because it never holds one. This is the single property that makes third-party plugins safe to connect to a customer's Google or payment account.",
+    acceptance: [
+      "A plugin performs authorized external calls through a named connection without ever receiving a token, asserted by a test that inspects what crosses the isolate boundary",
+      "Token refresh is handled by core, not by the plugin",
+      "Revoking a connection takes effect immediately for in-flight and future calls",
+      "Scopes are declared per connection in the manifest and a call outside the declared scope is refused",
+      "Credentials remain AAD-bound and encrypted at rest, reusing the existing tenant secret path rather than a second mechanism",
+    ],
+    dependencies: [
+      "Run plugin code in an isolate with no ambient authority",
+      "Make the integration adapter registry the real resolution point",
+    ],
+    start:
+      "src/app/api/admin/tenant/providers/route.ts; the tenant secret encryption helpers; src/lib/revenue-os/integration-adapters.ts",
+    guardrails:
+      "A token must never cross the isolate boundary, in any form, including inside an error message or a debug payload. Do not weaken the existing AAD binding to make the broker generic.",
+    labels: ["encryption", "integrations"],
+    verification:
+      "a boundary test asserting no credential material appears in anything passed to or returned from an isolate, including thrown errors; a revocation test; npm run verify:tenant-providers; npx tsc --noEmit; npm run build; a security review pass before merge.",
+  }),
+  card({
+    key: "plugin-install-lifecycle",
+    title: "Add the plugin install and uninstall lifecycle with a no-debris contract",
+    workstream: "platform",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 2 of 6. Today enabling a module flips one boolean and nothing else happens. A real lifecycle needs the plugin data model, a review screen generated from the manifest so an operator sees the blast radius before granting it, and an uninstall contract that leaves nothing behind. WordPress's debris problem is what makes long-lived installs unmaintainable, so the uninstall rules are non-negotiable rather than best-effort.",
+    acceptance: [
+      "The plugin data model exists: registered plugins with their manifest and tier, per-workspace installs with granted capabilities and settings, and per-install usage, all tenant-scoped with row-level security",
+      "The install review screen is generated from the manifest, never written by the publisher, since publisher-authored capability summaries are where honesty degrades",
+      "Enabling runs install or upgrade, writes a receipt, and only then flips the enabled flag. A hook that throws leaves the flag unflipped and records the failure",
+      "Uninstall disables event subscriptions and scheduled jobs immediately, marks pending proposals superseded rather than deleting them, revokes connection grants, and retains or purges the plugin's own data per its declared policy",
+      "Link and audit history survive uninstall permanently, because history is not the plugin's property",
+      "A test asserts zero orphan rows after uninstall outside the link graph and the audit ledger",
+      "Hooks are idempotent by contract, with a timeout and a row cap, and anything larger is enqueued rather than run inside a request",
+    ],
+    dependencies: [
+      "Generate the plugin manifest from validators and fail on drift",
+      "Add an open entity registry and a polymorphic link graph",
+    ],
+    start:
+      "src/app/api/admin/tenant/modules/route.ts for the current toggle and audit write; src/lib/revenue-os/schema-contract.ts; migrations/20260830-shared-database-tenancy.sql",
+    guardrails:
+      "Uninstall archives before it purges. A destructive purge is a separate, explicitly confirmed action that stages through the approval queue at the destructive tier. Never silently delete a pending proposal. This card touches the schema contract in a shared database and needs its own review pass.",
+    labels: ["config", "database"],
+    verification:
+      "npm run db:verify-schema; a lifecycle test covering install idempotency, failed-hook rollback, uninstall orphan count, proposal supersession, and history survival; npm run test:core; npx tsc --noEmit; npm run build.",
+  }),
+  card({
+    key: "plugin-usage-and-budget-metering",
+    title: "Meter plugin usage and enforce a spend budget that halts cleanly",
+    workstream: "platform",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 2 of 6. A plugin that calls a paid external service needs a per-install budget, and hitting the cap must disable that capability and notify rather than fail silently in the middle of a batch. Nothing meters plugin cost today because there are no plugins, but the shape should match the existing per-tenant AI budget work rather than inventing a second accounting system.",
+    acceptance: [
+      "Tool calls, isolate milliseconds, egress calls and spend are attributed per install per day",
+      "A manifest declares a default monthly budget and a hard cap; the workspace can lower but not silently raise past the cap",
+      "Reaching the cap halts the capability cleanly at an operation boundary and notifies, never mid-write and never silently",
+      "Usage and remaining budget are visible to the operator alongside the plugin, not only in logs",
+      "Metering shares the accounting shape used by the existing per-tenant AI budgets rather than adding a parallel system",
+    ],
+    dependencies: [
+      "Add the plugin install and uninstall lifecycle with a no-debris contract",
+      "Add explicit platform-sponsored AI budgets per tenant",
+    ],
+    start:
+      "the existing per-tenant AI budget implementation; src/lib/revenue-os/ai-gateway or equivalent; src/app/admin/integrations/page.tsx",
+    guardrails:
+      "A budget breach must never leave a half-completed write. Halt at an operation boundary. Do not let a plugin observe another install's usage.",
+    labels: ["observability", "config"],
+    verification:
+      "a metering test proving attribution accuracy, clean halt at the cap with no partial write, and notification delivery; npx tsc --noEmit; npm run build.",
+  }),
+
+  // ────────────────────────────────────────────────────────────────────────
+  // PLUGIN PLATFORM — PHASE 3: human in the loop.
+  // Most platforms get this wrong by treating approval as a UI feature. It is
+  // a data model. Today every mutating tool must stage a proposal and nothing
+  // auto-executes, so the whole system sits at the safe end of the ladder.
+  // This phase adds controlled graduation, earned per narrow capability,
+  // granted explicitly, and lost automatically.
+  // ────────────────────────────────────────────────────────────────────────
+  card({
+    key: "action-trust-ladder",
+    title: "Add a per-action trust ladder with a permanent irreversible floor",
+    workstream: "security",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 3 of 6. Trust is held per install and per action, never per plugin and never globally, because the unit a human can reason about is one narrow capability. Four levels: always propose; auto-execute with notification and a 24-hour undo; auto-execute within a declared budget, dropping to always-propose when the budget is exceeded; and autonomous with digest reporting only. The hard invariant is that an irreversible action never auto-executes at any level, for any publisher, with no configuration flag, and the validator rewrites any manifest that attempts otherwise.",
+    acceptance: [
+      "Trust level is stored per install and per action, and changing it is an audited write",
+      "An irreversible action cannot exceed always-propose by any path, including direct manipulation of the trust row, proven by an adversarial test that writes the row directly and asserts the executor still refuses",
+      "Auto-execution above always-propose is restricted to reversible actions, with compensable actions capped below autonomy",
+      "The budget-bounded level drops to always-propose for the remainder of the period once its budget is exceeded",
+      "Every auto-executed action produces a notification and an audit row indistinguishable in completeness from a human-approved one",
+    ],
+    dependencies: [
+      "Route every write through one executor with reversibility and compensators",
+      "Add the plugin install and uninstall lifecycle with a no-debris contract",
+    ],
+    start:
+      "src/lib/revenue-os/ai-tools.ts for the existing impact tiers; migrations/20260816-revenue-os.sql:273; docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md",
+    guardrails:
+      "There is no flag that permits autonomous irreversible execution. Not for official plugins, not for verified publishers, not behind a setting. Every request for one is a design error. Trust is never global and never per-publisher.",
+    labels: ["approval", "auth"],
+    verification:
+      "an adversarial trust test covering direct trust-row manipulation, irreversible refusal at every level, compensable ceiling, and budget-exceeded demotion; npm run test:core; npx tsc --noEmit; npm run build; a security review pass before merge.",
+  }),
+  card({
+    key: "trust-graduation-engine",
+    title: "Propose trust promotion on evidence and demote automatically on failure",
+    workstream: "ai",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 3 of 6. This is the loop that makes the product feel like it is learning without ever making the operator feel it is escaping. Promotion is proposed by the system and approved by a human, never taken. Demotion is automatic, immediate and unilateral. The asymmetry is the point: earning trust requires a human decision, losing it does not.",
+    acceptance: [
+      "Promotion is proposed only after a threshold of decisions in a rolling window with a high approval rate and a low edit-before-approve rate, and the proposal states the exact counts that justified it",
+      "A human must accept a promotion; the system never promotes on its own",
+      "Any rejection of an auto-executed action, any undo, or an error rate above the declared threshold drops that action to always-propose immediately and notifies",
+      "Demotion never waits for a human and never requires one",
+      "Promotion is refused outright for irreversible actions regardless of history",
+      "The decision history that drives graduation is queryable, so a promotion proposal can be audited after the fact",
+    ],
+    dependencies: ["Add a per-action trust ladder with a permanent irreversible floor"],
+    start: "the trust ladder tables; src/lib/revenue-os/ai-agent.ts; the audit ledger",
+    guardrails:
+      "Never promote automatically. Never delay a demotion. A promotion proposal that cannot show its evidence is a bug. Do not let a burst of trivial approvals in a short window satisfy a rolling-window threshold.",
+    labels: ["ai", "approval"],
+    verification:
+      "a graduation test covering threshold arithmetic, refusal to self-promote, immediate demotion on rejection, undo and error rate, permanent refusal for irreversible actions, and resistance to burst gaming; npx tsc --noEmit; npm run build.",
+  }),
+  card({
+    key: "action-undo-and-compensation",
+    title: "Give every auto-executed reversible action a working 24-hour undo",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 3 of 6. An undo offer is only honest if the compensator has actually been executed against real state. A compensator that merely exists is a promise; one verified by executing and then undoing against seeded data is a guarantee. Undo is what makes the second trust level acceptable at all, so it is a precondition for graduation rather than a convenience.",
+    acceptance: [
+      "Every auto-executed reversible action offers a one-click undo for 24 hours",
+      "Every compensator is verified in the conformance kit by executing the action and then undoing it against seed data, asserting the prior state is restored",
+      "An undo is itself audited, with the original action, the compensator, and the restored state recorded",
+      "Using undo counts against the action's trust history and can trigger demotion",
+      "An action whose compensator fails is surfaced honestly rather than reported as undone",
+    ],
+    dependencies: ["Add a per-action trust ladder with a permanent irreversible floor"],
+    start:
+      "the unified executor and its compensation column; src/app/admin/today/page.tsx; the audit ledger",
+    guardrails:
+      "Never offer undo for a compensable or irreversible action; the word means restoration, not apology. A failed compensation must never be reported as success.",
+    labels: ["approval", "activity"],
+    verification:
+      "an undo test covering state restoration against seed data, audit completeness, trust history effect, and honest failure reporting; reviewed desktop and mobile screenshots of the undo affordance; npm run test:core; npm run build.",
+  }),
+  card({
+    key: "approval-surfaces-and-edit-feedback",
+    title: "Make approval inline, batched, and edit-then-approve, with edits as training data",
+    workstream: "admin",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 3 of 6. An approval queue that requires navigating to a dedicated page is an approval queue people stop using. Approve from the digest, from chat, and from a dashboard card. Batch related proposals with per-item expansion. Treat edit-then-approve as first class, and record what the human changed as structured feedback rather than discarding it, because that edit is the highest-signal training data the system will ever get and it also feeds the graduation calculation.",
+    acceptance: [
+      "Inline approval works from the digest, from chat, and from a dashboard card without navigation",
+      "Batch approval handles a group with per-item expansion, and a batch never hides an item that differs materially from its siblings",
+      "Edit-then-approve is first class and the diff between proposed and approved is recorded as structured feedback",
+      "Recorded edits feed both the graduation calculation and the originating capability's own feedback loop, so a regenerated draft visibly answers the critique rather than repeating it",
+      "An ask-why affordance expands the full evidence chain behind a proposal",
+      "Every surface meets the admin visual and navigation runtime contracts across all themes at desktop and mobile widths",
+    ],
+    dependencies: [
+      "Require declared evidence on every write, enforced at the executor",
+      "Propose trust promotion on evidence and demote automatically on failure",
+    ],
+    start:
+      "src/app/admin/today/page.tsx for the existing approval review dialog; docs/contracts/ADMIN-VISUAL-CONTRACT.md; docs/contracts/NAVIGATION-RUNTIME-CONTRACT.md",
+    guardrails:
+      "Batch approval must never bundle an item whose reversibility or impact differs from the rest of the batch. Do not add a control without an outcome, per the admin visual contract. Never discard an edit.",
+    labels: ["approval", "admin"],
+    verification:
+      "npm run verify:admin-tokens; a scoped test proving batch refuses mixed-reversibility bundling and that edits persist as structured feedback; Playwright at desktop and mobile with reviewed screenshots across themes and reduced motion; npm run build.",
+  }),
+
+  // ────────────────────────────────────────────────────────────────────────
+  // PLUGIN PLATFORM — PHASE 4: agent and UI surfaces.
+  // Fifty installed plugins is roughly four hundred tools, which degrades tool
+  // selection well before it overflows a context window. Progressive
+  // disclosure is a hard constraint here, not an optimization. On the UI side,
+  // declarative rendering is what keeps the Tier 0 floor at twenty lines.
+  // ────────────────────────────────────────────────────────────────────────
+  card({
+    key: "tool-bundles-progressive-disclosure",
+    title: "Group tools into bundles and load them on demand",
+    workstream: "ai",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 4 of 6, primitive 5 of 7: Tools. PACK_TOOL_NAMES is a fixed three-entry map, not a bundle activation mechanism, and it currently fails closed in a way that silently hides any tool nobody remembered to add. Replace it with manifest-declared bundles, a small always-loaded core, and an intent lookup that activates the matching bundle for a conversation. The rule that keeps this honest: a tool needing five calls to answer a common question is a missing recipe, and that is enforced in review rather than left to the model to stitch together.",
+    acceptance: [
+      "Every tool belongs to a manifest-declared bundle, and bundle membership is generated rather than hand-maintained",
+      "A small always-loaded core covers search, capability description, the report recipes, and the action queue",
+      "An intent lookup returns matching bundles and activates one for the conversation",
+      "With fifty simulated plugins installed, the active context holds no more than forty tools and selection accuracy stays at or above the single-plugin baseline, measured rather than assumed",
+      "A live capability description is generated from the registry at call time, reporting installed plugins, available tools by bundle, recipes with output schemas, current trust levels, and pending proposal count, so it cannot misreport what is deployed",
+      "The existing failure mode is fixed: a registered tool that no bundle can reach fails CI rather than shipping unreachable",
+    ],
+    dependencies: [
+      "Close the module contract gaps that let unreachable code ship",
+      "Generate the plugin manifest from validators and fail on drift",
+    ],
+    start:
+      "src/lib/revenue-os/ai-tools.ts for PACK_TOOL_NAMES and availabilityFor; src/lib/revenue-os/ai-agent.ts; src/lib/revenue-os/mcp-server.ts",
+    guardrails:
+      "Do not solve context pressure by silently dropping tools. A tool that is unreachable must be a build failure, never an invisible omission. Bundle activation must not become a way to bypass module enablement or trust levels.",
+    labels: ["ai", "config"],
+    verification:
+      "a selection-accuracy benchmark at fifty simulated plugins compared against the single-plugin baseline; npm run verify:module-contract; npm run test:agent-loop; npx tsc --noEmit; npm run build.",
+  }),
+  card({
+    key: "report-recipe-engine",
+    title: "Make server-computed report recipes a registrable primitive",
+    workstream: "intelligence",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 4 of 6, primitive 2 of 7: Views. Analytics today is a fixed set of canonical formulas on one page, and saved views are localStorage only, so they are lost on a device change while being presented as a feature. A recipe is one server-side computation with a typed output schema that answers a whole question in a single call. The alternative, letting a model assemble an answer from five separate queries at request time, is more expensive, inconsistent, uncacheable, and can silently omit a metric because the model forgot a call.",
+    acceptance: [
+      "A recipe is registered with a typed output schema and a cache policy, and the schema is enforced on the way out",
+      "Recipe results are cached and invalidated on the events that make them stale, rather than on a fixed timer alone",
+      "Saved segments move server-side, shared and per-user, replacing the localStorage-only saved views",
+      "A recipe is callable identically from the UI, from the agent, and over MCP, with no second code path",
+      "The existing canonical analytics formulas are expressed as recipes without changing their published numbers, proven by comparing before and after",
+      "Attribution gaps continue to be reported honestly as unknown rather than as zero",
+    ],
+    dependencies: ["Expose one capability-checked data API with no raw database handle"],
+    start:
+      "src/lib/revenue-os/analytics.ts for the canonical formulas; src/app/admin/analytics/page.tsx; the saved-view localStorage implementation",
+    guardrails:
+      "Do not change a published metric definition while moving it. Never report an unknown attribution as zero. A recipe must not become a way to read past the capability-checked data API.",
+    labels: ["analytics", "database"],
+    verification:
+      "npm run verify:attribution-loop; a comparison test proving identical analytics output before and after the migration to recipes; a cache invalidation test; npx tsc --noEmit; npm run build.",
+  }),
+  card({
+    key: "declarative-card-renderer",
+    title: "Render dashboard cards from JSON so the Tier 0 floor stays at twenty lines",
+    workstream: "admin",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 4 of 6. This is the single most important number in the platform: if adding a chart takes more than roughly twenty-five lines of JSON and zero build tooling, the ecosystem does not happen. A declarative card is validated against a schema and rendered by core, which means no build step, no bundle, no cross-site scripting surface, and automatic theming. Because core owns the pixels, the admin design token contract and the navigation runtime contract hold for plugin UI for free.",
+    acceptance: [
+      "Card types cover chart, metric, list, table, timeline, form, markdown, and an action queue view",
+      "A card is pure JSON validated against a schema; a malformed card fails at install rather than at render",
+      "Every card type renders, themes across all admin appearances, and handles its empty and error states with no plugin code",
+      "Cards source data from a recipe or a scoped query, never from a raw handle",
+      "The Tier 0 exemplar stays within the declared line budget, enforced by a test rather than defended in review",
+      "Card rendering satisfies the admin visual and navigation runtime contracts, verified at desktop and mobile widths",
+    ],
+    dependencies: [
+      "Make server-computed report recipes a registrable primitive",
+      "Generate the plugin manifest from validators and fail on drift",
+    ],
+    start:
+      "src/components/admin for the shared surfaces and tokens; docs/contracts/ADMIN-VISUAL-CONTRACT.md; scripts/verify-admin-tokens.mjs",
+    guardrails:
+      "No plugin-supplied React in a declarative card, and no raw HTML or style strings, which would reintroduce the cross-site scripting surface this design exists to avoid. Do not let the card schema grow features that belong in a custom panel.",
+    labels: ["admin", "config"],
+    verification:
+      "npm run verify:admin-tokens; a renderer test covering every card type including empty and error states; a line-budget test on the Tier 0 exemplar; Playwright across every admin appearance at desktop and mobile with reviewed screenshots; npm run build.",
+  }),
+  card({
+    key: "ui-slots-and-sandboxed-panels",
+    title: "Add UI slots and sandboxed panels that cannot escape their frame",
+    workstream: "admin",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 4 of 6. Declarative cards cover most needs; the remainder need real UI. A sandboxed frame with a message bridge to the same capability-checked data API, and host-provided design tokens so plugin UI matches the product without sharing a stylesheet. Named slots let a plugin place a card, a record tab, a sidebar section, a bulk action, a command palette entry, a settings section, a digest section, or a custom approval card. Slot contention is resolved by the operator's saved layout, never by install order.",
+    acceptance: [
+      "The slot set is fixed and named, and a plugin may only render into a slot it declared",
+      "A panel cannot navigate the top frame, open dialogs outside its bounds, or read cookies, verified by penetration test rather than by configuration review",
+      "The panel bridge reaches only the same capability-checked data API, with no widened surface",
+      "Host design tokens are provided to the panel so plugin UI themes with the product across every appearance",
+      "Slot contention resolves by user-ordered layout, and install order has no effect on placement",
+      "Panels respect the navigation runtime contract for focus, loading and reduced motion",
+    ],
+    dependencies: [
+      "Render dashboard cards from JSON so the Tier 0 floor stays at twenty lines",
+      "Run plugin code in an isolate with no ambient authority",
+    ],
+    start:
+      "src/lib/admin/navigation.ts and layout-overrides for the existing user-ordered layout mechanism; docs/contracts/NAVIGATION-RUNTIME-CONTRACT.md",
+    guardrails:
+      "A panel is untrusted content. Never grant it top-frame navigation, cookie access, or a widened data surface because a first-party plugin would find it convenient. Treat everything a panel sends over the bridge as data, never as instructions.",
+    labels: ["admin", "security"],
+    verification:
+      "a penetration test covering frame escape, top-frame navigation, cookie access, and bridge surface; npm run verify:admin-tokens; Playwright across themes, desktop and mobile, and reduced motion with reviewed screenshots; npm run build.",
+  }),
+  card({
+    key: "plugin-skill-registry",
+    title: "Add a skill registry where instructions can never grant capabilities",
+    workstream: "ai",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 4 of 6, primitive 6 of 7: Skills. A skill is markdown shipped with a plugin describing when a capability applies, what good output looks like, and what never to do. Skills load when their bundle activates. The invariant that makes them safe is that a skill may reference tools but can never grant one: a skill instructing the model to send an email, against a plugin that never declared a send capability, simply has no function to call. That is enforcement by absence applied to instructions.",
+    acceptance: [
+      "Skills are registered per plugin, loaded on bundle activation, and unloaded with the bundle",
+      "A skill referencing an undeclared capability has no corresponding function in scope, asserted by test",
+      "Skill text is treated as authored plugin content and is never allowed to widen a capability grant, alter a trust level, or bypass an approval",
+      "Skills are visible to the operator, so what the model was told is inspectable rather than hidden",
+      "A skill from an untrusted publisher is subject to the same content boundary as any other untrusted input",
+    ],
+    dependencies: ["Group tools into bundles and load them on demand"],
+    start:
+      "src/lib/chat/system-prompt.ts and src/lib/revenue-os/ai-agent.ts for the existing prompt boundaries",
+    guardrails:
+      "A skill is data, not authority. No skill may raise a trust level, bypass an approval, widen a capability, or reach a tool its plugin did not declare. Skill content from a third party is untrusted and must never be followed as an instruction to the platform itself.",
+    labels: ["ai", "security"],
+    verification:
+      "a scoped test proving a skill cannot reach an undeclared tool and cannot alter trust or approval; a prompt-injection test using hostile skill text; npm run test:agent-loop; npx tsc --noEmit; npm run build.",
+  }),
+
+  // ────────────────────────────────────────────────────────────────────────
+  // PLUGIN PLATFORM — PHASE 5: developer experience and exemplars.
+  // The conformance kit is the mechanism that lets a mediocre agent ship a
+  // safe plugin, so it is not optional polish. The four exemplars are the
+  // integration tests for every layer beneath them, and an ecosystem imitates
+  // its exemplars, so they ship with the SDK or not at all.
+  // ────────────────────────────────────────────────────────────────────────
+  card({
+    key: "plugin-cli-and-scaffold",
+    title: "Ship a plugin CLI with init, dev, build, check and publish",
+    workstream: "productization",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 5 of 6. A fixed project layout matters more here than in most projects because coding agents rely on it: one file per action exporting its validator, executor and compensator; one file per subscribed event; tools whose validator is the source of truth; recipes; skills as markdown; cards as JSON; forward-only migrations for owned schema; and a required health endpoint above Tier 1. The scaffold encodes the layout so an agent does not have to infer it.",
+    acceptance: [
+      "init scaffolds a working plugin at a chosen tier with the fixed layout and a passing test",
+      "dev runs a local runtime against a seeded workspace with hot reload",
+      "build generates the manifest from validators and fails on drift",
+      "check runs the conformance kit and exits non-zero on any failure",
+      "publish signs and submits, and refuses to submit a package that fails check",
+      "The full init to publish path completes for every tier, verified in CI rather than by demonstration",
+    ],
+    dependencies: ["Generate the plugin manifest from validators and fail on drift"],
+    start:
+      "scripts/build-extension-modules.mjs for the existing generator; the repository's script conventions in package.json",
+    guardrails:
+      "The project layout is fixed. Do not add per-project configurability that would make an agent guess. The CLI must never be able to publish something check would reject.",
+    labels: ["config", "clonable"],
+    verification:
+      "a CI job running init, dev smoke, build, check and a dry-run publish for each tier; npx tsc --noEmit; npm run lint -- --max-warnings=0.",
+  }),
+  card({
+    key: "plugin-conformance-kit",
+    title: "Block publish on a conformance kit that proves safety rather than asserting it",
+    workstream: "qa",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 5 of 6. This card is the reason a plugin written by an agent can be trusted. Every check here is structural: it executes something and asserts an outcome rather than reading a declaration. In particular, a compensator counts as working only when the kit has executed the action and undone it against seed data, and a replay counts as safe only when the kit has delivered the same event twice and asserted one effect.",
+    acceptance: [
+      "Every action has an evidence policy and an idempotency policy, or an explicit opt-out with a written justification",
+      "Every reversible action has a compensator, verified by executing and then undoing against seed data",
+      "Every irreversible action carries the permanent always-propose ceiling",
+      "Identity resolution precedes every write that could create a person or a company",
+      "A replay test delivers the same event twice and asserts exactly one effect",
+      "Every declared egress host is reachable and allowlisted, and no undeclared host appears during the run",
+      "Uninstall leaves no orphan rows outside the link graph and the audit ledger",
+      "Isolate cold start is under the declared threshold and the ninety-fifth percentile handler stays inside its declared timeout",
+      "Every tool has at least one golden-path test with an asserted output shape",
+      "The kit blocks publish, and the kit itself is regression-tested with a fixture that must fail",
+    ],
+    dependencies: [
+      "Ship a plugin CLI with init, dev, build, check and publish",
+      "Give every auto-executed reversible action a working 24-hour undo",
+      "Add the plugin install and uninstall lifecycle with a no-debris contract",
+    ],
+    start:
+      "scripts/verify-module-contract.mjs and the repository's verify script conventions; docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md",
+    guardrails:
+      "Every check executes and asserts. A check that reads a declaration and trusts it is not a check. The kit must have its own negative fixtures so it cannot silently stop testing.",
+    labels: ["qa", "testing"],
+    verification:
+      "the kit running green against all four exemplars and red against a deliberately broken fixture for each individual check; npm run build.",
+  }),
+  card({
+    key: "plugin-exemplar-tier0-chart",
+    title: "Exemplar Tier 0: a dashboard chart that is pure JSON",
+    workstream: "productization",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 5 of 6. The floor test. A complete, installable plugin that adds a pipeline-by-stage chart with no code, no build step, and no permission beyond a single entity read. If this file grows past roughly twenty-five lines, the platform has failed its floor test and that is a release blocker rather than a note.",
+    acceptance: [
+      "The whole plugin is one manifest file within the declared line budget, with no code and no build step",
+      "It installs silently because it is read-only and introduces no new data",
+      "The chart renders, themes across every admin appearance, and shows a written empty state",
+      "A test enforces the line budget so the floor cannot erode quietly",
+      "It installs and renders with zero platform code changes, which is the phase 2 gate",
+    ],
+    dependencies: ["Render dashboard cards from JSON so the Tier 0 floor stays at twenty lines"],
+    start: "the declarative card schema; the recipe engine",
+    guardrails:
+      "No code, no build, no exceptions. If this exemplar needs a platform change to work, the platform is wrong and the change belongs in the platform card, not here.",
+    labels: ["clonable", "config"],
+    verification:
+      "the conformance kit; the line-budget test; Playwright rendering across every appearance at desktop and mobile with reviewed screenshots.",
+  }),
+  card({
+    key: "plugin-exemplar-tier1-business-pulse",
+    title: "Exemplar Tier 1: Business Pulse as one recipe, not five stitched queries",
+    workstream: "productization",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 5 of 6, and the launch demo. A daily briefing covering open pipeline, overdue invoices, unanswered inquiries bucketed by age, proposals awaiting follow-up, calendar deltas, and anomalies such as channel volume diverging from close rate. Built as one server-side recipe, because five ad-hoc queries stitched at request time drift the moment a data source is added and can silently omit a metric. The demo arc is connect, understand, find problems, propose work, approve, work happens, and the last step is honest only because it traverses the same executor as manual work.",
+    acceptance: [
+      "One recipe returns the whole briefing as a typed object in a single call",
+      "A scheduled job runs it at a workspace-local hour and emits an event",
+      "Each recommendation is a queued proposal carrying the evidence that justified it, so a proposed campaign pause shows the divergence data behind it",
+      "The briefing renders in a digest card with inline and batch approval",
+      "Every action installs at always-propose. Follow-up task creation may graduate with use; invoice reminders and campaign pauses never do, because they are irreversible or move money",
+      "Adding a new data source changes the recipe in one place and cannot silently omit a metric",
+    ],
+    dependencies: [
+      "Make server-computed report recipes a registrable primitive",
+      "Make approval inline, batched, and edit-then-approve, with edits as training data",
+    ],
+    start: "src/lib/revenue-os/analytics.ts; the recipe engine; the action queue",
+    guardrails:
+      "No invented statistics and no fabricated dollar figures anywhere in the briefing or its copy. A metric with unknown attribution is reported as unknown, never as zero. Campaign pauses and invoice reminders are permanently barred from autonomy.",
+    labels: ["analytics", "approval"],
+    verification:
+      "the conformance kit; a recipe output-schema test; a proof that every proposal carries its justifying evidence; npm run test:no-fabricated-claims; Playwright on the digest card with reviewed screenshots; npm run build.",
+  }),
+  card({
+    key: "plugin-exemplar-tier2-meeting-intelligence",
+    title: "Exemplar Tier 2: Meeting Intelligence, the integration test for every primitive",
+    workstream: "productization",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 5 of 6. This is deliberately built third, before any further connectors, because it is the only exemplar that exercises identity resolution, provenance gating, the full trust ladder and the event bus at the same time. If the primitives are wrong, this is where it surfaces, and finding that out here is far cheaper than finding it out after three more connectors assume the primitives are correct.",
+    acceptance: [
+      "On a meeting-ended event it fetches the transcript through a brokered connection and extracts participants, commitments, objections and next steps",
+      "Participants are batch-resolved before any write; ambiguous and near-miss candidates queue for a human and are never created",
+      "Interaction logging and follow-up task creation are reversible, require a verbatim quote, and deduplicate within a window",
+      "Links connect the transcript, the contacts and the opportunity through the generic link graph rather than a bespoke join",
+      "A stage advance is compensable, always proposes, and requires both a quote and a minimum confidence",
+      "A follow-up email is drafted only, is permanently barred from autonomy, and never sends without a human",
+      "A meeting-prep recipe answers a request to prepare for an upcoming meeting in one call, gathering person, company, prior email, prior meetings, open opportunities and outstanding proposals",
+      "Delivering the same meeting-ended event twice produces exactly one set of effects",
+    ],
+    dependencies: [
+      "Resolve identity in batches before any write that could create a person",
+      "Require declared evidence on every write, enforced at the executor",
+      "Add a durable, replayable event bus with at-least-once delivery",
+      "Add a per-action trust ladder with a permanent irreversible floor",
+    ],
+    start:
+      "src/lib/revenue-os/identity.ts; the event bus; the link graph; existing calendar and Gmail sync services",
+    guardrails:
+      "Never guess an ambiguous participant. Never create a task from a transcript without a source quote. The email draft can never be promoted out of always-propose by any path. Real customer transcripts must never be used for development or verification; use fictional fixtures.",
+    labels: ["identity", "calendar"],
+    verification:
+      "the conformance kit including its replay and compensator checks; a fixture-driven end-to-end run over a fictional transcript proving each acceptance item; npm run test:core; npm run build.",
+  }),
+  card({
+    key: "plugin-exemplar-tier3-enrichment",
+    title: "Exemplar Tier 3: external enrichment with a budget and a fill-empty-only policy",
+    workstream: "productization",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 5 of 6. The exemplar for third-party data, and the one most likely to be copied badly, which is why it must demonstrate the discipline rather than only the capability. The write policy is the crux: enrichment never overwrites a non-empty field and never touches human-curated fields such as type, stage or owner. That single rule is the difference between enrichment as an asset and enrichment as data corruption.",
+    acceptance: [
+      "The API key is held by the broker and never enters the isolate",
+      "A monthly budget with a hard cap meters consumption per call; reaching the cap disables enrichment and notifies rather than failing silently mid-batch",
+      "Enrichment fills empty fields only, never overwrites a non-empty value, and never touches human-curated fields",
+      "Every call returns applied, rejected and unchanged, with each requested field landing in exactly one bucket and no silent drops",
+      "Results below the confidence threshold propose rather than write",
+      "Each enriched field records its source, confidence and fetch time, and the interface shows that provenance on the value",
+      "The plugin's own cache lives in its own namespace with a time to live, so re-enriching costs nothing and a repeated batch consumes zero additional credits",
+    ],
+    dependencies: [
+      "Hold plugin credentials in a broker the isolate can never read",
+      "Meter plugin usage and enforce a spend budget that halts cleanly",
+    ],
+    start: "the connection broker; the usage metering tables; src/lib/revenue-os/identity.ts",
+    guardrails:
+      "Never overwrite a non-empty field. Never touch a human-curated field. A budget breach halts at an operation boundary, never mid-write. Do not use a real paid provider account for development; use a fixture or a sandbox key the developer controls.",
+    labels: ["integrations", "identity"],
+    verification:
+      "the conformance kit; a write-policy test proving no overwrite of non-empty or curated fields and complete bucket accounting; a budget test proving clean halt and zero-credit re-run; npm run build.",
+  }),
+  card({
+    key: "plugin-developer-documentation",
+    title: "Document every primitive with a runnable example and a fifteen-minute first plugin",
+    workstream: "documentation",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 5 of 6. Documentation for this platform is written last on purpose, against shipped behavior, because the plugin pages are the ones most likely to overstate. The current module documentation is the cautionary example: three separate files claimed route gating that did not exist. The target that matters is a timed one, not a word count.",
+    acceptance: [
+      "Every one of the seven primitives is documented with a runnable example",
+      "A build-your-first-plugin path completes in under fifteen minutes, timed against a real first-time user rather than estimated",
+      "The four exemplars are documented as reference implementations with their manifests explained field by field",
+      "The trust ladder, the reversibility classes and the evidence policy each have a page written for an operator, not only for a developer",
+      "Every claim about enforcement names the mechanism that enforces it, and a claim with no mechanism is deleted rather than softened",
+      "These pages live in the docs site developer tree and are covered by its link and coverage gates",
+    ],
+    dependencies: [
+      "Build the documentation site infrastructure at /docs",
+      "Block publish on a conformance kit that proves safety rather than asserting it",
+    ],
+    start: "docs/contributing/EXTENDING.md; docs/self-hosting/MCP-SETUP.md; the docs site manifest",
+    guardrails:
+      "Never document intended behavior as current behavior. Every enforcement claim must name its mechanism and be verifiable by a reader with grep. No em dashes, no antithesis phrasing, no invented statistics, per the existing copy gates.",
+    labels: ["documentation", "clonable"],
+    verification:
+      "npm run verify:docs; npm run test:house-style-copy; npm run test:no-fabricated-claims; a timed first-plugin walkthrough with a real first-time user; npm run build.",
+  }),
+
+  // ────────────────────────────────────────────────────────────────────────
+  // PLUGIN PLATFORM — PHASE 6: distribution.
+  // The promise the ecosystem is actually built on is that a plugin published
+  // against contract v1 still runs on v1.9 without edits. Everything here
+  // exists to keep that promise, and verticals are where the surface area
+  // actually comes from, because most businesses install a distribution
+  // rather than ten separate plugins.
+  // ────────────────────────────────────────────────────────────────────────
+  card({
+    key: "plugin-registry-and-signing",
+    title: "Publish a signed plugin registry with trust tiers that gate defaults",
+    workstream: "productization",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 6 of 6. A public directory with installation from the registry or from a git URL. The listing requirement that matters most is that the plain-language capability summary is generated from the manifest rather than written by the publisher, because publisher-authored summaries are exactly where honesty degrades. Trust tier gates behavior rather than only badges: a community plugin installs at always-propose across every action regardless of what its manifest requested.",
+    acceptance: [
+      "Listing requires passing conformance, a signed package, a verified publisher identity, and a generated capability summary",
+      "The capability summary is generated from the manifest and cannot be overridden by the publisher",
+      "Trust tiers are official, verified publisher, community, and unlisted, and the tier is displayed wherever the plugin is",
+      "A community plugin installs at always-propose across every action regardless of its manifest, and cannot request a higher level until the workspace itself promotes it",
+      "Signature verification happens at install and a tampered package is refused",
+      "Installing from a git URL is supported and carries the unlisted trust tier",
+    ],
+    dependencies: [
+      "Block publish on a conformance kit that proves safety rather than asserting it",
+    ],
+    start: "the conformance kit; the plugin data model; src/app/admin/integrations/page.tsx",
+    guardrails:
+      "Never let a publisher write their own capability summary. Never let a registry tier grant autonomy that reversibility forbids. A signature failure is a refusal, never a warning.",
+    labels: ["security", "clonable"],
+    verification:
+      "an install test covering signature refusal on a tampered package, community tier forcing always-propose, and generated summary immutability; npm run build; a security review pass before merge.",
+  }),
+  card({
+    key: "plugin-vertical-distributions",
+    title: "Ship verticals as signed bundles of plugins, settings and layout",
+    workstream: "productization",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 6 of 6. This is where the scale actually comes from. Most businesses will install a vertical rather than assembling ten plugins, so a distribution is a signed bundle of plugins plus settings plus seed segments plus a dashboard layout, versioned and installable in one action. The existing five fictional demo workspaces are already the shape of this, which makes them useful evidence rather than only a demo.",
+    acceptance: [
+      "A distribution bundles plugins, settings, seed segments and a dashboard layout, is versioned, and installs in one action",
+      "Installing a distribution shows one review screen covering the union of its plugins' capabilities",
+      "A distribution is signed and its constituent plugin versions are pinned",
+      "Updating a distribution shows what changed, including any capability that was added",
+      "Uninstalling a distribution honors each constituent plugin's uninstall contract",
+      "At least one vertical ships and is proven against a fictional workspace end to end",
+    ],
+    dependencies: ["Publish a signed plugin registry with trust tiers that gate defaults"],
+    start:
+      "src/lib/admin/demo/scenarios.ts for the five existing fictional operating models; the plugin install lifecycle; layout overrides",
+    guardrails:
+      "A distribution may never grant a capability its constituent plugins did not declare. Bundling must not become a way to obtain a blanket approval that the individual plugins could not get. Use fictional fixtures only.",
+    labels: ["clonable", "config"],
+    verification:
+      "a distribution install and uninstall test against a fictional workspace asserting capability union, pinning, and per-plugin uninstall; npm run build.",
+  }),
+  card({
+    key: "plugin-contract-versioning",
+    title: "Guarantee a v1 plugin still runs on v1.9 with a real deprecation policy",
+    workstream: "platform",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 6 of 6. This is the promise the ecosystem is built on, and the reason WordPress plugins from a decade earlier still run. A plugin declares a contract range; core guarantees no breaking change within a major version, announces deprecations one minor ahead with a build-time warning, and maintains a shim for one full major. Without this the ecosystem freezes on an old version, which is the observed failure mode rather than a hypothetical one.",
+    acceptance: [
+      "A plugin declares a contract range and the platform refuses to install one outside the supported window",
+      "No breaking change ships within a major version, enforced by a compatibility test suite run against the oldest supported contract",
+      "A deprecation is announced one minor ahead and produces a build-time warning naming the replacement",
+      "A shim layer is maintained for one full major version",
+      "A compatibility matrix is published per release",
+      "A plugin built against the first version of the contract still installs and runs on the latest minor, proven by keeping that exact plugin in CI",
+    ],
+    dependencies: ["Publish a signed plugin registry with trust tiers that gate defaults"],
+    start: "the manifest schema and its contract field; the conformance kit",
+    guardrails:
+      "A breaking change inside a major version is not permitted for convenience, including for a first-party need. The compatibility test must run against a real archived plugin, not a synthetic stub that gets updated alongside the platform.",
+    labels: ["config", "reliability"],
+    verification:
+      "a compatibility suite running an archived first-version plugin against the current build; a deprecation warning test; npm run build.",
+  }),
+
+  // ────────────────────────────────────────────────────────────────────────
+  // DOCUMENTATION SITE — an independent track.
+  // 24 markdown files sit under docs/ and none is end-user documentation:
+  // they are engineering contracts, contributor process and self-hosting
+  // setup. Meanwhile 37 admin pages exist whose only description is the
+  // subtitle string inside their own TSX file. The load-bearing idea is that
+  // RevenueOSModule already declares an unused docsUrl field, so coverage can
+  // be enforced: a module that ships without documentation becomes a red build.
+  // ────────────────────────────────────────────────────────────────────────
+  card({
+    key: "docs-site-infrastructure",
+    title: "Build the documentation site infrastructure at /docs",
+    workstream: "documentation",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Documentation track, step 1 of 4. Land the whole navigable spine with only three pages of prose, so the system is proven before any content volume is written. The MDX pipeline already exists and is production-proven for the learning hub: createMDX with the gfm, slug and autolink plugins, compileMDX from next-mdx-remote, a filesystem loader, and thirteen components. Three gaps: the loader is a flat directory read with no recursion, there is no persistent sidebar, and there is no docs search. Structure is an explicit manifest rather than a filesystem walk, because a walk can only ever be self-consistent: it can tell you what exists but never catch a page that was supposed to exist.",
+    acceptance: [
+      "src/content/docs/manifest.ts holds the full page tree and is the authority for structure, ordering and section card metadata; MDX files hold only prose",
+      "Frontmatter carries title, description and updated, and deliberately omits section, order, kind and slug, which are derivable; the verifier enforces their absence so no second source of truth appears",
+      "A recursive loader resolves nested slugs and collapses a directory to its overview page, so section landings need no separate route",
+      "Four routes exist: a layout, the landing, a catch-all, and a docs-shaped not-found",
+      "A persistent sidebar highlights the current page and expands its ancestors; breadcrumbs, previous and next links, and an on-page contents rail all work",
+      "TableOfContents is parameterized rather than forked, so its hydration-safety handling is not duplicated and then allowed to diverge",
+      "A prose class distinct from the article one, because the article heading rhythm makes a dense reference page unusable",
+      "Docs components are added to the existing raw-color ratchet at a budget of zero, since this is new code with no legacy to grandfather",
+      "The existing docs/ directory is untouched, because CI and contributors reference those paths",
+    ],
+    dependencies: [],
+    start:
+      "src/lib/mdx.ts; src/app/(marketing)/learn/[slug]/page.tsx; src/components/mdx; scripts/verify-articles.ts as the gate precedent; scripts/verify-admin-tokens.mjs",
+    guardrails:
+      "Do not move any file out of docs/. Do not reuse the conversion components: a docs page ending in a booking call reads as marketing and loses the trust the section exists to build. Do not copy the command-center capability list into MDX; render it from its source file so the two cannot drift.",
+    labels: ["documentation", "config"],
+    verification:
+      "npm run typecheck; npm run lint -- --max-warnings=0; npm run verify:admin-tokens; a new verify:docs run in allow-missing mode; npm run build; browse the three trees and confirm sidebar, breadcrumbs and pager work with three pages present.",
+  }),
+  card({
+    key: "docs-integration-surfaces",
+    title: "Wire docs into search, sitemap, navigation and a generated llms index",
+    workstream: "documentation",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Documentation track, step 2 of 4, still with only three pages of prose so the wiring is proven before the content exists. Search costs almost nothing: one deploy-time index already serves the whole site and the client filters locally, so adding docs is a loop plus two typed entries, and because those are a keyed record and a typed array, forgetting either breaks the typecheck. Two corrections to earlier assumptions are load-bearing here. src/content/navigation.ts is dead and imported by nothing, so links go in the header and footer components directly. And a static file in public shadows any route handler at the same path, so the machine-readable index must be a build script with a check mode rather than a route.",
+    acceptance: [
+      "Docs entries join the existing search index with their own group, and both the priority record and the display order array are updated, which the type system enforces",
+      "The sitemap derives docs entries from the manifest rather than a hand-written list, matching the note already in that file about why",
+      "Header and footer link to the docs, added to their own local lists rather than to the dead navigation content file, which is removed separately",
+      "A build script generates the machine-readable index with a check mode verified in CI, replacing the hand-written marketing sheet that today references nothing in the product and is read by no code",
+      "AI crawler allow lists include the docs path, since publishing an index for a path those agents cannot fetch is self-defeating",
+      "The open-source page's self-hosting call to action points at the self-hosting quickstart rather than deep-linking a repository file",
+    ],
+    dependencies: ["Build the documentation site infrastructure at /docs"],
+    start:
+      "src/lib/search/index.ts and src/lib/search/score.ts; src/app/sitemap.ts; src/components/layout/Header.tsx and Footer.tsx; src/app/robots.ts; public/llms.txt",
+    guardrails:
+      "Do not hand-list docs URLs anywhere. Do not add docs links to src/content/navigation.ts, which is dead. Check the open-source stats test before editing that page, since it asserts against it.",
+    labels: ["documentation", "indexing"],
+    verification:
+      "npm run typecheck; npm run verify:docs; a new verify:llms check mode; npm run test:open-source-stats; npm run build; confirm search finds a docs page and the sitemap and index contain only live URLs.",
+  }),
+  card({
+    key: "docs-module-coverage-gate",
+    title: "Make a module that ships without documentation a red build",
+    workstream: "documentation",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Documentation track, step 3 of 4, and the reason this track is worth doing properly. RevenueOSModule already declares a docsUrl field at modules.ts:47 that only the generated extension module populates. That field is the seam. Every user guide section declares which modules it documents, every module points back at its section, and CI proves both directions resolve. This is what turns documentation from a marketing artifact into part of the product contract, and it is the single highest-leverage change in the track.",
+    acceptance: [
+      "Every core and optional module populates docsUrl with its user guide section",
+      "The manifest schema accepts a site-relative path, since it currently types the field as a URI and would reject one",
+      "verify-module-contract fails when a module's docsUrl does not resolve to a manifest slug",
+      "Every non-extension module is claimed by exactly one user guide section, so a new module cannot ship undocumented and cannot be documented twice",
+      "Every capability in the command-center content file is claimed by exactly one reference page",
+      "Every registered AI tool appears in the AI capabilities reference page",
+      "The docs verifier also proves manifest and filesystem bijection with no orphan pages, that every internal link resolves, and that no slug duplicates the generated roadmap or changelog",
+      "The public prerender check gains the docs routes and a count assertion, so coverage is proven against a real build rather than against the manifest alone",
+      "docsUrl is surfaced in the product next to each module, giving in-product help links that CI proves are live",
+    ],
+    dependencies: [
+      "Wire docs into search, sitemap, navigation and a generated llms index",
+      "Close the module contract gaps that let unreachable code ship",
+    ],
+    start:
+      "src/lib/revenue-os/modules.ts:47; scripts/verify-module-contract.mjs; scripts/verify-public-prerender.mjs; extensions/module-manifest.schema.json; src/content/command-center.ts",
+    guardrails:
+      "Do not satisfy the coverage gate with stub pages. A section that exists only to keep CI green is worse than a failing build, because it hides the gap. Do not restate the generated roadmap or changelog as prose.",
+    labels: ["documentation", "qa"],
+    verification:
+      "npm run verify:docs; npm run verify:module-contract; npm run verify:public-prerender; proof that each new clause fails when its target is removed; npm run build.",
+  }),
+  card({
+    key: "docs-content-first-pass",
+    title: "Write the 49-page documentation spine in link-dependency order",
+    workstream: "documentation",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Documentation track, step 4 of 4. With the manifest complete every page is a fill-in-the-blank with a known slug, known neighbors and a known place in the sidebar. Write in link-dependency order so no page ever links forward to something unwritten. Getting started first because it establishes the vocabulary the rest assumes: workspace, module, record, action queue, approval gating, receipt, audit and idempotency, none of which the site explains to a user today.",
+    acceptance: [
+      "Getting started is six pages including a core-concepts page defining the shared vocabulary",
+      "The user guide is thirty-four pages: a card-grid landing plus ten sections mapped onto module clusters, each with an overview, a reference page, and how-tos for the surfaces operators touch daily",
+      "After the ten section overviews land, every sidebar entry has a landing page and the card grid is fully live, which is the natural stopping point for a partial release",
+      "The developer tree is nine pages, seeded by splitting the MCP setup document into concepts and per-client setup, since at 283 lines it is the most user-ready document in the repository",
+      "The allow-missing flag is dropped and the manifest-to-filesystem bijection is enforced permanently",
+      "Every page passes the existing copy gates, which already walk this directory and already handle MDX, so no em dashes, no antithesis phrasing and no invented statistics",
+      "No page restates the generated roadmap, the changelog, or the command-center capability list",
+    ],
+    dependencies: ["Make a module that ships without documentation a red build"],
+    start:
+      "src/content/docs/manifest.ts; docs/self-hosting/MCP-SETUP.md; docs/contributing/EXTENDING.md; src/lib/admin/navigation.ts for the section spine; every admin PageHeader subtitle as raw material",
+    guardrails:
+      "Never document intended behavior as current behavior. The plugin platform pages are written last, against shipped behavior, because they are the ones most likely to overstate. Each batch must leave the link gate green so it can merge without waiting for the next.",
+    labels: ["documentation", "clonable"],
+    verification:
+      "npm run verify:docs with the allow-missing flag removed; npm run test:house-style-copy; npm run test:no-fabricated-claims; npm run verify:public-prerender; npm run build.",
   }),
 ];
 
@@ -4242,8 +5544,13 @@ export function validateFeatureBacklog() {
     if (!LOOP_ONE_SET.has(key))
       throw new Error(`NOW_KEYS includes ${key}, which is not on the delivery circuit`);
   }
+  // The limit exists so the board reflects what is genuinely being worked, not
+  // a wish list. It was two when one founder was the only claimant; it is four
+  // now that agent sessions claim cards alongside him. Raise it deliberately,
+  // never to make a status change pass.
+  const WIP_LIMIT = 4;
   const claimed = featureBacklog.filter((feature) => feature.status === "in_progress");
-  if (claimed.length > 2) {
+  if (claimed.length > WIP_LIMIT) {
     throw new Error(
       `WIP limit exceeded: ${claimed.length} cards in progress (${claimed.map((feature) => feature.seed_key).join(", ")}). Finish or park one first.`,
     );

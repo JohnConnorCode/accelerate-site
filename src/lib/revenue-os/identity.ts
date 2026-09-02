@@ -53,6 +53,27 @@ export async function findCanonicalContactByEmail(
   return [...matches.values()][0] ?? null;
 }
 
+/** Exact phone lookup, for channels (WhatsApp, SMS) whose messages often
+ * carry no email at all. Phones are matched as given by the caller; callers
+ * are expected to normalize (see ingestWhatsAppMessage) before calling this,
+ * since two different raw formats of the same number would otherwise create
+ * two contacts. Refuses ambiguity the same way the email lookup does. */
+export async function findCanonicalContactByPhone(
+  supabase: SupabaseClient,
+  phone: string | null | undefined,
+): Promise<CanonicalEmailMatch | null> {
+  const value = phone?.trim();
+  if (!value) return null;
+  const { data, error } = await supabase
+    .from("contacts")
+    .select("id,full_name,primary_email")
+    .eq("phone", value)
+    .limit(2);
+  if (error) throw new Error(error.message);
+  if ((data?.length ?? 0) > 1) throw new Error(`Ambiguous contact identity for phone ${value}`);
+  return data?.[0] ?? null;
+}
+
 export async function resolveOrCreateIdentity(
   supabase: SupabaseClient,
   input: ResolveIdentityInput,
@@ -121,6 +142,9 @@ export async function resolveOrCreateIdentity(
   }
   if (!contact && email) {
     contact = await findCanonicalContactByEmail(supabase, email);
+  }
+  if (!contact && input.phone) {
+    contact = await findCanonicalContactByPhone(supabase, input.phone);
   }
   if (!contact) {
     const { data, error } = await supabase

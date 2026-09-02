@@ -2,6 +2,8 @@
 
 This guide separates safe local exploration from a connected deployment. Do not point a fork at the original Accelerate database, Vercel project, provider accounts, domains, or customer records.
 
+The fastest path to seeing this running is the Deploy with Vercel button in [README.md](../../README.md#quick-start): it needs no environment variables and boots straight to the marketing site and fictional demo. This guide covers the rest, connecting a real workspace, whether you got there through that button or `npm ci && npm run dev` below.
+
 ## 1. Explore locally
 
 ```bash
@@ -19,7 +21,7 @@ cp .env.example .env.local
 
 Create a new Supabase project and set its URL, publishable/anonymous key, and service-role key. Public variables are safe for the browser by design; service-role and provider variables are server-only secrets.
 
-Do not reuse the placeholder identity, domain, sender, or project references. Replace the bootstrap organization in `src/config/tenant.ts` and replace the protected assets described in [`ASSETS.md`](../ASSETS.md).
+Do not reuse the placeholder identity, domain, sender, or project references. Replace the bootstrap organization in `src/config/tenant.ts` and replace the protected assets described in [`ASSETS.md`](../../ASSETS.md).
 
 ## 3. Apply the database
 
@@ -31,6 +33,8 @@ npm run db:verify-schema
 ```
 
 `db:migrate:all` applies all 37 migrations in order (`scripts/lib/migration-manifest.mjs` is the source of truth for that order, matching [REVENUE-OS-SETUP.md](REVENUE-OS-SETUP.md)'s numbered list) by calling the single-file runner once per file. Every migration is additive and idempotent, so re-running the whole command after fixing an error is safe — already-applied files no-op. To apply one migration at a time instead, use `npm run db:migrate -- <path>` with the exact file listed in REVENUE-OS-SETUP.md.
+
+Two migrations seed a bootstrap tenant's brand, founder, and booking identity into the database. The runner resolves any `BOOTSTRAP_*` variables you set in step 2 into that seed; run `npm run verify:bootstrap-identity` afterward to confirm the database does not still carry Accelerate's own identity.
 
 Migration commands should target a new project you control. Inspect the resolved project and host printed by the command before confirming any production operation.
 
@@ -44,6 +48,7 @@ Start without external effects. Add and verify one capability at a time:
 
 - Resend for outbound email and signed delivery webhooks.
 - OpenRouter at the tenant level for AI workloads.
+- Model Context Protocol (MCP) server for external AI clients (Claude Desktop, Claude Code, ChatGPT, Cursor, Antigravity) — see [MCP-SETUP.md](MCP-SETUP.md).
 - Google Workspace OAuth for Gmail, Calendar, and selected Drive folders.
 - Calendly only when its optional attribution path is required.
 - Plausible only when external analytics are desired; first-party analytics is built in.

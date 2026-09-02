@@ -1,10 +1,18 @@
 -- =============================================================================
--- Shared-database tenant control plane and Accelerate ownership backfill.
+-- Shared-database tenant control plane and bootstrap tenant ownership backfill.
 --
 -- Additive compatibility migration. Existing application writers continue to
--- resolve to the Accelerate tenant through a temporary column default. The
+-- resolve to the bootstrap tenant through a temporary column default. The
 -- tenant authorization cutover removes those defaults after every writer sends
 -- an explicit TenantActor or TenantSystemContext.
+--
+-- The bootstrap tenant's identity fields (brand, founder, AI voice, booking)
+-- below are BOOTSTRAP_* token placeholders, resolved from environment
+-- variables by scripts/lib/bootstrap-identity.mjs when this file is applied
+-- through npm run db:migrate / db:migrate:all. Unset, they default to the
+-- reference Accelerate deployment's own values. Set BOOTSTRAP_BRAND_NAME,
+-- BOOTSTRAP_FOUNDER_EMAIL, etc. (see .env.example) before running migrations
+-- on a fresh project so your fork does not inherit Accelerate's identity.
 -- =============================================================================
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -87,30 +95,30 @@ VALUES (
   1,
   jsonb_build_object(
     'brand', jsonb_build_object(
-      'name', 'Accelerate',
-      'domain', 'acceleratewith.us',
-      'siteUrl', 'https://www.acceleratewith.us',
+      'name', '__BOOTSTRAP_BRAND_NAME__',
+      'domain', '__BOOTSTRAP_BRAND_DOMAIN__',
+      'siteUrl', '__BOOTSTRAP_BRAND_SITE_URL__',
       'logoMark', 'A',
-      'accentColor', '#78a91e',
-      'tagline', 'AI strategy, custom solutions, and execution',
-      'emailFooter', 'Accelerate · Practical AI and automation for your business'
+      'accentColor', '__BOOTSTRAP_BRAND_ACCENT_COLOR__',
+      'tagline', '__BOOTSTRAP_BRAND_TAGLINE__',
+      'emailFooter', '__BOOTSTRAP_BRAND_EMAIL_FOOTER__'
     ),
     'founder', jsonb_build_object(
-      'name', 'John',
-      'fullName', 'John Connor',
-      'email', 'john@acceleratewith.us',
-      'systemActorEmail', 'system@acceleratewith.us'
+      'name', '__BOOTSTRAP_FOUNDER_NAME__',
+      'fullName', '__BOOTSTRAP_FOUNDER_FULL_NAME__',
+      'email', '__BOOTSTRAP_FOUNDER_EMAIL__',
+      'systemActorEmail', '__BOOTSTRAP_SYSTEM_ACTOR_EMAIL__'
     ),
     'capabilities', jsonb_build_object('publicBooking', true),
     'ai', jsonb_build_object(
-      'businessDescriptor', 'Accelerate, an AI strategy, solutions, and execution partner for small business',
-      'voice', 'Be concise and operational. Never call the business an agency.',
-      'positioning', 'Accelerate learns how a small business works, identifies where AI and automation can free time or increase revenue, then advises, builds, integrates, runs, trains, and improves the right custom solution.'
+      'businessDescriptor', '__BOOTSTRAP_AI_DESCRIPTOR__',
+      'voice', '__BOOTSTRAP_AI_VOICE__',
+      'positioning', '__BOOTSTRAP_AI_POSITIONING__'
     ),
     'booking', jsonb_build_object(
-      'url', 'https://acceleratewith.us/contact',
-      'path', '/contact',
-      'schedulerUrl', 'https://calendly.com/john-acceleratewith/30min'
+      'url', '__BOOTSTRAP_BOOKING_URL__',
+      'path', '__BOOTSTRAP_BOOKING_PATH__',
+      'schedulerUrl', '__BOOTSTRAP_SCHEDULER_URL__'
     ),
     'pipeline', jsonb_build_object('stageLabels', '{}'::jsonb),
     'playbooks', jsonb_build_array(jsonb_build_object(

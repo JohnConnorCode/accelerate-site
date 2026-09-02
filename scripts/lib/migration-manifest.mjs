@@ -1,6 +1,6 @@
 /**
  * The single ordered list of migrations a clean install applies, in order.
- * This is the source of truth docs/REVENUE-OS-SETUP.md's numbered list must
+ * This is the source of truth docs/self-hosting/REVENUE-OS-SETUP.md's numbered list must
  * match — a mismatch between the two is exactly the kind of drift that
  * misleads a fresh clone (human or agent) about how many files there are.
  *

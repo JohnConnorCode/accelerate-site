@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { attachRevenueLinkage } from "@/lib/revenue-os/legacy-adapter";
 
 const VALID_PARTNER_STATUSES = new Set(["pending", "approved", "rejected", "active", "inactive"]);
 
 export async function GET(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("partners");
   if (auth instanceof NextResponse) return auth;
 
   const supabase = auth.database;
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("partners");
   if (auth instanceof NextResponse) return auth;
 
   const supabase = auth.database;

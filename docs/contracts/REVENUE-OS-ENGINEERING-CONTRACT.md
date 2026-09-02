@@ -37,7 +37,7 @@ identity rule, claim, receipt, provider connection, public intake, and backgroun
 job carries tenant ownership. Global uniqueness is reserved for platform facts;
 business identity and replay boundaries are tenant-composite. The complete
 trust, routing, schema, migration, and rollback rules live in
-`docs/MULTI-TENANCY-CONTRACT.md`. The former instance-per-client decision is a
+`docs/contracts/MULTI-TENANCY-CONTRACT.md`. The former instance-per-client decision is a
 historical receipt and no longer governs implementation.
 
 ## Layer boundaries

@@ -29,7 +29,8 @@ export type CanonicalInboundInput = {
   utm?: UTMData | null;
 };
 
-export type RoofingInboundInput = {
+export type PlaybookInboundInput = {
+  playbookKey?: string;
   email: string;
   companyWebsite: string;
   role: string;
@@ -40,6 +41,8 @@ export type RoofingInboundInput = {
   utm?: UTMData | null;
   qualification: Qualification;
 };
+
+export type RoofingInboundInput = PlaybookInboundInput;
 
 function companyNameFromWebsite(website: string) {
   try {
@@ -236,14 +239,23 @@ export async function ingestInboundLead(supabase: SupabaseClient, input: Canonic
 }
 
 /**
- * Single canonical ingestion path for the roofing qualifier. It deliberately
- * keeps the legacy fields alive while adding canonical identity, activities,
- * transition history, attribution, and an actionable owner commitment.
+ * Generic qualification path driven by configured industry playbooks.
+ * Preserves exact canonical behaviour, source tags, dedupe keys, and audit receipts.
  */
-export async function ingestRoofingQualification(
+export async function ingestPlaybookQualification(
   supabase: SupabaseClient,
-  input: RoofingInboundInput,
+  input: PlaybookInboundInput,
 ) {
+  const playbookKey = input.playbookKey || "roofing";
+  const matchedPlaybook = tenant.playbooks.find((p) => p.key === playbookKey) || {
+    key: playbookKey,
+    label: playbookKey.charAt(0).toUpperCase() + playbookKey.slice(1),
+    industry: playbookKey,
+    sourceTag: `${playbookKey}_qualifier`,
+    path: `/${playbookKey}`,
+    nextAction: `Respond to qualified ${playbookKey} audit request`,
+  };
+
   const { data: matches, error: matchError } = await supabase
     .from("opportunities")
     .select("id,qualifier_token,qualified,stage,contact_id,company_id,next_action,next_action_at")
@@ -269,7 +281,7 @@ export async function ingestRoofingQualification(
     qualifier_token: existing?.qualifier_token || input.qualifierToken,
     message_variant: input.messageVariant?.slice(0, 80) || null,
     source: attribution.utm_source || "website",
-    source_detail: attribution.utm_campaign || "roofing_qualifier",
+    source_detail: attribution.utm_campaign || matchedPlaybook.sourceTag,
     ...attribution,
   };
 
@@ -300,7 +312,7 @@ export async function ingestRoofingQualification(
         pipeline: "sales",
         probability: 10,
         next_action: input.qualification.qualified
-          ? "Respond to qualified roofing audit request"
+          ? matchedPlaybook.nextAction
           : "Review nurture qualification",
         next_action_at: new Date().toISOString(),
       })
@@ -315,15 +327,15 @@ export async function ingestRoofingQualification(
     email: input.email,
     companyName: companyNameFromWebsite(input.companyWebsite),
     website: input.companyWebsite,
-    industry: "roofing",
-    source: "roofing_qualifier",
+    industry: matchedPlaybook.industry,
+    source: matchedPlaybook.sourceTag,
   });
   const linkPatch: Record<string, unknown> = {
     contact_id: identity.contact.id,
     company_id: identity.company.id,
   };
   if (!opportunity.next_action && input.qualification.qualified) {
-    linkPatch.next_action = "Respond to qualified roofing audit request";
+    linkPatch.next_action = matchedPlaybook.nextAction;
     linkPatch.next_action_at = new Date().toISOString();
   }
   const { data: linked, error: linkError } = await supabase
@@ -345,22 +357,22 @@ export async function ingestRoofingQualification(
       id: opportunity.id,
       to: targetStage,
       actorEmail: tenant.founder.systemActorEmail,
-      source: "roofing_qualifier",
+      source: matchedPlaybook.sourceTag,
       reason: input.qualification.reason,
     })) as typeof opportunity;
   }
 
-  const activityId = `roofing-qualifier:${opportunity.id}:${input.qualification.qualified ? "qualified" : "nurture"}`;
+  const activityId = `${matchedPlaybook.key}-qualifier:${opportunity.id}:${input.qualification.qualified ? "qualified" : "nurture"}`;
   await recordActivity(supabase, {
     activityType: "form_submission",
     title: input.qualification.qualified
-      ? "Qualified roofing audit request"
-      : "Roofing nurture inquiry",
+      ? `Qualified ${matchedPlaybook.label.toLowerCase()} audit request`
+      : `${matchedPlaybook.label} nurture inquiry`,
     summary: input.qualification.reason,
     contactId: identity.contact.id,
     companyId: identity.company.id,
     opportunityId: opportunity.id,
-    source: "roofing_qualifier",
+    source: matchedPlaybook.sourceTag,
     externalId: activityId,
     metadata: {
       role: input.role,
@@ -373,7 +385,7 @@ export async function ingestRoofingQualification(
   if (input.qualification.qualified) {
     const dueDate = new Date().toISOString().slice(0, 10);
     await createRevenueTask(supabase, {
-      title: `Respond to qualified roofing audit request: ${identity.company.name}`,
+      title: `${matchedPlaybook.nextAction}: ${identity.company.name}`,
       description: `Review ${input.primaryLeak.replaceAll("_", " ")} and offer next steps to ${input.email}.`,
       dueDate,
       priority: "high",
@@ -381,14 +393,14 @@ export async function ingestRoofingQualification(
       relatedId: opportunity.id,
       relatedName: identity.company.name,
       opportunityId: opportunity.id,
-      source: "roofing_qualifier",
+      source: matchedPlaybook.sourceTag,
       dedupeKey: `inbound-follow-up:${opportunity.id}`,
       actorEmail: tenant.founder.systemActorEmail,
     });
   }
   await recordAudit(supabase, {
     actorEmail: tenant.founder.systemActorEmail,
-    action: "inbound.roofing_qualified",
+    action: `inbound.${matchedPlaybook.key}_qualified`,
     entityType: "opportunity",
     entityId: opportunity.id,
     source: "webhook",
@@ -400,4 +412,15 @@ export async function ingestRoofingQualification(
     metadata: { existing: Boolean(existing), qualified: input.qualification.qualified },
   });
   return { opportunity, existing: Boolean(existing), identity };
+}
+
+/**
+ * Single canonical ingestion path for the roofing qualifier. Delegates to
+ * the generic playbook ingestion with `playbookKey: "roofing"`.
+ */
+export async function ingestRoofingQualification(
+  supabase: SupabaseClient,
+  input: RoofingInboundInput,
+) {
+  return ingestPlaybookQualification(supabase, { ...input, playbookKey: "roofing" });
 }

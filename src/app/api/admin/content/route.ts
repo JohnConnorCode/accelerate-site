@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireAdminForModule } from "@/lib/admin/module-guard";
 
 export async function GET() {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("content");
   if (auth instanceof NextResponse) return auth;
 
   const supabase = auth.database;
@@ -21,7 +21,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("content");
   if (auth instanceof NextResponse) return auth;
 
   const supabase = auth.database;
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("content");
   if (auth instanceof NextResponse) return auth;
 
   const supabase = auth.database;
@@ -65,7 +65,7 @@ export async function PATCH(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("content");
   if (auth instanceof NextResponse) return auth;
 
   const supabase = auth.database;

@@ -180,3 +180,65 @@ export async function snoozeOperatorTask(
   );
   return task;
 }
+
+/**
+ * Edits an open task's title, priority, or due date. Distinct from
+ * completeOperatorTask/snoozeOperatorTask (status transitions with their own
+ * validity rules); this only ever touches editable fields on a task that is
+ * still pending or snoozed, and requires at least one field to change.
+ */
+export async function updateOperatorTask(
+  supabase: SupabaseClient,
+  input: {
+    id: string;
+    title?: string;
+    priority?: "high" | "medium" | "low";
+    dueDate?: string | null;
+    actorEmail: string;
+  },
+) {
+  const before = await loadOpenTask(supabase, input.id);
+  const patch: Record<string, unknown> = {};
+  if (input.title !== undefined) {
+    const trimmed = input.title.trim();
+    if (!trimmed) throw new Error("Task title cannot be empty");
+    patch.title = trimmed;
+  }
+  if (input.priority !== undefined) patch.priority = input.priority;
+  if (input.dueDate !== undefined) patch.due_date = input.dueDate || null;
+  if (Object.keys(patch).length === 0) throw new Error("No task fields were changed");
+
+  const { data: task, error } = await supabase
+    .from("tasks")
+    .update(patch)
+    .eq("id", input.id)
+    .eq("status", before.status)
+    .select("id,title,status,priority,due_date,snoozed_until,completed_at,opportunity_id")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!task) throw new Error("This task changed while you were working. Refresh and try again.");
+  await recordAudit(supabase, {
+    actorEmail: input.actorEmail,
+    action: "task.updated",
+    entityType: "task",
+    entityId: input.id,
+    before,
+    after: task,
+    metadata: { changed: Object.keys(patch) },
+  });
+  await recordActivity(supabase, {
+    activityType: "task_updated",
+    title: `Task updated: ${task.title}`,
+    opportunityId: task.opportunity_id,
+    source: "admin",
+    actorEmail: input.actorEmail,
+    externalId: `task:${task.id}:updated:${Date.now()}`,
+    metadata: { task_id: task.id, changed: Object.keys(patch) },
+  }).catch((error) =>
+    console.error(
+      "[revenue-os/tasks] update activity receipt failed",
+      error instanceof Error ? error.message : error,
+    ),
+  );
+  return task;
+}

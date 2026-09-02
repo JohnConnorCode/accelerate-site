@@ -3,11 +3,13 @@
 [![CI](https://github.com/JohnConnorCode/accelerate-site/actions/workflows/ci.yml/badge.svg)](https://github.com/JohnConnorCode/accelerate-site/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Accelerate Revenue OS is a self-hosted operations platform for service businesses. It runs your pipeline, inbox, campaigns, proposals, and analytics in one application, with AI built into the workflow instead of bolted on top. This is the actual code behind a working business, open-sourced as-is, not a demo trimmed down for GitHub.
+Accelerate Revenue OS is a self-hosted operating system for service businesses. It runs your pipeline, inbox, campaigns, proposals, and analytics in one application, and it lets people and AI agents operate that system under one set of rules. This is the actual code behind a working business, open-sourced as-is, not a demo trimmed down for GitHub.
 
-Most CRMs rent you a seat in someone else's database and charge more the more you use them. This one you own outright: your own Supabase project, your own AI provider key, your own data. Multi-tenancy is built in from the schema up, so an agency can run several client businesses from a single deployment without any of them seeing each other's records.
+An agent can scaffold a CRM in an afternoon now, so owning the code has stopped being the hard part. The hard part is what happens the moment something acts on a real customer's behalf. Here, every write an agent attempts becomes a staged proposal that a person approves, every answer has to cite the tools it actually read, and every external effect carries an idempotency key and ends in a receipt. Outside assistants reach the workspace over the Model Context Protocol through that same registry and the same approval queue, with no looser path than the interface has.
 
-[Live site](https://www.acceleratewith.us) · [Interactive fictional demo](https://www.acceleratewith.us/demo/command-center) · [Architecture](docs/ARCHITECTURE.md) · [Self-hosting](docs/SELF-HOSTING.md) · [Roadmap](#roadmap)
+You own it outright: your own Supabase project, your own AI provider key, your own data. Multi-tenancy is built in from the schema up, so an agency can run several client businesses from one deployment without any of them seeing another's records.
+
+[Live site](https://www.acceleratewith.us) · [Interactive fictional demo](https://www.acceleratewith.us/demo/command-center) · [Architecture](docs/self-hosting/ARCHITECTURE.md) · [Self-hosting](docs/self-hosting/SELF-HOSTING.md) · [All docs](docs/README.md) · [Roadmap](#roadmap)
 
 ![The Today command center, showing a founder's priority queue, open pipeline value, and pending approvals for a fictional roofing company workspace.](docs/images/command-center-workspace.png)
 
@@ -31,6 +33,36 @@ Most CRMs rent you a seat in someone else's database and charge more the more yo
 
 See [Roadmap](#roadmap) below for what's shipped, in progress, and planned next.
 
+## How an agent is allowed to operate it
+
+The rules below are enforced in code, not asked for in a prompt.
+
+**Mutating tools propose; they never act.** The tool registry checks impact at runtime. A tool registered as a read that stages a write throws, and a tool registered as a write that fails to stage one throws too. Approved proposals then execute through the same domain services the interface uses.
+
+**Execution re-reads reality first.** A proposal expires rather than firing if the record moved underneath it: a contact who unsubscribed, a conversation that was archived, an opportunity already past the stage the proposal assumed.
+
+**Answers cite what they read.** A grounded answer is rejected before it reaches you unless it carries receipts from tools that actually executed in that request. A hallucinated citation fails the check.
+
+**Every external effect is idempotent and ends in a receipt.** Sends, syncs, and webhook deliveries carry idempotency keys, so a retry cannot fire twice and an uncertain outcome is never treated as success.
+
+**Health cannot be quietly green.** Stalled jobs and unread webhook failures surface as degraded rather than being absent from a dashboard.
+
+Every run is traced in `agent_runs` and `agent_run_events` and readable at `/admin/ai`, and every material write lands in the audit ledger at `/admin/activity` with actor, origin, and before/after state.
+
+## Connect your own assistant
+
+The repository ships a Model Context Protocol server. Claude Desktop, Claude Code, ChatGPT's native Connectors, Cursor, and Antigravity connect to a workspace and get the same registered tools, the same impact tiers, and the same approval queue as the interface. Ask it what's on today's queue, or to mark a task done, snooze it, or move an opportunity's stage: reads return bounded, sourced data, and every write it proposes lands in the same review queue you'd see from a human editing the record by hand.
+
+Setup for each client is in [docs/self-hosting/MCP-SETUP.md](docs/self-hosting/MCP-SETUP.md).
+
+## Extend it without forking it
+
+Modules are the unit a workspace turns on and off. A third party registers one from a JSON manifest in [`extensions/`](extensions/README.md) that declares its navigation, routes, AI tools, and Setup Center checks. The build validates every manifest and compiles it into a typed constant, so nothing in that directory is ever executed.
+
+A registered module inherits the approval queue, the audit ledger, module gating, and MCP exposure without asking for any of them. Disable it and its navigation disappears, its routes fail closed, and its AI tools report unavailable to the agent and to MCP alike.
+
+[docs/contributing/EXTENDING.md](docs/contributing/EXTENDING.md) covers all three extension points: modules, integration adapters, and AI tools. `extensions/example-inventory.module.json` is a complete working example.
+
 ## Technology
 
 - Next.js 16 and React 19
@@ -38,10 +70,19 @@ See [Roadmap](#roadmap) below for what's shipped, in progress, and planned next.
 - Supabase Auth and PostgreSQL
 - TanStack Query
 - OpenRouter for AI routing
+- Model Context Protocol for external assistants
 - Resend for email
 - Playwright for browser and accessibility coverage
 
 ## Quick start
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FJohnConnorCode%2Faccelerate-site&project-name=my-revenue-os&repository-name=my-revenue-os&demo-title=Accelerate%20Revenue%20OS&demo-description=Self-hosted%20revenue%20operations%2C%20CRM%2C%20and%20AI%20workspace&demo-url=https%3A%2F%2Fwww.acceleratewith.us%2Fdemo%2Fcommand-center)
+
+The button deploys with no environment variables required: it boots straight to the public marketing site and the fictional demo, and any admin route redirects to a clearly labeled "connect your Supabase project" screen instead of erroring. Add your own Supabase project's variables in the new Vercel project's settings when you're ready for a real workspace, then follow [Self-hosting](docs/self-hosting/SELF-HOSTING.md).
+
+This repository ships with automatic Git deployments off (`git.deploymentEnabled: false` in `vercel.json`), which exists to keep the maintainer's own production project on a separate prebuilt release path. It carries over to your fork's Vercel project too, so a `git push` after the first deploy won't redeploy until you turn Git deployments back on in your new project's **Settings → Git**.
+
+Or run it locally instead:
 
 Requirements: Node.js 22+, npm 10+, and Git.
 
@@ -62,7 +103,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Never copy production credentials into a fork. [Self-hosting](docs/SELF-HOSTING.md) covers migration order, environment tiers, tenant bootstrap, and turning on providers.
+Never copy production credentials into a fork. [Self-hosting](docs/self-hosting/SELF-HOSTING.md) covers migration order, environment tiers, tenant bootstrap, and turning on providers.
 
 ## Useful commands
 
@@ -91,15 +132,17 @@ Public site / Admin UI / APIs / Cron / Webhooks / AI tools
        Tenant-scoped PostgreSQL + immutable receipts
 ```
 
-Route handlers and UI components are thin adapters, nothing more. Every business write lives in `src/lib/revenue-os/`, tenant resolution lives in `src/lib/tenancy/`, and every database change is an ordered SQL migration, never a runtime mutation. Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) before you touch any of those boundaries.
+Route handlers and UI components are thin adapters, nothing more. Every business write lives in `src/lib/revenue-os/`, tenant resolution lives in `src/lib/tenancy/`, and every database change is an ordered SQL migration, never a runtime mutation. Read [docs/self-hosting/ARCHITECTURE.md](docs/self-hosting/ARCHITECTURE.md) before you touch any of those boundaries.
 
 ## Roadmap
 
-`scripts/feature-backlog-data.mjs` is the single source of truth for what's shipped, in progress, planned, and backlog. Every card carries acceptance criteria, dependencies, and required verification, following the [Feature Board taxonomy](docs/FEATURE-BOARD-TAXONOMY.md). Extend that manifest; don't start a second roadmap in a fork.
+`scripts/feature-backlog-data.mjs` is the single source of truth for what's shipped, in progress, planned, and backlog. Every card carries acceptance criteria, dependencies, and required verification, following the [Feature Board taxonomy](docs/contracts/FEATURE-BOARD-TAXONOMY.md). Extend that manifest; don't start a second roadmap in a fork.
 
-You can explore the same kanban UI the founder uses, populated with representative fictional data, inside any [demo workspace](https://www.acceleratewith.us/demo/command-center) under **System → Feature Board**. The live founder board at `/admin/features` requires authentication, so it isn't publicly browsable.
+[**/roadmap**](https://www.acceleratewith.us/roadmap) renders that manifest publicly, with every card's real description and acceptance criteria, no signup required. A curated, dependency-satisfied subset — cards ready to pick up without waiting on other work — is also mirrored to [GitHub Issues labeled `help wanted`](https://github.com/JohnConnorCode/accelerate-site/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) via `npm run mirror:feature-board-issues -- --apply`.
 
-The near-term priority is a genuine one-click deploy path (`one-click-vercel-deploy` and `guided-first-run-setup` in the manifest): a working workspace straight from this README, with zero terminal steps required.
+You can also explore the same kanban UI the founder uses, populated with representative fictional data, inside any [demo workspace](https://www.acceleratewith.us/demo/command-center) under **System → Feature Board**. The live founder board at `/admin/features` requires authentication, so it isn't publicly browsable.
+
+For exactly what changed and when, read [CHANGELOG.md](CHANGELOG.md) or the commit history rather than a second, hand-written summary here.
 
 ## Security model
 

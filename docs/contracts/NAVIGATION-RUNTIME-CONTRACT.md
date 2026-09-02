@@ -185,4 +185,4 @@ disabled, and re-enabled in the same browser data directory, followed by a fresh
 profile control. It must fail on stale disk-cached RSC responses, service-worker
 control, repeated document navigation, mixed deployment identities, URL/route
 disagreement, runtime errors, or a material persistent-versus-fresh regression.
-Physical Android Chrome evidence follows `docs/ANDROID-CHROME-CACHE-INCIDENT.md`.
+Physical Android Chrome evidence follows `docs/internal/ANDROID-CHROME-CACHE-INCIDENT.md`.

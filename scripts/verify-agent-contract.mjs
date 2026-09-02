@@ -10,16 +10,16 @@ import { collectFeatureBoardIntegrityFailures } from "./lib/feature-board-graph.
 
 const requiredFiles = [
   "AGENTS.md",
-  "docs/AGENT-TICKET-RUNBOOK.md",
-  "docs/REVENUE-OS-ENGINEERING-CONTRACT.md",
-  "docs/MULTI-TENANCY-CONTRACT.md",
-  "docs/REVENUE-OS-SETUP.md",
-  "docs/FEATURE-BOARD-TAXONOMY.md",
-  "docs/MARKETING-POSITIONING-CONTRACT.md",
-  "docs/NAVIGATION-RUNTIME-CONTRACT.md",
-  "docs/ADMIN-DEMO-CONTRACT.md",
-  "docs/WORK-MOTION-CONTRACT.md",
-  "docs/GROK-4.6-COMMAND-CENTER-EXECUTION-PLAN.md",
+  "docs/contributing/AGENT-TICKET-RUNBOOK.md",
+  "docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md",
+  "docs/contracts/MULTI-TENANCY-CONTRACT.md",
+  "docs/self-hosting/REVENUE-OS-SETUP.md",
+  "docs/contracts/FEATURE-BOARD-TAXONOMY.md",
+  "docs/contracts/MARKETING-POSITIONING-CONTRACT.md",
+  "docs/contracts/NAVIGATION-RUNTIME-CONTRACT.md",
+  "docs/contracts/ADMIN-DEMO-CONTRACT.md",
+  "docs/contracts/WORK-MOTION-CONTRACT.md",
+  "docs/contributing/GROK-4.6-COMMAND-CENTER-EXECUTION-PLAN.md",
   "src/lib/revenue-os/README.md",
 ];
 const failures = [];
@@ -29,11 +29,11 @@ for (const file of requiredFiles) {
 }
 
 const agentContract = existsSync("AGENTS.md") ? readFileSync("AGENTS.md", "utf8") : "";
-const ticketRunbook = existsSync("docs/AGENT-TICKET-RUNBOOK.md")
-  ? readFileSync("docs/AGENT-TICKET-RUNBOOK.md", "utf8")
+const ticketRunbook = existsSync("docs/contributing/AGENT-TICKET-RUNBOOK.md")
+  ? readFileSync("docs/contributing/AGENT-TICKET-RUNBOOK.md", "utf8")
   : "";
-const grokExecutionPlan = existsSync("docs/GROK-4.6-COMMAND-CENTER-EXECUTION-PLAN.md")
-  ? readFileSync("docs/GROK-4.6-COMMAND-CENTER-EXECUTION-PLAN.md", "utf8")
+const grokExecutionPlan = existsSync("docs/contributing/GROK-4.6-COMMAND-CENTER-EXECUTION-PLAN.md")
+  ? readFileSync("docs/contributing/GROK-4.6-COMMAND-CENTER-EXECUTION-PLAN.md", "utf8")
   : "";
 
 if (!/Production deployment is founder-controlled[\s\S]*Never deploy/i.test(agentContract)) {

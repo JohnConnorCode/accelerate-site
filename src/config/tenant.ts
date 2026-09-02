@@ -4,7 +4,7 @@
  * Accelerate's source-controlled configuration is the bootstrap/default tenant
  * and the public marketing-site identity. Live tenant workspaces load a validated
  * version of this shape from the shared database. See
- * `shared-database-multi-tenancy-contract` and docs/MULTI-TENANCY-CONTRACT.md.
+ * `shared-database-multi-tenancy-contract` and docs/contracts/MULTI-TENANCY-CONTRACT.md.
  *
  * Rules for this file:
  * - No secrets. API keys, tokens, and database credentials stay in the
@@ -110,6 +110,11 @@ export interface TenantConfig {
     stageLabels: Record<string, string>;
   };
   playbooks: TenantPlaybook[];
+  /**
+   * Optional module / plugin enablement toggles.
+   * If omitted or undefined, modules default to their defined defaultEnabled status.
+   */
+  modules?: Partial<Record<string, boolean>>;
   /** Deep links to the infrastructure this deployment actually runs on. */
   external: {
     vercelProjectUrl: string | null;

@@ -7,8 +7,10 @@ import { REVENUE_STAGES } from "./types";
 import { loadActivityTimeline } from "./activities";
 import { ADMIN_LAYOUT_SCOPES, proposeLayoutChange } from "./admin-layout";
 import { FOUNDER_NOTE_MAX_LENGTH } from "./notes";
+import { retrieveKnowledge } from "./knowledge";
+import { isAiToolModuleEnabled } from "./modules";
 
-export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v3";
+export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v4";
 export const REVENUE_TOOL_PACKS = ["core", "pipeline", "outreach"] as const;
 export type RevenueToolPackId = (typeof REVENUE_TOOL_PACKS)[number];
 
@@ -17,7 +19,12 @@ const SNAPSHOT_ROW_LIMIT = 50;
 /** How many of those are returned in full to the model. */
 const SNAPSHOT_DETAIL_LIMIT = 10;
 export type AiToolImpact = "read" | "internal_write" | "external_action" | "destructive";
-type AiToolContext = { supabase: SupabaseClient; actorEmail: string; toolPack?: RevenueToolPackId };
+type AiToolContext = {
+  supabase: SupabaseClient;
+  actorEmail: string;
+  toolPack?: RevenueToolPackId;
+  tenantConfig?: { modules?: Partial<Record<string, boolean>> } | null;
+};
 type AiToolRegistration = {
   name: string;
   description: string;
@@ -79,6 +86,19 @@ const TIMELINE_OUTPUT_SCHEMA = {
   type: "object",
   required: ["activities", "truncated"],
   properties: { activities: { type: "array" }, truncated: { type: "boolean" } },
+};
+const KNOWLEDGE_OUTPUT_SCHEMA = {
+  type: "object",
+  required: ["contract", "found", "query", "chunks", "generatedAt"],
+  properties: {
+    contract: { type: "string" },
+    found: { type: "boolean" },
+    query: { type: "string" },
+    entitySummary: { type: "object" },
+    chunks: { type: "array" },
+    refusalReason: { type: "string" },
+    generatedAt: { type: "string" },
+  },
 };
 
 function value(input: Record<string, unknown>, key: string): string | undefined {
@@ -211,12 +231,20 @@ export function validateToolOutput(
 
 function availabilityFor(
   tool: AiToolRegistration,
-  context?: Pick<AiToolContext, "toolPack">,
+  context?: Pick<AiToolContext, "toolPack" | "tenantConfig">,
 ): { available: boolean; reason: string } {
   if (context?.toolPack && !PACK_TOOL_NAMES[context.toolPack].includes(tool.name)) {
     return {
       available: false,
       reason: `${tool.name} is not available in the ${context.toolPack} tool pack.`,
+    };
+  }
+  const moduleCheck = isAiToolModuleEnabled(tool.name, context?.tenantConfig);
+  if (!moduleCheck.enabled) {
+    return {
+      available: false,
+      reason:
+        moduleCheck.reason ?? `${tool.name} module is disabled in this workspace configuration.`,
     };
   }
   // A proposal is not a provider side effect. These tools call bounded
@@ -411,6 +439,35 @@ const registry: AiToolRegistration[] = [
     },
   },
   {
+    name: "search_knowledge_base",
+    description:
+      "Query grounded knowledge with provenance across companies, contacts, opportunities, founder notes, and activity timeline. Returns tagged chunks with confidence and recency or refuses cleanly.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        entityName: { type: "string" },
+        email: { type: "string" },
+        domain: { type: "string" },
+        topic: { type: "string" },
+        limit: { type: "number" },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: KNOWLEDGE_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.knowledge-retrieval",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) =>
+      retrieveKnowledge(supabase, {
+        entityName: value(input, "entityName"),
+        email: value(input, "email"),
+        domain: value(input, "domain"),
+        topic: value(input, "topic"),
+        limit: typeof input.limit === "number" ? input.limit : undefined,
+      }),
+  },
+  {
     name: "propose_send_email",
     description: "Stage an outbound email for founder approval. This never sends directly.",
     inputSchema: {
@@ -513,21 +570,32 @@ const registry: AiToolRegistration[] = [
     connectionRequirement: "none",
     impact: "internal_write",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }, input) =>
-      proposeAction(supabase, {
+    execute: async ({ supabase, actorEmail }, input) => {
+      const oppId = value(input, "opportunityId");
+      let expectedStage: string | undefined;
+      if (oppId) {
+        const { data: currentOpp } = await supabase
+          .from("opportunities")
+          .select("stage")
+          .eq("id", oppId)
+          .maybeSingle();
+        if (currentOpp?.stage) expectedStage = currentOpp.stage;
+      }
+      return proposeAction(supabase, {
         actionType: "transition_opportunity",
         title: `Move opportunity to ${value(input, "stage")}`,
         description: value(input, "reason") || "",
         urgency: "normal",
-        payload: input,
+        payload: { ...input, expectedStage },
         reasoning: value(input, "reason") || "",
         sourceContext: "admin_ai",
         entityType: "opportunity",
-        entityId: value(input, "opportunityId"),
-        dedupeKey: `ai-stage:${value(input, "opportunityId")}:${value(input, "stage")}`,
+        entityId: oppId,
+        dedupeKey: `ai-stage:${oppId}:${value(input, "stage")}`,
         proposedBy: actorEmail,
         expiresAt: new Date(Date.now() + 86400000).toISOString(),
-      }),
+      });
+    },
   },
   {
     name: "propose_task",
@@ -571,6 +639,82 @@ const registry: AiToolRegistration[] = [
     },
   },
   {
+    name: "propose_task_update",
+    description:
+      "Stage a change to an existing task for approval: mark it complete, snooze it to a later date, or edit its title, priority, or due date. Never changes the task directly; the founder approves it from the review queue like every other proposal.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        taskId: {
+          type: "string",
+          description:
+            'The task id, either bare or in the "task:<id>" form get_today_snapshot returns in its queue.',
+        },
+        changeType: { type: "string", enum: ["complete", "snooze", "edit"] },
+        until: {
+          type: "string",
+          description: "Snooze target date (YYYY-MM-DD), required when changeType is snooze.",
+        },
+        title: { type: "string", description: "New title, only used when changeType is edit." },
+        priority: { type: "string", enum: ["high", "medium", "low"] },
+        dueDate: {
+          type: "string",
+          description: "New due date (YYYY-MM-DD), or an empty string to clear it.",
+        },
+      },
+      required: ["taskId", "changeType"],
+      additionalProperties: false,
+    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.action-queue",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }, input) => {
+      const taskId = (value(input, "taskId") || "").replace(/^task:/, "");
+      if (!taskId) throw new Error("taskId is required");
+      const changeType = value(input, "changeType");
+      if (!changeType || !["complete", "snooze", "edit"].includes(changeType))
+        throw new Error('changeType must be "complete", "snooze", or "edit"');
+      if (changeType === "snooze" && !value(input, "until"))
+        throw new Error('changeType "snooze" requires "until"');
+      if (
+        changeType === "edit" &&
+        !value(input, "title") &&
+        !value(input, "priority") &&
+        input.dueDate === undefined
+      )
+        throw new Error('changeType "edit" requires at least one of title, priority, or dueDate');
+      const dedupeKey = `ai-task-update:${taskId}:${changeType}:${Date.now()}`;
+      const title =
+        changeType === "complete"
+          ? "Mark task complete"
+          : changeType === "snooze"
+            ? `Snooze task to ${value(input, "until")}`
+            : "Edit task";
+      return proposeAction(supabase, {
+        actionType: "update_task",
+        title,
+        description: value(input, "title") ? `New title: ${value(input, "title")}` : undefined,
+        urgency: "normal",
+        payload: {
+          taskId,
+          changeType,
+          until: value(input, "until"),
+          title: value(input, "title"),
+          priority: value(input, "priority"),
+          dueDate: input.dueDate === "" ? null : value(input, "dueDate"),
+        },
+        sourceContext: "admin_ai",
+        entityType: "task",
+        entityId: taskId,
+        dedupeKey,
+        proposedBy: actorEmail,
+        expiresAt: new Date(Date.now() + 86400000).toISOString(),
+      });
+    },
+  },
+  {
     name: "propose_campaign_activation",
     description: "Stage activation of a reviewed campaign version for founder approval.",
     inputSchema: {
@@ -584,21 +728,32 @@ const registry: AiToolRegistration[] = [
     connectionRequirement: "none",
     impact: "external_action",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }, input) =>
-      proposeAction(supabase, {
+    execute: async ({ supabase, actorEmail }, input) => {
+      const campaignId = value(input, "campaignId");
+      let expectedVersion: number | undefined;
+      if (campaignId) {
+        const { data: currentCamp } = await supabase
+          .from("campaigns")
+          .select("version")
+          .eq("id", campaignId)
+          .maybeSingle();
+        if (typeof currentCamp?.version === "number") expectedVersion = currentCamp.version;
+      }
+      return proposeAction(supabase, {
         actionType: "activate_campaign",
         title: "Activate reviewed campaign",
         description: value(input, "reasoning") || "",
         urgency: "normal",
-        payload: input,
+        payload: { ...input, expectedVersion },
         reasoning: value(input, "reasoning") || "",
         sourceContext: "admin_ai",
         entityType: "campaign",
-        entityId: value(input, "campaignId"),
-        dedupeKey: `ai-campaign-activate:${value(input, "campaignId")}`,
+        entityId: campaignId,
+        dedupeKey: `ai-campaign-activate:${campaignId}`,
         proposedBy: actorEmail,
         expiresAt: new Date(Date.now() + 86400000).toISOString(),
-      }),
+      });
+    },
   },
   {
     name: "propose_layout_change",
@@ -628,30 +783,188 @@ const registry: AiToolRegistration[] = [
         reasoning: value(input, "reasoning"),
       }),
   },
+  {
+    name: "search_contacts",
+    description: "Search contacts and associated company details by name, email, or phone.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        query: { type: "string" },
+        email: { type: "string" },
+        phone: { type: "string" },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.contact-search",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const query = (value(input, "query") || "").replace(/[,%]/g, "");
+      const email = value(input, "email");
+      const phone = value(input, "phone");
+      let builder = supabase
+        .from("contacts")
+        .select("id,full_name,primary_email,phone,title,company_id,created_at")
+        .limit(25);
+      if (email) {
+        builder = builder.ilike("primary_email", `%${email}%`);
+      } else if (phone) {
+        builder = builder.ilike("phone", `%${phone}%`);
+      } else if (query) {
+        builder = builder.or(`full_name.ilike.%${query}%,primary_email.ilike.%${query}%`);
+      }
+      const { data, error } = await builder;
+      if (error) throw new Error(error.message);
+      return (data ?? []).map((row) => ({
+        id: row.id,
+        name: row.full_name,
+        email: row.primary_email,
+        phone: row.phone,
+        title: row.title,
+        companyId: row.company_id,
+        createdAt: row.created_at,
+      }));
+    },
+  },
+  {
+    name: "search_conversations",
+    description: "Search omnichannel conversations and inbound messages by status or unread state.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        status: { type: "string", enum: ["open", "resolved", "archived"] },
+        unreadOnly: { type: "boolean" },
+        query: { type: "string" },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.conversations-search",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      let builder = supabase
+        .from("conversations")
+        .select("id,subject,channel,status,unread_count,last_message_at,contact_id,opportunity_id")
+        .order("last_message_at", { ascending: false, nullsFirst: false })
+        .limit(25);
+      if (typeof input.status === "string") {
+        builder = builder.eq("status", input.status);
+      }
+      if (input.unreadOnly === true) {
+        builder = builder.gt("unread_count", 0);
+      }
+      const { data, error } = await builder;
+      if (error) throw new Error(error.message);
+      return data ?? [];
+    },
+  },
+  {
+    name: "get_pending_actions",
+    description: "List pending proposals currently in the action_queue awaiting founder review.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.action-queue-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }) => {
+      const { data, error } = await supabase
+        .from("action_queue")
+        .select("id,action_type,title,description,urgency,reasoning,created_at,expires_at")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(25);
+      if (error) throw new Error(error.message);
+      return data ?? [];
+    },
+  },
+  {
+    name: "propose_conversation_reply",
+    description:
+      "Stage a reply to an active conversation thread for founder approval. This never sends directly.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        conversationId: { type: "string" },
+        body: { type: "string" },
+        reasoning: { type: "string" },
+      },
+      required: ["conversationId", "body", "reasoning"],
+      additionalProperties: false,
+    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.action-queue",
+    connectionRequirement: "none",
+    impact: "external_action",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }, input) => {
+      const conversationId = value(input, "conversationId")!;
+      const body = value(input, "body")!;
+      const reasoning = value(input, "reasoning") || "";
+      const { data: conv } = await supabase
+        .from("conversations")
+        .select("id,subject,channel")
+        .eq("id", conversationId)
+        .maybeSingle();
+
+      return proposeAction(supabase, {
+        actionType: "send_gmail_reply",
+        title: `Reply to: ${conv?.subject || "Conversation"}`,
+        description: previewOf(body),
+        urgency: "normal",
+        payload: { conversationId, body, reasoning },
+        reasoning,
+        sourceContext: "admin_ai",
+        entityType: "conversation",
+        entityId: conversationId,
+        dedupeKey: `ai-reply:${conversationId}:${body.slice(0, 80)}`,
+        proposedBy: actorEmail,
+        expiresAt: new Date(Date.now() + 86400000).toISOString(),
+      });
+    },
+  },
 ];
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
     "get_today_snapshot",
     "search_pipeline",
+    "search_contacts",
+    "get_pending_actions",
     "get_record_timeline",
+    "search_knowledge_base",
     "propose_task",
+    "propose_task_update",
     "propose_layout_change",
     "propose_founder_note",
   ],
   pipeline: [
     "get_today_snapshot",
     "search_pipeline",
+    "search_contacts",
+    "get_pending_actions",
     "get_record_timeline",
+    "search_knowledge_base",
     "propose_task",
+    "propose_task_update",
     "propose_stage_change",
   ],
   outreach: [
     "get_today_snapshot",
     "search_pipeline",
+    "search_contacts",
+    "search_conversations",
+    "get_pending_actions",
     "get_record_timeline",
+    "search_knowledge_base",
     "propose_task",
+    "propose_task_update",
     "propose_send_email",
+    "propose_conversation_reply",
     "propose_campaign_activation",
   ],
 };

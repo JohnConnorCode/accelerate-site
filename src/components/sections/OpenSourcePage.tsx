@@ -234,7 +234,7 @@ export function OpenSourcePageContent() {
               repository.
             </p>
             <a
-              href="https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/SELF-HOSTING.md"
+              href="https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/SELF-HOSTING.md"
               target="_blank"
               rel="noopener noreferrer"
               data-cursor="link"
@@ -268,26 +268,38 @@ export function OpenSourcePageContent() {
           <div className="min-w-0">
             <Eyebrow className="mb-6">why it&apos;s open</Eyebrow>
             <Heading size={2} as="h2" className="max-w-lg">
-              Own your data. Own your AI spend.
+              Owning the code is the easy part. Trusting what runs in it is the work.
             </Heading>
+            <p className="mt-6 max-w-lg text-sm leading-relaxed text-white-muted">
+              An agent can scaffold a CRM in an afternoon now. What decides whether you can hand it
+              real customers is what happens the moment it acts on their behalf.
+            </p>
           </div>
           <ul className="flex flex-col gap-6" role="list">
             {[
               {
-                title: "Records you control",
-                body: "Your data lives in a Supabase project you own and can move at any time.",
+                title: "The AI proposes, a person approves",
+                body: "Every write an agent attempts becomes a staged proposal in an approval queue. The tool registry refuses at runtime if a tool marked read stages a write, or if a tool marked write does not.",
               },
               {
-                title: "AI spend billed to you",
-                body: "Connect your own OpenRouter key so model usage bills directly to you, at provider cost.",
+                title: "Answers have to cite what they read",
+                body: "A grounded answer is rejected before you see it unless it cites receipts from tools that actually ran in that request.",
               },
               {
-                title: "Open to inspection",
-                body: "Tenant isolation and every AI write are documented, tested, and readable in the source.",
+                title: "Every external effect leaves a receipt",
+                body: "Sends, syncs, and webhooks carry idempotency keys and end in a terminal receipt, so a retry cannot fire twice and a silent failure cannot read as success.",
               },
               {
-                title: "A foundation, not a template",
-                body: "Fork it to run your own business, or as the starting point for client work you build and maintain.",
+                title: "Outside assistants get no looser path",
+                body: "Claude Desktop, Claude Code, ChatGPT, Cursor, and Antigravity reach the workspace over MCP through the same registry, the same impact tiers, and the same approval queue as the interface.",
+              },
+              {
+                title: "Records and AI spend stay yours",
+                body: "Your data lives in a Supabase project you own and can move. Connect your own OpenRouter key and model usage bills to you at provider cost.",
+              },
+              {
+                title: "Extend it without forking it",
+                body: "A module registers from a manifest: navigation, routes, and AI tools, inheriting the approval queue and audit ledger without touching core.",
               },
             ].map((item, i) => (
               <li

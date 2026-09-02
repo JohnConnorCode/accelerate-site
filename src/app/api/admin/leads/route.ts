@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { PIPELINE_STAGES } from "@/lib/admin/pipeline-stages";
 import { attachRevenueLinkage } from "@/lib/revenue-os/legacy-adapter";
 import { ingestInboundLead } from "@/lib/revenue-os/inbound";
@@ -22,7 +22,7 @@ function validateBulkIds(ids: unknown): string[] | null {
 }
 
 export async function GET(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("leads-capture");
   if (auth instanceof NextResponse) return auth;
 
   const supabase = auth.database;
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("leads-capture");
   if (auth instanceof NextResponse) return auth;
 
   const supabase = auth.database;
@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("leads-capture");
   if (auth instanceof NextResponse) return auth;
 
   const supabase = auth.database;
@@ -288,7 +288,7 @@ export async function PATCH(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("leads-capture");
   if (auth instanceof NextResponse) return auth;
 
   const supabase = auth.database;

@@ -1,5 +1,10 @@
 import { DEMO_SCENARIOS, type DemoScenarioId, type DemoScenarioPack } from "./scenarios";
 import { clearDemoAppearance } from "./appearance-state";
+import {
+  REVENUE_OS_MODULES,
+  getActiveModules,
+  validateModuleSettingsInput,
+} from "@/lib/revenue-os/modules";
 
 type DemoEmailBlock = {
   id: string;
@@ -60,6 +65,9 @@ type DemoState = {
   sentReplies: Record<string, string[]>;
   readNotifications: string[];
   emailDrafts: Record<string, DemoEmailDraft>;
+  featureOverrides: Record<string, { status: string; sort_order: number }>;
+  moduleOverrides: Partial<Record<string, boolean>>;
+  moduleSettings: Record<string, Record<string, unknown>>;
 };
 const initialState = (): DemoState => ({
   completedActions: [],
@@ -71,6 +79,9 @@ const initialState = (): DemoState => ({
   sentReplies: {},
   readNotifications: [],
   emailDrafts: {},
+  featureOverrides: {},
+  moduleOverrides: {},
+  moduleSettings: {},
 });
 const keyFor = (id: DemoScenarioId) => `accelerate:admin-demo:${id}:v3`;
 const jsonResponse = (body: unknown, status = 200) =>
@@ -469,10 +480,21 @@ function conversations(pack: DemoScenarioPack, state: DemoState, selected: strin
       metadata: { contact_email: contact.email },
     };
   });
+  // Mirrors the stats loop in src/lib/revenue-os/conversations.ts so the demo
+  // tab counts (Open/Waiting/Resolved/Archived/Unread) aren't stuck at zero
+  // while the list beside them is visibly full.
+  const stats = {
+    total: rows.length,
+    open: rows.filter((row) => row.status === "open").length,
+    waiting: rows.filter((row) => row.status === "waiting").length,
+    resolved: rows.filter((row) => row.status === "resolved").length,
+    archived: rows.filter((row) => row.status === "archived").length,
+    unread: rows.filter((row) => row.unread_count > 0).length,
+  };
   const active = selected
     ? pack.conversations.find((item) => item.id === selected)
     : pack.conversations[0];
-  if (!active) return { schemaReady: true, conversations: rows, messages: [] };
+  if (!active) return { schemaReady: true, conversations: rows, stats, messages: [] };
   const contact = person(pack, active.personId);
   const messages = [
     ...active.messages,
@@ -494,7 +516,7 @@ function conversations(pack: DemoScenarioPack, state: DemoState, selected: strin
     received_at: item.direction === "inbound" ? item.at : null,
     created_at: item.at,
   }));
-  return { schemaReady: true, conversations: rows, messages };
+  return { schemaReady: true, conversations: rows, stats, messages };
 }
 function analytics(pack: DemoScenarioPack, state: DemoState) {
   const rows = opportunityRows(pack, state);
@@ -1023,87 +1045,188 @@ function aiRunDetail(pack: DemoScenarioPack, state: DemoState, runId: string) {
   };
 }
 
+/** Mirrors the `label()` helper in
+ *  src/app/api/admin/revenue-os/ai/capabilities/route.ts so a demo card reads
+ *  identically to the real one. Keep both in sync if either changes. */
+function capabilityLabel(name: string): string {
+  return name
+    .replace(/^get_/, "Read ")
+    .replace(/^search_/, "Search ")
+    .replace(/^propose_/, "Stage ")
+    .replace(/_/g, " ");
+}
+
+/** Kept in sync by hand with the real registry in
+ *  src/lib/revenue-os/ai-tools.ts (AI_TOOL_REGISTRY_VERSION,
+ *  registry, PACK_TOOL_NAMES) since the demo has no server context to read
+ *  it from live. Every real tool is available in the fictional workspace. */
 function aiCapabilities() {
-  const rows = [
+  const rows: Array<
+    [
+      name: string,
+      description: string,
+      impact: "read" | "internal_write" | "external_action",
+      confirmationRequired: boolean,
+      packs: string[],
+      serviceTarget: string,
+    ]
+  > = [
     [
       "get_today_snapshot",
-      "Read today snapshot",
-      "Read the prioritized operator queue and current revenue summary.",
+      "Read the founder's prioritized operator queue and a summary of current revenue state. Returns counts and the top items, not the full database.",
       "read",
       false,
-      ["core"],
+      ["core", "pipeline", "outreach"],
+      "revenue-os.operator-queue",
     ],
     [
       "search_pipeline",
-      "Search pipeline",
-      "Find canonical opportunities by company, stage, or contact.",
+      "Search live opportunities by company or email. Never invent a record or metric.",
       "read",
       false,
-      ["pipeline"],
+      ["core", "pipeline", "outreach"],
+      "revenue-os.pipeline-search",
     ],
     [
       "get_record_timeline",
-      "Read record timeline",
-      "Inspect bounded activity evidence for one canonical record.",
+      "Read the bounded canonical activity timeline for one contact, company, or opportunity. Every item includes its source receipt and occurrence time.",
       "read",
       false,
-      ["core", "pipeline"],
+      ["core", "pipeline", "outreach"],
+      "revenue-os.activity-ledger",
+    ],
+    [
+      "search_knowledge_base",
+      "Query grounded knowledge with provenance across companies, contacts, opportunities, founder notes, and activity timeline. Returns tagged chunks with confidence and recency or refuses cleanly.",
+      "read",
+      false,
+      ["core", "pipeline", "outreach"],
+      "revenue-os.knowledge-retrieval",
+    ],
+    [
+      "search_contacts",
+      "Search contacts and associated company details by name, email, or phone.",
+      "read",
+      false,
+      ["core", "pipeline", "outreach"],
+      "revenue-os.contact-search",
+    ],
+    [
+      "search_conversations",
+      "Search omnichannel conversations and inbound messages by status or unread state.",
+      "read",
+      false,
+      ["outreach"],
+      "revenue-os.conversations-search",
+    ],
+    [
+      "get_pending_actions",
+      "List pending proposals currently in the action_queue awaiting founder review.",
+      "read",
+      false,
+      ["core", "pipeline", "outreach"],
+      "revenue-os.action-queue-read",
     ],
     [
       "propose_task",
-      "Stage task",
-      "Prepare an operator task for founder review.",
+      "Stage a concrete operator task for approval.",
+      "internal_write",
+      true,
+      ["core", "pipeline", "outreach"],
+      "revenue-os.action-queue",
+    ],
+    [
+      "propose_task_update",
+      "Stage a change to an existing task for approval: mark it complete, snooze it to a later date, or edit its title, priority, or due date. Never changes the task directly; the founder approves it from the review queue like every other proposal.",
+      "internal_write",
+      true,
+      ["core", "pipeline", "outreach"],
+      "revenue-os.action-queue",
+    ],
+    [
+      "propose_founder_note",
+      "Stage a founder note for approval. Once approved it is saved as an immutable timeline entry, optionally attached to a contact, company, or opportunity.",
       "internal_write",
       true,
       ["core"],
+      "revenue-os.action-queue",
+    ],
+    [
+      "propose_layout_change",
+      "Stage a reorder or show/hide change to a bounded admin layout region (sidebar navigation or the Today page) for founder approval. Only known ids for the given scope may be referenced; required regions can never be hidden.",
+      "internal_write",
+      true,
+      ["core"],
+      "revenue-os.action-queue",
     ],
     [
       "propose_stage_change",
-      "Stage pipeline change",
-      "Prepare an evidence-backed pipeline movement for review.",
+      "Stage a pipeline movement for founder approval. Evidence must be included.",
       "internal_write",
       true,
       ["pipeline"],
+      "revenue-os.action-queue",
     ],
     [
       "propose_send_email",
-      "Stage email",
-      "Prepare an outbound email without sending it directly.",
+      "Stage an outbound email for founder approval. This never sends directly.",
       "external_action",
       true,
       ["outreach"],
+      "revenue-os.action-queue",
+    ],
+    [
+      "propose_conversation_reply",
+      "Stage a reply to an active conversation thread for founder approval. This never sends directly.",
+      "external_action",
+      true,
+      ["outreach"],
+      "revenue-os.action-queue",
     ],
     [
       "propose_campaign_activation",
-      "Stage campaign activation",
-      "Prepare activation of a reviewed campaign version.",
+      "Stage activation of a reviewed campaign version for founder approval.",
       "external_action",
       true,
       ["outreach"],
+      "revenue-os.action-queue",
     ],
-  ].map(([name, label, description, impact, confirmationRequired, packs]) => ({
-    name,
-    label,
-    description,
-    impact,
-    confirmationRequired,
-    packs,
-    state: "registered_policy",
-    operationalReadiness: "not_evaluated",
-  }));
+  ];
+  const capabilities = rows.map(
+    ([name, description, impact, confirmationRequired, packs, serviceTarget]) => ({
+      name,
+      label: capabilityLabel(name),
+      description,
+      impact,
+      confirmationRequired,
+      packs,
+      serviceTarget,
+      connectionRequirement: "none" as const,
+      state: "available" as const,
+      operationalReadiness: "ready" as const,
+      availabilityReason:
+        "Available through the bounded Revenue OS service; no provider connection is called directly.",
+    }),
+  );
   return {
-    registryVersion: "revenue-os-tools.v2",
-    scope: "registry_policy",
-    readinessEvaluated: false,
-    capabilities: rows,
+    registryVersion: "revenue-os-tools.v4",
+    scope: "runtime_registry",
+    readinessEvaluated: true,
+    capabilities,
     safety: {
-      registeredReads: 3,
-      registeredInternalWrites: 2,
-      registeredExternalActions: 2,
+      registeredReads: capabilities.filter((c) => c.impact === "read").length,
+      registeredInternalWrites: capabilities.filter((c) => c.impact === "internal_write").length,
+      registeredExternalActions: capabilities.filter((c) => c.impact === "external_action").length,
       registeredDestructiveActions: 0,
-      readsMayExecuteDirectly: true,
-      writesRequireApproval: true,
-      externalActionsRequireApproval: true,
+      readsMayExecuteDirectly: capabilities.some(
+        (c) => c.impact === "read" && !c.confirmationRequired,
+      ),
+      writesRequireApproval: capabilities
+        .filter((c) => c.impact === "internal_write")
+        .every((c) => c.confirmationRequired),
+      externalActionsRequireApproval: capabilities
+        .filter((c) => c.impact === "external_action")
+        .every((c) => c.confirmationRequired),
       destructiveActionsAvailable: false,
     },
   };
@@ -1423,31 +1546,40 @@ function contentItems(pack: DemoScenarioPack) {
   }));
 }
 
-function featureBoard(pack: DemoScenarioPack) {
+function featureBoard(pack: DemoScenarioPack, state: DemoState) {
   const titles = pack.content.roadmapTitles;
-  return titles.map((title, index) => ({
-    id: `feature-${index}`,
-    seed_key: `demo-${index}`,
-    title,
-    description: `${title} adapted to the operating model for ${pack.name}.`,
-    status: ["backlog", "planned", "in_progress", "blocked", "shipped"][index % 5]!,
-    priority: index < 3 ? "high" : index < 10 ? "medium" : "low",
-    labels: [
-      `milestone:${index % 5 === 4 ? "done" : index < 7 ? "now" : "next"}`,
-      `category:${["revenue", "delivery", "intelligence", "system"][index % 4]}`,
-      `capability:${["automation", "reporting", "integration"][index % 3]}`,
-    ],
-    sort_order: (index + 1) * 1000,
-    owner: index % 2 ? pack.tenant.founder.fullName : "Implementation partner",
-    target_date: dateOffset(index * 6 + 10),
-    acceptance_criteria:
-      "The workflow is observable, reversible, and verified on desktop and mobile.",
-    notes: "Fictional roadmap item for demonstration.",
-    source: "demo_scenario",
-    archived_at: null,
-    created_at: ago(700 + index * 20),
-    updated_at: ago(index * 4 + 1),
-  }));
+  return titles.map((title, index) => {
+    const id = `feature-${index}`;
+    const defaultStatus = ["backlog", "planned", "in_progress", "blocked", "shipped"][index % 5]!;
+    const defaultSortOrder = (index + 1) * 1000;
+    // Dragging a card on the demo board writes here (see the PATCH handler
+    // below); without this override the board always re-rendered the
+    // scenario's fixed default on the next read and every drag snapped back.
+    const override = state.featureOverrides[id];
+    return {
+      id,
+      seed_key: `demo-${index}`,
+      title,
+      description: `${title} adapted to the operating model for ${pack.name}.`,
+      status: override?.status ?? defaultStatus,
+      priority: index < 3 ? "high" : index < 10 ? "medium" : "low",
+      labels: [
+        `milestone:${index % 5 === 4 ? "done" : index < 7 ? "now" : "next"}`,
+        `category:${["revenue", "delivery", "intelligence", "system"][index % 4]}`,
+        `capability:${["automation", "reporting", "integration"][index % 3]}`,
+      ],
+      sort_order: override?.sort_order ?? defaultSortOrder,
+      owner: index % 2 ? pack.tenant.founder.fullName : "Implementation partner",
+      target_date: dateOffset(index * 6 + 10),
+      acceptance_criteria:
+        "The workflow is observable, reversible, and verified on desktop and mobile.",
+      notes: "Fictional roadmap item for demonstration.",
+      source: "demo_scenario",
+      archived_at: null,
+      created_at: ago(700 + index * 20),
+      updated_at: override ? new Date().toISOString() : ago(index * 4 + 1),
+    };
+  });
 }
 
 function settings(pack: DemoScenarioPack) {
@@ -1906,7 +2038,65 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     if (method === "GET" && path === "/api/admin/content")
       return jsonResponse({ items: contentItems(pack) });
     if (method === "GET" && path === "/api/admin/features")
-      return jsonResponse({ schemaReady: true, features: featureBoard(pack) });
+      return jsonResponse({ schemaReady: true, features: featureBoard(pack, state) });
+    if (method === "PATCH" && path === "/api/admin/features") {
+      // Mirrors the real route's bulk-reorder contract: { reorder: [{ id,
+      // status, sortOrder }, ...] }. Previously unhandled, so every request
+      // here fell through to the generic 403 below and every optimistic
+      // drag on the demo board reverted the instant its PATCH landed.
+      const reorder = Array.isArray((body as { reorder?: unknown })?.reorder)
+        ? (body as { reorder: Array<{ id: string; status: string; sortOrder: number }> }).reorder
+        : [];
+      for (const item of reorder) {
+        if (!item?.id) continue;
+        state.featureOverrides[item.id] = { status: item.status, sort_order: item.sortOrder };
+      }
+      saveState(scenarioId, state);
+      return jsonResponse({ schemaReady: true, updated: reorder.length });
+    }
+    if (method === "GET" && path === "/api/admin/tenant/modules") {
+      const tenantConfig = { modules: state.moduleOverrides };
+      return jsonResponse({
+        modules: getActiveModules(tenantConfig).map((mod) => mod.id),
+        overrides: state.moduleOverrides,
+        moduleSettings: state.moduleSettings,
+      });
+    }
+    if (method === "PATCH" && path === "/api/admin/tenant/modules") {
+      // Mirrors the real route so the flagship demo can actually show off
+      // the thing it is meant to demonstrate: toggling and configuring a
+      // module. Previously unhandled entirely, so every request here fell
+      // through to the generic 404 below and the Modules tab looked broken
+      // on the one surface reachable without logging in.
+      const payload = body as { moduleId?: string; enabled?: boolean; settings?: unknown };
+      const moduleId = String(payload?.moduleId || "");
+      const moduleDef = REVENUE_OS_MODULES.find((mod) => mod.id === moduleId);
+      if (!moduleDef) return jsonResponse({ error: "Unknown module" }, 404);
+      if (typeof payload.enabled === "boolean") {
+        if (moduleDef.isCore)
+          return jsonResponse({ error: "Core modules cannot be disabled" }, 400);
+        state.moduleOverrides[moduleId] = payload.enabled;
+        saveState(scenarioId, state);
+        return jsonResponse({
+          moduleId,
+          enabled: payload.enabled,
+          modules: getActiveModules({ modules: state.moduleOverrides }).map((mod) => mod.id),
+        });
+      }
+      if (payload.settings && typeof payload.settings === "object") {
+        if (!moduleDef.settings?.length)
+          return jsonResponse({ error: `${moduleDef.name} does not declare any settings.` }, 400);
+        const validated = validateModuleSettingsInput(
+          moduleId,
+          payload.settings as Record<string, unknown>,
+        );
+        if (!validated.valid) return jsonResponse({ error: validated.error }, 400);
+        state.moduleSettings[moduleId] = { ...state.moduleSettings[moduleId], ...validated.value };
+        saveState(scenarioId, state);
+        return jsonResponse({ moduleId, settings: state.moduleSettings[moduleId] });
+      }
+      return jsonResponse({ error: "Invalid module request" }, 400);
+    }
     if (method === "GET" && path === "/api/admin/settings") return jsonResponse(settings(pack));
     if (method === "GET" && path === "/api/admin/tenants")
       return jsonResponse({
