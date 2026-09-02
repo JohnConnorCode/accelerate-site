@@ -63,7 +63,14 @@ not activation evidence.
 
 Maintainers apply all migrations in order with `npm run db:migrate:all`, or one
 at a time with `npm run db:migrate -- <migration.sql>`, then
-verify the resulting objects through the service role. Either command resolves the
+verify the resulting objects through the service role. `db:migrate:all` is
+safe to re-run against a fresh install or to resume after an early failure,
+but re-running it from scratch against a long-lived, already-migrated
+database can hit a transitional constraint that a later migration in the
+list deliberately supersedes (real data can outlive an early, intentionally
+temporary constraint). That is expected, not a bug; use `npm run
+db:verify-schema` to check an existing installation instead of re-running
+the full manifest. Either command resolves the
 project, pooler host, database user, and password from the self-hosted
 environment described in `.env.example`; on macOS the password may instead come
 from the configured Keychain service. Always inspect the printed target before

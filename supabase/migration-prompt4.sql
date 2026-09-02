@@ -17,11 +17,13 @@ CREATE INDEX IF NOT EXISTS idx_contact_submissions_created_at ON contact_submiss
 
 ALTER TABLE contact_submissions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Service role can manage contact_submissions" ON contact_submissions;
 CREATE POLICY "Service role can manage contact_submissions"
   ON contact_submissions FOR ALL
   USING (auth.role() = 'service_role')
   WITH CHECK (auth.role() = 'service_role');
 
+DROP POLICY IF EXISTS "Anonymous can insert contact_submissions" ON contact_submissions;
 CREATE POLICY "Anonymous can insert contact_submissions"
   ON contact_submissions FOR INSERT
   WITH CHECK (true);
@@ -40,11 +42,13 @@ CREATE INDEX IF NOT EXISTS idx_subscribers_subscribed_at ON subscribers(subscrib
 
 ALTER TABLE subscribers ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Service role can manage subscribers" ON subscribers;
 CREATE POLICY "Service role can manage subscribers"
   ON subscribers FOR ALL
   USING (auth.role() = 'service_role')
   WITH CHECK (auth.role() = 'service_role');
 
+DROP POLICY IF EXISTS "Anonymous can insert subscribers" ON subscribers;
 CREATE POLICY "Anonymous can insert subscribers"
   ON subscribers FOR INSERT
   WITH CHECK (true);

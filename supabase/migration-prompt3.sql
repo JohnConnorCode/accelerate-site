@@ -14,16 +14,19 @@ CREATE TABLE IF NOT EXISTS admin_settings (
 -- RLS: only authenticated users can read/write
 ALTER TABLE admin_settings ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Authenticated users can read settings" ON admin_settings;
 CREATE POLICY "Authenticated users can read settings"
   ON admin_settings FOR SELECT
   TO authenticated
   USING (true);
 
+DROP POLICY IF EXISTS "Authenticated users can insert settings" ON admin_settings;
 CREATE POLICY "Authenticated users can insert settings"
   ON admin_settings FOR INSERT
   TO authenticated
   WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Authenticated users can update settings" ON admin_settings;
 CREATE POLICY "Authenticated users can update settings"
   ON admin_settings FOR UPDATE
   TO authenticated
@@ -39,4 +42,4 @@ INSERT INTO admin_settings (key, value, is_secret, description) VALUES
   ('CRON_SECRET', '', true, 'Secret token for cron job authentication'),
   ('SITE_URL', 'https://acceleratewith.us', false, 'Public site URL'),
   ('BUSINESS_NAME', 'Accelerate', false, 'Business display name')
-ON CONFLICT (key) DO NOTHING;
+ON CONFLICT DO NOTHING;

@@ -7,8 +7,18 @@
  * clone has to type.
  *
  * Every migration in the manifest is additive/idempotent (see AGENTS.md), so
- * re-running this after a failure is safe: earlier files no-op, and it picks
- * up again wherever it stopped.
+ * re-running this against a fresh install, or to resume after an early
+ * failure, is safe: earlier files no-op, and it picks up again wherever it
+ * stopped. One narrow exception: a handful of early migrations create a
+ * transitional constraint that a much later migration in the same manifest
+ * deliberately supersedes (for example, a global unique index on contact
+ * email that migrations/20260830-tenant-uniqueness-cutover.sql later drops
+ * in favor of a tenant-scoped one). Re-running the full batch from scratch
+ * against a long-lived, already-migrated database can hit that transitional
+ * constraint colliding with real data that only exists because the cutover
+ * already happened — that is expected, not a bug, and does not affect a
+ * fresh install. Use `npm run db:verify-schema` to check an existing
+ * installation's health instead of re-running the whole manifest.
  */
 import { spawnSync } from "node:child_process";
 import { MIGRATION_MANIFEST } from "./lib/migration-manifest.mjs";

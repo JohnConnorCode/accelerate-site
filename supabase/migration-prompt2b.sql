@@ -146,42 +146,59 @@ CREATE INDEX IF NOT EXISTS idx_changelog_entries_published_at ON changelog_entri
 
 -- Case Studies: public read, service_role write
 ALTER TABLE case_studies ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public read case studies" ON case_studies;
 CREATE POLICY "Public read case studies" ON case_studies FOR SELECT TO anon USING (true);
+DROP POLICY IF EXISTS "Service role case studies" ON case_studies;
 CREATE POLICY "Service role case studies" ON case_studies FOR ALL TO service_role USING (true) WITH CHECK (true);
 
 -- Website Grades: public insert + read own, service_role all
 ALTER TABLE website_grades ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public insert grades" ON website_grades;
 CREATE POLICY "Public insert grades" ON website_grades FOR INSERT TO anon WITH CHECK (true);
+DROP POLICY IF EXISTS "Service role grades" ON website_grades;
 CREATE POLICY "Service role grades" ON website_grades FOR ALL TO service_role USING (true) WITH CHECK (true);
 
 -- ROI Calculations: public insert, service_role all
 ALTER TABLE roi_calculations ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public insert roi" ON roi_calculations;
 CREATE POLICY "Public insert roi" ON roi_calculations FOR INSERT TO anon WITH CHECK (true);
+DROP POLICY IF EXISTS "Service role roi" ON roi_calculations;
 CREATE POLICY "Service role roi" ON roi_calculations FOR ALL TO service_role USING (true) WITH CHECK (true);
 
 -- Resource Downloads: public insert, service_role all
 ALTER TABLE resource_downloads ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public insert downloads" ON resource_downloads;
 CREATE POLICY "Public insert downloads" ON resource_downloads FOR INSERT TO anon WITH CHECK (true);
+DROP POLICY IF EXISTS "Service role downloads" ON resource_downloads;
 CREATE POLICY "Service role downloads" ON resource_downloads FOR ALL TO service_role USING (true) WITH CHECK (true);
 
 -- Email Sequences: service_role only
 ALTER TABLE email_sequences ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Service role sequences" ON email_sequences;
 CREATE POLICY "Service role sequences" ON email_sequences FOR ALL TO service_role USING (true) WITH CHECK (true);
 
 ALTER TABLE email_sequence_logs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Service role sequence logs" ON email_sequence_logs;
 CREATE POLICY "Service role sequence logs" ON email_sequence_logs FOR ALL TO service_role USING (true) WITH CHECK (true);
 
 -- Partner Applications: public insert, service_role all
 ALTER TABLE partner_applications ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public insert partners" ON partner_applications;
 CREATE POLICY "Public insert partners" ON partner_applications FOR INSERT TO anon WITH CHECK (true);
+DROP POLICY IF EXISTS "Service role partners" ON partner_applications;
 CREATE POLICY "Service role partners" ON partner_applications FOR ALL TO service_role USING (true) WITH CHECK (true);
 
 -- Changelog: public read, service_role write
 ALTER TABLE changelog_entries ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public read changelog" ON changelog_entries;
 CREATE POLICY "Public read changelog" ON changelog_entries FOR SELECT TO anon USING (true);
+DROP POLICY IF EXISTS "Service role changelog" ON changelog_entries;
 CREATE POLICY "Service role changelog" ON changelog_entries FOR ALL TO service_role USING (true) WITH CHECK (true);
 
 -- Updated_at triggers for new tables
+DROP TRIGGER IF EXISTS case_studies_updated_at ON case_studies;
 CREATE TRIGGER case_studies_updated_at BEFORE UPDATE ON case_studies FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+DROP TRIGGER IF EXISTS email_sequences_updated_at ON email_sequences;
 CREATE TRIGGER email_sequences_updated_at BEFORE UPDATE ON email_sequences FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+DROP TRIGGER IF EXISTS partner_applications_updated_at ON partner_applications;
 CREATE TRIGGER partner_applications_updated_at BEFORE UPDATE ON partner_applications FOR EACH ROW EXECUTE FUNCTION update_updated_at();
