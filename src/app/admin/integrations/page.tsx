@@ -50,6 +50,7 @@ const providerIcons: Record<string, LucideIcon> = {
   slack: MessageSquare,
   notion: FileText,
   hubspot: Boxes,
+  whatsapp: MessageSquare,
   accounting: WalletCards,
   "delivery-tools": Workflow,
   n8n: Workflow,
