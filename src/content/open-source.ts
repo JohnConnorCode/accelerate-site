@@ -104,6 +104,11 @@ export const openSourceFaqs: FAQ[] = [
       "It runs a real, working agency today: 101 automated test and verification scripts, ordered migrations with a documented rollback path, tenant isolation enforced at the database level, and a public commit history you can read before you decide anything.",
   },
   {
+    question: "Why not just build this myself?",
+    answer:
+      "You can. Contacts, pipeline, inbox, proposals, campaigns, and an AI layer with approval gates and an audit trail take real time to get right, and most of it looks the same no matter what business runs on it. This skips that part. Whatever makes your business different is what's worth spending that time on instead.",
+  },
+  {
     question: "How is this different from your other services?",
     answer:
       "The underlying offer does not change. Strategy, custom builds, integrations, managed execution, and training are the same things we do for every engagement. Open-sourcing the Command Center just gives you a second way to start: read the code first, or start with a conversation.",

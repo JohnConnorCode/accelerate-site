@@ -272,7 +272,7 @@ export default function SettingsPage() {
                   Layout
                 </h2>
                 <p className="admin-copy mt-1 text-xs">
-                  Ask the AI Workspace to reorganize the sidebar or Today page — changes wait for
+                  Ask the AI Workspace to reorganize the sidebar or Today page. Changes wait for
                   your approval before applying. Revert here at any time.
                 </p>
               </div>

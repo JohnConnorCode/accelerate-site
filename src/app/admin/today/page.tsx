@@ -110,7 +110,7 @@ const ACTION_CONSEQUENCE: Record<string, string> = {
   admin_layout_change:
     "Reorders or hides an admin layout region immediately. Revert it any time from Settings → Layout.",
   create_founder_note:
-    "Saves this note to the timeline immediately, visible wherever this record is reviewed. Notes are permanent — there is no edit or delete once saved.",
+    "Saves this note to the timeline immediately, visible wherever this record is reviewed. Notes are permanent: there is no edit or delete once saved.",
 };
 
 /** Renders an admin_layout_change payload as a readable order/hidden summary

@@ -1430,6 +1430,31 @@ export const featureBacklog = [
       "npm run test:google-oauth; npm run test:google-readiness; npm run verify:google-readiness; npm run verify:google-readiness -- --stage=production (expected blocked until founder credential/consent step); npm run test:gmail-sync-plan; npm run test:gmail-reply-mime; npm run test:secret-storage; npm run verify:tenant-providers; npm run verify:agent-contract; npm run seed:features -- --verify; npx tsc --noEmit; npm run lint; npm run build; git diff --check.",
   }),
   card({
+    key: "google-admin-sync-controls",
+    title: "Add scoped Google sync controls to admin integrations",
+    workstream: "google",
+    phase: 2,
+    status: "planned",
+    priority: "medium",
+    description:
+      "Expose safe source-scoped Google workspace sync actions in the Integrations admin surface and preserve truthful busy/error behavior.",
+    acceptance: [
+      "Google card shows explicit actions for all, Gmail, Calendar, and Drive sync",
+      "Buttons disable cleanly when Google is disconnected or a sync is already running",
+      "Source failures surface through existing admin notification channels",
+      "Provider catalog refreshes after each sync request so evidence status updates in place",
+    ],
+    dependencies: ["Connect Google OAuth and complete the first Workspace sync"],
+    start: "src/app/admin/integrations/page.tsx; src/app/api/admin/google/sync/route.ts",
+    guardrails:
+      "Do not expose external action controls outside Google card, and never fire additional writes without `runGoogleSync` backend receipts.",
+    labels: ["oauth", "integrations"],
+    verification:
+      "Manual catalog interaction plus `npx tsc --noEmit` and `npm run lint` on the updated Integrations page.",
+    evidence:
+      "2026-09-01 Added source-scoped Google action buttons in `/admin/integrations` with stateful disable/spinner behavior using `/api/admin/google/sync` `{ source }` dispatch, plus catalog refresh after invocation and toast feedback for skipped/started/error states.",
+  }),
+  card({
     key: "google-token-health-reconnect",
     title: "Add Google token health, scope drift, and reconnect recovery",
     workstream: "google",
@@ -4036,6 +4061,8 @@ export const featureBacklog = [
     guardrails:
       "The button must never point at a fork that could be swapped by a third party without review, and must never pre-fill or embed any real credential, connection string, or production value. Do not weaken or bypass the existing tenant-config seam to make the button simpler; the deployed instance must remain a genuinely empty, isolated workspace.",
     labels: ["clonable", "setup"],
+    evidence:
+      "2026-09-01 Confirmed no vercel.json changes are required: the maintainer's own prebuilt-deploy flow (git.deploymentEnabled:false, Commit-Author Verification) only governs the linked production project, and a visitor's Deploy button clones into their own new Vercel project with git-deploy enabled by default. The Deploy button URL is a query string against /new/clone with a repository-url and pre-filled env list; no application code changes are required to ship this card.",
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run verify:oss; npm run build; a real end-to-end test of the button from a signed-out Vercel account against a scratch Supabase project, confirmed to boot with zero manual file edits; git diff --check.",
   }),
@@ -4059,8 +4086,120 @@ export const featureBacklog = [
     guardrails:
       "Never run a destructive or production migration without explicit operator confirmation in the flow. Never seed Accelerate's own customer or demo data into a new installation. The guided flow supplements, never replaces, the documented manual migration path for operators who prefer it.",
     labels: ["setup", "clonable"],
+    evidence:
+      "2026-09-01 Root-caused the current blocker: scripts/run-migration.mjs (via scripts/lib/accelerate-database.mjs) shells out to a local psql binary over the session pooler, which cannot run inside a Vercel serverless function. A psql-free path is feasible with node-postgres (pg) connected directly with SUPABASE_DB_HOST/PORT/USER/PASSWORD — the service-role key is a PostgREST JWT and cannot run DDL, so a direct Postgres connection stays required either way. Also confirmed there is currently no account-creation path anywhere in the codebase (grepped for signUp/inviteUserByEmail/admin.createUser) and every /admin/* route except /admin/login requires an authenticated session, so a first-run flow needs new unauthenticated routes under a new middleware allowlist entry. Given those routes run raw DDL and mint the first privileged account, this card needs a dedicated security review pass before implementation, not just the standard verification list.",
     verification:
-      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run db:verify-schema; npm run build; an end-to-end run against a scratch Supabase project proving the flow reaches a green Setup Center and a working founder login with zero Accelerate data present; git diff --check.",
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run db:verify-schema; npm run build; a dedicated security review of the new unauthenticated bootstrap routes (fail-closed once configured, no replay after first admin exists); an end-to-end run against a scratch Supabase project proving the flow reaches a green Setup Center and a working founder login with zero Accelerate data present; git diff --check.",
+  }),
+  card({
+    key: "plugin-module-contract",
+    title: "Define a plugin/module contract for optional business capabilities",
+    workstream: "productization",
+    phase: 6,
+    priority: "low",
+    description:
+      "Split the always-on core (contacts, companies, auth, tenancy, permissions, activity, AI context) from optional modules (proposals, campaigns, bookings, analytics) behind a declared contract, so a self-hoster or template author can enable or omit a capability without forking core logic. This is the prerequisite for business templates and a template directory; do not start those before this contract exists, or every template reinvents its own ad-hoc module boundary.",
+    acceptance: [
+      "A documented module contract (what a module may register: nav entries, admin routes, migrations, AI tools, Setup Center checks) with at least one existing capability (e.g. proposals) refactored to prove the contract is sufficient without behavior change",
+      "Disabling a module via the contract removes its nav entries, routes, and AI tools cleanly with no dangling references, verified by a scoped test",
+      "The tenant-config seam and existing multi-tenancy contract are unaffected: module enablement is a deployment-time or admin-time choice, never a per-request bypass of tenant isolation",
+    ],
+    dependencies: [
+      "Ship a one-click Vercel deploy button",
+      "Guide first-run setup inside the product, not the terminal",
+    ],
+    start:
+      "src/lib/revenue-os/README.md; src/lib/admin/navigation.ts; docs/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/MULTI-TENANCY-CONTRACT.md",
+    guardrails:
+      "Do not weaken tenant isolation, the AI tool impact-tier contract, or the admin auth boundary to make modules pluggable. A module contract is an internal seam, not a runtime code-loading system — no dynamic import of untrusted third-party code.",
+    labels: ["clonable", "config"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:tenant-isolation; npm run test:ai-tool-gates; npm run build; git diff --check.",
+  }),
+  card({
+    key: "vertical-business-templates",
+    title: "Ship 2-3 vertical business templates (roofing, law firm, agency)",
+    workstream: "productization",
+    phase: 6,
+    priority: "low",
+    description:
+      "Package pre-configured tenant-config seams (branding placeholders, default pipeline stages, default AI system prompt framing, seeded demo data matching an industry) for 2-3 verticals already represented in this site's own case studies and demo scenarios, so a visitor can deploy something that already looks built for their business rather than a blank instance. Depends on the module contract so a template can declare which modules it enables.",
+    acceptance: [
+      "At least 2 complete templates, each a tenant-config seam variant plus documented setup notes, that a deploy produces a visibly different, industry-appropriate default workspace",
+      "Templates reuse the existing demo-scenario fixtures pattern (src/lib/admin/demo/scenarios) rather than inventing a second seed-data mechanism",
+      "No template ships any real customer data, logo, or brand asset without explicit rights to redistribute it",
+    ],
+    dependencies: ["Define a plugin/module contract for optional business capabilities"],
+    start: "src/config/tenant.ts; src/lib/admin/demo/scenarios; src/content/",
+    guardrails:
+      "Templates are configuration, not forked codebases — a template must not require diverging from main. Do not fabricate adoption or customer claims about any template on the marketing site.",
+    labels: ["clonable", "config"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:positioning-copy; npm run test:no-fabricated-claims; npm run build; git diff --check.",
+  }),
+  card({
+    key: "csv-hubspot-importers",
+    title: "Ship CSV and HubSpot contact/deal importers",
+    workstream: "integrations",
+    phase: 6,
+    priority: "low",
+    description:
+      "Give a new self-hoster a real path off their existing CRM: a CSV importer (reusing the existing contact-import review/dedupe flow already shipped for manual list imports) and a HubSpot contacts+deals importer via HubSpot's API. Without this, 'self-host and own your data' still requires manually re-entering every contact.",
+    acceptance: [
+      "CSV import reuses the existing reviewed-import pipeline (contact-imports) rather than a second ad-hoc parser",
+      "HubSpot importer maps contacts and deals into canonical contacts/opportunities with source attribution, and never auto-sends outreach on imported records",
+      "Both importers report per-row success/failure counts and never silently drop a row",
+    ],
+    dependencies: ["Ship a one-click Vercel deploy button"],
+    start: "src/lib/revenue-os/contact-imports.ts; src/app/api/admin/revenue-os/contact-imports/",
+    guardrails:
+      "Imported records must go through the same identity-resolution and tenant-scoping path as every other contact write. No imported record may trigger outbound communication automatically.",
+    labels: ["integrations", "identity"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:contact-import-service; npm run build; git diff --check.",
+  }),
+  card({
+    key: "integration-adapter-sdk",
+    title: "Publish an integration adapter SDK for third-party connections",
+    workstream: "integrations",
+    phase: 6,
+    priority: "low",
+    description:
+      "Extract the pattern already used for Google/Gmail/Calendar/OpenRouter connections (src/lib/revenue-os/integrations.ts, integration-registry) into a documented adapter contract a third party can implement for a new provider (Stripe, QuickBooks, Slack, Twilio) without touching core connection/credential storage.",
+    acceptance: [
+      "A documented adapter interface (connect, verify, sync, disconnect) with the existing OpenRouter or Google adapter refactored to implement it as proof, no behavior change",
+      "Credential storage and encryption remain centralized; an adapter never handles raw secrets outside the existing encrypted-connection path",
+    ],
+    dependencies: ["Define a plugin/module contract for optional business capabilities"],
+    start: "src/lib/revenue-os/integrations.ts; src/lib/revenue-os/integration-registry.ts",
+    guardrails:
+      "No adapter may bypass the existing per-tenant credential encryption or the AI tool impact-tier/approval contract for any action it exposes.",
+    labels: ["integrations", "security"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:integration-catalog; npm run build; git diff --check.",
+  }),
+  card({
+    key: "create-accelerate-cli",
+    title: "Ship a create-accelerate scaffolding CLI",
+    workstream: "productization",
+    phase: 6,
+    priority: "low",
+    description:
+      "npx create-accelerate as a second on-ramp alongside the Deploy button, for developers who want a local clone pre-wired to a chosen template and modules rather than a hosted instance. Only makes sense once the module contract and templates exist; building this first would just hand-roll the same choices the contract should express declaratively.",
+    acceptance: [
+      "npx create-accelerate walks a developer through template and module selection and produces a locally runnable clone with docs/SELF-HOSTING.md's steps already applied where scriptable",
+      "The CLI has no privileged access beyond what the developer's own Supabase/Vercel credentials grant it",
+    ],
+    dependencies: [
+      "Define a plugin/module contract for optional business capabilities",
+      "Ship 2-3 vertical business templates (roofing, law firm, agency)",
+    ],
+    start: "docs/SELF-HOSTING.md; package.json",
+    guardrails:
+      "Do not publish an npm package that phones home, collects telemetry by default, or requires an Accelerate-owned account to run.",
+    labels: ["clonable", "setup"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run build; a real run of the published CLI against a scratch directory; git diff --check.",
   }),
 ];
 
