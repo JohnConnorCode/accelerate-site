@@ -105,7 +105,9 @@ Route handlers and UI components are thin adapters, nothing more. Every business
 
 `scripts/feature-backlog-data.mjs` is the single source of truth for what's shipped, in progress, planned, and backlog. Every card carries acceptance criteria, dependencies, and required verification, following the [Feature Board taxonomy](docs/FEATURE-BOARD-TAXONOMY.md). Extend that manifest; don't start a second roadmap in a fork.
 
-You can explore the same kanban UI the founder uses, populated with representative fictional data, inside any [demo workspace](https://www.acceleratewith.us/demo/command-center) under **System → Feature Board**. The live founder board at `/admin/features` requires authentication, so it isn't publicly browsable.
+[**/roadmap**](https://www.acceleratewith.us/roadmap) renders that manifest publicly, with every card's real description and acceptance criteria, no signup required. A curated, dependency-satisfied subset — cards ready to pick up without waiting on other work — is also mirrored to [GitHub Issues labeled `help wanted`](https://github.com/JohnConnorCode/accelerate-site/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) via `npm run mirror:feature-board-issues -- --apply`.
+
+You can also explore the same kanban UI the founder uses, populated with representative fictional data, inside any [demo workspace](https://www.acceleratewith.us/demo/command-center) under **System → Feature Board**. The live founder board at `/admin/features` requires authentication, so it isn't publicly browsable.
 
 The Deploy with Vercel button above ships `one-click-vercel-deploy`. `guided-first-run-setup` is next: an in-product guided flow to connect Supabase and create the first admin account without a terminal, for the deployment above once you're ready to go beyond the demo.
 

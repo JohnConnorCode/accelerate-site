@@ -4,7 +4,7 @@ Thanks for helping improve Accelerate Revenue OS.
 
 ## Before opening a change
 
-1. Search existing issues and check the [roadmap](README.md#roadmap) — `scripts/feature-backlog-data.mjs` is the canonical backlog, with acceptance criteria and dependencies already written out for planned and backlog cards.
+1. Check the [roadmap](https://www.acceleratewith.us/roadmap) and search existing issues (issues labeled `help wanted` are a curated, dependency-satisfied subset of the roadmap, safe to pick up without waiting on other work). `scripts/feature-backlog-data.mjs` is the canonical backlog behind both, with acceptance criteria and dependencies already written out for planned and backlog cards.
 2. Keep the proposed scope narrow.
 3. Read `AGENTS.md` and the contract relevant to your change.
 4. For security-sensitive behavior, open a private report instead of a public issue.
