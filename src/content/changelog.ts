@@ -87,7 +87,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "admin-surfaces-and-email-authoring",
     title: "Admin surfaces and Email Studio now share a deliberate system",
     description:
-      "Operational cards now choose a semantic surface role—flat, raised, or outlined—while every appearance supplies the matching radius, shadow, and edge treatment. Legacy cards resolve through the same contract, so a theme change cannot split the workspace into visual generations. Email Studio now authors typed sections instead of raw body markup; one renderer produces its exact preview, founder test message, and future published sends, while demo edits remain entirely fictional and local. Mobile receipts clear the navigation dock rather than covering it.",
+      "Operational cards now choose a semantic surface role (flat, raised, or outlined) while every appearance supplies the matching radius, shadow, and edge treatment. Legacy cards resolve through the same contract, so a theme change cannot split the workspace into visual generations. Email Studio now authors typed sections instead of raw body markup; one renderer produces its exact preview, founder test message, and future published sends, while demo edits remain entirely fictional and local. Mobile receipts clear the navigation dock rather than covering it.",
     category: "improvement",
     publishedAt: "2026-08-28",
   },

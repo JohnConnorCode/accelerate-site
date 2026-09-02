@@ -37,6 +37,15 @@ jobs:
       - name: Verify architecture contract
         run: npm run verify:agent-contract
 
+      - name: Verify copy guardrails
+        run: npm run verify:guardrails
+
+      - name: Verify no fabricated claims
+        run: npm run test:no-fabricated-claims
+
+      - name: Verify house style (no em dashes)
+        run: npm run test:house-style-copy
+
       - name: Typecheck
         run: npm run typecheck
 
