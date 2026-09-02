@@ -28,6 +28,8 @@ import {
 } from "lucide-react";
 import { applyLayoutOverride, type LayoutDoc } from "@/lib/admin/layout-overrides";
 import { isNavLinkEnabled } from "@/lib/revenue-os/modules";
+import { EXTENSION_NAV_LINKS } from "@/lib/revenue-os/extension-modules.generated";
+import { resolveExtensionNavIcon } from "@/lib/admin/extension-nav-icons";
 
 export interface AdminNavLink {
   id: string;
@@ -306,6 +308,33 @@ export const adminNavSections: AdminNavSection[] = [
     ],
   },
 ];
+
+/**
+ * Merge validated extension nav links into the section their manifest names.
+ *
+ * An extension declares a moreGroup; that is the section it joins. Anything
+ * without a recognized group lands in "More tools" rather than being dropped
+ * silently, so a manifest can never register a link the operator cannot find.
+ * Module enablement still gates visibility downstream through
+ * filterNavSectionsByTenant, exactly as it does for core links.
+ */
+for (const link of EXTENSION_NAV_LINKS) {
+  const target =
+    adminNavSections.find((section) => section.label === link.moreGroup) ??
+    adminNavSections.find((section) => section.label === "More tools");
+  if (!target) continue;
+  if (adminNavSections.some((section) => section.links.some((item) => item.id === link.id)))
+    continue;
+  target.links.push({
+    id: link.id,
+    label: link.label,
+    href: link.href,
+    icon: resolveExtensionNavIcon(link.icon),
+    description: link.description,
+    ...(link.keywords ? { keywords: link.keywords } : {}),
+    ...(link.moreGroup ? { moreGroup: link.moreGroup } : {}),
+  });
+}
 
 export const adminNavLinks = adminNavSections.flatMap((section) => section.links);
 export const adminMobileLinks = adminNavLinks.filter((link) => link.mobilePrimary);

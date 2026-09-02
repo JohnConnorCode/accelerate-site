@@ -23,6 +23,7 @@ Read the relevant contract before touching the area it governs; `AGENTS.md` at t
 - [contracts/MARKETING-POSITIONING-CONTRACT.md](contracts/MARKETING-POSITIONING-CONTRACT.md) — public copy and positioning.
 - [contracts/WORK-MOTION-CONTRACT.md](contracts/WORK-MOTION-CONTRACT.md) — the public reveal/scroll animation contract.
 - [contracts/FEATURE-BOARD-TAXONOMY.md](contracts/FEATURE-BOARD-TAXONOMY.md) — the label taxonomy for the roadmap manifest.
+- [contributing/EXTENDING.md](contributing/EXTENDING.md) — how to add a module, an integration adapter, or an AI tool without forking core, and what each one inherits automatically.
 - [contributing/AGENT-TICKET-RUNBOOK.md](contributing/AGENT-TICKET-RUNBOOK.md) — the pickup, evidence, recovery, and handoff procedure this repo expects, human or agent.
 - [contributing/GROK-4.6-COMMAND-CENTER-EXECUTION-PLAN.md](contributing/GROK-4.6-COMMAND-CENTER-EXECUTION-PLAN.md) — a model-specific orchestration program plan referenced by the agent contract.
 

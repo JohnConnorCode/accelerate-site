@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Revenue OS extension module manifest",
+  "description": "Declarative registration for a pluggable Revenue OS module. Contains no executable code; see extensions/README.md.",
+  "type": "object",
+  "required": ["id", "name", "description", "category", "defaultEnabled", "navLinks"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{2,48}$",
+      "description": "Stable unique module key. Must not collide with a core module id."
+    },
+    "name": { "type": "string", "minLength": 1, "maxLength": 60 },
+    "description": { "type": "string", "minLength": 1, "maxLength": 400 },
+    "category": {
+      "enum": ["revenue", "delivery", "intelligence", "sources", "system"]
+    },
+    "defaultEnabled": { "type": "boolean" },
+    "navLinks": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "href", "icon", "description"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{1,48}$" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 32 },
+          "href": { "type": "string", "pattern": "^/admin/[a-z0-9-/\\[\\]]*$" },
+          "icon": { "type": "string" },
+          "description": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "keywords": { "type": "string", "maxLength": 200 },
+          "moreGroup": {
+            "enum": ["Revenue", "Delivery", "Intelligence", "System", "Sources"]
+          }
+        }
+      }
+    },
+    "routes": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^/admin/[a-z0-9-/\\[\\]]*$" }
+    },
+    "aiToolNames": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]{2,60}$" }
+    },
+    "setupChecks": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]{2,60}$" }
+    },
+    "docsUrl": { "type": "string", "format": "uri" }
+  }
+}

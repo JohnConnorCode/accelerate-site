@@ -1,0 +1,22 @@
+{
+  "$schema": "./module-manifest.schema.json",
+  "id": "example-inventory",
+  "name": "Inventory (example)",
+  "description": "A complete, minimal example manifest showing every field an extension module can declare. Disabled by default so it never appears in a real workspace unless a self-hoster turns it on.",
+  "category": "delivery",
+  "defaultEnabled": false,
+  "navLinks": [
+    {
+      "id": "example-inventory",
+      "label": "Inventory",
+      "href": "/admin/example-inventory",
+      "icon": "Library",
+      "description": "Stock levels and reorder points",
+      "moreGroup": "Delivery"
+    }
+  ],
+  "routes": ["/admin/example-inventory"],
+  "aiToolNames": [],
+  "setupChecks": [],
+  "docsUrl": "https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/contributing/EXTENDING.md"
+}

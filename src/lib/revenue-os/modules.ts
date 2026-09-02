@@ -11,7 +11,14 @@
  * - Disabling a module removes its navigation entries, marks its AI tools unavailable,
  *   and refuses routes fail-closed without dangling references.
  * - No dynamic execution of untrusted code; modules are declarative statically-typed seams.
+ *
+ * Third parties extend this registry without editing it, by dropping a
+ * manifest in extensions/*.module.json. Those are validated and compiled into
+ * extension-modules.generated.ts at build time and merged below; see
+ * extensions/README.md and docs/contributing/EXTENDING.md. Core stays a
+ * compile-time array and is not overridable from a manifest.
  */
+import { EXTENSION_MODULES } from "./extension-modules.generated";
 
 export type ModuleCategory = "revenue" | "delivery" | "intelligence" | "sources" | "system";
 
@@ -41,9 +48,9 @@ export interface RevenueOSModule {
 }
 
 /**
- * Authoritative module registry for Revenue OS.
+ * Core module registry. Always present, never overridable by an extension.
  */
-export const REVENUE_OS_MODULES: readonly RevenueOSModule[] = [
+const CORE_MODULES: readonly RevenueOSModule[] = [
   // --- Core Modules (Always Enabled) ---
   {
     id: "core-command",
@@ -77,7 +84,8 @@ export const REVENUE_OS_MODULES: readonly RevenueOSModule[] = [
   {
     id: "core-conversations",
     name: "Omnichannel Conversations",
-    description: "Unified communication inbox synchronizing Gmail, inbound forms, and direct messages.",
+    description:
+      "Unified communication inbox synchronizing Gmail, inbound forms, and direct messages.",
     category: "revenue",
     isCore: true,
     defaultEnabled: true,
@@ -88,7 +96,8 @@ export const REVENUE_OS_MODULES: readonly RevenueOSModule[] = [
   {
     id: "core-contacts",
     name: "Contact Intake & Identity",
-    description: "Deterministic identity resolution, deduplicated contact ledger, and company linking.",
+    description:
+      "Deterministic identity resolution, deduplicated contact ledger, and company linking.",
     category: "revenue",
     isCore: true,
     defaultEnabled: true,
@@ -132,7 +141,8 @@ export const REVENUE_OS_MODULES: readonly RevenueOSModule[] = [
   {
     id: "campaigns",
     name: "Outbound Campaigns",
-    description: "Controlled multi-step email campaigns, versioned copy, and sequence delivery runs.",
+    description:
+      "Controlled multi-step email campaigns, versioned copy, and sequence delivery runs.",
     category: "revenue",
     isCore: false,
     defaultEnabled: true,
@@ -144,7 +154,8 @@ export const REVENUE_OS_MODULES: readonly RevenueOSModule[] = [
   {
     id: "email-studio",
     name: "Email Studio",
-    description: "Live transactional and marketing email template editor, previewer, and versioning.",
+    description:
+      "Live transactional and marketing email template editor, previewer, and versioning.",
     category: "revenue",
     isCore: false,
     defaultEnabled: true,
@@ -273,6 +284,16 @@ export const REVENUE_OS_MODULES: readonly RevenueOSModule[] = [
     routes: ["/admin/integrations"],
   },
 ] as const;
+
+/**
+ * Authoritative module registry: core first, then any validated extension
+ * manifests. The build step rejects an extension whose id collides with core,
+ * so this concatenation cannot shadow a core module.
+ */
+export const REVENUE_OS_MODULES: readonly RevenueOSModule[] = [
+  ...CORE_MODULES,
+  ...EXTENSION_MODULES,
+];
 
 /** Map of module ID to module definition for O(1) lookup. */
 export const MODULE_MAP = new Map<string, RevenueOSModule>(

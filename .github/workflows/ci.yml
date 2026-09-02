@@ -52,6 +52,12 @@ jobs:
       - name: Verify admin design token contract
         run: npm run verify:admin-tokens
 
+      - name: Verify extension manifests are in sync
+        run: npm run verify:extensions
+
+      - name: Verify module contract resolves
+        run: npm run verify:module-contract
+
       - name: Typecheck
         run: npm run typecheck
 
