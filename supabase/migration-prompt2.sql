@@ -64,16 +64,19 @@ ALTER TABLE content_calendar ENABLE ROW LEVEL SECURITY;
 ALTER TABLE chat_leads ENABLE ROW LEVEL SECURITY;
 
 -- Content calendar: authenticated users can read/write
+DROP POLICY IF EXISTS "Authenticated users can manage content_calendar" ON content_calendar;
 CREATE POLICY "Authenticated users can manage content_calendar"
   ON content_calendar FOR ALL
   USING (true)
   WITH CHECK (true);
 
 -- Chat leads: anonymous can insert, service role can read all
+DROP POLICY IF EXISTS "Anyone can insert chat_leads" ON chat_leads;
 CREATE POLICY "Anyone can insert chat_leads"
   ON chat_leads FOR INSERT
   WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Service role can manage chat_leads" ON chat_leads;
 CREATE POLICY "Service role can manage chat_leads"
   ON chat_leads FOR ALL
   USING (true);

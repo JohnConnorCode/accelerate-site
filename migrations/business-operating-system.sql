@@ -4,7 +4,7 @@
 -- =============================================================================
 
 -- Phase 1: Tasks & Follow-ups
-CREATE TABLE tasks (
+CREATE TABLE IF NOT EXISTS tasks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
   description TEXT,
@@ -19,14 +19,16 @@ CREATE TABLE tasks (
   completed_at TIMESTAMPTZ,
   snoozed_until DATE
 );
-CREATE INDEX idx_tasks_due ON tasks(due_date) WHERE status = 'pending';
-CREATE INDEX idx_tasks_related ON tasks(related_type, related_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_due ON tasks(due_date) WHERE status = 'pending';
+CREATE INDEX IF NOT EXISTS idx_tasks_related ON tasks(related_type, related_id);
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Service role full access" ON tasks;
 CREATE POLICY "Service role full access" ON tasks FOR ALL TO service_role USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Authenticated full access" ON tasks;
 CREATE POLICY "Authenticated full access" ON tasks FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- Phase 2: Client Management
-CREATE TABLE clients (
+CREATE TABLE IF NOT EXISTS clients (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   lead_id UUID REFERENCES solution_requests(id),
   business_name TEXT NOT NULL,
@@ -45,14 +47,16 @@ CREATE TABLE clients (
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
-CREATE INDEX idx_clients_status ON clients(status);
-CREATE INDEX idx_clients_email ON clients(contact_email);
+CREATE INDEX IF NOT EXISTS idx_clients_status ON clients(status);
+CREATE INDEX IF NOT EXISTS idx_clients_email ON clients(contact_email);
 ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Service role full access" ON clients;
 CREATE POLICY "Service role full access" ON clients FOR ALL TO service_role USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Authenticated full access" ON clients;
 CREATE POLICY "Authenticated full access" ON clients FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- Phase 3: Sent Email History
-CREATE TABLE sent_emails (
+CREATE TABLE IF NOT EXISTS sent_emails (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   to_email TEXT NOT NULL,
   to_name TEXT,
@@ -63,14 +67,16 @@ CREATE TABLE sent_emails (
   template_used TEXT,
   sent_at TIMESTAMPTZ DEFAULT now()
 );
-CREATE INDEX idx_sent_emails_to ON sent_emails(to_email);
-CREATE INDEX idx_sent_emails_related ON sent_emails(related_type, related_id);
+CREATE INDEX IF NOT EXISTS idx_sent_emails_to ON sent_emails(to_email);
+CREATE INDEX IF NOT EXISTS idx_sent_emails_related ON sent_emails(related_type, related_id);
 ALTER TABLE sent_emails ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Service role full access" ON sent_emails;
 CREATE POLICY "Service role full access" ON sent_emails FOR ALL TO service_role USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Authenticated read" ON sent_emails;
 CREATE POLICY "Authenticated read" ON sent_emails FOR SELECT TO authenticated USING (true);
 
 -- Phase 5: Proposals
-CREATE TABLE proposals (
+CREATE TABLE IF NOT EXISTS proposals (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   lead_id UUID REFERENCES solution_requests(id),
   client_name TEXT NOT NULL,
@@ -86,10 +92,12 @@ CREATE TABLE proposals (
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
-CREATE INDEX idx_proposals_lead ON proposals(lead_id);
-CREATE INDEX idx_proposals_token ON proposals(share_token);
+CREATE INDEX IF NOT EXISTS idx_proposals_lead ON proposals(lead_id);
+CREATE INDEX IF NOT EXISTS idx_proposals_token ON proposals(share_token);
 ALTER TABLE proposals ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Service role full access" ON proposals;
 CREATE POLICY "Service role full access" ON proposals FOR ALL TO service_role USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Authenticated full access" ON proposals;
 CREATE POLICY "Authenticated full access" ON proposals FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- Phase 7: Smart Notifications v2 — add priority column

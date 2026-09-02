@@ -14,11 +14,14 @@ CREATE INDEX IF NOT EXISTS idx_admin_notifications_created ON admin_notification
 
 ALTER TABLE admin_notifications ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Service role full access" ON admin_notifications;
 CREATE POLICY "Service role full access" ON admin_notifications
   FOR ALL TO service_role USING (true) WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Authenticated read" ON admin_notifications;
 CREATE POLICY "Authenticated read" ON admin_notifications
   FOR SELECT TO authenticated USING (true);
 
+DROP POLICY IF EXISTS "Authenticated update" ON admin_notifications;
 CREATE POLICY "Authenticated update" ON admin_notifications
   FOR UPDATE TO authenticated USING (true);

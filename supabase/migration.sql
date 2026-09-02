@@ -41,6 +41,12 @@ ALTER TABLE solution_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE plan_views ENABLE ROW LEVEL SECURITY;
 
 -- Policies for solution_requests
+DROP POLICY IF EXISTS "Allow anonymous inserts" ON solution_requests;
+DROP POLICY IF EXISTS "Allow select by share_token" ON solution_requests;
+DROP POLICY IF EXISTS "Service role full access" ON solution_requests;
+DROP POLICY IF EXISTS "Allow anonymous insert views" ON plan_views;
+DROP POLICY IF EXISTS "Service role full access views" ON plan_views;
+
 -- Allow anonymous inserts (form submissions)
 CREATE POLICY "Allow anonymous inserts" ON solution_requests
   FOR INSERT TO anon
@@ -76,6 +82,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS solution_requests_updated_at ON solution_requests;
 CREATE TRIGGER solution_requests_updated_at
   BEFORE UPDATE ON solution_requests
   FOR EACH ROW
