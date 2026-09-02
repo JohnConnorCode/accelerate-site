@@ -18,6 +18,8 @@ const requiredFiles = [
   "SECURITY.md",
   "docs/ARCHITECTURE.md",
   "docs/SELF-HOSTING.md",
+  "CHANGELOG.md",
+  "DEPLOY.md",
 ];
 
 const git = spawnSync("git", ["ls-files", "-z"], { encoding: "utf8" });
@@ -97,6 +99,16 @@ for (const file of tracked) {
       const localPath = decodeURIComponent(target.split("#")[0]);
       if (!existsSync(resolve(dirname(file), localPath)))
         failures.push(`broken local Markdown link in ${file}: ${target}`);
+    }
+  }
+  // Non-Markdown source (the feature backlog manifest, mainly) references
+  // doc paths as plain strings, not Markdown links. Catch those dangling too:
+  // a stale doc filename referenced only in scripts/feature-backlog-data.mjs
+  // once shipped for weeks before anything caught it.
+  if (extname(file) === ".mjs" || extname(file) === ".ts") {
+    for (const match of value.matchAll(/\bdocs\/[A-Za-z0-9._-]+\.md\b/g)) {
+      const target = match[0];
+      if (!existsSync(resolve(target))) failures.push(`broken doc reference in ${file}: ${target}`);
     }
   }
 }

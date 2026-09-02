@@ -120,6 +120,7 @@
     "db:migrate": "node scripts/run-migration.mjs",
     "db:migrate:all": "node scripts/run-all-migrations.mjs",
     "db:verify-schema": "tsx scripts/verify-revenue-schema.ts",
+    "verify:bootstrap-identity": "node --env-file=.env.local scripts/verify-bootstrap-identity.mjs",
     "scheduler:configure": "node --env-file=.env.local scripts/configure-command-center-scheduler.mjs",
     "test:job-claims": "node scripts/qa-job-claims.mjs",
     "test:campaign-stops": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-campaign-stops.ts",

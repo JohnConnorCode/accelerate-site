@@ -1117,7 +1117,7 @@ export const featureBacklog = [
       "Verify the production Revenue OS schema",
       "Verify founder-only admin access and service-only data policies",
     ],
-    start: "docs/REVENUE-OS-ENGINEERING-CONTRACT.md; src/config/tenant.ts; docs/INSTALL-RUNBOOK.md",
+    start: "docs/REVENUE-OS-ENGINEERING-CONTRACT.md; src/config/tenant.ts; docs/SELF-HOSTING.md",
     guardrails:
       "Historical receipt only. Do not remove its evidence, but do not use its former prohibition to block shared-database-multi-tenancy-contract or its child cards. Billing and custom domains remain out of scope until separately authorized.",
     labels: ["clonable", "architecture-decision", "template"],
@@ -1204,7 +1204,7 @@ export const featureBacklog = [
       "Never delete or merge existing rows, infer ownership from email, or make a tenant active before the backfill and constraint reports pass. Feature Board, schema verification, case studies, and changelog stay platform-global.",
     labels: ["database", "migration"],
     evidence:
-      "Shipped 2026-08-30. Added the tenant, membership, ingest-key, and platform-audit control plane plus explicit tenant ownership across all 49 currently installed operational tables and three ordered recovery tables. The deterministic Accelerate bootstrap backfilled production with zero null tenant rows; 48 composite foreign keys and 81 tenant indexes enforce relationship and identity boundaries, while Feature Board, schema verification, case studies, and changelog remain platform-global. The complete ordered migration ran successfully in isolated PostgreSQL before `npm run db:migrate -- migrations/20260830-shared-database-tenancy.sql` applied it to project skjypuwkceoiunyhhqlm. Live verification found the active Accelerate tenant, one founder membership, zero missing tenant columns, zero null tenant rows, and 49 tenant-member policies. Static migration, schema-state, TypeScript, and contract verification passed.",
+      "Shipped 2026-08-30. Added the tenant, membership, ingest-key, and platform-audit control plane plus explicit tenant ownership across all 49 currently installed operational tables and three ordered recovery tables. The deterministic Accelerate bootstrap backfilled production with zero null tenant rows; 48 composite foreign keys and 81 tenant indexes enforce relationship and identity boundaries, while Feature Board, schema verification, case studies, and changelog remain platform-global. The complete ordered migration ran successfully in isolated PostgreSQL before `npm run db:migrate -- migrations/20260830-shared-database-tenancy.sql` applied it to the pinned production project. Live verification found the active Accelerate tenant, one founder membership, zero missing tenant columns, zero null tenant rows, and 49 tenant-member policies. Static migration, schema-state, TypeScript, and contract verification passed.",
     verification:
       "npm run test:tenant-migration; npm run test:schema-verification; npm run db:verify-schema; npm run verify:agent-contract; npx tsc --noEmit; npm run lint; git diff --check.",
   }),
@@ -1367,8 +1367,7 @@ export const featureBacklog = [
       "Turn the roofing ingestion path into a configurable playbook",
       "Finish Setup Center as the operational control plane",
     ],
-    start:
-      "docs/INSTALL-RUNBOOK.md; migrations/; scripts/; src/config/tenant.ts; src/app/admin/setup",
+    start: "docs/SELF-HOSTING.md; migrations/; scripts/; src/config/tenant.ts; src/app/admin/setup",
     guardrails:
       "Never point the smoke test at the Accelerate production database, and never copy customer records, credentials, operational history, or audit rows into a new installation. A clean installation starts empty; seeding it with real data is a separate, explicitly authorized decision.",
     labels: ["clonable", "install", "smoke-test"],
@@ -3310,13 +3309,12 @@ export const featureBacklog = [
       "Typecheck, lint, guardrails, scoped portfolio tests, build, and diff check pass",
     ],
     dependencies: [],
-    start:
-      "src/content/work.ts; src/app/work; src/components/work; docs/work-portfolio-sources.md; src/lib/search/index.ts",
+    start: "src/content/work.ts; src/app/work; src/components/work; src/lib/search/index.ts",
     guardrails:
       "Do not invent metrics or portray founder-built or prior-role work as an Accelerate client engagement. Use only authentic project media when ownership is clear; never fabricate product screenshots. Do not alter unrelated admin work or deploy.",
     labels: ["marketing", "testing"],
     evidence:
-      "2026-08-24: shipped a typed seven-record portfolio manifest with six public cases and Northern Trust retained as a direct noindex archive. The public index, homepage, related work, search, sitemap, assistant context, metadata, and service mapping derive from explicit visibility and service IDs, preventing the archive from leaking into public discovery. Rebuilt the shared case system with authentic first-party or archived media, honest conceptual diagrams for private software, individualized editorial compositions, high-contrast architecture bands, responsive image sizing, a one-image preload policy, click-to-load privacy-enhanced video, reduced-motion-safe interaction, visible critical content, relevant-service links, and truthful current/prior/founder-built attribution. SuperDebate now explains one five-surface product system with a real judging interface; WORK+SHELTER's operating architecture has a complete routing model; every public case maps to two current Accelerate services. Source and replacement-asset ledgers are in docs/work-portfolio-sources.md and docs/work-portfolio-asset-requests.md. Browser QA passed seven public routes at desktop 1440, tablet 834, and mobile 390 with WCAG A/AA serious/critical checks, keyboard, reduced motion, console/page errors, overflow, broken media, one-image preload, archive noindex/follow, archive exclusion from /work and sitemap, lazy YouTube behavior, and legacy redirect coverage. Opened and reviewed desktop light, mobile dark, WORK+SHELTER, SuperDebate, Green Goods, and archive screenshots in /tmp/accelerate-work-portfolio-qa. verify:agent-contract, TypeScript, lint, no-fabricated-claims, house-style, guardrails, positioning, search, route coverage, portfolio contract, browser QA, 351-page production build, and diff check pass. No deployment or production content mutation was performed.",
+      "2026-08-24: shipped a typed seven-record portfolio manifest with six public cases and Northern Trust retained as a direct noindex archive. The public index, homepage, related work, search, sitemap, assistant context, metadata, and service mapping derive from explicit visibility and service IDs, preventing the archive from leaking into public discovery. Rebuilt the shared case system with authentic first-party or archived media, honest conceptual diagrams for private software, individualized editorial compositions, high-contrast architecture bands, responsive image sizing, a one-image preload policy, click-to-load privacy-enhanced video, reduced-motion-safe interaction, visible critical content, relevant-service links, and truthful current/prior/founder-built attribution. SuperDebate now explains one five-surface product system with a real judging interface; WORK+SHELTER's operating architecture has a complete routing model; every public case maps to two current Accelerate services. The source-claim ledger moved out of the public repository (internal maintainer record, not tracked in git); the replacement-asset ledger is in docs/work-portfolio-asset-requests.md. Browser QA passed seven public routes at desktop 1440, tablet 834, and mobile 390 with WCAG A/AA serious/critical checks, keyboard, reduced motion, console/page errors, overflow, broken media, one-image preload, archive noindex/follow, archive exclusion from /work and sitemap, lazy YouTube behavior, and legacy redirect coverage. Opened and reviewed desktop light, mobile dark, WORK+SHELTER, SuperDebate, Green Goods, and archive screenshots in /tmp/accelerate-work-portfolio-qa. verify:agent-contract, TypeScript, lint, no-fabricated-claims, house-style, guardrails, positioning, search, route coverage, portfolio contract, browser QA, 351-page production build, and diff check pass. No deployment or production content mutation was performed.",
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:no-fabricated-claims; npm run test:house-style-copy; npm run verify:guardrails; npm run test:search; npm run test:route-coverage; npm run test:work-portfolio; npm run test:work-portfolio-qa; npm run build; git diff --check.",
   }),
@@ -3900,7 +3898,7 @@ export const featureBacklog = [
       "Extract every business fact into one tenant configuration",
     ],
     start:
-      "docs/INSTALL-RUNBOOK.md; migrations; schema contract; src/config/tenant.ts; canonical table map; scripts",
+      "docs/SELF-HOSTING.md; migrations; schema contract; src/config/tenant.ts; canonical table map; scripts",
     guardrails:
       "Do not export secrets, copy production data into uncontrolled storage, restore into the Accelerate project, reassign canonical IDs, or trigger sends, webhooks, syncs, or automation during restore.",
     labels: ["clonable", "security"],

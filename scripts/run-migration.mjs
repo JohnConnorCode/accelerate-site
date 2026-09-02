@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { accessSync, constants, realpathSync } from "node:fs";
+import { accessSync, constants, readFileSync, realpathSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
 import {
   PROJECT_REF,
@@ -9,6 +9,7 @@ import {
   repoRoot,
   runPsql,
 } from "./lib/accelerate-database.mjs";
+import { applyBootstrapIdentitySubstitution } from "./lib/bootstrap-identity.mjs";
 
 function fail(message) {
   console.error(`Migration failed: ${message}`);
@@ -53,7 +54,11 @@ if (connectionCheck.error?.code === "ENOENT") {
 if (connectionCheck.status !== 0) fail("database connection check did not pass");
 
 console.log(`Applying ${repoRelative}...`);
-const migration = runPsql(["--file", migrationPath]);
+// Piped through stdin (not --file) so BOOTSTRAP_* identity tokens can be
+// resolved from environment variables first. This is a no-op for every
+// migration that contains no tokens.
+const migrationSource = applyBootstrapIdentitySubstitution(readFileSync(migrationPath, "utf8"));
+const migration = runPsql([], { input: migrationSource });
 process.stdout.write(migration.stdout ?? "");
 process.stderr.write(migration.stderr ?? "");
 if (migration.status !== 0) fail(`${repoRelative} did not complete`);

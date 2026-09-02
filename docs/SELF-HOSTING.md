@@ -32,6 +32,8 @@ npm run db:verify-schema
 
 `db:migrate:all` applies all 37 migrations in order (`scripts/lib/migration-manifest.mjs` is the source of truth for that order, matching [REVENUE-OS-SETUP.md](REVENUE-OS-SETUP.md)'s numbered list) by calling the single-file runner once per file. Every migration is additive and idempotent, so re-running the whole command after fixing an error is safe — already-applied files no-op. To apply one migration at a time instead, use `npm run db:migrate -- <path>` with the exact file listed in REVENUE-OS-SETUP.md.
 
+Two migrations seed a bootstrap tenant's brand, founder, and booking identity into the database. The runner resolves any `BOOTSTRAP_*` variables you set in step 2 into that seed; run `npm run verify:bootstrap-identity` afterward to confirm the database does not still carry Accelerate's own identity.
+
 Migration commands should target a new project you control. Inspect the resolved project and host printed by the command before confirming any production operation.
 
 ## 4. Configure authentication
