@@ -151,9 +151,11 @@ export function OpenSourcePageContent() {
               </HeroEntranceItem>
               <HeroEntranceItem step={3}>
                 <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                  The application behind our own agency, real code that runs a real business, is
-                  published under the MIT license. Run it yourself and own every part of it, or have
-                  us build and run a custom version for your business.
+                  Contacts, pipeline, inbox, proposals, and an AI layer that actually knows the
+                  business: most service businesses build all of it from scratch. This is that
+                  backend, already built and running a real agency, published under the MIT license.
+                  Run it yourself and own every part of it, or have us build and run a custom
+                  version for your business.
                 </p>
               </HeroEntranceItem>
               <HeroEntranceItem step={4}>
@@ -282,6 +284,10 @@ export function OpenSourcePageContent() {
               {
                 title: "Open to inspection",
                 body: "Tenant isolation and every AI write are documented, tested, and readable in the source.",
+              },
+              {
+                title: "A foundation, not a template",
+                body: "Fork it to run your own business, or as the starting point for client work you build and maintain.",
               },
             ].map((item, i) => (
               <li
