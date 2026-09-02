@@ -49,6 +49,9 @@ jobs:
       - name: Verify open-source page stats match the repo
         run: npm run test:open-source-stats
 
+      - name: Verify admin design token contract
+        run: npm run verify:admin-tokens
+
       - name: Typecheck
         run: npm run typecheck
 

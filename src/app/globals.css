@@ -6003,6 +6003,12 @@ body.admin-notifications-open {
   --admin-card-outline-shadow:
     0 0 0 1px color-mix(in srgb, var(--admin-ink) 14%, transparent),
     0 1px 2px -1px color-mix(in srgb, var(--admin-ink) 5%, transparent);
+  --admin-danger: #e11d48;
+  --admin-danger-soft: rgba(225, 29, 72, 0.1);
+  --admin-success: #059669;
+  --admin-success-soft: rgba(5, 150, 105, 0.1);
+  --admin-warning: #d97706;
+  --admin-warning-soft: rgba(217, 119, 6, 0.1);
 }
 
 .admin-shell {
@@ -6055,6 +6061,12 @@ body.admin-app-open {
   --admin-shadow-border-hover: 0 0 0 1px rgba(255, 255, 255, 0.13);
   --admin-shadow: 0 0 0 1px rgba(255, 255, 255, 0.075);
   --admin-shadow-hover: 0 0 0 1px rgba(255, 255, 255, 0.13);
+  --admin-danger: #fb7185;
+  --admin-danger-soft: rgba(251, 113, 133, 0.14);
+  --admin-success: #34d399;
+  --admin-success-soft: rgba(52, 211, 153, 0.14);
+  --admin-warning: #fbbf24;
+  --admin-warning-soft: rgba(251, 191, 36, 0.14);
   color-scheme: dark;
 }
 
@@ -6097,6 +6109,12 @@ body.admin-app-open {
     0 0 0 1px rgba(183, 161, 255, 0.24), 0 20px 44px -26px rgba(0, 0, 0, 0.78);
   --admin-shadow: 0 0 0 1px rgba(183, 161, 255, 0.105), 0 18px 42px -30px rgba(0, 0, 0, 0.78);
   --admin-shadow-hover: 0 0 0 1px rgba(183, 161, 255, 0.25), 0 25px 50px -30px rgba(0, 0, 0, 0.85);
+  --admin-danger: #fb7185;
+  --admin-danger-soft: rgba(251, 113, 133, 0.16);
+  --admin-success: #34d399;
+  --admin-success-soft: rgba(52, 211, 153, 0.16);
+  --admin-warning: #fbbf24;
+  --admin-warning-soft: rgba(251, 191, 36, 0.16);
   color-scheme: dark;
 }
 
@@ -6146,6 +6164,12 @@ body.admin-app-open {
   --admin-shadow-hover:
     0 0 0 1px rgba(53, 109, 243, 0.15), 0 5px 11px -5px rgba(25, 35, 58, 0.08),
     0 26px 48px -30px rgba(35, 72, 145, 0.28);
+  --admin-danger: #e11d48;
+  --admin-danger-soft: rgba(225, 29, 72, 0.1);
+  --admin-success: #059669;
+  --admin-success-soft: rgba(5, 150, 105, 0.1);
+  --admin-warning: #d97706;
+  --admin-warning-soft: rgba(217, 119, 6, 0.1);
   color-scheme: light;
 }
 
@@ -6191,6 +6215,12 @@ body.admin-app-open {
     0 10px 30px -22px rgba(58, 39, 124, 0.24), 0 26px 72px -48px rgba(76, 48, 168, 0.3);
   --admin-shadow-hover:
     0 14px 34px -22px rgba(74, 43, 164, 0.3), 0 34px 82px -48px rgba(76, 48, 168, 0.36);
+  --admin-danger: #e11d48;
+  --admin-danger-soft: rgba(225, 29, 72, 0.1);
+  --admin-success: #059669;
+  --admin-success-soft: rgba(5, 150, 105, 0.1);
+  --admin-warning: #d97706;
+  --admin-warning-soft: rgba(217, 119, 6, 0.1);
   color-scheme: light;
 }
 

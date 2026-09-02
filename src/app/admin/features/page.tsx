@@ -1006,10 +1006,10 @@ export default function FeaturesPage() {
                   </div>
                 </div>
                 {filtersActive && (
-                  <p className="admin-copy mt-2 flex items-center gap-1.5 px-1 text-[10px]">
-                    <Tag className="size-3" />
-                    Reordering is paused while filters are active so hidden cards keep their exact
-                    priority.
+                  <p className="mt-3 flex items-center gap-2 rounded-lg bg-[var(--admin-warning-soft)] px-3 py-2 text-xs font-medium text-[var(--admin-ink)]">
+                    <Tag className="size-3.5 shrink-0 text-[var(--admin-warning)]" />
+                    Dragging is off while a filter is active, so a card hidden by the filter keeps
+                    its exact priority. Clear the filters above to reorder.
                   </p>
                 )}
               </AdminSurface>
@@ -1023,7 +1023,16 @@ export default function FeaturesPage() {
                 onDragCancel={cancelDrag}
                 onDragEnd={(event) => void handleDragEnd(event)}
               >
-                <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-5 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 xl:-mx-10 xl:px-10">
+                <div
+                  className={cn(
+                    "-mx-4 flex gap-3 overflow-x-auto px-4 pb-5 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 xl:-mx-10 xl:px-10",
+                    // Scroll-snap and dnd-kit's autoScroll fight over the same
+                    // scroll position mid-drag, which is what made the board
+                    // feel like it was snapping a dragged card back. Snap only
+                    // applies when nothing is being dragged.
+                    activeId ? "snap-none" : "snap-x snap-mandatory",
+                  )}
+                >
                   {FEATURE_STATUSES.map((status) => (
                     <BoardColumn
                       key={status}

@@ -60,6 +60,7 @@ type DemoState = {
   sentReplies: Record<string, string[]>;
   readNotifications: string[];
   emailDrafts: Record<string, DemoEmailDraft>;
+  featureOverrides: Record<string, { status: string; sort_order: number }>;
 };
 const initialState = (): DemoState => ({
   completedActions: [],
@@ -71,6 +72,7 @@ const initialState = (): DemoState => ({
   sentReplies: {},
   readNotifications: [],
   emailDrafts: {},
+  featureOverrides: {},
 });
 const keyFor = (id: DemoScenarioId) => `accelerate:admin-demo:${id}:v3`;
 const jsonResponse = (body: unknown, status = 200) =>
@@ -1423,31 +1425,40 @@ function contentItems(pack: DemoScenarioPack) {
   }));
 }
 
-function featureBoard(pack: DemoScenarioPack) {
+function featureBoard(pack: DemoScenarioPack, state: DemoState) {
   const titles = pack.content.roadmapTitles;
-  return titles.map((title, index) => ({
-    id: `feature-${index}`,
-    seed_key: `demo-${index}`,
-    title,
-    description: `${title} adapted to the operating model for ${pack.name}.`,
-    status: ["backlog", "planned", "in_progress", "blocked", "shipped"][index % 5]!,
-    priority: index < 3 ? "high" : index < 10 ? "medium" : "low",
-    labels: [
-      `milestone:${index % 5 === 4 ? "done" : index < 7 ? "now" : "next"}`,
-      `category:${["revenue", "delivery", "intelligence", "system"][index % 4]}`,
-      `capability:${["automation", "reporting", "integration"][index % 3]}`,
-    ],
-    sort_order: (index + 1) * 1000,
-    owner: index % 2 ? pack.tenant.founder.fullName : "Implementation partner",
-    target_date: dateOffset(index * 6 + 10),
-    acceptance_criteria:
-      "The workflow is observable, reversible, and verified on desktop and mobile.",
-    notes: "Fictional roadmap item for demonstration.",
-    source: "demo_scenario",
-    archived_at: null,
-    created_at: ago(700 + index * 20),
-    updated_at: ago(index * 4 + 1),
-  }));
+  return titles.map((title, index) => {
+    const id = `feature-${index}`;
+    const defaultStatus = ["backlog", "planned", "in_progress", "blocked", "shipped"][index % 5]!;
+    const defaultSortOrder = (index + 1) * 1000;
+    // Dragging a card on the demo board writes here (see the PATCH handler
+    // below); without this override the board always re-rendered the
+    // scenario's fixed default on the next read and every drag snapped back.
+    const override = state.featureOverrides[id];
+    return {
+      id,
+      seed_key: `demo-${index}`,
+      title,
+      description: `${title} adapted to the operating model for ${pack.name}.`,
+      status: override?.status ?? defaultStatus,
+      priority: index < 3 ? "high" : index < 10 ? "medium" : "low",
+      labels: [
+        `milestone:${index % 5 === 4 ? "done" : index < 7 ? "now" : "next"}`,
+        `category:${["revenue", "delivery", "intelligence", "system"][index % 4]}`,
+        `capability:${["automation", "reporting", "integration"][index % 3]}`,
+      ],
+      sort_order: override?.sort_order ?? defaultSortOrder,
+      owner: index % 2 ? pack.tenant.founder.fullName : "Implementation partner",
+      target_date: dateOffset(index * 6 + 10),
+      acceptance_criteria:
+        "The workflow is observable, reversible, and verified on desktop and mobile.",
+      notes: "Fictional roadmap item for demonstration.",
+      source: "demo_scenario",
+      archived_at: null,
+      created_at: ago(700 + index * 20),
+      updated_at: override ? new Date().toISOString() : ago(index * 4 + 1),
+    };
+  });
 }
 
 function settings(pack: DemoScenarioPack) {
@@ -1906,7 +1917,22 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     if (method === "GET" && path === "/api/admin/content")
       return jsonResponse({ items: contentItems(pack) });
     if (method === "GET" && path === "/api/admin/features")
-      return jsonResponse({ schemaReady: true, features: featureBoard(pack) });
+      return jsonResponse({ schemaReady: true, features: featureBoard(pack, state) });
+    if (method === "PATCH" && path === "/api/admin/features") {
+      // Mirrors the real route's bulk-reorder contract: { reorder: [{ id,
+      // status, sortOrder }, ...] }. Previously unhandled, so every request
+      // here fell through to the generic 403 below and every optimistic
+      // drag on the demo board reverted the instant its PATCH landed.
+      const reorder = Array.isArray((body as { reorder?: unknown })?.reorder)
+        ? (body as { reorder: Array<{ id: string; status: string; sortOrder: number }> }).reorder
+        : [];
+      for (const item of reorder) {
+        if (!item?.id) continue;
+        state.featureOverrides[item.id] = { status: item.status, sort_order: item.sortOrder };
+      }
+      saveState(scenarioId, state);
+      return jsonResponse({ schemaReady: true, updated: reorder.length });
+    }
     if (method === "GET" && path === "/api/admin/settings") return jsonResponse(settings(pack));
     if (method === "GET" && path === "/api/admin/tenants")
       return jsonResponse({

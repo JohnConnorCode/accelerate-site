@@ -144,11 +144,7 @@ export default function ConversationsPage() {
 
   const selected = useMemo(() => {
     if (!selectedId) return null;
-    return (
-      detail?.conversation ||
-      conversations.find((item) => item.id === selectedId) ||
-      null
-    );
+    return detail?.conversation || conversations.find((item) => item.id === selectedId) || null;
   }, [selectedId, detail?.conversation, conversations]);
 
   const sync = async () => {
@@ -358,11 +354,11 @@ export default function ConversationsPage() {
                     className={cn(
                       "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 font-medium transition-[background-color,color] duration-150",
                       unreadOnly
-                        ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"
+                        ? "border-[var(--admin-ink)] bg-[var(--admin-accent-soft)] text-[var(--admin-ink)]"
                         : "border-[var(--admin-border)] bg-[var(--admin-surface)] text-[var(--admin-muted)] hover:text-[var(--admin-ink)]",
                     )}
                   >
-                    <span className="size-2 rounded-full bg-blue-600" />
+                    <span className="size-2 rounded-full bg-[var(--admin-ink)]" />
                     Unread ({stats.unread})
                   </button>
 
@@ -407,8 +403,8 @@ export default function ConversationsPage() {
                   selectedId && "hidden lg:block",
                 )}
               >
-                <div className="border-b border-[var(--admin-border)] p-3">
-                  <div className="relative">
+                <div className="flex min-h-[68px] items-center border-b border-[var(--admin-border)] p-3">
+                  <div className="relative w-full">
                     <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-[var(--admin-muted)]" />
                     <input
                       value={search}
@@ -452,14 +448,16 @@ export default function ConversationsPage() {
                             </span>
                           </div>
                           {isUnread && (
-                            <span className="grid size-2 place-items-center rounded-full bg-blue-600" />
+                            <span className="grid size-2 place-items-center rounded-full bg-[var(--admin-ink)]" />
                           )}
                         </div>
 
                         <p
                           className={cn(
                             "line-clamp-1 text-xs text-[var(--admin-ink)]",
-                            isUnread ? "font-medium text-[var(--admin-ink)]" : "text-[var(--admin-muted)]",
+                            isUnread
+                              ? "font-medium text-[var(--admin-ink)]"
+                              : "text-[var(--admin-muted)]",
                           )}
                         >
                           {conv.subject || "(No subject)"}
@@ -472,7 +470,7 @@ export default function ConversationsPage() {
                                 className={cn(
                                   "rounded px-1 py-0.5 border font-medium text-[9px]",
                                   STAGE_COLORS[conv.opportunity.stage] ||
-                                    "bg-neutral-100 text-neutral-600 border-neutral-200",
+                                    "bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)] border-[var(--admin-border)]",
                                 )}
                               >
                                 {conv.opportunity.stage}
@@ -518,7 +516,7 @@ export default function ConversationsPage() {
                     {/* Main Conversation Column */}
                     <div className="flex min-w-0 flex-1 flex-col border-b xl:border-b-0 xl:border-r border-[var(--admin-border)]">
                       {/* Thread Header */}
-                      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--admin-border)] px-4 py-3 sm:px-6">
+                      <header className="flex min-h-[68px] flex-wrap items-center justify-between gap-3 border-b border-[var(--admin-border)] px-4 py-3 sm:px-6">
                         <div className="flex items-center gap-3 min-w-0">
                           <button
                             type="button"
@@ -557,7 +555,7 @@ export default function ConversationsPage() {
                               onClick={() => void updateStatus("resolved")}
                               className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-[var(--admin-border)] px-2.5 text-xs font-semibold text-[var(--admin-ink)] transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"
                             >
-                              <CheckCircle2 className="size-3.5 text-emerald-600" />
+                              <CheckCircle2 className="size-3.5 text-[var(--admin-success)]" />
                               Resolve
                             </button>
                           )}
@@ -574,7 +572,7 @@ export default function ConversationsPage() {
                             <button
                               type="button"
                               onClick={() => void updateStatus("archived")}
-                              className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-[var(--admin-border)] px-2.5 text-xs font-semibold text-[var(--admin-muted)] transition-colors hover:text-rose-600"
+                              className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-[var(--admin-border)] px-2.5 text-xs font-semibold text-[var(--admin-muted)] transition-colors hover:text-[var(--admin-danger)]"
                               title="Archive conversation"
                             >
                               <Trash2 className="size-3.5" />
@@ -584,7 +582,7 @@ export default function ConversationsPage() {
                       </header>
 
                       {/* Messages Timeline */}
-                      <div className="flex-1 space-y-4 overflow-y-auto bg-black/[0.012] p-4 dark:bg-white/[0.012] sm:p-6 max-h-[450px]">
+                      <div className="flex-1 space-y-4 overflow-y-auto bg-black/[0.012] p-4 dark:bg-white/[0.012] sm:p-6 max-h-[calc(100vh-360px)] min-h-[320px]">
                         {messages.map((message) => (
                           <article
                             key={message.id}
@@ -599,7 +597,7 @@ export default function ConversationsPage() {
                               className={cn(
                                 "flex flex-wrap items-center justify-between gap-2 text-[10px]",
                                 message.direction === "outbound"
-                                  ? "text-white/60"
+                                  ? "text-[var(--admin-surface)]/60"
                                   : "text-[var(--admin-muted)]",
                               )}
                             >
@@ -628,21 +626,24 @@ export default function ConversationsPage() {
 
                       {/* Suggested AI Draft Banner */}
                       {detail?.suggestedReply && (
-                        <div className="border-t border-[var(--admin-border)] bg-blue-50/60 p-3 dark:bg-blue-950/20">
+                        <div className="border-t border-[var(--admin-border)] bg-[var(--admin-accent-soft)] p-3">
                           <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-center gap-2 text-xs font-semibold text-blue-700 dark:text-blue-300">
+                            <div className="flex items-center gap-2 text-xs font-semibold text-[var(--admin-ink)]">
                               <Sparkles className="size-3.5" />
-                              <span>AI Suggested Response ({Math.round(detail.suggestedReply.confidence * 100)}% match)</span>
+                              <span>
+                                AI Suggested Response (
+                                {Math.round(detail.suggestedReply.confidence * 100)}% match)
+                              </span>
                             </div>
                             <button
                               type="button"
                               onClick={() => applySuggestedReply(detail.suggestedReply!.body)}
-                              className="inline-flex items-center gap-1 rounded bg-blue-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-blue-700"
+                              className="inline-flex items-center gap-1 rounded bg-[var(--admin-ink)] px-2 py-1 text-[11px] font-semibold text-[var(--admin-surface)] hover:opacity-85"
                             >
                               Insert Draft
                             </button>
                           </div>
-                          <p className="mt-1 line-clamp-2 text-xs text-blue-900/80 dark:text-blue-200/80">
+                          <p className="mt-1 line-clamp-2 text-xs text-[var(--admin-ink)]/80">
                             {detail.suggestedReply.body}
                           </p>
                         </div>
@@ -651,7 +652,7 @@ export default function ConversationsPage() {
                       {/* Composer Footer */}
                       <footer className="border-t border-[var(--admin-border)] p-4 sm:p-5">
                         {reviewing ? (
-                          <div className="rounded-2xl bg-amber-500/[0.08] p-2">
+                          <div className="rounded-2xl bg-[var(--admin-warning-soft)] p-2">
                             <div className="rounded-xl bg-[var(--admin-surface)] p-4 shadow-[var(--admin-shadow-border)]">
                               <p className="admin-eyebrow">Final review & confirmation</p>
                               <h3 className="mt-1 text-sm font-semibold text-[var(--admin-ink)]">
@@ -725,18 +726,19 @@ export default function ConversationsPage() {
                                 className={cn(
                                   "rounded px-1.5 py-0.5 border font-medium text-[10px]",
                                   STAGE_COLORS[selected.opportunity.stage] ||
-                                    "bg-neutral-100 text-neutral-600 border-neutral-200",
+                                    "bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)] border-[var(--admin-border)]",
                                 )}
                               >
                                 {selected.opportunity.stage}
                               </span>
                             </div>
                             <p className="text-[var(--admin-muted)] tabular-nums">
-                              Est. Value: ${selected.opportunity.estimated_value?.toLocaleString() ?? 0}
+                              Est. Value: $
+                              {selected.opportunity.estimated_value?.toLocaleString() ?? 0}
                             </p>
                             <Link
                               href={`/admin/pipeline`}
-                              className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:underline"
+                              className="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--admin-ink)] hover:underline"
                             >
                               Open in Pipeline <ExternalLink className="size-3" />
                             </Link>
@@ -795,7 +797,7 @@ export default function ConversationsPage() {
                               setTaskTitle(`Follow up on "${selected.subject || "conversation"}"`);
                               setShowCreateTaskModal(true);
                             }}
-                            className="text-[11px] font-semibold text-blue-600 hover:underline inline-flex items-center gap-0.5"
+                            className="text-[11px] font-semibold text-[var(--admin-ink)] hover:underline inline-flex items-center gap-0.5"
                           >
                             <Plus className="size-3" /> Add Task
                           </button>
