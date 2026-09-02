@@ -51,7 +51,7 @@ Every run is traced in `agent_runs` and `agent_run_events` and readable at `/adm
 
 ## Connect your own assistant
 
-The repository ships a Model Context Protocol server. Claude Desktop, Claude Code, ChatGPT, Cursor, and Antigravity connect to a workspace and get the same registered tools, the same impact tiers, and the same approval queue as the interface. Read tools return bounded queries; anything that would change a record or send a message becomes a staged proposal.
+The repository ships a Model Context Protocol server. Claude Desktop, Claude Code, ChatGPT's native Connectors, Cursor, and Antigravity connect to a workspace and get the same registered tools, the same impact tiers, and the same approval queue as the interface. Ask it what's on today's queue, or to mark a task done, snooze it, or move an opportunity's stage: reads return bounded, sourced data, and every write it proposes lands in the same review queue you'd see from a human editing the record by hand.
 
 Setup for each client is in [docs/self-hosting/MCP-SETUP.md](docs/self-hosting/MCP-SETUP.md).
 
@@ -142,7 +142,7 @@ Route handlers and UI components are thin adapters, nothing more. Every business
 
 You can also explore the same kanban UI the founder uses, populated with representative fictional data, inside any [demo workspace](https://www.acceleratewith.us/demo/command-center) under **System → Feature Board**. The live founder board at `/admin/features` requires authentication, so it isn't publicly browsable.
 
-The Deploy with Vercel button above ships `one-click-vercel-deploy`. `guided-first-run-setup` is next: an in-product guided flow to connect Supabase and create the first admin account without a terminal, for the deployment above once you're ready to go beyond the demo.
+For exactly what changed and when, read [CHANGELOG.md](CHANGELOG.md) or the commit history rather than a second, hand-written summary here.
 
 ## Security model
 

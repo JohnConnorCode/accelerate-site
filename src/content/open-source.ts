@@ -99,7 +99,7 @@ export const openSourceFaqs: FAQ[] = [
   {
     question: "Can I point Claude or ChatGPT at my own workspace?",
     answer:
-      "Yes. The repository ships a Model Context Protocol server, with setup guides for Claude Desktop, Claude Code, ChatGPT, Cursor, and Antigravity. Read tools return bounded queries. Anything that would change a record or send a message becomes a staged proposal in the approval queue instead, so an outside assistant works under the same rules the interface does.",
+      "Yes. The repository ships a Model Context Protocol server, with setup guides for Claude Desktop, Claude Code, ChatGPT's native Connectors, Cursor, and Antigravity. Read tools return bounded queries. Anything that would change a record, complete or reschedule a task, or send a message becomes a staged proposal in the approval queue instead, so an outside assistant works under the same rules the interface does.",
   },
   {
     question: "Can I add my own features without forking?",
