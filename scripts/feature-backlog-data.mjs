@@ -4222,6 +4222,163 @@ export const featureBacklog = [
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run build; a real run of the published CLI against a scratch directory; git diff --check.",
   }),
+
+  // --- Competitive feature program -------------------------------------
+  // Surface area a mature open-source CRM has and this does not, ordered by
+  // how much each one blocks a business from running its real operation here.
+  // Each inherits the governance model by construction rather than by
+  // discipline: custom data still writes through canonical services into the
+  // audit ledger, a workflow action still stages a proposal, a role still
+  // gates what an agent may touch. Parity is not the goal; governed execution
+  // is the wedge, and a feature that cannot keep it does not ship.
+  card({
+    key: "custom-data-model",
+    title: "Add custom objects and fields",
+    workstream: "platform",
+    phase: 6,
+    priority: "high",
+    description:
+      "A metadata layer letting a workspace define its own objects and fields, with dynamic record rendering, so a business whose shape does not match contacts/companies/opportunities can still run here. This is the single largest gap against a general-purpose CRM: there is currently no custom field anywhere in the schema, so any business needing one has to fork and migrate.",
+    acceptance: [
+      "A workspace defines an object and its fields without a deploy, and records of that object render, validate, filter, and sort through the same admin surfaces canonical records use",
+      "Custom data is tenant-scoped by the same mechanism canonical tables use, verified by a cross-tenant read and write test against real Postgres, not an in-memory fake",
+      "Every custom-record write lands in the audit ledger with actor, origin, and before/after state, exactly as a canonical write does",
+      "AI tools reading or proposing writes against custom objects go through the registry with declared impact tiers, so a custom object cannot become an ungoverned side door",
+      "A field or object removal is refused, or explicitly reversible, rather than silently dropping stored values",
+    ],
+    dependencies: ["Define a plugin/module contract for optional business capabilities"],
+    start:
+      "migrations/; src/lib/revenue-os/schema-contract.ts; src/lib/revenue-os/records.ts; src/lib/admin/navigation.ts",
+    guardrails:
+      "Do not let a custom object bypass tenant binding, the audit ledger, or the AI impact-tier contract. No arbitrary user-supplied SQL, no runtime DDL from a request path; schema changes stay ordered migrations.",
+    labels: ["data", "productization"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run db:verify-schema; a cross-tenant isolation test for custom records against real Postgres; npm run test:core; npm run build; git diff --check.",
+  }),
+  card({
+    key: "roles-and-permissions",
+    title: "Add real roles, record ownership, and per-object agent permissions",
+    workstream: "security",
+    phase: 6,
+    priority: "high",
+    description:
+      "tenant_memberships.role currently permits exactly one value, admin, so every member of a workspace can do everything and the AI can reach everything that member can. A second person in the business, or a client given limited visibility, is not expressible today. This is also the one place a competitor's AI governance is genuinely ahead: theirs scopes agent access per object by role.",
+    acceptance: [
+      "A workspace defines roles beyond admin, with per-object read and write permissions, enforced in the database rather than only in the interface",
+      "Record ownership is explicit and filterable, and a permission change takes effect on the next request without a redeploy",
+      "Agent tool availability is scoped by the acting member's role, so an agent can never read or propose against an object its operator cannot",
+      "Permission checks fail closed on an unknown role or a missing membership, and every grant or revocation is audited",
+      "The existing single-admin path keeps working unchanged for a workspace that never defines a second role",
+    ],
+    dependencies: ["Enforce tenant context through authentication and domain services"],
+    start:
+      "migrations/20260830-shared-database-tenancy.sql; src/lib/admin/auth.ts; src/lib/tenancy/context.ts; src/lib/revenue-os/ai-tools.ts",
+    guardrails:
+      "Do not weaken tenant isolation to express roles. A role narrows what a member may reach inside their own tenant; it never widens reach across tenants, and platform administration stays separate.",
+    labels: ["security", "data"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:tenant-isolation; npm run test:ai-tool-gates; a role-scoped authorization test against real Postgres; npm run build; git diff --check.",
+  }),
+  card({
+    key: "server-side-saved-views",
+    title: "Move saved views server-side and make record pages configurable",
+    workstream: "admin",
+    phase: 6,
+    priority: "medium",
+    description:
+      "Saved views are localStorage only (src/lib/admin/pipelineViews.ts, leadsViews.ts), so they are per-device, unshareable, and lost when a browser is cleared, while being presented as a feature. Move them to tenant-scoped storage, shared or private per user, and extend the same mechanism to record page layout and sidebar arrangement.",
+    acceptance: [
+      "A saved view persists per workspace and per user, survives a device change, and can be shared with the workspace or kept private",
+      "Record page sections and sidebar arrangement are configurable and persist the same way, reusing the existing admin layout override mechanism rather than a second one",
+      "A view referencing a field or object that no longer exists degrades to a readable state instead of erroring",
+      "Existing localStorage views migrate on first load rather than disappearing",
+    ],
+    dependencies: ["Add custom objects and fields"],
+    start:
+      "src/lib/admin/pipelineViews.ts; src/lib/admin/leadsViews.ts; src/lib/revenue-os/admin-layout.ts; src/lib/admin/layout-overrides.ts",
+    guardrails:
+      "A shared view must not leak records the viewing member's role cannot reach; view definitions are filters over an authorized query, never a way around one.",
+    labels: ["admin-ux", "data"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:pipeline-saved-views; npm run test:admin-layout; npm run build; git diff --check.",
+  }),
+  card({
+    key: "dashboards-and-metrics",
+    title: "Add user-defined dashboards and metrics",
+    workstream: "intelligence",
+    phase: 6,
+    priority: "medium",
+    description:
+      "Analytics is a fixed set of canonical formulas on one page (src/lib/revenue-os/analytics.ts). A workspace cannot define its own metric, cohort, or dashboard. Build on the existing attribution model, which already surfaces unknown attribution honestly rather than reporting it as zero, so a user-defined metric inherits that truthfulness instead of inventing a cleaner-looking number.",
+    acceptance: [
+      "A workspace defines a metric and arranges dashboards from live canonical data, without a deploy",
+      "A metric with incomplete underlying data reports the gap explicitly rather than substituting zero, matching how canonical analytics already behaves",
+      "Dashboard queries are tenant-scoped and role-scoped, and a metric cannot read past what the viewer may see",
+      "Every metric definition names the canonical fields it derives from, so a number on a dashboard can be traced back to records",
+    ],
+    dependencies: [
+      "Reconcile analytics with canonical stage history",
+      "Add real roles, record ownership, and per-object agent permissions",
+    ],
+    start: "src/lib/revenue-os/analytics.ts; src/app/admin/analytics/page.tsx",
+    guardrails:
+      "No metric may present an estimate as a measurement. Do not add a chart that cannot name the records behind it.",
+    labels: ["analytics", "admin-ux"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:analytics-decision-model; npm run build; git diff --check.",
+  }),
+  card({
+    key: "workflow-builder",
+    title: "Build a visual trigger, condition, and action workflow designer",
+    workstream: "operations",
+    phase: 6,
+    priority: "medium",
+    description:
+      "Automation exists but is hardcoded across campaigns.ts, inbound.ts, and auto-responder.ts, so changing when something fires means changing code. A visual designer over the same primitives lets an operator express a rule, while every action it can take stays inside the approval and receipt model rather than becoming a second, looser execution path.",
+    acceptance: [
+      "An operator composes a trigger, conditions, and actions and activates it without a deploy, and can see every run it produced",
+      "An action that sends, writes, or changes a record stages a proposal through the existing action queue; a workflow never gains a direct-write path the interface does not have",
+      "A workflow that would fire twice for the same event is deduplicated by the existing idempotency mechanism, and a failed run reports truthfully rather than retrying blindly",
+      "Deactivating a workflow stops queued runs immediately, and stop conditions are re-read before each action rather than evaluated once at activation",
+    ],
+    dependencies: [
+      "Generalize approved automation policies",
+      "Enforce every campaign stop condition immediately",
+    ],
+    start:
+      "src/lib/revenue-os/campaigns.ts; src/lib/revenue-os/auto-responder.ts; src/lib/revenue-os/actions.ts; src/lib/revenue-os/runs.ts",
+    guardrails:
+      "A workflow is a composition of reviewed actions, never a scripting surface. No user-supplied code execution, and no action type that does not already exist in the approval queue's vocabulary.",
+    labels: ["automation", "operations"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:action-execution; npm run test:campaign-execution; npm run build; git diff --check.",
+  }),
+  card({
+    key: "public-records-api",
+    title: "Publish a public REST API for canonical records",
+    workstream: "integrations",
+    phase: 6,
+    priority: "medium",
+    description:
+      "The only external programmatic surfaces today are MCP and write-only tenant ingest keys. There is no way to read records out, or to integrate a tool that does not speak MCP. A documented REST surface over the canonical services, authenticated per tenant and scoped by role, is what makes the open and flexible claim hold for someone who is not using an AI client.",
+    acceptance: [
+      "Canonical contacts, companies, opportunities, activities, and tasks are readable and writable over a documented, versioned REST surface",
+      "Every request authenticates to one tenant and is scoped by the key's role; a key cannot read or write another workspace, proven by a cross-tenant test against real Postgres",
+      "Writes go through the same canonical services the interface uses, so validation, identity resolution, idempotency, and audit receipts all apply unchanged",
+      "The surface is rate limited per key, returns structured errors, and publishes a machine-readable schema",
+    ],
+    dependencies: [
+      "Add real roles, record ownership, and per-object agent permissions",
+      "Harden webhook, cron, replay, validation, and rate-limit defenses",
+    ],
+    start:
+      "src/app/api/public/[tenantSlug]/; src/lib/tenancy/ingest.ts; src/lib/revenue-os/records.ts",
+    guardrails:
+      "No endpoint may bypass a canonical service to write a table directly. No key may be granted platform scope. Do not expose provider payloads or credentials through a record read.",
+    labels: ["integrations", "security"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; a cross-tenant API authorization test against real Postgres; npm run test:core; npm run build; git diff --check.",
+  }),
 ];
 
 const countsByStatus = new Map();
