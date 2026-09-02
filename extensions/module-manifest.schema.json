@@ -50,6 +50,29 @@
       "type": "array",
       "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]{2,60}$" }
     },
-    "docsUrl": { "type": "string", "format": "uri" }
+    "docsUrl": { "type": "string", "format": "uri" },
+    "settings": {
+      "type": "array",
+      "maxItems": 12,
+      "description": "Configurable values rendered by the shared ModuleSettingsForm. Never secrets: tenants.config, where values are stored, reaches client components, so a secret-shaped key or label is rejected at build time regardless of what this schema alone permits.",
+      "items": {
+        "type": "object",
+        "required": ["key", "label", "type"],
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^(?!.*(secret|token|password|api[_-]?key|credential))[a-z][a-zA-Z0-9]{1,48}$"
+          },
+          "label": { "type": "string", "minLength": 1, "maxLength": 60 },
+          "description": { "type": "string", "maxLength": 200 },
+          "type": { "enum": ["string", "number", "boolean", "enum", "url"] },
+          "options": { "type": "array", "items": { "type": "string" }, "maxItems": 20 },
+          "default": { "type": ["string", "number", "boolean"] },
+          "min": { "type": "number" },
+          "max": { "type": "number" }
+        }
+      }
+    }
   }
 }

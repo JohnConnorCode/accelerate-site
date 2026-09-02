@@ -42,6 +42,7 @@
     "verify:extensions": "node scripts/build-extension-modules.mjs --check",
     "verify:module-contract": "node scripts/verify-module-contract.mjs",
     "verify:module-route-guards": "node scripts/verify-module-route-guards.mjs",
+    "verify:module-settings": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/verify-module-settings.ts",
     "verify:integration-adapter-encapsulation": "node scripts/verify-integration-adapter-encapsulation.mjs",
     "verify:agent-contract": "node scripts/verify-agent-contract.mjs",
     "test:features": "node --env-file=.env.local scripts/qa-feature-board.mjs",

@@ -57,6 +57,16 @@ const ALLOWED_ICONS = [
 
 const CATEGORIES = ["revenue", "delivery", "intelligence", "sources", "system"];
 const MORE_GROUPS = ["Revenue", "Delivery", "Intelligence", "System", "Sources"];
+const SETTING_TYPES = ["string", "number", "boolean", "enum", "url"];
+
+/**
+ * Independent of the JSON Schema's own key pattern: a manifest author's
+ * `label` or `description` can smuggle a secret-shaped field past a key
+ * regex ("apiKey" fails the pattern, "Your API Key" as a label does not).
+ * tenants.config, where every setting value is stored, reaches client
+ * components, so this check exists specifically to catch that.
+ */
+const SECRET_LOOKING = /secret|token|password|api[_-]?key|credential/i;
 
 /** Core module ids, read from the source of truth so this cannot drift. */
 function coreModuleIds() {
@@ -115,6 +125,28 @@ function validateManifest(file, manifest, seenIds, seenNavIds, coreIds) {
     if (!String(route).startsWith("/admin/"))
       fail(file, `route "${route}" must start with /admin/`);
   }
+
+  const seenSettingKeys = new Set();
+  for (const setting of manifest.settings ?? []) {
+    const key = setting?.key;
+    if (!key || typeof key !== "string") {
+      fail(file, "each settings entry needs a string key");
+      continue;
+    }
+    if (seenSettingKeys.has(key)) fail(file, `settings key "${key}" is declared twice`);
+    seenSettingKeys.add(key);
+    if (SECRET_LOOKING.test(key) || SECRET_LOOKING.test(setting.label ?? ""))
+      fail(
+        file,
+        `settings key "${key}" looks like a secret. Credentials go through integration-adapters.ts, never tenants.config.`,
+      );
+    if (!SETTING_TYPES.includes(setting.type))
+      fail(file, `settings "${key}" type must be one of ${SETTING_TYPES.join(", ")}`);
+    if (setting.type === "enum" && !(Array.isArray(setting.options) && setting.options.length))
+      fail(file, `settings "${key}" is type enum but declares no options`);
+    if (setting.type !== "enum" && setting.options)
+      fail(file, `settings "${key}" declares options but is not type enum`);
+  }
 }
 
 const manifests = [];
@@ -155,6 +187,7 @@ const modules = manifests.map((manifest) => ({
   routes: manifest.routes ?? [],
   setupChecks: manifest.setupChecks ?? [],
   ...(manifest.docsUrl ? { docsUrl: manifest.docsUrl } : {}),
+  ...(manifest.settings?.length ? { settings: manifest.settings } : {}),
 }));
 
 const navLinks = manifests.flatMap((manifest) =>

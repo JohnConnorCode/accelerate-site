@@ -31,6 +31,33 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     setupChecks: [],
     docsUrl:
       "https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/contributing/EXTENDING.md",
+    settings: [
+      {
+        key: "reorderThreshold",
+        label: "Reorder threshold",
+        description: "Flag an item as low stock once its quantity falls to or below this number.",
+        type: "number",
+        default: 10,
+        min: 0,
+        max: 10000,
+      },
+      {
+        key: "defaultWarehouse",
+        label: "Default warehouse",
+        description: "Where a newly received item is assumed to be stored.",
+        type: "enum",
+        options: ["main", "overflow"],
+        default: "main",
+      },
+      {
+        key: "autoReorderEnabled",
+        label: "Propose reorders automatically",
+        description:
+          "When on, low-stock items get a reorder task proposed for approval instead of waiting to be noticed.",
+        type: "boolean",
+        default: false,
+      },
+    ],
   },
 ] as const;
 

@@ -1,5 +1,10 @@
 import { DEMO_SCENARIOS, type DemoScenarioId, type DemoScenarioPack } from "./scenarios";
 import { clearDemoAppearance } from "./appearance-state";
+import {
+  REVENUE_OS_MODULES,
+  getActiveModules,
+  validateModuleSettingsInput,
+} from "@/lib/revenue-os/modules";
 
 type DemoEmailBlock = {
   id: string;
@@ -61,6 +66,8 @@ type DemoState = {
   readNotifications: string[];
   emailDrafts: Record<string, DemoEmailDraft>;
   featureOverrides: Record<string, { status: string; sort_order: number }>;
+  moduleOverrides: Partial<Record<string, boolean>>;
+  moduleSettings: Record<string, Record<string, unknown>>;
 };
 const initialState = (): DemoState => ({
   completedActions: [],
@@ -73,6 +80,8 @@ const initialState = (): DemoState => ({
   readNotifications: [],
   emailDrafts: {},
   featureOverrides: {},
+  moduleOverrides: {},
+  moduleSettings: {},
 });
 const keyFor = (id: DemoScenarioId) => `accelerate:admin-demo:${id}:v3`;
 const jsonResponse = (body: unknown, status = 200) =>
@@ -1943,6 +1952,49 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       }
       saveState(scenarioId, state);
       return jsonResponse({ schemaReady: true, updated: reorder.length });
+    }
+    if (method === "GET" && path === "/api/admin/tenant/modules") {
+      const tenantConfig = { modules: state.moduleOverrides };
+      return jsonResponse({
+        modules: getActiveModules(tenantConfig).map((mod) => mod.id),
+        overrides: state.moduleOverrides,
+        moduleSettings: state.moduleSettings,
+      });
+    }
+    if (method === "PATCH" && path === "/api/admin/tenant/modules") {
+      // Mirrors the real route so the flagship demo can actually show off
+      // the thing it is meant to demonstrate: toggling and configuring a
+      // module. Previously unhandled entirely, so every request here fell
+      // through to the generic 404 below and the Modules tab looked broken
+      // on the one surface reachable without logging in.
+      const payload = body as { moduleId?: string; enabled?: boolean; settings?: unknown };
+      const moduleId = String(payload?.moduleId || "");
+      const moduleDef = REVENUE_OS_MODULES.find((mod) => mod.id === moduleId);
+      if (!moduleDef) return jsonResponse({ error: "Unknown module" }, 404);
+      if (typeof payload.enabled === "boolean") {
+        if (moduleDef.isCore)
+          return jsonResponse({ error: "Core modules cannot be disabled" }, 400);
+        state.moduleOverrides[moduleId] = payload.enabled;
+        saveState(scenarioId, state);
+        return jsonResponse({
+          moduleId,
+          enabled: payload.enabled,
+          modules: getActiveModules({ modules: state.moduleOverrides }).map((mod) => mod.id),
+        });
+      }
+      if (payload.settings && typeof payload.settings === "object") {
+        if (!moduleDef.settings?.length)
+          return jsonResponse({ error: `${moduleDef.name} does not declare any settings.` }, 400);
+        const validated = validateModuleSettingsInput(
+          moduleId,
+          payload.settings as Record<string, unknown>,
+        );
+        if (!validated.valid) return jsonResponse({ error: validated.error }, 400);
+        state.moduleSettings[moduleId] = { ...state.moduleSettings[moduleId], ...validated.value };
+        saveState(scenarioId, state);
+        return jsonResponse({ moduleId, settings: state.moduleSettings[moduleId] });
+      }
+      return jsonResponse({ error: "Invalid module request" }, 400);
     }
     if (method === "GET" && path === "/api/admin/settings") return jsonResponse(settings(pack));
     if (method === "GET" && path === "/api/admin/tenants")

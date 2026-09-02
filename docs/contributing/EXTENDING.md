@@ -75,6 +75,43 @@ Then create `src/app/admin/acme-inventory/page.tsx`, run
 | `aiToolNames`    | no       | Tool names registered in `ai-tools.ts`. Each must exist and belong to exactly one module.                             |
 | `setupChecks`    | no       | Setup Center check ids the module depends on.                                                                         |
 | `docsUrl`        | no       | Where an operator reads more.                                                                                         |
+| `settings`       | no       | Up to 12 configurable values, rendered by the shared settings form. See below.                                        |
+
+### Settings, without shipping UI
+
+A module can declare values a workspace admin configures, and the shared
+`ModuleSettingsForm` component renders them, so a registered module gets a
+real settings screen without shipping React:
+
+```json
+"settings": [
+  {
+    "key": "reorderThreshold",
+    "label": "Reorder threshold",
+    "description": "Flag an item as low stock once its quantity falls to or below this number.",
+    "type": "number",
+    "default": 10,
+    "min": 0,
+    "max": 10000
+  },
+  {
+    "key": "defaultWarehouse",
+    "label": "Default warehouse",
+    "type": "enum",
+    "options": ["main", "overflow"],
+    "default": "main"
+  }
+]
+```
+
+`type` is one of `string`, `number`, `boolean`, `enum` (requires `options`), or
+`url`. There is deliberately no secret type: values are stored in
+`tenants.config.moduleSettings`, which reaches client components through the
+admin layout, so a settings field is public by construction. A key or label
+that looks like a secret (`apiKey`, `webhookSecret`, and similar) is rejected
+at build time for an extension manifest, and at CI time for a core module too
+(`scripts/verify-module-settings.ts`). Credentials go through an integration
+adapter's encrypted credential path instead, never here.
 
 ### What a manifest deliberately cannot do
 
@@ -97,17 +134,24 @@ export interface IntegrationAdapter<TCreds = Record<string, unknown>> {
   id: string;
   name: string;
   category: "crm" | "messaging" | "notifications" | "delivery";
+  credentialFields: ReadonlyArray<{ formField: string; encryptedKey: string }>;
   verify(credentials: TCreds): Promise<IntegrationVerificationResult>;
   connect(credentials: TCreds): Promise<IntegrationConnectionReceipt>;
 }
 ```
 
 `verify` makes a real call against the provider and reports whether the
-credentials work. `connect` returns the receipt that gets stored. Register the
-adapter in `INTEGRATION_ADAPTERS` in the same file, and wire `verify` into the
-tenant provider flow in `src/app/api/admin/tenant/providers/route.ts` so a
-credential is never saved before it has been checked, the way WhatsApp,
-HubSpot, and OpenRouter already are.
+credentials work. `connect` returns the receipt that gets stored.
+`credentialFields` maps each field a workspace admin submits to the key it is
+stored under in `integration_connections.encrypted_credentials`. Register the
+adapter in `INTEGRATION_ADAPTERS` in the same file, and that is the whole
+registration: `configureAdapterProvider()` in
+`src/app/api/admin/tenant/providers/route.ts` looks the adapter up by id,
+calls `verify`, encrypts each declared field, and audits the write, the same
+generic cycle WhatsApp and HubSpot both go through. Nothing in that route
+needs to change per adapter. OpenRouter and MCP stay outside this generic
+path on purpose (tenant-scoped AAD encryption and a server-issued key,
+respectively); most new adapters will not need that exception.
 
 Two rules that are not negotiable:
 

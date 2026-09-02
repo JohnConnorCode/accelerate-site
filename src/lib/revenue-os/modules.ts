@@ -30,6 +30,35 @@ import { EXTENSION_MODULES } from "./extension-modules.generated";
 
 export type ModuleCategory = "revenue" | "delivery" | "intelligence" | "sources" | "system";
 
+/**
+ * A single configurable value a module exposes to the workspace admin,
+ * rendered by one shared form (ModuleSettingsForm) rather than any
+ * module-supplied UI — so a manifest-registered module gets a real settings
+ * screen without shipping React, and the admin design token contract holds
+ * for it automatically.
+ *
+ * Deliberately no "secret" type. tenants.config (where values are stored)
+ * reaches client components through the admin layout, so a settings field is
+ * public by construction; credentials stay on the encrypted provider
+ * connection path (src/lib/revenue-os/integration-adapters.ts), never here.
+ * scripts/verify-module-settings.ts rejects any field whose key or label
+ * looks like a secret, as a second check independent of this rule being
+ * followed by hand.
+ */
+export interface ModuleSettingField {
+  /** Storage key, also the form field name. */
+  key: string;
+  label: string;
+  description?: string;
+  type: "string" | "number" | "boolean" | "enum" | "url";
+  /** Required when type is "enum". */
+  options?: string[];
+  default?: string | number | boolean;
+  /** Only meaningful when type is "number". */
+  min?: number;
+  max?: number;
+}
+
 export interface RevenueOSModule {
   /** Unique stable module key. */
   id: string;
@@ -53,6 +82,8 @@ export interface RevenueOSModule {
   setupChecks?: string[];
   /** External documentation or guide URL. */
   docsUrl?: string;
+  /** Configurable values rendered by ModuleSettingsForm. Never secrets. */
+  settings?: ModuleSettingField[];
 }
 
 /**
@@ -370,6 +401,80 @@ export function getActiveModules(
   tenantConfig?: { modules?: Partial<Record<string, boolean>> } | null,
 ): RevenueOSModule[] {
   return REVENUE_OS_MODULES.filter((module) => isModuleEnabled(module.id, tenantConfig));
+}
+
+export type ModuleSettingsConfig = Partial<Record<string, Partial<Record<string, unknown>>>>;
+
+/**
+ * The effective value of every setting a module declares: its own default
+ * where the tenant has never set one, the stored value where it has. A
+ * module with no declared settings always resolves to an empty object, so a
+ * caller never has to branch on whether settings exist before reading one.
+ */
+export function getModuleSettings(
+  moduleId: string,
+  moduleSettingsConfig?: ModuleSettingsConfig | null,
+): Record<string, string | number | boolean | undefined> {
+  const moduleDef = MODULE_MAP.get(moduleId);
+  if (!moduleDef?.settings?.length) return {};
+  const stored = moduleSettingsConfig?.[moduleId] ?? {};
+  const resolved: Record<string, string | number | boolean | undefined> = {};
+  for (const field of moduleDef.settings) {
+    const value = stored[field.key];
+    resolved[field.key] =
+      value === undefined || value === null ? field.default : (value as string | number | boolean);
+  }
+  return resolved;
+}
+
+/**
+ * Validates a settings PATCH payload against what the module actually
+ * declared, before it ever reaches the database. The client is never the
+ * authority on shape or range: every field is re-checked against its
+ * declared type, enum membership, and numeric bounds here.
+ */
+export function validateModuleSettingsInput(
+  moduleId: string,
+  input: Record<string, unknown>,
+):
+  | { valid: true; value: Record<string, string | number | boolean> }
+  | { valid: false; error: string } {
+  const moduleDef = MODULE_MAP.get(moduleId);
+  const fields = moduleDef?.settings ?? [];
+  const byKey = new Map(fields.map((field) => [field.key, field]));
+  const value: Record<string, string | number | boolean> = {};
+  for (const [key, raw] of Object.entries(input)) {
+    const field = byKey.get(key);
+    if (!field) return { valid: false, error: `"${key}" is not a setting ${moduleId} declares.` };
+    if (raw === null || raw === undefined) continue;
+    if (field.type === "boolean") {
+      if (typeof raw !== "boolean")
+        return { valid: false, error: `"${key}" must be true or false.` };
+      value[key] = raw;
+    } else if (field.type === "number") {
+      if (typeof raw !== "number" || Number.isNaN(raw))
+        return { valid: false, error: `"${key}" must be a number.` };
+      if (field.min !== undefined && raw < field.min)
+        return { valid: false, error: `"${key}" must be at least ${field.min}.` };
+      if (field.max !== undefined && raw > field.max)
+        return { valid: false, error: `"${key}" must be at most ${field.max}.` };
+      value[key] = raw;
+    } else if (field.type === "enum") {
+      if (typeof raw !== "string" || !(field.options ?? []).includes(raw))
+        return {
+          valid: false,
+          error: `"${key}" must be one of: ${(field.options ?? []).join(", ")}.`,
+        };
+      value[key] = raw;
+    } else {
+      // "string" and "url" both store as a bounded string; a real URL format
+      // check belongs to the field's own consumer, not this generic gate.
+      if (typeof raw !== "string") return { valid: false, error: `"${key}" must be text.` };
+      if (raw.length > 2000) return { valid: false, error: `"${key}" is too long.` };
+      value[key] = raw;
+    }
+  }
+  return { valid: true, value };
 }
 
 /**

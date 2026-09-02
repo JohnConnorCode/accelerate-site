@@ -41,11 +41,14 @@ import type { IntegrationCatalog, IntegrationView } from "@/lib/revenue-os/integ
 import type { IntegrationStatus } from "@/lib/revenue-os/integration-registry";
 import {
   REVENUE_OS_MODULES,
+  getModuleSettings,
   type RevenueOSModule,
   type ModuleCategory,
+  type ModuleSettingsConfig,
 } from "@/lib/revenue-os/modules";
 import { cn } from "@/lib/utils";
 import { TenantProviderControls } from "@/components/admin/TenantProviderControls";
+import { ModuleSettingsForm } from "@/components/admin/ModuleSettingsForm";
 
 const providerIcons: Record<string, LucideIcon> = {
   supabase: Database,
@@ -403,11 +406,13 @@ function ModuleCard({
   enabled,
   pending,
   onToggle,
+  settings,
 }: {
   module: RevenueOSModule;
   enabled: boolean;
   pending: boolean;
   onToggle: (moduleId: string, enabled: boolean) => void;
+  settings: Record<string, string | number | boolean | undefined>;
 }) {
   const categoryLabels: Record<ModuleCategory, string> = {
     revenue: "Revenue Operations",
@@ -511,6 +516,23 @@ function ModuleCard({
             </div>
           </div>
         )}
+
+        {module.docsUrl && (
+          <a
+            href={module.docsUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-3.5 inline-flex items-center gap-1 text-[11px] font-medium text-[var(--admin-ink)] hover:underline"
+          >
+            Documentation <ExternalLink className="size-3" />
+          </a>
+        )}
+
+        {module.settings && module.settings.length > 0 && enabled && (
+          <div className="mt-4">
+            <ModuleSettingsForm moduleId={module.id} fields={module.settings} values={settings} />
+          </div>
+        )}
       </div>
     </AdminSurface>
   );
@@ -526,6 +548,7 @@ export default function IntegrationsPage() {
   const modulesQuery = useAdminQuery<{
     modules: string[];
     overrides: Partial<Record<string, boolean>>;
+    moduleSettings: ModuleSettingsConfig;
   }>(["admin", "tenant-modules"], "/api/admin/tenant/modules");
   const data = integrationsQuery.data ?? null;
   const loading = integrationsQuery.isPending;
@@ -970,6 +993,7 @@ export default function IntegrationsPage() {
                     enabled={mod.isCore || enabledModuleIds.has(mod.id)}
                     pending={pendingModuleId === mod.id}
                     onToggle={toggleModule}
+                    settings={getModuleSettings(mod.id, modulesQuery.data?.moduleSettings)}
                   />
                 ))}
               </section>

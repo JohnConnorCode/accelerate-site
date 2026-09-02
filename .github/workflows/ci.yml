@@ -64,6 +64,9 @@ jobs:
       - name: Verify integration adapters resolve through the registry
         run: npm run verify:integration-adapter-encapsulation
 
+      - name: Verify module settings never look like secrets
+        run: npm run verify:module-settings
+
       - name: Typecheck
         run: npm run typecheck
 
