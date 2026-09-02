@@ -46,6 +46,7 @@ function parseModules(source) {
       navLinkIds: pick("navLinkIds"),
       aiToolNames: pick("aiToolNames"),
       routes: pick("routes"),
+      setupChecks: pick("setupChecks"),
     });
   }
   return modules;
@@ -105,6 +106,30 @@ for (const mod of modules) {
   }
 }
 
+// Reverse direction: every real admin page must be claimed by some module,
+// or module-route-gating-enforcement's longest-prefix resolver silently
+// leaves it ungated. A page is claimed if its path exactly matches, or is
+// nested under, a declared route. Redirect shells and the auth pages have no
+// module by design and are named here rather than left to fail silently.
+const KNOWN_UNOWNED_ADMIN_ROUTES = new Set([
+  "/admin",
+  "/admin/ai-operations",
+  "/admin/login",
+  "/admin/update-password",
+]);
+const declaredRoutes = modules.flatMap((mod) => mod.routes);
+for (const route of existingRoutes) {
+  if (KNOWN_UNOWNED_ADMIN_ROUTES.has(route)) continue;
+  const claimed = declaredRoutes.some(
+    (declared) => route === declared || route.startsWith(`${declared}/`),
+  );
+  if (!claimed) {
+    failures.push(
+      `Admin page "${route}" exists but is not claimed by any module's routes[] and is not in KNOWN_UNOWNED_ADMIN_ROUTES, so it would never be gated when its intended module is disabled.`,
+    );
+  }
+}
+
 // --- AI tools ------------------------------------------------------------
 const toolsSource = read("src/lib/revenue-os/ai-tools.ts");
 const registeredTools = new Set(
@@ -139,6 +164,48 @@ for (const tool of registeredTools) {
   }
 }
 
+// --- Tool pack coverage ---------------------------------------------------
+// availabilityFor() marks any tool outside PACK_TOOL_NAMES unavailable, and
+// ai-agent.ts always passes a pack, so a registered, module-claimed tool that
+// no pack lists is permanently unreachable even though every other gate
+// above it passes. This is the check that would have caught that.
+const packSection = toolsSource.slice(
+  toolsSource.indexOf("const PACK_TOOL_NAMES"),
+  toolsSource.indexOf("export function selectRevenueToolPack"),
+);
+if (!packSection || packSection.length < 20) {
+  failures.push("Could not locate PACK_TOOL_NAMES in ai-tools.ts; the parser has drifted.");
+} else {
+  const packedTools = new Set([...packSection.matchAll(/"([a-z][a-z0-9_]+)"/g)].map((m) => m[1]));
+  for (const tool of registeredTools) {
+    if (!packedTools.has(tool)) {
+      failures.push(
+        `AI tool "${tool}" is registered and claimed by a module but is not listed in any pack in PACK_TOOL_NAMES, so it can never be selected at runtime.`,
+      );
+    }
+  }
+}
+
+// --- Setup Center checks ---------------------------------------------------
+const setupSource = read("src/app/api/admin/setup/route.ts");
+const setupCheckIds = new Set(
+  [...setupSource.matchAll(/^\s{6}id:\s*"([a-z_]+)",/gm)].map((m) => m[1]),
+);
+if (setupCheckIds.size < 10) {
+  failures.push(
+    `Only parsed ${setupCheckIds.size} checks from setup/route.ts; the parser and the file have drifted.`,
+  );
+}
+for (const mod of modules) {
+  for (const check of mod.setupChecks ?? []) {
+    if (!setupCheckIds.has(check)) {
+      failures.push(
+        `Module "${mod.id}" declares setupChecks "${check}", which is not a real check id in src/app/api/admin/setup/route.ts.`,
+      );
+    }
+  }
+}
+
 if (failures.length) {
   console.error(`Module contract failed:\n- ${failures.join("\n- ")}`);
   process.exit(1);
@@ -152,6 +219,7 @@ console.log(
       navLinks: navIds.size,
       adminRoutes: existingRoutes.size,
       aiTools: registeredTools.size,
+      setupChecks: setupCheckIds.size,
     },
     null,
     2,

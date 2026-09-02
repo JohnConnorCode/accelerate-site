@@ -31,6 +31,7 @@ export async function middleware(request: NextRequest) {
     requestHeaders.set("x-accelerate-admin-runtime", "demo");
     requestHeaders.set("x-accelerate-demo-scenario", scenario);
     requestHeaders.set("x-accelerate-demo-route", requestedRoute || "today");
+    requestHeaders.set("x-admin-path", destination.pathname);
     const response = NextResponse.rewrite(destination, { request: { headers: requestHeaders } });
     response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
     return response;
@@ -49,6 +50,7 @@ export async function middleware(request: NextRequest) {
       "x-accelerate-demo-route",
       request.nextUrl.pathname.replace(/^\/admin\/?/, "") || "today",
     );
+    requestHeaders.set("x-admin-path", request.nextUrl.pathname);
     const response = NextResponse.next({ request: { headers: requestHeaders } });
     response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
     return response;
@@ -156,6 +158,10 @@ export async function middleware(request: NextRequest) {
   requestHeaders.set("x-tenant-slug", tenantSlug);
   requestHeaders.set("x-tenant-name", tenantName);
   requestHeaders.set("x-platform-admin", isConfiguredAdmin(user.email) ? "true" : "false");
+  requestHeaders.set(
+    "x-admin-path",
+    workspaceMatch ? `/admin/${workspaceMatch[2] || "today"}` : request.nextUrl.pathname,
+  );
   // Recreate the response after context headers are complete.
   const refreshedAuthCookies = supabaseResponse.cookies.getAll();
   if (workspaceMatch) {

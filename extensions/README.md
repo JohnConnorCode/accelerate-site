@@ -29,7 +29,11 @@ extra work:
 
 - Its navigation entries disappear when a workspace disables it.
 - Its AI tools report as unavailable to the agent and to MCP when it is off.
-- Its routes fail closed rather than dangling.
+- Its pages show a disabled notice rather than dangling, and its own API
+  routes refuse the request if the module declares them in
+  `MODULE_API_DIRECTORIES` (`scripts/verify-module-route-guards.mjs`) — a
+  manifest-registered module's routes must be added there to get the same
+  refusal a core module's optional routes get.
 - Every write its code performs through the canonical services lands in the
   audit ledger, and every AI proposal it contributes goes through the same
   approval queue as everything else.

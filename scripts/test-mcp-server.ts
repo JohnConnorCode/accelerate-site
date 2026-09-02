@@ -14,6 +14,7 @@ import assert from "node:assert/strict";
 import {
   handleMcpRequest,
   MCP_PROTOCOL_VERSION,
+  MCP_SUPPORTED_PROTOCOL_VERSIONS,
   REVENUE_OS_MCP_SERVER_INFO,
   MCP_ERROR_CODES,
   type McpJsonRpcRequest,
@@ -41,6 +42,12 @@ interface InitResult {
 
 interface ToolsListResult {
   tools: ToolItem[];
+  registryVersion: string;
+}
+
+interface ToolsCallResult {
+  content: Array<{ type: string; text: string }>;
+  isError: boolean;
 }
 
 interface ResourcesListResult {
@@ -96,6 +103,37 @@ async function main() {
   assert.equal(initResult.serverInfo.name, REVENUE_OS_MCP_SERVER_INFO.name);
   assert.ok(initResult.capabilities.tools);
 
+  // 1b. Protocol version negotiation: a client that names a version we
+  // support gets exactly that version echoed back, not a fixed constant, so
+  // a client that strictly compares its request against the response never
+  // sees a false mismatch. An unrecognized or absent version falls back to
+  // our default rather than lying about supporting something we don't.
+  for (const requested of MCP_SUPPORTED_PROTOCOL_VERSIONS) {
+    const negotiated = (await handleMcpRequest(
+      { jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: requested } },
+      context,
+    ))!.result as InitResult;
+    assert.equal(
+      negotiated.protocolVersion,
+      requested,
+      `a client requesting ${requested} must get exactly ${requested} back`,
+    );
+  }
+  const unrecognizedVersion = (await handleMcpRequest(
+    { jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "1900-01-01" } },
+    context,
+  ))!.result as InitResult;
+  assert.equal(
+    unrecognizedVersion.protocolVersion,
+    MCP_PROTOCOL_VERSION,
+    "an unrecognized requested version must fall back to our default, never be echoed as-is",
+  );
+  const noVersionRequested = (await handleMcpRequest(
+    { jsonrpc: "2.0", id: 1, method: "initialize" },
+    context,
+  ))!.result as InitResult;
+  assert.equal(noVersionRequested.protocolVersion, MCP_PROTOCOL_VERSION);
+
   // 2. Tools listing
   const toolsReq: McpJsonRpcRequest = {
     jsonrpc: "2.0",
@@ -115,6 +153,46 @@ async function main() {
   assert.ok(toolsResult.tools.some((t) => t.name === "get_pending_actions"));
   assert.ok(toolsResult.tools.some((t) => t.name === "propose_conversation_reply"));
   assert.ok(toolsResult.tools.some((t) => t.name === "propose_task"));
+  assert.ok(toolsResult.tools.some((t) => t.name === "propose_task_update"));
+  assert.ok(toolsResult.registryVersion, "tools/list must report the registry version it served");
+
+  // 2b. tools/call actually executes a tool and returns MCP content, not just
+  // a bare JSON-RPC result. propose_task_update is the case that matters here:
+  // it is the tool that lets an MCP client write to the DB at all, by staging
+  // a proposal a human approves — this proves that staging round-trips
+  // through the real JSON-RPC content envelope end to end.
+  const callReq: McpJsonRpcRequest = {
+    jsonrpc: "2.0",
+    id: 9,
+    method: "tools/call",
+    params: {
+      name: "propose_task_update",
+      arguments: { taskId: "task-1", changeType: "complete" },
+    },
+  };
+  const callRes = (await handleMcpRequest(callReq, context))!;
+  const callResult = callRes.result as ToolsCallResult;
+  assert.equal(callResult.isError, false);
+  const staged = JSON.parse(callResult.content[0]!.text) as { id: string; action_type: string };
+  assert.ok(staged.id, "a successful propose_task_update call must return the staged proposal id");
+  assert.equal(staged.action_type, "update_task");
+
+  // A tool call that fails validation comes back as isError: true content,
+  // per MCP's spec (a normal result the model can read and retry from), not
+  // a transport-level JSON-RPC error that looks like the protocol broke.
+  const badCallReq: McpJsonRpcRequest = {
+    jsonrpc: "2.0",
+    id: 10,
+    method: "tools/call",
+    params: {
+      name: "propose_task_update",
+      arguments: { taskId: "task-1", changeType: "snooze" },
+    },
+  };
+  const badCallRes = (await handleMcpRequest(badCallReq, context))!;
+  const badCallResult = badCallRes.result as ToolsCallResult;
+  assert.equal(badCallResult.isError, true);
+  assert.match(badCallResult.content[0]!.text, /requires "until"/);
 
   // 3. Resources listing and reading
   const resListReq: McpJsonRpcRequest = {

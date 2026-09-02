@@ -8,8 +8,16 @@
  * Rules:
  * - Module enablement is a deployment-time or tenant-configuration choice.
  * - Core modules cannot be disabled (isCore: true).
- * - Disabling a module removes its navigation entries, marks its AI tools unavailable,
- *   and refuses routes fail-closed without dangling references.
+ * - Disabling a module removes its navigation entries, marks its AI tools
+ *   unavailable, shows a disabled notice on its pages (src/app/admin/layout.tsx,
+ *   display gating and defense in depth, not authorization: Next renders
+ *   layout and page in parallel), and its API routes refuse the request
+ *   (requireAdminForModule in src/lib/admin/module-guard.ts, the real gate,
+ *   enforced by scripts/verify-module-route-guards.mjs for every route in
+ *   MODULE_API_DIRECTORIES). The "integrations" module's own console is a
+ *   deliberate, documented exception (SELF_LOCKOUT_EXEMPT_MODULES below): it
+ *   is the screen that re-enables every other module, so it never hides
+ *   itself.
  * - No dynamic execution of untrusted code; modules are declarative statically-typed seams.
  *
  * Third parties extend this registry without editing it, by dropping a
@@ -66,6 +74,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
       "get_record_timeline",
       "get_pending_actions",
       "propose_task",
+      "propose_task_update",
       "propose_layout_change",
       "propose_founder_note",
     ],
@@ -102,7 +111,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     isCore: true,
     defaultEnabled: true,
     navLinkIds: ["contacts"],
-    routes: ["/admin/contacts"],
+    routes: ["/admin/contacts", "/admin/contact-imports"],
     aiToolNames: ["search_contacts"],
   },
   {
@@ -149,7 +158,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     navLinkIds: ["campaigns", "delivery-runs"],
     routes: ["/admin/campaigns", "/admin/email-sequences"],
     aiToolNames: ["propose_campaign_activation"],
-    setupChecks: ["resend_configured", "campaign_readiness"],
+    setupChecks: ["email", "campaigns"],
   },
   {
     id: "email-studio",
@@ -191,7 +200,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["bookings"],
     routes: ["/admin/bookings"],
-    setupChecks: ["calendly_configured", "google_calendar_configured"],
+    setupChecks: ["calendly", "calendar_sync"],
   },
   {
     id: "clients",
@@ -300,6 +309,18 @@ export const MODULE_MAP = new Map<string, RevenueOSModule>(
   REVENUE_OS_MODULES.map((mod) => [mod.id, mod]),
 );
 
+/**
+ * The "integrations" module owns /admin/integrations, which is the console
+ * that toggles every other module on and off. It is deliberately excluded
+ * from page-level route gating (src/app/admin/layout.tsx): if disabling it
+ * hid the console itself, an operator who disabled it would have no UI path
+ * back to re-enabling it, only a direct API call. It is not core, so the
+ * module can still be turned off and its own data reads still stop (nothing
+ * else reads through it), but the page that lets you turn it back on always
+ * renders.
+ */
+export const SELF_LOCKOUT_EXEMPT_MODULES = new Set<string>(["integrations"]);
+
 /** Mapping of nav link ID to its owning module ID. */
 export const NAV_LINK_TO_MODULE_MAP = new Map<string, RevenueOSModule>();
 for (const mod of REVENUE_OS_MODULES) {
@@ -353,25 +374,41 @@ export function getActiveModules(
 
 /**
  * Determines whether a specific navigation link should be shown based on module enablement.
+ *
+ * Fails closed on an unowned id. scripts/verify-module-contract.mjs requires
+ * every link in adminNavSections to be claimed by some module's navLinkIds,
+ * so the only way this branch is reachable is a manifest or module being
+ * deleted without its nav entry being deleted too — orphaned code should not
+ * stay permanently visible just because nothing claims it anymore.
  */
 export function isNavLinkEnabled(
   navLinkId: string,
   tenantConfig?: { modules?: Partial<Record<string, boolean>> } | null,
 ): boolean {
   const moduleDef = NAV_LINK_TO_MODULE_MAP.get(navLinkId);
-  if (!moduleDef) return true; // Link without explicit module association remains available
+  if (!moduleDef) return false;
   return isModuleEnabled(moduleDef.id, tenantConfig);
 }
 
 /**
  * Determines whether a specific AI tool is permitted based on module enablement.
+ *
+ * Fails closed on an unclaimed tool name. scripts/verify-module-contract.mjs
+ * requires every tool in the registry to be claimed by exactly one module,
+ * so this call site (ai-tools.ts) only ever passes a name that should
+ * resolve; an unresolved name means the registry and the module claims have
+ * drifted, and the safe response to that is refusal, not availability.
  */
 export function isAiToolModuleEnabled(
   toolName: string,
   tenantConfig?: { modules?: Partial<Record<string, boolean>> } | null,
 ): { enabled: boolean; module?: RevenueOSModule; reason?: string } {
   const moduleDef = AI_TOOL_TO_MODULE_MAP.get(toolName);
-  if (!moduleDef) return { enabled: true };
+  if (!moduleDef)
+    return {
+      enabled: false,
+      reason: `Tool "${toolName}" is not claimed by any registered module, which is refused rather than treated as available.`,
+    };
   const enabled = isModuleEnabled(moduleDef.id, tenantConfig);
   if (!enabled) {
     return {

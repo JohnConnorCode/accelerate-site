@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { timingSafeEqual } from "node:crypto";
+import { randomUUID, timingSafeEqual } from "node:crypto";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import {
   handleMcpRequest,
   REVENUE_OS_MCP_SERVER_INFO,
   MCP_PROTOCOL_VERSION,
+  MCP_SUPPORTED_PROTOCOL_VERSIONS,
   type McpJsonRpcRequest,
 } from "@/lib/revenue-os/mcp-server";
 import { tenant as defaultTenant } from "@/config/tenant";
@@ -26,6 +27,32 @@ export const runtime = "nodejs";
  * every other tenant-scoped provider (Resend, Calendly, WhatsApp, HubSpot) uses, so
  * the key is read back through the same encrypted envelope, never plaintext.
  */
+
+/**
+ * The Streamable HTTP transport spec (2025-03-26/2025-06-18) permits the
+ * client's own web-based UI to call the MCP endpoint directly rather than
+ * through a server-side proxy, so this endpoint needs real CORS support.
+ * A wildcard origin is safe here specifically because authorization is a
+ * Bearer token read from the Authorization header, never a cookie: a
+ * cross-origin page can set that header only if it already has the tenant's
+ * MCP key, at which point CORS was never the boundary protecting it.
+ */
+const CORS_HEADERS: Record<string, string> = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, Mcp-Session-Id, MCP-Protocol-Version",
+  "Access-Control-Expose-Headers": "Mcp-Session-Id",
+  "Access-Control-Max-Age": "86400",
+};
+
+function withCors(response: NextResponse): NextResponse {
+  for (const [key, value] of Object.entries(CORS_HEADERS)) response.headers.set(key, value);
+  return response;
+}
+
+export async function OPTIONS() {
+  return withCors(new NextResponse(null, { status: 204 }));
+}
 
 function timingSafeStringEqual(a: string, b: string): boolean {
   const bufferA = Buffer.from(a);
@@ -64,17 +91,48 @@ async function resolveTenantMcpAuth(
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   context: { params: Promise<{ tenantSlug: string }> },
 ) {
+  // A Streamable HTTP client's GET means "open a server-push SSE stream,"
+  // signaled by requiring text/event-stream in Accept. This server has
+  // nothing to push (every result comes back on the POST that asked for it),
+  // so the spec-correct answer is 405, not a silent hang. A plain browser or
+  // health-check hit — no such Accept header — gets a friendly status body
+  // instead of an error, since that caller isn't speaking MCP transport.
+  if (request.headers.get("accept")?.includes("text/event-stream")) {
+    return withCors(
+      NextResponse.json(
+        { error: "This server does not support server-initiated SSE streams." },
+        { status: 405, headers: { Allow: "GET, POST, DELETE, OPTIONS" } },
+      ),
+    );
+  }
   const { tenantSlug } = await context.params;
-  return NextResponse.json({
-    status: "ok",
-    server: REVENUE_OS_MCP_SERVER_INFO,
-    protocolVersion: MCP_PROTOCOL_VERSION,
-    endpoint: `/api/public/${tenantSlug}/mcp`,
-    auth: "Bearer token (tenant MCP key, generated from /admin/integrations)",
-  });
+  return withCors(
+    NextResponse.json({
+      status: "ok",
+      server: REVENUE_OS_MCP_SERVER_INFO,
+      protocolVersion: MCP_PROTOCOL_VERSION,
+      supportedProtocolVersions: MCP_SUPPORTED_PROTOCOL_VERSIONS,
+      endpoint: `/api/public/${tenantSlug}/mcp`,
+      auth: "Bearer token (tenant MCP key, generated from /admin/integrations)",
+    }),
+  );
+}
+
+/**
+ * This server is stateless — auth is a per-request Bearer token, not a
+ * session — so there is no session to end. 405 is the spec-sanctioned
+ * response for a server that does not allow clients to terminate sessions.
+ */
+export async function DELETE() {
+  return withCors(
+    NextResponse.json(
+      { error: "This server does not use sessions; there is nothing to terminate." },
+      { status: 405, headers: { Allow: "GET, POST, DELETE, OPTIONS" } },
+    ),
+  );
 }
 
 export async function POST(
@@ -85,13 +143,15 @@ export async function POST(
   const authHeader = request.headers.get("authorization");
   const auth = await resolveTenantMcpAuth(tenantSlug, authHeader);
   if (!auth) {
-    return NextResponse.json(
-      {
-        jsonrpc: "2.0",
-        id: null,
-        error: { code: -32000, message: "Unauthorized: Invalid or missing tenant MCP API key" },
-      },
-      { status: 401 },
+    return withCors(
+      NextResponse.json(
+        {
+          jsonrpc: "2.0",
+          id: null,
+          error: { code: -32000, message: "Unauthorized: Invalid or missing tenant MCP API key" },
+        },
+        { status: 401 },
+      ),
     );
   }
 
@@ -99,23 +159,30 @@ export async function POST(
   try {
     body = (await request.json()) as McpJsonRpcRequest;
     if (!body || body.jsonrpc !== "2.0" || !body.method) {
-      return NextResponse.json(
-        {
-          jsonrpc: "2.0",
-          id: (body as Partial<McpJsonRpcRequest>)?.id ?? null,
-          error: { code: -32600, message: "Invalid Request: JSON-RPC 2.0 with 'method' is required" },
-        },
-        { status: 400 },
+      return withCors(
+        NextResponse.json(
+          {
+            jsonrpc: "2.0",
+            id: (body as Partial<McpJsonRpcRequest>)?.id ?? null,
+            error: {
+              code: -32600,
+              message: "Invalid Request: JSON-RPC 2.0 with 'method' is required",
+            },
+          },
+          { status: 400 },
+        ),
       );
     }
   } catch {
-    return NextResponse.json(
-      {
-        jsonrpc: "2.0",
-        id: null,
-        error: { code: -32700, message: "Parse error: Invalid JSON received" },
-      },
-      { status: 400 },
+    return withCors(
+      NextResponse.json(
+        {
+          jsonrpc: "2.0",
+          id: null,
+          error: { code: -32700, message: "Parse error: Invalid JSON received" },
+        },
+        { status: 400 },
+      ),
     );
   }
 
@@ -132,7 +199,14 @@ export async function POST(
     });
     // handleMcpRequest returns null for a true notification (no id member),
     // which per JSON-RPC 2.0 must not receive a response body at all.
-    if (response === null) return new NextResponse(null, { status: 204 });
-    return NextResponse.json(response);
+    if (response === null) return withCors(new NextResponse(null, { status: 204 }));
+    const nextResponse = withCors(NextResponse.json(response));
+    // Sessions are optional on this stateless server (auth is a per-request
+    // Bearer token, nothing server-side keys off a session), but issuing one
+    // on initialize costs nothing and satisfies a client that insists on
+    // seeing Mcp-Session-Id before it will send anything after initialize.
+    // We never require it back: a client that ignores it still works.
+    if (body.method === "initialize") nextResponse.headers.set("Mcp-Session-Id", randomUUID());
+    return nextResponse;
   });
 }

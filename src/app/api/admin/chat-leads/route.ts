@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { attachRevenueLinkage } from "@/lib/revenue-os/legacy-adapter";
 
 export async function GET(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("leads-capture");
   if (auth instanceof NextResponse) return auth;
 
   const supabase = auth.database;

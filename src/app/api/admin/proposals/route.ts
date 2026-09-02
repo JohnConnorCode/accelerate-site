@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { proposalAuditSummary, recordAudit } from "@/lib/revenue-os/audit";
 
 export async function GET(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("proposals");
   if (auth instanceof NextResponse) return auth;
 
   const supabase = auth.database;
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("proposals");
   if (auth instanceof NextResponse) return auth;
 
   const supabase = auth.database;
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("proposals");
   if (auth instanceof NextResponse) return auth;
 
   const supabase = auth.database;

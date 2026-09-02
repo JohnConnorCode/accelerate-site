@@ -1,15 +1,15 @@
 # Model Context Protocol (MCP) Integration Guide
 
-Accelerate Revenue OS includes an authoritative **Model Context Protocol (MCP)** server complying with the [MCP 2024-11-05 specification](https://modelcontextprotocol.io/).
+Accelerate Revenue OS includes an authoritative **Model Context Protocol (MCP)** server. It speaks the handshake-based ("legacy," in the [MCP spec's own current terminology](https://modelcontextprotocol.io/specification/versioning)) `initialize` lifecycle and negotiates whichever of `2025-06-18`, `2025-03-26`, or `2024-11-05` a connecting client requests, over the Streamable HTTP transport.
 
-This allows external AI clients—including **Claude Desktop**, **Claude Code**, **ChatGPT (Custom GPT / Custom Actions)**, **Cursor**, and **Google Antigravity**—to securely read bounded workspace state and stage actionable proposals into the operator's review queue.
+This allows external AI clients, including **Claude Desktop**, **Claude Code**, **ChatGPT** (native Connectors), **Cursor**, and **Google Antigravity**, to securely read bounded workspace state and stage actionable proposals into the operator's review queue.
 
 ---
 
 ## Safety & Architectural Invariants
 
 1. **Bounded Reads Only**: Read tools (`get_today_snapshot`, `search_pipeline`, `get_record_timeline`, `search_knowledge_base`) return bounded query windows with sensitive credentials and tokens scrubbed.
-2. **Action Queue Gating**: Mutations (`propose_task`, `propose_stage_change`, `propose_send_email`, `propose_campaign_activation`, `propose_founder_note`, `propose_layout_change`) **never** write directly to production state. Instead, they insert staged proposals into `action_queue` requiring explicit operator approval from `/admin/today` or the Command Center before execution.
+2. **Action Queue Gating**: Mutations (`propose_task`, `propose_task_update`, `propose_stage_change`, `propose_send_email`, `propose_campaign_activation`, `propose_founder_note`, `propose_layout_change`) **never** write directly to production state. Instead, they insert staged proposals into `action_queue` requiring explicit operator approval from `/admin/today` or the Command Center before execution. There is no tool that approves a proposal — approval only happens from an authenticated admin session, deliberately, so nothing can both propose and approve its own change through the same channel.
 3. **Deterministic Tenant Isolation**: External requests authenticate via founder session cookies or per-tenant `REVENUE_OS_API_KEY` Bearer tokens.
 
 ---
@@ -61,6 +61,7 @@ Add the `revenue-os` server to `mcpServers`:
    - `get_record_timeline`
    - `search_knowledge_base`
    - `propose_task`
+   - `propose_task_update`
    - `propose_stage_change`
    - `propose_send_email`
    - `propose_campaign_activation`
@@ -89,100 +90,74 @@ export SUPABASE_SERVICE_ROLE_KEY="<service-key>"
 
 ---
 
-## 3. ChatGPT (Custom GPT / Actions) Setup
+## 3. ChatGPT Setup
 
-ChatGPT interacts with Revenue OS over the HTTP JSON-RPC 2.0 transport endpoint.
+ChatGPT's app-wide **Connectors** feature is the current, correct way to connect ChatGPT
+itself (not a Custom GPT) to a remote MCP server, and it speaks MCP directly over the
+Streamable HTTP transport this server implements, with no OpenAPI schema and no wrapping the
+protocol in an Action. Available on ChatGPT Pro, Plus, Business, Enterprise, and
+Education plans.
+
+The older **Custom GPT Actions** mechanism (an OpenAPI schema attached to one specific
+Custom GPT) still exists as a separate path, but it is not what connects the ChatGPT app
+itself, and it forces the model to hand-construct raw JSON-RPC request bodies to get
+anything done. Use native Connectors unless you specifically need a Custom GPT.
 
 ### Endpoints
 
 - **Platform Endpoint**: `https://<your-domain>/api/mcp`
 - **Tenant-Scoped Endpoint**: `https://<your-domain>/api/public/<tenantSlug>/mcp`
 
-### Step-by-Step Custom GPT Setup
+Generate the tenant MCP key first, from `/admin/integrations` on your deployment
+(`Integrations & Modules` → the MCP card). The key is shown once at generation time;
+store it somewhere you can paste from.
 
-1. Open [ChatGPT](https://chatgpt.com) and navigate to **Explore GPTs** -> **Create a GPT**.
-2. Go to the **Configure** tab.
-3. **Name**: `Revenue OS Operator`
-4. **Instructions**:
-   ```text
-   You are an AI assistant connected to Accelerate Revenue OS via Model Context Protocol.
-   When asked about daily tasks, priorities, or pipeline health:
-   1. Use get_today_snapshot or search_pipeline to retrieve grounded data.
-   2. When proposing actions (tasks, emails, pipeline stage changes), format clear proposals for the founder to review.
-   3. Note that all actions staged enter the action_queue and require founder confirmation before sending.
-   ```
-5. Click **Add Action** at the bottom of the Configuration page.
-6. **Authentication**:
-   - **Type**: `API Key`
-   - **Auth Type**: `Bearer`
-   - **API Key**: Enter your `REVENUE_OS_API_KEY` (configured in your environment or tenant settings).
-7. **Schema**: Paste the OpenAPI 3.1 schema below:
+### Step-by-Step Connector Setup
 
-```yaml
-openapi: 3.1.0
-info:
-  title: Revenue OS MCP API
-  version: 1.0.0
-  description: HTTP JSON-RPC 2.0 Model Context Protocol endpoint for Revenue OS.
-servers:
-  - url: https://<your-domain>/api
-    description: Revenue OS Production
-paths:
-  /mcp:
-    post:
-      summary: Send MCP JSON-RPC 2.0 Request
-      operationId: sendMcpRequest
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - jsonrpc
-                - id
-                - method
-              properties:
-                jsonrpc:
-                  type: string
-                  enum: ["2.0"]
-                id:
-                  type:
-                    - string
-                    - number
-                method:
-                  type: string
-                  enum:
-                    - initialize
-                    - ping
-                    - tools/list
-                    - tools/call
-                    - resources/list
-                    - resources/read
-                    - prompts/list
-                    - prompts/get
-                params:
-                  type: object
-      responses:
-        "200":
-          description: Successful JSON-RPC response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  jsonrpc:
-                    type: string
-                  id:
-                    type:
-                      - string
-                      - number
-                      - "null"
-                  result:
-                    type: object
-                  error:
-                    type: object
-```
+1. In the ChatGPT app, open **Settings → Connectors**.
+2. Enable **Developer mode** if you don't see an option to add a custom connector yet
+   (Settings → Connectors → Advanced).
+3. Click **Add custom connector** (sometimes labeled **Create**).
+4. **Name**: `Revenue OS` (or your workspace's brand name).
+5. **URL**: `https://<your-domain>/api/public/<tenantSlug>/mcp` for a single-workspace
+   deployment, or the platform endpoint above for the reference deployment.
+6. **Authentication**: choose **API Key**, then paste the tenant MCP key you generated
+   in `/admin/integrations` as a **Bearer token**. Selecting the wrong auth mode here is
+   the single most common connection failure; this server only accepts a Bearer token,
+   never OAuth or no-auth.
+7. Save, then open a chat and explicitly **enable the connector for that conversation**
+   (adding it in Settings does not turn it on everywhere by default). ChatGPT then calls
+   `tools/list` and shows you the available actions, every tool in the reference table
+   near the end of this document, grouped by what it reads versus what it proposes.
+8. Ask a question that needs a read tool (_"what's on my plate today?"_) to prove the
+   read path, then ask for something that needs a proposal (_"mark the roofer follow-up
+   task done"_) to prove the write path. ChatGPT will show you the tool call it wants to
+   make and wait for your confirmation before sending it; that confirmation is in
+   addition to, not instead of, the founder approval this server's own action queue
+   still requires at `/admin/today` before anything actually changes.
+
+### What "write to the database" means here
+
+No tool in this registry ever writes directly. Every mutating tool, including
+`propose_task_update`, which is what lets ChatGPT mark a task complete, snooze it, or
+edit its title, priority, or due date, stages a proposal in `action_queue` and returns
+its id. Nothing happens until a human approves it from `/admin/today` or the Command
+Center. ChatGPT can find a task's id from `get_today_snapshot`'s queue (task entries are
+`"task:<id>"`) or `get_pending_actions`; either the bare id or the `"task:"`-prefixed
+form works.
+
+### Troubleshooting
+
+- **Connector saves but ChatGPT never calls a tool.** You added it in Settings but did
+  not enable it for the current conversation; re-check step 7.
+- **"Invalid or missing tenant MCP API key."** The auth mode is set to something other
+  than API Key/Bearer, the key was mistyped, or the key belongs to a different tenant
+  than the URL you configured. Regenerate the key from `/admin/integrations` if unsure.
+- **Connection looks like a network error with no useful message.** This is almost
+  always an auth-mode mismatch (see above) rather than the server being unreachable;
+  confirm `GET https://<your-domain>/api/public/<tenantSlug>/mcp` returns
+  `{"status":"ok",...}` in a browser first to rule out a DNS/deploy problem before
+  troubleshooting auth.
 
 ---
 
@@ -258,6 +233,7 @@ In Antigravity CLI or IDE, declare Revenue OS in your `~/.gemini/antigravity/con
 | `get_record_timeline`         | Read     | Retrieves chronological activity history for a specific contact or company.      |
 | `search_knowledge_base`       | Read     | Searches Grounding Substrate and founder notes with provenance.                  |
 | `propose_task`                | Proposal | Stages a new task with due date and priority for founder approval.               |
+| `propose_task_update`         | Proposal | Stages completing, snoozing, or editing an existing task for founder approval.   |
 | `propose_stage_change`        | Proposal | Stages an opportunity stage movement with required transition notes.             |
 | `propose_send_email`          | Proposal | Drafts an outbound email with subject and body for founder review.               |
 | `propose_conversation_reply`  | Proposal | Stages a reply to an active conversation thread for founder approval.            |

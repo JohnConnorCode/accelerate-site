@@ -10,7 +10,7 @@ import { FOUNDER_NOTE_MAX_LENGTH } from "./notes";
 import { retrieveKnowledge } from "./knowledge";
 import { isAiToolModuleEnabled } from "./modules";
 
-export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v3";
+export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v4";
 export const REVENUE_TOOL_PACKS = ["core", "pipeline", "outreach"] as const;
 export type RevenueToolPackId = (typeof REVENUE_TOOL_PACKS)[number];
 
@@ -639,6 +639,82 @@ const registry: AiToolRegistration[] = [
     },
   },
   {
+    name: "propose_task_update",
+    description:
+      "Stage a change to an existing task for approval: mark it complete, snooze it to a later date, or edit its title, priority, or due date. Never changes the task directly; the founder approves it from the review queue like every other proposal.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        taskId: {
+          type: "string",
+          description:
+            'The task id, either bare or in the "task:<id>" form get_today_snapshot returns in its queue.',
+        },
+        changeType: { type: "string", enum: ["complete", "snooze", "edit"] },
+        until: {
+          type: "string",
+          description: "Snooze target date (YYYY-MM-DD), required when changeType is snooze.",
+        },
+        title: { type: "string", description: "New title, only used when changeType is edit." },
+        priority: { type: "string", enum: ["high", "medium", "low"] },
+        dueDate: {
+          type: "string",
+          description: "New due date (YYYY-MM-DD), or an empty string to clear it.",
+        },
+      },
+      required: ["taskId", "changeType"],
+      additionalProperties: false,
+    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.action-queue",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }, input) => {
+      const taskId = (value(input, "taskId") || "").replace(/^task:/, "");
+      if (!taskId) throw new Error("taskId is required");
+      const changeType = value(input, "changeType");
+      if (!changeType || !["complete", "snooze", "edit"].includes(changeType))
+        throw new Error('changeType must be "complete", "snooze", or "edit"');
+      if (changeType === "snooze" && !value(input, "until"))
+        throw new Error('changeType "snooze" requires "until"');
+      if (
+        changeType === "edit" &&
+        !value(input, "title") &&
+        !value(input, "priority") &&
+        input.dueDate === undefined
+      )
+        throw new Error('changeType "edit" requires at least one of title, priority, or dueDate');
+      const dedupeKey = `ai-task-update:${taskId}:${changeType}:${Date.now()}`;
+      const title =
+        changeType === "complete"
+          ? "Mark task complete"
+          : changeType === "snooze"
+            ? `Snooze task to ${value(input, "until")}`
+            : "Edit task";
+      return proposeAction(supabase, {
+        actionType: "update_task",
+        title,
+        description: value(input, "title") ? `New title: ${value(input, "title")}` : undefined,
+        urgency: "normal",
+        payload: {
+          taskId,
+          changeType,
+          until: value(input, "until"),
+          title: value(input, "title"),
+          priority: value(input, "priority"),
+          dueDate: input.dueDate === "" ? null : value(input, "dueDate"),
+        },
+        sourceContext: "admin_ai",
+        entityType: "task",
+        entityId: taskId,
+        dedupeKey,
+        proposedBy: actorEmail,
+        expiresAt: new Date(Date.now() + 86400000).toISOString(),
+      });
+    },
+  },
+  {
     name: "propose_campaign_activation",
     description: "Stage activation of a reviewed campaign version for founder approval.",
     inputSchema: {
@@ -862,6 +938,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "get_record_timeline",
     "search_knowledge_base",
     "propose_task",
+    "propose_task_update",
     "propose_layout_change",
     "propose_founder_note",
   ],
@@ -873,6 +950,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "get_record_timeline",
     "search_knowledge_base",
     "propose_task",
+    "propose_task_update",
     "propose_stage_change",
   ],
   outreach: [
@@ -884,6 +962,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "get_record_timeline",
     "search_knowledge_base",
     "propose_task",
+    "propose_task_update",
     "propose_send_email",
     "propose_conversation_reply",
     "propose_campaign_activation",

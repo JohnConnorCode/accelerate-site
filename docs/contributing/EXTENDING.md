@@ -14,8 +14,12 @@ What every extension inherits automatically:
   `src/lib/revenue-os/` land in `audit_log` with actor, origin, and
   before/after state.
 - **Module gating.** When a workspace disables a module, its navigation
-  disappears, its routes fail closed, and its AI tools report as unavailable to
-  both the in-app agent and external MCP clients.
+  disappears, its pages show a disabled notice (display gating; the real
+  refusal is at the API layer), and its AI tools report as unavailable to
+  both the in-app agent and external MCP clients. An API route only refuses
+  the request if its module is listed in `MODULE_API_DIRECTORIES`
+  (`scripts/verify-module-route-guards.mjs`) — add a manifest-registered
+  module's API routes there to get the same enforcement a core module gets.
 - **MCP exposure.** MCP derives its tool list from the same registry the UI
   uses. A tool you register is offered to Claude Desktop, Claude Code, ChatGPT,
   Cursor, and Antigravity with the same impact tier and the same gates.

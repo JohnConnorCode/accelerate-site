@@ -58,6 +58,12 @@ jobs:
       - name: Verify module contract resolves
         run: npm run verify:module-contract
 
+      - name: Verify module-owned API routes gate by module
+        run: npm run verify:module-route-guards
+
+      - name: Verify integration adapters resolve through the registry
+        run: npm run verify:integration-adapter-encapsulation
+
       - name: Typecheck
         run: npm run typecheck
 

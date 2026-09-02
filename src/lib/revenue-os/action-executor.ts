@@ -6,7 +6,12 @@ import { transitionOpportunity } from "./pipeline";
 import { activateCampaign } from "./campaigns";
 import { sendGmailReply } from "./google";
 import { REVENUE_STAGES, type RevenueStage } from "./types";
-import { createRevenueTask } from "./tasks";
+import {
+  createRevenueTask,
+  completeOperatorTask,
+  snoozeOperatorTask,
+  updateOperatorTask,
+} from "./tasks";
 import { applyLayoutChange } from "./admin-layout";
 import { captureFounderNote } from "./notes";
 
@@ -25,6 +30,7 @@ export const APPROVABLE_ACTIONS = [
   "send_gmail_reply",
   "transition_opportunity",
   "create_task",
+  "update_task",
   "update_next_action",
   "activate_campaign",
   "admin_layout_change",
@@ -129,6 +135,36 @@ export async function approveAndExecuteAction(
           dedupeKey: stringValue(payload, "dedupeKey", false),
           actorEmail,
         });
+        break;
+      }
+      case "update_task": {
+        const taskId = stringValue(payload, "taskId")!;
+        const changeType = stringValue(payload, "changeType")!;
+        if (changeType === "complete") {
+          result = await completeOperatorTask(supabase, { id: taskId, actorEmail });
+        } else if (changeType === "snooze") {
+          result = await snoozeOperatorTask(supabase, {
+            id: taskId,
+            until: stringValue(payload, "until")!,
+            actorEmail,
+          });
+        } else if (changeType === "edit") {
+          const priorityRaw = payload.priority;
+          result = await updateOperatorTask(supabase, {
+            id: taskId,
+            title: stringValue(payload, "title", false),
+            priority: ["high", "medium", "low"].includes(String(priorityRaw))
+              ? (priorityRaw as "high" | "medium" | "low")
+              : undefined,
+            dueDate:
+              payload.dueDate === null
+                ? null
+                : (stringValue(payload, "dueDate", false) ?? undefined),
+            actorEmail,
+          });
+        } else {
+          throw new Error(`Unknown task update changeType "${changeType}"`);
+        }
         break;
       }
       case "update_next_action": {

@@ -1,17 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
-import { timingSafeEqual } from "node:crypto";
+import { randomUUID, timingSafeEqual } from "node:crypto";
 import { requireAdmin } from "@/lib/admin/auth";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import {
   handleMcpRequest,
   REVENUE_OS_MCP_SERVER_INFO,
   MCP_PROTOCOL_VERSION,
+  MCP_SUPPORTED_PROTOCOL_VERSIONS,
   type McpJsonRpcRequest,
 } from "@/lib/revenue-os/mcp-server";
 import { tenant } from "@/config/tenant";
 import { accelerateSystemContext } from "@/lib/tenancy/context";
 
 export const runtime = "nodejs";
+
+/**
+ * Access-Control-Allow-Credentials is deliberately never set, so a
+ * cross-origin browser call never carries this endpoint's session cookie
+ * (fetch's default is credentials: "same-origin"); a wildcard origin is
+ * therefore safe here too — cross-origin callers can only reach this
+ * endpoint through the Bearer-token path, never the session-cookie path.
+ */
+const CORS_HEADERS: Record<string, string> = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers":
+    "Content-Type, Authorization, Mcp-Session-Id, MCP-Protocol-Version",
+  "Access-Control-Expose-Headers": "Mcp-Session-Id",
+  "Access-Control-Max-Age": "86400",
+};
+
+function withCors(response: NextResponse): NextResponse {
+  for (const [key, value] of Object.entries(CORS_HEADERS)) response.headers.set(key, value);
+  return response;
+}
+
+export async function OPTIONS() {
+  return withCors(new NextResponse(null, { status: 204 }));
+}
 
 function timingSafeStringEqual(a: string, b: string): boolean {
   const bufferA = Buffer.from(a);
@@ -61,29 +87,42 @@ async function resolveMcpAuth(request: NextRequest) {
   };
 }
 
-export async function GET() {
-  return NextResponse.json({
-    status: "ok",
-    server: REVENUE_OS_MCP_SERVER_INFO,
-    protocolVersion: MCP_PROTOCOL_VERSION,
-    endpoint: "/api/mcp",
-    auth: "Bearer token or session admin",
-  });
+export async function GET(request: NextRequest) {
+  if (request.headers.get("accept")?.includes("text/event-stream")) {
+    return withCors(
+      NextResponse.json(
+        { error: "This server does not support server-initiated SSE streams." },
+        { status: 405, headers: { Allow: "GET, POST, OPTIONS" } },
+      ),
+    );
+  }
+  return withCors(
+    NextResponse.json({
+      status: "ok",
+      server: REVENUE_OS_MCP_SERVER_INFO,
+      protocolVersion: MCP_PROTOCOL_VERSION,
+      supportedProtocolVersions: MCP_SUPPORTED_PROTOCOL_VERSIONS,
+      endpoint: "/api/mcp",
+      auth: "Bearer token or session admin",
+    }),
+  );
 }
 
 export async function POST(request: NextRequest) {
   const auth = await resolveMcpAuth(request);
   if (!auth) {
-    return NextResponse.json(
-      {
-        jsonrpc: "2.0",
-        id: null,
-        error: {
-          code: -32000,
-          message: "Unauthorized: Invalid or missing API key / admin session",
+    return withCors(
+      NextResponse.json(
+        {
+          jsonrpc: "2.0",
+          id: null,
+          error: {
+            code: -32000,
+            message: "Unauthorized: Invalid or missing API key / admin session",
+          },
         },
-      },
-      { status: 401 },
+        { status: 401 },
+      ),
     );
   }
 
@@ -91,26 +130,30 @@ export async function POST(request: NextRequest) {
   try {
     body = (await request.json()) as McpJsonRpcRequest;
     if (!body || body.jsonrpc !== "2.0" || !body.method) {
-      return NextResponse.json(
-        {
-          jsonrpc: "2.0",
-          id: body?.id ?? null,
-          error: {
-            code: -32600,
-            message: "Invalid Request: JSON-RPC 2.0 with 'method' is required",
+      return withCors(
+        NextResponse.json(
+          {
+            jsonrpc: "2.0",
+            id: body?.id ?? null,
+            error: {
+              code: -32600,
+              message: "Invalid Request: JSON-RPC 2.0 with 'method' is required",
+            },
           },
-        },
-        { status: 400 },
+          { status: 400 },
+        ),
       );
     }
   } catch {
-    return NextResponse.json(
-      {
-        jsonrpc: "2.0",
-        id: null,
-        error: { code: -32700, message: "Parse error: Invalid JSON received" },
-      },
-      { status: 400 },
+    return withCors(
+      NextResponse.json(
+        {
+          jsonrpc: "2.0",
+          id: null,
+          error: { code: -32700, message: "Parse error: Invalid JSON received" },
+        },
+        { status: 400 },
+      ),
     );
   }
 
@@ -121,6 +164,8 @@ export async function POST(request: NextRequest) {
     tenantConfig: auth.tenantConfig,
   });
 
-  if (response === null) return new NextResponse(null, { status: 204 });
-  return NextResponse.json(response);
+  if (response === null) return withCors(new NextResponse(null, { status: 204 }));
+  const nextResponse = withCors(NextResponse.json(response));
+  if (body.method === "initialize") nextResponse.headers.set("Mcp-Session-Id", randomUUID());
+  return nextResponse;
 }

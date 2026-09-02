@@ -10,7 +10,21 @@ import { loadOperatorQueue } from "./queue";
 import { getActiveModules } from "./modules";
 import { tenant as defaultTenant } from "@/config/tenant";
 
-export const MCP_PROTOCOL_VERSION = "2024-11-05";
+/**
+ * Every version this server can honestly claim: our surface is limited to
+ * tools/resources/prompts with plain text tool results, which is valid under
+ * all three of these handshake-based ("legacy" per the MCP spec's 2026-07-28
+ * versioning terminology) revisions — nothing in this range added a feature
+ * our results would violate or a feature we depend on that an older revision
+ * lacks. Ordered newest first; the first entry is what we claim when a
+ * client's initialize omits protocolVersion or sends one we don't recognize.
+ * We do not claim 2026-07-28: that revision replaced the initialize
+ * handshake itself with per-request version metadata and a mandatory
+ * server/discover RPC, neither of which this server implements, so claiming
+ * it would be a protocol-level lie.
+ */
+export const MCP_SUPPORTED_PROTOCOL_VERSIONS = ["2025-06-18", "2025-03-26", "2024-11-05"] as const;
+export const MCP_PROTOCOL_VERSION: string = MCP_SUPPORTED_PROTOCOL_VERSIONS[0];
 export const REVENUE_OS_MCP_SERVER_INFO = {
   name: "revenue-os-mcp",
   version: "1.0.0",
@@ -125,11 +139,24 @@ export async function handleMcpRequest(
   try {
     switch (method) {
       case "initialize": {
+        // Echo the client's requested version if we can honestly claim it
+        // (see MCP_SUPPORTED_PROTOCOL_VERSIONS), rather than always
+        // returning a fixed one: a client that strictly rejects a mismatch
+        // between what it asked for and what the server states otherwise
+        // fails to connect even though nothing about our actual behavior
+        // would have been incompatible.
+        const requestedVersion =
+          typeof params.protocolVersion === "string" ? params.protocolVersion : undefined;
+        const negotiatedVersion =
+          requestedVersion &&
+          (MCP_SUPPORTED_PROTOCOL_VERSIONS as readonly string[]).includes(requestedVersion)
+            ? requestedVersion
+            : MCP_PROTOCOL_VERSION;
         return {
           jsonrpc: "2.0",
           id,
           result: {
-            protocolVersion: MCP_PROTOCOL_VERSION,
+            protocolVersion: negotiatedVersion,
             serverInfo: REVENUE_OS_MCP_SERVER_INFO,
             capabilities: {
               tools: { listChanged: false },

@@ -502,6 +502,128 @@ async function main() {
     "archived conversations cannot receive replies",
   );
 
+  // ---- update_task: complete, snooze, and edit, each a real DB effect ----
+  // propose_task_update (MCP-facing) stages exactly this action_type; this is
+  // the proof that an approved MCP proposal actually mutates a real task row
+  // rather than only producing a plausible-looking queue entry.
+
+  function taskSeed(task: Row = {}, action: Row = {}) {
+    return new MemorySupabase({
+      action_queue: [
+        pending({
+          id: "action-task-1",
+          action_type: "update_task",
+          payload: { taskId: "task-1", changeType: "complete" },
+          ...action,
+        }),
+      ],
+      tasks: [
+        {
+          id: "task-1",
+          title: "Call the roofer back",
+          status: "pending",
+          priority: "medium",
+          due_date: "2026-09-10",
+          snoozed_until: null,
+          completed_at: null,
+          opportunity_id: null,
+          ...task,
+        },
+      ],
+      audit_log: [],
+    });
+  }
+
+  const completed = taskSeed();
+  await approveAndExecuteAction(completed.client, "action-task-1", "john@acceleratewith.us");
+  assert.equal(
+    completed.rows("tasks")[0]!.status,
+    "completed",
+    "changeType complete must mark the task completed",
+  );
+  assert.ok(completed.rows("tasks")[0]!.completed_at, "completion must record a timestamp");
+
+  const alreadyDone = taskSeed({ status: "completed" });
+  await rejects(
+    () => approveAndExecuteAction(alreadyDone.client, "action-task-1", "john@acceleratewith.us"),
+    "already completed",
+    "completing an already-completed task must be refused, not silently repeated",
+  );
+
+  const snoozed = taskSeed(
+    {},
+    { payload: { taskId: "task-1", changeType: "snooze", until: "2026-12-01" } },
+  );
+  await approveAndExecuteAction(snoozed.client, "action-task-1", "john@acceleratewith.us");
+  assert.equal(snoozed.rows("tasks")[0]!.status, "snoozed");
+  assert.equal(snoozed.rows("tasks")[0]!.snoozed_until, "2026-12-01");
+
+  const badSnoozeDate = taskSeed(
+    {},
+    { payload: { taskId: "task-1", changeType: "snooze", until: "2026-01-01" } },
+  );
+  await rejects(
+    () => approveAndExecuteAction(badSnoozeDate.client, "action-task-1", "john@acceleratewith.us"),
+    "after today",
+    "a snooze date in the past must be refused",
+  );
+
+  const edited = taskSeed(
+    {},
+    {
+      payload: {
+        taskId: "task-1",
+        changeType: "edit",
+        title: "Call the roofer back about the flashing",
+        priority: "high",
+      },
+    },
+  );
+  await approveAndExecuteAction(edited.client, "action-task-1", "john@acceleratewith.us");
+  assert.equal(edited.rows("tasks")[0]!.title, "Call the roofer back about the flashing");
+  assert.equal(edited.rows("tasks")[0]!.priority, "high");
+  assert.equal(
+    edited.rows("tasks")[0]!.due_date,
+    "2026-09-10",
+    "editing title and priority must not touch a field the proposal did not mention",
+  );
+
+  const clearedDueDate = taskSeed(
+    {},
+    { payload: { taskId: "task-1", changeType: "edit", dueDate: null } },
+  );
+  await approveAndExecuteAction(clearedDueDate.client, "action-task-1", "john@acceleratewith.us");
+  assert.equal(
+    clearedDueDate.rows("tasks")[0]!.due_date,
+    null,
+    "an explicit null dueDate must clear the field",
+  );
+
+  const noOpEdit = taskSeed({}, { payload: { taskId: "task-1", changeType: "edit" } });
+  await rejects(
+    () => approveAndExecuteAction(noOpEdit.client, "action-task-1", "john@acceleratewith.us"),
+    "no task fields were changed",
+    "an edit with nothing to change must be refused rather than silently succeed",
+  );
+
+  const unknownChangeType = taskSeed({}, { payload: { taskId: "task-1", changeType: "delete" } });
+  await rejects(
+    () =>
+      approveAndExecuteAction(unknownChangeType.client, "action-task-1", "john@acceleratewith.us"),
+    "unknown task update",
+    "an unrecognized changeType must fail closed",
+  );
+
+  const missingTask = taskSeed(
+    {},
+    { payload: { taskId: "does-not-exist", changeType: "complete" } },
+  );
+  await rejects(
+    () => approveAndExecuteAction(missingTask.client, "action-task-1", "john@acceleratewith.us"),
+    "no longer available",
+    "updating a task that does not exist (or is already closed) must fail rather than silently no-op",
+  );
+
   console.log(
     JSON.stringify(
       {
@@ -523,6 +645,15 @@ async function main() {
           "campaign-version-mismatch-refused",
           "unsubscribed-contact-refused",
           "archived-conversation-reply-refused",
+          "update-task-complete",
+          "update-task-complete-twice-refused",
+          "update-task-snooze",
+          "update-task-snooze-past-date-refused",
+          "update-task-edit",
+          "update-task-edit-clears-due-date",
+          "update-task-edit-noop-refused",
+          "update-task-unknown-change-type-refused",
+          "update-task-missing-task-refused",
         ],
         result: "passed",
       },

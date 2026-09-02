@@ -9,7 +9,12 @@ import {
   resolveOpenRouterCredential,
   validateOpenRouterApiKey,
 } from "@/lib/ai/openrouter-credentials";
-import { whatsAppAdapter, hubSpotAdapter } from "@/lib/revenue-os/integration-adapters";
+import {
+  INTEGRATION_ADAPTERS,
+  buildEncryptedCredentials,
+  resolveAccountIdentifier,
+} from "@/lib/revenue-os/integration-adapters";
+import type { AdminAuthorization } from "@/lib/admin/auth";
 
 const providerSchema = z.discriminatedUnion("action", [
   z.object({
@@ -148,6 +153,68 @@ export async function GET() {
   return NextResponse.json({ providers });
 }
 
+/**
+ * The single verify, encrypt, upsert, and audit cycle every adapter-backed
+ * provider (INTEGRATION_ADAPTERS) shares, replacing what used to be one
+ * hand-written ~45-line block per provider. `credentials` carries the
+ * request's fields verbatim; adapter.credentialFields says which of them get
+ * encrypted and under what key, so registering a third adapter needs no
+ * change here.
+ */
+async function configureAdapterProvider(
+  provider: string,
+  credentials: Record<string, unknown>,
+  authorization: AdminAuthorization,
+  credentialVersion: number,
+  existingStatus: string | null | undefined,
+  now: string,
+): Promise<NextResponse> {
+  const adapter = INTEGRATION_ADAPTERS.get(provider);
+  if (!adapter) {
+    return NextResponse.json(
+      { error: `No adapter registered for "${provider}".` },
+      { status: 500 },
+    );
+  }
+  const verification = await adapter.verify(credentials);
+  if (!verification.valid) {
+    return NextResponse.json(
+      { error: verification.error || `${adapter.name} credentials could not be verified.` },
+      { status: 400 },
+    );
+  }
+  const encryptedCredentials = buildEncryptedCredentials(adapter, credentials, encryptSecret);
+  const { data, error } = await authorization.database
+    .from("integration_connections")
+    .upsert(
+      {
+        provider,
+        account_email: resolveAccountIdentifier(verification),
+        status: "connected",
+        encrypted_credentials: encryptedCredentials,
+        credential_version: credentialVersion,
+        environment_fallback_allowed: false,
+        connected_at: now,
+        last_success_at: now,
+        last_error: null,
+        updated_at: now,
+      },
+      { onConflict: "tenant_id,provider" },
+    )
+    .select("id,provider,status,credential_version,connected_at,updated_at")
+    .single();
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  await recordAudit(authorization.database, {
+    actorEmail: authorization.user.email,
+    action: "provider.credentials_rotated",
+    entityType: "integration_connection",
+    entityId: provider,
+    before: { status: existingStatus || null },
+    after: { provider, status: "connected", credentialVersion, verified: true },
+  });
+  return NextResponse.json({ provider: data });
+}
+
 export async function POST(request: NextRequest) {
   const authorization = await requireAdmin();
   if (authorization instanceof NextResponse) return authorization;
@@ -250,93 +317,18 @@ export async function POST(request: NextRequest) {
     // It is never recoverable from the API again after this response.
     return NextResponse.json({ provider: data, apiKey: rawKey });
   }
-  if (parsed.data.action === "configure_whatsapp") {
-    // The IntegrationAdapter contract's real caller: verify against Meta's
-    // Graph API before ever saving a credential, the same discipline
-    // configure_openrouter already applies.
-    const verification = await whatsAppAdapter.verify({
-      accessToken: parsed.data.accessToken,
-      phoneNumberId: parsed.data.phoneNumberId,
-    });
-    if (!verification.valid) {
-      return NextResponse.json(
-        { error: verification.error || "WhatsApp credentials could not be verified." },
-        { status: 400 },
-      );
-    }
-    const { data, error } = await authorization.database
-      .from("integration_connections")
-      .upsert(
-        {
-          provider: "whatsapp",
-          account_email: verification.accountDetails?.name || null,
-          status: "connected",
-          encrypted_credentials: {
-            api_key: encryptSecret(parsed.data.accessToken),
-            phone_number_id: encryptSecret(parsed.data.phoneNumberId),
-          },
-          credential_version: credentialVersion,
-          environment_fallback_allowed: false,
-          connected_at: now,
-          last_success_at: now,
-          last_error: null,
-          updated_at: now,
-        },
-        { onConflict: "tenant_id,provider" },
-      )
-      .select("id,provider,status,credential_version,connected_at,updated_at")
-      .single();
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    await recordAudit(authorization.database, {
-      actorEmail: authorization.user.email,
-      action: "provider.credentials_rotated",
-      entityType: "integration_connection",
-      entityId: "whatsapp",
-      before: { status: existing?.status || null },
-      after: { provider: "whatsapp", status: "connected", credentialVersion, verified: true },
-    });
-    return NextResponse.json({ provider: data });
-  }
-  if (parsed.data.action === "configure_hubspot") {
-    const verification = await hubSpotAdapter.verify({ accessToken: parsed.data.accessToken });
-    if (!verification.valid) {
-      return NextResponse.json(
-        { error: verification.error || "HubSpot credentials could not be verified." },
-        { status: 400 },
-      );
-    }
-    const { data, error } = await authorization.database
-      .from("integration_connections")
-      .upsert(
-        {
-          provider: "hubspot",
-          account_email: verification.accountDetails?.id || null,
-          status: "connected",
-          encrypted_credentials: {
-            api_key: encryptSecret(parsed.data.accessToken),
-            webhook_secret: encryptSecret(parsed.data.webhookSecret),
-          },
-          credential_version: credentialVersion,
-          environment_fallback_allowed: false,
-          connected_at: now,
-          last_success_at: now,
-          last_error: null,
-          updated_at: now,
-        },
-        { onConflict: "tenant_id,provider" },
-      )
-      .select("id,provider,status,credential_version,connected_at,updated_at")
-      .single();
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    await recordAudit(authorization.database, {
-      actorEmail: authorization.user.email,
-      action: "provider.credentials_rotated",
-      entityType: "integration_connection",
-      entityId: "hubspot",
-      before: { status: existing?.status || null },
-      after: { provider: "hubspot", status: "connected", credentialVersion, verified: true },
-    });
-    return NextResponse.json({ provider: data });
+  if (parsed.data.action === "configure_whatsapp" || parsed.data.action === "configure_hubspot") {
+    const provider = parsed.data.action === "configure_whatsapp" ? "whatsapp" : "hubspot";
+    const credentials: Record<string, unknown> = { ...parsed.data };
+    delete credentials.action;
+    return configureAdapterProvider(
+      provider,
+      credentials,
+      authorization,
+      credentialVersion,
+      existing?.status,
+      now,
+    );
   }
   if (parsed.data.action === "configure_openrouter") {
     try {

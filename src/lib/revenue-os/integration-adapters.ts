@@ -29,6 +29,16 @@ export interface IntegrationAdapter<TCreds = Record<string, unknown>> {
   id: string;
   name: string;
   category: "crm" | "messaging" | "notifications" | "delivery";
+  /**
+   * Maps each field a workspace admin submits (matching the adapter's zod
+   * action schema) to the key it is stored under in
+   * integration_connections.encrypted_credentials. This is what lets
+   * src/app/api/admin/tenant/providers/route.ts encrypt and store a new
+   * adapter's credentials generically instead of a hand-written block per
+   * provider: adding an adapter to INTEGRATION_ADAPTERS with this declared
+   * is the whole registration, no route.ts edit required.
+   */
+  credentialFields: ReadonlyArray<{ formField: string; encryptedKey: string }>;
   verify(credentials: TCreds): Promise<IntegrationVerificationResult>;
   connect(credentials: TCreds): Promise<IntegrationConnectionReceipt>;
 }
@@ -128,6 +138,10 @@ export const whatsAppAdapter: IntegrationAdapter & {
   id: "whatsapp",
   name: "WhatsApp Business",
   category: "messaging",
+  credentialFields: [
+    { formField: "accessToken", encryptedKey: "api_key" },
+    { formField: "phoneNumberId", encryptedKey: "phone_number_id" },
+  ],
   async verify(credentials) {
     const accessToken = credentials.accessToken as string | undefined;
     const phoneNumberId = credentials.phoneNumberId as string | undefined;
@@ -400,6 +414,10 @@ export const hubSpotAdapter: IntegrationAdapter & {
   id: "hubspot",
   name: "HubSpot",
   category: "crm",
+  credentialFields: [
+    { formField: "accessToken", encryptedKey: "api_key" },
+    { formField: "webhookSecret", encryptedKey: "webhook_secret" },
+  ],
   async verify(credentials) {
     const accessToken = credentials.accessToken as string | undefined;
     if (!accessToken) {
@@ -453,9 +471,15 @@ export const hubSpotAdapter: IntegrationAdapter & {
 };
 
 /**
- * The registry every provider-scoped write in this file resolves through, so
- * a new adapter is one entry here rather than another hardcoded import
- * scattered across webhook routes and the tenant provider connect flow.
+ * The registry src/app/api/admin/tenant/providers/route.ts resolves through
+ * for every adapter-backed provider's verify, encrypt, upsert and audit
+ * cycle: it looks up `configure_<provider>` here rather than branching on a
+ * hardcoded import per provider. A new adapter registered here with its
+ * credentialFields declared needs no route.ts edit. Providers with no entry
+ * here (resend, calendly, openrouter, mcp) keep their own branch in that
+ * route because each has a real structural difference — openrouter's
+ * AAD-scoped encryption and external metadata, mcp's server-issued key,
+ * resend's settings merge — that a generic path would only obscure.
  */
 export const INTEGRATION_ADAPTERS: ReadonlyMap<string, IntegrationAdapter> = new Map<
   string,
@@ -464,3 +488,39 @@ export const INTEGRATION_ADAPTERS: ReadonlyMap<string, IntegrationAdapter> = new
   ["whatsapp", whatsAppAdapter],
   ["hubspot", hubSpotAdapter],
 ]);
+
+/**
+ * The credential-encryption half of the generic configure cycle in
+ * src/app/api/admin/tenant/providers/route.ts, pulled out as a pure
+ * function so it is testable without a request, a database, or network
+ * access to the provider being configured.
+ */
+export function buildEncryptedCredentials(
+  adapter: IntegrationAdapter,
+  credentials: Record<string, unknown>,
+  encrypt: (value: string) => string,
+): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const field of adapter.credentialFields) {
+    const value = credentials[field.formField];
+    if (typeof value === "string") result[field.encryptedKey] = encrypt(value);
+  }
+  return result;
+}
+
+/**
+ * The account_email fallback chain the generic configure cycle uses: name
+ * first (what whatsAppAdapter's verify() sets), then email, then id (what
+ * hubSpotAdapter's verify() sets), matching what each provider's dedicated
+ * block set before this was made generic.
+ */
+export function resolveAccountIdentifier(
+  verification: Pick<IntegrationVerificationResult, "accountDetails">,
+): string | null {
+  return (
+    verification.accountDetails?.name ||
+    verification.accountDetails?.email ||
+    verification.accountDetails?.id ||
+    null
+  );
+}

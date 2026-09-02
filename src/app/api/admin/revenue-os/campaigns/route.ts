@@ -1,6 +1,6 @@
 import { tenant } from "@/config/tenant";
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireAdminForModule } from "@/lib/admin/module-guard";
 import {
   activateCampaign,
   executeDueCampaignMembers,
@@ -11,7 +11,7 @@ import { isMissingRevenueSchema, normalizeEmail } from "@/lib/revenue-os/db";
 import { recordAudit } from "@/lib/revenue-os/audit";
 
 export async function GET() {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("campaigns");
   if (auth instanceof NextResponse) return auth;
   const supabase = auth.database;
   const { data, error } = await supabase
@@ -29,7 +29,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("campaigns");
   if (auth instanceof NextResponse) return auth;
   const body = (await request.json()) as Record<string, unknown>;
   const name = typeof body.name === "string" ? body.name.trim() : "";
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("campaigns");
   if (auth instanceof NextResponse) return auth;
   const body = (await request.json()) as Record<string, unknown>;
   const id = typeof body.id === "string" ? body.id : "";

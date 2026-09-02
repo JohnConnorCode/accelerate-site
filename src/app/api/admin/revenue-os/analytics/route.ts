@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { loadRevenueAnalytics, loadWebsiteAnalytics } from "@/lib/revenue-os/analytics";
 import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
 import { REVENUE_STAGES, type RevenueStage } from "@/lib/revenue-os/types";
@@ -7,7 +7,7 @@ import { REVENUE_STAGES, type RevenueStage } from "@/lib/revenue-os/types";
 const bounded = (value: string | null) => value?.trim().slice(0, 160) || undefined;
 
 export async function GET(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("analytics");
   if (auth instanceof NextResponse) return auth;
   const params = new URL(request.url).searchParams;
   const days = Math.min(365, Math.max(7, Number(params.get("days")) || 30));
