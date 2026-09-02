@@ -61,8 +61,9 @@ Production tenant release and activation use the staged, fail-closed checks in
 `docs/TENANT-CUTOVER-RUNBOOK.md`; a green Setup Center or schema check alone is
 not activation evidence.
 
-Maintainers apply migrations with `npm run db:migrate -- <migration.sql>` and
-verify the resulting objects through the service role. The command resolves the
+Maintainers apply all migrations in order with `npm run db:migrate:all`, or one
+at a time with `npm run db:migrate -- <migration.sql>`, then
+verify the resulting objects through the service role. Either command resolves the
 project, pooler host, database user, and password from the self-hosted
 environment described in `.env.example`; on macOS the password may instead come
 from the configured Keychain service. Always inspect the printed target before
@@ -216,9 +217,11 @@ Secrets are environment-only. The admin settings API refuses writes for recogniz
 
 ## Optional Google Workspace connection
 
-Enable Gmail API, Google Calendar API, and Google Drive API in one Google Cloud project. Create an OAuth web client with this production callback:
+Enable Gmail API, Google Calendar API, and Google Drive API in one Google Cloud project. Create an OAuth web client with a callback built from your own `NEXT_PUBLIC_SITE_URL`, not Accelerate's:
 
-`https://www.acceleratewith.us/api/admin/google/callback`
+`<your NEXT_PUBLIC_SITE_URL>/api/admin/google/callback`
+
+For example, `https://www.acceleratewith.us/api/admin/google/callback` is Accelerate's own production callback and will not work for a different deployment. Setup Center (`/admin/setup`) prints the exact callback URL for your instance.
 
 Add:
 
