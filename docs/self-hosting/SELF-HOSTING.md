@@ -2,7 +2,7 @@
 
 This guide separates safe local exploration from a connected deployment. Do not point a fork at the original Accelerate database, Vercel project, provider accounts, domains, or customer records.
 
-The fastest path to seeing this running is the Deploy with Vercel button in [README.md](../README.md#quick-start): it needs no environment variables and boots straight to the marketing site and fictional demo. This guide covers the rest, connecting a real workspace, whether you got there through that button or `npm ci && npm run dev` below.
+The fastest path to seeing this running is the Deploy with Vercel button in [README.md](../../README.md#quick-start): it needs no environment variables and boots straight to the marketing site and fictional demo. This guide covers the rest, connecting a real workspace, whether you got there through that button or `npm ci && npm run dev` below.
 
 ## 1. Explore locally
 
@@ -21,7 +21,7 @@ cp .env.example .env.local
 
 Create a new Supabase project and set its URL, publishable/anonymous key, and service-role key. Public variables are safe for the browser by design; service-role and provider variables are server-only secrets.
 
-Do not reuse the placeholder identity, domain, sender, or project references. Replace the bootstrap organization in `src/config/tenant.ts` and replace the protected assets described in [`ASSETS.md`](../ASSETS.md).
+Do not reuse the placeholder identity, domain, sender, or project references. Replace the bootstrap organization in `src/config/tenant.ts` and replace the protected assets described in [`ASSETS.md`](../../ASSETS.md).
 
 ## 3. Apply the database
 

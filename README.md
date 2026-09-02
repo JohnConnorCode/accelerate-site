@@ -7,7 +7,7 @@ Accelerate Revenue OS is a self-hosted operations platform for service businesse
 
 Most CRMs rent you a seat in someone else's database and charge more the more you use them. This one you own outright: your own Supabase project, your own AI provider key, your own data. Multi-tenancy is built in from the schema up, so an agency can run several client businesses from a single deployment without any of them seeing each other's records.
 
-[Live site](https://www.acceleratewith.us) · [Interactive fictional demo](https://www.acceleratewith.us/demo/command-center) · [Architecture](docs/ARCHITECTURE.md) · [Self-hosting](docs/SELF-HOSTING.md) · [Roadmap](#roadmap)
+[Live site](https://www.acceleratewith.us) · [Interactive fictional demo](https://www.acceleratewith.us/demo/command-center) · [Architecture](docs/self-hosting/ARCHITECTURE.md) · [Self-hosting](docs/self-hosting/SELF-HOSTING.md) · [All docs](docs/README.md) · [Roadmap](#roadmap)
 
 ![The Today command center, showing a founder's priority queue, open pipeline value, and pending approvals for a fictional roofing company workspace.](docs/images/command-center-workspace.png)
 
@@ -45,7 +45,7 @@ See [Roadmap](#roadmap) below for what's shipped, in progress, and planned next.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FJohnConnorCode%2Faccelerate-site&project-name=my-revenue-os&repository-name=my-revenue-os&demo-title=Accelerate%20Revenue%20OS&demo-description=Self-hosted%20revenue%20operations%2C%20CRM%2C%20and%20AI%20workspace&demo-url=https%3A%2F%2Fwww.acceleratewith.us%2Fdemo%2Fcommand-center)
 
-The button deploys with no environment variables required: it boots straight to the public marketing site and the fictional demo, and any admin route redirects to a clearly labeled "connect your Supabase project" screen instead of erroring. Add your own Supabase project's variables in the new Vercel project's settings when you're ready for a real workspace, then follow [Self-hosting](docs/SELF-HOSTING.md).
+The button deploys with no environment variables required: it boots straight to the public marketing site and the fictional demo, and any admin route redirects to a clearly labeled "connect your Supabase project" screen instead of erroring. Add your own Supabase project's variables in the new Vercel project's settings when you're ready for a real workspace, then follow [Self-hosting](docs/self-hosting/SELF-HOSTING.md).
 
 This repository ships with automatic Git deployments off (`git.deploymentEnabled: false` in `vercel.json`), which exists to keep the maintainer's own production project on a separate prebuilt release path. It carries over to your fork's Vercel project too, so a `git push` after the first deploy won't redeploy until you turn Git deployments back on in your new project's **Settings → Git**.
 
@@ -70,7 +70,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Never copy production credentials into a fork. [Self-hosting](docs/SELF-HOSTING.md) covers migration order, environment tiers, tenant bootstrap, and turning on providers.
+Never copy production credentials into a fork. [Self-hosting](docs/self-hosting/SELF-HOSTING.md) covers migration order, environment tiers, tenant bootstrap, and turning on providers.
 
 ## Useful commands
 
@@ -99,11 +99,11 @@ Public site / Admin UI / APIs / Cron / Webhooks / AI tools
        Tenant-scoped PostgreSQL + immutable receipts
 ```
 
-Route handlers and UI components are thin adapters, nothing more. Every business write lives in `src/lib/revenue-os/`, tenant resolution lives in `src/lib/tenancy/`, and every database change is an ordered SQL migration, never a runtime mutation. Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) before you touch any of those boundaries.
+Route handlers and UI components are thin adapters, nothing more. Every business write lives in `src/lib/revenue-os/`, tenant resolution lives in `src/lib/tenancy/`, and every database change is an ordered SQL migration, never a runtime mutation. Read [docs/self-hosting/ARCHITECTURE.md](docs/self-hosting/ARCHITECTURE.md) before you touch any of those boundaries.
 
 ## Roadmap
 
-`scripts/feature-backlog-data.mjs` is the single source of truth for what's shipped, in progress, planned, and backlog. Every card carries acceptance criteria, dependencies, and required verification, following the [Feature Board taxonomy](docs/FEATURE-BOARD-TAXONOMY.md). Extend that manifest; don't start a second roadmap in a fork.
+`scripts/feature-backlog-data.mjs` is the single source of truth for what's shipped, in progress, planned, and backlog. Every card carries acceptance criteria, dependencies, and required verification, following the [Feature Board taxonomy](docs/contracts/FEATURE-BOARD-TAXONOMY.md). Extend that manifest; don't start a second roadmap in a fork.
 
 [**/roadmap**](https://www.acceleratewith.us/roadmap) renders that manifest publicly, with every card's real description and acceptance criteria, no signup required. A curated, dependency-satisfied subset — cards ready to pick up without waiting on other work — is also mirrored to [GitHub Issues labeled `help wanted`](https://github.com/JohnConnorCode/accelerate-site/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) via `npm run mirror:feature-board-issues -- --apply`.
 

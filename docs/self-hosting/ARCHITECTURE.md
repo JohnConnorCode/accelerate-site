@@ -41,7 +41,7 @@ Route handlers, UI components, cron endpoints, webhooks, and AI tools are adapte
 
 The chosen architecture is one application and one Supabase database. Operational rows carry `tenant_id`; tenant-composite keys protect relationships and idempotency; authenticated membership and explicit request context determine access; row-level policies are the database backstop.
 
-Platform administration is distinct from tenant administration. Suspending a tenant disables access, ingest, jobs, and provider effects without deleting data. Read [MULTI-TENANCY-CONTRACT.md](MULTI-TENANCY-CONTRACT.md) before changing any tenant-owned path.
+Platform administration is distinct from tenant administration. Suspending a tenant disables access, ingest, jobs, and provider effects without deleting data. Read [MULTI-TENANCY-CONTRACT.md](../contracts/MULTI-TENANCY-CONTRACT.md) before changing any tenant-owned path.
 
 ## External effects
 
@@ -61,4 +61,4 @@ Each tenant can connect its own encrypted OpenRouter credential. Plaintext crede
 - Retries preserve request identity and do not duplicate external effects.
 - One tenant's failure cannot block or expose another tenant.
 
-The complete engineering invariants live in [REVENUE-OS-ENGINEERING-CONTRACT.md](REVENUE-OS-ENGINEERING-CONTRACT.md).
+The complete engineering invariants live in [REVENUE-OS-ENGINEERING-CONTRACT.md](../contracts/REVENUE-OS-ENGINEERING-CONTRACT.md).

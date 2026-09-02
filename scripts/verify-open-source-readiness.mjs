@@ -16,8 +16,8 @@ const requiredFiles = [
   "LICENSE",
   "README.md",
   "SECURITY.md",
-  "docs/ARCHITECTURE.md",
-  "docs/SELF-HOSTING.md",
+  "docs/self-hosting/ARCHITECTURE.md",
+  "docs/self-hosting/SELF-HOSTING.md",
   "CHANGELOG.md",
   "DEPLOY.md",
 ];

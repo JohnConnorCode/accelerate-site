@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Collapses the 37-command manual migration sequence documented in
- * docs/REVENUE-OS-SETUP.md into one command. Reuses run-migration.mjs
+ * docs/self-hosting/REVENUE-OS-SETUP.md into one command. Reuses run-migration.mjs
  * unchanged, one child process per file, in order — no behavior change to
  * how any single migration is applied, only to how many commands a fresh
  * clone has to type.

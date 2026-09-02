@@ -50,7 +50,7 @@ business reason.
 ## Navigation parity
 
 Live admin and the full demo share the navigation runtime described in
-`docs/NAVIGATION-RUNTIME-CONTRACT.md`. Shared admin components link to canonical
+`docs/contracts/NAVIGATION-RUNTIME-CONTRACT.md`. Shared admin components link to canonical
 `/admin/*` destinations; the demo link adapter resolves those destinations to
 the active fictional scenario before the browser navigates. Do not intercept
 document clicks, hard-reload the workspace, or maintain a second demo-only

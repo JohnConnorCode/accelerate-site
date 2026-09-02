@@ -14,7 +14,7 @@ Thanks for helping improve Accelerate Revenue OS.
 
 The commands below assume a running instance with `.env.local` configured
 and migrations applied. If you're starting from a fresh clone with neither,
-follow [docs/SELF-HOSTING.md](docs/SELF-HOSTING.md) first.
+follow [docs/self-hosting/SELF-HOSTING.md](docs/self-hosting/SELF-HOSTING.md) first.
 
 ```bash
 npm ci

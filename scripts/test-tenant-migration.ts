@@ -16,8 +16,8 @@ const suspensionMigration = readFileSync(
   "migrations/20260831-tenant-suspension-guards.sql",
   "utf8",
 );
-const setup = readFileSync("docs/REVENUE-OS-SETUP.md", "utf8");
-const contract = readFileSync("docs/MULTI-TENANCY-CONTRACT.md", "utf8");
+const setup = readFileSync("docs/self-hosting/REVENUE-OS-SETUP.md", "utf8");
+const contract = readFileSync("docs/contracts/MULTI-TENANCY-CONTRACT.md", "utf8");
 
 for (const table of TENANT_SCOPED_TABLES) {
   assert.match(

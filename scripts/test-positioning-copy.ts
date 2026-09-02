@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { marketingPositioning } from "../src/content/marketing-positioning";
 
 const ROOT = process.cwd();
-const CONTRACT = "docs/MARKETING-POSITIONING-CONTRACT.md";
+const CONTRACT = "docs/contracts/MARKETING-POSITIONING-CONTRACT.md";
 
 assert.ok(existsSync(CONTRACT), "the durable marketing positioning contract is missing");
 const contract = readFileSync(CONTRACT, "utf8");

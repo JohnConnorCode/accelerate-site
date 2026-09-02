@@ -58,7 +58,7 @@ atomic and service-role-only; apply it before exposing tenant provisioning. The
 suspension guard then makes active tenant status a just-in-time requirement for
 operational RPC claims, including service-role callers holding a stale context.
 Production tenant release and activation use the staged, fail-closed checks in
-`docs/TENANT-CUTOVER-RUNBOOK.md`; a green Setup Center or schema check alone is
+`docs/internal/TENANT-CUTOVER-RUNBOOK.md`; a green Setup Center or schema check alone is
 not activation evidence.
 
 Maintainers apply all migrations in order with `npm run db:migrate:all`, or one
@@ -163,7 +163,7 @@ The initial seed includes production migration, admin QA, unsubscribe handling, 
 
 The complete execution backlog is source-controlled in `scripts/feature-backlog-data.mjs`. Its current managed count and status totals come from `npm run verify:agent-contract`; do not copy those mutable totals into documentation. The cards cover foundation, admin, Google, Gmail, Calendar, Drive, campaigns, proposals, AI, setup, security, operations, QA, release, documentation, and client productization.
 
-The universal implementation framework is `docs/REVENUE-OS-ENGINEERING-CONTRACT.md`; the exact pickup/evidence/recovery procedure is `docs/AGENT-TICKET-RUNBOOK.md`; and `src/lib/revenue-os/README.md` maps every core service to its callers and invariants. Run `npm run verify:agent-contract` before claiming work. Managed card definitions are durable in the manifest and projected into `/admin/features`; changes that must survive reconciliation belong in the manifest first.
+The universal implementation framework is `docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md`; the exact pickup/evidence/recovery procedure is `docs/contributing/AGENT-TICKET-RUNBOOK.md`; and `src/lib/revenue-os/README.md` maps every core service to its callers and invariants. Run `npm run verify:agent-contract` before claiming work. Managed card definitions are durable in the manifest and projected into `/admin/features`; changes that must survive reconciliation belong in the manifest first.
 
 After applying the Feature Board migration, validate the manifest without writing:
 
