@@ -118,6 +118,7 @@
     "seed:features": "node --env-file=.env.local scripts/seed-feature-backlog.mjs",
     "test:feature-board-dependencies": "npx tsx scripts/test-feature-board-dependencies.ts",
     "db:migrate": "node scripts/run-migration.mjs",
+    "db:migrate:all": "node scripts/run-all-migrations.mjs",
     "db:verify-schema": "tsx scripts/verify-revenue-schema.ts",
     "scheduler:configure": "node --env-file=.env.local scripts/configure-command-center-scheduler.mjs",
     "test:job-claims": "node scripts/qa-job-claims.mjs",

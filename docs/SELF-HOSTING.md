@@ -23,13 +23,14 @@ Do not reuse the placeholder identity, domain, sender, or project references. Re
 
 ## 3. Apply the database
 
-Install PostgreSQL client tools so `psql` is available. Set the database connection variables from `.env.example`, then apply the SQL files in the exact order listed in [REVENUE-OS-SETUP.md](REVENUE-OS-SETUP.md).
+Install PostgreSQL client tools so `psql` is available. Set the database connection variables from `.env.example`.
 
 ```bash
-npm run db:migrate -- supabase/migration.sql
-# Continue through the documented ordered migration list.
+npm run db:migrate:all
 npm run db:verify-schema
 ```
+
+`db:migrate:all` applies all 37 migrations in order (`scripts/lib/migration-manifest.mjs` is the source of truth for that order, matching [REVENUE-OS-SETUP.md](REVENUE-OS-SETUP.md)'s numbered list) by calling the single-file runner once per file. Every migration is additive and idempotent, so re-running the whole command after fixing an error is safe — already-applied files no-op. To apply one migration at a time instead, use `npm run db:migrate -- <path>` with the exact file listed in REVENUE-OS-SETUP.md.
 
 Migration commands should target a new project you control. Inspect the resolved project and host printed by the command before confirming any production operation.
 

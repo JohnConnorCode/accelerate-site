@@ -4,6 +4,11 @@ This file is the mandatory starting point for every implementation agent. The
 goal is repeatable delivery by agents with different capability levels, without
 rediscovering architecture or inventing new write paths.
 
+If the repo isn't running yet, none of this is reachable: `/admin/features`
+in step 1 below requires a deployed or locally running instance with
+migrations applied and a founder account. Follow
+[docs/SELF-HOSTING.md](docs/SELF-HOSTING.md) first, then come back here.
+
 ## Read in this order
 
 1. The claimed card in `/admin/features` and its matching entry in

@@ -13,8 +13,7 @@ function projectRefFromUrl() {
 }
 
 export const PROJECT_REF = process.env.SUPABASE_PROJECT_REF?.trim() || projectRefFromUrl();
-export const POOLER_HOST =
-  process.env.SUPABASE_DB_HOST?.trim() || "aws-1-us-east-1.pooler.supabase.com";
+export const POOLER_HOST = process.env.SUPABASE_DB_HOST?.trim() || "";
 export const POOLER_PORT = process.env.SUPABASE_DB_PORT?.trim() || "5432";
 export const DATABASE_USER =
   process.env.SUPABASE_DB_USER?.trim() || (PROJECT_REF ? `postgres.${PROJECT_REF}` : "");

@@ -24,7 +24,7 @@ export const OPEN_SOURCE_PATHS: OpenSourcePath[] = [
       "The complete source, MIT licensed, no seat limits or usage tiers",
       "CRM, pipeline, inbox, campaigns, proposals, and analytics in one application",
       "AI operations with approval gates and an audit trail, using your own OpenRouter key",
-      "32 ordered database migrations and full documentation for tenancy and security",
+      "37 ordered database migrations and full documentation for tenancy and security",
       "A public roadmap, with acceptance criteria written out for every planned change",
     ],
     ctaText: "View the repository",
@@ -59,7 +59,7 @@ export interface OpenSourceStat {
 /** Verifiable facts about the codebase, not illustrative figures. Recompute
     against the repo before changing a number here. */
 export const OPEN_SOURCE_STATS: OpenSourceStat[] = [
-  { value: "32", label: "Ordered migrations", detail: "Every schema change, in sequence" },
+  { value: "37", label: "Ordered migrations", detail: "Every schema change, in sequence" },
   { value: "101", label: "Automated checks", detail: "Test and verification scripts" },
   { value: "94K", label: "Lines of TypeScript", detail: "Across 534 source files" },
   { value: "MIT", label: "Fully open license", detail: "No seat limits, no usage tiers" },
@@ -91,7 +91,7 @@ export const openSourceFaqs: FAQ[] = [
   {
     question: "What does self-hosting actually require?",
     answer:
-      "Node.js, a Supabase project you control, and running the 32 documented migrations. A one-click deploy path that removes the terminal step entirely is on the public roadmap now.",
+      "Node.js, a Supabase project you control, and running the 37 documented migrations. A one-click deploy path that removes the terminal step entirely is on the public roadmap now.",
   },
   {
     question: "Can I self-host it now and bring you in later?",
