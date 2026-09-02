@@ -1120,7 +1120,8 @@ export const featureBacklog = [
       "Verify the production Revenue OS schema",
       "Verify founder-only admin access and service-only data policies",
     ],
-    start: "docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md; src/config/tenant.ts; docs/self-hosting/SELF-HOSTING.md",
+    start:
+      "docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md; src/config/tenant.ts; docs/self-hosting/SELF-HOSTING.md",
     guardrails:
       "Historical receipt only. Do not remove its evidence, but do not use its former prohibition to block shared-database-multi-tenancy-contract or its child cards. Billing and custom domains remain out of scope until separately authorized.",
     labels: ["clonable", "architecture-decision", "template"],
@@ -1372,7 +1373,8 @@ export const featureBacklog = [
       "Turn the roofing ingestion path into a configurable playbook",
       "Finish Setup Center as the operational control plane",
     ],
-    start: "docs/self-hosting/SELF-HOSTING.md; migrations/; scripts/; src/config/tenant.ts; src/app/admin/setup",
+    start:
+      "docs/self-hosting/SELF-HOSTING.md; migrations/; scripts/; src/config/tenant.ts; src/app/admin/setup",
     guardrails:
       "Never point the smoke test at the Accelerate production database, and never copy customer records, credentials, operational history, or audit rows into a new installation. A clean installation starts empty; seeding it with real data is a separate, explicitly authorized decision.",
     labels: ["clonable", "install", "smoke-test"],
@@ -2821,7 +2823,8 @@ export const featureBacklog = [
       "Finish Setup Center as the operational control plane",
       "Enforce bounded AI context and grounding rules",
     ],
-    start: "Revenue AI command; analytics service; docs/self-hosting/REVENUE-OS-SETUP.md; Setup API",
+    start:
+      "Revenue AI command; analytics service; docs/self-hosting/REVENUE-OS-SETUP.md; Setup API",
     guardrails:
       "Do not call estimates facts or claim a provider is healthy from configuration presence alone.",
     labels: ["analytics", "setup"],

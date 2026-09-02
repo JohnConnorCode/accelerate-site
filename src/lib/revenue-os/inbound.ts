@@ -247,15 +247,14 @@ export async function ingestPlaybookQualification(
   input: PlaybookInboundInput,
 ) {
   const playbookKey = input.playbookKey || "roofing";
-  const matchedPlaybook =
-    tenant.playbooks.find((p) => p.key === playbookKey) || {
-      key: playbookKey,
-      label: playbookKey.charAt(0).toUpperCase() + playbookKey.slice(1),
-      industry: playbookKey,
-      sourceTag: `${playbookKey}_qualifier`,
-      path: `/${playbookKey}`,
-      nextAction: `Respond to qualified ${playbookKey} audit request`,
-    };
+  const matchedPlaybook = tenant.playbooks.find((p) => p.key === playbookKey) || {
+    key: playbookKey,
+    label: playbookKey.charAt(0).toUpperCase() + playbookKey.slice(1),
+    industry: playbookKey,
+    sourceTag: `${playbookKey}_qualifier`,
+    path: `/${playbookKey}`,
+    nextAction: `Respond to qualified ${playbookKey} audit request`,
+  };
 
   const { data: matches, error: matchError } = await supabase
     .from("opportunities")

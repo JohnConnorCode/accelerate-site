@@ -614,7 +614,8 @@ export const integrationRegistry: readonly IntegrationDefinition[] = [
       {
         id: "inbound-messaging",
         label: "Inbound message capture",
-        description: "Receive customer messages via verified webhooks and feed into the unified inbox.",
+        description:
+          "Receive customer messages via verified webhooks and feed into the unified inbox.",
         direction: "read",
         impact: "internal_write",
       },
@@ -637,15 +638,21 @@ export const integrationRegistry: readonly IntegrationDefinition[] = [
     auth: "Bearer API key (REVENUE_OS_API_KEY) or active session",
     transports: ["api"],
     dataClasses: ["Bounded tool inputs, live queue snapshots, and staged action proposals"],
-    docsHref: "https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/MCP-SETUP.md",
-    limits: ["Mutations enter action_queue for review", "Bounded query caps", "No raw token passthrough"],
+    docsHref:
+      "https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/MCP-SETUP.md",
+    limits: [
+      "Mutations enter action_queue for review",
+      "Bounded query caps",
+      "No raw token passthrough",
+    ],
     guardrail:
       "MCP derives tools directly from the authoritative registry; external LLMs cannot execute direct database writes.",
     capabilities: [
       {
         id: "agent-tools",
         label: "Bounded agent tools",
-        description: "Expose 14 registered AI tools for queue, contacts, pipeline, and inbox management.",
+        description:
+          "Expose 14 registered AI tools for queue, contacts, pipeline, and inbox management.",
         direction: "bidirectional",
         impact: "internal_write",
       },
@@ -659,7 +666,8 @@ export const integrationRegistry: readonly IntegrationDefinition[] = [
       {
         id: "operator-prompts",
         label: "Operator prompt workflows",
-        description: "Pre-configured templates for daily triage, pipeline health, and conversation replies.",
+        description:
+          "Pre-configured templates for daily triage, pipeline health, and conversation replies.",
         direction: "read",
         impact: "read",
       },

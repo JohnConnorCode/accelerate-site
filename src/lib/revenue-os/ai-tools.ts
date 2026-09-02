@@ -243,7 +243,8 @@ function availabilityFor(
   if (!moduleCheck.enabled) {
     return {
       available: false,
-      reason: moduleCheck.reason ?? `${tool.name} module is disabled in this workspace configuration.`,
+      reason:
+        moduleCheck.reason ?? `${tool.name} module is disabled in this workspace configuration.`,
     };
   }
   // A proposal is not a provider side effect. These tools call bounded
@@ -807,7 +808,8 @@ const registry: AiToolRegistration[] = [
   },
   {
     name: "propose_conversation_reply",
-    description: "Stage a reply to an active conversation thread for founder approval. This never sends directly.",
+    description:
+      "Stage a reply to an active conversation thread for founder approval. This never sends directly.",
     inputSchema: {
       type: "object",
       properties: {

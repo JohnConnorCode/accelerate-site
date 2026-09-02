@@ -33,7 +33,10 @@ class MockSupabase {
   }
 }
 
-class MockQueryBuilder implements PromiseLike<{ data: unknown; error: { message: string } | null }> {
+class MockQueryBuilder implements PromiseLike<{
+  data: unknown;
+  error: { message: string } | null;
+}> {
   private filters: Array<(row: Row) => boolean> = [];
   private orderCol: string | null = null;
   private orderAsc = true;
@@ -147,7 +150,10 @@ class MockQueryBuilder implements PromiseLike<{ data: unknown; error: { message:
 
   then<TResult1 = { data: unknown; error: { message: string } | null }, TResult2 = never>(
     onfulfilled?:
-      | ((value: { data: unknown; error: { message: string } | null }) => TResult1 | PromiseLike<TResult1>)
+      | ((value: {
+          data: unknown;
+          error: { message: string } | null;
+        }) => TResult1 | PromiseLike<TResult1>)
       | null,
     onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
   ): Promise<TResult1 | TResult2> {

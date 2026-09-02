@@ -174,16 +174,10 @@ export async function listConversations(
 
   const [contactsRes, companiesRes, oppsRes] = await Promise.all([
     contactIds.length
-      ? supabase
-          .from("contacts")
-          .select("id, full_name, primary_email, phone")
-          .in("id", contactIds)
+      ? supabase.from("contacts").select("id, full_name, primary_email, phone").in("id", contactIds)
       : Promise.resolve({ data: [] }),
     companyIds.length
-      ? supabase
-          .from("companies")
-          .select("id, name, domain")
-          .in("id", companyIds)
+      ? supabase.from("companies").select("id, name, domain").in("id", companyIds)
       : Promise.resolve({ data: [] }),
     opportunityIds.length
       ? supabase
@@ -261,8 +255,7 @@ export async function listConversations(
   if (filter.search?.trim()) {
     const q = filter.search.trim().toLowerCase();
     filtered = filtered.filter((c) => {
-      const email =
-        (c.metadata?.contact_email as string) || c.contact?.primary_email || "";
+      const email = (c.metadata?.contact_email as string) || c.contact?.primary_email || "";
       const name = c.contact?.full_name || "";
       const company = c.company?.name || "";
       const subject = c.subject || "";
@@ -307,57 +300,56 @@ export async function getConversationDetail(
   if (convErr) throw new Error(`Could not load conversation: ${convErr.message}`);
   if (!convRow) return null;
 
-  const [messagesRes, contactRes, companyRes, oppRes, tasksRes, activitiesRes] =
-    await Promise.all([
-      supabase
-        .from("messages")
-        .select(
-          "id, conversation_id, external_id, provider_id, direction, sender_email, recipient_emails, subject, body_text, body_html, status, sent_at, received_at, created_at",
-        )
-        .eq("conversation_id", id)
-        .order("created_at", { ascending: true }),
-      convRow.contact_id
-        ? supabase
-            .from("contacts")
-            .select(
-              "id, full_name, primary_email, alternate_emails, phone, title, lifecycle_stage, communication_status, created_at",
-            )
-            .eq("id", convRow.contact_id)
-            .maybeSingle()
-        : Promise.resolve({ data: null, error: null }),
-      convRow.company_id
-        ? supabase
-            .from("companies")
-            .select("id, name, domain, website, industry, size_band, location")
-            .eq("id", convRow.company_id)
-            .maybeSingle()
-        : Promise.resolve({ data: null, error: null }),
-      convRow.opportunity_id
-        ? supabase
-            .from("opportunities")
-            .select(
-              "id, name, stage, pipeline, estimated_value, won_value, probability, next_action, next_action_at, created_at",
-            )
-            .eq("id", convRow.opportunity_id)
-            .maybeSingle()
-        : Promise.resolve({ data: null, error: null }),
-      supabase
-        .from("tasks")
-        .select("id, title, description, due_date, due_time, priority, status, created_at")
-        .or(
-          `opportunity_id.eq.${convRow.opportunity_id || "00000000-0000-0000-0000-000000000000"},related_id.eq.${id}`,
-        )
-        .order("created_at", { ascending: false })
-        .limit(20),
-      supabase
-        .from("activities")
-        .select("id, activity_type, title, summary, occurred_at, created_at")
-        .or(
-          `conversation_id.eq.${id},opportunity_id.eq.${convRow.opportunity_id || "00000000-0000-0000-0000-000000000000"}`,
-        )
-        .order("occurred_at", { ascending: false })
-        .limit(20),
-    ]);
+  const [messagesRes, contactRes, companyRes, oppRes, tasksRes, activitiesRes] = await Promise.all([
+    supabase
+      .from("messages")
+      .select(
+        "id, conversation_id, external_id, provider_id, direction, sender_email, recipient_emails, subject, body_text, body_html, status, sent_at, received_at, created_at",
+      )
+      .eq("conversation_id", id)
+      .order("created_at", { ascending: true }),
+    convRow.contact_id
+      ? supabase
+          .from("contacts")
+          .select(
+            "id, full_name, primary_email, alternate_emails, phone, title, lifecycle_stage, communication_status, created_at",
+          )
+          .eq("id", convRow.contact_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+    convRow.company_id
+      ? supabase
+          .from("companies")
+          .select("id, name, domain, website, industry, size_band, location")
+          .eq("id", convRow.company_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+    convRow.opportunity_id
+      ? supabase
+          .from("opportunities")
+          .select(
+            "id, name, stage, pipeline, estimated_value, won_value, probability, next_action, next_action_at, created_at",
+          )
+          .eq("id", convRow.opportunity_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+    supabase
+      .from("tasks")
+      .select("id, title, description, due_date, due_time, priority, status, created_at")
+      .or(
+        `opportunity_id.eq.${convRow.opportunity_id || "00000000-0000-0000-0000-000000000000"},related_id.eq.${id}`,
+      )
+      .order("created_at", { ascending: false })
+      .limit(20),
+    supabase
+      .from("activities")
+      .select("id, activity_type, title, summary, occurred_at, created_at")
+      .or(
+        `conversation_id.eq.${id},opportunity_id.eq.${convRow.opportunity_id || "00000000-0000-0000-0000-000000000000"}`,
+      )
+      .order("occurred_at", { ascending: false })
+      .limit(20),
+  ]);
 
   const messages = (messagesRes.data || []) as ConversationMessage[];
   const contact = (contactRes.data as Record<string, unknown>) || null;
@@ -594,9 +586,7 @@ export async function createOpportunityFromConversation(
   if (convErr || !conv) throw new Error("Conversation not found");
 
   const email =
-    input.email ||
-    (conv.metadata?.contact_email as string) ||
-    "inquiry@conversation.local";
+    input.email || (conv.metadata?.contact_email as string) || "inquiry@conversation.local";
 
   const opp = await createOpportunity(supabase, {
     actorEmail: input.actorEmail,
@@ -652,7 +642,8 @@ export async function createTaskFromConversation(
 
   const res = await createRevenueTask(supabase, {
     title: input.title,
-    description: input.description || `Follow-up commitment for conversation "${conv.subject || convId}".`,
+    description:
+      input.description || `Follow-up commitment for conversation "${conv.subject || convId}".`,
     dueDate: input.dueDate || new Date().toISOString().split("T")[0],
     priority: input.priority || "medium",
     relatedType: "conversation",

@@ -37,7 +37,11 @@ function stubSupabase(initialTables: Record<string, Row[]> = {}) {
     };
     self.ilike = (field: string, pattern: string) => {
       const clean = pattern.replace(/%/g, "").toLowerCase();
-      currentFilters.push((r) => String(r[field] ?? "").toLowerCase().includes(clean));
+      currentFilters.push((r) =>
+        String(r[field] ?? "")
+          .toLowerCase()
+          .includes(clean),
+      );
       return self;
     };
     self.like = self.ilike;

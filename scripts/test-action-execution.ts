@@ -389,7 +389,11 @@ async function main() {
 
   await rejects(
     () =>
-      approveAndExecuteAction(duplicateStageOpp.client, "action-stage-dup", "john@acceleratewith.us"),
+      approveAndExecuteAction(
+        duplicateStageOpp.client,
+        "action-stage-dup",
+        "john@acceleratewith.us",
+      ),
     "already in stage",
     "advancing to an identical stage must be rejected",
   );

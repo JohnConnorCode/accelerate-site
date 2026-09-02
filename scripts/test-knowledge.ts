@@ -93,7 +93,11 @@ async function runTests() {
     const result = await retrieveKnowledge(supabase, { entityName: "Acme Corp" });
     assert.equal(result.found, false);
     assert.equal(result.chunks.length, 0);
-    assert.ok(result.refusalReason?.includes('No canonical records, founder notes, or activities found for "Acme Corp".'));
+    assert.ok(
+      result.refusalReason?.includes(
+        'No canonical records, founder notes, or activities found for "Acme Corp".',
+      ),
+    );
   }
 
   // 3. Grounded retrieval citing company, contact, opportunity, and founder notes with provenance

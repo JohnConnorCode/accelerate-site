@@ -6,10 +6,7 @@ import { loadActivityTimeline } from "./activities";
 export const SECOND_BRAIN_KNOWLEDGE_CONTRACT = "revenue-os-knowledge.v1";
 
 export type KnowledgeSource =
-  | "canonical_record"
-  | "founder_note"
-  | "activity_ledger"
-  | "conversation";
+  "canonical_record" | "founder_note" | "activity_ledger" | "conversation";
 
 export interface KnowledgeChunk {
   id: string;
@@ -56,13 +53,7 @@ export async function retrieveKnowledge(
   supabase: SupabaseClient,
   input: KnowledgeQueryInput,
 ): Promise<KnowledgeSearchResult> {
-  const queryStr = (
-    input.entityName ||
-    input.email ||
-    input.domain ||
-    input.topic ||
-    ""
-  ).trim();
+  const queryStr = (input.entityName || input.email || input.domain || input.topic || "").trim();
 
   if (!queryStr) {
     return {
@@ -71,7 +62,8 @@ export async function retrieveKnowledge(
       query: "",
       entitySummary: null,
       chunks: [],
-      refusalReason: "No query parameters supplied. Provide an entity name, domain, email, or topic.",
+      refusalReason:
+        "No query parameters supplied. Provide an entity name, domain, email, or topic.",
       generatedAt: new Date().toISOString(),
     };
   }
@@ -83,9 +75,7 @@ export async function retrieveKnowledge(
   if (input.domain) {
     companyQuery = companyQuery.eq("domain", input.domain.toLowerCase().trim());
   } else {
-    companyQuery = companyQuery.or(
-      `name.ilike.%${cleanQuery}%,domain.ilike.%${cleanQuery}%`,
-    );
+    companyQuery = companyQuery.or(`name.ilike.%${cleanQuery}%,domain.ilike.%${cleanQuery}%`);
   }
   const { data: companies } = await companyQuery;
 
