@@ -213,7 +213,19 @@ function ActionReviewDialog({
       <div className="max-h-[92dvh] w-full overflow-y-auto rounded-t-[24px] bg-[var(--admin-surface)] shadow-2xl sm:rounded-[24px]">
         <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]/95 px-5 py-4 backdrop-blur-xl sm:px-6">
           <div>
-            <p className="admin-eyebrow">Approval queue</p>
+            <div className="flex items-center gap-2">
+              <p className="admin-eyebrow">Approval queue</p>
+              <span
+                className={cn(
+                  "rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider",
+                  external
+                    ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                    : "bg-blue-500/15 text-blue-700 dark:text-blue-300",
+                )}
+              >
+                {external ? "External Action" : "Internal Mutation"}
+              </span>
+            </div>
             <h2
               id="action-review-title"
               className="mt-1 text-balance text-xl font-semibold tracking-[-0.03em] text-[var(--admin-ink)]"
@@ -248,10 +260,12 @@ function ActionReviewDialog({
               external ? "text-amber-600 dark:text-amber-400" : "text-[var(--admin-muted)]",
             )}
           />
-          <p className="admin-copy text-[11px] leading-5">
-            <span className="font-semibold text-[var(--admin-ink)]">If you approve:</span>{" "}
+          <div className="admin-copy text-[11px] leading-5">
+            <span className="font-semibold text-[var(--admin-ink)]">
+              {external ? "Irreversible external consequence:" : "Material consequence:"}
+            </span>{" "}
             {consequence}
-          </p>
+          </div>
         </div>
 
         <div className="grid gap-4 px-5 py-5 sm:px-6">

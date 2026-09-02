@@ -140,6 +140,11 @@ export class MemorySupabase {
       filters.push((row) => row[column] !== value);
       return self;
     };
+    self.ilike = (column: string, value: string) => {
+      const lower = value.toLowerCase();
+      filters.push((row) => row[column] != null && String(row[column]).toLowerCase() === lower);
+      return self;
+    };
     self.gt = (column: string, value: string) => {
       filters.push((row) => row[column] != null && String(row[column]) > value);
       return self;

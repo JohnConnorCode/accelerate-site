@@ -27,6 +27,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { applyLayoutOverride, type LayoutDoc } from "@/lib/admin/layout-overrides";
+import { isNavLinkEnabled } from "@/lib/revenue-os/modules";
 
 export interface AdminNavLink {
   id: string;
@@ -337,6 +338,21 @@ export function applyNavLayoutOverride(
       const bIndex = orderIndex.get(b.links[0]!.id) ?? Number.MAX_SAFE_INTEGER;
       return aIndex - bIndex;
     });
+}
+
+/**
+ * Filters navigation sections by module enablement in the active tenant configuration.
+ */
+export function filterNavSectionsByTenant(
+  sections: AdminNavSection[],
+  tenantConfig?: { modules?: Partial<Record<string, boolean>> } | null,
+): AdminNavSection[] {
+  return sections
+    .map((section) => ({
+      ...section,
+      links: section.links.filter((link) => isNavLinkEnabled(link.id, tenantConfig)),
+    }))
+    .filter((section) => section.links.length > 0);
 }
 
 export function resolveAdminNavLink(pathname: string) {

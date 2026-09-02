@@ -8,6 +8,7 @@ Read these to run your own instance.
 
 - [self-hosting/SELF-HOSTING.md](self-hosting/SELF-HOSTING.md) — the fastest path from clone to a running workspace.
 - [self-hosting/REVENUE-OS-SETUP.md](self-hosting/REVENUE-OS-SETUP.md) — the full numbered setup: migrations, Google Workspace, Resend, AI architecture, production environment.
+- [self-hosting/MCP-SETUP.md](self-hosting/MCP-SETUP.md) — Model Context Protocol (MCP) server setup for Claude Desktop, Claude Code, ChatGPT, Cursor, and Antigravity.
 - [self-hosting/ARCHITECTURE.md](self-hosting/ARCHITECTURE.md) — request path, tenancy model, source map, at a glance.
 
 ## Contributing code

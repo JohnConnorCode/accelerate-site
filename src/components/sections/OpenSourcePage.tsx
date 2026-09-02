@@ -234,7 +234,7 @@ export function OpenSourcePageContent() {
               repository.
             </p>
             <a
-              href="https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/SELF-HOSTING.md"
+              href="https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/SELF-HOSTING.md"
               target="_blank"
               rel="noopener noreferrer"
               data-cursor="link"

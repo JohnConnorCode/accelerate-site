@@ -41,31 +41,73 @@ export async function approveAndExecuteAction(
   try {
     let result: unknown;
     switch (action.action_type) {
-      case "send_email":
+      case "send_email": {
+        const contactId = stringValue(payload, "contactId", false);
+        if (contactId) {
+          const { data: contact, error: contactError } = await supabase
+            .from("contacts")
+            .select("id,unsubscribed")
+            .eq("id", contactId)
+            .maybeSingle();
+          if (contactError) throw new Error(contactError.message);
+          if (contact && contact.unsubscribed) {
+            throw new Error("Cannot send email: contact has unsubscribed");
+          }
+        }
         result = await sendRecordedEmail(supabase, {
           to: stringValue(payload, "to")!,
           subject: stringValue(payload, "subject")!,
           text: stringValue(payload, "body")!,
-          contactId: stringValue(payload, "contactId", false),
+          contactId,
           opportunityId: stringValue(payload, "opportunityId", false),
           actorEmail,
           source: "ai",
         });
         break;
-      case "send_gmail_reply":
+      }
+      case "send_gmail_reply": {
+        const conversationId = stringValue(payload, "conversationId")!;
+        const { data: conv, error: convError } = await supabase
+          .from("conversations")
+          .select("id,status")
+          .eq("id", conversationId)
+          .maybeSingle();
+        if (convError) throw new Error(convError.message);
+        if (conv && conv.status === "archived") {
+          throw new Error("Cannot send reply: conversation is archived");
+        }
         result = await sendGmailReply(supabase, {
-          conversationId: stringValue(payload, "conversationId")!,
+          conversationId,
           body: stringValue(payload, "body")!,
           actorEmail,
           idempotencyKey: `action:${id}`,
         });
         break;
+      }
       case "transition_opportunity": {
         const stage = stringValue(payload, "stage")!;
         if (!REVENUE_STAGES.includes(stage as RevenueStage))
           throw new Error("Invalid pipeline stage");
+        const oppId = stringValue(payload, "opportunityId")!;
+        const { data: currentOpp, error: oppError } = await supabase
+          .from("opportunities")
+          .select("id,stage")
+          .eq("id", oppId)
+          .maybeSingle();
+        if (oppError) throw new Error(oppError.message);
+        if (!currentOpp) {
+          throw new Error("Target opportunity not found");
+        }
+        if (payload.expectedStage && currentOpp.stage !== payload.expectedStage) {
+          throw new Error(
+            `Underlying opportunity state changed: expected stage "${payload.expectedStage}", but currently "${currentOpp.stage}". Proposal has expired.`,
+          );
+        }
+        if (currentOpp.stage === stage) {
+          throw new Error(`Opportunity is already in stage "${stage}"`);
+        }
         result = await transitionOpportunity(supabase, {
-          id: stringValue(payload, "opportunityId")!,
+          id: oppId,
           to: stage as RevenueStage,
           actorEmail,
           source: "ai",
@@ -103,9 +145,31 @@ export async function approveAndExecuteAction(
         result = data;
         break;
       }
-      case "activate_campaign":
-        result = await activateCampaign(supabase, stringValue(payload, "campaignId")!, actorEmail);
+      case "activate_campaign": {
+        const campaignId = stringValue(payload, "campaignId")!;
+        const { data: campaign, error: campError } = await supabase
+          .from("campaigns")
+          .select("id,status,version,approved_version")
+          .eq("id", campaignId)
+          .maybeSingle();
+        if (campError) throw new Error(campError.message);
+        if (!campaign) {
+          throw new Error("Target campaign not found");
+        }
+        if (campaign.status === "active") {
+          throw new Error("Campaign is already active");
+        }
+        if (
+          typeof payload.expectedVersion === "number" &&
+          campaign.version !== payload.expectedVersion
+        ) {
+          throw new Error(
+            `Campaign version changed from ${payload.expectedVersion} to ${campaign.version} since proposal. Re-approval required.`,
+          );
+        }
+        result = await activateCampaign(supabase, campaignId, actorEmail);
         break;
+      }
       case "admin_layout_change":
         result = await applyLayoutChange(supabase, {
           scope: stringValue(payload, "scope")!,

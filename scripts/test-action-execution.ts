@@ -327,6 +327,177 @@ async function main() {
     "recovering an abandoned action must not block a later claim",
   );
 
+  // ---- State change invalidation ----------------------------------------
+
+  // When an opportunity stage has moved since proposal was created, execution fails
+  const staleStageOpp = new MemorySupabase({
+    action_queue: [
+      pending({
+        id: "action-stage-conflict",
+        action_type: "transition_opportunity",
+        payload: {
+          opportunityId: "opp-moved",
+          stage: "won",
+          expectedStage: "qualified",
+          reason: "Deal closed",
+        },
+      }),
+    ],
+    opportunities: [
+      {
+        id: "opp-moved",
+        name: "Northside Roofing",
+        stage: "proposal", // changed from qualified to proposal
+      },
+    ],
+    audit_log: [],
+  });
+
+  await rejects(
+    () =>
+      approveAndExecuteAction(
+        staleStageOpp.client,
+        "action-stage-conflict",
+        "john@acceleratewith.us",
+      ),
+    "opportunity state changed",
+    "when the underlying record stage has changed since proposal, approval must be rejected",
+  );
+
+  // When opportunity is already in target stage
+  const duplicateStageOpp = new MemorySupabase({
+    action_queue: [
+      pending({
+        id: "action-stage-dup",
+        action_type: "transition_opportunity",
+        payload: {
+          opportunityId: "opp-dup",
+          stage: "proposal",
+          reason: "Advance deal",
+        },
+      }),
+    ],
+    opportunities: [
+      {
+        id: "opp-dup",
+        name: "Northside Roofing",
+        stage: "proposal",
+      },
+    ],
+    audit_log: [],
+  });
+
+  await rejects(
+    () =>
+      approveAndExecuteAction(duplicateStageOpp.client, "action-stage-dup", "john@acceleratewith.us"),
+    "already in stage",
+    "advancing to an identical stage must be rejected",
+  );
+
+  // When a campaign version has changed since proposal
+  const staleCampaign = new MemorySupabase({
+    action_queue: [
+      pending({
+        id: "action-camp-conflict",
+        action_type: "activate_campaign",
+        payload: {
+          campaignId: "camp-1",
+          expectedVersion: 1,
+          reasoning: "Launch campaign",
+        },
+      }),
+    ],
+    campaigns: [
+      {
+        id: "camp-1",
+        name: "Re-engagement v2",
+        status: "draft",
+        version: 2, // bumped
+        approved_version: 2,
+      },
+    ],
+    audit_log: [],
+  });
+
+  await rejects(
+    () =>
+      approveAndExecuteAction(
+        staleCampaign.client,
+        "action-camp-conflict",
+        "john@acceleratewith.us",
+      ),
+    "Campaign version changed",
+    "campaign version mismatch must require re-approval",
+  );
+
+  // When an email target contact has unsubscribed
+  const unsubscribedContact = new MemorySupabase({
+    action_queue: [
+      pending({
+        id: "action-email-unsub",
+        action_type: "send_email",
+        payload: {
+          to: "unsub@example.com",
+          subject: "Check in",
+          body: "Hello",
+          contactId: "cont-unsub",
+        },
+      }),
+    ],
+    contacts: [
+      {
+        id: "cont-unsub",
+        full_name: "Unsubscribed User",
+        primary_email: "unsub@example.com",
+        unsubscribed: true,
+      },
+    ],
+    audit_log: [],
+  });
+
+  await rejects(
+    () =>
+      approveAndExecuteAction(
+        unsubscribedContact.client,
+        "action-email-unsub",
+        "john@acceleratewith.us",
+      ),
+    "contact has unsubscribed",
+    "unsubscribed contacts must not be emailed on approval",
+  );
+
+  // When a conversation reply is attempted on an archived conversation
+  const archivedConv = new MemorySupabase({
+    action_queue: [
+      pending({
+        id: "action-reply-archived",
+        action_type: "send_gmail_reply",
+        payload: {
+          conversationId: "conv-archived",
+          body: "Following up",
+        },
+      }),
+    ],
+    conversations: [
+      {
+        id: "conv-archived",
+        status: "archived",
+      },
+    ],
+    audit_log: [],
+  });
+
+  await rejects(
+    () =>
+      approveAndExecuteAction(
+        archivedConv.client,
+        "action-reply-archived",
+        "john@acceleratewith.us",
+      ),
+    "conversation is archived",
+    "archived conversations cannot receive replies",
+  );
+
   console.log(
     JSON.stringify(
       {
@@ -343,6 +514,11 @@ async function main() {
           "rejected-never-executes",
           "terminal-writes-scoped",
           "stale-executing-recovered",
+          "underlying-stage-change-refused",
+          "duplicate-stage-refused",
+          "campaign-version-mismatch-refused",
+          "unsubscribed-contact-refused",
+          "archived-conversation-reply-refused",
         ],
         result: "passed",
       },

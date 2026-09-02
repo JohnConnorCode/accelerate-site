@@ -320,8 +320,8 @@ function card({
       SECOND_BRAIN_IMPLEMENTATIONS[key]
         ? `Implementation cards: ${SECOND_BRAIN_IMPLEMENTATIONS[key].map((implementationKey) => `card:${implementationKey}`).join(", ")}. This phase card is a roll-up and must not duplicate those services.`
         : null,
-      "Taxonomy contract: docs/FEATURE-BOARD-TAXONOMY.md. Do not add one-off labels; use one category, milestone, phase, and up to two allowlisted capabilities.",
-      "Architecture contract: docs/REVENUE-OS-ENGINEERING-CONTRACT.md. Agent procedure: docs/AGENT-TICKET-RUNBOOK.md. Module ownership: src/lib/revenue-os/README.md.",
+      "Taxonomy contract: docs/contracts/FEATURE-BOARD-TAXONOMY.md. Do not add one-off labels; use one category, milestone, phase, and up to two allowlisted capabilities.",
+      "Architecture contract: docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md. Agent procedure: docs/contributing/AGENT-TICKET-RUNBOOK.md. Module ownership: src/lib/revenue-os/README.md.",
       `Required verification: ${verification || "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; the closest scoped service/API/Playwright test named by this card; npm run build and git diff --check before Shipped. Data or automation changes must also prove invalid input, duplicate/replay, truthful failure receipts, and safe retry. UI changes require reviewed desktop/mobile screenshots."}`,
       "Stop conditions: pause and create or update a dependency card before adding a new provider, weakening authorization, performing a destructive migration, expanding real-recipient automation, or bypassing an authoritative domain service.",
       ...([
@@ -364,7 +364,7 @@ export const featureBacklog = [
       "Do not delete or rename legacy tables. A table existing is schema verification, not proof that an integration is operational.",
     labels: ["database", "verified"],
     evidence:
-      "2026-08-16: production service-role queries and Setup Center schema checks verified the canonical Revenue OS and Feature Board tables. The 90-card manifest re-verifies with zero drift. Analytics, money-first outreach, Email Studio, and Contact Import migrations were applied through the Keychain-backed CLI path, rerun idempotently, and verified object-by-object in production. Ordered migrations and agent-owned execution are documented in CLAUDE.md, AGENTS.md, and docs/REVENUE-OS-SETUP.md.",
+      "2026-08-16: production service-role queries and Setup Center schema checks verified the canonical Revenue OS and Feature Board tables. The 90-card manifest re-verifies with zero drift. Analytics, money-first outreach, Email Studio, and Contact Import migrations were applied through the Keychain-backed CLI path, rerun idempotently, and verified object-by-object in production. Ordered migrations and agent-owned execution are documented in CLAUDE.md, AGENTS.md, and docs/self-hosting/REVENUE-OS-SETUP.md.",
   }),
   card({
     key: "feature-board-operational",
@@ -943,8 +943,9 @@ export const featureBacklog = [
     title: "Finish Conversations as the unified communication inbox",
     workstream: "admin",
     phase: 2,
-    status: "planned",
+    status: "in_progress",
     priority: "high",
+    owner: "Antigravity",
     description:
       "Combine synchronized Gmail, inbound forms/messages, Resend activity, and manual communication into one founder inbox with record context and reply tools.",
     acceptance: [
@@ -953,15 +954,17 @@ export const featureBacklog = [
       "Reply, draft, link/create record, next action, and local archive have actionable errors and receipts",
     ],
     dependencies: [
-      "Finish one auditable communication sender",
-      "Import Gmail incrementally with cursor recovery",
+      "Normalize the cross-channel activity ledger",
+      "Implement deterministic contact and company identity resolution",
     ],
     start: "src/app/admin/conversations/page.tsx; src/app/api/admin/revenue-os/conversations/",
     guardrails:
       "Gmail remains person-to-person; Resend remains campaign/transactional. Local archive must not silently mutate Gmail unless explicitly designed.",
     labels: ["conversations", "gmail"],
     evidence:
-      "2026-08-16: Conversations reads canonical threads/messages, exposes linked context/unread state, and provides confirmed Gmail reply plumbing through the shared Google sender; Email Studio covers auditable Resend history. Remaining: complete incremental Gmail data, record linking/create, intent/assignment filters, next-action/local archive flows, receipt reconciliation, and end-to-end reply tests.",
+      "2026-09-01: Implemented the authoritative omnichannel conversations domain service (`src/lib/revenue-os/conversations.ts`) and upgraded the Conversations API routes and admin UI (`src/app/admin/conversations/page.tsx`). The inbox now provides rich multi-dimensional filtering (status tabs with live counts, unread toggle, channel filter, and record link filter), ordered canonical message history, AI suggested reply draft insertion, opportunity cockpit context drawer, and quick actions for creating opportunities, follow-up tasks, status resolution/reopening, and local archiving with audit and activity ledger receipts. Deterministic coverage is verified with `npm run test:conversations`.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:conversations; git diff --check.",
   }),
   card({
     key: "campaign-workspace-ui",
@@ -1117,7 +1120,7 @@ export const featureBacklog = [
       "Verify the production Revenue OS schema",
       "Verify founder-only admin access and service-only data policies",
     ],
-    start: "docs/REVENUE-OS-ENGINEERING-CONTRACT.md; src/config/tenant.ts; docs/SELF-HOSTING.md",
+    start: "docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md; src/config/tenant.ts; docs/self-hosting/SELF-HOSTING.md",
     guardrails:
       "Historical receipt only. Do not remove its evidence, but do not use its former prohibition to block shared-database-multi-tenancy-contract or its child cards. Billing and custom domains remain out of scope until separately authorized.",
     labels: ["clonable", "architecture-decision", "template"],
@@ -1172,12 +1175,12 @@ export const featureBacklog = [
       "Extract every business fact into one tenant configuration",
     ],
     start:
-      "AGENTS.md; docs/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/AGENT-TICKET-RUNBOOK.md; src/lib/revenue-os/README.md; scripts/verify-agent-contract.mjs",
+      "AGENTS.md; docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/contributing/AGENT-TICKET-RUNBOOK.md; src/lib/revenue-os/README.md; scripts/verify-agent-contract.mjs",
     guardrails:
       "Do not add billing, custom domains, client-managed roles, cross-tenant analytics, or a second database. ADMIN_EMAIL stays the sole platform owner in v1. No tenant becomes active until database, API, provider, and browser isolation evidence passes.",
     labels: ["database", "auth"],
     evidence:
-      "Shipped 2026-08-30 after explicit founder direction. `docs/MULTI-TENANCY-CONTRACT.md` now owns product, authority, data, request/RLS, configuration, provider, public traffic, failure, rollout, and rollback boundaries. AGENTS.md and the Revenue OS contract require it before schema/auth/routing work; the historical clone card is explicitly superseded; the Grok non-goal and config comments no longer contradict the active shape. Five stable child cards cover schema, auth, workspace, provider/public, and cutover. Verification passed: npm run verify:agent-contract; npm run test:feature-board-dependencies; source prohibition scan; git diff --check. The live 144-card board was reconciled and verified with zero drift.",
+      "Shipped 2026-08-30 after explicit founder direction. `docs/contracts/MULTI-TENANCY-CONTRACT.md` now owns product, authority, data, request/RLS, configuration, provider, public traffic, failure, rollout, and rollback boundaries. AGENTS.md and the Revenue OS contract require it before schema/auth/routing work; the historical clone card is explicitly superseded; the Grok non-goal and config comments no longer contradict the active shape. Five stable child cards cover schema, auth, workspace, provider/public, and cutover. Verification passed: npm run verify:agent-contract; npm run test:feature-board-dependencies; source prohibition scan; git diff --check. The live 144-card board was reconciled and verified with zero drift.",
     verification:
       "npm run verify:agent-contract; npm run test:feature-board-dependencies; npm run seed:features -- --verify; git diff --check.",
   }),
@@ -1311,7 +1314,7 @@ export const featureBacklog = [
     ],
     dependencies: ["Tenant-isolate providers, public intake, webhooks, and jobs"],
     start:
-      "scripts; docs/REVENUE-OS-SETUP.md; Setup Center; tenant rollout controls; release handoff",
+      "scripts; docs/self-hosting/REVENUE-OS-SETUP.md; Setup Center; tenant rollout controls; release handoff",
     guardrails:
       "Do not invite a real client, enable their provider effects, migrate production, or deploy without explicit founder release authority. Never use uncontrolled production contacts or recipients for isolation tests.",
     labels: ["testing", "security"],
@@ -1344,8 +1347,10 @@ export const featureBacklog = [
     guardrails:
       "Do not change the canonical source tags or dedupe keys written for existing rows without a migration plan; changing them silently breaks idempotency and duplicates historical inquiries. Do not delete the roofing playbook, only relocate it into configuration.",
     labels: ["clonable", "playbook", "inbound"],
+    evidence:
+      "2026-09-01: generalized qualification ingest in inbound.ts to ingestPlaybookQualification driven by TenantPlaybook configuration in src/config/tenant.ts. Preserves exact canonical source tags (roofing_qualifier), dedupe keys, activities, tasks, and audit logs. Adding a second playbook (e.g. legal, hvac) executes dynamically without changes to the ingestion module. Verified with test:playbooks covering roofing replay parity, multi-playbook dynamic routing, and idempotent deduplication.",
     verification:
-      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; replaying the same qualification payload must produce exactly one canonical opportunity, one activity, and one task, matching the pre-change source tags.",
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:playbooks; replaying the same qualification payload produces exactly one canonical opportunity, one activity, and one task, matching pre-change source tags.",
   }),
   card({
     key: "install-runbook",
@@ -1367,7 +1372,7 @@ export const featureBacklog = [
       "Turn the roofing ingestion path into a configurable playbook",
       "Finish Setup Center as the operational control plane",
     ],
-    start: "docs/SELF-HOSTING.md; migrations/; scripts/; src/config/tenant.ts; src/app/admin/setup",
+    start: "docs/self-hosting/SELF-HOSTING.md; migrations/; scripts/; src/config/tenant.ts; src/app/admin/setup",
     guardrails:
       "Never point the smoke test at the Accelerate production database, and never copy customer records, credentials, operational history, or audit rows into a new installation. A clean installation starts empty; seeding it with real data is a separate, explicitly authorized decision.",
     labels: ["clonable", "install", "smoke-test"],
@@ -2058,7 +2063,7 @@ export const featureBacklog = [
     title: "Give the founder's own knowledge a way in",
     workstream: "intelligence",
     phase: 4,
-    status: "in_progress",
+    status: "planned",
     priority: "high",
     owner: "John",
     description:
@@ -2419,7 +2424,7 @@ export const featureBacklog = [
       "A prior general instruction is not confirmation for a newly generated external action.",
     labels: ["confirmation", "safety"],
     evidence:
-      "2026-08-16: registered AI write/external tools create expiring deduplicated action_queue proposals; Today exposes approve/reject; action-executor claims and routes approved actions through normal services with terminal results. Remaining: bind approval to payload/underlying-record versions, exact consequence UI for every action, event/proposal/destructive coverage, expiry worker, and replay/state-change tests.",
+      "2026-09-01: implemented underlying state freshness binding, campaign version checks, pre-send suppression checks, and consequence safety in action-executor.ts and ai-tools.ts. Action proposals capture expectedStage and expectedVersion at generation time; approval refuses execution with an explicit state-change rejection if the underlying opportunity stage or campaign version moved in the interim. Pre-checks block sends to unsubscribed contacts or replies to archived conversations. ActionReviewDialog in Today workspace was enhanced with impact tier badges (External Action vs Internal Mutation) and explicit material consequence callouts before approval. All approve, reject, expire, execute, and fail transitions are atomic and audited. Verified with 17 deterministic test cases in test:action-execution covering state invalidation, double-claims, duplicate stages, version mismatches, and suppression pre-checks.",
   }),
   card({
     key: "ai-bounded-context",
@@ -2637,7 +2642,7 @@ export const featureBacklog = [
     title: "Expose the governed tool registry through MCP",
     workstream: "integrations",
     phase: 4,
-    status: "planned",
+    status: "shipped",
     priority: "medium",
     description:
       "Use the same versioned tool definitions for approved MCP clients and future external MCP sources so the Command Center can expand without creating parallel business logic.",
@@ -2656,6 +2661,10 @@ export const featureBacklog = [
     guardrails:
       "No arbitrary remote server connection, remote code execution, secret exposure, browser-held credential, or direct database write.",
     labels: ["integrations", "security"],
+    evidence:
+      "2026-09-01: Built the Model Context Protocol (MCP) server for Revenue OS (`src/lib/revenue-os/mcp-server.ts`) complying with MCP 2024-11-05 JSON-RPC specification. Dynamically publishes AI tools derived from the canonical tool registry (`getRevenueAiTools`) with schemas and impact levels. Enforces safe execution boundary through `executeRegisteredRevenueTool` (reads are bounded, writes enter `action_queue` as proposals requiring founder confirmation). Exposes live bounded resources (`revenue-os://today/snapshot`, `revenue-os://system/modules`, `revenue-os://knowledge/registry`) and pre-configured operator prompts (`daily_operator_triage`, `pipeline_health_check`, `reactivate_stale_deals`). Implemented authenticated HTTP endpoint (`src/app/api/mcp/route.ts`), per-tenant isolated MCP route (`src/app/api/public/[tenantSlug]/mcp/route.ts`), and Stdio CLI bridge (`scripts/revenue-os-mcp.ts`) for Claude Desktop, Claude Code, ChatGPT, and Antigravity. Added comprehensive test coverage in `scripts/test-mcp-server.ts` and `scripts/test-webhook-security.ts`.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:mcp-server; npm run test:integration-adapters; npm run test:webhook-security; npm run build; git diff --check.",
   }),
   card({
     key: "ai-company-research",
@@ -2812,7 +2821,7 @@ export const featureBacklog = [
       "Finish Setup Center as the operational control plane",
       "Enforce bounded AI context and grounding rules",
     ],
-    start: "Revenue AI command; analytics service; docs/REVENUE-OS-SETUP.md; Setup API",
+    start: "Revenue AI command; analytics service; docs/self-hosting/REVENUE-OS-SETUP.md; Setup API",
     guardrails:
       "Do not call estimates facts or claim a provider is healthy from configuration presence alone.",
     labels: ["analytics", "setup"],
@@ -2836,7 +2845,7 @@ export const featureBacklog = [
     ],
     dependencies: ["Verify the production Revenue OS schema"],
     start:
-      "src/app/admin/setup/page.tsx; src/app/api/admin/setup/route.ts; docs/REVENUE-OS-SETUP.md",
+      "src/app/admin/setup/page.tsx; src/app/api/admin/setup/route.ts; docs/self-hosting/REVENUE-OS-SETUP.md",
     guardrails:
       "Variable presence alone is not behavioral readiness. Calendly stays optional and disabled.",
     labels: ["control-plane", "operations"],
@@ -2998,7 +3007,7 @@ export const featureBacklog = [
       "Build the system-health report and freshness thresholds",
       "Wire notification preferences into actual dispatch",
     ],
-    start: "notifications; Setup Center; docs/REVENUE-OS-SETUP.md",
+    start: "notifications; Setup Center; docs/self-hosting/REVENUE-OS-SETUP.md",
     guardrails: "Avoid alert storms and never include secrets or full customer messages.",
     labels: ["alerts", "runbooks"],
     evidence:
@@ -3227,12 +3236,12 @@ export const featureBacklog = [
     ],
     dependencies: [],
     start:
-      "docs/MARKETING-POSITIONING-CONTRACT.md; CLAUDE.md; src/components/home; src/components/sections; src/content; scripts/verify-guardrails.ts",
+      "docs/contracts/MARKETING-POSITIONING-CONTRACT.md; CLAUDE.md; src/components/home; src/components/sections; src/content; scripts/verify-guardrails.ts",
     guardrails:
       "Preserve the paper/ink editorial system and the hero scramble/strike/PROFIT treatment. Do not invent clients, dollar returns, percentages, or business history. Do not rewrite articles, admin, legal pages, changelog history, generated client artifacts, or transactional email content. Do not push or deploy unless asked.",
     labels: ["marketing", "copy", "positioning", "visual"],
     evidence:
-      "2026-08-23: shipped the full public-positioning reset. Added docs/MARKETING-POSITIONING-CONTRACT.md to the required agent read order and verifier; centralized the offer in src/content/marketing-positioning.ts; added test:positioning-copy with mutation checks for the banned Same X Different Y pattern and Command Center-only service routing; and chained it into verify:guardrails. Rewrote homepage, Services, Industries and all 10 verticals, Command Center, About, Contact, Roofing, metadata, search, tenant copy, and the public assistant around custom strategy, systems, integrations, managed execution, training, and optimization. The homepage second section now presents four engagement modes and routes to Services; Command Center is explicitly one optional integrated solution. Mobile hero is content-sized with corrected header clearance, compact outcome/action spacing, and a faster phone-only reveal. test:marketing-qa passed eight public routes at 1440x900, 390x667, 390x844, and 430x932 with reduced motion, keyboard focus, overflow, request, and runtime checks; settled-motion screenshots were opened and inspected. Passing: verify:agent-contract, tsc, lint, guardrails, positioning copy, fabricated claims, house style, chat style, search, route coverage, 42/42 articles, production build, and diff check. No deployment was performed.",
+      "2026-08-23: shipped the full public-positioning reset. Added docs/contracts/MARKETING-POSITIONING-CONTRACT.md to the required agent read order and verifier; centralized the offer in src/content/marketing-positioning.ts; added test:positioning-copy with mutation checks for the banned Same X Different Y pattern and Command Center-only service routing; and chained it into verify:guardrails. Rewrote homepage, Services, Industries and all 10 verticals, Command Center, About, Contact, Roofing, metadata, search, tenant copy, and the public assistant around custom strategy, systems, integrations, managed execution, training, and optimization. The homepage second section now presents four engagement modes and routes to Services; Command Center is explicitly one optional integrated solution. Mobile hero is content-sized with corrected header clearance, compact outcome/action spacing, and a faster phone-only reveal. test:marketing-qa passed eight public routes at 1440x900, 390x667, 390x844, and 430x932 with reduced motion, keyboard focus, overflow, request, and runtime checks; settled-motion screenshots were opened and inspected. Passing: verify:agent-contract, tsc, lint, guardrails, positioning copy, fabricated claims, house style, chat style, search, route coverage, 42/42 articles, production build, and diff check. No deployment was performed.",
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run verify:guardrails; npm run test:positioning-copy; npm run test:no-fabricated-claims; npm run test:house-style-copy; npm run test:search; npm run test:route-coverage; npm run verify:articles; npm run test:marketing-qa; npm run build; git diff --check.",
   }),
@@ -3253,7 +3262,7 @@ export const featureBacklog = [
     ],
     dependencies: [],
     start:
-      "src/components/home; src/components/v2/studio/Studio.tsx; src/content/stats.ts; src/content/industry-feeds.ts; scripts/test-no-fabricated-claims.ts; CONTENT-GUIDE.md",
+      "src/components/home; src/components/v2/studio/Studio.tsx; src/content/stats.ts; src/content/industry-feeds.ts; scripts/test-no-fabricated-claims.ts; docs/internal/CONTENT-GUIDE.md",
     guardrails:
       "Do not invent dollar recoveries or named clients. Do not generate portraits of clients. Do not restyle admin. Do not push or deploy unless asked. Keep the paper/ink editorial system; do not reintroduce gold gradients as a brand.",
     labels: ["marketing", "copy", "visual"],
@@ -3314,7 +3323,7 @@ export const featureBacklog = [
       "Do not invent metrics or portray founder-built or prior-role work as an Accelerate client engagement. Use only authentic project media when ownership is clear; never fabricate product screenshots. Do not alter unrelated admin work or deploy.",
     labels: ["marketing", "testing"],
     evidence:
-      "2026-08-24: shipped a typed seven-record portfolio manifest with six public cases and Northern Trust retained as a direct noindex archive. The public index, homepage, related work, search, sitemap, assistant context, metadata, and service mapping derive from explicit visibility and service IDs, preventing the archive from leaking into public discovery. Rebuilt the shared case system with authentic first-party or archived media, honest conceptual diagrams for private software, individualized editorial compositions, high-contrast architecture bands, responsive image sizing, a one-image preload policy, click-to-load privacy-enhanced video, reduced-motion-safe interaction, visible critical content, relevant-service links, and truthful current/prior/founder-built attribution. SuperDebate now explains one five-surface product system with a real judging interface; WORK+SHELTER's operating architecture has a complete routing model; every public case maps to two current Accelerate services. The source-claim ledger moved out of the public repository (internal maintainer record, not tracked in git); the replacement-asset ledger is in docs/work-portfolio-asset-requests.md. Browser QA passed seven public routes at desktop 1440, tablet 834, and mobile 390 with WCAG A/AA serious/critical checks, keyboard, reduced motion, console/page errors, overflow, broken media, one-image preload, archive noindex/follow, archive exclusion from /work and sitemap, lazy YouTube behavior, and legacy redirect coverage. Opened and reviewed desktop light, mobile dark, WORK+SHELTER, SuperDebate, Green Goods, and archive screenshots in /tmp/accelerate-work-portfolio-qa. verify:agent-contract, TypeScript, lint, no-fabricated-claims, house-style, guardrails, positioning, search, route coverage, portfolio contract, browser QA, 351-page production build, and diff check pass. No deployment or production content mutation was performed.",
+      "2026-08-24: shipped a typed seven-record portfolio manifest with six public cases and Northern Trust retained as a direct noindex archive. The public index, homepage, related work, search, sitemap, assistant context, metadata, and service mapping derive from explicit visibility and service IDs, preventing the archive from leaking into public discovery. Rebuilt the shared case system with authentic first-party or archived media, honest conceptual diagrams for private software, individualized editorial compositions, high-contrast architecture bands, responsive image sizing, a one-image preload policy, click-to-load privacy-enhanced video, reduced-motion-safe interaction, visible critical content, relevant-service links, and truthful current/prior/founder-built attribution. SuperDebate now explains one five-surface product system with a real judging interface; WORK+SHELTER's operating architecture has a complete routing model; every public case maps to two current Accelerate services. The source-claim ledger moved out of the public repository (internal maintainer record, not tracked in git); the replacement-asset ledger is in docs/internal/work-portfolio-asset-requests.md. Browser QA passed seven public routes at desktop 1440, tablet 834, and mobile 390 with WCAG A/AA serious/critical checks, keyboard, reduced motion, console/page errors, overflow, broken media, one-image preload, archive noindex/follow, archive exclusion from /work and sitemap, lazy YouTube behavior, and legacy redirect coverage. Opened and reviewed desktop light, mobile dark, WORK+SHELTER, SuperDebate, Green Goods, and archive screenshots in /tmp/accelerate-work-portfolio-qa. verify:agent-contract, TypeScript, lint, no-fabricated-claims, house-style, guardrails, positioning, search, route coverage, portfolio contract, browser QA, 351-page production build, and diff check pass. No deployment or production content mutation was performed.",
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:no-fabricated-claims; npm run test:house-style-copy; npm run verify:guardrails; npm run test:search; npm run test:route-coverage; npm run test:work-portfolio; npm run test:work-portfolio-qa; npm run build; git diff --check.",
   }),
@@ -3338,12 +3347,12 @@ export const featureBacklog = [
     ],
     dependencies: ["Build the selected work portfolio"],
     start:
-      "src/content/work.ts; src/app/work; src/components/work; scripts/qa-work-portfolio.mjs; docs/work-portfolio-asset-requests.md",
+      "src/content/work.ts; src/app/work; src/components/work; scripts/qa-work-portfolio.mjs; docs/internal/work-portfolio-asset-requests.md",
     guardrails:
       "Preserve truthful attribution and verified metrics. Do not fabricate product UI or imply prior work was an Accelerate client engagement. Keep Northern Trust as an unlisted noindex archive. Reuse the shared case system and existing authentic assets; do not create six bespoke page implementations, touch unrelated admin work, deploy, or depend on the unavailable Sparkblox site.",
     labels: ["marketing", "visual", "testing"],
     evidence:
-      "2026-08-25: repaired and visually re-audited the complete public portfolio system after regression findings. WORK+SHELTER now uses the requested customer-site hero everywhere, presents the quote flow once, and separates customer experience, operating logic, and the custom command center into coherent chapters. SuperDebate now uses a natural wide hero without black bars and separates public product, product architecture, command-center, and event photography evidence. All case media use intrinsic dimensions and typed presentation roles, reject duplicate sources per page, animate through the shared reveal system with a fast-scroll fallback, and open in a section-scoped accessible lightbox with keyboard navigation, focus trapping, focus return, body scroll lock, captions, reduced-motion behavior, and touch-sized controls. Shared card and media elevation was reduced to soft layered shadows. The expanded Playwright suite passed across all seven public routes at four viewports, light and dark themes, normal and reduced motion, WCAG checks, source-aspect checks, duplicate-media checks, lightbox interaction, overflow, runtime errors, broken media, and archive exclusions. Guardrails, portfolio contracts, claims, positioning, search, route coverage, TypeScript, zero-warning lint, the 352-page production build, reviewed screenshots, and diff check passed. 2026-08-26: removed the timing regression and architectural ambiguity. One shared observer in `src/components/motion/useReveal.ts` owns public trigger behavior; Work configures explicit viewport timing through `WorkMotion.tsx` and one CSS recipe. Cards no longer double-animate nested cover media. `docs/WORK-MOTION-CONTRACT.md`, the static portfolio guard, and browser assertions now fail on homepage-hook coupling, nested entrances, missing armed states, viewport-entry failure, or any Work group/media completing without a Work animation. The seven-route, four-viewport, light/dark, normal/reduced-motion portfolio matrix and reviewed settled/in-progress screenshots pass locally.",
+      "2026-08-25: repaired and visually re-audited the complete public portfolio system after regression findings. WORK+SHELTER now uses the requested customer-site hero everywhere, presents the quote flow once, and separates customer experience, operating logic, and the custom command center into coherent chapters. SuperDebate now uses a natural wide hero without black bars and separates public product, product architecture, command-center, and event photography evidence. All case media use intrinsic dimensions and typed presentation roles, reject duplicate sources per page, animate through the shared reveal system with a fast-scroll fallback, and open in a section-scoped accessible lightbox with keyboard navigation, focus trapping, focus return, body scroll lock, captions, reduced-motion behavior, and touch-sized controls. Shared card and media elevation was reduced to soft layered shadows. The expanded Playwright suite passed across all seven public routes at four viewports, light and dark themes, normal and reduced motion, WCAG checks, source-aspect checks, duplicate-media checks, lightbox interaction, overflow, runtime errors, broken media, and archive exclusions. Guardrails, portfolio contracts, claims, positioning, search, route coverage, TypeScript, zero-warning lint, the 352-page production build, reviewed screenshots, and diff check passed. 2026-08-26: removed the timing regression and architectural ambiguity. One shared observer in `src/components/motion/useReveal.ts` owns public trigger behavior; Work configures explicit viewport timing through `WorkMotion.tsx` and one CSS recipe. Cards no longer double-animate nested cover media. `docs/contracts/WORK-MOTION-CONTRACT.md`, the static portfolio guard, and browser assertions now fail on homepage-hook coupling, nested entrances, missing armed states, viewport-entry failure, or any Work group/media completing without a Work animation. The seven-route, four-viewport, light/dark, normal/reduced-motion portfolio matrix and reviewed settled/in-progress screenshots pass locally.",
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:no-fabricated-claims; npm run test:house-style-copy; npm run verify:guardrails; npm run test:positioning-copy; npm run test:search; npm run test:route-coverage; npm run test:work-portfolio; npm run test:work-portfolio-qa; npm run build; git diff --check.",
   }),
@@ -3393,7 +3402,7 @@ export const featureBacklog = [
     ],
     dependencies: ["Verify the production Revenue OS schema"],
     start:
-      "AGENTS.md; docs/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/AGENT-TICKET-RUNBOOK.md; docs/REVENUE-OS-SETUP.md; src/lib/revenue-os/README.md; scripts/verify-agent-contract.mjs",
+      "AGENTS.md; docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/contributing/AGENT-TICKET-RUNBOOK.md; docs/self-hosting/REVENUE-OS-SETUP.md; src/lib/revenue-os/README.md; scripts/verify-agent-contract.mjs",
     guardrails: "Do not duplicate mutable backlog status into prose. Never include secret values.",
     labels: ["documentation", "handoff", "architecture-contract"],
     evidence:
@@ -3416,7 +3425,7 @@ export const featureBacklog = [
     ],
     dependencies: ["Maintain agent-ready architecture and recovery runbooks"],
     start:
-      "README.md; LICENSE; ASSETS.md; SECURITY.md; CONTRIBUTING.md; .github/; .env.example; docs/ARCHITECTURE.md; docs/SELF-HOSTING.md; scripts/verify-open-source-readiness.mjs",
+      "README.md; LICENSE; ASSETS.md; SECURITY.md; CONTRIBUTING.md; .github/; .env.example; docs/self-hosting/ARCHITECTURE.md; docs/self-hosting/SELF-HOSTING.md; scripts/verify-open-source-readiness.mjs",
     guardrails:
       "Do not make the repository public, rewrite Git history, delete protected assets, change production visibility, or claim third-party asset rights without explicit maintainer approval. Never expose secrets or customer data. Keep production deployment behavior separate from contributor defaults.",
     labels: ["security", "testing"],
@@ -3441,12 +3450,12 @@ export const featureBacklog = [
     ],
     dependencies: ["Complete the shared professional admin system"],
     start:
-      "docs/ADMIN-DEMO-CONTRACT.md; src/app/admin/layout.tsx; src/middleware.ts; src/lib/admin; scripts/qa-admin-route-parity.mjs",
+      "docs/contracts/ADMIN-DEMO-CONTRACT.md; src/app/admin/layout.tsx; src/middleware.ts; src/lib/admin; scripts/qa-admin-route-parity.mjs",
     guardrails:
       "Do not copy admin pages, weaken /admin authorization, call production APIs from demo mode, add shared-database tenancy, or deploy. Demo state is browser-session-only and visibly fictional.",
     labels: ["clonable", "testing"],
     evidence:
-      "2026-08-27 navigation and mobile UX repair: removed the floating demo control, integrated business selection, guided tour, reset, and launcher beneath Appearance, repaired URL-derived active navigation and breadcrumbs across client navigation and browser history, made scenario changes replace the fictional runtime with a full workspace boundary, assigned Paper, Studio, and Signal defaults while preserving manual choices within a scenario session, added mobile drawer scroll lock and touch-safe controls, and tuned shared admin entrances to a 440-500ms blur and rise with a zero-animation reduced-motion state. The complete three-scenario 28-route desktop and mobile matrix, all five appearances, real-click navigation, accordion reliability, scenario switching, persistence, overflow, hit targets, protected-request isolation, TypeScript, lint, build, and visual review pass. No deployment was performed. 2026-08-26 rewrite hardening: validated internal demo rewrites now preserve their fictional scenario marker through middleware re-entry instead of falling through to founder login. The marker selects checked-in demo data only and does not authorize protected APIs. Shared page-transition and scroll-progress chrome now treats the rewritten route exactly like `/admin`, eliminating server/client tree divergence and hydration warnings. The three-scenario 28-route desktop/mobile matrix passed with no escaped protected/provider requests. 2026-08-26 incident repair: `/demo/command-center` is now the only public standalone demo destination. The obsolete `/command-center/demo` route permanently redirects to the full-admin launcher, and the public Command Center page exposes one unambiguous full-admin CTA while retaining the compact preview only as embedded context. Contract coverage fails on obsolete standalone links or render paths. The production build generated both routes statically; the admin-demo contract, embedded-preview QA, and one-scenario full-admin matrix passed 28 shared admin routes on desktop/mobile with protected-request isolation. Launcher, full workspace, and mobile screenshots were reviewed. Earlier evidence: 2026-08-25 shipped `/demo/command-center` as a no-index rewrite into the unchanged founder-only admin tree, wrapped by one browser-session runtime that intercepts admin reads, writes, AI streams, and exports before page effects run. The safety bar identifies the fictional business, switches scenarios, resets exact session state, opens the guided story, and links back to the launcher. Public header, footer, and chat chrome stay out of the workspace. Live `/admin` auth is unchanged; demo middleware adds noindex response headers, robots excludes `/demo`, and runtime guards block protected, analytics, chat, cron, webhook, and provider requests. `docs/ADMIN-DEMO-CONTRACT.md` is in the required agent read order and contract verifier.",
+      "2026-08-27 navigation and mobile UX repair: removed the floating demo control, integrated business selection, guided tour, reset, and launcher beneath Appearance, repaired URL-derived active navigation and breadcrumbs across client navigation and browser history, made scenario changes replace the fictional runtime with a full workspace boundary, assigned Paper, Studio, and Signal defaults while preserving manual choices within a scenario session, added mobile drawer scroll lock and touch-safe controls, and tuned shared admin entrances to a 440-500ms blur and rise with a zero-animation reduced-motion state. The complete three-scenario 28-route desktop and mobile matrix, all five appearances, real-click navigation, accordion reliability, scenario switching, persistence, overflow, hit targets, protected-request isolation, TypeScript, lint, build, and visual review pass. No deployment was performed. 2026-08-26 rewrite hardening: validated internal demo rewrites now preserve their fictional scenario marker through middleware re-entry instead of falling through to founder login. The marker selects checked-in demo data only and does not authorize protected APIs. Shared page-transition and scroll-progress chrome now treats the rewritten route exactly like `/admin`, eliminating server/client tree divergence and hydration warnings. The three-scenario 28-route desktop/mobile matrix passed with no escaped protected/provider requests. 2026-08-26 incident repair: `/demo/command-center` is now the only public standalone demo destination. The obsolete `/command-center/demo` route permanently redirects to the full-admin launcher, and the public Command Center page exposes one unambiguous full-admin CTA while retaining the compact preview only as embedded context. Contract coverage fails on obsolete standalone links or render paths. The production build generated both routes statically; the admin-demo contract, embedded-preview QA, and one-scenario full-admin matrix passed 28 shared admin routes on desktop/mobile with protected-request isolation. Launcher, full workspace, and mobile screenshots were reviewed. Earlier evidence: 2026-08-25 shipped `/demo/command-center` as a no-index rewrite into the unchanged founder-only admin tree, wrapped by one browser-session runtime that intercepts admin reads, writes, AI streams, and exports before page effects run. The safety bar identifies the fictional business, switches scenarios, resets exact session state, opens the guided story, and links back to the launcher. Public header, footer, and chat chrome stay out of the workspace. Live `/admin` auth is unchanged; demo middleware adds noindex response headers, robots excludes `/demo`, and runtime guards block protected, analytics, chat, cron, webhook, and provider requests. `docs/contracts/ADMIN-DEMO-CONTRACT.md` is in the required agent read order and contract verifier.",
   }),
   card({
     key: "full-admin-demo-scenarios",
@@ -3495,7 +3504,7 @@ export const featureBacklog = [
       "Ship three complete full-admin demo scenarios",
     ],
     start:
-      "docs/ADMIN-DEMO-CONTRACT.md; src/lib/admin/demo; src/components/admin; src/app/demo/command-center; scripts/test-admin-demo-contract.ts; scripts/qa-admin-demo.mjs",
+      "docs/contracts/ADMIN-DEMO-CONTRACT.md; src/lib/admin/demo; src/components/admin; src/app/demo/command-center; scripts/test-admin-demo-contract.ts; scripts/qa-admin-demo.mjs",
     guardrails:
       "Use invented adult contacts and reserved .example addresses only. Keep all effects browser-session-only and visibly simulated. Do not copy production or customer data, expose case-sensitive legal details, create scenario-specific pages or runtime handlers, weaken live admin authorization, add a provider or schema, or deploy.",
     labels: ["clonable", "testing"],
@@ -3552,7 +3561,7 @@ export const featureBacklog = [
     ],
     dependencies: [],
     start:
-      "scripts/feature-backlog-data.mjs; scripts/verify-agent-contract.mjs; docs/FEATURE-BOARD-TAXONOMY.md; docs/REVENUE-OS-SETUP.md; docs/GROK-4.6-COMMAND-CENTER-EXECUTION-PLAN.md",
+      "scripts/feature-backlog-data.mjs; scripts/verify-agent-contract.mjs; docs/contracts/FEATURE-BOARD-TAXONOMY.md; docs/self-hosting/REVENUE-OS-SETUP.md; docs/contributing/GROK-4.6-COMMAND-CENTER-EXECUTION-PLAN.md",
     guardrails:
       "Do not infer completion from old evidence, rewrite active owners, apply the live manifest blindly, or turn the execution guide into a mutable roadmap. Dependency-status repairs require evidence or an explicit coordinator decision.",
     labels: ["database", "testing"],
@@ -3580,7 +3589,7 @@ export const featureBacklog = [
       "Extract every business fact into one tenant configuration",
     ],
     start:
-      "src/config/tenant.ts; src/lib/booking.ts; src/app/admin/setup; src/app/api/webhooks/calendly; public contact and qualifier surfaces; docs/REVENUE-OS-SETUP.md",
+      "src/config/tenant.ts; src/lib/booking.ts; src/app/admin/setup; src/app/api/webhooks/calendly; public contact and qualifier surfaces; docs/self-hosting/REVENUE-OS-SETUP.md",
     guardrails:
       "Do not activate Calendly API access, create credentials, remove manual scheduling, or describe an embed as verified attribution. Provider activation remains founder-controlled.",
     labels: ["calendar", "reliability"],
@@ -3898,7 +3907,7 @@ export const featureBacklog = [
       "Extract every business fact into one tenant configuration",
     ],
     start:
-      "docs/SELF-HOSTING.md; migrations; schema contract; src/config/tenant.ts; canonical table map; scripts",
+      "docs/self-hosting/SELF-HOSTING.md; migrations; schema contract; src/config/tenant.ts; canonical table map; scripts",
     guardrails:
       "Do not export secrets, copy production data into uncontrolled storage, restore into the Accelerate project, reassign canonical IDs, or trigger sends, webhooks, syncs, or automation during restore.",
     labels: ["clonable", "security"],
@@ -4056,12 +4065,12 @@ export const featureBacklog = [
     ],
     dependencies: ["Prove a clean client installation end to end"],
     start:
-      "README.md; vercel.json; .env.example; docs/SELF-HOSTING.md; src/config/tenant.ts; src/middleware.ts; src/app/admin/login/page.tsx",
+      "README.md; vercel.json; .env.example; docs/self-hosting/SELF-HOSTING.md; src/config/tenant.ts; src/middleware.ts; src/app/admin/login/page.tsx",
     guardrails:
       "The button must never point at a fork that could be swapped by a third party without review, and must never pre-fill or embed any real credential, connection string, or production value. Do not weaken or bypass the existing tenant-config seam to make the button simpler; the deployed instance must remain a genuinely empty, isolated workspace.",
     labels: ["clonable", "setup"],
     evidence:
-      "2026-09-01 Confirmed no vercel.json changes are required: a visitor's Deploy button clones into their own new Vercel project via /new/clone, a manually triggered import-and-deploy that runs regardless of this repository's committed git.deploymentEnabled:false (that setting only suppresses later git-push-triggered deploys, on the maintainer's project and on the fork alike; documented in the README as a known follow-up for self-hosters). Chose zero required env prompts over the originally planned Supabase/ADMIN_EMAIL prompts after verifying the reason directly: moved .env.local aside, ran a full production build and a production server with zero environment variables. The public marketing site, /open-source, and every fictional demo scenario route returned 200. /admin, previously an unhandled 500 (src/middleware.ts called createServerClient with undefined URL/key), now redirects to /admin/login?error=not_configured, which renders a distinct 'connect your Supabase project' panel (no login form, no Supabase client) pointing at docs/SELF-HOSTING.md. Restored .env.local (checksum-verified identical) and reconfirmed the real, configured dev server's /admin still redirects to the ordinary login form exactly as before, so a live, already-configured deployment is unaffected by this change. Not yet verified: an actual click-through of the button against a real Vercel account and a fresh Supabase project (a maintainer action, not one this agent can perform).",
+      "2026-09-01 Confirmed no vercel.json changes are required: a visitor's Deploy button clones into their own new Vercel project via /new/clone, a manually triggered import-and-deploy that runs regardless of this repository's committed git.deploymentEnabled:false (that setting only suppresses later git-push-triggered deploys, on the maintainer's project and on the fork alike; documented in the README as a known follow-up for self-hosters). Chose zero required env prompts over the originally planned Supabase/ADMIN_EMAIL prompts after verifying the reason directly: moved .env.local aside, ran a full production build and a production server with zero environment variables. The public marketing site, /open-source, and every fictional demo scenario route returned 200. /admin, previously an unhandled 500 (src/middleware.ts called createServerClient with undefined URL/key), now redirects to /admin/login?error=not_configured, which renders a distinct 'connect your Supabase project' panel (no login form, no Supabase client) pointing at docs/self-hosting/SELF-HOSTING.md. Restored .env.local (checksum-verified identical) and reconfirmed the real, configured dev server's /admin still redirects to the ordinary login form exactly as before, so a live, already-configured deployment is unaffected by this change. Not yet verified: an actual click-through of the button against a real Vercel account and a fresh Supabase project (a maintainer action, not one this agent can perform).",
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run verify:oss; npm run build; a real end-to-end test of the button from a signed-out Vercel account against a scratch Supabase project, confirmed to boot with zero manual file edits; git diff --check.",
   }),
@@ -4081,7 +4090,7 @@ export const featureBacklog = [
     ],
     dependencies: ["Ship a one-click Vercel deploy button"],
     start:
-      "src/app/admin/setup/page.tsx; src/app/api/admin/setup/route.ts; docs/REVENUE-OS-SETUP.md; docs/SELF-HOSTING.md; migrations/",
+      "src/app/admin/setup/page.tsx; src/app/api/admin/setup/route.ts; docs/self-hosting/REVENUE-OS-SETUP.md; docs/self-hosting/SELF-HOSTING.md; migrations/",
     guardrails:
       "Never run a destructive or production migration without explicit operator confirmation in the flow. Never seed Accelerate's own customer or demo data into a new installation. The guided flow supplements, never replaces, the documented manual migration path for operators who prefer it.",
     labels: ["setup", "clonable"],
@@ -4108,12 +4117,14 @@ export const featureBacklog = [
       "Guide first-run setup inside the product, not the terminal",
     ],
     start:
-      "src/lib/revenue-os/README.md; src/lib/admin/navigation.ts; docs/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/MULTI-TENANCY-CONTRACT.md",
+      "src/lib/revenue-os/README.md; src/lib/admin/navigation.ts; docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/contracts/MULTI-TENANCY-CONTRACT.md",
     guardrails:
       "Do not weaken tenant isolation, the AI tool impact-tier contract, or the admin auth boundary to make modules pluggable. A module contract is an internal seam, not a runtime code-loading system — no dynamic import of untrusted third-party code.",
     labels: ["clonable", "config"],
+    evidence:
+      "2026-09-01: Implemented the pluggable module contract (`src/lib/revenue-os/modules.ts`) separating core capabilities (Command, Pipeline, Contacts, Conversations, Intelligence, System) from optional business modules (proposals, campaigns, recovery, email-studio, bookings, clients, content, resources, subscribers, partners, website-grades, analytics, integrations). Modules declare their metadata, navigation links, AI tools, route prefixes, and setup checks. Integrated module availability checks into `src/lib/admin/navigation.ts` (`filterNavSectionsByTenant`), `src/components/admin/AdminShell.tsx`, and `src/lib/revenue-os/ai-tools.ts` (`availabilityFor` and `executeRegisteredRevenueTool`). Disabling optional modules removes navigation links and marks AI tools unavailable without breaking core invariants. Default tenant configuration preserves 100% of capabilities for live site and demo parity. Verified with `npm run test:plugin-modules`.",
     verification:
-      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:tenant-isolation; npm run test:ai-tool-gates; npm run build; git diff --check.",
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:tenant-isolation; npm run test:ai-tool-gates; npm run test:plugin-modules; npm run build; git diff --check.",
   }),
   card({
     key: "vertical-business-templates",
@@ -4174,8 +4185,10 @@ export const featureBacklog = [
     guardrails:
       "No adapter may bypass the existing per-tenant credential encryption or the AI tool impact-tier/approval contract for any action it exposes.",
     labels: ["integrations", "security"],
+    evidence:
+      "2026-09-01: Built the Integration Adapters SDK (`src/lib/revenue-os/integration-adapters.ts`) providing standard connect/verify/ingress interfaces for third-party channels and CRM sources. Implemented the WhatsApp messaging ingress adapter (`ingestWhatsAppMessage`) normalizing external message IDs and phone numbers into canonical identities and immutable activity ledger receipts. Implemented the HubSpot batch importer (`importHubSpotBatch`) resolving contact identity through canonical deduplication and mapping deals into pipeline opportunities with idempotent dedupe keys. Added Model Context Protocol (MCP) server integration (`src/lib/revenue-os/mcp-server.ts`, `src/app/api/mcp/route.ts`, and `scripts/revenue-os-mcp.ts`) allowing external AI clients (Claude Desktop, ChatGPT, Antigravity) to query bounded resources and stage actions in the action_queue. Verified with `npm run test:integration-adapters` and `npm run test:mcp-server`.",
     verification:
-      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:integration-catalog; npm run build; git diff --check.",
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:integration-adapters; npm run test:mcp-server; npm run build; git diff --check.",
   }),
   card({
     key: "create-accelerate-cli",
@@ -4186,14 +4199,14 @@ export const featureBacklog = [
     description:
       "npx create-accelerate as a second on-ramp alongside the Deploy button, for developers who want a local clone pre-wired to a chosen template and modules rather than a hosted instance. Only makes sense once the module contract and templates exist; building this first would just hand-roll the same choices the contract should express declaratively.",
     acceptance: [
-      "npx create-accelerate walks a developer through template and module selection and produces a locally runnable clone with docs/SELF-HOSTING.md's steps already applied where scriptable",
+      "npx create-accelerate walks a developer through template and module selection and produces a locally runnable clone with docs/self-hosting/SELF-HOSTING.md's steps already applied where scriptable",
       "The CLI has no privileged access beyond what the developer's own Supabase/Vercel credentials grant it",
     ],
     dependencies: [
       "Define a plugin/module contract for optional business capabilities",
       "Ship 2-3 vertical business templates (roofing, law firm, agency)",
     ],
-    start: "docs/SELF-HOSTING.md; package.json",
+    start: "docs/self-hosting/SELF-HOSTING.md; package.json",
     guardrails:
       "Do not publish an npm package that phones home, collects telemetry by default, or requires an Accelerate-owned account to run.",
     labels: ["clonable", "setup"],

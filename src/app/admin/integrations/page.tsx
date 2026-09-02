@@ -10,10 +10,13 @@ import {
   Check,
   ChevronDown,
   CircleDashed,
+  CalendarDays,
   Cloud,
   Database,
+  FolderOpen,
   ExternalLink,
   FileText,
+  MailCheck,
   Mail,
   MessageSquare,
   Network,
@@ -29,6 +32,8 @@ import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
+import { fetchJson } from "@/lib/admin/fetchJson";
+import { toast } from "@/lib/admin/useToast";
 import type { IntegrationCatalog, IntegrationView } from "@/lib/revenue-os/integrations";
 import type { IntegrationStatus } from "@/lib/revenue-os/integration-registry";
 import { cn } from "@/lib/utils";
@@ -89,6 +94,46 @@ const statusMeta: Record<
 
 type Filter = "all" | "operational" | "attention" | "available" | "planned";
 
+type GoogleSyncSource = "all" | "gmail" | "calendar" | "drive";
+
+type GoogleSyncResponse = {
+  success: boolean;
+  skipped: boolean;
+  runId: string | null;
+};
+
+const googleSyncActions: Array<{
+  source: GoogleSyncSource;
+  label: string;
+  icon: typeof MailCheck | typeof CalendarDays | typeof FolderOpen | typeof RefreshCw;
+  detail: string;
+}> = [
+  {
+    source: "all",
+    label: "Run workspace sync",
+    icon: RefreshCw,
+    detail: "Gmail, Calendar, and Drive",
+  },
+  {
+    source: "gmail",
+    label: "Sync Gmail",
+    icon: MailCheck,
+    detail: "Threads and replies",
+  },
+  {
+    source: "calendar",
+    label: "Sync Calendar",
+    icon: CalendarDays,
+    detail: "Upcoming meetings and history",
+  },
+  {
+    source: "drive",
+    label: "Sync Drive",
+    icon: FolderOpen,
+    detail: "Configured folders",
+  },
+];
+
 const googleResultMessages: Record<
   string,
   { tone: "default" | "attention"; title: string; detail: string }
@@ -147,9 +192,20 @@ function relativeTime(value: string | null) {
   return `${Math.round(hours / 24)}d ago`;
 }
 
-function ProviderCard({ provider }: { provider: IntegrationView }) {
+function ProviderCard({
+  provider,
+  isGoogleSyncing,
+  activeGoogleSyncSource,
+  onGoogleSync,
+}: {
+  provider: IntegrationView;
+  isGoogleSyncing: boolean;
+  activeGoogleSyncSource: GoogleSyncSource | null;
+  onGoogleSync?: (source: GoogleSyncSource) => Promise<void>;
+}) {
   const Icon = providerIcons[provider.id] ?? Boxes;
   const meta = statusMeta[provider.status];
+  const isGoogleConnected = Boolean(provider.accountLabel);
   const StatusIcon = meta.icon;
 
   return (
@@ -268,6 +324,38 @@ function ProviderCard({ provider }: { provider: IntegrationView }) {
             ))}
           </ul>
           <div className="mt-5 flex flex-wrap gap-2">
+            {provider.id === "google" && onGoogleSync && (
+              <div className="w-full">
+                {googleSyncActions.map((action) => {
+                  const isActive = activeGoogleSyncSource === action.source;
+                  const SyncIcon = action.icon;
+
+                  return (
+                    <button
+                      key={action.source}
+                      type="button"
+                      onClick={() => void onGoogleSync(action.source)}
+                      disabled={isGoogleSyncing || !isGoogleConnected}
+                      className="mb-2 mr-2 inline-flex min-h-10 min-w-56 items-center gap-2 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3.5 py-2 text-left text-xs font-semibold text-[var(--admin-ink)] transition-[box-shadow,transform] duration-150 hover:bg-black/[0.04] hover:shadow-[var(--admin-shadow-border)] active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-55"
+                    >
+                      <SyncIcon
+                        className={cn(
+                          "shrink-0 size-3.5",
+                          isActive && isGoogleSyncing && "animate-spin",
+                        )}
+                        aria-hidden="true"
+                      />
+                      <span className="leading-tight">
+                        <span className="block">{action.label}</span>
+                        <span className="mt-0.5 block font-normal text-[10px] text-[var(--admin-muted)]">
+                          {action.detail}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             {provider.setupHref && (
               <Link
                 href={provider.setupHref}
@@ -312,6 +400,7 @@ export default function IntegrationsPage() {
   const error = integrationsQuery.error?.message || "";
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
+  const [googleSyncSource, setGoogleSyncSource] = useState<GoogleSyncSource | null>(null);
   const googleResult =
     searchParams.get("google_connected") === "1"
       ? googleResultMessages.connected
@@ -320,6 +409,28 @@ export default function IntegrationsPage() {
   const load = useCallback(async () => {
     await integrationsQuery.refetch();
   }, [integrationsQuery]);
+
+  const runGoogleSync = useCallback(
+    async (source: GoogleSyncSource) => {
+      if (googleSyncSource) return;
+      setGoogleSyncSource(source);
+      try {
+        const result = await fetchJson<GoogleSyncResponse>("/api/admin/google/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ source }),
+        });
+        if (result.skipped) toast.info("A Google sync for this scope is already running.");
+        else toast.success("Google Workspace sync started.");
+        await load();
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Google Workspace sync failed.");
+      } finally {
+        setGoogleSyncSource(null);
+      }
+    },
+    [googleSyncSource, load],
+  );
 
   const providers = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -503,7 +614,13 @@ export default function IntegrationsPage() {
             {providers.length ? (
               <section className="grid items-start gap-4 xl:grid-cols-2">
                 {providers.map((provider) => (
-                  <ProviderCard key={provider.id} provider={provider} />
+                  <ProviderCard
+                    key={provider.id}
+                    provider={provider}
+                    isGoogleSyncing={provider.id === "google" && googleSyncSource !== null}
+                    activeGoogleSyncSource={provider.id === "google" ? googleSyncSource : null}
+                    onGoogleSync={provider.id === "google" ? runGoogleSync : undefined}
+                  />
                 ))}
               </section>
             ) : (

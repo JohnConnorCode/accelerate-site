@@ -48,6 +48,7 @@ Start without external effects. Add and verify one capability at a time:
 
 - Resend for outbound email and signed delivery webhooks.
 - OpenRouter at the tenant level for AI workloads.
+- Model Context Protocol (MCP) server for external AI clients (Claude Desktop, Claude Code, ChatGPT, Cursor, Antigravity) — see [MCP-SETUP.md](MCP-SETUP.md).
 - Google Workspace OAuth for Gmail, Calendar, and selected Drive folders.
 - Calendly only when its optional attribution path is required.
 - Plausible only when external analytics are desired; first-party analytics is built in.

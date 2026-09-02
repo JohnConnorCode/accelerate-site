@@ -7,6 +7,8 @@ import { REVENUE_STAGES } from "./types";
 import { loadActivityTimeline } from "./activities";
 import { ADMIN_LAYOUT_SCOPES, proposeLayoutChange } from "./admin-layout";
 import { FOUNDER_NOTE_MAX_LENGTH } from "./notes";
+import { retrieveKnowledge } from "./knowledge";
+import { isAiToolModuleEnabled } from "./modules";
 
 export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v3";
 export const REVENUE_TOOL_PACKS = ["core", "pipeline", "outreach"] as const;
@@ -17,7 +19,12 @@ const SNAPSHOT_ROW_LIMIT = 50;
 /** How many of those are returned in full to the model. */
 const SNAPSHOT_DETAIL_LIMIT = 10;
 export type AiToolImpact = "read" | "internal_write" | "external_action" | "destructive";
-type AiToolContext = { supabase: SupabaseClient; actorEmail: string; toolPack?: RevenueToolPackId };
+type AiToolContext = {
+  supabase: SupabaseClient;
+  actorEmail: string;
+  toolPack?: RevenueToolPackId;
+  tenantConfig?: { modules?: Partial<Record<string, boolean>> } | null;
+};
 type AiToolRegistration = {
   name: string;
   description: string;
@@ -79,6 +86,19 @@ const TIMELINE_OUTPUT_SCHEMA = {
   type: "object",
   required: ["activities", "truncated"],
   properties: { activities: { type: "array" }, truncated: { type: "boolean" } },
+};
+const KNOWLEDGE_OUTPUT_SCHEMA = {
+  type: "object",
+  required: ["contract", "found", "query", "chunks", "generatedAt"],
+  properties: {
+    contract: { type: "string" },
+    found: { type: "boolean" },
+    query: { type: "string" },
+    entitySummary: { type: "object" },
+    chunks: { type: "array" },
+    refusalReason: { type: "string" },
+    generatedAt: { type: "string" },
+  },
 };
 
 function value(input: Record<string, unknown>, key: string): string | undefined {
@@ -211,12 +231,19 @@ export function validateToolOutput(
 
 function availabilityFor(
   tool: AiToolRegistration,
-  context?: Pick<AiToolContext, "toolPack">,
+  context?: Pick<AiToolContext, "toolPack" | "tenantConfig">,
 ): { available: boolean; reason: string } {
   if (context?.toolPack && !PACK_TOOL_NAMES[context.toolPack].includes(tool.name)) {
     return {
       available: false,
       reason: `${tool.name} is not available in the ${context.toolPack} tool pack.`,
+    };
+  }
+  const moduleCheck = isAiToolModuleEnabled(tool.name, context?.tenantConfig);
+  if (!moduleCheck.enabled) {
+    return {
+      available: false,
+      reason: moduleCheck.reason ?? `${tool.name} module is disabled in this workspace configuration.`,
     };
   }
   // A proposal is not a provider side effect. These tools call bounded
@@ -411,6 +438,35 @@ const registry: AiToolRegistration[] = [
     },
   },
   {
+    name: "search_knowledge_base",
+    description:
+      "Query grounded knowledge with provenance across companies, contacts, opportunities, founder notes, and activity timeline. Returns tagged chunks with confidence and recency or refuses cleanly.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        entityName: { type: "string" },
+        email: { type: "string" },
+        domain: { type: "string" },
+        topic: { type: "string" },
+        limit: { type: "number" },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: KNOWLEDGE_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.knowledge-retrieval",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) =>
+      retrieveKnowledge(supabase, {
+        entityName: value(input, "entityName"),
+        email: value(input, "email"),
+        domain: value(input, "domain"),
+        topic: value(input, "topic"),
+        limit: typeof input.limit === "number" ? input.limit : undefined,
+      }),
+  },
+  {
     name: "propose_send_email",
     description: "Stage an outbound email for founder approval. This never sends directly.",
     inputSchema: {
@@ -513,21 +569,32 @@ const registry: AiToolRegistration[] = [
     connectionRequirement: "none",
     impact: "internal_write",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }, input) =>
-      proposeAction(supabase, {
+    execute: async ({ supabase, actorEmail }, input) => {
+      const oppId = value(input, "opportunityId");
+      let expectedStage: string | undefined;
+      if (oppId) {
+        const { data: currentOpp } = await supabase
+          .from("opportunities")
+          .select("stage")
+          .eq("id", oppId)
+          .maybeSingle();
+        if (currentOpp?.stage) expectedStage = currentOpp.stage;
+      }
+      return proposeAction(supabase, {
         actionType: "transition_opportunity",
         title: `Move opportunity to ${value(input, "stage")}`,
         description: value(input, "reason") || "",
         urgency: "normal",
-        payload: input,
+        payload: { ...input, expectedStage },
         reasoning: value(input, "reason") || "",
         sourceContext: "admin_ai",
         entityType: "opportunity",
-        entityId: value(input, "opportunityId"),
-        dedupeKey: `ai-stage:${value(input, "opportunityId")}:${value(input, "stage")}`,
+        entityId: oppId,
+        dedupeKey: `ai-stage:${oppId}:${value(input, "stage")}`,
         proposedBy: actorEmail,
         expiresAt: new Date(Date.now() + 86400000).toISOString(),
-      }),
+      });
+    },
   },
   {
     name: "propose_task",
@@ -584,21 +651,32 @@ const registry: AiToolRegistration[] = [
     connectionRequirement: "none",
     impact: "external_action",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }, input) =>
-      proposeAction(supabase, {
+    execute: async ({ supabase, actorEmail }, input) => {
+      const campaignId = value(input, "campaignId");
+      let expectedVersion: number | undefined;
+      if (campaignId) {
+        const { data: currentCamp } = await supabase
+          .from("campaigns")
+          .select("version")
+          .eq("id", campaignId)
+          .maybeSingle();
+        if (typeof currentCamp?.version === "number") expectedVersion = currentCamp.version;
+      }
+      return proposeAction(supabase, {
         actionType: "activate_campaign",
         title: "Activate reviewed campaign",
         description: value(input, "reasoning") || "",
         urgency: "normal",
-        payload: input,
+        payload: { ...input, expectedVersion },
         reasoning: value(input, "reasoning") || "",
         sourceContext: "admin_ai",
         entityType: "campaign",
-        entityId: value(input, "campaignId"),
-        dedupeKey: `ai-campaign-activate:${value(input, "campaignId")}`,
+        entityId: campaignId,
+        dedupeKey: `ai-campaign-activate:${campaignId}`,
         proposedBy: actorEmail,
         expiresAt: new Date(Date.now() + 86400000).toISOString(),
-      }),
+      });
+    },
   },
   {
     name: "propose_layout_change",
@@ -635,6 +713,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "get_today_snapshot",
     "search_pipeline",
     "get_record_timeline",
+    "search_knowledge_base",
     "propose_task",
     "propose_layout_change",
     "propose_founder_note",
@@ -643,6 +722,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "get_today_snapshot",
     "search_pipeline",
     "get_record_timeline",
+    "search_knowledge_base",
     "propose_task",
     "propose_stage_change",
   ],
@@ -650,6 +730,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "get_today_snapshot",
     "search_pipeline",
     "get_record_timeline",
+    "search_knowledge_base",
     "propose_task",
     "propose_send_email",
     "propose_campaign_activation",

@@ -116,7 +116,7 @@ function LoginForm() {
                 <p className="admin-copy mb-7 text-sm">
                   Follow{" "}
                   <code className="rounded bg-[var(--admin-surface-muted)] px-1 py-0.5 text-xs">
-                    docs/SELF-HOSTING.md
+                    docs/self-hosting/SELF-HOSTING.md
                   </code>{" "}
                   in this repository to create a project, apply migrations, and set{" "}
                   <code className="rounded bg-[var(--admin-surface-muted)] px-1 py-0.5 text-xs">

@@ -55,6 +55,7 @@ import {
   adminMobileLinks,
   adminNavSections,
   applyNavLayoutOverride,
+  filterNavSectionsByTenant,
   resolveAdminNavLink,
   type AdminNavLink,
   type AdminNavSection,
@@ -151,7 +152,8 @@ export default function AdminShell({
         ),
       }))
       .filter((section) => section.links.length > 0);
-    return applyNavLayoutOverride(roleFiltered, navLayoutOverride);
+    const moduleFiltered = filterNavSectionsByTenant(roleFiltered, tenant);
+    return applyNavLayoutOverride(moduleFiltered, navLayoutOverride);
   }, [isPlatformAdmin, scenarioId, navLayoutOverride]);
   const visibleNavLinks = useMemo(
     () => visibleNavSections.flatMap((section) => section.links),
