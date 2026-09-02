@@ -27,6 +27,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "verify:oss": "node scripts/verify-open-source-readiness.mjs",
+    "test:open-source-stats": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-open-source-stats.ts",
     "test:core": "npm run test:admin-demo-contract && npm run test:admin-breadcrumbs && npm run test:tenant-config && npm run test:tenant-isolation && npm run test:secret-storage && npm run test:admin-layout",
     "verify:articles": "npx tsx scripts/verify-articles.ts",
     "deploy:check": "vercel whoami && vercel teams ls",

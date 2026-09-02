@@ -46,6 +46,9 @@ jobs:
       - name: Verify house style (no em dashes)
         run: npm run test:house-style-copy
 
+      - name: Verify open-source page stats match the repo
+        run: npm run test:open-source-stats
+
       - name: Typecheck
         run: npm run typecheck
 
