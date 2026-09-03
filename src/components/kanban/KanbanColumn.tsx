@@ -149,7 +149,8 @@ function ColumnMenu({
               <select
                 value={reassignTo}
                 onChange={(e) => setReassignTo(e.target.value)}
-                className="mt-4 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)]"
+                aria-label="Move cards to column"
+                className="mt-4 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
               >
                 {otherColumns.map((option) => (
                   <option key={option.column_key} value={option.column_key}>
