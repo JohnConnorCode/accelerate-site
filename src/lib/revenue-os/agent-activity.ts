@@ -138,7 +138,7 @@ export async function getAgentActivityForEntity(
 
   // 4. Agent runs linked to this entity (via audit trail)
   const { data: auditRuns, error: runError } = await supabase
-    .from("audit_trail")
+    .from("audit_log")
     .select("entity_id, created_at, action, metadata")
     .eq("entity_type", "agent_run")
     .or(`metadata->>'contact_id'.eq.${input.entityId},metadata->>'opportunity_id'.eq.${input.entityId},metadata->>'company_id'.eq.${input.entityId}`)
@@ -164,7 +164,7 @@ export async function getAgentActivityForEntity(
 
   // 5. Activity ledger entries from the work engine
   const { data: activities, error: actLedgerError } = await supabase
-    .from("activity_ledger")
+    .from("activities")
     .select("id, activity_type, title, summary, source, actor_email, external_id, occurred_at")
     .eq(input.entityType === "contact" ? "contact_id" : input.entityType === "company" ? "company_id" : "opportunity_id", input.entityId)
     .like("source", "work_engine%")

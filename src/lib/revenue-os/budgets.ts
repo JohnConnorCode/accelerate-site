@@ -84,7 +84,9 @@ export async function checkBudgets(
   ];
   const today = new Date().toISOString().slice(0, 10);
 
-  // Fetch limits: coworker-specific first, then tenant-global.
+  // Fetch limits: coworker-specific first, then tenant-global. "*" is the
+  // sentinel for tenant-global (see migrations/20260903-agent-memory-and-budgets.sql
+  // for why coworker_id is NOT NULL rather than nullable).
   const { data: coworkerLimits } = await supabase
     .from("budget_limits")
     .select()
@@ -94,7 +96,7 @@ export async function checkBudgets(
   const { data: globalLimits } = await supabase
     .from("budget_limits")
     .select()
-    .is("coworker_id", null)
+    .eq("coworker_id", "*")
     .in("budget_kind", kinds);
 
   // Build a map: coworker-specific overrides global.
@@ -168,28 +170,19 @@ export async function recordBudgetUsage(
 ): Promise<void> {
   const today = new Date().toISOString().slice(0, 10);
 
-  // Try to increment existing row first.
-  const { error: updateError } = await supabase.rpc("increment_budget_usage", {
+  // increment_budget_usage is the only write path — it is atomic (advisory
+  // lock + a single upsert-and-add) and normalizes null/"" coworker_id to
+  // the "*" tenant-global sentinel. There is deliberately no client-side
+  // upsert fallback: that fallback used to OVERWRITE used_value with the
+  // delta instead of incrementing it, silently resetting budgets under any
+  // concurrent execution. If this RPC call fails, the caller must know.
+  const { error: rpcError } = await supabase.rpc("increment_budget_usage", {
     p_coworker_id: input.coworkerId,
     p_budget_kind: input.budgetKind,
     p_period_key: today,
     p_value: input.value,
   });
-
-  // If the RPC doesn't exist (pre-migration), fall back to upsert.
-  if (updateError && updateError.code === "42883") {
-    await supabase
-      .from("budget_usage")
-      .upsert(
-        {
-          coworker_id: input.coworkerId,
-          budget_kind: input.budgetKind,
-          used_value: input.value,
-          period_key: today,
-        },
-        { onConflict: "coworker_id,budget_kind,period_key" },
-      );
-  }
+  if (rpcError) throw new Error(`Failed to record budget usage: ${rpcError.message}`);
 
   // Check if any budget is now at 90%+ and audit it.
   if (input.coworkerId) {
@@ -237,7 +230,7 @@ export async function setBudgetLimit(
     .from("budget_limits")
     .upsert(
       {
-        coworker_id: input.coworkerId ?? null,
+        coworker_id: input.coworkerId ?? "*",
         budget_kind: input.budgetKind,
         limit_value: input.limitValue,
         period,

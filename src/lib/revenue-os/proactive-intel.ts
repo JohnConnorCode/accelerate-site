@@ -4,6 +4,27 @@ import { createWorkItem } from "./work-items";
 import { recordAudit } from "./audit";
 import { storeAgentMemory } from "./memory";
 import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";
+import { runCoworkerAgentTask } from "./coworker-agent";
+import type { WorkItem } from "./work-items";
+import { retrieveKnowledge } from "./knowledge";
+
+const aiModelConfigured = !!process.env.OPENROUTER_AGENT_MODEL;
+
+async function tryAiExecution(
+  supabase: SupabaseClient,
+  wi: WorkItem,
+): Promise<{ outcome: string } | null> {
+  if (!aiModelConfigured) return null;
+  try {
+    const result = await runCoworkerAgentTask(supabase, wi);
+    if (result.outcome && !result.outcome.startsWith("AI execution failed")) {
+      return { outcome: result.outcome };
+    }
+  } catch {
+    // Fall through to deterministic logic.
+  }
+  return null;
+}
 
 // ---------------------------------------------------------------------------
 // Proactive Operator Intelligence (northstar §3: NOTICE layer)
@@ -58,7 +79,7 @@ export async function gatherBusinessSignals(
 
   // Stage transitions.
   const { data: transitions } = await supabase
-    .from("activity_ledger")
+    .from("activities")
     .select("entity_id, metadata")
     .eq("activity_type", "stage_change")
     .gte("occurred_at", since)
@@ -164,6 +185,69 @@ export async function gatherBusinessSignals(
     });
   }
 
+  // --- Knowledge discrepancy signals (REMEMBER layer) ---
+  // Check active deals for contradictions between founder notes and
+  // canonical records. The retrieveKnowledge function tags chunks with
+  // a `discrepancy` field when a note mentions a stage that conflicts
+  // with the canonical opportunity record.
+  try {
+    const { data: activeDeals } = await supabase
+      .from("opportunities")
+      .select("id, name, company_name, stage")
+      .not("stage", "in", '("won","lost","nurture")')
+      .order("updated_at", { ascending: true })
+      .limit(10);
+
+    if (activeDeals && activeDeals.length > 0) {
+      const discrepancySignals: BusinessSignal[] = [];
+      for (const deal of activeDeals) {
+        const knowledge = await retrieveKnowledge(supabase, {
+          entityName: deal.company_name || deal.name,
+          limit: 5,
+        });
+        const discrepancies = knowledge.chunks.filter((c) => c.discrepancy);
+        const firstDiscrepancy = discrepancies[0];
+        if (firstDiscrepancy?.discrepancy) {
+          discrepancySignals.push({
+            category: "risk",
+            severity: "attention",
+            summary: `${deal.company_name || deal.name}: note says "${firstDiscrepancy.discrepancy.slice(0, 120)}"`,
+            evidence: `knowledge discrepancy for opportunity ${deal.id}`,
+            relatedEntityType: "opportunity",
+            relatedEntityId: deal.id,
+          });
+        }
+      }
+      signals.push(...discrepancySignals);
+    }
+  } catch {
+    // Knowledge retrieval is best-effort for signal gathering.
+  }
+
+  // --- Learned policy signals (LEARN layer) ---
+  // Recently recorded learned policies indicate the system is learning
+  // from human feedback — surface this so the operator knows what the
+  // system has absorbed.
+  try {
+    const { data: recentPolicies } = await supabase
+      .from("agent_memory")
+      .select("subject, body")
+      .eq("category", "prior_work")
+      .ilike("subject", "learned_policy:%")
+      .gte("created_at", since)
+      .limit(5);
+    if (recentPolicies && recentPolicies.length > 0) {
+      signals.push({
+        category: "activity",
+        severity: "info",
+        summary: `${recentPolicies.length} new learned polic${recentPolicies.length > 1 ? "ies" : "y"} from human feedback`,
+        evidence: `agent_memory.category = prior_work, subject like learned_policy:%`,
+      });
+    }
+  } catch {
+    // Best-effort.
+  }
+
   // Sort by severity (urgent first).
   const severityOrder = { urgent: 0, attention: 1, info: 2 };
   signals.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
@@ -228,6 +312,19 @@ export async function createProactiveIntelBriefWork(
 // ---------------------------------------------------------------------------
 
 const proactiveIntelBriefHandler: WorkKindHandler = async (supabase, wi) => {
+  // AI-first: let the model synthesize a richer brief from available data.
+  const aiResult = await tryAiExecution(supabase, wi);
+  if (aiResult) {
+    await storeAgentMemory(supabase, {
+      category: "prior_work",
+      subject: "proactive_intel_brief: AI synthesis",
+      body: aiResult.outcome,
+      relevanceHorizon: "daily",
+    }).catch(() => {});
+    return aiResult;
+  }
+
+  // Deterministic fallback.
   const signals = await gatherBusinessSignals(supabase);
   const brief = formatIntelligenceBrief(signals);
 

@@ -9,7 +9,6 @@ import { getCoworker } from "./coworkers";
 import { listWorkspaceCapabilities } from "./capabilities";
 import { listLearnedPolicies, retrieveAgentMemory } from "./memory";
 import {
-  AI_TOOL_REGISTRY_VERSION,
   executeRegisteredRevenueTool,
   toOpenRouterTools,
   type RevenueToolPackId,

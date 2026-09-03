@@ -478,7 +478,7 @@ const gatherLeadContextHandler: WorkKindHandler = async (supabase, wi) => {
 
   // Check for recent activity (Gmail sync, conversations).
   const { count: activityCount } = await supabase
-    .from("activity_ledger")
+    .from("activities")
     .select("*", { count: "exact", head: true })
     .eq("contact_id", contact.id)
     .gte("occurred_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());

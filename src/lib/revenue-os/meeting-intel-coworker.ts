@@ -211,7 +211,7 @@ const preCallBriefHandler: WorkKindHandler = async (supabase, wi) => {
 
   // Count recent activity.
   const { count: recentActivity } = await supabase
-    .from("activity_ledger")
+    .from("activities")
     .select("*", { count: "exact", head: true })
     .eq("contact_id", contactId)
     .gte("occurred_at", new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString());

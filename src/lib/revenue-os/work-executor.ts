@@ -106,9 +106,25 @@ export async function executeClaimableWork(
         }
       }
 
-      // Check learned policies that may constrain this work kind.
+      // Check learned policies that may constrain this work kind. A gate
+      // that cannot be evaluated must not silently pass — fail closed and
+      // skip the item rather than proceed as if no policy applied (northstar
+      // principle 6: deterministic logic stays deterministic, it does not
+      // degrade into "assume allowed" on error).
       const actionKey = `work:${kind}`;
-      const policies = await getPoliciesForAction(supabase, { actionKey }).catch(() => []);
+      let policies: Awaited<ReturnType<typeof getPoliciesForAction>>;
+      try {
+        policies = await getPoliciesForAction(supabase, { actionKey });
+      } catch (err) {
+        const message = safeErrorMessage(err);
+        console.error(`[work-executor] learned-policy check failed for ${kind}: ${message}`);
+        summary.skipped++;
+        summary.errors.push(`${kind}:learned-policy-check-failed:${message}`);
+        return {
+          value: null as unknown as Record<string, unknown>,
+          outcome: `Skipped: could not evaluate learned-policy gate (fail-closed): ${message}`,
+        };
+      }
       if (policies.length > 0) {
         const blocking = policies.find((p) =>
           /never|must not|do not|prohibited|always ask/i.test(p.rule),
@@ -122,11 +138,23 @@ export async function executeClaimableWork(
         }
       }
 
-      // Check budgets before execution (northstar §24).
+      // Check budgets before execution (northstar §24). Same fail-closed
+      // rule: an unevaluable budget check skips the item rather than letting
+      // it run with an unknown/possibly-exhausted budget.
       if (workItem.coworker_id) {
-        const budgetResults = await checkBudgets(supabase, {
-          coworkerId: workItem.coworker_id,
-        }).catch(() => []);
+        let budgetResults: Awaited<ReturnType<typeof checkBudgets>>;
+        try {
+          budgetResults = await checkBudgets(supabase, { coworkerId: workItem.coworker_id });
+        } catch (err) {
+          const message = safeErrorMessage(err);
+          console.error(`[work-executor] budget check failed for ${kind}: ${message}`);
+          summary.skipped++;
+          summary.errors.push(`${kind}:budget-check-failed:${message}`);
+          return {
+            value: null as unknown as Record<string, unknown>,
+            outcome: `Skipped: could not evaluate budget gate (fail-closed): ${message}`,
+          };
+        }
         const exhausted = budgetResults.find((b) => !b.allowed);
         if (exhausted) {
           summary.skipped++;
@@ -143,6 +171,10 @@ export async function executeClaimableWork(
         summary.completed++;
 
         // Store agent memory so future turns can reference what was found.
+        // Best-effort in the sense that a memory-write failure does not
+        // undo the handler's already-completed work, but it is never
+        // silent: it is logged and recorded on the summary so an operator
+        // can see agent memory stopped persisting.
         await storeAgentMemory(supabase, {
           coworkerId: workItem.coworker_id ?? undefined,
           category: "prior_work",
@@ -151,14 +183,23 @@ export async function executeClaimableWork(
           entityType: workItem.entity_type ?? undefined,
           entityId: workItem.entity_id ?? undefined,
           relevanceHorizon: "daily",
-        }).catch(() => {}); // Best-effort; memory failure must not break execution.
+        }).catch((err) => {
+          const message = safeErrorMessage(err);
+          console.error(`[work-executor] storeAgentMemory failed for ${kind}: ${message}`);
+          summary.errors.push(`${kind}:store-agent-memory-failed:${message}`);
+        });
 
-        // Record budget usage for the execution (northstar §24).
+        // Record budget usage for the execution (northstar §24). Same
+        // logged-not-swallowed treatment as above.
         await recordBudgetUsage(supabase, {
           coworkerId: workItem.coworker_id ?? null,
           budgetKind: "vendor_api_calls",
           value: 1,
-        }).catch(() => {}); // Best-effort; budget recording failure must not break execution.
+        }).catch((err) => {
+          const message = safeErrorMessage(err);
+          console.error(`[work-executor] recordBudgetUsage failed for ${kind}: ${message}`);
+          summary.errors.push(`${kind}:record-budget-usage-failed:${message}`);
+        });
 
         return { value: handlerResult as unknown as Record<string, unknown>, outcome: handlerResult.outcome };
       } catch (err) {

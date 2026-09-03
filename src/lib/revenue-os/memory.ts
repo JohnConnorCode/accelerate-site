@@ -176,35 +176,34 @@ export async function recordLearnedPolicy(
     actorEmail?: string | null;
   },
 ): Promise<LearnedPolicyEntry> {
-  // If there's an existing active policy for the same action_key + scope,
-  // supersede it so only the latest rule is active.
-  if (input.scopeEntityType && input.scopeEntityId) {
-    await supabase
-      .from("learned_policies")
-      .update({
-        superseded_at: new Date().toISOString(),
-        superseded_by: "pending",
-      })
-      .eq("action_key", input.actionKey)
-      .eq("scope_entity_type", input.scopeEntityType)
-      .eq("scope_entity_id", input.scopeEntityId)
-      .is("superseded_at", null);
-  } else {
-    await supabase
-      .from("learned_policies")
-      .update({
-        superseded_at: new Date().toISOString(),
-        superseded_by: "pending",
-      })
-      .eq("action_key", input.actionKey)
-      .is("scope_entity_type", null)
-      .is("scope_entity_id", null)
-      .is("superseded_at", null);
+  // Only one active (superseded_at IS NULL) row may exist per action_key +
+  // scope (learned_policies_active_global / _active_scoped partial unique
+  // indexes) — so the old row must be superseded BEFORE the new one is
+  // inserted, not after, or the insert violates that constraint. Generating
+  // the new row's id up front (rather than letting the DB default it) lets
+  // the supersede step point at it without a placeholder value or a second
+  // back-fill write, and keeps this race-free across concurrent action keys.
+  const newId = crypto.randomUUID();
+
+  let supersedeQuery = supabase
+    .from("learned_policies")
+    .update({ superseded_at: new Date().toISOString(), superseded_by: newId })
+    .eq("action_key", input.actionKey)
+    .is("superseded_at", null);
+
+  supersedeQuery = input.scopeEntityType && input.scopeEntityId
+    ? supersedeQuery.eq("scope_entity_type", input.scopeEntityType).eq("scope_entity_id", input.scopeEntityId)
+    : supersedeQuery.is("scope_entity_type", null).is("scope_entity_id", null);
+
+  const { error: supersedeError } = await supersedeQuery;
+  if (supersedeError) {
+    throw new Error(`Failed to supersede prior learned policy: ${supersedeError.message}`);
   }
 
   const { data, error } = await supabase
     .from("learned_policies")
     .insert({
+      id: newId,
       action_key: input.actionKey,
       rule: input.rule,
       rationale: input.rationale,
@@ -217,15 +216,6 @@ export async function recordLearnedPolicy(
     .single();
 
   if (error) throw new Error(`Failed to record learned policy: ${error.message}`);
-
-  // Back-fill the superseded_by reference.
-  if (data) {
-    await supabase
-      .from("learned_policies")
-      .update({ superseded_by: data.id })
-      .eq("superseded_by", "pending")
-      .neq("id", data.id);
-  }
 
   await recordAudit(supabase, {
     actorEmail: input.actorEmail || "system",
