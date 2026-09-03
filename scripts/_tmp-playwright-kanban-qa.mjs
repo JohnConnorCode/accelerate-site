@@ -6,6 +6,14 @@
  * for Pipeline's loss-reason flow, console-error checking, and reload
  * persistence checks. Runs against an isolated server copy (never the
  * user's own dev server) and the isolation-proof-alpha test tenant.
+ *
+ * RECOVERED 2026-09-03: this working draft was restored from a read-back
+ * after an accidental rm + checkout in a parallel session destroyed its
+ * uncommitted changes. The durable successor is
+ * scripts/qa-kanban-boards.mjs (npm run test:kanban-boards), which carries
+ * over every technique proven here (grip-source drags, neutral-pointer
+ * wheel discipline, small precise drop targets, tenant safety abort,
+ * unique-domain fixtures, label preflight/postflight) and is green.
  */
 import { chromium } from "playwright";
 import { createClient } from "@supabase/supabase-js";
@@ -96,8 +104,14 @@ await context.addCookies([
     value: cookieValue,
     url: base,
   },
-  { name: "accelerate-tenant-slug", value: TEST_TENANT_SLUG, url: base },
 ]);
+// requireAdmin() reads `x-tenant-slug` before the `accelerate-tenant-slug`
+// cookie fallback — a cookie set via context.addCookies() was NOT reliably
+// reaching the server for this app (root-caused after test opportunities
+// landed in the real Accelerate tenant instead of the test one). The header
+// is the same mechanism the working HTTP-level test script used
+// successfully, so use it here too rather than trust the cookie fallback.
+await context.setExtraHTTPHeaders({ "x-tenant-slug": TEST_TENANT_SLUG });
 const page = await context.newPage();
 
 const consoleErrors = [];
@@ -125,13 +139,31 @@ async function dragCard(fromLocator, toLocator) {
   await page.mouse.move(from.x + from.width / 2 + 15, from.y + from.height / 2 + 15, { steps: 5 });
   await page.waitForTimeout(100);
 
-  await toLocator.first().scrollIntoViewIfNeeded();
-  await page.waitForTimeout(100);
+  // If the target isn't visible yet, scroll to it using wheel events with
+  // the pointer parked at a neutral mid-viewport position — NOT by moving
+  // the pointer toward/near an edge (scrollIntoViewIfNeeded, or a pointer
+  // parked where the target will land) — because a pointer near an edge is
+  // exactly what triggers dnd-kit's OWN autoScroll, and that fought with
+  // manual scrolling and kept landing drops one column past the intended
+  // one. Wheel-scrolling with the pointer safely in the middle avoids
+  // triggering it at all, so there is exactly one scroll actor, not two.
+  const neutralX = Math.min(Math.max(from.x + from.width / 2, 200), 1200);
+  const neutralY = Math.min(Math.max(from.y, 200), 700);
+  await page.mouse.move(neutralX, neutralY, { steps: 3 });
+  // Center the target precisely in one shot via the DOM's own scrollIntoView
+  // rather than a wheel-and-recheck loop: a narrow target element (e.g. an
+  // empty column's placeholder text) can satisfy a "does it fit" bounds
+  // check right up against a viewport edge without ever being centered,
+  // driving a naive loop all the way to the container's max scroll and
+  // landing the target partially (or fully) off-screen anyway.
+  await toLocator.first().evaluate((el) => el.scrollIntoView({ inline: "center", block: "nearest" }));
+  await page.waitForTimeout(300);
   const to = await toLocator.first().boundingBox();
-  if (!to) throw new Error("drag target not visible");
-  await page.mouse.move(to.x + to.width / 2, to.y + Math.min(60, to.height / 2), { steps: 15 });
-  await page.mouse.move(to.x + to.width / 2, to.y + Math.min(60, to.height / 2), { steps: 3 });
-  await page.waitForTimeout(150);
+  if (!to) throw new Error("drag target not visible after wheel-scrolling");
+  const targetX = to.x + to.width / 2;
+  const targetY = to.y + to.height / 2;
+  await page.mouse.move(targetX, targetY, { steps: 20 });
+  await page.waitForTimeout(400);
   await page.mouse.up();
   await page.waitForTimeout(500);
 }
@@ -188,16 +220,24 @@ try {
     check("drag persisted across a reload", await persisted.count() > 0, await persisted.count());
   }
 
-  // Add a column via the "+ Add column" tile — a dedicated test column, so
-  // the rename test below never has to touch a real, meaningful column.
-  await page.click('button:has-text("Add column")');
-  await page.fill('input[placeholder="Column name"]', "QA-DELETE-ME Column");
-  await page.click('button:has-text("Add column"):visible >> nth=-1');
-  await page.waitForTimeout(800);
+  // Add a column via the "+ Add column" tile — a dedicated, uniquely-named
+  // test column, so the rename test below never has to touch a real,
+  // meaningful column, and reruns can't collide with a prior run's leftover.
+  const TEST_COLUMN_LABEL = `QA-DELETE-ME Column ${RUN_ID}`;
+  const addColumnTile = page.locator('button:has-text("Add column")').first();
+  await addColumnTile.scrollIntoViewIfNeeded();
+  await addColumnTile.click();
+  await page.fill('input[placeholder="Column name"]', TEST_COLUMN_LABEL);
+  const [createColResponse] = await Promise.all([
+    page.waitForResponse((res) => res.url().includes("/api/admin/kanban/columns") && res.request().method() === "POST"),
+    page.click('button:has-text("Add column"):visible >> nth=-1'),
+  ]);
+  check("column creation POST succeeded", createColResponse.status() === 201, createColResponse.status());
+  await page.waitForTimeout(500);
   check(
     "new column appears after Add column",
-    await page.locator('h2:has-text("QA-DELETE-ME Column")').count() > 0,
-    await page.locator('h2:has-text("QA-DELETE-ME Column")').count(),
+    await page.locator(`h2:has-text("${TEST_COLUMN_LABEL}")`).count() > 0,
+    await page.locator(`h2:has-text("${TEST_COLUMN_LABEL}")`).count(),
   );
 
   // Rename that test column via the inline pencil affordance. The new
@@ -208,7 +248,7 @@ try {
   // starts, the <h2> that a text-based locator would anchor on is replaced
   // by an <input>, which un-matches a `has: h2Locator` filter and makes it
   // resolve to nothing right when the input is what we need to find.
-  const testColHeader = page.locator('h2:has-text("QA-DELETE-ME Column")').first();
+  const testColHeader = page.locator(`h2:has-text("${TEST_COLUMN_LABEL}")`).first();
   await testColHeader.scrollIntoViewIfNeeded();
   await page.waitForTimeout(200);
   await testColHeader.hover();
@@ -260,7 +300,7 @@ try {
   if (await cardNow.count() > 0) {
     await cardNow.locator("h3", { hasText: FEATURE_CARD_TITLE }).click();
     await page.waitForTimeout(600);
-    const archiveBtn = page.locator('button:has-text("Archive")');
+    const archiveBtn = page.getByRole("button", { name: "Archive", exact: true });
     if (await archiveBtn.count() > 0) {
       await archiveBtn.click();
       await page.waitForTimeout(600);
@@ -273,26 +313,81 @@ try {
   await page.waitForSelector('text=New opportunity', { timeout: 15000 });
   await page.screenshot({ path: `${shotDir}/pipeline-board.png` });
 
+  // The create dialog has no "opportunity name" field — createOpportunity()
+  // falls back to the resolved company's name for the card title, so fill
+  // Company with something unique rather than searching for the contact
+  // name (which never appears on the card).
+  const OPP_NAME = `QA Browser Test Co ${RUN_ID}`;
   await page.click('button:has-text("New opportunity")');
-  await page.fill('input[name="name"]', "QA Browser Test");
-  await page.fill('input[name="email"]', `qa-browser-${Date.now()}@example.invalid`);
+  await page.fill('input[name="name"]', `QA Browser Test ${RUN_ID}`);
+  // A unique domain per run, not just a unique local-part: identity
+  // resolution matches companies by domain and does not rename an existing
+  // match, so reusing "example.invalid" across runs made every "new"
+  // opportunity silently inherit the very first run's company name.
+  await page.fill('input[name="email"]', `qa-browser-${RUN_ID}@example-${RUN_ID}.invalid`);
+  await page.fill('input[name="companyName"]', OPP_NAME);
   await page.fill('input[name="estimatedValue"]', "4200");
-  await page.click('button:has-text("Create opportunity")');
-  await page.waitForTimeout(1200);
+  const [createOppResponse] = await Promise.all([
+    page.waitForResponse(
+      (res) => res.url().includes("/api/admin/revenue-os/pipeline") && res.request().method() === "POST",
+      { timeout: 15000 },
+    ),
+    // The dialog's success handler triggers its own GET refetch after the
+    // POST resolves — wait for that too, not just the POST, so the DOM has
+    // actually re-rendered with the new row before we go looking for it.
+    page.waitForResponse(
+      (res) => res.url().includes("/api/admin/revenue-os/pipeline") && res.request().method() === "GET",
+      { timeout: 15000 },
+    ),
+    page.click('button:has-text("Create opportunity")'),
+  ]);
+  const createOppBody = await createOppResponse.json().catch(() => null);
+  check("opportunity creation POST succeeded", createOppResponse.status() === 201, {
+    status: createOppResponse.status(),
+    body: createOppBody,
+  });
+  const newOppId = createOppBody?.opportunity?.id;
+  if (newOppId) {
+    createdOpportunityIds.push(newOppId);
+    // Hard safety gate: verify this row actually landed in the test tenant,
+    // not the real Accelerate one, before doing anything else with it. Catches
+    // a tenant-scoping regression immediately instead of via a later, more
+    // confusing symptom (this is exactly how a prior run's data ended up in
+    // production — the cookie-based tenant header wasn't being honored).
+    const { data: landedRow } = await admin
+      .from("opportunities")
+      .select("tenant_id")
+      .eq("id", newOppId)
+      .maybeSingle();
+    const testTenantId = "06a53f21-cd96-47d1-9f89-166c1f00b716";
+    if (landedRow?.tenant_id !== testTenantId) {
+      throw new Error(
+        `SAFETY ABORT: test opportunity landed in tenant_id=${landedRow?.tenant_id}, expected the test tenant ${testTenantId}. Refusing to continue.`,
+      );
+    }
+    console.log("  [safety] confirmed test opportunity is scoped to the test tenant");
+  }
+  await page.waitForTimeout(500);
   await page.screenshot({ path: `${shotDir}/pipeline-card-created.png` });
 
-  const oppCard = page.locator("article", { hasText: "QA Browser Test" }).first();
+  const oppCard = page.locator("article", { hasText: OPP_NAME }).first();
   check("test opportunity card rendered", await oppCard.count() > 0, await oppCard.count());
 
-  const lostHeader = page.locator('h2:has-text("Lost")').first();
+  const lostHeader = page.getByRole("heading", { name: "Lost", exact: true }).first();
   const lostColumn = page.locator("section", { has: lostHeader });
+  // dnd-kit's droppable ref is the column BODY div specifically, not the
+  // whole <section> (which also includes the header) — target something
+  // guaranteed to sit inside that exact body, not merely inside the
+  // section, so the drop coordinate can't land in the header/padding area
+  // dnd-kit doesn't consider part of the droppable rect at all.
+  const lostDropTarget = lostColumn.getByText("No opportunities in this stage.");
   if (await oppCard.count() > 0 && (await lostColumn.count()) > 0) {
     // The card's whole wrapper carries dragHandleProps (PipelineKanbanCard),
     // so drag from the article's own body rather than a specific control.
-    await dragCard(oppCard, lostColumn);
+    await dragCard(oppCard, lostDropTarget);
     await page.waitForTimeout(800);
     await page.screenshot({ path: `${shotDir}/pipeline-after-lost-drag.png` });
-    const nowInLost = lostColumn.locator("article", { hasText: "QA Browser Test" });
+    const nowInLost = lostColumn.locator("article", { hasText: OPP_NAME });
     check(
       "dragging to Lost (after accepting the native reason prompt) moved the card",
       await nowInLost.count() > 0,
@@ -301,7 +396,7 @@ try {
   }
 
   // Capture the opportunity id for cleanup via its detail link.
-  const stillCard = page.locator("article", { hasText: "QA Browser Test" }).first();
+  const stillCard = page.locator("article", { hasText: OPP_NAME }).first();
   if (await stillCard.count() > 0) {
     const href = await stillCard.locator("a").first().getAttribute("href");
     const id = href?.split("/").pop();

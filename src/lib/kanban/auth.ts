@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireAdmin, requirePlatformAdmin } from "@/lib/admin/auth";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { createPlatformServiceRoleClient } from "@/lib/supabase/server";
-import type { KanbanBoardKey } from "./types";
+import { KANBAN_BOARD_DEFINITIONS, type KanbanBoardKey } from "./types";
 
 export interface KanbanBoardAuthOk {
   ok: true;
@@ -24,8 +24,9 @@ export interface KanbanBoardAuthErr {
 export type KanbanBoardAuth = KanbanBoardAuthOk | KanbanBoardAuthErr;
 
 /**
- * The one place board-key-to-auth-strategy logic lives. Each board mirrors
- * the exact auth its existing route uses today:
+ * The one place board-key-to-auth-strategy logic lives, driven by
+ * KANBAN_BOARD_DEFINITIONS. Each board mirrors the exact auth its existing
+ * route uses today:
  * - features: requirePlatformAdmin() + the platform service-role client
  *   (src/app/api/admin/features/route.ts).
  * - content: requireAdminForModule("content") + the tenant-bound
@@ -34,7 +35,9 @@ export type KanbanBoardAuth = KanbanBoardAuthOk | KanbanBoardAuthErr;
  *   (src/app/api/admin/revenue-os/pipeline/route.ts).
  */
 export async function resolveKanbanBoardAuth(boardKey: KanbanBoardKey): Promise<KanbanBoardAuth> {
-  if (boardKey === "features") {
+  const definition = KANBAN_BOARD_DEFINITIONS[boardKey];
+
+  if (definition.scope === "platform") {
     const auth = await requirePlatformAdmin();
     if (auth instanceof NextResponse) return { ok: false, response: auth };
     return {
@@ -46,8 +49,8 @@ export async function resolveKanbanBoardAuth(boardKey: KanbanBoardKey): Promise<
     };
   }
 
-  if (boardKey === "content") {
-    const auth = await requireAdminForModule("content");
+  if (definition.module) {
+    const auth = await requireAdminForModule(definition.module);
     if (auth instanceof NextResponse) return { ok: false, response: auth };
     return {
       ok: true,

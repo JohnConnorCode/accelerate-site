@@ -1,11 +1,14 @@
 "use client";
 
-import { type ReactNode } from "react";
+import { type ReactNode, useCallback, useMemo } from "react";
 import {
   DndContext,
   DragOverlay,
   MeasuringStrategy,
   closestCorners,
+  pointerWithin,
+  type Announcements,
+  type CollisionDetection,
 } from "@dnd-kit/core";
 import { useKanbanDnd, type KanbanReorderUpdate } from "@/lib/kanban/useKanbanDnd";
 import type { KanbanColumnMetadata, KanbanColumnRecord } from "@/lib/kanban/types";
@@ -22,6 +25,9 @@ export interface KanbanBoardProps<T> {
   getItemId: (item: T) => string;
   getItemColumnKey: (item: T) => string;
   getItemSortOrder: (item: T) => number;
+  /** Short human label for screen-reader drag announcements ("Q3 rollout").
+   * Falls back to "Card" when omitted. */
+  getItemLabel?: (item: T) => string;
   /** Produces an updated copy of `item` positioned at `columnKey`/`sortOrder`.
    * Generic `T` means KanbanBoard can't mutate fields itself. */
   setItemPosition: (item: T, columnKey: string, sortOrder: number) => T;
@@ -60,6 +66,7 @@ export function KanbanBoard<T>({
   getItemId,
   getItemColumnKey,
   getItemSortOrder,
+  getItemLabel,
   setItemPosition,
   renderCard,
   renderCardOverlay,
@@ -89,6 +96,92 @@ export function KanbanBoard<T>({
       disabled: dragDisabled,
     });
 
+  // closestCorners alone misresolves a drag into an EMPTY column that sits
+  // next to a populated one: it compares corner-to-corner distance against
+  // the neighboring column's actual CARD rectangles, which can score closer
+  // than the empty column's own (larger, sparser) droppable rect, silently
+  // dropping the card one column over from wherever the pointer actually is.
+  // pointerWithin checks whether the pointer is literally inside a
+  // droppable's rect, which is unambiguous for this case; fall back to
+  // closestCorners only when the pointer isn't within any droppable (e.g.
+  // a gap/padding sliver mid-drag).
+  const collisionDetection: CollisionDetection = useCallback((args) => {
+    const pointerCollisions = pointerWithin(args);
+    return pointerCollisions.length > 0 ? pointerCollisions : closestCorners(args);
+  }, []);
+
+  // Same stability rule as `accessibility` below: never hand DndContext a
+  // fresh object identity on every render.
+  const measuring = useMemo(
+    () => ({ droppable: { strategy: MeasuringStrategy.Always } as const }),
+    [],
+  );
+
+  // Screen-reader narration for every drag phase. dnd-kit renders these
+  // into its own aria-live region; sighted users see the DragOverlay and
+  // the highlighted column instead. Labels come from `getItemLabel` so
+  // each board announces its own domain language. Column announcements
+  // only name column droppables (`column:*`), which are stable for the
+  // whole drag — naming a card target's column could be stale mid-drag
+  // while the optimistic preview is in flight, so those stay silent and
+  // the drop summary names the column only when it is unambiguous.
+  const labelById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const item of items) map.set(getItemId(item), getItemLabel?.(item) ?? "Card");
+    return map;
+  }, [items, getItemId, getItemLabel]);
+  const columnLabelByKey = useMemo(() => {
+    const map = new Map(columns.map((column) => [column.column_key, column.label]));
+    return map;
+  }, [columns]);
+  const labelOf = useCallback(
+    (id: string | number) => labelById.get(String(id)) ?? "Card",
+    [labelById],
+  );
+  const announcements: Announcements = useMemo(
+    () => ({
+      onDragStart({ active }) {
+        return `Picked up ${labelOf(active.id)}. Use the arrow keys to move it, space to drop it, escape to cancel.`;
+      },
+      onDragOver({ active, over }) {
+        if (!over) return undefined;
+        const overId = String(over.id);
+        if (!overId.startsWith("column:")) return undefined;
+        const label = columnLabelByKey.get(overId.slice("column:".length)) ?? "a column";
+        return `${labelOf(active.id)} is over ${label}.`;
+      },
+      onDragEnd({ active, over }) {
+        if (!over) return `${labelOf(active.id)} was dropped outside the board. No changes were made.`;
+        const overId = String(over.id);
+        if (overId.startsWith("column:")) {
+          const label = columnLabelByKey.get(overId.slice("column:".length)) ?? "the column";
+          return `${labelOf(active.id)} was dropped into ${label}.`;
+        }
+        return `${labelOf(active.id)} was dropped. The board now shows the new order.`;
+      },
+      onDragCancel({ active }) {
+        return `${labelOf(active.id)} was not moved. No changes were made.`;
+      },
+    }),
+    [columnLabelByKey, labelOf],
+  );
+  // Memoized as a whole: DndContext reacts to accessibility identity, so an
+  // inline object literal here re-fires its internal announcement machinery
+  // on every parent render — under drag load that snowballs into a
+  // maximum-update-depth crash inside SortableContext. This exact crash was
+  // caught by the kanban browser QA (error boundary screenshot) and fixed
+  // by stabilizing this reference.
+  const accessibility = useMemo(
+    () => ({
+      announcements,
+      screenReaderInstructions: {
+        draggable:
+          "Press space to lift this card. Use the arrow keys to move it between columns, space to drop it, escape to cancel.",
+      },
+    }),
+    [announcements],
+  );
+
   return (
     <div className={cn("space-y-3", className)}>
       {dragDisabled && dragDisabledReason && (
@@ -98,9 +191,10 @@ export function KanbanBoard<T>({
       )}
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCorners}
-        measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
+        collisionDetection={collisionDetection}
+        measuring={measuring}
         autoScroll
+        accessibility={accessibility}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragCancel={cancelDrag}
@@ -108,9 +202,25 @@ export function KanbanBoard<T>({
       >
         <div
           className={cn(
-            "-mx-4 flex gap-3 overflow-x-auto px-4 pb-5 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 xl:-mx-10 xl:px-10",
-            activeId ? "snap-none" : "snap-x snap-mandatory",
+            // Base horizontal scroll container
+            "-mx-4 flex gap-3 overflow-x-auto px-4 pb-5",
+            // Mobile-first padding
+            "sm:-mx-6 sm:px-6",
+            "lg:-mx-8 lg:px-8",
+            "xl:-mx-10 xl:px-10",
+            // Scroll behavior
+            "scroll-smooth",
+            "snap-x snap-mandatory",
+            // Hide scrollbar but keep functionality
+            "[scrollbar-width:thin] [scrollbar-color:var(--admin-border)_transparent]",
+            "[&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:bg-transparent",
+            "[&::-webkit-scrollbar-track]:bg-transparent",
+            "[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[var(--admin-border)]",
+            // Enable snap scrolling when dragging
+            activeId ? "snap-none" : "",
           )}
+          role="region"
+          aria-label="Kanban board"
         >
           {columns.map((column) => (
             <KanbanColumn

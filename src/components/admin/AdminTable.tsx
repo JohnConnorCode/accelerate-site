@@ -45,7 +45,7 @@ export function AdminTable<T>({
 }: AdminTableProps<T>) {
   return (
     <AdminSurface padding="none" className="overflow-hidden">
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0">
         <table className="w-full min-w-[640px] text-sm">
           <thead>
             <tr className="border-b border-[var(--admin-border)] bg-black/[0.018] dark:bg-white/[0.025]">
@@ -101,7 +101,7 @@ export function AdminTable<T>({
                   <motion.tr
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ delay: index * 0.03 }}
+                    transition={{ delay: index * 0.03, duration: 0.18 }}
                     className={cn(
                       "border-b border-[var(--admin-border)] transition-[background-color] duration-150 hover:bg-black/[0.022] dark:hover:bg-white/[0.025]",
                       onRowClick && "cursor-pointer",

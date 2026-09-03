@@ -10,6 +10,8 @@ const VALID_KINDS = new Set<AdminInboxKind>([
   "partner",
   "task",
   "proposal",
+  "coworker",
+  "action",
 ]);
 const priorityRank = { urgent: 0, important: 1, normal: 2 } as const;
 
@@ -32,7 +34,7 @@ export async function GET(request: NextRequest) {
   const today = now.toISOString().split("T")[0]!;
   const stalledBefore = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString();
 
-  const [leads, contacts, chats, partners, tasks, proposals] = await Promise.all([
+  const [leads, contacts, chats, partners, tasks, proposals, coworkerWork, pendingActions] = await Promise.all([
     supabase
       .from("solution_requests")
       .select(
@@ -74,6 +76,19 @@ export async function GET(request: NextRequest) {
       .lt("sent_at", stalledBefore)
       .order("sent_at", { ascending: true })
       .limit(25),
+    supabase
+      .from("work_items")
+      .select("id, kind, objective, reason, coworker_id, status, priority, created_at")
+      .eq("surface_in_inbox", true)
+      .in("status", ["pending", "claimed", "in_progress", "waiting", "completed"])
+      .order("created_at", { ascending: false })
+      .limit(30),
+    supabase
+      .from("action_queue")
+      .select("id, action_key, label, summary, coworker_id, status, created_at, metadata")
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(30),
   ]);
 
   const items: AdminInboxItem[] = [];
@@ -201,6 +216,58 @@ export async function GET(request: NextRequest) {
     });
   }
 
+  // Coworker work items that opted into inbox visibility.
+  const COWORKER_WORK_LABELS: Record<string, string> = {
+    proactive_intelligence_brief: "Intel Brief",
+    review_trust_promotion: "Trust Promotion",
+    qualify_lead: "Lead Qualify",
+    draft_followup: "Follow-up Draft",
+    daily_digest: "Daily Digest",
+    daily_health_check: "Health Check",
+    detect_stale_deals: "Stale Deals",
+    detect_stage_bottleneck: "Bottleneck",
+    detect_velocity_change: "Velocity Change",
+    integration_status_audit: "Integration Audit",
+    data_quality_scan: "Data Quality",
+    detect_overdue_payments: "Overdue Payments",
+    revenue_stage_audit: "Revenue Audit",
+    pre_call_brief: "Pre-call Brief",
+    post_meeting_process: "Meeting Process",
+    update_crm_from_meeting: "CRM Update",
+    weekly_reconciliation: "Weekly Recon",
+  };
+
+  for (const wi of coworkerWork.data || []) {
+    const label = COWORKER_WORK_LABELS[wi.kind] || wi.kind.replace(/_/g, " ");
+    const isCompleted = wi.status === "completed";
+    items.push({
+      id: wi.id,
+      kind: "coworker",
+      title: `${label}: ${wi.objective.slice(0, 80)}`,
+      summary: cleanSummary(wi.reason, `Coworker work item (${wi.kind}).`),
+      priority: wi.priority === "high" ? "urgent" : wi.priority === "medium" ? "important" : "normal",
+      createdAt: wi.created_at,
+      href: isCompleted ? `/admin/ai/runs` : `/admin/ai`,
+      meta: `${wi.status.replace(/_/g, " ")} · ${label}`,
+    });
+  }
+
+  // Pending action proposals from coworkers awaiting human approval.
+  for (const action of pendingActions.data || []) {
+    items.push({
+      id: action.id,
+      kind: "action",
+      title: action.label || action.action_key || "Action proposal",
+      summary: cleanSummary(action.summary, "Coworker action proposal needs your approval."),
+      priority: "important",
+      createdAt: action.created_at,
+      href: "/admin/ai",
+      meta: action.coworker_id
+        ? `Coworker: ${action.coworker_id}`
+        : "Pending approval",
+    });
+  }
+
   const counts = {
     all: items.length,
     lead: items.filter((item) => item.kind === "lead").length,
@@ -209,6 +276,8 @@ export async function GET(request: NextRequest) {
     partner: items.filter((item) => item.kind === "partner").length,
     task: items.filter((item) => item.kind === "task").length,
     proposal: items.filter((item) => item.kind === "proposal").length,
+    coworker: items.filter((item) => item.kind === "coworker").length,
+    action: items.filter((item) => item.kind === "action").length,
   };
 
   const filtered = items

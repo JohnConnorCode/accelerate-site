@@ -21,8 +21,18 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
   const { supabase, tenantId } = auth;
 
   // Rename touches the label only; column_key is the stable identity and is
-  // never accepted here, in the request body or otherwise.
-  const body = (await request.json()) as Record<string, unknown>;
+  // never accepted here, in the request body or otherwise. A missing or
+  // malformed body is a 400, never a 500: request.json() throws
+  // "Unexpected end of JSON input" on an empty body.
+  let body: Record<string, unknown>;
+  try {
+    body = (await request.json()) as Record<string, unknown>;
+  } catch {
+    return NextResponse.json({ error: "A JSON body with the new label is required" }, { status: 400 });
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return NextResponse.json({ error: "A JSON body with the new label is required" }, { status: 400 });
+  }
   const update: Record<string, unknown> = {};
   if (typeof body.label === "string") {
     const label = body.label.trim().slice(0, 60);

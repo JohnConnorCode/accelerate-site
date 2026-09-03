@@ -7,6 +7,7 @@ import {
   BookmarkPlus,
   Check,
   Columns3,
+  GripVertical,
   List,
   Loader2,
   Plus,
@@ -502,6 +503,7 @@ export default function PipelinePage() {
                         getItemId={(item) => item.id}
                         getItemColumnKey={(item) => item.canonical_stage ?? item.stage}
                         getItemSortOrder={(item) => Number(item.sort_order)}
+                        getItemLabel={(item) => item.name || item.company?.name || "Opportunity"}
                         setItemPosition={(item, columnKey, sortOrder) => ({
                           ...item,
                           stage: columnKey,
@@ -1075,8 +1077,11 @@ function Card({
     </article>
   );
 }
-/** Card render for the drag-and-drop board — Card's content plus a drag
- * handle wired to KanbanBoard's dragHandleProps. */
+/** Card render for the drag-and-drop board — Card's content plus a grip
+ * handle wired to KanbanBoard's dragHandleProps. Only the grip starts a
+ * drag (never the whole card), so touch scrolling that begins on the card
+ * body keeps working on phones; the inline stage select remains the
+ * tap-first way to move a deal. Matches the Feature Board pattern. */
 function PipelineKanbanCard({
   item,
   opts,
@@ -1092,12 +1097,23 @@ function PipelineKanbanCard({
   saving: boolean;
   updateStage: (item: Opportunity, stage: string) => Promise<boolean>;
 }) {
+  const label = item.name || item.company?.name || "Untitled opportunity";
   return (
-    <div
-      {...(opts.isOverlay ? {} : opts.dragHandleProps)}
-      className={cn("cursor-grab active:cursor-grabbing", opts.isDragging && "opacity-60")}
-    >
-      <Card item={item} state={state} columns={columns} saving={saving} updateStage={updateStage} />
+    <div className={cn("group flex items-start gap-1.5", opts.isDragging && "opacity-60")}>
+      {!opts.isOverlay && (
+        <button
+          type="button"
+          aria-label={opts.disabled ? "Reordering is unavailable" : `Drag ${label}`}
+          disabled={opts.disabled}
+          {...opts.dragHandleProps}
+          className="grid size-10 shrink-0 touch-none cursor-grab place-items-center rounded-xl text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:cursor-grabbing active:scale-[0.96] disabled:cursor-default disabled:opacity-30 dark:hover:bg-white/[0.05]"
+        >
+          <GripVertical className="size-4" />
+        </button>
+      )}
+      <div className="min-w-0 flex-1">
+        <Card item={item} state={state} columns={columns} saving={saving} updateStage={updateStage} />
+      </div>
     </div>
   );
 }

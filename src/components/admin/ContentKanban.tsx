@@ -31,10 +31,12 @@ function ContentCard({
         {!opts.isOverlay && (
           <button
             type="button"
+            aria-label={opts.disabled ? "Reordering is unavailable" : `Drag ${item.title}`}
+            disabled={opts.disabled}
             {...opts.dragHandleProps}
-            className="mt-0.5 cursor-grab text-white-muted hover:text-white-secondary"
+            className="grid size-10 shrink-0 touch-none cursor-grab place-items-center rounded-xl text-white-muted transition-[background-color,color,transform] duration-150 hover:text-white-primary active:cursor-grabbing active:scale-[0.96] disabled:cursor-default disabled:opacity-30"
           >
-            <GripVertical className="h-3.5 w-3.5" />
+            <GripVertical className="size-4" />
           </button>
         )}
         <div className="min-w-0 flex-1">
@@ -50,9 +52,10 @@ function ContentCard({
           <button
             type="button"
             onClick={() => onEdit(item)}
-            className="cursor-pointer text-white-muted opacity-0 transition-[opacity,color] hover:text-white-primary group-hover:opacity-100"
+            aria-label={`Edit ${item.title}`}
+            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-xl text-white-muted opacity-0 transition-[background-color,color,opacity] hover:text-white-primary group-hover:opacity-100 focus-visible:opacity-100"
           >
-            <Pencil className="h-3.5 w-3.5" />
+            <Pencil className="size-3.5" />
           </button>
         )}
       </div>
@@ -76,6 +79,7 @@ export function ContentKanban({
       getItemId={(item) => item.id}
       getItemColumnKey={(item) => item.status}
       getItemSortOrder={(item) => Number(item.sort_order)}
+      getItemLabel={(item) => item.title}
       setItemPosition={(item, columnKey, sortOrder) => ({
         ...item,
         status: columnKey,

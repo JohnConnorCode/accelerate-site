@@ -8,6 +8,27 @@ export function isKanbanBoardKey(value: unknown): value is KanbanBoardKey {
 }
 
 /**
+ * One entry per board: the key plus the authorization shape its routes
+ * require. Adding a fourth board is a data change here (+ its seed columns
+ * in defaults/migrations and its UI page), not a new auth branch:
+ * - "platform" boards (features) are platform-global, no tenant.
+ * - "tenant" boards (pipeline, content) resolve through the tenant-bound
+ *   admin client; `module` adds the module-guard check when the board's
+ *   existing route requires one (content).
+ */
+export interface KanbanBoardDefinition {
+  key: KanbanBoardKey;
+  scope: "platform" | "tenant";
+  module?: string;
+}
+
+export const KANBAN_BOARD_DEFINITIONS: Record<KanbanBoardKey, KanbanBoardDefinition> = {
+  features: { key: "features", scope: "platform" },
+  content: { key: "content", scope: "tenant", module: "content" },
+  pipeline: { key: "pipeline", scope: "tenant" },
+};
+
+/**
  * Per-board extension point. Pipeline is the only board that populates this
  * today (`role` replaces the hardcoded won/lost literal-name checks,
  * `probability` replaces the hardcoded DEFAULT_STAGE_META table); features

@@ -246,10 +246,22 @@ function FeatureDialog({
   onSave: (payload: Record<string, unknown>) => Promise<void>;
   onArchive: (feature: FeatureRequest) => Promise<void>;
 }) {
-  const [form, setForm] = useState(() => ({
+  const buildInitialForm = () => ({
     ...featureForm(feature),
     status: feature?.status ?? defaultStatus,
-  }));
+  });
+  const [form, setForm] = useState(buildInitialForm);
+  // Unsaved-change guard: the dialog is keyed per feature, so the mount-time
+  // form serialized once is the pristine baseline (a ref read during render
+  // trips react-hooks/refs, hence the lazy state snapshot). Closing via X,
+  // Cancel, Escape, or the backdrop asks first when anything changed; a
+  // successful save unmounts the dialog through the parent, so no reset
+  // path is needed.
+  const [pristineJson] = useState(() => JSON.stringify(buildInitialForm()));
+  const dirty = JSON.stringify(form) !== pristineJson;
+  const requestClose = () => {
+    if (!dirty || window.confirm("Discard unsaved changes to this card?")) onClose();
+  };
   const inputClass =
     "mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal text-[var(--admin-ink)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[var(--admin-muted)]/65 focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10";
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -266,7 +278,7 @@ function FeatureDialog({
   return (
     <AdminDialog
       open={open}
-      onClose={onClose}
+      onClose={requestClose}
       title={feature ? "Edit feature" : "Add feature"}
       labelledBy="feature-dialog-title"
       maxWidth="lg"
@@ -287,7 +299,7 @@ function FeatureDialog({
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={requestClose}
             aria-label="Close feature details"
             className="grid size-10 place-items-center rounded-xl text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:scale-[0.96] dark:hover:bg-white/[0.05]"
           >
@@ -439,7 +451,7 @@ function FeatureDialog({
           <div className="flex gap-2">
             <button
               type="button"
-              onClick={onClose}
+              onClick={requestClose}
               className="min-h-11 rounded-xl px-4 text-xs font-semibold text-[var(--admin-muted)] transition-[color,transform] duration-150 hover:text-[var(--admin-ink)] active:scale-[0.96]"
             >
               Cancel
@@ -785,6 +797,7 @@ export default function FeaturesPage() {
                     getItemId={(feature) => feature.id}
                     getItemColumnKey={(feature) => feature.status}
                     getItemSortOrder={(feature) => Number(feature.sort_order)}
+                    getItemLabel={(feature) => feature.title}
                     setItemPosition={(feature, columnKey, sortOrder) => ({
                       ...feature,
                       status: columnKey,
