@@ -27,26 +27,27 @@ From `accelerate-site/`:
 
 ```bash
 git status --short
-npm run verify:agent-contract
-npm run seed:features -- --verify
+npm run agent:next
 ```
 
-Preserve unrelated changes. Find the card by stable key or exact title in
-`scripts/feature-backlog-data.mjs`. Read its description, dependencies, starting
-points, guardrails, acceptance criteria, and current evidence. Read every directly
-linked service/migration before editing.
+`agent:next` atomically claims one dependency-ready card (advisory lock +
+lease — two agents racing the same card, exactly one wins, the other gets a
+different card or `wip_limit_reached`), creates an isolated worktree +
+branch so this claim can't collide with another agent's uncommitted changes
+in a shared tree, and prints the full context in one call: description,
+dependencies, starting points, guardrails, acceptance criteria, and current
+evidence. That replaces hand-reading `scripts/feature-backlog-data.mjs` for
+this step. Still read every directly linked service/migration named in the
+"Starting points" line before editing.
 
-Do not start when a dependency is genuinely unmet. Set the card Owner to a
-specific agent identity, set `in_progress`, and record the intended slice in the
-manifest. Reconcile intentionally:
-
-```bash
-npm run seed:features -- --apply
-npm run seed:features -- --verify
-```
-
-The manifest is the durable managed-card definition. The board is the operational
-projection. A live-only managed-card edit will be overwritten by reconciliation.
+Do not start when a dependency is genuinely unmet — release it
+(`npm run agent:release -- --card <id>`) and claim something else instead.
+`owner`/`status`/the lease are live-managed columns now: never hand-edit
+them in the manifest, and `npm run seed:features -- --apply` deliberately
+ignores those two fields on an existing row, so a manifest edit to either
+is silently a no-op. Everything else about a card (title, description,
+acceptance, dependencies, labels) is still manifest-owned; edit it there
+and reconcile with `npm run seed:features -- --apply` then `--verify`.
 
 ## 2. Write the implementation contract
 
@@ -123,9 +124,17 @@ Update the card’s `evidence` with:
 - known limitations and exact remaining work;
 - discovered follow-up card keys.
 
-Set `shipped` only when every acceptance item is evidenced. Otherwise keep
-`in_progress` and state what remains. Clear or transfer Owner explicitly. Apply
-and verify the board manifest again.
+Set `shipped` only when every acceptance item is evidenced:
+`npm run agent:complete -- --card <id> --evidence "<the evidence above>"`
+appends it to the card's notes, marks it shipped, and removes your
+worktree. Otherwise keep `in_progress` and state what remains — running
+long is fine, renew with `npm run agent:heartbeat -- --card <id>` before
+the lease expires; abandoning entirely is
+`npm run agent:release -- --card <id>`, which returns it to backlog for
+someone else to pick up and leaves the worktree in place to inspect. Any
+manifest field besides the live-managed `owner`/`status`/lease (title,
+description, acceptance, dependencies, labels) still needs its own
+`npm run seed:features -- --apply` / `--verify` if you changed it.
 
 ### Release gate
 

@@ -4,10 +4,39 @@ This file is the mandatory starting point for every implementation agent. The
 goal is repeatable delivery by agents with different capability levels, without
 rediscovering architecture or inventing new write paths.
 
-If the repo isn't running yet, none of this is reachable: `/admin/features`
-in step 1 below requires a deployed or locally running instance with
-migrations applied and a founder account. Follow
+If the repo isn't running yet, none of this is reachable: some of the docs
+below assume a deployed or locally running instance with migrations applied
+and a founder account. Follow
 [docs/self-hosting/SELF-HOSTING.md](docs/self-hosting/SELF-HOSTING.md) first, then come back here.
+
+## Pick up work
+
+```
+NEXT_PUBLIC_SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... npm run agent:next
+```
+
+This atomically claims one dependency-ready Feature Board card (advisory
+lock + lease, `migrations/20260903-feature-request-claims.sql` — two
+concurrent claims on the same card, exactly one wins), creates an isolated
+git worktree + branch at `../.agent-worktrees/<seed-key>` so you don't
+collide with other agents working this same repo right now, and prints the
+card's full context in one call: description, acceptance criteria, and the
+notes block carrying dependencies/starting points/guardrails/verification —
+no need to hand-read `scripts/feature-backlog-data.mjs`. Only the two
+Supabase env vars are required; this needs no browser session because the
+Feature Board is platform-global, not tied to a tenant account.
+
+`npm run agent:status` lists what's actually claimable right now.
+`npm run agent:heartbeat -- --card <id>` renews your lease if a ticket runs
+long. `npm run agent:complete -- --card <id> --evidence "<what you
+verified>"` ships it and removes the worktree. `npm run agent:release --
+--card <id>` abandons it back to backlog without shipping, leaving the
+worktree in place for inspection. Pass `--card <seedKeyOrId>` to any of
+these to name a specific card instead of auto-picking.
+
+To claim a specific card you already know by title, find its `seed_key` in
+`scripts/feature-backlog-data.mjs` or `/admin/features` first, then
+`npm run agent:next -- --card <seed_key>`.
 
 ## Read in this order
 
@@ -62,9 +91,13 @@ Every capability follows this sequence:
 
 - `scripts/feature-backlog-data.mjs` is the durable definition of every managed
   card. `/admin/features` is its operational projection.
-- Claim work by setting a specific Owner and `in_progress` state in the manifest,
-  adding current evidence, then intentionally reconciling with
-  `npm run seed:features -- --apply`.
+- Claim work with `npm run agent:next` (see "Pick up work" above), never by
+  hand-editing `owner`/`status` in the manifest — those became live-managed
+  columns once the atomic claim RPC landed, and `npm run seed:features --
+  apply` deliberately no longer reconciles them, so a manifest edit to those
+  two fields is silently ignored. Everything else about a card (title,
+  description, acceptance, labels, dependencies) is still manifest-owned:
+  edit it there and reconcile with `npm run seed:features -- --apply`.
 - Do not create a second roadmap. Newly discovered work becomes a detailed card
   with a stable key, dependencies, starting points, guardrails, acceptance, and
   verification evidence.

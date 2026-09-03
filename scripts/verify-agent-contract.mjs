@@ -7,6 +7,7 @@ import {
   validateFeatureBacklog,
 } from "./feature-backlog-data.mjs";
 import { collectFeatureBoardIntegrityFailures } from "./lib/feature-board-graph.mjs";
+import { collectWiringFailures } from "./verify-wiring.mjs";
 
 const requiredFiles = [
   "AGENTS.md",
@@ -148,6 +149,12 @@ failures.push(
     secondBrainImplementations: SECOND_BRAIN_IMPLEMENTATIONS,
   }),
 );
+
+// "Shipped" must be mechanically earned, not self-reported prose: catches
+// unwired modules, tables no migration creates, unregistered cron routes,
+// and swallowed errors — the exact defect shapes this contract's own
+// history shipped and called done. See scripts/verify-wiring.mjs.
+failures.push(...collectWiringFailures());
 
 // The execution guide sequences stable card keys but never owns their mutable
 // status. Resolve every `card:<key>` reference against the manifest so a rename
