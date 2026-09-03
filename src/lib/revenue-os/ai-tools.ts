@@ -15,6 +15,7 @@ import { listClaimsForEntity, type Claim } from "./claims";
 import { listAutonomyPolicies, type AutonomyPolicy } from "./autonomy-policy";
 import { listCoworkers, type Coworker } from "./coworkers";
 import { getAgentActivityForEntity, type AgentActivityEntry } from "./agent-activity";
+import { bootstrapSalesCoworker } from "./sales-coworker";
 
 export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v4";
 export const REVENUE_TOOL_PACKS = ["core", "pipeline", "outreach"] as const;
@@ -1141,6 +1142,32 @@ const registry: AiToolRegistration[] = [
     },
   },
   {
+    name: "bootstrap_sales_coworker",
+    description:
+      "Bootstrap the Sales Coworker: register its capabilities, autonomy policies, and work kinds. Returns readiness status and any capability gaps. Idempotent — safe to call multiple times.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    outputSchema: {
+      type: "object",
+      required: ["readyToWork", "capabilityGaps"],
+      properties: {
+        readyToWork: { type: "boolean" },
+        capabilityGaps: { type: "array", items: { type: "string" } },
+      },
+    },
+    serviceTarget: "revenue-os.coworker-bootstrap",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }) => {
+      const result = await bootstrapSalesCoworker(supabase, actorEmail);
+      return {
+        readyToWork: result.readyToWork,
+        capabilityGaps: result.capabilityGaps,
+        coworkerName: result.coworker.name,
+      };
+    },
+  },
+  {
     name: "propose_conversation_reply",
     description:
       "Stage a reply to an active conversation thread for founder approval. This never sends directly.",
@@ -1199,6 +1226,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "get_autonomy_policies",
     "get_coworkers",
     "get_agent_activity_for_entity",
+    "bootstrap_sales_coworker",
     "get_record_timeline",
     "search_knowledge_base",
     "propose_task",

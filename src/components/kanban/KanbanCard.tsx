@@ -30,24 +30,20 @@ interface KanbanCardProps<T> {
  * card component can be dropped in unchanged in spirit.
  */
 export function KanbanCard<T>({ item, id, columnKey, disabled = false, renderCard }: KanbanCardProps<T>) {
-  const sortable = useSortable({
+  const { setNodeRef, transform, transition, isDragging, attributes, listeners } = useSortable({
     id,
     disabled,
     data: { type: "card", columnKey },
   });
   const style = {
-    transform: CSS.Transform.toString(sortable.transform),
-    transition: sortable.transition,
+    transform: CSS.Transform.toString(transform),
+    transition,
   };
+  const dragHandleProps = disabled ? {} : { ...attributes, ...listeners };
 
   return (
-    <div ref={sortable.setNodeRef} style={style}>
-      {renderCard(item, {
-        isDragging: sortable.isDragging,
-        isOverlay: false,
-        disabled,
-        dragHandleProps: disabled ? {} : { ...sortable.attributes, ...sortable.listeners },
-      })}
+    <div ref={setNodeRef} style={style}>
+      {renderCard(item, { isDragging, isOverlay: false, disabled, dragHandleProps })}
     </div>
   );
 }

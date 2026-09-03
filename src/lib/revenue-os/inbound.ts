@@ -7,6 +7,7 @@ import { recordAudit } from "./audit";
 import { resolveOrCreateIdentity } from "./identity";
 import { canTransition, canonicalStage, transitionOpportunity } from "./pipeline";
 import { createRevenueTask } from "./tasks";
+import { createQualifyLeadWork } from "./sales-coworker";
 import {
   RESPONDER_POLICY_VERSION,
   respondToInbound,
@@ -186,6 +187,15 @@ export async function ingestInboundLead(supabase: SupabaseClient, input: Canonic
     source: input.source,
     dedupeKey: `inbound-follow-up:${opportunity.id}`,
     actorEmail: tenant.founder.systemActorEmail,
+  });
+  // Create a durable work item for the Sales Coworker to qualify this lead.
+  await createQualifyLeadWork(supabase, {
+    contactId: identity.contact.id,
+    source: input.source,
+    reason: `Inbound ${input.source} inquiry from ${identity.company.name}`,
+    actorEmail: tenant.founder.systemActorEmail,
+  }).catch((err) => {
+    console.error("[inbound] failed to create qualify_lead work item:", err instanceof Error ? err.message : String(err));
   });
   await recordAudit(supabase, {
     actorEmail: tenant.founder.systemActorEmail,
