@@ -2492,7 +2492,7 @@ export const featureBacklog = [
     title: "Finish the shared AI confirmation system",
     workstream: "ai",
     phase: 3,
-    status: "planned",
+    status: "shipped",
     priority: "high",
     description:
       "Require explicit in-turn approval for individual sends, stage changes, event mutations, proposal sends, and destructive operations.",
@@ -2510,7 +2510,7 @@ export const featureBacklog = [
       "A prior general instruction is not confirmation for a newly generated external action.",
     labels: ["confirmation", "safety"],
     evidence:
-      "2026-09-01: implemented underlying state freshness binding, campaign version checks, pre-send suppression checks, and consequence safety in action-executor.ts and ai-tools.ts. Action proposals capture expectedStage and expectedVersion at generation time; approval refuses execution with an explicit state-change rejection if the underlying opportunity stage or campaign version moved in the interim. Pre-checks block sends to unsubscribed contacts or replies to archived conversations. ActionReviewDialog in Today workspace was enhanced with impact tier badges (External Action vs Internal Mutation) and explicit material consequence callouts before approval. All approve, reject, expire, execute, and fail transitions are atomic and audited. Verified with 17 deterministic test cases in test:action-execution covering state invalidation, double-claims, duplicate stages, version mismatches, and suppression pre-checks.",
+      "2026-09-03 shipped: Confirmation feedback loop complete. rejectAction creates learned policy from human decision (rejection reason → operational rule). claimApprovedAction stores agent memory as trust signal scoped to proposing coworker. proposeAction checks learned policies before staging — prohibitive policies block proposals with explanation instead of queuing for rejection. This closes the loop: reject → learn → block future proposals. 2026-09-01: implemented underlying state freshness binding, campaign version checks, pre-send suppression checks, and consequence safety in action-executor.ts and ai-tools.ts. Action proposals capture expectedStage and expectedVersion at generation time; approval refuses execution with an explicit state-change rejection if the underlying opportunity stage or campaign version moved in the interim. Pre-checks block sends to unsubscribed contacts or replies to archived conversations. ActionReviewDialog in Today workspace was enhanced with impact tier badges (External Action vs Internal Mutation) and explicit material consequence callouts before approval. All approve, reject, expire, execute, and fail transitions are atomic and audited. Verified with 17 deterministic test cases in test:action-execution covering state invalidation, double-claims, duplicate stages, version mismatches, and suppression pre-checks.",
   }),
   card({
     key: "ai-bounded-context",
