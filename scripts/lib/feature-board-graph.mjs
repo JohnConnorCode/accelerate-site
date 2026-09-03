@@ -151,6 +151,28 @@ export function findSecondBrainRollupGaps(cards, requiredImplementations) {
   return gaps;
 }
 
+// A board that cannot dispatch is a broken board: if zero dependency-ready
+// backlog/planned cards carry milestone:now|next, an agent asking "what
+// should I work on?" gets no legal answer even when startable work exists.
+export function findDispatchDeadlock(cards) {
+  const graph = buildDependencyGraph(cards);
+  const claimable = cards.filter((c) => c.status === "backlog" || c.status === "planned");
+  const ready = claimable.filter((c) => {
+    const deps = graph.edges.get(c.seed_key) ?? [];
+    return deps.every((depKey) => graph.byKey.get(depKey)?.status === "shipped");
+  });
+  const dispatchable = ready.filter((c) => {
+    const m = milestoneOf(c);
+    return m === "now" || m === "next";
+  });
+  if (ready.length > 0 && dispatchable.length === 0) {
+    return [
+      `Dispatch deadlock: ${ready.length} dependency-ready backlog/planned card(s) exist but none carry milestone:now or milestone:next.`,
+    ];
+  }
+  return [];
+}
+
 export function collectFeatureBoardIntegrityFailures(
   cards,
   { loopKeys, nowKeys, secondBrainImplementations },
@@ -203,5 +225,6 @@ export function collectFeatureBoardIntegrityFailures(
       `[${item.key}] roll-up is missing ${item.missing}${item.reason ? ` (${item.reason})` : ""}`,
     );
   }
+  failures.push(...findDispatchDeadlock(cards));
   return failures;
 }

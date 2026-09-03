@@ -1,3 +1,5 @@
+import { buildDependencyGraph } from "./lib/feature-board-graph.mjs";
+
 const allowedStatuses = new Set(["backlog", "planned", "in_progress", "blocked", "shipped"]);
 const allowedPriorities = new Set(["urgent", "high", "medium", "low"]);
 
@@ -5905,6 +5907,38 @@ for (const feature of featureBacklog) {
   // manifest order. This makes the board order agree with the handoff notes.
   feature.sort_order =
     circuitIndex >= 0 ? (circuitIndex + 1) * 1000 : (LOOP_ONE.length + count + 1) * 1000;
+}
+
+// -----------------------------------------------------------------------------
+// Dispatch-readiness pass: milestone:next was only ever LOOP_ONE membership, a
+// fixed list from the original second-brain build circuit that stopped
+// growing once that circuit largely shipped. Every one of the 160+ cards
+// added since is permanently milestone:later regardless of whether its
+// dependencies are actually shipped — the board's planning horizon
+// (milestone) and its actual claimability (dependency-ready + backlog/
+// planned) were fully decoupled. An agent asking "what should I work on?"
+// could get zero legal answers even with dependency-ready work sitting in
+// Later. Promote a claimable, dependency-ready card out of Later into Next
+// so the two stay in sync without hand-curating LOOP_ONE forever.
+// -----------------------------------------------------------------------------
+{
+  const dependencyGraph = buildDependencyGraph(featureBacklog);
+  for (const feature of featureBacklog) {
+    if (feature.status !== "backlog" && feature.status !== "planned") continue;
+    if (!feature.labels.includes("milestone:later")) continue;
+    const depKeys = dependencyGraph.edges.get(feature.seed_key) ?? [];
+    const ready = depKeys.every(
+      (depKey) => dependencyGraph.byKey.get(depKey)?.status === "shipped",
+    );
+    if (!ready) continue;
+    feature.labels = feature.labels.map((label) =>
+      label === "milestone:later" ? "milestone:next" : label,
+    );
+    feature.notes = feature.notes.replace(
+      "Board milestone: Later. This card keeps its full specification but is outside the current delivery circuit. Do not start it before Now and dependency-ready Next work unless a current card explicitly depends on it.",
+      "Board milestone: Next. Every declared dependency is shipped, so this is dependency-ready and outside the legacy delivery circuit — claim it before further Later work.",
+    );
+  }
 }
 
 export function validateFeatureBacklog() {

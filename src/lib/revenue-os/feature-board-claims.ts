@@ -133,16 +133,21 @@ export async function getFeatureCardContext(
 
 export async function listClaimableFeatureCards(
   supabase: SupabaseClient,
-  input: { limit?: number } = {},
+  input: { limit?: number; dispatchableOnly?: boolean } = {},
 ): Promise<FeatureRequestCard[]> {
-  const { data, error } = await supabase
+  let query = supabase
     .from("feature_requests")
     .select(CARD_COLUMNS)
     .in("status", ["backlog", "planned"])
     .is("archived_at", null)
-    .or("lease_expires_at.is.null,lease_expires_at.lt.now()")
-    .order("sort_order", { ascending: true })
-    .limit(input.limit ?? 20);
+    .or("lease_expires_at.is.null,lease_expires_at.lt.now()");
+  // Match what claim_feature_request's auto-pick would actually choose:
+  // milestone:now|next only, unless the caller explicitly wants the full
+  // backlog view (dispatchableOnly: false).
+  if (input.dispatchableOnly !== false) {
+    query = query.or("labels.cs.{milestone:now},labels.cs.{milestone:next}");
+  }
+  const { data, error } = await query.order("sort_order", { ascending: true }).limit(input.limit ?? 20);
   if (error) throw new Error(error.message);
   // sort_order alone doesn't reflect priority; the authoritative pick order
   // lives in claim_feature_request's CASE expression. Re-rank here for

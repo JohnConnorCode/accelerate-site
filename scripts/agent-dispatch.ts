@@ -116,7 +116,9 @@ async function main() {
 
   if (command === "status") {
     const claimable = await listClaimableFeatureCards(supabase, { limit: 20 });
-    process.stdout.write(`\n${claimable.length} claimable card(s) (backlog/planned, no active lease):\n`);
+    process.stdout.write(
+      `\n${claimable.length} dispatchable card(s) (backlog/planned, no active lease, milestone:now|next — what \`agent:next\` would actually pick from):\n`,
+    );
     for (const card of claimable) {
       process.stdout.write(`  [${card.priority}] ${card.seed_key ?? card.id} — ${card.title}\n`);
     }
