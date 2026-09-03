@@ -16,13 +16,27 @@
  * resolve — that's what makes a direct RPC call safe here.
  *
  * Usage:
- *   NODE_OPTIONS=--conditions=react-server npx tsx scripts/agent-dispatch.ts next [--card <seedKeyOrId>] [--identity <name>]
+ *   NODE_OPTIONS=--conditions=react-server npx tsx scripts/agent-dispatch.ts next [--card <seedKeyOrId>] [--identity <name>] [--no-worktree]
  *   NODE_OPTIONS=--conditions=react-server npx tsx scripts/agent-dispatch.ts status
+ *   NODE_OPTIONS=--conditions=react-server npx tsx scripts/agent-dispatch.ts heartbeat --card <id> [--identity <name>]
  *   NODE_OPTIONS=--conditions=react-server npx tsx scripts/agent-dispatch.ts release --card <id> [--identity <name>]
  *   NODE_OPTIONS=--conditions=react-server npx tsx scripts/agent-dispatch.ts complete --card <id> --evidence "<text>" [--identity <name>]
  *
- * Or via the npm scripts: agent:next, agent:status, agent:release, agent:complete.
+ * Or via the npm scripts: agent:next, agent:status, agent:heartbeat, agent:release, agent:complete.
+ *
+ * `next` also creates a dedicated git worktree at
+ * ../.agent-worktrees/<seed_key> (sibling to this repo, so it's outside any
+ * git tree of its own) on branch agent/<seed_key>, off the current HEAD —
+ * concurrent agents each work an isolated checkout instead of colliding in
+ * this one. `complete` removes it (the card shipped, nothing left to
+ * inspect); `release` leaves it in place so the abandoned work is still
+ * there to look at or hand off. Pass --no-worktree to skip creation, e.g.
+ * when this script itself is what you're claiming a card to edit.
  */
+import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { createServiceRoleClient } from "../src/lib/supabase/server";
 import { accelerateSystemContext } from "../src/lib/tenancy/context";
 import {
@@ -31,8 +45,46 @@ import {
   getFeatureCardContext,
   listClaimableFeatureCards,
   releaseFeatureCard,
+  renewFeatureCardLease,
   type FeatureRequestCard,
 } from "../src/lib/revenue-os/feature-board-claims";
+
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const worktreeRoot = resolve(repoRoot, "..", ".agent-worktrees");
+
+function branchExists(branch: string): boolean {
+  try {
+    execFileSync("git", ["-C", repoRoot, "rev-parse", "--verify", "--quiet", `refs/heads/${branch}`], {
+      stdio: "ignore",
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function createWorktree(seedKey: string): string {
+  const path = resolve(worktreeRoot, seedKey);
+  const branch = `agent/${seedKey}`;
+  if (existsSync(path)) return path;
+  const args = branchExists(branch)
+    ? ["worktree", "add", path, branch]
+    : ["worktree", "add", path, "-b", branch];
+  execFileSync("git", ["-C", repoRoot, ...args], { stdio: "inherit" });
+  return path;
+}
+
+function removeWorktree(seedKey: string) {
+  const path = resolve(worktreeRoot, seedKey);
+  if (!existsSync(path)) return;
+  try {
+    execFileSync("git", ["-C", repoRoot, "worktree", "remove", path, "--force"], { stdio: "inherit" });
+  } catch (err) {
+    process.stderr.write(
+      `[agent-dispatch] could not remove worktree at ${path}: ${err instanceof Error ? err.message : String(err)}\n`,
+    );
+  }
+}
 
 function parseFlags(argv: string[]) {
   const flags: Record<string, string> = {};
@@ -107,10 +159,39 @@ async function main() {
     if (!card) throw new Error("Claimed a card but could not read it back");
     process.stdout.write(`Claimed as ${identity}${result.recoveredStale ? " (recovered a stale lease elsewhere on the board first)" : ""}.\n`);
     printCard(card);
+
+    let worktreePath: string | null = null;
+    if (flags["no-worktree"] !== "true" && card.seed_key) {
+      try {
+        worktreePath = createWorktree(card.seed_key);
+        process.stdout.write(`\nWorktree ready: ${worktreePath}  (branch agent/${card.seed_key})\ncd ${worktreePath}\n`);
+      } catch (err) {
+        process.stdout.write(
+          `\nCould not create a worktree (working in the current checkout instead): ${err instanceof Error ? err.message : String(err)}\n`,
+        );
+      }
+    }
+
     process.stdout.write(
-      `\nWhen done: npm run agent:complete -- --card ${card.id} --identity "${identity}" --evidence "<what you verified>"\n` +
+      `\nRenew the lease periodically: npm run agent:heartbeat -- --card ${card.id} --identity "${identity}"\n` +
+        `When done: npm run agent:complete -- --card ${card.id} --identity "${identity}" --evidence "<what you verified>"\n` +
         `To abandon without shipping: npm run agent:release -- --card ${card.id} --identity "${identity}"\n`,
     );
+    return;
+  }
+
+  if (command === "heartbeat") {
+    if (!flags.card) throw new Error("--card is required");
+    const looksLikeUuid = /^[0-9a-f-]{36}$/i.test(flags.card);
+    const id = looksLikeUuid ? flags.card : (await getFeatureCardContext(supabase, { seedKey: flags.card }))?.id;
+    if (!id) {
+      process.stdout.write(`No card found for "${flags.card}".\n`);
+      process.exitCode = 1;
+      return;
+    }
+    const ok = await renewFeatureCardLease(supabase, { id, leaseOwner: identity });
+    process.stdout.write(ok ? `Lease renewed for ${flags.card}.\n` : `Could not renew — not leased by ${identity}, or not in_progress?\n`);
+    if (!ok) process.exitCode = 1;
     return;
   }
 
@@ -129,28 +210,40 @@ async function main() {
     if (!flags.card) throw new Error("--card is required");
     if (command === "complete" && !flags.evidence) throw new Error("--evidence is required");
     const looksLikeUuid = /^[0-9a-f-]{36}$/i.test(flags.card);
-    const id = looksLikeUuid
-      ? flags.card
-      : (await getFeatureCardContext(supabase, { seedKey: flags.card }))?.id;
-    if (!id) {
+    const card = looksLikeUuid
+      ? await getFeatureCardContext(supabase, { id: flags.card })
+      : await getFeatureCardContext(supabase, { seedKey: flags.card });
+    if (!card) {
       process.stdout.write(`No card found for "${flags.card}".\n`);
       process.exitCode = 1;
       return;
     }
     const ok =
       command === "release"
-        ? await releaseFeatureCard(supabase, { id, leaseOwner: identity })
-        : await completeFeatureCard(supabase, { id, leaseOwner: identity, evidence: flags.evidence! });
-    process.stdout.write(
-      ok
-        ? `${command === "release" ? "Released" : "Marked shipped:"} ${flags.card}.\n`
-        : `Could not ${command} ${flags.card} — not leased by ${identity}?\n`,
-    );
-    if (!ok) process.exitCode = 1;
+        ? await releaseFeatureCard(supabase, { id: card.id, leaseOwner: identity })
+        : await completeFeatureCard(supabase, { id: card.id, leaseOwner: identity, evidence: flags.evidence! });
+    if (!ok) {
+      process.stdout.write(`Could not ${command} ${flags.card} — not leased by ${identity}?\n`);
+      process.exitCode = 1;
+      return;
+    }
+    if (command === "complete" && card.seed_key && flags["no-worktree"] !== "true") {
+      removeWorktree(card.seed_key);
+      process.stdout.write(`Marked shipped: ${flags.card}. Worktree removed.\n`);
+    } else if (command === "release" && card.seed_key) {
+      const path = resolve(worktreeRoot, card.seed_key);
+      process.stdout.write(
+        `Released ${flags.card}.` + (existsSync(path) ? ` Worktree left in place at ${path} for inspection.\n` : "\n"),
+      );
+    } else {
+      process.stdout.write(`${command === "release" ? "Released" : "Marked shipped:"} ${flags.card}.\n`);
+    }
     return;
   }
 
-  process.stderr.write("Usage: agent-dispatch <next|status|release|complete> [--card <id>] [--identity <name>] [--evidence <text>]\n");
+  process.stderr.write(
+    "Usage: agent-dispatch <next|status|heartbeat|release|complete> [--card <id>] [--identity <name>] [--evidence <text>] [--no-worktree]\n",
+  );
   process.exitCode = 1;
 }
 

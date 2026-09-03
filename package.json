@@ -135,6 +135,7 @@
     "seed:features": "node --env-file=.env.local scripts/seed-feature-backlog.mjs",
     "agent:next": "NODE_OPTIONS=--conditions=react-server npx tsx --env-file=.env.local scripts/agent-dispatch.ts next",
     "agent:status": "NODE_OPTIONS=--conditions=react-server npx tsx --env-file=.env.local scripts/agent-dispatch.ts status",
+    "agent:heartbeat": "NODE_OPTIONS=--conditions=react-server npx tsx --env-file=.env.local scripts/agent-dispatch.ts heartbeat",
     "agent:release": "NODE_OPTIONS=--conditions=react-server npx tsx --env-file=.env.local scripts/agent-dispatch.ts release",
     "agent:complete": "NODE_OPTIONS=--conditions=react-server npx tsx --env-file=.env.local scripts/agent-dispatch.ts complete",
     "mirror:feature-board-issues": "node scripts/mirror-feature-board-issues.mjs",

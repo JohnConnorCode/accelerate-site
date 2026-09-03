@@ -93,6 +93,22 @@ export async function releaseFeatureCard(
   return Boolean(data);
 }
 
+export async function renewFeatureCardLease(
+  supabase: SupabaseClient,
+  input: { id: string; leaseOwner: string; leaseDurationMs?: number },
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("feature_requests")
+    .update({ lease_expires_at: new Date(Date.now() + (input.leaseDurationMs ?? 1_800_000)).toISOString() })
+    .eq("id", input.id)
+    .eq("lease_owner", input.leaseOwner)
+    .eq("status", "in_progress")
+    .select("id")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return Boolean(data);
+}
+
 export async function completeFeatureCard(
   supabase: SupabaseClient,
   input: { id: string; leaseOwner: string; evidence: string },
