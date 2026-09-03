@@ -90,7 +90,9 @@ async function assertDefaultFeatureLabelsIntact(when) {
     .is("tenant_id", null);
   if (error) throw error;
   const byKey = Object.fromEntries((data ?? []).map((r) => [r.column_key, r.label]));
-  const mismatches = Object.entries(DEFAULT_FEATURE_LABELS).filter(([key, label]) => byKey[key] !== label);
+  const mismatches = Object.entries(DEFAULT_FEATURE_LABELS).filter(
+    ([key, label]) => byKey[key] !== label,
+  );
   if (mismatches.length) {
     throw new Error(
       `${when}: real Feature Board column labels are not as expected — ${JSON.stringify(mismatches)}. Refusing to proceed against corrupted state.`,
@@ -170,8 +172,11 @@ async function newContext(viewport, { reducedMotion = false } = {}) {
  * text. Targeting the whole <section> produced garbage coordinates on
  * wide boards because scrollIntoView centers a huge rect. */
 async function resolveDropTarget(columnSection) {
-  if ((await columnSection.locator("article").count()) > 0) return columnSection.locator("article").last();
-  return columnSection.getByText(/no opportunities in this stage|drop a card here|drop content here/i);
+  if ((await columnSection.locator("article").count()) > 0)
+    return columnSection.locator("article").last();
+  return columnSection.getByText(
+    /no opportunities in this stage|drop a card here|drop content here/i,
+  );
 }
 
 async function dragCard(page, fromLocator, toLocator) {
@@ -195,7 +200,9 @@ async function dragCard(page, fromLocator, toLocator) {
   const neutralX = Math.min(Math.max(from.x + from.width / 2, 200), 1200);
   const neutralY = Math.min(Math.max(from.y, 200), 700);
   await page.mouse.move(neutralX, neutralY, { steps: 3 });
-  await toLocator.first().evaluate((el) => el.scrollIntoView({ inline: "center", block: "nearest" }));
+  await toLocator
+    .first()
+    .evaluate((el) => el.scrollIntoView({ inline: "center", block: "nearest" }));
   await page.waitForTimeout(300);
   const to = await toLocator.first().boundingBox();
   if (!to) throw new Error("drag target not visible after scrolling");
@@ -210,7 +217,11 @@ async function dragCard(page, fromLocator, toLocator) {
   // in flight to invalidate it.
   const toCorrected = await toLocator.first().boundingBox();
   if (!toCorrected) throw new Error("drag target lost before release");
-  await page.mouse.move(toCorrected.x + toCorrected.width / 2, toCorrected.y + toCorrected.height / 2, { steps: 5 });
+  await page.mouse.move(
+    toCorrected.x + toCorrected.width / 2,
+    toCorrected.y + toCorrected.height / 2,
+    { steps: 5 },
+  );
   await page.waitForTimeout(120);
   await page.mouse.up();
   await page.waitForTimeout(500);
@@ -222,7 +233,8 @@ async function clearFeaturesMilestoneFilter(page) {
   await page.waitForTimeout(300);
 }
 
-const columnSection = (page, name) => page.locator("section", { has: page.locator("h2", { hasText: name }) });
+const columnSection = (page, name) =>
+  page.locator("section", { has: page.locator("h2", { hasText: name }) });
 
 /** The commit path (veto -> reorder PATCH -> refetch) resolves
  * asynchronously after mouse.up. Waiting for the PATCH response first makes
@@ -302,7 +314,8 @@ try {
   let cardRendered = false;
   for (let i = 0; i < 15 && !cardRendered; i += 1) {
     await page.waitForTimeout(1000);
-    cardRendered = ((await page.locator("article", { hasText: FEATURE_CARD_TITLE }).count()) ?? 0) > 0;
+    cardRendered =
+      ((await page.locator("article", { hasText: FEATURE_CARD_TITLE }).count()) ?? 0) > 0;
   }
   await page.screenshot({ path: shot("features-card-created") });
 
@@ -349,17 +362,25 @@ try {
   await page.waitForTimeout(1000);
   await page.screenshot({ path: shot("features-after-keyboard-move") });
   const kbInNext =
-    (await columnSection(page, "In progress").locator("article", { hasText: FEATURE_CARD_TITLE }).count()) > 0;
+    (await columnSection(page, "In progress")
+      .locator("article", { hasText: FEATURE_CARD_TITLE })
+      .count()) > 0;
   const kbInBlocked =
-    (await columnSection(page, "Blocked").locator("article", { hasText: FEATURE_CARD_TITLE }).count()) > 0;
+    (await columnSection(page, "Blocked")
+      .locator("article", { hasText: FEATURE_CARD_TITLE })
+      .count()) > 0;
   // The commit is async (same path as a mouse drop); poll briefly before
   // calling it.
   let kbMoved = kbInNext || kbInBlocked;
   for (let i = 0; i < 10 && !kbMoved; i += 1) {
     await page.waitForTimeout(1000);
     kbMoved =
-      (await columnSection(page, "In progress").locator("article", { hasText: FEATURE_CARD_TITLE }).count()) > 0 ||
-      (await columnSection(page, "Blocked").locator("article", { hasText: FEATURE_CARD_TITLE }).count()) > 0;
+      (await columnSection(page, "In progress")
+        .locator("article", { hasText: FEATURE_CARD_TITLE })
+        .count()) > 0 ||
+      (await columnSection(page, "Blocked")
+        .locator("article", { hasText: FEATURE_CARD_TITLE })
+        .count()) > 0;
   }
   check("keyboard move carried the card to the next column", kbMoved, "card did not change column");
 
@@ -410,7 +431,11 @@ try {
     ),
     page.click('button:has-text("Add column"):visible >> nth=-1'),
   ]);
-  check("column creation POST succeeded", createColResponse.status() === 201, createColResponse.status());
+  check(
+    "column creation POST succeeded",
+    createColResponse.status() === 201,
+    createColResponse.status(),
+  );
   await page.waitForTimeout(500);
   check(
     "new column appears after Add column",
@@ -425,7 +450,10 @@ try {
   await testColHeader.scrollIntoViewIfNeeded();
   await page.waitForTimeout(200);
   await testColHeader.hover();
-  const testColSectionHandle = await page.locator("section", { has: testColHeader }).first().elementHandle();
+  const testColSectionHandle = await page
+    .locator("section", { has: testColHeader })
+    .first()
+    .elementHandle();
   const renameButtonLocator = page
     .locator("section", { has: testColHeader })
     .first()
@@ -520,13 +548,15 @@ try {
   await pipe.fill('input[name="estimatedValue"]', "4200");
   const [createOppResponse] = await Promise.all([
     pipe.waitForResponse(
-      (res) => res.url().includes("/api/admin/revenue-os/pipeline") && res.request().method() === "POST",
+      (res) =>
+        res.url().includes("/api/admin/revenue-os/pipeline") && res.request().method() === "POST",
       { timeout: 45000 },
     ),
     // The dialog's success handler refetches after the POST resolves —
     // wait for that too, so the DOM has re-rendered before we search it.
     pipe.waitForResponse(
-      (res) => res.url().includes("/api/admin/revenue-os/pipeline") && res.request().method() === "GET",
+      (res) =>
+        res.url().includes("/api/admin/revenue-os/pipeline") && res.request().method() === "GET",
       { timeout: 45000 },
     ),
     pipe.click('button:has-text("Create opportunity")'),
@@ -592,25 +622,43 @@ try {
   await mpage.waitForSelector('h2:has-text("Backlog")', { timeout: 120000 });
   await clearFeaturesMilestoneFilter(mpage);
   await mpage.screenshot({ path: shot("features-board-mobile") });
-  check("mobile board renders columns", (await columnSection(mpage, "Backlog").count()) > 0, "no Backlog column");
+  check(
+    "mobile board renders columns",
+    (await columnSection(mpage, "Backlog").count()) > 0,
+    "no Backlog column",
+  );
   // No horizontal page overflow: the board scrolls inside its own container.
-  const pageOverflows = await mpage.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+  const pageOverflows = await mpage.evaluate(
+    () => document.documentElement.scrollWidth > window.innerWidth + 1,
+  );
   check("mobile page does not overflow horizontally", !pageOverflows, "document overflows");
   // List view is the tap-first move control on phones.
   await mpage.click('button:has-text("List")');
   await mpage.waitForTimeout(500);
   await mpage.screenshot({ path: shot("features-list-mobile") });
-  check("mobile list view renders", (await mpage.locator("table").count()) > 0, "no table on mobile");
+  check(
+    "mobile list view renders",
+    (await mpage.locator("table").count()) > 0,
+    "no table on mobile",
+  );
 
   await mpage.goto(`${base}/admin/pipeline`, { waitUntil: "domcontentloaded" });
   await mpage.waitForSelector("text=New opportunity", { timeout: 120000 });
   await mpage.screenshot({ path: shot("pipeline-board-mobile") });
-  check("mobile pipeline renders", (await mpage.locator("section").count()) > 0, "no columns on mobile");
+  check(
+    "mobile pipeline renders",
+    (await mpage.locator("section").count()) > 0,
+    "no columns on mobile",
+  );
   await mobile.close();
 
   console.log("\nConsole errors captured during the whole run:", consoleErrors.length);
   for (const err of consoleErrors.slice(0, 20)) console.log("  console:", err);
-  check("no browser console errors during the whole run", consoleErrors.length === 0, consoleErrors.slice(0, 5));
+  check(
+    "no browser console errors during the whole run",
+    consoleErrors.length === 0,
+    consoleErrors.slice(0, 5),
+  );
 } finally {
   await browser.close();
   console.log("\n--- cleanup ---");
@@ -623,26 +671,51 @@ try {
       await admin.from(table).delete().in("opportunity_id", createdOpportunityIds);
     }
     const { error } = await admin.from("opportunities").delete().in("id", createdOpportunityIds);
-    console.log(`  deleted ${createdOpportunityIds.length} test opportunity(ies) ->`, error?.message || "ok");
+    console.log(
+      `  deleted ${createdOpportunityIds.length} test opportunity(ies) ->`,
+      error?.message || "ok",
+    );
   }
   const { error: cardCleanupErr, data: leftoverCards } = await admin
     .from("feature_requests")
     .select("id")
     .ilike("title", "QA-DELETE-ME%");
   if (leftoverCards?.length) {
-    await admin.from("feature_requests").delete().in("id", leftoverCards.map((c) => c.id));
+    await admin
+      .from("feature_requests")
+      .delete()
+      .in(
+        "id",
+        leftoverCards.map((c) => c.id),
+      );
   }
-  console.log("  leftover QA feature cards removed:", leftoverCards?.length ?? 0, cardCleanupErr?.message || "");
+  console.log(
+    "  leftover QA feature cards removed:",
+    leftoverCards?.length ?? 0,
+    cardCleanupErr?.message || "",
+  );
   const { data: leftoverCols } = await admin
     .from("kanban_columns")
     .select("id,board_key,column_key,tenant_id")
     .ilike("label", "QA-DELETE-ME%");
   if (leftoverCols?.length) {
     console.log("  leftover QA columns found:", leftoverCols);
-    await admin.from("kanban_columns").delete().in("id", leftoverCols.map((c) => c.id));
+    await admin
+      .from("kanban_columns")
+      .delete()
+      .in(
+        "id",
+        leftoverCols.map((c) => c.id),
+      );
   }
 }
 
 console.log("\n=== Result ===");
-console.log(JSON.stringify({ passed: failures.length === 0, failureCount: failures.length, failures }, null, 2));
+console.log(
+  JSON.stringify(
+    { passed: failures.length === 0, failureCount: failures.length, failures },
+    null,
+    2,
+  ),
+);
 if (failures.length) process.exit(1);

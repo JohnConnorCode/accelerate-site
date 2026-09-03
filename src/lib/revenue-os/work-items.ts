@@ -12,13 +12,7 @@ import { createRevenueTask } from "./tasks";
 
 export type WorkItemPriority = "urgent" | "high" | "medium" | "low";
 export type WorkItemStatus =
-  | "pending"
-  | "claimed"
-  | "in_progress"
-  | "waiting"
-  | "completed"
-  | "failed"
-  | "cancelled";
+  "pending" | "claimed" | "in_progress" | "waiting" | "completed" | "failed" | "cancelled";
 
 export interface WorkItem {
   id: string;
@@ -412,7 +406,8 @@ export async function scheduleCheck(
   nextCheckAt: string,
   reason: string,
 ): Promise<void> {
-  if (!reason.trim()) throw new Error("next_check_reason is required when scheduling a future check");
+  if (!reason.trim())
+    throw new Error("next_check_reason is required when scheduling a future check");
 
   const { data: before, error: readError } = await supabase
     .from("work_items")
@@ -498,7 +493,12 @@ export async function releaseWorkItem(supabase: SupabaseClient, id: string): Pro
       lease_owner: null,
       lease_expires_at: null,
       claimed_at: null,
-      attempt_count: Math.max(0, (await supabase.from("work_items").select("attempt_count").eq("id", id).single()).data?.attempt_count ?? 1) - 1,
+      attempt_count:
+        Math.max(
+          0,
+          (await supabase.from("work_items").select("attempt_count").eq("id", id).single()).data
+            ?.attempt_count ?? 1,
+        ) - 1,
     })
     .eq("id", id)
     .eq("status", "claimed");
@@ -539,9 +539,7 @@ export async function listClaimableWork(
 // Stale claim recovery (called inline, like sweepExpiredActions)
 // ---------------------------------------------------------------------------
 
-export async function recoverStaleWorkItemClaims(
-  supabase: SupabaseClient,
-): Promise<number> {
+export async function recoverStaleWorkItemClaims(supabase: SupabaseClient): Promise<number> {
   const now = new Date().toISOString();
   const { data: stale, error } = await supabase
     .from("work_items")
@@ -563,7 +561,11 @@ export async function recoverStaleWorkItemClaims(
     if (attemptsExhausted) {
       await supabase
         .from("work_items")
-        .update({ status: "failed", error: "Stale claim expired past max attempts", finished_at: now })
+        .update({
+          status: "failed",
+          error: "Stale claim expired past max attempts",
+          finished_at: now,
+        })
         .eq("id", item.id)
         .eq("status", item.status);
     } else {

@@ -326,7 +326,7 @@ const CURRENT_IMPLEMENTATION_EVIDENCE = {
     "2026-09-03 shipped: src/lib/revenue-os/work-scheduler.ts (auto-creates 9 daily work items: digest, stale deals, bottleneck, velocity change, health check, integration audit, data quality, overdue scan, revenue stage audit; weekly: reconciliation on Mondays; scans calendar_events 48h ahead for meeting pre-call briefs). Date-based deduplication. Cross-coworker triggers: inbound→Sales+BP+Ops, pipeline won→Finance+Ops, high-stage→BP+Finance, Calendly→Meeting Intel. All 18 handler paths store domain-specific agent memory. Wired in cron route before executeClaimableWork. TypeScript, lint, build, and contract verify pass.",
   "memory-architecture":
     "2026-09-03 shipped: src/lib/revenue-os/memory.ts (five categories: canonical, activity, knowledge, agent, learned_policy). Agent memory with time-decay horizons (session/daily/weekly/permanent). Learned policies with supersession. Unified queryMemory across all categories. 5 AI tools: query_memory, store_agent_memory, get_agent_memory, get_learned_policies, record_learned_policy. Migration: 20260903-memory-architecture.sql. Work executor consults learned policies and stores agent memory after execution. TypeScript, lint, build, and contract verify pass.",
-  "budgets":
+  budgets:
     "2026-09-03 shipped: src/lib/revenue-os/budgets.ts (checkBudgets, recordBudgetUsage, setBudgetLimit, listBudgetLimits). Six budget kinds (model_spend, vendor_api_calls, emails_sent, research_depth, retry_count, runtime_seconds). Per-coworker or global limits with daily/weekly/monthly periods. Work executor checks budgets before execution and records usage after. 90%+ usage triggers audit alert. Migration: 20260903-budgets.sql. 2 AI tools: check_budgets, get_budget_limits. TypeScript, lint, build, and contract verify pass.",
 };
 
@@ -5671,9 +5671,15 @@ export const featureBacklog = [
       "Revenue stage audit identifies proposal/negotiation deals stale for 7+ days",
       "All handler outcomes produce audit receipts",
     ],
-    dependencies: ["Generalise tasks and scheduling into a durable Work Engine", "Introduce Coworkers as first-class runtime identities with manifests", "Unify agent permissions into one Autonomy Policy Engine"],
-    start: "docs/NORTHSTAR.md §E; src/lib/revenue-os/finance-coworker.ts; src/lib/revenue-os/work-executor.ts",
-    guardrails: "Finance coworker reads CRM data autonomously but writes and alerts require ask_until_trusted level. Never auto-modify financial records.",
+    dependencies: [
+      "Generalise tasks and scheduling into a durable Work Engine",
+      "Introduce Coworkers as first-class runtime identities with manifests",
+      "Unify agent permissions into one Autonomy Policy Engine",
+    ],
+    start:
+      "docs/NORTHSTAR.md §E; src/lib/revenue-os/finance-coworker.ts; src/lib/revenue-os/work-executor.ts",
+    guardrails:
+      "Finance coworker reads CRM data autonomously but writes and alerts require ask_until_trusted level. Never auto-modify financial records.",
     labels: ["coworkers", "finance"],
     verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
   }),
@@ -5694,9 +5700,14 @@ export const featureBacklog = [
       "Data quality scan detects missing critical fields on contacts and opportunities",
       "All handler outcomes produce audit receipts",
     ],
-    dependencies: ["Generalise tasks and scheduling into a durable Work Engine", "Introduce Coworkers as first-class runtime identities with manifests"],
-    start: "docs/NORTHSTAR.md §E; src/lib/revenue-os/operations-coworker.ts; src/lib/revenue-os/work-executor.ts",
-    guardrails: "Operations coworker is read-only — it detects and reports issues, never auto-remediates. Alerts require ask_until_trusted autonomy level.",
+    dependencies: [
+      "Generalise tasks and scheduling into a durable Work Engine",
+      "Introduce Coworkers as first-class runtime identities with manifests",
+    ],
+    start:
+      "docs/NORTHSTAR.md §E; src/lib/revenue-os/operations-coworker.ts; src/lib/revenue-os/work-executor.ts",
+    guardrails:
+      "Operations coworker is read-only — it detects and reports issues, never auto-remediates. Alerts require ask_until_trusted autonomy level.",
     labels: ["coworkers", "operations"],
     verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
   }),
@@ -5717,9 +5728,16 @@ export const featureBacklog = [
       "Daily operator check-in task surfaces in the inbox",
       "Scheduler produces audit receipts",
     ],
-    dependencies: ["Generalise tasks and scheduling into a durable Work Engine", "Introduce Coworkers as first-class runtime identities with manifests", "Finance Coworker: revenue tracking, overdue detection, and reconciliation", "Operations Coworker: system health, integration monitoring, and data quality"],
-    start: "docs/NORTHSTAR.md §E; src/lib/revenue-os/work-scheduler.ts; src/app/api/cron/work-engine/route.ts",
-    guardrails: "Scheduler only creates work items — it never executes them. Deduplication must be date-based, not attempt-based. Scheduler failures must not block the work engine execution cycle.",
+    dependencies: [
+      "Generalise tasks and scheduling into a durable Work Engine",
+      "Introduce Coworkers as first-class runtime identities with manifests",
+      "Finance Coworker: revenue tracking, overdue detection, and reconciliation",
+      "Operations Coworker: system health, integration monitoring, and data quality",
+    ],
+    start:
+      "docs/NORTHSTAR.md §E; src/lib/revenue-os/work-scheduler.ts; src/app/api/cron/work-engine/route.ts",
+    guardrails:
+      "Scheduler only creates work items — it never executes them. Deduplication must be date-based, not attempt-based. Scheduler failures must not block the work engine execution cycle.",
     labels: ["coworkers", "automation"],
     verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
   }),
@@ -5743,9 +5761,14 @@ export const featureBacklog = [
       "Memory summary (learned policies + recent agent memory) loaded into every agent grounding contract",
       "MCP server exposes memory/overview resource",
     ],
-    dependencies: ["Build the Evidence and Claim Ledger for AI-derived facts", "Introduce Coworkers as first-class runtime identities with manifests"],
-    start: "docs/NORTHSTAR.md §23; src/lib/revenue-os/memory.ts; migrations/20260903-memory-architecture.sql",
-    guardrails: "Categories must never be collapsed — each retains its own shape. Agent memory is not canonical data. Learned policies are constraints, not capabilities. Memory query failures must not block agent execution.",
+    dependencies: [
+      "Build the Evidence and Claim Ledger for AI-derived facts",
+      "Introduce Coworkers as first-class runtime identities with manifests",
+    ],
+    start:
+      "docs/NORTHSTAR.md §23; src/lib/revenue-os/memory.ts; migrations/20260903-memory-architecture.sql",
+    guardrails:
+      "Categories must never be collapsed — each retains its own shape. Agent memory is not canonical data. Learned policies are constraints, not capabilities. Memory query failures must not block agent execution.",
     labels: ["coworkers", "ai-context"],
     verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
   }),
@@ -5766,9 +5789,13 @@ export const featureBacklog = [
       "90%+ budget usage triggers audit alert",
       "2 AI tools: check_budgets, get_budget_limits",
     ],
-    dependencies: ["Generalise tasks and scheduling into a durable Work Engine", "Introduce Coworkers as first-class runtime identities with manifests"],
+    dependencies: [
+      "Generalise tasks and scheduling into a durable Work Engine",
+      "Introduce Coworkers as first-class runtime identities with manifests",
+    ],
     start: "docs/NORTHSTAR.md §24; src/lib/revenue-os/budgets.ts; migrations/20260903-budgets.sql",
-    guardrails: "Running out of budget is a normal state, not an error. Budget checks are best-effort — failure to check must not block execution. Budgets constrain autonomous work; human-initiated actions are not gated by budgets.",
+    guardrails:
+      "Running out of budget is a normal state, not an error. Budget checks are best-effort — failure to check must not block execution. Budgets constrain autonomous work; human-initiated actions are not gated by budgets.",
     labels: ["automation", "reliability"],
     verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
   }),

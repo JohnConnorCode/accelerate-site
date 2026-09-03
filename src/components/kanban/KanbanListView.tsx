@@ -76,11 +76,15 @@ export function KanbanListView<T>({
 
   const sorted = useMemo(() => {
     const filtered =
-      statusFilter === "all" ? items : items.filter((item) => getItemColumnKey(item) === statusFilter);
+      statusFilter === "all"
+        ? items
+        : items.filter((item) => getItemColumnKey(item) === statusFilter);
     const extra = extraColumns.find((column) => column.key === sortKey);
     const compare = (a: T, b: T): number => {
       if (sortKey === "status") {
-        return (columnOrder.get(getItemColumnKey(a)) ?? 0) - (columnOrder.get(getItemColumnKey(b)) ?? 0);
+        return (
+          (columnOrder.get(getItemColumnKey(a)) ?? 0) - (columnOrder.get(getItemColumnKey(b)) ?? 0)
+        );
       }
       if (extra?.sortValue) {
         const av = extra.sortValue(a);
@@ -92,7 +96,16 @@ export function KanbanListView<T>({
     };
     const result = [...filtered].sort(compare);
     return sortDir === "asc" ? result : result.reverse();
-  }, [columnOrder, extraColumns, getItemColumnKey, getItemSortOrder, items, sortDir, sortKey, statusFilter]);
+  }, [
+    columnOrder,
+    extraColumns,
+    getItemColumnKey,
+    getItemSortOrder,
+    items,
+    sortDir,
+    sortKey,
+    statusFilter,
+  ]);
 
   const moveItem = async (item: T, toColumnKey: string) => {
     const fromColumnKey = getItemColumnKey(item);
@@ -135,7 +148,10 @@ export function KanbanListView<T>({
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <label className="text-xs font-medium text-[var(--admin-muted)]" htmlFor="kanban-list-status-filter">
+        <label
+          className="text-xs font-medium text-[var(--admin-muted)]"
+          htmlFor="kanban-list-status-filter"
+        >
           Status
         </label>
         <select
@@ -210,7 +226,9 @@ export function KanbanListView<T>({
                         {renderTitle(item)}
                       </button>
                     ) : (
-                      <span className="font-medium text-[var(--admin-ink)]">{renderTitle(item)}</span>
+                      <span className="font-medium text-[var(--admin-ink)]">
+                        {renderTitle(item)}
+                      </span>
                     )}
                   </td>
                   <td className="px-3 py-2.5">

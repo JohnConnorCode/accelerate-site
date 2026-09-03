@@ -84,7 +84,10 @@ export async function checkCapabilitiesBeforeWork(
   for (const key of requiredCapabilities) {
     const resolution = await resolveCapability(supabase, key);
 
-    if (!resolution.available && resolution.statusReason === "Capability not registered in this workspace") {
+    if (
+      !resolution.available &&
+      resolution.statusReason === "Capability not registered in this workspace"
+    ) {
       missing.push(key);
     } else if (!resolution.available) {
       unavailable.push(key);

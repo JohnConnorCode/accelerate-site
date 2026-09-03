@@ -259,7 +259,9 @@ if (!liveBoard) {
 // Keyboard-move assertion: dnd-kit KeyboardSensor + sortableKeyboardCoordinates
 // should allow picking up a card with Space, moving with Arrow keys, and dropping with Space.
 async function testKeyboardMove(page) {
-  const backlogCard = page.getByRole("button", { name: "Drag Configure Google OAuth and first sync" });
+  const backlogCard = page.getByRole("button", {
+    name: "Drag Configure Google OAuth and first sync",
+  });
 
   await backlogCard.focus();
   await page.waitForTimeout(100);
@@ -269,7 +271,7 @@ async function testKeyboardMove(page) {
   await page.waitForTimeout(150);
 
   // Verify the card is being dragged (overlay appears)
-  const overlay = page.locator('[data-drag-overlay]');
+  const overlay = page.locator("[data-drag-overlay]");
   await overlay.waitFor({ state: "visible", timeout: 2000 });
 
   // Right arrow to move to Planned column (next column)
@@ -291,11 +293,12 @@ async function testKeyboardMove(page) {
     .locator('section[aria-labelledby="column-backlog"]')
     .getByText("Configure Google OAuth and first sync", { exact: true })
     .count();
-  if (inBacklog)
-    throw new Error("Keyboard-moved card remained in Backlog");
+  if (inBacklog) throw new Error("Keyboard-moved card remained in Backlog");
 
   // Unsaved-change confirmation: open edit dialog, change title, try to close with X
-  await page.getByRole("button", { name: "Edit Configure Google OAuth and first sync", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Edit Configure Google OAuth and first sync", exact: true })
+    .click();
   await page.getByRole("heading", { name: "Feature details" }).waitFor();
 
   const titleInput = page.getByLabel("Title");
@@ -313,7 +316,9 @@ async function testKeyboardMove(page) {
   // Confirm discard and close
   await page.keyboard.press("Enter"); // OK on confirm dialog
   await page.waitForTimeout(150);
-  await page.getByRole("heading", { name: "Feature details" }).waitFor({ state: "hidden", timeout: 3000 });
+  await page
+    .getByRole("heading", { name: "Feature details" })
+    .waitFor({ state: "hidden", timeout: 3000 });
 }
 
 if (!liveBoard) {
@@ -355,5 +360,7 @@ if (liveBoard) {
   console.log(`${outDir}/feature-board-desktop.png`);
   console.log(`${outDir}/feature-board-details.png`);
   console.log(`${outDir}/feature-board-mobile.png`);
-  console.log("Feature Board desktop/mobile render, drag reorder, keyboard move, unsaved-change guard, and details interaction passed.");
+  console.log(
+    "Feature Board desktop/mobile render, drag reorder, keyboard move, unsaved-change guard, and details interaction passed.",
+  );
 }

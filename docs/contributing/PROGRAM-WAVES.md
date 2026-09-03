@@ -49,7 +49,7 @@ branch at `../.agent-worktrees/<seed-key>`, so two agents claiming
 concurrently never race and never share a working tree. See
 `docs/contributing/AGENT-TICKET-RUNBOOK.md` section 1 for the full procedure.
 There is no coordinator role and no manual owner-naming convention left to
-maintain — the lease *is* the claim, and `--identity` is any string the
+maintain — the lease _is_ the claim, and `--identity` is any string the
 calling agent picks for itself.
 
 `npm run seed:features -- --apply` reconciles manifest-owned fields (title,
@@ -67,7 +67,7 @@ Stop dispatch (release the card, don't force it) when any of these is true:
   already excludes non-dependency-ready cards; this matters when claiming a
   specific card by name).
 - A dirty file in the shared tree overlaps the candidate's starting points
-  and ownership is not explicit — a worktree isolates *your* branch, not
+  and ownership is not explicit — a worktree isolates _your_ branch, not
   files another agent is mid-edit on in a different one.
 - The required provider, production evidence, secret, or founder decision is
   unavailable and the remaining slice cannot be verified honestly.

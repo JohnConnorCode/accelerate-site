@@ -91,7 +91,11 @@ export async function releaseFeatureCard(
   // wrongly-claimed card without waiting for the lease to expire.
   let notesUpdate: string | undefined;
   if (input.force) {
-    const { data: current } = await supabase.from("feature_requests").select("notes, lease_owner").eq("id", input.id).maybeSingle();
+    const { data: current } = await supabase
+      .from("feature_requests")
+      .select("notes, lease_owner")
+      .eq("id", input.id)
+      .maybeSingle();
     if (current && current.lease_owner && current.lease_owner !== input.leaseOwner) {
       notesUpdate = `${current.notes ?? ""}\n\nForce-released ${new Date().toISOString()} by ${input.leaseOwner} (overrode a claim held by ${current.lease_owner}).`;
     }
@@ -104,7 +108,9 @@ export async function releaseFeatureCard(
     claimed_at: null,
     ...(notesUpdate ? { notes: notesUpdate } : {}),
   });
-  query = input.force ? query.eq("id", input.id) : query.eq("id", input.id).eq("lease_owner", input.leaseOwner);
+  query = input.force
+    ? query.eq("id", input.id)
+    : query.eq("id", input.id).eq("lease_owner", input.leaseOwner);
   const { data, error } = await query.select("id").maybeSingle();
   if (error) throw new Error(error.message);
   return Boolean(data);
@@ -116,7 +122,9 @@ export async function renewFeatureCardLease(
 ): Promise<boolean> {
   const { data, error } = await supabase
     .from("feature_requests")
-    .update({ lease_expires_at: new Date(Date.now() + (input.leaseDurationMs ?? 1_800_000)).toISOString() })
+    .update({
+      lease_expires_at: new Date(Date.now() + (input.leaseDurationMs ?? 1_800_000)).toISOString(),
+    })
     .eq("id", input.id)
     .eq("lease_owner", input.leaseOwner)
     .eq("status", "in_progress")
@@ -144,10 +152,16 @@ export async function completeFeatureCard(
       ? ` (force-completed, overriding a claim held by ${current.lease_owner})`
       : "";
   const notes = `${current.notes ?? ""}\n\nCompleted ${new Date().toISOString()} by ${input.leaseOwner}${overrideNote}:\n${input.evidence}`;
-  let query = supabase
-    .from("feature_requests")
-    .update({ status: "shipped", notes, owner: input.leaseOwner, lease_owner: null, lease_expires_at: null });
-  query = input.force ? query.eq("id", input.id) : query.eq("id", input.id).eq("lease_owner", input.leaseOwner);
+  let query = supabase.from("feature_requests").update({
+    status: "shipped",
+    notes,
+    owner: input.leaseOwner,
+    lease_owner: null,
+    lease_expires_at: null,
+  });
+  query = input.force
+    ? query.eq("id", input.id)
+    : query.eq("id", input.id).eq("lease_owner", input.leaseOwner);
   const { data, error } = await query.select("id").maybeSingle();
   if (error) throw new Error(error.message);
   return Boolean(data);
@@ -183,7 +197,9 @@ export async function listClaimableFeatureCards(
   if (input.dispatchableOnly !== false) {
     query = query.or("labels.cs.{milestone:now},labels.cs.{milestone:next}");
   }
-  const { data, error } = await query.order("sort_order", { ascending: true }).limit(input.limit ?? 20);
+  const { data, error } = await query
+    .order("sort_order", { ascending: true })
+    .limit(input.limit ?? 20);
   if (error) throw new Error(error.message);
   // sort_order alone doesn't reflect priority; the authoritative pick order
   // lives in claim_feature_request's CASE expression. Re-rank here for

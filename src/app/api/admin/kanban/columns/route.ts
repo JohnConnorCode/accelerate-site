@@ -56,8 +56,7 @@ export async function GET(request: NextRequest) {
     typeof tenantConfig.pipeline === "object" &&
     tenantConfig.pipeline !== null
       ? ((tenantConfig.pipeline as Record<string, unknown>).stageLabels as
-          | Record<string, string>
-          | undefined)
+          Record<string, string> | undefined)
       : undefined;
   const rows = defaults.map((column) => ({
     board_key: boardKeyParam,
@@ -133,11 +132,7 @@ export async function POST(request: NextRequest) {
     is_default: false,
     metadata,
   };
-  const { data, error } = await supabase
-    .from("kanban_columns")
-    .insert(insertRow)
-    .select()
-    .single();
+  const { data, error } = await supabase.from("kanban_columns").insert(insertRow).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data, { status: 201 });
 }

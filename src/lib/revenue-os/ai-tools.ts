@@ -20,7 +20,17 @@ import { bootstrapBusinessPulseCoworker } from "./business-pulse-coworker";
 import { bootstrapMeetingIntelCoworker } from "./meeting-intel-coworker";
 import { bootstrapFinanceCoworker } from "./finance-coworker";
 import { bootstrapOperationsCoworker } from "./operations-coworker";
-import { queryMemory, storeAgentMemory, retrieveAgentMemory, listLearnedPolicies, recordLearnedPolicy, MEMORY_CATEGORIES, type AgentMemoryEntry, type LearnedPolicyEntry, type MemoryCategory } from "./memory";
+import {
+  queryMemory,
+  storeAgentMemory,
+  retrieveAgentMemory,
+  listLearnedPolicies,
+  recordLearnedPolicy,
+  MEMORY_CATEGORIES,
+  type AgentMemoryEntry,
+  type LearnedPolicyEntry,
+  type MemoryCategory,
+} from "./memory";
 import { checkBudgets, listBudgetLimits, type BudgetKind, type BudgetLimit } from "./budgets";
 
 export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v4";
@@ -967,9 +977,9 @@ const registry: AiToolRegistration[] = [
       const availableOnlyVal = value(input, "availableOnly");
       const capabilities = await listWorkspaceCapabilities(supabase, {
         category: categoryVal
-          ? (["integration", "runtime", "plugin", "system"].includes(categoryVal)
-              ? (categoryVal as "integration" | "runtime" | "plugin" | "system")
-              : undefined)
+          ? ["integration", "runtime", "plugin", "system"].includes(categoryVal)
+            ? (categoryVal as "integration" | "runtime" | "plugin" | "system")
+            : undefined
           : undefined,
         availableOnly: availableOnlyVal === "true",
       });
@@ -1000,7 +1010,8 @@ const registry: AiToolRegistration[] = [
         entityId: { type: "string", description: "The entity's UUID" },
         status: {
           type: "string",
-          description: "Comma-separated claim statuses to filter: unverified,supported,conflicted,verified",
+          description:
+            "Comma-separated claim statuses to filter: unverified,supported,conflicted,verified",
         },
       },
       required: ["entityType", "entityId"],
@@ -1016,7 +1027,10 @@ const registry: AiToolRegistration[] = [
       const entityId = value(input, "entityId")!;
       const statusStr = value(input, "status");
       const statuses = statusStr
-        ? (statusStr.split(",").map((s) => s.trim()).filter(Boolean) as Claim["status"][])
+        ? (statusStr
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean) as Claim["status"][])
         : undefined;
       const claims = await listClaimsForEntity(supabase, {
         entityType,
@@ -1044,7 +1058,8 @@ const registry: AiToolRegistration[] = [
       properties: {
         level: {
           type: "string",
-          description: "Filter to a specific level: prohibited, always_ask, ask_until_trusted, standing_permission, autonomous",
+          description:
+            "Filter to a specific level: prohibited, always_ask, ask_until_trusted, standing_permission, autonomous",
         },
       },
       additionalProperties: false,
@@ -1058,9 +1073,20 @@ const registry: AiToolRegistration[] = [
       const levelVal = value(input, "level");
       const policies = await listAutonomyPolicies(supabase, {
         level: levelVal
-          ? (["prohibited", "always_ask", "ask_until_trusted", "standing_permission", "autonomous"].includes(levelVal)
-              ? (levelVal as "prohibited" | "always_ask" | "ask_until_trusted" | "standing_permission" | "autonomous")
-              : undefined)
+          ? [
+              "prohibited",
+              "always_ask",
+              "ask_until_trusted",
+              "standing_permission",
+              "autonomous",
+            ].includes(levelVal)
+            ? (levelVal as
+                | "prohibited"
+                | "always_ask"
+                | "ask_until_trusted"
+                | "standing_permission"
+                | "autonomous")
+            : undefined
           : undefined,
       });
       return policies.map((p: AutonomyPolicy) => ({
@@ -1097,9 +1123,9 @@ const registry: AiToolRegistration[] = [
       const statusVal = value(input, "status");
       const coworkers = await listCoworkers(supabase, {
         status: statusVal
-          ? (["active", "paused", "disabled"].includes(statusVal)
-              ? (statusVal as "active" | "paused" | "disabled")
-              : undefined)
+          ? ["active", "paused", "disabled"].includes(statusVal)
+            ? (statusVal as "active" | "paused" | "disabled")
+            : undefined
           : undefined,
       });
       return coworkers.map((cw: Coworker) => ({
@@ -1175,9 +1201,9 @@ const registry: AiToolRegistration[] = [
       const statusVal = value(input, "status");
       const plugins = await listPlugins(supabase, {
         status: statusVal
-          ? (["pending_review", "approved", "enabled", "disabled", "revoked"].includes(statusVal)
-              ? (statusVal as "pending_review" | "approved" | "enabled" | "disabled" | "revoked")
-              : undefined)
+          ? ["pending_review", "approved", "enabled", "disabled", "revoked"].includes(statusVal)
+            ? (statusVal as "pending_review" | "approved" | "enabled" | "disabled" | "revoked")
+            : undefined
           : undefined,
       });
       return plugins.map((p: Plugin) => ({
@@ -1330,10 +1356,16 @@ const registry: AiToolRegistration[] = [
       properties: {
         categories: {
           type: "array",
-          items: { type: "string", enum: ["canonical", "activity", "knowledge", "agent", "learned_policy"] },
+          items: {
+            type: "string",
+            enum: ["canonical", "activity", "knowledge", "agent", "learned_policy"],
+          },
           description: "Which categories to query. Defaults to all.",
         },
-        entityType: { type: "string", description: "Entity type to scope (contact, company, opportunity)" },
+        entityType: {
+          type: "string",
+          description: "Entity type to scope (contact, company, opportunity)",
+        },
         entityId: { type: "string", description: "Entity UUID to scope" },
         query: { type: "string", description: "Free-text search (used by knowledge category)" },
         coworkerId: { type: "string", description: "Coworker to scope agent memory" },
@@ -1350,7 +1382,9 @@ const registry: AiToolRegistration[] = [
     execute: async ({ supabase }, input) => {
       const categoryStrs = input.categories as string[] | undefined;
       const categories = categoryStrs
-        ? (categoryStrs.filter((c): c is MemoryCategory => MEMORY_CATEGORIES.includes(c as MemoryCategory)))
+        ? categoryStrs.filter((c): c is MemoryCategory =>
+            MEMORY_CATEGORIES.includes(c as MemoryCategory),
+          )
         : undefined;
       const results = await queryMemory(supabase, {
         categories,
@@ -1376,7 +1410,10 @@ const registry: AiToolRegistration[] = [
     inputSchema: {
       type: "object",
       properties: {
-        category: { type: "string", enum: ["prior_work", "prior_research", "scheduled_check", "unresolved_question"] },
+        category: {
+          type: "string",
+          enum: ["prior_work", "prior_research", "scheduled_check", "unresolved_question"],
+        },
         subject: { type: "string" },
         body: { type: "string" },
         coworkerId: { type: "string" },
@@ -1412,7 +1449,12 @@ const registry: AiToolRegistration[] = [
         relevanceHorizon: value(input, "relevanceHorizon") as AgentMemoryEntry["relevance_horizon"],
         actorEmail,
       });
-      return { id: entry.id, category: entry.category, subject: entry.subject, relevanceHorizon: entry.relevance_horizon };
+      return {
+        id: entry.id,
+        category: entry.category,
+        subject: entry.subject,
+        relevanceHorizon: entry.relevance_horizon,
+      };
     },
   },
   {
@@ -1423,7 +1465,10 @@ const registry: AiToolRegistration[] = [
       type: "object",
       properties: {
         coworkerId: { type: "string" },
-        category: { type: "string", enum: ["prior_work", "prior_research", "scheduled_check", "unresolved_question"] },
+        category: {
+          type: "string",
+          enum: ["prior_work", "prior_research", "scheduled_check", "unresolved_question"],
+        },
         entityType: { type: "string" },
         entityId: { type: "string" },
         limit: { type: "number" },
@@ -1461,7 +1506,7 @@ const registry: AiToolRegistration[] = [
   {
     name: "get_learned_policies",
     description:
-      "List active learned policies — explicit rules derived from human decisions. These are the \"don't do X\" and \"always ask before Y\" rules from operational experience.",
+      'List active learned policies — explicit rules derived from human decisions. These are the "don\'t do X" and "always ask before Y" rules from operational experience.',
     inputSchema: {
       type: "object",
       properties: {
@@ -1500,14 +1545,17 @@ const registry: AiToolRegistration[] = [
   {
     name: "record_learned_policy",
     description:
-      "Record a learned policy — an explicit rule derived from a human decision. These capture operational wisdom like \"never auto-advance deals above $50k\" or \"always ask before emailing C-level contacts\". Supersedes any previous active policy for the same action and scope.",
+      'Record a learned policy — an explicit rule derived from a human decision. These capture operational wisdom like "never auto-advance deals above $50k" or "always ask before emailing C-level contacts". Supersedes any previous active policy for the same action and scope.',
     inputSchema: {
       type: "object",
       properties: {
         actionKey: { type: "string" },
         rule: { type: "string" },
         rationale: { type: "string" },
-        source: { type: "string", enum: ["human_decision", "founder_override", "incident_remediation", "policy_review"] },
+        source: {
+          type: "string",
+          enum: ["human_decision", "founder_override", "incident_remediation", "policy_review"],
+        },
         coworkerId: { type: "string" },
         scopeEntityType: { type: "string" },
         scopeEntityId: { type: "string" },
@@ -1582,7 +1630,17 @@ const registry: AiToolRegistration[] = [
       type: "object",
       properties: {
         coworkerId: { type: "string" },
-        budgetKind: { type: "string", enum: ["model_spend", "vendor_api_calls", "emails_sent", "research_depth", "retry_count", "runtime_seconds"] },
+        budgetKind: {
+          type: "string",
+          enum: [
+            "model_spend",
+            "vendor_api_calls",
+            "emails_sent",
+            "research_depth",
+            "retry_count",
+            "runtime_seconds",
+          ],
+        },
       },
       additionalProperties: false,
     },

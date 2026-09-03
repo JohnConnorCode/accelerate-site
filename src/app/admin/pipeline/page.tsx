@@ -735,9 +735,9 @@ export default function PipelinePage() {
               value={stageRole}
               onChange={(value) => setStageRole(value as "open" | "won" | "lost")}
             >
-              <option value="open">Open — still in play</option>
-              <option value="won">Won — a closed win</option>
-              <option value="lost">Lost — a closed loss</option>
+              <option value="open">Open: still in play</option>
+              <option value="won">Won: a closed win</option>
+              <option value="lost">Lost: a closed loss</option>
             </SelectBlock>
             <label className="text-xs font-semibold">
               Win probability ({stageProbability}%)
@@ -753,9 +753,9 @@ export default function PipelinePage() {
             </label>
           </div>
           <p className="admin-copy mt-3 text-xs">
-            Won/lost stages close the opportunity and stop counting it as open pipeline. A won
-            stage always records the deal value; a lost stage always requires a reason when an
-            opportunity moves into it.
+            Won/lost stages close the opportunity and stop counting it as open pipeline. A won stage
+            always records the deal value; a lost stage always requires a reason when an opportunity
+            moves into it.
           </p>
           <div className="mt-6 flex justify-end gap-2">
             <button
@@ -1112,7 +1112,13 @@ function PipelineKanbanCard({
         </button>
       )}
       <div className="min-w-0 flex-1">
-        <Card item={item} state={state} columns={columns} saving={saving} updateStage={updateStage} />
+        <Card
+          item={item}
+          state={state}
+          columns={columns}
+          saving={saving}
+          updateStage={updateStage}
+        />
       </div>
     </div>
   );
@@ -1185,7 +1191,12 @@ function ListView({
                   </td>
                 )}
                 <td className="px-5">
-                  <StageSelect item={item} columns={columns} saving={saving} updateStage={updateStage} />
+                  <StageSelect
+                    item={item}
+                    columns={columns}
+                    saving={saving}
+                    updateStage={updateStage}
+                  />
                 </td>
               </tr>
             ))}

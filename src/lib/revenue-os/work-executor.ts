@@ -201,7 +201,10 @@ export async function executeClaimableWork(
           summary.errors.push(`${kind}:record-budget-usage-failed:${message}`);
         });
 
-        return { value: handlerResult as unknown as Record<string, unknown>, outcome: handlerResult.outcome };
+        return {
+          value: handlerResult as unknown as Record<string, unknown>,
+          outcome: handlerResult.outcome,
+        };
       } catch (err) {
         summary.failed++;
         summary.errors.push(`${kind}:${safeErrorMessage(err)}`);

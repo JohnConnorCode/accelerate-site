@@ -13,6 +13,7 @@ maps to a northstar phase; every card's notes include that mapping. When
 implementation choices arise, the northstar principles resolve them.
 
 Key concepts you will encounter on the board:
+
 - **WorkItems** (Phase B): durable, lease-based, explainable units of work — not cron→prompt→hope
 - **Coworkers** (Phase C): first-class identities configured over the shared runtime — not separate LLMs
 - **Capability Graph** (Phase B): one canonical source of workspace capabilities and policies

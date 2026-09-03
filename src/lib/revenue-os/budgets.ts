@@ -248,7 +248,12 @@ export async function setBudgetLimit(
     entityType: "budget",
     entityId: data.id,
     source: input.actorEmail ? "admin" : "automation",
-    after: { budgetKind: input.budgetKind, limitValue: input.limitValue, period, coworkerId: input.coworkerId },
+    after: {
+      budgetKind: input.budgetKind,
+      limitValue: input.limitValue,
+      period,
+      coworkerId: input.coworkerId,
+    },
   });
 
   return data as BudgetLimit;

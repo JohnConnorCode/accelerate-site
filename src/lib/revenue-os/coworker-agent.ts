@@ -1,10 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { tenant } from "@/config/tenant";
-import {
-  getOpenRouterModel,
-  openRouterChat,
-  type OpenRouterMessage,
-} from "@/lib/ai/openrouter";
+import { getOpenRouterModel, openRouterChat, type OpenRouterMessage } from "@/lib/ai/openrouter";
 import { getCoworker } from "./coworkers";
 import { listWorkspaceCapabilities } from "./capabilities";
 import { listLearnedPolicies, retrieveAgentMemory } from "./memory";
@@ -89,7 +85,9 @@ export async function runCoworkerAgentTask(
         workItem.entity_type ? `Entity: ${workItem.entity_type}/${workItem.entity_id}` : "",
         workItem.reason ? `Reason: ${workItem.reason}` : "",
         "Execute this work item. Use your tools to gather context, analyze, and take action as needed. Provide a concise outcome when done.",
-      ].filter(Boolean).join("\n"),
+      ]
+        .filter(Boolean)
+        .join("\n"),
     },
   ];
 
@@ -99,31 +97,32 @@ export async function runCoworkerAgentTask(
 
   try {
     // Load bounded context for the coworker.
-    const availableCapabilities = await listWorkspaceCapabilities(supabase, { availableOnly: true });
+    const availableCapabilities = await listWorkspaceCapabilities(supabase, {
+      availableOnly: true,
+    });
     const capabilitySummary = availableCapabilities.length
       ? `Capabilities: ${availableCapabilities.map((c) => c.capability_key).join(", ")}`
       : "No workspace capabilities registered.";
 
     const activePolicies = await listLearnedPolicies(supabase);
     const recentMemory = await retrieveAgentMemory(supabase, { limit: 5 });
-    const memorySummary = [
-      activePolicies.length
-        ? `Learned policies: ${activePolicies.map((p) => `"${p.rule}"`).join("; ")}`
-        : undefined,
-      recentMemory.length
-        ? `Recent memory: ${recentMemory.map((m) => `${m.subject}`).join("; ")}`
-        : undefined,
-    ].filter(Boolean).join(" ") || undefined;
+    const memorySummary =
+      [
+        activePolicies.length
+          ? `Learned policies: ${activePolicies.map((p) => `"${p.rule}"`).join("; ")}`
+          : undefined,
+        recentMemory.length
+          ? `Recent memory: ${recentMemory.map((m) => `${m.subject}`).join("; ")}`
+          : undefined,
+      ]
+        .filter(Boolean)
+        .join(" ") || undefined;
 
     const now = new Date();
     const today = `Today is ${now.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })} (${now.toISOString().slice(0, 10)}).`;
 
     for (let turn = 0; turn < MAX_COWORKER_TOOL_TURNS; turn++) {
-      const grounding = [
-        today,
-        capabilitySummary,
-        memorySummary,
-      ].filter(Boolean).join("\n");
+      const grounding = [today, capabilitySummary, memorySummary].filter(Boolean).join("\n");
 
       const response = await openRouterChat({
         database: supabase,
@@ -168,10 +167,7 @@ export async function runCoworkerAgentTask(
         });
         // Link the run to the work item.
         if (workItem.id) {
-          await supabase
-            .from("work_items")
-            .update({ agent_run_id: run.id })
-            .eq("id", workItem.id);
+          await supabase.from("work_items").update({ agent_run_id: run.id }).eq("id", workItem.id);
         }
         return { outcome: text, runId: run.id ?? "" };
       }
@@ -221,11 +217,12 @@ export async function runCoworkerAgentTask(
     }
 
     // Turn exhaustion — return what was gathered.
-    const partial = transcript
-      .filter((entry) => entry.role === "assistant")
-      .map((entry) => entry.content?.trim())
-      .filter(Boolean)
-      .join("\n\n") || `Stopped after ${MAX_COWORKER_TOOL_TURNS} tool turns`;
+    const partial =
+      transcript
+        .filter((entry) => entry.role === "assistant")
+        .map((entry) => entry.content?.trim())
+        .filter(Boolean)
+        .join("\n\n") || `Stopped after ${MAX_COWORKER_TOOL_TURNS} tool turns`;
 
     await finishAgentRun(supabase, run, "partial", {
       toolNames,
@@ -236,10 +233,7 @@ export async function runCoworkerAgentTask(
     });
 
     if (workItem.id) {
-      await supabase
-        .from("work_items")
-        .update({ agent_run_id: run.id })
-        .eq("id", workItem.id);
+      await supabase.from("work_items").update({ agent_run_id: run.id }).eq("id", workItem.id);
     }
 
     return { outcome: partial, runId: run.id ?? "" };

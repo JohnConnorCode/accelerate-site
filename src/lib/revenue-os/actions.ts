@@ -268,7 +268,9 @@ export async function rejectAction(
     await recordLearnedPolicy(supabase, {
       actionKey,
       rule,
-      rationale: reason || "Rejection without explicit reason — pattern may indicate incorrect action target, timing, or content",
+      rationale:
+        reason ||
+        "Rejection without explicit reason — pattern may indicate incorrect action target, timing, or content",
       source: "human_decision",
       coworkerId,
       scopeEntityType: pending.entity_type,

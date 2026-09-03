@@ -58,7 +58,7 @@ To claim a specific card you already know by title, find its `seed_key` in
 9. `docs/contracts/MARKETING-POSITIONING-CONTRACT.md` before changing any public marketing
    copy, metadata, search description, public assistant positioning, or CTA.
 10. `docs/contracts/NAVIGATION-RUNTIME-CONTRACT.md` before changing links, history,
-   scroll restoration, route focus, loading states, or page transitions.
+    scroll restoration, route focus, loading states, or page transitions.
 11. `docs/contracts/ADMIN-DEMO-CONTRACT.md` before changing either demo, the admin runtime,
     admin navigation, demo fixtures, or demo QA.
 12. `docs/contracts/WORK-MOTION-CONTRACT.md` before changing Work pages, public reveal
@@ -94,7 +94,7 @@ Every capability follows this sequence:
 - Claim work with `npm run agent:next` (see "Pick up work" above), never by
   hand-editing `owner`/`status` in the manifest — those became live-managed
   columns once the atomic claim RPC landed, and `npm run seed:features --
-  apply` deliberately no longer reconciles them, so a manifest edit to those
+apply` deliberately no longer reconciles them, so a manifest edit to those
   two fields is silently ignored. Everything else about a card (title,
   description, acceptance, labels, dependencies) is still manifest-owned:
   edit it there and reconcile with `npm run seed:features -- --apply`.

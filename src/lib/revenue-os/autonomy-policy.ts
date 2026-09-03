@@ -7,11 +7,7 @@ import { recordAudit } from "./audit";
 // ---------------------------------------------------------------------------
 
 export type AutonomyLevel =
-  | "prohibited"
-  | "always_ask"
-  | "ask_until_trusted"
-  | "standing_permission"
-  | "autonomous";
+  "prohibited" | "always_ask" | "ask_until_trusted" | "standing_permission" | "autonomous";
 
 export interface AutonomyPolicy {
   id: string;
@@ -119,9 +115,7 @@ export async function listAutonomyPolicies(
 // List hard floors
 // ---------------------------------------------------------------------------
 
-export async function listHardFloors(
-  supabase: SupabaseClient,
-): Promise<HardFloor[]> {
+export async function listHardFloors(supabase: SupabaseClient): Promise<HardFloor[]> {
   const { data, error } = await supabase
     .from("autonomy_hard_floors")
     .select("*")

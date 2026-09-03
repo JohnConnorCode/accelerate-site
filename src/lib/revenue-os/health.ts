@@ -209,7 +209,9 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
         kind: "integration",
         key: integration.provider,
         detail: integration.lastError || `Connection is ${integration.status}`,
-        observedAt: integration.lastSuccessAt ?? (integration.updatedAt ? new Date(integration.updatedAt).toISOString() : null),
+        observedAt:
+          integration.lastSuccessAt ??
+          (integration.updatedAt ? new Date(integration.updatedAt).toISOString() : null),
       });
     }
   }

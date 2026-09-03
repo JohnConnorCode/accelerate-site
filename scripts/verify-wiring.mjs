@@ -59,7 +59,8 @@ const baselineSets = {
 function walk(dir, exts, out = []) {
   if (!existsSync(dir)) return out;
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    if (entry.name === "node_modules" || entry.name === ".next" || entry.name.startsWith(".")) continue;
+    if (entry.name === "node_modules" || entry.name === ".next" || entry.name.startsWith("."))
+      continue;
     const full = join(dir, entry.name);
     if (entry.isDirectory()) walk(full, exts, out);
     else if (exts.some((ext) => entry.name.endsWith(ext))) out.push(full);
@@ -92,7 +93,9 @@ export function findUnwiredModules() {
     ...walk("scripts", [".ts", ".mjs"]),
   ];
   const contents = readAll(candidateFiles);
-  const testFiles = candidateFiles.filter((f) => /\/(test|qa|verify)-/.test(f) || /\/scripts\/(test|qa|verify)-/.test(f));
+  const testFiles = candidateFiles.filter(
+    (f) => /\/(test|qa|verify)-/.test(f) || /\/scripts\/(test|qa|verify)-/.test(f),
+  );
 
   for (const file of moduleFiles) {
     const name = basename(file, ".ts");
@@ -137,7 +140,8 @@ export function findUnknownTables() {
   const failures = [];
   const migrationFiles = walk("migrations", [".sql"]);
   const created = new Set();
-  const createRegex = /CREATE\s+(?:OR\s+REPLACE\s+)?(?:TABLE|VIEW|MATERIALIZED\s+VIEW)(?:\s+IF\s+NOT\s+EXISTS)?\s+(?:public\.)?"?([a-zA-Z_][a-zA-Z0-9_]*)"?/gi;
+  const createRegex =
+    /CREATE\s+(?:OR\s+REPLACE\s+)?(?:TABLE|VIEW|MATERIALIZED\s+VIEW)(?:\s+IF\s+NOT\s+EXISTS)?\s+(?:public\.)?"?([a-zA-Z_][a-zA-Z0-9_]*)"?/gi;
   for (const file of migrationFiles) {
     const content = readFileSync(file, "utf8");
     let m;
@@ -164,7 +168,9 @@ export function findUnknownTables() {
     const id = `unknown-table:${table}`;
     if (allowed(id) || baselineSets.unknownTables.has(table)) continue;
     if (!created.has(table)) {
-      failures.push(`${id} :: ${file} queries "${table}" but no migration creates a table or view by that name`);
+      failures.push(
+        `${id} :: ${file} queries "${table}" but no migration creates a table or view by that name`,
+      );
     }
   }
   return failures;
@@ -206,7 +212,8 @@ export function findSwallowedCatches() {
   // Deliberately excludes the bare `{}` block form here — that's an empty
   // block, caught once by the block-body scanner below. Including it here
   // too double-reported the same line under both checks.
-  const oneLinerRegex = /\.catch\s*\(\s*(?:async\s*)?\([^)]*\)\s*=>\s*(\[\]|\(\{\}\)|undefined|null)\s*\)/g;
+  const oneLinerRegex =
+    /\.catch\s*\(\s*(?:async\s*)?\([^)]*\)\s*=>\s*(\[\]|\(\{\}\)|undefined|null)\s*\)/g;
 
   for (const file of files) {
     const content = readFileSync(file, "utf8");
@@ -217,12 +224,15 @@ export function findSwallowedCatches() {
       const line = content.slice(0, m.index).split("\n").length;
       const id = `swallowed-catch:${file}:${line}`;
       if (allowed(id) || baselineSets.swallowedCatchFiles.has(file)) continue;
-      failures.push(`${id} :: ${file}:${line} discards a rejection with no logging: ${m[0].replace(/\s+/g, " ").slice(0, 70)}`);
+      failures.push(
+        `${id} :: ${file}:${line} discards a rejection with no logging: ${m[0].replace(/\s+/g, " ").slice(0, 70)}`,
+      );
     }
 
     // Block-body catches: `.catch(... => { ... })` and `catch (e) { ... }`.
     // Brace-matched by hand since these can nest and span many lines.
-    const blockStartRegex = /(\.catch\s*\(\s*(?:async\s*)?\([^)]*\)\s*=>\s*\{)|(catch\s*(\([^)]*\))?\s*\{)/g;
+    const blockStartRegex =
+      /(\.catch\s*\(\s*(?:async\s*)?\([^)]*\)\s*=>\s*\{)|(catch\s*(\([^)]*\))?\s*\{)/g;
     blockStartRegex.lastIndex = 0;
     while ((m = blockStartRegex.exec(content))) {
       const braceStart = m.index + m[0].length - 1; // index of the opening '{'
@@ -240,7 +250,8 @@ export function findSwallowedCatches() {
       const trimmed = body.trim();
       const hasLogging = /console\.|logger\.|log\(/.test(body);
       const hasRethrow = /throw\b/.test(body);
-      const hasRecording = /\.push\(|record[A-Z]|set[A-Z][a-zA-Z]*\(|toast\.|failures\.|errors\./.test(body);
+      const hasRecording =
+        /\.push\(|record[A-Z]|set[A-Z][a-zA-Z]*\(|toast\.|failures\.|errors\./.test(body);
       // Catches that build a result/outcome string from the error (e.g.
       // `return { outcome: \`Skipped: ...${safeErrorMessage(err)}\` }`) are
       // recording it too, just via a different idiom than the ones above —
@@ -273,5 +284,19 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.error(JSON.stringify({ result: "failed", count: failures.length, failures }, null, 2));
     process.exit(1);
   }
-  console.log(JSON.stringify({ result: "passed", checked: ["unwired-modules", "unknown-tables", "unregistered-cron-routes", "swallowed-catches"] }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        result: "passed",
+        checked: [
+          "unwired-modules",
+          "unknown-tables",
+          "unregistered-cron-routes",
+          "swallowed-catches",
+        ],
+      },
+      null,
+      2,
+    ),
+  );
 }
