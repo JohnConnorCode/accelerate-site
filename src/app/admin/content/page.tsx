@@ -8,6 +8,8 @@ import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { Button } from "@/components/ui/Button";
 import { ContentKanban } from "@/components/admin/ContentKanban";
 import { ContentItemForm } from "@/components/admin/ContentItemForm";
+import { KanbanListView } from "@/components/kanban/KanbanListView";
+import { KanbanViewSwitcher, useKanbanView } from "@/components/kanban/KanbanViewSwitcher";
 import { useKanbanColumns } from "@/lib/kanban/useKanbanColumns";
 import type { KanbanReorderUpdate } from "@/lib/kanban/useKanbanDnd";
 import type { ContentCalendarItem } from "@/lib/types";
@@ -35,6 +37,7 @@ export default function AdminContentPage() {
   }, [fetchItems]);
 
   const { columns, createColumn, renameColumn, deleteColumn } = useKanbanColumns("content");
+  const [view, setView] = useKanbanView("content");
   const statusOptions = useMemo(
     () => columns.map((column) => ({ value: column.column_key, label: column.label })),
     [columns],
@@ -113,15 +116,51 @@ export default function AdminContentPage() {
         }
       />
 
-      <ContentKanban
-        columns={columns}
-        items={items}
-        onReorder={commitReorder}
-        onEdit={handleEdit}
-        onAddColumn={createColumn}
-        onRenameColumn={(columnKey, label) => renameColumn(columnKey, { label })}
-        onDeleteColumn={(columnKey, options) => deleteColumn(columnKey, options)}
-      />
+      <div className="mb-3 flex justify-end">
+        <KanbanViewSwitcher value={view} onChange={setView} />
+      </div>
+
+      {view === "board" ? (
+        <ContentKanban
+          columns={columns}
+          items={items}
+          onReorder={commitReorder}
+          onEdit={handleEdit}
+          onAddColumn={createColumn}
+          onRenameColumn={(columnKey, label) => renameColumn(columnKey, { label })}
+          onDeleteColumn={(columnKey, options) => deleteColumn(columnKey, options)}
+        />
+      ) : (
+        <KanbanListView<ContentCalendarItem>
+          columns={columns}
+          items={items}
+          getItemId={(item) => item.id}
+          getItemColumnKey={(item) => item.status}
+          getItemSortOrder={(item) => Number(item.sort_order)}
+          setItemPosition={(item, columnKey, sortOrder) => ({
+            ...item,
+            status: columnKey,
+            sort_order: sortOrder,
+          })}
+          renderTitle={(item) => item.title}
+          onOpenItem={handleEdit}
+          onReorder={commitReorder}
+          extraColumns={[
+            {
+              key: "category",
+              header: "Category",
+              sortValue: (item) => item.category ?? "",
+              render: (item) => (item.category ? item.category.replace(/-/g, " ") : "—"),
+            },
+            {
+              key: "word_count_target",
+              header: "Words",
+              sortValue: (item) => item.word_count_target ?? 0,
+              render: (item) => item.word_count_target ?? "—",
+            },
+          ]}
+        />
+      )}
 
       <ContentItemForm
         key={editingItem?.id ?? "new"}

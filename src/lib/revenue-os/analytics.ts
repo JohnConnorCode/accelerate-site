@@ -1,6 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { canonicalStage } from "./pipeline";
+import { loadPipelineStages, type PipelineStageResolver } from "./pipeline-stage-resolver";
 
 type WebsiteEvent = {
   event_name: string;
@@ -24,20 +24,24 @@ function ranked(rows: Map<string, number>, limit = 6) {
 
 export async function loadRevenueAnalytics(
   supabase: SupabaseClient,
+  tenantId: string,
   input: number | RevenueAnalyticsFilters,
 ) {
   const filters = typeof input === "number" ? { days: input } : input;
   const since = new Date(Date.now() - filters.days * 86400000).toISOString();
-  const { data, error } = await supabase
-    .from("opportunities")
-    .select(
-      "id,stage,source,source_detail,campaign_id,owner_email,next_action,next_action_at,estimated_value,won_value,probability,created_at",
-    )
-    .gte("created_at", since)
-    .limit(2000);
+  const [{ data, error }, stages] = await Promise.all([
+    supabase
+      .from("opportunities")
+      .select(
+        "id,stage,source,source_detail,campaign_id,owner_email,next_action,next_action_at,estimated_value,won_value,probability,created_at",
+      )
+      .gte("created_at", since)
+      .limit(2000),
+    loadPipelineStages(supabase, tenantId),
+  ]);
   if (error) throw new Error(error.message);
   const allOpportunities = data ?? [];
-  const summary = summarizeRevenueAnalytics(allOpportunities, { ...filters, since });
+  const summary = summarizeRevenueAnalytics(allOpportunities, { ...filters, since }, stages);
   const opportunityIds = summary.opportunityIds;
   const [conversations, stageEvents] = await Promise.all([
     opportunityIds.length
@@ -87,8 +91,8 @@ export async function loadRevenueAnalytics(
   const impossibleStageSequences = stageEvents.error
     ? null
     : (stageEvents.data ?? []).filter((event) => {
-        const from = event.from_stage ? canonicalStage(event.from_stage) : null;
-        const to = canonicalStage(event.to_stage);
+        const from = event.from_stage ? stages.canonicalStage(event.from_stage) : null;
+        const to = stages.canonicalStage(event.to_stage);
         return !to || (event.from_stage && !from) || (from && to === from);
       }).length;
   const { opportunityIds: _opportunityIds, ...publicSummary } = summary;
@@ -126,43 +130,55 @@ type AnalyticsOpportunity = {
 export function summarizeRevenueAnalytics(
   allOpportunities: AnalyticsOpportunity[],
   input: RevenueAnalyticsFilters & { since?: string },
+  stages: PipelineStageResolver,
 ) {
   const sourceOf = (item: AnalyticsOpportunity) => item.source_detail || item.source || "Unknown";
+  const isWon = (item: AnalyticsOpportunity) => {
+    const canonical = stages.canonicalStage(item.stage);
+    return canonical ? stages.role(canonical) === "won" : false;
+  };
+  const isOpen = (item: AnalyticsOpportunity) => {
+    const canonical = stages.canonicalStage(item.stage);
+    return canonical ? stages.role(canonical) === "open" : true;
+  };
   const opportunities = allOpportunities.filter((item) => {
     if (input.source && sourceOf(item) !== input.source) return false;
     if (input.owner && (item.owner_email || "Unassigned") !== input.owner) return false;
     if (input.campaign && (item.campaign_id || "Unassigned") !== input.campaign) return false;
-    if (input.stage && canonicalStage(item.stage) !== input.stage) return false;
+    if (input.stage && stages.canonicalStage(item.stage) !== input.stage) return false;
     return true;
   });
-  const stage = (name: string) =>
-    opportunities.filter((item) => canonicalStage(item.stage) === name);
+  // These four funnel buckets are tied to the default sales-path stage
+  // names (qualified -> meeting -> proposal -> negotiation -> won), not to
+  // role — there's no way to know a custom admin-added stage's position in
+  // this sequence without a "funnel position" concept the kanban unification
+  // didn't add. A tenant that renames/removes these specific stages will see
+  // funnel bucketing degrade for that stage; open/won/lost accounting above
+  // stays fully role-driven and correct regardless.
   const qualified = opportunities.filter((item) =>
     ["qualified", "meeting", "proposal", "negotiation", "won"].includes(
-      canonicalStage(item.stage) || "",
+      stages.canonicalStage(item.stage) || "",
     ),
   );
   const meetings = opportunities.filter((item) =>
-    ["meeting", "proposal", "negotiation", "won"].includes(canonicalStage(item.stage) || ""),
+    ["meeting", "proposal", "negotiation", "won"].includes(stages.canonicalStage(item.stage) || ""),
   );
   const proposals = opportunities.filter((item) =>
-    ["proposal", "negotiation", "won"].includes(canonicalStage(item.stage) || ""),
+    ["proposal", "negotiation", "won"].includes(stages.canonicalStage(item.stage) || ""),
   );
-  const won = stage("won");
+  const won = opportunities.filter(isWon);
   const bySource = new Map<string, { opportunities: number; won: number; revenue: number }>();
   for (const item of opportunities) {
     const key = sourceOf(item);
     const row = bySource.get(key) || { opportunities: 0, won: 0, revenue: 0 };
     row.opportunities++;
-    if (canonicalStage(item.stage) === "won") {
+    if (isWon(item)) {
       row.won++;
       row.revenue += Number(item.won_value || 0);
     }
     bySource.set(key, row);
   }
-  const open = opportunities.filter(
-    (item) => !["won", "lost"].includes(canonicalStage(item.stage) || item.stage),
-  );
+  const open = opportunities.filter(isOpen);
   const funnel = {
     opportunities: opportunities.length,
     qualified: qualified.length,
@@ -189,7 +205,7 @@ export function summarizeRevenueAnalytics(
       ...new Set(allOpportunities.map((item) => item.campaign_id || "Unassigned")),
     ].sort(),
     stages: [
-      ...new Set(allOpportunities.map((item) => canonicalStage(item.stage)).filter(Boolean)),
+      ...new Set(allOpportunities.map((item) => stages.canonicalStage(item.stage)).filter(Boolean)),
     ].sort(),
   };
   return {
@@ -222,7 +238,7 @@ export function summarizeRevenueAnalytics(
       missingOwner: open.filter((item) => !item.owner_email).length,
       missingNextAction: open.filter((item) => !item.next_action?.trim() || !item.next_action_at)
         .length,
-      unrecognizedStage: opportunities.filter((item) => !canonicalStage(item.stage)).length,
+      unrecognizedStage: opportunities.filter((item) => !stages.canonicalStage(item.stage)).length,
     },
     filterOptions,
     appliedFilters: {

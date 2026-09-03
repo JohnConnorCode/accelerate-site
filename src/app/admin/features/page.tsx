@@ -27,6 +27,8 @@ import { AdminDialog } from "@/components/admin/AdminDialog";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { KanbanBoard, type KanbanCardRenderOpts } from "@/components/kanban/KanbanBoard";
+import { KanbanListView } from "@/components/kanban/KanbanListView";
+import { KanbanViewSwitcher, useKanbanView } from "@/components/kanban/KanbanViewSwitcher";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { toast } from "@/lib/admin/useToast";
@@ -472,6 +474,7 @@ export default function FeaturesPage() {
     });
   };
   const { columns, createColumn, renameColumn, deleteColumn } = useKanbanColumns("features");
+  const [view, setView] = useKanbanView("features");
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [priority, setPriority] = useState<"all" | FeaturePriority>("all");
@@ -763,6 +766,7 @@ export default function FeaturesPage() {
                     <span className="rounded-full bg-black/[0.045] px-2.5 py-1 font-mono text-[10px] tabular-nums text-[var(--admin-muted)] dark:bg-white/[0.06]">
                       {filtered.length}
                     </span>
+                    <KanbanViewSwitcher value={view} onChange={setView} />
                   </div>
                 </div>
                 {filtersActive && (
@@ -774,39 +778,85 @@ export default function FeaturesPage() {
                 )}
               </AdminSurface>
               {columns.length > 0 ? (
-                <KanbanBoard<FeatureRequest>
-                  columns={columns}
-                  items={filtered}
-                  getItemId={(feature) => feature.id}
-                  getItemColumnKey={(feature) => feature.status}
-                  getItemSortOrder={(feature) => Number(feature.sort_order)}
-                  setItemPosition={(feature, columnKey, sortOrder) => ({
-                    ...feature,
-                    status: columnKey,
-                    sort_order: sortOrder,
-                  })}
-                  renderCard={(feature, opts) => (
-                    <FeatureCard
-                      feature={feature}
-                      opts={opts}
-                      onOpen={() => {
-                        setOpenFeature(feature);
-                        setFeatureDialogOpen(true);
-                      }}
-                    />
-                  )}
-                  renderCardOverlay={(feature) => (
-                    <FeatureCard
-                      feature={feature}
-                      opts={{ isDragging: true, isOverlay: true, disabled: true, dragHandleProps: {} }}
-                    />
-                  )}
-                  onReorder={commitReorder}
-                  dragDisabled={filtersActive}
-                  onAddColumn={(input) => createColumn(input)}
-                  onRenameColumn={(columnKey, label) => renameColumn(columnKey, { label })}
-                  onDeleteColumn={(columnKey, options) => deleteColumn(columnKey, options)}
-                />
+                view === "board" ? (
+                  <KanbanBoard<FeatureRequest>
+                    columns={columns}
+                    items={filtered}
+                    getItemId={(feature) => feature.id}
+                    getItemColumnKey={(feature) => feature.status}
+                    getItemSortOrder={(feature) => Number(feature.sort_order)}
+                    setItemPosition={(feature, columnKey, sortOrder) => ({
+                      ...feature,
+                      status: columnKey,
+                      sort_order: sortOrder,
+                    })}
+                    renderCard={(feature, opts) => (
+                      <FeatureCard
+                        feature={feature}
+                        opts={opts}
+                        onOpen={() => {
+                          setOpenFeature(feature);
+                          setFeatureDialogOpen(true);
+                        }}
+                      />
+                    )}
+                    renderCardOverlay={(feature) => (
+                      <FeatureCard
+                        feature={feature}
+                        opts={{ isDragging: true, isOverlay: true, disabled: true, dragHandleProps: {} }}
+                      />
+                    )}
+                    onReorder={commitReorder}
+                    dragDisabled={filtersActive}
+                    onAddColumn={(input) => createColumn(input)}
+                    onRenameColumn={(columnKey, label) => renameColumn(columnKey, { label })}
+                    onDeleteColumn={(columnKey, options) => deleteColumn(columnKey, options)}
+                  />
+                ) : (
+                  <KanbanListView<FeatureRequest>
+                    columns={columns}
+                    items={filtered}
+                    getItemId={(feature) => feature.id}
+                    getItemColumnKey={(feature) => feature.status}
+                    getItemSortOrder={(feature) => Number(feature.sort_order)}
+                    setItemPosition={(feature, columnKey, sortOrder) => ({
+                      ...feature,
+                      status: columnKey,
+                      sort_order: sortOrder,
+                    })}
+                    renderTitle={(feature) => feature.title}
+                    onOpenItem={(feature) => {
+                      setOpenFeature(feature);
+                      setFeatureDialogOpen(true);
+                    }}
+                    onReorder={commitReorder}
+                    extraColumns={[
+                      {
+                        key: "priority",
+                        header: "Priority",
+                        sortValue: (feature) => FEATURE_PRIORITIES.indexOf(feature.priority),
+                        render: (feature) => (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium">
+                            <span className={cn("size-1.5 rounded-full", priorityMeta[feature.priority].dot)} />
+                            {priorityMeta[feature.priority].label}
+                          </span>
+                        ),
+                      },
+                      {
+                        key: "owner",
+                        header: "Owner",
+                        sortValue: (feature) => feature.owner ?? "",
+                        render: (feature) => feature.owner || "—",
+                      },
+                      {
+                        key: "target_date",
+                        header: "Target date",
+                        sortValue: (feature) => feature.target_date ?? "",
+                        render: (feature) => feature.target_date || "—",
+                      },
+                    ]}
+                  />
+                )
               ) : (
                 <LoadingSkeleton variant="board" />
               )}

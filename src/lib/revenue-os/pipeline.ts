@@ -2,59 +2,22 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { recordAudit } from "./audit";
 import { resolveOrCreateIdentity } from "./identity";
-import { LEGACY_STAGE_MAP, REVENUE_STAGE_META, REVENUE_STAGES, type RevenueStage } from "./types";
 import { normalizeEmail } from "./db";
 import { recordActivity } from "./activities";
-
-const TRANSITIONS: Record<RevenueStage, readonly RevenueStage[]> = {
-  new: ["contacted", "qualified", "nurture", "lost"],
-  contacted: ["qualified", "meeting", "nurture", "lost"],
-  qualified: ["meeting", "proposal", "nurture", "lost"],
-  meeting: ["proposal", "qualified", "nurture", "lost"],
-  proposal: ["negotiation", "won", "lost", "nurture"],
-  negotiation: ["proposal", "won", "lost"],
-  won: [],
-  lost: ["nurture", "contacted"],
-  nurture: ["contacted", "qualified", "lost"],
-};
-
-export function canonicalStage(stage: string): RevenueStage | null {
-  if (REVENUE_STAGES.includes(stage as RevenueStage)) return stage as RevenueStage;
-  return LEGACY_STAGE_MAP[stage] ?? null;
-}
-
-export function canTransition(from: string, to: string): boolean {
-  const canonicalFrom = canonicalStage(from);
-  const canonicalTo = canonicalStage(to);
-  return canonicalFrom && canonicalTo
-    ? canonicalFrom === canonicalTo || TRANSITIONS[canonicalFrom].includes(canonicalTo)
-    : false;
-}
-
-const TERMINAL_REOPEN_POLICY: Record<"won" | "lost", readonly RevenueStage[]> = {
-  won: [],
-  lost: ["contacted", "nurture"],
-};
-
-function isTerminalStage(stage: RevenueStage) {
-  return stage === "won" || stage === "lost";
-}
+import { loadPipelineStages } from "./pipeline-stage-resolver";
 
 function requireReopenEligibility(
-  from: RevenueStage,
-  to: RevenueStage,
+  fromRole: "open" | "won" | "lost",
+  from: string,
+  to: string,
   reason: string | undefined,
   allowReopen: boolean,
 ) {
-  if (!isTerminalStage(from) || from === to) return;
-  if (!allowReopen)
-    throw new Error(
-      `Reopen policy for terminal-stage opportunities is disabled for ${from}->${to}.`,
-    );
-  if (!reason?.trim()) throw new Error(`A reason is required to reopen ${from} opportunities.`);
-  if (!TERMINAL_REOPEN_POLICY[from].includes(to)) {
-    throw new Error(`Reopening ${from} opportunities to ${to} is not allowed by policy.`);
+  if (fromRole === "open" || from === to) return;
+  if (!allowReopen) {
+    throw new Error(`Reopen policy for terminal-stage opportunities is disabled for ${from}->${to}.`);
   }
+  if (!reason?.trim()) throw new Error(`A reason is required to reopen ${from} opportunities.`);
 }
 
 export async function createOpportunity(
@@ -200,43 +163,51 @@ export async function transitionOpportunity(
     reason?: string;
     lossReason?: string;
     allowTerminalReopen?: boolean;
+    /** Position within the target column (drag-and-drop); omitted keeps the
+     * existing sort_order untouched, e.g. for non-drag stage changes. */
+    sortOrder?: number;
   },
 ) {
   const { data: current, error: readError } = await supabase
     .from("opportunities")
-    .select("id, stage, probability, won_value, estimated_value, loss_reason")
+    .select("id, tenant_id, stage, probability, won_value, estimated_value, loss_reason")
     .eq("id", input.id)
     .maybeSingle();
   if (readError) throw new Error(readError.message);
   if (!current) throw new Error("Opportunity not found");
-  const canonicalFrom = canonicalStage(current.stage);
+
+  const stages = await loadPipelineStages(supabase, current.tenant_id);
+  const canonicalFrom = stages.canonicalStage(current.stage);
   if (!canonicalFrom) throw new Error(`Current stage ${current.stage} is not recognized`);
-  const canonicalTo = canonicalStage(input.to);
+  const canonicalTo = stages.canonicalStage(input.to);
   if (!canonicalTo) throw new Error(`Cannot move an opportunity to unknown stage ${input.to}`);
-  if (!canTransition(current.stage, canonicalTo)) {
-    throw new Error(`Cannot move an opportunity from ${current.stage} to ${input.to}`);
-  }
+
+  const fromMeta = stages.getMeta(canonicalFrom)!;
+  const toMeta = stages.getMeta(canonicalTo)!;
+
   requireReopenEligibility(
+    fromMeta.role,
     canonicalFrom,
     canonicalTo,
     input.reason,
     Boolean(input.allowTerminalReopen),
   );
-  if (canonicalTo === "lost" && !input.lossReason?.trim()) {
+  if (toMeta.role === "lost" && !input.lossReason?.trim()) {
     throw new Error("A loss reason is required when closing an opportunity as lost");
   }
 
   const now = new Date().toISOString();
   const patch: Record<string, unknown> = {
     stage: canonicalTo,
-    probability: REVENUE_STAGE_META[canonicalTo].probability,
+    probability: toMeta.probability,
     last_activity_at: now,
-    closed_at: ["won", "lost"].includes(canonicalTo) ? now : null,
+    closed_at: toMeta.role !== "open" ? now : null,
   };
-  if (canonicalTo === "lost") patch.loss_reason = input.lossReason!.trim();
-  if (canonicalTo !== "lost") patch.loss_reason = null;
-  if (canonicalTo === "won" && Number(current.won_value || 0) === 0)
+  if (toMeta.role === "lost") patch.loss_reason = input.lossReason!.trim();
+  else patch.loss_reason = null;
+  if (toMeta.role === "won" && Number(current.won_value || 0) === 0)
     patch.won_value = Number(current.estimated_value || 0);
+  if (Number.isFinite(input.sortOrder)) patch.sort_order = input.sortOrder;
 
   const { data: updated, error: updateError } = await supabase
     .from("opportunities")
@@ -270,7 +241,7 @@ export async function transitionOpportunity(
     }),
     recordActivity(supabase, {
       activityType: "opportunity_stage_changed",
-      title: `Opportunity moved to ${REVENUE_STAGE_META[canonicalTo].label}`,
+      title: `Opportunity moved to ${toMeta.label}`,
       summary: input.reason?.trim() || null,
       opportunityId: input.id,
       source: input.source ?? "admin",

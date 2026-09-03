@@ -89,6 +89,24 @@ export const MCP_REVENUE_OS_RESOURCES = [
     description: "Knowledge base configuration and Grounding Substrate status.",
     mimeType: "application/json",
   },
+  {
+    uri: "revenue-os://plugins/registry",
+    name: "Plugin Registry",
+    description: "Installed plugins, their status, tools, and triggers.",
+    mimeType: "application/json",
+  },
+  {
+    uri: "revenue-os://work-engine/queue",
+    name: "Work Engine Queue",
+    description: "Claimable work items across all coworkers.",
+    mimeType: "application/json",
+  },
+  {
+    uri: "revenue-os://capabilities/graph",
+    name: "Workspace Capability Graph",
+    description: "Available workspace capabilities, policies, and verification status.",
+    mimeType: "application/json",
+  },
 ] as const;
 
 /**

@@ -5,7 +5,6 @@ import { sendRecordedEmail } from "./communications";
 import { transitionOpportunity } from "./pipeline";
 import { activateCampaign } from "./campaigns";
 import { sendGmailReply } from "./google";
-import { REVENUE_STAGES, type RevenueStage } from "./types";
 import {
   createRevenueTask,
   completeOperatorTask,
@@ -92,8 +91,6 @@ export async function approveAndExecuteAction(
       }
       case "transition_opportunity": {
         const stage = stringValue(payload, "stage")!;
-        if (!REVENUE_STAGES.includes(stage as RevenueStage))
-          throw new Error("Invalid pipeline stage");
         const oppId = stringValue(payload, "opportunityId")!;
         const { data: currentOpp, error: oppError } = await supabase
           .from("opportunities")
@@ -114,7 +111,7 @@ export async function approveAndExecuteAction(
         }
         result = await transitionOpportunity(supabase, {
           id: oppId,
-          to: stage as RevenueStage,
+          to: stage,
           actorEmail,
           source: "ai",
           reason: stringValue(payload, "reason", false),

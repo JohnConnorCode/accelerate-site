@@ -5,7 +5,8 @@ import { safeAttribution } from "@/lib/opportunities";
 import type { UTMData } from "@/lib/utm";
 import { recordAudit } from "./audit";
 import { resolveOrCreateIdentity } from "./identity";
-import { canTransition, canonicalStage, transitionOpportunity } from "./pipeline";
+import { transitionOpportunity } from "./pipeline";
+import { loadPipelineStages } from "./pipeline-stage-resolver";
 import { createRevenueTask } from "./tasks";
 import { createQualifyLeadWork } from "./sales-coworker";
 import {
@@ -297,6 +298,7 @@ export async function ingestPlaybookQualification(
 
   let opportunity: {
     id: string;
+    tenant_id: string;
     qualifier_token: string | null;
     stage: string;
     contact_id: string | null;
@@ -309,7 +311,7 @@ export async function ingestPlaybookQualification(
       .from("opportunities")
       .update(legacyFields)
       .eq("id", existing.id)
-      .select("id,qualifier_token,stage,contact_id,company_id,next_action,next_action_at")
+      .select("id,tenant_id,qualifier_token,stage,contact_id,company_id,next_action,next_action_at")
       .single();
     if (error) throw new Error(error.message);
     opportunity = data;
@@ -326,7 +328,7 @@ export async function ingestPlaybookQualification(
           : "Review nurture qualification",
         next_action_at: new Date().toISOString(),
       })
-      .select("id,qualifier_token,stage,contact_id,company_id,next_action,next_action_at")
+      .select("id,tenant_id,qualifier_token,stage,contact_id,company_id,next_action,next_action_at")
       .single();
     if (error) throw new Error(error.message);
     opportunity = data;
@@ -352,24 +354,29 @@ export async function ingestPlaybookQualification(
     .from("opportunities")
     .update(linkPatch)
     .eq("id", opportunity.id)
-    .select("id,qualifier_token,stage,contact_id,company_id,next_action,next_action_at")
+    .select("id,tenant_id,qualifier_token,stage,contact_id,company_id,next_action,next_action_at")
     .single();
   if (linkError) throw new Error(linkError.message);
   opportunity = linked;
 
-  const currentStage = canonicalStage(opportunity.stage);
-  if (
-    currentStage &&
-    currentStage !== targetStage &&
-    canTransition(opportunity.stage, targetStage)
-  ) {
-    opportunity = (await transitionOpportunity(supabase, {
-      id: opportunity.id,
-      to: targetStage,
-      actorEmail: tenant.founder.systemActorEmail,
-      source: matchedPlaybook.sourceTag,
-      reason: input.qualification.reason,
-    })) as typeof opportunity;
+  const stages = await loadPipelineStages(supabase, opportunity.tenant_id);
+  const currentStage = stages.canonicalStage(opportunity.stage);
+  if (currentStage && currentStage !== stages.canonicalStage(targetStage)) {
+    try {
+      opportunity = (await transitionOpportunity(supabase, {
+        id: opportunity.id,
+        to: targetStage,
+        actorEmail: tenant.founder.systemActorEmail,
+        source: matchedPlaybook.sourceTag,
+        reason: input.qualification.reason,
+      })) as typeof opportunity;
+    } catch (transitionError) {
+      // Best-effort: a tenant may have renamed/removed the default
+      // "qualified"/"nurture" stages this intake path targets. The
+      // opportunity stays wherever it already was rather than failing the
+      // whole public form submission.
+      console.error("[inbound] could not auto-transition qualifier opportunity:", transitionError);
+    }
   }
 
   const activityId = `${matchedPlaybook.key}-qualifier:${opportunity.id}:${input.qualification.qualified ? "qualified" : "nurture"}`;

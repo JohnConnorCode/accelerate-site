@@ -3,7 +3,6 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { OpenRouterTool } from "@/lib/ai/openrouter";
 import { proposeAction } from "./actions";
 import { loadOperatorQueue } from "./queue";
-import { REVENUE_STAGES } from "./types";
 import { loadActivityTimeline } from "./activities";
 import { ADMIN_LAYOUT_SCOPES, proposeLayoutChange } from "./admin-layout";
 import { FOUNDER_NOTE_MAX_LENGTH } from "./notes";
@@ -14,6 +13,7 @@ import { listWorkspaceCapabilities, type WorkspaceCapability } from "./capabilit
 import { listClaimsForEntity, type Claim } from "./claims";
 import { listAutonomyPolicies, type AutonomyPolicy } from "./autonomy-policy";
 import { listCoworkers, type Coworker } from "./coworkers";
+import { listPlugins, type Plugin } from "./plugins";
 import { getAgentActivityForEntity, type AgentActivityEntry } from "./agent-activity";
 import { bootstrapSalesCoworker } from "./sales-coworker";
 
@@ -376,7 +376,11 @@ const registry: AiToolRegistration[] = [
       type: "object",
       properties: {
         query: { type: "string" },
-        stage: { type: "string", enum: [...REVENUE_STAGES] },
+        stage: {
+          type: "string",
+          description:
+            "A pipeline stage's column_key (workspace-defined, not a fixed set — check get_record_timeline/prior tool results for real values rather than guessing).",
+        },
       },
       additionalProperties: false,
     },
@@ -394,11 +398,8 @@ const registry: AiToolRegistration[] = [
         )
         .limit(25);
       if (query) builder = builder.or(`name.ilike.%${query}%,email.ilike.%${query}%`);
-      if (
-        typeof input.stage === "string" &&
-        REVENUE_STAGES.includes(input.stage as (typeof REVENUE_STAGES)[number])
-      )
-        builder = builder.eq("stage", input.stage);
+      if (typeof input.stage === "string" && input.stage.trim())
+        builder = builder.eq("stage", input.stage.trim());
       const { data, error } = await builder;
       if (error) throw new Error(error.message);
       return data ?? [];
@@ -565,7 +566,11 @@ const registry: AiToolRegistration[] = [
       type: "object",
       properties: {
         opportunityId: { type: "string" },
-        stage: { type: "string", enum: [...REVENUE_STAGES] },
+        stage: {
+          type: "string",
+          description:
+            "The target pipeline stage's column_key (workspace-defined — use the opportunity's own record or search_pipeline results, never guess).",
+        },
         reason: { type: "string" },
         lossReason: { type: "string" },
       },
@@ -1142,6 +1147,45 @@ const registry: AiToolRegistration[] = [
     },
   },
   {
+    name: "get_plugins",
+    description:
+      "List registered plugins and their status. Shows what integrations and extensions are installed, their capabilities, tools, and triggers.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        status: {
+          type: "string",
+          description: "Filter to a status: pending_review, approved, enabled, disabled, revoked",
+        },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.plugins-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const statusVal = value(input, "status");
+      const plugins = await listPlugins(supabase, {
+        status: statusVal
+          ? (["pending_review", "approved", "enabled", "disabled", "revoked"].includes(statusVal)
+              ? (statusVal as "pending_review" | "approved" | "enabled" | "disabled" | "revoked")
+              : undefined)
+          : undefined,
+      });
+      return plugins.map((p: Plugin) => ({
+        plugin_key: p.plugin_key,
+        name: p.name,
+        description: p.description,
+        version: p.version,
+        status: p.status,
+        required_capabilities: p.required_capabilities,
+        mcp_server_url: p.mcp_server_url,
+      }));
+    },
+  },
+  {
     name: "bootstrap_sales_coworker",
     description:
       "Bootstrap the Sales Coworker: register its capabilities, autonomy policies, and work kinds. Returns readiness status and any capability gaps. Idempotent — safe to call multiple times.",
@@ -1226,6 +1270,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "get_autonomy_policies",
     "get_coworkers",
     "get_agent_activity_for_entity",
+    "get_plugins",
     "bootstrap_sales_coworker",
     "get_record_timeline",
     "search_knowledge_base",
@@ -1245,6 +1290,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "get_autonomy_policies",
     "get_coworkers",
     "get_agent_activity_for_entity",
+    "get_plugins",
     "get_record_timeline",
     "search_knowledge_base",
     "propose_task",
@@ -1263,6 +1309,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "get_autonomy_policies",
     "get_coworkers",
     "get_agent_activity_for_entity",
+    "get_plugins",
     "get_record_timeline",
     "search_knowledge_base",
     "propose_task",

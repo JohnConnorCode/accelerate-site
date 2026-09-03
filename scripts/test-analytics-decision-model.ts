@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import { summarizeReplySignals, summarizeRevenueAnalytics } from "../src/lib/revenue-os/analytics";
+import { createDefaultPipelineStageResolver } from "../src/lib/revenue-os/pipeline-stage-resolver";
+
+const stages = createDefaultPipelineStageResolver();
 
 const opportunities = [
   {
@@ -46,7 +49,7 @@ const opportunities = [
   },
 ];
 
-const all = summarizeRevenueAnalytics(opportunities, { days: 30 });
+const all = summarizeRevenueAnalytics(opportunities, { days: 30 }, stages);
 assert.equal(all.funnel.opportunities, 3);
 assert.equal(all.funnel.pipelineValue, 18000);
 assert.equal(
@@ -64,11 +67,15 @@ assert.equal(all.quality.missingOwner, 1);
 assert.equal(all.quality.missingNextAction, 1);
 assert.deepEqual(all.filterOptions.sources, ["Partner", "Unknown", "website"]);
 
-const filtered = summarizeRevenueAnalytics(opportunities, {
-  days: 30,
-  owner: "founder@example.com",
-  stage: "proposal",
-});
+const filtered = summarizeRevenueAnalytics(
+  opportunities,
+  {
+    days: 30,
+    owner: "founder@example.com",
+    stage: "proposal",
+  },
+  stages,
+);
 assert.deepEqual(filtered.opportunityIds, ["one"]);
 assert.equal(filtered.forecast.weightedPipeline, 5000);
 assert.equal(filtered.appliedFilters.stage, "proposal");

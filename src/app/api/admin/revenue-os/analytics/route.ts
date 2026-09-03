@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { loadRevenueAnalytics, loadWebsiteAnalytics } from "@/lib/revenue-os/analytics";
 import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
-import { REVENUE_STAGES, type RevenueStage } from "@/lib/revenue-os/types";
 
 const bounded = (value: string | null) => value?.trim().slice(0, 160) || undefined;
 
@@ -11,14 +10,14 @@ export async function GET(request: NextRequest) {
   if (auth instanceof NextResponse) return auth;
   const params = new URL(request.url).searchParams;
   const days = Math.min(365, Math.max(7, Number(params.get("days")) || 30));
-  const requestedStage = bounded(params.get("stage"));
-  const stage =
-    requestedStage && REVENUE_STAGES.includes(requestedStage as RevenueStage)
-      ? requestedStage
-      : undefined;
+  // Any admin-defined pipeline column_key is a valid filter now, not just the
+  // original 9 canonical stages — loadRevenueAnalytics/canonicalStage
+  // resolves it against the tenant's live stage set; an unrecognized value
+  // simply matches nothing rather than being silently ignored.
+  const stage = bounded(params.get("stage"));
   try {
     const supabase = auth.database;
-    const revenue = await loadRevenueAnalytics(supabase, {
+    const revenue = await loadRevenueAnalytics(supabase, auth.tenant.id, {
       days,
       source: bounded(params.get("source")),
       owner: bounded(params.get("owner")),

@@ -31,7 +31,9 @@ import { PageHeader } from "@/components/admin/PageHeader";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
-import { REVENUE_STAGE_META, type RevenueStage } from "@/lib/revenue-os/types";
+import { useKanbanColumns } from "@/lib/kanban/useKanbanColumns";
+
+type RevenueStage = string;
 
 type Item = Record<string, unknown> & { id: string };
 interface RecordModel {
@@ -204,8 +206,11 @@ export default function OpportunityRecordPage() {
     }
   }
 
+  const { columns: pipelineColumns } = useKanbanColumns("pipeline");
   const opportunity = record?.opportunity;
   const stage = opportunity?.canonical_stage ?? "new";
+  const stageLabel =
+    pipelineColumns.find((column) => column.column_key === stage)?.label ?? stage;
   return (
     <div className="space-y-5 pb-12">
       <Link
@@ -305,7 +310,7 @@ export default function OpportunityRecordPage() {
               {[
                 {
                   label: "Stage",
-                  value: REVENUE_STAGE_META[stage].label,
+                  value: stageLabel,
                   note: `${opportunity.probability}% probability`,
                   icon: Target,
                 },

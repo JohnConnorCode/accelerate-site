@@ -5,7 +5,7 @@ import {
   loadActivityTimeline,
   type ActivityLedgerRecord,
 } from "./activities";
-import { canonicalStage } from "./pipeline";
+import { loadPipelineStages } from "./pipeline-stage-resolver";
 
 export const OPPORTUNITY_RECORD_CONTRACT = "revenue-os-opportunity-record.v1";
 
@@ -14,7 +14,7 @@ export interface OpportunityRecord {
   activityContract: typeof ACTIVITY_LEDGER_CONTRACT;
   opportunity: Record<string, unknown> & {
     id: string;
-    canonical_stage: ReturnType<typeof canonicalStage>;
+    canonical_stage: string | null;
   };
   contact: Record<string, unknown> | null;
   company: Record<string, unknown> | null;
@@ -44,7 +44,7 @@ export async function loadOpportunityRecord(
   const opportunityResult = await supabase
     .from("opportunities")
     .select(
-      "id,name,email,contact_id,company_id,stage,source,source_detail,owner_email,next_action,next_action_at,estimated_value,won_value,probability,loss_reason,last_activity_at,closed_at,created_at,updated_at",
+      "id,tenant_id,name,email,contact_id,company_id,stage,source,source_detail,owner_email,next_action,next_action_at,estimated_value,won_value,probability,loss_reason,last_activity_at,closed_at,created_at,updated_at",
     )
     .eq("id", id)
     .maybeSingle();
@@ -119,10 +119,12 @@ export async function loadOpportunityRecord(
   assertQuery(meetingsResult, "related meetings");
   assertQuery(proposalsResult, "related proposals");
 
+  const stages = await loadPipelineStages(supabase, opportunity.tenant_id);
+
   return {
     contract: OPPORTUNITY_RECORD_CONTRACT,
     activityContract: ACTIVITY_LEDGER_CONTRACT,
-    opportunity: { ...opportunity, canonical_stage: canonicalStage(opportunity.stage) },
+    opportunity: { ...opportunity, canonical_stage: stages.canonicalStage(opportunity.stage) },
     contact: contactResult.data,
     company: companyResult.data,
     tasks: tasksResult.data ?? [],
