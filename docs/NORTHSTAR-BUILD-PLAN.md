@@ -133,37 +133,35 @@ Not started:
 
 ## BUILD ORDER — Highest Value Next
 
+### Completed this session (2026-09-03):
+
+1. ✅ **AI Confirmation System** — feedback loop: rejection→learned policy, approval→trust signal, proposeAction gates on prohibitive policies
+2. ✅ **Autonomous Inbound Responder** — already fully built (auto-responder.ts), marked shipped
+3. ✅ **Founder Note Capture** — already fully built (notes.ts), marked shipped
+4. ✅ **Trust Graduation Engine** — scans ask_until_trusted policies, proposes promotions on 3+ approvals/0 rejections/7+ days
+5. ✅ **Coworker Agent Bridge** — runCoworkerAgentTask for headless AI execution, AI-first-with-fallback in 5 handlers
+6. ✅ **Cross-coworker trigger map** — all business events create work for relevant coworkers
+
 ### Immediate (unblock the end-to-end demo):
 
-1. **AI Confirmation System** — the single highest-value build
-   - When coworkers propose actions (via `propose_*` AI tools), surface them in operator inbox
-   - Approval → action executor dispatches; rejection → audit + learned policy
-   - Builds on: action_queue, autonomy_policy, audit, agent-activity
-   - Unblocks: §33 success demo, ACT layer, all 5 coworkers' write paths
+1. **Conversations Operator Inbox** — complete the human-facing work surface
+   - Already in-progress; needs to surface coworker work items + action proposals
+   - Unblocks: §33 success demo, human-in-the-loop for all coworker write paths
 
-2. **Autonomous Inbound Responder** — close the lead→response loop
-   - When inbound arrives + lead is qualified, auto-draft reply under standing_permission
-   - Uses: autonomy policy (ask_until_trusted → standing_permission after trust graduation)
-   - Builds on: inbound.ts, auto-responder.ts, sales-coworker, confirmation system
-
-3. **Founder Note Capture** — knowledge input for REMEMBER layer
-   - notes.ts already exists but needs the capture → adoption → activity surface
-   - Unblocks: Second Brain SEE/REMEMBER layers
+2. **End-to-end integration test** — prove the §33 loop works top to bottom
 
 ### Next (deepen existing primitives):
 
-4. **Second Brain: SEE** — complete observation layer
+3. **Second Brain: SEE** — complete observation layer
    - Gmail incremental sync (blocked), Calendar association (blocked)
    - Drive folder boundary + content indexing + provenance
 
-5. **Conversations Operator Inbox** — complete the human-facing work surface
-   - Already in-progress; needs to surface coworker work items + action proposals
-
-6. **End-to-end integration test** — prove the §33 loop works
+4. **AI Contact Importer** — already has contact-imports.ts, may need deepening
+5. **Agent Learning Feedback Loop** — already has agent-learning.ts, may need deepening
 
 ### Later (expand breadth):
 
-7. Marketing Coworker (Phase E)
-8. Customer Support Coworker (Phase E)
-9. Plugin SDK (Phase D)
-10. Second Brain NOTICE → ACT → LEARN → TRUST layers
+6. Marketing Coworker (Phase E)
+7. Customer Support Coworker (Phase E)
+8. Plugin SDK (Phase D)
+9. Second Brain NOTICE → ACT → LEARN → TRUST layers
