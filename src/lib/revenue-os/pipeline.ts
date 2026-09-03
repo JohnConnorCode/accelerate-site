@@ -5,6 +5,8 @@ import { resolveOrCreateIdentity } from "./identity";
 import { normalizeEmail } from "./db";
 import { recordActivity } from "./activities";
 import { loadPipelineStages } from "./pipeline-stage-resolver";
+import { createDetectOverduePaymentsWork } from "./finance-coworker";
+import { createDetectStaleDealsWork } from "./business-pulse-coworker";
 
 function requireReopenEligibility(
   fromRole: "open" | "won" | "lost",
@@ -65,8 +67,12 @@ export async function createOpportunity(
       stage: "new",
       source,
       estimated_value: Math.max(0, Number(input.estimatedValue) || 0),
-      next_action: input.nextAction ?? null,
-      next_action_at: input.nextActionAt ?? null,
+      next_action: input.nextAction?.trim() || null,
+      // An empty string (the common case: the create form's date field left
+      // blank) is not a valid timestamp — Postgres rejects it outright,
+      // unlike a genuinely absent field. Only a non-empty value is passed
+      // through.
+      next_action_at: input.nextActionAt?.trim() ? input.nextActionAt : null,
       owner_email: input.actorEmail,
     })
     .select("*")
@@ -261,6 +267,17 @@ export async function transitionOpportunity(
       occurredAt: now,
     }),
   ]);
+
+  // Trigger relevant coworker work based on the transition role.
+  // These are fire-and-forget — the transition must succeed regardless.
+  if (toMeta.role === "won") {
+    createDetectOverduePaymentsWork(supabase).catch(() => {});
+  } else if (toMeta.role === "lost") {
+    createDetectStaleDealsWork(supabase).catch(() => {});
+  } else if (canonicalTo === "proposal" || canonicalTo === "negotiation") {
+    // High-value stage entry — pulse should re-evaluate pipeline health.
+    createDetectStaleDealsWork(supabase).catch(() => {});
+  }
 
   return updated;
 }

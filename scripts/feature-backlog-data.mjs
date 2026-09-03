@@ -62,6 +62,7 @@ const CAPABILITY_ALIASES = {
   agent: "coworkers",
   "agent-activity": "coworkers",
   "agent-trace": "agent-trace",
+  "ai-context": "ai",
   ai: "ai",
   approval: "automation",
   auth: "security",
@@ -83,6 +84,7 @@ const CAPABILITY_ALIASES = {
   "evidence-ledger": "evidence-ledger",
   evidence: "evidence-ledger",
   "capability-graph": "capability-graph",
+  finance: "finance",
   gmail: "email",
   google: "workspace",
   health: "reliability",
@@ -95,6 +97,7 @@ const CAPABILITY_ALIASES = {
   memory: "memory",
   observability: "reliability",
   openrouter: "ai",
+  operations: "operations",
   pipeline: "pipeline",
   playwright: "testing",
   proposals: "proposals",
@@ -310,9 +313,19 @@ const CURRENT_IMPLEMENTATION_EVIDENCE = {
   "autonomy-policy-engine":
     "2026-09-02 shipped: migrations/20260902-autonomy-policies.sql (autonomy_policies table, check_autonomy RPC, upsert_autonomy_policy RPC, grant_standing_permission RPC, autonomy_hard_floors table seeded with 6 floors, indexes, RLS). src/lib/revenue-os/autonomy-policy.ts (check, list, register, grantStandingPermission, listHardFloors). AI tool: get_autonomy_policies. TypeScript, lint, build, and contract verify pass.",
   "coworker-model":
-    "2026-09-02 shipped: migrations/20260902-coworkers.sql (coworkers table with required_capabilities, work_kinds, autonomy_overrides, indexes, RLS). src/lib/revenue-os/coworkers.ts (register, list, getCoworkerManifest with capability gaps, updateStatus). AI tool: get_coworkers. Three coworkers bootstrapped: sales, business-pulse, meeting-intel. TypeScript, lint, build, and contract verify pass.",
+    "2026-09-03 shipped: Five coworkers bootstrapped (sales, business-pulse, meeting-intel, finance, operations). Each registers capabilities, autonomy policies, and work kinds. Work scheduler auto-creates daily/weekly work. TypeScript, lint, build, and contract verify pass. 2026-09-02 shipped: migrations/20260902-coworkers.sql (coworkers table with required_capabilities, work_kinds, autonomy_overrides, indexes, RLS). src/lib/revenue-os/coworkers.ts (register, list, getCoworkerManifest with capability gaps, updateStatus). AI tool: get_coworkers + bootstrap tools for each coworker.",
   "agent-activity-surface":
     "2026-09-02 shipped: src/lib/revenue-os/agent-activity.ts (getAgentActivityForEntity composes work items + actions + claims + audit into human-readable timeline). AI tool: get_agent_activity_for_entity. TypeScript, lint, build, and contract verify pass.",
+  "finance-coworker":
+    "2026-09-03 shipped: src/lib/revenue-os/finance-coworker.ts (3 work kinds: weekly_revenue_reconciliation, detect_overdue_payments, revenue_stage_audit). Bootstrap registers capabilities + autonomy policies. Handlers registered in work engine cron. AI tool: bootstrap_finance_coworker. TypeScript, lint, build, and contract verify pass.",
+  "operations-coworker":
+    "2026-09-03 shipped: src/lib/revenue-os/operations-coworker.ts (3 work kinds: daily_health_check, integration_status_audit, data_quality_scan). Bootstrap registers capabilities + autonomy policies. Handlers registered in work engine cron. AI tool: bootstrap_operations_coworker. TypeScript, lint, build, and contract verify pass.",
+  "work-scheduler":
+    "2026-09-03 shipped: src/lib/revenue-os/work-scheduler.ts (auto-creates daily work items: digest, stale deals, bottleneck, health check, overdue scan; weekly: reconciliation on Mondays). Date-based deduplication. Wired in cron route before executeClaimableWork. TypeScript, lint, build, and contract verify pass.",
+  "memory-architecture":
+    "2026-09-03 shipped: src/lib/revenue-os/memory.ts (five categories: canonical, activity, knowledge, agent, learned_policy). Agent memory with time-decay horizons (session/daily/weekly/permanent). Learned policies with supersession. Unified queryMemory across all categories. 5 AI tools: query_memory, store_agent_memory, get_agent_memory, get_learned_policies, record_learned_policy. Migration: 20260903-memory-architecture.sql. Work executor consults learned policies and stores agent memory after execution. TypeScript, lint, build, and contract verify pass.",
+  "budgets":
+    "2026-09-03 shipped: src/lib/revenue-os/budgets.ts (checkBudgets, recordBudgetUsage, setBudgetLimit, listBudgetLimits). Six budget kinds (model_spend, vendor_api_calls, emails_sent, research_depth, retry_count, runtime_seconds). Per-coworker or global limits with daily/weekly/monthly periods. Work executor checks budgets before execution and records usage after. 90%+ usage triggers audit alert. Migration: 20260903-budgets.sql. 2 AI tools: check_budgets, get_budget_limits. TypeScript, lint, build, and contract verify pass.",
 };
 
 function taxonomyLabels({ key, workstream, phase, status, labels }) {
@@ -5630,6 +5643,124 @@ export const featureBacklog = [
     labels: ["coworkers", "admin-ux"],
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; desktop and mobile screenshots of the Agent Activity surface on a populated record; Command Center Needs-you/Coworkers/What-changed sections verified with fixture data; npm run build.",
+  }),
+  card({
+    key: "finance-coworker",
+    title: "Finance Coworker: revenue tracking, overdue detection, and reconciliation",
+    workstream: "coworker",
+    phase: 6,
+    status: "shipped",
+    priority: "high",
+    description:
+      "A dedicated Finance Coworker that tracks revenue, monitors payment patterns, alerts on overdue payments, and reconciles financial records. Three work kinds: weekly_revenue_reconciliation (compares won deals week-over-week, weighted pipeline), detect_overdue_payments (flags won deals with no recent activity), revenue_stage_audit (identifies high-stage deals at risk of stalling). Bootstrap registers crm.read + crm.write capabilities and autonomy policies.",
+    acceptance: [
+      "Finance Coworker bootstraps with capabilities and autonomy policies via AI tool",
+      "Three work kinds are registered and handlers execute via work engine cron",
+      "Weekly reconciliation compares won deals week-over-week with weighted pipeline summary",
+      "Overdue payment detection flags won deals with no activity in 14+ days",
+      "Revenue stage audit identifies proposal/negotiation deals stale for 7+ days",
+      "All handler outcomes produce audit receipts",
+    ],
+    dependencies: ["Generalise tasks and scheduling into a durable Work Engine", "Introduce Coworkers as first-class runtime identities with manifests", "Unify agent permissions into one Autonomy Policy Engine"],
+    start: "docs/NORTHSTAR.md §E; src/lib/revenue-os/finance-coworker.ts; src/lib/revenue-os/work-executor.ts",
+    guardrails: "Finance coworker reads CRM data autonomously but writes and alerts require ask_until_trusted level. Never auto-modify financial records.",
+    labels: ["coworkers", "finance"],
+    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
+  }),
+  card({
+    key: "operations-coworker",
+    title: "Operations Coworker: system health, integration monitoring, and data quality",
+    workstream: "coworker",
+    phase: 6,
+    status: "shipped",
+    priority: "medium",
+    description:
+      "The meta-coworker that watches the platform itself. Three work kinds: daily_health_check (failed jobs, stale work claims, expired actions), integration_status_audit (source_runs for failures and unconfigured sources), data_quality_scan (contacts without email, opportunities without company name or next action). Bootstrap registers crm.read capability and ops autonomy policies.",
+    acceptance: [
+      "Operations Coworker bootstraps with capabilities and autonomy policies via AI tool",
+      "Three work kinds are registered and handlers execute via work engine cron",
+      "Daily health check counts failed jobs, stale claims, and expired actions",
+      "Integration audit checks source_runs for failures and unconfigured sources",
+      "Data quality scan detects missing critical fields on contacts and opportunities",
+      "All handler outcomes produce audit receipts",
+    ],
+    dependencies: ["Generalise tasks and scheduling into a durable Work Engine", "Introduce Coworkers as first-class runtime identities with manifests"],
+    start: "docs/NORTHSTAR.md §E; src/lib/revenue-os/operations-coworker.ts; src/lib/revenue-os/work-executor.ts",
+    guardrails: "Operations coworker is read-only — it detects and reports issues, never auto-remediates. Alerts require ask_until_trusted autonomy level.",
+    labels: ["coworkers", "operations"],
+    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
+  }),
+  card({
+    key: "work-scheduler",
+    title: "Work scheduler: auto-create recurring daily and weekly coworker work items",
+    workstream: "coworker",
+    phase: 6,
+    status: "shipped",
+    priority: "high",
+    description:
+      "The work scheduler closes the gap between 'coworkers exist' and 'coworkers have work to do'. Before each work engine execution cycle, the scheduler creates daily work items (daily digest, stale deals, bottleneck check, health check, overdue scan) and weekly items (revenue reconciliation on Mondays). Date-based deduplication keys prevent duplicate work items.",
+    acceptance: [
+      "Schedule runs before executeClaimableWork in the work engine cron route",
+      "Daily work items are created for all five daily work kinds",
+      "Weekly work items are created on Mondays (ISO weekday 1)",
+      "Dedupe keys prevent duplicate work items within the same day/week",
+      "Daily operator check-in task surfaces in the inbox",
+      "Scheduler produces audit receipts",
+    ],
+    dependencies: ["Generalise tasks and scheduling into a durable Work Engine", "Introduce Coworkers as first-class runtime identities with manifests", "Finance Coworker: revenue tracking, overdue detection, and reconciliation", "Operations Coworker: system health, integration monitoring, and data quality"],
+    start: "docs/NORTHSTAR.md §E; src/lib/revenue-os/work-scheduler.ts; src/app/api/cron/work-engine/route.ts",
+    guardrails: "Scheduler only creates work items — it never executes them. Deduplication must be date-based, not attempt-based. Scheduler failures must not block the work engine execution cycle.",
+    labels: ["coworkers", "automation"],
+    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
+  }),
+  card({
+    key: "memory-architecture",
+    title: "Memory architecture: five distinct memory categories with unified query",
+    workstream: "coworker",
+    phase: 6,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Implements northstar §23: memory should not be treated as a single vector database. Five distinct categories are kept separate: canonical (business records), activity (what happened), knowledge (documents and indexed sources), agent (prior work, research, questions with time-decay horizons), and learned policy (explicit rules from human decisions with supersession). A unified queryMemory interface routes across all five without collapsing them.",
+    acceptance: [
+      "Five memory categories are defined and queryable through queryMemory",
+      "Agent memory entries store prior work, research, scheduled checks, and unresolved questions",
+      "Agent memory decays by relevance horizon (session=4h, daily=26h, weekly=8d, permanent=never)",
+      "Learned policies record rules derived from human decisions with source provenance",
+      "Learned policies supersede previous active policies for the same action+scope",
+      "Work executor consults learned policies before executing and stores agent memory after",
+      "5 AI tools: query_memory, store_agent_memory, get_agent_memory, get_learned_policies, record_learned_policy",
+      "Memory summary (learned policies + recent agent memory) loaded into every agent grounding contract",
+      "MCP server exposes memory/overview resource",
+    ],
+    dependencies: ["Build the Evidence and Claim Ledger for AI-derived facts", "Introduce Coworkers as first-class runtime identities with manifests"],
+    start: "docs/NORTHSTAR.md §23; src/lib/revenue-os/memory.ts; migrations/20260903-memory-architecture.sql",
+    guardrails: "Categories must never be collapsed — each retains its own shape. Agent memory is not canonical data. Learned policies are constraints, not capabilities. Memory query failures must not block agent execution.",
+    labels: ["coworkers", "ai-context"],
+    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
+  }),
+  card({
+    key: "budgets",
+    title: "Resource budgets for autonomous workers with explicit spending caps",
+    workstream: "runtime",
+    phase: 3,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Implements northstar §24: autonomous workers require explicit resource constraints. Six budget kinds: model_spend, vendor_api_calls, emails_sent, research_depth, retry_count, runtime_seconds. Limits can be per-coworker or global, with daily/weekly/monthly periods. The work executor checks budgets before executing work and records usage after. Running out of budget is a normal state — work is skipped with a clear reason, not failed.",
+    acceptance: [
+      "Budget limits can be set per-coworker or globally for each budget kind",
+      "checkBudgets returns allowed/exhausted status before work execution",
+      "Work executor skips work when any budget is exhausted",
+      "recordBudgetUsage atomically increments period usage",
+      "90%+ budget usage triggers audit alert",
+      "2 AI tools: check_budgets, get_budget_limits",
+    ],
+    dependencies: ["Generalise tasks and scheduling into a durable Work Engine", "Introduce Coworkers as first-class runtime identities with manifests"],
+    start: "docs/NORTHSTAR.md §24; src/lib/revenue-os/budgets.ts; migrations/20260903-budgets.sql",
+    guardrails: "Running out of budget is a normal state, not an error. Budget checks are best-effort — failure to check must not block execution. Budgets constrain autonomous work; human-initiated actions are not gated by budgets.",
+    labels: ["automation", "reliability"],
+    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
   }),
 
   // ────────────────────────────────────────────────────────────────────────

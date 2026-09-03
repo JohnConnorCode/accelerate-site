@@ -21,6 +21,7 @@ import { bootstrapMeetingIntelCoworker } from "./meeting-intel-coworker";
 import { bootstrapFinanceCoworker } from "./finance-coworker";
 import { bootstrapOperationsCoworker } from "./operations-coworker";
 import { queryMemory, storeAgentMemory, retrieveAgentMemory, listLearnedPolicies, recordLearnedPolicy, MEMORY_CATEGORIES, type AgentMemoryEntry, type LearnedPolicyEntry, type MemoryCategory } from "./memory";
+import { checkBudgets, listBudgetLimits, type BudgetKind, type BudgetLimit } from "./budgets";
 
 export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v4";
 export const REVENUE_TOOL_PACKS = ["core", "pipeline", "outreach"] as const;
@@ -1543,6 +1544,68 @@ const registry: AiToolRegistration[] = [
     },
   },
   {
+    name: "check_budgets",
+    description:
+      "Check whether a coworker has remaining budget for work execution. Shows current usage vs limits for model spend, API calls, emails, research depth, retries, and runtime. Budgets are per-day by default.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        coworkerId: { type: "string", description: "Coworker to check budgets for" },
+      },
+      required: ["coworkerId"],
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.budgets-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const results = await checkBudgets(supabase, {
+        coworkerId: value(input, "coworkerId")!,
+      });
+      return results.map((r) => ({
+        budget_kind: r.budgetKind,
+        allowed: r.allowed,
+        used: r.used,
+        limit: r.limit,
+        remaining: r.remaining,
+        reason: r.reason,
+      }));
+    },
+  },
+  {
+    name: "get_budget_limits",
+    description:
+      "List budget limits configured for coworkers or globally. Shows the spending/action caps that constrain autonomous work.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        coworkerId: { type: "string" },
+        budgetKind: { type: "string", enum: ["model_spend", "vendor_api_calls", "emails_sent", "research_depth", "retry_count", "runtime_seconds"] },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.budgets-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const limits = await listBudgetLimits(supabase, {
+        coworkerId: value(input, "coworkerId"),
+        budgetKind: value(input, "budgetKind") as BudgetKind | undefined,
+      });
+      return limits.map((l: BudgetLimit) => ({
+        id: l.id,
+        coworker_id: l.coworker_id,
+        budget_kind: l.budget_kind,
+        limit_value: l.limit_value,
+        period: l.period,
+      }));
+    },
+  },
+  {
     name: "propose_conversation_reply",
     description:
       "Stage a reply to an active conversation thread for founder approval. This never sends directly.",
@@ -1614,6 +1677,8 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "get_agent_memory",
     "get_learned_policies",
     "record_learned_policy",
+    "check_budgets",
+    "get_budget_limits",
     "propose_task",
     "propose_task_update",
     "propose_layout_change",
@@ -1636,6 +1701,8 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "query_memory",
     "get_agent_memory",
     "get_learned_policies",
+    "check_budgets",
+    "get_budget_limits",
     "propose_task",
     "propose_task_update",
     "propose_stage_change",
@@ -1658,6 +1725,8 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "query_memory",
     "get_agent_memory",
     "get_learned_policies",
+    "check_budgets",
+    "get_budget_limits",
     "propose_task",
     "propose_task_update",
     "propose_send_email",

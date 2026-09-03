@@ -3,6 +3,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { withWorkItem, type WorkItem } from "./work-items";
 import { recoverStaleWorkItemClaims } from "./work-items";
 import { getCoworkerManifest } from "./coworkers";
+import { getPoliciesForAction, storeAgentMemory } from "./memory";
+import { checkBudgets, recordBudgetUsage } from "./budgets";
 import { recordAudit } from "./audit";
 import { safeErrorMessage } from "./db";
 
@@ -104,10 +106,60 @@ export async function executeClaimableWork(
         }
       }
 
+      // Check learned policies that may constrain this work kind.
+      const actionKey = `work:${kind}`;
+      const policies = await getPoliciesForAction(supabase, { actionKey }).catch(() => []);
+      if (policies.length > 0) {
+        const blocking = policies.find((p) =>
+          /never|must not|do not|prohibited|always ask/i.test(p.rule),
+        );
+        if (blocking) {
+          summary.skipped++;
+          return {
+            value: null as unknown as Record<string, unknown>,
+            outcome: `Blocked by learned policy: "${blocking.rule}" (${blocking.action_key})`,
+          };
+        }
+      }
+
+      // Check budgets before execution (northstar §24).
+      if (workItem.coworker_id) {
+        const budgetResults = await checkBudgets(supabase, {
+          coworkerId: workItem.coworker_id,
+        }).catch(() => []);
+        const exhausted = budgetResults.find((b) => !b.allowed);
+        if (exhausted) {
+          summary.skipped++;
+          return {
+            value: null as unknown as Record<string, unknown>,
+            outcome: exhausted.reason ?? `Budget exhausted: ${exhausted.budgetKind}`,
+          };
+        }
+      }
+
       // Execute the registered handler.
       try {
         const handlerResult = await handler(supabase, workItem);
         summary.completed++;
+
+        // Store agent memory so future turns can reference what was found.
+        await storeAgentMemory(supabase, {
+          coworkerId: workItem.coworker_id ?? undefined,
+          category: "prior_work",
+          subject: `${kind}: ${workItem.objective.slice(0, 80)}`,
+          body: handlerResult.outcome,
+          entityType: workItem.entity_type ?? undefined,
+          entityId: workItem.entity_id ?? undefined,
+          relevanceHorizon: "daily",
+        }).catch(() => {}); // Best-effort; memory failure must not break execution.
+
+        // Record budget usage for the execution (northstar §24).
+        await recordBudgetUsage(supabase, {
+          coworkerId: workItem.coworker_id ?? null,
+          budgetKind: "vendor_api_calls",
+          value: 1,
+        }).catch(() => {}); // Best-effort; budget recording failure must not break execution.
+
         return { value: handlerResult as unknown as Record<string, unknown>, outcome: handlerResult.outcome };
       } catch (err) {
         summary.failed++;
