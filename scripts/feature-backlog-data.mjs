@@ -2149,7 +2149,7 @@ export const featureBacklog = [
     title: "Give the founder's own knowledge a way in",
     workstream: "intelligence",
     phase: 4,
-    status: "planned",
+    status: "shipped",
     priority: "high",
     owner: "John",
     description:
@@ -2381,7 +2381,7 @@ export const featureBacklog = [
     title: "Answer every inbound inquiry inside an approved response policy",
     workstream: "ai",
     phase: 4,
-    status: "planned",
+    status: "shipped",
     priority: "high",
     description:
       "Acknowledge a first-touch inbound inquiry within seconds, grounded strictly in what the prospect wrote and the canonical record, executing inside a founder-approved response policy version rather than a per-message approval. The engineering contract permits an external action without per-instance confirmation only from inside an approved policy version, so the responder is not a trusted agent: it is a signed policy carrying the trigger, envelope, guardrails, template, and model, and any material edit bumps the version and suspends sending until re-approval, exactly as activateCampaign already behaves.",

@@ -4,6 +4,7 @@ import { createDailyDigestWork, createDetectStaleDealsWork, createDetectStageBot
 import { createDailyHealthCheckWork, createIntegrationStatusAuditWork, createDataQualityScanWork } from "./operations-coworker";
 import { createWeeklyReconciliationWork, createDetectOverduePaymentsWork, createRevenueStageAuditWork } from "./finance-coworker";
 import { createPreCallBriefWork } from "./meeting-intel-coworker";
+import { runTrustGraduationScan } from "./trust-graduation";
 import { createRevenueTask } from "./tasks";
 import { recordAudit } from "./audit";
 
@@ -115,6 +116,18 @@ export async function scheduleWeeklyWork(
         summary.errors.push(`${name}: ${msg}`);
       }
     }
+  }
+
+  // Trust graduation scan: propose autonomy upgrades for policies with
+  // accumulated approvals. Runs weekly so the system evolves over time.
+  try {
+    const gradResult = await runTrustGraduationScan(supabase);
+    if (gradResult.proposed > 0) {
+      summary.created += gradResult.proposed;
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    summary.errors.push(`trust_graduation: ${msg}`);
   }
 
   await recordAudit(supabase, {
