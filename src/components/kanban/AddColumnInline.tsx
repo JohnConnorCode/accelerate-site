@@ -43,11 +43,19 @@ export function AddColumnInline({ onAdd, extraFields, tileLabel = "Add column" }
 
   if (!open) {
     return (
-      <div className="w-[310px] shrink-0 snap-start lg:snap-none">
+      <div className="w-full max-w-[340px] shrink-0 snap-start mx-auto sm:mx-0 lg:snap-none">
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-[var(--admin-border)] text-xs font-semibold text-[var(--admin-muted)] transition-[background-color,color,border-color] duration-150 hover:border-[var(--admin-ink)]/30 hover:bg-black/[0.018] hover:text-[var(--admin-ink)] dark:hover:bg-white/[0.018]"
+          className={cn(
+            "flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl",
+            "border border-dashed border-[var(--admin-border)]",
+            "text-xs font-semibold text-[var(--admin-muted)]",
+            "transition-[background-color,color,border-color] duration-150",
+            "hover:border-[var(--admin-ink)]/30 hover:bg-black/[0.018] hover:text-[var(--admin-ink)]",
+            "dark:hover:bg-white/[0.018]",
+            "active:scale-[0.98]",
+          )}
         >
           <Plus className="size-3.5" /> {tileLabel}
         </button>
@@ -56,7 +64,7 @@ export function AddColumnInline({ onAdd, extraFields, tileLabel = "Add column" }
   }
 
   return (
-    <div className="w-[310px] shrink-0 snap-start lg:snap-none">
+    <div className="w-full max-w-[340px] shrink-0 snap-start mx-auto sm:mx-0 lg:snap-none">
       <div className="rounded-2xl bg-black/[0.018] p-3 shadow-[inset_0_0_0_1px_var(--admin-border)] dark:bg-white/[0.018]">
         <div className="flex items-center gap-2">
           <input

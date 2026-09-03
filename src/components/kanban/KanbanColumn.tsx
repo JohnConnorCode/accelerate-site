@@ -1,10 +1,10 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { CircleDot, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { CircleDot, Loader2, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { AdminDialog } from "@/components/admin/AdminDialog";
 import { toast } from "@/lib/admin/useToast";
 import { cn } from "@/lib/utils";
 import { KanbanCannotDeleteLastRoleError, KanbanColumnHasCardsError } from "@/lib/kanban/api";
@@ -16,11 +16,175 @@ interface KanbanColumnProps<T> {
   otherColumns: KanbanColumnRecord[];
   items: T[];
   getItemId: (item: T) => string;
-  renderCard: (item: T, opts: KanbanCardRenderOpts) => ReactNode;
+  renderCard: (item: T, opts: KanbanCardRenderOpts) => React.ReactNode;
   dragDisabled: boolean;
   emptyHint?: string;
   onRename?: (label: string) => Promise<unknown>;
   onDelete?: (options?: { reassignTo?: string }) => Promise<void>;
+}
+
+interface ColumnMenuProps {
+  columnLabel: string;
+  hasCards: boolean;
+  otherColumns: KanbanColumnRecord[];
+  onDelete: (options?: { reassignTo?: string }) => Promise<void>;
+}
+
+function ColumnMenu({
+  columnLabel,
+  hasCards,
+  otherColumns,
+  onDelete,
+}: ColumnMenuProps) {
+  const [open, setOpen] = useState(false);
+  const [reassignOpen, setReassignOpen] = useState(false);
+  const [reassignTo, setReassignTo] = useState(otherColumns[0]?.column_key ?? "");
+  const [busy, setBusy] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (rootRef.current && !rootRef.current.contains(event.target as Node)) setOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
+  const runDelete = async (options?: { reassignTo?: string }) => {
+    setBusy(true);
+    try {
+      await onDelete(options);
+      setReassignOpen(false);
+      setOpen(false);
+    } catch (error) {
+      if (error instanceof KanbanColumnHasCardsError) {
+        toast.error(error.message);
+        setReassignOpen(true);
+      } else if (error instanceof KanbanCannotDeleteLastRoleError) {
+        toast.error(error.message);
+        setReassignOpen(false);
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleDeleteClick = () => {
+    if (hasCards) {
+      setReassignTo(otherColumns[0]?.column_key ?? "");
+      setReassignOpen(true);
+      setOpen(false);
+      return;
+    }
+    if (!window.confirm("Delete this empty column? This cannot be undone.")) return;
+    void runDelete();
+  };
+
+  return (
+    <div ref={rootRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-label={`Column options for ${columnLabel}`}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        className={cn(
+          "grid shrink-0 place-items-center rounded-xl text-[var(--admin-muted)]",
+          "transition-[background-color,color,transform] duration-150",
+          "hover:bg-black/[0.045] hover:text-[var(--admin-ink)]",
+          "active:scale-[0.96]",
+          "dark:hover:bg-white/[0.06]",
+          "size-10",
+          "sm:size-8",
+        )}
+      >
+        <MoreVertical className="size-4" />
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className={cn(
+            "absolute z-20 mt-1 rounded-xl bg-[var(--admin-surface)] p-1",
+            "shadow-[0_16px_40px_-16px_rgba(0,0,0,0.35)]",
+            "ring-1 ring-[var(--admin-border)]",
+            "min-w-40",
+            "sm:min-w-36",
+            "right-0",
+          )}
+        >
+          <button
+            type="button"
+            role="menuitem"
+            onClick={handleDeleteClick}
+            className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs font-medium text-rose-700 transition-colors hover:bg-rose-500/10 dark:text-rose-300"
+          >
+            <Trash2 className="size-3.5" /> Delete column
+          </button>
+        </div>
+      )}
+      <AdminDialog
+        open={reassignOpen}
+        onClose={() => setReassignOpen(false)}
+        title="Reassign cards before deleting"
+        labelledBy="kanban-reassign-title"
+        maxWidth="sm"
+      >
+        <div className="w-full rounded-[20px] bg-[var(--admin-surface)] p-5 shadow-2xl">
+          <h2 id="kanban-reassign-title" className="text-base font-semibold text-[var(--admin-ink)]">
+            Move cards to another column
+          </h2>
+          <p className="admin-copy mt-1.5 text-xs leading-5">
+            This column still has cards on it. Choose where they should go before the column is deleted.
+          </p>
+          {otherColumns.length ? (
+            <>
+              <select
+                value={reassignTo}
+                onChange={(e) => setReassignTo(e.target.value)}
+                className="mt-4 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)]"
+              >
+                {otherColumns.map((option) => (
+                  <option key={option.column_key} value={option.column_key}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <div className="mt-5 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setReassignOpen(false)}
+                  className="min-h-11 rounded-xl px-4 text-xs font-semibold text-[var(--admin-muted)] hover:text-[var(--admin-ink)]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={busy || !reassignTo}
+                  onClick={() => void runDelete({ reassignTo })}
+                  className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-rose-600 px-4 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                >
+                  {busy && <Loader2 className="size-3.5 animate-spin" />}
+                  Move cards & delete
+                </button>
+              </div>
+            </>
+          ) : (
+            <p className="admin-copy mt-4 text-xs">
+              There is no other column to move these cards to. Add another column first.
+            </p>
+          )}
+        </div>
+      </AdminDialog>
+    </div>
+  );
 }
 
 /**
@@ -45,32 +209,10 @@ export function KanbanColumn<T>({
   const [editing, setEditing] = useState(false);
   const [labelDraft, setLabelDraft] = useState(column.label);
   const [savingLabel, setSavingLabel] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
 
-  // Sync draft label when editing starts/stops
   useEffect(() => {
     if (!editing) setLabelDraft(column.label);
   }, [column.label, editing]);
-
-  // Close menu on outside click or escape key
-  useEffect(() => {
-    if (!menuOpen) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    };
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMenuOpen(false);
-    };
-    document.addEventListener("click", handleClickOutside);
-    document.addEventListener("keydown", handleEscape);
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [menuOpen]);
 
   const commitLabel = async () => {
     const next = labelDraft.trim();
@@ -90,58 +232,14 @@ export function KanbanColumn<T>({
     }
   };
 
-  const runDelete = async (options?: { reassignTo?: string }) => {
-    setSavingLabel(true);
-    try {
-      if (onDelete) {
-        await onDelete(options);
-      }
-    } catch (error) {
-      // useKanbanColumns already toasts every other failure; these two are
-      // rethrown by the hook specifically so a race (someone else added a
-      // card, or deleted the last won/lost-role column, between opening this
-      // menu and confirming) surfaces here instead of a generic toast.
-      if (error instanceof KanbanColumnHasCardsError) {
-        toast.error(error.message);
-        return { needsReassign: true, error };
-      } else if (error instanceof KanbanCannotDeleteLastRoleError) {
-        toast.error(error.message);
-        return { needsSpecialHandling: true, error };
-      }
-      throw error;
-    } finally {
-      setSavingLabel(false);
-    }
-  };
-
-  const handleDeleteClick = async () => {
-    if (items.length > 0) {
-      // Request reassign dialog for columns with cards
-      const reassignTo = otherColumns[0]?.column_key ?? "";
-      if (reassignTo) {
-        const result = await runDelete({ reassignTo });
-        if (result?.needsReassign) {
-          // Menu would show reassign dialog - handled by existing ColumnMenu logic
-        }
-      }
-      return;
-    }
-    // Empty column: confirm before delete
-    if (window.confirm("Delete this empty column? This cannot be undone.")) {
-      await runDelete();
-      setMenuOpen(false);
-    }
-  };
-
   return (
     <section
       className={cn(
         "w-full max-w-[340px] shrink-0 snap-start lg:snap-none",
-        "mx-auto sm:mx-0", // Center on mobile, left-align on desktop
+        "mx-auto sm:mx-0",
       )}
       aria-labelledby={`column-${column.column_key}`}
     >
-      {/* Header with column title and controls */}
       <div className="mb-2.5 flex items-start justify-between gap-2 px-1">
         <div className="min-w-0 flex-1">
           <div className="group flex min-h-10 items-center gap-1.5">
@@ -207,53 +305,16 @@ export function KanbanColumn<T>({
             {items.length}
           </span>
           {onDelete && (
-            <div ref={menuRef} className="relative">
-              <button
-                type="button"
-                onClick={() => setMenuOpen(!menuOpen)}
-                aria-label={`Column options for ${column.label}`}
-                aria-haspopup="menu"
-                aria-expanded={menuOpen}
-                className={cn(
-                  "grid shrink-0 place-items-center rounded-xl text-[var(--admin-muted)]",
-                  "transition-[background-color,color,transform] duration-150",
-                  "hover:bg-black/[0.045] hover:text-[var(--admin-ink)]",
-                  "active:scale-[0.96]",
-                  "dark:hover:bg-white/[0.06]",
-                  "size-10",
-                  "sm:size-8",
-                  menuOpen && "bg-black/[0.045] text-[var(--admin-ink)]",
-                )}
-              >
-                <MoreVertical className="size-4" />
-              </button>
-              {menuOpen && (
-                <div
-                  role="menu"
-                  className={cn(
-                    "absolute z-20 mt-1 rounded-xl bg-[var(--admin-surface)] p-1",
-                    "shadow-[0_16px_40px_-16px_rgba(0,0,0,0.35)]",
-                    "ring-1 ring-[var(--admin-border)]",
-                    "min-w-40",
-                    "right-0",
-                  )}
-                >
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={handleDeleteClick}
-                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs font-medium text-rose-700 transition-colors hover:bg-rose-500/10 dark:text-rose-300"
-                  >
-                    <Trash2 className="size-3.5" /> Delete column
-                  </button>
-                </div>
-              )}
-            </div>
+            <ColumnMenu
+              columnLabel={column.label}
+              hasCards={items.length > 0}
+              otherColumns={otherColumns}
+              onDelete={onDelete}
+            />
           )}
         </div>
       </div>
 
-      {/* Drop zone with enhanced visual feedback */}
       <div
         ref={setNodeRef}
         className={cn(
@@ -282,7 +343,6 @@ export function KanbanColumn<T>({
           ))}
         </SortableContext>
 
-        {/* Empty state with enhanced styling */}
         {!items.length && (
           <div
             className={cn(

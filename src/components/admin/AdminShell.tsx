@@ -1321,7 +1321,7 @@ function CmdKSearch({
               if (event.key === "Escape") onClose();
             }}
             placeholder="Search people, pages, or run a command…"
-            className="min-w-0 flex-1 bg-transparent text-base text-[var(--admin-ink)] outline-none placeholder:text-[var(--admin-muted)] sm:text-sm"
+            className="min-w-0 flex-1 bg-transparent text-base text-[var(--admin-ink)] outline-none placeholder:text-[var(--admin-muted)] sm:text-sm focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
           />
           <button
             type="button"

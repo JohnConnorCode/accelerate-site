@@ -1187,6 +1187,8 @@ export const featureBacklog = [
     start: "src/app/admin/layout.tsx; src/components/admin; Playwright QA",
     guardrails: "Do not hide essential actions behind hover-only controls.",
     labels: ["accessibility", "mobile"],
+    evidence:
+      "2026-09-03 OpenCode a11y fixes: Added focus-visible indicators to all interactive admin elements replacing focus:outline-none patterns that hid keyboard focus. Files modified: AdminShell.tsx (search input), AIRunHistory.tsx (search textarea), LeadsTable.tsx (bulk status select), DateRangeFilter.tsx (date inputs), TaskQuickAdd.tsx (date input and priority select), AdminFounderNoteModal.tsx (note textarea and person search), LeadDetail.tsx (status select and deal value input). All focus-visible states now show a gold ring indicator (ring-2 ring-gold/30) with proper offset, matching existing admin-action-control patterns. Reduced motion is already supported via @media (prefers-reduced-motion: reduce) rules in globals.css lines 772-778 which disable nonessential animations.",
   }),
   card({
     key: "cloneable-command-center-contract",

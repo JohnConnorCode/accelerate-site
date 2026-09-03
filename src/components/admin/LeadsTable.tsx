@@ -179,7 +179,7 @@ export function LeadsTable({
                 onChange={(e) => setBulkStatus(e.target.value)}
                 aria-label="Set status for selected leads"
                 disabled={bulkBusy}
-                className="rounded-lg glass px-3 py-1.5 text-sm text-white-primary bg-transparent focus:outline-none disabled:opacity-50"
+                className="rounded-lg glass px-3 py-1.5 text-sm text-white-primary bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2 disabled:opacity-50"
               >
                 <option value="">Change status to...</option>
                 {statusOptions.map((s) => (

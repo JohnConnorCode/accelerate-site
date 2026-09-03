@@ -256,6 +256,70 @@ if (!liveBoard) {
   await desktopPage.getByRole("button", { name: "Close feature details" }).click();
 }
 
+// Keyboard-move assertion: dnd-kit KeyboardSensor + sortableKeyboardCoordinates
+// should allow picking up a card with Space, moving with Arrow keys, and dropping with Space.
+async function testKeyboardMove(page) {
+  const backlogCard = page.getByRole("button", { name: "Drag Configure Google OAuth and first sync" });
+
+  await backlogCard.focus();
+  await page.waitForTimeout(100);
+
+  // Space to pick up
+  await page.keyboard.press("Space");
+  await page.waitForTimeout(150);
+
+  // Verify the card is being dragged (overlay appears)
+  const overlay = page.locator('[data-drag-overlay]');
+  await overlay.waitFor({ state: "visible", timeout: 2000 });
+
+  // Right arrow to move to Planned column (next column)
+  await page.keyboard.press("ArrowRight");
+  await page.waitForTimeout(200);
+
+  // Space to drop
+  await page.keyboard.press("Space");
+  await page.waitForTimeout(350);
+
+  // Verify the card moved to Planned column
+  const movedCard = page
+    .locator('section[aria-labelledby="column-planned"]')
+    .getByText("Configure Google OAuth and first sync", { exact: true });
+  await movedCard.waitFor({ timeout: 3000 });
+
+  // Verify it's no longer in Backlog
+  const inBacklog = await page
+    .locator('section[aria-labelledby="column-backlog"]')
+    .getByText("Configure Google OAuth and first sync", { exact: true })
+    .count();
+  if (inBacklog)
+    throw new Error("Keyboard-moved card remained in Backlog");
+
+  // Unsaved-change confirmation: open edit dialog, change title, try to close with X
+  await page.getByRole("button", { name: "Edit Configure Google OAuth and first sync", exact: true }).click();
+  await page.getByRole("heading", { name: "Feature details" }).waitFor();
+
+  const titleInput = page.getByLabel("Title");
+  await titleInput.fill("Modified title for unsaved test");
+  await page.waitForTimeout(100);
+
+  // Try to close via X button - should trigger confirmation dialog
+  await page.getByRole("button", { name: "Close feature details" }).click();
+  await page.waitForTimeout(150);
+
+  // The confirm dialog should appear - we verify the dialog is still open
+  const dialogStillOpen = await page.getByRole("heading", { name: "Feature details" }).isVisible();
+  if (!dialogStillOpen) throw new Error("Unsaved-change confirmation did not block close");
+
+  // Confirm discard and close
+  await page.keyboard.press("Enter"); // OK on confirm dialog
+  await page.waitForTimeout(150);
+  await page.getByRole("heading", { name: "Feature details" }).waitFor({ state: "hidden", timeout: 3000 });
+}
+
+if (!liveBoard) {
+  await testKeyboardMove(desktopPage);
+}
+
 const mobile = await authenticatedContext({ width: 390, height: 844 });
 const mobilePage = await mobile.newPage();
 mobilePage.on("console", (message) => {
@@ -291,5 +355,5 @@ if (liveBoard) {
   console.log(`${outDir}/feature-board-desktop.png`);
   console.log(`${outDir}/feature-board-details.png`);
   console.log(`${outDir}/feature-board-mobile.png`);
-  console.log("Feature Board desktop/mobile render, drag reorder, and details interaction passed.");
+  console.log("Feature Board desktop/mobile render, drag reorder, keyboard move, unsaved-change guard, and details interaction passed.");
 }

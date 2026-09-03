@@ -93,7 +93,7 @@ export function TaskQuickAdd({
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            className="bg-transparent text-xs text-white-secondary border border-border-glass rounded px-2 py-1 focus:outline-none focus:border-gold"
+            className="bg-transparent text-xs text-white-secondary border border-border-glass rounded px-2 py-1 focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/30"
           />
         </div>
         <div className="flex items-center gap-1.5">
@@ -101,7 +101,7 @@ export function TaskQuickAdd({
           <select
             value={priority}
             onChange={(e) => setPriority(e.target.value)}
-            className="bg-transparent text-xs text-white-secondary border border-border-glass rounded px-2 py-1 focus:outline-none focus:border-gold"
+            className="bg-transparent text-xs text-white-secondary border border-border-glass rounded px-2 py-1 focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/30"
           >
             <option value="high">High</option>
             <option value="medium">Medium</option>
