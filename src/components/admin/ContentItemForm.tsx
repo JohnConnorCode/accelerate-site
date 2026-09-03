@@ -22,9 +22,13 @@ interface ContentItemFormProps {
   onSave: (data: Partial<ContentCalendarItem>) => void;
   onDelete?: (id: string) => void;
   onClose: () => void;
+  /** Board's current columns (admin-defined, renamable) as {value, label}
+   * options. Falls back to the pre-kanban-unification defaults if the
+   * caller hasn't loaded them yet, so the dropdown is never empty. */
+  statusOptions?: { value: string; label: string }[];
 }
 
-const statusOptions = [
+const DEFAULT_STATUS_OPTIONS = [
   { value: "idea", label: "Idea" },
   { value: "outline", label: "Outline" },
   { value: "draft", label: "Draft" },
@@ -56,7 +60,14 @@ const funnelOptions = [
   { value: "decision", label: "Decision" },
 ];
 
-export function ContentItemForm({ open, item, onSave, onDelete, onClose }: ContentItemFormProps) {
+export function ContentItemForm({
+  open,
+  item,
+  onSave,
+  onDelete,
+  onClose,
+  statusOptions = DEFAULT_STATUS_OPTIONS,
+}: ContentItemFormProps) {
   const [title, setTitle] = useState(item?.title || "");
   const [slug, setSlug] = useState(item?.slug || "");
   const [status, setStatus] = useState<ContentStatus>(item?.status || "idea");

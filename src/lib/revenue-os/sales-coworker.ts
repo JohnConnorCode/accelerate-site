@@ -5,6 +5,7 @@ import { createWorkItem } from "./work-items";
 import { registerAutonomyPolicy } from "./autonomy-policy";
 import { registerCapability } from "./capabilities";
 import { recordAudit } from "./audit";
+import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";
 
 // ---------------------------------------------------------------------------
 // Sales Coworker: the reference coworker that proves Phase B primitives.
@@ -242,4 +243,215 @@ export async function scheduleFollowupCheckWork(
     maxAttempts: 2,
     actorEmail: input.actorEmail,
   });
+}
+
+// ---------------------------------------------------------------------------
+// Work kind handlers: register execution logic for each Sales Coworker kind.
+//
+// These are the actual "workers" that execute when the work engine claims an
+// item. Each handler receives the work item and returns an outcome string.
+//
+// For the reference implementation, these handlers perform structured
+// operations (reads, checks, audit) and create follow-up work items or
+// action proposals as needed. The full agent-loop integration (where a
+// handler invokes the AI agent with the right tool pack) will land when
+// the coworker execution loop is connected to ai-agent.ts.
+// ---------------------------------------------------------------------------
+
+const qualifyLeadHandler: WorkKindHandler = async (supabase, wi) => {
+  // Read the contact and opportunity to gather context.
+  const { data: contact } = await supabase
+    .from("contacts")
+    .select("id, email, first_name, last_name, company_id")
+    .eq("id", wi.entity_id)
+    .maybeSingle();
+
+  if (!contact) {
+    return { outcome: `Contact ${wi.entity_id} not found — skipping qualification` };
+  }
+
+  // Check if there's an open opportunity for this contact.
+  const { data: opportunity } = await supabase
+    .from("opportunities")
+    .select("id, stage, company_name")
+    .eq("contact_id", contact.id)
+    .not("stage", "in", '("won","lost")')
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const companyName = opportunity?.company_name ?? "Unknown";
+  const stage = opportunity?.stage ?? "none";
+
+  await recordAudit(supabase, {
+    actorEmail: "system",
+    action: "sales_coworker.qualified_lead",
+    entityType: "contact",
+    entityId: contact.id,
+    source: "automation",
+    after: { company: companyName, opportunity_stage: stage, work_item: wi.id },
+  });
+
+  // Create a draft_followup work item if the opportunity is at an early stage.
+  if (opportunity && ["new", "contacted"].includes(opportunity.stage)) {
+    await createDraftFollowupWork(supabase, {
+      opportunityId: opportunity.id,
+      reason: `Lead qualification completed for ${companyName} (stage: ${stage})`,
+      source: "sales_coworker",
+      actorEmail: "system",
+    }).catch(() => {});
+  }
+
+  return { outcome: `Qualified: ${contact.first_name ?? ""} ${contact.last_name ?? ""} at ${companyName} (stage: ${stage})` };
+};
+
+const draftFollowupHandler: WorkKindHandler = async (supabase, wi) => {
+  const { data: opportunity } = await supabase
+    .from("opportunities")
+    .select("id, stage, company_name, next_action")
+    .eq("id", wi.entity_id)
+    .maybeSingle();
+
+  if (!opportunity) {
+    return { outcome: `Opportunity ${wi.entity_id} not found — skipping follow-up draft` };
+  }
+
+  await recordAudit(supabase, {
+    actorEmail: "system",
+    action: "sales_coworker.followup_draft_reviewed",
+    entityType: "opportunity",
+    entityId: opportunity.id,
+    source: "automation",
+    after: { stage: opportunity.stage, next_action: opportunity.next_action, work_item: wi.id },
+  });
+
+  // Schedule a follow-up check in 3 business days if not yet terminal.
+  if (!["won", "lost"].includes(opportunity.stage)) {
+    const checkAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
+    await scheduleFollowupCheckWork(supabase, {
+      opportunityId: opportunity.id,
+      checkAt,
+      reason: `Follow-up check after draft for ${opportunity.company_name}`,
+      actorEmail: "system",
+    }).catch(() => {});
+  }
+
+  return { outcome: `Follow-up draft reviewed for ${opportunity.company_name} (stage: ${opportunity.stage})` };
+};
+
+const reviewStaleProposalHandler: WorkKindHandler = async (supabase, wi) => {
+  const { data: opportunity } = await supabase
+    .from("opportunities")
+    .select("id, stage, company_name, updated_at")
+    .eq("id", wi.entity_id)
+    .maybeSingle();
+
+  if (!opportunity) {
+    return { outcome: `Opportunity ${wi.entity_id} not found` };
+  }
+
+  if (opportunity.stage !== "proposal") {
+    return { outcome: `Opportunity ${opportunity.company_name} no longer in proposal stage (now: ${opportunity.stage})` };
+  }
+
+  await recordAudit(supabase, {
+    actorEmail: "system",
+    action: "sales_coworker.stale_proposal_reviewed",
+    entityType: "opportunity",
+    entityId: opportunity.id,
+    source: "automation",
+    after: { stage: opportunity.stage, updated_at: opportunity.updated_at, work_item: wi.id },
+  });
+
+  // Create a draft_followup work item to re-engage.
+  await createDraftFollowupWork(supabase, {
+    opportunityId: opportunity.id,
+    reason: `Stale proposal detected for ${opportunity.company_name}`,
+    source: "stale_proposal_detector",
+    priority: "high",
+    actorEmail: "system",
+  }).catch(() => {});
+
+  return { outcome: `Stale proposal reviewed for ${opportunity.company_name} — follow-up queued` };
+};
+
+const gatherLeadContextHandler: WorkKindHandler = async (supabase, wi) => {
+  const { data: contact } = await supabase
+    .from("contacts")
+    .select("id, email, first_name, last_name, company_id")
+    .eq("id", wi.entity_id)
+    .maybeSingle();
+
+  if (!contact) {
+    return { outcome: `Contact ${wi.entity_id} not found` };
+  }
+
+  // Check for recent activity (Gmail sync, conversations).
+  const { count: activityCount } = await supabase
+    .from("activity_ledger")
+    .select("*", { count: "exact", head: true })
+    .eq("contact_id", contact.id)
+    .gte("occurred_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+
+  const contextSummary = activityCount
+    ? `${activityCount} activities in the last 30 days`
+    : "No recent activity found";
+
+  await recordAudit(supabase, {
+    actorEmail: "system",
+    action: "sales_coworker.context_gathered",
+    entityType: "contact",
+    entityId: contact.id,
+    source: "automation",
+    after: { context_summary: contextSummary, work_item: wi.id },
+  });
+
+  // After context is gathered, qualify the lead.
+  await createQualifyLeadWork(supabase, {
+    contactId: contact.id,
+    source: "sales_coworker",
+    reason: `Context gathered: ${contextSummary}`,
+    actorEmail: "system",
+  }).catch(() => {});
+
+  return { outcome: `Context gathered for ${contact.first_name ?? ""} ${contact.last_name ?? ""}: ${contextSummary}` };
+};
+
+const scheduleFollowupCheckHandler: WorkKindHandler = async (supabase, wi) => {
+  const { data: opportunity } = await supabase
+    .from("opportunities")
+    .select("id, stage, company_name")
+    .eq("id", wi.entity_id)
+    .maybeSingle();
+
+  if (!opportunity) {
+    return { outcome: `Opportunity ${wi.entity_id} not found` };
+  }
+
+  if (["won", "lost"].includes(opportunity.stage)) {
+    return { outcome: `Opportunity ${opportunity.company_name} is ${opportunity.stage} — no follow-up needed` };
+  }
+
+  // The check has come due. Create a draft follow-up if the opportunity
+  // is still active.
+  await createDraftFollowupWork(supabase, {
+    opportunityId: opportunity.id,
+    reason: `Scheduled follow-up check for ${opportunity.company_name} (stage: ${opportunity.stage})`,
+    source: "sales_coworker",
+    actorEmail: "system",
+  }).catch(() => {});
+
+  return { outcome: `Follow-up check executed for ${opportunity.company_name} (stage: ${opportunity.stage}) — draft queued` };
+};
+
+// ---------------------------------------------------------------------------
+// Register all Sales Coworker handlers with the work executor
+// ---------------------------------------------------------------------------
+
+export function registerSalesWorkHandlers(): void {
+  registerWorkKindHandler("qualify_lead", qualifyLeadHandler);
+  registerWorkKindHandler("draft_followup", draftFollowupHandler);
+  registerWorkKindHandler("review_stale_proposal", reviewStaleProposalHandler);
+  registerWorkKindHandler("gather_lead_context", gatherLeadContextHandler);
+  registerWorkKindHandler("schedule_followup_check", scheduleFollowupCheckHandler);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -8,7 +8,9 @@ import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { Button } from "@/components/ui/Button";
 import { ContentKanban } from "@/components/admin/ContentKanban";
 import { ContentItemForm } from "@/components/admin/ContentItemForm";
-import type { ContentCalendarItem, ContentStatus } from "@/lib/types";
+import { useKanbanColumns } from "@/lib/kanban/useKanbanColumns";
+import type { KanbanReorderUpdate } from "@/lib/kanban/useKanbanDnd";
+import type { ContentCalendarItem } from "@/lib/types";
 
 export default function AdminContentPage() {
   const [items, setItems] = useState<ContentCalendarItem[]>([]);
@@ -32,21 +34,28 @@ export default function AdminContentPage() {
     fetchItems();
   }, [fetchItems]);
 
-  const handleStatusChange = async (id: string, newStatus: ContentStatus) => {
-    setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, status: newStatus } : item)),
-    );
+  const { columns, createColumn, renameColumn, deleteColumn } = useKanbanColumns("content");
+  const statusOptions = useMemo(
+    () => columns.map((column) => ({ value: column.column_key, label: column.label })),
+    [columns],
+  );
 
-    try {
-      await fetch("/api/admin/content", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, status: newStatus }),
-      });
-    } catch {
-      await fetchItems();
-    }
-  };
+  const commitReorder = useCallback(
+    async (updates: KanbanReorderUpdate[]) => {
+      try {
+        await fetch("/api/admin/content", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reorder: updates }),
+        });
+      } finally {
+        // The board already reflects the new order optimistically; refetch
+        // to reconcile local state with the truthful server state.
+        await fetchItems();
+      }
+    },
+    [fetchItems],
+  );
 
   const handleSave = async (data: Partial<ContentCalendarItem>) => {
     const method = data.id ? "PATCH" : "POST";
@@ -104,7 +113,15 @@ export default function AdminContentPage() {
         }
       />
 
-      <ContentKanban items={items} onStatusChange={handleStatusChange} onEdit={handleEdit} />
+      <ContentKanban
+        columns={columns}
+        items={items}
+        onReorder={commitReorder}
+        onEdit={handleEdit}
+        onAddColumn={createColumn}
+        onRenameColumn={(columnKey, label) => renameColumn(columnKey, { label })}
+        onDeleteColumn={(columnKey, options) => deleteColumn(columnKey, options)}
+      />
 
       <ContentItemForm
         key={editingItem?.id ?? "new"}
@@ -113,6 +130,7 @@ export default function AdminContentPage() {
         onSave={handleSave}
         onDelete={handleDelete}
         onClose={() => setShowForm(false)}
+        statusOptions={statusOptions}
       />
     </motion.div>
   );
