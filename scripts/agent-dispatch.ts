@@ -16,13 +16,23 @@
  * resolve — that's what makes a direct RPC call safe here.
  *
  * Usage:
- *   NODE_OPTIONS=--conditions=react-server npx tsx scripts/agent-dispatch.ts next [--card <seedKeyOrId>] [--identity <name>] [--no-worktree]
+ *   NODE_OPTIONS=--conditions=react-server npx tsx scripts/agent-dispatch.ts next [--card <seedKeyOrId>] [--identity <name>] [--no-worktree] [--force]
  *   NODE_OPTIONS=--conditions=react-server npx tsx scripts/agent-dispatch.ts status
  *   NODE_OPTIONS=--conditions=react-server npx tsx scripts/agent-dispatch.ts heartbeat --card <id> [--identity <name>]
- *   NODE_OPTIONS=--conditions=react-server npx tsx scripts/agent-dispatch.ts release --card <id> [--identity <name>]
- *   NODE_OPTIONS=--conditions=react-server npx tsx scripts/agent-dispatch.ts complete --card <id> --evidence "<text>" [--identity <name>]
+ *   NODE_OPTIONS=--conditions=react-server npx tsx scripts/agent-dispatch.ts release --card <id> [--identity <name>] [--force]
+ *   NODE_OPTIONS=--conditions=react-server npx tsx scripts/agent-dispatch.ts complete --card <id> --evidence "<text>" [--identity <name>] [--force]
  *
  * Or via the npm scripts: agent:next, agent:status, agent:heartbeat, agent:release, agent:complete.
+ *
+ * This is coordination tooling, not an access lock — nothing stops anyone
+ * with repo access from editing files without ever calling this script; the
+ * claim just stops two *agents* from silently colliding on the same card.
+ * A human operator (or anyone running with the service-role key, which this
+ * script already requires) always has final authority: --force on
+ * release/complete overrides a lease held by a different identity instead
+ * of waiting up to 30 minutes for it to expire, and --force on `next`
+ * bypasses the WIP limit for a claim you're explicitly directing. Every
+ * override is written into the card's notes so it stays auditable.
  *
  * `next` also creates a dedicated git worktree at
  * ../.agent-worktrees/<seed_key> (sibling to this repo, so it's outside any
@@ -138,17 +148,24 @@ async function main() {
   if (command === "next") {
     const cardRef = flags.card;
     const looksLikeUuid = cardRef ? /^[0-9a-f-]{36}$/i.test(cardRef) : false;
+    const force = flags.force === "true";
     const result = await claimFeatureCard(supabase, {
       seedKey: cardRef && !looksLikeUuid ? cardRef : undefined,
       id: cardRef && looksLikeUuid ? cardRef : undefined,
       leaseOwner: identity,
+      // --force bypasses the WIP limit for a claim you're explicitly
+      // directing. It does not bypass the milestone filter on auto-pick —
+      // pass --card for a specific card regardless of milestone.
+      wipLimit: force ? 2_147_483_647 : undefined, // p_wip_limit is a Postgres INTEGER; this is its max, effectively "no limit"
     });
     if (!result.claimed) {
       process.stdout.write(
         `Claim failed: ${result.existingStatus}${result.recoveredStale ? " (a stale lease was recovered elsewhere on the board this call)" : ""}\n`,
       );
       if (result.existingStatus === "wip_limit_reached") {
-        process.stdout.write("The board is at its WIP limit. Run `agent:status` to see what's in progress.\n");
+        process.stdout.write(
+          "The board is at its WIP limit. Run `agent:status` to see what's in progress, or add --force to claim anyway.\n",
+        );
       } else if (result.existingStatus === "none_available") {
         process.stdout.write("No dependency-ready backlog/planned card is available to claim right now.\n");
       }
@@ -218,14 +235,22 @@ async function main() {
       process.exitCode = 1;
       return;
     }
+    const force = flags.force === "true";
+    const heldByOther = Boolean(card.lease_owner) && card.lease_owner !== identity;
     const ok =
       command === "release"
-        ? await releaseFeatureCard(supabase, { id: card.id, leaseOwner: identity })
-        : await completeFeatureCard(supabase, { id: card.id, leaseOwner: identity, evidence: flags.evidence! });
+        ? await releaseFeatureCard(supabase, { id: card.id, leaseOwner: identity, force })
+        : await completeFeatureCard(supabase, { id: card.id, leaseOwner: identity, evidence: flags.evidence!, force });
     if (!ok) {
-      process.stdout.write(`Could not ${command} ${flags.card} — not leased by ${identity}?\n`);
+      process.stdout.write(
+        `Could not ${command} ${flags.card} — not leased by ${identity}?` +
+          (heldByOther && !force ? ` Currently leased by ${card.lease_owner}. Add --force to override.\n` : "\n"),
+      );
       process.exitCode = 1;
       return;
+    }
+    if (force && heldByOther) {
+      process.stdout.write(`Overrode a claim held by ${card.lease_owner}.\n`);
     }
     if (command === "complete" && card.seed_key && flags["no-worktree"] !== "true") {
       removeWorktree(card.seed_key);
@@ -242,7 +267,7 @@ async function main() {
   }
 
   process.stderr.write(
-    "Usage: agent-dispatch <next|status|heartbeat|release|complete> [--card <id>] [--identity <name>] [--evidence <text>] [--no-worktree]\n",
+    "Usage: agent-dispatch <next|status|heartbeat|release|complete> [--card <id>] [--identity <name>] [--evidence <text>] [--no-worktree] [--force]\n",
   );
   process.exitCode = 1;
 }

@@ -73,7 +73,7 @@ export async function claimFeatureCard(
 
 export async function releaseFeatureCard(
   supabase: SupabaseClient,
-  input: { id: string; leaseOwner: string },
+  input: { id: string; leaseOwner: string; force?: boolean },
 ): Promise<boolean> {
   // Reset status to backlog, not just clear the lease: the WIP gate in
   // claim_feature_request treats status='in_progress' with a NULL
@@ -82,13 +82,30 @@ export async function releaseFeatureCard(
   // lease at all) — so a release that left status alone would strand the
   // card in_progress-with-no-owner forever, invisible to
   // listClaimableFeatureCards and permanently consuming a WIP slot.
-  const { data, error } = await supabase
-    .from("feature_requests")
-    .update({ status: "backlog", owner: null, lease_owner: null, lease_expires_at: null, claimed_at: null })
-    .eq("id", input.id)
-    .eq("lease_owner", input.leaseOwner)
-    .select("id")
-    .maybeSingle();
+  //
+  // `force` skips the lease_owner match: this script already runs with the
+  // service-role key, so anyone who can run it can already edit the row
+  // directly — the ownership check exists to stop an agent from
+  // accidentally releasing a card it doesn't hold, not to lock out a human
+  // operator. A founder must always be able to reclaim a stalled or
+  // wrongly-claimed card without waiting for the lease to expire.
+  let notesUpdate: string | undefined;
+  if (input.force) {
+    const { data: current } = await supabase.from("feature_requests").select("notes, lease_owner").eq("id", input.id).maybeSingle();
+    if (current && current.lease_owner && current.lease_owner !== input.leaseOwner) {
+      notesUpdate = `${current.notes ?? ""}\n\nForce-released ${new Date().toISOString()} by ${input.leaseOwner} (overrode a claim held by ${current.lease_owner}).`;
+    }
+  }
+  let query = supabase.from("feature_requests").update({
+    status: "backlog",
+    owner: null,
+    lease_owner: null,
+    lease_expires_at: null,
+    claimed_at: null,
+    ...(notesUpdate ? { notes: notesUpdate } : {}),
+  });
+  query = input.force ? query.eq("id", input.id) : query.eq("id", input.id).eq("lease_owner", input.leaseOwner);
+  const { data, error } = await query.select("id").maybeSingle();
   if (error) throw new Error(error.message);
   return Boolean(data);
 }
@@ -111,7 +128,7 @@ export async function renewFeatureCardLease(
 
 export async function completeFeatureCard(
   supabase: SupabaseClient,
-  input: { id: string; leaseOwner: string; evidence: string },
+  input: { id: string; leaseOwner: string; evidence: string; force?: boolean },
 ): Promise<boolean> {
   const { data: current, error: readError } = await supabase
     .from("feature_requests")
@@ -119,16 +136,19 @@ export async function completeFeatureCard(
     .eq("id", input.id)
     .maybeSingle();
   if (readError) throw new Error(readError.message);
-  if (!current || current.lease_owner !== input.leaseOwner) return false;
+  if (!current) return false;
+  if (!input.force && current.lease_owner !== input.leaseOwner) return false;
 
-  const notes = `${current.notes ?? ""}\n\nCompleted ${new Date().toISOString()} by ${input.leaseOwner}:\n${input.evidence}`;
-  const { data, error } = await supabase
+  const overrideNote =
+    input.force && current.lease_owner && current.lease_owner !== input.leaseOwner
+      ? ` (force-completed, overriding a claim held by ${current.lease_owner})`
+      : "";
+  const notes = `${current.notes ?? ""}\n\nCompleted ${new Date().toISOString()} by ${input.leaseOwner}${overrideNote}:\n${input.evidence}`;
+  let query = supabase
     .from("feature_requests")
-    .update({ status: "shipped", notes, lease_owner: null, lease_expires_at: null })
-    .eq("id", input.id)
-    .eq("lease_owner", input.leaseOwner)
-    .select("id")
-    .maybeSingle();
+    .update({ status: "shipped", notes, owner: input.leaseOwner, lease_owner: null, lease_expires_at: null });
+  query = input.force ? query.eq("id", input.id) : query.eq("id", input.id).eq("lease_owner", input.leaseOwner);
+  const { data, error } = await query.select("id").maybeSingle();
   if (error) throw new Error(error.message);
   return Boolean(data);
 }
