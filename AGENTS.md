@@ -12,19 +12,21 @@ and a founder account. Follow
 ## Pick up work
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... npm run agent:next
+npm run agent:next
 ```
 
-This atomically claims one dependency-ready Feature Board card (advisory
-lock + lease, `migrations/20260903-feature-request-claims.sql` — two
-concurrent claims on the same card, exactly one wins), creates an isolated
-git worktree + branch at `../.agent-worktrees/<seed-key>` so you don't
-collide with other agents working this same repo right now, and prints the
-card's full context in one call: description, acceptance criteria, and the
-notes block carrying dependencies/starting points/guardrails/verification —
-no need to hand-read `scripts/feature-backlog-data.mjs`. Only the two
-Supabase env vars are required; this needs no browser session because the
-Feature Board is platform-global, not tied to a tenant account.
+Run this from `accelerate-site/` with a `.env.local` present (already the
+case in any working checkout of this repo — nothing to configure). It
+atomically claims one dependency-ready Feature Board card (advisory lock +
+lease, `migrations/20260903-feature-request-claims.sql` — two concurrent
+claims on the same card, exactly one wins), creates an isolated git
+worktree + branch at `../.agent-worktrees/<seed-key>` so you don't collide
+with other agents working this same repo right now, and prints the card's
+full context in one call: description, acceptance criteria, and the notes
+block carrying dependencies/starting points/guardrails/verification — no
+need to hand-read `scripts/feature-backlog-data.mjs`. This needs no browser
+session or founder login because the Feature Board is platform-global, not
+tied to a tenant account.
 
 `npm run agent:status` lists what's actually claimable right now.
 `npm run agent:heartbeat -- --card <id>` renews your lease if a ticket runs
