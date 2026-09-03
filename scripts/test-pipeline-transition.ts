@@ -22,6 +22,7 @@ class MemoryQuery implements PromiseLike<QueryResult> {
   private operation: "read" | "insert" | "update" = "read";
   private payload: Row | Row[] | null = null;
   private one = false;
+  private sort: { column: string; ascending: boolean } | null = null;
 
   constructor(
     private readonly db: MemorySupabase,
@@ -35,6 +36,11 @@ class MemoryQuery implements PromiseLike<QueryResult> {
 
   eq(column: string, value: unknown) {
     this.filters.push((row) => row[column] === value);
+    return this;
+  }
+
+  order(column: string, options?: { ascending?: boolean }) {
+    this.sort = { column, ascending: options?.ascending !== false };
     return this;
   }
 
@@ -62,7 +68,12 @@ class MemoryQuery implements PromiseLike<QueryResult> {
 
   private rowsForRead() {
     const rows = this.db.rowsFor(this.table);
-    return rows.filter((row) => this.filters.every((filter) => filter(row)));
+    const matched = rows.filter((row) => this.filters.every((filter) => filter(row)));
+    if (!this.sort) return matched;
+    const { column, ascending } = this.sort;
+    return [...matched].sort(
+      (a, b) => (String(a[column]) < String(b[column]) ? -1 : 1) * (ascending ? 1 : -1),
+    );
   }
 
   private read(): QueryResult {
@@ -141,6 +152,42 @@ function memorySupabase(rows: Record<string, Row[]>, onRead?: ReadHook) {
   return new MemorySupabase(rows, onRead);
 }
 
+/**
+ * Admin-defined pipeline board rows. transitionOpportunity() resolves every
+ * stage through loadPipelineStages() (kanban_columns, board_key="pipeline"),
+ * never through a static list, so the fixture must carry the board the rules
+ * run against. Roles/probabilities mirror DEFAULT_STAGE_META in
+ * src/lib/revenue-os/types.ts. Rows carry no tenant_id, matching the
+ * tenant-agnostic opportunity seeds in this file.
+ */
+function pipelineBoardSeed(): Row[] {
+  const stages: Array<{
+    key: string;
+    label: string;
+    probability: number;
+    role: "open" | "won" | "lost";
+  }> = [
+    { key: "new", label: "New", probability: 10, role: "open" },
+    { key: "contacted", label: "Contacted", probability: 20, role: "open" },
+    { key: "qualified", label: "Qualified", probability: 40, role: "open" },
+    { key: "meeting", label: "Meeting", probability: 55, role: "open" },
+    { key: "proposal", label: "Proposal", probability: 70, role: "open" },
+    { key: "negotiation", label: "Negotiation", probability: 85, role: "open" },
+    { key: "won", label: "Won", probability: 100, role: "won" },
+    { key: "lost", label: "Lost", probability: 0, role: "lost" },
+    { key: "nurture", label: "Nurture", probability: 10, role: "open" },
+  ];
+  return stages.map((stage, index) => ({
+    id: `col-${stage.key}`,
+    board_key: "pipeline",
+    column_key: stage.key,
+    label: stage.label,
+    is_default: stage.key === "new",
+    sort_order: index,
+    metadata: { role: stage.role, probability: stage.probability },
+  }));
+}
+
 async function run() {
   const pipelineRoute = readFileSync(
     new URL("../src/app/api/admin/revenue-os/pipeline/route.ts", import.meta.url),
@@ -212,6 +259,7 @@ async function run() {
     ],
     stage_events: [],
     audit_log: [],
+    kanban_columns: pipelineBoardSeed(),
   });
 
   const lostTransition = await transitionOpportunity(db as never, {
@@ -297,18 +345,20 @@ async function run() {
   assert.equal(legacyInput.stage, "meeting");
   assert.equal(rows(db, "stage_events").at(-1)?.to_stage, "meeting");
 
-  await assert.rejects(
-    () =>
-      transitionOpportunity(db as never, {
-        id: "o4",
-        to: "won",
-        actorEmail: "founder@example.com",
-        source: "test",
-        reason: "Invalid move should fail",
-      }),
-    /Cannot move an opportunity from/,
-    "Invalid transition must be blocked.",
-  );
+  // Role-based moves replaced the old hand-curated adjacency graph: any move
+  // between two recognized stages is structurally allowed (see canTransition
+  // in pipeline-stage-resolver.ts). A direct open→won close succeeds and
+  // derives won_value from the estimate when none was recorded.
+  const directClose = await transitionOpportunity(db as never, {
+    id: "o4",
+    to: "won",
+    actorEmail: "founder@example.com",
+    source: "test",
+    reason: "Operator closed a fast-moving deal",
+  });
+  assert.equal(directClose.stage, "won");
+  assert.equal(directClose.won_value, 2000);
+  assert.equal(rows(db, "stage_events").at(-1)?.to_stage, "won");
 
   const staleDb = memorySupabase(
     {
@@ -324,6 +374,7 @@ async function run() {
       ],
       stage_events: [],
       audit_log: [],
+      kanban_columns: pipelineBoardSeed(),
     },
     ({ table, rawRows }) => {
       if (table !== "opportunities") return;
@@ -379,7 +430,7 @@ async function run() {
         "reopen requires reason",
         "terminal reopen is explicitly allowed with reason",
         "legacy stage input is canonicalized",
-        "invalid transition is rejected",
+        "role-based direct close is allowed and derives won_value",
         "optimistic concurrency is detected",
         "unknown input stage is rejected",
         "transition error mapping returns 409 for stale writes",
