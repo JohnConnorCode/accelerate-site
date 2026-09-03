@@ -8,12 +8,17 @@ import { loadPipelineStages } from "./pipeline-stage-resolver";
 
 function requireReopenEligibility(
   fromRole: "open" | "won" | "lost",
+  toRole: "open" | "won" | "lost",
   from: string,
   to: string,
   reason: string | undefined,
   allowReopen: boolean,
 ) {
-  if (fromRole === "open" || from === to) return;
+  // Only leaving a terminal role entirely counts as "reopening" — moving
+  // between two stages that share the same terminal role (e.g. two
+  // different admin-created "won" stages) is a lateral re-categorization of
+  // an already-closed deal, not a reopen, so it needs no justification.
+  if (fromRole === "open" || fromRole === toRole || from === to) return;
   if (!allowReopen) {
     throw new Error(`Reopen policy for terminal-stage opportunities is disabled for ${from}->${to}.`);
   }
@@ -187,6 +192,7 @@ export async function transitionOpportunity(
 
   requireReopenEligibility(
     fromMeta.role,
+    toMeta.role,
     canonicalFrom,
     canonicalTo,
     input.reason,

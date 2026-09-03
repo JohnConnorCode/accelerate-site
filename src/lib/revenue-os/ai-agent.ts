@@ -12,6 +12,7 @@ import { loadAgentLearningSignals } from "./agent-learning";
 import { listClaimableWork } from "./work-items";
 import { listWorkspaceCapabilities } from "./capabilities";
 import { listClaimsForEntity } from "./claims";
+import { listLearnedPolicies, retrieveAgentMemory } from "./memory";
 import {
   AI_TOOL_REGISTRY_VERSION,
   executeRegisteredRevenueTool,
@@ -180,6 +181,17 @@ export async function runRevenueCommandAgent(
         claimsSummary = `Claims for ${pageEntity.type} (${entityClaims.length}): ${entityClaims.map((c) => `${c.field}=${c.proposed_value}[${c.status}/${c.best_evidence ?? "?"}]`).join("; ")}. Use get_claims_for_entity for details.`;
       }
     }
+    // Memory summary: active learned policies + recent agent memory.
+    const activePolicies = await listLearnedPolicies(supabase);
+    const recentAgentMemory = await retrieveAgentMemory(supabase, { limit: 5 });
+    const memorySummary = [
+      activePolicies.length
+        ? `Learned policies (${activePolicies.length}): ${activePolicies.map((p) => `"${p.rule}" (${p.action_key})`).join("; ")}. Use get_learned_policies for details.`
+        : undefined,
+      recentAgentMemory.length
+        ? `Recent agent memory (${recentAgentMemory.length}): ${recentAgentMemory.map((m) => `${m.category}: ${m.subject}`).join("; ")}. Use get_agent_memory for details.`
+        : undefined,
+    ].filter(Boolean).join(" ") || undefined;
     // Without this the model reasons about "today" and "follow up in 3 days"
     // from its training cutoff. Everything this agent does is time-sensitive.
     const now = new Date();
@@ -192,6 +204,7 @@ export async function runRevenueCommandAgent(
         workQueueSummary,
         capabilitySummary,
         claimsSummary,
+        memorySummary,
         pageContext: context,
         toolPack: selectedPack,
       });

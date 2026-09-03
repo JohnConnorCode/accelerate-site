@@ -18,6 +18,9 @@ import { getAgentActivityForEntity, type AgentActivityEntry } from "./agent-acti
 import { bootstrapSalesCoworker } from "./sales-coworker";
 import { bootstrapBusinessPulseCoworker } from "./business-pulse-coworker";
 import { bootstrapMeetingIntelCoworker } from "./meeting-intel-coworker";
+import { bootstrapFinanceCoworker } from "./finance-coworker";
+import { bootstrapOperationsCoworker } from "./operations-coworker";
+import { queryMemory, storeAgentMemory, retrieveAgentMemory, listLearnedPolicies, recordLearnedPolicy, MEMORY_CATEGORIES, type AgentMemoryEntry, type LearnedPolicyEntry, type MemoryCategory } from "./memory";
 
 export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v4";
 export const REVENUE_TOOL_PACKS = ["core", "pipeline", "outreach"] as const;
@@ -1266,6 +1269,280 @@ const registry: AiToolRegistration[] = [
     },
   },
   {
+    name: "bootstrap_finance_coworker",
+    description:
+      "Bootstrap the Finance Coworker: register its capabilities, autonomy policies, and work kinds. Tracks revenue, monitors payment patterns, and reconciles financial records. Idempotent.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    outputSchema: {
+      type: "object",
+      required: ["readyToWork", "capabilityGaps"],
+      properties: {
+        readyToWork: { type: "boolean" },
+        capabilityGaps: { type: "array", items: { type: "string" } },
+      },
+    },
+    serviceTarget: "revenue-os.coworker-bootstrap",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }) => {
+      const result = await bootstrapFinanceCoworker(supabase, actorEmail);
+      return {
+        readyToWork: result.readyToWork,
+        capabilityGaps: result.capabilityGaps,
+        coworkerName: result.coworker.name,
+      };
+    },
+  },
+  {
+    name: "bootstrap_operations_coworker",
+    description:
+      "Bootstrap the Operations Coworker: register its capabilities, autonomy policies, and work kinds. Monitors system health, integration status, data quality, and operational anomalies. Idempotent.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    outputSchema: {
+      type: "object",
+      required: ["readyToWork", "capabilityGaps"],
+      properties: {
+        readyToWork: { type: "boolean" },
+        capabilityGaps: { type: "array", items: { type: "string" } },
+      },
+    },
+    serviceTarget: "revenue-os.coworker-bootstrap",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }) => {
+      const result = await bootstrapOperationsCoworker(supabase, actorEmail);
+      return {
+        readyToWork: result.readyToWork,
+        capabilityGaps: result.capabilityGaps,
+        coworkerName: result.coworker.name,
+      };
+    },
+  },
+  {
+    name: "query_memory",
+    description:
+      "Query across all five memory categories (canonical, activity, knowledge, agent, learned_policy) without collapsing them. Each category retains its own shape. Use this when you need a complete picture of what the system knows about an entity, action, or topic.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        categories: {
+          type: "array",
+          items: { type: "string", enum: ["canonical", "activity", "knowledge", "agent", "learned_policy"] },
+          description: "Which categories to query. Defaults to all.",
+        },
+        entityType: { type: "string", description: "Entity type to scope (contact, company, opportunity)" },
+        entityId: { type: "string", description: "Entity UUID to scope" },
+        query: { type: "string", description: "Free-text search (used by knowledge category)" },
+        coworkerId: { type: "string", description: "Coworker to scope agent memory" },
+        actionKey: { type: "string", description: "Action key to scope learned policies" },
+        limit: { type: "number", description: "Max items per category (default 10)" },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.memory-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const categoryStrs = input.categories as string[] | undefined;
+      const categories = categoryStrs
+        ? (categoryStrs.filter((c): c is MemoryCategory => MEMORY_CATEGORIES.includes(c as MemoryCategory)))
+        : undefined;
+      const results = await queryMemory(supabase, {
+        categories,
+        entityType: value(input, "entityType"),
+        entityId: value(input, "entityId"),
+        query: value(input, "query"),
+        coworkerId: value(input, "coworkerId"),
+        actionKey: value(input, "actionKey"),
+        limit: typeof input.limit === "number" ? input.limit : undefined,
+      });
+      return results.map((r) => ({
+        category: r.category,
+        itemCount: r.items.length,
+        truncated: r.truncated,
+        items: r.items,
+      }));
+    },
+  },
+  {
+    name: "store_agent_memory",
+    description:
+      "Store agent-specific context: prior work results, research findings, unresolved questions, or scheduled check reminders. This is agent memory, not canonical data — it decays over time based on the relevance horizon.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        category: { type: "string", enum: ["prior_work", "prior_research", "scheduled_check", "unresolved_question"] },
+        subject: { type: "string" },
+        body: { type: "string" },
+        coworkerId: { type: "string" },
+        entityType: { type: "string" },
+        entityId: { type: "string" },
+        relevanceHorizon: { type: "string", enum: ["session", "daily", "weekly", "permanent"] },
+      },
+      required: ["category", "subject", "body"],
+      additionalProperties: false,
+    },
+    outputSchema: {
+      type: "object",
+      required: ["id", "category", "subject"],
+      properties: {
+        id: { type: "string" },
+        category: { type: "string" },
+        subject: { type: "string" },
+        relevanceHorizon: { type: "string" },
+      },
+    },
+    serviceTarget: "revenue-os.memory-write",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: false,
+    execute: async ({ supabase, actorEmail }, input) => {
+      const entry = await storeAgentMemory(supabase, {
+        coworkerId: value(input, "coworkerId"),
+        category: value(input, "category") as AgentMemoryEntry["category"],
+        subject: value(input, "subject")!,
+        body: value(input, "body")!,
+        entityType: value(input, "entityType"),
+        entityId: value(input, "entityId"),
+        relevanceHorizon: value(input, "relevanceHorizon") as AgentMemoryEntry["relevance_horizon"],
+        actorEmail,
+      });
+      return { id: entry.id, category: entry.category, subject: entry.subject, relevanceHorizon: entry.relevance_horizon };
+    },
+  },
+  {
+    name: "get_agent_memory",
+    description:
+      "Retrieve agent memory entries — prior work, research, scheduled checks, or unresolved questions. Returns non-expired entries ordered by recency.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        coworkerId: { type: "string" },
+        category: { type: "string", enum: ["prior_work", "prior_research", "scheduled_check", "unresolved_question"] },
+        entityType: { type: "string" },
+        entityId: { type: "string" },
+        limit: { type: "number" },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.memory-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const categoryVal = value(input, "category");
+      const entries = await retrieveAgentMemory(supabase, {
+        coworkerId: value(input, "coworkerId"),
+        category: categoryVal as AgentMemoryEntry["category"] | undefined,
+        entityType: value(input, "entityType"),
+        entityId: value(input, "entityId"),
+        limit: typeof input.limit === "number" ? input.limit : undefined,
+      });
+      return entries.map((e: AgentMemoryEntry) => ({
+        id: e.id,
+        category: e.category,
+        subject: e.subject,
+        body: e.body,
+        coworker_id: e.coworker_id,
+        entity_type: e.entity_type,
+        entity_id: e.entity_id,
+        relevance_horizon: e.relevance_horizon,
+        created_at: e.created_at,
+        expires_at: e.expires_at,
+      }));
+    },
+  },
+  {
+    name: "get_learned_policies",
+    description:
+      "List active learned policies — explicit rules derived from human decisions. These are the \"don't do X\" and \"always ask before Y\" rules from operational experience.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        actionKey: { type: "string", description: "Filter to a specific action key" },
+        coworkerId: { type: "string" },
+        scopeEntityType: { type: "string" },
+        scopeEntityId: { type: "string" },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.memory-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const policies = await listLearnedPolicies(supabase, {
+        actionKey: value(input, "actionKey"),
+        coworkerId: value(input, "coworkerId"),
+        scopeEntityType: value(input, "scopeEntityType"),
+        scopeEntityId: value(input, "scopeEntityId"),
+      });
+      return policies.map((p: LearnedPolicyEntry) => ({
+        id: p.id,
+        action_key: p.action_key,
+        rule: p.rule,
+        rationale: p.rationale,
+        source: p.source,
+        coworker_id: p.coworker_id,
+        scope_entity_type: p.scope_entity_type,
+        scope_entity_id: p.scope_entity_id,
+        created_at: p.created_at,
+      }));
+    },
+  },
+  {
+    name: "record_learned_policy",
+    description:
+      "Record a learned policy — an explicit rule derived from a human decision. These capture operational wisdom like \"never auto-advance deals above $50k\" or \"always ask before emailing C-level contacts\". Supersedes any previous active policy for the same action and scope.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        actionKey: { type: "string" },
+        rule: { type: "string" },
+        rationale: { type: "string" },
+        source: { type: "string", enum: ["human_decision", "founder_override", "incident_remediation", "policy_review"] },
+        coworkerId: { type: "string" },
+        scopeEntityType: { type: "string" },
+        scopeEntityId: { type: "string" },
+      },
+      required: ["actionKey", "rule", "rationale", "source"],
+      additionalProperties: false,
+    },
+    outputSchema: {
+      type: "object",
+      required: ["id", "actionKey", "rule"],
+      properties: {
+        id: { type: "string" },
+        actionKey: { type: "string" },
+        rule: { type: "string" },
+        source: { type: "string" },
+      },
+    },
+    serviceTarget: "revenue-os.memory-write",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }, input) => {
+      const entry = await recordLearnedPolicy(supabase, {
+        actionKey: value(input, "actionKey")!,
+        rule: value(input, "rule")!,
+        rationale: value(input, "rationale")!,
+        source: value(input, "source") as LearnedPolicyEntry["source"],
+        coworkerId: value(input, "coworkerId"),
+        scopeEntityType: value(input, "scopeEntityType"),
+        scopeEntityId: value(input, "scopeEntityId"),
+        actorEmail,
+      });
+      return { id: entry.id, actionKey: entry.action_key, rule: entry.rule, source: entry.source };
+    },
+  },
+  {
     name: "propose_conversation_reply",
     description:
       "Stage a reply to an active conversation thread for founder approval. This never sends directly.",
@@ -1328,8 +1605,15 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "bootstrap_sales_coworker",
     "bootstrap_business_pulse_coworker",
     "bootstrap_meeting_intel_coworker",
+    "bootstrap_finance_coworker",
+    "bootstrap_operations_coworker",
     "get_record_timeline",
     "search_knowledge_base",
+    "query_memory",
+    "store_agent_memory",
+    "get_agent_memory",
+    "get_learned_policies",
+    "record_learned_policy",
     "propose_task",
     "propose_task_update",
     "propose_layout_change",
@@ -1349,6 +1633,9 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "get_plugins",
     "get_record_timeline",
     "search_knowledge_base",
+    "query_memory",
+    "get_agent_memory",
+    "get_learned_policies",
     "propose_task",
     "propose_task_update",
     "propose_stage_change",
@@ -1368,6 +1655,9 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "get_plugins",
     "get_record_timeline",
     "search_knowledge_base",
+    "query_memory",
+    "get_agent_memory",
+    "get_learned_policies",
     "propose_task",
     "propose_task_update",
     "propose_send_email",

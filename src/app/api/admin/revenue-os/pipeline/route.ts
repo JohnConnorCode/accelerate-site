@@ -124,8 +124,6 @@ export async function PATCH(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
   const body = (await request.json()) as Record<string, unknown>;
-  const id = typeof body.id === "string" ? body.id : "";
-  if (!id) return NextResponse.json({ error: "Opportunity id is required" }, { status: 400 });
   const supabase = auth.database;
 
   if (Array.isArray(body.reorder)) {
@@ -172,6 +170,9 @@ export async function PATCH(request: NextRequest) {
     }
     return NextResponse.json({ success: true, affected });
   }
+
+  const id = typeof body.id === "string" ? body.id : "";
+  if (!id) return NextResponse.json({ error: "Opportunity id is required" }, { status: 400 });
 
   try {
     if (typeof body.stage === "string") {

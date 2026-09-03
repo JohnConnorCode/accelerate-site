@@ -8,6 +8,10 @@ import {
 } from "./ai-tools";
 import { loadOperatorQueue } from "./queue";
 import { getActiveModules } from "./modules";
+import { listPlugins } from "./plugins";
+import { listClaimableWork } from "./work-items";
+import { listWorkspaceCapabilities } from "./capabilities";
+import { listLearnedPolicies, retrieveAgentMemory } from "./memory";
 import { tenant as defaultTenant } from "@/config/tenant";
 
 /**
@@ -105,6 +109,12 @@ export const MCP_REVENUE_OS_RESOURCES = [
     uri: "revenue-os://capabilities/graph",
     name: "Workspace Capability Graph",
     description: "Available workspace capabilities, policies, and verification status.",
+    mimeType: "application/json",
+  },
+  {
+    uri: "revenue-os://memory/overview",
+    name: "Memory Architecture Overview",
+    description: "Active learned policies and recent agent memory across all five memory categories.",
     mimeType: "application/json",
   },
 ] as const;
@@ -338,6 +348,86 @@ export async function handleMcpRequest(
                       contract: "revenue-os-knowledge.v1",
                       grounding: "strict",
                       untrustedDataBoundary: true,
+                    },
+                    null,
+                    2,
+                  ),
+                },
+              ],
+            },
+          };
+        }
+
+        if (uri === "revenue-os://plugins/registry") {
+          const plugins = await listPlugins(context.supabase);
+          return {
+            jsonrpc: "2.0",
+            id,
+            result: {
+              contents: [
+                {
+                  uri,
+                  mimeType: "application/json",
+                  text: JSON.stringify({ plugins, timestamp: new Date().toISOString() }, null, 2),
+                },
+              ],
+            },
+          };
+        }
+
+        if (uri === "revenue-os://work-engine/queue") {
+          const queue = await listClaimableWork(context.supabase, { limit: 20 });
+          return {
+            jsonrpc: "2.0",
+            id,
+            result: {
+              contents: [
+                {
+                  uri,
+                  mimeType: "application/json",
+                  text: JSON.stringify({ claimableWork: queue, timestamp: new Date().toISOString() }, null, 2),
+                },
+              ],
+            },
+          };
+        }
+
+        if (uri === "revenue-os://capabilities/graph") {
+          const capabilities = await listWorkspaceCapabilities(context.supabase);
+          return {
+            jsonrpc: "2.0",
+            id,
+            result: {
+              contents: [
+                {
+                  uri,
+                  mimeType: "application/json",
+                  text: JSON.stringify({ capabilities, timestamp: new Date().toISOString() }, null, 2),
+                },
+              ],
+            },
+          };
+        }
+
+        if (uri === "revenue-os://memory/overview") {
+          const [policies, agentMemory] = await Promise.all([
+            listLearnedPolicies(context.supabase),
+            retrieveAgentMemory(context.supabase, { limit: 10 }),
+          ]);
+          return {
+            jsonrpc: "2.0",
+            id,
+            result: {
+              contents: [
+                {
+                  uri,
+                  mimeType: "application/json",
+                  text: JSON.stringify(
+                    {
+                      learnedPolicies: policies,
+                      recentAgentMemory: agentMemory,
+                      categories: ["canonical", "activity", "knowledge", "agent", "learned_policy"],
+                      timestamp: new Date().toISOString(),
                     },
                     null,
                     2,

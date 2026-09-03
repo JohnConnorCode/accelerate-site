@@ -3,15 +3,20 @@ import { createServiceRoleClient } from "@/lib/supabase/server";
 import { runWithTenantRequestContext } from "@/lib/tenancy/context";
 import { listTenantSystemContexts } from "@/lib/tenancy/system";
 import { executeClaimableWork } from "@/lib/revenue-os/work-executor";
+import { scheduleRecurringWork } from "@/lib/revenue-os/work-scheduler";
 import { registerSalesWorkHandlers } from "@/lib/revenue-os/sales-coworker";
 import { registerBusinessPulseWorkHandlers } from "@/lib/revenue-os/business-pulse-coworker";
 import { registerMeetingIntelWorkHandlers } from "@/lib/revenue-os/meeting-intel-coworker";
+import { registerFinanceWorkHandlers } from "@/lib/revenue-os/finance-coworker";
+import { registerOperationsWorkHandlers } from "@/lib/revenue-os/operations-coworker";
 import { withJobRun } from "@/lib/revenue-os/runs";
 
 // Register all coworker handlers on module load.
 registerSalesWorkHandlers();
 registerBusinessPulseWorkHandlers();
 registerMeetingIntelWorkHandlers();
+registerFinanceWorkHandlers();
+registerOperationsWorkHandlers();
 
 export const maxDuration = 60;
 
@@ -34,6 +39,8 @@ export async function GET(request: NextRequest) {
         const result = await runWithTenantRequestContext(context, async () => {
           const supabase = createServiceRoleClient(context);
           return withJobRun(supabase, "work-engine", async () => {
+            // Schedule recurring work (daily + weekly on Mondays) before execution.
+            await scheduleRecurringWork(supabase);
             const summary = await executeClaimableWork(supabase, { maxItems: 10 });
             return {
               value: summary,
