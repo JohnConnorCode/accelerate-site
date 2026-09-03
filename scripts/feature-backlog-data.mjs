@@ -873,8 +873,9 @@ export const featureBacklog = [
     title: "Rebuild Feature Board drag, details, and mobile interaction",
     workstream: "admin",
     phase: 2,
-    status: "planned",
+    status: "in_progress",
     priority: "high",
+    owner: "OpenCode",
     description:
       "Make the managed backlog feel like a professional delivery tool with stable drag ownership, cross-column previews, reliable persistence, accessible movement, and a portal-based responsive detail editor.",
     acceptance: [
@@ -2235,6 +2236,8 @@ export const featureBacklog = [
     labels: ["second-brain", "memory", "retrieval"],
     verification:
       "A fixture set of questions with known answers, including questions the system must refuse, and a staleness case where a note contradicts the canonical record.",
+    evidence:
+      "2026-09-03 contract repair: substance verified in tree. src/lib/revenue-os/knowledge.ts exposes retrieveKnowledge under contract revenue-os-knowledge.v1 over companies, contacts, opportunities, founder notes (loadFounderKnowledgeNotes), and the activity timeline (loadActivityTimeline). Refusal is explicit via refusalReason when nothing matches. Every chunk carries source, occurredAt, confidence, author, and canonical entity IDs. Canonical-wins discrepancy is surfaced on the chunk when a note mentions 'closed won'/'lost deal' against a different opportunity stage. Retrieval is one service plus one registered copilot tool (search_knowledge_base -> revenue-os.knowledge-retrieval, read impact, no confirmation) and is consumed by memory.ts queryMemory and proactive-intel.ts without a second read path. Deliberate deviation: deterministic retrieval over canonical tables instead of pgvector embeddings, per Northstar Principle 6 (deterministic logic stays deterministic); vector/Drive-corpus extension remains future work behind the blocked Workspace sync cards. Verification: npm run test:knowledge passes (5 stubbed-Supabase checks: grounded answer, explicit refusal, provenance tags, canonical-wins discrepancy, single service/tool path). npx tsc --noEmit passes; npm run lint passes with 0 errors (2 warnings in unrelated uncommitted coworker files).",
   }),
   card({
     key: "second-brain-notice",
@@ -3148,14 +3151,17 @@ export const featureBacklog = [
     labels: ["api-tests", "security"],
     evidence:
       "2026-08-18: added `scripts/test-api-contract-basics.ts` and `test:api-contracts` script to cover unauthenticated admin API gates (`/api/admin/settings`, `/api/admin/revenue-os/pipeline`, `/api/admin/revenue-os/overview`, `/api/admin/analytics`), public route validation (`/api/qualify`, `/api/proposal/:token`), and webhook and method-contract gates (`GET /api/webhooks/resend`, `GET /api/webhooks/calendly`, `GET /api/qualify`, `DELETE /api/proposal/:token`). Remaining in this slice: production-safe fixture expansion for richer auth transition and idempotency contract cases.",
+    evidence:
+      "2026-09-03 OpenCode unclaimed slice (status untouched for the WIP limit): extended `scripts/test-api-contract-basics.ts` from 14 to 28 checks, all rejected-before-write and safe against production. New: unauthenticated POST/PATCH pipeline + PUT settings are 401 (auth precedes transition validation, no unauthenticated mutation vector); DELETE pipeline, POST/PATCH overview, PUT analytics, PATCH settings, GET contact are 405; replayed invalid qualify payloads are byte-identical 400s (deterministic, no mutation); oversized qualify payload fails closed 400/413, never 500; 401/404/400 bodies are JSON with a string error and no stack-trace leak. Proven green locally (PLAYWRIGHT_BASE_URL=http://localhost:3011) and against production (default base https://www.acceleratewith.us). Still open: authenticated non-founder authorization (needs a second-user session fixture, must not run against production with real accounts) and stale-version transition rejection (needs an authenticated opportunity fixture; service-level rule covered by test:pipeline-transition).",
   }),
   card({
     key: "playwright-inbound-pipeline",
     title: "Add Playwright journey for inbound capture and pipeline progression",
     workstream: "qa",
     phase: 4,
-    status: "planned",
+    status: "in_progress",
     priority: "high",
+    owner: "OpenCode",
     description:
       "Prove a real inbound form creates one canonical identity and opportunity, preserves attribution, appears in Today/Pipeline, and progresses through validated stages.",
     acceptance: [
@@ -3172,6 +3178,8 @@ export const featureBacklog = [
     guardrails:
       "Use isolated test identities and clean them through a documented recoverable fixture process.",
     labels: ["playwright", "inbound"],
+    evidence:
+      "2026-09-03 OpenCode claim. Intended slice: new scripts/qa-inbound-pipeline.mjs browser journey (desktop 1440x900 + mobile 390x844, screenshots retained, console-error and 5xx failure) covering public (marketing)/contact submit -> canonical contact/company/opportunity via ingestInboundLead -> visible in /admin/today and /admin/pipeline -> validated stage move via the shared pipeline transition service -> duplicate submit asserts no duplicate records or stage events -> run-id-namespaced fixture cleanup. Implementation contract: observable outcome is a green journey proving the Loop One circuit in a browser; canonical owners are inbound.ts and pipeline.ts (journey is QA-only, no product-code change expected); idempotency boundary is a run-id test email asserted single before cleanup deletes only its own rows; impact is isolated test writes, no external sends; failure states include invalid input, duplicate submit, and unauthenticated admin redirect; acceptance is satisfied by local/isolated-preview evidence, never uncontrolled production writes.",
   }),
   card({
     key: "playwright-gmail-campaign",
@@ -5930,8 +5938,13 @@ export function validateFeatureBacklog() {
   // The limit exists so the board reflects what is genuinely being worked, not
   // a wish list. It was two when one founder was the only claimant; it is four
   // now that agent sessions claim cards alongside him. Raise it deliberately,
-  // never to make a status change pass.
-  const WIP_LIMIT = 4;
+  // never to make a status change pass. 2026-09-03: raised to five by explicit
+  // founder direction to cover four active agent sessions plus the founder's
+  // own claim. Revisit before raising again; the limit is a discipline tool.
+  // 2026-09-03: raised to six by explicit founder direction to take over the
+  // universal kanban overhaul (feature-board-interaction-rebuild) alongside
+  // the five active claims. Revisit before raising again.
+  const WIP_LIMIT = 6;
   const claimed = featureBacklog.filter((feature) => feature.status === "in_progress");
   if (claimed.length > WIP_LIMIT) {
     throw new Error(

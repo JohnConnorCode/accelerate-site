@@ -32,17 +32,23 @@ const { data: before, error: readError } = await supabase
 if (readError) throw readError;
 
 const canonicalKeys = new Set(featureBacklog.map((feature) => feature.seed_key));
+// `status` and `owner` are live-managed columns, not manifest-managed, since
+// migrations/20260903-feature-request-claims.sql added a real atomic claim
+// (claim_feature_request RPC via scripts/agent-dispatch.ts / `npm run
+// agent:next`). Diffing or overwriting them here would silently revert a
+// live claim on the next `--apply` — exactly the footgun the claim system
+// exists to remove. They're still seeded on first insert (below), just never
+// reconciled against an existing row.
+const LIVE_MANAGED_FIELDS = new Set(["status", "owner"]);
 if (verify) {
   const active = (before ?? []).filter((row) => !row.archived_at);
   const liveByKey = new Map(active.map((row) => [row.seed_key, row]));
   const fields = [
     "title",
     "description",
-    "status",
     "priority",
     "labels",
     "sort_order",
-    "owner",
     "target_date",
     "acceptance_criteria",
     "notes",
@@ -80,16 +86,31 @@ if (verify) {
   process.exit(0);
 }
 
-for (let index = 0; index < featureBacklog.length; index += 40) {
-  const batch = featureBacklog.slice(index, index + 40);
-  const { error } = await supabase
-    .from("feature_requests")
-    .upsert(batch, { onConflict: "seed_key" });
+const existingKeys = new Set((before ?? []).map((row) => row.seed_key));
+const newCards = featureBacklog.filter((feature) => !existingKeys.has(feature.seed_key));
+const existingCards = featureBacklog.filter((feature) => existingKeys.has(feature.seed_key));
+
+// New rows: seed every field, including initial status/owner from the
+// manifest (there is nothing live to clobber yet).
+for (let index = 0; index < newCards.length; index += 40) {
+  const batch = newCards.slice(index, index + 40);
+  const { error } = await supabase.from("feature_requests").upsert(batch, { onConflict: "seed_key" });
   if (error) throw error;
 }
 
-const existingKeys = new Set((before ?? []).map((row) => row.seed_key));
-const inserted = featureBacklog.filter((feature) => !existingKeys.has(feature.seed_key)).length;
+// Existing rows: upsert everything except the live-managed fields, so an
+// active claim survives reconciliation. Omitting a key from the upsert
+// payload leaves that column untouched (PostgREST only updates columns
+// present in the row object).
+for (let index = 0; index < existingCards.length; index += 40) {
+  const batch = existingCards.slice(index, index + 40).map((feature) =>
+    Object.fromEntries(Object.entries(feature).filter(([key]) => !LIVE_MANAGED_FIELDS.has(key))),
+  );
+  const { error } = await supabase.from("feature_requests").upsert(batch, { onConflict: "seed_key" });
+  if (error) throw error;
+}
+
+const inserted = newCards.length;
 const outsideManifest = (before ?? []).filter(
   (row) => !row.archived_at && (!row.seed_key || !canonicalKeys.has(row.seed_key)),
 );
