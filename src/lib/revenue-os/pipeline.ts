@@ -191,7 +191,7 @@ export async function transitionOpportunity(
 
   const stages = await loadPipelineStages(supabase, current.tenant_id);
   const canonicalFrom = stages.canonicalStage(current.stage);
-  if (!canonicalFrom) throw new Error(`Current stage ${current.stage} is not recognized`);
+  if (!canonicalFrom) throw new Error(`Invalid pipeline stage: ${current.stage}`);
   const canonicalTo = stages.canonicalStage(input.to);
   if (!canonicalTo) throw new Error(`Cannot move an opportunity to unknown stage ${input.to}`);
 
