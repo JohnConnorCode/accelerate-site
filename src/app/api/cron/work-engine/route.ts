@@ -10,6 +10,7 @@ import { registerMeetingIntelWorkHandlers } from "@/lib/revenue-os/meeting-intel
 import { registerFinanceWorkHandlers } from "@/lib/revenue-os/finance-coworker";
 import { registerOperationsWorkHandlers } from "@/lib/revenue-os/operations-coworker";
 import { registerTrustGraduationHandlers } from "@/lib/revenue-os/trust-graduation";
+import { registerProactiveIntelHandlers } from "@/lib/revenue-os/proactive-intel";
 import { withJobRun } from "@/lib/revenue-os/runs";
 
 // Register all coworker handlers on module load.
@@ -19,6 +20,7 @@ registerMeetingIntelWorkHandlers();
 registerFinanceWorkHandlers();
 registerOperationsWorkHandlers();
 registerTrustGraduationHandlers();
+registerProactiveIntelHandlers();
 
 export const maxDuration = 60;
 

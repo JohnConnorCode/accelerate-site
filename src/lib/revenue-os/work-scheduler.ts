@@ -5,6 +5,7 @@ import { createDailyHealthCheckWork, createIntegrationStatusAuditWork, createDat
 import { createWeeklyReconciliationWork, createDetectOverduePaymentsWork, createRevenueStageAuditWork } from "./finance-coworker";
 import { createPreCallBriefWork } from "./meeting-intel-coworker";
 import { runTrustGraduationScan } from "./trust-graduation";
+import { createProactiveIntelBriefWork } from "./proactive-intel";
 import { createRevenueTask } from "./tasks";
 import { recordAudit } from "./audit";
 
@@ -46,6 +47,8 @@ export async function scheduleDailyWork(
     // Finance: overdue payment scan + revenue-stage audit (daily).
     { name: "detect_overdue_payments", fn: () => createDetectOverduePaymentsWork(supabase) },
     { name: "revenue_stage_audit", fn: () => createRevenueStageAuditWork(supabase) },
+    // Proactive intelligence: daily NOTICE layer brief.
+    { name: "proactive_intel_brief", fn: () => createProactiveIntelBriefWork(supabase) },
   ];
 
   for (const { name, fn } of dailyCreators) {

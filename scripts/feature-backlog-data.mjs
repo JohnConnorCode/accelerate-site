@@ -2011,7 +2011,7 @@ export const featureBacklog = [
     title: "Add Resend delivery webhooks and suppression receipts",
     workstream: "campaigns",
     phase: 3,
-    status: "planned",
+    status: "shipped",
     priority: "high",
     description:
       "Verify and process delivered, bounced, complained, opened, and clicked events idempotently and connect hard failures to suppression.",
@@ -2209,7 +2209,7 @@ export const featureBacklog = [
     title: "Phase B: a knowledge substrate with provenance",
     workstream: "intelligence",
     phase: 4,
-    status: "planned",
+    status: "shipped",
     priority: "high",
     description:
       "The system knows rows, not things. Ask what was agreed with a client last month or why a deal stalled and there is nowhere to look. Add a chunked, embedded, retrievable knowledge store where every chunk carries its source, its date, and its confidence. This is the single largest gap and the one that makes the phrase second brain mean anything.",
@@ -2438,7 +2438,7 @@ export const featureBacklog = [
     title: "Import and clean ad hoc contacts with AI review and approval",
     workstream: "ai",
     phase: 3,
-    status: "planned",
+    status: "shipped",
     priority: "high",
     description:
       "Give the founder one importer for pasted notes, copied lists, CSV/TSV, and JSON. Deterministic parsing runs first; OpenRouter proposes normalized contacts and company links; the founder edits, includes/excludes, and approves an immutable reviewed snapshot before canonical writes execute with row-level receipts.",
@@ -2626,7 +2626,7 @@ export const featureBacklog = [
     title: "Build the governed agent learning feedback loop",
     workstream: "ai",
     phase: 3,
-    status: "planned",
+    status: "shipped",
     priority: "high",
     description:
       "Capture founder feedback and real action outcomes as reviewable signals that improve future AI guidance without creating self-modifying behavior or ingesting unsafe instructions.",
@@ -3078,7 +3078,7 @@ export const featureBacklog = [
   }),
   card({
     key: "operations-alerting",
-    status: "planned",
+    status: "shipped",
     title: "Add actionable health alerts and recovery runbooks",
     workstream: "operations",
     phase: 4,
