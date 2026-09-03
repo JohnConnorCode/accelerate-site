@@ -7,6 +7,30 @@ import { registerCapability } from "./capabilities";
 import { recordAudit } from "./audit";
 import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";
 import { storeAgentMemory } from "./memory";
+import { runCoworkerAgentTask } from "./coworker-agent";
+
+// When an AI model is configured, AI-requiring handlers attempt AI execution
+// first and fall back to deterministic logic if the model is unavailable or
+// fails. This keeps the system operational even during model outages.
+const aiModelConfigured = !!process.env.OPENROUTER_AGENT_MODEL;
+
+async function tryAiExecution(
+  supabase: SupabaseClient,
+  wi: WorkItem,
+): Promise<{ outcome: string } | null> {
+  if (!aiModelConfigured) return null;
+  try {
+    const result = await runCoworkerAgentTask(supabase, wi);
+    if (result.outcome && !result.outcome.startsWith("AI execution failed")) {
+      return { outcome: result.outcome };
+    }
+  } catch {
+    // Fall through to deterministic logic.
+  }
+  return null;
+}
+
+import type { WorkItem } from "./work-items";
 
 // ---------------------------------------------------------------------------
 // Sales Coworker: the reference coworker that proves Phase B primitives.
@@ -260,6 +284,22 @@ export async function scheduleFollowupCheckWork(
 // ---------------------------------------------------------------------------
 
 const qualifyLeadHandler: WorkKindHandler = async (supabase, wi) => {
+  // AI-first: let the model synthesize context and produce a qualification judgment.
+  const aiResult = await tryAiExecution(supabase, wi);
+  if (aiResult) {
+    await storeAgentMemory(supabase, {
+      coworkerId: SALES_COWORKER_ID,
+      category: "prior_work",
+      subject: `qualify_lead: AI judgment`,
+      body: aiResult.outcome,
+      entityType: wi.entity_type ?? undefined,
+      entityId: wi.entity_id ?? undefined,
+      relevanceHorizon: "weekly",
+    }).catch(() => {});
+    return aiResult;
+  }
+
+  // Deterministic fallback when AI is unavailable.
   // Read the contact and opportunity to gather context.
   const { data: contact } = await supabase
     .from("contacts")
@@ -318,6 +358,22 @@ const qualifyLeadHandler: WorkKindHandler = async (supabase, wi) => {
 };
 
 const draftFollowupHandler: WorkKindHandler = async (supabase, wi) => {
+  // AI-first: let the model draft a contextual follow-up.
+  const aiResult = await tryAiExecution(supabase, wi);
+  if (aiResult) {
+    await storeAgentMemory(supabase, {
+      coworkerId: SALES_COWORKER_ID,
+      category: "prior_work",
+      subject: `draft_followup: AI judgment`,
+      body: aiResult.outcome,
+      entityType: wi.entity_type ?? undefined,
+      entityId: wi.entity_id ?? undefined,
+      relevanceHorizon: "daily",
+    }).catch(() => {});
+    return aiResult;
+  }
+
+  // Deterministic fallback.
   const { data: opportunity } = await supabase
     .from("opportunities")
     .select("id, stage, company_name, next_action")

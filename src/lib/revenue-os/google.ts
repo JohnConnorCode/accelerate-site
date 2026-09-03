@@ -14,6 +14,7 @@ import {
 import { recordActivity } from "./activities";
 import { recordAudit } from "./audit";
 import { prepareGmailReply } from "./gmail-reply-mime";
+import { createPreCallBriefWork, createPostMeetingProcessWork } from "./meeting-intel-coworker";
 import { assertActiveTenantExecution } from "@/lib/tenancy/system";
 
 export const GOOGLE_SCOPES = [
@@ -605,6 +606,26 @@ export async function syncCalendar(supabase: SupabaseClient) {
             .eq("provider", "google")
             .eq("external_id", row.external_id);
         }
+        // Create a pre-call brief for the Meeting Intel coworker.
+        createPreCallBriefWork(supabase, {
+          contactId: row.contact_id!,
+          meetingAt: row.start_at!,
+          actorEmail: tenant.founder.systemActorEmail,
+        }).catch(() => {});
+      }
+      // Post-meeting processing for past confirmed meetings with an opportunity.
+      const pastConfirmedMeeting =
+        row.contact_id &&
+        row.opportunity_id &&
+        row.status === "confirmed" &&
+        row.start_at &&
+        new Date(row.start_at).getTime() < now;
+      if (pastConfirmedMeeting) {
+        createPostMeetingProcessWork(supabase, {
+          opportunityId: row.opportunity_id!,
+          meetingAt: row.start_at!,
+          actorEmail: tenant.founder.systemActorEmail,
+        }).catch(() => {});
       }
     }
     const matched = rows.filter((row) => row.contact_id).length;

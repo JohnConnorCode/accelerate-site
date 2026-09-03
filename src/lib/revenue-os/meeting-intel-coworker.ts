@@ -7,6 +7,26 @@ import { registerCapability } from "./capabilities";
 import { recordAudit } from "./audit";
 import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";
 import { storeAgentMemory } from "./memory";
+import { runCoworkerAgentTask } from "./coworker-agent";
+import type { WorkItem } from "./work-items";
+
+const aiModelConfigured = !!process.env.OPENROUTER_AGENT_MODEL;
+
+async function tryAiExecution(
+  supabase: SupabaseClient,
+  wi: WorkItem,
+): Promise<{ outcome: string } | null> {
+  if (!aiModelConfigured) return null;
+  try {
+    const result = await runCoworkerAgentTask(supabase, wi);
+    if (result.outcome && !result.outcome.startsWith("AI execution failed")) {
+      return { outcome: result.outcome };
+    }
+  } catch {
+    // Fall through to deterministic logic.
+  }
+  return null;
+}
 
 // ---------------------------------------------------------------------------
 // Meeting Intelligence Coworker (northstar Phase E, priority 2)
@@ -155,6 +175,22 @@ const preCallBriefHandler: WorkKindHandler = async (supabase, wi) => {
   const contactId = wi.entity_id;
   if (!contactId) return { outcome: "No contact ID linked — cannot prepare brief" };
 
+  // AI-first: let the model synthesize a rich pre-call brief from available data.
+  const aiResult = await tryAiExecution(supabase, wi);
+  if (aiResult) {
+    await storeAgentMemory(supabase, {
+      coworkerId: MEETING_INTEL_COWORKER_ID,
+      category: "prior_work",
+      subject: `pre_call_brief: AI judgment`,
+      body: aiResult.outcome,
+      entityType: "contact",
+      entityId: contactId,
+      relevanceHorizon: "daily",
+    }).catch(() => {});
+    return aiResult;
+  }
+
+  // Deterministic fallback.
   // Load contact details.
   const { data: contact } = await supabase
     .from("contacts")
@@ -223,6 +259,22 @@ const postMeetingProcessHandler: WorkKindHandler = async (supabase, wi) => {
   const opportunityId = wi.entity_id;
   if (!opportunityId) return { outcome: "No opportunity ID linked — cannot process meeting" };
 
+  // AI-first: let the model extract outcomes and propose CRM updates.
+  const aiResult = await tryAiExecution(supabase, wi);
+  if (aiResult) {
+    await storeAgentMemory(supabase, {
+      coworkerId: MEETING_INTEL_COWORKER_ID,
+      category: "prior_work",
+      subject: `post_meeting_process: AI judgment`,
+      body: aiResult.outcome,
+      entityType: "opportunity",
+      entityId: opportunityId,
+      relevanceHorizon: "weekly",
+    }).catch(() => {});
+    return aiResult;
+  }
+
+  // Deterministic fallback.
   const { data: opportunity } = await supabase
     .from("opportunities")
     .select("id, stage, company_name, contact_id")

@@ -277,6 +277,8 @@ export async function transitionOpportunity(
     createDataQualityScanWork(supabase).catch(() => {});
   } else if (toMeta.role === "lost") {
     createDetectStaleDealsWork(supabase).catch(() => {});
+    createRevenueStageAuditWork(supabase).catch(() => {});
+    createDataQualityScanWork(supabase).catch(() => {});
   } else if (canonicalTo === "proposal" || canonicalTo === "negotiation") {
     // High-value stage entry — pulse should re-evaluate pipeline health.
     createDetectStaleDealsWork(supabase).catch(() => {});

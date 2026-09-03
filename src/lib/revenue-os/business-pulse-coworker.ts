@@ -7,6 +7,26 @@ import { registerCapability } from "./capabilities";
 import { recordAudit } from "./audit";
 import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";
 import { storeAgentMemory } from "./memory";
+import { runCoworkerAgentTask } from "./coworker-agent";
+import type { WorkItem } from "./work-items";
+
+const aiModelConfigured = !!process.env.OPENROUTER_AGENT_MODEL;
+
+async function tryAiExecution(
+  supabase: SupabaseClient,
+  wi: WorkItem,
+): Promise<{ outcome: string } | null> {
+  if (!aiModelConfigured) return null;
+  try {
+    const result = await runCoworkerAgentTask(supabase, wi);
+    if (result.outcome && !result.outcome.startsWith("AI execution failed")) {
+      return { outcome: result.outcome };
+    }
+  } catch {
+    // Fall through to deterministic logic.
+  }
+  return null;
+}
 
 // ---------------------------------------------------------------------------
 // Business Pulse Coworker (northstar Phase E, priority 1)
@@ -167,7 +187,21 @@ export async function createDetectVelocityChangeWork(
 // Work kind handlers
 // ---------------------------------------------------------------------------
 
-const dailyDigestHandler: WorkKindHandler = async (supabase) => {
+const dailyDigestHandler: WorkKindHandler = async (supabase, wi) => {
+  // AI-first: let the model produce an interpreted pipeline summary.
+  const aiResult = await tryAiExecution(supabase, wi);
+  if (aiResult) {
+    await storeAgentMemory(supabase, {
+      coworkerId: BUSINESS_PULSE_COWORKER_ID,
+      category: "prior_work",
+      subject: "daily_digest: AI judgment",
+      body: aiResult.outcome,
+      relevanceHorizon: "daily",
+    }).catch(() => {});
+    return aiResult;
+  }
+
+  // Deterministic fallback.
   // Count opportunities by stage.
   const { data: opportunities } = await supabase
     .from("opportunities")
