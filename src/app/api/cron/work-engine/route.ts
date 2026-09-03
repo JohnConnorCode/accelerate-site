@@ -4,10 +4,14 @@ import { runWithTenantRequestContext } from "@/lib/tenancy/context";
 import { listTenantSystemContexts } from "@/lib/tenancy/system";
 import { executeClaimableWork } from "@/lib/revenue-os/work-executor";
 import { registerSalesWorkHandlers } from "@/lib/revenue-os/sales-coworker";
+import { registerBusinessPulseWorkHandlers } from "@/lib/revenue-os/business-pulse-coworker";
+import { registerMeetingIntelWorkHandlers } from "@/lib/revenue-os/meeting-intel-coworker";
 import { withJobRun } from "@/lib/revenue-os/runs";
 
-// Register Sales Coworker handlers on module load.
+// Register all coworker handlers on module load.
 registerSalesWorkHandlers();
+registerBusinessPulseWorkHandlers();
+registerMeetingIntelWorkHandlers();
 
 export const maxDuration = 60;
 

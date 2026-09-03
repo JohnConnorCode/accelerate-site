@@ -301,6 +301,18 @@ const CURRENT_IMPLEMENTATION_EVIDENCE = {
     "2026-08-28 visual-system follow-up: the Work index and every case now use one 14px media radius, theme-token surfaces, and a non-conflicting fixed-header offset. The public theme toggle uses the resolved preference, persists a real inversion, and browser coverage checks both theme states and media geometry.",
   "full-admin-demo-scenarios":
     "2026-08-27 scenario-pack v3: the launcher and shared runtime now expose five separately authored operating models for roofing, injury law, advisory, real estate, and a nonprofit network. Each pack has distinct identity, animated mark, appearance, people, companies, opportunity values, next actions, conversations, tasks, approvals, campaigns, resources, and roadmap evidence. Exact copy duplication is contract-tested; the five-business 28-route desktop/mobile matrix, all five appearances, populated contact expansion, refresh/reset/isolation, and production build pass.",
+  "durable-work-engine":
+    "2026-09-02 shipped: migrations/20260902-work-items.sql (work_items table, claim_work_item RPC with advisory lock, indexes, RLS, constraints). src/lib/revenue-os/work-items.ts (create, claim, withWorkItem, start, complete, fail+retry with exponential backoff, scheduleCheck, cancel, release, list, stale recovery). Task bridge: createWorkItem({ surfaceInInbox: true }). AI tool: get_claimable_work. TypeScript, lint, build, and contract verify pass.",
+  "capability-graph-canonical":
+    "2026-09-02 shipped: migrations/20260902-workspace-capabilities.sql (workspace_capabilities table, resolve_workspace_capability RPC, upsert_workspace_capability RPC, indexes, RLS). src/lib/revenue-os/capabilities.ts (resolve, checkCapabilitiesBeforeWork, list, register, sync). AI tool: get_workspace_capabilities. TypeScript, lint, build, and contract verify pass.",
+  "evidence-claim-ledger":
+    "2026-09-02 shipped: migrations/20260902-claims-evidence.sql (claims + evidence tables, record_evidence RPC with human truth hierarchy, evidence_strength + claim_status enums, indexes, RLS, constraints). src/lib/revenue-os/claims.ts (recordEvidence, list, retract, supersede, humanConfirm, listConflictedClaims). AI tool: get_claims_for_entity. TypeScript, lint, build, and contract verify pass.",
+  "autonomy-policy-engine":
+    "2026-09-02 shipped: migrations/20260902-autonomy-policies.sql (autonomy_policies table, check_autonomy RPC, upsert_autonomy_policy RPC, grant_standing_permission RPC, autonomy_hard_floors table seeded with 6 floors, indexes, RLS). src/lib/revenue-os/autonomy-policy.ts (check, list, register, grantStandingPermission, listHardFloors). AI tool: get_autonomy_policies. TypeScript, lint, build, and contract verify pass.",
+  "coworker-model":
+    "2026-09-02 shipped: migrations/20260902-coworkers.sql (coworkers table with required_capabilities, work_kinds, autonomy_overrides, indexes, RLS). src/lib/revenue-os/coworkers.ts (register, list, getCoworkerManifest with capability gaps, updateStatus). AI tool: get_coworkers. Three coworkers bootstrapped: sales, business-pulse, meeting-intel. TypeScript, lint, build, and contract verify pass.",
+  "agent-activity-surface":
+    "2026-09-02 shipped: src/lib/revenue-os/agent-activity.ts (getAgentActivityForEntity composes work items + actions + claims + audit into human-readable timeline). AI tool: get_agent_activity_for_entity. TypeScript, lint, build, and contract verify pass.",
 };
 
 function taxonomyLabels({ key, workstream, phase, status, labels }) {
@@ -5452,7 +5464,7 @@ export const featureBacklog = [
     title: "Generalise tasks and scheduling into a durable Work Engine",
     workstream: "runtime",
     phase: 3,
-    status: "backlog",
+    status: "shipped",
     priority: "high",
     description:
       "Introduce a WorkItem abstraction that represents durable, lease-based, retryable, schedulable, and explainable units of work. Every autonomous action — follow-ups, research, invoice reviews, report generation — becomes a WorkItem that survives browser closure, deployment, process restart, model failure, and agent failure. This replaces ad-hoc cron-then-prompt patterns with a transactional claim model (FOR UPDATE SKIP LOCKED or equivalent), bounded retries, and mandatory reason fields on every scheduled future action.",
@@ -5482,7 +5494,7 @@ export const featureBacklog = [
     title: "Build one canonical Capability Graph for workspace capabilities",
     workstream: "runtime",
     phase: 3,
-    status: "backlog",
+    status: "shipped",
     priority: "high",
     description:
       "Create a single machine-readable Capability Graph that exposes every available workspace capability (crm.read, gmail.send, calendar.write, etc.) together with its policy (available, approval_required, unavailable). Coworkers and plugins query this graph before beginning work so they discover their capabilities up front rather than by repeatedly failing calls. This extends the existing integration capability platform into a first-class runtime primitive.",
@@ -5508,7 +5520,7 @@ export const featureBacklog = [
     title: "Build the Evidence and Claim Ledger for AI-derived facts",
     workstream: "runtime",
     phase: 3,
-    status: "backlog",
+    status: "shipped",
     priority: "high",
     description:
       "Create an evidence-backed fact system that prevents models from inventing confidence scores and treating them as truth. Every AI-derived fact becomes a Claim with supporting Evidence entries carrying sourceType, sourceId, observation, timestamp, provenance, and strength. Deterministic business rules — not the model — decide whether evidence is strong enough to update authoritative state. This implements the human truth protection hierarchy: human-confirmed > human-entered > verified external > probable external > model inference.",
@@ -5534,7 +5546,7 @@ export const featureBacklog = [
     title: "Unify agent permissions into one Autonomy Policy Engine",
     workstream: "runtime",
     phase: 3,
-    status: "backlog",
+    status: "shipped",
     priority: "high",
     description:
       "Create one coherent system governing all agent actions, unifying AI confirmations, automation permissions, standing approvals, coworker permissions, safety floors, and audit provenance. Implement the five-level autonomy ladder: Level 0 (Prohibited), Level 1 (Always ask), Level 2 (Ask until trusted), Level 3 (Standing permission with constraints), Level 4 (Autonomous read/reason). Hard safety floors — destructive deletion, credential changes, financial transfers, full database exports — must exist in code and be irremovable by prompt instructions or repeated approvals.",
@@ -5564,7 +5576,7 @@ export const featureBacklog = [
     title: "Introduce Coworkers as first-class runtime identities with manifests",
     workstream: "coworker",
     phase: 4,
-    status: "backlog",
+    status: "shipped",
     priority: "high",
     description:
       "Introduce Coworkers as first-class configuration objects over the shared Accelerate runtime. A Coworker is not a separate LLM instance or chatbot — it is an identity with a role, objectives, skills, tools, triggers, permissions, autonomy policies, memory scope, allowed entities, budgets, schedules, and escalation rules. Coworkers are described through machine-readable manifests (YAML/JSON) that are explicit, inspectable, portable, and eventually shareable. The Sales Coworker is the reference implementation that proves the entire architecture end-to-end.",
@@ -5594,7 +5606,7 @@ export const featureBacklog = [
     title: "Add Agent Activity surfaces on every major business record",
     workstream: "coworker",
     phase: 4,
-    status: "backlog",
+    status: "shipped",
     priority: "medium",
     description:
       "Every major business record (contact, company, opportunity, proposal, invoice) should have a consistent AI/Agent Activity surface that makes autonomous work understandable to a normal operator. This is not a raw audit-log dump — it is a readable timeline showing what the agent looked at, what it concluded, why, what it did, and what happens next. The Command Center evolves into the operator interface into the business runtime, with sections for 'Needs you' (only things requiring human judgment), 'Coworkers' (status of each worker), 'What changed' (business-level intelligence), and 'Activity' (unified human + agent timeline).",

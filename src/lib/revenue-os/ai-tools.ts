@@ -16,6 +16,8 @@ import { listCoworkers, type Coworker } from "./coworkers";
 import { listPlugins, type Plugin } from "./plugins";
 import { getAgentActivityForEntity, type AgentActivityEntry } from "./agent-activity";
 import { bootstrapSalesCoworker } from "./sales-coworker";
+import { bootstrapBusinessPulseCoworker } from "./business-pulse-coworker";
+import { bootstrapMeetingIntelCoworker } from "./meeting-intel-coworker";
 
 export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v4";
 export const REVENUE_TOOL_PACKS = ["core", "pipeline", "outreach"] as const;
@@ -1212,6 +1214,58 @@ const registry: AiToolRegistration[] = [
     },
   },
   {
+    name: "bootstrap_business_pulse_coworker",
+    description:
+      "Bootstrap the Business Pulse Coworker: register its capabilities, autonomy policies, and work kinds. Monitors pipeline health, detects anomalies, and produces daily digests. Idempotent.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    outputSchema: {
+      type: "object",
+      required: ["readyToWork", "capabilityGaps"],
+      properties: {
+        readyToWork: { type: "boolean" },
+        capabilityGaps: { type: "array", items: { type: "string" } },
+      },
+    },
+    serviceTarget: "revenue-os.coworker-bootstrap",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }) => {
+      const result = await bootstrapBusinessPulseCoworker(supabase, actorEmail);
+      return {
+        readyToWork: result.readyToWork,
+        capabilityGaps: result.capabilityGaps,
+        coworkerName: result.coworker.name,
+      };
+    },
+  },
+  {
+    name: "bootstrap_meeting_intel_coworker",
+    description:
+      "Bootstrap the Meeting Intelligence Coworker: register its capabilities, autonomy policies, and work kinds. Generates pre-call briefs and processes post-meeting outcomes. Idempotent.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    outputSchema: {
+      type: "object",
+      required: ["readyToWork", "capabilityGaps"],
+      properties: {
+        readyToWork: { type: "boolean" },
+        capabilityGaps: { type: "array", items: { type: "string" } },
+      },
+    },
+    serviceTarget: "revenue-os.coworker-bootstrap",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }) => {
+      const result = await bootstrapMeetingIntelCoworker(supabase, actorEmail);
+      return {
+        readyToWork: result.readyToWork,
+        capabilityGaps: result.capabilityGaps,
+        coworkerName: result.coworker.name,
+      };
+    },
+  },
+  {
     name: "propose_conversation_reply",
     description:
       "Stage a reply to an active conversation thread for founder approval. This never sends directly.",
@@ -1272,6 +1326,8 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "get_agent_activity_for_entity",
     "get_plugins",
     "bootstrap_sales_coworker",
+    "bootstrap_business_pulse_coworker",
+    "bootstrap_meeting_intel_coworker",
     "get_record_timeline",
     "search_knowledge_base",
     "propose_task",
