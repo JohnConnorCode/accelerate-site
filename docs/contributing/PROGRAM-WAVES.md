@@ -1,15 +1,19 @@
-# Grok 4.6 Command Center execution plan
+# Program waves: dependency-ordered execution plan
 
 ## Purpose and authority
 
-This document is an execution and orchestration entrypoint for a coordinated
-Grok 4.6 implementation program. It is not a second roadmap and never owns a
-card's status, owner, priority, order, or evidence.
+This document is the dependency-ordered execution program for a coordinated
+multi-agent implementation effort — any coding agent, not a specific model or
+vendor. It is not a second roadmap and never owns a card's status, owner,
+priority, order, or evidence; it exists to give `npm run agent:next` and any
+agent skimming the board a wave ordering finer-grained than milestone:now/next
+alone, so "what's dependency-ready" and "what actually matters to do first"
+stay distinguishable.
 
 The durable roadmap is `scripts/feature-backlog-data.mjs`. Its operational
 projection is `/admin/features`. When this guide and the Feature Board disagree,
-the Feature Board contract wins and the coordinator repairs the guide or card
-before dispatching work.
+the Feature Board contract wins; repair this guide or the card before
+dispatching work against it.
 
 The program is revenue-core-first. It finishes a truthful revenue loop, gives
 the system connected memory, expands the founder cockpit, and only then widens
@@ -34,46 +38,47 @@ The program is successful when the founder can:
 6. Stand up a separate client installation from configuration and migrations,
    export it without secrets, and prove a scratch restore.
 
-## Coordinator preflight
+## Claiming and coordination
 
-One coordinator owns the manifest, worktree allocation, integration, and final
-handoff. Workers do not reconcile the whole Feature Board or merge one another.
+Claiming is atomic now, not coordinator-mediated: `npm run agent:next` claims
+one dependency-ready card via `claim_feature_request`
+(`migrations/20260903-feature-request-claims.sql` — advisory lock,
+`FOR UPDATE SKIP LOCKED`, a lease with expiry, a database-enforced WIP limit
+of 6 concurrent `in_progress` cards) and creates an isolated git worktree +
+branch at `../.agent-worktrees/<seed-key>`, so two agents claiming
+concurrently never race and never share a working tree. See
+`docs/contributing/AGENT-TICKET-RUNBOOK.md` section 1 for the full procedure.
+There is no coordinator role and no manual owner-naming convention left to
+maintain — the lease *is* the claim, and `--identity` is any string the
+calling agent picks for itself.
 
-From `accelerate-site/`, run before every dispatch:
+`npm run seed:features -- --apply` reconciles manifest-owned fields (title,
+description, acceptance, dependencies, labels) onto the live board; it
+deliberately never touches `owner`/`status`/the lease on an existing row, so
+running it can't clobber someone else's active claim the way it once could.
+Run `npm run seed:features -- --verify` after any manifest edit to confirm
+it landed.
 
-```bash
-git status --short
-git worktree list --porcelain
-npm run verify:agent-contract
-npm run seed:features -- --verify
-```
+Stop dispatch (release the card, don't force it) when any of these is true:
 
-Stop dispatch when any of these is true:
-
-- The two-card global WIP limit is full.
-- The candidate card has an unmet dependency.
-- A dirty file overlaps the candidate's starting points and ownership is not
-  explicit.
-- The live board and manifest drift in owner, status, acceptance, dependencies,
-  or managed content.
+- The board is at its WIP limit — `agent:next` will report
+  `wip_limit_reached` rather than let you guess.
+- The candidate card has an unmet dependency (`agent:next`'s auto-pick
+  already excludes non-dependency-ready cards; this matters when claiming a
+  specific card by name).
+- A dirty file in the shared tree overlaps the candidate's starting points
+  and ownership is not explicit — a worktree isolates *your* branch, not
+  files another agent is mid-edit on in a different one.
 - The required provider, production evidence, secret, or founder decision is
   unavailable and the remaining slice cannot be verified honestly.
 
-`npm run seed:features -- --apply` is coordinator-only. It reconciles the whole
-live board and can recoverably archive active cards outside the manifest. Never
-run it merely to make a local check pass. Review the manifest diff and the live
-drift report first.
-
-Each worker uses a unique owner such as `Grok-4.6-01-<card-key>` and one isolated
-branch or worktree created from the coordinator's committed claim baseline.
-Merge completed workers serially. After every merge, rerun the shared gates and
-recheck that the second worker's files have not been invalidated.
-
 ## Mandatory ticket packet
 
-Before a Grok worker edits product behavior, its claimed Feature Board card must
-answer every item below. If an answer is missing, improve the card rather than
-letting the worker invent policy in code.
+Before an agent edits product behavior, its claimed Feature Board card must
+answer every item below — `npm run agent:next` prints the card's description,
+acceptance criteria, and notes (dependencies/starting points/guardrails) in
+one call, so this is what to check that output against. If an answer is
+missing, improve the card rather than inventing policy in code.
 
 - **Outcome:** one observable founder, customer, or operating result.
 - **Current behavior:** the concrete gap, failure, or unavailable capability.
@@ -124,9 +129,9 @@ path; destructive AI tools stay unavailable.
 
 ## Dependency-ordered program
 
-The coordinator selects only dependency-ready cards. The order inside each wave
-is intentional; two workers may run in parallel only when they do not share an
-unmet dependency or overlapping files.
+Only dependency-ready cards are eligible for dispatch. The order inside each
+wave is intentional; two agents may run in parallel only when they do not
+share an unmet dependency or overlapping files.
 
 ### Gate 0: restore execution truth
 
@@ -136,7 +141,7 @@ unmet dependency or overlapping files.
    WIP. Use `card:route-state-resilience`, `card:email-studio-runtime`, and
    `card:admin-shell-design-system` as their only status authorities.
 3. Reconcile the manifest to the live board only after owners confirm the intended
-   transition and the coordinator reviews all managed drift.
+   transition and any managed drift has been reviewed.
 
 Exit gate: contract verification and live board verification agree, no active
 card has an unmet dependency, and each in-progress card has one explicit owner.

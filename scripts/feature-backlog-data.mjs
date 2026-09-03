@@ -3658,7 +3658,7 @@ export const featureBacklog = [
     ],
     dependencies: [],
     start:
-      "scripts/feature-backlog-data.mjs; scripts/verify-agent-contract.mjs; docs/contracts/FEATURE-BOARD-TAXONOMY.md; docs/self-hosting/REVENUE-OS-SETUP.md; docs/contributing/GROK-4.6-COMMAND-CENTER-EXECUTION-PLAN.md",
+      "scripts/feature-backlog-data.mjs; scripts/verify-agent-contract.mjs; docs/contracts/FEATURE-BOARD-TAXONOMY.md; docs/self-hosting/REVENUE-OS-SETUP.md; docs/contributing/PROGRAM-WAVES.md",
     guardrails:
       "Do not infer completion from old evidence, rewrite active owners, apply the live manifest blindly, or turn the execution guide into a mutable roadmap. Dependency-status repairs require evidence or an explicit coordinator decision.",
     labels: ["database", "testing"],

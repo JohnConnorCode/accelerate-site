@@ -134,6 +134,8 @@
     "qa:setup-mobile": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/qa-setup-mobile.ts",
     "seed:features": "node --env-file=.env.local scripts/seed-feature-backlog.mjs",
     "verify:wiring": "node scripts/verify-wiring.mjs",
+    "report:build-plan": "node scripts/generate-northstar-build-plan.mjs",
+    "verify:build-plan": "node scripts/generate-northstar-build-plan.mjs --check",
     "agent:next": "NODE_OPTIONS=--conditions=react-server npx tsx --env-file=.env.local scripts/agent-dispatch.ts next",
     "agent:status": "NODE_OPTIONS=--conditions=react-server npx tsx --env-file=.env.local scripts/agent-dispatch.ts status",
     "agent:heartbeat": "NODE_OPTIONS=--conditions=react-server npx tsx --env-file=.env.local scripts/agent-dispatch.ts heartbeat",
