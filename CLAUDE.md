@@ -2,8 +2,15 @@
 
 Read `AGENTS.md` before changing this repository. It is the canonical engineering and ticket handoff contract for every coding agent.
 
+**Start with the northstar.** Read `docs/NORTHSTAR.md` to understand what
+Accelerate is building: an agent-native business runtime, not a CRM, chatbot,
+dashboard, or fixed SaaS app. The five product layers (See → Remember → Notice
+→ Act → Learn), ten architectural principles, and implementation phases (A–E)
+govern every implementation decision.
+
 Important references:
 
+- `docs/NORTHSTAR.md` — the platform vision: Coworkers, WorkItems, capability graph, autonomy ladder, evidence ledger, and implementation phases.
 - `docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md` — data, automation, AI, security, and failure invariants.
 - `docs/contributing/AGENT-TICKET-RUNBOOK.md` — pickup, evidence, recovery, and handoff.
 - `docs/contracts/MULTI-TENANCY-CONTRACT.md` — shared-database authorization and isolation.

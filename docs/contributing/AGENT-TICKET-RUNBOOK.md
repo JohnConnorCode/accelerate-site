@@ -3,6 +3,24 @@
 Use this procedure for every managed Feature Board card. It is deliberately
 explicit so an agent can resume safely without relying on undocumented context.
 
+## 0. Read the northstar first
+
+Read `docs/NORTHSTAR.md` before picking up any card. It defines what Accelerate
+is building: an **agent-native business runtime** with five product layers
+(See → Remember → Notice → Act → Learn), five implementation phases (A–E), and
+ten architectural principles that govern every decision. Every card on the board
+maps to a northstar phase; every card's notes include that mapping. When
+implementation choices arise, the northstar principles resolve them.
+
+Key concepts you will encounter on the board:
+- **WorkItems** (Phase B): durable, lease-based, explainable units of work — not cron→prompt→hope
+- **Coworkers** (Phase C): first-class identities configured over the shared runtime — not separate LLMs
+- **Capability Graph** (Phase B): one canonical source of workspace capabilities and policies
+- **Autonomy Policy Engine** (Phase B): five-level ladder from Prohibited to Autonomous, with hard safety floors
+- **Evidence & Claim Ledger** (Phase B): evidence-backed facts; models propose, deterministic rules verify
+- **Tool Registry**: all agent actions go through narrow business-action tools, never raw SQL or unrestricted APIs
+- **Human truth hierarchy**: human-confirmed > human-entered > verified external > model inference
+
 ## 1. Orient and claim
 
 From `accelerate-site/`:

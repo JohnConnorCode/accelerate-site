@@ -1,8 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requirePlatformAdmin } from "@/lib/admin/auth";
 import { createPlatformServiceRoleClient } from "@/lib/supabase/server";
 import { recordAudit } from "@/lib/revenue-os/audit";
-import { isFeaturePriority, isFeatureStatus } from "@/lib/feature-board";
+import { isFeaturePriority } from "@/lib/feature-board";
+
+/**
+ * Columns are now admin-defined (`kanban_columns`, board_key='features',
+ * tenant_id IS NULL) instead of the old static `FEATURE_STATUSES` array.
+ * Queried once per write request.
+ */
+async function isValidFeatureColumn(supabase: SupabaseClient, value: unknown): Promise<boolean> {
+  if (typeof value !== "string" || !value) return false;
+  const { data, error } = await supabase
+    .from("kanban_columns")
+    .select("column_key")
+    .eq("board_key", "features")
+    .is("tenant_id", null)
+    .eq("column_key", value)
+    .maybeSingle();
+  if (error) return false;
+  return Boolean(data);
+}
 
 const editableFields = [
   "title",
@@ -58,9 +77,15 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const title = cleanText(body.title, 180);
   if (!title) return NextResponse.json({ error: "Title is required" }, { status: 400 });
-  const status = isFeatureStatus(body.status) ? body.status : "backlog";
   const priority = isFeaturePriority(body.priority) ? body.priority : "medium";
   const supabase = createPlatformServiceRoleClient("feature-board");
+  let status = "backlog";
+  if (typeof body.status === "string" && body.status) {
+    if (!(await isValidFeatureColumn(supabase, body.status))) {
+      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+    }
+    status = body.status;
+  }
   const { data: tail } = await supabase
     .from("feature_requests")
     .select("sort_order")
@@ -102,15 +127,22 @@ export async function PATCH(request: NextRequest) {
   if (Array.isArray(body.reorder)) {
     if (!body.reorder.length || body.reorder.length > 250)
       return NextResponse.json({ error: "Invalid reorder payload" }, { status: 400 });
+    const { data: validColumns, error: columnsError } = await supabase
+      .from("kanban_columns")
+      .select("column_key")
+      .eq("board_key", "features")
+      .is("tenant_id", null);
+    if (columnsError) return NextResponse.json({ error: columnsError.message }, { status: 500 });
+    const validColumnKeys = new Set((validColumns ?? []).map((row) => row.column_key as string));
     const updates = body.reorder.map((item: Record<string, unknown>) => ({
       id: typeof item.id === "string" ? item.id : "",
-      status: item.status,
-      sort_order: Number(item.sortOrder),
+      column_key: typeof item.column_key === "string" ? item.column_key : "",
+      sort_order: Number(item.sort_order),
     }));
     if (
       updates.some(
-        (item: { id: string; status: unknown; sort_order: number }) =>
-          !item.id || !isFeatureStatus(item.status) || !Number.isFinite(item.sort_order),
+        (item: { id: string; column_key: string; sort_order: number }) =>
+          !item.id || !validColumnKeys.has(item.column_key) || !Number.isFinite(item.sort_order),
       )
     ) {
       return NextResponse.json(
@@ -118,7 +150,10 @@ export async function PATCH(request: NextRequest) {
         { status: 400 },
       );
     }
-    const { data: affected, error } = await supabase.rpc("reorder_feature_requests", { updates });
+    const { data: affected, error } = await supabase.rpc("reorder_kanban_items", {
+      p_board_key: "features",
+      p_updates: updates,
+    });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     if (affected !== updates.length)
       return NextResponse.json(
@@ -155,7 +190,7 @@ export async function PATCH(request: NextRequest) {
   }
   if ("title" in update && !update.title)
     return NextResponse.json({ error: "Title cannot be empty" }, { status: 400 });
-  if ("status" in update && !isFeatureStatus(update.status))
+  if ("status" in update && !(await isValidFeatureColumn(supabase, update.status)))
     return NextResponse.json({ error: "Invalid status" }, { status: 400 });
   if ("priority" in update && !isFeaturePriority(update.priority))
     return NextResponse.json({ error: "Invalid priority" }, { status: 400 });

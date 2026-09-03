@@ -11,26 +11,28 @@ migrations applied and a founder account. Follow
 
 ## Read in this order
 
-1. The claimed card in `/admin/features` and its matching entry in
+1. `docs/NORTHSTAR.md` for the platform vision: agent-native business runtime,
+   Coworkers, WorkItems, capability graph, autonomy ladder, and implementation phases.
+2. The claimed card in `/admin/features` and its matching entry in
    `scripts/feature-backlog-data.mjs`.
-2. `docs/contributing/AGENT-TICKET-RUNBOOK.md` for the pickup, execution, evidence, and handoff
+3. `docs/contributing/AGENT-TICKET-RUNBOOK.md` for the pickup, execution, evidence, and handoff
    procedure.
-3. `docs/contracts/FEATURE-BOARD-TAXONOMY.md` before adding, relabeling, promoting, or
+4. `docs/contracts/FEATURE-BOARD-TAXONOMY.md` before adding, relabeling, promoting, or
    reorganizing backlog cards.
-4. `docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md` for data, automation, AI, security,
+5. `docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md` for data, automation, AI, security,
    and failure invariants.
-5. `docs/contracts/MULTI-TENANCY-CONTRACT.md` before changing schema, authorization,
+6. `docs/contracts/MULTI-TENANCY-CONTRACT.md` before changing schema, authorization,
    admin routing, public intake, integrations, jobs, or tenant configuration.
-6. `src/lib/revenue-os/README.md` for authoritative modules and callers.
-7. `docs/self-hosting/REVENUE-OS-SETUP.md` when the ticket touches schema, providers, secrets,
+7. `src/lib/revenue-os/README.md` for authoritative modules and callers.
+8. `docs/self-hosting/REVENUE-OS-SETUP.md` when the ticket touches schema, providers, secrets,
    health, or production activation.
-8. `docs/contracts/MARKETING-POSITIONING-CONTRACT.md` before changing any public marketing
+9. `docs/contracts/MARKETING-POSITIONING-CONTRACT.md` before changing any public marketing
    copy, metadata, search description, public assistant positioning, or CTA.
-9. `docs/contracts/NAVIGATION-RUNTIME-CONTRACT.md` before changing links, history,
+10. `docs/contracts/NAVIGATION-RUNTIME-CONTRACT.md` before changing links, history,
    scroll restoration, route focus, loading states, or page transitions.
-10. `docs/contracts/ADMIN-DEMO-CONTRACT.md` before changing either demo, the admin runtime,
+11. `docs/contracts/ADMIN-DEMO-CONTRACT.md` before changing either demo, the admin runtime,
     admin navigation, demo fixtures, or demo QA.
-11. `docs/contracts/WORK-MOTION-CONTRACT.md` before changing Work pages, public reveal
+12. `docs/contracts/WORK-MOTION-CONTRACT.md` before changing Work pages, public reveal
     primitives, scroll behavior, or portfolio animation QA.
 
 Run `npm run verify:agent-contract` before implementation. If it fails, repair

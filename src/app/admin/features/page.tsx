@@ -1,33 +1,10 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  DndContext,
-  DragOverlay,
-  KeyboardSensor,
-  MeasuringStrategy,
-  PointerSensor,
-  closestCorners,
-  useDroppable,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-  type DragOverEvent,
-  type DragStartEvent,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  arrayMove,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
   Archive,
   CalendarDays,
   CheckCircle2,
-  CircleDot,
   Filter,
   GripVertical,
   KanbanSquare,
@@ -49,17 +26,13 @@ import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
+import { KanbanBoard, type KanbanCardRenderOpts } from "@/components/kanban/KanbanBoard";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { toast } from "@/lib/admin/useToast";
-import {
-  FEATURE_PRIORITIES,
-  FEATURE_STATUSES,
-  FEATURE_STATUS_META,
-  type FeaturePriority,
-  type FeatureRequest,
-  type FeatureStatus,
-} from "@/lib/feature-board";
+import { useKanbanColumns } from "@/lib/kanban/useKanbanColumns";
+import type { KanbanColumnRecord } from "@/lib/kanban/types";
+import { FEATURE_PRIORITIES, type FeaturePriority, type FeatureRequest } from "@/lib/feature-board";
 import { cn } from "@/lib/utils";
 import { tenant } from "@/config/tenant";
 
@@ -109,7 +82,7 @@ const priorityMeta: Record<FeaturePriority, { label: string; tone: string; dot: 
 const emptyForm = {
   title: "",
   description: "",
-  status: "backlog" as FeatureStatus,
+  status: "backlog",
   priority: "medium" as FeaturePriority,
   labels: "",
   owner: "",
@@ -117,13 +90,6 @@ const emptyForm = {
   acceptance_criteria: "",
   notes: "",
 };
-
-function sortFeatures(features: FeatureRequest[]) {
-  return [...features].sort(
-    (a, b) =>
-      Number(a.sort_order) - Number(b.sort_order) || a.created_at.localeCompare(b.created_at),
-  );
-}
 
 function featureForm(feature?: FeatureRequest | null) {
   if (!feature) return emptyForm;
@@ -150,33 +116,23 @@ function dueLabel(date: string) {
 
 function FeatureCard({
   feature,
-  disabled,
+  opts,
   onOpen,
-  overlay = false,
 }: {
   feature: FeatureRequest;
-  disabled: boolean;
+  opts: KanbanCardRenderOpts;
   onOpen?: () => void;
-  overlay?: boolean;
 }) {
-  const sortable = useSortable({
-    id: feature.id,
-    disabled: disabled || overlay,
-    data: { type: "feature", status: feature.status },
-  });
-  const style = overlay
-    ? undefined
-    : { transform: CSS.Transform.toString(sortable.transform), transition: sortable.transition };
+  const { isDragging, isOverlay, disabled, dragHandleProps } = opts;
   return (
     <article
-      ref={overlay ? undefined : sortable.setNodeRef}
-      style={style}
       className={cn(
         "group rounded-2xl bg-[var(--admin-surface)] p-3.5 shadow-[var(--admin-shadow-border)] transition-[box-shadow,opacity,scale] duration-150",
-        !overlay && "hover:-translate-y-px hover:shadow-[var(--admin-shadow-border-hover)]",
-        sortable.isDragging &&
+        !isOverlay && "hover:-translate-y-px hover:shadow-[var(--admin-shadow-border-hover)]",
+        isDragging &&
+          !isOverlay &&
           "opacity-20 shadow-none ring-1 ring-dashed ring-[var(--admin-ink)]/20",
-        overlay &&
+        isOverlay &&
           "w-[286px] scale-[1.015] cursor-grabbing shadow-[0_24px_60px_-22px_rgba(0,0,0,0.42)] ring-1 ring-black/8",
       )}
     >
@@ -184,21 +140,18 @@ function FeatureCard({
         <button
           type="button"
           aria-label={
-            disabled
-              ? "Reordering is unavailable while filters are active"
-              : `Drag ${feature.title}`
+            disabled ? "Reordering is unavailable while filters are active" : `Drag ${feature.title}`
           }
-          disabled={disabled || overlay}
+          disabled={disabled || isOverlay}
           className="grid size-10 shrink-0 touch-none cursor-grab place-items-center rounded-xl text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:cursor-grabbing active:scale-[0.96] disabled:cursor-default disabled:opacity-30 dark:hover:bg-white/[0.05]"
-          {...(!overlay ? sortable.attributes : {})}
-          {...(!overlay ? sortable.listeners : {})}
+          {...(!isOverlay ? dragHandleProps : {})}
         >
           <GripVertical className="size-4" />
         </button>
         <button
           type="button"
           onClick={onOpen}
-          disabled={overlay}
+          disabled={isOverlay}
           className="min-w-0 flex-1 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/30"
         >
           <h3 className="text-pretty text-sm font-semibold leading-5 text-[var(--admin-ink)]">
@@ -210,7 +163,7 @@ function FeatureCard({
             </p>
           )}
         </button>
-        {!overlay && (
+        {!isOverlay && (
           <button
             type="button"
             onClick={onOpen}
@@ -272,80 +225,11 @@ function FeatureCard({
   );
 }
 
-function BoardColumn({
-  status,
-  features,
-  dragDisabled,
-  onOpen,
-}: {
-  status: FeatureStatus;
-  features: FeatureRequest[];
-  dragDisabled: boolean;
-  onOpen: (feature: FeatureRequest) => void;
-}) {
-  const { setNodeRef, isOver } = useDroppable({
-    id: `column:${status}`,
-    data: { type: "column", status },
-  });
-  const meta = FEATURE_STATUS_META[status];
-  return (
-    <section
-      className="w-[310px] shrink-0 snap-start lg:snap-none"
-      aria-labelledby={`column-${status}`}
-    >
-      <div className="mb-2.5 flex items-start justify-between gap-3 px-1">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className={cn("size-2 rounded-full", meta.accent)} />
-            <h2 id={`column-${status}`} className="text-sm font-semibold text-[var(--admin-ink)]">
-              {meta.label}
-            </h2>
-          </div>
-          <p className="admin-copy mt-1 text-[10px]">{meta.description}</p>
-        </div>
-        <span className="rounded-full bg-black/[0.045] px-2 py-1 font-mono text-[10px] tabular-nums text-[var(--admin-muted)] dark:bg-white/[0.06]">
-          {features.length}
-        </span>
-      </div>
-      <div
-        ref={setNodeRef}
-        className={cn(
-          "min-h-[360px] space-y-2.5 rounded-2xl bg-black/[0.018] p-2.5 shadow-[inset_0_0_0_1px_var(--admin-border)] transition-[background-color,box-shadow] duration-150 dark:bg-white/[0.018]",
-          isOver &&
-            !dragDisabled &&
-            "bg-amber-500/[0.055] shadow-[inset_0_0_0_1px_rgba(184,134,11,0.38),0_12px_30px_-24px_rgba(90,60,0,0.5)] dark:bg-amber-300/[0.045]",
-        )}
-      >
-        <SortableContext
-          items={features.map((feature) => feature.id)}
-          strategy={verticalListSortingStrategy}
-        >
-          {features.map((feature) => (
-            <FeatureCard
-              key={feature.id}
-              feature={feature}
-              disabled={dragDisabled}
-              onOpen={() => onOpen(feature)}
-            />
-          ))}
-        </SortableContext>
-        {!features.length && (
-          <div className="grid min-h-40 place-items-center rounded-xl">
-            <div className="text-center">
-              <CircleDot className="mx-auto size-4 text-[var(--admin-muted)]/55" />
-              <p className="admin-copy mt-2 text-xs">Drop a card here</p>
-            </div>
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
 function FeatureDialog({
   open,
   feature,
   defaultStatus,
+  columns,
   saving,
   onClose,
   onSave,
@@ -353,7 +237,8 @@ function FeatureDialog({
 }: {
   open: boolean;
   feature: FeatureRequest | null;
-  defaultStatus: FeatureStatus;
+  defaultStatus: string;
+  columns: KanbanColumnRecord[];
   saving: boolean;
   onClose: () => void;
   onSave: (payload: Record<string, unknown>) => Promise<void>;
@@ -458,14 +343,12 @@ function FeatureDialog({
             Status
             <select
               value={form.status}
-              onChange={(event) =>
-                setForm({ ...form, status: event.target.value as FeatureStatus })
-              }
+              onChange={(event) => setForm({ ...form, status: event.target.value })}
               className={inputClass}
             >
-              {FEATURE_STATUSES.map((status) => (
-                <option key={status} value={status}>
-                  {FEATURE_STATUS_META[status].label}
+              {columns.map((column) => (
+                <option key={column.column_key} value={column.column_key}>
+                  {column.label}
                 </option>
               ))}
             </select>
@@ -574,53 +457,6 @@ function FeatureDialog({
   );
 }
 
-function previewMove(
-  features: FeatureRequest[],
-  activeId: string,
-  overId: string,
-): FeatureRequest[] {
-  const active = features.find((feature) => feature.id === activeId);
-  if (!active) return features;
-  const overFeature = features.find((feature) => feature.id === overId);
-  const targetStatus = overId.startsWith("column:")
-    ? (overId.slice(7) as FeatureStatus)
-    : overFeature?.status;
-  if (!targetStatus) return features;
-  const sourceStatus = active.status;
-  const source = sortFeatures(features.filter((feature) => feature.status === sourceStatus));
-  const target =
-    sourceStatus === targetStatus
-      ? source
-      : sortFeatures(features.filter((feature) => feature.status === targetStatus));
-  let moved: FeatureRequest[];
-  if (sourceStatus === targetStatus) {
-    const from = source.findIndex((feature) => feature.id === activeId);
-    const to = overFeature
-      ? source.findIndex((feature) => feature.id === overFeature.id)
-      : source.length - 1;
-    if (from < 0 || to < 0 || from === to) return features;
-    moved = arrayMove(source, from, to);
-  } else {
-    const insertion = overFeature
-      ? target.findIndex((feature) => feature.id === overFeature.id)
-      : target.length;
-    const cleanSource = source.filter((feature) => feature.id !== activeId);
-    const cleanTarget = [...target];
-    cleanTarget.splice(Math.max(0, insertion), 0, { ...active, status: targetStatus });
-    moved = [...cleanSource, ...cleanTarget];
-  }
-  const affected = new Set([sourceStatus, targetStatus]);
-  const normalized = FEATURE_STATUSES.flatMap((status) =>
-    affected.has(status)
-      ? moved
-          .filter((feature) => feature.status === status)
-          .map((feature, index) => ({ ...feature, sort_order: (index + 1) * 1000 }))
-      : [],
-  );
-  const map = new Map(normalized.map((feature) => [feature.id, feature]));
-  return features.map((feature) => map.get(feature.id) ?? feature);
-}
-
 const FEATURES_QUERY_KEY = ["admin", "features"] as const;
 
 export default function FeaturesPage() {
@@ -635,6 +471,7 @@ export default function FeaturesPage() {
       return next ?? undefined;
     });
   };
+  const { columns, createColumn, renameColumn, deleteColumn } = useKanbanColumns("features");
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [priority, setPriority] = useState<"all" | FeaturePriority>("all");
@@ -643,14 +480,7 @@ export default function FeaturesPage() {
   const [capability, setCapability] = useState("all");
   const [openFeature, setOpenFeature] = useState<FeatureRequest | null>(null);
   const [featureDialogOpen, setFeatureDialogOpen] = useState(false);
-  const [newStatus, setNewStatus] = useState<FeatureStatus>("backlog");
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const dragSnapshotRef = useRef<FeatureRequest[] | null>(null);
-  const lastOverRef = useRef<string | null>(null);
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
+  const [newStatus, setNewStatus] = useState<string>("backlog");
 
   const loading = featuresQuery.isPending;
   const error = featuresQuery.error?.message || "";
@@ -706,12 +536,6 @@ export default function FeaturesPage() {
     category !== "all" ||
     capability !== "all",
   );
-  const activeFeature = activeId
-    ? (features.find((feature) => feature.id === activeId) ?? null)
-    : null;
-
-  const byStatus = (status: FeatureStatus) =>
-    sortFeatures(filtered.filter((feature) => feature.status === status));
 
   const saveFeature = async (payload: Record<string, unknown>) => {
     setSaving(true);
@@ -768,83 +592,19 @@ export default function FeaturesPage() {
     }
   };
 
-  const handleDragStart = ({ active }: DragStartEvent) => {
-    if (!data) return;
-    dragSnapshotRef.current = data.features;
-    lastOverRef.current = null;
-    setActiveId(String(active.id));
-  };
-
-  const handleDragOver = ({ active, over }: DragOverEvent) => {
-    if (!over || !data || filtersActive || saving) return;
-    const overId = String(over.id);
-    if (lastOverRef.current === overId) return;
-    lastOverRef.current = overId;
-    setData((current) =>
-      current
-        ? { ...current, features: previewMove(current.features, String(active.id), overId) }
-        : current,
-    );
-  };
-
-  const cancelDrag = () => {
-    const snapshot = dragSnapshotRef.current;
-    if (snapshot) setData((current) => (current ? { ...current, features: snapshot } : current));
-    dragSnapshotRef.current = null;
-    lastOverRef.current = null;
-    setActiveId(null);
-  };
-
-  const handleDragEnd = async ({ active, over }: DragEndEvent) => {
-    setActiveId(null);
-    const snapshot = dragSnapshotRef.current;
-    dragSnapshotRef.current = null;
-    lastOverRef.current = null;
-    if (!over || filtersActive || !data || !snapshot) {
-      if (snapshot) setData((current) => (current ? { ...current, features: snapshot } : current));
-      return;
-    }
-    const beforeFeature = snapshot.find((feature) => feature.id === String(active.id));
-    const afterFeature = data.features.find((feature) => feature.id === String(active.id));
-    if (!beforeFeature || !afterFeature) return;
-    const affectedStatuses = new Set([beforeFeature.status, afterFeature.status]);
-    const normalized = FEATURE_STATUSES.flatMap((status) =>
-      affectedStatuses.has(status)
-        ? sortFeatures(data.features.filter((feature) => feature.status === status)).map(
-            (feature, index) => ({ ...feature, sort_order: (index + 1) * 1000 }),
-          )
-        : [],
-    );
-    const unchanged = normalized.every((feature) => {
-      const original = snapshot.find((item) => item.id === feature.id);
-      return (
-        original?.status === feature.status &&
-        Number(original.sort_order) === Number(feature.sort_order)
-      );
-    });
-    if (unchanged) return;
-    try {
+  const commitReorder = useCallback(
+    async (updates: { id: string; column_key: string; sort_order: number }[]) => {
       await fetchJson("/api/admin/features", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          reorder: normalized.map((feature) => ({
-            id: feature.id,
-            status: feature.status,
-            sortOrder: feature.sort_order,
-          })),
-        }),
+        body: JSON.stringify({ reorder: updates }),
       });
-      toast.success(
-        beforeFeature.status === afterFeature.status
-          ? "Feature order saved"
-          : `Moved to ${FEATURE_STATUS_META[afterFeature.status].label}`,
-      );
-    } catch (moveError) {
-      setData({ ...data, features: snapshot });
-      toast.error(moveError instanceof Error ? moveError.message : "Could not save the new order.");
-    }
-  };
+      // The board already reflects the new order optimistically; refetch to
+      // reconcile the shared query cache with the truthful server state.
+      await featuresQuery.refetch();
+    },
+    [featuresQuery],
+  );
 
   return (
     <div className="space-y-6 pb-10">
@@ -1013,43 +773,43 @@ export default function FeaturesPage() {
                   </p>
                 )}
               </AdminSurface>
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCorners}
-                measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
-                autoScroll
-                onDragStart={handleDragStart}
-                onDragOver={handleDragOver}
-                onDragCancel={cancelDrag}
-                onDragEnd={(event) => void handleDragEnd(event)}
-              >
-                <div
-                  className={cn(
-                    "-mx-4 flex gap-3 overflow-x-auto px-4 pb-5 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 xl:-mx-10 xl:px-10",
-                    // Scroll-snap and dnd-kit's autoScroll fight over the same
-                    // scroll position mid-drag, which is what made the board
-                    // feel like it was snapping a dragged card back. Snap only
-                    // applies when nothing is being dragged.
-                    activeId ? "snap-none" : "snap-x snap-mandatory",
-                  )}
-                >
-                  {FEATURE_STATUSES.map((status) => (
-                    <BoardColumn
-                      key={status}
-                      status={status}
-                      features={byStatus(status)}
-                      dragDisabled={filtersActive}
-                      onOpen={(feature) => {
+              {columns.length > 0 ? (
+                <KanbanBoard<FeatureRequest>
+                  columns={columns}
+                  items={filtered}
+                  getItemId={(feature) => feature.id}
+                  getItemColumnKey={(feature) => feature.status}
+                  getItemSortOrder={(feature) => Number(feature.sort_order)}
+                  setItemPosition={(feature, columnKey, sortOrder) => ({
+                    ...feature,
+                    status: columnKey,
+                    sort_order: sortOrder,
+                  })}
+                  renderCard={(feature, opts) => (
+                    <FeatureCard
+                      feature={feature}
+                      opts={opts}
+                      onOpen={() => {
                         setOpenFeature(feature);
                         setFeatureDialogOpen(true);
                       }}
                     />
-                  ))}
-                </div>
-                <DragOverlay adjustScale={false} dropAnimation={null}>
-                  {activeFeature ? <FeatureCard feature={activeFeature} disabled overlay /> : null}
-                </DragOverlay>
-              </DndContext>
+                  )}
+                  renderCardOverlay={(feature) => (
+                    <FeatureCard
+                      feature={feature}
+                      opts={{ isDragging: true, isOverlay: true, disabled: true, dragHandleProps: {} }}
+                    />
+                  )}
+                  onReorder={commitReorder}
+                  dragDisabled={filtersActive}
+                  onAddColumn={(input) => createColumn(input)}
+                  onRenameColumn={(columnKey, label) => renameColumn(columnKey, { label })}
+                  onDeleteColumn={(columnKey, options) => deleteColumn(columnKey, options)}
+                />
+              ) : (
+                <LoadingSkeleton variant="board" />
+              )}
               <div className="flex flex-col gap-2 rounded-2xl bg-black/[0.025] px-4 py-3 text-xs text-[var(--admin-muted)] dark:bg-white/[0.025] sm:flex-row sm:items-center sm:justify-between">
                 <p>
                   Drag by the grip to reprioritize or move work. Open a card for its definition of
@@ -1068,6 +828,7 @@ export default function FeaturesPage() {
         open={featureDialogOpen}
         feature={openFeature}
         defaultStatus={newStatus}
+        columns={columns}
         saving={saving}
         onClose={() => setFeatureDialogOpen(false)}
         onSave={saveFeature}

@@ -26,6 +26,9 @@ const CATEGORY_BY_WORKSTREAM = {
   productization: "productization",
   documentation: "productization",
   site: "marketing",
+  runtime: "runtime",
+  coworker: "runtime",
+  learn: "intelligence",
 };
 
 const DEFAULT_CAPABILITY_BY_WORKSTREAM = {
@@ -49,11 +52,16 @@ const DEFAULT_CAPABILITY_BY_WORKSTREAM = {
   productization: "productization",
   documentation: "documentation",
   site: "marketing",
+  runtime: "work-engine",
+  coworker: "coworkers",
+  learn: "learning",
 };
 
 const CAPABILITY_ALIASES = {
   activity: "activity",
-  analytics: "analytics",
+  agent: "coworkers",
+  "agent-activity": "coworkers",
+  "agent-trace": "agent-trace",
   ai: "ai",
   approval: "automation",
   auth: "security",
@@ -65,11 +73,16 @@ const CAPABILITY_ALIASES = {
   confirmation: "automation",
   contacts: "identity",
   conversations: "email",
+  coworker: "coworkers",
+  coworkers: "coworkers",
   database: "data",
   dedupe: "reliability",
   drive: "knowledge",
   email: "email",
   encryption: "security",
+  "evidence-ledger": "evidence-ledger",
+  evidence: "evidence-ledger",
+  "capability-graph": "capability-graph",
   gmail: "email",
   google: "workspace",
   health: "reliability",
@@ -77,6 +90,9 @@ const CAPABILITY_ALIASES = {
   inbound: "inbound",
   indexing: "knowledge",
   integrations: "integrations",
+  learning: "learning",
+  mcp: "mcp",
+  memory: "memory",
   observability: "reliability",
   openrouter: "ai",
   pipeline: "pipeline",
@@ -91,7 +107,12 @@ const CAPABILITY_ALIASES = {
   tasks: "tasks",
   testing: "testing",
   "second-brain": "knowledge",
+  "tool-registry": "tool-registry",
+  "work-engine": "work-engine",
+  workitem: "work-engine",
   webhooks: "integrations",
+  "autonomy-policy": "autonomy-policy",
+  autonomy: "autonomy-policy",
 };
 
 // Loop One is the only active milestone. It is the shortest dependency-ordered
@@ -105,6 +126,34 @@ const CAPABILITY_ALIASES = {
 // that circuit, not by being important in the abstract, nearly every card on this
 // board is important, which is precisely why the board stopped functioning as a
 // queue. Promote a card by adding its key; demote by removing it.
+//
+// NORTHSTAR ALIGNMENT
+// The platform vision (docs/NORTHSTAR.md) defines five product layers and five
+// implementation phases. Existing phases map as follows:
+//
+//   Phase 0–1  →  Phase A: Complete Loop One (See + Remember foundations)
+//   Phase 2–3  →  Phase B: Agent Runtime foundation (Notice + Act primitives)
+//   Phase 4    →  Phase C: Reference coworker (Sales end-to-end loop)
+//   Phase 5    →  Phase D: Plugin SDK + MCP
+//   Phase 6    →  Phase E: Additional coworkers/plugins + documentation
+//
+// The five product layers (See → Remember → Notice → Act → Learn) cut across
+// implementation phases. Loop One completes See and Remember. Phase B adds the
+// durable Work Engine, Capability Graph, Evidence Ledger, Autonomy Policy Engine,
+// Coworker model, and Agent Activity UI. Phase C proves it all with one
+// reference coworker.
+//
+// Ten architectural principles govern every card:
+//   1. Database/runtime is authoritative, not the model
+//   2. Agents use tools; they do not bypass business services
+//   3. Every consequential action has an explicit authorization path
+//   4. Every autonomous action must be explainable after the fact
+//   5. Every AI-derived fact retains provenance
+//   6. Deterministic logic remains deterministic
+//   7. AI may propose policy; humans establish policy
+//   8. Plugins extend Accelerate rather than create parallel infrastructure
+//   9. Capabilities are explicit; missing capabilities are normal
+//  10. Work is durable; a browser session is not the unit of execution
 export const LOOP_ONE = [
   "feature-board-dependency-integrity",
   "identity-resolution-service",
@@ -160,7 +209,11 @@ const LOOP_ONE_SET = new Set(LOOP_ONE);
 export const NOW_KEYS = ["google-oauth-first-sync"];
 const NOW_SET = new Set(NOW_KEYS);
 
+// Northstar layer mapping: each second-brain phase card corresponds to one of
+// the five product layers defined in docs/NORTHSTAR.md. The "trust" key is a
+// cross-cutting concern (audit + provenance + traces) that underpins all layers.
 export const SECOND_BRAIN_IMPLEMENTATIONS = {
+  // Layer 1: SEE — observe the business
   "second-brain-see": [
     "openrouter-ai-gateway",
     "founder-note-capture",
@@ -170,6 +223,7 @@ export const SECOND_BRAIN_IMPLEMENTATIONS = {
     "gmail-record-association",
     "calendar-sync-association",
   ],
+  // Layer 2: REMEMBER — durable organizational memory
   "second-brain-remember": [
     "second-brain-see",
     "founder-note-capture",
@@ -178,18 +232,22 @@ export const SECOND_BRAIN_IMPLEMENTATIONS = {
     "drive-provenance-retrieval",
     "ai-bounded-context",
   ],
+  // Layer 3: NOTICE — what matters now
   "second-brain-notice": [
     "proactive-operator-intelligence",
     "scheduling-substrate-decision",
     "precall-briefs",
     "notification-dispatch-preferences",
   ],
+  // Layer 4: ACT — perform or prepare real business work
   "second-brain-act": [
     "automation-policy-registry",
     "autonomous-inbound-responder",
     "postmeeting-workflow",
   ],
+  // Layer 5: LEARN — repeated decisions become explicit policy
   "second-brain-learn": ["agent-learning-feedback-loop", "second-brain-act"],
+  // Cross-cutting: TRUST — audit, provenance, traces (underpins all layers)
   "second-brain-trust": ["second-brain-learn", "audit-ledger-coverage", "ai-run-traces"],
 };
 
@@ -309,6 +367,7 @@ function card({
     acceptance_criteria: acceptance.map((item) => `- ${item}`).join("\n"),
     notes: [
       `Workstream: ${workstream}. Category: ${CATEGORY_BY_WORKSTREAM[workstream]}. Phase: ${phase}.`,
+      `Northstar phase: ${phase <= 1 ? "A (Complete Loop One — See + Remember)" : phase <= 3 ? "B (Agent Runtime foundation — Notice + Act primitives)" : phase === 4 ? "C (Reference coworker — Sales end-to-end loop)" : phase === 5 ? "D (Plugin SDK + MCP)" : "E (Additional coworkers/plugins + documentation)"}. Vision: docs/NORTHSTAR.md.`,
       `Dependencies: ${dependencies.length ? dependencies.join("; ") : "None. This can be claimed immediately."}`,
       `Starting points: ${start}`,
       `Guardrails / non-goals: ${guardrails}`,
@@ -5378,6 +5437,187 @@ export const featureBacklog = [
     labels: ["config", "reliability"],
     verification:
       "a compatibility suite running an archived first-version plugin against the current build; a deprecation warning test; npm run build.",
+  }),
+
+  // ────────────────────────────────────────────────────────────────────────
+  // NORTHSTAR PHASE B — Agent Runtime foundation.
+  // These six cards make the northstar primitives (docs/NORTHSTAR.md §6–§20)
+  // explicit, inspectable, and dependency-ordered. They generalise the
+  // scattered task/scheduling/permission work already in phases 2–3 into a
+  // coherent runtime layer that Coworkers (Phase C) and Plugins (Phase D)
+  // build on top of.
+  // ────────────────────────────────────────────────────────────────────────
+  card({
+    key: "durable-work-engine",
+    title: "Generalise tasks and scheduling into a durable Work Engine",
+    workstream: "runtime",
+    phase: 3,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Introduce a WorkItem abstraction that represents durable, lease-based, retryable, schedulable, and explainable units of work. Every autonomous action — follow-ups, research, invoice reviews, report generation — becomes a WorkItem that survives browser closure, deployment, process restart, model failure, and agent failure. This replaces ad-hoc cron-then-prompt patterns with a transactional claim model (FOR UPDATE SKIP LOCKED or equivalent), bounded retries, and mandatory reason fields on every scheduled future action.",
+    acceptance: [
+      "A WorkItem schema exists with id, tenantId, coworkerId, kind, objective, entityType, entityId, priority, reason, source, status, dueAt, nextCheckAt, leaseOwner, leaseExpiresAt, attemptCount, maxAttempts, createdAt, startedAt, finishedAt, outcome, error, and runId",
+      "WorkItems survive process restart and deployment without loss",
+      "Lease-based claiming prevents two workers from processing the same item simultaneously",
+      "Failed items retry within explicit bounds rather than silently disappearing",
+      "Every scheduled future action carries a human-readable reason field",
+      "Workers can schedule their own future work (e.g. nextCheckAt: Friday 9 AM with reason)",
+      "Existing task and scheduling code migrates onto the WorkItem abstraction without losing data",
+    ],
+    dependencies: [
+      "Decide the scheduling substrate",
+      "Enforce atomic claims and idempotency for jobs and actions",
+    ],
+    start:
+      "src/lib/revenue-os/tasks.ts; scheduling-substrate-decision card; atomic-execution-claims card; docs/NORTHSTAR.md §6",
+    guardrails:
+      "Do not implement autonomous behaviour as cron → prompt → hope. Work must be represented durably. Do not collapse WorkItems into raw database rows without the lease/retry/reason contract. Deterministic logic stays deterministic — WorkItems coordinate, they do not replace SQL.",
+    labels: ["work-engine", "reliability"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; a WorkItem lifecycle test proving create → claim → complete, create → claim → fail → retry, lease expiry → re-claim, and reason-required enforcement; npm run build.",
+  }),
+  card({
+    key: "capability-graph-canonical",
+    title: "Build one canonical Capability Graph for workspace capabilities",
+    workstream: "runtime",
+    phase: 3,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Create a single machine-readable Capability Graph that exposes every available workspace capability (crm.read, gmail.send, calendar.write, etc.) together with its policy (available, approval_required, unavailable). Coworkers and plugins query this graph before beginning work so they discover their capabilities up front rather than by repeatedly failing calls. This extends the existing integration capability platform into a first-class runtime primitive.",
+    acceptance: [
+      "One canonical service resolves capability availability and policy for the current workspace",
+      "Capabilities include both availability and policy (e.g. email.send: available + approval_required)",
+      "Coworker manifests declare required capabilities; the runtime refuses to start a coworker whose requirements are unmet",
+      "Plugin manifests declare required capabilities; unavailable requirements show the plugin as partially or fully unavailable rather than failing unpredictably",
+      "The capability graph is queryable by AI tools so context includes what is and is not available",
+      "Adding a new integration automatically registers its capabilities in the graph",
+    ],
+    dependencies: ["Build the provider capability platform and integration catalog"],
+    start:
+      "src/lib/revenue-os/modules.ts; integration-capability-platform card; docs/NORTHSTAR.md §9",
+    guardrails:
+      "Do not let capabilities be discovered by repeated failed calls. Missing capabilities are a normal state, not an error. The graph must not be bypassed by direct provider calls.",
+    labels: ["capability-graph", "integrations"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; a capability resolution test proving available/unavailable/policy states and coworker requirement checking; npm run build.",
+  }),
+  card({
+    key: "evidence-claim-ledger",
+    title: "Build the Evidence and Claim Ledger for AI-derived facts",
+    workstream: "runtime",
+    phase: 3,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Create an evidence-backed fact system that prevents models from inventing confidence scores and treating them as truth. Every AI-derived fact becomes a Claim with supporting Evidence entries carrying sourceType, sourceId, observation, timestamp, provenance, and strength. Deterministic business rules — not the model — decide whether evidence is strong enough to update authoritative state. This implements the human truth protection hierarchy: human-confirmed > human-entered > verified external > probable external > model inference.",
+    acceptance: [
+      "A Claim schema exists with id, tenant, entity, field/concept, proposedValue, and status (proposed/verified/rejected/superseded)",
+      "An Evidence schema exists with claimId, sourceType, sourceId, observation, timestamp, provenance, and strength",
+      "Models propose observations; deterministic rules evaluate evidence strength against the human truth protection hierarchy",
+      "AI never overwrites human-entered or human-confirmed values without explicit human review",
+      "Blank fields can be filled by strong sourced evidence; existing machine-generated values require stronger evidence to replace",
+      "Every claim retains its full evidence chain for audit",
+    ],
+    dependencies: ["Normalize the cross-channel activity ledger"],
+    start:
+      "src/lib/revenue-os/identity.ts (existing provenance patterns); docs/NORTHSTAR.md §14–§15",
+    guardrails:
+      "Do not allow models to self-assign confidence scores that bypass the evidence system. Do not collapse the human truth hierarchy for convenience. AI-derived facts without evidence are suggestions, not updates.",
+    labels: ["evidence-ledger", "reliability"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; an evidence evaluation test proving claim creation, evidence attachment, strength-based verdict, human-truth hierarchy enforcement, and audit chain integrity; npm run build.",
+  }),
+  card({
+    key: "autonomy-policy-engine",
+    title: "Unify agent permissions into one Autonomy Policy Engine",
+    workstream: "runtime",
+    phase: 3,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Create one coherent system governing all agent actions, unifying AI confirmations, automation permissions, standing approvals, coworker permissions, safety floors, and audit provenance. Implement the five-level autonomy ladder: Level 0 (Prohibited), Level 1 (Always ask), Level 2 (Ask until trusted), Level 3 (Standing permission with constraints), Level 4 (Autonomous read/reason). Hard safety floors — destructive deletion, credential changes, financial transfers, full database exports — must exist in code and be irremovable by prompt instructions or repeated approvals.",
+    acceptance: [
+      "One policy service evaluates whether a given action is allowed for a given coworker in a given context",
+      "The five-level autonomy ladder is implemented: prohibited, always-ask, ask-until-trusted, standing-permission, autonomous-read",
+      "Hard safety floors exist in code for destructive account deletion, credential changes, financial history deletion, full customer database export, high-value refunds, and major financial transfers",
+      "Safety floors cannot be bypassed by prompt instructions, repeated approvals, or standing policy grants",
+      "Every consequential action records: who initiated it, which coworker, which WorkItem, which tool, what inputs, what evidence, what policy applied, whether human approved, and when it executed",
+      "Users can inspect and revoke any standing permission at any time",
+    ],
+    dependencies: [
+      "Finish the shared AI confirmation system",
+      "Generalize approved automation policies",
+      "Add a per-action trust ladder with a permanent irreversible floor",
+    ],
+    start:
+      "src/lib/revenue-os/action-executor.ts; ai-confirmation-system card; automation-policy-registry card; action-trust-ladder card; docs/NORTHSTAR.md §16–§18",
+    guardrails:
+      "Do not allow repeated approvals to automatically promote an action past a hard safety floor. Do not split policy evaluation across multiple services — one engine, one decision path. Prompt instructions must never override code-level safety floors.",
+    labels: ["autonomy-policy", "security"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; a policy evaluation test proving each autonomy level, hard floor enforcement against override attempts, approval provenance recording, and permission revocation; npm run build.",
+  }),
+  card({
+    key: "coworker-model",
+    title: "Introduce Coworkers as first-class runtime identities with manifests",
+    workstream: "coworker",
+    phase: 4,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Introduce Coworkers as first-class configuration objects over the shared Accelerate runtime. A Coworker is not a separate LLM instance or chatbot — it is an identity with a role, objectives, skills, tools, triggers, permissions, autonomy policies, memory scope, allowed entities, budgets, schedules, and escalation rules. Coworkers are described through machine-readable manifests (YAML/JSON) that are explicit, inspectable, portable, and eventually shareable. The Sales Coworker is the reference implementation that proves the entire architecture end-to-end.",
+    acceptance: [
+      "A Coworker schema/manifest exists with identity, role, objectives, skills, tools, triggers, permissions, autonomy policies, memory scope, budgets, schedules, and escalation rules",
+      "Coworker manifests are machine-readable (YAML or JSON) and versioned",
+      "A Coworker operates against the shared runtime — no separate copies of CRM, memory, permissions, or integrations per coworker",
+      "The Sales Coworker demonstrates the full lifecycle: lead arrives → identity resolved → context gathered → research → qualification → reply drafted → human approves → email sent → meeting booked → pre-call brief → meeting processed → CRM updated → follow-up sent → future work scheduled",
+      "Coworker budgets (model spend/day, API calls, emails/day) are enforced and running out of budget is a normal state, not an unexplained failure",
+      "Coworker configuration is inspectable from the admin UI",
+    ],
+    dependencies: [
+      "Generalise tasks and scheduling into a durable Work Engine",
+      "Build one canonical Capability Graph for workspace capabilities",
+      "Unify agent permissions into one Autonomy Policy Engine",
+    ],
+    start:
+      "docs/NORTHSTAR.md §4–§5, §25; durable-work-engine card; capability-graph-canonical card; autonomy-policy-engine card",
+    guardrails:
+      "Do not build ten Coworkers before the substrate is proven. Build one (Sales) end-to-end first. Do not create separate runtime copies per coworker. A Coworker is a configuration, not an infrastructure fork. Do not optimise for breadth; optimise for an impressive and reliable end-to-end loop.",
+    labels: ["coworkers", "ai"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; a Sales Coworker end-to-end integration test proving the full lead-to-follow-up lifecycle with at least one human approval gate; manifest schema validation; budget enforcement test; npm run build.",
+  }),
+  card({
+    key: "agent-activity-surface",
+    title: "Add Agent Activity surfaces on every major business record",
+    workstream: "coworker",
+    phase: 4,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Every major business record (contact, company, opportunity, proposal, invoice) should have a consistent AI/Agent Activity surface that makes autonomous work understandable to a normal operator. This is not a raw audit-log dump — it is a readable timeline showing what the agent looked at, what it concluded, why, what it did, and what happens next. The Command Center evolves into the operator interface into the business runtime, with sections for 'Needs you' (only things requiring human judgment), 'Coworkers' (status of each worker), 'What changed' (business-level intelligence), and 'Activity' (unified human + agent timeline).",
+    acceptance: [
+      "Every major record detail page has an Agent Activity section showing a readable timeline of agent actions",
+      "Each activity entry shows: what happened, when, why (the reason), and what is next",
+      "The Command Center has a 'Needs you' section showing only items requiring human judgment",
+      "The Command Center has a 'Coworkers' section showing each worker's active items and items awaiting approval",
+      "The Command Center has a 'What changed' section showing business-level intelligence (lead volume, close rate, stale proposals, overdue invoices)",
+      "The Activity timeline unifies human and agent actions in one chronological view",
+      "Agent activity is distinguishable from human activity but presented in the same surface",
+    ],
+    dependencies: [
+      "Introduce Coworkers as first-class runtime identities with manifests",
+      "Complete AI run traces, tool evidence, errors, and usage",
+    ],
+    start:
+      "docs/NORTHSTAR.md §20, §26; ai-run-traces card; record detail workspace; today operator inbox; docs/NORTHSTAR.md §20",
+    guardrails:
+      "Do not present a raw audit-log dump. The activity surface must make autonomous work understandable to a normal operator. Do not expose raw model reasoning — show what it looked at, concluded, why, did, and what is next.",
+    labels: ["coworkers", "admin-ux"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; desktop and mobile screenshots of the Agent Activity surface on a populated record; Command Center Needs-you/Coworkers/What-changed sections verified with fixture data; npm run build.",
   }),
 
   // ────────────────────────────────────────────────────────────────────────

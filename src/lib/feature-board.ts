@@ -15,7 +15,9 @@ export interface FeatureRequest {
   seed_key: string | null;
   title: string;
   description: string | null;
-  status: FeatureStatus;
+  /** Columns are now admin-defined (`kanban_columns`, board_key='features'),
+   * not the static `FeatureStatus` union — this is any live column_key. */
+  status: string;
   priority: FeaturePriority;
   labels: string[];
   sort_order: number;

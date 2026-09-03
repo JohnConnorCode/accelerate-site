@@ -2,6 +2,10 @@
 
 Organized by who needs it.
 
+## Platform vision
+
+- [NORTHSTAR.md](NORTHSTAR.md) — the agent-native business runtime: Coworkers, WorkItems, capability graph, autonomy ladder, implementation phases, and core architectural principles.
+
 ## Self-hosting
 
 Read these to run your own instance.

@@ -5,6 +5,25 @@ data. It defines where truth lives, how work executes, and what evidence is
 required. Feature status stays on the Feature Board; this document changes only
 when the operating contract changes.
 
+The platform vision (`docs/NORTHSTAR.md`) defines what Accelerate is building
+and why: an agent-native business runtime with five product layers (See →
+Remember → Notice → Act → Learn) and ten architectural principles. This
+contract specifies how those principles are enforced in code. When an
+implementation choice conflicts with the northstar, the northstar wins.
+
+## Northstar architectural principles (from docs/NORTHSTAR.md §36)
+
+1. **The database/runtime is authoritative. The model is not.**
+2. **Agents use tools. They do not bypass business services.**
+3. **Every consequential action has an explicit authorization path.**
+4. **Every autonomous action must be explainable after the fact.**
+5. **Every AI-derived fact retains provenance.**
+6. **Deterministic logic remains deterministic.**
+7. **AI may propose policy. Humans establish policy.**
+8. **Plugins extend Accelerate rather than create parallel infrastructure.**
+9. **Capabilities are explicit. Missing capabilities are normal.**
+10. **Work is durable. A browser session is not the unit of execution.**
+
 ## System law
 
 All human, AI, integration, webhook, and scheduled work uses the same domain

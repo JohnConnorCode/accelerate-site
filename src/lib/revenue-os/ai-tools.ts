@@ -9,6 +9,12 @@ import { ADMIN_LAYOUT_SCOPES, proposeLayoutChange } from "./admin-layout";
 import { FOUNDER_NOTE_MAX_LENGTH } from "./notes";
 import { retrieveKnowledge } from "./knowledge";
 import { isAiToolModuleEnabled } from "./modules";
+import { listClaimableWork, type WorkItem } from "./work-items";
+import { listWorkspaceCapabilities, type WorkspaceCapability } from "./capabilities";
+import { listClaimsForEntity, type Claim } from "./claims";
+import { listAutonomyPolicies, type AutonomyPolicy } from "./autonomy-policy";
+import { listCoworkers, type Coworker } from "./coworkers";
+import { getAgentActivityForEntity, type AgentActivityEntry } from "./agent-activity";
 
 export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v4";
 export const REVENUE_TOOL_PACKS = ["core", "pipeline", "outreach"] as const;
@@ -883,6 +889,258 @@ const registry: AiToolRegistration[] = [
     },
   },
   {
+    name: "get_claimable_work",
+    description:
+      "List work items that are ready to be claimed and executed. Returns pending or waiting items past their next_check_at, ordered by priority and age.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        kind: { type: "string", description: "Filter to a specific work-item kind" },
+        limit: { type: "number", description: "Max items to return (default 20)" },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.work-engine-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const limitStr = value(input, "limit");
+      const items = await listClaimableWork(supabase, {
+        kind: value(input, "kind") ?? undefined,
+        limit: limitStr ? Number(limitStr) : undefined,
+      });
+      return items.map((wi: WorkItem) => ({
+        id: wi.id,
+        kind: wi.kind,
+        objective: wi.objective,
+        priority: wi.priority,
+        status: wi.status,
+        reason: wi.reason,
+        source: wi.source,
+        entity_type: wi.entity_type,
+        entity_id: wi.entity_id,
+        due_at: wi.due_at,
+        next_check_at: wi.next_check_at,
+        next_check_reason: wi.next_check_reason,
+        attempt_count: wi.attempt_count,
+        max_attempts: wi.max_attempts,
+        created_at: wi.created_at,
+      }));
+    },
+  },
+  {
+    name: "get_workspace_capabilities",
+    description:
+      "List the capabilities available in this workspace. Shows which integrations, runtime features, and plugin capabilities are enabled, their policy (automatic/approval_required/prohibited), and last verification time.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        category: {
+          type: "string",
+          description: "Filter to a category: integration, runtime, plugin, or system",
+        },
+        availableOnly: { type: "boolean", description: "Only return available capabilities" },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.capability-graph-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const categoryVal = value(input, "category");
+      const availableOnlyVal = value(input, "availableOnly");
+      const capabilities = await listWorkspaceCapabilities(supabase, {
+        category: categoryVal
+          ? (["integration", "runtime", "plugin", "system"].includes(categoryVal)
+              ? (categoryVal as "integration" | "runtime" | "plugin" | "system")
+              : undefined)
+          : undefined,
+        availableOnly: availableOnlyVal === "true",
+      });
+      return capabilities.map((cap: WorkspaceCapability) => ({
+        capability_key: cap.capability_key,
+        label: cap.label,
+        category: cap.category,
+        direction: cap.direction,
+        impact: cap.impact,
+        available: cap.available,
+        policy: cap.policy,
+        status_reason: cap.status_reason,
+        verified_at: cap.verified_at,
+      }));
+    },
+  },
+  {
+    name: "get_claims_for_entity",
+    description:
+      "List evidence-backed claims for a business entity. Shows what the system believes about a contact, company, or opportunity, the evidence supporting each claim, and its verification status (unverified/supported/verified/conflicted).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        entityType: {
+          type: "string",
+          description: "Entity type: contact, company, opportunity, etc.",
+        },
+        entityId: { type: "string", description: "The entity's UUID" },
+        status: {
+          type: "string",
+          description: "Comma-separated claim statuses to filter: unverified,supported,conflicted,verified",
+        },
+      },
+      required: ["entityType", "entityId"],
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.claims-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const entityType = value(input, "entityType")!;
+      const entityId = value(input, "entityId")!;
+      const statusStr = value(input, "status");
+      const statuses = statusStr
+        ? (statusStr.split(",").map((s) => s.trim()).filter(Boolean) as Claim["status"][])
+        : undefined;
+      const claims = await listClaimsForEntity(supabase, {
+        entityType,
+        entityId,
+        status: statuses,
+      });
+      return claims.map((c: Claim) => ({
+        id: c.id,
+        field: c.field,
+        proposed_value: c.proposed_value,
+        status: c.status,
+        best_evidence: c.best_evidence,
+        source_type: c.source_type,
+        created_at: c.created_at,
+        resolved_at: c.resolved_at,
+      }));
+    },
+  },
+  {
+    name: "get_autonomy_policies",
+    description:
+      "List the autonomy policies governing agent actions. Shows the five-level ladder (prohibited→autonomous) for each action, hard safety floors, and standing permissions.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        level: {
+          type: "string",
+          description: "Filter to a specific level: prohibited, always_ask, ask_until_trusted, standing_permission, autonomous",
+        },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.autonomy-policy-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const levelVal = value(input, "level");
+      const policies = await listAutonomyPolicies(supabase, {
+        level: levelVal
+          ? (["prohibited", "always_ask", "ask_until_trusted", "standing_permission", "autonomous"].includes(levelVal)
+              ? (levelVal as "prohibited" | "always_ask" | "ask_until_trusted" | "standing_permission" | "autonomous")
+              : undefined)
+          : undefined,
+      });
+      return policies.map((p: AutonomyPolicy) => ({
+        action_key: p.action_key,
+        label: p.label,
+        level: p.level,
+        is_hard_floor: p.is_hard_floor,
+        coworker_id: p.coworker_id,
+        approved_by: p.approved_by,
+        constraints: p.constraints,
+      }));
+    },
+  },
+  {
+    name: "get_coworkers",
+    description:
+      "List registered coworkers and their capabilities. Shows each coworker's identity, role, required capabilities, work kinds, and readiness status.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        status: {
+          type: "string",
+          description: "Filter to a status: active, paused, disabled",
+        },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.coworkers-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const statusVal = value(input, "status");
+      const coworkers = await listCoworkers(supabase, {
+        status: statusVal
+          ? (["active", "paused", "disabled"].includes(statusVal)
+              ? (statusVal as "active" | "paused" | "disabled")
+              : undefined)
+          : undefined,
+      });
+      return coworkers.map((cw: Coworker) => ({
+        id: cw.id,
+        name: cw.name,
+        role: cw.role,
+        status: cw.status,
+        tool_pack: cw.tool_pack,
+        required_capabilities: cw.required_capabilities,
+        work_kinds: cw.work_kinds,
+      }));
+    },
+  },
+  {
+    name: "get_agent_activity_for_entity",
+    description:
+      "Get a readable agent activity timeline for a business entity. Shows what autonomous work has happened, what's in progress, what's waiting, and what's scheduled next. Not a raw audit dump — designed to make autonomous work understandable to a normal operator.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        entityType: {
+          type: "string",
+          description: "Entity type: contact, company, opportunity",
+        },
+        entityId: { type: "string", description: "The entity's UUID" },
+      },
+      required: ["entityType", "entityId"],
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.agent-activity-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const entityType = value(input, "entityType")!;
+      const entityId = value(input, "entityId")!;
+      const timeline = await getAgentActivityForEntity(supabase, {
+        entityType,
+        entityId,
+        limit: 20,
+      });
+      return timeline.entries.map((e: AgentActivityEntry) => ({
+        timestamp: e.timestamp,
+        source: e.source,
+        action: e.action,
+        summary: e.summary,
+        status: e.status,
+        coworker_id: e.coworkerId,
+      }));
+    },
+  },
+  {
     name: "propose_conversation_reply",
     description:
       "Stage a reply to an active conversation thread for founder approval. This never sends directly.",
@@ -935,6 +1193,12 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "search_pipeline",
     "search_contacts",
     "get_pending_actions",
+    "get_claimable_work",
+    "get_workspace_capabilities",
+    "get_claims_for_entity",
+    "get_autonomy_policies",
+    "get_coworkers",
+    "get_agent_activity_for_entity",
     "get_record_timeline",
     "search_knowledge_base",
     "propose_task",
@@ -947,6 +1211,12 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "search_pipeline",
     "search_contacts",
     "get_pending_actions",
+    "get_claimable_work",
+    "get_workspace_capabilities",
+    "get_claims_for_entity",
+    "get_autonomy_policies",
+    "get_coworkers",
+    "get_agent_activity_for_entity",
     "get_record_timeline",
     "search_knowledge_base",
     "propose_task",
@@ -959,6 +1229,12 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "search_contacts",
     "search_conversations",
     "get_pending_actions",
+    "get_claimable_work",
+    "get_workspace_capabilities",
+    "get_claims_for_entity",
+    "get_autonomy_policies",
+    "get_coworkers",
+    "get_agent_activity_for_entity",
     "get_record_timeline",
     "search_knowledge_base",
     "propose_task",
