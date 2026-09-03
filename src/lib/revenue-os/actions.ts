@@ -2,6 +2,9 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { recordAudit } from "./audit";
 import { recordStaleClaimRecovery, STALE_CLAIM_WINDOW_MS } from "./runs";
+import { recordLearnedPolicy } from "./memory";
+import { storeAgentMemory } from "./memory";
+import { getPoliciesForAction } from "./memory";
 
 export const ACTION_URGENCY_ORDER = ["critical", "high", "normal", "low"] as const;
 export type ActionUrgency = (typeof ACTION_URGENCY_ORDER)[number];
@@ -57,6 +60,26 @@ export async function proposeAction(
     expiresAt?: string;
   },
 ) {
+  // Learned policy gate: if the human previously rejected this action type
+  // in a way that created a prohibitive policy, refuse the proposal rather
+  // than staging it for an approval that will likely be rejected again.
+  const relevantPolicies = await getPoliciesForAction(supabase, {
+    actionKey: input.actionType,
+  }).catch(() => []);
+  const blocking = relevantPolicies.find((p) =>
+    /never|must not|do not|prohibited|always ask/i.test(p.rule),
+  );
+  if (blocking) {
+    return {
+      blocked_by_policy: true,
+      policy_rule: blocking.rule,
+      policy_action_key: blocking.action_key,
+      action_type: input.actionType,
+      title: input.title,
+      message: `Blocked by learned policy: "${blocking.rule}". This action type was previously rejected by a human. Review the policy in get_learned_policies if you believe the situation has changed.`,
+    };
+  }
+
   const row = {
     action_type: input.actionType,
     title: input.title,
@@ -150,6 +173,25 @@ export async function claimApprovedAction(
     entityId: id,
     after: { action_type: data.action_type, status: "executing" },
   });
+
+  // Approval trust signal: record as agent memory so the autonomy policy
+  // trust ladder and future AI context can see that this action type was
+  // approved. For coworker-originated actions, store under the coworker's
+  // memory so its learned context grows.
+  const coworkerId = data.proposed_by?.startsWith("coworker:")
+    ? data.proposed_by.replace("coworker:", "")
+    : null;
+  await storeAgentMemory(supabase, {
+    coworkerId: coworkerId ?? undefined,
+    category: "prior_work",
+    subject: `approved: ${data.action_type}${data.entity_type ? ` for ${data.entity_type}` : ""}`,
+    body: `Human approved ${data.action_type} action${data.entity_type && data.entity_id ? ` on ${data.entity_type}/${data.entity_id}` : ""}. This counts as a positive trust signal for the action type.`,
+    entityType: data.entity_type ?? undefined,
+    entityId: data.entity_id ?? undefined,
+    relevanceHorizon: "weekly",
+    actorEmail,
+  }).catch(() => {});
+
   return data;
 }
 
@@ -181,6 +223,14 @@ export async function rejectAction(
   actorEmail: string,
   reason?: string,
 ) {
+  // Fetch the action details first to support learned policy creation.
+  const { data: pending } = await supabase
+    .from("action_queue")
+    .select("id, action_type, entity_type, entity_id, proposed_by, source_context")
+    .eq("id", id)
+    .eq("status", "pending")
+    .maybeSingle();
+
   const { data, error } = await supabase
     .from("action_queue")
     .update({
@@ -202,4 +252,28 @@ export async function rejectAction(
     entityId: id,
     metadata: { reason },
   });
+
+  // Rejection feedback loop: create a learned policy from the human decision.
+  // This is how the system learns "don't do X" from real operational experience.
+  // The work executor consults learned policies before execution, so rejected
+  // patterns will be surfaced or blocked in future AI runs.
+  if (pending) {
+    const actionKey = pending.action_type;
+    const coworkerId = pending.proposed_by?.startsWith("coworker:")
+      ? pending.proposed_by.replace("coworker:", "")
+      : null;
+    const rule = reason
+      ? `Human rejected ${actionKey}: "${reason}"`
+      : `Human rejected ${actionKey} without providing a reason`;
+    await recordLearnedPolicy(supabase, {
+      actionKey,
+      rule,
+      rationale: reason || "Rejection without explicit reason — pattern may indicate incorrect action target, timing, or content",
+      source: "human_decision",
+      coworkerId,
+      scopeEntityType: pending.entity_type,
+      scopeEntityId: pending.entity_id,
+      actorEmail,
+    }).catch(() => {});
+  }
 }
