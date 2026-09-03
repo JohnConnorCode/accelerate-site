@@ -1,8 +1,8 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createDailyDigestWork, createDetectStaleDealsWork, createDetectStageBottleneckWork } from "./business-pulse-coworker";
-import { createDailyHealthCheckWork } from "./operations-coworker";
-import { createWeeklyReconciliationWork, createDetectOverduePaymentsWork } from "./finance-coworker";
+import { createDailyDigestWork, createDetectStaleDealsWork, createDetectStageBottleneckWork, createDetectVelocityChangeWork } from "./business-pulse-coworker";
+import { createDailyHealthCheckWork, createIntegrationStatusAuditWork, createDataQualityScanWork } from "./operations-coworker";
+import { createWeeklyReconciliationWork, createDetectOverduePaymentsWork, createRevenueStageAuditWork } from "./finance-coworker";
 import { createRevenueTask } from "./tasks";
 import { recordAudit } from "./audit";
 
@@ -31,15 +31,19 @@ export async function scheduleDailyWork(
 ): Promise<WorkSchedulerSummary> {
   const summary: WorkSchedulerSummary = { created: 0, skipped: 0, errors: [] };
 
-  // Business Pulse: daily digest + stale deals + bottleneck check.
+  // Business Pulse: daily digest + stale deals + bottleneck + velocity change.
   const dailyCreators = [
     { name: "daily_digest", fn: () => createDailyDigestWork(supabase) },
     { name: "detect_stale_deals", fn: () => createDetectStaleDealsWork(supabase) },
     { name: "detect_stage_bottleneck", fn: () => createDetectStageBottleneckWork(supabase) },
-    // Operations: daily health check.
+    { name: "detect_velocity_change", fn: () => createDetectVelocityChangeWork(supabase) },
+    // Operations: daily health check + integration audit + data quality.
     { name: "daily_health_check", fn: () => createDailyHealthCheckWork(supabase) },
-    // Finance: overdue payment scan (daily).
+    { name: "integration_status_audit", fn: () => createIntegrationStatusAuditWork(supabase) },
+    { name: "data_quality_scan", fn: () => createDataQualityScanWork(supabase) },
+    // Finance: overdue payment scan + revenue-stage audit (daily).
     { name: "detect_overdue_payments", fn: () => createDetectOverduePaymentsWork(supabase) },
+    { name: "revenue_stage_audit", fn: () => createRevenueStageAuditWork(supabase) },
   ];
 
   for (const { name, fn } of dailyCreators) {

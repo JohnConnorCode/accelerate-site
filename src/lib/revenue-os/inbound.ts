@@ -9,6 +9,8 @@ import { transitionOpportunity } from "./pipeline";
 import { loadPipelineStages } from "./pipeline-stage-resolver";
 import { createRevenueTask } from "./tasks";
 import { createQualifyLeadWork } from "./sales-coworker";
+import { createDetectVelocityChangeWork } from "./business-pulse-coworker";
+import { createDataQualityScanWork } from "./operations-coworker";
 import {
   RESPONDER_POLICY_VERSION,
   respondToInbound,
@@ -198,6 +200,14 @@ export async function ingestInboundLead(supabase: SupabaseClient, input: Canonic
   }).catch((err) => {
     console.error("[inbound] failed to create qualify_lead work item:", err instanceof Error ? err.message : String(err));
   });
+  // Business Pulse: pipeline metrics changed with this new lead.
+  await createDetectVelocityChangeWork(supabase, {
+    actorEmail: tenant.founder.systemActorEmail,
+  }).catch(() => {});
+  // Operations: new records should be checked for data completeness.
+  await createDataQualityScanWork(supabase, {
+    actorEmail: tenant.founder.systemActorEmail,
+  }).catch(() => {});
   await recordAudit(supabase, {
     actorEmail: tenant.founder.systemActorEmail,
     action: "inbound.captured",

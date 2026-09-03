@@ -127,6 +127,23 @@ export async function createDetectOverduePaymentsWork(
   });
 }
 
+export async function createRevenueStageAuditWork(
+  supabase: SupabaseClient,
+  input?: { actorEmail?: string | null },
+) {
+  return createWorkItem(supabase, {
+    kind: "revenue_stage_audit",
+    objective: "Identify high-stage deals without recent activity that may need attention",
+    reason: "Scheduled revenue-stage audit",
+    source: "finance_coworker",
+    priority: "medium",
+    coworkerId: FINANCE_COWORKER_ID,
+    dedupeKey: `finance:stage-audit:${new Date().toISOString().slice(0, 10)}`,
+    maxAttempts: 2,
+    actorEmail: input?.actorEmail,
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Work kind handlers
 // ---------------------------------------------------------------------------

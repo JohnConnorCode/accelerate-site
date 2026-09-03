@@ -109,6 +109,40 @@ export async function createDailyHealthCheckWork(
   });
 }
 
+export async function createIntegrationStatusAuditWork(
+  supabase: SupabaseClient,
+  input?: { actorEmail?: string | null },
+) {
+  return createWorkItem(supabase, {
+    kind: "integration_status_audit",
+    objective: "Audit integration source runs for failures or staleness",
+    reason: "Scheduled integration health audit",
+    source: "operations_coworker",
+    priority: "medium",
+    coworkerId: OPERATIONS_COWORKER_ID,
+    dedupeKey: `ops:integration-audit:${new Date().toISOString().slice(0, 10)}`,
+    maxAttempts: 2,
+    actorEmail: input?.actorEmail,
+  });
+}
+
+export async function createDataQualityScanWork(
+  supabase: SupabaseClient,
+  input?: { actorEmail?: string | null },
+) {
+  return createWorkItem(supabase, {
+    kind: "data_quality_scan",
+    objective: "Scan contacts and opportunities for missing critical fields",
+    reason: "Scheduled data quality check",
+    source: "operations_coworker",
+    priority: "low",
+    coworkerId: OPERATIONS_COWORKER_ID,
+    dedupeKey: `ops:data-quality:${new Date().toISOString().slice(0, 10)}`,
+    maxAttempts: 2,
+    actorEmail: input?.actorEmail,
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Work kind handlers
 // ---------------------------------------------------------------------------

@@ -145,6 +145,23 @@ export async function createDetectStageBottleneckWork(
   });
 }
 
+export async function createDetectVelocityChangeWork(
+  supabase: SupabaseClient,
+  input?: { actorEmail?: string | null },
+) {
+  return createWorkItem(supabase, {
+    kind: "detect_velocity_change",
+    objective: "Detect significant week-over-week pipeline velocity changes",
+    reason: "Scheduled velocity change scan",
+    source: "business_pulse_coworker",
+    priority: "medium",
+    coworkerId: BUSINESS_PULSE_COWORKER_ID,
+    dedupeKey: `pulse:velocity:${new Date().toISOString().slice(0, 10)}`,
+    maxAttempts: 2,
+    actorEmail: input?.actorEmail,
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Work kind handlers
 // ---------------------------------------------------------------------------
