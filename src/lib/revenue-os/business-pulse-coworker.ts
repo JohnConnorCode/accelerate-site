@@ -6,6 +6,7 @@ import { registerAutonomyPolicy } from "./autonomy-policy";
 import { registerCapability } from "./capabilities";
 import { recordAudit } from "./audit";
 import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";
+import { storeAgentMemory } from "./memory";
 
 // ---------------------------------------------------------------------------
 // Business Pulse Coworker (northstar Phase E, priority 1)
@@ -217,6 +218,14 @@ const dailyDigestHandler: WorkKindHandler = async (supabase) => {
     after: { totalActive, weightedPipeline, staleCount, newThisWeek, pendingActions, byStage },
   });
 
+  await storeAgentMemory(supabase, {
+    coworkerId: BUSINESS_PULSE_COWORKER_ID,
+    category: "prior_work",
+    subject: "daily_digest: pipeline summary",
+    body: digest,
+    relevanceHorizon: "daily",
+  }).catch(() => {});
+
   return { outcome: digest };
 };
 
@@ -247,6 +256,14 @@ const detectStaleDealsHandler: WorkKindHandler = async (supabase) => {
     source: "automation",
     after: { count, deals: stale?.map((s) => ({ id: s.id, company: s.company_name, stage: s.stage })) },
   });
+
+  await storeAgentMemory(supabase, {
+    coworkerId: BUSINESS_PULSE_COWORKER_ID,
+    category: "prior_work",
+    subject: `detect_stale_deals: ${count} found`,
+    body: summary,
+    relevanceHorizon: "daily",
+  }).catch(() => {});
 
   return { outcome: `${count} stale deals: ${summary}` };
 };
@@ -280,6 +297,14 @@ const detectStageBottleneckHandler: WorkKindHandler = async (supabase) => {
     source: "automation",
     after: { bottlenecks, distribution: byStage },
   });
+
+  await storeAgentMemory(supabase, {
+    coworkerId: BUSINESS_PULSE_COWORKER_ID,
+    category: "prior_work",
+    subject: `detect_stage_bottleneck: ${bottlenecks.length > 0 ? "detected" : "none"}`,
+    body: bottlenecks.length > 0 ? `Bottleneck: ${bottlenecks.join(", ")}` : `No bottleneck. Distribution: ${Object.entries(byStage).map(([s, c]) => `${s}=${c}`).join(", ")}`,
+    relevanceHorizon: "weekly",
+  }).catch(() => {});
 
   return { outcome: `Bottleneck detected: ${bottlenecks.join(", ")}` };
 };
@@ -315,10 +340,26 @@ const detectVelocityChangeHandler: WorkKindHandler = async (supabase) => {
       source: "automation",
       after: { thisWeek: tw, lastWeek: lw, changePercent: change.toFixed(1) },
     });
-    return { outcome: `Velocity alert: ${tw} new this week vs ${lw} last week (${change > 0 ? "+" : ""}${change.toFixed(0)}%)` };
+    const outcome = `Velocity alert: ${tw} new this week vs ${lw} last week (${change > 0 ? "+" : ""}${change.toFixed(0)}%)`;
+    await storeAgentMemory(supabase, {
+      coworkerId: BUSINESS_PULSE_COWORKER_ID,
+      category: "prior_work",
+      subject: "detect_velocity_change: significant change",
+      body: outcome,
+      relevanceHorizon: "weekly",
+    }).catch(() => {});
+    return { outcome };
   }
 
-  return { outcome: `Velocity stable: ${tw} new this week vs ${lw} last week (${change > 0 ? "+" : ""}${change.toFixed(0)}%)` };
+  const outcome = `Velocity stable: ${tw} new this week vs ${lw} last week (${change > 0 ? "+" : ""}${change.toFixed(0)}%)`;
+  await storeAgentMemory(supabase, {
+    coworkerId: BUSINESS_PULSE_COWORKER_ID,
+    category: "prior_work",
+    subject: "detect_velocity_change: stable",
+    body: outcome,
+    relevanceHorizon: "daily",
+  }).catch(() => {});
+  return { outcome };
 };
 
 // ---------------------------------------------------------------------------

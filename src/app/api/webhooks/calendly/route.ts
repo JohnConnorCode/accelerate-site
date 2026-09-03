@@ -11,6 +11,7 @@ import { recordActivity } from "@/lib/revenue-os/activities";
 import { recordAudit } from "@/lib/revenue-os/audit";
 import { stopCampaignMemberships } from "@/lib/revenue-os/campaign-stops";
 import { transitionOpportunity } from "@/lib/revenue-os/pipeline";
+import { createPreCallBriefWork } from "@/lib/revenue-os/meeting-intel-coworker";
 import { ACCELERATE_TENANT_ID } from "@/lib/tenancy/constants";
 
 interface CalendlyWebhookPayload {
@@ -293,6 +294,14 @@ export async function handleCalendlyWebhook(
         source: "webhook",
         metadata: { surface: "calendly_booking", error: notification.error.message },
       });
+    }
+    // Create a pre-call brief work item for the Meeting Intel coworker.
+    if (scheduledAt && opportunity.contact_id) {
+      createPreCallBriefWork(supabase, {
+        contactId: opportunity.contact_id,
+        meetingAt: scheduledAt,
+        actorEmail: "calendly",
+      }).catch(() => {});
     }
   } else {
     // A reschedule produces a canceled event plus a new created event. Only

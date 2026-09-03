@@ -425,6 +425,21 @@ export async function ingestPlaybookQualification(
       actorEmail: tenant.founder.systemActorEmail,
     });
   }
+  // Create coworker work items for the playbook path (same as canonical inbound).
+  if (input.qualification.qualified) {
+    await createQualifyLeadWork(supabase, {
+      contactId: identity.contact.id,
+      source: matchedPlaybook.sourceTag,
+      reason: `Playbook ${matchedPlaybook.key} qualification from ${identity.company.name}`,
+      actorEmail: tenant.founder.systemActorEmail,
+    }).catch(() => {});
+    await createDetectVelocityChangeWork(supabase, {
+      actorEmail: tenant.founder.systemActorEmail,
+    }).catch(() => {});
+    await createDataQualityScanWork(supabase, {
+      actorEmail: tenant.founder.systemActorEmail,
+    }).catch(() => {});
+  }
   await recordAudit(supabase, {
     actorEmail: tenant.founder.systemActorEmail,
     action: `inbound.${matchedPlaybook.key}_qualified`,

@@ -6,6 +6,7 @@ import { registerAutonomyPolicy } from "./autonomy-policy";
 import { registerCapability } from "./capabilities";
 import { recordAudit } from "./audit";
 import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";
+import { storeAgentMemory } from "./memory";
 
 // ---------------------------------------------------------------------------
 // Operations Coworker (northstar Phase E, priority 4)
@@ -203,6 +204,14 @@ const dailyHealthCheckHandler: WorkKindHandler = async (supabase) => {
     after: { failedJobs, staleClaims, expiredActions, workByStatus: byStatus },
   });
 
+  await storeAgentMemory(supabase, {
+    coworkerId: OPERATIONS_COWORKER_ID,
+    category: "prior_work",
+    subject: `daily_health_check: ${issues.length > 0 ? "issues found" : "healthy"}`,
+    body: outcome,
+    relevanceHorizon: "daily",
+  }).catch(() => {});
+
   return { outcome };
 };
 
@@ -240,7 +249,16 @@ const integrationStatusAuditHandler: WorkKindHandler = async (supabase) => {
     after: { failedCount: failed.length, notConfiguredCount: notConfigured.length },
   });
 
-  return { outcome: `Integration issues: ${parts.join("; ")}` };
+  const outcome = `Integration issues: ${parts.join("; ")}`;
+  await storeAgentMemory(supabase, {
+    coworkerId: OPERATIONS_COWORKER_ID,
+    category: "prior_work",
+    subject: `integration_status_audit: ${failed.length + notConfigured.length} issues`,
+    body: outcome,
+    relevanceHorizon: "daily",
+  }).catch(() => {});
+
+  return { outcome };
 };
 
 const dataQualityScanHandler: WorkKindHandler = async (supabase) => {
@@ -281,7 +299,16 @@ const dataQualityScanHandler: WorkKindHandler = async (supabase) => {
     after: { noEmail, noCompany, noNextAction },
   });
 
-  return { outcome: `Data quality issues: ${issues.join("; ")}` };
+  const outcome = `Data quality issues: ${issues.join("; ")}`;
+  await storeAgentMemory(supabase, {
+    coworkerId: OPERATIONS_COWORKER_ID,
+    category: "prior_work",
+    subject: `data_quality_scan: ${issues.length} issues`,
+    body: outcome,
+    relevanceHorizon: "daily",
+  }).catch(() => {});
+
+  return { outcome };
 };
 
 // ---------------------------------------------------------------------------

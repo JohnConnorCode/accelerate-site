@@ -6,6 +6,7 @@ import { registerAutonomyPolicy } from "./autonomy-policy";
 import { registerCapability } from "./capabilities";
 import { recordAudit } from "./audit";
 import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";
+import { storeAgentMemory } from "./memory";
 
 // ---------------------------------------------------------------------------
 // Sales Coworker: the reference coworker that proves Phase B primitives.
@@ -302,7 +303,18 @@ const qualifyLeadHandler: WorkKindHandler = async (supabase, wi) => {
     }).catch(() => {});
   }
 
-  return { outcome: `Qualified: ${contact.first_name ?? ""} ${contact.last_name ?? ""} at ${companyName} (stage: ${stage})` };
+  const outcome = `Qualified: ${contact.first_name ?? ""} ${contact.last_name ?? ""} at ${companyName} (stage: ${stage})`;
+  await storeAgentMemory(supabase, {
+    coworkerId: SALES_COWORKER_ID,
+    category: "prior_work",
+    subject: `qualify_lead: ${companyName}`,
+    body: outcome,
+    entityType: "contact",
+    entityId: contact.id,
+    relevanceHorizon: "weekly",
+  }).catch(() => {});
+
+  return { outcome };
 };
 
 const draftFollowupHandler: WorkKindHandler = async (supabase, wi) => {
@@ -336,7 +348,18 @@ const draftFollowupHandler: WorkKindHandler = async (supabase, wi) => {
     }).catch(() => {});
   }
 
-  return { outcome: `Follow-up draft reviewed for ${opportunity.company_name} (stage: ${opportunity.stage})` };
+  const outcome = `Follow-up draft reviewed for ${opportunity.company_name} (stage: ${opportunity.stage})`;
+  await storeAgentMemory(supabase, {
+    coworkerId: SALES_COWORKER_ID,
+    category: "prior_work",
+    subject: `draft_followup: ${opportunity.company_name}`,
+    body: outcome,
+    entityType: "opportunity",
+    entityId: opportunity.id,
+    relevanceHorizon: "daily",
+  }).catch(() => {});
+
+  return { outcome };
 };
 
 const reviewStaleProposalHandler: WorkKindHandler = async (supabase, wi) => {
@@ -372,7 +395,18 @@ const reviewStaleProposalHandler: WorkKindHandler = async (supabase, wi) => {
     actorEmail: "system",
   }).catch(() => {});
 
-  return { outcome: `Stale proposal reviewed for ${opportunity.company_name} — follow-up queued` };
+  const outcome = `Stale proposal reviewed for ${opportunity.company_name} — follow-up queued`;
+  await storeAgentMemory(supabase, {
+    coworkerId: SALES_COWORKER_ID,
+    category: "prior_work",
+    subject: `review_stale_proposal: ${opportunity.company_name}`,
+    body: outcome,
+    entityType: "opportunity",
+    entityId: opportunity.id,
+    relevanceHorizon: "weekly",
+  }).catch(() => {});
+
+  return { outcome };
 };
 
 const gatherLeadContextHandler: WorkKindHandler = async (supabase, wi) => {
@@ -414,7 +448,18 @@ const gatherLeadContextHandler: WorkKindHandler = async (supabase, wi) => {
     actorEmail: "system",
   }).catch(() => {});
 
-  return { outcome: `Context gathered for ${contact.first_name ?? ""} ${contact.last_name ?? ""}: ${contextSummary}` };
+  const outcome = `Context gathered for ${contact.first_name ?? ""} ${contact.last_name ?? ""}: ${contextSummary}`;
+  await storeAgentMemory(supabase, {
+    coworkerId: SALES_COWORKER_ID,
+    category: "prior_work",
+    subject: `gather_lead_context: ${contact.first_name ?? ""} ${contact.last_name ?? ""}`,
+    body: outcome,
+    entityType: "contact",
+    entityId: contact.id,
+    relevanceHorizon: "daily",
+  }).catch(() => {});
+
+  return { outcome };
 };
 
 const scheduleFollowupCheckHandler: WorkKindHandler = async (supabase, wi) => {
@@ -441,7 +486,18 @@ const scheduleFollowupCheckHandler: WorkKindHandler = async (supabase, wi) => {
     actorEmail: "system",
   }).catch(() => {});
 
-  return { outcome: `Follow-up check executed for ${opportunity.company_name} (stage: ${opportunity.stage}) — draft queued` };
+  const outcome = `Follow-up check executed for ${opportunity.company_name} (stage: ${opportunity.stage}) — draft queued`;
+  await storeAgentMemory(supabase, {
+    coworkerId: SALES_COWORKER_ID,
+    category: "prior_work",
+    subject: `schedule_followup_check: ${opportunity.company_name}`,
+    body: outcome,
+    entityType: "opportunity",
+    entityId: opportunity.id,
+    relevanceHorizon: "daily",
+  }).catch(() => {});
+
+  return { outcome };
 };
 
 // ---------------------------------------------------------------------------

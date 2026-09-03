@@ -6,6 +6,7 @@ import { registerAutonomyPolicy } from "./autonomy-policy";
 import { registerCapability } from "./capabilities";
 import { recordAudit } from "./audit";
 import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";
+import { storeAgentMemory } from "./memory";
 
 // ---------------------------------------------------------------------------
 // Finance Coworker (northstar Phase E, priority 3)
@@ -200,6 +201,14 @@ const weeklyReconciliationHandler: WorkKindHandler = async (supabase) => {
     after: { wonThisWeek: tw, wonLastWeek: lw, lostThisWeek: lostThisWeek ?? 0, weightedPipeline },
   });
 
+  await storeAgentMemory(supabase, {
+    coworkerId: FINANCE_COWORKER_ID,
+    category: "prior_work",
+    subject: "weekly_reconciliation: revenue summary",
+    body: summary,
+    relevanceHorizon: "weekly",
+  }).catch(() => {});
+
   return { outcome: summary };
 };
 
@@ -232,6 +241,14 @@ const detectOverduePaymentsHandler: WorkKindHandler = async (supabase) => {
     after: { count, deals: staleWon?.map((s) => ({ id: s.id, company: s.company_name })) },
   });
 
+  await storeAgentMemory(supabase, {
+    coworkerId: FINANCE_COWORKER_ID,
+    category: "prior_work",
+    subject: `detect_overdue_payments: ${count} found`,
+    body: summary,
+    relevanceHorizon: "daily",
+  }).catch(() => {});
+
   return { outcome: `${count} potential overdue/stalled deals: ${summary}` };
 };
 
@@ -263,6 +280,14 @@ const revenueStageAuditHandler: WorkKindHandler = async (supabase) => {
     source: "automation",
     after: { count, deals: atRisk?.map((s) => ({ id: s.id, company: s.company_name, stage: s.stage, probability: s.probability })) },
   });
+
+  await storeAgentMemory(supabase, {
+    coworkerId: FINANCE_COWORKER_ID,
+    category: "prior_work",
+    subject: `revenue_stage_audit: ${count} at risk`,
+    body: summary,
+    relevanceHorizon: "weekly",
+  }).catch(() => {});
 
   return { outcome: `${count} high-stage deals at risk: ${summary}` };
 };

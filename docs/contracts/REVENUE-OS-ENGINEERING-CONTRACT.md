@@ -81,6 +81,13 @@ historical receipt and no longer governs implementation.
 | Communication         | `conversations`, `messages`                                    | `communications.ts`, `google.ts`     | Provider/thread ID, direction, status, idempotency key         |
 | Operational history   | `activities`                                                   | Domain service that caused the event | Stable external/source ID and canonical links                  |
 | Human/AI decisions    | `action_queue`                                                 | `actions.ts`, `action-executor.ts`   | Impact tier, approval, atomic claim, terminal result           |
+| Autonomous work       | `work_items`                                                   | `work-items.ts`                      | Lease-based claim, retry policy, next-check reason, audit      |
+| Workspace capabilities| `workspace_capabilities`                                       | `capabilities.ts`                    | Capability key, resolution, policy (automatic/approval_required/prohibited) |
+| Evidence and claims   | `claims`, `evidence`                                           | `claims.ts`                          | Evidence-backed facts with human truth hierarchy and provenance |
+| Autonomy policies     | `autonomy_policies`, `autonomy_hard_floors`                    | `autonomy-policy.ts`                 | Five-level ladder, hard safety floors, coworker-specific overrides |
+| Coworker identities   | `coworkers`                                                    | `coworkers.ts`                       | First-class runtime objects with manifest, capabilities, work kinds |
+| Agent memory          | `agent_memory`, `learned_policies`                             | `memory.ts`                          | Five distinct categories, time-decay horizons, supersession    |
+| Resource budgets      | `budget_limits`, `budget_usage`                                | `budgets.ts`                         | Per-coworker or global limits, six budget kinds, exhaustion tracking |
 | Automation health     | `job_runs`, `source_runs`, `webhook_receipts`                  | `runs.ts` and integration adapters   | Start, terminal status, summary/error, cursor/replay key       |
 | AI trace and feedback | `agent_runs`, `agent_run_events`                               | `ai-agent.ts`, `agent-learning.ts`   | Model/tool trace, bounded result, immutable rating             |
 | Revenue reporting     | canonical opportunity/events plus first-party `website_events` | `analytics.ts`                       | Window, cohort rules, unknown attribution, reconciliation      |

@@ -6,6 +6,7 @@ import { registerAutonomyPolicy } from "./autonomy-policy";
 import { registerCapability } from "./capabilities";
 import { recordAudit } from "./audit";
 import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";
+import { storeAgentMemory } from "./memory";
 
 // ---------------------------------------------------------------------------
 // Meeting Intelligence Coworker (northstar Phase E, priority 2)
@@ -205,6 +206,16 @@ const preCallBriefHandler: WorkKindHandler = async (supabase, wi) => {
     after: { brief_summary: brief.substring(0, 200), work_item: wi.id },
   });
 
+  await storeAgentMemory(supabase, {
+    coworkerId: MEETING_INTEL_COWORKER_ID,
+    category: "prior_work",
+    subject: `pre_call_brief: ${contact.first_name ?? ""} ${contact.last_name ?? ""}`,
+    body: brief,
+    entityType: "contact",
+    entityId: contactId,
+    relevanceHorizon: "daily",
+  }).catch(() => {});
+
   return { outcome: `Pre-call brief: ${brief}` };
 };
 
@@ -243,7 +254,18 @@ const postMeetingProcessHandler: WorkKindHandler = async (supabase, wi) => {
     after: { stage: opportunity.stage, company: opportunity.company_name, work_item: wi.id },
   });
 
-  return { outcome: `Post-meeting processed for ${opportunity.company_name} (stage: ${opportunity.stage}) — CRM update queued` };
+  const outcome = `Post-meeting processed for ${opportunity.company_name} (stage: ${opportunity.stage}) — CRM update queued`;
+  await storeAgentMemory(supabase, {
+    coworkerId: MEETING_INTEL_COWORKER_ID,
+    category: "prior_work",
+    subject: `post_meeting_process: ${opportunity.company_name}`,
+    body: outcome,
+    entityType: "opportunity",
+    entityId: opportunityId,
+    relevanceHorizon: "weekly",
+  }).catch(() => {});
+
+  return { outcome };
 };
 
 const updateCrmFromMeetingHandler: WorkKindHandler = async (supabase, wi) => {
@@ -275,7 +297,18 @@ const updateCrmFromMeetingHandler: WorkKindHandler = async (supabase, wi) => {
     },
   });
 
-  return { outcome: `CRM update from meeting for ${opportunity.company_name} (stage: ${opportunity.stage})` };
+  const outcome = `CRM update from meeting for ${opportunity.company_name} (stage: ${opportunity.stage})`;
+  await storeAgentMemory(supabase, {
+    coworkerId: MEETING_INTEL_COWORKER_ID,
+    category: "prior_work",
+    subject: `update_crm_from_meeting: ${opportunity.company_name}`,
+    body: outcome,
+    entityType: "opportunity",
+    entityId: opportunityId,
+    relevanceHorizon: "weekly",
+  }).catch(() => {});
+
+  return { outcome };
 };
 
 // ---------------------------------------------------------------------------

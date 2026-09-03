@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createDailyDigestWork, createDetectStaleDealsWork, createDetectStageBottleneckWork, createDetectVelocityChangeWork } from "./business-pulse-coworker";
 import { createDailyHealthCheckWork, createIntegrationStatusAuditWork, createDataQualityScanWork } from "./operations-coworker";
 import { createWeeklyReconciliationWork, createDetectOverduePaymentsWork, createRevenueStageAuditWork } from "./finance-coworker";
+import { createPreCallBriefWork } from "./meeting-intel-coworker";
 import { createRevenueTask } from "./tasks";
 import { recordAudit } from "./audit";
 
@@ -129,8 +130,57 @@ export async function scheduleWeeklyWork(
 }
 
 /**
+ * Scan upcoming calendar events and create pre-call brief work items for
+ * meetings that don't already have one. Looks ahead 48 hours so the
+ * Meeting Intel coworker has time to prepare context before the call.
+ */
+export async function scheduleMeetingBriefs(
+  supabase: SupabaseClient,
+): Promise<WorkSchedulerSummary> {
+  const summary: WorkSchedulerSummary = { created: 0, skipped: 0, errors: [] };
+
+  const now = new Date();
+  const lookAhead = new Date(now.getTime() + 48 * 60 * 60 * 1000).toISOString();
+
+  const { data: upcoming, error } = await supabase
+    .from("calendar_events")
+    .select("id, contact_id, start_time")
+    .gte("start_time", now.toISOString())
+    .lt("start_time", lookAhead)
+    .not("contact_id", "is", null)
+    .order("start_time", { ascending: true })
+    .limit(20);
+
+  if (error || !upcoming?.length) {
+    if (error) summary.errors.push(`calendar_events: ${error.message}`);
+    return summary;
+  }
+
+  for (const event of upcoming) {
+    try {
+      await createPreCallBriefWork(supabase, {
+        contactId: event.contact_id,
+        meetingAt: event.start_time,
+        actorEmail: "system",
+      });
+      summary.created++;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes("duplicate") || msg.includes("23505")) {
+        summary.skipped++;
+      } else {
+        summary.errors.push(`brief:${event.id}: ${msg}`);
+      }
+    }
+  }
+
+  return summary;
+}
+
+/**
  * Main entry point: schedule all recurring work based on the current day.
- * Runs daily work every cycle; runs weekly work on Mondays (day 1).
+ * Runs daily work every cycle; runs weekly work on Mondays (day 1);
+ * scans upcoming meetings for pre-call briefs.
  */
 export async function scheduleRecurringWork(
   supabase: SupabaseClient,
@@ -141,9 +191,12 @@ export async function scheduleRecurringWork(
   const isMonday = new Date().getDay() === 1;
   const weekly = isMonday ? await scheduleWeeklyWork(supabase) : { created: 0, skipped: 0, errors: [] };
 
+  // Scan upcoming meetings for pre-call briefs.
+  const meetings = await scheduleMeetingBriefs(supabase);
+
   return {
-    created: daily.created + weekly.created,
-    skipped: daily.skipped + weekly.skipped,
-    errors: [...daily.errors, ...weekly.errors],
+    created: daily.created + weekly.created + meetings.created,
+    skipped: daily.skipped + weekly.skipped + meetings.skipped,
+    errors: [...daily.errors, ...weekly.errors, ...meetings.errors],
   };
 }

@@ -6,7 +6,9 @@ import { normalizeEmail } from "./db";
 import { recordActivity } from "./activities";
 import { loadPipelineStages } from "./pipeline-stage-resolver";
 import { createDetectOverduePaymentsWork } from "./finance-coworker";
+import { createRevenueStageAuditWork } from "./finance-coworker";
 import { createDetectStaleDealsWork } from "./business-pulse-coworker";
+import { createDataQualityScanWork } from "./operations-coworker";
 
 function requireReopenEligibility(
   fromRole: "open" | "won" | "lost",
@@ -272,11 +274,13 @@ export async function transitionOpportunity(
   // These are fire-and-forget — the transition must succeed regardless.
   if (toMeta.role === "won") {
     createDetectOverduePaymentsWork(supabase).catch(() => {});
+    createDataQualityScanWork(supabase).catch(() => {});
   } else if (toMeta.role === "lost") {
     createDetectStaleDealsWork(supabase).catch(() => {});
   } else if (canonicalTo === "proposal" || canonicalTo === "negotiation") {
     // High-value stage entry — pulse should re-evaluate pipeline health.
     createDetectStaleDealsWork(supabase).catch(() => {});
+    createRevenueStageAuditWork(supabase).catch(() => {});
   }
 
   return updated;
