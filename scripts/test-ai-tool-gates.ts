@@ -372,7 +372,7 @@ async function main() {
 
   // The registry version is what a stored trace is interpreted against. Adding
   // gates changes what a tool call means, so the version had to move.
-  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v3");
+  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v4");
 
   // validateToolInput is exported and usable directly, which is how the agent
   // surfaces a correctable error back into the transcript.
