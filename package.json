@@ -155,6 +155,8 @@
     "test:campaign-stop-claims": "node scripts/qa-campaign-stop-claims.mjs",
     "test:gmail-sync-plan": "npx tsx scripts/test-gmail-sync-plan.ts",
     "test:gmail-reply-mime": "npx tsx scripts/test-gmail-reply-mime.ts",
+    "test:gmail-threading": "npx tsx scripts/test-gmail-threading.ts",
+    "test:gmail-send-receipt": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-gmail-send-receipt.ts",
     "test:google-oauth": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-google-oauth.ts",
     "test:google-readiness": "node scripts/test-google-oauth-readiness.mjs",
     "verify:google-readiness": "node scripts/verify-google-oauth-readiness.mjs",

@@ -1,8 +1,11 @@
+import { buildRfcReferencesValue, resolveReplyParent } from "./gmail-threading";
+
 /** RFC 5322 Message-ID token. Stored Gmail ids are not always wrapped in <>. */
 export function gmailMessageIdHeader(externalId: string | null | undefined): string | null {
   const id = externalId?.trim().replace(/^<|>$/g, "");
   return id ? `<${id}>` : null;
 }
+
 
 export function buildGmailReplySubject(
   conversationSubject: string | null | undefined,
@@ -53,7 +56,15 @@ export function prepareGmailReply(input: {
   ownerEmail: string;
   recipient: string;
   conversationSubject: string | null | undefined;
-  latest: { external_id: string | null; subject: string | null; references_header: string | null };
+  latest: {
+    external_id: string | null;
+    subject: string | null;
+    references_header: string | null;
+    /** The parent's real RFC Message-ID when retained; without it the reply
+     * falls back to the provider-id form so old rows keep threading through
+     * the Gmail threadId anchor. */
+    rfc_message_id?: string | null;
+  };
   body: string;
 }) {
   const body = input.body.trim();
@@ -65,11 +76,13 @@ export function prepareGmailReply(input: {
     throw new Error("Gmail replies require the original message id so the thread stays intact");
   }
   const subject = buildGmailReplySubject(input.conversationSubject, input.latest.subject);
-  const inReplyTo = gmailMessageIdHeader(input.latest.external_id);
-  const references = buildGmailReferencesHeader(
-    input.latest.references_header,
-    input.latest.external_id,
-  );
+  const parent = resolveReplyParent({
+    latestExternalId: input.latest.external_id,
+    latestRfcId: input.latest.rfc_message_id ?? null,
+    latestReferencesHeader: input.latest.references_header,
+  });
+  const inReplyTo = parent.latestRfcId ?? gmailMessageIdHeader(input.latest.external_id);
+  const references = buildRfcReferencesValue(parent, input.latest.external_id);
   return {
     subject,
     inReplyTo,
