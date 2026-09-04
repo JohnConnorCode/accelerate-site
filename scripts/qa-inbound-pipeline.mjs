@@ -43,6 +43,16 @@ const COMPANY_PREFIX = "QA Journey Co ";
 
 const failures = [];
 const passed = [];
+/**
+ * Teardown health, tracked separately from product health. Context teardown
+ * hangs deterministically in some sandboxed headless-shell environments —
+ * including a request-only context that never opened a page, where no
+ * application leak is possible — while the final browser close always
+ * succeeds. Conflating that with product failure trains everyone to ignore
+ * the journey; these stay visible in the summary but do not fail it.
+ * Console errors and server 5xx still fail via `failures` below.
+ */
+const teardownNotes = [];
 function check(label, condition, detail) {
   if (condition) {
     passed.push(label);
@@ -246,9 +256,11 @@ const formData = {
 
 async function openContactForm(page) {
   // When the scheduler embed is live the manual form sits inside a closed
-  // <details> disclosure; a real visitor must open it first.
-  const disclosure = page.getByText("Prefer to send context first?");
-  if ((await disclosure.count()) > 0) await disclosure.click();
+  // <details> disclosure; a real visitor must open it first. Scope to the
+  // visible copy: the page renders responsive duplicates and clicking the
+  // hidden one times out instead of opening anything.
+  const disclosure = page.locator("summary:visible", { hasText: "Prefer to send context first?" });
+  if ((await disclosure.count()) > 0) await disclosure.first().click();
 }
 
 function stepLog(message) {
@@ -281,10 +293,10 @@ async function dbCall(label, promise, ms = 60000) {
  */
 async function settledClose(closeable, label) {
   await Promise.race([
-    closeable.close().catch((e) => failures.push(`${label} close error: ${e.message}`)),
+    closeable.close().catch((e) => teardownNotes.push(`${label} close error: ${e.message}`)),
     new Promise((r) =>
       setTimeout(() => {
-        failures.push(`${label} close timed out after 15s; continuing`);
+        teardownNotes.push(`${label} close timed out after 15s; continuing`);
         r(null);
       }, 15000),
     ),
@@ -366,7 +378,21 @@ try {
   // loud, do not silently continue.
   await desktopForm.locator('input[name="email"]').fill(email);
   await submitContactForm(page, desktopForm);
-  check("contact submit confirms", true);
+  // submitContactForm only returns once the React handler confirms, so the
+  // confirmation must be visible here; assert it instead of passing blindly.
+  await page
+    .getByText("On its way to John")
+    .first()
+    .waitFor({ timeout: 15000 })
+    .catch(() => null);
+  check(
+    "contact submit confirms",
+    await page
+      .getByText("On its way to John")
+      .first()
+      .isVisible()
+      .catch(() => false),
+  );
   await page.screenshot({ path: `${outDir}/contact-submitted-desktop.png` });
 
   // 3. Canonical records: exactly one of each, stage new, UTM attribution kept.
@@ -427,6 +453,10 @@ try {
   await openContactForm(mpage);
   const mobileForm = await fillContactForm(mpage, formData);
   await submitContactForm(mpage, mobileForm);
+  // Frame the confirmation for the record shot; never fail the run here.
+  const mobileConfirm = mpage.getByText("On its way to John").first();
+  await mobileConfirm.waitFor({ timeout: 15000 }).catch(() => null);
+  await mobileConfirm.scrollIntoViewIfNeeded().catch(() => null);
   await mpage.screenshot({ path: `${outDir}/contact-submitted-mobile.png` });
   await settledClose(mobile, 'mobile context');
 
@@ -539,6 +569,7 @@ const summary = {
   passed: passed.length,
   failed: failures.length,
   failures,
+  teardownNotes,
   screenshots: [
     "contact-desktop.png",
     "contact-submitted-desktop.png",
