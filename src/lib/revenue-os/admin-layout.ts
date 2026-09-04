@@ -45,10 +45,13 @@ export function validateLayoutDoc(scope: string, doc: unknown): LayoutDoc {
 export async function getCurrentLayout(
   supabase: SupabaseClient,
   scope: string,
+  tenantId: string,
 ): Promise<LayoutDoc | null> {
+  if (!tenantId?.trim()) throw new Error("A tenant id is required to read layout docs");
   const { data, error } = await supabase
     .from("admin_settings")
     .select("value")
+    .eq("tenant_id", tenantId)
     .eq("key", settingsKey(scope))
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -90,16 +93,17 @@ export async function proposeLayoutChange(
 
 export async function applyLayoutChange(
   supabase: SupabaseClient,
-  input: { scope: string; doc: unknown; actorEmail: string },
+  input: { scope: string; doc: unknown; actorEmail: string; source?: "ai" | "admin"; tenantId: string },
 ) {
   const doc = validateLayoutDoc(input.scope, input.doc);
-  const before = await getCurrentLayout(supabase, input.scope);
+  if (!input.tenantId?.trim()) throw new Error("A tenant id is required to save layout docs");
+  const before = await getCurrentLayout(supabase, input.scope, input.tenantId);
   const key = settingsKey(input.scope);
   const { error } = await supabase
     .from("admin_settings")
     .upsert(
-      { key, value: JSON.stringify(doc), updated_at: new Date().toISOString() },
-      { onConflict: "key" },
+      { tenant_id: input.tenantId, key, value: JSON.stringify(doc), updated_at: new Date().toISOString() },
+      { onConflict: "tenant_id,key" },
     );
   if (error) throw new Error(error.message);
 
@@ -108,7 +112,7 @@ export async function applyLayoutChange(
     action: "admin_layout.applied",
     entityType: "admin_layout",
     entityId: input.scope,
-    source: "ai",
+    source: input.source ?? "ai",
     before,
     after: doc,
   });
@@ -117,9 +121,10 @@ export async function applyLayoutChange(
 
 export async function revertLayoutChange(
   supabase: SupabaseClient,
-  input: { scope: string; actorEmail: string },
+  input: { scope: string; actorEmail: string; tenantId: string },
 ) {
   if (!getLayoutScope(input.scope)) throw new Error(`Unknown layout scope: ${input.scope}`);
+  if (!input.tenantId?.trim()) throw new Error("A tenant id is required to revert layout docs");
 
   const { entries } = await listAuditHistory(supabase, {
     entityType: "admin_layout",
@@ -130,13 +135,13 @@ export async function revertLayoutChange(
   if (!last) throw new Error(`No layout history to revert for ${input.scope}`);
 
   const previous = validateLayoutDoc(input.scope, last.before ?? { order: [], hidden: [] });
-  const current = await getCurrentLayout(supabase, input.scope);
+  const current = await getCurrentLayout(supabase, input.scope, input.tenantId);
   const key = settingsKey(input.scope);
   const { error } = await supabase
     .from("admin_settings")
     .upsert(
-      { key, value: JSON.stringify(previous), updated_at: new Date().toISOString() },
-      { onConflict: "key" },
+      { tenant_id: input.tenantId, key, value: JSON.stringify(previous), updated_at: new Date().toISOString() },
+      { onConflict: "tenant_id,key" },
     );
   if (error) throw new Error(error.message);
 

@@ -12,9 +12,11 @@ import {
   CheckCircle2,
   Loader2,
   RefreshCw,
+  SlidersHorizontal,
   TriangleAlert,
   X,
 } from "lucide-react";
+import { LayoutCustomizeDialog } from "@/components/admin/LayoutCustomizeDialog";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminAsyncRegion } from "@/components/admin/AdminAsyncRegion";
@@ -518,6 +520,7 @@ export default function TodayPage() {
   const [taskActioning, setTaskActioning] = useState<string | null>(null);
   const [focus, setFocus] = useState<(typeof focusOptions)[number]["id"]>("all");
   const [showAllApprovals, setShowAllApprovals] = useState(false);
+  const [customizeOpen, setCustomizeOpen] = useState(false);
   const dismissedActionRef = useRef<string | null>(null);
   const reviewTriggerRef = useRef<HTMLElement | null>(null);
   const loading = overviewQuery.isPending || actionsQuery.isPending;
@@ -799,6 +802,15 @@ export default function TodayPage() {
       <PageHeader
         title="Today"
         subtitle="The founder queue: replies, commitments, meetings, proposals, approvals, and system exceptions in revenue order."
+        actions={
+          <button
+            type="button"
+            onClick={() => setCustomizeOpen(true)}
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow] hover:shadow-[var(--admin-shadow-border-hover)]"
+          >
+            <SlidersHorizontal className="size-3.5" /> Customize
+          </button>
+        }
         utilityActions={
           <>
             <span className="hidden text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)] sm:inline">
@@ -1289,6 +1301,13 @@ export default function TodayPage() {
                 onReject={() => {
                   if (reviewing) void decide(reviewing.id, "reject");
                 }}
+              />
+              <LayoutCustomizeDialog
+                open={customizeOpen}
+                onClose={() => setCustomizeOpen(false)}
+                scope="page.today"
+                currentDoc={todayLayoutDoc}
+                onSaved={() => void layoutQuery.refetch()}
               />
             </div>
           )
