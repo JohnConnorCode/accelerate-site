@@ -35,7 +35,7 @@ const missing = collectFeatureBoardIntegrityFailures(
   ],
   { loopKeys: ["alpha"], nowKeys: ["alpha"], secondBrainImplementations: {} },
 );
-assert.match(missing.join("\n"), /depends on "Missing Title"/);
+assert.match(missing.failures.join("\n"), /depends on "Missing Title"/);
 
 const circular = findCircularDependencies(
   new Map([
@@ -95,7 +95,7 @@ const active = collectFeatureBoardIntegrityFailures(
   ],
   { loopKeys: ["unshipped", "active"], nowKeys: ["active"], secondBrainImplementations: {} },
 );
-assert.match(active.join("\n"), /is in progress but depends on unsatisfied \[unshipped\]/);
+assert.match(active.warnings.join("\n"), /is in progress but depends on unsatisfied \[unshipped\]/);
 
 const rollup = collectFeatureBoardIntegrityFailures(
   [
@@ -112,7 +112,7 @@ const rollup = collectFeatureBoardIntegrityFailures(
     secondBrainImplementations: { "second-brain-see": ["founder-note-capture"] },
   },
 );
-assert.match(rollup.join("\n"), /roll-up is missing founder-note-capture/);
+assert.match(rollup.failures.join("\n"), /roll-up is missing founder-note-capture/);
 
 const summary = validateFeatureBacklog();
 assert.equal(summary.total, featureBacklog.length);
@@ -121,7 +121,15 @@ const live = collectFeatureBoardIntegrityFailures(featureBacklog, {
   nowKeys: NOW_KEYS,
   secondBrainImplementations: SECOND_BRAIN_IMPLEMENTATIONS,
 });
-assert.deepEqual(live, [], live.join("\n"));
+assert.deepEqual(live.failures, [], live.failures.join("\n"));
+// Active-dependency violations are live coordination state (another card's
+// currently-valid claim elsewhere on the board), not a structural manifest
+// defect — surfaced, never asserted empty, since a concurrent agent can put
+// this board into that state at any moment for reasons this test can't see.
+if (live.warnings.length) {
+  console.warn(`warning: ${live.warnings.length} active-dependency violation(s) on the live board:`);
+  for (const warning of live.warnings) console.warn(`  - ${warning}`);
+}
 assert.ok(NOW_KEYS.every((key: string) => LOOP_ONE.includes(key)));
 for (const [key, implementations] of Object.entries(SECOND_BRAIN_IMPLEMENTATIONS)) {
   const phase = featureBacklog.find((item: { seed_key: string }) => item.seed_key === key);

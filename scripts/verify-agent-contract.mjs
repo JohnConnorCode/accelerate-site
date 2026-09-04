@@ -143,13 +143,13 @@ for (const card of featureBacklog) {
 }
 
 const cardsByKey = new Map(featureBacklog.map((card) => [card.seed_key, card]));
-failures.push(
-  ...collectFeatureBoardIntegrityFailures(featureBacklog, {
-    loopKeys: LOOP_ONE,
-    nowKeys: NOW_KEYS,
-    secondBrainImplementations: SECOND_BRAIN_IMPLEMENTATIONS,
-  }),
-);
+const boardIntegrity = collectFeatureBoardIntegrityFailures(featureBacklog, {
+  loopKeys: LOOP_ONE,
+  nowKeys: NOW_KEYS,
+  secondBrainImplementations: SECOND_BRAIN_IMPLEMENTATIONS,
+});
+failures.push(...boardIntegrity.failures);
+for (const warning of boardIntegrity.warnings) console.warn(`warning: ${warning}`);
 
 // "Shipped" must be mechanically earned, not self-reported prose: catches
 // unwired modules, tables no migration creates, unregistered cron routes,

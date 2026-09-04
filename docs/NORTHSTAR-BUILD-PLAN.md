@@ -18,21 +18,24 @@
 | Phase | Backlog | Planned | In progress | Blocked | Shipped | Total |
 |---|---|---|---|---|---|---|
 | A — A (Complete Loop One — See + Remember) | 0 | 0 | 0 | 1 | 18 | 19 |
-| B — B (Agent Runtime foundation — Notice + Act primitives) | 21 | 20 | 2 | 5 | 29 | 77 |
+| B — B (Agent Runtime foundation — Notice + Act primitives) | 21 | 21 | 0 | 4 | 31 | 77 |
 | C — C (Reference coworker — Sales end-to-end loop) | 20 | 5 | 0 | 1 | 10 | 36 |
 | D — D (Plugin SDK + MCP) | 5 | 3 | 0 | 1 | 13 | 22 |
-| E — E (Additional coworkers/plugins + documentation) | 45 | 3 | 1 | 0 | 6 | 55 |
+| E — E (Additional coworkers/plugins + documentation) | 44 | 3 | 2 | 0 | 6 | 55 |
 
-**Board total:** 91 backlog, 31 planned, 3 in progress, 8 blocked, 76 shipped (209 managed cards).
+**Board total:** 90 backlog, 32 planned, 2 in progress, 7 blocked, 78 shipped (209 managed cards).
 
 ## Dispatchable now (`npm run agent:next` picks from this set)
 
+- `conversations-operator-inbox` [high] — Finish Conversations as the unified communication inbox
 - `drive-content-indexing` [medium] — Extract and index approved Drive documents
+- `ai-bounded-context` [high] — Enforce bounded AI context and grounding rules
 - `drive-provenance-retrieval` [medium] — Ground AI retrieval in Drive provenance and citations
-- `legacy-api-adapters` [high] — Back legacy admin reads with canonical adapters
-- `admin-settings-consolidation` [medium] — Consolidate Settings and connection ownership
 - `admin-shell-design-system` [high] — Complete the shared professional admin system
+- `admin-settings-consolidation` [medium] — Consolidate Settings and connection ownership
 - `feature-board-interaction-rebuild` [high] — Rebuild Feature Board drag, details, and mobile interaction
+- `additional-tools-canonical-parity` [high] — Modernize and canonically integrate every additional admin tool
+- `gmail-reply-actions` [high] — Finish reply, local archive, and follow-up actions in Conversations
 - `de-vertical-inbound` [high] — Turn the roofing ingestion path into a configurable playbook
 - `command-palette-tools` [medium] — Connect the command palette to real Revenue OS actions
 - `proposal-lifecycle-service` [high] — Complete the proposal lifecycle and version rules
@@ -54,16 +57,14 @@
 
 ## In progress
 
-- `conversations-operator-inbox` — Finish Conversations as the unified communication inbox (claude-code:johnconnor:18885)
-- `ai-bounded-context` — Enforce bounded AI context and grounding rules (claude-code:johnconnor:36762)
 - `entity-registry-and-link-graph` — Add an open entity registry and a polymorphic link graph (claude-code:johnconnor:88811)
+- `capability-scoped-data-api` — Expose one capability-checked data API with no raw database handle (claude-code:johnconnor:6708)
 
 ## Blocked
 
 - `communication-sender-service` — Finish one auditable communication sender
 - `google-oauth-first-sync` — Connect Google OAuth and complete the first Workspace sync
 - `gmail-incremental-sync` — Import Gmail incrementally with cursor recovery
-- `gmail-thread-idempotency` — Preserve Gmail threading and message idempotency
 - `calendar-sync-association` — Synchronize Calendar events and associate revenue records
 - `second-brain-see` — Phase A: give the system eyes
 - `email-studio-runtime` — Restore Email Studio, sent history, and live template publishing

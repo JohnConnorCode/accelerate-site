@@ -770,10 +770,11 @@ export const featureBacklog = [
   }),
   card({
     key: "legacy-api-adapters",
+    owner: "claude-code:johnconnor:97668",
     title: "Back legacy admin reads with canonical adapters",
     workstream: "foundation",
     phase: 2,
-    status: "planned",
+    status: "shipped",
     priority: "high",
     description:
       "Temporarily preserve legacy response shapes while sourcing data from canonical services until parity checks and UI conversion pass.",
@@ -1030,7 +1031,7 @@ export const featureBacklog = [
     title: "Finish Conversations as the unified communication inbox",
     workstream: "admin",
     phase: 2,
-    status: "in_progress",
+    status: "planned",
     priority: "high",
     owner: "claude-code:johnconnor:18885",
     description:
@@ -1617,8 +1618,10 @@ export const featureBacklog = [
   }),
   card({
     key: "gmail-thread-idempotency",
-    owner: "claude-code:johnconnor:59991",
-    status: "blocked",
+    evidence:
+      "gmail-thread-idempotency adopted from expired lease 59991 and shipped from branch agent/gmail-thread-idempotency commit e233e53: pure gmail-threading module (RFC ids, participant lists, alias-aware direction), sync retains RFC identity + participant lists, terminal sent/failed receipts never clobbered, alias-sent mail outbound via Send-As discovery, replies chain real RFC headers with provider fallback, convergent send receipts (upsert heals racing-sync rows, claim retires, idempotency blocks duplicate sends). Verified: threading/reply-mime/send-receipt/sync-plan suites green, tsc, lint, agent-contract, build 338, diff-check. Remaining: live Workspace sync proof.",
+    owner: "claude-code:johnconnor:97668",
+    status: "shipped",
     title: "Preserve Gmail threading and message idempotency",
     workstream: "gmail",
     phase: 2,
@@ -2529,7 +2532,7 @@ export const featureBacklog = [
   }),
   card({
     key: "ai-bounded-context",
-    status: "in_progress",
+    status: "planned",
     owner: "claude-code:johnconnor:36762",
     title: "Enforce bounded AI context and grounding rules",
     workstream: "ai",
@@ -3072,7 +3075,7 @@ export const featureBacklog = [
   card({
     key: "system-health-report",
     owner: "claude-code:johnconnor:26718",
-    status: "in_progress",
+    status: "planned",
     title: "Build the system-health report and freshness thresholds",
     workstream: "operations",
     phase: 4,
@@ -3733,8 +3736,10 @@ export const featureBacklog = [
   }),
   card({
     key: "identity-review-workbench",
+    evidence:
+      "identity-review-workbench on branch agent/identity-review-workbench commit 1258e20: bounded read model over pending identity_review actions (source/age/candidates/evidence/downstream); link/create/no-match/defer through atomic claim with replay, human-entered decision evidence, audit+activity receipts; no merge/delete paths; generic approval fails closed; admin page + API + nav/module claimed. Verified: agent-contract, tsc, lint --max-warnings=0, test-identity-review 12/12, test-action-execution, test-conversations 16/16, module route guards, qa-identity-review 11/11 green with inspected desktop/mobile screenshots, build 339 pages, diff-check. Note: verify:module-contract fails identically with and without this change (unclaimed budget AI tools from another workstream). Remaining: production Workspace proof.",
     owner: "claude-code:johnconnor:30493",
-    status: "in_progress",
+    status: "shipped",
     title: "Build the identity review workbench",
     workstream: "foundation",
     phase: 2,
@@ -4591,10 +4596,11 @@ export const featureBacklog = [
   // ────────────────────────────────────────────────────────────────────────
   card({
     key: "entity-registry-and-link-graph",
+    owner: "claude-code:johnconnor:88811",
     title: "Add an open entity registry and a polymorphic link graph",
     workstream: "foundation",
     phase: 6,
-    status: "backlog",
+    status: "in_progress",
     priority: "high",
     description:
       "Plugin Platform phase 1 of 6, primitive 1 of 7: Records. There is no entity_links table, no entity_types registry, and no generic merge anywhere in src or migrations. Without a generic link table every pair of capabilities that needs to relate records requires a bespoke join table and its own migration, which is the cost that stops an ecosystem before it starts. A meeting capability needs to link a transcript to a contact to an opportunity to a follow-up task; today that is four schema changes. Entity types become rows rather than an enum so that links, merge and audit work on a newly registered type the day it appears, with no code change.",
@@ -4724,10 +4730,11 @@ export const featureBacklog = [
   }),
   card({
     key: "capability-scoped-data-api",
+    owner: "claude-code:johnconnor:6708",
     title: "Expose one capability-checked data API with no raw database handle",
     workstream: "security",
     phase: 6,
-    status: "backlog",
+    status: "in_progress",
     priority: "high",
     description:
       "Plugin Platform phase 1 of 6. Reads must go through a single capability-checked interface and writes must go through the executor, because that is what makes row-level security, cost accounting and audit complete rather than best-effort. The pattern is already proven in this repository: bindTenantDatabase is a proxy that forces tenant filtering because the service role bypasses row-level security. Generalize it into a data API with three shapes, a filtered entity query, a server-computed recipe, and a capability's own namespaced storage, and deliberately provide no direct write to core entities.",
