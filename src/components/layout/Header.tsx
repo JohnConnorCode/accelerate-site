@@ -49,6 +49,7 @@ const navLinks: NavLink[] = [
   },
   { label: "Work", href: "/work" },
   { label: "Learn", href: "/learn" },
+  { label: "Docs", href: "/docs" },
   { label: "Open Source", href: "/open-source" },
   { label: "Roadmap", href: "/roadmap" },
 ];
