@@ -735,9 +735,9 @@ export default function PipelinePage() {
               value={stageRole}
               onChange={(value) => setStageRole(value as "open" | "won" | "lost")}
             >
-              <option value="open">Open — still in play</option>
-              <option value="won">Won — a closed win</option>
-              <option value="lost">Lost — a closed loss</option>
+              <option value="open">Open, still in play</option>
+              <option value="won">Won, a closed win</option>
+              <option value="lost">Lost, a closed loss</option>
             </SelectBlock>
             <label className="text-xs font-semibold">
               Win probability ({stageProbability}%)

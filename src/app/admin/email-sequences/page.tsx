@@ -108,6 +108,9 @@ export default function EmailSequencesPage() {
             { value: "plan_nurture", label: "Plan Nurture" },
             { value: "resource_welcome", label: "Resource Welcome" },
             { value: "grader_followup", label: "Grader Followup" },
+            { value: "booking_nurture", label: "Booking Nurture" },
+            { value: "roofing_nurture", label: "Roofing Nurture" },
+            { value: "manual_audit_followup", label: "Manual Audit Followup" },
           ]}
           className="w-44"
         />
