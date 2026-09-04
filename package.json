@@ -190,7 +190,8 @@
     "test:founder-notes": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-founder-notes.ts",
     "test:recovery": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-recovery.ts",
     "test:health-expectation": "npx tsx scripts/test-health-expectation.ts",
-    "qa:founder-notes": "node --env-file=.env.local scripts/qa-founder-note.mjs"
+    "qa:founder-notes": "node --env-file=.env.local scripts/qa-founder-note.mjs",
+    "qa:conversations": "node --env-file=.env.local scripts/qa-conversations.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

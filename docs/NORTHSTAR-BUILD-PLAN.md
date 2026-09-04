@@ -18,16 +18,15 @@
 | Phase | Backlog | Planned | In progress | Blocked | Shipped | Total |
 |---|---|---|---|---|---|---|
 | A — A (Complete Loop One — See + Remember) | 0 | 0 | 0 | 1 | 18 | 19 |
-| B — B (Agent Runtime foundation — Notice + Act primitives) | 21 | 21 | 0 | 4 | 31 | 77 |
+| B — B (Agent Runtime foundation — Notice + Act primitives) | 21 | 20 | 1 | 4 | 31 | 77 |
 | C — C (Reference coworker — Sales end-to-end loop) | 20 | 5 | 0 | 1 | 10 | 36 |
 | D — D (Plugin SDK + MCP) | 5 | 3 | 0 | 1 | 13 | 22 |
-| E — E (Additional coworkers/plugins + documentation) | 44 | 3 | 2 | 0 | 6 | 55 |
+| E — E (Additional coworkers/plugins + documentation) | 40 | 4 | 1 | 0 | 10 | 55 |
 
-**Board total:** 90 backlog, 32 planned, 2 in progress, 7 blocked, 78 shipped (209 managed cards).
+**Board total:** 86 backlog, 32 planned, 2 in progress, 7 blocked, 82 shipped (209 managed cards).
 
 ## Dispatchable now (`npm run agent:next` picks from this set)
 
-- `conversations-operator-inbox` [high] — Finish Conversations as the unified communication inbox
 - `drive-content-indexing` [medium] — Extract and index approved Drive documents
 - `ai-bounded-context` [high] — Enforce bounded AI context and grounding rules
 - `drive-provenance-retrieval` [medium] — Ground AI retrieval in Drive provenance and citations
@@ -44,6 +43,7 @@
 - `system-health-report` [high] — Build the system-health report and freshness thresholds
 - `booking-mode-contract-reconciliation` [high] — Reconcile booking activation and health truth
 - `stage-history-analytics-reconciliation` [high] — Reconcile analytics with canonical stage history
+- `unified-action-executor` [high] — Route every write through one executor with reversibility and compensators
 - `operating-goals-scorecards` [high] — Add operating goals and scorecards
 - `won-to-delivery-handoff` [high] — Create the won-to-delivery handoff
 - `governed-bulk-operator-actions` [medium] — Add governed bulk operator actions
@@ -52,13 +52,14 @@
 - `csv-hubspot-importers` [low] — Ship CSV and HubSpot contact/deal importers
 - `roles-and-permissions` [high] — Add real roles, record ownership, and per-object agent permissions
 - `integration-adapter-registry-resolution` [high] — Make the integration adapter registry the real resolution point
-- `unified-action-executor` [high] — Route every write through one executor with reversibility and compensators
-- `docs-site-infrastructure` [high] — Build the documentation site infrastructure at /docs
+- `generic-record-merge` [medium] — Add foreign-key-safe generic record merge with supersession
+- `report-recipe-engine` [high] — Make server-computed report recipes a registrable primitive
+- `docs-module-coverage-gate` [high] — Make a module that ships without documentation a red build
 
 ## In progress
 
-- `entity-registry-and-link-graph` — Add an open entity registry and a polymorphic link graph (claude-code:johnconnor:88811)
-- `capability-scoped-data-api` — Expose one capability-checked data API with no raw database handle (claude-code:johnconnor:6708)
+- `conversations-operator-inbox` — Finish Conversations as the unified communication inbox (grok-4.6:johnconnor)
+- `plugin-isolate-host` — Run plugin code in an isolate with no ambient authority (claude-code:johnconnor:71722)
 
 ## Blocked
 

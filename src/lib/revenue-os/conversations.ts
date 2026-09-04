@@ -423,7 +423,7 @@ export async function getConversationDetail(
     if (text.includes("pricing") || text.includes("cost") || text.includes("rate")) {
       suggestedReply = {
         intent: "pricing_inquiry",
-        body: `Hi there,\n\nThanks for reaching out regarding pricing. We offer tailored packages structured around your exact operating scope. I'd be glad to walk through the options—would you have 10 minutes this week for a quick discussion?`,
+        body: `Hi there,\n\nThanks for reaching out regarding pricing. We offer tailored packages structured around your exact operating scope. I'd be glad to walk through the options. Would you have 10 minutes this week for a quick discussion?`,
         confidence: 0.9,
       };
     } else if (text.includes("book") || text.includes("schedule") || text.includes("meet")) {
@@ -666,6 +666,7 @@ export async function linkConversationRecord(
     .single();
 
   if (error) throw new Error(`Could not link conversation record: ${error.message}`);
+  if (!data) throw new Error("Conversation not found");
 
   await Promise.all([
     recordAudit(supabase, {

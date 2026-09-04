@@ -483,6 +483,16 @@ async function runConversationsSuite() {
     actorEmail: "founder@accelerate.local",
   });
   assert.equal(linked.opportunity_id, oppId);
+  await assert.rejects(
+    () =>
+      linkConversationRecord(supabase, {
+        conversationId: "conv-missing",
+        opportunityId: oppId,
+        actorEmail: "founder@accelerate.local",
+      }),
+    /Could not link conversation record|not found/i,
+    "Linking a missing thread must fail closed",
+  );
 
   // Test 9: createTaskFromConversation
   const taskRes = await createTaskFromConversation(supabase, {
@@ -508,7 +518,7 @@ async function runConversationsSuite() {
   assert.equal(oppRes.opportunity.name, "New Inbound Contract");
   assert.equal(oppRes.conversation.opportunity_id, oppRes.opportunity.id);
 
-  console.log("All 14 Conversations tests passed successfully!");
+  console.log("All Conversations tests passed successfully!");
 }
 
 runConversationsSuite().catch((err) => {
