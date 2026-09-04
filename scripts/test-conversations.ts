@@ -6,6 +6,8 @@ import {
   linkConversationRecord,
   createOpportunityFromConversation,
   createTaskFromConversation,
+  associateConversationParticipants,
+  CONVERSATION_ASSOCIATION_CONTRACT,
   CONVERSATIONS_CONTRACT,
 } from "../src/lib/revenue-os/conversations";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -23,6 +25,10 @@ class MockSupabase {
     activities: [],
     audit_log: [],
     stage_events: [],
+    action_queue: [],
+    claims: [],
+    evidence: [],
+    learned_policies: [],
   };
 
   from(table: string) {
@@ -30,6 +36,66 @@ class MockSupabase {
       this.tables[table] = [];
     }
     return new MockQueryBuilder(this, table);
+  }
+
+  rpc(fn: string, params: Row = {}) {
+    const tables = this.tables;
+    const runner = {
+      single() {
+        return runner;
+      },
+      then<TResult1 = { data: unknown; error: { message: string } | null }, TResult2 = never>(
+        onfulfilled?:
+          | ((value: { data: unknown; error: { message: string } | null }) => TResult1 | PromiseLike<TResult1>)
+          | null,
+        onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+      ): Promise<TResult1 | TResult2> {
+        if (fn === "record_evidence") {
+          if (!tables["claims"]) tables["claims"] = [];
+          if (!tables["evidence"]) tables["evidence"] = [];
+          const key = `${params.p_entity_type}|${params.p_entity_id}|${params.p_field}|${params.p_proposed_value}`;
+          let claim = tables["claims"].find((c) => c._key === key);
+          let isNew = false;
+          if (!claim) {
+            claim = {
+              id: `claim-${tables["claims"].length + 1}`,
+              _key: key,
+              entity_type: params.p_entity_type,
+              entity_id: params.p_entity_id,
+              field: params.p_field,
+              proposed_value: params.p_proposed_value,
+              status: "supported",
+              best_evidence: params.p_strength,
+            };
+            tables["claims"].push(claim);
+            isNew = true;
+          }
+          const evidenceRow = {
+            id: `ev-${tables["evidence"].length + 1}`,
+            claim_id: claim.id,
+            source_type: params.p_source_type,
+            observation: params.p_observation,
+            strength: params.p_strength,
+          };
+          tables["evidence"].push(evidenceRow);
+          return Promise.resolve({
+            data: {
+              claim_id: claim.id,
+              evidence_id: evidenceRow.id,
+              claim_status: claim.status,
+              best_evidence: claim.best_evidence,
+              is_new_claim: isNew,
+            },
+            error: null,
+          }).then(onfulfilled, onrejected);
+        }
+        return Promise.resolve({
+          data: null,
+          error: { message: `unknown rpc ${fn}` },
+        }).then(onfulfilled, onrejected);
+      },
+    };
+    return runner;
   }
 }
 
@@ -62,6 +128,32 @@ class MockQueryBuilder implements PromiseLike<{
 
   neq(col: string, val: unknown) {
     this.filters.push((row) => row[col] !== val);
+    return this;
+  }
+
+  not(col: string, op: string, val: unknown) {
+    this.filters.push((row) => {
+      if (op === "is") return row[col] !== val;
+      return true;
+    });
+    return this;
+  }
+
+  lt(col: string, val: unknown) {
+    this.filters.push((row) => {
+      const actual = row[col];
+      if (actual == null || val == null) return false;
+      return actual < val;
+    });
+    return this;
+  }
+
+  gt(col: string, val: unknown) {
+    this.filters.push((row) => {
+      const actual = row[col];
+      if (actual == null || val == null) return false;
+      return actual > val;
+    });
     return this;
   }
 
@@ -163,10 +255,27 @@ class MockQueryBuilder implements PromiseLike<{
       const items = Array.isArray(this.opPayload)
         ? (this.opPayload as Row[])
         : [this.opPayload as Row];
+      // The real action_queue has a unique pending-dedupe-key index; replaying
+      // the same proposal must collide rather than duplicate.
+      if (this.table === "action_queue") {
+        for (const item of items) {
+          const key = (item as Row).dedupe_key;
+          if (
+            key &&
+            rows.some((row) => row.dedupe_key === key && (row.status ?? "pending") === "pending")
+          ) {
+            return Promise.resolve({
+              data: null,
+              error: { message: "duplicate key value violates unique constraint", code: "23505" },
+            }).then(onfulfilled, onrejected);
+          }
+        }
+      }
       const inserted: Row[] = items.map((item: Row) => ({
         id: (item.id as string) || `mock-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
+        ...(this.table === "action_queue" ? { status: "pending" } : {}),
         ...item,
       }));
       rows.push(...inserted);
@@ -246,6 +355,7 @@ async function runConversationsSuite() {
     full_name: "Sarah Connor",
     primary_email: "sarah@techcorp.io",
     phone: "555-0199",
+    company_id: companyId,
   });
 
   db.tables.companies!.push({
@@ -425,7 +535,199 @@ async function runConversationsSuite() {
   assert.equal(oppRes.opportunity.name, "New Inbound Contract");
   assert.equal(oppRes.conversation.opportunity_id, oppRes.opportunity.id);
 
-  console.log("All 10 Conversations tests passed successfully!");
+  // Test 11: deterministic auto-link with recorded evidence.
+  db.tables.conversations!.push({
+    id: "conv-10",
+    channel: "gmail",
+    subject: "Follow-up",
+    status: "open",
+    unread_count: 1,
+    contact_id: null,
+    company_id: null,
+    opportunity_id: null,
+    metadata: { contact_email: "sarah@techcorp.io" },
+    created_at: "2026-09-02T10:00:00Z",
+    updated_at: "2026-09-02T10:00:00Z",
+  });
+  const assoc = await associateConversationParticipants(supabase, {
+    conversationId: "conv-10",
+    participantEmails: ["sarah@techcorp.io"],
+    threadExternalId: "thread-abc",
+    actorEmail: "system",
+  });
+  assert.equal(assoc.contract, CONVERSATION_ASSOCIATION_CONTRACT);
+  assert.equal(assoc.contactId, contactId);
+  assert.equal(assoc.companyId, companyId);
+  assert.equal(assoc.opportunityId, oppId);
+  assert.deepEqual(assoc.reviewActionIds, []);
+  assert.equal(assoc.participants[0]?.outcome, "linked");
+  const conv10 = db.tables.conversations!.find((c) => c.id === "conv-10");
+  assert.equal(conv10?.contact_id, contactId, "Row links must be filled");
+  assert.equal(conv10?.company_id, companyId);
+  assert.equal(conv10?.opportunity_id, oppId);
+  assert.ok(
+    db.tables.claims!.some(
+      (c) =>
+        c.entity_type === "conversation" &&
+        c.entity_id === "conv-10" &&
+        c.field === "contact_id" &&
+        c.best_evidence === "verified_external",
+    ),
+    "Exact match must record verified_external evidence",
+  );
+  assert.ok(
+    db.tables.activities!.some(
+      (a) => a.activity_type === "conversation_associated" && a.conversation_id === "conv-10",
+    ),
+    "Association must write an activity receipt",
+  );
+  assert.ok(
+    db.tables.audit_log!.some(
+      (a) => a.action === "conversation.associated" && a.entity_id === "conv-10",
+    ),
+    "Association must write an audit row",
+  );
+
+  // Test 12: ambiguous participants never merge and never throw.
+  db.tables.contacts!.push(
+    { id: "contact-dup-1", full_name: "Dup One", primary_email: "dup@example.com" },
+    { id: "contact-dup-2", full_name: "Dup Two", primary_email: "dup@example.com" },
+  );
+  db.tables.conversations!.push({
+    id: "conv-11",
+    channel: "gmail",
+    subject: "Ambiguous thread",
+    status: "open",
+    unread_count: 1,
+    contact_id: null,
+    company_id: null,
+    opportunity_id: null,
+    metadata: {},
+    created_at: "2026-09-02T11:00:00Z",
+    updated_at: "2026-09-02T11:00:00Z",
+  });
+  const ambiguous = await associateConversationParticipants(supabase, {
+    conversationId: "conv-11",
+    participantEmails: ["dup@example.com"],
+    threadExternalId: "thread-dup",
+    actorEmail: "system",
+  });
+  assert.equal(ambiguous.contactId, null, "Ambiguity must not link");
+  assert.equal(ambiguous.participants[0]?.outcome, "ambiguous");
+  assert.ok(
+    (ambiguous.participants[0]?.candidates.length ?? 0) >= 2,
+    "Review action must carry the candidates",
+  );
+  assert.equal(ambiguous.reviewActionIds.length, 1);
+  const reviewRow = db.tables.action_queue!.find((a) => a.action_type === "identity_review");
+  assert.ok(reviewRow, "Ambiguity must enter a founder review action");
+  assert.equal(reviewRow?.entity_id, "conv-11");
+  assert.equal(reviewRow?.dedupe_key, "identity-review:conv-11:dup@example.com");
+  const conv11 = db.tables.conversations!.find((c) => c.id === "conv-11");
+  assert.equal(conv11?.contact_id, null, "Ambiguity must not write a link");
+
+  // Test 13: unknown participants enter review and invent nothing.
+  const companyCount = db.tables.companies!.length;
+  db.tables.conversations!.push({
+    id: "conv-12",
+    channel: "gmail",
+    subject: "Unknown thread",
+    status: "open",
+    unread_count: 1,
+    contact_id: null,
+    company_id: null,
+    opportunity_id: null,
+    metadata: {},
+    created_at: "2026-09-02T12:00:00Z",
+    updated_at: "2026-09-02T12:00:00Z",
+  });
+  const unknown = await associateConversationParticipants(supabase, {
+    conversationId: "conv-12",
+    participantEmails: ["stranger@newbusiness.io"],
+    threadExternalId: "thread-new",
+    actorEmail: "system",
+  });
+  assert.equal(unknown.participants[0]?.outcome, "unknown");
+  assert.equal(unknown.reviewActionIds.length, 1);
+  assert.equal(db.tables.companies!.length, companyCount, "Unknown senders must not invent companies");
+  assert.equal(
+    db.tables.conversations!.find((c) => c.id === "conv-12")?.contact_id,
+    null,
+  );
+
+  // Test 14: replay is idempotent — no duplicate reviews or claims.
+  const actionsBefore = db.tables.action_queue!.length;
+  const claimsBefore = db.tables.claims!.length;
+  await associateConversationParticipants(supabase, {
+    conversationId: "conv-11",
+    participantEmails: ["dup@example.com"],
+    threadExternalId: "thread-dup",
+    actorEmail: "system",
+  });
+  assert.equal(db.tables.action_queue!.length, actionsBefore, "Replay must not duplicate review actions");
+  await associateConversationParticipants(supabase, {
+    conversationId: "conv-10",
+    participantEmails: ["sarah@techcorp.io"],
+    threadExternalId: "thread-abc",
+    actorEmail: "system",
+  });
+  assert.equal(db.tables.claims!.length, claimsBefore, "Replay must not duplicate evidence claims");
+
+  // Test 15: existing human links are never overwritten by automation.
+  db.tables.conversations!.push({
+    id: "conv-13",
+    channel: "gmail",
+    subject: "Human-linked thread",
+    status: "open",
+    unread_count: 1,
+    contact_id: contactId,
+    company_id: companyId,
+    opportunity_id: oppId,
+    metadata: {},
+    created_at: "2026-09-02T13:00:00Z",
+    updated_at: "2026-09-02T13:00:00Z",
+  });
+  const preserved = await associateConversationParticipants(supabase, {
+    conversationId: "conv-13",
+    participantEmails: ["dup@example.com", "stranger@newbusiness.io"],
+    threadExternalId: "thread-mixed",
+    actorEmail: "system",
+  });
+  assert.equal(preserved.contactId, contactId, "Human link must win over new participants");
+  assert.equal(
+    db.tables.conversations!.find((c) => c.id === "conv-13")?.contact_id,
+    contactId,
+  );
+
+  // Test 16: manual links record human-entered evidence; invalid input fails loud.
+  await linkConversationRecord(supabase, {
+    conversationId: "conv-3",
+    contactId,
+    actorEmail: "founder@accelerate.local",
+  });
+  assert.ok(
+    db.tables.claims!.some(
+      (c) =>
+        c.entity_type === "conversation" &&
+        c.entity_id === "conv-3" &&
+        c.field === "contact_id" &&
+        c.best_evidence === "human_entered",
+    ),
+    "Manual links must record human-entered evidence",
+  );
+  await assert.rejects(
+    associateConversationParticipants(supabase, { conversationId: "  ", participantEmails: [] }),
+    /Conversation id is required/,
+  );
+  await assert.rejects(
+    associateConversationParticipants(supabase, {
+      conversationId: "conv-missing",
+      participantEmails: ["sarah@techcorp.io"],
+    }),
+    /Conversation not found/,
+  );
+
+  console.log("All 16 Conversations tests passed successfully!");
 }
 
 runConversationsSuite().catch((err) => {
