@@ -52,6 +52,12 @@ jobs:
       - name: Verify admin design token contract
         run: npm run verify:admin-tokens
 
+      - name: Verify docs manifest and prose contract
+        run: npm run verify:docs
+
+      - name: Verify generated docs llms index is current
+        run: npm run docs:llms:check
+
       - name: Verify extension manifests are in sync
         run: npm run verify:extensions
 

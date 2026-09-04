@@ -5,6 +5,8 @@ export const marketingPositioning = {
   shortOffer:
     "We find where AI and automation can free up time or increase revenue, then build and run the right custom solution.",
   outcomes: ["Free up time", "Increase revenue", "Focus on what matters"],
+  docsBlurb:
+    "Practical guides for working with Accelerate and running the Command Center: start with your business, then run follow-up that never loses an inquiry.",
   engagementModes: [
     {
       key: "strategy",
