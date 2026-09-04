@@ -7,7 +7,8 @@ import { loadActivityTimeline } from "./activities";
 import { ADMIN_LAYOUT_SCOPES, proposeLayoutChange } from "./admin-layout";
 import { FOUNDER_NOTE_MAX_LENGTH } from "./notes";
 import { retrieveKnowledge } from "./knowledge";
-import { isAiToolModuleEnabled } from "./modules";
+import { runReportPlugin } from "./report-plugins";
+import { isAiToolModuleEnabled, REVENUE_OS_MODULES } from "./modules";
 import { listClaimableWork, type WorkItem } from "./work-items";
 import { listWorkspaceCapabilities, type WorkspaceCapability } from "./capabilities";
 import { listClaimsForEntity, type Claim } from "./claims";
@@ -303,6 +304,19 @@ export function assertImpactHonoured(tool: AiToolRegistration, output: unknown):
 }
 
 const registry: AiToolRegistration[] = [
+  ...REVENUE_OS_MODULES.filter((module) => module.report).map(
+    ({ id: pluginId }): AiToolRegistration => ({
+      name: `run_${pluginId.replaceAll("-", "_")}`,
+      description: `Run the ${pluginId} workspace report. Returns bounded factual findings with source references; requires the plugin to be enabled.`,
+      inputSchema: { type: "object", properties: {}, additionalProperties: false },
+      outputSchema: { type: "object" },
+      serviceTarget: "revenue-os.report-plugins",
+      connectionRequirement: "none",
+      impact: "read",
+      confirmationRequired: false,
+      execute: async ({ supabase, actorEmail }) => runReportPlugin(supabase, pluginId, actorEmail),
+    }),
+  ),
   {
     name: "get_today_snapshot",
     description:
@@ -1638,6 +1652,9 @@ const registry: AiToolRegistration[] = [
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    ...REVENUE_OS_MODULES.filter((module) => module.report).map(
+      (module) => `run_${module.id.replaceAll("-", "_")}`,
+    ),
     "get_today_snapshot",
     "search_pipeline",
     "search_contacts",

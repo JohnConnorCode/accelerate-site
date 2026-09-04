@@ -65,7 +65,7 @@ function workFixture() {
 async function main() {
   for (const tool of getRevenueAiTools())
     assert.equal(
-      isAiToolModuleEnabled(tool.name).enabled,
+      Boolean(isAiToolModuleEnabled(tool.name).module),
       true,
       `${tool.name} must have a module owner`,
     );

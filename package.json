@@ -28,7 +28,7 @@
     "format:check": "prettier --check .",
     "verify:oss": "node scripts/verify-open-source-readiness.mjs",
     "test:open-source-stats": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-open-source-stats.ts",
-    "test:core": "npm run test:admin-demo-contract && npm run test:admin-breadcrumbs && npm run test:tenant-config && npm run test:tenant-isolation && npm run test:secret-storage && npm run test:admin-layout && npm run test:plugin-modules && npm run test:plugin-isolate && npm run test:route-gating && npm run test:integration-adapter-registry && npm run test:entity-registry && npm run test:capability-data-api && npm run test:action-execution && npm run test:mcp-server && npm run test:runtime-consolidation && npm run test:ai-tool-gates",
+    "test:core": "npm run test:admin-demo-contract && npm run test:admin-breadcrumbs && npm run test:tenant-config && npm run test:tenant-isolation && npm run test:secret-storage && npm run test:admin-layout && npm run test:plugin-modules && npm run test:plugin-isolate && npm run test:route-gating && npm run test:integration-adapter-registry && npm run test:entity-registry && npm run test:capability-data-api && npm run test:action-execution && npm run test:mcp-server && npm run test:runtime-consolidation && npm run test:ai-tool-gates && npm run test:report-plugins",
     "verify:articles": "npx tsx scripts/verify-articles.ts",
     "deploy:check": "vercel whoami && vercel teams ls",
     "deploy:pull": "vercel pull --yes --environment=production",
@@ -195,7 +195,10 @@
     "qa:founder-notes": "node --env-file=.env.local scripts/qa-founder-note.mjs",
     "test:runtime-consolidation": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-runtime-consolidation.ts",
     "verify:runtime-boundaries": "node scripts/verify-runtime-boundaries.mjs",
-    "test:runtime-postgres": "node scripts/test-runtime-postgres.mjs"
+    "test:runtime-postgres": "node scripts/test-runtime-postgres.mjs",
+    "plugins:setup": "NODE_OPTIONS=--conditions=react-server npx tsx --env-file=.env.local scripts/setup-report-sources.ts",
+    "test:report-plugins": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-report-plugins.ts",
+    "test:report-plugins-browser": "node --env-file=.env.local scripts/qa-report-plugins.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -247,6 +250,7 @@
     "playwright": "^1.62.1",
     "prettier": "^3.9.6",
     "tailwindcss": "^4",
+    "tsx": "4.23.13",
     "typescript": "^5"
   }
 }

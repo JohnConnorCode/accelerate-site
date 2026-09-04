@@ -133,7 +133,17 @@ export class MemorySupabase {
     };
 
     self.eq = (column: string, value: unknown) => {
-      filters.push((row) => row[column] === value);
+      filters.push((row) => {
+        // PostgREST JSONB equality receives a serialized JSON filter value.
+        if (row[column] !== null && typeof row[column] === "object" && typeof value === "string") {
+          try {
+            return JSON.stringify(row[column]) === JSON.stringify(JSON.parse(value));
+          } catch {
+            return false;
+          }
+        }
+        return row[column] === value;
+      });
       return self;
     };
     self.neq = (column: string, value: unknown) => {

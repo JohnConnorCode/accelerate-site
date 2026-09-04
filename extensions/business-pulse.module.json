@@ -1,0 +1,31 @@
+{
+  "$schema": "./module-manifest.schema.json",
+  "id": "business-pulse",
+  "name": "Business pulse",
+  "description": "Bring pipeline risks, overdue commitments and upcoming meetings into one factual briefing.",
+  "category": "intelligence",
+  "defaultEnabled": false,
+  "navLinks": [],
+  "routes": [],
+  "aiToolNames": ["run_business_pulse"],
+  "report": {
+    "version": 1,
+    "sources": [
+      {
+        "name": "pipeline",
+        "type": "report_opportunities",
+        "columns": ["id", "name", "stage", "updated_at", "next_action_at"]
+      },
+      {
+        "name": "commitments",
+        "type": "report_tasks",
+        "columns": ["id", "title", "status", "due_date"]
+      },
+      {
+        "name": "meetings",
+        "type": "report_calendar_events",
+        "columns": ["id", "title", "status", "start_at", "end_at"]
+      }
+    ]
+  }
+}

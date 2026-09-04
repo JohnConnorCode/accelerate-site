@@ -84,6 +84,8 @@ export interface RevenueOSModule {
   docsUrl?: string;
   /** Configurable values rendered by ModuleSettingsForm. Never secrets. */
   settings?: ModuleSettingField[];
+  /** Bounded, read-only isolate report. Code is compiled server-only. */
+  report?: { version: 1; sources: { name: string; type: string; columns: string[] }[] };
 }
 
 /**
@@ -344,7 +346,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     isCore: false,
     defaultEnabled: true,
     navLinkIds: ["integrations"],
-    routes: ["/admin/integrations"],
+    routes: ["/admin/integrations", "/admin/plugins"],
   },
 ] as const;
 
@@ -475,7 +477,7 @@ export function validateModuleSettingsInput(
         return { valid: false, error: `"${key}" must be true or false.` };
       value[key] = raw;
     } else if (field.type === "number") {
-      if (typeof raw !== "number" || Number.isNaN(raw))
+      if (typeof raw !== "number" || !Number.isFinite(raw))
         return { valid: false, error: `"${key}" must be a number.` };
       if (field.min !== undefined && raw < field.min)
         return { valid: false, error: `"${key}" must be at least ${field.min}.` };

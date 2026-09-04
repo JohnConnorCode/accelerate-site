@@ -98,6 +98,14 @@ if (checkedFiles < 15) {
   );
 }
 
+// Generic bundled report adapter has a request-selected module, then the host
+// independently rechecks current enablement before execution and publication.
+const reportRoute = read("src/app/api/admin/plugins/run/route.ts");
+if (
+  !reportRoute.includes("requireAdminForModule(input.data.pluginId)") ||
+  !/runReportPlugin\(\s*authorization\.database/.test(reportRoute)
+)
+  failures.push("Report adapter must authenticate its declared module and use the shared host");
 if (failures.length) {
   console.error(`Module route guard check failed:\n- ${failures.join("\n- ")}`);
   process.exit(1);

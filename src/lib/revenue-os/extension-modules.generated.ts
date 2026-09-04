@@ -18,6 +18,61 @@ export interface ExtensionNavLink {
 
 export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
   {
+    id: "business-pulse",
+    name: "Business pulse",
+    description:
+      "Bring pipeline risks, overdue commitments and upcoming meetings into one factual briefing.",
+    category: "intelligence",
+    isCore: false,
+    defaultEnabled: false,
+    navLinkIds: [],
+    aiToolNames: ["run_business_pulse"],
+    routes: [],
+    setupChecks: [],
+    report: {
+      version: 1,
+      sources: [
+        {
+          name: "pipeline",
+          type: "report_opportunities",
+          columns: ["id", "name", "stage", "updated_at", "next_action_at"],
+        },
+        {
+          name: "commitments",
+          type: "report_tasks",
+          columns: ["id", "title", "status", "due_date"],
+        },
+        {
+          name: "meetings",
+          type: "report_calendar_events",
+          columns: ["id", "title", "status", "start_at", "end_at"],
+        },
+      ],
+    },
+  },
+  {
+    id: "commitment-watch",
+    name: "Overdue commitments",
+    description: "Find unfinished tasks whose due date has passed.",
+    category: "intelligence",
+    isCore: false,
+    defaultEnabled: false,
+    navLinkIds: [],
+    aiToolNames: ["run_commitment_watch"],
+    routes: [],
+    setupChecks: [],
+    report: {
+      version: 1,
+      sources: [
+        {
+          name: "records",
+          type: "report_tasks",
+          columns: ["id", "title", "status", "due_date"],
+        },
+      ],
+    },
+  },
+  {
     id: "example-inventory",
     name: "Inventory (example)",
     description:
@@ -58,6 +113,50 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         default: false,
       },
     ],
+  },
+  {
+    id: "meeting-prep",
+    name: "Meeting preparation",
+    description: "Prepare a factual agenda of stored meetings in the next 48 hours.",
+    category: "intelligence",
+    isCore: false,
+    defaultEnabled: false,
+    navLinkIds: [],
+    aiToolNames: ["run_meeting_prep"],
+    routes: [],
+    setupChecks: [],
+    report: {
+      version: 1,
+      sources: [
+        {
+          name: "records",
+          type: "report_calendar_events",
+          columns: ["id", "title", "status", "start_at", "end_at"],
+        },
+      ],
+    },
+  },
+  {
+    id: "pipeline-watch",
+    name: "Pipeline follow-up",
+    description: "Find open opportunities with an overdue next action or no update in seven days.",
+    category: "intelligence",
+    isCore: false,
+    defaultEnabled: false,
+    navLinkIds: [],
+    aiToolNames: ["run_pipeline_watch"],
+    routes: [],
+    setupChecks: [],
+    report: {
+      version: 1,
+      sources: [
+        {
+          name: "records",
+          type: "report_opportunities",
+          columns: ["id", "name", "stage", "updated_at", "next_action_at"],
+        },
+      ],
+    },
   },
 ] as const;
 

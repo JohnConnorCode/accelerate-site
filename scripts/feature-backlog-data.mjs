@@ -430,9 +430,38 @@ function card({
 
 export const featureBacklog = [
   card({
-    key: "plugin-data-boundary-hardening",
+    key: "bundled-report-plugins",
     owner: "codex-foundations",
     status: "in_progress",
+    title: "Prove the plugin runtime with four switchable business reports",
+    workstream: "platform",
+    phase: 6,
+    priority: "high",
+    description:
+      "Founder-directed northstar proof: ship useful read-only pipeline risk, overdue commitment and upcoming meeting reports through the existing module registry, capability data boundary and QuickJS isolate. One host and one workspace activation contract serve UI and AI.",
+    acceptance: [
+      "Four bundled plugins calculate useful findings from bounded tenant records with source references, empty states and explicit truncation",
+      "Manifest declarations compile into isolated code and host grants; extensions remain pure data and plugin code receives no raw database or ambient authority",
+      "Current workspace module enablement is checked on every invocation; disabled plugins refuse direct and AI execution",
+      "The shared admin workbench runs reports and uses existing enable/disable configuration, with desktop/mobile keyboard and error-state verification",
+      "Core source registration is an explicit self-host setup command; missing capabilities fail with actionable errors and no runtime schema mutation",
+      "Adversarial host tests, real isolate executions, typecheck, strict lint, build and contributor instructions demonstrate extension without copying infrastructure",
+    ],
+    dependencies: ["Close plugin data grant and tenant-boundary bypasses"],
+    start:
+      "extensions/*.module.json; scripts/build-extension-modules.mjs; src/lib/revenue-os/plugin-isolate.ts; capability-data-api.ts; modules.ts; src/app/admin/integrations/page.tsx.",
+    guardrails:
+      "Use existing module activation and shared tenant/auth/data/trace primitives. Read-only bundled reports, no external sends or new providers. No arbitrary uploaded code, remote installation, marketplace, or claim of complete third-party lifecycle. Preserve other worktrees. Local controlled records only for tests; no production setup or deployment.",
+    labels: ["config", "data"],
+    verification:
+      "Real QuickJS and MemorySupabase integration tests for all four plugins, enable/disable, missing grants, tenant isolation and failures; module/extension checks; repository Playwright desktop/mobile with opened screenshots, keyboard and console checks; verify:agent-contract; typecheck; strict lint; build; git diff --check.",
+  }),
+  card({
+    key: "plugin-data-boundary-hardening",
+    evidence:
+      "Local commit a743947 hardens all four capability data operations. Adversarial data API tests, entity registry tests, isolation verifier, core tests, strict lint, typecheck, formatting and production build passed. Covers cross-tenant and unbound refusal before database access, grants on graph endpoints, selector injection, UTF-8 and strict JSON bounds, secret namespace refusal, conditional concurrent writes and truthful bounded row receipts. No production data changes or deployment. Host integration and real bundled examples continue as separate follow-up.",
+    owner: "codex-foundations",
+    status: "shipped",
     title: "Close plugin data grant and tenant-boundary bypasses",
     workstream: "platform",
     phase: 3,
@@ -2588,7 +2617,7 @@ export const featureBacklog = [
   }),
   card({
     key: "ai-bounded-context",
-    status: "backlog",
+    status: "planned",
     owner: null,
     title: "Enforce bounded AI context and grounding rules",
     workstream: "ai",

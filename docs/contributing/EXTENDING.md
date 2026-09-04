@@ -234,3 +234,64 @@ Recipes do not expand authority. `entity_count` requires an enabled entity grant
 Namespace values are bounded plain JSON, at most 8 KiB in UTF-8, with structural depth and node limits. Secret rows cannot be read or overwritten. Concurrent writes refuse rather than clobbering a changed value; reread before retrying. Namespace state has no authority over core records or grants.
 
 The per-process call guard is bounded and expires inactive buckets, but it is not distributed budget enforcement. Persisted metering and approved host invocation remain separate platform acceptance. Tests cover grants, cross-tenant refusal, disabled types, graph visibility, projection injection, malformed input, UTF-8 limits, secret storage, concurrency, and usage receipts.
+
+### Runnable bundled report plugins
+
+`/admin/plugins` is the shared workbench, linked from Integrations. Four optional
+plugins ship disabled: Pipeline follow-up, Overdue commitments, Meeting preparation,
+and Business pulse. The latter combines three sources without another host or UI.
+The inventory manifest remains a declarative scaffold, not an inventory product.
+
+For a workspace you administer, first inspect the source-registration plan:
+
+```sh
+npm run plugins:setup -- <tenant-uuid>
+# Check the printed project hostname and workspace, then apply to that environment:
+npm run plugins:setup -- <tenant-uuid> --apply
+```
+
+This registers three read policies over existing `opportunities`, `tasks`, and
+`calendar_events` tables; it never creates schema, sends messages, or overwrites
+an existing host policy. The normal tenant/entity-registry migrations must already
+be installed. There is no production setup hidden in a page request. Turn each
+plugin on in Plugins or Integrations, then run it in Plugins or ask the command
+agent to run its report. Disabling a plugin blocks the shared host even when an
+AI session retained an older enabled configuration. Configuration writes compare
+the previous JSON snapshot and retry contention rather than overwrite other changes.
+
+To add another report:
+
+1. Add `extensions/<id>.module.json` with `report.version: 1`, one to three named
+   sources, their registered entity types, and exact columns (including `id`).
+   Declare the generated AI tool `run_<id_with_underscores>`.
+2. Put the synchronous report expression in `plugins/<id>/report.js`. This file
+   runs only in QuickJS, including for first-party plugins. `readSource(name)`
+   returns that declared snapshot; `reportContext()` returns the fixed run time.
+   No database, provider key, filesystem, networking, or mutation binding exists.
+3. Return `{ summary, totalFindings, items }`. Each item has `source`, `id`,
+   `title`, `detail`, and `severity` (`attention` or `info`). References must match
+   fetched records. Return at most 20 items, with the full observed finding count.
+4. Run `npm run build:extensions` and `npm run test:report-plugins`, then the normal
+   repository checks. The generator pins source hashes in a server-only artifact;
+   drift fails CI. Module discovery supplies the shared UI and AI registrations.
+
+The host intersects declared fields with the entity registry's enabled read policy.
+It inspects at most 100 rows per source in stable ID order, bounds the total snapshot
+to 64 KiB, and runs for at most 250 ms with an 8 MiB isolate heap. A report is an
+explicit bounded snapshot, **not a complete monitoring sweep**. Findings beyond 20
+and sources beyond 100 produce a partial-view notice. Date-only commitments use
+UTC dates; meeting preparation covers stored events in the next 48 hours. It does
+not claim to have synced a calendar or researched attendees. Failed reads cannot
+become an empty successful report. Start and verified completion receipts reuse
+`agent_runs`; they record source hash and counts without raw customer findings.
+
+The full fictional admin demo explicitly excludes server plugin execution because
+its browser-only data must never authorize a live host. Browser QA uses fictional
+API fixtures for interaction evidence; `test:report-plugins` runs the actual isolate
+and host over controlled stored fixtures, including tenant and disabled-plugin
+refusals, forged references, timeout, concurrent configuration, and failed receipts.
+
+This lane does not implement arbitrary uploads, remote installation, asynchronous
+isolate bindings, persistent event subscriptions, distributed metering, or the
+separate third-party plugin review lifecycle. Those retain their Feature Board
+acceptance rather than inheriting a claim of completion from bundled examples.

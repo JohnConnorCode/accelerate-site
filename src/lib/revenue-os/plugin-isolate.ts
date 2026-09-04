@@ -109,7 +109,7 @@ function assertNotFunctionHandle(ctx: QuickJSContext, handle: QuickJSHandle, wha
 }
 
 function toHandle(ctx: QuickJSContext, value: PluginJsonValue): QuickJSHandle {
-  if (value === null || value === undefined) return ctx.undefined;
+  if (value === null) return ctx.null.dup();
   switch (typeof value) {
     case "string":
       return ctx.newString(value);
@@ -182,7 +182,8 @@ export async function evaluateInIsolate(
   if (typeof code !== "string" || !code.trim()) fail("no code to evaluate");
   // The code string itself lives in host memory, outside the isolate heap
   // the memory limit guards — cap it so a giant payload cannot DoS the host.
-  if (code.length > MAX_CODE_BYTES) fail(`code exceeds the ${MAX_CODE_BYTES}-byte limit`);
+  if (Buffer.byteLength(code, "utf8") > MAX_CODE_BYTES)
+    fail(`code exceeds the ${MAX_CODE_BYTES}-byte limit`);
   const timeoutMs = Math.max(
     1,
     Math.min(MAX_TIMEOUT_MS, Math.floor(options.timeoutMs ?? DEFAULT_TIMEOUT_MS)),
