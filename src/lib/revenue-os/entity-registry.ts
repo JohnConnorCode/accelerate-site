@@ -47,6 +47,7 @@ export interface EntityTypeRecord extends Required<Omit<EntityTypeRegistration, 
   id: string;
   softDeleteColumn: string | null;
   isDisabled: boolean;
+  metadata: Record<string, unknown>;
 }
 
 export interface EntityLinkInput {
@@ -111,6 +112,7 @@ function toTypeRecord(row: Row): EntityTypeRecord {
     identityFields: (row.identity_fields as string[]) ?? [],
     softDeleteColumn: (row.soft_delete_column as string | null) ?? null,
     isDisabled: Boolean(row.is_disabled),
+    metadata: (row.metadata as Record<string, unknown>) ?? {},
   };
 }
 
