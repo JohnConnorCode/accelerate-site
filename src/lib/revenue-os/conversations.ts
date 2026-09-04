@@ -16,7 +16,14 @@ export interface ConversationFilter {
   channel?: ConversationChannel | "all";
   intent?: string;
   record?: "all" | "linked" | "unlinked";
+  campaign?: "all" | "linked" | "unlinked";
   unreadOnly?: boolean;
+  /**
+   * Threads with at least one non-completed task linked by related_id.
+   * Follow-up commitments are created from the inbox itself
+   * (createTaskFromConversation), so the link is exact, not guessed.
+   */
+  followUp?: boolean;
   search?: string;
   limit?: number;
   offset?: number;
@@ -109,6 +116,8 @@ export async function listConversations(
   conversations: ConversationItem[];
   stats: InboxStats;
   schemaReady: boolean;
+  /** Distinct intents across the loaded window, for building the filter. */
+  intents: string[];
 }> {
   const { data: allRaw, error } = await supabase
     .from("conversations")
@@ -140,6 +149,7 @@ export async function listConversations(
         conversations: [],
         stats: { total: 0, open: 0, unread: 0, waiting: 0, resolved: 0, archived: 0 },
         schemaReady: false,
+        intents: [],
       };
     }
     throw new Error(`Could not load conversations: ${error.message}`);
@@ -252,6 +262,28 @@ export async function listConversations(
     filtered = filtered.filter((c) => !c.opportunity_id && !c.contact_id);
   }
 
+  if (filter.campaign === "linked") {
+    filtered = filtered.filter((c) => Boolean(c.campaign_id));
+  } else if (filter.campaign === "unlinked") {
+    filtered = filtered.filter((c) => !c.campaign_id);
+  }
+
+  if (filter.followUp) {
+    const ids = filtered.map((c) => c.id);
+    const { data: openTasks, error: tasksError } = ids.length
+      ? await supabase
+          .from("tasks")
+          .select("related_id")
+          .in("related_id", ids)
+          .neq("status", "completed")
+      : { data: [], error: null };
+    if (tasksError) throw new Error(`Could not load follow-up tasks: ${tasksError.message}`);
+    const followUpIds = new Set(
+      ((openTasks ?? []) as Array<Record<string, unknown>>).map((t) => t.related_id as string),
+    );
+    filtered = filtered.filter((c) => followUpIds.has(c.id));
+  }
+
   if (filter.search?.trim()) {
     const q = filter.search.trim().toLowerCase();
     filtered = filtered.filter((c) => {
@@ -274,10 +306,15 @@ export async function listConversations(
   const offset = filter.offset ?? 0;
   const paged = filtered.slice(offset, offset + limit);
 
+  const intents = [
+    ...new Set(mapped.map((c) => c.intent).filter((i): i is string => Boolean(i))),
+  ].sort();
+
   return {
     conversations: paged,
     stats,
     schemaReady: true,
+    intents,
   };
 }
 
