@@ -17,7 +17,7 @@ function attachTenant(values: unknown, tenantId: string): unknown {
   return { ...(values as Record<string, unknown>), tenant_id: tenantId };
 }
 
-function bindTenantDatabase(
+export function bindTenantDatabase(
   client: SupabaseClient,
   tenantId: string,
   enforceFilters = false,

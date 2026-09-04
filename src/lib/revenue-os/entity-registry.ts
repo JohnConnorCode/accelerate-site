@@ -305,6 +305,7 @@ export async function traverseGraph(
 
   const keyOf = (type: string, id: string) => `${type}:${id}`;
   const visited = new Set<string>([keyOf(startType, startId)]);
+  const seenEdges = new Set<string>();
   const nodes: TraversalNode[] = [{ type: startType, id: startId }];
   const edges: TraversalEdge[] = [];
   let frontier: TraversalNode[] = [{ type: startType, id: startId }];
@@ -315,7 +316,7 @@ export async function traverseGraph(
     // Two exact-sided reads rather than one nested-or: per-column IN filters
     // cross-match (type from one row, id from another), so every candidate is
     // re-checked against exact frontier pairs below. Exact pairs only.
-    const columns = "source_type,source_id,target_type,target_id,link_type";
+    const columns = "id,source_type,source_id,target_type,target_id,link_type";
     const [outgoing, incoming] = await Promise.all([
       supabase
         .from("entity_links")
@@ -349,6 +350,11 @@ export async function traverseGraph(
     }
     const next: TraversalNode[] = [];
     for (const row of candidates) {
+      // Bidirectional walking rediscovers the same stored edge from the
+      // other endpoint on the next level; dedupe by row id, not by walk.
+      const rowId = String(row.id);
+      if (seenEdges.has(rowId)) continue;
+      seenEdges.add(rowId);
       const from = { type: String(row.source_type), id: String(row.source_id) };
       const to = { type: String(row.target_type), id: String(row.target_id) };
       const touches = (n: TraversalNode) =>

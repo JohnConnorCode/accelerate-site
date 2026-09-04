@@ -1,5 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { bindTenantDatabase } from "@/lib/supabase/server";
 import { getEntityType } from "./entity-registry";
 
 /**
@@ -99,13 +100,16 @@ export async function queryCapabilityEntities(
   const typeKey = input.type?.trim().toLowerCase();
   if (!typeKey || !grant.entities.includes(typeKey))
     throw new Error(`Capability ${capabilityId} is not granted entity type ${JSON.stringify(input.type)}`);
-  const type = await getEntityType(supabase, tenantId, typeKey);
+  // Double scoping: explicit tenant filters below plus the proven proxy, so
+  // a missing eq() anywhere still cannot leak across workspaces.
+  const db = bindTenantDatabase(supabase, tenantId, true);
+  const type = await getEntityType(db, tenantId, typeKey);
   if (!type) throw new Error(`Unknown entity type ${JSON.stringify(typeKey)}`);
   if (type.isDisabled) throw new Error(`Entity type ${JSON.stringify(typeKey)} is disabled`);
 
   const allowed = new Set(readableColumns(type.metadata, type.idColumn));
 
-  let query = supabase
+  let query = db
     .from(type.backingTable)
     .select([...allowed].join(","))
     .eq("tenant_id", tenantId);
@@ -161,12 +165,13 @@ export async function runCapabilityRecipe(
   if (!(RECIPES as readonly string[]).includes(recipe) || !grant.recipes.includes(recipe))
     throw new Error(`Capability ${capabilityId} is not granted recipe ${JSON.stringify(input.recipe)}`);
   const params = input.params ?? {};
+  const db = bindTenantDatabase(supabase, tenantId, true);
   let result: Row;
   if (recipe === "entity_count") {
     const typeKey = String(params.type ?? "");
     const type = await getEntityType(supabase, tenantId, typeKey);
     if (!type) throw new Error(`Unknown entity type ${JSON.stringify(params.type)}`);
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from(type.backingTable)
       .select(type.idColumn)
       .eq("tenant_id", tenantId)
@@ -179,8 +184,8 @@ export async function runCapabilityRecipe(
     if (!id) throw new Error("Recipe link_degree requires params.id");
     const columns = "source_type,source_id,target_type,target_id";
     const [outgoing, incoming] = await Promise.all([
-      supabase.from("entity_links").select(columns).eq("tenant_id", tenantId).eq("source_id", id).limit(MAX_ROWS + 1),
-      supabase.from("entity_links").select(columns).eq("tenant_id", tenantId).eq("target_id", id).limit(MAX_ROWS + 1),
+      db.from("entity_links").select(columns).eq("tenant_id", tenantId).eq("source_id", id).limit(MAX_ROWS + 1),
+      db.from("entity_links").select(columns).eq("tenant_id", tenantId).eq("target_id", id).limit(MAX_ROWS + 1),
     ]);
     if (outgoing.error) throw new Error(`Recipe link_degree failed: ${outgoing.error.message}`);
     if (incoming.error) throw new Error(`Recipe link_degree failed: ${incoming.error.message}`);
@@ -188,7 +193,7 @@ export async function runCapabilityRecipe(
     result = { id, degree: edges.length, capped: ((outgoing.data ?? []).length + (incoming.data ?? []).length) > MAX_ROWS };
   } else {
     const limit = Math.max(1, Math.min(MAX_ROWS, Math.floor(Number(params.limit) || 20)));
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from("entity_links")
       .select("source_type,source_id,target_type,target_id,link_type,created_at")
       .eq("tenant_id", tenantId)
@@ -226,7 +231,8 @@ export async function getCapabilityNamespace(
   const tenantId = requireGrant(grant.tenantId, "A tenant id");
   if (!grant.namespace) throw new Error(`Capability ${capabilityId} is not granted namespace storage`);
   const budgetRemaining = checkRateLimit(capabilityId, tenantId);
-  const { data, error } = await supabase
+  const db = bindTenantDatabase(supabase, tenantId, true);
+  const { data, error } = await db
     .from("admin_settings")
     .select("value")
     .eq("tenant_id", tenantId)
@@ -265,7 +271,8 @@ export async function setCapabilityNamespace(
   }
   if (serialized.length > NAMESPACE_VALUE_BYTES)
     throw new Error(`Capability namespace value exceeds ${NAMESPACE_VALUE_BYTES} bytes`);
-  const { error } = await supabase.from("admin_settings").upsert(
+  const db = bindTenantDatabase(supabase, tenantId, true);
+  const { error } = await db.from("admin_settings").upsert(
     {
       tenant_id: tenantId,
       key: namespaceKey(capabilityId, key),

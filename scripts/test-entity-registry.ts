@@ -148,6 +148,15 @@ async function main() {
     unbounded.nodes.length <= 4,
     "visited tracking must terminate cycles instead of walking forever",
   );
+  const edgeIds = new Set(
+    unbounded.edges.map((e) => `${e.from.type}:${e.from.id}:${e.to.type}:${e.to.id}:${e.linkType}`),
+  );
+  assert.equal(
+    edgeIds.size,
+    unbounded.edges.length,
+    "bidirectional walking must not report the same stored edge twice",
+  );
+  assert.equal(unbounded.edges.length, 3, "all three distinct edges surface exactly once");
 
   // 5. Generic merge on the runtime-registered type: links rewire, the FK
   // catalog reassigns, the loser retires through its declared convention,
