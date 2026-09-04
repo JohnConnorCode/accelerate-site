@@ -1,5 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { EXPECTED_CADENCE_LABELS } from "./health-expectation";
 
 /**
  * One operational health computation, shared by the admin overview, Setup
@@ -46,6 +47,8 @@ export interface HealthRunView {
   lastSuccessAt?: number;
   /** Expected next execution window end (ms since epoch). */
   nextExpectedAt?: number;
+  /** Operator cadence wording for this run's subsystem ("hourly", …). */
+  cadenceLabel?: string;
 }
 
 export interface HealthConcern {
@@ -174,6 +177,7 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
     error: row.error ?? null,
     lastSuccessAt: row.finished_at ? Date.parse(row.finished_at) : undefined,
     nextExpectedAt: nextExpectedAt(sourceCadenceMs),
+    cadenceLabel: EXPECTED_CADENCE_LABELS.source,
   }));
 
   const jobCadenceMs = (EXPECTED_CADENCES.job ?? 0) * 60_000;
@@ -186,6 +190,7 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
     stalled: isStalled(String(row.status), row.claimed_at ?? null),
     lastSuccessAt: row.finished_at ? Date.parse(row.finished_at) : undefined,
     nextExpectedAt: nextExpectedAt(jobCadenceMs),
+    cadenceLabel: EXPECTED_CADENCE_LABELS.job,
   }));
 
   const webhookCadenceMs = (EXPECTED_CADENCES.webhook ?? 0) * 60_000;
@@ -209,7 +214,9 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
         kind: "integration",
         key: integration.provider,
         detail: integration.lastError || `Connection is ${integration.status}`,
-        observedAt: integration.lastSuccessAt ?? (integration.updatedAt ? new Date(integration.updatedAt).toISOString() : null),
+        observedAt:
+          integration.lastSuccessAt ??
+          (integration.updatedAt ? new Date(integration.updatedAt).toISOString() : null),
       });
     }
   }
