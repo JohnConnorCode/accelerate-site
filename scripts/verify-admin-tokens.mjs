@@ -76,13 +76,13 @@ const COLOR_BUDGET = {
   "src/app/admin/contacts/page.tsx": 3,
   "src/app/admin/conversations/page.tsx": 33,
   "src/app/admin/emails/page.tsx": 17,
-  "src/app/admin/features/page.tsx": 25,
+  "src/app/admin/features/page.tsx": 23,
   "src/app/admin/inbox/page.tsx": 12,
   "src/app/admin/integrations/page.tsx": 44,
   "src/app/admin/leads/page.tsx": 1,
   "src/app/admin/partners/page.tsx": 2,
   "src/app/admin/pipeline/[id]/page.tsx": 3,
-  "src/app/admin/pipeline/page.tsx": 25,
+  "src/app/admin/pipeline/page.tsx": 7,
   "src/app/admin/proposals/page.tsx": 1,
   "src/app/admin/recovery/page.tsx": 12,
   "src/app/admin/revenue/page.tsx": 4,
@@ -120,7 +120,14 @@ const colorPattern =
 
 const adminFiles = files.filter((file) => {
   const rel = relative(root, file).replace(/\\/g, "/");
-  return rel.startsWith("app/admin/") || rel.startsWith("components/admin/");
+  return (
+    rel.startsWith("app/admin/") ||
+    rel.startsWith("components/admin/") ||
+    // Docs chrome is new code with no legacy to grandfather: any raw
+    // palette utility here fails at a budget of zero.
+    rel.startsWith("components/docs/") ||
+    rel.includes("app/(marketing)/docs/")
+  );
 });
 
 const colorCounts = new Map();

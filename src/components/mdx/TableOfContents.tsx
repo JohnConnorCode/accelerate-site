@@ -9,9 +9,9 @@ interface TocItem {
   level: number;
 }
 
-const readHeadings = (): TocItem[] => {
+const readHeadings = (selector: string): TocItem[] => {
   if (typeof document === "undefined") return [];
-  const article = document.querySelector("[data-article-content]");
+  const article = document.querySelector(selector);
   if (!article) return [];
   const elements = article.querySelectorAll("h2, h3");
   // Only headings rehype-slug actually assigned an id to (article-body h2/h3
@@ -27,7 +27,7 @@ const readHeadings = (): TocItem[] => {
     }));
 };
 
-export function TableOfContents() {
+export function TableOfContents({ selector = "[data-article-content]" }: { selector?: string } = {}) {
   // Start empty so the server render and the client's first (hydration) render
   // match — both produce `null`. Headings are read from the DOM after mount,
   // then the TOC fades in. Reading during render would diverge (no `document`
@@ -37,15 +37,15 @@ export function TableOfContents() {
 
   useEffect(() => {
     if (typeof document === "undefined") return;
-    const article = document.querySelector("[data-article-content]");
+    const article = document.querySelector(selector);
     if (!article) return;
 
     // Read on the next frame (not synchronously in this effect) so the first
     // client render still matches the server's `null` — then the TOC fades in.
-    const raf = requestAnimationFrame(() => setHeadings(readHeadings()));
+    const raf = requestAnimationFrame(() => setHeadings(readHeadings(selector)));
 
     const observer = new MutationObserver(() => {
-      setHeadings(readHeadings());
+      setHeadings(readHeadings(selector));
     });
 
     observer.observe(article, { childList: true, subtree: true });
@@ -53,7 +53,7 @@ export function TableOfContents() {
       cancelAnimationFrame(raf);
       observer.disconnect();
     };
-  }, []);
+  }, [selector]);
 
   useEffect(() => {
     if (headings.length === 0) return;
