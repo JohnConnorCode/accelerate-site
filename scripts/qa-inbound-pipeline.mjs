@@ -92,7 +92,10 @@ async function purge() {
     const { error } = await supabase.from(table).delete().like(column, pattern);
     if (error) throw new Error(`cleanup ${table}: ${error.message}`);
   }
-  await supabase.from("admin_notifications").delete().like("title", "New contact from QA Founder %");
+  await supabase
+    .from("admin_notifications")
+    .delete()
+    .like("title", "New contact from QA Founder %");
   // Entity-specific coworker work created for the fixture lead (generic
   // tenant-level deduped items are intentionally left alone).
   await supabase.from("work_items").delete().like("reason", `%${COMPANY_PREFIX}%`);
@@ -117,7 +120,8 @@ async function awaitCounts(label, wanted, timeoutMs = 90000) {
     const ok =
       (wanted.contacts === undefined || snapshot.contacts.length === wanted.contacts) &&
       (wanted.companies === undefined || snapshot.companies.length === wanted.companies) &&
-      (wanted.opportunities === undefined || snapshot.opportunities.length === wanted.opportunities) &&
+      (wanted.opportunities === undefined ||
+        snapshot.opportunities.length === wanted.opportunities) &&
       (wanted.submissions === undefined || snapshot.submissions.length === wanted.submissions) &&
       (wanted.stageEvents === undefined || snapshot.stageEvents.length === wanted.stageEvents);
     if (ok) return snapshot;
@@ -135,10 +139,18 @@ async function canonicalCounts() {
   const [contactsRes, companiesRes, opportunitiesRes, submissionsRes] = await Promise.all([
     supabase.from("contacts").select("id,primary_email").eq("primary_email", email),
     supabase.from("companies").select("id,name").eq("name", companyName),
-    supabase.from("opportunities").select("id,stage,source,source_detail,email,contact_id,company_id,created_at").eq("email", email),
+    supabase
+      .from("opportunities")
+      .select("id,stage,source,source_detail,email,contact_id,company_id,created_at")
+      .eq("email", email),
     supabase.from("contact_submissions").select("id,email").eq("email", email),
   ]);
-  for (const [label, res] of [["contacts", contactsRes], ["companies", companiesRes], ["opportunities", opportunitiesRes], ["submissions", submissionsRes]]) {
+  for (const [label, res] of [
+    ["contacts", contactsRes],
+    ["companies", companiesRes],
+    ["opportunities", opportunitiesRes],
+    ["submissions", submissionsRes],
+  ]) {
     if (res.error) failures.push(`diagnostic: ${label} query error: ${res.error.message}`);
   }
   const opportunities = opportunitiesRes.data ?? [];
@@ -167,25 +179,34 @@ await dbCall("startup purge", purge());
 stepLog("startup purge done");
 
 stepLog("founder sign-in link");
-const { data: linkData, error: linkError } = await dbCall("generateLink", supabase.auth.admin.generateLink({
-  type: "magiclink",
-  email: process.env.ADMIN_EMAIL,
-  options: { redirectTo: `${base}/auth/callback?next=/admin/pipeline` },
-}));
+const { data: linkData, error: linkError } = await dbCall(
+  "generateLink",
+  supabase.auth.admin.generateLink({
+    type: "magiclink",
+    email: process.env.ADMIN_EMAIL,
+    options: { redirectTo: `${base}/auth/callback?next=/admin/pipeline` },
+  }),
+);
 stepLog("sign-in link ok");
 if (linkError || !linkData?.properties?.hashed_token)
   throw linkError || new Error("Could not generate an inbound-pipeline QA sign-in token");
-const { data: verified, error: verifyError } = await dbCall("verifyOtp", supabase.auth.verifyOtp({
-  token_hash: linkData.properties.hashed_token,
-  type: "magiclink",
-}));
+const { data: verified, error: verifyError } = await dbCall(
+  "verifyOtp",
+  supabase.auth.verifyOtp({
+    token_hash: linkData.properties.hashed_token,
+    type: "magiclink",
+  }),
+);
 stepLog("founder session ok");
 if (verifyError || !verified.session)
   throw verifyError || new Error("Could not exchange the inbound-pipeline QA sign-in token");
 
 const projectRef = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname.split(".")[0];
 const authCookies = [
-  { name: `sb-${projectRef}-auth-token`, value: `base64-${Buffer.from(JSON.stringify(verified.session)).toString("base64url")}` },
+  {
+    name: `sb-${projectRef}-auth-token`,
+    value: `base64-${Buffer.from(JSON.stringify(verified.session)).toString("base64url")}`,
+  },
 ];
 
 const browser = await chromium.launch({ headless: true });
@@ -244,10 +265,41 @@ const formData = {
 };
 
 async function openContactForm(page) {
+  // Dev-mode hydration can lag far behind networkidle under load (SSR HTML
+  // resolves getByText while the hero reveal effect has not run yet, leaving
+  // the disclosure with a zero box indefinitely). Wait for the app's own
+  // alive signal first: the hero reveal marker, or a visible form if motion
+  // ever stops gating this page.
+  await Promise.race([
+    page.locator('[data-motion-role="public-hero"].in').waitFor({ timeout: 90000 }),
+    page.locator('form:has(input[name="email"]):visible').first().waitFor({ timeout: 90000 }),
+  ]).catch(() => {
+    throw new Error("contact page never hydrated (no hero reveal and no visible form)");
+  });
   // When the scheduler embed is live the manual form sits inside a closed
-  // <details> disclosure; a real visitor must open it first.
+  // <details> disclosure; a real visitor must open it first. The disclosure
+  // exists in the DOM on all viewports but is hidden when the form is shown
+  // directly, so only click what a visitor could actually see. The disclosure
+  // can render a beat after hydration, so poll: click when visible, then
+  // wait for the visible form, retrying while it may still be rendering.
   const disclosure = page.getByText("Prefer to send context first?");
-  if ((await disclosure.count()) > 0) await disclosure.click();
+  const form = page.locator('form:has(input[name="email"]):visible').first();
+  if ((await form.count()) > 0) return;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if ((await disclosure.count()) > 0 && (await disclosure.first().isVisible())) {
+      await disclosure.first().click();
+      try {
+        await form.waitFor({ timeout: 10000 });
+        return;
+      } catch {
+        // Click landed before the toggle took effect or the tree re-rendered;
+        // loop around and try again.
+      }
+    } else {
+      await page.waitForTimeout(2000);
+    }
+  }
+  await form.waitFor({ timeout: 30000 });
 }
 
 function stepLog(message) {
@@ -275,17 +327,20 @@ async function dbCall(label, promise, ms = 60000) {
 
 /**
  * Bounded close: browser/context close can hang on lingering third-party
- * iframe sockets (scheduling embed). Never let teardown hang the journey;
- * record it and continue so evidence and cleanup still land.
+ * iframe sockets (scheduling embed) and is slowest early in a run while the
+ * dev server is still compiling routes on demand, so the bound is generous.
+ * Never let teardown hang the journey; record it and continue so evidence
+ * and cleanup still land.
  */
+const CLOSE_TIMEOUT_MS = 30000;
 async function settledClose(closeable, label) {
   await Promise.race([
     closeable.close().catch((e) => failures.push(`${label} close error: ${e.message}`)),
     new Promise((r) =>
       setTimeout(() => {
-        failures.push(`${label} close timed out after 15s; continuing`);
+        failures.push(`${label} close timed out after ${CLOSE_TIMEOUT_MS / 1000}s; continuing`);
         r(null);
-      }, 15000),
+      }, CLOSE_TIMEOUT_MS),
     ),
   ]);
 }
@@ -342,7 +397,13 @@ try {
     `/contact?utm_source=qa-journey&utm_medium=playwright&utm_campaign=inbound-pipeline`,
     { waitUntil: "networkidle", timeout: 60000 },
   );
-  check("contact form renders", await page.locator('form:has(input[name="email"])').count().then((n) => n >= 1));
+  check(
+    "contact form renders",
+    await page
+      .locator('form:has(input[name="email"])')
+      .count()
+      .then((n) => n >= 1),
+  );
   await openContactForm(page);
   const desktopForm = await fillContactForm(page, { ...formData, email: "not-an-email" });
   await desktopForm.locator('button[type="submit"]').click();
@@ -395,7 +456,7 @@ try {
   check("opportunity id captured", typeof opportunityId === "string");
   if (typeof opportunityId !== "string")
     throw new Error("no canonical opportunity to drive the rest of the journey; aborting");
-  await settledClose(desktop, 'desktop context');
+  await settledClose(desktop, "desktop context");
 
   // 4. Server-side invalid input is a clean 400 with no send and no records.
   // Runs after the essential submits so a shared-budget 429 here only skips
@@ -411,9 +472,10 @@ try {
   }
   check(
     "invalid API submit creates nothing",
-    (await dbCall("api400 counts", canonicalCounts())).submissions.length <= afterFirst.submissions.length + 0,
+    (await dbCall("api400 counts", canonicalCounts())).submissions.length <=
+      afterFirst.submissions.length + 0,
   );
-  await settledClose(apiCtx, 'api context');
+  await settledClose(apiCtx, "api context");
 
   // 5. Mobile: duplicate submit through the real UI (external effect #2 of 2).
   // Proves the mobile path and idempotent replay in one step.
@@ -425,7 +487,7 @@ try {
   const mobileForm = await fillContactForm(mpage, formData);
   await submitContactForm(mpage, mobileForm);
   await mpage.screenshot({ path: `${outDir}/contact-submitted-mobile.png` });
-  await settledClose(mobile, 'mobile context');
+  await settledClose(mobile, "mobile context");
 
   const afterDup = await awaitCounts(
     "duplicate submit canonical set",
@@ -439,11 +501,7 @@ try {
     afterDup.opportunities.length === 1,
     afterDup.opportunities.length,
   );
-  check(
-    "duplicate adds no stage events",
-    afterDup.stageEvents.length === 1,
-    afterDup.stageEvents,
-  );
+  check("duplicate adds no stage events", afterDup.stageEvents.length === 1, afterDup.stageEvents);
   check(
     "both submissions preserved for audit",
     afterDup.submissions.length === 2,
@@ -455,15 +513,22 @@ try {
   const anonPage = await anon.newPage();
   watch(anonPage);
   await anonPage.goto(`/admin/pipeline`, { waitUntil: "domcontentloaded", timeout: 60000 });
-  check("anon pipeline redirects to login", anonPage.url().includes("/admin/login"), anonPage.url());
-  await settledClose(anon, 'anon context');
+  check(
+    "anon pipeline redirects to login",
+    anonPage.url().includes("/admin/login"),
+    anonPage.url(),
+  );
+  await settledClose(anon, "anon context");
 
   // 7. Authenticated founder sees the lead in Today and Pipeline.
   const admin = await newContext(DESKTOP, true);
   const today = await admin.newPage();
   watch(today);
   await today.goto(`/admin/today`, { waitUntil: "networkidle", timeout: 60000 });
-  await today.locator(`a:visible:has-text("${companyName}"), :visible:has-text("${companyName}")`).first().waitFor({ timeout: 30000 });
+  await today
+    .locator(`a:visible:has-text("${companyName}"), :visible:has-text("${companyName}")`)
+    .first()
+    .waitFor({ timeout: 30000 });
   check("lead visible in Today", true);
   await today.screenshot({ path: `${outDir}/today-desktop.png` });
 
@@ -502,9 +567,12 @@ try {
     "moved stage reflected in Pipeline UI",
     (await pipeline.locator(':visible:has-text("contacted")').count()) >= 1,
   );
-  check("next action reflected in Pipeline UI", (await pipeline.locator(`:visible:has-text("${nextActionText}")`).count()) >= 1);
+  check(
+    "next action reflected in Pipeline UI",
+    (await pipeline.locator(`:visible:has-text("${nextActionText}")`).count()) >= 1,
+  );
   await pipeline.screenshot({ path: `${outDir}/pipeline-moved-desktop.png` });
-  await settledClose(admin, 'admin context');
+  await settledClose(admin, "admin context");
 
   // 9. Mobile founder view of the moved pipeline row.
   const adminMobile = await newContext(MOBILE, true);
@@ -514,7 +582,11 @@ try {
   await visibleCompanyLink(mpipeline).first().waitFor({ timeout: 30000 });
   check("lead visible in mobile Pipeline", true);
   await mpipeline.screenshot({ path: `${outDir}/pipeline-mobile.png` });
-  await settledClose(adminMobile, 'admin mobile context');
+  await settledClose(adminMobile, "admin mobile context");
+} catch (e) {
+  // An aborted step must still land in the summary as evidence, never as a
+  // crash with no artifact: the finally below still runs cleanup first.
+  failures.push(`journey aborted: ${e.message}`);
 } finally {
   stepLog("finally purge");
   try {
@@ -523,7 +595,7 @@ try {
     failures.push(`finally purge failed: ${e.message}`);
   }
   stepLog("finally purge done");
-  await settledClose(browser, 'browser');
+  await settledClose(browser, "browser");
 }
 
 for (const err of consoleErrors) failures.push(`console/server error: ${err}`);
