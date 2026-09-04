@@ -71,7 +71,10 @@ export default function ConversationsPage() {
   const [statusFilter, setStatusFilter] = useState<ConversationStatus | "all">("open");
   const [channelFilter, setChannelFilter] = useState<ConversationChannel | "all">("all");
   const [recordFilter, setRecordFilter] = useState<"all" | "linked" | "unlinked">("all");
+  const [campaignFilter, setCampaignFilter] = useState<"all" | "linked" | "unlinked">("all");
+  const [intentFilter, setIntentFilter] = useState("all");
   const [unreadOnly, setUnreadOnly] = useState(false);
+  const [followUpOnly, setFollowUpOnly] = useState(false);
   const [search, setSearch] = useState("");
 
   // Action / Composer states
@@ -97,15 +100,19 @@ export default function ConversationsPage() {
     if (statusFilter !== "all") params.set("status", statusFilter);
     if (channelFilter !== "all") params.set("channel", channelFilter);
     if (recordFilter !== "all") params.set("record", recordFilter);
+    if (campaignFilter !== "all") params.set("campaign", campaignFilter);
+    if (intentFilter !== "all") params.set("intent", intentFilter);
     if (unreadOnly) params.set("unread", "1");
+    if (followUpOnly) params.set("followUp", "1");
     if (search.trim()) params.set("search", search.trim());
     return params.toString();
-  }, [selectedId, statusFilter, channelFilter, recordFilter, unreadOnly, search]);
+  }, [selectedId, statusFilter, channelFilter, recordFilter, campaignFilter, intentFilter, unreadOnly, followUpOnly, search]);
 
   const conversationQuery = useAdminQuery<{
     schemaReady: boolean;
     conversations: ConversationItem[];
     stats: InboxStats;
+    intents: string[];
     detail: ConversationDetail | null;
     messages: ConversationMessage[];
   }>(["admin", "conversations", queryString], `/api/admin/revenue-os/conversations?${queryString}`);
@@ -123,6 +130,10 @@ export default function ConversationsPage() {
     archived: 0,
   };
   const detail = conversationQuery.data?.detail ?? null;
+  const intents = useMemo(
+    () => conversationQuery.data?.intents ?? [],
+    [conversationQuery.data?.intents],
+  );
   const messages = useMemo(
     () => detail?.messages ?? conversationQuery.data?.messages ?? [],
     [detail?.messages, conversationQuery.data?.messages],
@@ -351,6 +362,7 @@ export default function ConversationsPage() {
                   <button
                     type="button"
                     onClick={() => setUnreadOnly(!unreadOnly)}
+                    aria-pressed={unreadOnly}
                     className={cn(
                       "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 font-medium transition-[background-color,color] duration-150",
                       unreadOnly
@@ -392,6 +404,51 @@ export default function ConversationsPage() {
                     <option value="linked">Linked to Opportunity</option>
                     <option value="unlinked">Unlinked</option>
                   </select>
+
+                  {/* Campaign Dropdown */}
+                  <select
+                    value={campaignFilter}
+                    onChange={(e) =>
+                      setCampaignFilter(e.target.value as "all" | "linked" | "unlinked")
+                    }
+                    aria-label="Filter by campaign link"
+                    className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
+                  >
+                    <option value="all">All Campaigns</option>
+                    <option value="linked">In a Campaign</option>
+                    <option value="unlinked">No Campaign</option>
+                  </select>
+
+                  {/* Intent Dropdown */}
+                  <select
+                    value={intentFilter}
+                    onChange={(e) => setIntentFilter(e.target.value)}
+                    aria-label="Filter by intent"
+                    className="max-w-40 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
+                  >
+                    <option value="all">All Intents</option>
+                    {intents.map((intent) => (
+                      <option key={intent} value={intent}>
+                        {intent}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Follow-up Toggle */}
+                  <button
+                    type="button"
+                    onClick={() => setFollowUpOnly(!followUpOnly)}
+                    aria-pressed={followUpOnly}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 font-medium transition-[background-color,color] duration-150",
+                      followUpOnly
+                        ? "border-[var(--admin-ink)] bg-[var(--admin-accent-soft)] text-[var(--admin-ink)]"
+                        : "border-[var(--admin-border)] bg-[var(--admin-surface)] text-[var(--admin-muted)] hover:text-[var(--admin-ink)]",
+                    )}
+                  >
+                    <span className="size-2 rounded-full bg-[var(--admin-ink)]" />
+                    Follow-up
+                  </button>
                 </div>
               </div>
             </div>

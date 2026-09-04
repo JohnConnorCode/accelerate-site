@@ -23,7 +23,9 @@ export async function GET(request: NextRequest) {
     channel: (params.get("channel") as ConversationChannel | "all") || "all",
     intent: params.get("intent") || undefined,
     record: (params.get("record") as "all" | "linked" | "unlinked") || "all",
+    campaign: (params.get("campaign") as "all" | "linked" | "unlinked") || "all",
     unreadOnly: params.get("unread") === "1" || params.get("unread") === "true",
+    followUp: params.get("followUp") === "1" || params.get("followUp") === "true",
     search: params.get("search") || undefined,
   };
 
@@ -42,6 +44,7 @@ export async function GET(request: NextRequest) {
       schemaReady: listResult.schemaReady,
       conversations: listResult.conversations,
       stats: listResult.stats,
+      intents: listResult.intents,
       detail,
       messages,
     });

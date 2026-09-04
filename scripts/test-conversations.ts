@@ -273,6 +273,7 @@ async function runConversationsSuite() {
     contact_id: contactId,
     company_id: companyId,
     opportunity_id: oppId,
+    campaign_id: "camp-1",
     last_message_at: "2026-09-01T14:00:00Z",
     created_at: "2026-09-01T12:00:00Z",
     updated_at: "2026-09-01T14:00:00Z",
@@ -309,6 +310,21 @@ async function runConversationsSuite() {
   };
 
   db.tables.conversations!.push(conv1, conv2, conv3);
+
+  db.tables.tasks!.push(
+    {
+      id: "task-open-1",
+      title: "Call back about the demo",
+      related_id: "conv-2",
+      status: "pending",
+    },
+    {
+      id: "task-done-1",
+      title: "Answered support question",
+      related_id: "conv-3",
+      status: "completed",
+    },
+  );
 
   db.tables.messages!.push(
     {
@@ -365,6 +381,25 @@ async function runConversationsSuite() {
   const searchRes = await listConversations(supabase, { search: "TechCorp" });
   assert.equal(searchRes.conversations.length, 1);
   assert.equal(searchRes.conversations[0]?.id, "conv-1");
+
+  // Test 5b: Filter by intent (case-insensitive) and distinct intent list
+  const intentRes = await listConversations(supabase, { intent: "PRICING" });
+  assert.equal(intentRes.conversations.length, 1);
+  assert.equal(intentRes.conversations[0]?.id, "conv-1");
+  assert.deepEqual(intentRes.intents, ["demo", "pricing", "support"]);
+
+  // Test 5c: Filter by campaign linkage
+  const campLinked = await listConversations(supabase, { campaign: "linked" });
+  assert.equal(campLinked.conversations.length, 1);
+  assert.equal(campLinked.conversations[0]?.id, "conv-1");
+  const campUnlinked = await listConversations(supabase, { campaign: "unlinked" });
+  assert.equal(campUnlinked.conversations.length, 2);
+
+  // Test 5d: Follow-up filter keeps only threads with open tasks.
+  // conv-2 has a pending task, conv-3's task is completed, conv-1 has none yet.
+  const followUp = await listConversations(supabase, { followUp: true });
+  assert.equal(followUp.conversations.length, 1);
+  assert.equal(followUp.conversations[0]?.id, "conv-2");
 
   // Test 6: getConversationDetail
   const detail = await getConversationDetail(supabase, "conv-1");
@@ -425,7 +460,7 @@ async function runConversationsSuite() {
   assert.equal(oppRes.opportunity.name, "New Inbound Contract");
   assert.equal(oppRes.conversation.opportunity_id, oppRes.opportunity.id);
 
-  console.log("All 10 Conversations tests passed successfully!");
+  console.log("All 13 Conversations tests passed successfully!");
 }
 
 runConversationsSuite().catch((err) => {
