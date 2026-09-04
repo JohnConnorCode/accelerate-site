@@ -269,7 +269,7 @@ export function KanbanColumn<T>({
                   }
                 }}
                 maxLength={60}
-                className="min-h-7 w-full min-w-0 rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-2 text-sm font-semibold text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)]"
+                className="min-h-7 w-full min-w-0 rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-2 text-sm font-semibold text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
                 placeholder="Column title..."
               />
             ) : (

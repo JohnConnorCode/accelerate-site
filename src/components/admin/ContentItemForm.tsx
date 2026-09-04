@@ -184,15 +184,17 @@ export function ContentItemForm({
             {item?.id && onDelete && (
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="text-white-muted hover:text-[var(--error)] cursor-pointer"
+                className="grid min-h-10 min-w-10 place-items-center rounded-lg text-white-muted transition-colors hover:text-[var(--error)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--error)] focus-visible:ring-offset-2"
                 title="Delete"
+                aria-label="Delete content item"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
             )}
             <button
               onClick={onClose}
-              className="text-white-muted hover:text-white-primary cursor-pointer"
+              aria-label="Close content editor"
+              className="grid min-h-10 min-w-10 place-items-center rounded-lg text-white-muted transition-colors hover:text-white-primary cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2"
             >
               <X className="h-5 w-5" />
             </button>

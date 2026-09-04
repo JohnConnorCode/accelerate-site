@@ -142,7 +142,7 @@ export function KanbanListView<T>({
           id="kanban-list-status-filter"
           value={statusFilter}
           onChange={(event) => setStatusFilter(event.target.value)}
-          className="min-h-8 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-2 text-xs text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)]"
+          className="min-h-8 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-2 text-xs text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
         >
           <option value="all">All columns</option>
           {columns.map((column) => (
@@ -156,7 +156,7 @@ export function KanbanListView<T>({
         <table className="w-full min-w-[560px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-[var(--admin-border)] bg-black/[0.018] text-left text-xs font-semibold text-[var(--admin-muted)] dark:bg-white/[0.018]">
-              <th className="px-3 py-2.5">
+              <th scope="col" className="px-3 py-2.5">
                 <button
                   type="button"
                   onClick={() => toggleSort("title")}
@@ -165,7 +165,7 @@ export function KanbanListView<T>({
                   Title <SortIcon active={sortKey === "title"} />
                 </button>
               </th>
-              <th className="px-3 py-2.5">
+              <th scope="col" className="px-3 py-2.5">
                 <button
                   type="button"
                   onClick={() => toggleSort("status")}
@@ -175,7 +175,7 @@ export function KanbanListView<T>({
                 </button>
               </th>
               {extraColumns.map((column) => (
-                <th key={column.key} className="px-3 py-2.5">
+                <th key={column.key} scope="col" className="px-3 py-2.5">
                   {column.sortValue ? (
                     <button
                       type="button"
@@ -214,12 +214,13 @@ export function KanbanListView<T>({
                     )}
                   </td>
                   <td className="px-3 py-2.5">
-                    <select
-                      value={columnKey}
-                      disabled={movingId === id}
-                      onChange={(event) => void moveItem(item, event.target.value)}
-                      className={cn(
-                        "min-h-8 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-2 text-xs text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)]",
+                      <select
+                        value={columnKey}
+                        disabled={movingId === id}
+                        onChange={(event) => void moveItem(item, event.target.value)}
+                        aria-label="Move to column"
+                        className={cn(
+                          "min-h-8 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-2 text-xs text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2",
                         movingId === id && "opacity-50",
                       )}
                     >

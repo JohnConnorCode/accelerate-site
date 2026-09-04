@@ -52,6 +52,7 @@ export function AdminTable<T>({
               {columns.map((col) => (
                 <th
                   key={col.key}
+                  scope="col"
                   aria-sort={
                     col.sortable && sortField === col.key
                       ? sortOrder === "asc"

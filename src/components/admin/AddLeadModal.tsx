@@ -149,6 +149,7 @@ export function AddLeadModal({ isOpen, onClose, onLeadCreated }: AddLeadModalPro
               <select
                 value={industry}
                 onChange={(e) => setIndustry(e.target.value)}
+                aria-label="Industry"
                 className="admin-field"
               >
                 {industryOptions.map((opt) => (
@@ -164,6 +165,7 @@ export function AddLeadModal({ isOpen, onClose, onLeadCreated }: AddLeadModalPro
               <select
                 value={source}
                 onChange={(e) => setSource(e.target.value)}
+                aria-label="Source"
                 className="admin-field"
               >
                 {sourceOptions.map((opt) => (

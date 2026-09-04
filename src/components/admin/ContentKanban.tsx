@@ -34,7 +34,7 @@ function ContentCard({
             aria-label={opts.disabled ? "Reordering is unavailable" : `Drag ${item.title}`}
             disabled={opts.disabled}
             {...opts.dragHandleProps}
-            className="grid size-10 shrink-0 touch-none cursor-grab place-items-center rounded-xl text-white-muted transition-[background-color,color,transform] duration-150 hover:text-white-primary active:cursor-grabbing active:scale-[0.96] disabled:cursor-default disabled:opacity-30"
+            className="grid size-10 shrink-0 touch-none cursor-grab place-items-center rounded-xl text-white-muted transition-[background-color,color,transform] duration-150 hover:text-white-primary active:cursor-grabbing active:scale-[0.96] disabled:cursor-default disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
           >
             <GripVertical className="size-4" />
           </button>

@@ -261,7 +261,8 @@ export default function AdminLeadsPage() {
             setStatusFilter(e.target.value);
             setPage(1);
           }}
-          className="rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-gold transition-[border-color,box-shadow,background-color]"
+          aria-label="Filter by status"
+          className="rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
         >
           {statusOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -275,7 +276,8 @@ export default function AdminLeadsPage() {
             setIndustryFilter(e.target.value);
             setPage(1);
           }}
-          className="rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus:outline-none focus:border-gold transition-[border-color,box-shadow,background-color]"
+          aria-label="Filter by industry"
+          className="rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
         >
           {industryOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>

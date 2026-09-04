@@ -368,7 +368,8 @@ export default function ConversationsPage() {
                     onChange={(e) =>
                       setChannelFilter(e.target.value as ConversationChannel | "all")
                     }
-                    className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--admin-ink)] outline-none"
+                    aria-label="Filter by channel"
+                    className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
                   >
                     <option value="all">All Channels</option>
                     <option value="gmail">Gmail</option>
@@ -384,7 +385,8 @@ export default function ConversationsPage() {
                     onChange={(e) =>
                       setRecordFilter(e.target.value as "all" | "linked" | "unlinked")
                     }
-                    className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--admin-ink)] outline-none"
+                    aria-label="Filter by record link"
+                    className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
                   >
                     <option value="all">All Records</option>
                     <option value="linked">Linked to Opportunity</option>
@@ -885,7 +887,8 @@ export default function ConversationsPage() {
                   min="0"
                   value={oppValue}
                   onChange={(e) => setOppValue(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none"
+                  aria-label="Estimated value in dollars"
+                  className="mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
                 />
               </div>
               <div className="mt-5 flex justify-end gap-2">
@@ -947,7 +950,8 @@ export default function ConversationsPage() {
                   type="date"
                   value={taskDueDate}
                   onChange={(e) => setTaskDueDate(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none"
+                  aria-label="Due date"
+                  className="mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
                 />
               </div>
               <div className="mt-5 flex justify-end gap-2">

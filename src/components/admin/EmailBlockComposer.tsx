@@ -133,7 +133,7 @@ export function EmailBlockComposer({
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <p className="admin-eyebrow mb-0">Exact rendered preview</p>
-            {pending && <Loader2 className="size-3 animate-spin text-[var(--admin-muted)]" />}
+            {pending && <Loader2 className="size-3 animate-spin text-[var(--admin-muted)]" aria-hidden="true" />}
           </div>
           <div className="inline-flex rounded-[var(--admin-control-radius)] bg-[var(--admin-surface)] p-1 shadow-[var(--admin-shadow-border)]">
             <button
@@ -247,7 +247,7 @@ function BlockRow({
             type="button"
             onClick={onUp}
             disabled={disableUp}
-            className="admin-icon-button size-8 disabled:opacity-30"
+            className="admin-icon-button disabled:opacity-30"
             aria-label="Move section up"
           >
             <ArrowUp className="size-3.5" />
@@ -256,7 +256,7 @@ function BlockRow({
             type="button"
             onClick={onDown}
             disabled={disableDown}
-            className="admin-icon-button size-8 disabled:opacity-30"
+            className="admin-icon-button disabled:opacity-30"
             aria-label="Move section down"
           >
             <ArrowDown className="size-3.5" />
@@ -264,7 +264,7 @@ function BlockRow({
           <button
             type="button"
             onClick={onDelete}
-            className="admin-icon-button size-8 text-rose-700 dark:text-rose-300"
+            className="admin-icon-button text-rose-700 dark:text-rose-300"
             aria-label="Delete section"
           >
             <Trash2 className="size-3.5" />

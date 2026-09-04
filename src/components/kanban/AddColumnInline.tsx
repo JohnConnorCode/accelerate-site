@@ -81,7 +81,7 @@ export function AddColumnInline({ onAdd, extraFields, tileLabel = "Add column" }
             placeholder="Column name"
             maxLength={60}
             disabled={saving}
-            className="min-h-9 w-full min-w-0 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-2.5 text-sm text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)]"
+            className="min-h-9 w-full min-w-0 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-2.5 text-sm text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
           />
           <button
             type="button"

@@ -199,7 +199,8 @@ export default function AdminBookingsPage() {
                       <select
                         value={item.stage}
                         onChange={(event) => updateStage(item, event.target.value)}
-                        className="min-h-10 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 text-xs text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)]"
+                        aria-label="Booking stage"
+                        className="min-h-10 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 text-xs text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
                       >
                         {stages.map((stage) => (
                           <option key={stage} value={stage}>

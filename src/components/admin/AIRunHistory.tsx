@@ -149,8 +149,9 @@ function RunDetail({ id, onConversation }: { id: string; onConversation: (id: st
     );
   if (!data)
     return (
-      <div className="grid min-h-72 place-items-center">
-        <Loader2 className="size-5 animate-spin text-[var(--admin-muted)]" />
+      <div className="grid min-h-72 place-items-center" role="status">
+        <Loader2 className="size-5 animate-spin text-[var(--admin-muted)]" aria-hidden="true" />
+        <span className="sr-only">Loading run…</span>
       </div>
     );
   if (!data.run)

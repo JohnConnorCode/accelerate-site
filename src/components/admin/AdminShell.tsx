@@ -567,6 +567,14 @@ export default function AdminShell({
       <AdminAIProvider>
         <MotionConfig reducedMotion="user">
           <div className="admin-shell flex h-dvh min-h-0 overflow-hidden">
+            {/* First tab stop for keyboard users: jump past the sidebar nav
+              straight to the route content. Revealed only on keyboard focus. */}
+            <a
+              href="#main-content"
+              className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[400] focus:rounded-xl focus:bg-[var(--admin-ink)] focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-[var(--admin-surface)]"
+            >
+              Skip to content
+            </a>
             <aside
               inert={mobileOpen}
               className={cn(
@@ -716,6 +724,7 @@ export default function AdminShell({
             <main
               id="main-content"
               ref={mainRef}
+              tabIndex={-1}
               inert={mobileOpen}
               className="admin-main min-w-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[max(8rem,calc(7rem+env(safe-area-inset-bottom)))] pt-[calc(76px+env(safe-area-inset-top))] sm:px-6 lg:px-8 lg:pb-12 lg:pt-6 xl:px-10"
             >
@@ -1326,7 +1335,7 @@ function CmdKSearch({
           <button
             type="button"
             onClick={onClose}
-            className="grid size-9 place-items-center rounded-lg bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)] transition-[color,transform] active:scale-[0.96] sm:hidden"
+            className="grid size-10 place-items-center rounded-lg bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)] transition-[color,transform] active:scale-[0.96] sm:hidden"
             aria-label="Close search"
           >
             <X className="size-4" />

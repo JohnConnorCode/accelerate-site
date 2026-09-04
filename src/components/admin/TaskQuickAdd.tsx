@@ -93,6 +93,7 @@ export function TaskQuickAdd({
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
+            aria-label="Due date"
             className="bg-transparent text-xs text-white-secondary border border-border-glass rounded px-2 py-1 focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/30"
           />
         </div>
@@ -101,6 +102,7 @@ export function TaskQuickAdd({
           <select
             value={priority}
             onChange={(e) => setPriority(e.target.value)}
+            aria-label="Priority"
             className="bg-transparent text-xs text-white-secondary border border-border-glass rounded px-2 py-1 focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/30"
           >
             <option value="high">High</option>

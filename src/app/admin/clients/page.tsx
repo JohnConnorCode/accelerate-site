@@ -85,6 +85,7 @@ export default function ClientsPage() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
+          aria-label="Filter by status"
           className="min-h-11 rounded-xl bg-[var(--admin-surface)] px-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
         >
           {statusOptions.map((opt) => (
@@ -140,6 +141,7 @@ export default function ClientsPage() {
                     (label, index) => (
                       <th
                         key={label}
+                        scope="col"
                         className={`px-4 py-3 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)] ${index === 2 || index === 5 ? "hidden sm:table-cell" : ""}`}
                       >
                         {label}
