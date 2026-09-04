@@ -26,6 +26,7 @@ import { fetchJson } from "@/lib/admin/fetchJson";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
 import { cn } from "@/lib/utils";
+import { describeExpectedCheck } from "@/lib/revenue-os/health-expectation";
 import { applyLayoutOverride, type LayoutDoc } from "@/lib/admin/layout-overrides";
 import { ADMIN_LAYOUT_SCOPES, TODAY_LAYOUT_REGIONS } from "@/lib/admin/layout-scopes";
 
@@ -47,6 +48,17 @@ interface HealthRun {
   startedAt: string | null;
   finishedAt: string | null;
   error: string | null;
+  nextExpectedAt?: number;
+  lastSuccessAt?: number;
+  stalled?: boolean;
+  cadenceLabel?: string;
+}
+interface HealthWebhookFailure {
+  id: string;
+  provider: string;
+  eventType: string | null;
+  error: string | null;
+  receivedAt: string | null;
 }
 interface Overview {
   schemaReady: boolean;
@@ -78,6 +90,7 @@ interface Overview {
     }>;
     sourceRuns: HealthRun[];
     jobRuns: HealthRun[];
+    webhookFailures: HealthWebhookFailure[];
   };
 }
 interface ActionRow {
@@ -634,26 +647,44 @@ export default function TodayPage() {
   }, [focus, overview]);
   const healthItems = useMemo(() => {
     if (!overview) return [];
+    const runExpectation = (item: HealthRun) =>
+      item.stalled
+        ? "Stalled — the next run takes the claim over"
+        : describeExpectedCheck(item.nextExpectedAt, item.cadenceLabel);
+    const webhookFailures = overview.health.webhookFailures ?? [];
     return [
       ...overview.health.integrations.map((item) => ({
         label: item.provider,
         status: item.status,
         at: item.lastSuccessAt,
         error: item.lastError,
+        expectation: null as string | null,
       })),
       ...overview.health.sourceRuns.map((item) => ({
         label: item.key,
         status: item.status,
         at: item.finishedAt || item.startedAt,
         error: item.error,
+        expectation: runExpectation(item),
       })),
       ...overview.health.jobRuns.map((item) => ({
         label: item.key,
         status: item.status,
         at: item.finishedAt || item.startedAt,
         error: item.error,
+        expectation: runExpectation(item),
       })),
-    ].slice(0, 5);
+      ...webhookFailures.slice(0, 1).map((item) => ({
+        label: `Webhook failure: ${item.provider}`,
+        status: "failed",
+        at: item.receivedAt,
+        error: item.error,
+        expectation:
+          webhookFailures.length > 1
+            ? `+${webhookFailures.length - 1} more unprocessed in the last 48h`
+            : "Unprocessed in the last 48h — see Setup Center",
+      })),
+    ].slice(0, 6);
   }, [overview]);
 
   if (!overview && error)
@@ -712,7 +743,7 @@ export default function TodayPage() {
             Details
           </Link>
         </div>
-        <div className="grid divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)] sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-5">
+        <div className="grid divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)] sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-6">
           {healthItems.map((item) => (
             <div key={`${item.label}-${item.status}`} className="min-h-[96px] px-5 py-4">
               <div className="flex items-center gap-2">
@@ -740,10 +771,15 @@ export default function TodayPage() {
                 {item.error ||
                   (item.at ? `Last activity ${relativeTime(item.at)}` : "No run recorded yet")}
               </p>
+              {item.expectation && (
+                <p className="mt-1 text-[11px] font-medium text-[var(--admin-muted)]">
+                  {item.expectation}
+                </p>
+              )}
             </div>
           ))}
           {!healthItems.length && (
-            <div className="px-6 py-8 text-sm text-[var(--admin-muted)] sm:col-span-2 lg:col-span-5">
+            <div className="px-6 py-8 text-sm text-[var(--admin-muted)] sm:col-span-2 lg:col-span-6">
               No connections or job receipts have been recorded. Setup Center will show exactly what
               needs configuration.
             </div>

@@ -184,6 +184,7 @@
     "test:activity-ledger": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-activity-ledger.ts",
     "test:founder-notes": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-founder-notes.ts",
     "test:recovery": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-recovery.ts",
+    "test:health-expectation": "npx tsx scripts/test-health-expectation.ts",
     "qa:founder-notes": "node --env-file=.env.local scripts/qa-founder-note.mjs"
   },
   "dependencies": {
