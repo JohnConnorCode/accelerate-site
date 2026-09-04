@@ -29,6 +29,19 @@ export async function scheduleEmailSequence(
     throw new Error(`Unknown sequence type: ${sequenceType}`);
   }
 
+  // Test and fixture addresses must never schedule real outbound mail. The
+  // contact QA journey proves canonical writes, not delivery; a scheduled
+  // nurture to a fixture address would page a real inbox days later.
+  const recipient = email.trim().toLowerCase();
+  if (
+    recipient.endsWith("@example.invalid") ||
+    recipient.startsWith("qa-") ||
+    recipient.startsWith("qa_")
+  ) {
+    console.log(`[sequences] QA address: not scheduling ${sequenceType}.`);
+    return { sequenceId: crypto.randomUUID(), emailIds: [] };
+  }
+
   const resend = getResend();
   const emailIds: string[] = [];
   const sequenceId = crypto.randomUUID();

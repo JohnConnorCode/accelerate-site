@@ -15,10 +15,11 @@
  * runs even when assertions fail. Audit rows are intentionally left behind
  * because audit history is immutable.
  *
- * Known external effects: each of the exactly two form submits sends one admin
- * alert email to ADMIN_EMAIL through Resend (the route's non-blocking notify
- * path) and attempts one confirmation to the non-routable @example.invalid
- * visitor address. No other external system is touched.
+ * Known external effects: none on inbound mail. QA submits carry reserved
+ * markers (qa-inbound-*@example.invalid, utm_source=qa-journey) and the
+ * contact route suppresses all outbound Resend sends for them while keeping
+ * the canonical + operator writes the journey asserts on. The visitor
+ * confirmation to the non-routable address never leaves either.
  */
 import { chromium } from "playwright";
 import { createClient } from "@supabase/supabase-js";
@@ -359,9 +360,10 @@ try {
   );
   await page.screenshot({ path: `${outDir}/contact-desktop.png` });
 
-  // 2. Desktop: valid submit through the real route (external effect #1 of 2:
-  // one admin alert email to ADMIN_EMAIL). A 429 here means the shared local
-  // rate-limit bucket is exhausted: fail loud, do not silently continue.
+  // 2. Desktop: valid submit through the real route. QA markers suppress all
+  // outbound mail, so this proves the canonical write with no inbox effect.
+  // A 429 here means the shared local rate-limit bucket is exhausted: fail
+  // loud, do not silently continue.
   await desktopForm.locator('input[name="email"]').fill(email);
   await submitContactForm(page, desktopForm);
   check("contact submit confirms", true);
@@ -415,8 +417,9 @@ try {
   );
   await settledClose(apiCtx, 'api context');
 
-  // 5. Mobile: duplicate submit through the real UI (external effect #2 of 2).
-  // Proves the mobile path and idempotent replay in one step.
+  // 5. Mobile: duplicate submit through the real UI (outbound mail suppressed
+  // by the same QA markers). Proves the mobile path and idempotent replay in
+  // one step.
   const mobile = await newContext(MOBILE, false);
   const mpage = await mobile.newPage();
   watch(mpage);
