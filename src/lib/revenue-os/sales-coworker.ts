@@ -7,30 +7,11 @@ import { registerCapability } from "./capabilities";
 import { recordAudit } from "./audit";
 import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";
 import { storeAgentMemory } from "./memory";
-import { runCoworkerAgentTask } from "./coworker-agent";
+import { tryCoworkerAgentTask as tryAiExecution } from "./coworker-agent";
 
 // When an AI model is configured, AI-requiring handlers attempt AI execution
 // first and fall back to deterministic logic if the model is unavailable or
 // fails. This keeps the system operational even during model outages.
-const aiModelConfigured = !!process.env.OPENROUTER_AGENT_MODEL;
-
-async function tryAiExecution(
-  supabase: SupabaseClient,
-  wi: WorkItem,
-): Promise<{ outcome: string } | null> {
-  if (!aiModelConfigured) return null;
-  try {
-    const result = await runCoworkerAgentTask(supabase, wi);
-    if (result.outcome && !result.outcome.startsWith("AI execution failed")) {
-      return { outcome: result.outcome };
-    }
-  } catch {
-    // Fall through to deterministic logic.
-  }
-  return null;
-}
-
-import type { WorkItem } from "./work-items";
 
 // ---------------------------------------------------------------------------
 // Sales Coworker: the reference coworker that proves Phase B primitives.
@@ -67,8 +48,16 @@ export const SALES_COWORKER_AUTONOMY_POLICIES = [
   { actionKey: "gmail.read", label: "Read Gmail threads", level: "autonomous" as const },
   { actionKey: "gmail.send", label: "Send follow-up emails", level: "ask_until_trusted" as const },
   { actionKey: "calendar.read", label: "Read calendar availability", level: "autonomous" as const },
-  { actionKey: "pipeline.stage_change", label: "Move pipeline stages", level: "always_ask" as const },
-  { actionKey: "lead.qualify", label: "Qualify inbound leads", level: "standing_permission" as const },
+  {
+    actionKey: "pipeline.stage_change",
+    label: "Move pipeline stages",
+    level: "always_ask" as const,
+  },
+  {
+    actionKey: "lead.qualify",
+    label: "Qualify inbound leads",
+    level: "standing_permission" as const,
+  },
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -83,7 +72,10 @@ export async function bootstrapSalesCoworker(
   for (const capKey of SALES_COWORKER_REQUIRED_CAPABILITIES) {
     await registerCapability(supabase, {
       capabilityKey: capKey,
-      label: capKey.split(".").map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(" "),
+      label: capKey
+        .split(".")
+        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+        .join(" "),
       category: "integration",
       source: "coworker_bootstrap",
     }).catch(() => {
@@ -110,7 +102,8 @@ export async function bootstrapSalesCoworker(
     id: SALES_COWORKER_ID,
     name: "Sales Coworker",
     role: "Qualifies inbound leads, drafts follow-ups, monitors stale proposals, and keeps the pipeline moving",
-    description: "The reference coworker that proves the Phase B primitives. Handles the full lead-to-close loop: lead arrives → identity resolved → context gathered → qualified → reply drafted → human approves → email sent → follow-up scheduled.",
+    description:
+      "The reference coworker that proves the Phase B primitives. Handles the full lead-to-close loop: lead arrives → identity resolved → context gathered → qualified → reply drafted → human approves → email sent → follow-up scheduled.",
     toolPack: "pipeline",
     requiredCapabilities: [...SALES_COWORKER_REQUIRED_CAPABILITIES],
     workKinds: [...SALES_COWORKER_WORK_KINDS],
@@ -430,7 +423,9 @@ const reviewStaleProposalHandler: WorkKindHandler = async (supabase, wi) => {
   }
 
   if (opportunity.stage !== "proposal") {
-    return { outcome: `Opportunity ${opportunity.company_name} no longer in proposal stage (now: ${opportunity.stage})` };
+    return {
+      outcome: `Opportunity ${opportunity.company_name} no longer in proposal stage (now: ${opportunity.stage})`,
+    };
   }
 
   await recordAudit(supabase, {
@@ -530,7 +525,9 @@ const scheduleFollowupCheckHandler: WorkKindHandler = async (supabase, wi) => {
   }
 
   if (["won", "lost"].includes(opportunity.stage)) {
-    return { outcome: `Opportunity ${opportunity.company_name} is ${opportunity.stage} — no follow-up needed` };
+    return {
+      outcome: `Opportunity ${opportunity.company_name} is ${opportunity.stage} — no follow-up needed`,
+    };
   }
 
   // The check has come due. Create a draft follow-up if the opportunity

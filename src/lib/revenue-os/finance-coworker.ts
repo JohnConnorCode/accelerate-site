@@ -23,15 +23,16 @@ export const FINANCE_WORK_KINDS = [
   "revenue_stage_audit",
 ] as const;
 
-export const FINANCE_REQUIRED_CAPABILITIES = [
-  "crm.read",
-  "crm.write",
-] as const;
+export const FINANCE_REQUIRED_CAPABILITIES = ["crm.read", "crm.write"] as const;
 
 export const FINANCE_AUTONOMY_POLICIES = [
   { actionKey: "crm.read", label: "Read CRM records", level: "autonomous" as const },
   { actionKey: "crm.write", label: "Update revenue records", level: "ask_until_trusted" as const },
-  { actionKey: "finance.analyze", label: "Analyze revenue data", level: "standing_permission" as const },
+  {
+    actionKey: "finance.analyze",
+    label: "Analyze revenue data",
+    level: "standing_permission" as const,
+  },
   { actionKey: "finance.alert", label: "Send payment alerts", level: "ask_until_trusted" as const },
 ] as const;
 
@@ -46,10 +47,13 @@ export async function bootstrapFinanceCoworker(
   for (const capKey of FINANCE_REQUIRED_CAPABILITIES) {
     await registerCapability(supabase, {
       capabilityKey: capKey,
-      label: capKey.split(".").map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(" "),
+      label: capKey
+        .split(".")
+        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+        .join(" "),
       category: "integration",
       source: "coworker_bootstrap",
-    }).catch(() => {});
+    });
   }
 
   for (const policy of FINANCE_AUTONOMY_POLICIES) {
@@ -60,14 +64,15 @@ export async function bootstrapFinanceCoworker(
       coworkerId: FINANCE_COWORKER_ID,
       source: "coworker_bootstrap",
       actorEmail,
-    }).catch(() => {});
+    });
   }
 
   const coworker = await registerCoworker(supabase, {
     id: FINANCE_COWORKER_ID,
     name: "Finance Coworker",
     role: "Tracks revenue, monitors payment patterns, and reconciles financial records",
-    description: "Watches the pipeline for won deals, monitors payment timelines, alerts on overdue payments, and performs weekly revenue reconciliation to ensure CRM data matches financial reality.",
+    description:
+      "Watches the pipeline for won deals, monitors payment timelines, alerts on overdue payments, and performs weekly revenue reconciliation to ensure CRM data matches financial reality.",
     toolPack: "core",
     requiredCapabilities: [...FINANCE_REQUIRED_CAPABILITIES],
     workKinds: [...FINANCE_WORK_KINDS],
@@ -180,7 +185,10 @@ const weeklyReconciliationHandler: WorkKindHandler = async (supabase) => {
     .select("probability")
     .not("stage", "in", '("won","lost")');
 
-  const weightedPipeline = (activeOpps ?? []).reduce((sum, o) => sum + (o.probability ?? 0) / 100, 0);
+  const weightedPipeline = (activeOpps ?? []).reduce(
+    (sum, o) => sum + (o.probability ?? 0) / 100,
+    0,
+  );
 
   const tw = wonThisWeek ?? 0;
   const lw = wonLastWeek ?? 0;
@@ -265,11 +273,17 @@ const revenueStageAuditHandler: WorkKindHandler = async (supabase) => {
 
   const count = atRisk?.length ?? 0;
   if (count === 0) {
-    return { outcome: "No high-stage opportunities at risk — all proposal/negotiation deals have recent activity" };
+    return {
+      outcome:
+        "No high-stage opportunities at risk — all proposal/negotiation deals have recent activity",
+    };
   }
 
   const summary = (atRisk ?? [])
-    .map((s) => `${s.company_name} (${s.stage}, ${s.probability}%, last update ${s.updated_at.slice(0, 10)})`)
+    .map(
+      (s) =>
+        `${s.company_name} (${s.stage}, ${s.probability}%, last update ${s.updated_at.slice(0, 10)})`,
+    )
     .join("; ");
 
   await recordAudit(supabase, {
@@ -278,7 +292,15 @@ const revenueStageAuditHandler: WorkKindHandler = async (supabase) => {
     entityType: "work_engine",
     entityId: "revenue_stage_audit",
     source: "automation",
-    after: { count, deals: atRisk?.map((s) => ({ id: s.id, company: s.company_name, stage: s.stage, probability: s.probability })) },
+    after: {
+      count,
+      deals: atRisk?.map((s) => ({
+        id: s.id,
+        company: s.company_name,
+        stage: s.stage,
+        probability: s.probability,
+      })),
+    },
   });
 
   await storeAgentMemory(supabase, {

@@ -154,7 +154,16 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["ai"],
     routes: ["/admin/ai"],
-    aiToolNames: ["search_knowledge_base"],
+    aiToolNames: [
+      "search_knowledge_base",
+      "query_memory",
+      "store_agent_memory",
+      "get_agent_memory",
+      "get_learned_policies",
+      "record_learned_policy",
+      "get_claims_for_entity",
+      "get_agent_activity_for_entity",
+    ],
   },
   {
     id: "core-system",
@@ -165,6 +174,20 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["tenants", "setup", "features", "settings"],
     routes: ["/admin/tenants", "/admin/setup", "/admin/features", "/admin/settings"],
+    aiToolNames: [
+      "get_claimable_work",
+      "get_workspace_capabilities",
+      "get_autonomy_policies",
+      "get_coworkers",
+      "get_plugins",
+      "bootstrap_sales_coworker",
+      "bootstrap_business_pulse_coworker",
+      "bootstrap_meeting_intel_coworker",
+      "bootstrap_finance_coworker",
+      "bootstrap_operations_coworker",
+      "check_budgets",
+      "get_budget_limits",
+    ],
   },
 
   // --- Optional / Pluggable Business Modules ---

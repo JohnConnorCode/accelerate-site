@@ -70,6 +70,9 @@ jobs:
       - name: Verify module settings never look like secrets
         run: npm run verify:module-settings
 
+      - name: Verify runtime tenant and domain boundaries
+        run: npm run verify:runtime-boundaries
+
       - name: Typecheck
         run: npm run typecheck
 
@@ -81,6 +84,11 @@ jobs:
 
       - name: Run core contract suite
         run: npm run test:core
+
+      - name: Verify runtime PostgreSQL concurrency and migrations
+        run: |
+          echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
+          PATH="$(pg_config --bindir):$PATH" npm run test:runtime-postgres
 
       - name: Build
         run: npm run build

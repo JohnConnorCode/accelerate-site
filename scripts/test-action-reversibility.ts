@@ -6,7 +6,7 @@ import {
   reversibilityOf,
 } from "../src/lib/revenue-os/action-reversibility";
 import { proposeAction } from "../src/lib/revenue-os/actions";
-import { MemorySupabase } from "./lib/memory-supabase";
+import { AuthorizedMemorySupabase as MemorySupabase } from "./lib/autonomy-fixture";
 
 const ACTOR = "founder@example.com";
 
@@ -56,7 +56,11 @@ async function main() {
 
   // 2. Irreversible actions refuse autonomous execution before any effect.
   mem.tables.action_queue!.push({
-    ...pendingAction({ id: "a-send", action_type: "send_email", payload: { to: "x@y.zz", subject: "s", body: "b" } }),
+    ...pendingAction({
+      id: "a-send",
+      action_type: "send_email",
+      payload: { to: "x@y.zz", subject: "s", body: "b" },
+    }),
   });
   await assert.rejects(
     () => approveAndExecuteAction(db, "a-send", ACTOR, { mode: "autonomous" }),
@@ -118,10 +122,7 @@ async function main() {
     }),
   });
   await approveAndExecuteAction(db, "a-next", ACTOR);
-  assert.equal(
-    mem.rows("opportunities").find((r) => r.id === "o9")?.next_action,
-    "Send contract",
-  );
+  assert.equal(mem.rows("opportunities").find((r) => r.id === "o9")?.next_action, "Send contract");
   await compensateAction(db, "a-next", ACTOR);
   assert.equal(
     mem.rows("opportunities").find((r) => r.id === "o9")?.next_action,
@@ -155,10 +156,7 @@ async function main() {
 
   // 7. Refusals: non-executed rows and irreversible types never undo.
   mem.tables.action_queue!.push({ ...pendingAction({ id: "a-pending" }) });
-  await assert.rejects(
-    () => compensateAction(db, "a-pending", ACTOR),
-    /Only executed actions/,
-  );
+  await assert.rejects(() => compensateAction(db, "a-pending", ACTOR), /Only executed actions/);
   mem.tables.action_queue!.push({
     ...pendingAction({ id: "a-sent", action_type: "send_email", status: "executed" }),
   });

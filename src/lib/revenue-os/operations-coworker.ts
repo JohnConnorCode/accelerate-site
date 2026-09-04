@@ -24,13 +24,15 @@ export const OPERATIONS_WORK_KINDS = [
   "data_quality_scan",
 ] as const;
 
-export const OPERATIONS_REQUIRED_CAPABILITIES = [
-  "crm.read",
-] as const;
+export const OPERATIONS_REQUIRED_CAPABILITIES = ["crm.read"] as const;
 
 export const OPERATIONS_AUTONOMY_POLICIES = [
   { actionKey: "crm.read", label: "Read CRM records", level: "autonomous" as const },
-  { actionKey: "ops.analyze", label: "Analyze system health", level: "standing_permission" as const },
+  {
+    actionKey: "ops.analyze",
+    label: "Analyze system health",
+    level: "standing_permission" as const,
+  },
   { actionKey: "ops.alert", label: "Send operational alerts", level: "ask_until_trusted" as const },
 ] as const;
 
@@ -45,10 +47,13 @@ export async function bootstrapOperationsCoworker(
   for (const capKey of OPERATIONS_REQUIRED_CAPABILITIES) {
     await registerCapability(supabase, {
       capabilityKey: capKey,
-      label: capKey.split(".").map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(" "),
+      label: capKey
+        .split(".")
+        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+        .join(" "),
       category: "integration",
       source: "coworker_bootstrap",
-    }).catch(() => {});
+    });
   }
 
   for (const policy of OPERATIONS_AUTONOMY_POLICIES) {
@@ -59,14 +64,15 @@ export async function bootstrapOperationsCoworker(
       coworkerId: OPERATIONS_COWORKER_ID,
       source: "coworker_bootstrap",
       actorEmail,
-    }).catch(() => {});
+    });
   }
 
   const coworker = await registerCoworker(supabase, {
     id: OPERATIONS_COWORKER_ID,
     name: "Operations Coworker",
     role: "Monitors system health, integration status, data quality, and operational anomalies",
-    description: "The meta-coworker that watches the platform itself. Checks integration health, detects stale syncs, scans for data quality issues (missing fields, orphaned records), and produces daily operational health reports.",
+    description:
+      "The meta-coworker that watches the platform itself. Checks integration health, detects stale syncs, scans for data quality issues (missing fields, orphaned records), and produces daily operational health reports.",
     toolPack: "core",
     requiredCapabilities: [...OPERATIONS_REQUIRED_CAPABILITIES],
     workKinds: [...OPERATIONS_WORK_KINDS],
@@ -175,9 +181,7 @@ const dailyHealthCheckHandler: WorkKindHandler = async (supabase) => {
     .lt("expires_at", now);
 
   // Count total work items by status.
-  const { data: workStatusCounts } = await supabase
-    .from("work_items")
-    .select("status");
+  const { data: workStatusCounts } = await supabase.from("work_items").select("status");
 
   const byStatus: Record<string, number> = {};
   for (const wi of workStatusCounts ?? []) {
@@ -189,11 +193,14 @@ const dailyHealthCheckHandler: WorkKindHandler = async (supabase) => {
   if ((staleClaims ?? 0) > 0) issues.push(`${staleClaims} stale work claims`);
   if ((expiredActions ?? 0) > 0) issues.push(`${expiredActions} expired actions`);
 
-  const statusSummary = Object.entries(byStatus).map(([s, c]) => `${s}=${c}`).join(", ");
+  const statusSummary = Object.entries(byStatus)
+    .map(([s, c]) => `${s}=${c}`)
+    .join(", ");
 
-  const outcome = issues.length > 0
-    ? `Issues: ${issues.join(", ")}. Work items: ${statusSummary}`
-    : `All healthy. Work items: ${statusSummary}`;
+  const outcome =
+    issues.length > 0
+      ? `Issues: ${issues.join(", ")}. Work items: ${statusSummary}`
+      : `All healthy. Work items: ${statusSummary}`;
 
   await recordAudit(supabase, {
     actorEmail: "system",
@@ -229,15 +236,22 @@ const integrationStatusAuditHandler: WorkKindHandler = async (supabase) => {
   const notConfigured = (recentSourceRuns ?? []).filter((r) => r.status === "not_configured");
 
   if (failed.length === 0 && notConfigured.length === 0) {
-    return { outcome: "All integrations healthy — no failed or unconfigured source runs in the last 24 hours" };
+    return {
+      outcome:
+        "All integrations healthy — no failed or unconfigured source runs in the last 24 hours",
+    };
   }
 
   const parts: string[] = [];
   if (failed.length > 0) {
-    parts.push(`${failed.length} failed: ${failed.map((f) => `${f.source_key} (${(f.error ?? "").slice(0, 50)})`).join(", ")}`);
+    parts.push(
+      `${failed.length} failed: ${failed.map((f) => `${f.source_key} (${(f.error ?? "").slice(0, 50)})`).join(", ")}`,
+    );
   }
   if (notConfigured.length > 0) {
-    parts.push(`${notConfigured.length} not configured: ${notConfigured.map((n) => n.source_key).join(", ")}`);
+    parts.push(
+      `${notConfigured.length} not configured: ${notConfigured.map((n) => n.source_key).join(", ")}`,
+    );
   }
 
   await recordAudit(supabase, {
@@ -284,7 +298,8 @@ const dataQualityScanHandler: WorkKindHandler = async (supabase) => {
   const issues: string[] = [];
   if ((noEmail ?? 0) > 0) issues.push(`${noEmail} contacts without email`);
   if ((noCompany ?? 0) > 0) issues.push(`${noCompany} opportunities without company name`);
-  if ((noNextAction ?? 0) > 0) issues.push(`${noNextAction} active opportunities without next action`);
+  if ((noNextAction ?? 0) > 0)
+    issues.push(`${noNextAction} active opportunities without next action`);
 
   if (issues.length === 0) {
     return { outcome: "Data quality scan clean — no missing critical fields detected" };

@@ -5,9 +5,26 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-04.1";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-04.2";
 
 export const TENANT_SCOPED_TABLES = [
+  "work_items",
+  "workspace_capabilities",
+  "coworkers",
+  "claims",
+  "evidence",
+  "autonomy_policies",
+  "autonomy_hard_floors",
+  "agent_memory",
+  "learned_policies",
+  "budget_limits",
+  "budget_usage",
+  "budget_receipts",
+  "plugins",
+  "plugin_tools",
+  "plugin_triggers",
+  "kanban_columns",
+
   "action_queue",
   "activities",
   "admin_notifications",
@@ -67,6 +84,18 @@ export const TENANT_SCOPED_TABLES = [
 const TENANT_SCOPED_TABLE_SET = new Set<string>(TENANT_SCOPED_TABLES);
 
 const BASE_REVENUE_SCHEMA_TABLES = [
+  {
+    table: "work_items",
+    columns: [
+      "id",
+      "status",
+      "lease_owner",
+      "lease_expires_at",
+      "attempt_count",
+      "action_ids",
+      "agent_run_id",
+    ],
+  },
   {
     table: "contacts",
     columns: [
@@ -176,7 +205,10 @@ const BASE_REVENUE_SCHEMA_TABLES = [
     columns: ["id", "opportunity_id", "contact_id", "company_id", "status", "version"],
   },
   { table: "proposal_events", columns: ["id", "proposal_id", "event_type", "source"] },
-  { table: "action_queue", columns: ["id", "action_type", "status", "dedupe_key", "expires_at"] },
+  {
+    table: "action_queue",
+    columns: ["id", "action_type", "status", "dedupe_key", "expires_at", "work_item_id"],
+  },
   {
     table: "job_runs",
     columns: [

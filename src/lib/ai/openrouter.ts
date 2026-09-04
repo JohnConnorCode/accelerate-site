@@ -53,6 +53,7 @@ export interface OpenRouterResponse {
 }
 
 export interface OpenRouterRequest {
+  beforeAttempt?: (attempt: number) => Promise<void>;
   /** Tenant-bound database context used only to resolve the encrypted key. */
   database?: SupabaseClient;
   messages: OpenRouterMessage[];
@@ -243,6 +244,7 @@ export async function openRouterChat(input: OpenRouterRequest): Promise<OpenRout
   let lastError: OpenRouterError | null = null;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     try {
+      await input.beforeAttempt?.(attempt);
       return await attemptChat(input, model, apiKey);
     } catch (error) {
       if (!(error instanceof OpenRouterError)) throw error;

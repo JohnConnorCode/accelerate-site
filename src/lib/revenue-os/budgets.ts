@@ -71,6 +71,7 @@ export async function checkBudgets(
   supabase: SupabaseClient,
   input: {
     coworkerId: string;
+    workItemId?: string;
     budgetKinds?: BudgetKind[];
   },
 ): Promise<BudgetCheckResult[]> {
@@ -83,72 +84,67 @@ export async function checkBudgets(
     "runtime_seconds",
   ];
   const today = new Date().toISOString().slice(0, 10);
-
-  // Fetch limits: coworker-specific first, then tenant-global. "*" is the
-  // sentinel for tenant-global (see migrations/20260903-agent-memory-and-budgets.sql
-  // for why coworker_id is NOT NULL rather than nullable).
-  const { data: coworkerLimits } = await supabase
+  const { data: limits, error: limitsError } = await supabase
     .from("budget_limits")
-    .select()
-    .eq("coworker_id", input.coworkerId)
+    .select("*")
+    .in("coworker_id", [...new Set([input.coworkerId, "*"])])
     .in("budget_kind", kinds);
-
-  const { data: globalLimits } = await supabase
-    .from("budget_limits")
-    .select()
-    .eq("coworker_id", "*")
-    .in("budget_kind", kinds);
-
-  // Build a map: coworker-specific overrides global.
-  const limitMap = new Map<string, BudgetLimit>();
-  for (const limit of globalLimits ?? []) {
-    limitMap.set(limit.budget_kind, limit as BudgetLimit);
-  }
-  for (const limit of coworkerLimits ?? []) {
-    limitMap.set(limit.budget_kind, limit as BudgetLimit);
-  }
-
-  // If no limits exist, everything is allowed.
-  if (limitMap.size === 0) {
-    return kinds.map((kind) => ({
+  if (limitsError) throw new Error(`Budget limits unavailable: ${limitsError.message}`);
+  if (!limits?.length)
+    return kinds.map((budgetKind) => ({
       allowed: true,
-      budgetKind: kind,
+      budgetKind,
       used: 0,
       limit: Infinity,
       remaining: Infinity,
       reason: null,
     }));
-  }
-
-  // Fetch usage for today.
-  const { data: usageRows } = await supabase
+  const starts = limits.map((limit: BudgetLimit) => budgetPeriodStart(limit.period, today));
+  const earliest = starts.reduce((a, b) => (a < b ? a : b), today);
+  // Global limits constrain the whole tenant, while coworker limits additionally
+  // constrain that worker. Worker limits never override a tenant-wide cap.
+  const { data: usage, error: usageError } = await supabase
     .from("budget_usage")
-    .select()
-    .eq("coworker_id", input.coworkerId)
-    .eq("period_key", today)
-    .in("budget_kind", kinds);
-
-  const usageByKind = new Map<string, number>();
-  for (const row of usageRows ?? []) {
-    usageByKind.set(row.budget_kind, (usageByKind.get(row.budget_kind) ?? 0) + row.used_value);
+    .select("coworker_id,budget_kind,used_value,period_key")
+    .in("budget_kind", kinds)
+    .gte("period_key", earliest)
+    .lte("period_key", today);
+  if (usageError) throw new Error(`Budget usage unavailable: ${usageError.message}`);
+  let workUsage: Pick<BudgetUsage, "coworker_id" | "budget_kind" | "used_value">[] = [];
+  if (limits.some((limit: BudgetLimit) => limit.period === "per_work_item")) {
+    if (!input.workItemId) throw new Error("Per-work-item budget requires work context");
+    const { data, error } = await supabase
+      .from("budget_receipts")
+      .select("coworker_id,budget_kind,amount")
+      .eq("work_item_id", input.workItemId)
+      .in("budget_kind", kinds);
+    if (error) throw new Error(`Budget receipts unavailable: ${error.message}`);
+    workUsage = (data ?? []).map((row) => ({ ...row, used_value: row.amount }));
   }
-
-  const results: BudgetCheckResult[] = [];
-  for (const [kind, limit] of limitMap) {
-    const used = usageByKind.get(kind) ?? 0;
-    const remaining = limit.limit_value - used;
-    const allowed = remaining > 0;
-    results.push({
-      allowed,
-      budgetKind: kind as BudgetKind,
+  return limits.map((limit: BudgetLimit, index: number) => {
+    const rows =
+      limit.period === "per_work_item"
+        ? workUsage
+        : (usage ?? []).filter((row) => row.period_key >= starts[index]!);
+    const used = rows
+      .filter(
+        (row) =>
+          row.budget_kind === limit.budget_kind &&
+          (limit.coworker_id === "*" || row.coworker_id === input.coworkerId),
+      )
+      .reduce((sum, row) => sum + Number(row.used_value), 0);
+    const cap = Number(limit.limit_value);
+    if (!Number.isFinite(used) || !Number.isFinite(cap) || used < 0 || cap < 0)
+      throw new Error("Budget accounting is invalid");
+    return {
+      allowed: used < cap,
+      budgetKind: limit.budget_kind,
       used,
-      limit: limit.limit_value,
-      remaining,
-      reason: allowed ? null : `Budget exhausted: ${kind} (${used}/${limit.limit_value})`,
-    });
-  }
-
-  return results;
+      limit: cap,
+      remaining: Math.max(0, cap - used),
+      reason: used < cap ? null : `Budget exhausted: ${limit.budget_kind} (${used}/${cap})`,
+    };
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -168,6 +164,8 @@ export async function recordBudgetUsage(
     actorEmail?: string | null;
   },
 ): Promise<void> {
+  if (!Number.isFinite(input.value) || input.value < 0)
+    throw new Error("Budget usage must be finite and non-negative");
   const today = new Date().toISOString().slice(0, 10);
 
   // increment_budget_usage is the only write path — it is atomic (advisory
@@ -225,6 +223,8 @@ export async function setBudgetLimit(
     actorEmail?: string | null;
   },
 ): Promise<BudgetLimit> {
+  if (!Number.isFinite(input.limitValue) || input.limitValue < 0)
+    throw new Error("Budget limit must be finite and non-negative");
   const period = input.period ?? "daily";
   const { data, error } = await supabase
     .from("budget_limits")
@@ -248,7 +248,12 @@ export async function setBudgetLimit(
     entityType: "budget",
     entityId: data.id,
     source: input.actorEmail ? "admin" : "automation",
-    after: { budgetKind: input.budgetKind, limitValue: input.limitValue, period, coworkerId: input.coworkerId },
+    after: {
+      budgetKind: input.budgetKind,
+      limitValue: input.limitValue,
+      period,
+      coworkerId: input.coworkerId,
+    },
   });
 
   return data as BudgetLimit;
@@ -267,4 +272,40 @@ export async function listBudgetLimits(
   const { data, error } = await query;
   if (error) throw new Error(`Failed to list budget limits: ${error.message}`);
   return (data ?? []) as BudgetLimit[];
+}
+
+export function budgetPeriodStart(period: BudgetLimit["period"], day: string): string {
+  const date = new Date(`${day}T00:00:00Z`);
+  if (period === "weekly") date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7));
+  else if (period === "monthly") date.setUTCDate(1);
+  else if (period !== "daily" && period !== "per_work_item")
+    throw new Error("Unsupported budget period");
+  return date.toISOString().slice(0, 10);
+}
+
+export async function claimResourceBudget(
+  supabase: SupabaseClient,
+  input: {
+    coworkerId: string | null;
+    budgetKind: BudgetKind;
+    amount: number;
+    operationKey: string;
+    workItemId?: string;
+  },
+) {
+  if (!Number.isFinite(input.amount) || input.amount < 0 || !input.operationKey.trim())
+    throw new Error("Invalid budget reservation");
+  const { data, error } = await supabase
+    .rpc("claim_budget_usage", {
+      p_coworker_id: input.coworkerId,
+      p_budget_kind: input.budgetKind,
+      p_amount: input.amount,
+      p_operation_key: input.operationKey,
+      p_work_item_id: input.workItemId ?? null,
+    })
+    .single();
+  if (error) throw new Error(`Budget reservation failed: ${error.message}`);
+  const receipt = data as { allowed: boolean; replayed: boolean; reason: string };
+  if (!receipt?.allowed) throw new Error(receipt?.reason ?? "Budget reservation refused");
+  return receipt;
 }

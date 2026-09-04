@@ -4,27 +4,8 @@ import { createWorkItem } from "./work-items";
 import { recordAudit } from "./audit";
 import { storeAgentMemory } from "./memory";
 import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";
-import { runCoworkerAgentTask } from "./coworker-agent";
-import type { WorkItem } from "./work-items";
+import { tryCoworkerAgentTask as tryAiExecution } from "./coworker-agent";
 import { retrieveKnowledge } from "./knowledge";
-
-const aiModelConfigured = !!process.env.OPENROUTER_AGENT_MODEL;
-
-async function tryAiExecution(
-  supabase: SupabaseClient,
-  wi: WorkItem,
-): Promise<{ outcome: string } | null> {
-  if (!aiModelConfigured) return null;
-  try {
-    const result = await runCoworkerAgentTask(supabase, wi);
-    if (result.outcome && !result.outcome.startsWith("AI execution failed")) {
-      return { outcome: result.outcome };
-    }
-  } catch {
-    // Fall through to deterministic logic.
-  }
-  return null;
-}
 
 // ---------------------------------------------------------------------------
 // Proactive Operator Intelligence (northstar §3: NOTICE layer)

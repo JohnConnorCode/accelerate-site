@@ -1,7 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { OpenRouterTool } from "@/lib/ai/openrouter";
-import { proposeAction } from "./actions";
+import { proposeAction, withProposalWorkContext } from "./actions";
 import { loadOperatorQueue } from "./queue";
 import { loadActivityTimeline } from "./activities";
 import { ADMIN_LAYOUT_SCOPES, proposeLayoutChange } from "./admin-layout";
@@ -15,15 +15,18 @@ import { listAutonomyPolicies, type AutonomyPolicy } from "./autonomy-policy";
 import { listCoworkers, type Coworker } from "./coworkers";
 import { listPlugins, type Plugin } from "./plugins";
 import { getAgentActivityForEntity, type AgentActivityEntry } from "./agent-activity";
-import { bootstrapSalesCoworker } from "./sales-coworker";
-import { bootstrapBusinessPulseCoworker } from "./business-pulse-coworker";
-import { bootstrapMeetingIntelCoworker } from "./meeting-intel-coworker";
-import { bootstrapFinanceCoworker } from "./finance-coworker";
-import { bootstrapOperationsCoworker } from "./operations-coworker";
-import { queryMemory, storeAgentMemory, retrieveAgentMemory, listLearnedPolicies, recordLearnedPolicy, MEMORY_CATEGORIES, type AgentMemoryEntry, type LearnedPolicyEntry, type MemoryCategory } from "./memory";
+import {
+  queryMemory,
+  retrieveAgentMemory,
+  listLearnedPolicies,
+  MEMORY_CATEGORIES,
+  type AgentMemoryEntry,
+  type LearnedPolicyEntry,
+  type MemoryCategory,
+} from "./memory";
 import { checkBudgets, listBudgetLimits, type BudgetKind, type BudgetLimit } from "./budgets";
 
-export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v4";
+export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v5";
 export const REVENUE_TOOL_PACKS = ["core", "pipeline", "outreach"] as const;
 export type RevenueToolPackId = (typeof REVENUE_TOOL_PACKS)[number];
 
@@ -35,6 +38,7 @@ export type AiToolImpact = "read" | "internal_write" | "external_action" | "dest
 type AiToolContext = {
   supabase: SupabaseClient;
   actorEmail: string;
+  workItemId?: string;
   toolPack?: RevenueToolPackId;
   tenantConfig?: { modules?: Partial<Record<string, boolean>> } | null;
 };
@@ -967,9 +971,9 @@ const registry: AiToolRegistration[] = [
       const availableOnlyVal = value(input, "availableOnly");
       const capabilities = await listWorkspaceCapabilities(supabase, {
         category: categoryVal
-          ? (["integration", "runtime", "plugin", "system"].includes(categoryVal)
-              ? (categoryVal as "integration" | "runtime" | "plugin" | "system")
-              : undefined)
+          ? ["integration", "runtime", "plugin", "system"].includes(categoryVal)
+            ? (categoryVal as "integration" | "runtime" | "plugin" | "system")
+            : undefined
           : undefined,
         availableOnly: availableOnlyVal === "true",
       });
@@ -1000,7 +1004,8 @@ const registry: AiToolRegistration[] = [
         entityId: { type: "string", description: "The entity's UUID" },
         status: {
           type: "string",
-          description: "Comma-separated claim statuses to filter: unverified,supported,conflicted,verified",
+          description:
+            "Comma-separated claim statuses to filter: unverified,supported,conflicted,verified",
         },
       },
       required: ["entityType", "entityId"],
@@ -1016,7 +1021,10 @@ const registry: AiToolRegistration[] = [
       const entityId = value(input, "entityId")!;
       const statusStr = value(input, "status");
       const statuses = statusStr
-        ? (statusStr.split(",").map((s) => s.trim()).filter(Boolean) as Claim["status"][])
+        ? (statusStr
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean) as Claim["status"][])
         : undefined;
       const claims = await listClaimsForEntity(supabase, {
         entityType,
@@ -1044,7 +1052,8 @@ const registry: AiToolRegistration[] = [
       properties: {
         level: {
           type: "string",
-          description: "Filter to a specific level: prohibited, always_ask, ask_until_trusted, standing_permission, autonomous",
+          description:
+            "Filter to a specific level: prohibited, always_ask, ask_until_trusted, standing_permission, autonomous",
         },
       },
       additionalProperties: false,
@@ -1058,9 +1067,20 @@ const registry: AiToolRegistration[] = [
       const levelVal = value(input, "level");
       const policies = await listAutonomyPolicies(supabase, {
         level: levelVal
-          ? (["prohibited", "always_ask", "ask_until_trusted", "standing_permission", "autonomous"].includes(levelVal)
-              ? (levelVal as "prohibited" | "always_ask" | "ask_until_trusted" | "standing_permission" | "autonomous")
-              : undefined)
+          ? [
+              "prohibited",
+              "always_ask",
+              "ask_until_trusted",
+              "standing_permission",
+              "autonomous",
+            ].includes(levelVal)
+            ? (levelVal as
+                | "prohibited"
+                | "always_ask"
+                | "ask_until_trusted"
+                | "standing_permission"
+                | "autonomous")
+            : undefined
           : undefined,
       });
       return policies.map((p: AutonomyPolicy) => ({
@@ -1097,9 +1117,9 @@ const registry: AiToolRegistration[] = [
       const statusVal = value(input, "status");
       const coworkers = await listCoworkers(supabase, {
         status: statusVal
-          ? (["active", "paused", "disabled"].includes(statusVal)
-              ? (statusVal as "active" | "paused" | "disabled")
-              : undefined)
+          ? ["active", "paused", "disabled"].includes(statusVal)
+            ? (statusVal as "active" | "paused" | "disabled")
+            : undefined
           : undefined,
       });
       return coworkers.map((cw: Coworker) => ({
@@ -1175,9 +1195,9 @@ const registry: AiToolRegistration[] = [
       const statusVal = value(input, "status");
       const plugins = await listPlugins(supabase, {
         status: statusVal
-          ? (["pending_review", "approved", "enabled", "disabled", "revoked"].includes(statusVal)
-              ? (statusVal as "pending_review" | "approved" | "enabled" | "disabled" | "revoked")
-              : undefined)
+          ? ["pending_review", "approved", "enabled", "disabled", "revoked"].includes(statusVal)
+            ? (statusVal as "pending_review" | "approved" | "enabled" | "disabled" | "revoked")
+            : undefined
           : undefined,
       });
       return plugins.map((p: Plugin) => ({
@@ -1194,132 +1214,97 @@ const registry: AiToolRegistration[] = [
   {
     name: "bootstrap_sales_coworker",
     description:
-      "Bootstrap the Sales Coworker: register its capabilities, autonomy policies, and work kinds. Returns readiness status and any capability gaps. Idempotent — safe to call multiple times.",
+      "Propose configuration of the Sales Coworker: register its capabilities, autonomy policies, and work kinds. Returns a pending action; configuration runs only after human approval.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
-    outputSchema: {
-      type: "object",
-      required: ["readyToWork", "capabilityGaps"],
-      properties: {
-        readyToWork: { type: "boolean" },
-        capabilityGaps: { type: "array", items: { type: "string" } },
-      },
-    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
     serviceTarget: "revenue-os.coworker-bootstrap",
     connectionRequirement: "none",
     impact: "internal_write",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }) => {
-      const result = await bootstrapSalesCoworker(supabase, actorEmail);
-      return {
-        readyToWork: result.readyToWork,
-        capabilityGaps: result.capabilityGaps,
-        coworkerName: result.coworker.name,
-      };
-    },
+    execute: async ({ supabase, actorEmail }) =>
+      proposeAction(supabase, {
+        actionType: "bootstrap_coworker",
+        title: "Configure sales coworker",
+        payload: { coworker: "sales" },
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      }),
   },
   {
     name: "bootstrap_business_pulse_coworker",
     description:
-      "Bootstrap the Business Pulse Coworker: register its capabilities, autonomy policies, and work kinds. Monitors pipeline health, detects anomalies, and produces daily digests. Idempotent.",
+      "Propose configuration of the Business Pulse Coworker: register its capabilities, autonomy policies, and work kinds. Monitors pipeline health, detects anomalies, and produces daily digests. Returns a pending action for human approval.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
-    outputSchema: {
-      type: "object",
-      required: ["readyToWork", "capabilityGaps"],
-      properties: {
-        readyToWork: { type: "boolean" },
-        capabilityGaps: { type: "array", items: { type: "string" } },
-      },
-    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
     serviceTarget: "revenue-os.coworker-bootstrap",
     connectionRequirement: "none",
     impact: "internal_write",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }) => {
-      const result = await bootstrapBusinessPulseCoworker(supabase, actorEmail);
-      return {
-        readyToWork: result.readyToWork,
-        capabilityGaps: result.capabilityGaps,
-        coworkerName: result.coworker.name,
-      };
-    },
+    execute: async ({ supabase, actorEmail }) =>
+      proposeAction(supabase, {
+        actionType: "bootstrap_coworker",
+        title: "Configure business pulse coworker",
+        payload: { coworker: "business_pulse" },
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      }),
   },
   {
     name: "bootstrap_meeting_intel_coworker",
     description:
-      "Bootstrap the Meeting Intelligence Coworker: register its capabilities, autonomy policies, and work kinds. Generates pre-call briefs and processes post-meeting outcomes. Idempotent.",
+      "Propose configuration of the Meeting Intelligence Coworker: register its capabilities, autonomy policies, and work kinds. Generates pre-call briefs and processes post-meeting outcomes. Returns a pending action for human approval.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
-    outputSchema: {
-      type: "object",
-      required: ["readyToWork", "capabilityGaps"],
-      properties: {
-        readyToWork: { type: "boolean" },
-        capabilityGaps: { type: "array", items: { type: "string" } },
-      },
-    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
     serviceTarget: "revenue-os.coworker-bootstrap",
     connectionRequirement: "none",
     impact: "internal_write",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }) => {
-      const result = await bootstrapMeetingIntelCoworker(supabase, actorEmail);
-      return {
-        readyToWork: result.readyToWork,
-        capabilityGaps: result.capabilityGaps,
-        coworkerName: result.coworker.name,
-      };
-    },
+    execute: async ({ supabase, actorEmail }) =>
+      proposeAction(supabase, {
+        actionType: "bootstrap_coworker",
+        title: "Configure meeting intel coworker",
+        payload: { coworker: "meeting_intel" },
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      }),
   },
   {
     name: "bootstrap_finance_coworker",
     description:
-      "Bootstrap the Finance Coworker: register its capabilities, autonomy policies, and work kinds. Tracks revenue, monitors payment patterns, and reconciles financial records. Idempotent.",
+      "Propose configuration of the Finance Coworker: register its capabilities, autonomy policies, and work kinds. Tracks revenue, monitors payment patterns, and reconciles financial records. Returns a pending action for human approval.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
-    outputSchema: {
-      type: "object",
-      required: ["readyToWork", "capabilityGaps"],
-      properties: {
-        readyToWork: { type: "boolean" },
-        capabilityGaps: { type: "array", items: { type: "string" } },
-      },
-    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
     serviceTarget: "revenue-os.coworker-bootstrap",
     connectionRequirement: "none",
     impact: "internal_write",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }) => {
-      const result = await bootstrapFinanceCoworker(supabase, actorEmail);
-      return {
-        readyToWork: result.readyToWork,
-        capabilityGaps: result.capabilityGaps,
-        coworkerName: result.coworker.name,
-      };
-    },
+    execute: async ({ supabase, actorEmail }) =>
+      proposeAction(supabase, {
+        actionType: "bootstrap_coworker",
+        title: "Configure finance coworker",
+        payload: { coworker: "finance" },
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      }),
   },
   {
     name: "bootstrap_operations_coworker",
     description:
-      "Bootstrap the Operations Coworker: register its capabilities, autonomy policies, and work kinds. Monitors system health, integration status, data quality, and operational anomalies. Idempotent.",
+      "Propose configuration of the Operations Coworker: register its capabilities, autonomy policies, and work kinds. Monitors system health, integration status, data quality, and operational anomalies. Returns a pending action for human approval.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
-    outputSchema: {
-      type: "object",
-      required: ["readyToWork", "capabilityGaps"],
-      properties: {
-        readyToWork: { type: "boolean" },
-        capabilityGaps: { type: "array", items: { type: "string" } },
-      },
-    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
     serviceTarget: "revenue-os.coworker-bootstrap",
     connectionRequirement: "none",
     impact: "internal_write",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }) => {
-      const result = await bootstrapOperationsCoworker(supabase, actorEmail);
-      return {
-        readyToWork: result.readyToWork,
-        capabilityGaps: result.capabilityGaps,
-        coworkerName: result.coworker.name,
-      };
-    },
+    execute: async ({ supabase, actorEmail }) =>
+      proposeAction(supabase, {
+        actionType: "bootstrap_coworker",
+        title: "Configure operations coworker",
+        payload: { coworker: "operations" },
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      }),
   },
   {
     name: "query_memory",
@@ -1330,10 +1315,16 @@ const registry: AiToolRegistration[] = [
       properties: {
         categories: {
           type: "array",
-          items: { type: "string", enum: ["canonical", "activity", "knowledge", "agent", "learned_policy"] },
+          items: {
+            type: "string",
+            enum: ["canonical", "activity", "knowledge", "agent", "learned_policy"],
+          },
           description: "Which categories to query. Defaults to all.",
         },
-        entityType: { type: "string", description: "Entity type to scope (contact, company, opportunity)" },
+        entityType: {
+          type: "string",
+          description: "Entity type to scope (contact, company, opportunity)",
+        },
         entityId: { type: "string", description: "Entity UUID to scope" },
         query: { type: "string", description: "Free-text search (used by knowledge category)" },
         coworkerId: { type: "string", description: "Coworker to scope agent memory" },
@@ -1350,7 +1341,9 @@ const registry: AiToolRegistration[] = [
     execute: async ({ supabase }, input) => {
       const categoryStrs = input.categories as string[] | undefined;
       const categories = categoryStrs
-        ? (categoryStrs.filter((c): c is MemoryCategory => MEMORY_CATEGORIES.includes(c as MemoryCategory)))
+        ? categoryStrs.filter((c): c is MemoryCategory =>
+            MEMORY_CATEGORIES.includes(c as MemoryCategory),
+          )
         : undefined;
       const results = await queryMemory(supabase, {
         categories,
@@ -1372,11 +1365,14 @@ const registry: AiToolRegistration[] = [
   {
     name: "store_agent_memory",
     description:
-      "Store agent-specific context: prior work results, research findings, unresolved questions, or scheduled check reminders. This is agent memory, not canonical data — it decays over time based on the relevance horizon.",
+      "Propose storing agent-specific context: prior work results, research findings, unresolved questions, or scheduled check reminders. This is agent memory, not canonical data — it decays over time based on the relevance horizon.",
     inputSchema: {
       type: "object",
       properties: {
-        category: { type: "string", enum: ["prior_work", "prior_research", "scheduled_check", "unresolved_question"] },
+        category: {
+          type: "string",
+          enum: ["prior_work", "prior_research", "scheduled_check", "unresolved_question"],
+        },
         subject: { type: "string" },
         body: { type: "string" },
         coworkerId: { type: "string" },
@@ -1387,33 +1383,19 @@ const registry: AiToolRegistration[] = [
       required: ["category", "subject", "body"],
       additionalProperties: false,
     },
-    outputSchema: {
-      type: "object",
-      required: ["id", "category", "subject"],
-      properties: {
-        id: { type: "string" },
-        category: { type: "string" },
-        subject: { type: "string" },
-        relevanceHorizon: { type: "string" },
-      },
-    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
     serviceTarget: "revenue-os.memory-write",
     connectionRequirement: "none",
     impact: "internal_write",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }, input) => {
-      const entry = await storeAgentMemory(supabase, {
-        coworkerId: value(input, "coworkerId"),
-        category: value(input, "category") as AgentMemoryEntry["category"],
-        subject: value(input, "subject")!,
-        body: value(input, "body")!,
-        entityType: value(input, "entityType"),
-        entityId: value(input, "entityId"),
-        relevanceHorizon: value(input, "relevanceHorizon") as AgentMemoryEntry["relevance_horizon"],
-        actorEmail,
-      });
-      return { id: entry.id, category: entry.category, subject: entry.subject, relevanceHorizon: entry.relevance_horizon };
-    },
+    execute: async ({ supabase, actorEmail }, input) =>
+      proposeAction(supabase, {
+        actionType: "store_agent_memory",
+        title: "Store agent memory",
+        payload: input,
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      }),
   },
   {
     name: "get_agent_memory",
@@ -1423,7 +1405,10 @@ const registry: AiToolRegistration[] = [
       type: "object",
       properties: {
         coworkerId: { type: "string" },
-        category: { type: "string", enum: ["prior_work", "prior_research", "scheduled_check", "unresolved_question"] },
+        category: {
+          type: "string",
+          enum: ["prior_work", "prior_research", "scheduled_check", "unresolved_question"],
+        },
         entityType: { type: "string" },
         entityId: { type: "string" },
         limit: { type: "number" },
@@ -1461,7 +1446,7 @@ const registry: AiToolRegistration[] = [
   {
     name: "get_learned_policies",
     description:
-      "List active learned policies — explicit rules derived from human decisions. These are the \"don't do X\" and \"always ask before Y\" rules from operational experience.",
+      'List active learned policies — explicit rules derived from human decisions. These are the "don\'t do X" and "always ask before Y" rules from operational experience.',
     inputSchema: {
       type: "object",
       properties: {
@@ -1500,14 +1485,17 @@ const registry: AiToolRegistration[] = [
   {
     name: "record_learned_policy",
     description:
-      "Record a learned policy — an explicit rule derived from a human decision. These capture operational wisdom like \"never auto-advance deals above $50k\" or \"always ask before emailing C-level contacts\". Supersedes any previous active policy for the same action and scope.",
+      'Propose a learned observation for human review — an explicit rule derived from a human decision. These capture operational wisdom like "never auto-advance deals above $50k" or "always ask before emailing C-level contacts". Supersedes any previous active policy for the same action and scope.',
     inputSchema: {
       type: "object",
       properties: {
         actionKey: { type: "string" },
         rule: { type: "string" },
         rationale: { type: "string" },
-        source: { type: "string", enum: ["human_decision", "founder_override", "incident_remediation", "policy_review"] },
+        source: {
+          type: "string",
+          enum: ["human_decision", "founder_override", "incident_remediation", "policy_review"],
+        },
         coworkerId: { type: "string" },
         scopeEntityType: { type: "string" },
         scopeEntityId: { type: "string" },
@@ -1515,33 +1503,19 @@ const registry: AiToolRegistration[] = [
       required: ["actionKey", "rule", "rationale", "source"],
       additionalProperties: false,
     },
-    outputSchema: {
-      type: "object",
-      required: ["id", "actionKey", "rule"],
-      properties: {
-        id: { type: "string" },
-        actionKey: { type: "string" },
-        rule: { type: "string" },
-        source: { type: "string" },
-      },
-    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
     serviceTarget: "revenue-os.memory-write",
     connectionRequirement: "none",
     impact: "internal_write",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }, input) => {
-      const entry = await recordLearnedPolicy(supabase, {
-        actionKey: value(input, "actionKey")!,
-        rule: value(input, "rule")!,
-        rationale: value(input, "rationale")!,
-        source: value(input, "source") as LearnedPolicyEntry["source"],
-        coworkerId: value(input, "coworkerId"),
-        scopeEntityType: value(input, "scopeEntityType"),
-        scopeEntityId: value(input, "scopeEntityId"),
-        actorEmail,
-      });
-      return { id: entry.id, actionKey: entry.action_key, rule: entry.rule, source: entry.source };
-    },
+    execute: async ({ supabase, actorEmail }, input) =>
+      proposeAction(supabase, {
+        actionType: "record_learned_policy",
+        title: "Record reviewed learning",
+        payload: input,
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      }),
   },
   {
     name: "check_budgets",
@@ -1582,7 +1556,17 @@ const registry: AiToolRegistration[] = [
       type: "object",
       properties: {
         coworkerId: { type: "string" },
-        budgetKind: { type: "string", enum: ["model_spend", "vendor_api_calls", "emails_sent", "research_depth", "retry_count", "runtime_seconds"] },
+        budgetKind: {
+          type: "string",
+          enum: [
+            "model_spend",
+            "vendor_api_calls",
+            "emails_sent",
+            "research_depth",
+            "retry_count",
+            "runtime_seconds",
+          ],
+        },
       },
       additionalProperties: false,
     },
@@ -1791,7 +1775,9 @@ export async function executeRegisteredRevenueTool(
   if (!availability.available)
     throw new Error(`${tool.name} is unavailable: ${availability.reason}`);
   validateToolInput(tool.name, tool.inputSchema, input);
-  const output = await tool.execute(context, input);
+  const output = await withProposalWorkContext(context.workItemId, () =>
+    tool.execute(context, input),
+  );
   validateToolOutput(tool.name, tool.outputSchema, output);
   assertImpactHonoured(tool, output);
   return { output, tool };

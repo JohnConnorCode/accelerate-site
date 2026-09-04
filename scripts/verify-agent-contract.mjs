@@ -157,7 +157,7 @@ for (const warning of boardIntegrity.warnings) console.warn(`warning: ${warning}
 // history shipped and called done. See scripts/verify-wiring.mjs.
 failures.push(...collectWiringFailures());
 
-if (!buildPlanIsInSync())
+if (!(await buildPlanIsInSync()))
   failures.push(
     "docs/NORTHSTAR-BUILD-PLAN.md is out of date. Run `npm run report:build-plan` and commit the result.",
   );
@@ -165,9 +165,9 @@ if (!buildPlanIsInSync())
 // The program waves doc sequences stable card keys but never owns their
 // mutable status. Resolve every `card:<key>` reference against the manifest so
 // a rename or missing card fails before a lower-context agent is dispatched.
-const referencedWaveKeys = [
-  ...programWaves.matchAll(/`card:([a-z0-9]+(?:-[a-z0-9]+)*)`/g),
-].map((match) => match[1]);
+const referencedWaveKeys = [...programWaves.matchAll(/`card:([a-z0-9]+(?:-[a-z0-9]+)*)`/g)].map(
+  (match) => match[1],
+);
 if (!referencedWaveKeys.length)
   failures.push("Program waves doc must reference Feature Board work by stable card:key tokens");
 for (const key of new Set(referencedWaveKeys)) {

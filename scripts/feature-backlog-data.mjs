@@ -326,7 +326,7 @@ const CURRENT_IMPLEMENTATION_EVIDENCE = {
     "2026-09-03 shipped: src/lib/revenue-os/work-scheduler.ts (auto-creates 9 daily work items: digest, stale deals, bottleneck, velocity change, health check, integration audit, data quality, overdue scan, revenue stage audit; weekly: reconciliation on Mondays; scans calendar_events 48h ahead for meeting pre-call briefs). Date-based deduplication. Cross-coworker triggers: inbound→Sales+BP+Ops, pipeline won→Finance+Ops, high-stage→BP+Finance, Calendly→Meeting Intel. All 18 handler paths store domain-specific agent memory. Wired in cron route before executeClaimableWork. TypeScript, lint, build, and contract verify pass.",
   "memory-architecture":
     "2026-09-03 shipped: src/lib/revenue-os/memory.ts (five categories: canonical, activity, knowledge, agent, learned_policy). Agent memory with time-decay horizons (session/daily/weekly/permanent). Learned policies with supersession. Unified queryMemory across all categories. 5 AI tools: query_memory, store_agent_memory, get_agent_memory, get_learned_policies, record_learned_policy. Migration: 20260903-memory-architecture.sql. Work executor consults learned policies and stores agent memory after execution. TypeScript, lint, build, and contract verify pass.",
-  "budgets":
+  budgets:
     "2026-09-03 shipped: src/lib/revenue-os/budgets.ts (checkBudgets, recordBudgetUsage, setBudgetLimit, listBudgetLimits). Six budget kinds (model_spend, vendor_api_calls, emails_sent, research_depth, retry_count, runtime_seconds). Per-coworker or global limits with daily/weekly/monthly periods. Work executor checks budgets before execution and records usage after. 90%+ usage triggers audit alert. Migration: 20260903-budgets.sql. 2 AI tools: check_budgets, get_budget_limits. TypeScript, lint, build, and contract verify pass.",
 };
 
@@ -429,6 +429,32 @@ function card({
 }
 
 export const featureBacklog = [
+  card({
+    key: "northstar-runtime-consolidation",
+    owner: "codex-runtime-consolidation",
+    status: "in_progress",
+    title: "Audit recent architecture drift and consolidate runtime contracts",
+    workstream: "runtime",
+    phase: 3,
+    priority: "high",
+    description:
+      "Founder-directed August 29 through September 4 architecture audit and incremental consolidation. Preserve feature development while making shared runtime governance, work receipts, and domain ownership enforceable across entrypoints.",
+    acceptance: [
+      "Record the immutable audit baseline, every recent commit and changed path, unmerged branch disposition, and evidence-backed findings mapped to existing Feature Board cards",
+      "Database errors in budget and policy evaluation fail closed; work deferral, partial execution, and failures never produce completed receipts",
+      "Work transitions reject expired or superseded lease owners and retain bounded retry with truthful summaries",
+      "Canonical authorization governs action execution and learned prose never grants or denies authority",
+      "Shared domain writes and coworker execution remove duplicated behavior without breaking compatibility routes",
+      "Regression tests exercise gates, replay, stale claims, tenancy, and truthful outcomes; query profiling distinguishes measured changes from remaining performance candidates",
+    ],
+    start:
+      "docs/NORTHSTAR.md; src/lib/revenue-os/work-items.ts; work-executor.ts; budgets.ts; autonomy-policy.ts; action-executor.ts; scripts/verify-wiring.mjs. Existing cards own broader UI, provider, and legacy parity acceptance.",
+    guardrails:
+      "User-approved incremental consolidation with feature development continuing. Preserve unrelated work and existing APIs; no production deployment, provider activation, or real-recipient tests. Report uncovered acceptance honestly and retain existing Feature Board ownership.",
+    labels: ["work-engine", "reliability"],
+    verification:
+      "npm run verify:agent-contract; npm run test:runtime-consolidation; npm run test:action-execution; npm run test:core; npm run typecheck; npm run lint -- --max-warnings=0; npm run build; git diff --check. Database changes additionally require disposable PostgreSQL isolation/concurrency verification.",
+  }),
   // Phase 0, truth, schema, and operating contract
   card({
     key: "revenue-os-production-migration",
@@ -1031,9 +1057,9 @@ export const featureBacklog = [
     title: "Finish Conversations as the unified communication inbox",
     workstream: "admin",
     phase: 2,
-    status: "planned",
+    status: "in_progress",
     priority: "high",
-    owner: "claude-code:johnconnor:18885",
+    owner: "grok-4.6:johnconnor",
     description:
       "Combine synchronized Gmail, inbound forms/messages, Resend activity, and manual communication into one founder inbox with record context and reply tools.",
     acceptance: [
@@ -4596,11 +4622,13 @@ export const featureBacklog = [
   // ────────────────────────────────────────────────────────────────────────
   card({
     key: "entity-registry-and-link-graph",
-    owner: "claude-code:johnconnor:88811",
+    evidence:
+      "2026-09-04: all six acceptance items evidenced. Migration migrations/20260904-entity-registry-link-graph.sql applied live (entity_types + entity_links, tenant FK RESTRICT, RLS, member/service policies, touch triggers; idempotent rerun clean). db:verify-schema detail checks pass for all new objects (one pre-existing unrelated failure: opportunities_stage_check dropped by the earlier kanban-columns migration). Live service proof with zero leftovers: register, tuple-replay returns same edge, bounded 2-node/1-edge walk, cross-tenant link refusal, propose-with-evidence. Traversal edge-duplication bug found live and fixed (bidirectional rediscovery; memory suite now asserts exact edge uniqueness). Deterministic suite 8/8 incl. runtime-registered webinar type exercising links/traversal/merge/audit with zero code changes; merge verified with receipt + retry convergence. tsc, full lint, agent contract, diff-check, production build green. Commits: migration+service+contract+tests merged to chore branch; traversal fix committed. No destructive action; fixtures namespaced and purged.",
+    owner: "claude-code:johnconnor:46791",
     title: "Add an open entity registry and a polymorphic link graph",
     workstream: "foundation",
     phase: 6,
-    status: "in_progress",
+    status: "shipped",
     priority: "high",
     description:
       "Plugin Platform phase 1 of 6, primitive 1 of 7: Records. There is no entity_links table, no entity_types registry, and no generic merge anywhere in src or migrations. Without a generic link table every pair of capabilities that needs to relate records requires a bespoke join table and its own migration, which is the cost that stops an ecosystem before it starts. A meeting capability needs to link a transcript to a contact to an opportunity to a follow-up task; today that is four schema changes. Entity types become rows rather than an enum so that links, merge and audit work on a newly registered type the day it appears, with no code change.",
@@ -4649,10 +4677,11 @@ export const featureBacklog = [
   }),
   card({
     key: "unified-action-executor",
+    owner: "claude-code:johnconnor:6435",
     title: "Route every write through one executor with reversibility and compensators",
     workstream: "foundation",
     phase: 6,
-    status: "backlog",
+    status: "planned",
     priority: "high",
     description:
       "Plugin Platform phase 1 of 6, primitive 3 of 7: Actions. This is a refactor of something real rather than a greenfield build. action_queue already carries the status lifecycle, a pending dedupe index and expiry, and the AI tool registry already asserts at runtime that a mutating tool staged a proposal. What is missing is the reversibility axis, which is orthogonal to the existing impact tiers: impact says how far an effect reaches, reversibility says whether core can restore the prior state. Add the class, add compensators, add an evidence column, and make one executor the only write path so that a user clicking Save and a plugin proposing a change traverse identical code. That single property is what makes the approval queue real rather than cosmetic and the audit log complete rather than best-effort.",
@@ -4730,11 +4759,13 @@ export const featureBacklog = [
   }),
   card({
     key: "capability-scoped-data-api",
-    owner: "claude-code:johnconnor:6708",
+    evidence:
+      "2026-09-04: all six acceptance items evidenced. Three shapes only (scoped entity query with column allowlist + limit/clamp disclosure, enumerated recipes, namespace KV), enforced by verify-capability-isolation.mjs (mutation-proven on all three defect classes, wired into CI). No core writes and no raw handle on the interface; all reads route through bindTenantDatabase (exported for the purpose) plus explicit tenant filters. Cross-workspace refusal proven live against production Postgres (foreign tenant cannot resolve types or read rows). Every call returns a usage receipt; 120/min fail-closed budget. test:capability-data-api 8/8 in test:core. tsc, full lint, agent contract, diff-check, production build green. Commits merged to chore branch. No destructive action.",
+    owner: "claude-code:johnconnor:47504",
     title: "Expose one capability-checked data API with no raw database handle",
     workstream: "security",
     phase: 6,
-    status: "in_progress",
+    status: "shipped",
     priority: "high",
     description:
       "Plugin Platform phase 1 of 6. Reads must go through a single capability-checked interface and writes must go through the executor, because that is what makes row-level security, cost accounting and audit complete rather than best-effort. The pattern is already proven in this repository: bindTenantDatabase is a proxy that forces tenant filtering because the service role bypasses row-level security. Generalize it into a data API with three shapes, a filtered entity query, a server-computed recipe, and a capability's own namespaced storage, and deliberately provide no direct write to core entities.",
@@ -4798,10 +4829,11 @@ export const featureBacklog = [
   // ────────────────────────────────────────────────────────────────────────
   card({
     key: "plugin-isolate-host",
+    owner: "claude-code:johnconnor:71722",
     title: "Run plugin code in an isolate with no ambient authority",
     workstream: "platform",
     phase: 6,
-    status: "backlog",
+    status: "in_progress",
     priority: "high",
     description:
       "Plugin Platform phase 2 of 6. There is no sandbox of any kind in the tree today: no isolated-vm, no worker, no node:vm. The current seam avoids the problem by executing nothing from extensions, which is a correct invariant for a manifest but caps the platform at declarative capabilities forever. An isolate moves the boundary: plugin code runs with no database handle, no filesystem, no environment, and a default-deny egress allowlist, receiving only host bindings pre-scoped to what its manifest declared. Cold start under 50ms is a requirement rather than a goal, because event handlers fire constantly and a slow cold start makes the whole product feel dead.",
@@ -5692,9 +5724,15 @@ export const featureBacklog = [
       "Revenue stage audit identifies proposal/negotiation deals stale for 7+ days",
       "All handler outcomes produce audit receipts",
     ],
-    dependencies: ["Generalise tasks and scheduling into a durable Work Engine", "Introduce Coworkers as first-class runtime identities with manifests", "Unify agent permissions into one Autonomy Policy Engine"],
-    start: "docs/NORTHSTAR.md §E; src/lib/revenue-os/finance-coworker.ts; src/lib/revenue-os/work-executor.ts",
-    guardrails: "Finance coworker reads CRM data autonomously but writes and alerts require ask_until_trusted level. Never auto-modify financial records.",
+    dependencies: [
+      "Generalise tasks and scheduling into a durable Work Engine",
+      "Introduce Coworkers as first-class runtime identities with manifests",
+      "Unify agent permissions into one Autonomy Policy Engine",
+    ],
+    start:
+      "docs/NORTHSTAR.md §E; src/lib/revenue-os/finance-coworker.ts; src/lib/revenue-os/work-executor.ts",
+    guardrails:
+      "Finance coworker reads CRM data autonomously but writes and alerts require ask_until_trusted level. Never auto-modify financial records.",
     labels: ["coworkers", "finance"],
     verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
   }),
@@ -5715,9 +5753,14 @@ export const featureBacklog = [
       "Data quality scan detects missing critical fields on contacts and opportunities",
       "All handler outcomes produce audit receipts",
     ],
-    dependencies: ["Generalise tasks and scheduling into a durable Work Engine", "Introduce Coworkers as first-class runtime identities with manifests"],
-    start: "docs/NORTHSTAR.md §E; src/lib/revenue-os/operations-coworker.ts; src/lib/revenue-os/work-executor.ts",
-    guardrails: "Operations coworker is read-only — it detects and reports issues, never auto-remediates. Alerts require ask_until_trusted autonomy level.",
+    dependencies: [
+      "Generalise tasks and scheduling into a durable Work Engine",
+      "Introduce Coworkers as first-class runtime identities with manifests",
+    ],
+    start:
+      "docs/NORTHSTAR.md §E; src/lib/revenue-os/operations-coworker.ts; src/lib/revenue-os/work-executor.ts",
+    guardrails:
+      "Operations coworker is read-only — it detects and reports issues, never auto-remediates. Alerts require ask_until_trusted autonomy level.",
     labels: ["coworkers", "operations"],
     verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
   }),
@@ -5738,9 +5781,16 @@ export const featureBacklog = [
       "Daily operator check-in task surfaces in the inbox",
       "Scheduler produces audit receipts",
     ],
-    dependencies: ["Generalise tasks and scheduling into a durable Work Engine", "Introduce Coworkers as first-class runtime identities with manifests", "Finance Coworker: revenue tracking, overdue detection, and reconciliation", "Operations Coworker: system health, integration monitoring, and data quality"],
-    start: "docs/NORTHSTAR.md §E; src/lib/revenue-os/work-scheduler.ts; src/app/api/cron/work-engine/route.ts",
-    guardrails: "Scheduler only creates work items — it never executes them. Deduplication must be date-based, not attempt-based. Scheduler failures must not block the work engine execution cycle.",
+    dependencies: [
+      "Generalise tasks and scheduling into a durable Work Engine",
+      "Introduce Coworkers as first-class runtime identities with manifests",
+      "Finance Coworker: revenue tracking, overdue detection, and reconciliation",
+      "Operations Coworker: system health, integration monitoring, and data quality",
+    ],
+    start:
+      "docs/NORTHSTAR.md §E; src/lib/revenue-os/work-scheduler.ts; src/app/api/cron/work-engine/route.ts",
+    guardrails:
+      "Scheduler only creates work items — it never executes them. Deduplication must be date-based, not attempt-based. Scheduler failures must not block the work engine execution cycle.",
     labels: ["coworkers", "automation"],
     verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
   }),
@@ -5764,9 +5814,14 @@ export const featureBacklog = [
       "Memory summary (learned policies + recent agent memory) loaded into every agent grounding contract",
       "MCP server exposes memory/overview resource",
     ],
-    dependencies: ["Build the Evidence and Claim Ledger for AI-derived facts", "Introduce Coworkers as first-class runtime identities with manifests"],
-    start: "docs/NORTHSTAR.md §23; src/lib/revenue-os/memory.ts; migrations/20260903-memory-architecture.sql",
-    guardrails: "Categories must never be collapsed — each retains its own shape. Agent memory is not canonical data. Learned policies are constraints, not capabilities. Memory query failures must not block agent execution.",
+    dependencies: [
+      "Build the Evidence and Claim Ledger for AI-derived facts",
+      "Introduce Coworkers as first-class runtime identities with manifests",
+    ],
+    start:
+      "docs/NORTHSTAR.md §23; src/lib/revenue-os/memory.ts; migrations/20260903-memory-architecture.sql",
+    guardrails:
+      "Categories must never be collapsed — each retains its own shape. Agent memory is not canonical data. Learned policies are constraints, not capabilities. Memory query failures must not block agent execution.",
     labels: ["coworkers", "ai-context"],
     verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
   }),
@@ -5787,9 +5842,13 @@ export const featureBacklog = [
       "90%+ budget usage triggers audit alert",
       "2 AI tools: check_budgets, get_budget_limits",
     ],
-    dependencies: ["Generalise tasks and scheduling into a durable Work Engine", "Introduce Coworkers as first-class runtime identities with manifests"],
+    dependencies: [
+      "Generalise tasks and scheduling into a durable Work Engine",
+      "Introduce Coworkers as first-class runtime identities with manifests",
+    ],
     start: "docs/NORTHSTAR.md §24; src/lib/revenue-os/budgets.ts; migrations/20260903-budgets.sql",
-    guardrails: "Running out of budget is a normal state, not an error. Budget checks are best-effort — failure to check must not block execution. Budgets constrain autonomous work; human-initiated actions are not gated by budgets.",
+    guardrails:
+      "Running out of budget is a normal state, not an error. Budget checks fail closed: unavailable limits or usage defer execution with a truthful receipt. Budgets constrain autonomous work; human-initiated actions are not gated by budgets.",
     labels: ["automation", "reliability"],
     verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
   }),
@@ -5805,10 +5864,13 @@ export const featureBacklog = [
   // ────────────────────────────────────────────────────────────────────────
   card({
     key: "docs-site-infrastructure",
+    evidence:
+      "docs-site-infrastructure on branch agent/docs-site-infrastructure commit 89f47be: full navigable spine with 3 prose pages (Start, Command Center, Follow-up). Manifest owns structure/ordering; recursive loader with section collapse; frontmatter restricted to title/description/updated; TableOfContents parameterized; prose-docs class; docs chrome in raw-color ratchet at zero; 2 stale budgets lowered. Verified: typecheck, lint --max-warnings=0, verify:admin-tokens, verify:docs, build (345 pages), desktop+mobile browse with inspected screenshots, zero console/5xx, diff-check.",
+    owner: "claude-code:johnconnor:41173",
     title: "Build the documentation site infrastructure at /docs",
     workstream: "documentation",
     phase: 6,
-    status: "backlog",
+    status: "shipped",
     priority: "high",
     description:
       "Documentation track, step 1 of 4. Land the whole navigable spine with only three pages of prose, so the system is proven before any content volume is written. The MDX pipeline already exists and is production-proven for the learning hub: createMDX with the gfm, slug and autolink plugins, compileMDX from next-mdx-remote, a filesystem loader, and thirteen components. Three gaps: the loader is a flat directory read with no recursion, there is no persistent sidebar, and there is no docs search. Structure is an explicit manifest rather than a filesystem walk, because a walk can only ever be self-consistent: it can tell you what exists but never catch a page that was supposed to exist.",
@@ -5834,10 +5896,13 @@ export const featureBacklog = [
   }),
   card({
     key: "docs-integration-surfaces",
+    evidence:
+      "docs-integration-surfaces on branch agent/docs-integration-surfaces commit d99b06a: Docs group in search index (type-enforced group/priority/order), sitemap from manifest (9 docs URLs live), header/footer /docs links, generated public/docs-llms.txt with CI check mode, crawler allows for /docs/, self-host CTA retargeted to new quickstart page. Verified: typecheck, lint clean, agent-contract, verify:docs, llms check, test:search, positioning+guardrails, build 347 pages, live API/sitemap/robots proof, diff-check.",
+    owner: "claude-code:johnconnor:90701",
     title: "Wire docs into search, sitemap, navigation and a generated llms index",
     workstream: "documentation",
     phase: 6,
-    status: "backlog",
+    status: "shipped",
     priority: "high",
     description:
       "Documentation track, step 2 of 4, still with only three pages of prose so the wiring is proven before the content exists. Search costs almost nothing: one deploy-time index already serves the whole site and the client filters locally, so adding docs is a loop plus two typed entries, and because those are a keyed record and a typed array, forgetting either breaks the typecheck. Two corrections to earlier assumptions are load-bearing here. src/content/navigation.ts is dead and imported by nothing, so links go in the header and footer components directly. And a static file in public shadows any route handler at the same path, so the machine-readable index must be a build script with a check mode rather than a route.",

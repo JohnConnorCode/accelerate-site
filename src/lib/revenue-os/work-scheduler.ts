@@ -1,8 +1,21 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createDailyDigestWork, createDetectStaleDealsWork, createDetectStageBottleneckWork, createDetectVelocityChangeWork } from "./business-pulse-coworker";
-import { createDailyHealthCheckWork, createIntegrationStatusAuditWork, createDataQualityScanWork } from "./operations-coworker";
-import { createWeeklyReconciliationWork, createDetectOverduePaymentsWork, createRevenueStageAuditWork } from "./finance-coworker";
+import {
+  createDailyDigestWork,
+  createDetectStaleDealsWork,
+  createDetectStageBottleneckWork,
+  createDetectVelocityChangeWork,
+} from "./business-pulse-coworker";
+import {
+  createDailyHealthCheckWork,
+  createIntegrationStatusAuditWork,
+  createDataQualityScanWork,
+} from "./operations-coworker";
+import {
+  createWeeklyReconciliationWork,
+  createDetectOverduePaymentsWork,
+  createRevenueStageAuditWork,
+} from "./finance-coworker";
 import { createPreCallBriefWork } from "./meeting-intel-coworker";
 import { runTrustGraduationScan } from "./trust-graduation";
 import { createProactiveIntelBriefWork } from "./proactive-intel";
@@ -29,9 +42,7 @@ export interface WorkSchedulerSummary {
  * Each helper uses a date-based dedupe key so it won't create duplicates
  * if called multiple times in the same day.
  */
-export async function scheduleDailyWork(
-  supabase: SupabaseClient,
-): Promise<WorkSchedulerSummary> {
+export async function scheduleDailyWork(supabase: SupabaseClient): Promise<WorkSchedulerSummary> {
   const summary: WorkSchedulerSummary = { created: 0, skipped: 0, errors: [] };
 
   // Business Pulse: daily digest + stale deals + bottleneck + velocity change.
@@ -71,14 +82,15 @@ export async function scheduleDailyWork(
   try {
     await createRevenueTask(supabase, {
       title: `Daily engine check-in — ${today}`,
-      description: "Automated daily check-in. The work engine has scheduled today's coworker work items.",
+      description:
+        "Automated daily check-in. The work engine has scheduled today's coworker work items.",
       priority: "low",
       source: "work_engine",
       dedupeKey: `engine:daily-checkin:${today}`,
       actorEmail: "system",
     });
-  } catch {
-    // Best-effort; dedupe is fine.
+  } catch (error) {
+    summary.errors.push(`daily_checkin: ${error instanceof Error ? error.message : String(error)}`);
   }
 
   await recordAudit(supabase, {
@@ -97,9 +109,7 @@ export async function scheduleDailyWork(
  * Schedule weekly work items. Call this on Mondays (or the first cron cycle
  * of the week) to ensure weekly reconciliation and other week-bound work exists.
  */
-export async function scheduleWeeklyWork(
-  supabase: SupabaseClient,
-): Promise<WorkSchedulerSummary> {
+export async function scheduleWeeklyWork(supabase: SupabaseClient): Promise<WorkSchedulerSummary> {
   const summary: WorkSchedulerSummary = { created: 0, skipped: 0, errors: [] };
 
   // Finance: weekly revenue reconciliation.
@@ -204,8 +214,10 @@ export async function scheduleRecurringWork(
   const daily = await scheduleDailyWork(supabase);
 
   // Monday = day 1 in ISO weekday.
-  const isMonday = new Date().getDay() === 1;
-  const weekly = isMonday ? await scheduleWeeklyWork(supabase) : { created: 0, skipped: 0, errors: [] };
+  const isMonday = new Date().getUTCDay() === 1;
+  const weekly = isMonday
+    ? await scheduleWeeklyWork(supabase)
+    : { created: 0, skipped: 0, errors: [] };
 
   // Scan upcoming meetings for pre-call briefs.
   const meetings = await scheduleMeetingBriefs(supabase);

@@ -1,10 +1,18 @@
 import "server-only";
+import { AsyncLocalStorage } from "node:async_hooks";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { recordAudit } from "./audit";
 import { recordStaleClaimRecovery, STALE_CLAIM_WINDOW_MS } from "./runs";
 import { recordLearnedPolicy } from "./memory";
 import { storeAgentMemory } from "./memory";
-import { getPoliciesForAction } from "./memory";
+
+const proposalWorkContext = new AsyncLocalStorage<string>();
+export function withProposalWorkContext<T>(
+  workItemId: string | undefined,
+  work: () => Promise<T>,
+): Promise<T> {
+  return workItemId ? proposalWorkContext.run(workItemId, work) : work();
+}
 
 export const ACTION_URGENCY_ORDER = ["critical", "high", "normal", "low"] as const;
 export type ActionUrgency = (typeof ACTION_URGENCY_ORDER)[number];
@@ -63,27 +71,10 @@ export async function proposeAction(
     evidence?: Record<string, unknown>;
   },
 ) {
-  // Learned policy gate: if the human previously rejected this action type
-  // in a way that created a prohibitive policy, refuse the proposal rather
-  // than staging it for an approval that will likely be rejected again.
-  const relevantPolicies = await getPoliciesForAction(supabase, {
-    actionKey: input.actionType,
-  }).catch(() => []);
-  const blocking = relevantPolicies.find((p) =>
-    /never|must not|do not|prohibited|always ask/i.test(p.rule),
-  );
-  if (blocking) {
-    return {
-      blocked_by_policy: true,
-      policy_rule: blocking.rule,
-      policy_action_key: blocking.action_key,
-      action_type: input.actionType,
-      title: input.title,
-      message: `Blocked by learned policy: "${blocking.rule}". This action type was previously rejected by a human. Review the policy in get_learned_policies if you believe the situation has changed.`,
-    };
-  }
-
+  // Learned observations remain reviewable context. Authority is evaluated
+  // from structured autonomy policies at execution, never from prose keywords.
   const row = {
+    ...(proposalWorkContext.getStore() ? { work_item_id: proposalWorkContext.getStore() } : {}),
     action_type: input.actionType,
     title: input.title,
     description: input.description ?? null,
@@ -105,7 +96,11 @@ export async function proposeAction(
   if (insertResult.error && (insertResult.error as { code?: string }).code === "42703") {
     const rowWithoutEvidence: Record<string, unknown> = { ...row };
     delete rowWithoutEvidence.evidence;
-    insertResult = await supabase.from("action_queue").insert(rowWithoutEvidence).select("*").single();
+    insertResult = await supabase
+      .from("action_queue")
+      .insert(rowWithoutEvidence)
+      .select("*")
+      .single();
   }
   const { data, error } = insertResult;
   if (error) {
@@ -162,6 +157,7 @@ export async function claimApprovedAction(
   supabase: SupabaseClient,
   id: string,
   actorEmail: string,
+  mode: "approved" | "autonomous" = "approved",
 ) {
   await recoverStaleExecutingActions(supabase);
   const now = new Date().toISOString();
@@ -169,8 +165,7 @@ export async function claimApprovedAction(
     .from("action_queue")
     .update({
       status: "executing",
-      approved_by: actorEmail,
-      approved_at: now,
+      ...(mode === "approved" ? { approved_by: actorEmail, approved_at: now } : {}),
     })
     .eq("id", id)
     .eq("status", "pending")
@@ -181,11 +176,13 @@ export async function claimApprovedAction(
   if (!data) throw new Error("This action was already handled or has expired");
   await recordAudit(supabase, {
     actorEmail,
-    action: "action.approved",
+    action: mode === "approved" ? "action.approved" : "action.claimed",
     entityType: "action_queue",
     entityId: id,
     after: { action_type: data.action_type, status: "executing" },
   });
+
+  if (mode === "autonomous") return data;
 
   // Approval trust signal: record as agent memory so the autonomy policy
   // trust ladder and future AI context can see that this action type was
@@ -209,25 +206,27 @@ export async function claimApprovedAction(
 }
 
 export async function finishAction(supabase: SupabaseClient, id: string, result: unknown) {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("action_queue")
-    .update({
-      status: "executed",
-      executed_at: new Date().toISOString(),
-      result,
-      error: null,
-    })
+    .update({ status: "executed", executed_at: new Date().toISOString(), result, error: null })
     .eq("id", id)
-    .eq("status", "executing");
+    .eq("status", "executing")
+    .select("id")
+    .maybeSingle();
   if (error) throw new Error(error.message);
+  if (!data) throw new Error("Action execution receipt was superseded");
 }
 
 export async function failAction(supabase: SupabaseClient, id: string, errorMessage: string) {
-  await supabase
+  const { data, error } = await supabase
     .from("action_queue")
     .update({ status: "failed", error: errorMessage })
     .eq("id", id)
-    .eq("status", "executing");
+    .eq("status", "executing")
+    .select("id")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Action failure receipt was superseded");
 }
 
 export async function rejectAction(
@@ -268,8 +267,8 @@ export async function rejectAction(
 
   // Rejection feedback loop: create a learned policy from the human decision.
   // This is how the system learns "don't do X" from real operational experience.
-  // The work executor consults learned policies before execution, so rejected
-  // patterns will be surfaced or blocked in future AI runs.
+  // Future AI runs can surface these observations for review. Only structured
+  // autonomy policies govern execution; this prose cannot change authority.
   if (pending) {
     const actionKey = pending.action_type;
     const coworkerId = pending.proposed_by?.startsWith("coworker:")
@@ -281,7 +280,9 @@ export async function rejectAction(
     await recordLearnedPolicy(supabase, {
       actionKey,
       rule,
-      rationale: reason || "Rejection without explicit reason — pattern may indicate incorrect action target, timing, or content",
+      rationale:
+        reason ||
+        "Rejection without explicit reason — pattern may indicate incorrect action target, timing, or content",
       source: "human_decision",
       coworkerId,
       scopeEntityType: pending.entity_type,
