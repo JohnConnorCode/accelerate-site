@@ -18,12 +18,12 @@
 | Phase                                                      | Backlog | Planned | In progress | Blocked | Shipped | Total |
 | ---------------------------------------------------------- | ------- | ------- | ----------- | ------- | ------- | ----- |
 | A — A (Complete Loop One — See + Remember)                 | 0       | 0       | 0           | 1       | 18      | 19    |
-| B — B (Agent Runtime foundation — Notice + Act primitives) | 21      | 20      | 1           | 4       | 32      | 78    |
+| B — B (Agent Runtime foundation — Notice + Act primitives) | 22      | 19      | 1           | 4       | 33      | 79    |
 | C — C (Reference coworker — Sales end-to-end loop)         | 20      | 5       | 0           | 1       | 10      | 36    |
 | D — D (Plugin SDK + MCP)                                   | 5       | 3       | 0           | 1       | 13      | 22    |
-| E — E (Additional coworkers/plugins + documentation)       | 40      | 4       | 1           | 0       | 10      | 55    |
+| E — E (Additional coworkers/plugins + documentation)       | 40      | 5       | 0           | 0       | 10      | 55    |
 
-**Board total:** 86 backlog, 32 planned, 2 in progress, 7 blocked, 83 shipped (210 managed cards).
+**Board total:** 87 backlog, 32 planned, 1 in progress, 7 blocked, 84 shipped (211 managed cards).
 
 ## Dispatchable now (`npm run agent:next` picks from this set)
 
@@ -38,12 +38,13 @@
 - `de-vertical-inbound` [high] — Turn the roofing ingestion path into a configurable playbook
 - `command-palette-tools` [medium] — Connect the command palette to real Revenue OS actions
 - `proposal-lifecycle-service` [high] — Complete the proposal lifecycle and version rules
-- `api-contract-tests` [high] — Add authenticated API contract and failure tests
 - `ai-model-job-registry` [medium] — Route every AI job through an audited model registry
+- `api-contract-tests` [high] — Add authenticated API contract and failure tests
 - `system-health-report` [high] — Build the system-health report and freshness thresholds
 - `booking-mode-contract-reconciliation` [high] — Reconcile booking activation and health truth
-- `stage-history-analytics-reconciliation` [high] — Reconcile analytics with canonical stage history
 - `unified-action-executor` [high] — Route every write through one executor with reversibility and compensators
+- `plugin-isolate-host` [high] — Run plugin code in an isolate with no ambient authority
+- `stage-history-analytics-reconciliation` [high] — Reconcile analytics with canonical stage history
 - `operating-goals-scorecards` [high] — Add operating goals and scorecards
 - `won-to-delivery-handoff` [high] — Create the won-to-delivery handoff
 - `governed-bulk-operator-actions` [medium] — Add governed bulk operator actions
@@ -58,8 +59,7 @@
 
 ## In progress
 
-- `conversations-operator-inbox` — Finish Conversations as the unified communication inbox (grok-4.6:johnconnor)
-- `plugin-isolate-host` — Run plugin code in an isolate with no ambient authority (claude-code:johnconnor:71722)
+- `plugin-data-boundary-hardening` — Close plugin data grant and tenant-boundary bypasses (codex-foundations)
 
 ## Blocked
 

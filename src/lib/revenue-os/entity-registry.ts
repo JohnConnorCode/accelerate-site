@@ -31,6 +31,8 @@ export interface EntityTypeRegistration {
   label: string;
   backingTable: string;
   idColumn?: string;
+  /** Exact scalar columns exposed by capability reads; omitted preserves the declaration. */
+  readableColumns?: string[];
   /** Concrete [{table, column}] pairs holding this type's ids; drives merge. */
   fkCatalog?: ForeignKeyReference[];
   /** Fields driving record resolution for this type. */
@@ -44,7 +46,7 @@ export interface EntityTypeRegistration {
 }
 
 export interface EntityTypeRecord extends Required<
-  Omit<EntityTypeRegistration, "softDeleteColumn">
+  Omit<EntityTypeRegistration, "softDeleteColumn" | "readableColumns">
 > {
   id: string;
   softDeleteColumn: string | null;
@@ -69,6 +71,13 @@ export interface EntityLink extends Required<Omit<EntityLinkInput, "metadata">> 
 
 const TYPE_KEY_PATTERN = /^[a-z][a-z0-9_]*$/;
 const MAX_TRAVERSAL_DEPTH = 6;
+
+/** PostgREST selectors must be identifiers, never expressions or relationships. */
+export function validateEntityIdentifier(value: unknown): string {
+  if (typeof value !== "string" || !/^[a-z_][a-z0-9_]{0,62}$/.test(value))
+    throw new Error(`Invalid entity database identifier ${JSON.stringify(value)}`);
+  return value;
+}
 
 function requireTenant(tenantId: string): string {
   const id = tenantId?.trim();
@@ -146,25 +155,36 @@ export async function registerEntityType(
   const typeKey = normalizeTypeKey(input.typeKey);
   const label = input.label?.trim();
   if (!label) throw new Error("An entity type label is required");
-  const backingTable = input.backingTable?.trim();
-  if (!backingTable) throw new Error("An entity backing table is required");
+  const backingTable = validateEntityIdentifier(input.backingTable);
+  const idColumn = validateEntityIdentifier(input.idColumn ?? "id");
+  if (
+    input.readableColumns !== undefined &&
+    (!Array.isArray(input.readableColumns) || input.readableColumns.length > 64)
+  )
+    throw new Error("Invalid readable column declaration");
+  const readableColumns = input.readableColumns?.map(validateEntityIdentifier);
   const payload = {
     tenant_id: tenantId,
     type_key: typeKey,
     label,
     backing_table: backingTable,
-    id_column: input.idColumn?.trim() || "id",
+    id_column: idColumn,
     fk_catalog: input.fkCatalog ?? [],
     identity_fields: input.identityFields ?? [],
     soft_delete_column: input.softDeleteColumn ?? null,
     metadata: {},
   };
-  const { data: existing } = await supabase
+  const { data: existing, error: readError } = await supabase
     .from("entity_types")
-    .select("id")
+    .select("id,metadata")
     .eq("tenant_id", tenantId)
     .eq("type_key", typeKey)
     .maybeSingle();
+  if (readError) throw new Error(readError.message);
+  payload.metadata = {
+    ...(existing?.metadata ?? {}),
+    ...(readableColumns === undefined ? {} : { readable_columns: [...new Set(readableColumns)] }),
+  };
   if (existing) {
     const { data, error } = await supabase
       .from("entity_types")

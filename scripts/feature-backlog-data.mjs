@@ -380,8 +380,8 @@ function card({
   const shelved = effectiveStatus !== "shipped" && !isLoopOne;
   if (!allowedStatuses.has(effectiveStatus)) throw new Error(`Invalid status for ${key}`);
   if (!allowedPriorities.has(priority)) throw new Error(`Invalid priority for ${key}`);
-  if (isLoopOne && effectiveStatus === "backlog")
-    throw new Error(`Loop One card ${key} must be planned or further along`);
+  // Status is live-managed: releasing a claim legitimately returns even a
+  // Loop One card to backlog. Milestone/dependency rules still govern dispatch.
   return {
     seed_key: key,
     title,
@@ -429,6 +429,34 @@ function card({
 }
 
 export const featureBacklog = [
+  card({
+    key: "plugin-data-boundary-hardening",
+    owner: "codex-foundations",
+    status: "in_progress",
+    title: "Close plugin data grant and tenant-boundary bypasses",
+    workstream: "platform",
+    phase: 3,
+    priority: "high",
+    description:
+      "Northstar foundation follow-up: make the existing capability data API enforce host tenant identity, entity grants, readable fields, bounded queries, and namespaced storage consistently before plugin hosts build on it.",
+    acceptance: [
+      "Every data shape refuses an unbound database or a grant for a different tenant before querying or writing",
+      "Recipes enforce the same enabled entity grants as entity queries; graph recipes never expose links to ungranted or disabled entity types",
+      "Database identifiers and readable fields are validated; relationship selection and wildcard projection cannot be introduced through metadata",
+      "Inputs and namespace JSON are bounded by real UTF-8 bytes; malformed filters, invalid limits, and secret namespace rows fail closed",
+      "Adversarial fixtures prove refusal, tenant isolation, grant isolation, exact bounded usage and truthful truncation without providers or production records",
+      "Document the host trust boundary and remaining persisted metering/host wiring acceptance, with core tests, strict lint, typecheck and build evidence",
+    ],
+    dependencies: ["Expose one capability-checked data API with no raw database handle"],
+    start:
+      "docs/NORTHSTAR.md sections 9, 10, 12, 22, 28, 29; src/lib/revenue-os/capability-data-api.ts; entity-registry.ts; scripts/test-capability-data-api.ts; scripts/verify-capability-isolation.mjs.",
+    guardrails:
+      "Founder-directed foundation consolidation. Reuse the existing data API, tenant database marker and entity registry; no parallel ORM or plugin framework, no new provider, no production data changes. Preserve active isolate-host ownership. Grants come from trusted host policy, never plugin arguments. This card does not certify plugin installation, external invocation or distributed metering.",
+    labels: ["security", "data"],
+    verification:
+      "npm run verify:agent-contract; npm run test:capability-data-api; npm run verify:capability-isolation; npm run test:core; npm run typecheck; npm run lint -- --max-warnings=0; npm run format:check; npm run build; git diff --check.",
+  }),
+
   card({
     key: "northstar-runtime-consolidation",
     evidence:
@@ -1059,7 +1087,7 @@ export const featureBacklog = [
     title: "Finish Conversations as the unified communication inbox",
     workstream: "admin",
     phase: 2,
-    status: "in_progress",
+    status: "shipped",
     priority: "high",
     owner: "grok-4.6:johnconnor",
     description:
@@ -2560,8 +2588,8 @@ export const featureBacklog = [
   }),
   card({
     key: "ai-bounded-context",
-    status: "planned",
-    owner: "claude-code:johnconnor:36762",
+    status: "backlog",
+    owner: null,
     title: "Enforce bounded AI context and grounding rules",
     workstream: "ai",
     phase: 3,
@@ -4835,7 +4863,7 @@ export const featureBacklog = [
     title: "Run plugin code in an isolate with no ambient authority",
     workstream: "platform",
     phase: 6,
-    status: "in_progress",
+    status: "planned",
     priority: "high",
     description:
       "Plugin Platform phase 2 of 6. There is no sandbox of any kind in the tree today: no isolated-vm, no worker, no node:vm. The current seam avoids the problem by executing nothing from extensions, which is a correct invariant for a manifest but caps the platform at declarative capabilities forever. An isolate moves the boundary: plugin code runs with no database handle, no filesystem, no environment, and a default-deny egress allowlist, receiving only host bindings pre-scoped to what its manifest declared. Cold start under 50ms is a requirement rather than a goal, because event handlers fire constantly and a slow cold start makes the whole product feel dead.",

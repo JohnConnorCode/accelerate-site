@@ -222,3 +222,15 @@ npm run build
 `src/app/admin/example-inventory/page.tsx` are a complete working example of a
 module registered entirely from a manifest. It ships disabled, so it stays out
 of a real workspace until someone turns it on.
+
+## Capability data boundary
+
+`capability-data-api.ts` is a host-only adapter, not a tool whose grant fields an agent may fill in. The host must resolve the authenticated tenant database and approved capability declaration. All four data operations refuse unbound clients or a different tenant in the grant. No grant, tenant ID, table, or readable-field declaration may be taken from plugin arguments.
+
+Register readable scalar fields through `registerEntityType({ ..., readableColumns: ["title", "status"] })`. Omission preserves an existing declaration; an explicit empty array removes extra readable fields. The registry and data boundary validate identifiers; wildcard, relationship and alias expressions are refused. The returned row projection is also restricted to those fields. Core writes still use the action executor.
+
+Recipes do not expand authority. `entity_count` requires an enabled entity grant. `link_degree` requires both `params.type` and `params.id`; both endpoints of every graph result must be enabled granted types. `recent_links` applies the same endpoint filters and reports truncation. Counts are bounded, not unlimited totals. Usage counts fetched data rows including lookahead and duplicate endpoint reads; it excludes registry authorization reads.
+
+Namespace values are bounded plain JSON, at most 8 KiB in UTF-8, with structural depth and node limits. Secret rows cannot be read or overwritten. Concurrent writes refuse rather than clobbering a changed value; reread before retrying. Namespace state has no authority over core records or grants.
+
+The per-process call guard is bounded and expires inactive buckets, but it is not distributed budget enforcement. Persisted metering and approved host invocation remain separate platform acceptance. Tests cover grants, cross-tenant refusal, disabled types, graph visibility, projection injection, malformed input, UTF-8 limits, secret storage, concurrency, and usage receipts.
