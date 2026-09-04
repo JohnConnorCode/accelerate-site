@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { calculateLeadScore } from "@/lib/admin/lead-scoring";
+import { recordLegacyAdapterUse } from "@/lib/revenue-os/legacy-adapter";
 import type { AdminInboxItem, AdminInboxKind } from "@/lib/admin/inbox";
 
 const VALID_KINDS = new Set<AdminInboxKind>([
@@ -92,6 +93,18 @@ export async function GET(request: NextRequest) {
   ]);
 
   const items: AdminInboxItem[] = [];
+
+  // Inbox reads legacy source tables directly (no adapter): record the read
+  // so the retirement ledger knows this consumer. Best-effort, never throws.
+  await recordLegacyAdapterUse(supabase, {
+    route: "admin-inbox",
+    rows:
+      (leads.data?.length ?? 0) +
+      (contacts.data?.length ?? 0) +
+      (chats.data?.length ?? 0) +
+      (partners.data?.length ?? 0),
+    linked: 0,
+  });
 
   for (const lead of leads.data || []) {
     const score = calculateLeadScore(lead);

@@ -191,3 +191,155 @@ export async function attachRevenueLinkage<T extends LinkableRecord>(
     }),
   };
 }
+
+/**
+ * Every compatibility route, and which legacy source tables it still reads.
+ * Static truth: true even before a route is ever hit, so remaining consumers
+ * are known from the registry alone. Runtime counters in
+ * `legacy_adapter_usage` prove which ones actually serve traffic.
+ */
+export const LEGACY_ADAPTER_CONSUMERS: Array<{ route: string; sourceTables: string[] }> = [
+  { route: "admin-leads", sourceTables: ["solution_requests"] },
+  { route: "admin-chat-leads", sourceTables: ["chat_leads"] },
+  { route: "admin-clients", sourceTables: ["clients"] },
+  { route: "admin-contacts", sourceTables: ["contact_submissions"] },
+  { route: "admin-partners", sourceTables: ["partner_applications"] },
+  { route: "admin-resources", sourceTables: ["resource_downloads"] },
+  { route: "admin-subscribers", sourceTables: ["subscribers"] },
+  { route: "admin-website-grades", sourceTables: ["website_grades"] },
+  {
+    route: "admin-inbox",
+    sourceTables: ["solution_requests", "contact_submissions", "chat_leads", "partner_applications"],
+  },
+];
+
+export interface LegacyAdapterUsage {
+  route: string;
+  calls: number;
+  totalRows: number;
+  linkedRows: number;
+  firstUsedAt: string | null;
+  lastUsedAt: string | null;
+}
+
+/**
+ * Best-effort usage write. Telemetry must never break a read: a missing
+ * table (migration not yet applied), RLS denial, or pooler failure degrades
+ * to unrecorded, never to a failed response.
+ */
+export async function recordLegacyAdapterUse(
+  supabase: SupabaseClient,
+  input: { route: string; rows: number; linked: number },
+): Promise<boolean> {
+  try {
+    const now = new Date().toISOString();
+    const { error: readError, data: existing } = await supabase
+      .from("legacy_adapter_usage")
+      .select("route,calls,total_rows,linked_rows,first_used_at")
+      .eq("route", input.route)
+      .maybeSingle();
+    if (readError) return false;
+    if (!existing) {
+      const { error } = await supabase.from("legacy_adapter_usage").insert({
+        route: input.route,
+        calls: 1,
+        total_rows: input.rows,
+        linked_rows: input.linked,
+        first_used_at: now,
+        last_used_at: now,
+        updated_at: now,
+      });
+      return !error;
+    }
+    const row = existing as Record<string, unknown>;
+    const { error } = await supabase
+      .from("legacy_adapter_usage")
+      .update({
+        calls: Number(row.calls ?? 0) + 1,
+        total_rows: Number(row.total_rows ?? 0) + input.rows,
+        linked_rows: Number(row.linked_rows ?? 0) + input.linked,
+        last_used_at: now,
+        updated_at: now,
+      })
+      .eq("route", input.route);
+    return !error;
+  } catch (error) {
+    console.warn(
+      "[legacy-adapter] usage write failed:",
+      error instanceof Error ? error.message : error,
+    );
+    return false;
+  }
+}
+
+/**
+ * attachRevenueLinkage plus a usage receipt. Drop-in for the ten existing
+ * call sites: same return shape, same degradation, plus telemetry.
+ */
+export async function attachRevenueLinkageWithTelemetry<T extends LinkableRecord>(
+  supabase: SupabaseClient,
+  records: T[],
+  options: LinkOptions,
+  telemetry: { route: string },
+): Promise<{ records: Array<T & { revenue_os: RevenueLinkage }>; schemaReady: boolean }> {
+  const linked = await attachRevenueLinkage(supabase, records, options);
+  const linkedCount = linked.records.filter((record) => record.revenue_os.contact_id).length;
+  await recordLegacyAdapterUse(supabase, {
+    route: telemetry.route,
+    rows: records.length,
+    linked: linkedCount,
+  });
+  return linked;
+}
+
+export interface LegacyAdapterUsageReport {
+  contract: "revenue-os-legacy-adapter-usage.v1";
+  telemetryReady: boolean;
+  consumers: Array<LegacyAdapterUsage & { sourceTables: string[] }>;
+}
+
+/**
+ * Joins the static consumer registry with runtime counters. When the usage
+ * table is absent (migration not applied) every consumer still lists with
+ * zero counters and telemetryReady:false rather than failing.
+ */
+export async function getLegacyAdapterUsage(
+  supabase: SupabaseClient,
+): Promise<LegacyAdapterUsageReport> {
+  let rows: Array<Record<string, unknown>> = [];
+  let telemetryReady = true;
+  try {
+    const { data, error } = await supabase
+      .from("legacy_adapter_usage")
+      .select("route,calls,total_rows,linked_rows,first_used_at,last_used_at")
+      .order("last_used_at", { ascending: false });
+    if (error) {
+      telemetryReady = false;
+    } else {
+      rows = (data ?? []) as Array<Record<string, unknown>>;
+    }
+  } catch (error) {
+    console.warn(
+      "[legacy-adapter] usage read failed:",
+      error instanceof Error ? error.message : error,
+    );
+    telemetryReady = false;
+  }
+  const byRoute = new Map(rows.map((row) => [row.route as string, row]));
+  return {
+    contract: "revenue-os-legacy-adapter-usage.v1",
+    telemetryReady,
+    consumers: LEGACY_ADAPTER_CONSUMERS.map((consumer) => {
+      const row = byRoute.get(consumer.route);
+      return {
+        route: consumer.route,
+        sourceTables: consumer.sourceTables,
+        calls: Number(row?.calls ?? 0),
+        totalRows: Number(row?.total_rows ?? 0),
+        linkedRows: Number(row?.linked_rows ?? 0),
+        firstUsedAt: (row?.first_used_at as string) ?? null,
+        lastUsedAt: (row?.last_used_at as string) ?? null,
+      };
+    }),
+  };
+}
