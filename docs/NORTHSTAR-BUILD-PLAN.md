@@ -19,11 +19,11 @@
 |---|---|---|---|---|---|---|
 | A — A (Complete Loop One — See + Remember) | 0 | 0 | 0 | 1 | 18 | 19 |
 | B — B (Agent Runtime foundation — Notice + Act primitives) | 21 | 20 | 0 | 4 | 32 | 77 |
-| C — C (Reference coworker — Sales end-to-end loop) | 20 | 4 | 1 | 1 | 10 | 36 |
+| C — C (Reference coworker — Sales end-to-end loop) | 20 | 3 | 2 | 1 | 10 | 36 |
 | D — D (Plugin SDK + MCP) | 5 | 3 | 0 | 1 | 13 | 22 |
 | E — E (Additional coworkers/plugins + documentation) | 40 | 5 | 0 | 0 | 10 | 55 |
 
-**Board total:** 86 backlog, 32 planned, 1 in progress, 7 blocked, 83 shipped (209 managed cards).
+**Board total:** 86 backlog, 31 planned, 2 in progress, 7 blocked, 83 shipped (209 managed cards).
 
 ## Dispatchable now (`npm run agent:next` picks from this set)
 
@@ -39,11 +39,10 @@
 - `command-palette-tools` [medium] — Connect the command palette to real Revenue OS actions
 - `proposal-lifecycle-service` [high] — Complete the proposal lifecycle and version rules
 - `api-contract-tests` [high] — Add authenticated API contract and failure tests
-- `system-health-report` [high] — Build the system-health report and freshness thresholds
 - `booking-mode-contract-reconciliation` [high] — Reconcile booking activation and health truth
 - `unified-action-executor` [high] — Route every write through one executor with reversibility and compensators
-- `stage-history-analytics-reconciliation` [high] — Reconcile analytics with canonical stage history
 - `plugin-isolate-host` [high] — Run plugin code in an isolate with no ambient authority
+- `stage-history-analytics-reconciliation` [high] — Reconcile analytics with canonical stage history
 - `operating-goals-scorecards` [high] — Add operating goals and scorecards
 - `won-to-delivery-handoff` [high] — Create the won-to-delivery handoff
 - `governed-bulk-operator-actions` [medium] — Add governed bulk operator actions
@@ -59,6 +58,7 @@
 ## In progress
 
 - `ai-model-job-registry` — Route every AI job through an audited model registry (claude-code:johnconnor:97666)
+- `system-health-report` — Build the system-health report and freshness thresholds (claude-code:johnconnor:9960)
 
 ## Blocked
 

@@ -47,7 +47,7 @@ New capability labels added for northstar primitives:
 
 ## Rules:
 
-- The board opens on `milestone:now`. Keep Now small enough to scan and execute.
+- The board opens on the active horizon (`milestone:now` plus `milestone:next`). Keep Now small enough to scan; Next is the rest of the current circuit. Opening onto Now alone makes the board look empty.
 - The dependency-ordered circuit in `scripts/feature-backlog-data.mjs` owns Next
   sequencing. A card does not become Now merely because it is important.
 - Status describes delivery state. Milestone describes planning horizon. Never

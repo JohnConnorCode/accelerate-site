@@ -171,9 +171,11 @@ export async function compensateAction(
     }
     case "admin_layout_change": {
       const scope = (action.payload as Row)?.scope;
+      const tenantId = String((action as Row).tenant_id ?? "");
       if (typeof scope !== "string" || !scope)
         throw new Error("Compensation data is missing the layout scope; cannot undo safely");
-      await revertLayoutChange(supabase, { scope, actorEmail });
+      if (!tenantId) throw new Error("Compensation data is missing the tenant; cannot undo safely");
+      await revertLayoutChange(supabase, { scope, actorEmail, tenantId });
       detail.reverted_scope = scope;
       break;
     }

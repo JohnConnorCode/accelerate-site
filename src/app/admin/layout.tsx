@@ -42,7 +42,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     try {
       const auth = await requireAdmin();
       if (!(auth instanceof NextResponse)) {
-        navLayoutOverride = await getCurrentLayout(auth.database, "nav.sidebar");
+        navLayoutOverride = await getCurrentLayout(auth.database, "nav.sidebar", auth.tenant.id);
         moduleConfig = {
           modules: (auth.tenant.config?.modules as Partial<Record<string, boolean>>) ?? {},
         };

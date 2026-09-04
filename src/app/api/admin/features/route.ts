@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requirePlatformAdmin } from "@/lib/admin/auth";
 import { createPlatformServiceRoleClient } from "@/lib/supabase/server";
 import { recordAudit } from "@/lib/revenue-os/audit";
-import { isFeaturePriority } from "@/lib/feature-board";
+import { cleanSubtasks, isFeaturePriority } from "@/lib/feature-board";
 
 /**
  * Columns are now admin-defined (`kanban_columns`, board_key='features',
@@ -33,6 +33,7 @@ const editableFields = [
   "target_date",
   "acceptance_criteria",
   "notes",
+  "subtasks",
 ] as const;
 
 function cleanText(value: unknown, max: number): string | null {
@@ -105,6 +106,7 @@ export async function POST(request: NextRequest) {
     target_date: cleanText(body.target_date, 10),
     acceptance_criteria: cleanText(body.acceptance_criteria, 5000),
     notes: cleanText(body.notes, 5000),
+    subtasks: "subtasks" in body ? cleanSubtasks(body.subtasks) : [],
   };
   const { data, error } = await supabase.from("feature_requests").insert(payload).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -186,6 +188,7 @@ export async function PATCH(request: NextRequest) {
     else if (field === "priority") update.priority = body.priority;
     else if (field === "labels") update.labels = cleanLabels(body.labels);
     else if (field === "target_date") update.target_date = cleanText(body.target_date, 10);
+    else if (field === "subtasks") update.subtasks = cleanSubtasks(body.subtasks);
     else update[field] = cleanText(body[field], 5000);
   }
   if ("title" in update && !update.title)

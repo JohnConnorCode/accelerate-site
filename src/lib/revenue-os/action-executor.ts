@@ -270,6 +270,7 @@ export async function approveAndExecuteAction(
           scope: stringValue(payload, "scope")!,
           doc: payload.doc,
           actorEmail,
+          tenantId: String((action as Record<string, unknown>).tenant_id ?? ""),
         });
         break;
       case "create_founder_note":

@@ -6,6 +6,7 @@ import { services } from "@/content/services";
 import { packages } from "@/content/packages";
 import { changelogEntries } from "@/content/changelog";
 import { publicWorkProjects } from "@/content/work";
+import { TEAM_MEMBERS } from "@/content/team";
 
 /**
  * One index for site search.
@@ -136,11 +137,26 @@ const STATIC_PAGES: Array<Omit<SearchEntry, "group">> = [
     keywords: ["verticals", "sectors", "who you work with"],
   },
   {
+    id: "page-team",
+    title: "Team",
+    description: "The operators and advisors behind the team.",
+    href: "/team",
+    keywords: ["team", "people", "founder", "advisors", "who we are", "staff"],
+  },
+  {
     id: "page-changelog",
     title: "Changelog",
     description: "What we have shipped recently.",
     href: "/changelog",
     keywords: ["updates", "releases", "news", "what is new"],
+  },
+  {
+    id: "page-roadmap",
+    title: "Roadmap",
+    description:
+      "What's shipped, in progress, planned, and backlog, generated from the same manifest the app reads.",
+    href: "/roadmap",
+    keywords: ["feature board", "backlog", "planned", "help wanted", "contribute", "public roadmap"],
   },
 ];
 
@@ -218,6 +234,19 @@ export function buildSearchIndex(): SearchEntry[] {
 
   for (const page of STATIC_PAGES) {
     entries.push({ ...page, group: "Pages" });
+  }
+
+  // Team bios derive from the same template the pages render, so a new
+  // member is searchable the moment they land in TEAM_MEMBERS.
+  for (const member of TEAM_MEMBERS) {
+    entries.push({
+      id: `team-${member.slug}`,
+      title: member.name,
+      description: member.summary,
+      href: `/team/${member.slug}`,
+      group: "Pages",
+      keywords: ["team", "people", member.name, member.role, member.group],
+    });
   }
 
   // Only the most recent changelog entries; the whole history would drown

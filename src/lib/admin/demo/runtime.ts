@@ -65,7 +65,17 @@ type DemoState = {
   sentReplies: Record<string, string[]>;
   readNotifications: string[];
   emailDrafts: Record<string, DemoEmailDraft>;
-  featureOverrides: Record<string, { status: string; sort_order: number }>;
+  featureOverrides: Record<
+    string,
+    {
+      status?: string;
+      sort_order?: number;
+      subtasks?: Array<{ id: string; title: string; done: boolean }>;
+      title?: string;
+      owner?: string | null;
+      created?: boolean;
+    }
+  >;
   moduleOverrides: Partial<Record<string, boolean>>;
   moduleSettings: Record<string, Record<string, unknown>>;
 };
@@ -1548,7 +1558,7 @@ function contentItems(pack: DemoScenarioPack) {
 
 function featureBoard(pack: DemoScenarioPack, state: DemoState) {
   const titles = pack.content.roadmapTitles;
-  return titles.map((title, index) => {
+  const seeded = titles.map((title, index) => {
     const id = `feature-${index}`;
     const defaultStatus = ["backlog", "planned", "in_progress", "blocked", "shipped"][index % 5]!;
     const defaultSortOrder = (index + 1) * 1000;
@@ -1559,7 +1569,7 @@ function featureBoard(pack: DemoScenarioPack, state: DemoState) {
     return {
       id,
       seed_key: `demo-${index}`,
-      title,
+      title: override?.title ?? title,
       description: `${title} adapted to the operating model for ${pack.name}.`,
       status: override?.status ?? defaultStatus,
       priority: index < 3 ? "high" : index < 10 ? "medium" : "low",
@@ -1569,7 +1579,16 @@ function featureBoard(pack: DemoScenarioPack, state: DemoState) {
         `capability:${["automation", "reporting", "integration"][index % 3]}`,
       ],
       sort_order: override?.sort_order ?? defaultSortOrder,
-      owner: index % 2 ? pack.tenant.founder.fullName : "Implementation partner",
+      subtasks: override?.subtasks ?? [
+        { id: `${id}-a`, title: "Observable in the founder workspace", done: index % 5 === 4 },
+        { id: `${id}-b`, title: "Verified on desktop and mobile", done: false },
+      ],
+      owner:
+        override && "owner" in override
+          ? override.owner ?? null
+          : index % 2
+            ? pack.tenant.founder.fullName
+            : "Implementation partner",
       target_date: dateOffset(index * 6 + 10),
       acceptance_criteria:
         "The workflow is observable, reversible, and verified on desktop and mobile.",
@@ -1580,6 +1599,28 @@ function featureBoard(pack: DemoScenarioPack, state: DemoState) {
       updated_at: override ? new Date().toISOString() : ago(index * 4 + 1),
     };
   });
+  const created = Object.entries(state.featureOverrides)
+    .filter(([, override]) => override.created)
+    .map(([id, override]) => ({
+      id,
+      seed_key: null,
+      title: override.title ?? "Untitled",
+      description: null,
+      status: override.status ?? "backlog",
+      priority: "medium" as const,
+      labels: [] as string[],
+      sort_order: override.sort_order ?? 0,
+      subtasks: override.subtasks ?? [],
+      owner: override.owner ?? null,
+      target_date: null,
+      acceptance_criteria: null,
+      notes: null,
+      source: "demo_scenario",
+      archived_at: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }));
+  return [...seeded, ...created];
 }
 
 function settings(pack: DemoScenarioPack) {
@@ -2039,20 +2080,65 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       return jsonResponse({ items: contentItems(pack) });
     if (method === "GET" && path === "/api/admin/features")
       return jsonResponse({ schemaReady: true, features: featureBoard(pack, state) });
+    if (method === "POST" && path === "/api/admin/features") {
+      const title = String((body as { title?: string }).title || "").trim().slice(0, 180);
+      if (!title) return jsonResponse({ error: "Title is required" }, 400);
+      const id = `feature-new-${Date.now()}`;
+      const status = String((body as { status?: string }).status || "backlog");
+      state.featureOverrides[id] = {
+        created: true,
+        title,
+        status,
+        sort_order: (Object.keys(state.featureOverrides).length + 1) * 1000,
+        subtasks: Array.isArray((body as { subtasks?: unknown }).subtasks)
+          ? (body as { subtasks: Array<{ id: string; title: string; done: boolean }> }).subtasks
+          : [],
+      };
+      saveState(scenarioId, state);
+      const created = featureBoard(pack, state).find((item) => item.id === id);
+      return jsonResponse(created ?? { id, title, status }, 201);
+    }
     if (method === "PATCH" && path === "/api/admin/features") {
       // Mirrors the real route's bulk-reorder contract: { reorder: [{ id,
       // status, sortOrder }, ...] }. Previously unhandled, so every request
       // here fell through to the generic 403 below and every optimistic
       // drag on the demo board reverted the instant its PATCH landed.
       const reorder = Array.isArray((body as { reorder?: unknown })?.reorder)
-        ? (body as { reorder: Array<{ id: string; status: string; sortOrder: number }> }).reorder
+        ? (body as { reorder: Array<{ id: string; column_key?: string; status?: string; sort_order?: number; sortOrder?: number }> }).reorder
         : [];
-      for (const item of reorder) {
-        if (!item?.id) continue;
-        state.featureOverrides[item.id] = { status: item.status, sort_order: item.sortOrder };
+      if (reorder.length) {
+        for (const item of reorder) {
+          if (!item?.id) continue;
+          state.featureOverrides[item.id] = {
+            ...state.featureOverrides[item.id],
+            status: item.column_key || item.status,
+            sort_order: item.sort_order ?? item.sortOrder,
+          };
+        }
+        saveState(scenarioId, state);
+        return jsonResponse({ schemaReady: true, updated: reorder.length });
+      }
+      const featureId = String((body as { id?: string }).id || "");
+      if (featureId) {
+        const current = state.featureOverrides[featureId] || {};
+        if ((body as { status?: string }).status) current.status = String((body as { status: string }).status);
+        if (typeof (body as { title?: string }).title === "string") {
+          current.title = String((body as { title: string }).title);
+        }
+        if ("owner" in (body as { owner?: unknown })) {
+          const owner = (body as { owner?: string | null }).owner;
+          current.owner = typeof owner === "string" && owner.trim() ? owner.trim() : null;
+        }
+        if (Array.isArray((body as { subtasks?: unknown }).subtasks)) {
+          current.subtasks = (body as { subtasks: Array<{ id: string; title: string; done: boolean }> }).subtasks;
+        }
+        state.featureOverrides[featureId] = current;
+        saveState(scenarioId, state);
+        const updated = featureBoard(pack, state).find((item) => item.id === featureId);
+        return jsonResponse(updated ?? { id: featureId, ...current });
       }
       saveState(scenarioId, state);
-      return jsonResponse({ schemaReady: true, updated: reorder.length });
+      return jsonResponse({ schemaReady: true, updated: 0 });
     }
     if (method === "GET" && path === "/api/admin/tenant/modules") {
       const tenantConfig = { modules: state.moduleOverrides };

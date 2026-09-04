@@ -43,7 +43,7 @@ export function AddColumnInline({ onAdd, extraFields, tileLabel = "Add column" }
 
   if (!open) {
     return (
-      <div className="w-full max-w-[340px] shrink-0 snap-start mx-auto sm:mx-0 lg:snap-none">
+      <div className="min-w-0 shrink-0 snap-center w-[calc(100cqw-1.5rem)] md:w-44 md:snap-start">
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -64,7 +64,7 @@ export function AddColumnInline({ onAdd, extraFields, tileLabel = "Add column" }
   }
 
   return (
-    <div className="w-full max-w-[340px] shrink-0 snap-start mx-auto sm:mx-0 lg:snap-none">
+    <div className="min-w-0 shrink-0 snap-center w-[calc(100cqw-1.5rem)] md:w-56 md:snap-start">
       <div className="rounded-2xl bg-black/[0.018] p-3 shadow-[inset_0_0_0_1px_var(--admin-border)] dark:bg-white/[0.018]">
         <div className="flex items-center gap-2">
           <input

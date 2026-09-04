@@ -1,5 +1,8 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { FEATURE_BOARD_WIP_LIMIT } from "@/lib/feature-board";
+
+export { FEATURE_BOARD_WIP_LIMIT };
 
 // ---------------------------------------------------------------------------
 // Atomic claim primitive for the Feature Board (feature_requests), the
@@ -41,10 +44,6 @@ export interface ClaimFeatureCardInput {
   leaseDurationMs?: number;
   wipLimit?: number;
 }
-
-/** Default `p_wip_limit` for `claim_feature_request`. Keep the status display
- *  in sync with this so `agent:status` reports the same gate a claim would hit. */
-export const FEATURE_BOARD_WIP_LIMIT = 6;
 
 export interface ClaimFeatureCardResult {
   id: string | null;
@@ -93,15 +92,22 @@ export async function releaseFeatureCard(
   // accidentally releasing a card it doesn't hold, not to lock out a human
   // operator. A founder must always be able to reclaim a stalled or
   // wrongly-claimed card without waiting for the lease to expire.
+  const { data: current } = await supabase
+    .from("feature_requests")
+    .select("notes, lease_owner, labels")
+    .eq("id", input.id)
+    .maybeSingle();
+  const labels = Array.isArray(current?.labels) ? current.labels : [];
+  // Loop One / Now+Next cards cannot sit in backlog — the manifest constructor
+  // and the public roadmap both throw. Release them to planned.
+  const releaseStatus =
+    labels.includes("milestone:now") || labels.includes("milestone:next") ? "planned" : "backlog";
   let notesUpdate: string | undefined;
-  if (input.force) {
-    const { data: current } = await supabase.from("feature_requests").select("notes, lease_owner").eq("id", input.id).maybeSingle();
-    if (current && current.lease_owner && current.lease_owner !== input.leaseOwner) {
-      notesUpdate = `${current.notes ?? ""}\n\nForce-released ${new Date().toISOString()} by ${input.leaseOwner} (overrode a claim held by ${current.lease_owner}).`;
-    }
+  if (input.force && current && current.lease_owner && current.lease_owner !== input.leaseOwner) {
+    notesUpdate = `${current.notes ?? ""}\n\nForce-released ${new Date().toISOString()} by ${input.leaseOwner} (overrode a claim held by ${current.lease_owner}).`;
   }
   let query = supabase.from("feature_requests").update({
-    status: "backlog",
+    status: releaseStatus,
     owner: null,
     lease_owner: null,
     lease_expires_at: null,

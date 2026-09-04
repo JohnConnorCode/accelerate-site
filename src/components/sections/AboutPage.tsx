@@ -14,6 +14,8 @@ import {
 } from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { HERO_HEADING } from "@/lib/type-recipes";
+import { TEAM_MEMBERS } from "@/content/team";
+import { TeamPreviewStrip } from "@/components/team/TeamCard";
 
 const VALUES = [
   {
@@ -202,6 +204,15 @@ export function AboutPageContent() {
             );
           })}
         </div>
+      </Section>
+
+      {/* team preview — full page lives at /team */}
+      <Section width="wide" divide>
+        <Eyebrow className="mb-6">the team</Eyebrow>
+        <Heading size={2} as="h2" className="mb-12 max-w-3xl">
+          Operators and advisors behind the work.
+        </Heading>
+        <TeamPreviewStrip members={TEAM_MEMBERS} />
       </Section>
 
       {/* closing — master style */}

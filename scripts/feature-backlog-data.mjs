@@ -1031,9 +1031,9 @@ export const featureBacklog = [
     title: "Finish Conversations as the unified communication inbox",
     workstream: "admin",
     phase: 2,
-    status: "planned",
+    status: "shipped",
     priority: "high",
-    owner: "claude-code:johnconnor:18885",
+    owner: "grok-4.6:johnconnor",
     description:
       "Combine synchronized Gmail, inbound forms/messages, Resend activity, and manual communication into one founder inbox with record context and reply tools.",
     acceptance: [
@@ -1189,7 +1189,7 @@ export const featureBacklog = [
     guardrails: "Do not hide essential actions behind hover-only controls.",
     labels: ["accessibility", "mobile"],
     evidence:
-      "2026-09-03 OpenCode a11y fixes: Added focus-visible indicators to all interactive admin elements replacing focus:outline-none patterns that hid keyboard focus. Files modified: AdminShell.tsx (search input), AIRunHistory.tsx (search textarea), LeadsTable.tsx (bulk status select), DateRangeFilter.tsx (date inputs), TaskQuickAdd.tsx (date input and priority select), AdminFounderNoteModal.tsx (note textarea and person search), LeadDetail.tsx (status select and deal value input). All focus-visible states now show a gold ring indicator (ring-2 ring-gold/30) with proper offset, matching existing admin-action-control patterns. Reduced motion is already supported via @media (prefers-reduced-motion: reduce) rules in globals.css lines 772-778 which disable nonessential animations. 2026-09-03 OpenCode second slice (status untouched): audited every admin/kanban button for icon-only-no-label (precise scan; the only true hits were ContentItemForm's delete/close buttons, which had only title/no label — now aria-labels plus 40px hit areas and focus rings). Finished the kanban focus-visible pass: column rename input, list-view status filter, row move select (also gained aria-label Move to column), and add-column input. Removed dead size-8 overrides on EmailBlockComposer's admin-icon-buttons so the 40px guarantee is explicit. Verified reduced motion needs no work: MotionConfig reducedMotion=user already wraps the admin shell and CSS reduce rules exist. tsc/eslint/diff-check/agent-contract all clean. Still open before Shipped: authenticated keyboard-only + mobile Playwright run over dialogs, drawers, tables, Kanban, palette, toasts (needs founder session + preview; not available in this environment). 2026-09-03 OpenCode third slice (status untouched): precise scan of every admin/kanban/app-admin form control found 25+ inputs/selects with no accessible name (visible label siblings without association, icon-only contexts) plus page-level filters still on the old focus:outline-none pattern. Fixed: aria-labels on TaskQuickAdd due date/priority, AdminAIChat conversation select (+ring), ClientDetail status/MRR/one-time/contract dates, AddLeadModal industry/source, EmailCompose template, LeadDetail status, bookings row stage (+ring), clients/conversations/leads/proposals/resources/subscribers/website-grades filters (+rings where missing), conversations estimate/due inputs (+rings), contact-imports file input. Verified post-fix scan: zero unnamed controls remain (3 hits all confirmed false positives: a code comment, an aria-labeled checkbox, a label-wrapped input). tsc/eslint/diff-check/agent-contract clean. 2026-09-03 OpenCode fourth slice (status untouched): keyboard operability + table semantics. Added the missing Skip to content link (first tab stop, revealed on focus) targeting the existing main#main-content, which gained tabindex=-1 so focus lands in all browsers. Converted LeadsTable's two mouse-only clickable th sort headers (score + generic SortHeader) into the button-in-th pattern AdminTable already models, with aria-sort and focus rings — sorting is now keyboard-operable. Added scope=col across LeadsTable, AdminTable, KanbanListView, clients, and pipeline list headers. Verified document.title needs no work (shell MutationObserver already binds it to the rendered h1 with nav fallback). tsc/eslint/diff-check/agent-contract clean. 2026-09-03 OpenCode fifth slice (status untouched): touch targets + keyboard drag visibility. Bumped the mobile command-palette close button (size-9→size-10) and the AI archive action (min-h-8→min-h-10) to 40px; verified AdminSwitch already exceeds it (44px hit area, role=switch, aria-checked) and details/summary disclosures already meet min-h-12/14 with rings. Added focus-visible rings to both kanban grip handles (Feature Board + ContentKanban) — the keyboard-move flow the board QA now asserts had no visible pickup indicator. Verified no onClick-on-div/span/li pattern exists in admin/kanban, form errors already announce via the live-region toaster, and AdminTable already models the correct sortable-header pattern. tsc/eslint/diff-check/agent-contract clean. 2026-09-03 OpenCode sixth slice (status untouched): loading-state announcements. A precise spinner scan (32 candidates, most correctly named by adjacent button text) found two region loaders that were bare spinning icons with no accessible name: AICapabilities and AIRunHistory now render role=status with sr-only Loading text. Three decorative spinners in already-named contexts (email preview pending, AI tool status icons, person-search indicator) gained aria-hidden so assistive tech isn't handed unnamed images. Verified aria-current already marks sidebar, dock, breadcrumbs, and AI views; form errors already announce via the live-region toaster; button-embedded spinners inherit their button's name. tsc/eslint/diff-check/agent-contract clean.",
+      "2026-09-03 OpenCode a11y fixes: Added focus-visible indicators to all interactive admin elements replacing focus:outline-none patterns that hid keyboard focus. Files modified: AdminShell.tsx (search input), AIRunHistory.tsx (search textarea), LeadsTable.tsx (bulk status select), DateRangeFilter.tsx (date inputs), TaskQuickAdd.tsx (date input and priority select), AdminFounderNoteModal.tsx (note textarea and person search), LeadDetail.tsx (status select and deal value input). All focus-visible states now show a gold ring indicator (ring-2 ring-gold/30) with proper offset, matching existing admin-action-control patterns. Reduced motion is already supported via @media (prefers-reduced-motion: reduce) rules in globals.css lines 772-778 which disable nonessential animations. 2026-09-03 OpenCode second slice (status untouched): audited every admin/kanban button for icon-only-no-label (precise scan; the only true hits were ContentItemForm's delete/close buttons, which had only title/no label — now aria-labels plus 40px hit areas and focus rings). Finished the kanban focus-visible pass: column rename input, list-view status filter, row move select (also gained aria-label Move to column), and add-column input. Removed dead size-8 overrides on EmailBlockComposer's admin-icon-buttons so the 40px guarantee is explicit. Verified reduced motion needs no work: MotionConfig reducedMotion=user already wraps the admin shell and CSS reduce rules exist. tsc/eslint/diff-check/agent-contract all clean. Still open before Shipped: authenticated keyboard-only + mobile Playwright run over dialogs, drawers, tables, Kanban, palette, toasts (needs founder session + preview; not available in this environment). 2026-09-03 OpenCode third slice (status untouched): precise scan of every admin/kanban/app-admin form control found 25+ inputs/selects with no accessible name (visible label siblings without association, icon-only contexts) plus page-level filters still on the old focus:outline-none pattern. Fixed: aria-labels on TaskQuickAdd due date/priority, AdminAIChat conversation select (+ring), ClientDetail status/MRR/one-time/contract dates, AddLeadModal industry/source, EmailCompose template, LeadDetail status, bookings row stage (+ring), clients/conversations/leads/proposals/resources/subscribers/website-grades filters (+rings where missing), conversations estimate/due inputs (+rings), contact-imports file input. Verified post-fix scan: zero unnamed controls remain (3 hits all confirmed false positives: a code comment, an aria-labeled checkbox, a label-wrapped input). tsc/eslint/diff-check/agent-contract clean. 2026-09-03 OpenCode fourth slice (status untouched): keyboard operability + table semantics. Added the missing Skip to content link (first tab stop, revealed on focus) targeting the existing main#main-content, which gained tabindex=-1 so focus lands in all browsers. Converted LeadsTable's two mouse-only clickable th sort headers (score + generic SortHeader) into the button-in-th pattern AdminTable already models, with aria-sort and focus rings — sorting is now keyboard-operable. Added scope=col across LeadsTable, AdminTable, KanbanListView, clients, and pipeline list headers. Verified document.title needs no work (shell MutationObserver already binds it to the rendered h1 with nav fallback). tsc/eslint/diff-check/agent-contract clean. 2026-09-03 OpenCode fifth slice (status untouched): touch targets + keyboard drag visibility. Bumped the mobile command-palette close button (size-9→size-10) and the AI archive action (min-h-8→min-h-10) to 40px; verified AdminSwitch already exceeds it (44px hit area, role=switch, aria-checked) and details/summary disclosures already meet min-h-12/14 with rings. Added focus-visible rings to both kanban grip handles (Feature Board + ContentKanban) — the keyboard-move flow the board QA now asserts had no visible pickup indicator. Verified no onClick-on-div/span/li pattern exists in admin/kanban, form errors already announce via the live-region toaster, and AdminTable already models the correct sortable-header pattern. tsc/eslint/diff-check/agent-contract clean. 2026-09-03 OpenCode sixth slice (status untouched): loading-state announcements. A precise spinner scan (32 candidates, most correctly named by adjacent button text) found two region loaders that were bare spinning icons with no accessible name: AICapabilities and AIRunHistory now render role=status with sr-only Loading text. Three decorative spinners in already-named contexts (email preview pending, AI tool status icons, person-search indicator) gained aria-hidden so assistive tech isn't handed unnamed images. Verified aria-current already marks sidebar, dock, breadcrumbs, and AI views; form errors already announce via the live-region toaster; button-embedded spinners inherit their button's name. tsc/eslint/diff-check/agent-contract clean. 2026-09-04 OpenCode seventh slice (status untouched): founder-direct Today layout customization — the override system previously wrote only through the AI approval queue. New validated save action on the layout route (unknown ids and required hides refuse; audited as admin) plus a keyboard-operable Customize dialog on Today (reorder, hide, reset, save; shared AdminDialog, focus rings, 40px targets, required regions locked with explanation). Service needed only an audit-source parameter; validation already existed. Layout suite +3 checks green; tsc, scoped lint, diff-check clean. Uncommitted: hook blocked by other sessions' gate failures (stale build plan + search-literal budget), not this diff.",
   }),
   card({
     key: "cloneable-command-center-contract",
@@ -2533,7 +2533,7 @@ export const featureBacklog = [
   card({
     key: "ai-bounded-context",
     status: "planned",
-    owner: "claude-code:johnconnor:36762",
+    owner: null,
     title: "Enforce bounded AI context and grounding rules",
     workstream: "ai",
     phase: 3,
@@ -2669,10 +2669,11 @@ export const featureBacklog = [
   }),
   card({
     key: "ai-model-job-registry",
+    owner: "claude-code:johnconnor:97666",
     title: "Route every AI job through an audited model registry",
     workstream: "ai",
     phase: 4,
-    status: "planned",
+    status: "in_progress",
     priority: "medium",
     description:
       "Choose OpenRouter models by typed workload requirements instead of scattered IDs, with current capability and cost metadata, explicit activation, eval gates, and rollback.",
@@ -2690,6 +2691,8 @@ export const featureBacklog = [
     guardrails:
       "OpenRouter remains the sole gateway. Do not let a browser send arbitrary model IDs or activate a consequential model without evidence.",
     labels: ["ai", "reliability"],
+    evidence:
+      "2026-09-04 OpenCode slice (commit 92d2011): new src/lib/ai/model-registry.ts — operator-registered models (KV in admin_settings, zero migration) with cost tier, tool/JSON/context capabilities, and eval verdicts; 5 typed jobs with workload requirements matched against capabilities instead of hardcoded lineups; resolveModelForJob refusing unknown jobs, unlisted models, capability mismatches, and unevaluated cheap models on consequential jobs (including the default path — the gate working as designed); recordModelCall receipts with requested-vs-resolved, fallback flag, and mandatory tenant attribution. Found live that admin_settings PK is (tenant_id, key), so the registry is tenant-scoped and the layout save path was fixed the same way (tenant-bound reads/writes in admin-layout service, route, shell, and compensator). test:model-registry 5/5 green in test:core; tsc, lint, diff-check clean. NOT DONE: gateway adoption across the 9 call sites (registry exists, callers still pass raw IDs), eval-pass evidence for the default model, production proof.",
   }),
   card({
     key: "tenant-ai-sponsorship-control",
@@ -3074,8 +3077,8 @@ export const featureBacklog = [
   }),
   card({
     key: "system-health-report",
-    owner: "claude-code:johnconnor:26718",
-    status: "planned",
+    owner: "claude-code:johnconnor:9960",
+    status: "in_progress",
     title: "Build the system-health report and freshness thresholds",
     workstream: "operations",
     phase: 4,
@@ -4596,11 +4599,13 @@ export const featureBacklog = [
   // ────────────────────────────────────────────────────────────────────────
   card({
     key: "entity-registry-and-link-graph",
-    owner: "claude-code:johnconnor:88811",
+    evidence:
+      "2026-09-04: all six acceptance items evidenced. Migration migrations/20260904-entity-registry-link-graph.sql applied live (entity_types + entity_links, tenant FK RESTRICT, RLS, member/service policies, touch triggers; idempotent rerun clean). db:verify-schema detail checks pass for all new objects (one pre-existing unrelated failure: opportunities_stage_check dropped by the earlier kanban-columns migration). Live service proof with zero leftovers: register, tuple-replay returns same edge, bounded 2-node/1-edge walk, cross-tenant link refusal, propose-with-evidence. Traversal edge-duplication bug found live and fixed (bidirectional rediscovery; memory suite now asserts exact edge uniqueness). Deterministic suite 8/8 incl. runtime-registered webinar type exercising links/traversal/merge/audit with zero code changes; merge verified with receipt + retry convergence. tsc, full lint, agent contract, diff-check, production build green. Commits: migration+service+contract+tests merged to chore branch; traversal fix committed. No destructive action; fixtures namespaced and purged.",
+    owner: "claude-code:johnconnor:46791",
     title: "Add an open entity registry and a polymorphic link graph",
     workstream: "foundation",
     phase: 6,
-    status: "in_progress",
+    status: "shipped",
     priority: "high",
     description:
       "Plugin Platform phase 1 of 6, primitive 1 of 7: Records. There is no entity_links table, no entity_types registry, and no generic merge anywhere in src or migrations. Without a generic link table every pair of capabilities that needs to relate records requires a bespoke join table and its own migration, which is the cost that stops an ecosystem before it starts. A meeting capability needs to link a transcript to a contact to an opportunity to a follow-up task; today that is four schema changes. Entity types become rows rather than an enum so that links, merge and audit work on a newly registered type the day it appears, with no code change.",
@@ -4649,10 +4654,11 @@ export const featureBacklog = [
   }),
   card({
     key: "unified-action-executor",
+    owner: "claude-code:johnconnor:6435",
     title: "Route every write through one executor with reversibility and compensators",
     workstream: "foundation",
     phase: 6,
-    status: "backlog",
+    status: "planned",
     priority: "high",
     description:
       "Plugin Platform phase 1 of 6, primitive 3 of 7: Actions. This is a refactor of something real rather than a greenfield build. action_queue already carries the status lifecycle, a pending dedupe index and expiry, and the AI tool registry already asserts at runtime that a mutating tool staged a proposal. What is missing is the reversibility axis, which is orthogonal to the existing impact tiers: impact says how far an effect reaches, reversibility says whether core can restore the prior state. Add the class, add compensators, add an evidence column, and make one executor the only write path so that a user clicking Save and a plugin proposing a change traverse identical code. That single property is what makes the approval queue real rather than cosmetic and the audit log complete rather than best-effort.",
@@ -4730,11 +4736,13 @@ export const featureBacklog = [
   }),
   card({
     key: "capability-scoped-data-api",
-    owner: "claude-code:johnconnor:6708",
+    evidence:
+      "2026-09-04: all six acceptance items evidenced. Three shapes only (scoped entity query with column allowlist + limit/clamp disclosure, enumerated recipes, namespace KV), enforced by verify-capability-isolation.mjs (mutation-proven on all three defect classes, wired into CI). No core writes and no raw handle on the interface; all reads route through bindTenantDatabase (exported for the purpose) plus explicit tenant filters. Cross-workspace refusal proven live against production Postgres (foreign tenant cannot resolve types or read rows). Every call returns a usage receipt; 120/min fail-closed budget. test:capability-data-api 8/8 in test:core. tsc, full lint, agent contract, diff-check, production build green. Commits merged to chore branch. No destructive action.",
+    owner: "claude-code:johnconnor:47504",
     title: "Expose one capability-checked data API with no raw database handle",
     workstream: "security",
     phase: 6,
-    status: "in_progress",
+    status: "shipped",
     priority: "high",
     description:
       "Plugin Platform phase 1 of 6. Reads must go through a single capability-checked interface and writes must go through the executor, because that is what makes row-level security, cost accounting and audit complete rather than best-effort. The pattern is already proven in this repository: bindTenantDatabase is a proxy that forces tenant filtering because the service role bypasses row-level security. Generalize it into a data API with three shapes, a filtered entity query, a server-computed recipe, and a capability's own namespaced storage, and deliberately provide no direct write to core entities.",
@@ -4798,10 +4806,11 @@ export const featureBacklog = [
   // ────────────────────────────────────────────────────────────────────────
   card({
     key: "plugin-isolate-host",
+    owner: "claude-code:johnconnor:71722",
     title: "Run plugin code in an isolate with no ambient authority",
     workstream: "platform",
     phase: 6,
-    status: "backlog",
+    status: "planned",
     priority: "high",
     description:
       "Plugin Platform phase 2 of 6. There is no sandbox of any kind in the tree today: no isolated-vm, no worker, no node:vm. The current seam avoids the problem by executing nothing from extensions, which is a correct invariant for a manifest but caps the platform at declarative capabilities forever. An isolate moves the boundary: plugin code runs with no database handle, no filesystem, no environment, and a default-deny egress allowlist, receiving only host bindings pre-scoped to what its manifest declared. Cold start under 50ms is a requirement rather than a goal, because event handlers fire constantly and a slow cold start makes the whole product feel dead.",
@@ -5805,10 +5814,13 @@ export const featureBacklog = [
   // ────────────────────────────────────────────────────────────────────────
   card({
     key: "docs-site-infrastructure",
+    evidence:
+      "docs-site-infrastructure on branch agent/docs-site-infrastructure commit 89f47be: full navigable spine with 3 prose pages (Start, Command Center, Follow-up). Manifest owns structure/ordering; recursive loader with section collapse; frontmatter restricted to title/description/updated; TableOfContents parameterized; prose-docs class; docs chrome in raw-color ratchet at zero; 2 stale budgets lowered. Verified: typecheck, lint --max-warnings=0, verify:admin-tokens, verify:docs, build (345 pages), desktop+mobile browse with inspected screenshots, zero console/5xx, diff-check.",
+    owner: "claude-code:johnconnor:41173",
     title: "Build the documentation site infrastructure at /docs",
     workstream: "documentation",
     phase: 6,
-    status: "backlog",
+    status: "shipped",
     priority: "high",
     description:
       "Documentation track, step 1 of 4. Land the whole navigable spine with only three pages of prose, so the system is proven before any content volume is written. The MDX pipeline already exists and is production-proven for the learning hub: createMDX with the gfm, slug and autolink plugins, compileMDX from next-mdx-remote, a filesystem loader, and thirteen components. Three gaps: the loader is a flat directory read with no recursion, there is no persistent sidebar, and there is no docs search. Structure is an explicit manifest rather than a filesystem walk, because a walk can only ever be self-consistent: it can tell you what exists but never catch a page that was supposed to exist.",
@@ -5834,10 +5846,13 @@ export const featureBacklog = [
   }),
   card({
     key: "docs-integration-surfaces",
+    evidence:
+      "docs-integration-surfaces on branch agent/docs-integration-surfaces commit d99b06a: Docs group in search index (type-enforced group/priority/order), sitemap from manifest (9 docs URLs live), header/footer /docs links, generated public/docs-llms.txt with CI check mode, crawler allows for /docs/, self-host CTA retargeted to new quickstart page. Verified: typecheck, lint clean, agent-contract, verify:docs, llms check, test:search, positioning+guardrails, build 347 pages, live API/sitemap/robots proof, diff-check.",
+    owner: "claude-code:johnconnor:90701",
     title: "Wire docs into search, sitemap, navigation and a generated llms index",
     workstream: "documentation",
     phase: 6,
-    status: "backlog",
+    status: "shipped",
     priority: "high",
     description:
       "Documentation track, step 2 of 4, still with only three pages of prose so the wiring is proven before the content exists. Search costs almost nothing: one deploy-time index already serves the whole site and the client filters locally, so adding docs is a loop plus two typed entries, and because those are a keyed record and a typed array, forgetting either breaks the typecheck. Two corrections to earlier assumptions are load-bearing here. src/content/navigation.ts is dead and imported by nothing, so links go in the header and footer components directly. And a static file in public shadows any route handler at the same path, so the machine-readable index must be a build script with a check mode rather than a route.",

@@ -39,7 +39,7 @@ const canonicalKeys = new Set(featureBacklog.map((feature) => feature.seed_key))
 // live claim on the next `--apply` — exactly the footgun the claim system
 // exists to remove. They're still seeded on first insert (below), just never
 // reconciled against an existing row.
-const LIVE_MANAGED_FIELDS = new Set(["status", "owner"]);
+const LIVE_MANAGED_FIELDS = new Set(["status", "owner", "subtasks"]);
 if (verify) {
   const active = (before ?? []).filter((row) => !row.archived_at);
   const liveByKey = new Map(active.map((row) => [row.seed_key, row]));

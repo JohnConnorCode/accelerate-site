@@ -4,6 +4,7 @@ import type { MetadataRoute } from "next";
 import { getAllArticles, getAllCategories, getAllTags } from "@/lib/mdx";
 import { verticals } from "@/content/verticals";
 import { publicWorkProjects } from "@/content/work";
+import { TEAM_MEMBERS } from "@/content/team";
 
 const BASE_URL = "https://www.acceleratewith.us";
 
@@ -42,6 +43,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastMod: LAST_CONTENT_UPDATE,
     })),
     { path: "/about", priority: 0.7, freq: "monthly", lastMod: "2026-02-01" },
+    { path: "/team", priority: 0.7, freq: "monthly", lastMod: "2026-09-04" },
+    // Team bios derive from the template system so a new member is
+    // discoverable the moment they land in TEAM_MEMBERS.
+    ...TEAM_MEMBERS.map((member) => ({
+      path: `/team/${member.slug}`,
+      priority: 0.5,
+      freq: "monthly" as const,
+      lastMod: "2026-09-04",
+    })),
     { path: "/contact", priority: 0.7, freq: "monthly", lastMod: "2026-01-15" },
     { path: "/learn", priority: 0.8, freq: "weekly", lastMod: LAST_CONTENT_UPDATE },
     { path: "/partners", priority: 0.5, freq: "monthly", lastMod: "2026-01-10" },

@@ -285,9 +285,8 @@ try {
   watch(page, defaultDialogRouter);
   await page.goto(`${base}/admin/features`, { waitUntil: "domcontentloaded" });
   await page.waitForSelector('h2:has-text("Backlog")', { timeout: 120000 });
-  // The board opens with a default milestone filter (an existing product
-  // behavior) that hides cards without that label and disables drag —
-  // clear it so a freshly created test card is visible and draggable.
+  // Default view is Now + Next (and unlabeled new cards). Still select All
+  // so a fixture without taxonomy labels cannot be hidden by a later filter.
   await clearFeaturesMilestoneFilter(page);
   await page.screenshot({ path: shot("features-board") });
 

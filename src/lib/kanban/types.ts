@@ -29,15 +29,23 @@ export const KANBAN_BOARD_DEFINITIONS: Record<KanbanBoardKey, KanbanBoardDefinit
 };
 
 /**
- * Per-board extension point. Pipeline is the only board that populates this
- * today (`role` replaces the hardcoded won/lost literal-name checks,
- * `probability` replaces the hardcoded DEFAULT_STAGE_META table); features
- * and content leave it `{}`.
+ * Per-board extension point. Pipeline populates `role`/`probability`;
+ * every board may set `wipLimit` (soft cap shown on the column). Unknown
+ * keys are preserved so a board can extend metadata without a schema change.
  */
 export interface KanbanColumnMetadata {
   role?: "open" | "won" | "lost";
   probability?: number;
+  wipLimit?: number | null;
   [key: string]: unknown;
+}
+
+export function parseWipLimit(metadata: KanbanColumnMetadata | undefined): number | null {
+  const value = metadata?.wipLimit;
+  if (value == null) return null;
+  const parsed = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(parsed) || parsed < 1) return null;
+  return Math.min(99, Math.floor(parsed));
 }
 
 export interface KanbanColumnRecord {

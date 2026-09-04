@@ -1,3 +1,6 @@
+/** Default in-progress cap. Keep in sync with claim_feature_request's p_wip_limit. */
+export const FEATURE_BOARD_WIP_LIMIT = 6;
+
 export const FEATURE_STATUSES = [
   "backlog",
   "planned",
@@ -9,6 +12,12 @@ export const FEATURE_PRIORITIES = ["urgent", "high", "medium", "low"] as const;
 
 export type FeatureStatus = (typeof FEATURE_STATUSES)[number];
 export type FeaturePriority = (typeof FEATURE_PRIORITIES)[number];
+
+export interface FeatureSubtask {
+  id: string;
+  title: string;
+  done: boolean;
+}
 
 export interface FeatureRequest {
   id: string;
@@ -22,13 +31,91 @@ export interface FeatureRequest {
   labels: string[];
   sort_order: number;
   owner: string | null;
+  lease_owner?: string | null;
+  lease_expires_at?: string | null;
+  claimed_at?: string | null;
   target_date: string | null;
   acceptance_criteria: string | null;
   notes: string | null;
+  subtasks?: FeatureSubtask[] | null;
   source: string;
   archived_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+const MAX_SUBTASKS = 40;
+const MAX_SUBTASK_TITLE = 180;
+
+export function parseAcceptanceLines(text: string | null | undefined): string[] {
+  if (!text?.trim()) return [];
+  return text
+    .split("\n")
+    .map((line) => line.replace(/^\s*[-*]\s*(\[[ xX]\]\s*)?/, "").trim())
+    .filter(Boolean)
+    .slice(0, MAX_SUBTASKS);
+}
+
+export function cleanSubtasks(value: unknown): FeatureSubtask[] {
+  if (!Array.isArray(value)) return [];
+  const cleaned: FeatureSubtask[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+    const row = item as Record<string, unknown>;
+    const title = typeof row.title === "string" ? row.title.trim().slice(0, MAX_SUBTASK_TITLE) : "";
+    if (!title) continue;
+    const id =
+      typeof row.id === "string" && row.id.trim()
+        ? row.id.trim().slice(0, 64)
+        : `subtask-${cleaned.length + 1}`;
+    cleaned.push({ id, title, done: row.done === true });
+    if (cleaned.length >= MAX_SUBTASKS) break;
+  }
+  return cleaned;
+}
+
+export function hydrateSubtasks(feature: Pick<FeatureRequest, "id" | "subtasks" | "acceptance_criteria">): FeatureSubtask[] {
+  const stored = cleanSubtasks(feature.subtasks);
+  if (stored.length) return stored;
+  return parseAcceptanceLines(feature.acceptance_criteria).map((title, index) => ({
+    id: `${feature.id}:acceptance:${index}`,
+    title,
+    done: false,
+  }));
+}
+
+export function subtaskProgress(items: FeatureSubtask[]): { done: number; total: number } {
+  return { done: items.filter((item) => item.done).length, total: items.length };
+}
+
+export function toggleSubtask(items: FeatureSubtask[], id: string): FeatureSubtask[] {
+  return items.map((item) => (item.id === id ? { ...item, done: !item.done } : item));
+}
+
+export function renameSubtask(items: FeatureSubtask[], id: string, title: string): FeatureSubtask[] {
+  const next = title.trim().slice(0, MAX_SUBTASK_TITLE);
+  if (!next) return items.filter((item) => item.id !== id);
+  return items.map((item) => (item.id === id ? { ...item, title: next } : item));
+}
+
+export function moveSubtask(items: FeatureSubtask[], id: string, direction: -1 | 1): FeatureSubtask[] {
+  const index = items.findIndex((item) => item.id === id);
+  const nextIndex = index + direction;
+  if (index < 0 || nextIndex < 0 || nextIndex >= items.length) return items;
+  const copy = [...items];
+  const [row] = copy.splice(index, 1);
+  if (!row) return items;
+  copy.splice(nextIndex, 0, row);
+  return copy;
+}
+
+export function remainingSubtasks(items: FeatureSubtask[]): FeatureSubtask[] {
+  return items.filter((item) => !item.done);
+}
+
+export function isFeatureOverdue(feature: Pick<FeatureRequest, "target_date" | "status">): boolean {
+  if (!feature.target_date || feature.status === "shipped") return false;
+  return feature.target_date < new Date().toISOString().slice(0, 10);
 }
 
 export const FEATURE_STATUS_META: Record<

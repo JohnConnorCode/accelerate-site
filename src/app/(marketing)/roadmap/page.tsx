@@ -5,7 +5,7 @@ import { RoadmapPageContent } from "@/components/sections/RoadmapPage";
 export const metadata = seoMetadata({
   title: "Roadmap",
   description:
-    "What's shipped, in progress, planned, and backlog for Accelerate Revenue OS, generated straight from the same manifest the app reads.",
+    "What's shipped, in progress, planned, and backlog for Accelerate Revenue OS. Search and filter the same manifest the app reads.",
   ogSubtitle: "Shipped, in progress, and planned next",
   path: "/roadmap",
 });

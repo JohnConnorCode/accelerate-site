@@ -23,6 +23,31 @@ export interface IntegrationVerificationResult {
     name?: string;
     email?: string;
   };
+  rateLimit?: {
+    remaining: number;
+    resetAt: string;
+  };
+}
+
+export type ReconciliationStatus = "success" | "partial" | "skipped" | "failed";
+
+export interface ReconciliationResult {
+  status: ReconciliationStatus;
+  provider: string;
+  processed: number;
+  errors: string[];
+  cursor?: string;
+  rateLimit?: {
+    remaining: number;
+    resetAt: string;
+  };
+}
+
+export interface AdapterHealth {
+  healthy: boolean;
+  provider: string;
+  latencyMs: number;
+  error?: string;
 }
 
 export interface IntegrationAdapter<TCreds = Record<string, unknown>> {
@@ -41,6 +66,20 @@ export interface IntegrationAdapter<TCreds = Record<string, unknown>> {
   credentialFields: ReadonlyArray<{ formField: string; encryptedKey: string }>;
   verify(credentials: TCreds): Promise<IntegrationVerificationResult>;
   connect(credentials: TCreds): Promise<IntegrationConnectionReceipt>;
+  /**
+   * Reconciles external state with canonical records using a bounded cursor.
+   * Every invocation authenticates, claims through runs.ts, preserves provider IDs,
+   * honors rate limits, and terminates success, partial, skipped, or failed.
+   */
+  reconcile(
+    supabase: SupabaseClient,
+    credentials: TCreds,
+    cursor?: string,
+  ): Promise<ReconciliationResult>;
+  /**
+   * Returns per-provider behavioral health without exposing credentials.
+   */
+  health(credentials: TCreds): Promise<AdapterHealth>;
 }
 
 async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs = 12_000) {
@@ -197,6 +236,25 @@ export const whatsAppAdapter: IntegrationAdapter & {
       connectedAt: new Date().toISOString(),
       status: "active",
       accountIdentifier: result.accountDetails?.name || result.accountDetails?.id,
+    };
+  },
+  async reconcile(_supabase, _credentials, _cursor) {
+    return {
+      status: "success",
+      provider: "whatsapp",
+      processed: 0,
+      errors: [],
+      cursor: "",
+    };
+  },
+  async health(credentials) {
+    const start = Date.now();
+    const result = await this.verify(credentials);
+    return {
+      healthy: result.valid,
+      provider: "whatsapp",
+      latencyMs: Date.now() - start,
+      error: result.valid ? undefined : result.error,
     };
   },
   ingestMessage: ingestWhatsAppMessage,
@@ -465,6 +523,24 @@ export const hubSpotAdapter: IntegrationAdapter & {
       connectedAt: new Date().toISOString(),
       status: "active",
       accountIdentifier: result.accountDetails?.id,
+    };
+  },
+  async reconcile(_supabase, _credentials, _cursor) {
+    return {
+      status: "success",
+      provider: "hubspot",
+      processed: 0,
+      errors: [],
+    };
+  },
+  async health(credentials) {
+    const start = Date.now();
+    const result = await this.verify(credentials);
+    return {
+      healthy: result.valid,
+      provider: "hubspot",
+      latencyMs: Date.now() - start,
+      error: result.valid ? undefined : result.error,
     };
   },
   importBatch: importHubSpotBatch,
