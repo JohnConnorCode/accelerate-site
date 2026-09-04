@@ -10,7 +10,8 @@ import { registerAutonomyPolicy } from "./autonomy-policy";
 
 export type PluginStatus = "pending_review" | "approved" | "enabled" | "disabled" | "revoked";
 export type ToolImpact = "read" | "internal_write" | "external_action";
-export type ToolAutonomyLevel = "prohibited" | "always_ask" | "ask_until_trusted" | "standing_permission" | "autonomous";
+export type ToolAutonomyLevel =
+  "prohibited" | "always_ask" | "ask_until_trusted" | "standing_permission" | "autonomous";
 
 export interface Plugin {
   id: string;
@@ -216,7 +217,10 @@ export async function registerPlugin(
     for (const capKey of manifest.requiredCapabilities) {
       await registerCapability(supabase, {
         capabilityKey: capKey,
-        label: capKey.split(".").map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(" "),
+        label: capKey
+          .split(".")
+          .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+          .join(" "),
         category: "plugin",
         source: `plugin:${pluginKey}`,
       }).catch(() => {});
@@ -268,10 +272,7 @@ export async function listPlugins(
     status?: PluginStatus;
   },
 ): Promise<Plugin[]> {
-  let query = supabase
-    .from("plugins")
-    .select("*")
-    .order("name", { ascending: true });
+  let query = supabase.from("plugins").select("*").order("name", { ascending: true });
 
   if (input?.status) {
     query = query.eq("status", input.status);
@@ -310,9 +311,7 @@ export async function listPluginTools(
 // List all enabled plugin tools (for tool pack assembly)
 // ---------------------------------------------------------------------------
 
-export async function listAllEnabledPluginTools(
-  supabase: SupabaseClient,
-): Promise<PluginTool[]> {
+export async function listAllEnabledPluginTools(supabase: SupabaseClient): Promise<PluginTool[]> {
   const { data, error } = await supabase
     .from("plugin_tools")
     .select("*, plugins!inner(status)")
@@ -377,10 +376,7 @@ export async function updatePluginStatus(
     updates.approved_at = new Date().toISOString();
   }
 
-  const { error } = await supabase
-    .from("plugins")
-    .update(updates)
-    .eq("id", pluginId);
+  const { error } = await supabase.from("plugins").update(updates).eq("id", pluginId);
   if (error) throw new Error(error.message);
 
   await recordAudit(supabase, {

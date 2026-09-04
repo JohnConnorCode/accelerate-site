@@ -28,27 +28,27 @@ const migrationFor = (table: string, column?: string) =>
   table === "entity_types" || table === "entity_links"
     ? ENTITY_REGISTRY_MIGRATION
     : ["recovery_playbooks", "recovery_candidates", "recovery_outcomes"].includes(table)
-    ? "migrations/20260830-revenue-recovery.sql"
-    : column === "tenant_id" && tenantScopedTableSet.has(table)
-      ? "migrations/20260830-shared-database-tenancy.sql"
-      : table === "schema_verification_runs"
-        ? "migrations/20260817-schema-verification.sql"
-        : table === "ai_conversations" || table === "ai_messages" || table === "agent_runs"
-          ? "migrations/20260824-ai-command-runtime.sql"
-          : table === "agent_run_events"
-            ? "migrations/20260816-revenue-os.sql"
-            : table === "job_runs"
-              ? "migrations/20260817-atomic-job-claims.sql"
-              : table === "campaign_members"
-                ? "migrations/20260817-atomic-campaign-member-claims.sql"
-                : [
-                      "tenants",
-                      "tenant_memberships",
-                      "tenant_ingest_keys",
-                      "platform_audit_log",
-                    ].includes(table)
-                  ? "migrations/20260830-shared-database-tenancy.sql"
-                  : "migrations/20260816-revenue-os.sql";
+      ? "migrations/20260830-revenue-recovery.sql"
+      : column === "tenant_id" && tenantScopedTableSet.has(table)
+        ? "migrations/20260830-shared-database-tenancy.sql"
+        : table === "schema_verification_runs"
+          ? "migrations/20260817-schema-verification.sql"
+          : table === "ai_conversations" || table === "ai_messages" || table === "agent_runs"
+            ? "migrations/20260824-ai-command-runtime.sql"
+            : table === "agent_run_events"
+              ? "migrations/20260816-revenue-os.sql"
+              : table === "job_runs"
+                ? "migrations/20260817-atomic-job-claims.sql"
+                : table === "campaign_members"
+                  ? "migrations/20260817-atomic-campaign-member-claims.sql"
+                  : [
+                        "tenants",
+                        "tenant_memberships",
+                        "tenant_ingest_keys",
+                        "platform_audit_log",
+                      ].includes(table)
+                    ? "migrations/20260830-shared-database-tenancy.sql"
+                    : "migrations/20260816-revenue-os.sql";
 const migrationForIndex = (name: string) =>
   name.startsWith("idx_entity_")
     ? ENTITY_REGISTRY_MIGRATION

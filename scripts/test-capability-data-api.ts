@@ -67,12 +67,20 @@ async function main() {
   });
   assert.equal(live.rows.length, 1);
   await assert.rejects(
-    () => queryCapabilityEntities(db, grant(), { type: "webinar", filters: [{ column: "secret_note", op: "eq", value: "x" }] }),
+    () =>
+      queryCapabilityEntities(db, grant(), {
+        type: "webinar",
+        filters: [{ column: "secret_note", op: "eq", value: "x" }],
+      }),
     /not readable/,
     "unlisted columns must refuse even when they exist",
   );
   await assert.rejects(
-    () => queryCapabilityEntities(db, grant(), { type: "webinar", filters: [{ column: "status", op: "in", value: "live" }] }),
+    () =>
+      queryCapabilityEntities(db, grant(), {
+        type: "webinar",
+        filters: [{ column: "status", op: "in", value: "live" }],
+      }),
     /Unsupported/,
     "non-array in-filter must refuse",
   );
@@ -98,7 +106,10 @@ async function main() {
   );
 
   // 5. Recipes: enumerated only, granted only.
-  const count = await runCapabilityRecipe(db, grant(), { recipe: "entity_count", params: { type: "webinar" } });
+  const count = await runCapabilityRecipe(db, grant(), {
+    recipe: "entity_count",
+    params: { type: "webinar" },
+  });
   assert.equal(count.result.count, 2);
   await assert.rejects(
     () => runCapabilityRecipe(db, grant(), { recipe: "drop_tables", params: {} }),
@@ -106,13 +117,23 @@ async function main() {
     "unknown recipes must refuse",
   );
   await assert.rejects(
-    () => runCapabilityRecipe(db, grant({ recipes: [] }), { recipe: "entity_count", params: { type: "webinar" } }),
+    () =>
+      runCapabilityRecipe(db, grant({ recipes: [] }), {
+        recipe: "entity_count",
+        params: { type: "webinar" },
+      }),
     /not granted/,
     "ungranted recipes must refuse",
   );
-  const degree = await runCapabilityRecipe(db, grant(), { recipe: "link_degree", params: { id: "w1" } });
+  const degree = await runCapabilityRecipe(db, grant(), {
+    recipe: "link_degree",
+    params: { id: "w1" },
+  });
   assert.equal(degree.result.degree, 0);
-  const recent = await runCapabilityRecipe(db, grant(), { recipe: "recent_links", params: { limit: 5 } });
+  const recent = await runCapabilityRecipe(db, grant(), {
+    recipe: "recent_links",
+    params: { limit: 5 },
+  });
   assert.ok(Array.isArray(recent.result.links));
 
   // 6. Namespace: roundtrip, idempotent re-set, key validation, size cap.
@@ -127,7 +148,10 @@ async function main() {
   );
   const missing = await getCapabilityNamespace(db, grant(), "absent");
   assert.equal(missing.value, null);
-  await assert.rejects(() => setCapabilityNamespace(db, grant(), "BAD KEY!", {}), /Invalid namespace key/);
+  await assert.rejects(
+    () => setCapabilityNamespace(db, grant(), "BAD KEY!", {}),
+    /Invalid namespace key/,
+  );
   await assert.rejects(
     () => setCapabilityNamespace(db, grant(), "big", { blob: "x".repeat(9000) }),
     /exceeds/,

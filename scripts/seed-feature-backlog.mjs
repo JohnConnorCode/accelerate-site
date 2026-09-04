@@ -94,7 +94,9 @@ const existingCards = featureBacklog.filter((feature) => existingKeys.has(featur
 // manifest (there is nothing live to clobber yet).
 for (let index = 0; index < newCards.length; index += 40) {
   const batch = newCards.slice(index, index + 40);
-  const { error } = await supabase.from("feature_requests").upsert(batch, { onConflict: "seed_key" });
+  const { error } = await supabase
+    .from("feature_requests")
+    .upsert(batch, { onConflict: "seed_key" });
   if (error) throw error;
 }
 
@@ -103,10 +105,14 @@ for (let index = 0; index < newCards.length; index += 40) {
 // payload leaves that column untouched (PostgREST only updates columns
 // present in the row object).
 for (let index = 0; index < existingCards.length; index += 40) {
-  const batch = existingCards.slice(index, index + 40).map((feature) =>
-    Object.fromEntries(Object.entries(feature).filter(([key]) => !LIVE_MANAGED_FIELDS.has(key))),
-  );
-  const { error } = await supabase.from("feature_requests").upsert(batch, { onConflict: "seed_key" });
+  const batch = existingCards
+    .slice(index, index + 40)
+    .map((feature) =>
+      Object.fromEntries(Object.entries(feature).filter(([key]) => !LIVE_MANAGED_FIELDS.has(key))),
+    );
+  const { error } = await supabase
+    .from("feature_requests")
+    .upsert(batch, { onConflict: "seed_key" });
   if (error) throw error;
 }
 

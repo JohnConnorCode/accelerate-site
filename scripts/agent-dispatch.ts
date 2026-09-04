@@ -66,9 +66,13 @@ const worktreeRoot = resolve(repoRoot, "..", ".agent-worktrees");
 
 function branchExists(branch: string): boolean {
   try {
-    execFileSync("git", ["-C", repoRoot, "rev-parse", "--verify", "--quiet", `refs/heads/${branch}`], {
-      stdio: "ignore",
-    });
+    execFileSync(
+      "git",
+      ["-C", repoRoot, "rev-parse", "--verify", "--quiet", `refs/heads/${branch}`],
+      {
+        stdio: "ignore",
+      },
+    );
     return true;
   } catch {
     return false;
@@ -90,7 +94,9 @@ function removeWorktree(seedKey: string) {
   const path = resolve(worktreeRoot, seedKey);
   if (!existsSync(path)) return;
   try {
-    execFileSync("git", ["-C", repoRoot, "worktree", "remove", path, "--force"], { stdio: "inherit" });
+    execFileSync("git", ["-C", repoRoot, "worktree", "remove", path, "--force"], {
+      stdio: "inherit",
+    });
   } catch (err) {
     process.stderr.write(
       `[agent-dispatch] could not remove worktree at ${path}: ${err instanceof Error ? err.message : String(err)}\n`,
@@ -137,7 +143,10 @@ function reconcileManifest() {
 }
 
 function defaultIdentity(): string {
-  return process.env.AGENT_IDENTITY?.trim() || `claude-code:${process.env.USER ?? "unknown"}:${process.pid}`;
+  return (
+    process.env.AGENT_IDENTITY?.trim() ||
+    `claude-code:${process.env.USER ?? "unknown"}:${process.pid}`
+  );
 }
 
 function printCard(card: FeatureRequestCard) {
@@ -189,21 +198,27 @@ async function main() {
           "The board is at its WIP limit. Run `agent:status` to see what's in progress, or add --force to claim anyway.\n",
         );
       } else if (result.existingStatus === "none_available") {
-        process.stdout.write("No dependency-ready backlog/planned card is available to claim right now.\n");
+        process.stdout.write(
+          "No dependency-ready backlog/planned card is available to claim right now.\n",
+        );
       }
       process.exitCode = 1;
       return;
     }
     const card = await getFeatureCardContext(supabase, { id: result.id! });
     if (!card) throw new Error("Claimed a card but could not read it back");
-    process.stdout.write(`Claimed as ${identity}${result.recoveredStale ? " (recovered a stale lease elsewhere on the board first)" : ""}.\n`);
+    process.stdout.write(
+      `Claimed as ${identity}${result.recoveredStale ? " (recovered a stale lease elsewhere on the board first)" : ""}.\n`,
+    );
     printCard(card);
 
     let worktreePath: string | null = null;
     if (flags["no-worktree"] !== "true" && card.seed_key) {
       try {
         worktreePath = createWorktree(card.seed_key);
-        process.stdout.write(`\nWorktree ready: ${worktreePath}  (branch agent/${card.seed_key})\ncd ${worktreePath}\n`);
+        process.stdout.write(
+          `\nWorktree ready: ${worktreePath}  (branch agent/${card.seed_key})\ncd ${worktreePath}\n`,
+        );
       } catch (err) {
         process.stdout.write(
           `\nCould not create a worktree (working in the current checkout instead): ${err instanceof Error ? err.message : String(err)}\n`,
@@ -223,14 +238,20 @@ async function main() {
   if (command === "heartbeat") {
     if (!flags.card) throw new Error("--card is required");
     const looksLikeUuid = /^[0-9a-f-]{36}$/i.test(flags.card);
-    const id = looksLikeUuid ? flags.card : (await getFeatureCardContext(supabase, { seedKey: flags.card }))?.id;
+    const id = looksLikeUuid
+      ? flags.card
+      : (await getFeatureCardContext(supabase, { seedKey: flags.card }))?.id;
     if (!id) {
       process.stdout.write(`No card found for "${flags.card}".\n`);
       process.exitCode = 1;
       return;
     }
     const ok = await renewFeatureCardLease(supabase, { id, leaseOwner: identity });
-    process.stdout.write(ok ? `Lease renewed for ${flags.card}.\n` : `Could not renew — not leased by ${identity}, or not in_progress?\n`);
+    process.stdout.write(
+      ok
+        ? `Lease renewed for ${flags.card}.\n`
+        : `Could not renew — not leased by ${identity}, or not in_progress?\n`,
+    );
     if (!ok) process.exitCode = 1;
     return;
   }
@@ -247,7 +268,9 @@ async function main() {
       const lease = card.lease_owner
         ? `leased by ${card.lease_owner} until ${card.lease_expires_at}`
         : "no lease (pre-RPC marker — occupies a slot until released)";
-      process.stdout.write(`  [${card.priority}] ${card.seed_key ?? card.id} — ${card.title}\n    ${lease}\n`);
+      process.stdout.write(
+        `  [${card.priority}] ${card.seed_key ?? card.id} — ${card.title}\n    ${lease}\n`,
+      );
     }
     if (!active.length) process.stdout.write("  (empty)\n");
     process.stdout.write(
@@ -311,11 +334,18 @@ async function main() {
     const ok =
       command === "release"
         ? await releaseFeatureCard(supabase, { id: card.id, leaseOwner: identity, force })
-        : await completeFeatureCard(supabase, { id: card.id, leaseOwner: identity, evidence: flags.evidence!, force });
+        : await completeFeatureCard(supabase, {
+            id: card.id,
+            leaseOwner: identity,
+            evidence: flags.evidence!,
+            force,
+          });
     if (!ok) {
       process.stdout.write(
         `Could not ${command} ${flags.card} — not leased by ${identity}?` +
-          (heldByOther && !force ? ` Currently leased by ${card.lease_owner}. Add --force to override.\n` : "\n"),
+          (heldByOther && !force
+            ? ` Currently leased by ${card.lease_owner}. Add --force to override.\n`
+            : "\n"),
       );
       process.exitCode = 1;
       return;
@@ -329,10 +359,13 @@ async function main() {
     } else if (command === "release" && card.seed_key) {
       const path = resolve(worktreeRoot, card.seed_key);
       process.stdout.write(
-        `Released ${flags.card}.` + (existsSync(path) ? ` Worktree left in place at ${path} for inspection.\n` : "\n"),
+        `Released ${flags.card}.` +
+          (existsSync(path) ? ` Worktree left in place at ${path} for inspection.\n` : "\n"),
       );
     } else {
-      process.stdout.write(`${command === "release" ? "Released" : "Marked shipped:"} ${flags.card}.\n`);
+      process.stdout.write(
+        `${command === "release" ? "Released" : "Marked shipped:"} ${flags.card}.\n`,
+      );
     }
     reconcileManifest();
     return;

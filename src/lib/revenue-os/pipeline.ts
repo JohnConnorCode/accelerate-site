@@ -24,7 +24,9 @@ function requireReopenEligibility(
   // an already-closed deal, not a reopen, so it needs no justification.
   if (fromRole === "open" || fromRole === toRole || from === to) return;
   if (!allowReopen) {
-    throw new Error(`Reopen policy for terminal-stage opportunities is disabled for ${from}->${to}.`);
+    throw new Error(
+      `Reopen policy for terminal-stage opportunities is disabled for ${from}->${to}.`,
+    );
   }
   if (!reason?.trim()) throw new Error(`A reason is required to reopen ${from} opportunities.`);
 }

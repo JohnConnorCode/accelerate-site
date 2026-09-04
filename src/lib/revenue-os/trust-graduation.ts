@@ -1,6 +1,10 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { listAutonomyPolicies, grantStandingPermission, type AutonomyLevel } from "./autonomy-policy";
+import {
+  listAutonomyPolicies,
+  grantStandingPermission,
+  type AutonomyLevel,
+} from "./autonomy-policy";
 import { recordAudit } from "./audit";
 import { createWorkItem } from "./work-items";
 import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";

@@ -43,7 +43,9 @@ export interface EntityTypeRegistration {
   softDeleteColumn?: string | null;
 }
 
-export interface EntityTypeRecord extends Required<Omit<EntityTypeRegistration, "softDeleteColumn">> {
+export interface EntityTypeRecord extends Required<
+  Omit<EntityTypeRegistration, "softDeleteColumn">
+> {
   id: string;
   softDeleteColumn: string | null;
   isDisabled: boolean;
@@ -83,7 +85,9 @@ function requireId(value: string, what: string): string {
 function normalizeTypeKey(typeKey: string): string {
   const key = typeKey?.trim().toLowerCase();
   if (!key || !TYPE_KEY_PATTERN.test(key))
-    throw new Error(`Invalid entity type key ${JSON.stringify(typeKey)}: use lowercase letters, digits, underscores`);
+    throw new Error(
+      `Invalid entity type key ${JSON.stringify(typeKey)}: use lowercase letters, digits, underscores`,
+    );
   return key;
 }
 
@@ -265,7 +269,8 @@ export async function linkEntities(
     .eq("target_id", targetId)
     .eq("link_type", linkType)
     .maybeSingle();
-  if (readError || !data) throw new Error(`Link receipt could not be recorded for ${sourceType}:${sourceId}`);
+  if (readError || !data)
+    throw new Error(`Link receipt could not be recorded for ${sourceType}:${sourceId}`);
   return { link: toLink(data as Row), duplicate: false };
 }
 
@@ -394,7 +399,12 @@ export interface MergeInput {
 export async function mergeEntities(
   supabase: SupabaseClient,
   input: MergeInput,
-): Promise<{ winnerId: string; movedLinks: number; movedReferences: number; alreadyMerged: boolean }> {
+): Promise<{
+  winnerId: string;
+  movedLinks: number;
+  movedReferences: number;
+  alreadyMerged: boolean;
+}> {
   const tenantId = requireTenant(input.tenantId);
   const type = await requireUsableType(supabase, tenantId, input.typeKey);
   const winnerId = requireId(input.winnerId, "A merge winner id");
@@ -448,15 +458,22 @@ export async function mergeEntities(
       .eq("target_type", type.typeKey)
       .eq("target_id", loserId),
   ]);
-  const loserEdges = [...((loserOutgoing.data ?? []) as Row[]), ...((loserIncoming.data ?? []) as Row[])];
-  if (loserOutgoing.error) throw new Error(`Could not read links during merge: ${loserOutgoing.error.message}`);
-  if (loserIncoming.error) throw new Error(`Could not read links during merge: ${loserIncoming.error.message}`);
+  const loserEdges = [
+    ...((loserOutgoing.data ?? []) as Row[]),
+    ...((loserIncoming.data ?? []) as Row[]),
+  ];
+  if (loserOutgoing.error)
+    throw new Error(`Could not read links during merge: ${loserOutgoing.error.message}`);
+  if (loserIncoming.error)
+    throw new Error(`Could not read links during merge: ${loserIncoming.error.message}`);
   for (const edge of (loserEdges ?? []) as Row[]) {
     const rewrote = {
       source_type: edge.source_type,
-      source_id: edge.source_type === type.typeKey && edge.source_id === loserId ? winnerId : edge.source_id,
+      source_id:
+        edge.source_type === type.typeKey && edge.source_id === loserId ? winnerId : edge.source_id,
       target_type: edge.target_type,
-      target_id: edge.target_type === type.typeKey && edge.target_id === loserId ? winnerId : edge.target_id,
+      target_id:
+        edge.target_type === type.typeKey && edge.target_id === loserId ? winnerId : edge.target_id,
     };
     const { error } = await supabase
       .from("entity_links")
@@ -481,7 +498,10 @@ export async function mergeEntities(
       .eq("tenant_id", tenantId)
       .eq(ref.column, loserId)
       .select("id");
-    if (error) throw new Error(`Could not reassign ${ref.table}.${ref.column} during merge: ${error.message}`);
+    if (error)
+      throw new Error(
+        `Could not reassign ${ref.table}.${ref.column} during merge: ${error.message}`,
+      );
     movedReferences += ((reassigned ?? []) as Row[]).length;
   }
 
@@ -491,7 +511,8 @@ export async function mergeEntities(
     .update({ [marker.column]: marker.value })
     .eq("tenant_id", tenantId)
     .eq(idColumn, loserId);
-  if (retireError) throw new Error(`Could not retire ${type.typeKey}:${loserId}: ${retireError.message}`);
+  if (retireError)
+    throw new Error(`Could not retire ${type.typeKey}:${loserId}: ${retireError.message}`);
 
   await recordAudit(supabase, {
     actorEmail: input.actorEmail,

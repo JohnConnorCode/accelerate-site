@@ -83,9 +83,14 @@ function requireGrant(value: string, what: string): string {
 
 /** Columns a capability may read: the id column plus whatever the type
  * declaration exposes via metadata.readable_columns. Never arbitrary. */
-function readableColumns(metadata: Record<string, unknown> | undefined, idColumn: string): string[] {
+function readableColumns(
+  metadata: Record<string, unknown> | undefined,
+  idColumn: string,
+): string[] {
   const declared = (metadata as { readable_columns?: unknown } | undefined)?.readable_columns;
-  const extra = Array.isArray(declared) ? declared.filter((c): c is string => typeof c === "string") : [];
+  const extra = Array.isArray(declared)
+    ? declared.filter((c): c is string => typeof c === "string")
+    : [];
   return [...new Set([idColumn, "tenant_id", ...extra])];
 }
 
@@ -99,7 +104,9 @@ export async function queryCapabilityEntities(
   const budgetRemaining = checkRateLimit(capabilityId, tenantId);
   const typeKey = input.type?.trim().toLowerCase();
   if (!typeKey || !grant.entities.includes(typeKey))
-    throw new Error(`Capability ${capabilityId} is not granted entity type ${JSON.stringify(input.type)}`);
+    throw new Error(
+      `Capability ${capabilityId} is not granted entity type ${JSON.stringify(input.type)}`,
+    );
   // Double scoping: explicit tenant filters below plus the proven proxy, so
   // a missing eq() anywhere still cannot leak across workspaces.
   const db = bindTenantDatabase(supabase, tenantId, true);
@@ -123,8 +130,14 @@ export async function queryCapabilityEntities(
     else if (filter.op === "in" && Array.isArray(filter.value))
       query = query.in(filter.column, filter.value);
     else if ((filter.op === "gt" || filter.op === "lt") && filter.value != null)
-      query = filter.op === "gt" ? query.gt(filter.column, String(filter.value)) : query.lt(filter.column, String(filter.value));
-    else throw new Error(`Unsupported capability filter ${JSON.stringify(filter.op)} on ${JSON.stringify(filter.column)}`);
+      query =
+        filter.op === "gt"
+          ? query.gt(filter.column, String(filter.value))
+          : query.lt(filter.column, String(filter.value));
+    else
+      throw new Error(
+        `Unsupported capability filter ${JSON.stringify(filter.op)} on ${JSON.stringify(filter.column)}`,
+      );
   }
   const limit = Math.max(1, Math.min(MAX_ROWS, Math.floor(input.limit ?? MAX_ROWS)));
   const { data, error } = await query.limit(limit + 1);
@@ -163,7 +176,9 @@ export async function runCapabilityRecipe(
   const budgetRemaining = checkRateLimit(capabilityId, tenantId);
   const recipe = input.recipe?.trim();
   if (!(RECIPES as readonly string[]).includes(recipe) || !grant.recipes.includes(recipe))
-    throw new Error(`Capability ${capabilityId} is not granted recipe ${JSON.stringify(input.recipe)}`);
+    throw new Error(
+      `Capability ${capabilityId} is not granted recipe ${JSON.stringify(input.recipe)}`,
+    );
   const params = input.params ?? {};
   const db = bindTenantDatabase(supabase, tenantId, true);
   let result: Row;
@@ -178,19 +193,40 @@ export async function runCapabilityRecipe(
       .limit(MAX_ROWS + 1);
     if (error) throw new Error(`Recipe entity_count failed: ${error.message}`);
     const ids = (data ?? []) as unknown as Row[];
-    result = { type: typeKey, count: Math.min(ids.length, MAX_ROWS), capped: ids.length > MAX_ROWS };
+    result = {
+      type: typeKey,
+      count: Math.min(ids.length, MAX_ROWS),
+      capped: ids.length > MAX_ROWS,
+    };
   } else if (recipe === "link_degree") {
     const id = params.id != null ? String(params.id) : "";
     if (!id) throw new Error("Recipe link_degree requires params.id");
     const columns = "source_type,source_id,target_type,target_id";
     const [outgoing, incoming] = await Promise.all([
-      db.from("entity_links").select(columns).eq("tenant_id", tenantId).eq("source_id", id).limit(MAX_ROWS + 1),
-      db.from("entity_links").select(columns).eq("tenant_id", tenantId).eq("target_id", id).limit(MAX_ROWS + 1),
+      db
+        .from("entity_links")
+        .select(columns)
+        .eq("tenant_id", tenantId)
+        .eq("source_id", id)
+        .limit(MAX_ROWS + 1),
+      db
+        .from("entity_links")
+        .select(columns)
+        .eq("tenant_id", tenantId)
+        .eq("target_id", id)
+        .limit(MAX_ROWS + 1),
     ]);
     if (outgoing.error) throw new Error(`Recipe link_degree failed: ${outgoing.error.message}`);
     if (incoming.error) throw new Error(`Recipe link_degree failed: ${incoming.error.message}`);
-    const edges = [...((outgoing.data ?? []) as unknown as Row[]), ...((incoming.data ?? []) as unknown as Row[])].slice(0, MAX_ROWS);
-    result = { id, degree: edges.length, capped: ((outgoing.data ?? []).length + (incoming.data ?? []).length) > MAX_ROWS };
+    const edges = [
+      ...((outgoing.data ?? []) as unknown as Row[]),
+      ...((incoming.data ?? []) as unknown as Row[]),
+    ].slice(0, MAX_ROWS);
+    result = {
+      id,
+      degree: edges.length,
+      capped: (outgoing.data ?? []).length + (incoming.data ?? []).length > MAX_ROWS,
+    };
   } else {
     const limit = Math.max(1, Math.min(MAX_ROWS, Math.floor(Number(params.limit) || 20)));
     const { data, error } = await db
@@ -218,7 +254,9 @@ export async function runCapabilityRecipe(
 
 function namespaceKey(capabilityId: string, name: string): string {
   if (!NAMESPACE_KEY_PATTERN.test(name))
-    throw new Error(`Invalid namespace key ${JSON.stringify(name)}: lowercase letters, digits, dash, underscore, max 64`);
+    throw new Error(
+      `Invalid namespace key ${JSON.stringify(name)}: lowercase letters, digits, dash, underscore, max 64`,
+    );
   return `capability:${capabilityId}:${name}`;
 }
 
@@ -229,7 +267,8 @@ export async function getCapabilityNamespace(
 ): Promise<{ value: unknown; usage: CapabilityUsageReceipt }> {
   const capabilityId = requireGrant(grant.capabilityId, "A capability id");
   const tenantId = requireGrant(grant.tenantId, "A tenant id");
-  if (!grant.namespace) throw new Error(`Capability ${capabilityId} is not granted namespace storage`);
+  if (!grant.namespace)
+    throw new Error(`Capability ${capabilityId} is not granted namespace storage`);
   const budgetRemaining = checkRateLimit(capabilityId, tenantId);
   const db = bindTenantDatabase(supabase, tenantId, true);
   const { data, error } = await db
@@ -241,15 +280,36 @@ export async function getCapabilityNamespace(
   if (error) throw new Error(`Capability namespace read failed: ${error.message}`);
   const raw = (data as { value?: unknown } | null)?.value ?? null;
   if (raw === null) {
-    return { value: null, usage: { capabilityId, tenantId, operation: "namespace:get", rowsRead: 0, rowsWritten: 0, truncated: false, budgetRemaining } };
+    return {
+      value: null,
+      usage: {
+        capabilityId,
+        tenantId,
+        operation: "namespace:get",
+        rowsRead: 0,
+        rowsWritten: 0,
+        truncated: false,
+        budgetRemaining,
+      },
+    };
   }
   try {
     return {
       value: JSON.parse(String(raw)),
-      usage: { capabilityId, tenantId, operation: "namespace:get", rowsRead: 1, rowsWritten: 0, truncated: false, budgetRemaining },
+      usage: {
+        capabilityId,
+        tenantId,
+        operation: "namespace:get",
+        rowsRead: 1,
+        rowsWritten: 0,
+        truncated: false,
+        budgetRemaining,
+      },
     };
   } catch {
-    throw new Error(`Capability namespace value for ${JSON.stringify(key)} is corrupt and will not be guessed`);
+    throw new Error(
+      `Capability namespace value for ${JSON.stringify(key)} is corrupt and will not be guessed`,
+    );
   }
 }
 
@@ -261,13 +321,16 @@ export async function setCapabilityNamespace(
 ): Promise<{ usage: CapabilityUsageReceipt }> {
   const capabilityId = requireGrant(grant.capabilityId, "A capability id");
   const tenantId = requireGrant(grant.tenantId, "A tenant id");
-  if (!grant.namespace) throw new Error(`Capability ${capabilityId} is not granted namespace storage`);
+  if (!grant.namespace)
+    throw new Error(`Capability ${capabilityId} is not granted namespace storage`);
   const budgetRemaining = checkRateLimit(capabilityId, tenantId);
   let serialized: string;
   try {
     serialized = JSON.stringify(value ?? null);
   } catch {
-    throw new Error(`Capability namespace value for ${JSON.stringify(key)} is not JSON-serializable`);
+    throw new Error(
+      `Capability namespace value for ${JSON.stringify(key)} is not JSON-serializable`,
+    );
   }
   if (serialized.length > NAMESPACE_VALUE_BYTES)
     throw new Error(`Capability namespace value exceeds ${NAMESPACE_VALUE_BYTES} bytes`);
@@ -284,6 +347,14 @@ export async function setCapabilityNamespace(
   );
   if (error) throw new Error(`Capability namespace write failed: ${error.message}`);
   return {
-    usage: { capabilityId, tenantId, operation: "namespace:set", rowsRead: 0, rowsWritten: 1, truncated: false, budgetRemaining },
+    usage: {
+      capabilityId,
+      tenantId,
+      operation: "namespace:set",
+      rowsRead: 0,
+      rowsWritten: 1,
+      truncated: false,
+      budgetRemaining,
+    },
   };
 }

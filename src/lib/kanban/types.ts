@@ -2,9 +2,7 @@ export const KANBAN_BOARD_KEYS = ["features", "content", "pipeline"] as const;
 export type KanbanBoardKey = (typeof KANBAN_BOARD_KEYS)[number];
 
 export function isKanbanBoardKey(value: unknown): value is KanbanBoardKey {
-  return (
-    typeof value === "string" && (KANBAN_BOARD_KEYS as readonly string[]).includes(value)
-  );
+  return typeof value === "string" && (KANBAN_BOARD_KEYS as readonly string[]).includes(value);
 }
 
 /**

@@ -142,7 +142,9 @@ function FeatureCard({
         <button
           type="button"
           aria-label={
-            disabled ? "Reordering is unavailable while filters are active" : `Drag ${feature.title}`
+            disabled
+              ? "Reordering is unavailable while filters are active"
+              : `Drag ${feature.title}`
           }
           disabled={disabled || isOverlay}
           className="grid size-10 shrink-0 touch-none cursor-grab place-items-center rounded-xl text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:cursor-grabbing active:scale-[0.96] disabled:cursor-default disabled:opacity-30 dark:hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/40"
@@ -816,7 +818,12 @@ export default function FeaturesPage() {
                     renderCardOverlay={(feature) => (
                       <FeatureCard
                         feature={feature}
-                        opts={{ isDragging: true, isOverlay: true, disabled: true, dragHandleProps: {} }}
+                        opts={{
+                          isDragging: true,
+                          isOverlay: true,
+                          disabled: true,
+                          dragHandleProps: {},
+                        }}
                       />
                     )}
                     onReorder={commitReorder}
@@ -850,7 +857,12 @@ export default function FeaturesPage() {
                         sortValue: (feature) => FEATURE_PRIORITIES.indexOf(feature.priority),
                         render: (feature) => (
                           <span className="inline-flex items-center gap-1.5 text-xs font-medium">
-                            <span className={cn("size-1.5 rounded-full", priorityMeta[feature.priority].dot)} />
+                            <span
+                              className={cn(
+                                "size-1.5 rounded-full",
+                                priorityMeta[feature.priority].dot,
+                              )}
+                            />
                             {priorityMeta[feature.priority].label}
                           </span>
                         ),

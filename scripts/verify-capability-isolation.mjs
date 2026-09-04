@@ -51,7 +51,10 @@ if (RUNTIME_SUPABASE_IMPORT.test(boundarySource)) {
   );
 }
 for (const match of boundarySource.matchAll(new RegExp(SERVER_MODULE_IMPORT.source, "g"))) {
-  const names = match[1].split(",").map((n) => n.trim().split(" as ")[0].trim()).filter(Boolean);
+  const names = match[1]
+    .split(",")
+    .map((n) => n.trim().split(" as ")[0].trim())
+    .filter(Boolean);
   for (const name of names) {
     if (!ALLOWED_SERVER_IMPORTS.has(name)) {
       failures.push(
@@ -109,5 +112,9 @@ if (failures.length) {
 }
 
 console.log(
-  JSON.stringify({ result: "passed", exports: [...ALLOWED_VALUE_EXPORTS], extensionsScanned: true }),
+  JSON.stringify({
+    result: "passed",
+    exports: [...ALLOWED_VALUE_EXPORTS],
+    extensionsScanned: true,
+  }),
 );

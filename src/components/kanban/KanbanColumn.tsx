@@ -30,12 +30,7 @@ interface ColumnMenuProps {
   onDelete: (options?: { reassignTo?: string }) => Promise<void>;
 }
 
-function ColumnMenu({
-  columnLabel,
-  hasCards,
-  otherColumns,
-  onDelete,
-}: ColumnMenuProps) {
+function ColumnMenu({ columnLabel, hasCards, otherColumns, onDelete }: ColumnMenuProps) {
   const [open, setOpen] = useState(false);
   const [reassignOpen, setReassignOpen] = useState(false);
   const [reassignTo, setReassignTo] = useState(otherColumns[0]?.column_key ?? "");
@@ -138,11 +133,15 @@ function ColumnMenu({
         maxWidth="sm"
       >
         <div className="w-full rounded-[20px] bg-[var(--admin-surface)] p-5 shadow-2xl">
-          <h2 id="kanban-reassign-title" className="text-base font-semibold text-[var(--admin-ink)]">
+          <h2
+            id="kanban-reassign-title"
+            className="text-base font-semibold text-[var(--admin-ink)]"
+          >
             Move cards to another column
           </h2>
           <p className="admin-copy mt-1.5 text-xs leading-5">
-            This column still has cards on it. Choose where they should go before the column is deleted.
+            This column still has cards on it. Choose where they should go before the column is
+            deleted.
           </p>
           {otherColumns.length ? (
             <>
@@ -235,20 +234,14 @@ export function KanbanColumn<T>({
 
   return (
     <section
-      className={cn(
-        "w-full max-w-[340px] shrink-0 snap-start lg:snap-none",
-        "mx-auto sm:mx-0",
-      )}
+      className={cn("w-full max-w-[340px] shrink-0 snap-start lg:snap-none", "mx-auto sm:mx-0")}
       aria-labelledby={`column-${column.column_key}`}
     >
       <div className="mb-2.5 flex items-start justify-between gap-2 px-1">
         <div className="min-w-0 flex-1">
           <div className="group flex min-h-10 items-center gap-1.5">
             <span
-              className={cn(
-                "size-2 shrink-0 rounded-full",
-                column.color || "bg-slate-400",
-              )}
+              className={cn("size-2 shrink-0 rounded-full", column.color || "bg-slate-400")}
               aria-hidden="true"
             />
             {editing ? (
@@ -323,7 +316,8 @@ export function KanbanColumn<T>({
           "shadow-[inset_0_0_0_1px_var(--admin-border)]",
           "transition-[background-color,box-shadow] duration-150",
           "dark:bg-white/[0.018]",
-          isOver && !dragDisabled &&
+          isOver &&
+            !dragDisabled &&
             "bg-amber-500/[0.055] shadow-[inset_0_0_0_1px_rgba(184,134,11,0.38),0_12px_30px_-24px_rgba(90,60,0,0.5)] dark:bg-amber-300/[0.045]",
         )}
         aria-label={`Column: ${column.label}. Drop zone`}

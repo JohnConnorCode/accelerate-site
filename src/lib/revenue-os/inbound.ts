@@ -198,7 +198,10 @@ export async function ingestInboundLead(supabase: SupabaseClient, input: Canonic
     reason: `Inbound ${input.source} inquiry from ${identity.company.name}`,
     actorEmail: tenant.founder.systemActorEmail,
   }).catch((err) => {
-    console.error("[inbound] failed to create qualify_lead work item:", err instanceof Error ? err.message : String(err));
+    console.error(
+      "[inbound] failed to create qualify_lead work item:",
+      err instanceof Error ? err.message : String(err),
+    );
   });
   // Business Pulse: pipeline metrics changed with this new lead.
   await createDetectVelocityChangeWork(supabase, {

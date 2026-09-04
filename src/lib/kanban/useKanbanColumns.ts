@@ -69,7 +69,9 @@ export function useKanbanColumns(boardKey: KanbanBoardKey) {
       const previous = query.data?.columns ?? [];
       setColumns((current) =>
         current.map((column) =>
-          column.column_key === columnKey ? ({ ...column, ...input } as KanbanColumnRecord) : column,
+          column.column_key === columnKey
+            ? ({ ...column, ...input } as KanbanColumnRecord)
+            : column,
         ),
       );
       try {
