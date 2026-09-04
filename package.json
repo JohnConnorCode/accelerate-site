@@ -152,6 +152,7 @@
     "test:campaign-stops": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-campaign-stops.ts",
     "test:campaign-stop-claims": "node scripts/qa-campaign-stop-claims.mjs",
     "test:gmail-sync-plan": "npx tsx scripts/test-gmail-sync-plan.ts",
+    "test:drive-sync-plan": "npx tsx scripts/test-drive-sync-plan.ts",
     "test:gmail-reply-mime": "npx tsx scripts/test-gmail-reply-mime.ts",
     "test:google-oauth": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-google-oauth.ts",
     "test:google-readiness": "node scripts/test-google-oauth-readiness.mjs",
