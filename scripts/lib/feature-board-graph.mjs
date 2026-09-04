@@ -202,12 +202,10 @@ export function collectFeatureBoardIntegrityFailures(
     );
   }
   for (const card of cards.filter((item) => item.status === "in_progress")) {
+    // Evidence is proof of completion; a card just claimed through the live
+    // claim RPC has none yet and that's expected — verify-agent-contract.mjs
+    // enforces evidence at shipped, not here.
     if (!card.owner?.trim()) failures.push(`[${card.seed_key}] is in progress without an Owner`);
-    if (!String(card.notes).includes("Current implementation evidence:")) {
-      failures.push(
-        `[${card.seed_key}] is in progress without current/remaining implementation evidence`,
-      );
-    }
   }
   for (const item of findMilestoneNoteMismatches(cards)) {
     failures.push(

@@ -1640,6 +1640,8 @@ export const featureBacklog = [
   }),
   card({
     key: "gmail-record-association",
+    evidence:
+      "gmail-record-association implemented on branch agent/gmail-record-association (worktree, 3 files: src/lib/revenue-os/conversations.ts +292 associateConversationParticipants service with verified_external evidence, deduplicated identity_review actions, human-truth preservation; src/lib/revenue-os/google.ts +65 sync wired to service with multi-participant Cc/To parsing and link preservation; scripts/test-conversations.ts extended 10->16 tests). Acceptance proof: (1) exact email match auto-links contact/company/open-opp with evidence claim+activity+audit; (2) ambiguous/unknown participants never merge/throw, each gets one deduplicated identity_review action with candidates; (3) manual link/create writes human_entered evidence on top of existing audit/activity, downstream Today/Pipeline/Conversations hydrate by IDs. Failure matrix: invalid input throws (blank id, missing conversation), replay idempotent (no dup claims/actions via record_evidence upsert + dedupe_key 23505 + activity externalIds), sync never fails on ambiguity, no company ever created (unknown-sender company count unchanged). Verified: verify:agent-contract passed, tsc clean, lint clean, test-conversations 16/16 green, production build green, git diff --check clean. Remaining: live Gmail sync + founder review-queue proof in production (needs Workspace connection + founder sign-in); no migration (metadata/action_queue/claims only). Note: card was auto-parked to blocked on lease expiry mid-session and resumed to planned by owner before reclaim; implementation is local-evidence complete.",
     owner: "claude-code:johnconnor:76008",
     status: "shipped",
     title: "Associate Gmail threads with canonical revenue records",
@@ -1799,6 +1801,8 @@ export const featureBacklog = [
 
   card({
     key: "drive-folder-boundary",
+    evidence:
+      "Drive folder allowlist enforced, branch agent/drive-folder-boundary commit 9d91057 (6 files). New pure planner drive-sync-plan.ts: charset validation, dedupe, cap 10, ancestry filter, stale-folder detection. PATCH route rejects invalid/dup/over-limit with explicit reasons; syncDrive normalizes reads, quarantines out-of-allowlist results, reports rejected/quarantined/stale counts in source-run receipt; Setup Center already displays IDs and server errors. New test:drive-sync-plan unit suite green; open-source stats recomputed (139 checks, 112K/599). Verified: scoped unit test, tsc, lint --max-warnings=0, build, git diff --check, prettier clean, verify:agent-contract. Live Google sync not exercised (no Workspace connection in dev); no migration (uses existing drive_documents/settings). Untouched: gmail/calendar sync paths in google.ts and hubspot/whatsapp routes (peer's live area).",
     owner: "claude-code:johnconnor:17804",
     title: "Enforce selected-folder Drive access boundaries",
     workstream: "drive",

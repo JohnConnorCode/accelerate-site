@@ -70,16 +70,43 @@ function patchField(block, field, value) {
   return block.replace(keyLine, `$1    ${field}: ${replacement},\n`);
 }
 
+// `agent:complete --evidence "<text>"` (src/lib/revenue-os/feature-board-claims.ts
+// completeFeatureCard) appends `\n\nCompleted <ISO date> by <lease owner>[...]:\n<text>`
+// to the DB notes column — the only place that evidence text is ever
+// recorded for a card shipped through the live claim flow. The manifest's
+// own `evidence`/LATEST_IMPLEMENTATION_EVIDENCE/CURRENT_IMPLEMENTATION_EVIDENCE
+// fields have no automatic way to receive it, so a card can ship with real,
+// verified evidence sitting in the database while its manifest entry (and
+// anything checked against it, like verify:agent-contract's "Current
+// implementation evidence:" requirement) stays permanently blank. Pull the
+// most recent Completed block back out as a one-time backfill.
+function extractShippedEvidence(notes) {
+  if (!notes) return null;
+  const matches = [...notes.matchAll(/\n\nCompleted [^\n]*:\n/g)];
+  if (!matches.length) return null;
+  const last = matches[matches.length - 1];
+  const text = notes.slice(last.index + last[0].length).trim();
+  return text || null;
+}
+
+function insertEvidenceField(block, text) {
+  if (/(^|\n)\s*evidence:\s*/.test(block)) return block; // hand-authored (or already backfilled) — never overwrite
+  const keyLine = /(\bkey:\s*"[^"]*",\n)/;
+  if (!keyLine.test(block)) throw new Error("Could not find key: line to insert evidence near");
+  return block.replace(keyLine, `$1    evidence:\n      ${JSON.stringify(text)},\n`);
+}
+
 async function main() {
   const checkOnly = process.argv.includes("--check");
   const { data, error } = await supabase
     .from("feature_requests")
-    .select("seed_key,status,owner")
+    .select("seed_key,status,owner,notes")
     .not("seed_key", "is", null);
   if (error) throw new Error(error.message);
 
   let source = readFileSync(manifestPath, "utf8");
   const drift = [];
+  const evidenceBackfilled = [];
 
   for (const row of data ?? []) {
     const block = findCardBlock(source, row.seed_key);
@@ -89,24 +116,43 @@ async function main() {
     const ownerMatch = /\bowner:\s*(?:"([^"]*)"|null)/.exec(block.body);
     const manifestOwner = ownerMatch ? (ownerMatch[1] ?? null) : null;
 
-    if (manifestStatus === row.status && manifestOwner === row.owner) continue;
-
-    drift.push({ seed_key: row.seed_key, manifestStatus, dbStatus: row.status, manifestOwner, dbOwner: row.owner });
+    const statusOrOwnerDrifted = manifestStatus !== row.status || manifestOwner !== row.owner;
+    if (statusOrOwnerDrifted) {
+      drift.push({ seed_key: row.seed_key, manifestStatus, dbStatus: row.status, manifestOwner, dbOwner: row.owner });
+    }
 
     let patched = block.body;
-    patched = patchField(patched, "status", row.status);
-    patched = patchField(patched, "owner", row.owner);
-    source = source.slice(0, block.start) + patched + source.slice(block.end);
+    if (statusOrOwnerDrifted) {
+      patched = patchField(patched, "status", row.status);
+      patched = patchField(patched, "owner", row.owner);
+    }
+    if (row.status === "shipped") {
+      const evidence = extractShippedEvidence(row.notes);
+      if (evidence) {
+        const before = patched;
+        patched = insertEvidenceField(patched, evidence);
+        if (patched !== before) evidenceBackfilled.push(row.seed_key);
+      }
+    }
+    if (patched !== block.body) {
+      source = source.slice(0, block.start) + patched + source.slice(block.end);
+    }
   }
 
-  if (!drift.length) {
-    console.log("Manifest already matches live Feature Board status/owner for every seeded card.");
+  if (!drift.length && !evidenceBackfilled.length) {
+    console.log("Manifest already matches live Feature Board status/owner/evidence for every seeded card.");
     return;
   }
 
-  console.log(`${drift.length} card(s) out of sync with the live board:`);
-  for (const d of drift) {
-    console.log(`  ${d.seed_key}: status ${d.manifestStatus} -> ${d.dbStatus}` + (d.manifestOwner !== d.dbOwner ? `, owner ${d.manifestOwner ?? "null"} -> ${d.dbOwner ?? "null"}` : ""));
+  if (drift.length) {
+    console.log(`${drift.length} card(s) out of sync with the live board:`);
+    for (const d of drift) {
+      console.log(`  ${d.seed_key}: status ${d.manifestStatus} -> ${d.dbStatus}` + (d.manifestOwner !== d.dbOwner ? `, owner ${d.manifestOwner ?? "null"} -> ${d.dbOwner ?? "null"}` : ""));
+    }
+  }
+  if (evidenceBackfilled.length) {
+    console.log(`${evidenceBackfilled.length} shipped card(s) missing manifest evidence, backfilled from the DB's Completed note:`);
+    for (const key of evidenceBackfilled) console.log(`  ${key}`);
   }
 
   if (checkOnly) {
@@ -116,7 +162,7 @@ async function main() {
   }
 
   writeFileSync(manifestPath, source);
-  console.log(`\nWrote ${manifestPath}. Regenerate docs with: npm run docs:build-plan (or its actual script name).`);
+  console.log(`\nWrote ${manifestPath}. Regenerate docs with: npm run report:build-plan.`);
 }
 
 main().catch((err) => {

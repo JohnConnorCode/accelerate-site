@@ -130,11 +130,12 @@ for (const card of featureBacklog) {
   }
   if (card.status === "in_progress" && !card.owner?.trim())
     failures.push(`${prefix} is in progress without an Owner`);
-  if (
-    ["in_progress", "shipped"].includes(card.status) &&
-    !card.notes.includes("Current implementation evidence:")
-  ) {
-    failures.push(`${prefix} is ${card.status} without current/remaining implementation evidence`);
+  // Evidence is proof of completion, not proof of having been claimed — a
+  // card freshly claimed through the live claim RPC (scripts/agent-dispatch.ts)
+  // legitimately has zero evidence text for the entire time it's in_progress;
+  // only require it once the card actually ships.
+  if (card.status === "shipped" && !card.notes.includes("Current implementation evidence:")) {
+    failures.push(`${prefix} is shipped without current/remaining implementation evidence`);
   }
   if (card.status === "shipped" && !/verif|pass|production|playwright|evidence/i.test(card.notes)) {
     failures.push(`${prefix} is shipped without verification evidence`);
