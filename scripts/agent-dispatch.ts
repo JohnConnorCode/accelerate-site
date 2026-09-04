@@ -44,7 +44,7 @@
  * when this script itself is what you're claiming a card to edit.
  */
 import { execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createServiceRoleClient } from "../src/lib/supabase/server";
@@ -53,9 +53,11 @@ import {
   claimFeatureCard,
   completeFeatureCard,
   getFeatureCardContext,
+  listActiveFeatureCards,
   listClaimableFeatureCards,
   releaseFeatureCard,
   renewFeatureCardLease,
+  FEATURE_BOARD_WIP_LIMIT,
   type FeatureRequestCard,
 } from "../src/lib/revenue-os/feature-board-claims";
 
@@ -112,6 +114,26 @@ function parseFlags(argv: string[]) {
     }
   }
   return flags;
+}
+
+function reconcileManifest() {
+  // claim_feature_request also recovers any stale lease elsewhere on the
+  // board (sets it to blocked) before it does anything else, so every
+  // command below can change status/owner out from under
+  // scripts/feature-backlog-data.mjs, not just the card being acted on.
+  // Keep the manifest — and anything generated from it, like
+  // docs/NORTHSTAR-BUILD-PLAN.md — from silently drifting off the live
+  // board's truth.
+  try {
+    execFileSync("node", ["--env-file=.env.local", "scripts/reconcile-feature-manifest.mjs"], {
+      cwd: repoRoot,
+      stdio: "inherit",
+    });
+  } catch (err) {
+    process.stderr.write(
+      `[agent-dispatch] manifest reconcile failed (non-fatal): ${err instanceof Error ? err.message : String(err)}\n`,
+    );
+  }
 }
 
 function defaultIdentity(): string {
@@ -194,6 +216,7 @@ async function main() {
         `When done: npm run agent:complete -- --card ${card.id} --identity "${identity}" --evidence "<what you verified>"\n` +
         `To abandon without shipping: npm run agent:release -- --card ${card.id} --identity "${identity}"\n`,
     );
+    reconcileManifest();
     return;
   }
 
@@ -213,12 +236,60 @@ async function main() {
   }
 
   if (command === "status") {
-    const claimable = await listClaimableFeatureCards(supabase, { limit: 20 });
+    const [active, claimable] = await Promise.all([
+      listActiveFeatureCards(supabase),
+      listClaimableFeatureCards(supabase, { limit: 20 }),
+    ]);
+    process.stdout.write(
+      `\nWIP: ${active.length}/${FEATURE_BOARD_WIP_LIMIT} in_progress (what the claim gate counts):\n`,
+    );
+    for (const card of active) {
+      const lease = card.lease_owner
+        ? `leased by ${card.lease_owner} until ${card.lease_expires_at}`
+        : "no lease (pre-RPC marker — occupies a slot until released)";
+      process.stdout.write(`  [${card.priority}] ${card.seed_key ?? card.id} — ${card.title}\n    ${lease}\n`);
+    }
+    if (!active.length) process.stdout.write("  (empty)\n");
     process.stdout.write(
       `\n${claimable.length} dispatchable card(s) (backlog/planned, no active lease, milestone:now|next — what \`agent:next\` would actually pick from):\n`,
     );
     for (const card of claimable) {
       process.stdout.write(`  [${card.priority}] ${card.seed_key ?? card.id} — ${card.title}\n`);
+    }
+
+    // Cards a stale lease dropped into `blocked` are otherwise invisible: not
+    // active (no lease), not claimable (status isn't backlog/planned), and
+    // their worktree (with whatever uncommitted work the agent left behind)
+    // stays on disk with nothing pointing back at it. Surface both so an
+    // abandoned card gets a human decision instead of quietly rotting.
+    const { data: staleRecovered } = await supabase
+      .from("feature_requests")
+      .select("seed_key,title,priority,notes")
+      .eq("status", "blocked")
+      .ilike("notes", "%Stale claim recovered%")
+      .is("archived_at", null);
+    if (staleRecovered?.length) {
+      process.stdout.write(
+        `\n${staleRecovered.length} card(s) blocked by a lease that expired without agent:complete/agent:release — needs a human look, not auto-dispatchable:\n`,
+      );
+      for (const card of staleRecovered) {
+        process.stdout.write(`  [${card.priority}] ${card.seed_key} — ${card.title}\n`);
+      }
+    }
+
+    if (existsSync(worktreeRoot)) {
+      const activeSeedKeys = new Set(active.map((c) => c.seed_key).filter(Boolean));
+      const orphaned = readdirSync(worktreeRoot, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory() && !activeSeedKeys.has(entry.name))
+        .map((entry) => entry.name);
+      if (orphaned.length) {
+        process.stdout.write(
+          `\n${orphaned.length} worktree(s) on disk with no active lease — may hold uncommitted work from a card that was released, shipped without --no-worktree cleanup, or stale-recovered:\n`,
+        );
+        for (const seedKey of orphaned) {
+          process.stdout.write(`  ${resolve(worktreeRoot, seedKey)}\n`);
+        }
+      }
     }
     return;
   }
@@ -263,6 +334,7 @@ async function main() {
     } else {
       process.stdout.write(`${command === "release" ? "Released" : "Marked shipped:"} ${flags.card}.\n`);
     }
+    reconcileManifest();
     return;
   }
 

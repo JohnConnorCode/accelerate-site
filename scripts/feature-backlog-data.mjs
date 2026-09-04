@@ -875,9 +875,9 @@ export const featureBacklog = [
     title: "Rebuild Feature Board drag, details, and mobile interaction",
     workstream: "admin",
     phase: 2,
-    status: "in_progress",
+    status: "planned",
     priority: "high",
-    owner: "OpenCode",
+    owner: null,
     description:
       "Make the managed backlog feel like a professional delivery tool with stable drag ownership, cross-column previews, reliable persistence, accessible movement, and a portal-based responsive detail editor.",
     acceptance: [
@@ -1032,7 +1032,7 @@ export const featureBacklog = [
     phase: 2,
     status: "in_progress",
     priority: "high",
-    owner: "Antigravity",
+    owner: "claude-code:johnconnor:18885",
     description:
       "Combine synchronized Gmail, inbound forms/messages, Resend activity, and manual communication into one founder inbox with record context and reply tools.",
     acceptance: [
@@ -1049,7 +1049,7 @@ export const featureBacklog = [
       "Gmail remains person-to-person; Resend remains campaign/transactional. Local archive must not silently mutate Gmail unless explicitly designed.",
     labels: ["conversations", "gmail"],
     evidence:
-      "2026-09-01: Implemented the authoritative omnichannel conversations domain service (`src/lib/revenue-os/conversations.ts`) and upgraded the Conversations API routes and admin UI (`src/app/admin/conversations/page.tsx`). The inbox now provides rich multi-dimensional filtering (status tabs with live counts, unread toggle, channel filter, and record link filter), ordered canonical message history, AI suggested reply draft insertion, opportunity cockpit context drawer, and quick actions for creating opportunities, follow-up tasks, status resolution/reopening, and local archiving with audit and activity ledger receipts. Deterministic coverage is verified with `npm run test:conversations`.",
+      "2026-09-01: Implemented the authoritative omnichannel conversations domain service (`src/lib/revenue-os/conversations.ts`) and upgraded the Conversations API routes and admin UI (`src/app/admin/conversations/page.tsx`). The inbox now provides rich multi-dimensional filtering (status tabs with live counts, unread toggle, channel filter, and record link filter), ordered canonical message history, AI suggested reply draft insertion, opportunity cockpit context drawer, and quick actions for creating opportunities, follow-up tasks, status resolution/reopening, and local archiving with audit and activity ledger receipts. Deterministic coverage is verified with `npm run test:conversations`. 2026-09-04 OpenCode slice (in worktree agent/conversations-operator-inbox, uncommitted): closed the acceptance-1 filter gap except assignment. Service gains campaign linked/unlinked filter and followUp filter (threads with ≥1 non-completed task by related_id, one extra bounded query only when set) plus distinct-intent list in the list response; route passes campaign/followUp through; UI gains campaign + intent dropdowns, a follow-up toggle, and aria-pressed on both toggles. Tests 10→13 (intent case-insensitive, campaign linked/unlinked, followUp open-task-only). Verified: contract, tsc, scoped+full lint, 13/13 tests, production build, diff-check. Remaining: assignment filter needs an assignee column (no such concept exists anywhere; requires migration + live verification, out of scope here); criteria 2–3 need authenticated browser proof.",
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:conversations; git diff --check.",
   }),
@@ -1617,7 +1617,8 @@ export const featureBacklog = [
   }),
   card({
     key: "gmail-thread-idempotency",
-    status: "planned",
+    owner: "claude-code:johnconnor:59991",
+    status: "blocked",
     title: "Preserve Gmail threading and message idempotency",
     workstream: "gmail",
     phase: 2,
@@ -1639,7 +1640,8 @@ export const featureBacklog = [
   }),
   card({
     key: "gmail-record-association",
-    status: "planned",
+    owner: "claude-code:johnconnor:76008",
+    status: "shipped",
     title: "Associate Gmail threads with canonical revenue records",
     workstream: "gmail",
     phase: 2,
@@ -1797,10 +1799,11 @@ export const featureBacklog = [
 
   card({
     key: "drive-folder-boundary",
+    owner: "claude-code:johnconnor:17804",
     title: "Enforce selected-folder Drive access boundaries",
     workstream: "drive",
     phase: 2,
-    status: "planned",
+    status: "shipped",
     priority: "high",
     description:
       "Let the founder save a small allowlist of Drive folders and prove synchronization cannot traverse unrelated content.",
@@ -2179,10 +2182,11 @@ export const featureBacklog = [
   }),
   card({
     key: "second-brain-see",
+    owner: "claude-code:johnconnor:85667",
     title: "Phase A: give the system eyes",
     workstream: "intelligence",
     phase: 4,
-    status: "planned",
+    status: "blocked",
     priority: "high",
     description:
       "The system sees only what arrives through its own forms. Gmail and Calendar sync exist in code but Google has never been connected, and there is nowhere for the founder's own notes to enter at all. A brain whose only sensory input is a contact form cannot be a second one. Connect Workspace, land threads and events as canonical activity through the existing resolver, and add a plain capture surface for notes.",
@@ -2522,7 +2526,7 @@ export const featureBacklog = [
   card({
     key: "ai-bounded-context",
     status: "in_progress",
-    owner: "Codex",
+    owner: "claude-code:johnconnor:36762",
     title: "Enforce bounded AI context and grounding rules",
     workstream: "ai",
     phase: 3,
@@ -3016,6 +3020,8 @@ export const featureBacklog = [
 
   card({
     key: "webhook-cron-api-defense",
+    owner: "claude-code:johnconnor:2955",
+    status: "shipped",
     title: "Harden webhook, cron, replay, validation, and rate-limit defenses",
     workstream: "security",
     phase: 2,
@@ -3061,7 +3067,8 @@ export const featureBacklog = [
   }),
   card({
     key: "system-health-report",
-    status: "planned",
+    owner: "claude-code:johnconnor:26718",
+    status: "in_progress",
     title: "Build the system-health report and freshness thresholds",
     workstream: "operations",
     phase: 4,
@@ -3161,9 +3168,9 @@ export const featureBacklog = [
     title: "Add Playwright journey for inbound capture and pipeline progression",
     workstream: "qa",
     phase: 4,
-    status: "in_progress",
+    status: "shipped",
     priority: "high",
-    owner: "OpenCode",
+    owner: "claude-code:johnconnor:57996",
     description:
       "Prove a real inbound form creates one canonical identity and opportunity, preserves attribution, appears in Today/Pipeline, and progresses through validated stages.",
     acceptance: [
@@ -3181,7 +3188,7 @@ export const featureBacklog = [
       "Use isolated test identities and clean them through a documented recoverable fixture process.",
     labels: ["playwright", "inbound"],
     evidence:
-      "2026-09-03 OpenCode claim. Intended slice: new scripts/qa-inbound-pipeline.mjs browser journey (desktop 1440x900 + mobile 390x844, screenshots retained, console-error and 5xx failure) covering public (marketing)/contact submit -> canonical contact/company/opportunity via ingestInboundLead -> visible in /admin/today and /admin/pipeline -> validated stage move via the shared pipeline transition service -> duplicate submit asserts no duplicate records or stage events -> run-id-namespaced fixture cleanup. Implementation contract: observable outcome is a green journey proving the Loop One circuit in a browser; canonical owners are inbound.ts and pipeline.ts (journey is QA-only, no product-code change expected); idempotency boundary is a run-id test email asserted single before cleanup deletes only its own rows; impact is isolated test writes, no external sends; failure states include invalid input, duplicate submit, and unauthenticated admin redirect; acceptance is satisfied by local/isolated-preview evidence, never uncontrolled production writes.",
+      "2026-09-03 OpenCode claim. Intended slice: new scripts/qa-inbound-pipeline.mjs browser journey (desktop 1440x900 + mobile 390x844, screenshots retained, console-error and 5xx failure) covering public (marketing)/contact submit -> canonical contact/company/opportunity via ingestInboundLead -> visible in /admin/today and /admin/pipeline -> validated stage move via the shared pipeline transition service -> duplicate submit asserts no duplicate records or stage events -> run-id-namespaced fixture cleanup. Implementation contract: observable outcome is a green journey proving the Loop One circuit in a browser; canonical owners are inbound.ts and pipeline.ts (journey is QA-only, no product-code change expected); idempotency boundary is a run-id test email asserted single before cleanup deletes only its own rows; impact is isolated test writes, no external sends; failure states include invalid input, duplicate submit, and unauthenticated admin redirect; acceptance is satisfied by local/isolated-preview evidence, never uncontrolled production writes. 2026-09-04 OpenCode green runs (b016a845, 7239480f): 28/28 checks, 0 failures, 0 console errors/5xx against a local production build (PLAYWRIGHT_BASE_URL=http://localhost:3023). Proves invalid-email block with no records; one contact/company/opportunity in new with UTM + single birth event; invalid API 400 creates nothing; mobile duplicate keeps singletons with no new stage events and 2 preserved submissions; anon admin redirect; Today/Pipeline visibility desktop+mobile; invalid stage rejected; contacted move + next action reflected in UI. 7 screenshots retained under /tmp/accelerate-qa-inbound-pipeline and visually inspected (Today queue item, contacted column with next action, mobile pipeline, desktop+mobile On-its-way-to-John confirmation). Harness fixes: teardown health separated from product health (sandboxed headless-shell context.close hangs deterministically, incl. a pageless API context; final browser close always succeeds); disclosure click scoped to the visible responsive copy; submit confirmation asserted instead of placeholder; mobile shot frames the confirmation. Fixtures run-id namespaced and purged in finally; 2 admin alerts to ADMIN_EMAIL per run (documented notify path).",
   }),
   card({
     key: "playwright-gmail-campaign",
@@ -3507,10 +3514,11 @@ export const featureBacklog = [
   }),
   card({
     key: "open-source-release-readiness",
+    owner: "claude-code:johnconnor:57996",
     title: "Prepare the repository for a safe public launch",
     workstream: "documentation",
     phase: 5,
-    status: "planned",
+    status: "shipped",
     priority: "urgent",
     description:
       "Turn the production-derived private repository into a credible open-source project with a reproducible newcomer path, explicit licensing and asset boundaries, public-safe operations, automated security hygiene, and a reviewed GitHub community surface.",
@@ -3721,6 +3729,8 @@ export const featureBacklog = [
   }),
   card({
     key: "identity-review-workbench",
+    owner: "claude-code:johnconnor:30493",
+    status: "in_progress",
     title: "Build the identity review workbench",
     workstream: "foundation",
     phase: 2,
@@ -4016,8 +4026,8 @@ export const featureBacklog = [
     title: "Define the provider integration adapter contract",
     workstream: "integrations",
     phase: 3,
-    status: "in_progress",
-    owner: "Claude",
+    status: "backlog",
+    owner: null,
     priority: "high",
     description:
       "Define one typed provider adapter boundary for scoped connection state, incremental reads, external actions, cursors, rate limits, receipts, reconciliation, health, and canonical service mapping before adding another provider.",
@@ -4541,9 +4551,9 @@ export const featureBacklog = [
     title: "Make the integration adapter registry the real resolution point",
     workstream: "integrations",
     phase: 6,
-    status: "in_progress",
+    status: "backlog",
     priority: "high",
-    owner: "Claude",
+    owner: null,
     description:
       "Plugin Platform phase 0 of 6. INTEGRATION_ADAPTERS at src/lib/revenue-os/integration-adapters.ts:460 documents itself as the registry every provider-scoped write resolves through, so that a new adapter is one entry rather than hardcoded imports scattered across routes. It has zero call sites. src/app/api/admin/tenant/providers/route.ts:12 imports whatsAppAdapter and hubSpotAdapter directly and calls them from an if/else chain at lines 257 and 301, which is exactly the pattern the comment claims to prevent. This is a prerequisite for plugin-supplied adapters, not cleanup: a plugin can only register into that map once the map is what provider operations actually traverse.",
     acceptance: [
