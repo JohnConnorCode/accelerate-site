@@ -96,6 +96,26 @@ async function main() {
   // 9. Empty code refuses instead of evaluating nothing.
   await assert.rejects(() => evaluateInIsolate("   "), /no code/);
 
+  // 11. Structured binding results cross as structures, not strings.
+  const shaped = await evaluateInIsolate("wrap().a + '/' + wrap().b[1]", {
+    bindings: { wrap: () => ({ a: "x", b: [1, 2] }) },
+  });
+  assert.equal(shaped.value, "x/2");
+  await assert.rejects(
+    () => evaluateInIsolate("1", { bindings: { ["__proto__"]: () => 1 } }),
+    /safe global name/,
+    "prototype-shadowing binding names must refuse",
+  );
+  await assert.rejects(
+    () => evaluateInIsolate("1", { bindings: { constructor: () => 1 } }),
+    /safe global name/,
+  );
+  await assert.rejects(
+    () => evaluateInIsolate("x".repeat(300 * 1024)),
+    /exceeds/,
+    "oversized code must refuse before reaching the isolate",
+  );
+
   // 10. Cold start: steady-state p50 stays far under the 50ms budget.
   // First call warms the WASM module and is reported separately.
   await evaluateInIsolate("0");
@@ -122,6 +142,9 @@ async function main() {
         "json-boundary",
         "binding-errors",
         "empty-refusal",
+        "structured-bindings",
+        "binding-name-guard",
+        "code-size-guard",
         "cold-start-budget",
       ],
     }),

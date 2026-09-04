@@ -60,6 +60,16 @@ export interface PluginIsolateReceipt {
 const DEFAULT_MEMORY_LIMIT_BYTES = 8 * 1024 * 1024;
 const DEFAULT_TIMEOUT_MS = 2000;
 const MAX_TIMEOUT_MS = 30_000;
+const MAX_CODE_BYTES = 256 * 1024;
+const BINDING_NAME_PATTERN = /^[A-Za-z_$][A-Za-z0-9_$]*$/;
+const RESERVED_BINDING_NAMES = new Set([
+  "__proto__",
+  "constructor",
+  "prototype",
+  "toString",
+  "valueOf",
+  "hasOwnProperty",
+]);
 
 function assertJson(value: unknown, what: string): asserts value is PluginJsonValue {
   // Deep scan, because JSON.stringify silently drops functions nested in
@@ -103,7 +113,7 @@ function assertNotFunctionHandle(ctx: QuickJSContext, handle: QuickJSHandle, wha
     throw new Error(`${what} is a function across the isolate boundary`);
 }
 
-function toHandle(ctx: QuickJSContext, value: PluginJsonValue) {
+function toHandle(ctx: QuickJSContext, value: PluginJsonValue): QuickJSHandle {
   if (value === null || value === undefined) return ctx.undefined;
   switch (typeof value) {
     case "string":
@@ -114,11 +124,30 @@ function toHandle(ctx: QuickJSContext, value: PluginJsonValue) {
       // No boolean constructor exists; a literal keeps the type exact
       // across the boundary instead of coercing true to 1.
       const handle = ctx.evalCode(value ? "true" : "false");
-      if (handle && typeof handle === "object" && "value" in handle) return handle.value;
+      if (handle && typeof handle === "object" && "value" in handle)
+        return (handle as { value: QuickJSHandle }).value;
       throw new Error("could not marshal a boolean across the isolate boundary");
     }
-    default:
-      return ctx.newString(JSON.stringify(value));
+    default: {
+      // Structured values cross as structures, never stringified: a quiet
+      // stringification would change what the plugin observes.
+      if (Array.isArray(value)) {
+        const array = ctx.newArray();
+        value.forEach((item, index) => {
+          const element = toHandle(ctx, item);
+          ctx.setProp(array, index, element);
+          element.dispose();
+        });
+        return array;
+      }
+      const object = ctx.newObject();
+      for (const [key, item] of Object.entries(value)) {
+        const prop = toHandle(ctx, item);
+        ctx.setProp(object, key, prop);
+        prop.dispose();
+      }
+      return object;
+    }
   }
 }
 
@@ -156,6 +185,10 @@ export async function evaluateInIsolate(
     throw new Error(`Plugin${pluginId ? ` ${pluginId}` : ""} isolate refused: ${message}`);
   };
   if (typeof code !== "string" || !code.trim()) fail("no code to evaluate");
+  // The code string itself lives in host memory, outside the isolate heap
+  // the memory limit guards — cap it so a giant payload cannot DoS the host.
+  if (code.length > MAX_CODE_BYTES)
+    fail(`code exceeds the ${MAX_CODE_BYTES}-byte limit`);
   const timeoutMs = Math.max(1, Math.min(MAX_TIMEOUT_MS, Math.floor(options.timeoutMs ?? DEFAULT_TIMEOUT_MS)));
   const memoryLimitBytes = Math.max(
     256 * 1024,
@@ -164,6 +197,10 @@ export async function evaluateInIsolate(
   const bindings = options.bindings ?? {};
   for (const name of Object.keys(bindings)) {
     if (typeof bindings[name] !== "function") fail(`binding ${JSON.stringify(name)} is not a function`);
+    // A binding installs onto the isolate global: names that shadow
+    // prototype machinery would corrupt the isolate itself.
+    if (!BINDING_NAME_PATTERN.test(name) || RESERVED_BINDING_NAMES.has(name))
+      fail(`binding ${JSON.stringify(name)} is not a safe global name`);
   }
 
   const quickjs = await getQuickJS();
