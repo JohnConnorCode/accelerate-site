@@ -83,6 +83,14 @@ export const adminNavSections: AdminNavSection[] = [
         description: "New work requiring triage",
         mobilePrimary: true,
       },
+      {
+        id: "identity-review",
+        label: "Identity review",
+        href: "/admin/identity-review",
+        icon: UserPlus,
+        description: "Ambiguous senders waiting for a decision",
+        keywords: "identity review ambiguous unknown link contact",
+      },
     ],
   },
   {
