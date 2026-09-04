@@ -18,12 +18,12 @@
 | Phase                                                      | Backlog | Planned | In progress | Blocked | Shipped | Total |
 | ---------------------------------------------------------- | ------- | ------- | ----------- | ------- | ------- | ----- |
 | A — A (Complete Loop One — See + Remember)                 | 0       | 0       | 0           | 1       | 18      | 19    |
-| B — B (Agent Runtime foundation — Notice + Act primitives) | 21      | 20      | 2           | 4       | 31      | 78    |
+| B — B (Agent Runtime foundation — Notice + Act primitives) | 21      | 20      | 1           | 4       | 32      | 78    |
 | C — C (Reference coworker — Sales end-to-end loop)         | 20      | 5       | 0           | 1       | 10      | 36    |
 | D — D (Plugin SDK + MCP)                                   | 5       | 3       | 0           | 1       | 13      | 22    |
 | E — E (Additional coworkers/plugins + documentation)       | 40      | 4       | 1           | 0       | 10      | 55    |
 
-**Board total:** 86 backlog, 32 planned, 3 in progress, 7 blocked, 82 shipped (210 managed cards).
+**Board total:** 86 backlog, 32 planned, 2 in progress, 7 blocked, 83 shipped (210 managed cards).
 
 ## Dispatchable now (`npm run agent:next` picks from this set)
 
@@ -59,7 +59,6 @@
 ## In progress
 
 - `conversations-operator-inbox` — Finish Conversations as the unified communication inbox (grok-4.6:johnconnor)
-- `northstar-runtime-consolidation` — Audit recent architecture drift and consolidate runtime contracts (codex-runtime-consolidation)
 - `plugin-isolate-host` — Run plugin code in an isolate with no ambient authority (claude-code:johnconnor:71722)
 
 ## Blocked

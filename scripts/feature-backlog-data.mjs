@@ -431,8 +431,10 @@ function card({
 export const featureBacklog = [
   card({
     key: "northstar-runtime-consolidation",
+    evidence:
+      "Local implementation verified on agent/northstar-runtime-consolidation in commits 2b2b4e5 and f7ecc94. Audit inventory: 129 recent commits, 928 touched paths including reverted changes, 865 net paths, 12 preserved unmerged branches. Runtime tests cover tenant filtering, failed gates, typed outcomes, stale owners, approval recovery, module ownership, and truthful receipts. Disposable PostgreSQL 14 applies five migrations twice and proves tenant identity, cross-tenant refusal, policy precedence, suspension, concurrent budget/work claims and stale recovery. Core, action execution/reversibility, AI tool gates, OpenRouter resilience, job/task, module/extension, architecture/boundary checks, typecheck, strict lint, full formatting and production build pass locally. Capability preflight uses one query for three keys. Existing cards retain 75 legacy route-write sites, broader provider metering, plugin host wiring, UI/performance and production acceptance. No production migration or deployment performed. Audit report: docs/internal/RUNTIME-AUDIT-2026-09-04.md.",
     owner: "codex-runtime-consolidation",
-    status: "in_progress",
+    status: "shipped",
     title: "Audit recent architecture drift and consolidate runtime contracts",
     workstream: "runtime",
     phase: 3,
