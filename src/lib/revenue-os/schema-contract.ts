@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-08-30.1";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-04.1";
 
 export const TENANT_SCOPED_TABLES = [
   "action_queue",
@@ -37,6 +37,8 @@ export const TENANT_SCOPED_TABLES = [
   "email_sequences",
   "email_template_versions",
   "email_templates",
+  "entity_links",
+  "entity_types",
   "integration_connections",
   "job_runs",
   "messages",
@@ -127,6 +129,33 @@ const BASE_REVENUE_SCHEMA_TABLES = [
   {
     table: "campaigns",
     columns: ["id", "name", "status", "version", "approved_version", "policy"],
+  },
+  {
+    table: "entity_types",
+    columns: [
+      "id",
+      "type_key",
+      "label",
+      "backing_table",
+      "id_column",
+      "fk_catalog",
+      "identity_fields",
+      "soft_delete_column",
+      "is_disabled",
+      "metadata",
+    ],
+  },
+  {
+    table: "entity_links",
+    columns: [
+      "id",
+      "source_type",
+      "source_id",
+      "target_type",
+      "target_id",
+      "link_type",
+      "metadata",
+    ],
   },
   { table: "campaign_steps", columns: ["id", "campaign_id", "step_order", "delay_days", "active"] },
   {
@@ -370,6 +399,10 @@ export const REVENUE_SCHEMA_INDEXES = [
   "idx_tenant_memberships_user_active",
   "idx_companies_tenant_domain_unique",
   "idx_webhook_receipts_tenant_provider_id",
+  "idx_entity_types_tenant_key_unique",
+  "idx_entity_links_tuple_unique",
+  "idx_entity_links_source",
+  "idx_entity_links_target",
 ] as const;
 
 export const REVENUE_SCHEMA_FUNCTIONS = [
@@ -398,6 +431,8 @@ export const REVENUE_SCHEMA_POLICIES = [
   { table: "tenant_memberships", name: "Own membership read" },
   { table: "contacts", name: "Tenant member access" },
   { table: "admin_settings", name: "Tenant member access" },
+  { table: "entity_types", name: "Tenant member access" },
+  { table: "entity_links", name: "Tenant member access" },
 ] as const;
 
 export type RevenueSchemaStatus =
