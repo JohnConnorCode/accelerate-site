@@ -75,6 +75,7 @@ export default function ConversationsPage() {
   const [intentFilter, setIntentFilter] = useState("all");
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [followUpOnly, setFollowUpOnly] = useState(false);
+  const [assigneeFilter, setAssigneeFilter] = useState<"all" | "unassigned" | "me">("all");
   const [search, setSearch] = useState("");
 
   // Action / Composer states
@@ -86,7 +87,7 @@ export default function ConversationsPage() {
 
   // Modal states
   const [showCreateOppModal, setShowCreateOppModal] = useState(false);
-  const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
+  const [assigneeEmail, setAssigneeEmail] = useState("");  const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
   const [oppName, setOppName] = useState("");
   const [oppValue, setOppValue] = useState("0");
   const [taskTitle, setTaskTitle] = useState("");
@@ -104,9 +105,10 @@ export default function ConversationsPage() {
     if (intentFilter !== "all") params.set("intent", intentFilter);
     if (unreadOnly) params.set("unread", "1");
     if (followUpOnly) params.set("followUp", "1");
+    if (assigneeFilter !== "all") params.set("assignee", assigneeFilter);
     if (search.trim()) params.set("search", search.trim());
     return params.toString();
-  }, [selectedId, statusFilter, channelFilter, recordFilter, campaignFilter, intentFilter, unreadOnly, followUpOnly, search]);
+  }, [selectedId, statusFilter, channelFilter, recordFilter, campaignFilter, intentFilter, unreadOnly, followUpOnly, assigneeFilter, search]);
 
   const conversationQuery = useAdminQuery<{
     schemaReady: boolean;
@@ -190,6 +192,22 @@ export default function ConversationsPage() {
       await load();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Status update failed.");
+    }
+  };
+
+  const assignSelected = async (email: string | null) => {
+    if (!selectedId) return;
+    try {
+      await fetchJson("/api/admin/revenue-os/conversations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selectedId, assigneeEmail: email }),
+      });
+      toast.success(email ? `Conversation assigned to ${email}` : "Assignment cleared.");
+      setAssigneeEmail("");
+      await load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Assignment failed.");
     }
   };
 
@@ -449,6 +467,20 @@ export default function ConversationsPage() {
                     <span className="size-2 rounded-full bg-[var(--admin-ink)]" />
                     Follow-up
                   </button>
+
+                  {/* Assignee Dropdown */}
+                  <select
+                    value={assigneeFilter}
+                    onChange={(e) =>
+                      setAssigneeFilter(e.target.value as "all" | "unassigned" | "me")
+                    }
+                    aria-label="Filter by assignee"
+                    className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
+                  >
+                    <option value="all">All Assignees</option>
+                    <option value="unassigned">Unassigned</option>
+                    <option value="me">Assigned to me</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -817,6 +849,53 @@ export default function ConversationsPage() {
                             </button>
                           </div>
                         )}
+                      </div>
+
+                      {/* Assignment */}
+                      <div>
+                        <p className="admin-eyebrow mb-2">Assignment</p>
+                        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-3 space-y-2">
+                          <p className="text-[var(--admin-ink)]">
+                            {selected.assignee_email || (
+                              <span className="text-[var(--admin-muted)]">Unassigned</span>
+                            )}
+                          </p>
+                          <div className="flex flex-wrap gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => void assignSelected("me")}
+                              className="inline-flex min-h-9 items-center gap-1 rounded-lg bg-[var(--admin-ink)] px-2.5 py-1 text-[11px] font-semibold text-[var(--admin-surface)]"
+                            >
+                              Assign to me
+                            </button>
+                            {selected.assignee_email && (
+                              <button
+                                type="button"
+                                onClick={() => void assignSelected(null)}
+                                className="inline-flex min-h-9 items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-semibold text-[var(--admin-muted)] hover:text-[var(--admin-ink)]"
+                              >
+                                Clear
+                              </button>
+                            )}
+                          </div>
+                          <div className="flex gap-1.5">
+                            <input
+                              value={assigneeEmail}
+                              onChange={(event) => setAssigneeEmail(event.target.value)}
+                              placeholder="name@company.com"
+                              aria-label="Assignee email"
+                              className="min-h-9 min-w-0 flex-1 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-2.5 text-xs text-[var(--admin-ink)] outline-none placeholder:text-[var(--admin-muted)]/70 focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => void assignSelected(assigneeEmail)}
+                              disabled={!assigneeEmail.trim()}
+                              className="inline-flex min-h-9 shrink-0 items-center rounded-lg border border-[var(--admin-border)] px-2.5 text-[11px] font-semibold text-[var(--admin-ink)] disabled:opacity-40"
+                            >
+                              Assign
+                            </button>
+                          </div>
+                        </div>
                       </div>
 
                       {/* Contact & Company Details */}
