@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { claimApprovedAction, failAction, finishAction } from "./actions";
+import { reversibilityOf } from "./action-reversibility";
 import { sendRecordedEmail } from "./communications";
 import { transitionOpportunity } from "./pipeline";
 import { activateCampaign } from "./campaigns";
@@ -40,9 +41,36 @@ export async function approveAndExecuteAction(
   supabase: SupabaseClient,
   id: string,
   actorEmail: string,
+  options?: { mode?: "approved" | "autonomous" },
 ) {
+  const mode = options?.mode ?? "approved";
   const action = await claimApprovedAction(supabase, id, actorEmail);
+  // Unknown types fail closed with the executor's own error before any
+  // other gate, preserving the long-standing message contract.
+  if (!(APPROVABLE_ACTIONS as readonly string[]).includes(String(action.action_type))) {
+    await failAction(supabase, id, `Action type ${action.action_type} is not registered for execution`);
+    throw new Error(`Action type ${action.action_type} is not registered for execution`);
+  }
+  const reversibility = reversibilityOf(String(action.action_type)).reversibility;
+  // Irreversible effects leave the system, so they are permanently
+  // non-autonomous: the trust ladder has nothing to special-case because the
+  // executor itself refuses the autonomous mode. Human-approved runs pass.
+  if (reversibility === "irreversible" && mode === "autonomous") {
+    await failAction(
+      supabase,
+      id,
+      `${action.action_type} is irreversible and requires human approval; it cannot run autonomously`,
+    );
+    throw new Error(
+      `${action.action_type} is irreversible and requires human approval; it cannot run autonomously`,
+    );
+  }
   const payload = action.payload as Record<string, unknown>;
+  // Inverse data for compensateAction, captured as the execution proceeds.
+  // Written to the action row afterwards; the migration that adds the
+  // reversibility/compensation/evidence columns must be applied before this
+  // code runs against a real database (release flow runs migrations first).
+  const compensation: Record<string, unknown> = {};
   try {
     let result: unknown;
     switch (action.action_type) {
@@ -132,10 +160,29 @@ export async function approveAndExecuteAction(
           dedupeKey: stringValue(payload, "dedupeKey", false),
           actorEmail,
         });
+        compensation.createdTaskId = (result as { task?: { id?: unknown } })?.task?.id ?? null;
         break;
       }
       case "update_task": {
         const taskId = stringValue(payload, "taskId")!;
+        const { data: taskBefore } = await supabase
+          .from("tasks")
+          .select("id,title,priority,due_date,status,snoozed_until,completed_at")
+          .eq("id", taskId)
+          .maybeSingle();
+        // Copy primitives now: some clients hand back live row references
+        // that later writes mutate in place, which would poison the inverse.
+        const before = taskBefore as Record<string, unknown> | null;
+        compensation.before = before
+          ? {
+              title: before.title,
+              priority: before.priority,
+              due_date: before.due_date ?? null,
+              status: before.status,
+              snoozed_until: before.snoozed_until ?? null,
+              completed_at: before.completed_at ?? null,
+            }
+          : null;
         const changeType = stringValue(payload, "changeType")!;
         if (changeType === "complete") {
           result = await completeOperatorTask(supabase, { id: taskId, actorEmail });
@@ -165,13 +212,28 @@ export async function approveAndExecuteAction(
         break;
       }
       case "update_next_action": {
+        const opportunityId = stringValue(payload, "opportunityId")!;
+        const { data: actionBefore } = await supabase
+          .from("opportunities")
+          .select("next_action,next_action_at")
+          .eq("id", opportunityId)
+          .maybeSingle();
+        // Copy primitives now (see update_task above): live references would
+        // reflect the update we are about to make, not the prior state.
+        const priorRow = actionBefore as Record<string, unknown> | null;
+        compensation.prior = priorRow
+          ? {
+              next_action: priorRow.next_action ?? null,
+              next_action_at: priorRow.next_action_at ?? null,
+            }
+          : null;
         const { data, error } = await supabase
           .from("opportunities")
           .update({
             next_action: stringValue(payload, "nextAction")!,
             next_action_at: stringValue(payload, "nextActionAt", false) ?? null,
           })
-          .eq("id", stringValue(payload, "opportunityId")!)
+          .eq("id", opportunityId)
           .select("id,next_action,next_action_at")
           .single();
         if (error) throw new Error(error.message);
@@ -225,6 +287,14 @@ export async function approveAndExecuteAction(
         throw new Error(`Action type ${action.action_type} is not registered for execution`);
     }
     await finishAction(supabase, id, result);
+    // Stamp the reversibility class and captured inverse. Tolerates only the
+    // missing-column error on trees whose migration has not applied yet; the
+    // compensator then refuses for missing data instead of guessing.
+    const { error: stampError } = await supabase
+      .from("action_queue")
+      .update({ reversibility, compensation })
+      .eq("id", id);
+    if (stampError && (stampError as { code?: string }).code !== "42703") throw new Error(stampError.message);
     return result;
   } catch (error) {
     await failAction(supabase, id, error instanceof Error ? error.message : "Action failed");

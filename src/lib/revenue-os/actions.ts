@@ -58,6 +58,9 @@ export async function proposeAction(
     dedupeKey?: string;
     proposedBy?: string;
     expiresAt?: string;
+    /** Structured evidence for the write-provenance validator (quotes,
+     * receipts, resolved entities). Stored verbatim; validated downstream. */
+    evidence?: Record<string, unknown>;
   },
 ) {
   // Learned policy gate: if the human previously rejected this action type
@@ -93,8 +96,18 @@ export async function proposeAction(
     dedupe_key: input.dedupeKey ?? null,
     proposed_by: input.proposedBy ?? null,
     expires_at: input.expiresAt ?? null,
+    evidence: input.evidence ?? {},
   };
-  const { data, error } = await supabase.from("action_queue").insert(row).select("*").single();
+  // The evidence column arrives with the reversibility migration; on trees
+  // where it has not applied yet, retry once without it rather than failing
+  // the proposal. Only the missing-column code takes this path.
+  let insertResult = await supabase.from("action_queue").insert(row).select("*").single();
+  if (insertResult.error && (insertResult.error as { code?: string }).code === "42703") {
+    const rowWithoutEvidence: Record<string, unknown> = { ...row };
+    delete rowWithoutEvidence.evidence;
+    insertResult = await supabase.from("action_queue").insert(rowWithoutEvidence).select("*").single();
+  }
+  const { data, error } = insertResult;
   if (error) {
     if (error.code === "23505" && input.dedupeKey) {
       // The colliding row may be an expired proposal squatting on the key. Retire

@@ -63,6 +63,7 @@
     "test:inbound-pipeline": "node --env-file=.env.local scripts/qa-inbound-pipeline.mjs",
     "test:identity-resolution": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-identity-resolution.ts",
     "test:pipeline-transition": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-pipeline-transition.ts",
+    "test:action-reversibility": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-action-reversibility.ts",
     "test:conversations": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-conversations.ts",
     "test:knowledge": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-knowledge.ts",
     "test:playbooks": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-playbooks.ts",
