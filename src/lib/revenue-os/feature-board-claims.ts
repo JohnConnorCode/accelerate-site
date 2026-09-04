@@ -42,6 +42,10 @@ export interface ClaimFeatureCardInput {
   wipLimit?: number;
 }
 
+/** Default `p_wip_limit` for `claim_feature_request`. Keep the status display
+ *  in sync with this so `agent:status` reports the same gate a claim would hit. */
+export const FEATURE_BOARD_WIP_LIMIT = 6;
+
 export interface ClaimFeatureCardResult {
   id: string | null;
   claimed: boolean;
@@ -58,7 +62,7 @@ export async function claimFeatureCard(
     p_id: input.id ?? null,
     p_lease_owner: input.leaseOwner,
     p_lease_duration_ms: input.leaseDurationMs ?? 1_800_000,
-    p_wip_limit: input.wipLimit ?? 6,
+    p_wip_limit: input.wipLimit ?? FEATURE_BOARD_WIP_LIMIT,
   });
   if (error) throw new Error(error.message);
   const row = data?.[0];
@@ -144,9 +148,16 @@ export async function completeFeatureCard(
       ? ` (force-completed, overriding a claim held by ${current.lease_owner})`
       : "";
   const notes = `${current.notes ?? ""}\n\nCompleted ${new Date().toISOString()} by ${input.leaseOwner}${overrideNote}:\n${input.evidence}`;
-  let query = supabase
-    .from("feature_requests")
-    .update({ status: "shipped", notes, owner: input.leaseOwner, lease_owner: null, lease_expires_at: null });
+  let query = supabase.from("feature_requests").update({
+    status: "shipped",
+    notes,
+    owner: input.leaseOwner,
+    lease_owner: null,
+    lease_expires_at: null,
+    // A card that ships clean shouldn't carry a stale-recovery grudge into
+    // any future reopen (migrations/20260903d-feature-request-bounded-stale-recovery.sql).
+    stale_recovery_count: 0,
+  });
   query = input.force ? query.eq("id", input.id) : query.eq("id", input.id).eq("lease_owner", input.leaseOwner);
   const { data, error } = await query.select("id").maybeSingle();
   if (error) throw new Error(error.message);
@@ -191,4 +202,25 @@ export async function listClaimableFeatureCards(
   // would actually resolve.
   const rank: Record<FeatureRequestPriority, number> = { urgent: 0, high: 1, medium: 2, low: 3 };
   return ((data ?? []) as FeatureRequestCard[]).sort((a, b) => rank[a.priority] - rank[b.priority]);
+}
+
+/**
+ * Work currently occupying WIP slots: every `in_progress` row, including
+ * leaseless pre-RPC markers (the WIP gate counts those too). Display-only so
+ * `agent:status` answers the question the `wip_limit_reached` error sends
+ * operators to it with.
+ */
+export async function listActiveFeatureCards(
+  supabase: SupabaseClient,
+  input: { limit?: number } = {},
+): Promise<FeatureRequestCard[]> {
+  const { data, error } = await supabase
+    .from("feature_requests")
+    .select(CARD_COLUMNS)
+    .eq("status", "in_progress")
+    .is("archived_at", null)
+    .order("claimed_at", { ascending: false, nullsFirst: false })
+    .limit(input.limit ?? 20);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as FeatureRequestCard[];
 }
