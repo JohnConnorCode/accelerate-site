@@ -23,8 +23,11 @@ type Failure = Pick<Requirement, "kind" | "label" | "migration"> & { detail: str
 const shouldRecord = process.argv.includes("--record");
 const checkedAt = new Date().toISOString();
 const tenantScopedTableSet = new Set<string>(TENANT_SCOPED_TABLES);
+const ENTITY_REGISTRY_MIGRATION = "migrations/20260904-entity-registry-link-graph.sql";
 const migrationFor = (table: string, column?: string) =>
-  ["recovery_playbooks", "recovery_candidates", "recovery_outcomes"].includes(table)
+  table === "entity_types" || table === "entity_links"
+    ? ENTITY_REGISTRY_MIGRATION
+    : ["recovery_playbooks", "recovery_candidates", "recovery_outcomes"].includes(table)
     ? "migrations/20260830-revenue-recovery.sql"
     : column === "tenant_id" && tenantScopedTableSet.has(table)
       ? "migrations/20260830-shared-database-tenancy.sql"
@@ -47,15 +50,19 @@ const migrationFor = (table: string, column?: string) =>
                   ? "migrations/20260830-shared-database-tenancy.sql"
                   : "migrations/20260816-revenue-os.sql";
 const migrationForIndex = (name: string) =>
-  name.includes("tenant")
-    ? "migrations/20260830-shared-database-tenancy.sql"
-    : name.includes("ai_") || name === "idx_agent_runs_conversation"
-      ? "migrations/20260824-ai-command-runtime.sql"
-      : "migrations/20260816-revenue-os.sql";
+  name.startsWith("idx_entity_")
+    ? ENTITY_REGISTRY_MIGRATION
+    : name.includes("tenant")
+      ? "migrations/20260830-shared-database-tenancy.sql"
+      : name.includes("ai_") || name === "idx_agent_runs_conversation"
+        ? "migrations/20260824-ai-command-runtime.sql"
+        : "migrations/20260816-revenue-os.sql";
 const migrationForPolicy = (table: string, name: string) =>
-  name === "Tenant member access" || ["tenants", "tenant_memberships"].includes(table)
-    ? "migrations/20260830-shared-database-tenancy.sql"
-    : migrationFor(table);
+  table === "entity_types" || table === "entity_links"
+    ? ENTITY_REGISTRY_MIGRATION
+    : name === "Tenant member access" || ["tenants", "tenant_memberships"].includes(table)
+      ? "migrations/20260830-shared-database-tenancy.sql"
+      : migrationFor(table);
 const requirements: Requirement[] = [
   ...REVENUE_SCHEMA_TABLES.flatMap(({ table, columns }) => [
     {
