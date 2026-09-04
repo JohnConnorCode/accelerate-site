@@ -1400,7 +1400,7 @@ const registry: AiToolRegistration[] = [
     serviceTarget: "revenue-os.memory-write",
     connectionRequirement: "none",
     impact: "internal_write",
-    confirmationRequired: false,
+    confirmationRequired: true,
     execute: async ({ supabase, actorEmail }, input) => {
       const entry = await storeAgentMemory(supabase, {
         coworkerId: value(input, "coworkerId"),
