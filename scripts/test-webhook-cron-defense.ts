@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
+import { createHmac, randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 
 function hydrateEnvFromLocalFile(filePath: string) {
@@ -85,23 +86,50 @@ async function expectStatus(
   }
 
   const healthCronRoute = "/api/cron/system-health-snapshot";
-  checks.push(`${healthCronRoute} rejects missing Bearer secret (401)`);
+  // GET and POST both serve the snapshot behind the same Bearer gate (GET
+  // exists because Vercel Cron only issues GET). Both must 401, never 405.
+  checks.push(`${healthCronRoute} GET rejects missing Bearer secret (401)`);
+  await expectStatus(get(healthCronRoute), 401, `${healthCronRoute} GET missing auth`);
+  checks.push(`${healthCronRoute} GET rejects invalid Bearer secret (401)`);
+  await expectStatus(
+    get(healthCronRoute, { authorization: "Bearer invalid-secret" }),
+    401,
+    `${healthCronRoute} GET invalid auth`,
+  );
+  checks.push(`${healthCronRoute} POST rejects missing Bearer secret (401)`);
   await expectStatus(
     post(healthCronRoute, { headers: { "content-type": "application/json" }, body: "{}" }),
     401,
-    `${healthCronRoute} missing authorization`,
+    `${healthCronRoute} POST missing auth`,
   );
-  checks.push(`${healthCronRoute} rejects invalid Bearer secret (401)`);
+  checks.push(`${healthCronRoute} POST rejects invalid Bearer secret (401)`);
   await expectStatus(
     post(healthCronRoute, {
       headers: { authorization: "Bearer invalid-secret", "content-type": "application/json" },
       body: "{}",
     }),
     401,
-    `${healthCronRoute} invalid authorization`,
+    `${healthCronRoute} POST invalid auth`,
   );
-  checks.push(`${healthCronRoute} rejects GET method`);
-  await expectStatus(get(healthCronRoute), 405, `${healthCronRoute} method not allowed`);
+
+  const workEngineRoute = "/api/cron/work-engine";
+  checks.push(`${workEngineRoute} rejects missing Bearer secret (401)`);
+  await expectStatus(get(workEngineRoute), 401, `${workEngineRoute} missing authorization`);
+  checks.push(`${workEngineRoute} rejects invalid Bearer secret (401)`);
+  await expectStatus(
+    get(workEngineRoute, { authorization: "Bearer invalid-secret" }),
+    401,
+    `${workEngineRoute} invalid authorization`,
+  );
+  checks.push(`${workEngineRoute} rejects POST method`);
+  await expectStatus(post(workEngineRoute, {}), 405, `${workEngineRoute} method not allowed`);
+
+  // Both provider webhooks are POST-only; a GET must 405 from the framework
+  // rather than reaching signature parsing or mutation.
+  for (const webhookRoute of ["/api/webhooks/calendly", "/api/webhooks/resend"]) {
+    checks.push(`${webhookRoute} rejects GET method`);
+    await expectStatus(get(webhookRoute), 405, `${webhookRoute} method not allowed`);
+  }
 
   const calendlySecret = process.env.CALENDLY_WEBHOOK_SECRET?.trim();
   const calendlyRoute = "/api/webhooks/calendly";
@@ -317,6 +345,104 @@ async function expectStatus(
       [413, 503].includes(oversizedResult.status),
       `resend webhook oversized payload expected 413 (or 503 if unconfigured), got ${oversizedResult.status}`,
     );
+
+    const resendSecret = process.env.RESEND_WEBHOOK_SECRET?.trim();
+    const allowResendMutation =
+      /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:|\/|$)/.test(BASE_URL) ||
+      process.env.WEBHOOK_DEFENSE_ALLOW_REPLAY_QA === "1";
+    if (!resendSecret) {
+      notes.push(
+        "skipped resend replay idempotency and rate-limit coverage because RESEND_WEBHOOK_SECRET is not set locally",
+      );
+    } else if (!allowResendMutation) {
+      notes.push(
+        "skipped resend replay/rate-limit mutation against a non-local target; set WEBHOOK_DEFENSE_ALLOW_REPLAY_QA=1 only for an explicitly authorized disposable QA target",
+      );
+    } else if (unsigned === 503) {
+      notes.push(
+        "skipped resend replay/rate-limit mutation because the target has no RESEND_WEBHOOK_SECRET configured (it answers 503 before either gate)",
+      );
+    } else {
+      // Standard Webhooks signature: v1,<base64(HMAC_SHA256(key, id.timestamp.body))>.
+      const signResend = (id: string, timestamp: string, payload: string) => {
+        const key = Buffer.from(resendSecret.replace(/^whsec_/, ""), "base64");
+        const digest = createHmac("sha256", key)
+          .update(`${id}.${timestamp}.${payload}`)
+          .digest("base64");
+        return `v1,${digest}`;
+      };
+      const replayToken = `replay-${Date.now()}-${randomUUID().slice(0, 8)}`;
+      const replayPayload = JSON.stringify({
+        type: "email.delivered",
+        created_at: new Date().toISOString(),
+        data: { email_id: `replay-qa-${replayToken}` },
+      });
+      const replayId = `msg_${randomUUID().replace(/-/g, "")}`;
+      const replayTimestamp = String(Math.floor(Date.now() / 1000));
+      const replayHeaders = {
+        "content-type": "application/json",
+        "svix-id": replayId,
+        "svix-timestamp": replayTimestamp,
+        "svix-signature": signResend(replayId, replayTimestamp, replayPayload),
+      };
+      checks.push("resend webhook accepts a signed delivery once (200)");
+      const firstDelivery = await post(resendRoute, {
+        body: replayPayload,
+        headers: replayHeaders,
+      });
+      assert.equal(
+        firstDelivery.status,
+        200,
+        `${resendRoute} first signed delivery expected 200, got ${firstDelivery.status} (a 429 means the per-minute webhook budget from an earlier run has not refilled yet; wait 60s and re-run)`,
+      );
+      checks.push("resend webhook reports duplicate on redelivery without reprocessing");
+      const secondDelivery = await post(resendRoute, {
+        body: replayPayload,
+        headers: replayHeaders,
+      });
+      assert.equal(secondDelivery.status, 200, `${resendRoute} repeated delivery`);
+      const secondDeliveryBody = await secondDelivery.json();
+      assert.equal(
+        secondDeliveryBody.duplicate,
+        true,
+        `${resendRoute} should report duplicate=true on replay`,
+      );
+      if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        const service = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL,
+          process.env.SUPABASE_SERVICE_ROLE_KEY,
+        );
+        const { error: receiptCleanupError } = await service
+          .from("webhook_receipts")
+          .delete()
+          .eq("id", replayId);
+        assert.equal(receiptCleanupError, null, "resend replay QA receipt cleanup failed");
+        notes.push(
+          "resend replay proof leaves one immutable resend.webhook_processed audit row by design (audit history is append-only)",
+        );
+      }
+
+      // Burst bound, mirroring the Calendly webhook's 120/min: hammer with
+      // forged signatures (no mutation possible) until the limiter answers.
+      // Runs last: it deliberately exhausts the per-minute budget this
+      // process shares with the checks above.
+      checks.push("resend webhook rate-limits a burst (429)");
+      let saw429 = false;
+      for (let attempt = 0; attempt < 135 && !saw429; attempt++) {
+        const burst = await post(resendRoute, {
+          body: JSON.stringify({ type: "email.delivered" }),
+          headers: {
+            "content-type": "application/json",
+            "svix-id": `burn-${attempt}`,
+            "svix-timestamp": String(Math.floor(Date.now() / 1000)),
+            "svix-signature": "v1=bogus",
+          },
+        });
+        if (burst.status === 429) saw429 = true;
+        else assert.equal(burst.status, 401, `${resendRoute} burst attempt ${attempt}`);
+      }
+      assert.ok(saw429, `${resendRoute} never answered 429 within 135 burst requests`);
+    }
   }
 
   console.log(
