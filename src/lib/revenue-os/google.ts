@@ -13,6 +13,7 @@ import {
 } from "./gmail-sync-plan";
 import { recordActivity } from "./activities";
 import { recordAudit } from "./audit";
+import { associateConversationParticipants } from "./conversations";
 import { prepareGmailReply } from "./gmail-reply-mime";
 import { createPreCallBriefWork, createPostMeetingProcessWork } from "./meeting-intel-coworker";
 import { assertActiveTenantExecution } from "@/lib/tenancy/system";
@@ -231,6 +232,17 @@ function parseAddress(value: string | null): string | null {
   return normalizeEmail(value.match(/<([^>]+)>/)?.[1] || value.split(",")[0]);
 }
 
+/** Every address on a header, not just the first: threads have many participants. */
+export function parseAddressList(value: string | null): string[] {
+  if (!value) return [];
+  const found: string[] = [];
+  for (const part of value.split(",")) {
+    const email = normalizeEmail(part.match(/<([^>]+)>/)?.[1] || part);
+    if (email) found.push(email);
+  }
+  return [...new Set(found)];
+}
+
 export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
   const { token, connection } = await getGoogleAccessToken(supabase);
   const profile = await googleFetch<GmailProfile>(
@@ -292,27 +304,21 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
       const externalEmails = messages
         .flatMap((message) => [
           parseAddress(header(message, "From")),
-          parseAddress(header(message, "To")),
+          ...parseAddressList(header(message, "To")),
+          ...parseAddressList(header(message, "Cc")),
         ])
         .filter((email): email is string => Boolean(email && email !== ownerEmail));
-      const contactEmail = externalEmails[0] || null;
-      let contactId: string | null = null;
-      let opportunityId: string | null = null;
-      if (contactEmail) {
-        const contact = await findCanonicalContactByEmail(supabase, contactEmail);
-        contactId = contact?.id ?? null;
-        if (contactId) {
-          const { data: opportunity } = await supabase
-            .from("opportunities")
-            .select("id")
-            .eq("contact_id", contactId)
-            .not("stage", "in", "(won,lost)")
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          opportunityId = opportunity?.id ?? null;
-        }
-      }
+      const participantEmails = [...new Set(externalEmails)];
+      const contactEmail = participantEmails[0] || null;
+      // Preserve existing links: a manual or previously verified association
+      // is human truth and a later sync must only fill blanks, never overwrite.
+      const { data: existingConversation, error: existingError } = await supabase
+        .from("conversations")
+        .select("id,contact_id,company_id,opportunity_id")
+        .eq("channel", "gmail")
+        .eq("external_id", thread.id)
+        .maybeSingle();
+      if (existingError) throw new Error(existingError.message);
       const unread = messages.filter(
         (message) =>
           message.labelIds?.includes("UNREAD") &&
@@ -328,8 +334,9 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
             channel: "gmail",
             external_id: thread.id,
             subject,
-            contact_id: contactId,
-            opportunity_id: opportunityId,
+            contact_id: (existingConversation?.contact_id as string) ?? null,
+            company_id: (existingConversation?.company_id as string) ?? null,
+            opportunity_id: (existingConversation?.opportunity_id as string) ?? null,
             status: unread ? "open" : "waiting",
             unread_count: unread,
             last_message_at: lastAt,
@@ -340,6 +347,22 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
         .select("id")
         .single();
       if (conversationError) throw new Error(conversationError.message);
+      // Deterministic association never fails the sync: ambiguity becomes a
+      // founder review action and anything else is recorded on the thread.
+      let contactId: string | null = (existingConversation?.contact_id as string) ?? null;
+      let opportunityId: string | null = (existingConversation?.opportunity_id as string) ?? null;
+      try {
+        const association = await associateConversationParticipants(supabase, {
+          conversationId: conversation.id,
+          participantEmails,
+          threadExternalId: thread.id,
+          actorEmail: "system",
+        });
+        contactId = association.contactId;
+        opportunityId = association.opportunityId;
+      } catch (associationError) {
+        console.error("[google/gmail-association]", associationError);
+      }
       const rows = messages.map((message) => {
         const from = parseAddress(header(message, "From"));
         const to = parseAddress(header(message, "To"));
