@@ -27,6 +27,13 @@ export interface ConversationFilter {
    * (createTaskFromConversation), so the link is exact, not guessed.
    */
   followUp?: boolean;
+  /**
+   * Assignment filter without a schema migration: the operator assignee lives
+   * at metadata.assigned_to (see assignConversation). "unassigned" matches
+   * threads with no assignee; any other value matches that exact email;
+   * absent means no assignment filtering.
+   */
+  assignee?: string;
   search?: string;
   limit?: number;
   offset?: number;
@@ -45,6 +52,8 @@ export interface ConversationItem {
   company_id: string | null;
   opportunity_id: string | null;
   campaign_id: string | null;
+  /** Operator assignee email from metadata.assigned_to; null when unassigned. */
+  assignee_email: string | null;
   metadata: Record<string, unknown>;
   contact?: {
     id: string;
@@ -222,6 +231,8 @@ export async function listConversations(
       company_id: (r.company_id as string) || null,
       opportunity_id: (r.opportunity_id as string) || null,
       campaign_id: (r.campaign_id as string) || null,
+      assignee_email:
+        ((r.metadata as Record<string, unknown> | null)?.assigned_to as string) || null,
       metadata: (r.metadata as Record<string, unknown>) || {},
       contact,
       company,
@@ -269,6 +280,15 @@ export async function listConversations(
     filtered = filtered.filter((c) => Boolean(c.campaign_id));
   } else if (filter.campaign === "unlinked") {
     filtered = filtered.filter((c) => !c.campaign_id);
+  }
+
+  if (filter.assignee !== undefined) {
+    if (filter.assignee === "unassigned") {
+      filtered = filtered.filter((c) => !c.assignee_email);
+    } else if (filter.assignee.trim()) {
+      const wanted = filter.assignee.trim().toLowerCase();
+      filtered = filtered.filter((c) => (c.assignee_email || "").toLowerCase() === wanted);
+    }
   }
 
   if (filter.followUp) {
@@ -406,7 +426,7 @@ export async function getConversationDetail(
     if (text.includes("pricing") || text.includes("cost") || text.includes("rate")) {
       suggestedReply = {
         intent: "pricing_inquiry",
-        body: `Hi there,\n\nThanks for reaching out regarding pricing. We offer tailored packages structured around your exact operating scope. I'd be glad to walk through the options—would you have 10 minutes this week for a quick discussion?`,
+        body: `Hi there,\n\nThanks for reaching out regarding pricing. We offer tailored packages structured around your exact operating scope. I'd be glad to walk through the options. Would you have 10 minutes this week for a quick discussion?`,
         confidence: 0.9,
       };
     } else if (text.includes("book") || text.includes("schedule") || text.includes("meet")) {
@@ -437,6 +457,8 @@ export async function getConversationDetail(
     company_id: convRow.company_id,
     opportunity_id: convRow.opportunity_id,
     campaign_id: convRow.campaign_id,
+    assignee_email:
+      ((convRow.metadata as Record<string, unknown> | null)?.assigned_to as string) || null,
     metadata: convRow.metadata || {},
     contact: contact
       ? {
@@ -542,6 +564,80 @@ export async function updateConversationStatus(
 }
 
 /**
+ * Assign a conversation to an operator (or clear with null). The assignee
+ * lives at metadata.assigned_to rather than a dedicated column: assignment
+ * is an operational overlay, not canonical identity, so it rides the
+ * existing JSONB metadata instead of costing every capability a migration.
+ * Every change carries audit and activity receipts.
+ */
+export async function assignConversation(
+  supabase: SupabaseClient,
+  input: {
+    id: string;
+    assigneeEmail: string | null;
+    actorEmail: string;
+  },
+): Promise<ConversationItem> {
+  const id = input.id.trim();
+  if (!id) throw new Error("Conversation id is required");
+  let assignee: string | null = null;
+  if (input.assigneeEmail !== null) {
+    assignee = input.assigneeEmail.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+$/.test(assignee))
+      throw new Error(`Invalid assignee email ${JSON.stringify(input.assigneeEmail)}`);
+  }
+
+  const { data: current, error: readError } = await supabase
+    .from("conversations")
+    .select("id,metadata,opportunity_id,contact_id,company_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (readError) throw new Error(`Could not load conversation: ${readError.message}`);
+  if (!current) throw new Error("Conversation not found");
+  const before = ((current.metadata as Record<string, unknown> | null)?.assigned_to as string) || null;
+
+  const { data, error } = await supabase
+    .from("conversations")
+    .update({
+      metadata: { ...((current.metadata as Record<string, unknown>) || {}), assigned_to: assignee },
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .select("*")
+    .single();
+
+  if (error) throw new Error(`Could not assign conversation: ${error.message}`);
+
+  await Promise.all([
+    recordAudit(supabase, {
+      actorEmail: input.actorEmail,
+      action: assignee ? "conversation.assigned" : "conversation.unassigned",
+      entityType: "conversation",
+      entityId: id,
+      before: { assigned_to: before },
+      after: { assigned_to: assignee },
+    }),
+    recordActivity(supabase, {
+      activityType: "conversation_assigned",
+      title: assignee ? `Conversation assigned to ${assignee}` : "Conversation unassigned",
+      summary: assignee
+        ? `Operator routed the thread to ${assignee}.`
+        : "Operator cleared the thread assignment.",
+      conversationId: id,
+      opportunityId: data.opportunity_id || null,
+      contactId: data.contact_id || null,
+      companyId: data.company_id || null,
+      actorEmail: input.actorEmail,
+      source: "operator",
+      externalId: `conv_assign:${id}:${assignee || "none"}:${Date.now()}`,
+      occurredAt: new Date().toISOString(),
+    }),
+  ]);
+
+  return { ...(data as Record<string, unknown>), assignee_email: assignee } as ConversationItem;
+}
+
+/**
  * Link a conversation to an opportunity and/or contact record.
  */
 export async function linkConversationRecord(
@@ -573,6 +669,7 @@ export async function linkConversationRecord(
     .single();
 
   if (error) throw new Error(`Could not link conversation record: ${error.message}`);
+  if (!data) throw new Error("Conversation not found");
 
   // A manual link is human truth: it outranks any later automated inference,
   // so it is recorded on the evidence ledger as well as audit/activity.

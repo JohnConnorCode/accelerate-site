@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {
+  assignConversation,
   listConversations,
   getConversationDetail,
   updateConversationStatus,
@@ -511,6 +512,53 @@ async function runConversationsSuite() {
   assert.equal(followUp.conversations.length, 1);
   assert.equal(followUp.conversations[0]?.id, "conv-2");
 
+  // Test 5e: Assignment writes metadata, receipts, and filters.
+  const assigned = await assignConversation(supabase, {
+    id: "conv-3",
+    assigneeEmail: "Founder@Accelerate.Local",
+    actorEmail: "founder@accelerate.local",
+  });
+  assert.equal(assigned.assignee_email, "founder@accelerate.local", "assignee normalizes case");
+  assert.ok(
+    db.tables.audit_log!.some((a) => a.action === "conversation.assigned"),
+    "Assignment must record an audit receipt",
+  );
+  assert.ok(
+    db.tables.activities!.some((a) => a.activity_type === "conversation_assigned"),
+    "Assignment must record an activity receipt",
+  );
+  const mineOnly = await listConversations(supabase, { assignee: "founder@accelerate.local" });
+  assert.equal(mineOnly.conversations.length, 1);
+  assert.equal(mineOnly.conversations[0]?.id, "conv-3");
+  const unassigned = await listConversations(supabase, { assignee: "unassigned" });
+  assert.equal(unassigned.conversations.length, 2);
+  const cleared = await assignConversation(supabase, {
+    id: "conv-3",
+    assigneeEmail: null,
+    actorEmail: "founder@accelerate.local",
+  });
+  assert.equal(cleared.assignee_email, null);
+  await assert.rejects(
+    () =>
+      assignConversation(supabase, {
+        id: "conv-1",
+        assigneeEmail: "not-an-email",
+        actorEmail: "founder@accelerate.local",
+      }),
+    /Invalid assignee email/,
+    "Assignment must validate the address",
+  );
+  await assert.rejects(
+    () =>
+      assignConversation(supabase, {
+        id: "conv-missing",
+        assigneeEmail: "founder@accelerate.local",
+        actorEmail: "founder@accelerate.local",
+      }),
+    /not found/i,
+    "Assignment to a missing thread must fail closed",
+  );
+
   // Test 6: getConversationDetail
   const detail = await getConversationDetail(supabase, "conv-1");
   assert.ok(detail, "Detail should exist");
@@ -545,6 +593,16 @@ async function runConversationsSuite() {
     actorEmail: "founder@accelerate.local",
   });
   assert.equal(linked.opportunity_id, oppId);
+  await assert.rejects(
+    () =>
+      linkConversationRecord(supabase, {
+        conversationId: "conv-missing",
+        opportunityId: oppId,
+        actorEmail: "founder@accelerate.local",
+      }),
+    /Could not link conversation record|not found/i,
+    "Linking a missing thread must fail closed",
+  );
 
   // Test 9: createTaskFromConversation
   const taskRes = await createTaskFromConversation(supabase, {
@@ -763,6 +821,7 @@ async function runConversationsSuite() {
   );
 
   console.log("All 16 Conversations tests passed successfully!");
+
 }
 
 runConversationsSuite().catch((err) => {

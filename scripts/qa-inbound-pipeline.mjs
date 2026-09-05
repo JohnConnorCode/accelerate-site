@@ -276,12 +276,41 @@ const formData = {
 };
 
 async function openContactForm(page) {
+  // Dev-mode hydration can lag far behind networkidle under load (SSR HTML
+  // resolves getByText while the hero reveal effect has not run yet, leaving
+  // the disclosure with a zero box indefinitely). Wait for the app's own
+  // alive signal first: the hero reveal marker, or a visible form if motion
+  // ever stops gating this page.
+  await Promise.race([
+    page.locator('[data-motion-role="public-hero"].in').waitFor({ timeout: 90000 }),
+    page.locator('form:has(input[name="email"]):visible').first().waitFor({ timeout: 90000 }),
+  ]).catch(() => {
+    throw new Error("contact page never hydrated (no hero reveal and no visible form)");
+  });
   // When the scheduler embed is live the manual form sits inside a closed
-  // <details> disclosure; a real visitor must open it first. Scope to the
-  // visible copy: the page renders responsive duplicates and clicking the
-  // hidden one times out instead of opening anything.
+  // <details> disclosure; a real visitor must open it first. The disclosure
+  // exists in the DOM on all viewports but is hidden when the form is shown
+  // directly, so only click what a visitor could actually see. The disclosure
+  // can render a beat after hydration, so poll: click when visible, then
+  // wait for the visible form, retrying while it may still be rendering.
   const disclosure = page.locator("summary:visible", { hasText: "Prefer to send context first?" });
-  if ((await disclosure.count()) > 0) await disclosure.first().click();
+  const form = page.locator('form:has(input[name="email"]):visible').first();
+  if ((await form.count()) > 0) return;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if ((await disclosure.count()) > 0 && (await disclosure.first().isVisible())) {
+      await disclosure.first().click();
+      try {
+        await form.waitFor({ timeout: 10000 });
+        return;
+      } catch {
+        // Click landed before the toggle took effect or the tree re-rendered;
+        // loop around and try again.
+      }
+    } else {
+      await page.waitForTimeout(2000);
+    }
+  }
+  await form.waitFor({ timeout: 30000 });
 }
 
 function stepLog(message) {
@@ -309,17 +338,20 @@ async function dbCall(label, promise, ms = 60000) {
 
 /**
  * Bounded close: browser/context close can hang on lingering third-party
- * iframe sockets (scheduling embed). Never let teardown hang the journey;
- * record it and continue so evidence and cleanup still land.
+ * iframe sockets (scheduling embed) and is slowest early in a run while the
+ * dev server is still compiling routes on demand, so the bound is generous.
+ * Never let teardown hang the journey; record it and continue so evidence
+ * and cleanup still land.
  */
+const CLOSE_TIMEOUT_MS = 30000;
 async function settledClose(closeable, label) {
   await Promise.race([
     closeable.close().catch((e) => teardownNotes.push(`${label} close error: ${e.message}`)),
     new Promise((r) =>
       setTimeout(() => {
-        teardownNotes.push(`${label} close timed out after 15s; continuing`);
+        failures.push(`${label} close timed out after ${CLOSE_TIMEOUT_MS / 1000}s; continuing`);
         r(null);
-      }, 15000),
+      }, CLOSE_TIMEOUT_MS),
     ),
   ]);
 }
@@ -582,6 +614,10 @@ try {
   check("lead visible in mobile Pipeline", true);
   await mpipeline.screenshot({ path: `${outDir}/pipeline-mobile.png` });
   await settledClose(adminMobile, "admin mobile context");
+} catch (e) {
+  // An aborted step must still land in the summary as evidence, never as a
+  // crash with no artifact: the finally below still runs cleanup first.
+  failures.push(`journey aborted: ${e.message}`);
 } finally {
   stepLog("finally purge");
   try {

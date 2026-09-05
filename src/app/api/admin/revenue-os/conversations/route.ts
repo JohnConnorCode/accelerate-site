@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import {
+  assignConversation,
   listConversations,
   getConversationDetail,
   updateConversationStatus,
@@ -18,6 +19,7 @@ export async function GET(request: NextRequest) {
   const id = params.get("id");
   const supabase = auth.database;
 
+  const assigneeParam = params.get("assignee") || undefined;
   const filter: ConversationFilter = {
     status: (params.get("status") as ConversationStatus | "all") || "all",
     channel: (params.get("channel") as ConversationChannel | "all") || "all",
@@ -26,6 +28,10 @@ export async function GET(request: NextRequest) {
     campaign: (params.get("campaign") as "all" | "linked" | "unlinked") || "all",
     unreadOnly: params.get("unread") === "1" || params.get("unread") === "true",
     followUp: params.get("followUp") === "1" || params.get("followUp") === "true",
+    // "me" resolves server-side so the client never has to know (or spoof)
+    // the operator's address; "unassigned" matches threads with no assignee.
+    assignee:
+      assigneeParam === "me" ? auth.user.email || undefined : assigneeParam,
     search: params.get("search") || undefined,
   };
 
@@ -67,6 +73,7 @@ export async function PATCH(request: NextRequest) {
     opportunityId?: string | null;
     contactId?: string | null;
     companyId?: string | null;
+    assigneeEmail?: string | null;
   };
 
   if (!body.id) {
@@ -96,6 +103,21 @@ export async function PATCH(request: NextRequest) {
         opportunityId: body.opportunityId,
         contactId: body.contactId,
         companyId: body.companyId,
+        actorEmail,
+      });
+      return NextResponse.json({ conversation: updated });
+    }
+
+    if (body.assigneeEmail !== undefined) {
+      // "me" resolves to the authenticated operator so the client never has
+      // to know (or spoof) its own address on the write path either.
+      const assignee =
+        body.assigneeEmail === "me" ? (auth.user.email ?? null) : body.assigneeEmail;
+      if (body.assigneeEmail === "me" && !assignee)
+        return NextResponse.json({ error: "Could not identify the operator" }, { status: 400 });
+      const updated = await assignConversation(supabase, {
+        id: body.id,
+        assigneeEmail: assignee,
         actorEmail,
       });
       return NextResponse.json({ conversation: updated });

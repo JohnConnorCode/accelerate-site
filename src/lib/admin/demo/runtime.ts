@@ -74,6 +74,11 @@ type DemoState = {
   clientOverrides: Record<string, Record<string, unknown>>;
   generatedAiRuns: DemoGeneratedAiRun[];
   sentReplies: Record<string, string[]>;
+  conversationOverrides: Record<
+    string,
+    { status?: string; assignee?: string | null; opportunityId?: string | null }
+  >;
+  conversationTasks: Record<string, Array<{ id: string; title: string; due_date: string | null }>>;
   readNotifications: string[];
   emailDrafts: Record<string, DemoEmailDraft>;
   featureOverrides: Record<
@@ -95,6 +100,8 @@ const initialState = (): DemoState => ({
   clientOverrides: {},
   generatedAiRuns: [],
   sentReplies: {},
+  conversationOverrides: {},
+  conversationTasks: {},
   readNotifications: [],
   emailDrafts: {},
   featureOverrides: {},
@@ -517,24 +524,59 @@ function notifications(pack: DemoScenarioPack, state: DemoState) {
     priority: priority(pack, state),
   };
 }
-function conversations(pack: DemoScenarioPack, state: DemoState, selected: string | null) {
-  const rows = pack.conversations.map((item) => {
+function conversations(pack: DemoScenarioPack, state: DemoState, url: URL) {
+  const selected = url.searchParams.get("id");
+  const overrides = state.conversationOverrides || {};
+  const extraTasks = state.conversationTasks || {};
+  const founderEmail = pack.tenant.founder.email.toLowerCase();
+  const rows = pack.conversations.map((item, index) => {
     const contact = person(pack, item.personId);
+    const opportunity =
+      index % 2 === 0
+        ? pack.opportunities.find((entry) => entry.personId === item.personId) || null
+        : null;
+    const override = overrides[item.id] || {};
+    const status = (override.status as "open" | "waiting" | "resolved" | "archived") || "open";
+    const defaultContactId = index % 2 === 0 ? contact.id : null;
+    const opportunityId =
+      override.opportunityId === undefined ? opportunity?.id || null : override.opportunityId;
+    const linkedOpportunity = opportunityId
+      ? pack.opportunities.find((entry) => entry.id === opportunityId) || opportunity
+      : null;
     return {
       id: item.id,
-      channel: "gmail",
+      channel: "gmail" as const,
       external_id: `demo-${item.id}`,
       subject: item.subject,
-      status: "open",
+      status,
       intent: item.intent,
-      unread_count: item.unread,
+      unread_count: status === "resolved" || status === "archived" ? 0 : item.unread,
       last_message_at: item.messages.at(-1)!.at,
+      contact_id: defaultContactId,
+      company_id: null as string | null,
+      opportunity_id: opportunityId,
+      campaign_id: index < 2 ? "demo-campaign" : null,
+      assignee_email: override.assignee === undefined ? null : override.assignee,
       metadata: { contact_email: contact.email },
+      contact: {
+        id: contact.id,
+        full_name: contact.name,
+        primary_email: contact.email,
+        phone: contact.phone,
+      },
+      company: null,
+      opportunity: linkedOpportunity
+        ? {
+            id: linkedOpportunity.id,
+            name: linkedOpportunity.name,
+            stage: linkedOpportunity.stage,
+            estimated_value: linkedOpportunity.value,
+          }
+        : null,
+      created_at: item.messages[0]!.at,
+      updated_at: item.messages.at(-1)!.at,
     };
   });
-  // Mirrors the stats loop in src/lib/revenue-os/conversations.ts so the demo
-  // tab counts (Open/Waiting/Resolved/Archived/Unread) aren't stuck at zero
-  // while the list beside them is visibly full.
   const stats = {
     total: rows.length,
     open: rows.filter((row) => row.status === "open").length,
@@ -543,14 +585,72 @@ function conversations(pack: DemoScenarioPack, state: DemoState, selected: strin
     archived: rows.filter((row) => row.status === "archived").length,
     unread: rows.filter((row) => row.unread_count > 0).length,
   };
-  const active = selected
-    ? pack.conversations.find((item) => item.id === selected)
-    : pack.conversations[0];
-  if (!active) return { schemaReady: true, conversations: rows, stats, messages: [] };
-  const contact = person(pack, active.personId);
+  let filtered = rows;
+  const statusFilter = url.searchParams.get("status") || "all";
+  if (statusFilter !== "all") filtered = filtered.filter((row) => row.status === statusFilter);
+  const channelFilter = url.searchParams.get("channel") || "all";
+  if (channelFilter !== "all") filtered = filtered.filter((row) => row.channel === channelFilter);
+  const intentFilter = url.searchParams.get("intent");
+  if (intentFilter && intentFilter !== "all") {
+    filtered = filtered.filter(
+      (row) => (row.intent || "").toLowerCase() === intentFilter.toLowerCase(),
+    );
+  }
+  if (url.searchParams.get("unread") === "1" || url.searchParams.get("unread") === "true") {
+    filtered = filtered.filter((row) => row.unread_count > 0);
+  }
+  const recordFilter = url.searchParams.get("record") || "all";
+  if (recordFilter === "linked") {
+    filtered = filtered.filter((row) => Boolean(row.opportunity_id || row.contact_id));
+  } else if (recordFilter === "unlinked") {
+    filtered = filtered.filter((row) => !row.opportunity_id && !row.contact_id);
+  }
+  const campaignFilter = url.searchParams.get("campaign") || "all";
+  if (campaignFilter === "linked") filtered = filtered.filter((row) => Boolean(row.campaign_id));
+  else if (campaignFilter === "unlinked") filtered = filtered.filter((row) => !row.campaign_id);
+  const assigneeFilter = url.searchParams.get("assignee");
+  if (assigneeFilter === "unassigned") {
+    filtered = filtered.filter((row) => !row.assignee_email);
+  } else if (assigneeFilter === "me") {
+    filtered = filtered.filter((row) => (row.assignee_email || "").toLowerCase() === founderEmail);
+  } else if (assigneeFilter) {
+    filtered = filtered.filter(
+      (row) => (row.assignee_email || "").toLowerCase() === assigneeFilter.toLowerCase(),
+    );
+  }
+  if (url.searchParams.get("followUp") === "1" || url.searchParams.get("followUp") === "true") {
+    filtered = filtered.filter((row) => {
+      const packItem = pack.conversations.find((item) => item.id === row.id);
+      const personTasks = packItem
+        ? pack.tasks.some(
+            (task) => task.personId === packItem.personId && task.status !== "completed",
+          )
+        : false;
+      return personTasks || (extraTasks[row.id] || []).length > 0;
+    });
+  }
+  const search = (url.searchParams.get("search") || "").trim().toLowerCase();
+  if (search) {
+    filtered = filtered.filter((row) => {
+      const email = (row.metadata.contact_email as string) || row.contact?.primary_email || "";
+      return (
+        email.toLowerCase().includes(search) ||
+        (row.contact?.full_name || "").toLowerCase().includes(search) ||
+        (row.subject || "").toLowerCase().includes(search) ||
+        (row.intent || "").toLowerCase().includes(search)
+      );
+    });
+  }
+  const activePack =
+    pack.conversations.find((item) => item.id === selected) || pack.conversations[0];
+  const activeRow = activePack ? rows.find((row) => row.id === activePack.id) || null : null;
+  if (!activePack || !activeRow) {
+    return { schemaReady: true, conversations: filtered, stats, intents: [], detail: null, messages: [] };
+  }
+  const contact = person(pack, activePack.personId);
   const messages = [
-    ...active.messages,
-    ...(state.sentReplies[active.id] || []).map((body, index) => ({
+    ...activePack.messages,
+    ...(state.sentReplies[activePack.id] || []).map((body, index) => ({
       id: `local-${index}`,
       direction: "outbound" as const,
       body,
@@ -558,17 +658,55 @@ function conversations(pack: DemoScenarioPack, state: DemoState, selected: strin
     })),
   ].map((item) => ({
     id: item.id,
+    conversation_id: activePack.id,
     direction: item.direction,
     sender_email: item.direction === "inbound" ? contact.email : pack.tenant.founder.email,
     recipient_emails: [item.direction === "inbound" ? pack.tenant.founder.email : contact.email],
-    subject: active.subject,
+    subject: activePack.subject,
     body_text: item.body,
     status: "delivered",
     sent_at: item.direction === "outbound" ? item.at : null,
     received_at: item.direction === "inbound" ? item.at : null,
     created_at: item.at,
   }));
-  return { schemaReady: true, conversations: rows, stats, messages };
+  const lastInbound = [...messages].reverse().find((item) => item.direction === "inbound");
+  const inboundText = (lastInbound?.body_text || "").toLowerCase();
+  const suggestedReply = lastInbound
+    ? inboundText.includes("pricing") || inboundText.includes("cost")
+      ? {
+          intent: "pricing_inquiry",
+          body: "Hi there,\n\nThanks for reaching out regarding pricing. I can walk through the options this week.",
+          confidence: 0.9,
+        }
+      : {
+          intent: activePack.intent || "general_inquiry",
+          body: "Hi,\n\nThank you for your message. I have reviewed the request and will follow up shortly.",
+          confidence: 0.75,
+        }
+    : null;
+  const packTasks = pack.tasks
+    .filter((task) => task.personId === activePack.personId && task.status !== "completed")
+    .slice(0, 5)
+    .map((task) => ({
+      id: task.id,
+      title: task.title,
+      due_date: dateOffset(task.dueOffset),
+      status: task.status,
+    }));
+  const tasks = [...packTasks, ...(extraTasks[activePack.id] || [])];
+  const detail = {
+    contract: "revenue-os-conversations.v1",
+    conversation: activeRow,
+    messages,
+    contact: activeRow.contact,
+    company: null,
+    opportunity: activeRow.opportunity,
+    tasks,
+    activity: [],
+    suggestedReply,
+  };
+  const intents = [...new Set(rows.map((row) => row.intent).filter(Boolean))].sort();
+  return { schemaReady: true, conversations: filtered, stats, intents, detail, messages };
 }
 function analytics(pack: DemoScenarioPack, state: DemoState) {
   const rows = opportunityRows(pack, state);
@@ -2673,6 +2811,38 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         const id = String(body.conversationId);
         state.sentReplies[id] = [...(state.sentReplies[id] || []), String(body.body || "")];
       }
+      if (path === "/api/admin/revenue-os/conversations") {
+        const id = String(body.id || "");
+        if (id) {
+          const current = state.conversationOverrides[id] || {};
+          if (body.status) current.status = String(body.status);
+          if (body.assigneeEmail !== undefined) {
+            current.assignee =
+              body.assigneeEmail === "me" || body.assigneeEmail === pack.tenant.founder.email
+                ? pack.tenant.founder.email
+                : body.assigneeEmail
+                  ? String(body.assigneeEmail)
+                  : null;
+          }
+          if (body.opportunityId !== undefined) current.opportunityId = body.opportunityId
+            ? String(body.opportunityId)
+            : null;
+          state.conversationOverrides[id] = current;
+        }
+      }
+      if (path === "/api/admin/revenue-os/conversations/action") {
+        const id = String(body.conversationId || "");
+        if (id && body.actionType === "create_task" && body.taskTitle) {
+          state.conversationTasks[id] = [
+            ...(state.conversationTasks[id] || []),
+            {
+              id: `demo-task-${crypto.randomUUID()}`,
+              title: String(body.taskTitle),
+              due_date: body.taskDueDate ? String(body.taskDueDate) : null,
+            },
+          ];
+        }
+      }
       if (path === "/api/admin/notifications" && body.id)
         state.readNotifications.push(String(body.id));
       saveState(scenarioId, state);
@@ -2794,7 +2964,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         opportunities: opportunityRows(pack, state),
       });
     if (path === "/api/admin/revenue-os/conversations")
-      return jsonResponse(conversations(pack, state, url.searchParams.get("id")));
+      return jsonResponse(conversations(pack, state, url));
     if (path === "/api/admin/revenue-os/analytics") return jsonResponse(analytics(pack, state));
     if (path === "/api/admin/contacts/timeline") {
       const requestedEmail = (url.searchParams.get("email") || "").toLowerCase();
