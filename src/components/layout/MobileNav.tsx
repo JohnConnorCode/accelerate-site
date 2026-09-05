@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import type { CSSProperties } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { trackConversion } from "@/lib/analytics";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -24,6 +25,7 @@ const focusRing =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--fg)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]";
 
 export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
+  const pathname = usePathname();
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -42,9 +44,11 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
       if (e.key === "Tab") {
         const nav = closeButtonRef.current?.closest("nav");
         if (!nav) return;
-        const focusable = nav.querySelectorAll<HTMLElement>(
-          "a[href], button:not([disabled]), input:not([disabled])",
-        );
+        const focusable = Array.from(
+          nav.querySelectorAll<HTMLElement>(
+            "a[href], button:not([disabled]), input:not([disabled])",
+          ),
+        ).filter((element) => !element.closest("[inert]") && element.getClientRects().length > 0);
         if (focusable.length === 0) return;
         const first = focusable[0] as HTMLElement | undefined;
         const last = focusable[focusable.length - 1] as HTMLElement | undefined;
@@ -66,10 +70,11 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
 
   return (
     <div
+      id="mobile-site-navigation"
       data-open={isOpen ? "true" : "false"}
       aria-hidden={!isOpen}
       inert={!isOpen}
-      className="mobile-nav-overlay fixed inset-0 z-[100] lg:hidden"
+      className="mobile-nav-overlay fixed inset-0 z-[100] xl:hidden"
       style={{ backgroundColor: "var(--bg)" }}
     >
       <nav
@@ -77,7 +82,9 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
         aria-label="Mobile"
       >
         <div className="flex items-center justify-between pb-6">
-          <Logo size="sm" />
+          <div onClick={onClose}>
+            <Logo size="sm" />
+          </div>
           <button
             ref={closeButtonRef}
             onClick={onClose}
@@ -101,6 +108,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                 >
                   <button
                     onClick={() => setExpandedItem(expandedItem === link.label ? null : link.label)}
+                    aria-controls={`mobile-${link.label.toLowerCase().replaceAll(" ", "-")}`}
                     aria-expanded={expandedItem === link.label}
                     className={`group flex w-full items-center justify-between py-3.5 cursor-pointer ${focusRing}`}
                   >
@@ -120,6 +128,9 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                     </span>
                   </button>
                   <div
+                    id={`mobile-${link.label.toLowerCase().replaceAll(" ", "-")}`}
+                    inert={expandedItem !== link.label}
+                    aria-hidden={expandedItem !== link.label}
                     className="mobile-nav-children"
                     data-expanded={expandedItem === link.label ? "true" : "false"}
                   >
@@ -129,6 +140,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                           <div key={child.href}>
                             <Link
                               href={child.href}
+                              aria-current={pathname === child.href ? "page" : undefined}
                               onClick={onClose}
                               className={`block py-2.5 text-[1.02rem] text-[var(--mid)] transition-colors active:text-[var(--fg)] ${focusRing}`}
                             >
@@ -148,6 +160,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                 >
                   <Link
                     href={link.href}
+                    aria-current={pathname === link.href ? "page" : undefined}
                     onClick={onClose}
                     className={`group flex items-baseline gap-4 py-3.5 ${focusRing}`}
                   >

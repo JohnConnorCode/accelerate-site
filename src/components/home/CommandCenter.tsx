@@ -46,7 +46,7 @@ export function CommandCenter() {
               {marketingPositioning.commandCenter.description}
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.18} style={{ marginTop: 16 }}>
-              The live sandbox shows that integrated option. Clear the approval queue, open a
+              The fictional demo shows that integrated option. Clear the approval queue, open a
               workflow, or search the records.
             </Reveal>
           </div>
@@ -63,11 +63,23 @@ export function CommandCenter() {
           className="flex flex-wrap gap-x-6 gap-y-3"
           style={{ marginTop: "clamp(22px,2.6vw,32px)" }}
         >
-          <Link href="/command-center" className="ink-sweep text-[15.5px] text-[var(--fg)]">
+          <Link
+            href="/command-center"
+            className="ink-sweep inline-flex min-h-11 items-center gap-1 text-[15.5px] text-[var(--fg)]"
+          >
             Explore the Command Center <span aria-hidden="true">&rarr;</span>
           </Link>
-          <Link href="/demo/command-center" className="ink-sweep text-[15.5px] text-[var(--fg)]">
-            Try the full admin demo <span aria-hidden="true">&rarr;</span>
+          <Link
+            href="/demo/command-center"
+            className="ink-sweep inline-flex min-h-11 items-center gap-1 text-[15.5px] text-[var(--fg)]"
+          >
+            Try the full demo <span aria-hidden="true">&rarr;</span>
+          </Link>
+          <Link
+            href="/docs"
+            className="ink-sweep inline-flex min-h-11 items-center gap-1 text-[15.5px] text-[var(--fg)]"
+          >
+            Read the docs <span aria-hidden="true">&rarr;</span>
           </Link>
         </Reveal>
       </div>

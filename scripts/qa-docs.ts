@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
+import { navItems, footerLinks } from "../src/content/navigation";
 
 const base = process.env.DOCS_QA_URL ?? "http://localhost:3025";
 const output = process.env.DOCS_QA_OUTPUT ?? "/tmp/accelerate-docs-takeover-qa";
@@ -126,6 +127,139 @@ async function main() {
             () => !document.querySelector("main details")?.hasAttribute("open"),
           );
           checks.push("Mobile navigation closes after selecting a guide");
+        }
+      } finally {
+        await context.close();
+      }
+    }
+    // The docs must be discoverable through the real public site, not only direct URLs.
+    for (const width of [1440, 1024, 390]) {
+      const context = await browser.newContext({
+        viewport: { width, height: 1000 },
+        reducedMotion: width === 390 ? "reduce" : "no-preference",
+      });
+      try {
+        const page = await context.newPage();
+        page.on("pageerror", (error) => failures.push(error.message));
+        await page.goto(`${base}/docs`, { waitUntil: "domcontentloaded" });
+        if (width >= 1280) {
+          const nav = page.getByRole("navigation", { name: "Primary", exact: true });
+          const product = nav.getByRole("button", { name: "Command Center", exact: true });
+          await product.focus();
+          await product.press("Enter");
+          const submenu = nav.getByRole("group", { name: "Command Center submenu" });
+          await submenu.getByRole("link", { name: "Try the demo", exact: true }).waitFor();
+          await product.press("Tab");
+          assert.equal(await page.locator(":focus").getAttribute("href"), "/command-center");
+          await page.keyboard.press("Escape");
+          assert.equal(await product.getAttribute("aria-expanded"), "false");
+          assert.equal(await product.evaluate((el) => el === document.activeElement), true);
+          await product.click();
+          await submenu.waitFor({ state: "visible" });
+          await page.screenshot({ path: `${output}/${width}-public-submenu.png` });
+          await page.locator("main h1").click();
+          assert.equal(await product.getAttribute("aria-expanded"), "false");
+          const company = nav.getByRole("button", { name: "Company", exact: true });
+          await company.click();
+          await nav.getByRole("link", { name: "Team", exact: true }).click();
+          await page.waitForURL("**/team");
+          assert.equal(await company.getAttribute("aria-expanded"), "false");
+          checks.push(
+            "Desktop disclosures: keyboard, Escape focus, outside click, and route dismissal",
+          );
+        } else {
+          const trigger = page.getByRole("button", { name: "Open navigation menu" });
+          await trigger.click();
+          const mobile = page.getByRole("navigation", { name: "Mobile", exact: true });
+          const product = mobile.getByRole("button", { name: "Command Center", exact: true });
+          await product.click();
+          await mobile.getByRole("link", { name: "Try the demo", exact: true }).waitFor();
+          await page.screenshot({ path: `${output}/${width}-public-submenu.png` });
+          await product.click();
+          assert.equal(await page.locator("#mobile-command-center").getAttribute("inert"), "");
+          await product.press("Tab");
+          assert.equal(
+            await page
+              .locator(":focus")
+              .innerText()
+              .then((text) => text.includes("Industries")),
+            true,
+          );
+          await page.keyboard.press("Escape");
+          assert.equal(await trigger.evaluate((el) => el === document.activeElement), true);
+          await trigger.click();
+          await mobile.getByRole("link", { name: "Docs", exact: true }).click();
+          assert.equal(await trigger.getAttribute("aria-expanded"), "false");
+          await trigger.click();
+          await page.setViewportSize({ width: 1440, height: 1000 });
+          await page.waitForFunction(() => !document.body.dataset.mobileNavigation);
+          await page.setViewportSize({ width, height: 1000 });
+          checks.push(
+            `${width}: mobile submenu excludes collapsed links from Tab, restores focus, closes on navigation and resize`,
+          );
+        }
+        assert.equal(
+          await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
+          false,
+        );
+        for (const section of await page.locator("footer [data-footer-section]").all()) {
+          await section.scrollIntoViewIfNeeded();
+          await page.waitForFunction(
+            (element) => element && getComputedStyle(element).opacity === "1",
+            await section.elementHandle(),
+          );
+        }
+        await page.locator("footer").scrollIntoViewIfNeeded();
+        await page.locator("footer").screenshot({ path: `${output}/${width}-public-footer.png` });
+        await page
+          .locator("footer")
+          .getByRole("link", { name: "Documentation", exact: true })
+          .click();
+        await page.waitForURL("**/docs");
+        await page.goto(`${base}/`, { waitUntil: "domcontentloaded" });
+        const homeDocs = page
+          .locator("#command-center")
+          .getByRole("link", { name: "Read the docs" });
+        await homeDocs.scrollIntoViewIfNeeded();
+        await page.waitForFunction(() => {
+          const link = document.querySelector('#command-center a[href="/docs"]');
+          return link?.parentElement && getComputedStyle(link.parentElement).opacity === "1";
+        });
+        await page.screenshot({ path: `${output}/${width}-home-docs-link.png` });
+        await homeDocs.click();
+        await page.waitForURL("**/docs");
+        for (const [route, label, destination] of [
+          ["/command-center", "Read the docs", "/docs"],
+          ["/open-source", "Read the self-hosting docs", "/docs/self-hosting"],
+        ] as const) {
+          await page.goto(`${base}${route}`, { waitUntil: "domcontentloaded" });
+          await page.locator("main").getByRole("link", { name: label, exact: true }).click();
+          await page.waitForURL(`**${destination}`);
+        }
+        checks.push(
+          `${width}: footer, homepage, product overview, and open-source page lead into the docs`,
+        );
+        if (width === 1440) {
+          const links = [
+            ...navItems.flatMap((item) => item.children ?? [item]),
+            ...footerLinks.flatMap((group) => group.links),
+          ];
+          const documents = new Map<string, string>();
+          for (const href of new Set(links.map((link) => link.href))) {
+            const [path, hash] = href.split("#");
+            assert.ok(
+              path && path.startsWith("/"),
+              `Real navigation destination required: ${href}`,
+            );
+            if (!documents.has(path)) {
+              const response = await page.request.get(`${base}${path}`);
+              assert.equal(response.status(), 200, `Public link ${href}`);
+              documents.set(path, await response.text());
+            }
+            if (hash)
+              assert.ok(documents.get(path)?.includes(`id="${hash}"`), `Missing section ${href}`);
+          }
+          checks.push("All shared header/footer destinations return 200 and service anchors exist");
         }
       } finally {
         await context.close();

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { verticals } from "@/content/verticals";
+import { footerLinks as footerColumns } from "@/content/navigation";
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -47,53 +47,6 @@ function FooterSection({
     </div>
   );
 }
-
-// Derived from the vertical content, never hand-listed. The nonprofits page
-// shipped and stayed invisible for a day because this was a literal list of nine
-// that nobody remembered to extend, which is the same drift that had left
-// nonprofits out of the sitemap.
-const INDUSTRY_LINKS = verticals.map((vertical) => ({
-  label: vertical.name,
-  href: `/industries/${vertical.slug}`,
-}));
-
-const footerColumns = [
-  {
-    title: "Services",
-    links: [
-      { label: "AI Strategy & Roadmap", href: "/services#strategy" },
-      { label: "Workflow Automation", href: "/services#automation" },
-      { label: "Sales & Marketing", href: "/services#sales" },
-      { label: "Customer Engagement", href: "/services#engagement" },
-      { label: "Content Creation", href: "/services#content" },
-      { label: "Data & Reporting", href: "/services#reporting" },
-    ],
-  },
-  {
-    title: "Industries",
-    links: [...INDUSTRY_LINKS],
-  },
-  {
-    title: "Resources",
-    links: [
-      { label: "Free Downloads", href: "/resources" },
-      { label: "Learning Hub", href: "/learn" },
-      { label: "Documentation", href: "/docs" },
-    ],
-  },
-  {
-    title: "Company",
-    links: [
-      { label: "Work", href: "/work" },
-      { label: "About", href: "/about" },
-      { label: "Team", href: "/team" },
-      { label: "Partners", href: "/partners" },
-      { label: "Roadmap", href: "/roadmap" },
-      { label: "Changelog", href: "/changelog" },
-      { label: "Contact", href: "/contact" },
-    ],
-  },
-];
 
 export function Footer() {
   const pathname = usePathname();
@@ -144,9 +97,9 @@ export function Footer() {
       <SectionDivider variant="glow" />
 
       <div className="page-shell py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-10 lg:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8">
           {/* Brand Column */}
-          <FooterSection index={0} className="lg:col-span-2">
+          <FooterSection index={0} className="sm:col-span-2 lg:col-span-5">
             <Logo className="mb-4" />
             <p className="text-white-secondary text-sm leading-relaxed mb-6 max-w-sm">
               AI systems for small businesses. We find where it fits, build it, and run it.
@@ -173,14 +126,14 @@ export function Footer() {
 
           {/* Link Columns */}
           {footerColumns.map((col, i) => (
-            <FooterSection key={col.title} index={i + 1}>
-              <h3 className="text-sm font-semibold text-white-primary mb-4">{col.title}</h3>
-              <ul className="space-y-2.5">
+            <FooterSection key={col.heading} index={i + 1}>
+              <h3 className="text-sm font-semibold text-white-primary mb-4">{col.heading}</h3>
+              <ul aria-label={`${col.heading} links`}>
                 {col.links.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-sm text-white-muted hover:text-white-primary transition-colors"
+                      className="inline-flex min-h-10 items-center py-2 text-sm text-white-muted hover:text-white-primary transition-colors"
                     >
                       {link.label}
                     </Link>

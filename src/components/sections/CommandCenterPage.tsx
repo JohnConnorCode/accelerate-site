@@ -155,7 +155,13 @@ function Hero() {
                 data-cursor="link"
                 className="text-sm font-medium text-[var(--mid)] underline-offset-4 transition-colors hover:text-[var(--fg)] hover:underline"
               >
-                Explore the live demo
+                Try the fictional demo
+              </Link>
+              <Link
+                href="/docs"
+                className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--mid)] underline-offset-4 transition-colors hover:text-[var(--fg)] hover:underline"
+              >
+                Read the docs
               </Link>
             </div>
           </div>
