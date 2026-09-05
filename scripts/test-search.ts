@@ -181,7 +181,7 @@ async function main() {
     ["first developer change", "/docs/extend/first-change"],
     ["EADDRINUSE", "/docs/start/troubleshooting"],
     ["SUPABASE_DB_HOST", "/docs/self-hosting/installation"],
-  ]) {
+  ] as const) {
     const results = searchEntries(
       index.filter((entry) => entry.group === "Docs"),
       query,
