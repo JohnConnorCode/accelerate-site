@@ -118,7 +118,8 @@ export async function verifySalesQualificationHandoff() {
     const result = await run(f);
     assert.equal(result.status, "completed");
     assert.equal(calls, 2);
-    assert.ok(result.runId);
+    assert.ok("runId" in result);
+    assert.equal(result.runId, f.db.rows("agent_runs")[0]!.id);
     assert.equal(drafts(f.db).length, 1);
     const child = drafts(f.db)[0]!;
     assert.equal(child.tenant_id, f.wi.tenant_id);
