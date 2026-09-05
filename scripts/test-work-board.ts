@@ -230,7 +230,7 @@ async function main() {
         assert.equal((await denied.json()).result.isError, true);
         const output = execFileSync(
           "npx",
-          ["tsx", "scripts/agent-dispatch.ts", "next", "--card", b.id, "--no-worktree"],
+          ["tsx", "scripts/agent-dispatch.ts", "next", "--card", b.id, "--no-worktree", "--json"],
           {
             encoding: "utf8",
             env: {

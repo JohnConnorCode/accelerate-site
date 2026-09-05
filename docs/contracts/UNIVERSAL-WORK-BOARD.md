@@ -104,3 +104,23 @@ lease fencing, dependency cycles/readiness, evidence, reviewer authority, projec
 scope, revocation and immutable history. Browser QA covers desktop/mobile,
 light/dark, keyboard and reduced motion. Demo uses the same admin page and a
 session-local transport; no provider or protected platform writes are allowed.
+
+## Execution packet v2
+
+`work_spec.packetVersion=2` adds explicit northstar phase/layers/contribution,
+currentBehavior, failureModes, optional blockerResolution and resume handoff.
+Acceptance IDs and verification commands declare local, controlled-integration,
+production or observation environments. Submission must supply passing evidence in
+each acceptance item's required environment. Historical submissions remain intact.
+
+Features and bugs cannot be claimed with an incomplete packet. The SQL readiness
+function reports missing/invalid fields consistently to UI, HTTP, MCP and CLI.
+Lists paginate in the same order as claims: Now, Next, Later; priority; board order;
+stable ID. Readiness and horizon are separate: eligible Later cards remain Later.
+Initiatives are never claimed. Explicit reviewer acceptance is permitted only when
+all their declared child prerequisites have verified status; no automatic roll-up
+writes or automatic merge/deployment claims occur.
+
+The additive `20260907-work-packet-quality.sql` migration does not enable the
+production write-enforcement switch. Old deployed writers remain a documented
+release dependency until the founder-authorized protocol deployment is complete.

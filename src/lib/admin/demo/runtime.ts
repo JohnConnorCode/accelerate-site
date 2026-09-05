@@ -1,3 +1,4 @@
+import { demoPacketProblems } from "../../work-packet";
 import { KANBAN_DEFAULT_COLUMNS } from "@/lib/kanban/defaults";
 import { isKanbanBoardKey } from "@/lib/kanban/types";
 import type { FeatureRequest } from "@/lib/feature-board";
@@ -1632,6 +1633,10 @@ function featureBoard(pack: DemoScenarioPack, state: DemoState) {
       };
       const deps = result.dependencies ?? [];
       const readiness = [
+        ...(result.work_kind === "initiative" ? ["initiative_not_executable"] : []),
+        ...(["feature", "bug"].includes(result.work_kind)
+          ? demoPacketProblems(result.work_spec)
+          : []),
         ...(!["backlog", "planned"].includes(result.status) ? [`status:${result.status}`] : []),
         ...(!result.description ? ["missing_outcome"] : []),
         ...(!result.acceptance_criteria ? ["missing_acceptance"] : []),
@@ -2268,17 +2273,58 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       else if (operation === "progress") {
         /* Event only. */
       } else if (operation === "submit") {
-        const evidence = p.evidence as { checks?: { status: string; evidence: string }[] };
+        const evidence = p.evidence as {
+          checks?: {
+            status: string;
+            evidence: string;
+            acceptanceId?: string;
+            environment?: string;
+          }[];
+        };
         if (
           !evidence?.checks?.length ||
           evidence.checks.some((c) => c.status !== "passed" || !c.evidence)
         )
           return jsonResponse({ error: "Passing evidence required" }, 400);
+        const acceptance = (current!.work_spec?.acceptance ?? []) as {
+          id: string;
+          environment?: string;
+        }[];
+        if (
+          current!.work_spec?.packetVersion === 2 &&
+          acceptance.some(
+            (a) =>
+              !evidence.checks?.some(
+                (c) => c.acceptanceId === a.id && c.environment === a.environment,
+              ),
+          )
+        )
+          return jsonResponse(
+            {
+              error:
+                "Every acceptance criterion requires passing evidence in its required environment",
+            },
+            400,
+          );
         patch.status = "in_review";
         patch.work_delivery = p.evidence as Record<string, unknown>;
       } else if (operation === "review") {
-        if (current!.status !== "in_review")
-          return jsonResponse({ error: "Submitted work required" }, 409);
+        if (
+          current!.status !== "in_review" &&
+          !(
+            current!.work_kind === "initiative" &&
+            ["backlog", "planned", "blocked"].includes(current!.status)
+          )
+        )
+          return jsonResponse({ error: "Submitted work or initiative required" }, 409);
+        if (
+          current!.work_kind === "initiative" &&
+          (!current!.dependencies?.length || current!.readiness.includes("dependencies_incomplete"))
+        )
+          return jsonResponse(
+            { error: "Initiative requires verified children before review" },
+            409,
+          );
         patch.status = p.accept ? "shipped" : "planned";
       } else if (operation === "recover") {
         if (

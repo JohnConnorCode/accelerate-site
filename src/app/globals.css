@@ -6985,6 +6985,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 .admin-read-body,
 .admin-content-stack {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: clamp(1.25rem, 1.6vw, 1.5rem);
   min-width: 0;
 }

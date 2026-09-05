@@ -1,4 +1,5 @@
 "use client";
+import { NORTHSTAR_PHASES } from "@/lib/work-packet";
 import { useState } from "react";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { fetchJson } from "@/lib/admin/fetchJson";
@@ -11,20 +12,25 @@ export type WorkFilters = {
   ownerFilter: string;
   priority: string;
   queue: string;
+  phase?: string;
+  initiative?: string;
 };
 export const WORK_QUEUES = [
   { key: "all", label: "All work" },
   { key: "ready", label: "Ready to claim" },
+  { key: "specification", label: "Needs specification" },
   { key: "blocked", label: "Blocked" },
   { key: "review", label: "Needs review" },
   { key: "stale", label: "Expired claims" },
-  { key: "unmerged", label: "Verified · merge unrecorded" },
+  { key: "unmerged", label: "Awaiting integration / proof" },
 ];
 export function WorkViews({
   filters,
   onChange,
+  initiatives = [],
 }: {
   filters: WorkFilters;
+  initiatives?: string[];
   onChange: (filters: WorkFilters) => void;
 }) {
   const query = useAdminQuery<{
@@ -61,6 +67,46 @@ export function WorkViews({
           </button>
         ))}
       </div>
+      <div className="flex flex-wrap gap-3">
+        <label className="flex min-w-0 flex-1 flex-col gap-2 text-xs">
+          North star phase
+          <select
+            aria-label="North star phase"
+            value={filters.phase ?? "all"}
+            onChange={(e) => onChange({ ...filters, phase: e.target.value })}
+            className="min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3"
+          >
+            <option value="all">All phases</option>
+            {Object.entries(NORTHSTAR_PHASES).map(([key, name]) => (
+              <option key={key} value={key}>
+                {key} · {name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex min-w-0 flex-1 flex-col gap-2 text-xs">
+          Initiative
+          <select
+            aria-label="Initiative"
+            value={filters.initiative ?? "all"}
+            onChange={(e) => onChange({ ...filters, initiative: e.target.value })}
+            className="min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3"
+          >
+            <option value="all">All initiatives</option>
+            {initiatives.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      {filters.queue === "unmerged" && (
+        <p className="text-xs text-[var(--admin-muted)]">
+          Delivery evidence is unrecorded. Inspect historical receipts before assuming work is
+          unmerged or undeployed.
+        </p>
+      )}
       <details>
         <summary className="min-h-10 cursor-pointer py-2 text-xs font-semibold">
           Saved views and sharing

@@ -8,6 +8,7 @@ import {
 } from "./feature-backlog-data.mjs";
 import { collectFeatureBoardIntegrityFailures } from "./lib/feature-board-graph.mjs";
 import { collectWiringFailures } from "./verify-wiring.mjs";
+import { validateSnapshot } from "./verify-backlog-snapshot.mjs";
 import { buildPlanIsInSync } from "./generate-northstar-build-plan.mjs";
 
 const requiredFiles = [
@@ -25,6 +26,10 @@ const requiredFiles = [
   "src/lib/revenue-os/README.md",
 ];
 const failures = [];
+if (existsSync("docs/planning/backlog-snapshot.json"))
+  failures.push(
+    ...validateSnapshot(JSON.parse(readFileSync("docs/planning/backlog-snapshot.json", "utf8"))),
+  );
 
 for (const file of requiredFiles) {
   if (!existsSync(file)) failures.push(`Missing agent contract file: ${file}`);
@@ -196,8 +201,13 @@ for (const key of waveExtensionKeys) {
     failures.push(`Wave-sequenced card is missing from the manifest: ${key}`);
     continue;
   }
-  if (!referencedWaveKeys.includes(key))
-    failures.push(`Wave-sequenced card is not sequenced in the program waves doc: ${key}`);
+  // Priority is live-owned; prose must not repeat a second hand-maintained ordering.
+  const snapshotPath = "docs/planning/backlog-snapshot.json";
+  if (
+    existsSync(snapshotPath) &&
+    !JSON.parse(readFileSync(snapshotPath, "utf8")).features.some((c) => c.seed_key === key)
+  )
+    failures.push(`Historical wave card is missing from the dated board inventory: ${key}`);
 }
 for (const key of [
   "microsoft-365-workspace-parity",
@@ -292,7 +302,10 @@ console.log(
     {
       contract: "revenue-os-agent-contract.v1",
       files: requiredFiles.length,
-      cards: featureBacklog.length,
+      templateCards: featureBacklog.length,
+      snapshotCards: existsSync("docs/planning/backlog-snapshot.json")
+        ? JSON.parse(readFileSync("docs/planning/backlog-snapshot.json", "utf8")).features.length
+        : null,
       statuses,
       result: "passed",
     },

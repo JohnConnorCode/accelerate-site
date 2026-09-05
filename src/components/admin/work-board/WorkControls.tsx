@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { readableReason } from "@/lib/work-packet";
+import { useEffect, useState } from "react";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { toast } from "@/lib/admin/useToast";
 import type { FeatureRequest } from "@/lib/feature-board";
@@ -49,12 +50,34 @@ export function WorkControls({
     | null
   >(null);
   const [dependencies, setDependencies] = useState(feature.dependencies ?? []);
+  const [packetJson, setPacketJson] = useState(JSON.stringify(feature.work_spec ?? {}, null, 2));
   const [scope, setScope] = useState(((feature.work_spec?.scope as string[]) ?? []).join("\n"));
   const [verification, setVerification] = useState(
-    ((feature.work_spec?.verification as { command: string; expected: string }[]) ?? [])
-      .map((c) => `${c.command} | ${c.expected}`)
+    (
+      (feature.work_spec?.verification as {
+        command: string;
+        expected: string;
+        environment?: string;
+      }[]) ?? []
+    )
+      .map((c) => `${c.command} | ${c.environment ?? "local"} | ${c.expected}`)
       .join("\n"),
   );
+  useEffect(() => {
+    setPacketJson(JSON.stringify(feature.work_spec ?? {}, null, 2));
+    setScope(((feature.work_spec?.scope as string[]) ?? []).join("\n"));
+    setVerification(
+      (
+        (feature.work_spec?.verification as {
+          command: string;
+          expected: string;
+          environment?: string;
+        }[]) ?? []
+      )
+        .map((v) => `${v.command} | ${v.environment ?? "local"} | ${v.expected}`)
+        .join("\n"),
+    );
+  }, [feature.work_spec]);
   const key = `work-claim:${feature.id}`;
   const run = async (operation: string, payload: Record<string, unknown> = {}) => {
     setBusy(true);
@@ -93,7 +116,7 @@ export function WorkControls({
       </div>
       <p className="text-sm">
         {feature.readiness?.length
-          ? feature.readiness.join(" · ").replaceAll("_", " ")
+          ? feature.readiness.map(readableReason).join(" · ")
           : planning
             ? "Ready to claim"
             : feature.status.replaceAll("_", " ")}
@@ -183,7 +206,7 @@ export function WorkControls({
             Reopen for planning
           </button>
         )}
-        {feature.status === "in_review" && (
+        {(feature.status === "in_review" || (feature.work_kind === "initiative" && planning)) && (
           <>
             <button
               type="button"
@@ -223,8 +246,8 @@ export function WorkControls({
               />
             </label>
             <p className="text-xs">
-              For structured acceptance, use acceptance ID | check name | evidence. Cover every
-              acceptance ID in the implementation contract.
+              For structured acceptance, use acceptance ID | environment | check name | evidence.
+              Cover every acceptance ID in the implementation contract.
             </p>
             <button
               type="button"
@@ -241,9 +264,11 @@ export function WorkControls({
                       .map((line) => {
                         const parts = line.split("|");
                         const acceptanceId = parts.length >= 3 ? parts.shift()!.trim() : undefined;
+                        const environment = parts.length >= 3 ? parts.shift()!.trim() : undefined;
                         const name = parts.shift() ?? "";
                         return {
                           ...(acceptanceId ? { acceptanceId } : {}),
+                          ...(environment ? { environment } : {}),
                           name: name.trim(),
                           status: "passed",
                           evidence: parts.join("|").trim(),
@@ -301,6 +326,38 @@ export function WorkControls({
         {feature.work_spec?.businessValue != null && (
           <p className="mb-3 text-sm">{String(feature.work_spec.businessValue)}</p>
         )}
+        {feature.work_spec?.northstar != null && (
+          <p className="mb-3 text-xs text-[var(--admin-muted)]">
+            North star phase {String((feature.work_spec.northstar as { phase: string }).phase)} ·{" "}
+            {feature.initiative}
+          </p>
+        )}
+        {(
+          [
+            ["currentBehavior", "Current behavior"],
+            ["exclusions", "Out of scope"],
+            ["workflow", "Execution steps"],
+            ["failureModes", "Failure and recovery"],
+            ["blockerResolution", "How to unblock"],
+          ] as const
+        ).map(([key, label]) => {
+          const value = feature.work_spec?.[key];
+          if (!value) return null;
+          return (
+            <section key={key} className="mb-4">
+              <h4 className="mb-2 text-xs font-semibold">{label}</h4>
+              {Array.isArray(value) ? (
+                <ol className="list-decimal space-y-1 pl-5 text-xs">
+                  {value.map((v, i) => (
+                    <li key={i}>{String(v)}</li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="text-xs">{String(value)}</p>
+              )}
+            </section>
+          );
+        })}
         <label className="block text-xs">
           Scope — one item per line
           <textarea
@@ -311,7 +368,7 @@ export function WorkControls({
           />
         </label>
         <label className="mt-3 block text-xs">
-          Verification — command | expected result
+          Verification — command | environment | expected result
           <textarea
             className={field}
             disabled={!planning}
@@ -320,13 +377,20 @@ export function WorkControls({
           />
         </label>
         <ol className="my-3 space-y-2 text-xs">
-          {((feature.work_spec?.acceptance as { id: string; criterion: string }[]) ?? []).map(
-            (item) => (
-              <li key={item.id}>
-                <strong>{item.id}</strong> — {item.criterion}
-              </li>
-            ),
-          )}
+          {(
+            (feature.work_spec?.acceptance as {
+              id: string;
+              criterion: string;
+              environment?: string;
+            }[]) ?? []
+          ).map((item) => (
+            <li key={item.id}>
+              <strong>{item.id}</strong> — {item.criterion}{" "}
+              <span className="text-[var(--admin-muted)]">
+                ({item.environment ?? "environment unspecified"})
+              </span>
+            </li>
+          ))}
         </ol>
         {((feature.work_spec?.references as { path: string; reason: string }[]) ?? []).map(
           (ref) => (
@@ -334,6 +398,45 @@ export function WorkControls({
               <code>{ref.path}</code> — {ref.reason}
             </p>
           ),
+        )}
+        {planning && (
+          <details className="my-4">
+            <summary className="min-h-11 cursor-pointer py-3 text-xs font-semibold">
+              Edit full execution packet
+            </summary>
+            <p className="mb-2 text-xs text-[var(--admin-muted)]">
+              Use the versioned packet to set the north star outcome, repository base, references,
+              steps, recovery and acceptance environments. Missing fields remain visible in Needs
+              specification.
+            </p>
+            <label className="block text-xs">
+              Execution packet JSON
+              <textarea
+                aria-label="Execution packet JSON"
+                className={`${field} min-h-64 font-mono text-xs`}
+                value={packetJson}
+                onChange={(e) => setPacketJson(e.target.value)}
+                spellCheck={false}
+              />
+            </label>
+            <button
+              type="button"
+              className={`${button} mt-3`}
+              disabled={busy}
+              onClick={() => {
+                try {
+                  const parsed: unknown = JSON.parse(packetJson);
+                  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
+                    throw new Error("Packet must be an object");
+                  void run("edit", { work_spec: parsed });
+                } catch {
+                  toast.error("Enter valid JSON before saving the execution packet.");
+                }
+              }}
+            >
+              Save full packet
+            </button>
+          </details>
         )}
         {planning && (
           <button
@@ -349,9 +452,10 @@ export function WorkControls({
                     .split("\n")
                     .filter(Boolean)
                     .map((line) => {
-                      const [command, ...expected] = line.split("|");
+                      const [command, environment, ...expected] = line.split("|");
                       return {
                         command: (command ?? "").trim(),
+                        environment: (environment ?? "local").trim(),
                         expected: expected.join("|").trim(),
                       };
                     }),

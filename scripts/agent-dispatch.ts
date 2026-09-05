@@ -1,5 +1,6 @@
 #!/usr/bin/env tsx
 /** Scoped HTTP adapter. No database credentials, implicit force, or worktree deletion. */
+import { compareWorkOrder, formatWorkPacket, workPacket } from "../src/lib/work-packet";
 import type { FeatureRequest } from "../src/lib/feature-board";
 import { randomBytes, randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
@@ -53,27 +54,25 @@ async function main() {
       card = (await request(`?id=${flags.card}`)).features[0];
     if (!card) throw new Error("Card not found in this credential's project scope");
   }
-  if (command === "status") {
-    let offset: number | null = 0;
-    while (offset !== null) {
-      const result = await request(`?offset=${offset}&limit=250`);
-      console.log(
-        JSON.stringify(
-          result.features.map((c: Record<string, unknown>) => ({
-            id: c.id,
-            key: c.seed_key,
-            title: c.title,
-            status: c.status,
-            readiness: c.readiness,
-            revision: c.revision,
-            lease: c.lease_expires_at,
-          })),
-          null,
-          2,
-        ),
-      );
-      offset = result.nextOffset;
+  if (command === "status" || command === "show") {
+    const cards: FeatureRequest[] = [];
+    if (card) cards.push(card);
+    else {
+      let offset: number | null = 0;
+      while (offset !== null) {
+        const result = await request(`?offset=${offset}&limit=250`);
+        cards.push(...result.features);
+        offset = result.nextOffset;
+      }
     }
+    cards.sort(compareWorkOrder);
+    if (flags.json) console.log(JSON.stringify(cards.map(workPacket), null, 2));
+    else if (card || command === "show") console.log(cards.map(formatWorkPacket).join("\n\n"));
+    else
+      for (const c of cards)
+        console.log(
+          `${c.seed_key ?? c.id} | ${c.status} | ${c.title}\n  ${(c.readiness ?? []).join(", ") || "Prerequisites and contract ready"}`,
+        );
   } else if (command === "next") {
     const requestKey = flags["request-key"] ?? randomUUID();
     const pendingPath = resolve(sessionDir, `pending-${requestKey}.json`);
@@ -117,7 +116,7 @@ async function main() {
         execFileSync("git", ["worktree", "add", "-b", branch, path, base], { stdio: "inherit" });
       console.log(`Worktree: ${path}`);
     }
-    console.log(JSON.stringify(card, null, 2));
+    console.log(flags.json ? JSON.stringify(workPacket(card!), null, 2) : formatWorkPacket(card!));
   } else {
     if (!card) throw new Error("--card is required");
     const sessionPath = resolve(sessionDir, `${card.id}.json`);

@@ -9,6 +9,10 @@ import { mutateWorkBoard, listWorkBoard, type WorkActor } from "../src/lib/reven
 async function main() {
   const args = process.argv.slice(2);
   const value = (flag: string) => args[args.indexOf(flag) + 1];
+  if (args.includes("--plan") && !args.includes("--apply") && !args.includes("--cards"))
+    throw new Error(
+      "Template proposals require --cards <stable keys>. Use a live export for a reviewed whole-board audit; templates cannot implicitly redefine every card.",
+    );
   const db = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,

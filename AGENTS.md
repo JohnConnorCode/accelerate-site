@@ -34,8 +34,8 @@ operator recovery. There is no force bypass.
 
 1. `docs/NORTHSTAR.md` for the platform vision: agent-native business runtime,
    Coworkers, WorkItems, capability graph, autonomy ladder, and implementation phases.
-2. The claimed card in `/admin/features` and its matching entry in
-   `scripts/feature-backlog-data.mjs`.
+2. The live card and its structured execution packet. Git templates are historical
+   references, not permission to overwrite a newer live specification.
 3. `docs/contributing/AGENT-TICKET-RUNBOOK.md` for the pickup, execution, evidence, and handoff
    procedure.
 4. `docs/contracts/FEATURE-BOARD-TAXONOMY.md` before adding, relabeling, promoting, or
@@ -58,6 +58,16 @@ operator recovery. There is no force bypass.
 
 Run `npm run verify:agent-contract` before implementation. If it fails, repair
 the contract or card detail before changing product behavior.
+
+## Inspect before claiming
+
+`npm run agent:show -- --card <key>` prints the live packet without claiming.
+Add `--json` for machine-readable output. A feature or bug must have an explicit
+north star outcome, current gap, scope, exclusions, references, ordered steps,
+recovery cases, repository base and acceptance-linked verification environments.
+The service reports missing contract fields instead of claiming incomplete work.
+`npm run backlog:snapshot` explicitly refreshes the dated report input; ordinary
+verification is offline and does not rewrite live work or shared source files.
 
 ## One operating path
 

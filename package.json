@@ -205,7 +205,12 @@
     "qa:founder-notes": "node --env-file=.env.local scripts/qa-founder-note.mjs",
     "test:work-board": "npx tsx --env-file=.env.local scripts/test-work-board.ts",
     "agent:progress": "npx tsx scripts/agent-dispatch.ts progress",
-    "agent:block": "npx tsx scripts/agent-dispatch.ts block"
+    "agent:block": "npx tsx scripts/agent-dispatch.ts block",
+    "agent:show": "npx tsx scripts/agent-dispatch.ts show",
+    "backlog:audit": "npx tsx scripts/audit-backlog.ts",
+    "backlog:snapshot": "npx tsx --env-file=.env.local scripts/snapshot-backlog.ts",
+    "test:work-packet": "npx tsx --env-file=.env.local scripts/test-work-packet.ts",
+    "verify:backlog": "node scripts/verify-backlog-snapshot.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

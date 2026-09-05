@@ -171,3 +171,17 @@ After explicit release authorization:
 
 Escalate when safe recovery needs new authority, destructive action, a new
 provider, real customer contact, or production data mutation beyond the card.
+
+## Execution packet and phase proof
+
+Inspect `agent:show -- --card <key>` before claim; `--json` exposes the same packet
+for any agent client. Verification checks identify their acceptance ID and exact
+`environment`: local, controlled-integration, production or observation. A passing
+local test cannot satisfy a production or observation acceptance item. Partial
+proof belongs in progress evidence, not a successful submission.
+
+Features and bugs need a complete packet before claim. Initiatives cannot be
+claimed; review their verified children before accepting the aggregate. Frozen
+active/submitted specifications require release or review resolution before edits.
+Prioritize useful business journeys across parallel phases; preserve the six-card
+WIP limit, lease fencing and the separate integration/release records.

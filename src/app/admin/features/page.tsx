@@ -1,6 +1,7 @@
 "use client";
 
 import { WorkAgents } from "@/components/admin/work-board/WorkAgents";
+import { needsSpecification } from "@/lib/work-packet";
 import { WorkViews, type WorkFilters } from "@/components/admin/work-board/WorkViews";
 import { WorkControls, sendWork } from "@/components/admin/work-board/WorkControls";
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -770,6 +771,8 @@ export default function FeaturesPage() {
   const [view, setView] = useKanbanView("features");
   const [saving, setSaving] = useState(false);
   const [queue, setQueue] = useState("all");
+  const [phase, setPhase] = useState("all");
+  const [initiative, setInitiative] = useState("all");
   const [search, setSearch] = useState("");
   const [priority, setPriority] = useState<"all" | FeaturePriority>(() => {
     const stored = readStoredFilters()?.priority;
@@ -793,6 +796,8 @@ export default function FeaturesPage() {
         : "all",
     );
     setQueue(filters.queue ?? "all");
+    setPhase(filters.phase ?? "all");
+    setInitiative(filters.initiative ?? "all");
   }, []);
   useEffect(() => {
     try {
@@ -888,6 +893,13 @@ export default function FeaturesPage() {
   const filtered = useMemo(
     () =>
       features.filter((feature) => {
+        if (queue === "specification" && !needsSpecification(feature)) return false;
+        if (
+          phase !== "all" &&
+          (feature.work_spec?.northstar as { phase?: string } | undefined)?.phase !== phase
+        )
+          return false;
+        if (initiative !== "all" && feature.initiative !== initiative) return false;
         if (queue === "ready" && (!feature.readiness || feature.readiness.length > 0)) return false;
         if (queue === "blocked" && feature.status !== "blocked" && !feature.work_blocker)
           return false;
@@ -900,7 +912,12 @@ export default function FeaturesPage() {
           return false;
         if (
           queue === "unmerged" &&
-          (feature.status !== "shipped" || feature.work_delivery?.mergedAt)
+          (feature.status !== "shipped" ||
+            (feature.work_delivery?.mergedAt &&
+              (!(feature.work_spec?.acceptance as { environment?: string }[] | undefined)?.some(
+                (a) => a.environment === "production",
+              ) ||
+                feature.work_delivery?.deployedAt)))
         )
           return false;
         if (priority !== "all" && feature.priority !== priority) return false;
@@ -940,9 +957,22 @@ export default function FeaturesPage() {
             .includes(term)
         );
       }),
-    [capability, category, features, milestone, ownerFilter, priority, search, queue],
+    [
+      capability,
+      category,
+      features,
+      milestone,
+      ownerFilter,
+      priority,
+      search,
+      queue,
+      phase,
+      initiative,
+    ],
   );
   const filtersActive = Boolean(
+    phase !== "all" ||
+    initiative !== "all" ||
     queue !== "all" ||
     search.trim() ||
     priority !== "all" ||
@@ -1061,6 +1091,8 @@ export default function FeaturesPage() {
 
   const clearFilters = () => {
     setQueue("all");
+    setPhase("all");
+    setInitiative("all");
     setSearch("");
     setPriority("all");
     setMilestone(DEFAULT_MILESTONE_FILTER);
@@ -1230,6 +1262,11 @@ export default function FeaturesPage() {
               </section>
               <AdminSurface padding="sm">
                 <WorkViews
+                  initiatives={[
+                    ...new Set(
+                      features.map((f) => f.initiative).filter((v): v is string => Boolean(v)),
+                    ),
+                  ].sort()}
                   filters={{
                     search,
                     milestone,
@@ -1238,6 +1275,8 @@ export default function FeaturesPage() {
                     ownerFilter,
                     priority,
                     queue,
+                    phase,
+                    initiative,
                   }}
                   onChange={applyFilters}
                 />
