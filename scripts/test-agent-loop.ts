@@ -25,7 +25,10 @@ import { ACCELERATE_TENANT_ID } from "../src/lib/tenancy/context";
 process.env.OPENROUTER_API_KEY = "sk-or-v1-test-key-not-real";
 
 type Row = Record<string, unknown>;
-type Sent = { messages: Array<{ role: string; content?: string }> };
+type Sent = {
+  tools: Array<{ function: { name: string } }>;
+  messages: Array<{ role: string; content?: string }>;
+};
 
 const realFetch = globalThis.fetch;
 let sent: Sent[] = [];
@@ -305,6 +308,161 @@ async function main() {
     "the caller must receive the staged proposals so the approval surface can reflect them",
   );
 
+  // Discover a different domain from an opportunity page, activate on the next
+  // turn, and stage through the real registry. A same-turn jump is refused.
+  sent = [];
+  const crossDomain = stubSupabase();
+  const calls = [
+    { name: "propose_founder_note", args: { body: "Must not be written" } },
+    { name: "discover_tool_bundles", args: { query: "founder note" } },
+    { name: "activate_tool_bundle", args: { bundleId: "core-command:1" } },
+    { name: "propose_founder_note", args: { body: "Follow up on the reviewed customer plan" } },
+  ];
+  stubOpenRouter((turn) => ({
+    id: `cross-${turn}`,
+    model: "stub/model",
+    choices: [
+      {
+        message: {
+          role: "assistant",
+          content: "Working with registered tools.",
+          tool_calls:
+            turn < calls.length
+              ? [
+                  {
+                    id: `cross-call-${turn}`,
+                    type: "function",
+                    function: {
+                      name: calls[turn]!.name,
+                      arguments: JSON.stringify(calls[turn]!.args),
+                    },
+                  },
+                ]
+              : undefined,
+        },
+      },
+    ],
+  }));
+  const crossResult = await runRevenueCommandAgent(
+    bindTenantDatabaseForTest(crossDomain.client, ACCELERATE_TENANT_ID),
+    "test@acceleratewith.us",
+    [{ role: "user", content: "Record a founder note about the customer plan" }],
+    {
+      pageContext: {
+        pathname: "/admin/pipeline",
+        entity: { type: "opportunity", id: "00000000-0000-0000-0000-000000000001" },
+      },
+    },
+  );
+  assert.ok(sent.every((request) => request.tools.length <= 40));
+  assert.ok(!sent[0]!.tools.some((tool) => tool.function.name === "propose_founder_note"));
+  assert.ok(sent[3]!.tools.some((tool) => tool.function.name === "propose_founder_note"));
+  assert.match(
+    sent[1]!.messages.find((message) => message.role === "tool")!.content!,
+    /not loaded/,
+  );
+  assert.ok(
+    sent[2]!.messages.some(
+      (message) =>
+        message.role === "tool" &&
+        message.content?.includes('"bundles"') &&
+        message.content.includes("core-command:1"),
+    ),
+  );
+  const noteWrites = crossDomain.writes.filter(
+    (write) => write.table === "action_queue" && write.op === "insert",
+  );
+  assert.equal(noteWrites.length, 1);
+  // The insert relies on action_queue's pending database default; no approval is written.
+  assert.equal(noteWrites[0]!.payload.status, undefined);
+  assert.deepEqual(crossResult.proposedActions, ["propose_founder_note"]);
+  assert.equal(
+    crossDomain.writes.filter(
+      (write) =>
+        ![
+          "agent_runs",
+          "agent_run_events",
+          "action_queue",
+          "audit_log",
+          "ai_usage_events",
+        ].includes(write.table),
+    ).length,
+    0,
+  );
+
+  // Failed proposal attempts cannot be reported as staged on turn exhaustion.
+  sent = [];
+  const refused = stubSupabase();
+  stubOpenRouter((turn) => ({
+    id: `refused-${turn}`,
+    model: "stub/model",
+    choices: [
+      {
+        message: {
+          role: "assistant",
+          content: "",
+          tool_calls: [
+            {
+              id: `refused-call-${turn}`,
+              type: "function",
+              function: {
+                name: "propose_founder_note",
+                arguments: JSON.stringify({ body: "Unavailable" }),
+              },
+            },
+          ],
+        },
+      },
+    ],
+  }));
+  const refusedResult = await runAgent(refused.client);
+  assert.deepEqual(refusedResult.proposedActions, []);
+  assert.equal(refused.writes.filter((write) => write.table === "action_queue").length, 0);
+
+  // Live disablement after activation removes the tool before the next call.
+  sent = [];
+  const liveTenant = {
+    id: ACCELERATE_TENANT_ID,
+    slug: "accelerate",
+    status: "active",
+    config: { modules: { campaigns: true } },
+  };
+  const changing = stubSupabase({ tenants: [liveTenant] });
+  stubOpenRouter((turn) => {
+    if (turn === 1) liveTenant.config.modules.campaigns = false;
+    const name = turn === 0 ? "activate_tool_bundle" : "propose_campaign_activation";
+    const args = turn === 0 ? { bundleId: "campaigns:1" } : { campaignId: "campaign-test" };
+    return {
+      id: `disable-${turn}`,
+      model: "stub/model",
+      choices: [
+        {
+          message: {
+            role: "assistant",
+            content: "",
+            tool_calls: [
+              {
+                id: `disable-call-${turn}`,
+                type: "function",
+                function: { name, arguments: JSON.stringify(args) },
+              },
+            ],
+          },
+        },
+      ],
+    };
+  });
+  const changingResult = await runAgent(changing.client);
+  assert.ok(sent[1]!.tools.some((tool) => tool.function.name === "propose_campaign_activation"));
+  assert.ok(!sent[2]!.tools.some((tool) => tool.function.name === "propose_campaign_activation"));
+  assert.ok(
+    sent[2]!.messages.some(
+      (message) => message.role === "tool" && message.content?.includes("disabled"),
+    ),
+  );
+  assert.deepEqual(changingResult.proposedActions, []);
+  assert.equal(changing.writes.filter((write) => write.table === "action_queue").length, 0);
+
   // ---- The transcript is bounded -----------------------------------------
 
   // A snapshot big enough to blow the context window if it were re-sent whole on
@@ -376,6 +534,9 @@ async function main() {
           "staged-proposals-named",
           "transcript-bounded",
           "tool-receipt-provenance",
+          "cross-domain-discovery-activation-pending-proposal",
+          "unadvertised-calls-refuse-without-false-staging",
+          "live-disablement-after-activation-refuses",
         ],
         result: "passed",
       },

@@ -190,6 +190,8 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
       "/admin/branding",
     ],
     aiToolNames: [
+      "discover_tool_bundles",
+      "activate_tool_bundle",
       "get_module_configuration",
       "preview_module_configuration",
       "propose_module_configuration",

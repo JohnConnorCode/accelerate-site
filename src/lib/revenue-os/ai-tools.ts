@@ -1,4 +1,11 @@
 import "server-only";
+import { tenantIdForDatabase } from "@/lib/supabase/server";
+import {
+  ALWAYS_LOADED_AI_TOOLS,
+  TOOL_DISCOVERY_METADATA,
+  buildToolBundles,
+  rankToolBundles,
+} from "./ai-tool-bundles";
 import {
   MODULE_CONTROL_TOOLS,
   MODULE_CONTROL_TOOL_NAMES,
@@ -343,7 +350,58 @@ export function assertImpactHonoured(tool: AiToolRegistration, output: unknown):
   }
 }
 
+const discoveryInput = z
+  .object({
+    query: z.string().trim().max(200).default(""),
+    offset: z.number().int().min(0).max(10000).default(0),
+  })
+  .strict();
+const activationInput = z.object({ bundleId: z.string().min(1).max(160) }).strict();
 const registry: AiToolRegistration[] = [
+  {
+    ...TOOL_DISCOVERY_METADATA[0],
+    inputSchema: z.toJSONSchema(discoveryInput, { io: "input" }),
+    outputSchema: {
+      type: "object",
+      required: ["bundles", "total"],
+      properties: { bundles: { type: "array" }, total: { type: "number" } },
+    },
+    execute: async (context, raw) => {
+      const input = discoveryInput.parse(raw);
+      const fresh = await refreshRevenueToolContext(context);
+      const ranked = rankToolBundles(availableRevenueToolBundles(fresh), input.query);
+      const bundles = ranked.slice(input.offset, input.offset + 8);
+      return {
+        bundles,
+        total: ranked.length,
+        nextOffset:
+          input.offset + bundles.length < ranked.length ? input.offset + bundles.length : null,
+        activationScope: "current_command_run",
+        grantsApproval: false,
+      };
+    },
+  },
+  {
+    ...TOOL_DISCOVERY_METADATA[1],
+    inputSchema: z.toJSONSchema(activationInput),
+    outputSchema: {
+      type: "object",
+      required: ["activeBundleId", "toolNames"],
+      properties: { activeBundleId: { type: "string" }, toolNames: { type: "array" } },
+    },
+    execute: async (context, raw) => {
+      const { bundleId } = activationInput.parse(raw);
+      const fresh = await refreshRevenueToolContext(context);
+      const bundle = availableRevenueToolBundles(fresh).find((b) => b.bundleId === bundleId);
+      if (!bundle) throw new Error("Unknown or unavailable tool bundle");
+      return {
+        activeBundleId: bundle.bundleId,
+        toolNames: bundle.toolNames,
+        activationScope: "current_command_run",
+        grantsApproval: false,
+      };
+    },
+  },
   {
     ...MODULE_CONTROL_TOOLS[0],
     inputSchema: z.toJSONSchema(moduleReadSchema),
@@ -1914,6 +1972,7 @@ const registry: AiToolRegistration[] = [
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    ...TOOL_DISCOVERY_METADATA.map((tool) => tool.name),
     ...BRANDING_TOOL_NAMES,
     ...MODULE_CONTROL_TOOL_NAMES,
     ...COLLECTION_AGENT_TOOL_NAMES,
@@ -1954,6 +2013,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "propose_founder_note",
   ],
   pipeline: [
+    ...TOOL_DISCOVERY_METADATA.map((tool) => tool.name),
     ...BRANDING_TOOL_NAMES,
     ...MODULE_CONTROL_TOOL_NAMES,
     "get_today_snapshot",
@@ -1979,6 +2039,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "propose_stage_change",
   ],
   outreach: [
+    ...TOOL_DISCOVERY_METADATA.map((tool) => tool.name),
     ...BRANDING_TOOL_NAMES,
     ...MODULE_CONTROL_TOOL_NAMES,
     ...COLLECTION_AGENT_TOOL_NAMES,
@@ -2076,4 +2137,50 @@ export async function executeRegisteredRevenueTool(
   validateToolOutput(tool.name, tool.outputSchema, output);
   assertImpactHonoured(tool, output);
   return { output, tool };
+}
+
+/** Refresh live module state without broadening an explicit caller restriction. */
+export async function refreshRevenueToolContext(context: AiToolContext): Promise<AiToolContext> {
+  const tenantId = tenantIdForDatabase(context.supabase);
+  if (!tenantId) throw new Error("Tenant-bound tool context required");
+  const { data, error } = await context.supabase
+    .from("tenants")
+    .select("config,status")
+    .eq("id", tenantId)
+    .maybeSingle();
+  if (error || data?.status !== "active") throw new Error("Active tool workspace unavailable");
+  const modules = { ...(data.config?.modules ?? {}) };
+  for (const [id, enabled] of Object.entries(context.tenantConfig?.modules ?? {})) {
+    if (enabled === false) modules[id] = false;
+  }
+  return { ...context, tenantConfig: { modules } };
+}
+export function availableRevenueToolBundles(
+  context?: Pick<AiToolContext, "toolPack" | "tenantConfig">,
+) {
+  const available = new Set(
+    listRevenueAiCapabilities(context)
+      .filter((t) => t.available)
+      .map((t) => t.name),
+  );
+  return buildToolBundles(REVENUE_OS_MODULES, registry)
+    .map((bundle) => ({
+      ...bundle,
+      toolNames: bundle.toolNames.filter((name) => available.has(name)),
+    }))
+    .filter((bundle) => bundle.toolNames.length > 0);
+}
+/** One small core plus one bounded bundle. Recomputed each turn; no permission cache. */
+export function toActivatedOpenRouterTools(
+  bundleId: string | null,
+  context?: Pick<AiToolContext, "toolPack" | "tenantConfig">,
+): OpenRouterTool[] {
+  const bundle = availableRevenueToolBundles(context).find((b) => b.bundleId === bundleId);
+  const names = new Set<string>([...ALWAYS_LOADED_AI_TOOLS, ...(bundle?.toolNames ?? [])]);
+  return registry
+    .filter((tool) => names.has(tool.name) && availabilityFor(tool, context).available)
+    .map(({ name, description, inputSchema }) => ({
+      type: "function",
+      function: { name, description, parameters: inputSchema },
+    }));
 }

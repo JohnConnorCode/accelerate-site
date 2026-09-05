@@ -223,6 +223,22 @@ npm run build
 module registered entirely from a manifest. It ships disabled, so it stays out
 of a real workspace until someone turns it on.
 
+## Command-agent tool discovery
+
+Declare every registered tool in exactly one module's `aiToolNames`. The command
+agent derives bundles from those declarations; plugin authors do not maintain
+another discovery map. `discover_tool_bundles` searches module metadata and tool
+names, and `activate_tool_bundle` loads one bundle alongside eight common tools.
+Large modules are split automatically, keeping each model turn at 40 tools or fewer.
+Run `npm run test:ai-tool-discovery` to verify ownership, reachability and bounds.
+
+Activation applies to the current command run and takes effect on its next turn.
+It grants no permission or approval. The host checks the advertised tool set and
+refreshes active tenant/module state before dispatch. Existing explicit MCP tool
+pack restrictions remain in force. Cross-run activation restoration is not yet
+implemented; the next run can discover the same tools again. Business changes
+still require their existing typed proposal, human approval and canonical executor.
+
 ## Capability data boundary
 
 `capability-data-api.ts` is a host-only adapter, not a tool whose grant fields an agent may fill in. The host must resolve the authenticated tenant database and approved capability declaration. All four data operations refuse unbound clients or a different tenant in the grant. No grant, tenant ID, table, or readable-field declaration may be taken from plugin arguments.

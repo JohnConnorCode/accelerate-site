@@ -1,3 +1,4 @@
+import { TOOL_DISCOVERY_METADATA } from "@/lib/revenue-os/ai-tool-bundles";
 import { MODULE_CONTROL_TOOLS } from "@/lib/revenue-os/module-actions-contract";
 import { BRANDING_TOOLS } from "@/lib/revenue-os/branding-actions-contract";
 import { AI_TOOL_REGISTRY_VERSION } from "@/lib/revenue-os/ai-tool-contract";
@@ -1395,7 +1396,7 @@ function aiCapabilities(tenantConfig: { modules: Partial<Record<string, boolean>
     ],
   ];
   rows.push(
-    ...[...BRANDING_TOOLS, ...MODULE_CONTROL_TOOLS].map(
+    ...[...BRANDING_TOOLS, ...MODULE_CONTROL_TOOLS, ...TOOL_DISCOVERY_METADATA].map(
       (t) =>
         [
           t.name,

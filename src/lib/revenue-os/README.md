@@ -174,3 +174,11 @@ projections in `module-configuration-read.ts`. Approval and direct admin writes
 reuse `updateModuleConfigurationAsAdmin`; its existing CAS service checks an AI
 proposal's target revision before bundled-source registration or config updates.
 Module management stays core-owned even when the target plugin is disabled.
+
+`ai-tool-bundles.ts` derives bounded, run-scoped tool bundles from canonical module
+ownership. `ai-tools.ts` exposes read-only discovery/activation in AI and MCP;
+`ai-agent.ts` loads one bundle plus the small core and verifies advertised tools
+and current module enablement at dispatch. Legacy explicit MCP pack restrictions
+remain authoritative. No bundle can approve a business change. See
+`test:ai-tool-discovery`, `test:agent-loop` and the admin/AI parity contract for
+coverage and the remaining durable conversation-activation work.
