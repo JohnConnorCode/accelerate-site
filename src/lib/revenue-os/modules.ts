@@ -84,6 +84,13 @@ export interface RevenueOSModule {
   docsUrl?: string;
   /** Configurable values rendered by ModuleSettingsForm. Never secrets. */
   settings?: ModuleSettingField[];
+  /** Isolated workflow prepares host-validated actions for approval. */
+  workflow?: {
+    version: 1;
+    inputSchema: Record<string, unknown>;
+    actions: string[];
+    sources: { name: string; type: string; columns: string[]; inputKey: string }[];
+  };
   /** Bounded, read-only isolate report. Code is compiled server-only. */
   report?: { version: 1; sources: { name: string; type: string; columns: string[] }[] };
 }
@@ -174,8 +181,14 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     category: "system",
     isCore: true,
     defaultEnabled: true,
-    navLinkIds: ["tenants", "setup", "features", "settings"],
-    routes: ["/admin/tenants", "/admin/setup", "/admin/features", "/admin/settings"],
+    navLinkIds: ["tenants", "setup", "features", "settings", "branding"],
+    routes: [
+      "/admin/tenants",
+      "/admin/setup",
+      "/admin/features",
+      "/admin/settings",
+      "/admin/branding",
+    ],
     aiToolNames: [
       "get_claimable_work",
       "get_workspace_capabilities",

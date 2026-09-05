@@ -430,9 +430,43 @@ function card({
 
 export const featureBacklog = [
   card({
-    key: "bundled-report-plugins",
+    key: "business-workflow-plugin-exemplars",
+    evidence:
+      "Local implementation complete for all acceptance items: three default-off QuickJS business workflow plugins share bounded manifest schemas, selected canonical identity, activation checks, approval queue and domain execution across UI and AI. Stripe tenant-encrypted connection and rotation, exact-money review, separate send approval, partial checkpoint and same-operation retry are verified against controlled provider fixtures; no live provider acceptance is claimed. Onboarding and meeting plans create assigned dated canonical tasks with replay protection and live completion controls. Shared workspace branding supports hosted logo replacement/removal, business identity, validated contrast, live preview and revision-safe saves. AI presentation drafts retain authoritative Stripe facts and durable AI traces; customer pages require approval, store encrypted revocable links and revalidate live billing facts. Full test:core, disposable PostgreSQL migration twice/RLS/composite references/uniqueness/immutable publication/revocation tests, typecheck, strict lint, formatting, module checks, production build and diff checks pass. Desktop 1440x1000 and mobile 390x844 browser journeys cover logo/color/reset/contrast, invoice partial failure/retry/send/design/publication/revocation, assigned onboarding/completion, public invoice SSR, keyboard, reduced motion and no overflow or console errors; screenshots opened and reviewed. Production dependency audit reports zero vulnerabilities. Contributor documentation records contracts, setup and limits. Work preserved on isolated agent/plugin-data-boundary-hardening branch; production migration/deployment and real Stripe sandbox validation remain rollout work. No customer sends, charges or production configuration were performed.",
     owner: "codex-foundations",
-    status: "in_progress",
+    status: "shipped",
+    title: "Deliver actionable invoicing, onboarding and meeting workflow plugins",
+    workstream: "platform",
+    phase: 6,
+    priority: "high",
+    description:
+      "Founder correction: report-only examples do not prove a business command center. Build substantive optional plugins that prepare concrete business actions, accept editable inputs, obtain approval through the shared queue, execute through existing domain services and preserve durable results. Start with Stripe invoicing, then won-deal onboarding and meeting commitments.",
+    acceptance: [
+      "Stripe credentials remain tenant-scoped and encrypted; invoice drafts, explicit sending and provider status use a fixed Stripe adapter with bounded requests and truthful test/live receipts",
+      "Invoice amounts, customer identity, line items and send recipients are reviewed and revalidated before execution; retries retain operation identity and never silently change an uncertain external effect into success",
+      "Workspace branding provides logo replacement/removal, validated colors, business identity, live document preview and conflict-safe saves; invoice designs consume the shared brand rather than fork configuration",
+      "AI-assisted invoice page designs remain bounded presentation drafts with authoritative billing facts, preview and explicit publication, tenant isolation and revocable customer access",
+      "Won-deal onboarding produces a dated delivery checklist linked to the canonical opportunity; meeting commitments produce reviewable follow-up tasks linked to the stored meeting",
+      "Bundled workflow manifests declare input contracts, permitted actions and scoped context; plugin business logic runs inside QuickJS, with shared auth, activation, approval and execution services",
+      "Turning a plugin off blocks fresh proposals and queued execution, while preserving existing records and history",
+      "The product exposes editable workflow inputs, preview, approval, actual results, partial failure and safe recovery; UI and AI use the same host",
+      "Controlled provider fixtures and real isolate/domain tests prove business outcomes, replay, cross-tenant refusal, malformed inputs, provider errors and disabled states; browser QA, strict lint, typecheck and build pass",
+    ],
+    dependencies: ["Prove the plugin runtime with four switchable business reports"],
+    start:
+      "docs/NORTHSTAR.md; report-plugins.ts; plugin-isolate.ts; actions.ts; action-executor.ts; integration-adapters.ts; tasks.ts; entity-registry.ts; extensions/*.module.json; current Stripe API documentation.",
+    guardrails:
+      "Explicit founder authorization adds invoicing beyond the separate read-only Stripe reconciliation card. Reuse module activation, approved action queue, domain services, tenant encryption and existing schemas wherever possible. No live customer sends, charges, refunds, production configuration, migration or deployment during verification. Missing provider credentials limit real sandbox proof; distinguish deterministic provider fixtures from real Stripe receipts. Do not present report scaffolds as the requested business power.",
+    labels: ["config", "integrations"],
+    verification:
+      "Real QuickJS and controlled domain/provider tests; approval/replay/partial-failure tests; tenant and disabled-plugin gates; desktop/mobile Playwright with opened screenshots, keyboard and console checks; verify:agent-contract; typecheck; strict lint; format:check; build; git diff --check.",
+  }),
+  card({
+    key: "bundled-report-plugins",
+    evidence:
+      "Local plumbing proof completed: four optional report manifests, compiled QuickJS code, tenant-scoped read grants, shared workbench and generated AI tools. Real isolate tests prove tenant/disabled gates, malformed output, timeouts, missing sources, empty/truncated results, concurrent configuration and failed receipts. Core tests, runtime module/pack verification, typecheck, strict lint, formatting and production build pass. Playwright 1440x1000 and 390x844 verifies all four toggles, keyboard, stale-result removal and error retry with zero console errors; screenshots opened and corrected theme contrast. Sources require explicit host setup; no production setup/deploy. Founder correctly rejected these reports as sufficient business exemplars: they remain optional substrate tests, while substantive invoicing/onboarding/meeting workflows continue in follow-up.",
+    owner: "codex-foundations",
+    status: "shipped",
     title: "Prove the plugin runtime with four switchable business reports",
     workstream: "platform",
     phase: 6,
@@ -1501,10 +1535,11 @@ export const featureBacklog = [
   }),
   card({
     key: "de-vertical-inbound",
+    owner: "claude-code:johnconnor:9960",
     title: "Turn the roofing ingestion path into a configurable playbook",
     workstream: "foundation",
     phase: 2,
-    status: "planned",
+    status: "in_progress",
     priority: "high",
     description:
       "Replace the vertical-specific inbound capture function with one generic qualification path that takes an industry playbook as data, so roofing becomes one configuration entry instead of an exported code path that every future installation inherits.",
@@ -1558,10 +1593,11 @@ export const featureBacklog = [
   }),
   card({
     key: "command-palette-tools",
+    owner: "claude-code:johnconnor:41088",
     title: "Connect the command palette to real Revenue OS actions",
     workstream: "admin",
     phase: 3,
-    status: "planned",
+    status: "in_progress",
     priority: "medium",
     description:
       "Make search and commands navigate records, create tasks/opportunities, compose messages, open setup actions, and invoke safe AI reads.",
@@ -2155,10 +2191,11 @@ export const featureBacklog = [
 
   card({
     key: "proposal-lifecycle-service",
+    owner: "claude-code:johnconnor:9960",
     title: "Complete the proposal lifecycle and version rules",
     workstream: "proposals",
     phase: 3,
-    status: "planned",
+    status: "in_progress",
     priority: "high",
     description:
       "Control draft, sent, viewed, accepted, declined, expired, and superseded states with linked contact, company, and opportunity.",
@@ -2754,6 +2791,7 @@ export const featureBacklog = [
   }),
   card({
     key: "ai-model-job-registry",
+    owner: "claude-code:johnconnor:97666",
     title: "Route every AI job through an audited model registry",
     workstream: "ai",
     phase: 4,
@@ -3159,8 +3197,8 @@ export const featureBacklog = [
   }),
   card({
     key: "system-health-report",
-    owner: "claude-code:johnconnor:26718",
-    status: "planned",
+    owner: "claude-code:johnconnor:9960",
+    status: "in_progress",
     title: "Build the system-health report and freshness thresholds",
     workstream: "operations",
     phase: 4,
@@ -3769,6 +3807,8 @@ export const featureBacklog = [
   }),
   card({
     key: "booking-mode-contract-reconciliation",
+    owner: "claude-code:johnconnor:9960",
+    status: "in_progress",
     title: "Reconcile booking activation and health truth",
     workstream: "integrations",
     phase: 2,

@@ -117,7 +117,9 @@ try {
     });
     await page.goto(base + "/admin/plugins", { waitUntil: "domcontentloaded" });
     await page.getByRole("heading", { name: "Plugins", exact: true }).waitFor();
-    const cards = page.locator("[data-plugin]");
+    const cards = page
+      .locator("[data-plugin]")
+      .filter({ has: page.getByRole("button", { name: "Run report", exact: true }) });
     await cards
       .first()
       .getByRole("button", { name: /^Enable / })

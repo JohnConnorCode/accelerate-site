@@ -7,6 +7,7 @@ import {
   validateModuleSettingsInput,
   type ModuleSettingsConfig,
 } from "./modules";
+import { ensureBundledPluginSources } from "./bundled-plugin-sources";
 import { recordAudit } from "./audit";
 export type ModuleConfigurationChange =
   { moduleId: string; enabled: boolean } | { moduleId: string; settings: Record<string, unknown> };
@@ -26,6 +27,7 @@ export async function updateModuleConfiguration(
   const validated =
     "settings" in change ? validateModuleSettingsInput(change.moduleId, change.settings) : null;
   if (validated && !validated.valid) throw new Error(validated.error);
+  if ("enabled" in change && change.enabled) await ensureBundledPluginSources(db, change.moduleId);
   for (let attempt = 0; attempt < 3; attempt++) {
     const { data, error } = await db
       .from("tenants")

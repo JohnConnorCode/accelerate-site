@@ -28,7 +28,7 @@
     "format:check": "prettier --check .",
     "verify:oss": "node scripts/verify-open-source-readiness.mjs",
     "test:open-source-stats": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-open-source-stats.ts",
-    "test:core": "npm run test:admin-demo-contract && npm run test:admin-breadcrumbs && npm run test:tenant-config && npm run test:tenant-isolation && npm run test:secret-storage && npm run test:admin-layout && npm run test:plugin-modules && npm run test:plugin-isolate && npm run test:route-gating && npm run test:integration-adapter-registry && npm run test:entity-registry && npm run test:capability-data-api && npm run test:action-execution && npm run test:mcp-server && npm run test:runtime-consolidation && npm run test:ai-tool-gates && npm run test:report-plugins",
+    "test:core": "npm run test:admin-demo-contract && npm run test:admin-breadcrumbs && npm run test:tenant-config && npm run test:tenant-isolation && npm run test:secret-storage && npm run test:admin-layout && npm run test:plugin-modules && npm run test:plugin-isolate && npm run test:route-gating && npm run test:integration-adapter-registry && npm run test:entity-registry && npm run test:capability-data-api && npm run test:action-execution && npm run test:mcp-server && npm run test:runtime-consolidation && npm run test:ai-tool-gates && npm run test:report-plugins && npm run test:stripe-workflow && npm run test:business-workflows",
     "verify:articles": "npx tsx scripts/verify-articles.ts",
     "deploy:check": "vercel whoami && vercel teams ls",
     "deploy:pull": "vercel pull --yes --environment=production",
@@ -198,7 +198,10 @@
     "test:runtime-postgres": "node scripts/test-runtime-postgres.mjs",
     "plugins:setup": "NODE_OPTIONS=--conditions=react-server npx tsx --env-file=.env.local scripts/setup-report-sources.ts",
     "test:report-plugins": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-report-plugins.ts",
-    "test:report-plugins-browser": "node --env-file=.env.local scripts/qa-report-plugins.mjs"
+    "test:report-plugins-browser": "node --env-file=.env.local scripts/qa-report-plugins.mjs",
+    "test:stripe-workflow": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-stripe-workflow.ts",
+    "test:business-workflows": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-workflow-business-outcomes.ts",
+    "test:plugin-workflow-postgres": "node scripts/test-plugin-workflow-postgres.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -214,6 +217,7 @@
     "@supabase/ssr": "^0.12.5",
     "@supabase/supabase-js": "^2.112.3",
     "@tanstack/react-query": "^5.102.8",
+    "ajv": "8.20.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.43.0",
     "gray-matter": "^4.0.3",

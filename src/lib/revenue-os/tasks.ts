@@ -1,4 +1,5 @@
 import "server-only";
+import { tenantIdForDatabase } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { recordAudit } from "./audit";
 import { recordActivity } from "./activities";
@@ -18,6 +19,7 @@ export async function createRevenueTask(
   input: {
     title: string;
     description?: string | null;
+    assigneeUserId?: string | null;
     dueDate?: string | null;
     dueTime?: string | null;
     priority?: "high" | "medium" | "low";
@@ -32,6 +34,18 @@ export async function createRevenueTask(
 ) {
   const title = input.title.trim();
   if (!title) throw new Error("Task title is required");
+  if (input.assigneeUserId) {
+    if (!tenantIdForDatabase(supabase))
+      throw new Error("Assignment requires a tenant-bound workspace");
+    const { data: member, error: memberError } = await supabase
+      .from("tenant_memberships")
+      .select("user_id")
+      .eq("user_id", input.assigneeUserId)
+      .eq("status", "active")
+      .maybeSingle();
+    if (memberError || !member)
+      throw new Error("Task assignee must be an active member of this workspace");
+  }
   if (input.dedupeKey) {
     const { data: existing, error } = await supabase
       .from("tasks")
@@ -46,6 +60,7 @@ export async function createRevenueTask(
     .from("tasks")
     .insert({
       title,
+      ...(input.assigneeUserId ? { assigned_to: input.assigneeUserId } : {}),
       description: input.description || null,
       due_date: input.dueDate || null,
       due_time: input.dueTime || null,

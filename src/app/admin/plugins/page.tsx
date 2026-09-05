@@ -10,7 +10,9 @@ import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { REVENUE_OS_MODULES } from "@/lib/revenue-os/modules";
 import type { PluginReport } from "@/lib/revenue-os/report-plugins";
-const plugins = REVENUE_OS_MODULES.filter((module) => module.report);
+const plugins = REVENUE_OS_MODULES.filter(
+  (moduleDef) => moduleDef.report || moduleDef.workflow,
+).sort((a, b) => Number(Boolean(b.workflow)) - Number(Boolean(a.workflow)));
 const button =
   "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:opacity-50 disabled:cursor-not-allowed";
 export default function PluginsPage() {
@@ -60,7 +62,7 @@ export default function PluginsPage() {
     <div className="space-y-6 pb-10">
       <PageHeader
         title="Plugins"
-        subtitle="Small capabilities that do useful work with your workspace records."
+        subtitle="Business workflows connected to your customers, approvals, and systems."
         actions={
           <AdminLink href="/admin/integrations" className={button}>
             Manage integrations
@@ -83,9 +85,9 @@ export default function PluginsPage() {
               <div>
                 <h2 className="font-semibold">Enable what your business needs</h2>
                 <p className="admin-copy mt-2 max-w-3xl text-sm leading-6">
-                  Run a report when you need it. These plugins inspect up to 100 records per source
-                  and show the evidence behind each finding. They do not send messages or change
-                  your business records.
+                  Enable a workflow, review its proposed work, then approve the action. Every plugin
+                  uses workspace permissions and records its results. Disabling a workflow blocks
+                  new execution while preserving history.
                 </p>
               </div>
             </div>
@@ -122,7 +124,9 @@ export default function PluginsPage() {
                   data-plugin={plugin.id}
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <p className="admin-eyebrow">Workspace report</p>
+                    <p className="admin-eyebrow">
+                      {plugin.workflow ? "Business workflow" : "Read-only runtime example"}
+                    </p>
                     <span className="text-xs font-medium">{enabled ? "Enabled" : "Disabled"}</span>
                   </div>
                   <h2 className="mt-3 text-lg font-semibold text-balance">{plugin.name}</h2>
@@ -137,15 +141,23 @@ export default function PluginsPage() {
                     >
                       {enabled ? "Disable" : "Enable"}
                     </button>
-                    <button
-                      type="button"
-                      className={`${button} bg-[var(--admin-ink)] text-[var(--admin-surface)]`}
-                      disabled={!enabled || !!busy}
-                      onClick={() => void perform(plugin.id, enabled, true)}
-                    >
-                      <Play aria-hidden="true" className="size-3.5" />
-                      {busy === plugin.id ? "Working…" : "Run report"}
-                    </button>
+                    {plugin.workflow ? (
+                      enabled && (
+                        <AdminLink className={button} href={plugin.routes?.[0] || "/admin/plugins"}>
+                          Open workflow
+                        </AdminLink>
+                      )
+                    ) : (
+                      <button
+                        type="button"
+                        className={`${button} bg-[var(--admin-ink)] text-[var(--admin-surface)]`}
+                        disabled={!enabled || !!busy}
+                        onClick={() => void perform(plugin.id, enabled, true)}
+                      >
+                        <Play aria-hidden="true" className="size-3.5" />
+                        {busy === plugin.id ? "Working…" : "Run report"}
+                      </button>
+                    )}
                   </div>
                   {enabled && report && (
                     <div

@@ -18,12 +18,12 @@
 | Phase                                                      | Backlog | Planned | In progress | Blocked | Shipped | Total |
 | ---------------------------------------------------------- | ------- | ------- | ----------- | ------- | ------- | ----- |
 | A — A (Complete Loop One — See + Remember)                 | 0       | 0       | 0           | 1       | 18      | 19    |
-| B — B (Agent Runtime foundation — Notice + Act primitives) | 21      | 20      | 0           | 4       | 34      | 79    |
-| C — C (Reference coworker — Sales end-to-end loop)         | 20      | 5       | 0           | 1       | 10      | 36    |
+| B — B (Agent Runtime foundation — Notice + Act primitives) | 20      | 17      | 4           | 4       | 34      | 79    |
+| C — C (Reference coworker — Sales end-to-end loop)         | 20      | 4       | 1           | 1       | 10      | 36    |
 | D — D (Plugin SDK + MCP)                                   | 5       | 3       | 0           | 1       | 13      | 22    |
-| E — E (Additional coworkers/plugins + documentation)       | 40      | 5       | 1           | 0       | 10      | 56    |
+| E — E (Additional coworkers/plugins + documentation)       | 40      | 5       | 0           | 0       | 12      | 57    |
 
-**Board total:** 86 backlog, 33 planned, 1 in progress, 7 blocked, 85 shipped (212 managed cards).
+**Board total:** 85 backlog, 29 planned, 5 in progress, 7 blocked, 87 shipped (213 managed cards).
 
 ## Dispatchable now (`npm run agent:next` picks from this set)
 
@@ -35,16 +35,11 @@
 - `feature-board-interaction-rebuild` [high] — Rebuild Feature Board drag, details, and mobile interaction
 - `additional-tools-canonical-parity` [high] — Modernize and canonically integrate every additional admin tool
 - `gmail-reply-actions` [high] — Finish reply, local archive, and follow-up actions in Conversations
-- `de-vertical-inbound` [high] — Turn the roofing ingestion path into a configurable playbook
-- `command-palette-tools` [medium] — Connect the command palette to real Revenue OS actions
-- `proposal-lifecycle-service` [high] — Complete the proposal lifecycle and version rules
-- `api-contract-tests` [high] — Add authenticated API contract and failure tests
 - `ai-model-job-registry` [medium] — Route every AI job through an audited model registry
-- `system-health-report` [high] — Build the system-health report and freshness thresholds
-- `booking-mode-contract-reconciliation` [high] — Reconcile booking activation and health truth
-- `stage-history-analytics-reconciliation` [high] — Reconcile analytics with canonical stage history
+- `api-contract-tests` [high] — Add authenticated API contract and failure tests
 - `unified-action-executor` [high] — Route every write through one executor with reversibility and compensators
 - `plugin-isolate-host` [high] — Run plugin code in an isolate with no ambient authority
+- `stage-history-analytics-reconciliation` [high] — Reconcile analytics with canonical stage history
 - `operating-goals-scorecards` [high] — Add operating goals and scorecards
 - `won-to-delivery-handoff` [high] — Create the won-to-delivery handoff
 - `governed-bulk-operator-actions` [medium] — Add governed bulk operator actions
@@ -59,7 +54,11 @@
 
 ## In progress
 
-- `bundled-report-plugins` — Prove the plugin runtime with four switchable business reports (codex-foundations)
+- `de-vertical-inbound` — Turn the roofing ingestion path into a configurable playbook (claude-code:johnconnor:9960)
+- `command-palette-tools` — Connect the command palette to real Revenue OS actions (claude-code:johnconnor:41088)
+- `proposal-lifecycle-service` — Complete the proposal lifecycle and version rules (claude-code:johnconnor:9960)
+- `system-health-report` — Build the system-health report and freshness thresholds (claude-code:johnconnor:9960)
+- `booking-mode-contract-reconciliation` — Reconcile booking activation and health truth (claude-code:johnconnor:9960)
 
 ## Blocked
 

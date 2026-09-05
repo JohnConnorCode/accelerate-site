@@ -1,11 +1,8 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { tenantIdForDatabase } from "@/lib/supabase/server";
-import { MODULE_MAP, isModuleEnabled } from "./modules";
 import { EXTENSION_REPORTS } from "./extension-reports.generated";
-import { queryCapabilityEntities } from "./capability-data-api";
-import { getEntityType } from "./entity-registry";
+import { requireEnabledPlugin, loadPluginSources } from "./plugin-host";
 import { evaluateInIsolate, type PluginJsonValue } from "./plugin-isolate";
 import { startAgentRun, finishAgentRun } from "./agent-trace";
 
@@ -47,23 +44,9 @@ export async function runReportPlugin(
   pluginId: string,
   actorEmail: string,
 ): Promise<PluginReport> {
-  const tenantId = tenantIdForDatabase(db);
-  if (!tenantId) throw new Error("A tenant-bound host is required");
-  const moduleDef = MODULE_MAP.get(pluginId);
+  const { moduleDef } = await requireEnabledPlugin(db, pluginId);
   const source = Object.hasOwn(EXTENSION_REPORTS, pluginId) ? EXTENSION_REPORTS[pluginId] : null;
-  if (!moduleDef?.report || !source) throw new Error("Unknown report plugin");
-  const checkEnabled = async () => {
-    const { data, error } = await db
-      .from("tenants")
-      .select("config,status")
-      .eq("id", tenantId)
-      .maybeSingle();
-    if (error || !data) throw new Error("Workspace configuration could not be read");
-    if (data.status !== "active") throw new Error("Workspace is not active");
-    if (!isModuleEnabled(pluginId, data.config))
-      throw new Error("Plugin is disabled. Enable it in Plugins or Integrations.");
-  };
-  await checkEnabled();
+  if (!moduleDef.report || !source) throw new Error("Unknown report plugin");
   const run = await startAgentRun(db, {
     surface: "plugin_report",
     model: "deterministic-plugin-v1",
@@ -73,39 +56,12 @@ export async function runReportPlugin(
   });
   if (!run.id) throw new Error("Could not open a plugin run receipt");
   try {
-    const grant = {
-      tenantId,
-      capabilityId: pluginId,
-      entities: moduleDef.report.sources.map((s) => s.type),
-      recipes: [],
-      namespace: false,
-    };
     const now = new Date().toISOString();
-    let inspectedRows = 0;
-    let truncated = false;
-    const snapshots: Record<string, Record<string, unknown>[]> = Object.create(null);
-    for (const declared of moduleDef.report.sources) {
-      const type = await getEntityType(db, tenantId, declared.type);
-      const readable = type?.metadata?.readable_columns;
-      if (
-        !type ||
-        type.isDisabled ||
-        type.idColumn !== "id" ||
-        !Array.isArray(readable) ||
-        declared.columns.some((c) => c !== "id" && !readable.includes(c))
-      )
-        throw new Error(
-          `Missing readable source ${declared.type}. Run the documented report-source setup for this workspace.`,
-        );
-      const result = await queryCapabilityEntities(db, grant, { type: declared.type, limit: 100 });
-      inspectedRows += result.rows.length;
-      truncated ||= result.usage.truncated;
-      snapshots[declared.name] = result.rows.map((row) =>
-        Object.fromEntries(declared.columns.map((c) => [c, row[c] ?? null])),
-      );
-    }
-    if (Buffer.byteLength(JSON.stringify(snapshots), "utf8") > 65536)
-      throw new Error("Report source snapshot exceeds 64 KiB; narrow its declaration");
+    const { snapshots, inspectedRows, truncated } = await loadPluginSources(
+      db,
+      pluginId,
+      moduleDef.report.sources,
+    );
     const evaluated = await evaluateInIsolate(source.code, {
       pluginId,
       timeoutMs: 250,
@@ -130,7 +86,7 @@ export async function runReportPlugin(
       seen.add(key);
     }
     // A disable during data acquisition prevents publishing the result too.
-    await checkEnabled();
+    await requireEnabledPlugin(db, pluginId);
     const receipt = {
       runId: run.id,
       pluginId,

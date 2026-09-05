@@ -177,6 +177,54 @@
           }
         }
       }
+    },
+    "workflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "inputSchema", "actions", "sources"],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "inputSchema": {
+          "type": "object"
+        },
+        "actions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "enum": ["create_stripe_invoice_draft", "create_task_batch"]
+          }
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "required": ["name", "type", "columns", "inputKey"],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "inputKey": {
+                "type": "string"
+              },
+              "columns": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

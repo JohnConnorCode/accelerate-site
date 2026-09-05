@@ -295,3 +295,111 @@ This lane does not implement arbitrary uploads, remote installation, asynchronou
 isolate bindings, persistent event subscriptions, distributed metering, or the
 separate third-party plugin review lifecycle. Those retain their Feature Board
 acceptance rather than inheriting a claim of completion from bundled examples.
+
+### Actionable business workflow exemplars
+
+The primary examples are now **Stripe invoicing**, **Client onboarding**, and
+**Meeting commitments**. All are optional and disabled by default. The four
+reports above remain read-only runtime examples. Explicitly enabling a bundled
+plugin installs its missing, trusted entity read-policy rows through the existing
+registry; it never runs SQL or overwrites an operator policy. Unknown third-party
+sources still require host registration. Apply the normal tenant schema and
+`20260904-plugin-workflow-foundations.sql` in a controlled environment first.
+
+Each workflow has a pure-data module manifest and `plugins/<id>/workflow.js`.
+`workflow.inputSchema` is a closed, bounded JSON Schema subset: no regexes, remote
+references, recursive schemas, custom formats or async validators. The build
+validates it with AJV and compiles code plus its SHA-256 into the server-only
+workflow registry. At execution, the code runs in QuickJS (250 ms, 8 MiB), receives
+only validated input and declared record snapshots, and returns a proposed action.
+It receives no database, credentials, network access or provider client.
+
+The shared host revalidates business identity, current capabilities, assignments
+and provider facts. It produces a preview digest, then stages the same digest and
+request identity in `action_queue`. Generated `prepare_<plugin>` and
+`propose_<plugin>` AI tools use those same services. Current activation and code
+hash are checked again at execution. New action types require a reviewed host
+service and executor registration; a manifest cannot grant itself a new effect.
+
+- **Stripe invoicing:** select a canonical CRM customer, enter exact line items,
+  preview, and approve draft creation. Sending is a separate approved operation.
+  The adapter pins Stripe API version `2025-06-30.basil`, uses fixed endpoints,
+  bounds response bytes/time, and never exposes the tenant-encrypted key to plugin
+  code. CRM search is bounded to 100 matches; Stripe choices use the selected
+  contact's billing email. Ambiguity requires explicit customer selection.
+- **Client onboarding:** start from a won opportunity and review a delivery
+  checklist with dates and active workspace assignees. The shared task service
+  writes actual assigned tasks linked to that opportunity.
+- **Meeting commitments:** select a stored meeting and enter reviewed commitments,
+  dates and assignees. Approval creates linked tasks. The workspace shows live
+  task completion separately from immutable creation receipts; completion reuses
+  the existing task service. This exemplar does not claim automatic transcript
+  extraction or customer email sending.
+
+Stripe drafts use deterministic tenant/action keys for invoice creation, line
+population, finalization and sending. Partial results retain the invoice ID.
+Retry reuses the same action and checkpoint; operations expire after 20 hours to
+stay inside Stripe's documented minimum 24-hour idempotency retention. Expired or
+changed-account operations require reconciliation, not automatic recreation.
+Task effects and workflow request identities remain unique across terminal states.
+Turning a plugin off prevents new plans and queued execution without deleting
+business history. Provider mutation steps recheck connection and activation.
+
+The invoice workbench distinguishes recorded receipts from a fresh **Check payment
+status** read. Test-mode sending does not deliver email. Live sending records
+provider acceptance, not proof of inbox delivery. This implementation supports
+five two-decimal currencies and up to ten lines. It does not calculate taxes or
+discounts, charge saved payment methods, manage subscriptions/refunds, or implement
+webhook reconciliation. Account tax settings that change the reviewed total cause
+execution to refuse. Existing draft revisions can be made in Stripe, but changed
+billing facts require fresh review; the original approval is never rewritten.
+
+#### Branding and AI-assisted customer invoice pages
+
+`/admin/branding` edits the tenant's shared `config.brand`: business identity,
+public HTTPS logo URL (replace/remove with initials fallback), accent, document
+text and background colors, typography, billing address, support email and site.
+It uses a live invoice preview, contrast validation, a brand revision and whole
+configuration compare-and-swap. Concurrent module changes survive; stale brand
+edits refuse. Logo binaries are hosted by the operator; this version manages their
+URL and does not provide a file-storage upload service.
+
+Invoice page designs use two renderer layouts and bounded plain-text fields.
+Operators can write them directly or ask the configured workspace AI gateway to
+draft them. AI generation opens and verifies a durable run trace with model usage;
+it never supplies authoritative amounts, customer identity or payment status.
+UI and AI share the page preview and publication proposal services.
+
+Publishing requires a finalized invoice and a human-approved design/brand/billing
+digest. Published pages retain a brand snapshot and cannot be edited in SQL;
+corrections create a new reviewed version. Public access uses a 256-bit random
+bearer token, hashed for lookup and encrypted with tenant/field-bound AAD for owner
+retrieval. Tokens expire after 90 days and can be revoked. Public rendering checks
+current tenant/plugin state, revocation, provider ownership and billing digest;
+reads live Stripe payment status; and sets no-index/no-referrer metadata. Only
+Stripe-hosted HTTPS payment URLs are linked. Publishing creates a link; it does
+not email it. Payment state can change without revising the presentation; changed
+line items or billing identity require a new review.
+
+#### Verification and local browser fixtures
+
+Run `npm run test:stripe-workflow`, `npm run test:business-workflows`, and
+`npm run test:plugin-workflow-postgres`, plus the normal core, lint, typecheck and
+build gates. The PostgreSQL test creates and removes its own database, applies
+the migration twice, and verifies cross-tenant foreign keys, terminal replay
+constraints, RLS, immutable publication and permanent revocation.
+
+Browser QA uses `qa-business-fixture-server.mjs` on port 3044 and Next on 3023
+configured with its local Supabase URL, fixture keys and `ADMIN_EMAIL=qa@example.example`.
+For the public page, preload `qa-business-fetch-fixture.mjs` through `NODE_OPTIONS`
+and set `GOOGLE_TOKEN_ENCRYPTION_KEY=controlled-browser-encryption`. The preload
+refuses external fetches and serves only the declared Stripe read fixture. Run
+`node scripts/qa-business-workflows.mjs` for desktop/mobile journeys. Never load
+these test adapters in a production process.
+
+These are controlled transport and database proofs, not real Stripe sandbox
+acceptance. Before connecting a real account, run the same draft/send/payment
+journey using restricted test credentials and verify the actual account receipt.
+Stripe's authoritative semantics: [invoice creation](https://docs.stripe.com/api/invoices/create),
+[sending](https://docs.stripe.com/api/invoices/send), and
+[idempotent requests](https://docs.stripe.com/api/idempotent_requests).

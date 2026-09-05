@@ -116,3 +116,13 @@ source of truth for those gaps. Do not describe planned coverage as passing.
 [Audit evidence and remaining acceptance](../../../docs/internal/RUNTIME-AUDIT-2026-09-04.md) distinguish implemented boundaries from unintegrated primitives. Runtime AI tools have explicit core module owners. Configuration and memory writes stage queue proposals and execute through `runtime-actions.ts` only after human approval. `coworker-agent.ts` owns the shared typed model adapter. Task compatibility routes and AI execution share `patchOperatorTask`; its open-task precondition is checked against the same snapshot used for the conditional write.
 
 `verify:runtime-boundaries` refuses newly introduced direct route writes and tenant tables omitted from the service-client registry. The remaining operation-level baseline is a migration inventory, not permission for new write paths.
+
+## Business workflow exemplar services
+
+- `plugin-host.ts` owns current activation and declared source reads; `workflow-plugins.ts` validates isolated plans and stages reviewed action identities.
+- `stripe-adapter.ts` owns tenant-bound fixed-endpoint provider access; `stripe-invoicing.ts` owns billing identity, exact amounts, approved execution and partial receipts.
+- `workflow-tasks.ts` validates source state and active assignees, then reuses `tasks.ts` for canonical task effects and resumable checkpoints.
+- `branding-contract.ts` defines the shared public identity; `branding.ts` owns revision/CAS saves that preserve other tenant settings.
+- `invoice-pages.ts` owns AI design traces, reviewed publication, immutable branding snapshots, encrypted/hash-indexed share tokens and revocation. `InvoiceDocument` is the shared renderer for the brand preview, editor and customer page.
+
+See [Extending Accelerate](../../../docs/contributing/EXTENDING.md#actionable-business-workflow-exemplars) for contracts, limits, setup and controlled verification. Provider integration tests are fixtures, not real Stripe sandbox receipts.

@@ -7,6 +7,11 @@ import { loadActivityTimeline } from "./activities";
 import { ADMIN_LAYOUT_SCOPES, proposeLayoutChange } from "./admin-layout";
 import { FOUNDER_NOTE_MAX_LENGTH } from "./notes";
 import { retrieveKnowledge } from "./knowledge";
+import { proposeStripeInvoiceSend } from "./stripe-invoicing";
+import { previewInvoicePage, proposeInvoicePage } from "./invoice-pages";
+import { invoiceDesignSchema } from "./invoice-page-contract";
+import { z } from "zod";
+import { prepareWorkflowPlugin, proposeWorkflowPlugin } from "./workflow-plugins";
 import { runReportPlugin } from "./report-plugins";
 import { isAiToolModuleEnabled, REVENUE_OS_MODULES } from "./modules";
 import { listClaimableWork, type WorkItem } from "./work-items";
@@ -304,6 +309,112 @@ export function assertImpactHonoured(tool: AiToolRegistration, output: unknown):
 }
 
 const registry: AiToolRegistration[] = [
+  ...REVENUE_OS_MODULES.filter((module) => module.workflow).map((module): AiToolRegistration => ({
+    name: `prepare_${module.id.replaceAll("-", "_")}`,
+    description: `Prepare ${module.name}: ${module.description}. Returns a reviewable plan, never executes it.`,
+    inputSchema: module.workflow!.inputSchema,
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.workflow-plugins",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => prepareWorkflowPlugin(supabase, module.id, input),
+  })),
+  ...REVENUE_OS_MODULES.filter((moduleDef) => moduleDef.workflow).map(
+    (moduleDef): AiToolRegistration => ({
+      name: `propose_${moduleDef.id.replaceAll("-", "_")}`,
+      description: `Stage the exact previewed ${moduleDef.name} for human approval. Use its digest and a stable UUID requestId. Never executes the action.`,
+      inputSchema: {
+        type: "object",
+        additionalProperties: false,
+        required: ["input", "digest", "requestId"],
+        properties: {
+          input: moduleDef.workflow!.inputSchema,
+          digest: { type: "string" },
+          requestId: { type: "string" },
+        },
+      },
+      outputSchema: ACTION_OUTPUT_SCHEMA,
+      serviceTarget: "revenue-os.workflow-plugins",
+      connectionRequirement: "none",
+      impact: "internal_write",
+      confirmationRequired: true,
+      execute: async ({ supabase, actorEmail }, input) =>
+        proposeWorkflowPlugin(
+          supabase,
+          moduleDef.id,
+          input.input,
+          value(input, "digest") || "",
+          value(input, "requestId") || "",
+          actorEmail,
+        ),
+    }),
+  ),
+  {
+    name: "propose_stripe_invoice_send",
+    description:
+      "Stage sending an existing completed Stripe invoice for explicit human approval. Does not send it.",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["creationActionId"],
+      properties: { creationActionId: { type: "string" } },
+    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.stripe-invoicing",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }, input) =>
+      proposeStripeInvoiceSend(supabase, value(input, "creationActionId") || "", actorEmail),
+  },
+  {
+    name: "preview_invoice_page",
+    description:
+      "Preview a bounded customer invoice design using workspace branding and authoritative Stripe billing facts. Returns the publication digest; does not publish.",
+    inputSchema: z.toJSONSchema(
+      z.object({ creationActionId: z.uuid(), design: invoiceDesignSchema }).strict(),
+    ),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.invoice-pages",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) =>
+      previewInvoicePage(supabase, value(input, "creationActionId") || "", input.design),
+  },
+  {
+    name: "propose_invoice_page",
+    description:
+      "Stage the exact previewed invoice page for human publication approval. Does not publish or email the customer.",
+    inputSchema: z.toJSONSchema(
+      z
+        .object({
+          creationActionId: z.uuid(),
+          design: invoiceDesignSchema,
+          digest: z.string().length(64),
+          requestId: z.uuid(),
+        })
+        .strict(),
+    ),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.invoice-pages",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }, input) =>
+      proposeInvoicePage(
+        supabase,
+        {
+          creationActionId: value(input, "creationActionId") || "",
+          design: input.design,
+          digest: value(input, "digest") || "",
+          requestId: value(input, "requestId") || "",
+        },
+        actorEmail,
+      ),
+  },
+
   ...REVENUE_OS_MODULES.filter((module) => module.report).map(
     ({ id: pluginId }): AiToolRegistration => ({
       name: `run_${pluginId.replaceAll("-", "_")}`,
@@ -1652,6 +1763,9 @@ const registry: AiToolRegistration[] = [
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    ...REVENUE_OS_MODULES.filter((moduleDef) => moduleDef.workflow).flatMap(
+      (moduleDef) => moduleDef.aiToolNames || [],
+    ),
     ...REVENUE_OS_MODULES.filter((module) => module.report).map(
       (module) => `run_${module.id.replaceAll("-", "_")}`,
     ),

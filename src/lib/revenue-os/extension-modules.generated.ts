@@ -51,6 +51,74 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     },
   },
   {
+    id: "client-onboarding",
+    name: "Client onboarding",
+    description:
+      "Turn a won deal into an assigned, dated delivery checklist with durable task receipts.",
+    category: "delivery",
+    isCore: false,
+    defaultEnabled: false,
+    navLinkIds: ["client-onboarding"],
+    aiToolNames: ["prepare_client_onboarding", "propose_client_onboarding"],
+    routes: ["/admin/client-onboarding"],
+    setupChecks: [],
+    workflow: {
+      version: 1,
+      inputSchema: {
+        type: "object",
+        additionalProperties: false,
+        required: ["opportunityId", "tasks"],
+        properties: {
+          opportunityId: {
+            type: "string",
+            minLength: 36,
+            maxLength: 36,
+          },
+          tasks: {
+            type: "array",
+            minItems: 1,
+            maxItems: 10,
+            items: {
+              type: "object",
+              additionalProperties: false,
+              required: ["title", "description", "dueDate", "assigneeUserId"],
+              properties: {
+                title: {
+                  type: "string",
+                  minLength: 1,
+                  maxLength: 200,
+                },
+                description: {
+                  type: "string",
+                  maxLength: 2000,
+                },
+                dueDate: {
+                  type: "string",
+                  minLength: 10,
+                  maxLength: 10,
+                },
+                assigneeUserId: {
+                  type: "string",
+                  minLength: 36,
+                  maxLength: 36,
+                },
+              },
+            },
+          },
+        },
+      },
+      actions: ["create_task_batch"],
+      sources: [
+        {
+          name: "opportunity",
+          type: "workflow_opportunities",
+          columns: ["id", "name", "stage"],
+          inputKey: "opportunityId",
+        },
+      ],
+    },
+  },
+  {
     id: "commitment-watch",
     name: "Overdue commitments",
     description: "Find unfinished tasks whose due date has passed.",
@@ -115,6 +183,74 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     ],
   },
   {
+    id: "meeting-commitments",
+    name: "Meeting commitments",
+    description:
+      "Turn reviewed meeting commitments into assigned follow-ups linked to the meeting.",
+    category: "delivery",
+    isCore: false,
+    defaultEnabled: false,
+    navLinkIds: ["meeting-commitments"],
+    aiToolNames: ["prepare_meeting_commitments", "propose_meeting_commitments"],
+    routes: ["/admin/meeting-commitments"],
+    setupChecks: [],
+    workflow: {
+      version: 1,
+      inputSchema: {
+        type: "object",
+        additionalProperties: false,
+        required: ["meetingId", "tasks"],
+        properties: {
+          meetingId: {
+            type: "string",
+            minLength: 36,
+            maxLength: 36,
+          },
+          tasks: {
+            type: "array",
+            minItems: 1,
+            maxItems: 10,
+            items: {
+              type: "object",
+              additionalProperties: false,
+              required: ["title", "description", "dueDate", "assigneeUserId"],
+              properties: {
+                title: {
+                  type: "string",
+                  minLength: 1,
+                  maxLength: 200,
+                },
+                description: {
+                  type: "string",
+                  maxLength: 2000,
+                },
+                dueDate: {
+                  type: "string",
+                  minLength: 10,
+                  maxLength: 10,
+                },
+                assigneeUserId: {
+                  type: "string",
+                  minLength: 36,
+                  maxLength: 36,
+                },
+              },
+            },
+          },
+        },
+      },
+      actions: ["create_task_batch"],
+      sources: [
+        {
+          name: "meeting",
+          type: "workflow_meetings",
+          columns: ["id", "title", "start_at"],
+          inputKey: "meetingId",
+        },
+      ],
+    },
+  },
+  {
     id: "meeting-prep",
     name: "Meeting preparation",
     description: "Prepare a factual agenda of stored meetings in the next 48 hours.",
@@ -158,9 +294,106 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
       ],
     },
   },
+  {
+    id: "stripe-invoicing",
+    name: "Stripe invoicing",
+    description:
+      "Create reviewed invoices for CRM customers, approve sending, and track Stripe payment status.",
+    category: "revenue",
+    isCore: false,
+    defaultEnabled: false,
+    navLinkIds: ["stripe-invoicing"],
+    aiToolNames: [
+      "prepare_stripe_invoicing",
+      "propose_stripe_invoicing",
+      "propose_stripe_invoice_send",
+      "preview_invoice_page",
+      "propose_invoice_page",
+    ],
+    routes: ["/admin/invoicing"],
+    setupChecks: [],
+    workflow: {
+      version: 1,
+      inputSchema: {
+        type: "object",
+        additionalProperties: false,
+        required: ["contactId", "customerId", "currency", "daysUntilDue", "memo", "lines"],
+        properties: {
+          contactId: {
+            type: "string",
+            minLength: 36,
+            maxLength: 36,
+          },
+          customerId: {
+            type: "string",
+            minLength: 5,
+            maxLength: 84,
+          },
+          currency: {
+            enum: ["usd", "eur", "gbp", "cad", "aud"],
+          },
+          daysUntilDue: {
+            type: "integer",
+            minimum: 1,
+            maximum: 90,
+          },
+          memo: {
+            type: "string",
+            maxLength: 500,
+          },
+          lines: {
+            type: "array",
+            minItems: 1,
+            maxItems: 10,
+            items: {
+              type: "object",
+              additionalProperties: false,
+              required: ["description", "quantity", "unitAmount"],
+              properties: {
+                description: {
+                  type: "string",
+                  minLength: 1,
+                  maxLength: 200,
+                },
+                quantity: {
+                  type: "integer",
+                  minimum: 1,
+                  maximum: 10000,
+                },
+                unitAmount: {
+                  type: "integer",
+                  minimum: 1,
+                  maximum: 100000000,
+                },
+              },
+            },
+          },
+        },
+      },
+      actions: ["create_stripe_invoice_draft"],
+      sources: [
+        {
+          name: "contact",
+          type: "workflow_contacts",
+          columns: ["id", "full_name", "primary_email"],
+          inputKey: "contactId",
+        },
+      ],
+    },
+  },
 ] as const;
 
 export const EXTENSION_NAV_LINKS: readonly ExtensionNavLink[] = [
+  {
+    moduleId: "client-onboarding",
+    id: "client-onboarding",
+    label: "Client onboarding",
+    href: "/admin/client-onboarding",
+    icon: "ListChecks",
+    description:
+      "Turn a won deal into an assigned, dated delivery checklist with durable task receipts.",
+    moreGroup: "Delivery",
+  },
   {
     moduleId: "example-inventory",
     id: "example-inventory",
@@ -169,5 +402,24 @@ export const EXTENSION_NAV_LINKS: readonly ExtensionNavLink[] = [
     icon: "Library",
     description: "Stock levels and reorder points",
     moreGroup: "Delivery",
+  },
+  {
+    moduleId: "meeting-commitments",
+    id: "meeting-commitments",
+    label: "Meeting commitments",
+    href: "/admin/meeting-commitments",
+    icon: "ListChecks",
+    description:
+      "Turn reviewed meeting commitments into assigned follow-ups linked to the meeting.",
+    moreGroup: "Delivery",
+  },
+  {
+    moduleId: "stripe-invoicing",
+    id: "stripe-invoicing",
+    label: "Invoicing",
+    href: "/admin/invoicing",
+    icon: "FileText",
+    description: "Customer invoices and payment status",
+    moreGroup: "Revenue",
   },
 ] as const;

@@ -291,3 +291,52 @@ export async function rejectAction(
     }).catch(() => {});
   }
 }
+
+/** Intermediate receipts preserve partial external outcomes; only the currently
+ * executing action can advance them. The terminal writer remains finishAction. */
+export async function checkpointActionResult(
+  supabase: SupabaseClient,
+  id: string,
+  result: unknown,
+) {
+  const { data, error } = await supabase
+    .from("action_queue")
+    .update({ result })
+    .eq("id", id)
+    .eq("status", "executing")
+    .select("id")
+    .maybeSingle();
+  if (error || !data) throw new Error("Action progress receipt could not be persisted");
+}
+
+/** Re-review the same immutable plugin operation, preserving its idempotency
+ * identity and checkpoint. Expired operations require provider reconciliation. */
+export async function retryPluginAction(supabase: SupabaseClient, id: string, actorEmail: string) {
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("action_queue")
+    .update({ status: "pending", error: null, approved_by: null, approved_at: null })
+    .eq("id", id)
+    .eq("status", "failed")
+    .in("action_type", [
+      "create_stripe_invoice_draft",
+      "send_stripe_invoice",
+      "create_task_batch",
+      "publish_invoice_page",
+    ])
+    .gt("expires_at", now)
+    .select("id")
+    .maybeSingle();
+  if (error || !data)
+    throw new Error(
+      "This operation cannot be retried safely; reconcile its recorded effects before preparing new work",
+    );
+  await recordAudit(supabase, {
+    actorEmail,
+    action: "action.retry_requested",
+    entityType: "action_queue",
+    entityId: id,
+    after: { status: "pending" },
+  });
+  return data;
+}

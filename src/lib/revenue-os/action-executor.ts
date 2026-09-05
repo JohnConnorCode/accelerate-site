@@ -1,5 +1,9 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { executeInvoicePagePublication } from "./invoice-pages";
+import { executeWorkflowTaskBatch } from "./workflow-tasks";
+import { executeStripeInvoiceAction } from "./stripe-invoicing";
+import { assertPluginActionAllowed } from "./workflow-plugins";
 import { claimApprovedAction, failAction, finishAction } from "./actions";
 import { executeRuntimeAction } from "./runtime-actions";
 import { checkAutonomy } from "./autonomy-policy";
@@ -29,6 +33,10 @@ function stringValue(
 }
 
 export const APPROVABLE_ACTIONS = [
+  "create_stripe_invoice_draft",
+  "send_stripe_invoice",
+  "create_task_batch",
+  "publish_invoice_page",
   "bootstrap_coworker",
   "store_agent_memory",
   "record_learned_policy",
@@ -82,6 +90,8 @@ export async function approveAndExecuteAction(
   // code runs against a real database (release flow runs migrations first).
   const compensation: Record<string, unknown> = {};
   try {
+    if (action.source_context === "plugin" || payload.pluginOrigin)
+      await assertPluginActionAllowed(supabase, String(action.action_type), payload);
     const coworkerId =
       typeof action.proposed_by === "string" && action.proposed_by.startsWith("coworker:")
         ? action.proposed_by.slice("coworker:".length)
@@ -109,6 +119,23 @@ export async function approveAndExecuteAction(
     });
     let result: unknown;
     switch (action.action_type) {
+      case "publish_invoice_page": {
+        if (mode !== "approved")
+          throw new Error("Invoice page publication requires human approval");
+        result = await executeInvoicePagePublication(supabase, id, actorEmail);
+        break;
+      }
+      case "create_task_batch": {
+        if (mode !== "approved") throw new Error("Task workflows require human approval");
+        result = await executeWorkflowTaskBatch(supabase, id, actorEmail);
+        break;
+      }
+      case "create_stripe_invoice_draft":
+      case "send_stripe_invoice": {
+        if (mode !== "approved") throw new Error("Invoice actions require human approval");
+        result = await executeStripeInvoiceAction(supabase, id, actorEmail);
+        break;
+      }
       case "bootstrap_coworker":
       case "store_agent_memory":
       case "record_learned_policy": {
@@ -330,7 +357,6 @@ export async function approveAndExecuteAction(
       default:
         throw new Error(`Action type ${action.action_type} is not registered for execution`);
     }
-    await finishAction(supabase, id, result);
     // Stamp the reversibility class and captured inverse. Tolerates only the
     // missing-column error on trees whose migration has not applied yet; the
     // compensator then refuses for missing data instead of guessing.
@@ -340,6 +366,7 @@ export async function approveAndExecuteAction(
       .eq("id", id);
     if (stampError && (stampError as { code?: string }).code !== "42703")
       throw new Error(stampError.message);
+    await finishAction(supabase, id, result);
     return result;
   } catch (error) {
     await failAction(supabase, id, error instanceof Error ? error.message : "Action failed");
