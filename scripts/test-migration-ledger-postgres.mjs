@@ -61,6 +61,20 @@ try {
       },
     }).trim(),
   );
+  console.log(
+    run(process.execPath, ["scripts/test-migration-business-upgrade.mjs"], {
+      env: {
+        ...process.env,
+        SUPABASE_DB_HOST: "127.0.0.1",
+        SUPABASE_DB_PORT: String(port),
+        SUPABASE_DB_USER: "postgres",
+        SUPABASE_DB_NAME: "postgres",
+        SUPABASE_PROJECT_REF: "local",
+        NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:1",
+        SUPABASE_DB_PASSWORD: "local-test",
+      },
+    }).trim(),
+  );
 } finally {
   if (started) run("pg_ctl", ["-D", join(root, "data"), "-m", "immediate", "-w", "stop"]);
   rmSync(root, { recursive: true, force: true });
