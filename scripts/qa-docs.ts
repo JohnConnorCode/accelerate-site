@@ -225,6 +225,22 @@ async function main() {
           );
         }
         await page.locator("footer").scrollIntoViewIfNeeded();
+        const clippedFooterControls = await page
+          .locator("footer input, footer button, footer a")
+          .evaluateAll((elements) =>
+            elements
+              .filter((element) => {
+                const rect = element.getBoundingClientRect();
+                return rect.width > 0 && (rect.left < -1 || rect.right > innerWidth + 1);
+              })
+              .map((element) => element.getAttribute("aria-label") || element.textContent),
+          );
+        assert.deepEqual(
+          clippedFooterControls,
+          [],
+          `${width}: footer controls must fit the viewport`,
+        );
+
         await page.locator("footer").screenshot({ path: `${output}/${width}-public-footer.png` });
         await page
           .locator("footer")

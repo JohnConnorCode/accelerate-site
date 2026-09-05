@@ -15,6 +15,10 @@ onboarding link. No deployment or live board completion is implied.
 | Collapsed mobile submenus remained in the focus order.                                           | Collapsed children are inert and hidden from assistive technology; Tab, Escape, focus return, and breakpoint changes are covered. |
 | Crowded desktop header appeared at tablet widths.                                                | The mobile menu remains through tablet widths; desktop starts at 1280px. Main controls and footer links have larger targets.      |
 
+Screenshot review also found a phone-width newsletter form overflow. The input
+can now shrink within its flex row, the submit button retains its width, and browser
+QA checks the bounds of every footer link, input, and button.
+
 The homepage keeps its existing agency-first sequence: offer, services, industries,
 optional Command Center, process, plan, work, company, questions, and contact. The
 change adds a useful product-learning path without making Command Center the

@@ -173,12 +173,12 @@ export function Footer() {
                     }}
                     disabled={status === "loading"}
                     aria-label="Email address"
-                    className="flex-1 sm:w-64 px-4 py-2.5 text-sm bg-bg-subtle border border-border-glass text-white-primary placeholder:text-white-muted focus:outline-none focus:ring-2 focus:ring-[var(--gold-base)] focus:border-gold transition-colors disabled:opacity-50"
+                    className="min-w-0 flex-1 sm:w-64 px-4 py-2.5 text-sm bg-bg-subtle border border-border-glass text-white-primary placeholder:text-white-muted focus:outline-none focus:ring-2 focus:ring-[var(--gold-base)] focus:border-gold transition-colors disabled:opacity-50"
                   />
                   <button
                     type="submit"
                     disabled={status === "loading"}
-                    className="bg-gold-gradient text-black px-4 py-2.5 text-sm font-semibold hover:brightness-110 active:scale-[0.96] transition-[filter,transform] inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-base)]"
+                    className="shrink-0 bg-gold-gradient text-black px-4 py-2.5 text-sm font-semibold hover:brightness-110 active:scale-[0.96] transition-[filter,transform] inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-base)]"
                   >
                     {status === "loading" ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
