@@ -121,7 +121,12 @@ export function Header() {
           scrolled && "is-scrolled shadow-[0_12px_40px_rgba(11,11,11,0.08)]",
         )}
         style={{
-          backgroundColor: scrolled ? "var(--header-bg-scrolled)" : "transparent",
+          backgroundColor:
+            pathname === "/docs" || pathname.startsWith("/docs/")
+              ? "var(--bg)"
+              : scrolled
+                ? "var(--header-bg-scrolled)"
+                : "transparent",
           backdropFilter: scrolled ? "blur(24px) saturate(180%)" : "none",
           WebkitBackdropFilter: scrolled ? "blur(24px) saturate(180%)" : "none",
         }}

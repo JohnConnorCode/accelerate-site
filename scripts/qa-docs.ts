@@ -34,6 +34,14 @@ async function main() {
             () => document.documentElement.scrollWidth > innerWidth + 1,
           );
           assert.equal(overflow, false, `${route} overflows at ${viewport.width}`);
+          const headerBackground = await page
+            .locator("header.site-header")
+            .evaluate((header) => getComputedStyle(header).backgroundColor);
+          assert.notEqual(
+            headerBackground,
+            "rgba(0, 0, 0, 0)",
+            "Docs navigation must remain opaque over reading content",
+          );
           if (route === "/docs/intelligence/tools") {
             await page.getByText("Input schema for propose_send_email", { exact: true }).click();
             assert.ok(await page.locator("details[open] pre").isVisible());
