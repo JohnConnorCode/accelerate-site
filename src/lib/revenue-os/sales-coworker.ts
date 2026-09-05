@@ -15,7 +15,6 @@ import { tryCoworkerAgentTask as tryAiExecution } from "./coworker-agent";
 // first. Deterministic review remains available when no model is configured;
 // AI failures and unfinished drafts retain their explicit dispositions.
 
-import type { WorkItem } from "./work-items";
 
 // ---------------------------------------------------------------------------
 // Sales Coworker: the reference coworker that proves Phase B primitives.

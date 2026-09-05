@@ -442,12 +442,10 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
       );
       const upsertRows = rows.filter((row) => !terminalIds.has(row.external_id));
       if (upsertRows.length) {
-        const { error: messageError } = await supabase
-          .from("messages")
-          .upsert(upsertRows, {
-            onConflict: "conversation_id,external_id",
-            ignoreDuplicates: false,
-          });
+        const { error: messageError } = await supabase.from("messages").upsert(upsertRows, {
+          onConflict: "conversation_id,external_id",
+          ignoreDuplicates: false,
+        });
         if (messageError) throw new Error(messageError.message);
       }
       const priorIds = new Set((priorRows ?? []).map((message) => message.external_id));

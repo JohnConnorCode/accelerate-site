@@ -5,7 +5,6 @@ import { recordAudit } from "./audit";
 import { storeAgentMemory } from "./memory";
 import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";
 import { tryCoworkerAgentTask as tryAiExecution } from "./coworker-agent";
-import type { WorkItem } from "./work-items";
 import { retrieveKnowledge } from "./knowledge";
 
 // ---------------------------------------------------------------------------

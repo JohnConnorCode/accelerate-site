@@ -174,6 +174,9 @@ jobs:
           done
           if [ "$ready" != true ]; then cat /tmp/accelerate-first-run-server.log; exit 1; fi
           node scripts/qa-turnkey.mjs
+          npm run test:work-completion -- --browser-fixtures
+          node scripts/qa-work-completion.mjs
+          node scripts/qa-demo-business-workflows.mjs
       - name: Retain first-run browser evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
@@ -181,6 +184,8 @@ jobs:
           name: credential-free-browser-evidence
           path: |
             /tmp/accelerate-turnkey-qa/
+            /tmp/accelerate-work-completion/
+            /tmp/accelerate-demo-business/
             /tmp/accelerate-first-run-server.log
           if-no-files-found: ignore
           retention-days: 7

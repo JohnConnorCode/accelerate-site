@@ -8,7 +8,6 @@ import { recordAudit } from "./audit";
 import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";
 import { storeAgentMemory } from "./memory";
 import { tryCoworkerAgentTask as tryAiExecution } from "./coworker-agent";
-import type { WorkItem } from "./work-items";
 
 // ---------------------------------------------------------------------------
 // Business Pulse Coworker (northstar Phase E, priority 1)
