@@ -172,7 +172,7 @@ export async function createWorkItem(
       priority: input.priority === "urgent" || input.priority === "high" ? "high" : "medium",
       relatedType: input.entityType,
       relatedId: input.entityId,
-      source: `work_engine:${source}`,
+      source: "work_engine",
       dedupeKey: `work-item-inbox:${workItem.id}`,
       actorEmail: input.actorEmail || "system",
     }).catch((err) => {
