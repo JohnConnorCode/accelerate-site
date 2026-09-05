@@ -126,3 +126,27 @@ The inventory currently covers 86 route files and 76 exported POST/PUT/PATCH/DEL
 handlers. These counts are transport facts, not business-operation counts or a
 coverage percentage. This foundation changes engineering requirements and drift
 detection; it does not grant additional runtime write authority.
+
+## Implemented branding write path
+
+The branding slice adds `get_workspace_brand`, `preview_workspace_brand_update`
+and `propose_workspace_brand_update` to all three current AI tool packs and the
+shared MCP registry. Preview accepts a strict partial change, for example
+`{"changes":{"accentColor":"#234567"}}`. It returns current/proposed values and
+a digest. Proposal requires the same changes and digest, creates a pending action
+with a one-hour expiry, and makes no branding change.
+
+The human reviews that action in the existing approval queue. Execution uses the
+same branding revision/config compare-and-swap save as the admin form, through a
+host-owned writer which checks the current authenticated administrator, database
+scope, active membership and workspace state before obtaining write authority.
+A stale brand, invalid contrast, changed payload or revoked access refuses the
+save. The before-state remains available for a separately reviewed restorative
+change; automatic undo is not claimed. These tools cannot approve their own work
+or save autonomously. Model-generated image creation and secure asset upload are
+separate capabilities; the branding tool accepts an approved HTTPS asset URL.
+
+This closes branding parity only. The larger domain and permission/executor
+initiatives remain open. The demo continues to use its session-local branding
+transport and shared capability metadata; its assistant is a simulation, not a
+live provider-backed agent.

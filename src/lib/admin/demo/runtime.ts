@@ -1,3 +1,4 @@
+import { BRANDING_TOOLS } from "@/lib/revenue-os/branding-actions-contract";
 import { AI_TOOL_REGISTRY_VERSION } from "@/lib/revenue-os/ai-tool-contract";
 import { COLLECTION_AGENT_TOOLS } from "@/lib/revenue-os/collection-agent-contract";
 import { KANBAN_DEFAULT_COLUMNS } from "@/lib/kanban/defaults";
@@ -1392,6 +1393,19 @@ function aiCapabilities(tenantConfig: { modules: Partial<Record<string, boolean>
       "revenue-os.action-queue",
     ],
   ];
+  rows.push(
+    ...BRANDING_TOOLS.map(
+      (t) =>
+        [
+          t.name,
+          t.description,
+          t.impact,
+          t.confirmationRequired,
+          ["core", "pipeline", "outreach"],
+          t.serviceTarget,
+        ] as (typeof rows)[number],
+    ),
+  );
   rows.push(
     ...Object.values(COLLECTION_AGENT_TOOLS).map(
       (t) =>

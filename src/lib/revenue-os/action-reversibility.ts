@@ -34,6 +34,13 @@ interface ActionReversibility {
 
 export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
   {
+    actionType: "update_workspace_brand",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Restore prior values with a new reviewed branding proposal against the current revision; no automatic inverse is promised.",
+  },
+  {
     actionType: "create_task_batch",
     impact: "internal_write",
     reversibility: "compensable",

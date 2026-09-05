@@ -160,3 +160,10 @@ the three typed tool descriptors with demo discovery. `ai-tool-contract.ts` owns
 the browser-safe registry version. Module activation is checked at discovery and
 again in the host; agent proposals preserve pending human approval and server-owned
 WorkItem provenance. These adapters never send or expose raw action payloads.
+
+Branding AI reads/previews/proposals are adapters in `branding-actions.ts` with
+browser-safe schemas and metadata in `branding-actions-contract.ts`. Approved
+writes and the normal admin form use `saveWorkspaceBrandAsAdmin` in `branding.ts`.
+`tenant-admin-authority.ts` checks fresh human membership and exact actor/database
+scope before that host obtains a privileged writer. Do not expose this writer to
+plugins or turn the branding action into a generic tenant-config mutation.

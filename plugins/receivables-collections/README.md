@@ -184,7 +184,7 @@ subject and content. Actual email dispatch still requires explicit human approva
 
 ## AI and MCP workflow
 
-Registry `revenue-os-tools.v6` exposes the same Collections domain services to
+Registry `revenue-os-tools.v7` exposes the same Collections domain services to
 internal AI and the tenant MCP endpoint. These tools belong to the core and
 outreach packs. Discovery respects workspace module configuration; the host
 rechecks current tenant/module state on execution even if a client cached discovery.

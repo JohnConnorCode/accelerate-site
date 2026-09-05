@@ -1,4 +1,12 @@
 import "server-only";
+import { readWorkspaceBrand } from "./branding";
+import { previewWorkspaceBrandUpdate, proposeWorkspaceBrandUpdate } from "./branding-actions";
+import {
+  BRANDING_TOOLS,
+  BRANDING_TOOL_NAMES,
+  brandPreviewInputSchema,
+  brandProposalInputSchema,
+} from "./branding-actions-contract";
 import type { AiToolConnectionRequirement } from "./ai-tool-contract";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { OpenRouterTool } from "@/lib/ai/openrouter";
@@ -327,6 +335,28 @@ export function assertImpactHonoured(tool: AiToolRegistration, output: unknown):
 }
 
 const registry: AiToolRegistration[] = [
+  {
+    ...BRANDING_TOOLS[0],
+    inputSchema: z.toJSONSchema(z.object({}).strict()),
+    outputSchema: { type: "object" },
+    execute: async ({ supabase }, input) => {
+      z.object({}).strict().parse(input);
+      return readWorkspaceBrand(supabase);
+    },
+  },
+  {
+    ...BRANDING_TOOLS[1],
+    inputSchema: z.toJSONSchema(brandPreviewInputSchema),
+    outputSchema: { type: "object" },
+    execute: ({ supabase }, input) => previewWorkspaceBrandUpdate(supabase, input),
+  },
+  {
+    ...BRANDING_TOOLS[2],
+    inputSchema: z.toJSONSchema(brandProposalInputSchema),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    execute: ({ supabase, actorEmail }, input) =>
+      proposeWorkspaceBrandUpdate(supabase, input, actorEmail),
+  },
   {
     ...COLLECTION_AGENT_TOOLS.list,
     inputSchema: z.toJSONSchema(collectionContextInputSchema),
@@ -1856,6 +1886,7 @@ const registry: AiToolRegistration[] = [
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    ...BRANDING_TOOL_NAMES,
     ...COLLECTION_AGENT_TOOL_NAMES,
     ...REVENUE_OS_MODULES.filter((moduleDef) => moduleDef.workflow).flatMap(
       (moduleDef) => moduleDef.aiToolNames || [],
@@ -1894,6 +1925,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "propose_founder_note",
   ],
   pipeline: [
+    ...BRANDING_TOOL_NAMES,
     "get_today_snapshot",
     "search_pipeline",
     "search_contacts",
@@ -1917,6 +1949,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "propose_stage_change",
   ],
   outreach: [
+    ...BRANDING_TOOL_NAMES,
     ...COLLECTION_AGENT_TOOL_NAMES,
     "get_today_snapshot",
     "search_pipeline",

@@ -1,3 +1,4 @@
+import { runWithTenantRequestContext } from "@/lib/tenancy/context";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { reconcileCollectionReminder } from "@/lib/revenue-os/collection-reminders";
@@ -52,7 +53,9 @@ export async function PATCH(request: NextRequest) {
       await rejectAction(supabase, body.id, auth.user.email || "founder", body.reason);
       return NextResponse.json({ success: true });
     }
-    const result = await approveAndExecuteAction(supabase, body.id, auth.user.email || "founder");
+    const result = await runWithTenantRequestContext(auth, () =>
+      approveAndExecuteAction(supabase, body.id!, auth.user.email || "founder"),
+    );
     return NextResponse.json({ success: true, result });
   } catch (error) {
     return NextResponse.json(

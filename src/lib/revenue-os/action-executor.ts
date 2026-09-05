@@ -1,4 +1,5 @@
 import "server-only";
+import { executeWorkspaceBrandUpdate } from "./branding-actions";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { executeCollectionReminder } from "./collection-reminders";
 import { executeInvoicePagePublication } from "./invoice-pages";
@@ -34,6 +35,7 @@ function stringValue(
 }
 
 export const APPROVABLE_ACTIONS = [
+  "update_workspace_brand",
   "create_stripe_invoice_draft",
   "send_stripe_invoice",
   "create_task_batch",
@@ -122,6 +124,11 @@ export async function approveAndExecuteAction(
     });
     let result: unknown;
     switch (action.action_type) {
+      case "update_workspace_brand": {
+        if (mode !== "approved") throw new Error("Branding changes require human approval");
+        result = await executeWorkspaceBrandUpdate(supabase, payload, actorEmail);
+        break;
+      }
       case "publish_invoice_page": {
         if (mode !== "approved")
           throw new Error("Invoice page publication requires human approval");

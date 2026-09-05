@@ -758,9 +758,10 @@
         "@/lib/revenue-os/actions",
         "@/lib/revenue-os/collection-reminders",
         "@/lib/revenue-os/db",
+        "@/lib/tenancy/context",
         "next/server"
       ],
-      "sourceSha256": "16331c1772012ba9d3d56f961781f536532cc514af98db5148b861a5aa0e4f56"
+      "sourceSha256": "d00621269c6885c8e78ad906024f635b602b39ece01a9e9ff2ec7bef9d4e11e6"
     },
     {
       "source": "src/app/api/admin/revenue-os/activity/route.ts",
@@ -1315,11 +1316,11 @@
         "@/lib/http/bounded-json",
         "@/lib/revenue-os/branding",
         "@/lib/revenue-os/branding-contract",
-        "@/lib/supabase/server",
+        "@/lib/tenancy/context",
         "next/server",
         "zod"
       ],
-      "sourceSha256": "2e0f15781118af93c3948be44d3f69fa6d779a3070f6da63d2777d4cc3e0f1c1"
+      "sourceSha256": "71155b5029dc782635329d0c815372640b929399c61730372f3a9d6c00456fc5"
     },
     {
       "source": "src/app/api/admin/tenant/ingest-keys/route.ts",

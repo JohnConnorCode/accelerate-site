@@ -1,9 +1,14 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { tenantIdForDatabase } from "@/lib/supabase/server";
+import {
+  bindTenantDatabase,
+  createPlatformServiceRoleClient,
+  tenantIdForDatabase,
+} from "@/lib/supabase/server";
 import { recordAudit } from "./audit";
 import { contrastRatio, resolveWorkspaceBrand, workspaceBrandSchema } from "./branding-contract";
+import { assertCurrentTenantAdmin } from "./tenant-admin-authority";
 function revision(brand: unknown) {
   return createHash("sha256").update(JSON.stringify(brand)).digest("hex");
 }
@@ -35,12 +40,7 @@ export async function saveWorkspaceBrand(
   expectedRevision: string,
   actorEmail: string,
 ) {
-  const brand = workspaceBrandSchema.parse(raw);
-  if (
-    contrastRatio(brand.inkColor, "#ffffff") < 4.5 ||
-    contrastRatio(brand.inkColor, brand.backgroundColor) < 4.5
-  )
-    throw new Error("Text needs at least 4.5:1 contrast against white and the page background");
+  const brand = validateWorkspaceBrand(raw);
   for (let attempt = 0; attempt < 3; attempt++) {
     const row = await snapshot(db);
     const before = resolveWorkspaceBrand(row.config, row.name);
@@ -74,4 +74,30 @@ export async function saveWorkspaceBrand(
     return { brand, revision: revision(brand) };
   }
   throw new Error("Workspace settings changed concurrently. Reload and retry.");
+}
+
+export function validateWorkspaceBrand(raw: unknown) {
+  const brand = workspaceBrandSchema.parse(raw);
+  if (
+    contrastRatio(brand.inkColor, "#ffffff") < 4.5 ||
+    contrastRatio(brand.inkColor, brand.backgroundColor) < 4.5
+  )
+    throw new Error("Text needs at least 4.5:1 contrast against white and the page background");
+  return brand;
+}
+/** Only this host-owned service receives the administrative writer; no handle escapes to tools. */
+export async function saveWorkspaceBrandAsAdmin(
+  db: SupabaseClient,
+  raw: unknown,
+  expectedRevision: string,
+  actorEmail: string,
+) {
+  const brand = validateWorkspaceBrand(raw);
+  const tenantId = await assertCurrentTenantAdmin(db, actorEmail);
+  const writer = bindTenantDatabase(
+    createPlatformServiceRoleClient("approved-workspace-branding"),
+    tenantId,
+    true,
+  );
+  return saveWorkspaceBrand(writer, brand, expectedRevision, actorEmail);
 }
