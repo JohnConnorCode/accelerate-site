@@ -149,8 +149,9 @@ function RunDetail({ id, onConversation }: { id: string; onConversation: (id: st
     );
   if (!data)
     return (
-      <div className="grid min-h-72 place-items-center">
-        <Loader2 className="size-5 animate-spin text-[var(--admin-muted)]" />
+      <div className="grid min-h-72 place-items-center" role="status">
+        <Loader2 className="size-5 animate-spin text-[var(--admin-muted)]" aria-hidden="true" />
+        <span className="sr-only">Loading run…</span>
       </div>
     );
   if (!data.run)
@@ -391,7 +392,7 @@ export function AIRunHistory() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search prompts, outcomes, models, or tools"
-              className="min-h-11 w-full rounded-xl bg-[var(--admin-surface)] pl-10 pr-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus:shadow-[var(--admin-shadow-border-hover)]"
+              className="min-h-11 w-full rounded-xl bg-[var(--admin-surface)] pl-10 pr-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:shadow-[var(--admin-shadow-border-hover)] focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
             />
           </label>
           <div className="grid grid-cols-2 gap-2 sm:flex">

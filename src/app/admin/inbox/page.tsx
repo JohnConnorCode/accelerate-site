@@ -8,6 +8,7 @@ import {
   AlertCircle,
   ArrowUpRight,
   AtSign,
+  Bot,
   Check,
   CheckSquare,
   Clock3,
@@ -20,7 +21,9 @@ import {
   Phone,
   RefreshCw,
   Search,
+  ShieldCheck,
   Users,
+  X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -43,6 +46,8 @@ const filters: { key: AdminInboxKind | "all"; label: string; icon: LucideIcon }[
   { key: "task", label: "Tasks", icon: CheckSquare },
   { key: "proposal", label: "Proposals", icon: FileCheck },
   { key: "partner", label: "Partners", icon: Handshake },
+  { key: "coworker", label: "Coworkers", icon: Bot },
+  { key: "action", label: "Actions", icon: ShieldCheck },
 ];
 
 const kindMeta: Record<AdminInboxKind, { label: string; icon: LucideIcon }> = {
@@ -52,6 +57,8 @@ const kindMeta: Record<AdminInboxKind, { label: string; icon: LucideIcon }> = {
   task: { label: "Task", icon: CheckSquare },
   proposal: { label: "Proposal", icon: FileCheck },
   partner: { label: "Partner", icon: Handshake },
+  coworker: { label: "Coworker", icon: Bot },
+  action: { label: "Action", icon: ShieldCheck },
 };
 
 function timeAgo(value: string) {
@@ -172,6 +179,34 @@ export default function AdminInboxPage() {
     }
   };
 
+  const handleActionDecision = async (item: AdminInboxItem, decision: "approve" | "reject") => {
+    try {
+      await fetchJson("/api/admin/revenue-os/actions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: item.id, decision }),
+      });
+      setData((current) =>
+        current
+          ? {
+              ...current,
+              items: current.items.filter(
+                (candidate) => candidate.id !== item.id || candidate.kind !== "action",
+              ),
+              counts: {
+                ...current.counts,
+                all: Math.max(0, current.counts.all - 1),
+                action: Math.max(0, current.counts.action - 1),
+              },
+            }
+          : current,
+      );
+      toast.success(decision === "approve" ? "Action approved" : "Action rejected");
+    } catch (actionError) {
+      toast.error(actionError instanceof Error ? actionError.message : "Couldn't process action");
+    }
+  };
+
   return (
     <motion.div variants={adminListVariants} initial={false} animate="visible">
       <motion.div variants={adminSectionVariants}>
@@ -224,7 +259,7 @@ export default function AdminInboxPage() {
 
         <motion.div
           variants={adminSectionVariants}
-          className="mb-5 flex gap-2 overflow-x-auto pb-1"
+          className="scrollbar-hide -mx-1 mb-5 flex gap-2 overflow-x-auto px-1 pb-1"
         >
           {filters.map((filter) => {
             const Icon = filter.icon;
@@ -383,6 +418,28 @@ export default function AdminInboxPage() {
                         >
                           <Check className="h-4 w-4" />
                         </button>
+                      )}
+                      {item.kind === "action" && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleActionDecision(item, "approve")}
+                            className="admin-icon-button text-[var(--primary)]"
+                            aria-label="Approve action"
+                            title="Approve"
+                          >
+                            <Check className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleActionDecision(item, "reject")}
+                            className="admin-icon-button"
+                            aria-label="Reject action"
+                            title="Reject"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </>
                       )}
                       <Link
                         href={item.href}

@@ -8,7 +8,19 @@ import { listTenantSystemContexts } from "@/lib/tenancy/system";
 
 export const maxDuration = 30;
 
+// Vercel Cron always issues a GET request to the configured path (see
+// vercel.json). This route was POST-only, so it was unreachable by its own
+// cron trigger even after being added to the crons array — GET delegates to
+// the same handler; POST stays available for manual/local triggering.
+export async function GET(request: NextRequest) {
+  return handleSnapshot(request);
+}
+
 export async function POST(request: NextRequest) {
+  return handleSnapshot(request);
+}
+
+async function handleSnapshot(request: NextRequest) {
   const expected = process.env.CRON_SECRET;
   if (!expected || request.headers.get("authorization") !== `Bearer ${expected}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

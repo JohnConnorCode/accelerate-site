@@ -377,10 +377,10 @@ export const integrationRegistry: readonly IntegrationDefinition[] = [
     id: "stripe",
     name: "Stripe",
     category: "revenue",
-    maturity: "next",
+    maturity: "native",
     priority: 11,
     description:
-      "Payments, invoices, subscriptions, refunds, and disputes linked to canonical companies and opportunities.",
+      "Reviewed CRM invoicing, explicit sending, payment status and branded customer pages. Subscription, refund and dispute reconciliation remains planned.",
     strategicRole: "Payment truth",
     cost: {
       tier: "usage_based",
@@ -388,19 +388,25 @@ export const integrationRegistry: readonly IntegrationDefinition[] = [
       detail:
         "The connector adds no subscription; normal Stripe transaction pricing still applies.",
     },
-    auth: "Restricted server key and signed webhooks",
-    transports: ["webhook", "incremental_sync"],
+    auth: "Tenant-encrypted restricted server key",
+    transports: ["api"],
     dataClasses: ["Customer identity", "Invoices", "Payments"],
-    docsHref: "https://docs.stripe.com/webhooks",
-    limits: ["Webhook events may arrive out of order", "Reconcile uncertain state from the API"],
+    connectionProvider: "stripe",
+    setupHref: "/admin/invoicing",
+    docsHref: "https://docs.stripe.com/api/invoices",
+    limits: [
+      "Stripe invoicing plugin must be enabled",
+      "No webhook reconciliation yet; refresh status from Stripe",
+    ],
     guardrail: "Stripe owns payment facts; Command Center owns revenue context and attribution.",
     capabilities: [
       {
-        id: "revenue-events",
-        label: "Revenue events",
-        description: "Connect actual payment state to pipeline, campaigns, and delivery.",
-        direction: "read",
-        impact: "internal_write",
+        id: "invoice-workflow",
+        label: "Reviewed invoicing",
+        description:
+          "Prepare CRM invoices, approve sending, inspect payment status and publish reviewed customer pages.",
+        direction: "bidirectional",
+        impact: "external_action",
       },
     ],
   },
@@ -590,33 +596,86 @@ export const integrationRegistry: readonly IntegrationDefinition[] = [
     ],
   },
   {
+    id: "whatsapp",
+    name: "WhatsApp Business",
+    category: "revenue",
+    maturity: "native",
+    priority: 15,
+    description:
+      "Inbound WhatsApp messaging capture, phone identity resolution, and webhook signature verification.",
+    strategicRole: "Customer messaging channel",
+    cost: {
+      tier: "usage_based",
+      label: "Meta Cloud API",
+      detail: "Standard Meta WhatsApp Business platform conversation fees apply.",
+    },
+    auth: "App Secret HMAC-SHA256 & System User Access Token",
+    transports: ["webhook", "api"],
+    dataClasses: ["Inbound messages", "Contact identities", "Conversation history"],
+    docsHref: "https://developers.facebook.com/docs/whatsapp/cloud-api",
+    limits: ["Opt-in requirements", "24-hour service window", "Template message approval"],
+    guardrail:
+      "Inbound messages resolve identity deterministically and record immutable activity receipts.",
+    capabilities: [
+      {
+        id: "inbound-messaging",
+        label: "Inbound message capture",
+        description:
+          "Receive customer messages via verified webhooks and feed into the unified inbox.",
+        direction: "read",
+        impact: "internal_write",
+      },
+    ],
+  },
+  {
     id: "mcp",
-    name: "Model Context Protocol",
+    name: "Model Context Protocol (MCP)",
     category: "interoperability",
-    maturity: "edge",
+    maturity: "native",
     priority: 31,
     description:
-      "Expose bounded Command Center tools and consume only allowlisted third-party servers.",
-    strategicRole: "Agent interoperability",
+      "Secure stdio and HTTP JSON-RPC 2.0 server for Claude Desktop, Claude Code, ChatGPT, Cursor, and Antigravity.",
+    strategicRole: "External AI assistant control bridge",
     cost: {
       tier: "free",
-      label: "Open protocol",
-      detail: "Protocol support has no platform fee; connected services may have their own costs.",
+      label: "Open standard",
+      detail: "Protocol support is built into Revenue OS with no platform fee.",
     },
-    auth: "OAuth 2.1 audience-bound tokens",
+    auth: "Bearer API key (REVENUE_OS_API_KEY) or active session",
     transports: ["api"],
-    dataClasses: ["Bounded tool inputs and cited outputs"],
-    docsHref: "https://modelcontextprotocol.io/specification/latest",
-    limits: ["Read-only server first", "Pinned allowlist", "No token passthrough"],
+    dataClasses: ["Bounded tool inputs, live queue snapshots, and staged action proposals"],
+    docsHref:
+      "https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/MCP-SETUP.md",
+    limits: [
+      "Mutations enter action_queue for review",
+      "Bounded query caps",
+      "No raw token passthrough",
+    ],
     guardrail:
-      "MCP maps to the existing tool registry and action queue; it never bypasses domain services or confirmation.",
+      "MCP derives tools directly from the authoritative registry; external LLMs cannot execute direct database writes.",
     capabilities: [
       {
         id: "agent-tools",
         label: "Bounded agent tools",
-        description: "Make approved reads portable and stage mutations for founder review.",
+        description:
+          "Expose 14 registered AI tools for queue, contacts, pipeline, and inbox management.",
         direction: "bidirectional",
         impact: "internal_write",
+      },
+      {
+        id: "live-resources",
+        label: "Live bounded resources",
+        description: "Expose real-time Today queue snapshot and active module state.",
+        direction: "read",
+        impact: "read",
+      },
+      {
+        id: "operator-prompts",
+        label: "Operator prompt workflows",
+        description:
+          "Pre-configured templates for daily triage, pipeline health, and conversation replies.",
+        direction: "read",
+        impact: "read",
       },
     ],
   },

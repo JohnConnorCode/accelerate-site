@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { ADMIN_EMAIL } from "@/lib/email/resend";
 import {
   EMAIL_TEMPLATE_DEFINITIONS,
@@ -75,7 +75,7 @@ async function versionsFor(supabase: SupabaseClient, key: string) {
 }
 
 export async function GET(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("email-studio");
   if (auth instanceof NextResponse) return auth;
   const id = request.nextUrl.searchParams.get("id");
 
@@ -164,7 +164,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("email-studio");
   if (auth instanceof NextResponse) return auth;
   const body = await request.json();
   const definition = getEmailTemplateDefinition(body.id);
@@ -228,7 +228,7 @@ export async function PATCH(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("email-studio");
   if (auth instanceof NextResponse) return auth;
   const body = await request.json();
   const definition = getEmailTemplateDefinition(body.id);
@@ -343,7 +343,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("email-studio");
   if (auth instanceof NextResponse) return auth;
   const id = request.nextUrl.searchParams.get("id");
   if (!id || !getEmailTemplateDefinition(id))

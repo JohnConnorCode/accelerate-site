@@ -13,6 +13,7 @@ import { applyLayoutOverride } from "../src/lib/admin/layout-overrides";
 import { getLayoutScope } from "../src/lib/admin/layout-scopes";
 import {
   validateLayoutDoc,
+  applyLayoutChange,
   getCurrentLayout,
   ADMIN_LAYOUT_SCOPES,
 } from "../src/lib/revenue-os/admin-layout";
@@ -26,6 +27,9 @@ type Row = Record<string, unknown>;
 
 function stubSupabase(settingsRow: { value: string } | null = null) {
   const inserted: Array<{ table: string; payload: Row }> = [];
+  // Stateful settings shelf so a save round-trips: upserts land here and
+  // subsequent reads serve them. Seeded from settingsRow for older tests.
+  const shelf: Record<string, string> = {};
   function query(table: string): Record<string, unknown> {
     let pending: Row | null = null;
     const self: Record<string, unknown> = {};
@@ -41,11 +45,21 @@ function stubSupabase(settingsRow: { value: string } | null = null) {
     self.upsert = (payload: Row) => {
       pending = payload;
       inserted.push({ table, payload });
+      if (
+        table === "admin_settings" &&
+        typeof payload.key === "string" &&
+        typeof payload.value === "string"
+      )
+        shelf[payload.key] = payload.value;
       return self;
     };
     self.then = (resolve: (result: { data: unknown; error: unknown }) => unknown) => {
       if (pending) return resolve({ data: { id: "queued-action-id", ...pending }, error: null });
-      if (table === "admin_settings") return resolve({ data: settingsRow, error: null });
+      if (table === "admin_settings") {
+        const keys = Object.keys(shelf);
+        if (keys.length) return resolve({ data: { value: shelf[keys[0]!] }, error: null });
+        return resolve({ data: settingsRow, error: null });
+      }
       return resolve({ data: [], error: null });
     };
     return self;
@@ -168,6 +182,7 @@ async function main() {
   const corrupted = await getCurrentLayout(
     stubSupabase({ value: "{not json" }) as unknown as Parameters<typeof getCurrentLayout>[0],
     "nav.sidebar",
+    "tenant-1",
   );
   assert.equal(
     corrupted,
@@ -180,6 +195,7 @@ async function main() {
       value: JSON.stringify({ order: ["a-link-that-no-longer-exists"], hidden: [] }),
     }) as unknown as Parameters<typeof getCurrentLayout>[0],
     "nav.sidebar",
+    "tenant-1",
   );
   assert.equal(
     staleIds,
@@ -235,6 +251,87 @@ async function main() {
     "propose_layout_change must be reachable from the default (core) tool pack",
   );
 
+  // ---- Founder-direct save: the same validated service, no queue --------
+
+  const founderDb = stubSupabase();
+  const saved = await applyLayoutChange(
+    founderDb as unknown as Parameters<typeof applyLayoutChange>[0],
+    {
+      scope: "page.today",
+      doc: { order: ["revenue-copilot", "operating-summary"], hidden: ["operational-ledger"] },
+      actorEmail: "founder@acceleratewith.us",
+      source: "admin",
+      tenantId: "tenant-1",
+    },
+  );
+  assert.deepEqual(saved, {
+    order: ["revenue-copilot", "operating-summary"],
+    hidden: ["operational-ledger"],
+  });
+  const reread = await getCurrentLayout(
+    founderDb as unknown as Parameters<typeof getCurrentLayout>[0],
+    "page.today",
+    "tenant-1",
+  );
+  assert.deepEqual(reread, saved, "a founder save must round-trip through storage, not just echo");
+  const auditWrite = founderDb.inserted.find((entry) => entry.table === "audit_log");
+  assert.equal(
+    (auditWrite?.payload as { source?: string } | undefined)?.source,
+    "admin",
+    "founder-direct saves audit as admin, not ai",
+  );
+
+  await rejects(
+    () =>
+      applyLayoutChange(founderDb as unknown as Parameters<typeof applyLayoutChange>[0], {
+        scope: "page.today",
+        doc: { order: ["made-up-region"], hidden: [] },
+        actorEmail: "founder@acceleratewith.us",
+        tenantId: "tenant-1",
+      }),
+    "unknown ids",
+    "the save endpoint must refuse unknown ids, not store them",
+  );
+  await rejects(
+    () =>
+      applyLayoutChange(founderDb as unknown as Parameters<typeof applyLayoutChange>[0], {
+        scope: "page.today",
+        doc: { order: [], hidden: ["revenue-copilot"] },
+        actorEmail: "founder@acceleratewith.us",
+        tenantId: "tenant-1",
+      }),
+    "cannot hide required",
+    "the save endpoint must refuse hiding required regions",
+  );
+
+  // ---- Tenant isolation is structural, not conventional --------------------
+
+  const { MemorySupabase } = await import("./lib/memory-supabase.js");
+  const tenantDb = new MemorySupabase({ admin_settings: [], audit_log: [] });
+  const tenantClient = tenantDb.client as unknown as Parameters<typeof applyLayoutChange>[0];
+  await applyLayoutChange(tenantClient, {
+    scope: "page.today",
+    doc: { order: [], hidden: ["operational-ledger"] },
+    actorEmail: "a@example.com",
+    tenantId: "tenant-a",
+  });
+  assert.equal(
+    await getCurrentLayout(tenantClient, "page.today", "tenant-b"),
+    null,
+    "tenant B must not read tenant A's layout doc",
+  );
+  await applyLayoutChange(tenantClient, {
+    scope: "page.today",
+    doc: { order: ["revenue-copilot"], hidden: [] },
+    actorEmail: "b@example.com",
+    tenantId: "tenant-b",
+  });
+  assert.deepEqual(
+    (await getCurrentLayout(tenantClient, "page.today", "tenant-a"))?.hidden,
+    ["operational-ledger"],
+    "tenant A's doc must survive tenant B writing its own",
+  );
+
   // ---- Wiring: the executor actually dispatches to the domain service -------
 
   const executorSource = readFileSync("src/lib/revenue-os/action-executor.ts", "utf8");
@@ -288,6 +385,10 @@ async function main() {
           "tool-impact-honoured",
           "tool-core-pack",
           "executor-wiring",
+          "founder-save-roundtrip",
+          "founder-save-unknown-refused",
+          "founder-save-required-refused",
+          "tenant-isolation",
           "no-scope-string-into-uuid-entity-id",
         ],
         result: "passed",

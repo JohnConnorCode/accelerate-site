@@ -1,15 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin/auth";
-import {
-  canonicalStage,
-  transitionOpportunity,
-  transitionStatusFromError,
-} from "@/lib/revenue-os/pipeline";
-import { OPPORTUNITY_STAGES } from "@/lib/opportunities";
+import { requireAdminForModule } from "@/lib/admin/module-guard";
+import { transitionOpportunity, transitionStatusFromError } from "@/lib/revenue-os/pipeline";
 import { sendNoShowRebookEmail } from "@/lib/email/booking";
 
 export async function GET(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("bookings");
   if (auth instanceof NextResponse) return auth;
 
   const days = Math.min(
@@ -58,7 +53,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("bookings");
   if (auth instanceof NextResponse) return auth;
   const body = (await request.json()) as {
     id?: string;
@@ -66,7 +61,7 @@ export async function PATCH(request: NextRequest) {
     estimatedValue?: number;
     wonValue?: number;
   };
-  if (!body.id || !body.stage || !OPPORTUNITY_STAGES.includes(body.stage as never)) {
+  if (!body.id || !body.stage) {
     return NextResponse.json({ error: "Invalid opportunity update" }, { status: 400 });
   }
 
@@ -86,9 +81,6 @@ export async function PATCH(request: NextRequest) {
 
   let finalData: Record<string, unknown> = current;
   if (typeof body.stage === "string") {
-    const targetStage = canonicalStage(body.stage);
-    if (!targetStage)
-      return NextResponse.json({ error: "Invalid opportunity update" }, { status: 400 });
     try {
       finalData = (await transitionOpportunity(supabase, {
         id: body.id,

@@ -19,7 +19,7 @@ import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
-import { REVENUE_STAGE_META, REVENUE_STAGES } from "@/lib/revenue-os/types";
+import { DEFAULT_PIPELINE_STAGES, REVENUE_STAGE_META } from "@/lib/revenue-os/types";
 
 type Rank = { label: string; count: number };
 type FilterState = { days: number; source: string; owner: string; campaign: string; stage: string };
@@ -382,7 +382,10 @@ export default function AnalyticsPage() {
                           value={filters.stage}
                           options={data.filterOptions.stages}
                           labels={Object.fromEntries(
-                            REVENUE_STAGES.map((stage) => [stage, REVENUE_STAGE_META[stage].label]),
+                            DEFAULT_PIPELINE_STAGES.map((stage) => [
+                              stage,
+                              REVENUE_STAGE_META[stage].label,
+                            ]),
                           )}
                           onChange={(stage) => setFilters((current) => ({ ...current, stage }))}
                         />

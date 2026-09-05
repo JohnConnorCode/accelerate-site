@@ -12,9 +12,11 @@ import {
   CheckCircle2,
   Loader2,
   RefreshCw,
+  SlidersHorizontal,
   TriangleAlert,
   X,
 } from "lucide-react";
+import { LayoutCustomizeDialog } from "@/components/admin/LayoutCustomizeDialog";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminAsyncRegion } from "@/components/admin/AdminAsyncRegion";
@@ -26,6 +28,7 @@ import { fetchJson } from "@/lib/admin/fetchJson";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
 import { cn } from "@/lib/utils";
+import { describeExpectedCheck } from "@/lib/revenue-os/health-expectation";
 import { applyLayoutOverride, type LayoutDoc } from "@/lib/admin/layout-overrides";
 import { ADMIN_LAYOUT_SCOPES, TODAY_LAYOUT_REGIONS } from "@/lib/admin/layout-scopes";
 
@@ -47,6 +50,17 @@ interface HealthRun {
   startedAt: string | null;
   finishedAt: string | null;
   error: string | null;
+  nextExpectedAt?: number;
+  lastSuccessAt?: number;
+  stalled?: boolean;
+  cadenceLabel?: string;
+}
+interface HealthWebhookFailure {
+  id: string;
+  provider: string;
+  eventType: string | null;
+  error: string | null;
+  receivedAt: string | null;
 }
 interface Overview {
   schemaReady: boolean;
@@ -78,6 +92,7 @@ interface Overview {
     }>;
     sourceRuns: HealthRun[];
     jobRuns: HealthRun[];
+    webhookFailures: HealthWebhookFailure[];
   };
 }
 interface ActionRow {
@@ -213,7 +228,19 @@ function ActionReviewDialog({
       <div className="max-h-[92dvh] w-full overflow-y-auto rounded-t-[24px] bg-[var(--admin-surface)] shadow-2xl sm:rounded-[24px]">
         <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]/95 px-5 py-4 backdrop-blur-xl sm:px-6">
           <div>
-            <p className="admin-eyebrow">Approval queue</p>
+            <div className="flex items-center gap-2">
+              <p className="admin-eyebrow">Approval queue</p>
+              <span
+                className={cn(
+                  "rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider",
+                  external
+                    ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                    : "bg-blue-500/15 text-blue-700 dark:text-blue-300",
+                )}
+              >
+                {external ? "External Action" : "Internal Mutation"}
+              </span>
+            </div>
             <h2
               id="action-review-title"
               className="mt-1 text-balance text-xl font-semibold tracking-[-0.03em] text-[var(--admin-ink)]"
@@ -248,10 +275,12 @@ function ActionReviewDialog({
               external ? "text-amber-600 dark:text-amber-400" : "text-[var(--admin-muted)]",
             )}
           />
-          <p className="admin-copy text-[11px] leading-5">
-            <span className="font-semibold text-[var(--admin-ink)]">If you approve:</span>{" "}
+          <div className="admin-copy text-[11px] leading-5">
+            <span className="font-semibold text-[var(--admin-ink)]">
+              {external ? "Irreversible external consequence:" : "Material consequence:"}
+            </span>{" "}
             {consequence}
-          </p>
+          </div>
         </div>
 
         <div className="grid gap-4 px-5 py-5 sm:px-6">
@@ -491,6 +520,7 @@ export default function TodayPage() {
   const [taskActioning, setTaskActioning] = useState<string | null>(null);
   const [focus, setFocus] = useState<(typeof focusOptions)[number]["id"]>("all");
   const [showAllApprovals, setShowAllApprovals] = useState(false);
+  const [customizeOpen, setCustomizeOpen] = useState(false);
   const dismissedActionRef = useRef<string | null>(null);
   const reviewTriggerRef = useRef<HTMLElement | null>(null);
   const loading = overviewQuery.isPending || actionsQuery.isPending;
@@ -620,26 +650,44 @@ export default function TodayPage() {
   }, [focus, overview]);
   const healthItems = useMemo(() => {
     if (!overview) return [];
+    const runExpectation = (item: HealthRun) =>
+      item.stalled
+        ? "Stalled: the next run takes the claim over"
+        : describeExpectedCheck(item.nextExpectedAt, item.cadenceLabel);
+    const webhookFailures = overview.health.webhookFailures ?? [];
     return [
       ...overview.health.integrations.map((item) => ({
         label: item.provider,
         status: item.status,
         at: item.lastSuccessAt,
         error: item.lastError,
+        expectation: null as string | null,
       })),
       ...overview.health.sourceRuns.map((item) => ({
         label: item.key,
         status: item.status,
         at: item.finishedAt || item.startedAt,
         error: item.error,
+        expectation: runExpectation(item),
       })),
       ...overview.health.jobRuns.map((item) => ({
         label: item.key,
         status: item.status,
         at: item.finishedAt || item.startedAt,
         error: item.error,
+        expectation: runExpectation(item),
       })),
-    ].slice(0, 5);
+      ...webhookFailures.slice(0, 1).map((item) => ({
+        label: `Webhook failure: ${item.provider}`,
+        status: "failed",
+        at: item.receivedAt,
+        error: item.error,
+        expectation:
+          webhookFailures.length > 1
+            ? `+${webhookFailures.length - 1} more unprocessed in the last 48h`
+            : "Unprocessed in the last 48h. See Setup Center",
+      })),
+    ].slice(0, 6);
   }, [overview]);
 
   if (!overview && error)
@@ -698,7 +746,7 @@ export default function TodayPage() {
             Details
           </Link>
         </div>
-        <div className="grid divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)] sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-5">
+        <div className="grid divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)] sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-6">
           {healthItems.map((item) => (
             <div key={`${item.label}-${item.status}`} className="min-h-[96px] px-5 py-4">
               <div className="flex items-center gap-2">
@@ -726,10 +774,15 @@ export default function TodayPage() {
                 {item.error ||
                   (item.at ? `Last activity ${relativeTime(item.at)}` : "No run recorded yet")}
               </p>
+              {item.expectation && (
+                <p className="mt-1 text-[11px] font-medium text-[var(--admin-muted)]">
+                  {item.expectation}
+                </p>
+              )}
             </div>
           ))}
           {!healthItems.length && (
-            <div className="px-6 py-8 text-sm text-[var(--admin-muted)] sm:col-span-2 lg:col-span-5">
+            <div className="px-6 py-8 text-sm text-[var(--admin-muted)] sm:col-span-2 lg:col-span-6">
               No connections or job receipts have been recorded. Setup Center will show exactly what
               needs configuration.
             </div>
@@ -749,6 +802,15 @@ export default function TodayPage() {
       <PageHeader
         title="Today"
         subtitle="The founder queue: replies, commitments, meetings, proposals, approvals, and system exceptions in revenue order."
+        actions={
+          <button
+            type="button"
+            onClick={() => setCustomizeOpen(true)}
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow] hover:shadow-[var(--admin-shadow-border-hover)]"
+          >
+            <SlidersHorizontal className="size-3.5" /> Customize
+          </button>
+        }
         utilityActions={
           <>
             <span className="hidden text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)] sm:inline">
@@ -1239,6 +1301,13 @@ export default function TodayPage() {
                 onReject={() => {
                   if (reviewing) void decide(reviewing.id, "reject");
                 }}
+              />
+              <LayoutCustomizeDialog
+                open={customizeOpen}
+                onClose={() => setCustomizeOpen(false)}
+                scope="page.today"
+                currentDoc={todayLayoutDoc}
+                onSaved={() => void layoutQuery.refetch()}
               />
             </div>
           )

@@ -274,7 +274,7 @@ async function main() {
   );
   assert.match(
     dispatch,
-    /const output = await tool\.execute\([\s\S]{0,120}assertImpactHonoured\(tool, output\)/,
+    /const output = await withProposalWorkContext\([\s\S]{0,300}assertImpactHonoured\(tool, output\)/,
     "executeRegisteredRevenueTool must run the impact check on the tool's output before returning it",
   );
   assert.ok(
@@ -372,7 +372,7 @@ async function main() {
 
   // The registry version is what a stored trace is interpreted against. Adding
   // gates changes what a tool call means, so the version had to move.
-  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v3");
+  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v5");
 
   // validateToolInput is exported and usable directly, which is how the agent
   // surfaces a correctable error back into the transcript.
@@ -418,7 +418,7 @@ async function main() {
   );
   assert.match(
     dispatch,
-    /const output = await tool\.execute\([\s\S]{0,120}validateToolOutput\(tool\.name, tool\.outputSchema, output\)/,
+    /const output = await withProposalWorkContext\([\s\S]{0,180}tool\.execute\(context, input\)[\s\S]{0,120}validateToolOutput\(tool\.name, tool\.outputSchema, output\)/,
     "dispatch must validate every tool output before returning it",
   );
 

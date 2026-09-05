@@ -1,6 +1,8 @@
+import { readBoundedJson } from "@/lib/http/bounded-json";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin/auth";
+import { randomBytes } from "node:crypto";
 import { encryptSecret, encryptTenantSecret } from "@/lib/revenue-os/encryption";
 import { recordAudit } from "@/lib/revenue-os/audit";
 import {
@@ -8,8 +10,15 @@ import {
   resolveOpenRouterCredential,
   validateOpenRouterApiKey,
 } from "@/lib/ai/openrouter-credentials";
+import {
+  INTEGRATION_ADAPTERS,
+  buildEncryptedCredentials,
+  resolveAccountIdentifier,
+} from "@/lib/revenue-os/integration-adapters";
+import type { AdminAuthorization } from "@/lib/admin/auth";
 
 const providerSchema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("configure_stripe"), apiKey: z.string().trim().min(20).max(256) }),
   z.object({
     action: z.literal("configure_resend"),
     apiKey: z.string().trim().min(10).max(500),
@@ -26,8 +35,30 @@ const providerSchema = z.discriminatedUnion("action", [
     apiKey: z.string().trim().min(24).max(500),
   }),
   z.object({
+    action: z.literal("configure_mcp"),
+  }),
+  z.object({
+    action: z.literal("configure_whatsapp"),
+    accessToken: z.string().trim().min(10).max(2000),
+    phoneNumberId: z.string().trim().min(1).max(64),
+  }),
+  z.object({
+    action: z.literal("configure_hubspot"),
+    accessToken: z.string().trim().min(10).max(2000),
+    webhookSecret: z.string().trim().min(10).max(500),
+  }),
+  z.object({
     action: z.literal("disconnect"),
-    provider: z.enum(["resend", "google", "calendly", "openrouter"]),
+    provider: z.enum([
+      "resend",
+      "google",
+      "calendly",
+      "openrouter",
+      "mcp",
+      "whatsapp",
+      "hubspot",
+      "stripe",
+    ]),
   }),
 ]);
 
@@ -133,10 +164,78 @@ export async function GET() {
   return NextResponse.json({ providers });
 }
 
+/**
+ * The single verify, encrypt, upsert, and audit cycle every adapter-backed
+ * provider (INTEGRATION_ADAPTERS) shares, replacing what used to be one
+ * hand-written ~45-line block per provider. `credentials` carries the
+ * request's fields verbatim; adapter.credentialFields says which of them get
+ * encrypted and under what key, so registering a third adapter needs no
+ * change here.
+ */
+async function configureAdapterProvider(
+  provider: string,
+  credentials: Record<string, unknown>,
+  authorization: AdminAuthorization,
+  credentialVersion: number,
+  existingStatus: string | null | undefined,
+  now: string,
+): Promise<NextResponse> {
+  const adapter = INTEGRATION_ADAPTERS.get(provider);
+  if (!adapter) {
+    return NextResponse.json(
+      { error: `No adapter registered for "${provider}".` },
+      { status: 500 },
+    );
+  }
+  const verification = await adapter.verify(credentials);
+  if (!verification.valid) {
+    return NextResponse.json(
+      { error: verification.error || `${adapter.name} credentials could not be verified.` },
+      { status: 400 },
+    );
+  }
+  const encryptedCredentials = buildEncryptedCredentials(
+    adapter,
+    credentials,
+    provider === "stripe"
+      ? (value, field) => encryptTenantSecret(value, authorization.tenant.id, provider, field)
+      : encryptSecret,
+  );
+  const { data, error } = await authorization.database
+    .from("integration_connections")
+    .upsert(
+      {
+        provider,
+        account_email: resolveAccountIdentifier(verification),
+        status: "connected",
+        encrypted_credentials: encryptedCredentials,
+        credential_version: credentialVersion,
+        environment_fallback_allowed: false,
+        connected_at: now,
+        last_success_at: now,
+        last_error: null,
+        updated_at: now,
+      },
+      { onConflict: "tenant_id,provider" },
+    )
+    .select("id,provider,status,credential_version,connected_at,updated_at")
+    .single();
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  await recordAudit(authorization.database, {
+    actorEmail: authorization.user.email,
+    action: "provider.credentials_rotated",
+    entityType: "integration_connection",
+    entityId: provider,
+    before: { status: existingStatus || null },
+    after: { provider, status: "connected", credentialVersion, verified: true },
+  });
+  return NextResponse.json({ provider: data });
+}
+
 export async function POST(request: NextRequest) {
   const authorization = await requireAdmin();
   if (authorization instanceof NextResponse) return authorization;
-  const parsed = providerSchema.safeParse(await request.json().catch(() => null));
+  const parsed = providerSchema.safeParse(await readBoundedJson(request).catch(() => null));
   if (!parsed.success)
     return NextResponse.json({ error: "Invalid provider action" }, { status: 400 });
   if (parsed.data.action === "disconnect") {
@@ -174,17 +273,86 @@ export async function POST(request: NextRequest) {
   }
   const now = new Date().toISOString();
   const provider =
-    parsed.data.action === "configure_calendly"
-      ? "calendly"
-      : parsed.data.action === "configure_openrouter"
-        ? "openrouter"
-        : "resend";
+    parsed.data.action === "configure_stripe"
+      ? "stripe"
+      : parsed.data.action === "configure_calendly"
+        ? "calendly"
+        : parsed.data.action === "configure_openrouter"
+          ? "openrouter"
+          : parsed.data.action === "configure_mcp"
+            ? "mcp"
+            : parsed.data.action === "configure_whatsapp"
+              ? "whatsapp"
+              : parsed.data.action === "configure_hubspot"
+                ? "hubspot"
+                : "resend";
   const { data: existing } = await authorization.database
     .from("integration_connections")
     .select("credential_version,status,settings")
     .eq("provider", provider)
     .maybeSingle();
   const credentialVersion = Number(existing?.credential_version || 0) + 1;
+  if (parsed.data.action === "configure_mcp") {
+    // The MCP key is server-issued, not operator-supplied: nothing external to
+    // verify, so generate and store it the same way as tenant ingest keys,
+    // except through the reversible encrypted envelope every other provider
+    // uses, since resolveTenantProviderSecrets("mcp") must decrypt it back to
+    // compare against a Bearer token on each request.
+    const rawKey = `revos_mcp_${randomBytes(24).toString("base64url")}`;
+    const { data, error } = await authorization.database
+      .from("integration_connections")
+      .upsert(
+        {
+          provider: "mcp",
+          status: "connected",
+          // Plain encryptSecret, not encryptTenantSecret: resolveTenantProviderSecrets
+          // (the read path every other provider here also goes through) calls the
+          // plain decryptSecret, not the AAD-scoped decryptTenantSecret OpenRouter uses.
+          encrypted_credentials: { api_key: encryptSecret(rawKey) },
+          credential_version: credentialVersion,
+          environment_fallback_allowed: false,
+          connected_at: now,
+          last_error: null,
+          updated_at: now,
+        },
+        { onConflict: "tenant_id,provider" },
+      )
+      .select("id,provider,status,credential_version,connected_at,updated_at")
+      .single();
+    if (error)
+      return NextResponse.json(
+        { error: "The MCP key could not be generated. Try again." },
+        { status: 500 },
+      );
+    await recordAudit(authorization.database, {
+      actorEmail: authorization.user.email,
+      action: "provider.credentials_rotated",
+      entityType: "integration_connection",
+      entityId: "mcp",
+      before: { status: existing?.status || null },
+      after: { provider: "mcp", status: "connected", credentialVersion },
+    });
+    // Returned once, at generation time, exactly like a tenant ingest key.
+    // It is never recoverable from the API again after this response.
+    return NextResponse.json({ provider: data, apiKey: rawKey });
+  }
+  if (
+    parsed.data.action === "configure_whatsapp" ||
+    parsed.data.action === "configure_hubspot" ||
+    parsed.data.action === "configure_stripe"
+  ) {
+    const provider = parsed.data.action.slice("configure_".length);
+    const credentials: Record<string, unknown> = { ...parsed.data };
+    delete credentials.action;
+    return configureAdapterProvider(
+      provider,
+      credentials,
+      authorization,
+      credentialVersion,
+      existing?.status,
+      now,
+    );
+  }
   if (parsed.data.action === "configure_openrouter") {
     try {
       const metadata = await validateOpenRouterApiKey(parsed.data.apiKey, request.signal);

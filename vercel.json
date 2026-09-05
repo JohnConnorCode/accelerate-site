@@ -11,6 +11,14 @@
     {
       "path": "/api/cron/google-workspace-sync",
       "schedule": "0 1 * * *"
+    },
+    {
+      "path": "/api/cron/work-engine",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/system-health-snapshot",
+      "schedule": "*/30 * * * *"
     }
   ]
 }

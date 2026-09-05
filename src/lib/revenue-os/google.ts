@@ -11,9 +11,13 @@ import {
   type GmailHistoryPage,
   type GmailThreadListPage,
 } from "./gmail-sync-plan";
+import { isWithinAllowlist, normalizeDriveFolderIds, staleAllowlistIds } from "./drive-sync-plan";
 import { recordActivity } from "./activities";
 import { recordAudit } from "./audit";
+import { associateConversationParticipants } from "./conversations";
 import { prepareGmailReply } from "./gmail-reply-mime";
+import { parseAddressList, parseRfcMessageId, resolveGmailDirection } from "./gmail-threading";
+import { createPreCallBriefWork, createPostMeetingProcessWork } from "./meeting-intel-coworker";
 import { assertActiveTenantExecution } from "@/lib/tenancy/system";
 
 export const GOOGLE_SCOPES = [
@@ -230,6 +234,32 @@ function parseAddress(value: string | null): string | null {
   return normalizeEmail(value.match(/<([^>]+)>/)?.[1] || value.split(",")[0]);
 }
 
+/**
+ * Every address Gmail may send as for this connection: the account address
+ * plus its Send-As aliases. Direction is outbound for all of them; without
+ * the aliases, mail sent from an alias files as inbound and corrupts thread
+ * chronology, unread counts, and reply detection. Best-effort: an alias
+ * fetch failure degrades to account-only rather than failing the sync.
+ */
+async function listGmailOwnerEmails(token: string, accountEmail: string): Promise<Set<string>> {
+  const owners = new Set<string>();
+  const account = normalizeEmail(accountEmail);
+  if (account) owners.add(account);
+  try {
+    const response = await googleFetch<{ sendAs?: Array<{ sendAsEmail?: string }> }>(
+      "https://gmail.googleapis.com/gmail/v1/users/me/settings/sendAs",
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    for (const entry of response.sendAs ?? []) {
+      const alias = normalizeEmail(entry.sendAsEmail);
+      if (alias) owners.add(alias);
+    }
+  } catch (error) {
+    console.error("[google/gmail-aliases]", error);
+  }
+  return owners;
+}
+
 export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
   const { token, connection } = await getGoogleAccessToken(supabase);
   const profile = await googleFetch<GmailProfile>(
@@ -274,7 +304,9 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
   const threadIds = plan.threadIds;
   let stored = 0;
   let failed = 0;
-  const ownerEmail = normalizeEmail(connection.account_email as string);
+  const ownerEmails = await listGmailOwnerEmails(token, connection.account_email as string);
+  const isOutbound = (from: string | null) =>
+    resolveGmailDirection(from, ownerEmails) === "outbound";
   for (const threadId of threadIds) {
     try {
       const thread = await googleFetch<{
@@ -291,31 +323,25 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
       const externalEmails = messages
         .flatMap((message) => [
           parseAddress(header(message, "From")),
-          parseAddress(header(message, "To")),
+          ...parseAddressList(header(message, "To")),
+          ...parseAddressList(header(message, "Cc")),
         ])
-        .filter((email): email is string => Boolean(email && email !== ownerEmail));
-      const contactEmail = externalEmails[0] || null;
-      let contactId: string | null = null;
-      let opportunityId: string | null = null;
-      if (contactEmail) {
-        const contact = await findCanonicalContactByEmail(supabase, contactEmail);
-        contactId = contact?.id ?? null;
-        if (contactId) {
-          const { data: opportunity } = await supabase
-            .from("opportunities")
-            .select("id")
-            .eq("contact_id", contactId)
-            .not("stage", "in", "(won,lost)")
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          opportunityId = opportunity?.id ?? null;
-        }
-      }
+        .filter((email): email is string => Boolean(email && !ownerEmails.has(email)));
+      const participantEmails = [...new Set(externalEmails)];
+      const contactEmail = participantEmails[0] || null;
+      // Preserve existing links: a manual or previously verified association
+      // is human truth and a later sync must only fill blanks, never overwrite.
+      const { data: existingConversation, error: existingError } = await supabase
+        .from("conversations")
+        .select("id,contact_id,company_id,opportunity_id")
+        .eq("channel", "gmail")
+        .eq("external_id", thread.id)
+        .maybeSingle();
+      if (existingError) throw new Error(existingError.message);
       const unread = messages.filter(
         (message) =>
           message.labelIds?.includes("UNREAD") &&
-          parseAddress(header(message, "From")) !== ownerEmail,
+          !isOutbound(parseAddress(header(message, "From"))),
       ).length;
       const lastAt = latest.internalDate
         ? new Date(Number(latest.internalDate)).toISOString()
@@ -327,8 +353,9 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
             channel: "gmail",
             external_id: thread.id,
             subject,
-            contact_id: contactId,
-            opportunity_id: opportunityId,
+            contact_id: (existingConversation?.contact_id as string) ?? null,
+            company_id: (existingConversation?.company_id as string) ?? null,
+            opportunity_id: (existingConversation?.opportunity_id as string) ?? null,
             status: unread ? "open" : "waiting",
             unread_count: unread,
             last_message_at: lastAt,
@@ -339,13 +366,30 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
         .select("id")
         .single();
       if (conversationError) throw new Error(conversationError.message);
+      // Deterministic association never fails the sync: ambiguity becomes a
+      // founder review action and anything else is recorded on the thread.
+      let contactId: string | null = (existingConversation?.contact_id as string) ?? null;
+      let opportunityId: string | null = (existingConversation?.opportunity_id as string) ?? null;
+      try {
+        const association = await associateConversationParticipants(supabase, {
+          conversationId: conversation.id,
+          participantEmails,
+          threadExternalId: thread.id,
+          actorEmail: "system",
+        });
+        contactId = association.contactId;
+        opportunityId = association.opportunityId;
+      } catch (associationError) {
+        console.error("[google/gmail-association]", associationError);
+      }
       const rows = messages.map((message) => {
         const from = parseAddress(header(message, "From"));
         const to = parseAddress(header(message, "To"));
+        const outbound = isOutbound(from);
         return {
           conversation_id: conversation.id,
           external_id: message.id,
-          direction: from === ownerEmail ? "outbound" : "inbound",
+          direction: outbound ? "outbound" : "inbound",
           sender_email: from,
           recipient_emails: to ? [to] : [],
           subject: header(message, "Subject"),
@@ -356,32 +400,55 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
           sent_at: message.internalDate
             ? new Date(Number(message.internalDate)).toISOString()
             : null,
-          received_at:
-            from === ownerEmail
-              ? null
-              : message.internalDate
-                ? new Date(Number(message.internalDate)).toISOString()
-                : null,
-          metadata: { labels: message.labelIds ?? [], gmail_thread_id: thread.id },
+          received_at: outbound
+            ? null
+            : message.internalDate
+              ? new Date(Number(message.internalDate)).toISOString()
+              : null,
+          metadata: {
+            labels: message.labelIds ?? [],
+            gmail_thread_id: thread.id,
+            // The provider id (external_id) is Gmail's opaque id, not the
+            // RFC Message-ID threading runs on. Retain both, plus the full
+            // participant lists, so replies chain real RFC headers and no
+            // participant is lost to first-address truncation.
+            rfc_message_id: parseRfcMessageId(header(message, "Message-ID")),
+            participants: {
+              from: parseAddressList(header(message, "From")),
+              to: parseAddressList(header(message, "To")),
+              cc: parseAddressList(header(message, "Cc")),
+            },
+          },
         };
       });
       const inboundRows = rows.filter((row) => row.direction === "inbound");
-      const { data: priorInbound, error: priorError } = inboundRows.length
+      const batchIds = rows.map((row) => row.external_id);
+      const { data: priorRows, error: priorError } = batchIds.length
         ? await supabase
             .from("messages")
-            .select("external_id")
+            .select("external_id,status")
             .eq("conversation_id", conversation.id)
-            .in(
-              "external_id",
-              inboundRows.map((row) => row.external_id),
-            )
+            .in("external_id", batchIds)
         : { data: [], error: null };
       if (priorError) throw new Error(priorError.message);
-      const { error: messageError } = await supabase
-        .from("messages")
-        .upsert(rows, { onConflict: "conversation_id,external_id", ignoreDuplicates: false });
-      if (messageError) throw new Error(messageError.message);
-      const priorIds = new Set((priorInbound ?? []).map((message) => message.external_id));
+      // Terminal reply receipts (sent/failed) are the reply path's truthful
+      // record of an external effect. A later sync must never clobber them
+      // back to "received": the same Gmail message arriving through two paths
+      // stays one canonical message, and the receipt wins.
+      const terminalIds = new Set(
+        (priorRows ?? [])
+          .filter((message) => message.status === "sent" || message.status === "failed")
+          .map((message) => message.external_id),
+      );
+      const upsertRows = rows.filter((row) => !terminalIds.has(row.external_id));
+      if (upsertRows.length) {
+        const { error: messageError } = await supabase.from("messages").upsert(upsertRows, {
+          onConflict: "conversation_id,external_id",
+          ignoreDuplicates: false,
+        });
+        if (messageError) throw new Error(messageError.message);
+      }
+      const priorIds = new Set((priorRows ?? []).map((message) => message.external_id));
       const newInbound = inboundRows.filter((row) => !priorIds.has(row.external_id));
       // Persist every inbound reply through the activity ledger, not merely a
       // first-seen stop. On a retry the message may no longer be "new", but
@@ -605,6 +672,26 @@ export async function syncCalendar(supabase: SupabaseClient) {
             .eq("provider", "google")
             .eq("external_id", row.external_id);
         }
+        // Create a pre-call brief for the Meeting Intel coworker.
+        createPreCallBriefWork(supabase, {
+          contactId: row.contact_id!,
+          meetingAt: row.start_at!,
+          actorEmail: tenant.founder.systemActorEmail,
+        }).catch(() => {});
+      }
+      // Post-meeting processing for past confirmed meetings with an opportunity.
+      const pastConfirmedMeeting =
+        row.contact_id &&
+        row.opportunity_id &&
+        row.status === "confirmed" &&
+        row.start_at &&
+        new Date(row.start_at).getTime() < now;
+      if (pastConfirmedMeeting) {
+        createPostMeetingProcessWork(supabase, {
+          opportunityId: row.opportunity_id!,
+          meetingAt: row.start_at!,
+          actorEmail: tenant.founder.systemActorEmail,
+        }).catch(() => {});
       }
     }
     const matched = rows.filter((row) => row.contact_id).length;
@@ -645,16 +732,17 @@ export async function syncCalendar(supabase: SupabaseClient) {
 export async function syncDrive(supabase: SupabaseClient) {
   const { token, connection } = await getGoogleAccessToken(supabase);
   const settings = (connection.settings || {}) as { drive_folder_ids?: string[] };
-  const folders = (settings.drive_folder_ids ?? []).filter(Boolean).slice(0, 10);
+  const { ids: folders, rejected } = normalizeDriveFolderIds(settings.drive_folder_ids ?? []);
   if (!folders.length) {
     await recordSourceRun(supabase, {
       sourceKey: "google_drive",
       status: "not_configured",
-      summary: { reason: "No folders selected" },
+      summary: { reason: "No folders selected", rejected: rejected.length },
     });
-    return { stored: 0, notConfigured: true };
+    return { stored: 0, notConfigured: true, rejected: rejected.length };
   }
   let stored = 0;
+  let quarantined = 0;
   for (const folderId of folders) {
     const params = new URLSearchParams({
       q: `'${folderId.replace(/'/g, "")}' in parents and trashed = false`,
@@ -678,20 +766,41 @@ export async function syncDrive(supabase: SupabaseClient) {
       metadata: { parents: file.parents ?? [] },
       synced_at: new Date().toISOString(),
     }));
-    const { error } = rows.length
+    // The Drive query is folder-scoped, and this proves the results stayed
+    // inside the allowlist before anything is stored.
+    const inScope = rows.filter((row) => isWithinAllowlist(row.metadata.parents, folders));
+    quarantined += rows.length - inScope.length;
+    const { error } = inScope.length
       ? await supabase
           .from("drive_documents")
-          .upsert(rows, { onConflict: "tenant_id,provider,external_id" })
+          .upsert(inScope, { onConflict: "tenant_id,provider,external_id" })
       : { error: null };
     if (error) throw new Error(error.message);
-    stored += rows.length;
+    stored += inScope.length;
   }
+  // Removing a folder stops future reads; its already-synced documents stay.
+  // Report which stored folders left the allowlist so that provenance is
+  // explicit in the run receipt instead of silently orphaned.
+  const { data: storedFolders } = await supabase
+    .from("drive_documents")
+    .select("folder_id")
+    .not("folder_id", "is", null);
+  const staleFolders = staleAllowlistIds(
+    (storedFolders ?? []).map((row) => (row as { folder_id: unknown }).folder_id),
+    folders,
+  );
   await recordSourceRun(supabase, {
     sourceKey: "google_drive",
     status: "success",
-    summary: { stored, folders: folders.length },
+    summary: {
+      stored,
+      folders: folders.length,
+      rejected: rejected.length,
+      quarantined,
+      stale_folders: staleFolders.length,
+    },
   });
-  return { stored, folders: folders.length };
+  return { stored, folders: folders.length, rejected: rejected.length, quarantined, staleFolders };
 }
 
 export async function sendGmailReply(
@@ -730,7 +839,7 @@ export async function sendGmailReply(
   if (!conversation?.external_id) throw new Error("Gmail conversation not found");
   const { data: latest, error: messageError } = await supabase
     .from("messages")
-    .select("external_id,sender_email,recipient_emails,subject,references_header")
+    .select("external_id,sender_email,recipient_emails,subject,references_header,metadata")
     .eq("conversation_id", input.conversationId)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -741,11 +850,12 @@ export async function sendGmailReply(
   const metadata = (conversation.metadata ?? {}) as { contact_email?: string };
   const recipient = normalizeEmail(metadata.contact_email || latest.sender_email);
   if (!ownerEmail || !recipient) throw new Error("Could not identify the Gmail reply recipient");
+  const latestMetadata = (latest.metadata ?? {}) as { rfc_message_id?: string };
   const prepared = prepareGmailReply({
     ownerEmail,
     recipient,
     conversationSubject: conversation.subject,
-    latest,
+    latest: { ...latest, rfc_message_id: latestMetadata.rfc_message_id ?? null },
     body,
   });
 
@@ -760,7 +870,7 @@ export async function sendGmailReply(
     subject: prepared.subject,
     body_text: body,
     status: "processing",
-    in_reply_to: latest.external_id,
+    in_reply_to: prepared.inReplyTo,
     references_header: prepared.references,
     metadata: { source: "gmail_reply", gmail_thread_id: conversation.external_id },
   });
@@ -798,29 +908,21 @@ export async function sendGmailReply(
   }
 
   const now = new Date().toISOString();
-  const { data: message, error: saveError } = await supabase
-    .from("messages")
-    .update({
-      external_id: sent.id,
-      provider_id: sent.id,
-      status: "sent",
-      sent_at: now,
-      in_reply_to: latest.external_id,
-      references_header: prepared.references,
-      metadata: {
-        labels: sent.labelIds ?? [],
-        gmail_thread_id: sent.threadId,
-        source: "gmail_reply",
-      },
-    })
-    .eq("id", claimId)
-    .select("id")
-    .single();
-  if (saveError || !message) {
-    throw new Error(
-      "Email provider accepted the message but its local receipt could not be recorded; reconcile before retrying",
-    );
-  }
+  const message = await recordGmailSendReceipt(supabase, {
+    conversationId: conversation.id,
+    claimId,
+    idempotencyKey: input.idempotencyKey || null,
+    ownerEmail,
+    recipient: prepared.recipient,
+    subject: prepared.subject,
+    body,
+    sentId: sent.id,
+    sentThreadId: sent.threadId,
+    sentLabelIds: sent.labelIds ?? [],
+    inReplyTo: prepared.inReplyTo,
+    references: prepared.references,
+    sentAt: now,
+  });
 
   await Promise.all([
     supabase
@@ -850,9 +952,74 @@ export async function sendGmailReply(
         provider_id: sent.id,
         message_id: message.id,
         recipient: prepared.recipient,
-        in_reply_to: latest.external_id,
+        in_reply_to: prepared.inReplyTo,
       },
     }),
   ]);
   return { providerId: sent.id, messageId: message.id, conversationId: conversation.id };
+}
+
+/**
+ * Convergent send receipt for a Gmail reply claim. Upserts on the provider
+ * id, then retires the processing claim.
+ *
+ * A sync racing the send may already have stored this Gmail message; the
+ * upsert then heals that row into the sent receipt instead of leaving two
+ * canonical rows (or violating the unique index on a blind update). The
+ * claim row is deleted after, so a crash between the two still blocks a
+ * duplicate send on retry via the idempotency key rather than risking a
+ * second external effect. Exported for deterministic replay testing.
+ */
+export async function recordGmailSendReceipt(
+  supabase: SupabaseClient,
+  input: {
+    conversationId: string;
+    claimId: string;
+    idempotencyKey: string | null;
+    ownerEmail: string;
+    recipient: string;
+    subject: string;
+    body: string;
+    sentId: string;
+    sentThreadId: string;
+    sentLabelIds: string[];
+    inReplyTo: string | null;
+    references: string | null;
+    sentAt: string;
+  },
+): Promise<{ id: string }> {
+  const { data: message, error: saveError } = await supabase
+    .from("messages")
+    .upsert(
+      {
+        conversation_id: input.conversationId,
+        external_id: input.sentId,
+        provider_id: input.sentId,
+        idempotency_key: input.idempotencyKey,
+        direction: "outbound",
+        sender_email: input.ownerEmail,
+        recipient_emails: [input.recipient],
+        subject: input.subject,
+        body_text: input.body,
+        status: "sent",
+        sent_at: input.sentAt,
+        in_reply_to: input.inReplyTo,
+        references_header: input.references,
+        metadata: {
+          labels: input.sentLabelIds,
+          gmail_thread_id: input.sentThreadId,
+          source: "gmail_reply",
+        },
+      },
+      { onConflict: "conversation_id,external_id" },
+    )
+    .select("id")
+    .single();
+  if (saveError || !message) {
+    throw new Error(
+      "Email provider accepted the message but its local receipt could not be recorded; reconcile before retrying",
+    );
+  }
+  await supabase.from("messages").delete().eq("id", input.claimId);
+  return { id: (message as { id: string }).id };
 }

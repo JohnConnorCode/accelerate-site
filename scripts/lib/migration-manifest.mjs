@@ -1,6 +1,6 @@
 /**
  * The single ordered list of migrations a clean install applies, in order.
- * This is the source of truth docs/REVENUE-OS-SETUP.md's numbered list must
+ * This is the source of truth docs/self-hosting/REVENUE-OS-SETUP.md's numbered list must
  * match — a mismatch between the two is exactly the kind of drift that
  * misleads a fresh clone (human or agent) about how many files there are.
  *
@@ -46,4 +46,35 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260831-tenant-lifecycle-rpcs.sql",
   "migrations/20260831-tenant-invitation-receipt-idempotency.sql",
   "migrations/20260831-tenant-suspension-guards.sql",
+  "migrations/20260902-workspace-capabilities.sql",
+  "migrations/20260902-claims-evidence.sql",
+  "migrations/20260902-autonomy-policies.sql",
+  "migrations/20260902-runtime-index-prerequisites.sql",
+  "migrations/20260902-coworkers.sql",
+  "migrations/20260902-work-items.sql",
+  "migrations/20260902-plugins.sql",
+  "migrations/20260902-kanban-columns.sql",
+  "migrations/20260903-agent-memory-and-budgets.sql",
+  "migrations/20260903-feature-request-claims.sql",
+  "migrations/20260903b-feature-request-claim-milestone-gate.sql",
+  "migrations/20260903c-feature-request-claim-wip-race-fix.sql",
+  "migrations/20260903d-feature-request-bounded-stale-recovery.sql",
+  "migrations/20260904-action-reversibility.sql",
+  "migrations/20260904-entity-registry-link-graph.sql",
+  "migrations/20260904-legacy-adapter-usage.sql",
+  "migrations/20260904-runtime-tenant-boundaries.sql",
+  "migrations/20260904-runtime-policy-enforcement.sql",
+  "migrations/20260904-runtime-budget-claims.sql",
+  "migrations/20260904-runtime-work-approval-links.sql",
+  "migrations/20260904-runtime-work-claims.sql",
+  "migrations/20260904-plugin-workflow-foundations.sql",
+  "migrations/20260905-delivery-handoff.sql",
+  "migrations/20260905-feature-board-subtasks.sql",
+  "migrations/20260906-universal-work-board.sql",
+  "migrations/20260906-bootstrap-workspace-name.sql",
 ];
+
+export const EXCLUDED_MIGRATIONS = {
+  "migrations/20260830-tenant-uniqueness-compatibility.sql":
+    "Historical production-rollout compatibility shim; superseded by tenant uniqueness cutover on clean installs.",
+};

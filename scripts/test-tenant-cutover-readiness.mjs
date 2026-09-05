@@ -262,9 +262,13 @@ assert.ok(
   "production isolation proof must require an explicit mutation confirmation",
 );
 assert.ok(
-  productionProofSource.includes('PROJECT_REF = "skjypuwkceoiunyhhqlm"') &&
+  productionProofSource.includes("const PROJECT_REF = process.env.ISOLATION_PROOF_PROJECT_REF") &&
     productionProofSource.includes("`${PROJECT_REF}.supabase.co`"),
-  "production isolation proof must remain fixed to the Accelerate project",
+  "production isolation proof must stay pinned to one explicitly configured project",
+);
+assert.ok(
+  productionProofSource.includes("if (!PROJECT_REF) {"),
+  "production isolation proof must refuse to run without an explicit pinned project",
 );
 assert.match(
   productionProofSource,

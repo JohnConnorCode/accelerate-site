@@ -22,9 +22,13 @@ interface ContentItemFormProps {
   onSave: (data: Partial<ContentCalendarItem>) => void;
   onDelete?: (id: string) => void;
   onClose: () => void;
+  /** Board's current columns (admin-defined, renamable) as {value, label}
+   * options. Falls back to the pre-kanban-unification defaults if the
+   * caller hasn't loaded them yet, so the dropdown is never empty. */
+  statusOptions?: { value: string; label: string }[];
 }
 
-const statusOptions = [
+const DEFAULT_STATUS_OPTIONS = [
   { value: "idea", label: "Idea" },
   { value: "outline", label: "Outline" },
   { value: "draft", label: "Draft" },
@@ -56,7 +60,14 @@ const funnelOptions = [
   { value: "decision", label: "Decision" },
 ];
 
-export function ContentItemForm({ open, item, onSave, onDelete, onClose }: ContentItemFormProps) {
+export function ContentItemForm({
+  open,
+  item,
+  onSave,
+  onDelete,
+  onClose,
+  statusOptions = DEFAULT_STATUS_OPTIONS,
+}: ContentItemFormProps) {
   const [title, setTitle] = useState(item?.title || "");
   const [slug, setSlug] = useState(item?.slug || "");
   const [status, setStatus] = useState<ContentStatus>(item?.status || "idea");
@@ -173,15 +184,17 @@ export function ContentItemForm({ open, item, onSave, onDelete, onClose }: Conte
             {item?.id && onDelete && (
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="text-white-muted hover:text-[var(--error)] cursor-pointer"
+                className="grid min-h-10 min-w-10 place-items-center rounded-lg text-white-muted transition-colors hover:text-[var(--error)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--error)] focus-visible:ring-offset-2"
                 title="Delete"
+                aria-label="Delete content item"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
             )}
             <button
               onClick={onClose}
-              className="text-white-muted hover:text-white-primary cursor-pointer"
+              aria-label="Close content editor"
+              className="grid min-h-10 min-w-10 place-items-center rounded-lg text-white-muted transition-colors hover:text-white-primary cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2"
             >
               <X className="h-5 w-5" />
             </button>

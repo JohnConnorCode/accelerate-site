@@ -1,69 +1,131 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
+import {
+  assignConversation,
+  listConversations,
+  getConversationDetail,
+  updateConversationStatus,
+  linkConversationRecord,
+  type ConversationFilter,
+  type ConversationStatus,
+  type ConversationChannel,
+} from "@/lib/revenue-os/conversations";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
+
   const params = new URL(request.url).searchParams;
   const id = params.get("id");
   const supabase = auth.database;
-  let query = supabase
-    .from("conversations")
-    .select("*")
-    .order("last_message_at", { ascending: false, nullsFirst: false })
-    .limit(100);
-  if (params.get("status")) query = query.eq("status", params.get("status")!);
-  const conversations = await query;
-  if (conversations.error) {
-    if (isMissingRevenueSchema(conversations.error))
-      return NextResponse.json({ schemaReady: false, conversations: [], messages: [] });
-    return NextResponse.json({ error: "Could not load conversations" }, { status: 500 });
+
+  const assigneeParam = params.get("assignee") || undefined;
+  const filter: ConversationFilter = {
+    status: (params.get("status") as ConversationStatus | "all") || "all",
+    channel: (params.get("channel") as ConversationChannel | "all") || "all",
+    intent: params.get("intent") || undefined,
+    record: (params.get("record") as "all" | "linked" | "unlinked") || "all",
+    campaign: (params.get("campaign") as "all" | "linked" | "unlinked") || "all",
+    unreadOnly: params.get("unread") === "1" || params.get("unread") === "true",
+    followUp: params.get("followUp") === "1" || params.get("followUp") === "true",
+    // "me" resolves server-side so the client never has to know (or spoof)
+    // the operator's address; "unassigned" matches threads with no assignee.
+    assignee: assigneeParam === "me" ? auth.user.email || undefined : assigneeParam,
+    search: params.get("search") || undefined,
+  };
+
+  try {
+    const listResult = await listConversations(supabase, filter);
+
+    let detail = null;
+    let messages: unknown[] = [];
+
+    if (id) {
+      detail = await getConversationDetail(supabase, id);
+      messages = detail?.messages ?? [];
+    }
+
+    return NextResponse.json({
+      schemaReady: listResult.schemaReady,
+      conversations: listResult.conversations,
+      stats: listResult.stats,
+      intents: listResult.intents,
+      detail,
+      messages,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Could not load conversations" },
+      { status: 500 },
+    );
   }
-  let messages: unknown[] = [];
-  if (id) {
-    const result = await supabase
-      .from("messages")
-      .select("*")
-      .eq("conversation_id", id)
-      .order("created_at", { ascending: true });
-    if (result.error)
-      return NextResponse.json({ error: "Could not load messages" }, { status: 500 });
-    messages = result.data ?? [];
-  }
-  return NextResponse.json({
-    schemaReady: true,
-    conversations: conversations.data ?? [],
-    messages,
-  });
 }
 
 export async function PATCH(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
+
   const body = (await request.json()) as {
     id?: string;
-    status?: string;
+    status?: ConversationStatus;
     intent?: string;
     opportunityId?: string | null;
     contactId?: string | null;
+    companyId?: string | null;
+    assigneeEmail?: string | null;
   };
-  if (!body.id) return NextResponse.json({ error: "Conversation id is required" }, { status: 400 });
-  const patch: Record<string, unknown> = {};
-  if (body.status && ["open", "waiting", "resolved", "archived"].includes(body.status))
-    patch.status = body.status;
-  if (typeof body.intent === "string") patch.intent = body.intent.trim().slice(0, 80);
-  if (body.opportunityId !== undefined) patch.opportunity_id = body.opportunityId;
-  if (body.contactId !== undefined) patch.contact_id = body.contactId;
-  if (body.status === "resolved" || body.status === "archived") patch.unread_count = 0;
-  if (!Object.keys(patch).length)
+
+  if (!body.id) {
+    return NextResponse.json({ error: "Conversation id is required" }, { status: 400 });
+  }
+
+  const supabase = auth.database;
+  const actorEmail = auth.user.email || "founder@revenue-os.local";
+
+  try {
+    if (body.status) {
+      const updated = await updateConversationStatus(supabase, {
+        id: body.id,
+        status: body.status,
+        actorEmail,
+      });
+      return NextResponse.json({ conversation: updated });
+    }
+
+    if (
+      body.opportunityId !== undefined ||
+      body.contactId !== undefined ||
+      body.companyId !== undefined
+    ) {
+      const updated = await linkConversationRecord(supabase, {
+        conversationId: body.id,
+        opportunityId: body.opportunityId,
+        contactId: body.contactId,
+        companyId: body.companyId,
+        actorEmail,
+      });
+      return NextResponse.json({ conversation: updated });
+    }
+
+    if (body.assigneeEmail !== undefined) {
+      // "me" resolves to the authenticated operator so the client never has
+      // to know (or spoof) its own address on the write path either.
+      const assignee = body.assigneeEmail === "me" ? (auth.user.email ?? null) : body.assigneeEmail;
+      if (body.assigneeEmail === "me" && !assignee)
+        return NextResponse.json({ error: "Could not identify the operator" }, { status: 400 });
+      const updated = await assignConversation(supabase, {
+        id: body.id,
+        assigneeEmail: assignee,
+        actorEmail,
+      });
+      return NextResponse.json({ conversation: updated });
+    }
+
     return NextResponse.json({ error: "No valid updates supplied" }, { status: 400 });
-  const { data, error } = await auth.database
-    .from("conversations")
-    .update(patch)
-    .eq("id", body.id)
-    .select("*")
-    .single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  return NextResponse.json({ conversation: data });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Update failed" },
+      { status: 400 },
+    );
+  }
 }

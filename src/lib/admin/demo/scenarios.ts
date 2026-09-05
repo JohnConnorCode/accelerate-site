@@ -1,3 +1,4 @@
+import { DEMO_BUSINESS_PROFILES, type DemoBusinessProfile } from "./business-profiles";
 import type { TenantConfig } from "@/config/tenant";
 import {
   ALDER_RIDGE_PROFILE,
@@ -78,6 +79,7 @@ export interface DemoScenarioPack extends DemoScenarioSummary {
   tasks: DemoTask[];
   actions: DemoAction[];
   content: DemoScenarioContentProfile;
+  business: DemoBusinessProfile;
 }
 
 const UUIDS = Array.from(
@@ -239,6 +241,7 @@ function makePack(input: {
     appearance: input.appearance,
     story: input.story,
     version: 3,
+    business: DEMO_BUSINESS_PROFILES[input.id],
     tenant: tenant(
       input.name,
       input.domain,

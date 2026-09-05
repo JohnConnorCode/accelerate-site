@@ -7,19 +7,21 @@ import {
   validateFeatureBacklog,
 } from "./feature-backlog-data.mjs";
 import { collectFeatureBoardIntegrityFailures } from "./lib/feature-board-graph.mjs";
+import { collectWiringFailures } from "./verify-wiring.mjs";
+import { buildPlanIsInSync } from "./generate-northstar-build-plan.mjs";
 
 const requiredFiles = [
   "AGENTS.md",
-  "docs/AGENT-TICKET-RUNBOOK.md",
-  "docs/REVENUE-OS-ENGINEERING-CONTRACT.md",
-  "docs/MULTI-TENANCY-CONTRACT.md",
-  "docs/REVENUE-OS-SETUP.md",
-  "docs/FEATURE-BOARD-TAXONOMY.md",
-  "docs/MARKETING-POSITIONING-CONTRACT.md",
-  "docs/NAVIGATION-RUNTIME-CONTRACT.md",
-  "docs/ADMIN-DEMO-CONTRACT.md",
-  "docs/WORK-MOTION-CONTRACT.md",
-  "docs/GROK-4.6-COMMAND-CENTER-EXECUTION-PLAN.md",
+  "docs/contributing/AGENT-TICKET-RUNBOOK.md",
+  "docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md",
+  "docs/contracts/MULTI-TENANCY-CONTRACT.md",
+  "docs/self-hosting/REVENUE-OS-SETUP.md",
+  "docs/contracts/FEATURE-BOARD-TAXONOMY.md",
+  "docs/contracts/MARKETING-POSITIONING-CONTRACT.md",
+  "docs/contracts/NAVIGATION-RUNTIME-CONTRACT.md",
+  "docs/contracts/ADMIN-DEMO-CONTRACT.md",
+  "docs/contracts/WORK-MOTION-CONTRACT.md",
+  "docs/contributing/PROGRAM-WAVES.md",
   "src/lib/revenue-os/README.md",
 ];
 const failures = [];
@@ -29,11 +31,11 @@ for (const file of requiredFiles) {
 }
 
 const agentContract = existsSync("AGENTS.md") ? readFileSync("AGENTS.md", "utf8") : "";
-const ticketRunbook = existsSync("docs/AGENT-TICKET-RUNBOOK.md")
-  ? readFileSync("docs/AGENT-TICKET-RUNBOOK.md", "utf8")
+const ticketRunbook = existsSync("docs/contributing/AGENT-TICKET-RUNBOOK.md")
+  ? readFileSync("docs/contributing/AGENT-TICKET-RUNBOOK.md", "utf8")
   : "";
-const grokExecutionPlan = existsSync("docs/GROK-4.6-COMMAND-CENTER-EXECUTION-PLAN.md")
-  ? readFileSync("docs/GROK-4.6-COMMAND-CENTER-EXECUTION-PLAN.md", "utf8")
+const programWaves = existsSync("docs/contributing/PROGRAM-WAVES.md")
+  ? readFileSync("docs/contributing/PROGRAM-WAVES.md", "utf8")
   : "";
 
 if (!/Production deployment is founder-controlled[\s\S]*Never deploy/i.test(agentContract)) {
@@ -56,9 +58,9 @@ if (!/Any post-verification change reopens the\s+verification gate/i.test(ticket
   failures.push("The agent runbook must reopen verification after a release-tree change");
 }
 
-const requiredGrokSections = [
+const requiredProgramWaveSections = [
   "## Purpose and authority",
-  "## Coordinator preflight",
+  "## Claiming and coordination",
   "## Mandatory ticket packet",
   "## Architecture law",
   "## Dependency-ordered program",
@@ -68,26 +70,19 @@ const requiredGrokSections = [
   "## Release gate",
   "## Permanent non-goals",
 ];
-for (const section of requiredGrokSections) {
-  if (!grokExecutionPlan.includes(section))
-    failures.push(`Grok execution plan is missing ${section}`);
+for (const section of requiredProgramWaveSections) {
+  if (!programWaves.includes(section)) failures.push(`Program waves doc is missing ${section}`);
 }
 if (
-  !/not a second roadmap/i.test(grokExecutionPlan) ||
-  !/durable roadmap is `scripts\/feature-backlog-data\.mjs`/i.test(grokExecutionPlan) ||
-  !/operational\s+projection is `\/admin\/features`/i.test(grokExecutionPlan)
+  !programWaves.includes("The live Feature Board is the authoritative work record") ||
+  !programWaves.includes("never archives unlisted work")
 ) {
   failures.push(
-    "Grok execution plan must preserve the Feature Board as the only roadmap and status authority",
+    "Program waves must preserve live work authority and non-destructive reviewed imports",
   );
 }
-if (!/seed:features -- --apply` is coordinator-only/i.test(grokExecutionPlan)) {
-  failures.push(
-    "Grok execution plan must reserve live manifest reconciliation for the coordinator",
-  );
-}
-if (!/Production release is founder-authorized per named release/i.test(grokExecutionPlan)) {
-  failures.push("Grok execution plan must preserve per-release founder deployment authority");
+if (!/Production release is founder-authorized per named release/i.test(programWaves)) {
+  failures.push("Program waves doc must preserve per-release founder deployment authority");
 }
 
 const requiredNoteSections = [
@@ -129,11 +124,12 @@ for (const card of featureBacklog) {
   }
   if (card.status === "in_progress" && !card.owner?.trim())
     failures.push(`${prefix} is in progress without an Owner`);
-  if (
-    ["in_progress", "shipped"].includes(card.status) &&
-    !card.notes.includes("Current implementation evidence:")
-  ) {
-    failures.push(`${prefix} is ${card.status} without current/remaining implementation evidence`);
+  // Evidence is proof of completion, not proof of having been claimed — a
+  // card freshly claimed through the live claim RPC (scripts/agent-dispatch.ts)
+  // legitimately has zero evidence text for the entire time it's in_progress;
+  // only require it once the card actually ships.
+  if (card.status === "shipped" && !card.notes.includes("Current implementation evidence:")) {
+    failures.push(`${prefix} is shipped without current/remaining implementation evidence`);
   }
   if (card.status === "shipped" && !/verif|pass|production|playwright|evidence/i.test(card.notes)) {
     failures.push(`${prefix} is shipped without verification evidence`);
@@ -141,28 +137,39 @@ for (const card of featureBacklog) {
 }
 
 const cardsByKey = new Map(featureBacklog.map((card) => [card.seed_key, card]));
-failures.push(
-  ...collectFeatureBoardIntegrityFailures(featureBacklog, {
-    loopKeys: LOOP_ONE,
-    nowKeys: NOW_KEYS,
-    secondBrainImplementations: SECOND_BRAIN_IMPLEMENTATIONS,
-  }),
-);
+const boardIntegrity = collectFeatureBoardIntegrityFailures(featureBacklog, {
+  loopKeys: LOOP_ONE,
+  nowKeys: NOW_KEYS,
+  secondBrainImplementations: SECOND_BRAIN_IMPLEMENTATIONS,
+});
+failures.push(...boardIntegrity.failures);
+for (const warning of boardIntegrity.warnings) console.warn(`warning: ${warning}`);
 
-// The execution guide sequences stable card keys but never owns their mutable
-// status. Resolve every `card:<key>` reference against the manifest so a rename
-// or missing extension card fails before a lower-context worker is dispatched.
-const referencedGrokKeys = [
-  ...grokExecutionPlan.matchAll(/`card:([a-z0-9]+(?:-[a-z0-9]+)*)`/g),
-].map((match) => match[1]);
-if (!referencedGrokKeys.length)
-  failures.push("Grok execution plan must reference Feature Board work by stable card:key tokens");
-for (const key of new Set(referencedGrokKeys)) {
+// "Shipped" must be mechanically earned, not self-reported prose: catches
+// unwired modules, tables no migration creates, unregistered cron routes,
+// and swallowed errors — the exact defect shapes this contract's own
+// history shipped and called done. See scripts/verify-wiring.mjs.
+failures.push(...collectWiringFailures());
+
+if (!(await buildPlanIsInSync()))
+  failures.push(
+    "docs/NORTHSTAR-BUILD-PLAN.md is out of date. Run `npm run report:build-plan` and commit the result.",
+  );
+
+// The program waves doc sequences stable card keys but never owns their
+// mutable status. Resolve every `card:<key>` reference against the manifest so
+// a rename or missing card fails before a lower-context agent is dispatched.
+const referencedWaveKeys = [...programWaves.matchAll(/`card:([a-z0-9]+(?:-[a-z0-9]+)*)`/g)].map(
+  (match) => match[1],
+);
+if (!referencedWaveKeys.length)
+  failures.push("Program waves doc must reference Feature Board work by stable card:key tokens");
+for (const key of new Set(referencedWaveKeys)) {
   if (!cardsByKey.has(key))
-    failures.push(`Grok execution plan references missing Feature Board key: ${key}`);
+    failures.push(`Program waves doc references missing Feature Board key: ${key}`);
 }
 
-const grokExtensionKeys = [
+const waveExtensionKeys = [
   "feature-board-dependency-integrity",
   "booking-mode-contract-reconciliation",
   "task-operator-workspace",
@@ -183,14 +190,14 @@ const grokExtensionKeys = [
   "slack-notification-approval-surface",
   "notion-knowledge-source",
 ];
-for (const key of grokExtensionKeys) {
+for (const key of waveExtensionKeys) {
   const card = cardsByKey.get(key);
   if (!card) {
-    failures.push(`Grok extension card is missing from the manifest: ${key}`);
+    failures.push(`Wave-sequenced card is missing from the manifest: ${key}`);
     continue;
   }
-  if (!referencedGrokKeys.includes(key))
-    failures.push(`Grok extension card is not sequenced by the execution plan: ${key}`);
+  if (!referencedWaveKeys.includes(key))
+    failures.push(`Wave-sequenced card is not sequenced in the program waves doc: ${key}`);
 }
 for (const key of [
   "microsoft-365-workspace-parity",

@@ -2,6 +2,7 @@ name: CI
 
 on:
   pull_request:
+  merge_group:
   push:
     branches: [main]
 
@@ -9,13 +10,12 @@ permissions:
   contents: read
 
 concurrency:
-  # Merge refs are reused across PR runs. Include the SHA so a newer merge
-  # request cannot cancel the build that is providing the required check.
-  group: ci-${{ github.workflow }}-${{ github.ref }}-${{ github.sha }}
-  cancel-in-progress: true
+  # Superseded PR runs can stop. Merge-queue/main receipts remain SHA-specific.
+  group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  verify:
+  checks:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -29,34 +29,176 @@ jobs:
           cache: npm
 
       - name: Install dependencies
+        id: dependencies
         run: npm ci
 
       - name: Verify repository hygiene
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run verify:oss
 
       - name: Verify architecture contract
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run verify:agent-contract
 
       - name: Verify copy guardrails
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run verify:guardrails
 
       - name: Verify no fabricated claims
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:no-fabricated-claims
 
       - name: Verify house style (no em dashes)
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:house-style-copy
 
-      - name: Typecheck
-        run: npm run typecheck
+      - name: Verify open-source page stats match the repo
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run test:open-source-stats
+
+      - name: Verify admin design token contract
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run verify:admin-tokens
+
+      - name: Verify docs manifest and prose contract
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run verify:docs
+
+      - name: Verify generated docs llms index is current
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run docs:llms:check
+
+      - name: Verify extension manifests are in sync
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run verify:extensions
+
+      - name: Verify module contract resolves
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run verify:module-contract
+
+      - name: Verify module-owned API routes gate by module
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run verify:module-route-guards
+
+      - name: Verify integration adapters resolve through the registry
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run verify:integration-adapter-encapsulation
+
+      - name: Verify capabilities cannot reach a raw database handle
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run verify:capability-isolation
+
+      - name: Verify module settings never look like secrets
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run verify:module-settings
+
+      - name: Verify runtime tenant and domain boundaries
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run verify:runtime-boundaries
 
       - name: Lint
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run lint -- --max-warnings=0
 
       - name: Check formatting
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run format:check
 
       - name: Run core contract suite
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:core
 
-      - name: Build
+      - name: Verify runtime PostgreSQL concurrency and migrations
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: |
+          echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
+          PATH="$(pg_config --bindir):$PATH" npm run test:runtime-postgres
+          PATH="$(pg_config --bindir):$PATH" npm run test:work-completion:postgres
+
+      - name: Verify installation migrations
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: |
+          npm run verify:migrations
+          npm run test:public-roadmap
+          PATH="$(pg_config --bindir):$PATH" npm run test:migration-ledger
+
+      - name: Verify resource gate behavior
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run test:resources
+
+      - name: Verify commit workflow behavior
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run test:verification-workflow
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Restore Next.js compiler cache
+        uses: actions/cache@v5
+        with:
+          path: .next/cache
+          key: ${{ runner.os }}-next-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-next-${{ hashFiles('package-lock.json') }}-
+      # next build includes TypeScript validation. Never ignore build errors.
+      - name: Build and typecheck
         run: npm run build
+
+      - name: Install browser for first-run verification
+        run: npx playwright install --with-deps chromium
+      - name: Verify credential-free first-run journey
+        env:
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:3018
+        run: |
+          setsid npm run start -- --hostname 127.0.0.1 --port 3018 > /tmp/accelerate-first-run-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill -TERM -- -"$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent "$PLAYWRIGHT_BASE_URL/roadmap" > /dev/null; then
+              ready=true
+              break
+            fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then cat /tmp/accelerate-first-run-server.log; exit 1; fi
+          node scripts/qa-turnkey.mjs
+          npm run test:work-completion -- --browser-fixtures
+          node scripts/qa-work-completion.mjs
+          node scripts/qa-demo-business-workflows.mjs
+      - name: Retain first-run browser evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: credential-free-browser-evidence
+          path: |
+            /tmp/accelerate-turnkey-qa/
+            /tmp/accelerate-work-completion/
+            /tmp/accelerate-demo-business/
+            /tmp/accelerate-first-run-server.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # Keep the existing required check name and fail if either job fails or skips.
+  verify:
+    if: ${{ always() }}
+    needs: [checks, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Require all verification jobs
+        env:
+          CHECKS_RESULT: ${{ needs.checks.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+        run: test "$CHECKS_RESULT" = success && test "$BUILD_RESULT" = success

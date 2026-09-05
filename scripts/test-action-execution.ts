@@ -15,7 +15,8 @@
  *   - an unregistered action type fails closed
  */
 import assert from "node:assert/strict";
-import { MemorySupabase, type Row } from "./lib/memory-supabase";
+import type { Row } from "./lib/memory-supabase";
+import { AuthorizedMemorySupabase as MemorySupabase } from "./lib/autonomy-fixture";
 import { approveAndExecuteAction } from "../src/lib/revenue-os/action-executor";
 import {
   failAction,
@@ -258,7 +259,11 @@ async function main() {
   // action that never succeeded. Nothing else in this file exercises it,
   // because the executor always reaches them through a fresh claim.
   const terminal = seed(pending({ status: "failed", error: "Provider rejected the recipient" }));
-  await finishAction(terminal.client, "action-1", { pretend: "success" });
+  await rejects(
+    () => finishAction(terminal.client, "action-1", { pretend: "success" }),
+    "superseded",
+    "late completion must report that no receipt changed",
+  );
   assert.equal(
     terminal.rows("action_queue")[0]!.status,
     "failed",
@@ -271,7 +276,11 @@ async function main() {
   );
 
   const alreadyRejected = seed(pending({ status: "rejected" }));
-  await failAction(alreadyRejected.client, "action-1", "late failure");
+  await rejects(
+    () => failAction(alreadyRejected.client, "action-1", "late failure"),
+    "superseded",
+    "late failure must report that no receipt changed",
+  );
   assert.equal(
     alreadyRejected.rows("action_queue")[0]!.status,
     "rejected",
@@ -327,6 +336,303 @@ async function main() {
     "recovering an abandoned action must not block a later claim",
   );
 
+  // ---- State change invalidation ----------------------------------------
+
+  // When an opportunity stage has moved since proposal was created, execution fails
+  const staleStageOpp = new MemorySupabase({
+    action_queue: [
+      pending({
+        id: "action-stage-conflict",
+        action_type: "transition_opportunity",
+        payload: {
+          opportunityId: "opp-moved",
+          stage: "won",
+          expectedStage: "qualified",
+          reason: "Deal closed",
+        },
+      }),
+    ],
+    opportunities: [
+      {
+        id: "opp-moved",
+        name: "Northside Roofing",
+        stage: "proposal", // changed from qualified to proposal
+      },
+    ],
+    audit_log: [],
+  });
+
+  await rejects(
+    () =>
+      approveAndExecuteAction(
+        staleStageOpp.client,
+        "action-stage-conflict",
+        "john@acceleratewith.us",
+      ),
+    "opportunity state changed",
+    "when the underlying record stage has changed since proposal, approval must be rejected",
+  );
+
+  // When opportunity is already in target stage
+  const duplicateStageOpp = new MemorySupabase({
+    action_queue: [
+      pending({
+        id: "action-stage-dup",
+        action_type: "transition_opportunity",
+        payload: {
+          opportunityId: "opp-dup",
+          stage: "proposal",
+          reason: "Advance deal",
+        },
+      }),
+    ],
+    opportunities: [
+      {
+        id: "opp-dup",
+        name: "Northside Roofing",
+        stage: "proposal",
+      },
+    ],
+    audit_log: [],
+  });
+
+  await rejects(
+    () =>
+      approveAndExecuteAction(
+        duplicateStageOpp.client,
+        "action-stage-dup",
+        "john@acceleratewith.us",
+      ),
+    "already in stage",
+    "advancing to an identical stage must be rejected",
+  );
+
+  // When a campaign version has changed since proposal
+  const staleCampaign = new MemorySupabase({
+    action_queue: [
+      pending({
+        id: "action-camp-conflict",
+        action_type: "activate_campaign",
+        payload: {
+          campaignId: "camp-1",
+          expectedVersion: 1,
+          reasoning: "Launch campaign",
+        },
+      }),
+    ],
+    campaigns: [
+      {
+        id: "camp-1",
+        name: "Re-engagement v2",
+        status: "draft",
+        version: 2, // bumped
+        approved_version: 2,
+      },
+    ],
+    audit_log: [],
+  });
+
+  await rejects(
+    () =>
+      approveAndExecuteAction(
+        staleCampaign.client,
+        "action-camp-conflict",
+        "john@acceleratewith.us",
+      ),
+    "Campaign version changed",
+    "campaign version mismatch must require re-approval",
+  );
+
+  // When an email target contact has unsubscribed
+  const unsubscribedContact = new MemorySupabase({
+    action_queue: [
+      pending({
+        id: "action-email-unsub",
+        action_type: "send_email",
+        payload: {
+          to: "unsub@example.com",
+          subject: "Check in",
+          body: "Hello",
+          contactId: "cont-unsub",
+        },
+      }),
+    ],
+    contacts: [
+      {
+        id: "cont-unsub",
+        full_name: "Unsubscribed User",
+        primary_email: "unsub@example.com",
+        unsubscribed: true,
+      },
+    ],
+    audit_log: [],
+  });
+
+  await rejects(
+    () =>
+      approveAndExecuteAction(
+        unsubscribedContact.client,
+        "action-email-unsub",
+        "john@acceleratewith.us",
+      ),
+    "contact has unsubscribed",
+    "unsubscribed contacts must not be emailed on approval",
+  );
+
+  // When a conversation reply is attempted on an archived conversation
+  const archivedConv = new MemorySupabase({
+    action_queue: [
+      pending({
+        id: "action-reply-archived",
+        action_type: "send_gmail_reply",
+        payload: {
+          conversationId: "conv-archived",
+          body: "Following up",
+        },
+      }),
+    ],
+    conversations: [
+      {
+        id: "conv-archived",
+        status: "archived",
+      },
+    ],
+    audit_log: [],
+  });
+
+  await rejects(
+    () =>
+      approveAndExecuteAction(
+        archivedConv.client,
+        "action-reply-archived",
+        "john@acceleratewith.us",
+      ),
+    "conversation is archived",
+    "archived conversations cannot receive replies",
+  );
+
+  // ---- update_task: complete, snooze, and edit, each a real DB effect ----
+  // propose_task_update (MCP-facing) stages exactly this action_type; this is
+  // the proof that an approved MCP proposal actually mutates a real task row
+  // rather than only producing a plausible-looking queue entry.
+
+  function taskSeed(task: Row = {}, action: Row = {}) {
+    return new MemorySupabase({
+      action_queue: [
+        pending({
+          id: "action-task-1",
+          action_type: "update_task",
+          payload: { taskId: "task-1", changeType: "complete" },
+          ...action,
+        }),
+      ],
+      tasks: [
+        {
+          id: "task-1",
+          title: "Call the roofer back",
+          status: "pending",
+          priority: "medium",
+          due_date: "2026-09-10",
+          snoozed_until: null,
+          completed_at: null,
+          opportunity_id: null,
+          ...task,
+        },
+      ],
+      audit_log: [],
+    });
+  }
+
+  const completed = taskSeed();
+  await approveAndExecuteAction(completed.client, "action-task-1", "john@acceleratewith.us");
+  assert.equal(
+    completed.rows("tasks")[0]!.status,
+    "completed",
+    "changeType complete must mark the task completed",
+  );
+  assert.ok(completed.rows("tasks")[0]!.completed_at, "completion must record a timestamp");
+
+  const alreadyDone = taskSeed({ status: "completed" });
+  await rejects(
+    () => approveAndExecuteAction(alreadyDone.client, "action-task-1", "john@acceleratewith.us"),
+    "already completed",
+    "completing an already-completed task must be refused, not silently repeated",
+  );
+
+  const snoozed = taskSeed(
+    {},
+    { payload: { taskId: "task-1", changeType: "snooze", until: "2026-12-01" } },
+  );
+  await approveAndExecuteAction(snoozed.client, "action-task-1", "john@acceleratewith.us");
+  assert.equal(snoozed.rows("tasks")[0]!.status, "snoozed");
+  assert.equal(snoozed.rows("tasks")[0]!.snoozed_until, "2026-12-01");
+
+  const badSnoozeDate = taskSeed(
+    {},
+    { payload: { taskId: "task-1", changeType: "snooze", until: "2026-01-01" } },
+  );
+  await rejects(
+    () => approveAndExecuteAction(badSnoozeDate.client, "action-task-1", "john@acceleratewith.us"),
+    "after today",
+    "a snooze date in the past must be refused",
+  );
+
+  const edited = taskSeed(
+    {},
+    {
+      payload: {
+        taskId: "task-1",
+        changeType: "edit",
+        title: "Call the roofer back about the flashing",
+        priority: "high",
+      },
+    },
+  );
+  await approveAndExecuteAction(edited.client, "action-task-1", "john@acceleratewith.us");
+  assert.equal(edited.rows("tasks")[0]!.title, "Call the roofer back about the flashing");
+  assert.equal(edited.rows("tasks")[0]!.priority, "high");
+  assert.equal(
+    edited.rows("tasks")[0]!.due_date,
+    "2026-09-10",
+    "editing title and priority must not touch a field the proposal did not mention",
+  );
+
+  const clearedDueDate = taskSeed(
+    {},
+    { payload: { taskId: "task-1", changeType: "edit", dueDate: null } },
+  );
+  await approveAndExecuteAction(clearedDueDate.client, "action-task-1", "john@acceleratewith.us");
+  assert.equal(
+    clearedDueDate.rows("tasks")[0]!.due_date,
+    null,
+    "an explicit null dueDate must clear the field",
+  );
+
+  const noOpEdit = taskSeed({}, { payload: { taskId: "task-1", changeType: "edit" } });
+  await rejects(
+    () => approveAndExecuteAction(noOpEdit.client, "action-task-1", "john@acceleratewith.us"),
+    "no task fields were changed",
+    "an edit with nothing to change must be refused rather than silently succeed",
+  );
+
+  const unknownChangeType = taskSeed({}, { payload: { taskId: "task-1", changeType: "delete" } });
+  await rejects(
+    () =>
+      approveAndExecuteAction(unknownChangeType.client, "action-task-1", "john@acceleratewith.us"),
+    "unknown task update",
+    "an unrecognized changeType must fail closed",
+  );
+
+  const missingTask = taskSeed(
+    {},
+    { payload: { taskId: "does-not-exist", changeType: "complete" } },
+  );
+  await rejects(
+    () => approveAndExecuteAction(missingTask.client, "action-task-1", "john@acceleratewith.us"),
+    "no longer available",
+    "updating a task that does not exist (or is already closed) must fail rather than silently no-op",
+  );
+
   console.log(
     JSON.stringify(
       {
@@ -343,6 +649,20 @@ async function main() {
           "rejected-never-executes",
           "terminal-writes-scoped",
           "stale-executing-recovered",
+          "underlying-stage-change-refused",
+          "duplicate-stage-refused",
+          "campaign-version-mismatch-refused",
+          "unsubscribed-contact-refused",
+          "archived-conversation-reply-refused",
+          "update-task-complete",
+          "update-task-complete-twice-refused",
+          "update-task-snooze",
+          "update-task-snooze-past-date-refused",
+          "update-task-edit",
+          "update-task-edit-clears-due-date",
+          "update-task-edit-noop-refused",
+          "update-task-unknown-change-type-refused",
+          "update-task-missing-task-refused",
         ],
         result: "passed",
       },

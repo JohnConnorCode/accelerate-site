@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { PIPELINE_STAGES } from "@/lib/admin/pipeline-stages";
-import { attachRevenueLinkage } from "@/lib/revenue-os/legacy-adapter";
+import { attachRevenueLinkageWithTelemetry } from "@/lib/revenue-os/legacy-adapter";
 import { ingestInboundLead } from "@/lib/revenue-os/inbound";
-import { canonicalStage, transitionOpportunity } from "@/lib/revenue-os/pipeline";
-import type { RevenueStage } from "@/lib/revenue-os/types";
+import { transitionOpportunity } from "@/lib/revenue-os/pipeline";
+import { loadPipelineStages } from "@/lib/revenue-os/pipeline-stage-resolver";
 
 // Statuses a lead can be set to: canonical pipeline stages plus "lost".
 const VALID_LEAD_STATUSES = new Set<string>([...PIPELINE_STAGES.map((s) => s.key), "lost"]);
@@ -22,7 +22,7 @@ function validateBulkIds(ids: unknown): string[] | null {
 }
 
 export async function GET(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("leads-capture");
   if (auth instanceof NextResponse) return auth;
 
   const supabase = auth.database;
@@ -79,10 +79,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
 
-  const linked = await attachRevenueLinkage(supabase, data || [], {
-    sourceRecordType: "solution_request",
-    emailField: "contact_email",
-  });
+  const linked = await attachRevenueLinkageWithTelemetry(
+    supabase,
+    data || [],
+    {
+      sourceRecordType: "solution_request",
+      emailField: "contact_email",
+    },
+    { route: "admin-leads" },
+  );
 
   return NextResponse.json({
     leads: linked.records,
@@ -95,7 +100,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("leads-capture");
   if (auth instanceof NextResponse) return auth;
 
   const supabase = auth.database;
@@ -155,7 +160,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("leads-capture");
   if (auth instanceof NextResponse) return auth;
 
   const supabase = auth.database;
@@ -200,7 +205,7 @@ export async function PATCH(request: NextRequest) {
   if (lead_status === "contacted") updateData.contacted_at = new Date().toISOString();
 
   if (lead_status) {
-    const target = canonicalStage(lead_status);
+    const target = lead_status as string;
     const { data: linkedOpportunity, error: linkageError } = await supabase
       .from("opportunities")
       .select("id,stage")
@@ -209,26 +214,30 @@ export async function PATCH(request: NextRequest) {
       .maybeSingle();
     if (linkageError) {
       console.error("[admin-leads] canonical linkage failed:", linkageError.message);
-    } else if (linkedOpportunity && target && canonicalStage(linkedOpportunity.stage) !== target) {
-      try {
-        await transitionOpportunity(supabase, {
-          id: linkedOpportunity.id,
-          to: target as RevenueStage,
-          actorEmail: auth.user.email || "founder",
-          source: "admin_leads",
-          reason: "Updated from Leads compatibility workspace",
-          lossReason: target === "lost" ? "Closed from Leads compatibility workspace" : undefined,
-        });
-      } catch (transitionError) {
-        return NextResponse.json(
-          {
-            error:
-              transitionError instanceof Error
-                ? transitionError.message
-                : "Could not update canonical pipeline",
-          },
-          { status: 409 },
-        );
+    } else if (linkedOpportunity) {
+      const stages = await loadPipelineStages(supabase, auth.tenant.id);
+      const currentCanonical = stages.canonicalStage(linkedOpportunity.stage);
+      if (currentCanonical !== stages.canonicalStage(target)) {
+        try {
+          await transitionOpportunity(supabase, {
+            id: linkedOpportunity.id,
+            to: target,
+            actorEmail: auth.user.email || "founder",
+            source: "admin_leads",
+            reason: "Updated from Leads compatibility workspace",
+            lossReason: target === "lost" ? "Closed from Leads compatibility workspace" : undefined,
+          });
+        } catch (transitionError) {
+          return NextResponse.json(
+            {
+              error:
+                transitionError instanceof Error
+                  ? transitionError.message
+                  : "Could not update canonical pipeline",
+            },
+            { status: 409 },
+          );
+        }
       }
     }
   }
@@ -288,7 +297,7 @@ export async function PATCH(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("leads-capture");
   if (auth instanceof NextResponse) return auth;
 
   const supabase = auth.database;

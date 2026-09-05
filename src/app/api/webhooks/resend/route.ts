@@ -6,6 +6,7 @@ import { suppressContactFromCampaignEmail } from "@/lib/revenue-os/campaign-stop
 import { recordActivity } from "@/lib/revenue-os/activities";
 import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 import type { Resend } from "resend";
 import type { TenantSystemContext } from "@/lib/tenancy/context";
 
@@ -33,6 +34,8 @@ const EVENT_STATUS: Record<string, string> = {
 };
 
 const MAX_RESEND_WEBHOOK_PAYLOAD_BYTES = 100_000;
+const RESEND_WEBHOOK_RATE_LIMIT_PER_MIN = 120;
+const RESEND_WEBHOOK_RATE_WINDOW_MS = 60_000;
 
 function webhookHeaders(request: NextRequest) {
   const id = request.headers.get("svix-id");
@@ -50,6 +53,21 @@ export async function handleResendWebhook(
     return NextResponse.json({ error: "Resend webhook is not configured" }, { status: 503 });
   const headers = webhookHeaders(request);
   if (!headers) return NextResponse.json({ error: "Missing webhook signature" }, { status: 401 });
+
+  // Same bound as the Calendly webhook: bulk delivery/bounce storms must slow
+  // down, not bypass the endpoint. Svix retries 429s, so a limited burst is
+  // delayed rather than dropped. Placed after the configured check so an
+  // unconfigured deployment keeps answering 503 without consuming budget.
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (
+    !rateLimit(
+      `resend-webhook:${ip}`,
+      RESEND_WEBHOOK_RATE_LIMIT_PER_MIN,
+      RESEND_WEBHOOK_RATE_WINDOW_MS,
+    ).success
+  ) {
+    return NextResponse.json({ error: "Webhook rate limit exceeded" }, { status: 429 });
+  }
 
   const declaredLength = Number(request.headers.get("content-length"));
   if (Number.isFinite(declaredLength) && declaredLength > MAX_RESEND_WEBHOOK_PAYLOAD_BYTES) {

@@ -1,5 +1,6 @@
 import {
   Activity,
+  Palette,
   BarChart3,
   Bot,
   BriefcaseBusiness,
@@ -27,6 +28,9 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { applyLayoutOverride, type LayoutDoc } from "@/lib/admin/layout-overrides";
+import { isNavLinkEnabled } from "@/lib/revenue-os/modules";
+import { EXTENSION_NAV_LINKS } from "@/lib/revenue-os/extension-modules.generated";
+import { resolveExtensionNavIcon } from "@/lib/admin/extension-nav-icons";
 
 export interface AdminNavLink {
   id: string;
@@ -79,6 +83,14 @@ export const adminNavSections: AdminNavSection[] = [
         icon: Inbox,
         description: "New work requiring triage",
         mobilePrimary: true,
+      },
+      {
+        id: "identity-review",
+        label: "Identity review",
+        href: "/admin/identity-review",
+        icon: UserPlus,
+        description: "Ambiguous senders waiting for a decision",
+        keywords: "identity review ambiguous unknown link contact",
       },
     ],
   },
@@ -250,6 +262,14 @@ export const adminNavSections: AdminNavSection[] = [
         moreGroup: "System",
       },
       {
+        id: "branding",
+        label: "Branding",
+        href: "/admin/branding",
+        icon: Palette,
+        description: "Logo, colors, and customer document identity",
+        moreGroup: "System",
+      },
+      {
         id: "settings",
         label: "Settings",
         href: "/admin/settings",
@@ -306,6 +326,33 @@ export const adminNavSections: AdminNavSection[] = [
   },
 ];
 
+/**
+ * Merge validated extension nav links into the section their manifest names.
+ *
+ * An extension declares a moreGroup; that is the section it joins. Anything
+ * without a recognized group lands in "More tools" rather than being dropped
+ * silently, so a manifest can never register a link the operator cannot find.
+ * Module enablement still gates visibility downstream through
+ * filterNavSectionsByTenant, exactly as it does for core links.
+ */
+for (const link of EXTENSION_NAV_LINKS) {
+  const target =
+    adminNavSections.find((section) => section.label === link.moreGroup) ??
+    adminNavSections.find((section) => section.label === "More tools");
+  if (!target) continue;
+  if (adminNavSections.some((section) => section.links.some((item) => item.id === link.id)))
+    continue;
+  target.links.push({
+    id: link.id,
+    label: link.label,
+    href: link.href,
+    icon: resolveExtensionNavIcon(link.icon),
+    description: link.description,
+    ...(link.keywords ? { keywords: link.keywords } : {}),
+    ...(link.moreGroup ? { moreGroup: link.moreGroup } : {}),
+  });
+}
+
 export const adminNavLinks = adminNavSections.flatMap((section) => section.links);
 export const adminMobileLinks = adminNavLinks.filter((link) => link.mobilePrimary);
 export const adminMoreSections = adminNavSections.filter((section) => section.label !== "Command");
@@ -337,6 +384,21 @@ export function applyNavLayoutOverride(
       const bIndex = orderIndex.get(b.links[0]!.id) ?? Number.MAX_SAFE_INTEGER;
       return aIndex - bIndex;
     });
+}
+
+/**
+ * Filters navigation sections by module enablement in the active tenant configuration.
+ */
+export function filterNavSectionsByTenant(
+  sections: AdminNavSection[],
+  tenantConfig?: { modules?: Partial<Record<string, boolean>> } | null,
+): AdminNavSection[] {
+  return sections
+    .map((section) => ({
+      ...section,
+      links: section.links.filter((link) => isNavLinkEnabled(link.id, tenantConfig)),
+    }))
+    .filter((section) => section.links.length > 0);
 }
 
 export function resolveAdminNavLink(pathname: string) {

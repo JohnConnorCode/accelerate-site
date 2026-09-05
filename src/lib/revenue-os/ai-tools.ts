@@ -1,14 +1,39 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { OpenRouterTool } from "@/lib/ai/openrouter";
-import { proposeAction } from "./actions";
+import { proposeAction, withProposalWorkContext } from "./actions";
+import { assertWorkDraftTarget, findWorkDraft, workDraftKey } from "./work-drafts";
 import { loadOperatorQueue } from "./queue";
-import { REVENUE_STAGES } from "./types";
 import { loadActivityTimeline } from "./activities";
 import { ADMIN_LAYOUT_SCOPES, proposeLayoutChange } from "./admin-layout";
 import { FOUNDER_NOTE_MAX_LENGTH } from "./notes";
+import { retrieveKnowledge } from "./knowledge";
+import { proposeStripeInvoiceSend } from "./stripe-invoicing";
+import { previewInvoicePage, proposeInvoicePage } from "./invoice-pages";
+import { invoiceDesignSchema } from "./invoice-page-contract";
+import { z } from "zod";
+import { prepareWorkflowPlugin, proposeWorkflowPlugin } from "./workflow-plugins";
+import { runReportPlugin } from "./report-plugins";
+import { isAiToolModuleEnabled, REVENUE_OS_MODULES } from "./modules";
+import { listClaimableWork, type WorkItem } from "./work-items";
+import { listWorkspaceCapabilities, type WorkspaceCapability } from "./capabilities";
+import { listClaimsForEntity, type Claim } from "./claims";
+import { listAutonomyPolicies, type AutonomyPolicy } from "./autonomy-policy";
+import { listCoworkers, type Coworker } from "./coworkers";
+import { listPlugins, type Plugin } from "./plugins";
+import { getAgentActivityForEntity, type AgentActivityEntry } from "./agent-activity";
+import {
+  queryMemory,
+  retrieveAgentMemory,
+  listLearnedPolicies,
+  MEMORY_CATEGORIES,
+  type AgentMemoryEntry,
+  type LearnedPolicyEntry,
+  type MemoryCategory,
+} from "./memory";
+import { checkBudgets, listBudgetLimits, type BudgetKind, type BudgetLimit } from "./budgets";
 
-export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v3";
+export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v5";
 export const REVENUE_TOOL_PACKS = ["core", "pipeline", "outreach"] as const;
 export type RevenueToolPackId = (typeof REVENUE_TOOL_PACKS)[number];
 
@@ -17,7 +42,15 @@ const SNAPSHOT_ROW_LIMIT = 50;
 /** How many of those are returned in full to the model. */
 const SNAPSHOT_DETAIL_LIMIT = 10;
 export type AiToolImpact = "read" | "internal_write" | "external_action" | "destructive";
-type AiToolContext = { supabase: SupabaseClient; actorEmail: string; toolPack?: RevenueToolPackId };
+type AiToolContext = {
+  supabase: SupabaseClient;
+  actorEmail: string;
+  workItemId?: string;
+  toolPack?: RevenueToolPackId;
+  /** Server-owned context; never accepted from model arguments. */
+  workItem?: WorkItem;
+  tenantConfig?: { modules?: Partial<Record<string, boolean>> } | null;
+};
 type AiToolRegistration = {
   name: string;
   description: string;
@@ -79,6 +112,19 @@ const TIMELINE_OUTPUT_SCHEMA = {
   type: "object",
   required: ["activities", "truncated"],
   properties: { activities: { type: "array" }, truncated: { type: "boolean" } },
+};
+const KNOWLEDGE_OUTPUT_SCHEMA = {
+  type: "object",
+  required: ["contract", "found", "query", "chunks", "generatedAt"],
+  properties: {
+    contract: { type: "string" },
+    found: { type: "boolean" },
+    query: { type: "string" },
+    entitySummary: { type: "object" },
+    chunks: { type: "array" },
+    refusalReason: { type: "string" },
+    generatedAt: { type: "string" },
+  },
 };
 
 function value(input: Record<string, unknown>, key: string): string | undefined {
@@ -211,12 +257,20 @@ export function validateToolOutput(
 
 function availabilityFor(
   tool: AiToolRegistration,
-  context?: Pick<AiToolContext, "toolPack">,
+  context?: Pick<AiToolContext, "toolPack" | "tenantConfig">,
 ): { available: boolean; reason: string } {
   if (context?.toolPack && !PACK_TOOL_NAMES[context.toolPack].includes(tool.name)) {
     return {
       available: false,
       reason: `${tool.name} is not available in the ${context.toolPack} tool pack.`,
+    };
+  }
+  const moduleCheck = isAiToolModuleEnabled(tool.name, context?.tenantConfig);
+  if (!moduleCheck.enabled) {
+    return {
+      available: false,
+      reason:
+        moduleCheck.reason ?? `${tool.name} module is disabled in this workspace configuration.`,
     };
   }
   // A proposal is not a provider side effect. These tools call bounded
@@ -258,6 +312,125 @@ export function assertImpactHonoured(tool: AiToolRegistration, output: unknown):
 }
 
 const registry: AiToolRegistration[] = [
+  ...REVENUE_OS_MODULES.filter((module) => module.workflow).map((module): AiToolRegistration => ({
+    name: `prepare_${module.id.replaceAll("-", "_")}`,
+    description: `Prepare ${module.name}: ${module.description}. Returns a reviewable plan, never executes it.`,
+    inputSchema: module.workflow!.inputSchema,
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.workflow-plugins",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => prepareWorkflowPlugin(supabase, module.id, input),
+  })),
+  ...REVENUE_OS_MODULES.filter((moduleDef) => moduleDef.workflow).map(
+    (moduleDef): AiToolRegistration => ({
+      name: `propose_${moduleDef.id.replaceAll("-", "_")}`,
+      description: `Stage the exact previewed ${moduleDef.name} for human approval. Use its digest and a stable UUID requestId. Never executes the action.`,
+      inputSchema: {
+        type: "object",
+        additionalProperties: false,
+        required: ["input", "digest", "requestId"],
+        properties: {
+          input: moduleDef.workflow!.inputSchema,
+          digest: { type: "string" },
+          requestId: { type: "string" },
+        },
+      },
+      outputSchema: ACTION_OUTPUT_SCHEMA,
+      serviceTarget: "revenue-os.workflow-plugins",
+      connectionRequirement: "none",
+      impact: "internal_write",
+      confirmationRequired: true,
+      execute: async ({ supabase, actorEmail }, input) =>
+        proposeWorkflowPlugin(
+          supabase,
+          moduleDef.id,
+          input.input,
+          value(input, "digest") || "",
+          value(input, "requestId") || "",
+          actorEmail,
+        ),
+    }),
+  ),
+  {
+    name: "propose_stripe_invoice_send",
+    description:
+      "Stage sending an existing completed Stripe invoice for explicit human approval. Does not send it.",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["creationActionId"],
+      properties: { creationActionId: { type: "string" } },
+    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.stripe-invoicing",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }, input) =>
+      proposeStripeInvoiceSend(supabase, value(input, "creationActionId") || "", actorEmail),
+  },
+  {
+    name: "preview_invoice_page",
+    description:
+      "Preview a bounded customer invoice design using workspace branding and authoritative Stripe billing facts. Returns the publication digest; does not publish.",
+    inputSchema: z.toJSONSchema(
+      z.object({ creationActionId: z.uuid(), design: invoiceDesignSchema }).strict(),
+    ),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.invoice-pages",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) =>
+      previewInvoicePage(supabase, value(input, "creationActionId") || "", input.design),
+  },
+  {
+    name: "propose_invoice_page",
+    description:
+      "Stage the exact previewed invoice page for human publication approval. Does not publish or email the customer.",
+    inputSchema: z.toJSONSchema(
+      z
+        .object({
+          creationActionId: z.uuid(),
+          design: invoiceDesignSchema,
+          digest: z.string().length(64),
+          requestId: z.uuid(),
+        })
+        .strict(),
+    ),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.invoice-pages",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }, input) =>
+      proposeInvoicePage(
+        supabase,
+        {
+          creationActionId: value(input, "creationActionId") || "",
+          design: input.design,
+          digest: value(input, "digest") || "",
+          requestId: value(input, "requestId") || "",
+        },
+        actorEmail,
+      ),
+  },
+
+  ...REVENUE_OS_MODULES.filter((module) => module.report).map(
+    ({ id: pluginId }): AiToolRegistration => ({
+      name: `run_${pluginId.replaceAll("-", "_")}`,
+      description: `Run the ${pluginId} workspace report. Returns bounded factual findings with source references; requires the plugin to be enabled.`,
+      inputSchema: { type: "object", properties: {}, additionalProperties: false },
+      outputSchema: { type: "object" },
+      serviceTarget: "revenue-os.report-plugins",
+      connectionRequirement: "none",
+      impact: "read",
+      confirmationRequired: false,
+      execute: async ({ supabase, actorEmail }) => runReportPlugin(supabase, pluginId, actorEmail),
+    }),
+  ),
   {
     name: "get_today_snapshot",
     description:
@@ -341,7 +514,11 @@ const registry: AiToolRegistration[] = [
       type: "object",
       properties: {
         query: { type: "string" },
-        stage: { type: "string", enum: [...REVENUE_STAGES] },
+        stage: {
+          type: "string",
+          description:
+            "A pipeline stage's column_key (workspace-defined, not a fixed set — check get_record_timeline/prior tool results for real values rather than guessing).",
+        },
       },
       additionalProperties: false,
     },
@@ -359,11 +536,8 @@ const registry: AiToolRegistration[] = [
         )
         .limit(25);
       if (query) builder = builder.or(`name.ilike.%${query}%,email.ilike.%${query}%`);
-      if (
-        typeof input.stage === "string" &&
-        REVENUE_STAGES.includes(input.stage as (typeof REVENUE_STAGES)[number])
-      )
-        builder = builder.eq("stage", input.stage);
+      if (typeof input.stage === "string" && input.stage.trim())
+        builder = builder.eq("stage", input.stage.trim());
       const { data, error } = await builder;
       if (error) throw new Error(error.message);
       return data ?? [];
@@ -411,6 +585,35 @@ const registry: AiToolRegistration[] = [
     },
   },
   {
+    name: "search_knowledge_base",
+    description:
+      "Query grounded knowledge with provenance across companies, contacts, opportunities, founder notes, and activity timeline. Returns tagged chunks with confidence and recency or refuses cleanly.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        entityName: { type: "string" },
+        email: { type: "string" },
+        domain: { type: "string" },
+        topic: { type: "string" },
+        limit: { type: "number" },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: KNOWLEDGE_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.knowledge-retrieval",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) =>
+      retrieveKnowledge(supabase, {
+        entityName: value(input, "entityName"),
+        email: value(input, "email"),
+        domain: value(input, "domain"),
+        topic: value(input, "topic"),
+        limit: typeof input.limit === "number" ? input.limit : undefined,
+      }),
+  },
+  {
     name: "propose_send_email",
     description: "Stage an outbound email for founder approval. This never sends directly.",
     inputSchema: {
@@ -431,19 +634,35 @@ const registry: AiToolRegistration[] = [
     connectionRequirement: "none",
     impact: "external_action",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }, input) => {
+    execute: async ({ supabase, actorEmail, workItem }, input) => {
       requireEmail(value(input, "to"));
+      if (workItem) {
+        await assertWorkDraftTarget(supabase, workItem, "send_email", input);
+        const existing = await findWorkDraft(supabase, workItem);
+        if (existing) {
+          const { data: proposal, error } = await supabase
+            .from("action_queue")
+            .select("*")
+            .eq("tenant_id", workItem.tenant_id)
+            .eq("id", existing.id)
+            .single();
+          if (error || !proposal) throw new Error(error?.message ?? "Draft proposal disappeared");
+          return proposal;
+        }
+      }
       return proposeAction(supabase, {
         actionType: "send_email",
         title: `Send email: ${value(input, "subject") || "Untitled"}`,
         description: previewOf(String(input.body || "")),
         urgency: "normal",
-        payload: input,
+        payload: workItem ? { ...input, workItemId: workItem.id } : input,
         reasoning: value(input, "reasoning") || "",
-        sourceContext: "admin_ai",
+        sourceContext: workItem ? `coworker:${workItem.coworker_id}` : "admin_ai",
         entityType: "opportunity",
         entityId: value(input, "opportunityId"),
-        dedupeKey: `ai-email:${value(input, "to")}:${value(input, "subject")}`.slice(0, 220),
+        dedupeKey: workItem
+          ? workDraftKey(workItem)
+          : `ai-email:${value(input, "to")}:${value(input, "subject")}`.slice(0, 220),
         proposedBy: actorEmail,
         expiresAt: new Date(Date.now() + 86400000).toISOString(),
       });
@@ -501,7 +720,11 @@ const registry: AiToolRegistration[] = [
       type: "object",
       properties: {
         opportunityId: { type: "string" },
-        stage: { type: "string", enum: [...REVENUE_STAGES] },
+        stage: {
+          type: "string",
+          description:
+            "The target pipeline stage's column_key (workspace-defined — use the opportunity's own record or search_pipeline results, never guess).",
+        },
         reason: { type: "string" },
         lossReason: { type: "string" },
       },
@@ -513,21 +736,32 @@ const registry: AiToolRegistration[] = [
     connectionRequirement: "none",
     impact: "internal_write",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }, input) =>
-      proposeAction(supabase, {
+    execute: async ({ supabase, actorEmail }, input) => {
+      const oppId = value(input, "opportunityId");
+      let expectedStage: string | undefined;
+      if (oppId) {
+        const { data: currentOpp } = await supabase
+          .from("opportunities")
+          .select("stage")
+          .eq("id", oppId)
+          .maybeSingle();
+        if (currentOpp?.stage) expectedStage = currentOpp.stage;
+      }
+      return proposeAction(supabase, {
         actionType: "transition_opportunity",
         title: `Move opportunity to ${value(input, "stage")}`,
         description: value(input, "reason") || "",
         urgency: "normal",
-        payload: input,
+        payload: { ...input, expectedStage },
         reasoning: value(input, "reason") || "",
         sourceContext: "admin_ai",
         entityType: "opportunity",
-        entityId: value(input, "opportunityId"),
-        dedupeKey: `ai-stage:${value(input, "opportunityId")}:${value(input, "stage")}`,
+        entityId: oppId,
+        dedupeKey: `ai-stage:${oppId}:${value(input, "stage")}`,
         proposedBy: actorEmail,
         expiresAt: new Date(Date.now() + 86400000).toISOString(),
-      }),
+      });
+    },
   },
   {
     name: "propose_task",
@@ -571,6 +805,82 @@ const registry: AiToolRegistration[] = [
     },
   },
   {
+    name: "propose_task_update",
+    description:
+      "Stage a change to an existing task for approval: mark it complete, snooze it to a later date, or edit its title, priority, or due date. Never changes the task directly; the founder approves it from the review queue like every other proposal.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        taskId: {
+          type: "string",
+          description:
+            'The task id, either bare or in the "task:<id>" form get_today_snapshot returns in its queue.',
+        },
+        changeType: { type: "string", enum: ["complete", "snooze", "edit"] },
+        until: {
+          type: "string",
+          description: "Snooze target date (YYYY-MM-DD), required when changeType is snooze.",
+        },
+        title: { type: "string", description: "New title, only used when changeType is edit." },
+        priority: { type: "string", enum: ["high", "medium", "low"] },
+        dueDate: {
+          type: "string",
+          description: "New due date (YYYY-MM-DD), or an empty string to clear it.",
+        },
+      },
+      required: ["taskId", "changeType"],
+      additionalProperties: false,
+    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.action-queue",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }, input) => {
+      const taskId = (value(input, "taskId") || "").replace(/^task:/, "");
+      if (!taskId) throw new Error("taskId is required");
+      const changeType = value(input, "changeType");
+      if (!changeType || !["complete", "snooze", "edit"].includes(changeType))
+        throw new Error('changeType must be "complete", "snooze", or "edit"');
+      if (changeType === "snooze" && !value(input, "until"))
+        throw new Error('changeType "snooze" requires "until"');
+      if (
+        changeType === "edit" &&
+        !value(input, "title") &&
+        !value(input, "priority") &&
+        input.dueDate === undefined
+      )
+        throw new Error('changeType "edit" requires at least one of title, priority, or dueDate');
+      const dedupeKey = `ai-task-update:${taskId}:${changeType}:${Date.now()}`;
+      const title =
+        changeType === "complete"
+          ? "Mark task complete"
+          : changeType === "snooze"
+            ? `Snooze task to ${value(input, "until")}`
+            : "Edit task";
+      return proposeAction(supabase, {
+        actionType: "update_task",
+        title,
+        description: value(input, "title") ? `New title: ${value(input, "title")}` : undefined,
+        urgency: "normal",
+        payload: {
+          taskId,
+          changeType,
+          until: value(input, "until"),
+          title: value(input, "title"),
+          priority: value(input, "priority"),
+          dueDate: input.dueDate === "" ? null : value(input, "dueDate"),
+        },
+        sourceContext: "admin_ai",
+        entityType: "task",
+        entityId: taskId,
+        dedupeKey,
+        proposedBy: actorEmail,
+        expiresAt: new Date(Date.now() + 86400000).toISOString(),
+      });
+    },
+  },
+  {
     name: "propose_campaign_activation",
     description: "Stage activation of a reviewed campaign version for founder approval.",
     inputSchema: {
@@ -584,21 +894,32 @@ const registry: AiToolRegistration[] = [
     connectionRequirement: "none",
     impact: "external_action",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }, input) =>
-      proposeAction(supabase, {
+    execute: async ({ supabase, actorEmail }, input) => {
+      const campaignId = value(input, "campaignId");
+      let expectedVersion: number | undefined;
+      if (campaignId) {
+        const { data: currentCamp } = await supabase
+          .from("campaigns")
+          .select("version")
+          .eq("id", campaignId)
+          .maybeSingle();
+        if (typeof currentCamp?.version === "number") expectedVersion = currentCamp.version;
+      }
+      return proposeAction(supabase, {
         actionType: "activate_campaign",
         title: "Activate reviewed campaign",
         description: value(input, "reasoning") || "",
         urgency: "normal",
-        payload: input,
+        payload: { ...input, expectedVersion },
         reasoning: value(input, "reasoning") || "",
         sourceContext: "admin_ai",
         entityType: "campaign",
-        entityId: value(input, "campaignId"),
-        dedupeKey: `ai-campaign-activate:${value(input, "campaignId")}`,
+        entityId: campaignId,
+        dedupeKey: `ai-campaign-activate:${campaignId}`,
         proposedBy: actorEmail,
         expiresAt: new Date(Date.now() + 86400000).toISOString(),
-      }),
+      });
+    },
   },
   {
     name: "propose_layout_change",
@@ -628,30 +949,943 @@ const registry: AiToolRegistration[] = [
         reasoning: value(input, "reasoning"),
       }),
   },
+  {
+    name: "search_contacts",
+    description: "Search contacts and associated company details by name, email, or phone.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        query: { type: "string" },
+        email: { type: "string" },
+        phone: { type: "string" },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.contact-search",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const query = (value(input, "query") || "").replace(/[,%]/g, "");
+      const email = value(input, "email");
+      const phone = value(input, "phone");
+      let builder = supabase
+        .from("contacts")
+        .select("id,full_name,primary_email,phone,title,company_id,created_at")
+        .limit(25);
+      if (email) {
+        builder = builder.ilike("primary_email", `%${email}%`);
+      } else if (phone) {
+        builder = builder.ilike("phone", `%${phone}%`);
+      } else if (query) {
+        builder = builder.or(`full_name.ilike.%${query}%,primary_email.ilike.%${query}%`);
+      }
+      const { data, error } = await builder;
+      if (error) throw new Error(error.message);
+      return (data ?? []).map((row) => ({
+        id: row.id,
+        name: row.full_name,
+        email: row.primary_email,
+        phone: row.phone,
+        title: row.title,
+        companyId: row.company_id,
+        createdAt: row.created_at,
+      }));
+    },
+  },
+  {
+    name: "search_conversations",
+    description: "Search omnichannel conversations and inbound messages by status or unread state.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        status: { type: "string", enum: ["open", "resolved", "archived"] },
+        unreadOnly: { type: "boolean" },
+        query: { type: "string" },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.conversations-search",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      let builder = supabase
+        .from("conversations")
+        .select("id,subject,channel,status,unread_count,last_message_at,contact_id,opportunity_id")
+        .order("last_message_at", { ascending: false, nullsFirst: false })
+        .limit(25);
+      if (typeof input.status === "string") {
+        builder = builder.eq("status", input.status);
+      }
+      if (input.unreadOnly === true) {
+        builder = builder.gt("unread_count", 0);
+      }
+      const { data, error } = await builder;
+      if (error) throw new Error(error.message);
+      return data ?? [];
+    },
+  },
+  {
+    name: "get_pending_actions",
+    description: "List pending proposals currently in the action_queue awaiting founder review.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.action-queue-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }) => {
+      const { data, error } = await supabase
+        .from("action_queue")
+        .select("id,action_type,title,description,urgency,reasoning,created_at,expires_at")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(25);
+      if (error) throw new Error(error.message);
+      return data ?? [];
+    },
+  },
+  {
+    name: "get_claimable_work",
+    description:
+      "List work items that are ready to be claimed and executed. Returns pending or waiting items past their next_check_at, ordered by priority and age.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        kind: { type: "string", description: "Filter to a specific work-item kind" },
+        limit: { type: "number", description: "Max items to return (default 20)" },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.work-engine-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const limitStr = value(input, "limit");
+      const items = await listClaimableWork(supabase, {
+        kind: value(input, "kind") ?? undefined,
+        limit: limitStr ? Number(limitStr) : undefined,
+      });
+      return items.map((wi: WorkItem) => ({
+        id: wi.id,
+        kind: wi.kind,
+        objective: wi.objective,
+        priority: wi.priority,
+        status: wi.status,
+        reason: wi.reason,
+        source: wi.source,
+        entity_type: wi.entity_type,
+        entity_id: wi.entity_id,
+        due_at: wi.due_at,
+        next_check_at: wi.next_check_at,
+        next_check_reason: wi.next_check_reason,
+        attempt_count: wi.attempt_count,
+        max_attempts: wi.max_attempts,
+        created_at: wi.created_at,
+      }));
+    },
+  },
+  {
+    name: "get_workspace_capabilities",
+    description:
+      "List the capabilities available in this workspace. Shows which integrations, runtime features, and plugin capabilities are enabled, their policy (automatic/approval_required/prohibited), and last verification time.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        category: {
+          type: "string",
+          description: "Filter to a category: integration, runtime, plugin, or system",
+        },
+        availableOnly: { type: "boolean", description: "Only return available capabilities" },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.capability-graph-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const categoryVal = value(input, "category");
+      const availableOnlyVal = value(input, "availableOnly");
+      const capabilities = await listWorkspaceCapabilities(supabase, {
+        category: categoryVal
+          ? ["integration", "runtime", "plugin", "system"].includes(categoryVal)
+            ? (categoryVal as "integration" | "runtime" | "plugin" | "system")
+            : undefined
+          : undefined,
+        availableOnly: availableOnlyVal === "true",
+      });
+      return capabilities.map((cap: WorkspaceCapability) => ({
+        capability_key: cap.capability_key,
+        label: cap.label,
+        category: cap.category,
+        direction: cap.direction,
+        impact: cap.impact,
+        available: cap.available,
+        policy: cap.policy,
+        status_reason: cap.status_reason,
+        verified_at: cap.verified_at,
+      }));
+    },
+  },
+  {
+    name: "get_claims_for_entity",
+    description:
+      "List evidence-backed claims for a business entity. Shows what the system believes about a contact, company, or opportunity, the evidence supporting each claim, and its verification status (unverified/supported/verified/conflicted).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        entityType: {
+          type: "string",
+          description: "Entity type: contact, company, opportunity, etc.",
+        },
+        entityId: { type: "string", description: "The entity's UUID" },
+        status: {
+          type: "string",
+          description:
+            "Comma-separated claim statuses to filter: unverified,supported,conflicted,verified",
+        },
+      },
+      required: ["entityType", "entityId"],
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.claims-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const entityType = value(input, "entityType")!;
+      const entityId = value(input, "entityId")!;
+      const statusStr = value(input, "status");
+      const statuses = statusStr
+        ? (statusStr
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean) as Claim["status"][])
+        : undefined;
+      const claims = await listClaimsForEntity(supabase, {
+        entityType,
+        entityId,
+        status: statuses,
+      });
+      return claims.map((c: Claim) => ({
+        id: c.id,
+        field: c.field,
+        proposed_value: c.proposed_value,
+        status: c.status,
+        best_evidence: c.best_evidence,
+        source_type: c.source_type,
+        created_at: c.created_at,
+        resolved_at: c.resolved_at,
+      }));
+    },
+  },
+  {
+    name: "get_autonomy_policies",
+    description:
+      "List the autonomy policies governing agent actions. Shows the five-level ladder (prohibited→autonomous) for each action, hard safety floors, and standing permissions.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        level: {
+          type: "string",
+          description:
+            "Filter to a specific level: prohibited, always_ask, ask_until_trusted, standing_permission, autonomous",
+        },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.autonomy-policy-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const levelVal = value(input, "level");
+      const policies = await listAutonomyPolicies(supabase, {
+        level: levelVal
+          ? [
+              "prohibited",
+              "always_ask",
+              "ask_until_trusted",
+              "standing_permission",
+              "autonomous",
+            ].includes(levelVal)
+            ? (levelVal as
+                | "prohibited"
+                | "always_ask"
+                | "ask_until_trusted"
+                | "standing_permission"
+                | "autonomous")
+            : undefined
+          : undefined,
+      });
+      return policies.map((p: AutonomyPolicy) => ({
+        action_key: p.action_key,
+        label: p.label,
+        level: p.level,
+        is_hard_floor: p.is_hard_floor,
+        coworker_id: p.coworker_id,
+        approved_by: p.approved_by,
+        constraints: p.constraints,
+      }));
+    },
+  },
+  {
+    name: "get_coworkers",
+    description:
+      "List registered coworkers and their capabilities. Shows each coworker's identity, role, required capabilities, work kinds, and readiness status.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        status: {
+          type: "string",
+          description: "Filter to a status: active, paused, disabled",
+        },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.coworkers-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const statusVal = value(input, "status");
+      const coworkers = await listCoworkers(supabase, {
+        status: statusVal
+          ? ["active", "paused", "disabled"].includes(statusVal)
+            ? (statusVal as "active" | "paused" | "disabled")
+            : undefined
+          : undefined,
+      });
+      return coworkers.map((cw: Coworker) => ({
+        id: cw.id,
+        name: cw.name,
+        role: cw.role,
+        status: cw.status,
+        tool_pack: cw.tool_pack,
+        required_capabilities: cw.required_capabilities,
+        work_kinds: cw.work_kinds,
+      }));
+    },
+  },
+  {
+    name: "get_agent_activity_for_entity",
+    description:
+      "Get a readable agent activity timeline for a business entity. Shows what autonomous work has happened, what's in progress, what's waiting, and what's scheduled next. Not a raw audit dump — designed to make autonomous work understandable to a normal operator.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        entityType: {
+          type: "string",
+          description: "Entity type: contact, company, opportunity",
+        },
+        entityId: { type: "string", description: "The entity's UUID" },
+      },
+      required: ["entityType", "entityId"],
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.agent-activity-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const entityType = value(input, "entityType")!;
+      const entityId = value(input, "entityId")!;
+      const timeline = await getAgentActivityForEntity(supabase, {
+        entityType,
+        entityId,
+        limit: 20,
+      });
+      return timeline.entries.map((e: AgentActivityEntry) => ({
+        timestamp: e.timestamp,
+        source: e.source,
+        action: e.action,
+        summary: e.summary,
+        status: e.status,
+        coworker_id: e.coworkerId,
+      }));
+    },
+  },
+  {
+    name: "get_plugins",
+    description:
+      "List registered plugins and their status. Shows what integrations and extensions are installed, their capabilities, tools, and triggers.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        status: {
+          type: "string",
+          description: "Filter to a status: pending_review, approved, enabled, disabled, revoked",
+        },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.plugins-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const statusVal = value(input, "status");
+      const plugins = await listPlugins(supabase, {
+        status: statusVal
+          ? ["pending_review", "approved", "enabled", "disabled", "revoked"].includes(statusVal)
+            ? (statusVal as "pending_review" | "approved" | "enabled" | "disabled" | "revoked")
+            : undefined
+          : undefined,
+      });
+      return plugins.map((p: Plugin) => ({
+        plugin_key: p.plugin_key,
+        name: p.name,
+        description: p.description,
+        version: p.version,
+        status: p.status,
+        required_capabilities: p.required_capabilities,
+        mcp_server_url: p.mcp_server_url,
+      }));
+    },
+  },
+  {
+    name: "bootstrap_sales_coworker",
+    description:
+      "Propose configuration of the Sales Coworker: register its capabilities, autonomy policies, and work kinds. Returns a pending action; configuration runs only after human approval.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.coworker-bootstrap",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }) =>
+      proposeAction(supabase, {
+        actionType: "bootstrap_coworker",
+        title: "Configure sales coworker",
+        payload: { coworker: "sales" },
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      }),
+  },
+  {
+    name: "bootstrap_business_pulse_coworker",
+    description:
+      "Propose configuration of the Business Pulse Coworker: register its capabilities, autonomy policies, and work kinds. Monitors pipeline health, detects anomalies, and produces daily digests. Returns a pending action for human approval.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.coworker-bootstrap",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }) =>
+      proposeAction(supabase, {
+        actionType: "bootstrap_coworker",
+        title: "Configure business pulse coworker",
+        payload: { coworker: "business_pulse" },
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      }),
+  },
+  {
+    name: "bootstrap_meeting_intel_coworker",
+    description:
+      "Propose configuration of the Meeting Intelligence Coworker: register its capabilities, autonomy policies, and work kinds. Generates pre-call briefs and processes post-meeting outcomes. Returns a pending action for human approval.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.coworker-bootstrap",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }) =>
+      proposeAction(supabase, {
+        actionType: "bootstrap_coworker",
+        title: "Configure meeting intel coworker",
+        payload: { coworker: "meeting_intel" },
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      }),
+  },
+  {
+    name: "bootstrap_finance_coworker",
+    description:
+      "Propose configuration of the Finance Coworker: register its capabilities, autonomy policies, and work kinds. Tracks revenue, monitors payment patterns, and reconciles financial records. Returns a pending action for human approval.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.coworker-bootstrap",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }) =>
+      proposeAction(supabase, {
+        actionType: "bootstrap_coworker",
+        title: "Configure finance coworker",
+        payload: { coworker: "finance" },
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      }),
+  },
+  {
+    name: "bootstrap_operations_coworker",
+    description:
+      "Propose configuration of the Operations Coworker: register its capabilities, autonomy policies, and work kinds. Monitors system health, integration status, data quality, and operational anomalies. Returns a pending action for human approval.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.coworker-bootstrap",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }) =>
+      proposeAction(supabase, {
+        actionType: "bootstrap_coworker",
+        title: "Configure operations coworker",
+        payload: { coworker: "operations" },
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      }),
+  },
+  {
+    name: "query_memory",
+    description:
+      "Query across all five memory categories (canonical, activity, knowledge, agent, learned_policy) without collapsing them. Each category retains its own shape. Use this when you need a complete picture of what the system knows about an entity, action, or topic.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        categories: {
+          type: "array",
+          items: {
+            type: "string",
+            enum: ["canonical", "activity", "knowledge", "agent", "learned_policy"],
+          },
+          description: "Which categories to query. Defaults to all.",
+        },
+        entityType: {
+          type: "string",
+          description: "Entity type to scope (contact, company, opportunity)",
+        },
+        entityId: { type: "string", description: "Entity UUID to scope" },
+        query: { type: "string", description: "Free-text search (used by knowledge category)" },
+        coworkerId: { type: "string", description: "Coworker to scope agent memory" },
+        actionKey: { type: "string", description: "Action key to scope learned policies" },
+        limit: { type: "number", description: "Max items per category (default 10)" },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.memory-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const categoryStrs = input.categories as string[] | undefined;
+      const categories = categoryStrs
+        ? categoryStrs.filter((c): c is MemoryCategory =>
+            MEMORY_CATEGORIES.includes(c as MemoryCategory),
+          )
+        : undefined;
+      const results = await queryMemory(supabase, {
+        categories,
+        entityType: value(input, "entityType"),
+        entityId: value(input, "entityId"),
+        query: value(input, "query"),
+        coworkerId: value(input, "coworkerId"),
+        actionKey: value(input, "actionKey"),
+        limit: typeof input.limit === "number" ? input.limit : undefined,
+      });
+      return results.map((r) => ({
+        category: r.category,
+        itemCount: r.items.length,
+        truncated: r.truncated,
+        items: r.items,
+      }));
+    },
+  },
+  {
+    name: "store_agent_memory",
+    description:
+      "Propose storing agent-specific context: prior work results, research findings, unresolved questions, or scheduled check reminders. This is agent memory, not canonical data — it decays over time based on the relevance horizon.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        category: {
+          type: "string",
+          enum: ["prior_work", "prior_research", "scheduled_check", "unresolved_question"],
+        },
+        subject: { type: "string" },
+        body: { type: "string" },
+        coworkerId: { type: "string" },
+        entityType: { type: "string" },
+        entityId: { type: "string" },
+        relevanceHorizon: { type: "string", enum: ["session", "daily", "weekly", "permanent"] },
+      },
+      required: ["category", "subject", "body"],
+      additionalProperties: false,
+    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.memory-write",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }, input) =>
+      proposeAction(supabase, {
+        actionType: "store_agent_memory",
+        title: "Store agent memory",
+        payload: input,
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      }),
+  },
+  {
+    name: "get_agent_memory",
+    description:
+      "Retrieve agent memory entries — prior work, research, scheduled checks, or unresolved questions. Returns non-expired entries ordered by recency.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        coworkerId: { type: "string" },
+        category: {
+          type: "string",
+          enum: ["prior_work", "prior_research", "scheduled_check", "unresolved_question"],
+        },
+        entityType: { type: "string" },
+        entityId: { type: "string" },
+        limit: { type: "number" },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.memory-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const categoryVal = value(input, "category");
+      const entries = await retrieveAgentMemory(supabase, {
+        coworkerId: value(input, "coworkerId"),
+        category: categoryVal as AgentMemoryEntry["category"] | undefined,
+        entityType: value(input, "entityType"),
+        entityId: value(input, "entityId"),
+        limit: typeof input.limit === "number" ? input.limit : undefined,
+      });
+      return entries.map((e: AgentMemoryEntry) => ({
+        id: e.id,
+        category: e.category,
+        subject: e.subject,
+        body: e.body,
+        coworker_id: e.coworker_id,
+        entity_type: e.entity_type,
+        entity_id: e.entity_id,
+        relevance_horizon: e.relevance_horizon,
+        created_at: e.created_at,
+        expires_at: e.expires_at,
+      }));
+    },
+  },
+  {
+    name: "get_learned_policies",
+    description:
+      'List active learned policies — explicit rules derived from human decisions. These are the "don\'t do X" and "always ask before Y" rules from operational experience.',
+    inputSchema: {
+      type: "object",
+      properties: {
+        actionKey: { type: "string", description: "Filter to a specific action key" },
+        coworkerId: { type: "string" },
+        scopeEntityType: { type: "string" },
+        scopeEntityId: { type: "string" },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.memory-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const policies = await listLearnedPolicies(supabase, {
+        actionKey: value(input, "actionKey"),
+        coworkerId: value(input, "coworkerId"),
+        scopeEntityType: value(input, "scopeEntityType"),
+        scopeEntityId: value(input, "scopeEntityId"),
+      });
+      return policies.map((p: LearnedPolicyEntry) => ({
+        id: p.id,
+        action_key: p.action_key,
+        rule: p.rule,
+        rationale: p.rationale,
+        source: p.source,
+        coworker_id: p.coworker_id,
+        scope_entity_type: p.scope_entity_type,
+        scope_entity_id: p.scope_entity_id,
+        created_at: p.created_at,
+      }));
+    },
+  },
+  {
+    name: "record_learned_policy",
+    description:
+      'Propose a learned observation for human review — an explicit rule derived from a human decision. These capture operational wisdom like "never auto-advance deals above $50k" or "always ask before emailing C-level contacts". Supersedes any previous active policy for the same action and scope.',
+    inputSchema: {
+      type: "object",
+      properties: {
+        actionKey: { type: "string" },
+        rule: { type: "string" },
+        rationale: { type: "string" },
+        source: {
+          type: "string",
+          enum: ["human_decision", "founder_override", "incident_remediation", "policy_review"],
+        },
+        coworkerId: { type: "string" },
+        scopeEntityType: { type: "string" },
+        scopeEntityId: { type: "string" },
+      },
+      required: ["actionKey", "rule", "rationale", "source"],
+      additionalProperties: false,
+    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.memory-write",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }, input) =>
+      proposeAction(supabase, {
+        actionType: "record_learned_policy",
+        title: "Record reviewed learning",
+        payload: input,
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      }),
+  },
+  {
+    name: "check_budgets",
+    description:
+      "Check whether a coworker has remaining budget for work execution. Shows current usage vs limits for model spend, API calls, emails, research depth, retries, and runtime. Budgets are per-day by default.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        coworkerId: { type: "string", description: "Coworker to check budgets for" },
+      },
+      required: ["coworkerId"],
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.budgets-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const results = await checkBudgets(supabase, {
+        coworkerId: value(input, "coworkerId")!,
+      });
+      return results.map((r) => ({
+        budget_kind: r.budgetKind,
+        allowed: r.allowed,
+        used: r.used,
+        limit: r.limit,
+        remaining: r.remaining,
+        reason: r.reason,
+      }));
+    },
+  },
+  {
+    name: "get_budget_limits",
+    description:
+      "List budget limits configured for coworkers or globally. Shows the spending/action caps that constrain autonomous work.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        coworkerId: { type: "string" },
+        budgetKind: {
+          type: "string",
+          enum: [
+            "model_spend",
+            "vendor_api_calls",
+            "emails_sent",
+            "research_depth",
+            "retry_count",
+            "runtime_seconds",
+          ],
+        },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.budgets-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const limits = await listBudgetLimits(supabase, {
+        coworkerId: value(input, "coworkerId"),
+        budgetKind: value(input, "budgetKind") as BudgetKind | undefined,
+      });
+      return limits.map((l: BudgetLimit) => ({
+        id: l.id,
+        coworker_id: l.coworker_id,
+        budget_kind: l.budget_kind,
+        limit_value: l.limit_value,
+        period: l.period,
+      }));
+    },
+  },
+  {
+    name: "propose_conversation_reply",
+    description:
+      "Stage a reply to an active conversation thread for founder approval. This never sends directly.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        conversationId: { type: "string" },
+        body: { type: "string" },
+        reasoning: { type: "string" },
+      },
+      required: ["conversationId", "body", "reasoning"],
+      additionalProperties: false,
+    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.action-queue",
+    connectionRequirement: "none",
+    impact: "external_action",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail, workItem }, input) => {
+      const conversationId = value(input, "conversationId")!;
+      const body = value(input, "body")!;
+      const reasoning = value(input, "reasoning") || "";
+      const { data: conv } = await supabase
+        .from("conversations")
+        .select("id,subject,channel")
+        .eq("id", conversationId)
+        .maybeSingle();
+
+      if (workItem) {
+        await assertWorkDraftTarget(supabase, workItem, "send_gmail_reply", input);
+        const existing = await findWorkDraft(supabase, workItem);
+        if (existing) {
+          const { data: proposal, error } = await supabase
+            .from("action_queue")
+            .select("*")
+            .eq("tenant_id", workItem.tenant_id)
+            .eq("id", existing.id)
+            .single();
+          if (error || !proposal) throw new Error(error?.message ?? "Draft proposal disappeared");
+          return proposal;
+        }
+      }
+      return proposeAction(supabase, {
+        actionType: "send_gmail_reply",
+        title: `Reply to: ${conv?.subject || "Conversation"}`,
+        description: previewOf(body),
+        urgency: "normal",
+        payload: {
+          conversationId,
+          body,
+          reasoning,
+          ...(workItem ? { workItemId: workItem.id } : {}),
+        },
+        reasoning,
+        sourceContext: workItem ? `coworker:${workItem.coworker_id}` : "admin_ai",
+        entityType: "conversation",
+        entityId: conversationId,
+        dedupeKey: workItem
+          ? workDraftKey(workItem)
+          : `ai-reply:${conversationId}:${body.slice(0, 80)}`,
+        proposedBy: actorEmail,
+        expiresAt: new Date(Date.now() + 86400000).toISOString(),
+      });
+    },
+  },
 ];
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    ...REVENUE_OS_MODULES.filter((moduleDef) => moduleDef.workflow).flatMap(
+      (moduleDef) => moduleDef.aiToolNames || [],
+    ),
+    ...REVENUE_OS_MODULES.filter((module) => module.report).map(
+      (module) => `run_${module.id.replaceAll("-", "_")}`,
+    ),
     "get_today_snapshot",
     "search_pipeline",
+    "search_contacts",
+    "get_pending_actions",
+    "get_claimable_work",
+    "get_workspace_capabilities",
+    "get_claims_for_entity",
+    "get_autonomy_policies",
+    "get_coworkers",
+    "get_agent_activity_for_entity",
+    "get_plugins",
+    "bootstrap_sales_coworker",
+    "bootstrap_business_pulse_coworker",
+    "bootstrap_meeting_intel_coworker",
+    "bootstrap_finance_coworker",
+    "bootstrap_operations_coworker",
     "get_record_timeline",
+    "search_knowledge_base",
+    "query_memory",
+    "store_agent_memory",
+    "get_agent_memory",
+    "get_learned_policies",
+    "record_learned_policy",
+    "check_budgets",
+    "get_budget_limits",
     "propose_task",
+    "propose_task_update",
     "propose_layout_change",
     "propose_founder_note",
   ],
   pipeline: [
     "get_today_snapshot",
     "search_pipeline",
+    "search_contacts",
+    "get_pending_actions",
+    "get_claimable_work",
+    "get_workspace_capabilities",
+    "get_claims_for_entity",
+    "get_autonomy_policies",
+    "get_coworkers",
+    "get_agent_activity_for_entity",
+    "get_plugins",
     "get_record_timeline",
+    "search_knowledge_base",
+    "query_memory",
+    "get_agent_memory",
+    "get_learned_policies",
+    "check_budgets",
+    "get_budget_limits",
     "propose_task",
+    "propose_task_update",
     "propose_stage_change",
   ],
   outreach: [
     "get_today_snapshot",
     "search_pipeline",
+    "search_contacts",
+    "search_conversations",
+    "get_pending_actions",
+    "get_claimable_work",
+    "get_workspace_capabilities",
+    "get_claims_for_entity",
+    "get_autonomy_policies",
+    "get_coworkers",
+    "get_agent_activity_for_entity",
+    "get_plugins",
     "get_record_timeline",
+    "search_knowledge_base",
+    "query_memory",
+    "get_agent_memory",
+    "get_learned_policies",
+    "check_budgets",
+    "get_budget_limits",
     "propose_task",
+    "propose_task_update",
     "propose_send_email",
+    "propose_conversation_reply",
     "propose_campaign_activation",
   ],
 };
@@ -712,7 +1946,9 @@ export async function executeRegisteredRevenueTool(
   if (!availability.available)
     throw new Error(`${tool.name} is unavailable: ${availability.reason}`);
   validateToolInput(tool.name, tool.inputSchema, input);
-  const output = await tool.execute(context, input);
+  const output = await withProposalWorkContext(context.workItemId, () =>
+    tool.execute(context, input),
+  );
   validateToolOutput(tool.name, tool.outputSchema, output);
   assertImpactHonoured(tool, output);
   return { output, tool };

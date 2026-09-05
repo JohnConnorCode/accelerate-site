@@ -544,13 +544,18 @@ export interface ChatLead {
 // CONTENT CALENDAR TYPES
 // ========================================
 
-export type ContentStatus = "idea" | "outline" | "draft" | "review" | "published";
+// The board's columns are admin-defined (see kanban_columns, board_key
+// "content") rather than a fixed set, so this is a plain string identifying
+// the column_key a card sits in — kept as a named alias for readability at
+// existing call sites rather than a literal union.
+export type ContentStatus = string;
 
 export interface ContentCalendarItem {
   id: string;
   title: string;
   slug: string;
   status: ContentStatus;
+  sort_order: number;
   category: ArticleCategory;
   target_keywords: string[];
   pillar: ArticlePillar;

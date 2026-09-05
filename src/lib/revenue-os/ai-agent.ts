@@ -9,6 +9,10 @@ import {
   type OpenRouterMessage,
 } from "@/lib/ai/openrouter";
 import { loadAgentLearningSignals } from "./agent-learning";
+import { listClaimableWork } from "./work-items";
+import { listWorkspaceCapabilities } from "./capabilities";
+import { listClaimsForEntity } from "./claims";
+import { listLearnedPolicies, retrieveAgentMemory } from "./memory";
 import {
   AI_TOOL_REGISTRY_VERSION,
   executeRegisteredRevenueTool,
@@ -50,6 +54,10 @@ export interface CommandAgentOptions {
   surface?: string;
   conversationId?: string | null;
   pageContext?: CommandPageContext | null;
+  /** The calling tenant's active module configuration, so a disabled module's
+   * AI tools are unavailable to the agent exactly as they are to the UI and
+   * to MCP. Falls back to every optional module enabled when omitted. */
+  tenantConfig?: { modules?: Partial<Record<string, boolean>> } | null;
   signal?: AbortSignal;
   onRunStarted?: (event: { runId: string | null; model: string; pack: RevenueToolPackId }) => void;
   onAssistantDelta?: (delta: string) => void;
@@ -150,6 +158,45 @@ export async function runRevenueCommandAgent(
   let outputTokens = 0;
   try {
     const learningSignals = await loadAgentLearningSignals(supabase);
+    // Bounded work-item summary so the agent knows what durable work is queued.
+    const claimableWork = await listClaimableWork(supabase, { limit: 10 });
+    const workQueueSummary = claimableWork.length
+      ? `Work engine queue (${claimableWork.length} claimable): ${claimableWork.map((w) => `${w.kind}[${w.priority}](${w.objective.slice(0, 60)})`).join("; ")}. Use get_claimable_work for details.`
+      : "Work engine queue is empty — no claimable work items.";
+    // Bounded capability summary so the agent knows what the workspace can do.
+    const availableCapabilities = await listWorkspaceCapabilities(supabase, {
+      availableOnly: true,
+    });
+    const capabilitySummary = availableCapabilities.length
+      ? `Workspace capabilities (${availableCapabilities.length} available): ${availableCapabilities.map((c) => `${c.capability_key}${c.policy === "approval_required" ? "[approval]" : ""}`).join(", ")}. Use get_workspace_capabilities for details.`
+      : "No workspace capabilities registered yet.";
+    // Entity-scoped claims summary when page context has an entity.
+    let claimsSummary: string | undefined;
+    const pageEntity = options.pageContext?.entity;
+    if (pageEntity) {
+      const entityClaims = await listClaimsForEntity(supabase, {
+        entityType: pageEntity.type,
+        entityId: pageEntity.id,
+        status: ["unverified", "supported", "conflicted", "verified"],
+      });
+      if (entityClaims.length) {
+        claimsSummary = `Claims for ${pageEntity.type} (${entityClaims.length}): ${entityClaims.map((c) => `${c.field}=${c.proposed_value}[${c.status}/${c.best_evidence ?? "?"}]`).join("; ")}. Use get_claims_for_entity for details.`;
+      }
+    }
+    // Memory summary: active learned policies + recent agent memory.
+    const activePolicies = await listLearnedPolicies(supabase);
+    const recentAgentMemory = await retrieveAgentMemory(supabase, { limit: 5 });
+    const memorySummary =
+      [
+        activePolicies.length
+          ? `Learned policies (${activePolicies.length}): ${activePolicies.map((p) => `"${p.rule}" (${p.action_key})`).join("; ")}. Use get_learned_policies for details.`
+          : undefined,
+        recentAgentMemory.length
+          ? `Recent agent memory (${recentAgentMemory.length}): ${recentAgentMemory.map((m) => `${m.category}: ${m.subject}`).join("; ")}. Use get_agent_memory for details.`
+          : undefined,
+      ]
+        .filter(Boolean)
+        .join(" ") || undefined;
     // Without this the model reasons about "today" and "follow up in 3 days"
     // from its training cutoff. Everything this agent does is time-sensitive.
     const now = new Date();
@@ -159,6 +206,10 @@ export async function runRevenueCommandAgent(
       const grounding = buildRevenueAiGroundingContract({
         today,
         learningSignals,
+        workQueueSummary,
+        capabilitySummary,
+        claimsSummary,
+        memorySummary,
         pageContext: context,
         toolPack: selectedPack,
       });
@@ -243,7 +294,7 @@ export async function runRevenueCommandAgent(
         }
         try {
           const { output, tool } = await executeRegisteredRevenueTool(
-            { supabase, actorEmail, toolPack: selectedPack },
+            { supabase, actorEmail, toolPack: selectedPack, tenantConfig: options.tenantConfig },
             name,
             toolInput,
           );

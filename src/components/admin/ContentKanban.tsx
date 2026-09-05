@@ -1,64 +1,46 @@
 "use client";
 
-import { useState } from "react";
-import {
-  DndContext,
-  closestCenter,
-  DragEndEvent,
-  DragOverlay,
-  DragStartEvent,
-} from "@dnd-kit/core";
-import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Pencil } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { StatusBadge } from "./StatusBadge";
-import type { ContentCalendarItem, ContentStatus } from "@/lib/types";
-
-const columns: { status: ContentStatus; label: string }[] = [
-  { status: "idea", label: "Ideas" },
-  { status: "outline", label: "Outline" },
-  { status: "draft", label: "Draft" },
-  { status: "review", label: "Review" },
-  { status: "published", label: "Published" },
-];
+import { KanbanBoard, type KanbanCardRenderOpts } from "@/components/kanban/KanbanBoard";
+import type { KanbanColumnMetadata, KanbanColumnRecord } from "@/lib/kanban/types";
+import type { KanbanReorderUpdate } from "@/lib/kanban/useKanbanDnd";
+import type { ContentCalendarItem } from "@/lib/types";
 
 interface ContentKanbanProps {
+  columns: KanbanColumnRecord[];
   items: ContentCalendarItem[];
-  onStatusChange: (id: string, newStatus: ContentStatus) => void;
+  onReorder: (updates: KanbanReorderUpdate[]) => Promise<void>;
   onEdit: (item: ContentCalendarItem) => void;
+  onAddColumn: (input: { label: string; metadata?: KanbanColumnMetadata }) => Promise<unknown>;
+  onRenameColumn: (columnKey: string, label: string) => Promise<unknown>;
+  onDeleteColumn: (columnKey: string, options?: { reassignTo?: string }) => Promise<void>;
 }
 
-function SortableCard({
+function ContentCard({
   item,
+  opts,
   onEdit,
 }: {
   item: ContentCalendarItem;
+  opts: KanbanCardRenderOpts;
   onEdit: (item: ContentCalendarItem) => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: item.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="glass rounded-lg p-3 group hover:border-border-gold transition-[border-color,box-shadow,transform]"
-    >
+    <div className="glass group rounded-lg p-3 transition-[border-color,box-shadow,transform] hover:border-border-gold">
       <div className="flex items-start gap-2">
-        <button
-          {...attributes}
-          {...listeners}
-          className="mt-0.5 cursor-grab text-white-muted hover:text-white-secondary"
-        >
-          <GripVertical className="h-3.5 w-3.5" />
-        </button>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-white-primary truncate">{item.title}</p>
+        {!opts.isOverlay && (
+          <button
+            type="button"
+            aria-label={opts.disabled ? "Reordering is unavailable" : `Drag ${item.title}`}
+            disabled={opts.disabled}
+            {...opts.dragHandleProps}
+            className="grid size-10 shrink-0 touch-none cursor-grab place-items-center rounded-xl text-white-muted transition-[background-color,color,transform] duration-150 hover:text-white-primary active:cursor-grabbing active:scale-[0.96] disabled:cursor-default disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+          >
+            <GripVertical className="size-4" />
+          </button>
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-white-primary">{item.title}</p>
           <div className="mt-1 flex items-center gap-2 text-xs text-white-muted">
             {item.category && (
               <span className="capitalize">{item.category.replace(/-/g, " ")}</span>
@@ -66,101 +48,49 @@ function SortableCard({
             {item.word_count_target && <span>{item.word_count_target} words</span>}
           </div>
         </div>
-        <button
-          onClick={() => onEdit(item)}
-          className="opacity-0 group-hover:opacity-100 text-white-muted hover:text-white-primary transition-[opacity,color] cursor-pointer"
-        >
-          <Pencil className="h-3.5 w-3.5" />
-        </button>
+        {!opts.isOverlay && (
+          <button
+            type="button"
+            onClick={() => onEdit(item)}
+            aria-label={`Edit ${item.title}`}
+            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-xl text-white-muted opacity-0 transition-[background-color,color,opacity] hover:text-white-primary group-hover:opacity-100 focus-visible:opacity-100"
+          >
+            <Pencil className="size-3.5" />
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
-function ContentCard({ item }: { item: ContentCalendarItem }) {
+export function ContentKanban({
+  columns,
+  items,
+  onReorder,
+  onEdit,
+  onAddColumn,
+  onRenameColumn,
+  onDeleteColumn,
+}: ContentKanbanProps) {
   return (
-    <div className="glass rounded-lg p-3 opacity-80">
-      <p className="text-sm font-medium text-white-primary truncate">{item.title}</p>
-    </div>
-  );
-}
-
-export function ContentKanban({ items, onStatusChange, onEdit }: ContentKanbanProps) {
-  const [activeItem, setActiveItem] = useState<ContentCalendarItem | null>(null);
-
-  const handleDragStart = (event: DragStartEvent) => {
-    const item = items.find((i) => i.id === event.active.id);
-    if (item) setActiveItem(item);
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    setActiveItem(null);
-    const { active, over } = event;
-    if (!over) return;
-
-    const activeId = active.id as string;
-    const overId = over.id as string;
-
-    // Check if dropped over a column
-    const targetColumn = columns.find((c) => c.status === overId);
-    if (targetColumn) {
-      const draggedItem = items.find((i) => i.id === activeId);
-      if (draggedItem && draggedItem.status !== targetColumn.status) {
-        onStatusChange(activeId, targetColumn.status);
-      }
-      return;
-    }
-
-    // Check if dropped over another card
-    const overItem = items.find((i) => i.id === overId);
-    if (overItem) {
-      const draggedItem = items.find((i) => i.id === activeId);
-      if (draggedItem && draggedItem.status !== overItem.status) {
-        onStatusChange(activeId, overItem.status);
-      }
-    }
-  };
-
-  return (
-    <DndContext
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="flex gap-4 overflow-x-auto pb-4">
-        {columns.map((col) => {
-          const columnItems = items.filter((i) => i.status === col.status);
-          return (
-            <div key={col.status} className="w-64 shrink-0">
-              <div className="mb-3 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-semibold text-white-primary">{col.label}</h3>
-                  <StatusBadge status={col.status} />
-                </div>
-                <span className="text-xs text-white-muted">{columnItems.length}</span>
-              </div>
-              <SortableContext
-                id={col.status}
-                items={columnItems.map((i) => i.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <div
-                  className={cn(
-                    "min-h-[200px] space-y-2 rounded-lg border border-border-glass p-2",
-                    columnItems.length === 0 && "border-dashed",
-                  )}
-                >
-                  {columnItems.map((item) => (
-                    <SortableCard key={item.id} item={item} onEdit={onEdit} />
-                  ))}
-                </div>
-              </SortableContext>
-            </div>
-          );
-        })}
-      </div>
-
-      <DragOverlay>{activeItem ? <ContentCard item={activeItem} /> : null}</DragOverlay>
-    </DndContext>
+    <KanbanBoard<ContentCalendarItem>
+      columns={columns}
+      items={items}
+      getItemId={(item) => item.id}
+      getItemColumnKey={(item) => item.status}
+      getItemSortOrder={(item) => Number(item.sort_order)}
+      getItemLabel={(item) => item.title}
+      setItemPosition={(item, columnKey, sortOrder) => ({
+        ...item,
+        status: columnKey,
+        sort_order: sortOrder,
+      })}
+      renderCard={(item, opts) => <ContentCard item={item} opts={opts} onEdit={onEdit} />}
+      onReorder={onReorder}
+      onAddColumn={onAddColumn}
+      onRenameColumn={onRenameColumn}
+      onDeleteColumn={onDeleteColumn}
+      emptyColumnHint="Drop content here"
+    />
   );
 }

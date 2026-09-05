@@ -3,6 +3,8 @@ import { rateLimit } from "@/lib/rate-limit";
 import { isValidEmail } from "@/lib/validation";
 import { scheduleEmailSequence } from "@/lib/email/sequences";
 import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
+import { siteUrl } from "@/config/tenant";
+import { leadMagnets } from "@/content/lead-magnets";
 
 export async function POST(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
@@ -60,11 +62,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Schedule resource_welcome email sequence via Resend
+    // Schedule resource_welcome email sequence via Resend. Resolve the
+    // catalog title and file link so the {{resourceTitle}}/{{downloadLink}}
+    // tokens name the actual resource instead of falling back to defaults.
+    const magnet = leadMagnets.find((item) => item.id === resourceId);
     scheduleEmailSequence({
       email,
       sequenceType: "resource_welcome",
-      metadata: { name, resourceId },
+      metadata: {
+        name,
+        resourceId,
+        resourceTitle: magnet?.title ?? "your requested resource",
+        downloadLink: magnet ? `${siteUrl()}${magnet.fileUrl}` : `${siteUrl()}/resources`,
+      },
     }).catch((e) => console.warn("Email sequence scheduling failed:", e));
 
     return NextResponse.json({ success: true });

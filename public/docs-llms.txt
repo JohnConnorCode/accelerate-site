@@ -1,0 +1,24 @@
+# Accelerate Documentation
+> Practical guides for working with Accelerate and running the Command Center.
+
+## Start
+How every engagement begins: your business first, then the smallest solution that solves the problem.
+
+- [Start with your business](https://www.acceleratewith.us/docs/start/overview) (updated 2026-09-04): We find where AI and automation can free up time or increase revenue before anyone builds anything.
+
+## Command Center
+One shared operating layer for businesses that need it, and how to decide whether it fits.
+
+- [The Command Center](https://www.acceleratewith.us/docs/command-center/overview) (updated 2026-09-04): How the Command Center fits your business and when a smaller solution makes sense.
+
+## Follow-up
+The discipline that decides most inquiries: respond first, follow through, and let nothing wait.
+
+- [Never lose an inquiry](https://www.acceleratewith.us/docs/follow-up/overview) (updated 2026-09-04): Response time, steady follow-up, and a clear next step on every page.
+
+## Self-hosting
+Run the Command Center yourself: what you need, how to start, and when to bring us in.
+
+- [Self-hosting quickstart](https://www.acceleratewith.us/docs/self-hosting/overview) (updated 2026-09-04): Clone the repository, connect Supabase, and run the Command Center behind your own agency.
+
+- [Documentation landing](https://www.acceleratewith.us/docs): all guides.
