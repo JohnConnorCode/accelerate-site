@@ -28,10 +28,16 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
   try {
     body = (await request.json()) as Record<string, unknown>;
   } catch {
-    return NextResponse.json({ error: "A JSON body with the new label is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "A JSON body with the new label is required" },
+      { status: 400 },
+    );
   }
   if (!body || typeof body !== "object" || Array.isArray(body)) {
-    return NextResponse.json({ error: "A JSON body with the new label is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "A JSON body with the new label is required" },
+      { status: 400 },
+    );
   }
   const update: Record<string, unknown> = {};
   if (typeof body.label === "string") {
@@ -74,6 +80,11 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
   }
   const auth = await resolveKanbanBoardAuth(boardKeyParam);
   if (!auth.ok) return auth.response;
+  if (boardKeyParam === "features")
+    return NextResponse.json(
+      { error: "Work lifecycle columns cannot be removed." },
+      { status: 409 },
+    );
   const { supabase } = auth;
 
   const { error } = await supabase.rpc("kanban_delete_column", {

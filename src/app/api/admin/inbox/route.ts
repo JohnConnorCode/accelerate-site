@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { calculateLeadScore } from "@/lib/admin/lead-scoring";
+import { recordLegacyAdapterUse } from "@/lib/revenue-os/legacy-adapter";
 import type { AdminInboxItem, AdminInboxKind } from "@/lib/admin/inbox";
 
 const VALID_KINDS = new Set<AdminInboxKind>([
@@ -34,64 +35,77 @@ export async function GET(request: NextRequest) {
   const today = now.toISOString().split("T")[0]!;
   const stalledBefore = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString();
 
-  const [leads, contacts, chats, partners, tasks, proposals, coworkerWork, pendingActions] = await Promise.all([
-    supabase
-      .from("solution_requests")
-      .select(
-        "id, contact_name, contact_email, contact_phone, business_name, industry, lead_status, created_at, ai_plan, intake_data, view_count",
-      )
-      .eq("lead_status", "new")
-      .order("created_at", { ascending: false })
-      .limit(30),
-    supabase
-      .from("contact_submissions")
-      .select("id, name, email, phone, business_type, message, created_at, read_at")
-      .is("read_at", null)
-      .order("created_at", { ascending: false })
-      .limit(30),
-    supabase
-      .from("chat_leads")
-      .select("id, name, email, conversation, created_at")
-      .order("created_at", { ascending: false })
-      .limit(20),
-    supabase
-      .from("partner_applications")
-      .select("id, name, email, company, partner_type, message, created_at")
-      .eq("status", "pending")
-      .order("created_at", { ascending: false })
-      .limit(20),
-    supabase
-      .from("tasks")
-      .select(
-        "id, title, description, due_date, due_time, priority, related_type, related_id, related_name, created_at",
-      )
-      .eq("status", "pending")
-      .order("due_date", { ascending: true, nullsFirst: false })
-      .limit(50),
-    supabase
-      .from("proposals")
-      .select("id, title, client_name, status, sent_at, created_at")
-      .in("status", ["sent", "viewed"])
-      .is("responded_at", null)
-      .lt("sent_at", stalledBefore)
-      .order("sent_at", { ascending: true })
-      .limit(25),
-    supabase
-      .from("work_items")
-      .select("id, kind, objective, reason, coworker_id, status, priority, created_at")
-      .eq("surface_in_inbox", true)
-      .in("status", ["pending", "claimed", "in_progress", "waiting", "completed"])
-      .order("created_at", { ascending: false })
-      .limit(30),
-    supabase
-      .from("action_queue")
-      .select("id, action_key, label, summary, coworker_id, status, created_at, metadata")
-      .eq("status", "pending")
-      .order("created_at", { ascending: false })
-      .limit(30),
-  ]);
+  const [leads, contacts, chats, partners, tasks, proposals, coworkerWork, pendingActions] =
+    await Promise.all([
+      supabase
+        .from("solution_requests")
+        .select(
+          "id, contact_name, contact_email, contact_phone, business_name, industry, lead_status, created_at, ai_plan, intake_data, view_count",
+        )
+        .eq("lead_status", "new")
+        .order("created_at", { ascending: false })
+        .limit(30),
+      supabase
+        .from("contact_submissions")
+        .select("id, name, email, phone, business_type, message, created_at, read_at")
+        .is("read_at", null)
+        .order("created_at", { ascending: false })
+        .limit(30),
+      supabase
+        .from("chat_leads")
+        .select("id, name, email, conversation, created_at")
+        .order("created_at", { ascending: false })
+        .limit(20),
+      supabase
+        .from("partner_applications")
+        .select("id, name, email, company, partner_type, message, created_at")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(20),
+      supabase
+        .from("tasks")
+        .select(
+          "id, title, description, due_date, due_time, priority, related_type, related_id, related_name, created_at",
+        )
+        .eq("status", "pending")
+        .order("due_date", { ascending: true, nullsFirst: false })
+        .limit(50),
+      supabase
+        .from("proposals")
+        .select("id, title, client_name, status, sent_at, created_at")
+        .in("status", ["sent", "viewed"])
+        .is("responded_at", null)
+        .lt("sent_at", stalledBefore)
+        .order("sent_at", { ascending: true })
+        .limit(25),
+      supabase
+        .from("work_items")
+        .select("id, kind, objective, reason, coworker_id, status, priority, created_at")
+        .eq("surface_in_inbox", true)
+        .in("status", ["pending", "claimed", "in_progress", "waiting", "completed"])
+        .order("created_at", { ascending: false })
+        .limit(30),
+      supabase
+        .from("action_queue")
+        .select("id, action_key, label, summary, coworker_id, status, created_at, metadata")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(30),
+    ]);
 
   const items: AdminInboxItem[] = [];
+
+  // Inbox reads legacy source tables directly (no adapter): record the read
+  // so the retirement ledger knows this consumer. Best-effort, never throws.
+  await recordLegacyAdapterUse(supabase, {
+    route: "admin-inbox",
+    rows:
+      (leads.data?.length ?? 0) +
+      (contacts.data?.length ?? 0) +
+      (chats.data?.length ?? 0) +
+      (partners.data?.length ?? 0),
+    linked: 0,
+  });
 
   for (const lead of leads.data || []) {
     const score = calculateLeadScore(lead);
@@ -245,7 +259,8 @@ export async function GET(request: NextRequest) {
       kind: "coworker",
       title: `${label}: ${wi.objective.slice(0, 80)}`,
       summary: cleanSummary(wi.reason, `Coworker work item (${wi.kind}).`),
-      priority: wi.priority === "high" ? "urgent" : wi.priority === "medium" ? "important" : "normal",
+      priority:
+        wi.priority === "high" ? "urgent" : wi.priority === "medium" ? "important" : "normal",
       createdAt: wi.created_at,
       href: isCompleted ? `/admin/ai/runs` : `/admin/ai`,
       meta: `${wi.status.replace(/_/g, " ")} · ${label}`,
@@ -262,9 +277,7 @@ export async function GET(request: NextRequest) {
       priority: "important",
       createdAt: action.created_at,
       href: "/admin/ai",
-      meta: action.coworker_id
-        ? `Coworker: ${action.coworker_id}`
-        : "Pending approval",
+      meta: action.coworker_id ? `Coworker: ${action.coworker_id}` : "Pending approval",
     });
   }
 

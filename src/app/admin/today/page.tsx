@@ -652,7 +652,7 @@ export default function TodayPage() {
     if (!overview) return [];
     const runExpectation = (item: HealthRun) =>
       item.stalled
-        ? "Stalled — the next run takes the claim over"
+        ? "Stalled: the next run takes the claim over"
         : describeExpectedCheck(item.nextExpectedAt, item.cadenceLabel);
     const webhookFailures = overview.health.webhookFailures ?? [];
     return [
@@ -685,7 +685,7 @@ export default function TodayPage() {
         expectation:
           webhookFailures.length > 1
             ? `+${webhookFailures.length - 1} more unprocessed in the last 48h`
-            : "Unprocessed in the last 48h — see Setup Center",
+            : "Unprocessed in the last 48h. See Setup Center",
       })),
     ].slice(0, 6);
   }, [overview]);

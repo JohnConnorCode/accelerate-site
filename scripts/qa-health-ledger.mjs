@@ -21,16 +21,21 @@ for (const key of ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "ADM
 }
 
 const failures = [];
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: { autoRefreshToken: false, persistSession: false },
+  },
+);
 
 const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
   type: "magiclink",
   email: process.env.ADMIN_EMAIL,
   options: { redirectTo: `${base}/auth/callback?next=/admin/today` },
 });
-if (linkError || !linkData?.properties?.hashed_token) throw linkError || new Error("no sign-in token");
+if (linkError || !linkData?.properties?.hashed_token)
+  throw linkError || new Error("no sign-in token");
 const { data: verified, error: verifyError } = await supabase.auth.verifyOtp({
   token_hash: linkData.properties.hashed_token,
   type: "magiclink",
@@ -50,7 +55,10 @@ function watch(page) {
     if (message.type() !== "error") return;
     const url = message.location()?.url || "";
     const text = message.text();
-    if (text.includes("requestStorageAccess") && (url.includes("calendly") || url.includes("recaptcha.net")))
+    if (
+      text.includes("requestStorageAccess") &&
+      (url.includes("calendly") || url.includes("recaptcha.net"))
+    )
       return;
     consoleErrors.push(`${text} @${url.slice(0, 120)}`);
   });
@@ -92,7 +100,14 @@ try {
   ]) {
     const context = await browser.newContext({ baseURL: base, viewport, deviceScaleFactor: 1 });
     await context.addCookies([
-      { ...sessionCookie, domain: origin.hostname, path: "/", httpOnly: false, secure: origin.protocol === "https:", sameSite: "Lax" },
+      {
+        ...sessionCookie,
+        domain: origin.hostname,
+        path: "/",
+        httpOnly: false,
+        secure: origin.protocol === "https:",
+        sameSite: "Lax",
+      },
     ]);
     await context.route("**/js/script.js", (route) =>
       route.fulfill({ status: 200, contentType: "application/javascript", body: "" }),
@@ -107,6 +122,8 @@ try {
 }
 
 for (const err of consoleErrors) failures.push(`console/server error: ${err}`);
-console.log(JSON.stringify({ base, failures, result: failures.length ? "failed" : "passed" }, null, 2));
+console.log(
+  JSON.stringify({ base, failures, result: failures.length ? "failed" : "passed" }, null, 2),
+);
 if (failures.length) process.exit(1);
 console.log("HEALTH LEDGER QA PASSED");

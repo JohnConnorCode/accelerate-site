@@ -89,7 +89,9 @@ export function LayoutCustomizeDialog({
 
   const toggleHidden = (id: string) => {
     setDraft((current) =>
-      current.map((row) => (row.id === id && !row.required ? { ...row, hidden: !row.hidden } : row)),
+      current.map((row) =>
+        row.id === id && !row.required ? { ...row, hidden: !row.hidden } : row,
+      ),
     );
   };
 
@@ -102,7 +104,10 @@ export function LayoutCustomizeDialog({
         body: JSON.stringify({
           scope,
           action: "save",
-          doc: { order: draft.map((row) => row.id), hidden: draft.filter((row) => row.hidden).map((row) => row.id) },
+          doc: {
+            order: draft.map((row) => row.id),
+            hidden: draft.filter((row) => row.hidden).map((row) => row.id),
+          },
         }),
       });
       toast.success("Layout saved.");
@@ -122,8 +127,8 @@ export function LayoutCustomizeDialog({
           Customize {scopeDef.label}
         </h2>
         <p className="admin-copy mt-1 text-xs leading-5">
-          Reorder sections and hide the ones you never use. Required sections stay put so
-          nothing essential can vanish.
+          Reorder sections and hide the ones you never use. Required sections stay put so nothing
+          essential can vanish.
         </p>
         <ul className="mt-4 space-y-1.5">
           {draft.map((row, index) => (

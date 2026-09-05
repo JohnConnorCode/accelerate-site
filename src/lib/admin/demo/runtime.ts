@@ -1,3 +1,13 @@
+import { KANBAN_DEFAULT_COLUMNS } from "@/lib/kanban/defaults";
+import { isKanbanBoardKey } from "@/lib/kanban/types";
+import type { FeatureRequest } from "@/lib/feature-board";
+import {
+  createDemoBusinessState,
+  demoTasksForGraph,
+  handleDemoBusinessRequest,
+  DEMO_BUSINESS_MODULES,
+  type DemoBusinessState,
+} from "./business-runtime";
 import { DEMO_SCENARIOS, type DemoScenarioId, type DemoScenarioPack } from "./scenarios";
 import { clearDemoAppearance } from "./appearance-state";
 import {
@@ -53,6 +63,7 @@ type DemoEmailStudioDetail = {
 };
 type DemoEmailStudioList = { schemaReady: true; emails: Array<Record<string, unknown>> };
 type DemoState = {
+  business: DemoBusinessState | null;
   completedActions: string[];
   completedTasks: string[];
   stageOverrides: Record<string, string>;
@@ -63,13 +74,25 @@ type DemoState = {
   clientOverrides: Record<string, Record<string, unknown>>;
   generatedAiRuns: DemoGeneratedAiRun[];
   sentReplies: Record<string, string[]>;
+  conversationOverrides: Record<
+    string,
+    { status?: string; assignee?: string | null; opportunityId?: string | null }
+  >;
+  conversationTasks: Record<string, Array<{ id: string; title: string; due_date: string | null }>>;
   readNotifications: string[];
   emailDrafts: Record<string, DemoEmailDraft>;
-  featureOverrides: Record<string, { status: string; sort_order: number }>;
+  featureOverrides: Record<
+    string,
+    Partial<FeatureRequest> & { created?: boolean; demoClaimToken?: string }
+  >;
+  workViews?: Array<Record<string, unknown>>;
+  workEvents?: Array<Record<string, unknown>>;
+  workReceipts?: Record<string, { fingerprint: string; card: unknown }>;
   moduleOverrides: Partial<Record<string, boolean>>;
   moduleSettings: Record<string, Record<string, unknown>>;
 };
 const initialState = (): DemoState => ({
+  business: null,
   completedActions: [],
   completedTasks: [],
   stageOverrides: {},
@@ -77,6 +100,8 @@ const initialState = (): DemoState => ({
   clientOverrides: {},
   generatedAiRuns: [],
   sentReplies: {},
+  conversationOverrides: {},
+  conversationTasks: {},
   readNotifications: [],
   emailDrafts: {},
   featureOverrides: {},
@@ -241,7 +266,11 @@ function opportunityRecord(pack: DemoScenarioPack, state: DemoState, id: string)
     ],
   };
 }
-function auditHistory(pack: DemoScenarioPack, params: URLSearchParams) {
+function auditHistory(
+  pack: DemoScenarioPack,
+  params: URLSearchParams,
+  business?: DemoBusinessState,
+) {
   const founder = pack.tenant.founder.email;
   const system = pack.tenant.founder.systemActorEmail;
   const samples: Array<{
@@ -318,6 +347,20 @@ function auditHistory(pack: DemoScenarioPack, params: URLSearchParams) {
       createdAt: ago(index * 3 + 1),
     };
   });
+  entries.unshift(
+    ...(business?.receipts ?? []).map((receipt) => ({
+      id: receipt.id,
+      actorEmail: founder,
+      action: "demo.simulated",
+      entityType: "business_workflow",
+      entityId: receipt.id,
+      source: "demo",
+      before: null,
+      after: { operation: receipt.operation },
+      metadata: { simulated: true },
+      createdAt: receipt.at,
+    })),
+  );
   const filtered = entries.filter((entry) => {
     if (params.get("actor") && entry.actorEmail !== params.get("actor")) return false;
     if (params.get("entity") && entry.entityType !== params.get("entity")) return false;
@@ -361,6 +404,22 @@ function queue(pack: DemoScenarioPack, state: DemoState) {
       recommendedNextAction: "Review the exact simulated change",
       href: `/admin/today?focus=approval&action=${item.id}`,
     }));
+  approvals.unshift(
+    ...(state.business?.actions ?? [])
+      .filter((item) => item.status === "pending")
+      .map((item) => ({
+        id: `action:${item.id}`,
+        kind: "approval",
+        title: item.title,
+        summary: item.description,
+        urgency: "normal",
+        dueAt: dateOffset(0),
+        sourceTimestamp: item.created_at,
+        priorityReason: "A simulated business workflow needs approval.",
+        recommendedNextAction: "Review the exact simulated change",
+        href: item.pluginId === "stripe-invoicing" ? "/admin/invoicing" : `/admin/${item.pluginId}`,
+      })),
+  );
   const replies = pack.conversations.slice(0, 2).map((item, index) => {
     const contact = person(pack, item.personId);
     return {
@@ -465,24 +524,59 @@ function notifications(pack: DemoScenarioPack, state: DemoState) {
     priority: priority(pack, state),
   };
 }
-function conversations(pack: DemoScenarioPack, state: DemoState, selected: string | null) {
-  const rows = pack.conversations.map((item) => {
+function conversations(pack: DemoScenarioPack, state: DemoState, url: URL) {
+  const selected = url.searchParams.get("id");
+  const overrides = state.conversationOverrides || {};
+  const extraTasks = state.conversationTasks || {};
+  const founderEmail = pack.tenant.founder.email.toLowerCase();
+  const rows = pack.conversations.map((item, index) => {
     const contact = person(pack, item.personId);
+    const opportunity =
+      index % 2 === 0
+        ? pack.opportunities.find((entry) => entry.personId === item.personId) || null
+        : null;
+    const override = overrides[item.id] || {};
+    const status = (override.status as "open" | "waiting" | "resolved" | "archived") || "open";
+    const defaultContactId = index % 2 === 0 ? contact.id : null;
+    const opportunityId =
+      override.opportunityId === undefined ? opportunity?.id || null : override.opportunityId;
+    const linkedOpportunity = opportunityId
+      ? pack.opportunities.find((entry) => entry.id === opportunityId) || opportunity
+      : null;
     return {
       id: item.id,
-      channel: "gmail",
+      channel: "gmail" as const,
       external_id: `demo-${item.id}`,
       subject: item.subject,
-      status: "open",
+      status,
       intent: item.intent,
-      unread_count: item.unread,
+      unread_count: status === "resolved" || status === "archived" ? 0 : item.unread,
       last_message_at: item.messages.at(-1)!.at,
+      contact_id: defaultContactId,
+      company_id: null as string | null,
+      opportunity_id: opportunityId,
+      campaign_id: index < 2 ? "demo-campaign" : null,
+      assignee_email: override.assignee === undefined ? null : override.assignee,
       metadata: { contact_email: contact.email },
+      contact: {
+        id: contact.id,
+        full_name: contact.name,
+        primary_email: contact.email,
+        phone: contact.phone,
+      },
+      company: null,
+      opportunity: linkedOpportunity
+        ? {
+            id: linkedOpportunity.id,
+            name: linkedOpportunity.name,
+            stage: linkedOpportunity.stage,
+            estimated_value: linkedOpportunity.value,
+          }
+        : null,
+      created_at: item.messages[0]!.at,
+      updated_at: item.messages.at(-1)!.at,
     };
   });
-  // Mirrors the stats loop in src/lib/revenue-os/conversations.ts so the demo
-  // tab counts (Open/Waiting/Resolved/Archived/Unread) aren't stuck at zero
-  // while the list beside them is visibly full.
   const stats = {
     total: rows.length,
     open: rows.filter((row) => row.status === "open").length,
@@ -491,14 +585,79 @@ function conversations(pack: DemoScenarioPack, state: DemoState, selected: strin
     archived: rows.filter((row) => row.status === "archived").length,
     unread: rows.filter((row) => row.unread_count > 0).length,
   };
-  const active = selected
-    ? pack.conversations.find((item) => item.id === selected)
-    : pack.conversations[0];
-  if (!active) return { schemaReady: true, conversations: rows, stats, messages: [] };
-  const contact = person(pack, active.personId);
+  let filtered = rows;
+  const statusFilter = url.searchParams.get("status") || "all";
+  if (statusFilter !== "all") filtered = filtered.filter((row) => row.status === statusFilter);
+  const channelFilter = url.searchParams.get("channel") || "all";
+  if (channelFilter !== "all") filtered = filtered.filter((row) => row.channel === channelFilter);
+  const intentFilter = url.searchParams.get("intent");
+  if (intentFilter && intentFilter !== "all") {
+    filtered = filtered.filter(
+      (row) => (row.intent || "").toLowerCase() === intentFilter.toLowerCase(),
+    );
+  }
+  if (url.searchParams.get("unread") === "1" || url.searchParams.get("unread") === "true") {
+    filtered = filtered.filter((row) => row.unread_count > 0);
+  }
+  const recordFilter = url.searchParams.get("record") || "all";
+  if (recordFilter === "linked") {
+    filtered = filtered.filter((row) => Boolean(row.opportunity_id || row.contact_id));
+  } else if (recordFilter === "unlinked") {
+    filtered = filtered.filter((row) => !row.opportunity_id && !row.contact_id);
+  }
+  const campaignFilter = url.searchParams.get("campaign") || "all";
+  if (campaignFilter === "linked") filtered = filtered.filter((row) => Boolean(row.campaign_id));
+  else if (campaignFilter === "unlinked") filtered = filtered.filter((row) => !row.campaign_id);
+  const assigneeFilter = url.searchParams.get("assignee");
+  if (assigneeFilter === "unassigned") {
+    filtered = filtered.filter((row) => !row.assignee_email);
+  } else if (assigneeFilter === "me") {
+    filtered = filtered.filter((row) => (row.assignee_email || "").toLowerCase() === founderEmail);
+  } else if (assigneeFilter) {
+    filtered = filtered.filter(
+      (row) => (row.assignee_email || "").toLowerCase() === assigneeFilter.toLowerCase(),
+    );
+  }
+  if (url.searchParams.get("followUp") === "1" || url.searchParams.get("followUp") === "true") {
+    filtered = filtered.filter((row) => {
+      const packItem = pack.conversations.find((item) => item.id === row.id);
+      const personTasks = packItem
+        ? pack.tasks.some(
+            (task) => task.personId === packItem.personId && task.status !== "completed",
+          )
+        : false;
+      return personTasks || (extraTasks[row.id] || []).length > 0;
+    });
+  }
+  const search = (url.searchParams.get("search") || "").trim().toLowerCase();
+  if (search) {
+    filtered = filtered.filter((row) => {
+      const email = (row.metadata.contact_email as string) || row.contact?.primary_email || "";
+      return (
+        email.toLowerCase().includes(search) ||
+        (row.contact?.full_name || "").toLowerCase().includes(search) ||
+        (row.subject || "").toLowerCase().includes(search) ||
+        (row.intent || "").toLowerCase().includes(search)
+      );
+    });
+  }
+  const activePack =
+    pack.conversations.find((item) => item.id === selected) || pack.conversations[0];
+  const activeRow = activePack ? rows.find((row) => row.id === activePack.id) || null : null;
+  if (!activePack || !activeRow) {
+    return {
+      schemaReady: true,
+      conversations: filtered,
+      stats,
+      intents: [],
+      detail: null,
+      messages: [],
+    };
+  }
+  const contact = person(pack, activePack.personId);
   const messages = [
-    ...active.messages,
-    ...(state.sentReplies[active.id] || []).map((body, index) => ({
+    ...activePack.messages,
+    ...(state.sentReplies[activePack.id] || []).map((body, index) => ({
       id: `local-${index}`,
       direction: "outbound" as const,
       body,
@@ -506,17 +665,55 @@ function conversations(pack: DemoScenarioPack, state: DemoState, selected: strin
     })),
   ].map((item) => ({
     id: item.id,
+    conversation_id: activePack.id,
     direction: item.direction,
     sender_email: item.direction === "inbound" ? contact.email : pack.tenant.founder.email,
     recipient_emails: [item.direction === "inbound" ? pack.tenant.founder.email : contact.email],
-    subject: active.subject,
+    subject: activePack.subject,
     body_text: item.body,
     status: "delivered",
     sent_at: item.direction === "outbound" ? item.at : null,
     received_at: item.direction === "inbound" ? item.at : null,
     created_at: item.at,
   }));
-  return { schemaReady: true, conversations: rows, stats, messages };
+  const lastInbound = [...messages].reverse().find((item) => item.direction === "inbound");
+  const inboundText = (lastInbound?.body_text || "").toLowerCase();
+  const suggestedReply = lastInbound
+    ? inboundText.includes("pricing") || inboundText.includes("cost")
+      ? {
+          intent: "pricing_inquiry",
+          body: "Hi there,\n\nThanks for reaching out regarding pricing. I can walk through the options this week.",
+          confidence: 0.9,
+        }
+      : {
+          intent: activePack.intent || "general_inquiry",
+          body: "Hi,\n\nThank you for your message. I have reviewed the request and will follow up shortly.",
+          confidence: 0.75,
+        }
+    : null;
+  const packTasks = pack.tasks
+    .filter((task) => task.personId === activePack.personId && task.status !== "completed")
+    .slice(0, 5)
+    .map((task) => ({
+      id: task.id,
+      title: task.title,
+      due_date: dateOffset(task.dueOffset),
+      status: task.status,
+    }));
+  const tasks = [...packTasks, ...(extraTasks[activePack.id] || [])];
+  const detail = {
+    contract: "revenue-os-conversations.v1",
+    conversation: activeRow,
+    messages,
+    contact: activeRow.contact,
+    company: null,
+    opportunity: activeRow.opportunity,
+    tasks,
+    activity: [],
+    suggestedReply,
+  };
+  const intents = [...new Set(rows.map((row) => row.intent).filter(Boolean))].sort();
+  return { schemaReady: true, conversations: filtered, stats, intents, detail, messages };
 }
 function analytics(pack: DemoScenarioPack, state: DemoState) {
   const rows = opportunityRows(pack, state);
@@ -1548,8 +1745,8 @@ function contentItems(pack: DemoScenarioPack) {
 
 function featureBoard(pack: DemoScenarioPack, state: DemoState) {
   const titles = pack.content.roadmapTitles;
-  return titles.map((title, index) => {
-    const id = `feature-${index}`;
+  const seeded = titles.map((title, index) => {
+    const id = `00000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`;
     const defaultStatus = ["backlog", "planned", "in_progress", "blocked", "shipped"][index % 5]!;
     const defaultSortOrder = (index + 1) * 1000;
     // Dragging a card on the demo board writes here (see the PATCH handler
@@ -1559,7 +1756,7 @@ function featureBoard(pack: DemoScenarioPack, state: DemoState) {
     return {
       id,
       seed_key: `demo-${index}`,
-      title,
+      title: override?.title ?? title,
       description: `${title} adapted to the operating model for ${pack.name}.`,
       status: override?.status ?? defaultStatus,
       priority: index < 3 ? "high" : index < 10 ? "medium" : "low",
@@ -1569,7 +1766,16 @@ function featureBoard(pack: DemoScenarioPack, state: DemoState) {
         `capability:${["automation", "reporting", "integration"][index % 3]}`,
       ],
       sort_order: override?.sort_order ?? defaultSortOrder,
-      owner: index % 2 ? pack.tenant.founder.fullName : "Implementation partner",
+      subtasks: override?.subtasks ?? [
+        { id: `${id}-a`, title: "Observable in the founder workspace", done: index % 5 === 4 },
+        { id: `${id}-b`, title: "Verified on desktop and mobile", done: false },
+      ],
+      owner:
+        override && "owner" in override
+          ? (override.owner ?? null)
+          : index % 2
+            ? pack.tenant.founder.fullName
+            : "Implementation partner",
       target_date: dateOffset(index * 6 + 10),
       acceptance_criteria:
         "The workflow is observable, reversible, and verified on desktop and mobile.",
@@ -1580,6 +1786,57 @@ function featureBoard(pack: DemoScenarioPack, state: DemoState) {
       updated_at: override ? new Date().toISOString() : ago(index * 4 + 1),
     };
   });
+  const created = Object.entries(state.featureOverrides)
+    .filter(([, override]) => override.created)
+    .map(([id, override]) => ({
+      id,
+      seed_key: null,
+      title: override.title ?? "Untitled",
+      description: null,
+      status: override.status ?? "backlog",
+      priority: "medium" as const,
+      labels: [] as string[],
+      sort_order: override.sort_order ?? 0,
+      subtasks: override.subtasks ?? [],
+      owner: override.owner ?? null,
+      target_date: null,
+      acceptance_criteria: null,
+      notes: null,
+      source: "demo_scenario",
+      archived_at: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }));
+  return [...seeded, ...created]
+    .map((card) => {
+      const result = {
+        ...card,
+        revision: 1,
+        project_key: "accelerate",
+        work_kind: "research",
+        work_spec: {},
+        dependencies: [],
+        ...state.featureOverrides[card.id],
+      };
+      const deps = result.dependencies ?? [];
+      const readiness = [
+        ...(!["backlog", "planned"].includes(result.status) ? [`status:${result.status}`] : []),
+        ...(!result.description ? ["missing_outcome"] : []),
+        ...(!result.acceptance_criteria ? ["missing_acceptance"] : []),
+        ...(result.work_blocker ? ["blocker"] : []),
+        ...(deps.some(
+          (id) =>
+            (state.featureOverrides[id]?.status ?? seeded.find((c) => c.id === id)?.status) !==
+            "shipped",
+        )
+          ? ["dependencies_incomplete"]
+          : []),
+      ];
+      const { demoClaimToken: _token, ...safe } = result;
+      void _token;
+      return { ...safe, readiness };
+    })
+    .filter((card) => !card.archived_at);
 }
 
 function settings(pack: DemoScenarioPack) {
@@ -1765,6 +2022,12 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
   activeRuntime?.restore();
   const pack = DEMO_SCENARIOS[scenarioId];
   const state = loadState(scenarioId);
+  if (!state.business || state.business.version !== 1) {
+    state.business = createDemoBusinessState(pack);
+    saveState(scenarioId, state);
+  }
+  const business = state.business;
+  const scenarioPack = pack;
   const nativeFetch = window.fetch.bind(window);
   const nativeOpen = window.open.bind(window);
   const reset = () => {
@@ -1773,8 +2036,24 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     window.location.reload();
   };
   const demoFetch: typeof window.fetch = async (input, init) => {
+    const pack = {
+      ...scenarioPack,
+      opportunities: scenarioPack.opportunities.map((item) => ({
+        ...item,
+        stage: state.stageOverrides[item.id] || item.stage,
+      })),
+      tasks: [...demoTasksForGraph(business), ...scenarioPack.tasks].map((item) => ({
+        ...item,
+        status: state.completedTasks.includes(item.id) ? "completed" : item.status,
+      })),
+    };
     const raw = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
     const url = new URL(raw, window.location.origin);
+    if (url.origin !== window.location.origin)
+      return jsonResponse(
+        { error: "External requests are blocked in this fictional workspace" },
+        403,
+      );
     const path = url.pathname;
     const method = (
       init?.method || (input instanceof Request ? input.method : "GET")
@@ -1792,6 +2071,19 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       init?.body && typeof init.body === "string"
         ? (JSON.parse(init.body) as Record<string, unknown>)
         : {};
+    const businessResponse = await handleDemoBusinessRequest(
+      pack,
+      business,
+      { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides },
+      url,
+      method,
+      body,
+      () => {
+        saveState(scenarioId, state);
+        window.dispatchEvent(new Event("admin:demo-state"));
+      },
+    );
+    if (businessResponse) return businessResponse;
     const emailTemplateIds = [
       "inquiry-reply",
       "appointment-confirmation",
@@ -1972,6 +2264,15 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       return jsonResponse({
         providers: [
           {
+            id: `demo-stripe-${scenarioId}`,
+            provider: "stripe",
+            status: "connected",
+            credential_source: "simulated",
+            credential_version: 1,
+            account_email: null,
+            key_metadata: null,
+          },
+          {
             id: `demo-openrouter-${scenarioId}`,
             provider: "openrouter",
             account_email: null,
@@ -2037,28 +2338,290 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       return jsonResponse(clients(pack, state, url.searchParams.get("id")));
     if (method === "GET" && path === "/api/admin/content")
       return jsonResponse({ items: contentItems(pack) });
-    if (method === "GET" && path === "/api/admin/features")
-      return jsonResponse({ schemaReady: true, features: featureBoard(pack, state) });
+    if (method === "GET" && path === "/api/admin/kanban/columns") {
+      const board = url.searchParams.get("board_key");
+      if (!isKanbanBoardKey(board)) return jsonResponse({ error: "Invalid board" }, 400);
+      return jsonResponse({
+        columns: KANBAN_DEFAULT_COLUMNS[board].map((column, index) => ({
+          ...column,
+          id: `demo-column-${board}-${index}`,
+          board_key: board,
+          tenant_id: null,
+          created_at: ago(1),
+          updated_at: ago(1),
+        })),
+      });
+    }
+    if (path === "/api/admin/features/views") {
+      if (method === "GET") return jsonResponse({ views: state.workViews ?? [] });
+      const input = body as Record<string, unknown>;
+      if (method === "POST") {
+        const view = { ...input, id: crypto.randomUUID() };
+        state.workViews = [...(state.workViews ?? []), view];
+        saveState(scenarioId, state);
+        return jsonResponse(view);
+      }
+      if (method === "DELETE") {
+        state.workViews = (state.workViews ?? []).filter((v) => v.id !== input.id);
+        saveState(scenarioId, state);
+        return jsonResponse({ deleted: true });
+      }
+    }
+    if (method === "GET" && path === "/api/admin/features") {
+      if (url.searchParams.get("history"))
+        return jsonResponse({
+          events: (state.workEvents ?? []).filter(
+            (e) => e.card_id === url.searchParams.get("history"),
+          ),
+        });
+      return jsonResponse({
+        schemaReady: true,
+        features: featureBoard(pack, state),
+        nextOffset: null,
+      });
+    }
+    if (method === "POST" && path === "/api/admin/features") {
+      const input = body as {
+        operation: string;
+        id?: string;
+        revision?: number;
+        requestKey: string;
+        payload: Record<string, unknown>;
+      };
+      if (!input.requestKey || !input.operation || !input.payload)
+        return jsonResponse({ error: "Versioned work request required" }, 400);
+      const fingerprint = JSON.stringify(input);
+      const prior = state.workReceipts?.[input.requestKey];
+      if (prior)
+        return prior.fingerprint === fingerprint
+          ? jsonResponse({ card: prior.card, replayed: true })
+          : jsonResponse({ error: "Idempotency key conflict" }, 409);
+      const p = input.payload;
+      if (input.operation === "reorder") {
+        const updates = p.updates as Array<{
+          id: string;
+          revision: number;
+          status: string;
+          sort_order: number;
+        }>;
+        const all = featureBoard(pack, state);
+        if (
+          !Array.isArray(updates) ||
+          updates.some((u) => {
+            const c = all.find((c) => c.id === u.id);
+            return (
+              !c ||
+              c.revision !== u.revision ||
+              (c.status !== u.status &&
+                (!["backlog", "planned", "blocked"].includes(u.status) ||
+                  ["in_progress", "in_review", "shipped"].includes(c.status)))
+            );
+          })
+        )
+          return jsonResponse({ error: "Revision conflict or invalid work transition" }, 409);
+        for (const u of updates)
+          state.featureOverrides[u.id] = {
+            ...state.featureOverrides[u.id],
+            status: u.status,
+            sort_order: u.sort_order,
+            revision: u.revision + 1,
+          };
+        saveState(scenarioId, state);
+        return jsonResponse({ affected: updates.length });
+      }
+      const current = featureBoard(pack, state).find((c) => c.id === input.id);
+      const operation = input.operation;
+      if (operation !== "create" && !current) return jsonResponse({ error: "Card not found" }, 404);
+      if (
+        ["edit", "dependencies", "review", "recover", "reopen", "archive", "transition"].includes(
+          operation,
+        ) &&
+        input.revision !== current?.revision
+      )
+        return jsonResponse({ error: "Revision conflict; refresh before editing" }, 409);
+      const id = current?.id ?? crypto.randomUUID();
+      const patch: Partial<FeatureRequest> & { created?: boolean; demoClaimToken?: string } = {
+        ...state.featureOverrides[id],
+      };
+      if (
+        ["heartbeat", "progress", "block", "release", "submit"].includes(operation) &&
+        (patch.demoClaimToken !== p.claimToken ||
+          current?.status !== "in_progress" ||
+          !current.lease_expires_at ||
+          new Date(current.lease_expires_at) <= new Date())
+      )
+        return jsonResponse({ error: "Claim expired or session does not own this work" }, 403);
+      if (operation === "create") {
+        if (typeof p.title !== "string" || !p.title.trim())
+          return jsonResponse({ error: "Title required" }, 400);
+        Object.assign(patch, p, { created: true, status: "backlog", revision: 1 });
+      } else if (operation === "edit") {
+        if (
+          ["in_progress", "in_review", "shipped"].includes(current!.status) &&
+          ["description", "acceptance_criteria", "work_spec"].some((k) => k in p)
+        )
+          return jsonResponse(
+            { error: "Release or reopen before changing the execution specification" },
+            409,
+          );
+        Object.assign(patch, p);
+      } else if (operation === "dependencies") {
+        if (!["backlog", "planned", "blocked"].includes(current!.status))
+          return jsonResponse({ error: "Release work before changing dependencies" }, 409);
+        const deps = p.dependencies as string[];
+        const reaches = (target: string, seen = new Set<string>()): boolean => {
+          if (target === id) return true;
+          if (seen.has(target)) return false;
+          seen.add(target);
+          return (state.featureOverrides[target]?.dependencies ?? []).some((next) =>
+            reaches(next, seen),
+          );
+        };
+        if (
+          !Array.isArray(deps) ||
+          deps.some((dep) => reaches(dep) || !featureBoard(pack, state).some((c) => c.id === dep))
+        )
+          return jsonResponse({ error: "Invalid dependency or cycle" }, 400);
+        patch.dependencies = deps;
+      } else if (operation === "claim") {
+        if (current!.readiness.length)
+          return jsonResponse({ error: `Not ready: ${current!.readiness.join(", ")}` }, 409);
+        if (featureBoard(pack, state).filter((c) => c.status === "in_progress").length >= 6)
+          return jsonResponse({ error: "WIP limit reached" }, 409);
+        Object.assign(patch, {
+          status: "in_progress",
+          demoClaimToken: p.claimToken,
+          owner: "Demo operator",
+          lease_owner: "Demo operator",
+          lease_expires_at: new Date(Date.now() + 1800000).toISOString(),
+        });
+      } else if (operation === "heartbeat")
+        patch.lease_expires_at = new Date(Date.now() + 1800000).toISOString();
+      else if (operation === "progress") {
+        /* Event only. */
+      } else if (operation === "submit") {
+        const evidence = p.evidence as { checks?: { status: string; evidence: string }[] };
+        if (
+          !evidence?.checks?.length ||
+          evidence.checks.some((c) => c.status !== "passed" || !c.evidence)
+        )
+          return jsonResponse({ error: "Passing evidence required" }, 400);
+        patch.status = "in_review";
+        patch.work_delivery = p.evidence as Record<string, unknown>;
+      } else if (operation === "review") {
+        if (current!.status !== "in_review")
+          return jsonResponse({ error: "Submitted work required" }, 409);
+        patch.status = p.accept ? "shipped" : "planned";
+      } else if (operation === "recover") {
+        if (
+          current!.status !== "in_progress" ||
+          (current!.lease_expires_at && new Date(current!.lease_expires_at) > new Date())
+        )
+          return jsonResponse({ error: "Only expired claims can be recovered" }, 409);
+        patch.status = "blocked";
+        patch.work_blocker = String(p.message);
+      } else if (operation === "reopen") {
+        patch.status = "planned";
+        patch.work_blocker = null;
+      } else if (operation === "block") {
+        patch.status = "blocked";
+        patch.work_blocker = String(p.message);
+      } else if (operation === "release") patch.status = "planned";
+      else if (operation === "transition") {
+        if (
+          !["backlog", "planned", "blocked"].includes(String(p.status)) ||
+          ["in_progress", "in_review", "shipped"].includes(current!.status)
+        )
+          return jsonResponse({ error: "Use claim, submit, review or reopen" }, 409);
+        patch.status = String(p.status);
+      } else if (operation === "archive") {
+        if (["in_progress", "in_review"].includes(current!.status))
+          return jsonResponse({ error: "Release active work before archiving" }, 409);
+        patch.archived_at = new Date().toISOString();
+      } else return jsonResponse({ error: "Unknown operation" }, 400);
+      if (["release", "block", "submit", "recover"].includes(operation)) {
+        patch.lease_owner = null;
+        patch.lease_expires_at = null;
+        delete patch.demoClaimToken;
+      }
+      patch.revision = (current?.revision ?? 0) + 1;
+      state.featureOverrides[id] = patch;
+      const card = featureBoard(pack, state).find((c) => c.id === id) ?? { id, ...patch };
+      state.workEvents = [
+        {
+          id: crypto.randomUUID(),
+          card_id: id,
+          actor: "Demo operator",
+          operation,
+          created_at: new Date().toISOString(),
+          payload: { message: p.message },
+        },
+        ...(state.workEvents ?? []),
+      ];
+      state.workReceipts = { ...state.workReceipts, [input.requestKey]: { fingerprint, card } };
+      saveState(scenarioId, state);
+      return jsonResponse({ card, replayed: false });
+    }
     if (method === "PATCH" && path === "/api/admin/features") {
       // Mirrors the real route's bulk-reorder contract: { reorder: [{ id,
       // status, sortOrder }, ...] }. Previously unhandled, so every request
       // here fell through to the generic 403 below and every optimistic
       // drag on the demo board reverted the instant its PATCH landed.
       const reorder = Array.isArray((body as { reorder?: unknown })?.reorder)
-        ? (body as { reorder: Array<{ id: string; status: string; sortOrder: number }> }).reorder
+        ? (
+            body as {
+              reorder: Array<{
+                id: string;
+                column_key?: string;
+                status?: string;
+                sort_order?: number;
+                sortOrder?: number;
+              }>;
+            }
+          ).reorder
         : [];
-      for (const item of reorder) {
-        if (!item?.id) continue;
-        state.featureOverrides[item.id] = { status: item.status, sort_order: item.sortOrder };
+      if (reorder.length) {
+        for (const item of reorder) {
+          if (!item?.id) continue;
+          state.featureOverrides[item.id] = {
+            ...state.featureOverrides[item.id],
+            status: item.column_key || item.status,
+            sort_order: item.sort_order ?? item.sortOrder,
+          };
+        }
+        saveState(scenarioId, state);
+        return jsonResponse({ schemaReady: true, updated: reorder.length });
+      }
+      const featureId = String((body as { id?: string }).id || "");
+      if (featureId) {
+        const current = state.featureOverrides[featureId] || {};
+        if ((body as { status?: string }).status)
+          current.status = String((body as { status: string }).status);
+        if (typeof (body as { title?: string }).title === "string") {
+          current.title = String((body as { title: string }).title);
+        }
+        if ("owner" in (body as { owner?: unknown })) {
+          const owner = (body as { owner?: string | null }).owner;
+          current.owner = typeof owner === "string" && owner.trim() ? owner.trim() : null;
+        }
+        if (Array.isArray((body as { subtasks?: unknown }).subtasks)) {
+          current.subtasks = (
+            body as { subtasks: Array<{ id: string; title: string; done: boolean }> }
+          ).subtasks;
+        }
+        state.featureOverrides[featureId] = current;
+        saveState(scenarioId, state);
+        const updated = featureBoard(pack, state).find((item) => item.id === featureId);
+        return jsonResponse(updated ?? { id: featureId, ...current });
       }
       saveState(scenarioId, state);
-      return jsonResponse({ schemaReady: true, updated: reorder.length });
+      return jsonResponse({ schemaReady: true, updated: 0 });
     }
     if (method === "GET" && path === "/api/admin/tenant/modules") {
-      const tenantConfig = { modules: state.moduleOverrides };
+      const tenantConfig = { modules: { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides } };
       return jsonResponse({
         modules: getActiveModules(tenantConfig).map((mod) => mod.id),
-        overrides: state.moduleOverrides,
+        overrides: { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides },
         moduleSettings: state.moduleSettings,
       });
     }
@@ -2076,11 +2639,20 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         if (moduleDef.isCore)
           return jsonResponse({ error: "Core modules cannot be disabled" }, 400);
         state.moduleOverrides[moduleId] = payload.enabled;
+        business.receipts.unshift({
+          id: crypto.randomUUID(),
+          operation: `${payload.enabled ? "Enabled" : "Disabled"} ${moduleDef.name}`,
+          at: new Date().toISOString(),
+          simulated: true,
+        });
         saveState(scenarioId, state);
+        window.dispatchEvent(new Event("admin:demo-state"));
         return jsonResponse({
           moduleId,
           enabled: payload.enabled,
-          modules: getActiveModules({ modules: state.moduleOverrides }).map((mod) => mod.id),
+          modules: getActiveModules({
+            modules: { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides },
+          }).map((mod) => mod.id),
         });
       }
       if (payload.settings && typeof payload.settings === "object") {
@@ -2246,6 +2818,37 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         const id = String(body.conversationId);
         state.sentReplies[id] = [...(state.sentReplies[id] || []), String(body.body || "")];
       }
+      if (path === "/api/admin/revenue-os/conversations") {
+        const id = String(body.id || "");
+        if (id) {
+          const current = state.conversationOverrides[id] || {};
+          if (body.status) current.status = String(body.status);
+          if (body.assigneeEmail !== undefined) {
+            current.assignee =
+              body.assigneeEmail === "me" || body.assigneeEmail === pack.tenant.founder.email
+                ? pack.tenant.founder.email
+                : body.assigneeEmail
+                  ? String(body.assigneeEmail)
+                  : null;
+          }
+          if (body.opportunityId !== undefined)
+            current.opportunityId = body.opportunityId ? String(body.opportunityId) : null;
+          state.conversationOverrides[id] = current;
+        }
+      }
+      if (path === "/api/admin/revenue-os/conversations/action") {
+        const id = String(body.conversationId || "");
+        if (id && body.actionType === "create_task" && body.taskTitle) {
+          state.conversationTasks[id] = [
+            ...(state.conversationTasks[id] || []),
+            {
+              id: `demo-task-${crypto.randomUUID()}`,
+              title: String(body.taskTitle),
+              due_date: body.taskDueDate ? String(body.taskDueDate) : null,
+            },
+          ];
+        }
+      }
       if (path === "/api/admin/notifications" && body.id)
         state.readNotifications.push(String(body.id));
       saveState(scenarioId, state);
@@ -2331,31 +2934,34 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     }
     if (path === "/api/admin/revenue-os/actions")
       return jsonResponse({
-        actions: pack.actions
-          .filter((item) => !state.completedActions.includes(item.id))
-          .map((item, index) => ({
-            id: item.id,
-            action_type: item.type,
-            title: item.title,
-            description: item.description,
-            urgency: index < 2 ? "high" : "normal",
-            reasoning: item.description,
-            status: "pending",
-            created_at: ago(index + 1),
-            expires_at: new Date(Date.now() + 4 * 86_400_000).toISOString(),
-            payload:
-              item.type === "send_gmail_reply"
-                ? {
-                    to: person(pack, item.personId).email,
-                    subject: pack.conversations[index]!.subject,
-                    body: item.body,
-                  }
-                : {
-                    opportunityId: pack.opportunities[index]!.id,
-                    stage: "proposal",
-                    reason: item.description,
-                  },
-          })),
+        actions: [
+          ...business.actions.filter((item) => item.status === "pending"),
+          ...pack.actions
+            .filter((item) => !state.completedActions.includes(item.id))
+            .map((item, index) => ({
+              id: item.id,
+              action_type: item.type,
+              title: item.title,
+              description: item.description,
+              urgency: index < 2 ? "high" : "normal",
+              reasoning: item.description,
+              status: "pending",
+              created_at: ago(index + 1),
+              expires_at: new Date(Date.now() + 4 * 86_400_000).toISOString(),
+              payload:
+                item.type === "send_gmail_reply"
+                  ? {
+                      to: person(pack, item.personId).email,
+                      subject: pack.conversations[index]!.subject,
+                      body: item.body,
+                    }
+                  : {
+                      opportunityId: pack.opportunities[index]!.id,
+                      stage: "proposal",
+                      reason: item.description,
+                    },
+            })),
+        ],
       });
     if (path === "/api/admin/revenue-os/pipeline")
       return jsonResponse({
@@ -2364,7 +2970,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         opportunities: opportunityRows(pack, state),
       });
     if (path === "/api/admin/revenue-os/conversations")
-      return jsonResponse(conversations(pack, state, url.searchParams.get("id")));
+      return jsonResponse(conversations(pack, state, url));
     if (path === "/api/admin/revenue-os/analytics") return jsonResponse(analytics(pack, state));
     if (path === "/api/admin/contacts/timeline") {
       const requestedEmail = (url.searchParams.get("email") || "").toLowerCase();
@@ -2470,7 +3076,8 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         proposalRevenue: 24600,
       });
     }
-    if (path === "/api/admin/activity") return jsonResponse(auditHistory(pack, url.searchParams));
+    if (path === "/api/admin/activity")
+      return jsonResponse(auditHistory(pack, url.searchParams, business));
     if (path === "/api/admin/revenue-os/ai/conversations")
       return jsonResponse({
         schemaReady: true,
@@ -2549,4 +3156,8 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
   };
   activeRuntime = { scenarioId, restore, reset };
   return { pack, reset, restore };
+}
+
+export function readDemoModuleConfig(id: DemoScenarioId) {
+  return { modules: { ...DEMO_BUSINESS_MODULES, ...loadState(id).moduleOverrides } };
 }

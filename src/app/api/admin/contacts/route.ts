@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { attachRevenueLinkage } from "@/lib/revenue-os/legacy-adapter";
+import { attachRevenueLinkageWithTelemetry } from "@/lib/revenue-os/legacy-adapter";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
@@ -43,9 +43,14 @@ export async function GET(request: NextRequest) {
       );
   }
 
-  const linked = await attachRevenueLinkage(supabase, data || [], {
-    sourceRecordType: "contact_form",
-  });
+  const linked = await attachRevenueLinkageWithTelemetry(
+    supabase,
+    data || [],
+    {
+      sourceRecordType: "contact_form",
+    },
+    { route: "admin-contacts" },
+  );
 
   return NextResponse.json({
     contacts: linked.records,

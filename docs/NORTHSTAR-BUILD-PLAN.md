@@ -15,50 +15,51 @@
 
 ## Status by phase
 
-| Phase | Backlog | Planned | In progress | Blocked | Shipped | Total |
-|---|---|---|---|---|---|---|
-| A — A (Complete Loop One — See + Remember) | 0 | 0 | 0 | 1 | 18 | 19 |
-| B — B (Agent Runtime foundation — Notice + Act primitives) | 21 | 21 | 0 | 4 | 31 | 77 |
-| C — C (Reference coworker — Sales end-to-end loop) | 20 | 5 | 0 | 1 | 10 | 36 |
-| D — D (Plugin SDK + MCP) | 5 | 3 | 0 | 1 | 13 | 22 |
-| E — E (Additional coworkers/plugins + documentation) | 44 | 3 | 2 | 0 | 6 | 55 |
+| Phase                                                      | Backlog | Planned | In progress | Blocked | Shipped | Total |
+| ---------------------------------------------------------- | ------- | ------- | ----------- | ------- | ------- | ----- |
+| A — A (Complete Loop One — See + Remember)                 | 0       | 0       | 0           | 1       | 18      | 19    |
+| B — B (Agent Runtime foundation — Notice + Act primitives) | 21      | 21      | 0           | 4       | 35      | 81    |
+| C — C (Reference coworker — Sales end-to-end loop)         | 21      | 5       | 0           | 1       | 10      | 37    |
+| D — D (Plugin SDK + MCP)                                   | 6       | 4       | 0           | 1       | 13      | 25    |
+| E — E (Additional coworkers/plugins + documentation)       | 59      | 5       | 0           | 0       | 13      | 77    |
 
-**Board total:** 90 backlog, 32 planned, 2 in progress, 7 blocked, 78 shipped (209 managed cards).
+**Board total:** 107 backlog, 35 planned, 0 in progress, 7 blocked, 89 shipped (239 managed cards).
 
 ## Dispatchable now (`npm run agent:next` picks from this set)
 
-- `conversations-operator-inbox` [high] — Finish Conversations as the unified communication inbox
 - `drive-content-indexing` [medium] — Extract and index approved Drive documents
 - `ai-bounded-context` [high] — Enforce bounded AI context and grounding rules
 - `drive-provenance-retrieval` [medium] — Ground AI retrieval in Drive provenance and citations
+- `workshelter-reuse-baseline` [high] — Reconcile the reusable business-plugin baseline before Workshelter adoption
 - `admin-shell-design-system` [high] — Complete the shared professional admin system
-- `admin-settings-consolidation` [medium] — Consolidate Settings and connection ownership
 - `feature-board-interaction-rebuild` [high] — Rebuild Feature Board drag, details, and mobile interaction
 - `additional-tools-canonical-parity` [high] — Modernize and canonically integrate every additional admin tool
-- `gmail-reply-actions` [high] — Finish reply, local archive, and follow-up actions in Conversations
 - `de-vertical-inbound` [high] — Turn the roofing ingestion path into a configurable playbook
-- `command-palette-tools` [medium] — Connect the command palette to real Revenue OS actions
 - `proposal-lifecycle-service` [high] — Complete the proposal lifecycle and version rules
-- `api-contract-tests` [high] — Add authenticated API contract and failure tests
+- `admin-settings-consolidation` [medium] — Consolidate Settings and connection ownership
 - `ai-model-job-registry` [medium] — Route every AI job through an audited model registry
 - `system-health-report` [high] — Build the system-health report and freshness thresholds
+- `gmail-reply-actions` [high] — Finish reply, local archive, and follow-up actions in Conversations
 - `booking-mode-contract-reconciliation` [high] — Reconcile booking activation and health truth
+- `won-to-delivery-handoff` [high] — Create the won-to-delivery handoff
+- `unified-action-executor` [high] — Route every write through one executor with reversibility and compensators
+- `plugin-isolate-host` [high] — Run plugin code in an isolate with no ambient authority
+- `api-contract-tests` [high] — Add authenticated API contract and failure tests
 - `stage-history-analytics-reconciliation` [high] — Reconcile analytics with canonical stage history
 - `operating-goals-scorecards` [high] — Add operating goals and scorecards
-- `won-to-delivery-handoff` [high] — Create the won-to-delivery handoff
 - `governed-bulk-operator-actions` [medium] — Add governed bulk operator actions
 - `integration-adapter-contract` [high] — Define the provider integration adapter contract
 - `guided-first-run-setup` [medium] — Guide first-run setup inside the product, not the terminal
 - `csv-hubspot-importers` [low] — Ship CSV and HubSpot contact/deal importers
 - `roles-and-permissions` [high] — Add real roles, record ownership, and per-object agent permissions
 - `integration-adapter-registry-resolution` [high] — Make the integration adapter registry the real resolution point
-- `unified-action-executor` [high] — Route every write through one executor with reversibility and compensators
-- `docs-site-infrastructure` [high] — Build the documentation site infrastructure at /docs
+- `generic-record-merge` [medium] — Add foreign-key-safe generic record merge with supersession
+- `report-recipe-engine` [high] — Make server-computed report recipes a registrable primitive
+- `docs-module-coverage-gate` [high] — Make a module that ships without documentation a red build
 
 ## In progress
 
-- `entity-registry-and-link-graph` — Add an open entity registry and a polymorphic link graph (claude-code:johnconnor:88811)
-- `capability-scoped-data-api` — Expose one capability-checked data API with no raw database handle (claude-code:johnconnor:6708)
+_None._
 
 ## Blocked
 

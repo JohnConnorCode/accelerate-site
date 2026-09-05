@@ -3,25 +3,25 @@
 The Feature Board is an execution queue, not a tag cloud. Managed cards use four
 label dimensions only:
 
-| Dimension      | Purpose                            | Values                                                                                                                       |
-| -------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `milestone:*`  | When the work belongs              | `now`, `next`, `later`, `done`                                                                                               |
+| Dimension      | Purpose                            | Values                                                                                                                                  |
+| -------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `milestone:*`  | When the work belongs              | `now`, `next`, `later`, `done`                                                                                                          |
 | `category:*`   | Which durable product area owns it | `platform`, `operator`, `integrations`, `engagement`, `intelligence`, `governance`, `quality`, `productization`, `marketing`, `runtime` |
-| `phase:*`      | Architecture maturity sequence     | `0` through `6`                                                                                                              |
-| `capability:*` | Reusable domain filter             | Controlled in `scripts/feature-backlog-data.mjs`; at most two per card                                                       |
+| `phase:*`      | Architecture maturity sequence     | `0` through `6`                                                                                                                         |
+| `capability:*` | Reusable domain filter             | Controlled in `scripts/feature-backlog-data.mjs`; at most two per card                                                                  |
 
 ## Northstar alignment
 
 The platform vision (`docs/NORTHSTAR.md`) defines five product layers and five
 implementation phases. Existing board phases map to northstar phases:
 
-| Board phase | Northstar phase | Description                                      |
-| ----------- | --------------- | ------------------------------------------------ |
-| 0–1         | A               | Complete Loop One — See + Remember foundations   |
+| Board phase | Northstar phase | Description                                        |
+| ----------- | --------------- | -------------------------------------------------- |
+| 0–1         | A               | Complete Loop One — See + Remember foundations     |
 | 2–3         | B               | Agent Runtime foundation — Notice + Act primitives |
-| 4           | C               | Reference coworker — Sales end-to-end loop       |
-| 5           | D               | Plugin SDK + MCP                                 |
-| 6           | E               | Additional coworkers/plugins + documentation     |
+| 4           | C               | Reference coworker — Sales end-to-end loop         |
+| 5           | D               | Plugin SDK + MCP                                   |
+| 6           | E               | Additional coworkers/plugins + documentation       |
 
 The five product layers (See → Remember → Notice → Act → Learn) cut across
 implementation phases. Every card's notes include its northstar phase reference.
@@ -47,7 +47,7 @@ New capability labels added for northstar primitives:
 
 ## Rules:
 
-- The board opens on `milestone:now`. Keep Now small enough to scan and execute.
+- The board opens on the active horizon (`milestone:now` plus `milestone:next`). Keep Now small enough to scan; Next is the rest of the current circuit. Opening onto Now alone makes the board look empty.
 - The dependency-ordered circuit in `scripts/feature-backlog-data.mjs` owns Next
   sequencing. A card does not become Now merely because it is important.
 - Status describes delivery state. Milestone describes planning horizon. Never

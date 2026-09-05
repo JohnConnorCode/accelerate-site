@@ -377,10 +377,10 @@ export const integrationRegistry: readonly IntegrationDefinition[] = [
     id: "stripe",
     name: "Stripe",
     category: "revenue",
-    maturity: "next",
+    maturity: "native",
     priority: 11,
     description:
-      "Payments, invoices, subscriptions, refunds, and disputes linked to canonical companies and opportunities.",
+      "Reviewed CRM invoicing, explicit sending, payment status and branded customer pages. Subscription, refund and dispute reconciliation remains planned.",
     strategicRole: "Payment truth",
     cost: {
       tier: "usage_based",
@@ -388,19 +388,25 @@ export const integrationRegistry: readonly IntegrationDefinition[] = [
       detail:
         "The connector adds no subscription; normal Stripe transaction pricing still applies.",
     },
-    auth: "Restricted server key and signed webhooks",
-    transports: ["webhook", "incremental_sync"],
+    auth: "Tenant-encrypted restricted server key",
+    transports: ["api"],
     dataClasses: ["Customer identity", "Invoices", "Payments"],
-    docsHref: "https://docs.stripe.com/webhooks",
-    limits: ["Webhook events may arrive out of order", "Reconcile uncertain state from the API"],
+    connectionProvider: "stripe",
+    setupHref: "/admin/invoicing",
+    docsHref: "https://docs.stripe.com/api/invoices",
+    limits: [
+      "Stripe invoicing plugin must be enabled",
+      "No webhook reconciliation yet; refresh status from Stripe",
+    ],
     guardrail: "Stripe owns payment facts; Command Center owns revenue context and attribution.",
     capabilities: [
       {
-        id: "revenue-events",
-        label: "Revenue events",
-        description: "Connect actual payment state to pipeline, campaigns, and delivery.",
-        direction: "read",
-        impact: "internal_write",
+        id: "invoice-workflow",
+        label: "Reviewed invoicing",
+        description:
+          "Prepare CRM invoices, approve sending, inspect payment status and publish reviewed customer pages.",
+        direction: "bidirectional",
+        impact: "external_action",
       },
     ],
   },

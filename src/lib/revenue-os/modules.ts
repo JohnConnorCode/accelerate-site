@@ -84,6 +84,15 @@ export interface RevenueOSModule {
   docsUrl?: string;
   /** Configurable values rendered by ModuleSettingsForm. Never secrets. */
   settings?: ModuleSettingField[];
+  /** Isolated workflow prepares host-validated actions for approval. */
+  workflow?: {
+    version: 1;
+    inputSchema: Record<string, unknown>;
+    actions: string[];
+    sources: { name: string; type: string; columns: string[]; inputKey: string }[];
+  };
+  /** Bounded, read-only isolate report. Code is compiled server-only. */
+  report?: { version: 1; sources: { name: string; type: string; columns: string[] }[] };
 }
 
 /**
@@ -93,6 +102,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   // --- Core Modules (Always Enabled) ---
   {
     id: "core-command",
+    docsUrl: "/docs/command-center",
     name: "Command Center & Inbox",
     description: "Daily operator triage queue, activity audit trail, and inbound inbox.",
     category: "system",
@@ -100,7 +110,6 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["today", "inbox", "activity"],
     routes: ["/admin/today", "/admin/inbox", "/admin/activity"],
-    docsUrl: "/docs/command-center",
     aiToolNames: [
       "get_today_snapshot",
       "get_record_timeline",
@@ -113,6 +122,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   },
   {
     id: "core-pipeline",
+    docsUrl: "/docs/pipeline",
     name: "Opportunity Pipeline",
     description: "Revenue stage progression, opportunity records, and value forecasting.",
     category: "revenue",
@@ -120,11 +130,11 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["pipeline"],
     routes: ["/admin/pipeline"],
-    docsUrl: "/docs/pipeline",
     aiToolNames: ["search_pipeline", "propose_stage_change"],
   },
   {
     id: "core-conversations",
+    docsUrl: "/docs/conversations",
     name: "Omnichannel Conversations",
     description:
       "Unified communication inbox synchronizing Gmail, inbound forms, and direct messages.",
@@ -133,24 +143,24 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["conversations"],
     routes: ["/admin/conversations"],
-    docsUrl: "/docs/conversations",
     aiToolNames: ["propose_send_email", "search_conversations", "propose_conversation_reply"],
   },
   {
     id: "core-contacts",
+    docsUrl: "/docs/contacts",
     name: "Contact Intake & Identity",
     description:
       "Deterministic identity resolution, deduplicated contact ledger, and company linking.",
     category: "revenue",
     isCore: true,
     defaultEnabled: true,
-    navLinkIds: ["contacts"],
-    routes: ["/admin/contacts", "/admin/contact-imports"],
-    docsUrl: "/docs/contacts",
+    navLinkIds: ["contacts", "identity-review"],
+    routes: ["/admin/contacts", "/admin/contact-imports", "/admin/identity-review"],
     aiToolNames: ["search_contacts"],
   },
   {
     id: "core-intelligence",
+    docsUrl: "/docs/intelligence",
     name: "AI Grounding & Knowledge",
     description: "Second Brain knowledge retrieval, bounded context model loops, and run traces.",
     category: "intelligence",
@@ -158,45 +168,53 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["ai"],
     routes: ["/admin/ai"],
-    docsUrl: "/docs/intelligence",
     aiToolNames: [
       "search_knowledge_base",
+      "query_memory",
+      "store_agent_memory",
+      "get_agent_memory",
+      "get_learned_policies",
+      "record_learned_policy",
+      "get_claims_for_entity",
+      "get_agent_activity_for_entity",
+    ],
+  },
+  {
+    id: "core-system",
+    docsUrl: "/docs/workspace",
+    name: "System Settings & Tenancy",
+    description: "Tenant workspace provisioning, setup verification, and operating preferences.",
+    category: "system",
+    isCore: true,
+    defaultEnabled: true,
+    navLinkIds: ["tenants", "setup", "features", "settings", "branding"],
+    routes: [
+      "/admin/tenants",
+      "/admin/setup",
+      "/admin/features",
+      "/admin/settings",
+      "/admin/branding",
+    ],
+    aiToolNames: [
       "get_claimable_work",
       "get_workspace_capabilities",
-      "get_claims_for_entity",
       "get_autonomy_policies",
       "get_coworkers",
-      "get_agent_activity_for_entity",
       "get_plugins",
       "bootstrap_sales_coworker",
       "bootstrap_business_pulse_coworker",
       "bootstrap_meeting_intel_coworker",
       "bootstrap_finance_coworker",
       "bootstrap_operations_coworker",
-      "query_memory",
-      "store_agent_memory",
-      "get_agent_memory",
-      "get_learned_policies",
-      "record_learned_policy",
       "check_budgets",
       "get_budget_limits",
     ],
-  },
-  {
-    id: "core-system",
-    name: "System Settings & Tenancy",
-    description: "Tenant workspace provisioning, setup verification, and operating preferences.",
-    category: "system",
-    isCore: true,
-    defaultEnabled: true,
-    navLinkIds: ["tenants", "setup", "features", "settings"],
-    routes: ["/admin/tenants", "/admin/setup", "/admin/features", "/admin/settings"],
-    docsUrl: "/docs/workspace",
   },
 
   // --- Optional / Pluggable Business Modules ---
   {
     id: "proposals",
+    docsUrl: "/docs/proposals",
     name: "Proposals & Estimates",
     description: "Proposal drafting, pricing validation, scope decisions, and status tracking.",
     category: "revenue",
@@ -204,10 +222,10 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["proposals"],
     routes: ["/admin/proposals"],
-    docsUrl: "/docs/proposals",
   },
   {
     id: "campaigns",
+    docsUrl: "/docs/outreach",
     name: "Outbound Campaigns",
     description:
       "Controlled multi-step email campaigns, versioned copy, and sequence delivery runs.",
@@ -216,12 +234,12 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["campaigns", "delivery-runs"],
     routes: ["/admin/campaigns", "/admin/email-sequences"],
-    docsUrl: "/docs/outreach",
     aiToolNames: ["propose_campaign_activation"],
     setupChecks: ["email", "campaigns"],
   },
   {
     id: "email-studio",
+    docsUrl: "/docs/outreach",
     name: "Email Studio",
     description:
       "Live transactional and marketing email template editor, previewer, and versioning.",
@@ -230,10 +248,10 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["emails"],
     routes: ["/admin/emails"],
-    docsUrl: "/docs/outreach",
   },
   {
     id: "recovery",
+    docsUrl: "/docs/outreach",
     name: "Revenue Recovery",
     description: "Reactivation playbooks for stale opportunities, no-shows, and past quotes.",
     category: "revenue",
@@ -241,10 +259,10 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["recovery"],
     routes: ["/admin/recovery"],
-    docsUrl: "/docs/outreach",
   },
   {
     id: "revenue",
+    docsUrl: "/docs/pipeline",
     name: "Revenue Analytics & Valuation",
     description: "Closed revenue tracking, recurring client value metrics, and attribution.",
     category: "revenue",
@@ -252,10 +270,10 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["revenue"],
     routes: ["/admin/revenue"],
-    docsUrl: "/docs/pipeline",
   },
   {
     id: "bookings",
+    docsUrl: "/docs/delivery",
     name: "Meeting Bookings & Scheduling",
     description: "Calendar integration, booking records, and meeting management.",
     category: "delivery",
@@ -263,11 +281,11 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["bookings"],
     routes: ["/admin/bookings"],
-    docsUrl: "/docs/delivery",
     setupChecks: ["calendly", "calendar_sync"],
   },
   {
     id: "clients",
+    docsUrl: "/docs/delivery",
     name: "Client Delivery & Retainers",
     description: "Active client account management, retainer scope, and delivery status.",
     category: "delivery",
@@ -275,10 +293,10 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["clients"],
     routes: ["/admin/clients"],
-    docsUrl: "/docs/delivery",
   },
   {
     id: "content",
+    docsUrl: "/docs/delivery",
     name: "Content Operations",
     description: "Editorial brief generator, publishing status, and content marketing assets.",
     category: "delivery",
@@ -286,10 +304,10 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["content"],
     routes: ["/admin/content"],
-    docsUrl: "/docs/delivery",
   },
   {
     id: "resources",
+    docsUrl: "/docs/delivery",
     name: "Resource Library",
     description: "Gated downloadable guides, templates, and lead-magnet asset management.",
     category: "delivery",
@@ -297,10 +315,10 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["resources"],
     routes: ["/admin/resources"],
-    docsUrl: "/docs/delivery",
   },
   {
     id: "leads-capture",
+    docsUrl: "/docs/sources",
     name: "Direct Leads & Chat Intake",
     description: "Raw lead submissions, grader captures, and real-time chat inquiries.",
     category: "sources",
@@ -308,10 +326,10 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["leads", "chat-leads"],
     routes: ["/admin/leads", "/admin/chat-leads"],
-    docsUrl: "/docs/sources",
   },
   {
     id: "subscribers",
+    docsUrl: "/docs/sources",
     name: "Subscriber Audiences",
     description: "Newsletter and resource subscriber lists with attribution and status tracking.",
     category: "sources",
@@ -319,10 +337,10 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["subscribers"],
     routes: ["/admin/subscribers"],
-    docsUrl: "/docs/sources",
   },
   {
     id: "partners",
+    docsUrl: "/docs/sources",
     name: "Partner Management",
     description: "Referral partner tracking, partner applications, and commission ledger.",
     category: "sources",
@@ -330,10 +348,10 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["partners"],
     routes: ["/admin/partners"],
-    docsUrl: "/docs/sources",
   },
   {
     id: "website-grades",
+    docsUrl: "/docs/sources",
     name: "Website Grader",
     description: "Automated website audit intake and lead generation pipeline.",
     category: "sources",
@@ -341,10 +359,10 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["website-grades"],
     routes: ["/admin/website-grades"],
-    docsUrl: "/docs/sources",
   },
   {
     id: "analytics",
+    docsUrl: "/docs/intelligence",
     name: "Funnel & Traffic Analytics",
     description: "Source-to-revenue funnel analytics and privacy-respecting traffic metrics.",
     category: "intelligence",
@@ -352,18 +370,17 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["analytics"],
     routes: ["/admin/analytics"],
-    docsUrl: "/docs/intelligence",
   },
   {
     id: "integrations",
+    docsUrl: "/docs/workspace",
     name: "Integrations Hub",
     description: "Third-party connector catalog, OAuth credentials, and sync health monitoring.",
     category: "system",
     isCore: false,
     defaultEnabled: true,
     navLinkIds: ["integrations"],
-    routes: ["/admin/integrations"],
-    docsUrl: "/docs/workspace",
+    routes: ["/admin/integrations", "/admin/plugins"],
   },
 ] as const;
 
@@ -494,7 +511,7 @@ export function validateModuleSettingsInput(
         return { valid: false, error: `"${key}" must be true or false.` };
       value[key] = raw;
     } else if (field.type === "number") {
-      if (typeof raw !== "number" || Number.isNaN(raw))
+      if (typeof raw !== "number" || !Number.isFinite(raw))
         return { valid: false, error: `"${key}" must be a number.` };
       if (field.min !== undefined && raw < field.min)
         return { valid: false, error: `"${key}" must be at least ${field.min}.` };

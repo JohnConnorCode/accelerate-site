@@ -5,9 +5,27 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-04.1";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-06.1";
 
 export const TENANT_SCOPED_TABLES = [
+  "invoice_pages",
+  "work_items",
+  "workspace_capabilities",
+  "coworkers",
+  "claims",
+  "evidence",
+  "autonomy_policies",
+  "autonomy_hard_floors",
+  "agent_memory",
+  "learned_policies",
+  "budget_limits",
+  "budget_usage",
+  "budget_receipts",
+  "plugins",
+  "plugin_tools",
+  "plugin_triggers",
+  "kanban_columns",
+
   "action_queue",
   "activities",
   "admin_notifications",
@@ -42,6 +60,7 @@ export const TENANT_SCOPED_TABLES = [
   "integration_connections",
   "job_runs",
   "messages",
+  "onboarding_templates",
   "opportunities",
   "opportunity_stage_events",
   "partner_applications",
@@ -67,6 +86,18 @@ export const TENANT_SCOPED_TABLES = [
 const TENANT_SCOPED_TABLE_SET = new Set<string>(TENANT_SCOPED_TABLES);
 
 const BASE_REVENUE_SCHEMA_TABLES = [
+  {
+    table: "work_items",
+    columns: [
+      "id",
+      "status",
+      "lease_owner",
+      "lease_expires_at",
+      "attempt_count",
+      "action_ids",
+      "agent_run_id",
+    ],
+  },
   {
     table: "contacts",
     columns: [
@@ -105,11 +136,24 @@ const BASE_REVENUE_SCHEMA_TABLES = [
   },
   {
     table: "tasks",
-    columns: ["id", "contact_id", "company_id", "opportunity_id", "source", "dedupe_key", "status"],
+    columns: [
+      "id",
+      "contact_id",
+      "company_id",
+      "opportunity_id",
+      "source",
+      "dedupe_key",
+      "status",
+      "assigned_to",
+    ],
   },
   {
     table: "conversations",
     columns: ["id", "channel", "external_id", "contact_id", "opportunity_id", "status"],
+  },
+  {
+    table: "onboarding_templates",
+    columns: ["id", "template_key", "version", "active", "milestones"],
   },
   {
     table: "messages",
@@ -176,7 +220,10 @@ const BASE_REVENUE_SCHEMA_TABLES = [
     columns: ["id", "opportunity_id", "contact_id", "company_id", "status", "version"],
   },
   { table: "proposal_events", columns: ["id", "proposal_id", "event_type", "source"] },
-  { table: "action_queue", columns: ["id", "action_type", "status", "dedupe_key", "expires_at"] },
+  {
+    table: "action_queue",
+    columns: ["id", "action_type", "status", "dedupe_key", "expires_at", "work_item_id"],
+  },
   {
     table: "job_runs",
     columns: [
@@ -374,7 +421,8 @@ export const REVENUE_SCHEMA_TABLES = [
 ];
 
 export const REVENUE_SCHEMA_CONSTRAINTS = [
-  { table: "opportunities", name: "opportunities_stage_check" },
+  // Pipeline stages are workspace-defined by the kanban migration; the old
+  // hard-coded CHECK is deliberately removed by 20260902-kanban-columns.sql.
   { table: "opportunities", name: "opportunities_probability_check" },
   { table: "proposals", name: "proposals_status_check" },
   { table: "schema_verification_runs", name: "schema_verification_runs_status_check" },
@@ -403,6 +451,9 @@ export const REVENUE_SCHEMA_INDEXES = [
   "idx_entity_links_tuple_unique",
   "idx_entity_links_source",
   "idx_entity_links_target",
+  "idx_onboarding_templates_tenant_id_id",
+  "idx_onboarding_templates_active_key",
+  "idx_clients_opportunity",
 ] as const;
 
 export const REVENUE_SCHEMA_FUNCTIONS = [
@@ -433,6 +484,8 @@ export const REVENUE_SCHEMA_POLICIES = [
   { table: "admin_settings", name: "Tenant member access" },
   { table: "entity_types", name: "Tenant member access" },
   { table: "entity_links", name: "Tenant member access" },
+  { table: "onboarding_templates", name: "Service role full access" },
+  { table: "onboarding_templates", name: "Tenant member access" },
 ] as const;
 
 export type RevenueSchemaStatus =

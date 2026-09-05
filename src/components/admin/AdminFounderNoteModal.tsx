@@ -204,7 +204,10 @@ export function AdminFounderNoteModal() {
                     className="min-h-11 w-full rounded-lg bg-[var(--admin-surface)] pl-9 pr-9 text-sm text-[var(--admin-ink)] outline-none shadow-[var(--admin-shadow-border)] focus-visible:shadow-[var(--admin-shadow-border-hover)] focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
                   />
                   {searching && (
-                    <Loader2 className="absolute right-3 top-1/2 size-3.5 -translate-y-1/2 animate-spin text-[var(--admin-muted)]" aria-hidden="true" />
+                    <Loader2
+                      className="absolute right-3 top-1/2 size-3.5 -translate-y-1/2 animate-spin text-[var(--admin-muted)]"
+                      aria-hidden="true"
+                    />
                   )}
                 </div>
                 {selectedPerson && (

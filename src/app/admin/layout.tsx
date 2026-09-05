@@ -4,6 +4,7 @@ import AdminShell from "@/components/admin/AdminShell";
 import { AdminDemoBoundary } from "@/components/admin/AdminDemoBoundary";
 import { ModuleDisabledNotice } from "@/components/admin/ModuleDisabledNotice";
 import { isDemoScenarioId, type DemoScenarioId } from "@/lib/admin/demo/scenarios";
+import { resolveWorkspaceBrand } from "@/lib/revenue-os/branding-contract";
 import { tenant } from "@/config/tenant";
 import { ACCELERATE_TENANT_SLUG } from "@/lib/tenancy/context";
 import { requireAdmin } from "@/lib/admin/auth";
@@ -27,7 +28,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     ? requestHeaders.get("x-accelerate-demo-route") || "today"
     : null;
   const workspaceSlug = requestHeaders.get("x-tenant-slug") || ACCELERATE_TENANT_SLUG;
-  const workspaceName = requestHeaders.get("x-tenant-name") || tenant.brand.name;
+  let workspaceName = requestHeaders.get("x-tenant-name") || tenant.brand.name;
   const isPlatformAdmin = requestHeaders.get("x-platform-admin") === "true";
 
   // Best-effort: the nav layout override is a presentation nicety, never a
@@ -42,7 +43,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     try {
       const auth = await requireAdmin();
       if (!(auth instanceof NextResponse)) {
-        navLayoutOverride = await getCurrentLayout(auth.database, "nav.sidebar");
+        workspaceName = resolveWorkspaceBrand(auth.tenant.config, auth.tenant.name).name;
+        navLayoutOverride = await getCurrentLayout(auth.database, "nav.sidebar", auth.tenant.id);
         moduleConfig = {
           modules: (auth.tenant.config?.modules as Partial<Record<string, boolean>>) ?? {},
         };

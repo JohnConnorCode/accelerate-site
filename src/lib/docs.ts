@@ -2,7 +2,12 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 import readingTime from "reading-time";
-import { docsManifest, flattenDocsPages, type DocsPageEntry, type DocsSection } from "@/content/docs/manifest";
+import {
+  docsManifest,
+  flattenDocsPages,
+  type DocsPageEntry,
+  type DocsSection,
+} from "@/content/docs/manifest";
 
 const DOCS_DIR = path.join(process.cwd(), "src/content/docs");
 

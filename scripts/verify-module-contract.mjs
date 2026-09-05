@@ -16,6 +16,7 @@
  */
 import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
@@ -132,10 +133,22 @@ for (const route of existingRoutes) {
 }
 
 // --- AI tools ------------------------------------------------------------
-const toolsSource = read("src/lib/revenue-os/ai-tools.ts");
-const registeredTools = new Set(
-  [...toolsSource.matchAll(/^\s{4}name:\s*"([a-z][a-z0-9_]+)",/gm)].map((m) => m[1]),
+// Resolve the runtime registry, including generated report tools, rather than
+// confusing a source-code literal with a registered capability.
+const runtimeTools = JSON.parse(
+  execFileSync(
+    process.execPath,
+    [
+      "--conditions=react-server",
+      "--import",
+      "tsx",
+      "-e",
+      `const {getRevenueAiTools,REVENUE_TOOL_PACKS}=require('./src/lib/revenue-os/ai-tools.ts'); process.stdout.write(JSON.stringify({registered:getRevenueAiTools().map(t=>t.name),packed:REVENUE_TOOL_PACKS.flatMap(p=>getRevenueAiTools(p).map(t=>t.name))}));`,
+    ],
+    { cwd: repoRoot, encoding: "utf8" },
+  ),
 );
+const registeredTools = new Set(runtimeTools.registered);
 if (registeredTools.size < 5) {
   failures.push(
     `Only parsed ${registeredTools.size} tools from ai-tools.ts; the parser and the file have drifted.`,
@@ -170,21 +183,12 @@ for (const tool of registeredTools) {
 // ai-agent.ts always passes a pack, so a registered, module-claimed tool that
 // no pack lists is permanently unreachable even though every other gate
 // above it passes. This is the check that would have caught that.
-const packSection = toolsSource.slice(
-  toolsSource.indexOf("const PACK_TOOL_NAMES"),
-  toolsSource.indexOf("export function selectRevenueToolPack"),
-);
-if (!packSection || packSection.length < 20) {
-  failures.push("Could not locate PACK_TOOL_NAMES in ai-tools.ts; the parser has drifted.");
-} else {
-  const packedTools = new Set([...packSection.matchAll(/"([a-z][a-z0-9_]+)"/g)].map((m) => m[1]));
-  for (const tool of registeredTools) {
-    if (!packedTools.has(tool)) {
-      failures.push(
-        `AI tool "${tool}" is registered and claimed by a module but is not listed in any pack in PACK_TOOL_NAMES, so it can never be selected at runtime.`,
-      );
-    }
-  }
+const packedTools = new Set(runtimeTools.packed);
+for (const tool of registeredTools) {
+  if (!packedTools.has(tool))
+    failures.push(
+      `AI tool "${tool}" is registered but cannot be selected from any runtime tool pack.`,
+    );
 }
 
 // --- Setup Center checks ---------------------------------------------------

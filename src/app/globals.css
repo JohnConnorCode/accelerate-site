@@ -4290,6 +4290,40 @@ summary:focus-visible {
   border-radius: 14px;
   animation: float-gentle 7s ease-in-out infinite;
 }
+
+/* ========================================
+   TEAM PORTRAITS
+   - .team-photo-fade: portraits fade in on load instead of flashing in
+     late. The frame behind carries layout (aspect + background), so the
+     page never reflows when the bytes arrive.
+   - .team-card-float: soft layered shadow for team cards and bio frames,
+     deepening with a small lift on hover/focus like the hero demo decks.
+   ======================================== */
+
+.team-photo-fade {
+  opacity: 0;
+  transition: opacity 0.7s ease;
+}
+.team-photo-fade.is-loaded {
+  opacity: 1;
+}
+
+.team-card-float {
+  box-shadow:
+    0 1px 2px rgba(11, 11, 11, 0.05),
+    0 12px 32px -12px rgba(11, 11, 11, 0.18);
+  transition:
+    box-shadow 0.35s ease,
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.35s ease;
+}
+a.team-card-float:hover,
+a.team-card-float:focus-visible {
+  transform: translateY(-4px);
+  box-shadow:
+    0 2px 4px rgba(11, 11, 11, 0.06),
+    0 28px 60px -16px rgba(11, 11, 11, 0.28);
+}
 .deck-hd {
   display: flex;
   justify-content: space-between;

@@ -34,6 +34,29 @@ interface ActionReversibility {
 
 export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
   {
+    actionType: "create_task_batch",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Assigned tasks remain individually editable; no automatic deletion of an approved delivery checklist is implied.",
+  },
+  ...["create_stripe_invoice_draft", "send_stripe_invoice", "publish_invoice_page"].map(
+    (actionType) => ({
+      actionType,
+      impact: "external_action" as const,
+      reversibility: "irreversible" as const,
+      rationale:
+        "Creates or sends an external billing document; no automatic compensator is registered, so explicit human approval is permanent.",
+    }),
+  ),
+  ...["bootstrap_coworker", "store_agent_memory", "record_learned_policy"].map((actionType) => ({
+    actionType,
+    impact: "internal_write" as const,
+    reversibility: "compensable" as const,
+    rationale:
+      "A reviewed configuration change or superseding memory entry compensates for this action; no automatic inverse is promised.",
+  })),
+  {
     actionType: "send_email",
     impact: "external_action",
     reversibility: "irreversible",
@@ -89,6 +112,13 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
     rationale:
       "Notes have no delete primitive by design; removal is a deliberate manual act, not an automatic undo.",
   },
+  {
+    actionType: "identity_review",
+    impact: "internal_write",
+    reversibility: "irreversible",
+    rationale:
+      "The executor always refuses this type and points at the review workbench, so no effect ever exists to undo; autonomous runs refuse like all irreversible effects.",
+  },
 ] as const;
 
 export function reversibilityOf(actionType: string): ActionReversibility {
@@ -143,7 +173,10 @@ export async function compensateAction(
         throw new Error("Compensation data is missing the prior next action; cannot undo safely");
       const { error: restoreError } = await supabase
         .from("opportunities")
-        .update({ next_action: prior.next_action ?? null, next_action_at: prior.next_action_at ?? null })
+        .update({
+          next_action: prior.next_action ?? null,
+          next_action_at: prior.next_action_at ?? null,
+        })
         .eq("id", opportunityId);
       if (restoreError) throw new Error(`Could not restore next action: ${restoreError.message}`);
       detail.restored = prior;
@@ -171,9 +204,11 @@ export async function compensateAction(
     }
     case "admin_layout_change": {
       const scope = (action.payload as Row)?.scope;
+      const tenantId = String((action as Row).tenant_id ?? "");
       if (typeof scope !== "string" || !scope)
         throw new Error("Compensation data is missing the layout scope; cannot undo safely");
-      await revertLayoutChange(supabase, { scope, actorEmail });
+      if (!tenantId) throw new Error("Compensation data is missing the tenant; cannot undo safely");
+      await revertLayoutChange(supabase, { scope, actorEmail, tenantId });
       detail.reverted_scope = scope;
       break;
     }

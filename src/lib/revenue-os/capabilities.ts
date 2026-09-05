@@ -40,60 +40,65 @@ export interface CapabilityResolution {
 // Resolve: check whether a specific capability is available
 // ---------------------------------------------------------------------------
 
+async function resolveCapabilities(
+  supabase: SupabaseClient,
+  keys: string[],
+): Promise<Map<string, CapabilityResolution>> {
+  const unique = [...new Set(keys.map((key) => key.trim()))];
+  if (unique.some((key) => !key) || unique.length > 100)
+    throw new Error("Capabilities require 1 to 100 non-empty keys");
+  if (!unique.length) return new Map();
+  const { data, error } = await supabase
+    .from("workspace_capabilities")
+    .select("capability_key,available,policy,status_reason,verified_at")
+    .in("capability_key", unique);
+  if (error) throw new Error(`Capability resolution failed: ${error.message}`);
+  const byKey = new Map(data?.map((row) => [row.capability_key, row]));
+  return new Map(
+    unique.map((key) => {
+      const row = byKey.get(key);
+      return [
+        key,
+        {
+          capabilityKey: key,
+          available: row?.available === true,
+          policy: row?.policy ?? null,
+          statusReason:
+            row?.status_reason ?? (row ? null : "Capability not registered in this workspace"),
+          verifiedAt: row?.verified_at ?? null,
+        },
+      ];
+    }),
+  );
+}
+
 export async function resolveCapability(
   supabase: SupabaseClient,
   capabilityKey: string,
 ): Promise<CapabilityResolution> {
-  const { data, error } = await supabase
-    .rpc("resolve_workspace_capability", {
-      p_capability_key: capabilityKey,
-    })
-    .single();
-
-  if (error) throw new Error(error.message);
-
-  const result = data as {
-    capability_key: string;
-    available: boolean;
-    policy: string | null;
-    status_reason: string | null;
-    verified_at: string | null;
-  };
-
-  return {
-    capabilityKey: result.capability_key,
-    available: result.available,
-    policy: (result.policy as CapabilityPolicy) ?? null,
-    statusReason: result.status_reason,
-    verifiedAt: result.verified_at,
-  };
+  return (await resolveCapabilities(supabase, [capabilityKey])).get(capabilityKey.trim())!;
 }
-
-// ---------------------------------------------------------------------------
-// Check capabilities before work: returns unavailable keys
-// ---------------------------------------------------------------------------
 
 export async function checkCapabilitiesBeforeWork(
   supabase: SupabaseClient,
   requiredCapabilities: string[],
 ): Promise<{ missing: string[]; unavailable: string[]; policyBlocked: string[] }> {
-  const missing: string[] = [];
-  const unavailable: string[] = [];
-  const policyBlocked: string[] = [];
-
-  for (const key of requiredCapabilities) {
-    const resolution = await resolveCapability(supabase, key);
-
-    if (!resolution.available && resolution.statusReason === "Capability not registered in this workspace") {
-      missing.push(key);
-    } else if (!resolution.available) {
-      unavailable.push(key);
-    } else if (resolution.policy === "prohibited") {
-      policyBlocked.push(key);
-    }
+  const result = {
+    missing: [] as string[],
+    unavailable: [] as string[],
+    policyBlocked: [] as string[],
+  };
+  const resolutions = await resolveCapabilities(supabase, requiredCapabilities);
+  for (const [key, resolution] of resolutions) {
+    if (
+      !resolution.available &&
+      resolution.statusReason === "Capability not registered in this workspace"
+    )
+      result.missing.push(key);
+    else if (!resolution.available) result.unavailable.push(key);
+    else if (resolution.policy === "prohibited") result.policyBlocked.push(key);
   }
-
-  return { missing, unavailable, policyBlocked };
+  return result;
 }
 
 // ---------------------------------------------------------------------------

@@ -26,7 +26,7 @@ export const OPEN_SOURCE_PATHS: OpenSourcePath[] = [
       "AI operations with approval gates and an audit trail, using your own OpenRouter key",
       "A Model Context Protocol server, so Claude Desktop, Claude Code, ChatGPT, Cursor, and Antigravity reach the same tools under the same approval rules",
       "Pluggable modules a workspace turns on and off, extendable from a manifest without forking",
-      "37 ordered database migrations and full documentation for tenancy and security",
+      "63 ordered database migrations and full documentation for tenancy and security",
       "A public roadmap, with acceptance criteria written out for every planned change",
     ],
     ctaText: "Read the self-hosting quickstart",
@@ -60,9 +60,9 @@ export interface OpenSourceStat {
 /** Verifiable facts about the codebase, not illustrative figures. Recompute
     against the repo before changing a number here. */
 export const OPEN_SOURCE_STATS: OpenSourceStat[] = [
-  { value: "37", label: "Ordered migrations", detail: "Every schema change, in sequence" },
-  { value: "139", label: "Automated checks", detail: "Test and verification scripts" },
-  { value: "112K", label: "Lines of TypeScript", detail: "Across 599 source files" },
+  { value: "63", label: "Ordered migrations", detail: "Every schema change, in sequence" },
+  { value: "178", label: "Automated checks", detail: "Test and verification scripts" },
+  { value: "129K", label: "Lines of TypeScript", detail: "Across 681 source files" },
   { value: "MIT", label: "Fully open license", detail: "No seat limits, no usage tiers" },
 ];
 
@@ -93,7 +93,7 @@ export const openSourceFaqs: FAQ[] = [
   {
     question: "What does self-hosting actually require?",
     answer:
-      "Node.js, a Supabase project you control, and running the 37 documented migrations. There is also a Deploy with Vercel button in the README that needs no environment variables at all: it boots straight to the marketing site and the fictional demo, then points you at the setup path when you are ready to connect a real workspace.",
+      "Node.js, a Supabase project you control, and running the documented migration command. There is also a Deploy with Vercel button in the README that needs no environment variables at all: it boots straight to the marketing site and the fictional demo, then points you at the setup path when you are ready to connect a real workspace.",
   },
   {
     question: "Can I point Claude or ChatGPT at my own workspace?",

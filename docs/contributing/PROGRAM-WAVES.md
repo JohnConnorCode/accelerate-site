@@ -10,10 +10,11 @@ agent skimming the board a wave ordering finer-grained than milestone:now/next
 alone, so "what's dependency-ready" and "what actually matters to do first"
 stay distinguishable.
 
-The durable roadmap is `scripts/feature-backlog-data.mjs`. Its operational
-projection is `/admin/features`. When this guide and the Feature Board disagree,
-the Feature Board contract wins; repair this guide or the card before
-dispatching work against it.
+The live Feature Board is the authoritative work record. Git holds templates
+and dated exports. `seed:features -- --apply --plan <reviewed.json>` applies
+explicit revision-checked changes and never archives unlisted work. When this
+guide disagrees with the board, repair this guide before dispatching work.
+See `docs/contracts/UNIVERSAL-WORK-BOARD.md` for the current protocol.
 
 The program is revenue-core-first. It finishes a truthful revenue loop, gives
 the system connected memory, expands the founder cockpit, and only then widens
@@ -40,37 +41,12 @@ The program is successful when the founder can:
 
 ## Claiming and coordination
 
-Claiming is atomic now, not coordinator-mediated: `npm run agent:next` claims
-one dependency-ready card via `claim_feature_request`
-(`migrations/20260903-feature-request-claims.sql` — advisory lock,
-`FOR UPDATE SKIP LOCKED`, a lease with expiry, a database-enforced WIP limit
-of 6 concurrent `in_progress` cards) and creates an isolated git worktree +
-branch at `../.agent-worktrees/<seed-key>`, so two agents claiming
-concurrently never race and never share a working tree. See
-`docs/contributing/AGENT-TICKET-RUNBOOK.md` section 1 for the full procedure.
-There is no coordinator role and no manual owner-naming convention left to
-maintain — the lease *is* the claim, and `--identity` is any string the
-calling agent picks for itself.
-
-`npm run seed:features -- --apply` reconciles manifest-owned fields (title,
-description, acceptance, dependencies, labels) onto the live board; it
-deliberately never touches `owner`/`status`/the lease on an existing row, so
-running it can't clobber someone else's active claim the way it once could.
-Run `npm run seed:features -- --verify` after any manifest edit to confirm
-it landed.
-
-Stop dispatch (release the card, don't force it) when any of these is true:
-
-- The board is at its WIP limit — `agent:next` will report
-  `wip_limit_reached` rather than let you guess.
-- The candidate card has an unmet dependency (`agent:next`'s auto-pick
-  already excludes non-dependency-ready cards; this matters when claiming a
-  specific card by name).
-- A dirty file in the shared tree overlaps the candidate's starting points
-  and ownership is not explicit — a worktree isolates *your* branch, not
-  files another agent is mid-edit on in a different one.
-- The required provider, production evidence, secret, or founder decision is
-  unavailable and the remaining slice cannot be verified honestly.
+Use `npm run agent:next` with scoped WORK_BOARD_URL and WORK_BOARD_TOKEN.
+Readiness, UUID dependencies, six-card WIP limit, revision and session fencing
+are enforced by the shared service. No implicit expired-claim reassignment,
+force bypass, caller-HEAD worktree base or automatic worktree deletion.
+Completion submits exact commit and passing checks for founder review.
+The execution order below remains a planning aid, not a second roadmap.
 
 ## Mandatory ticket packet
 

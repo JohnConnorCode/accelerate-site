@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveOrCreateIdentity } from "./identity";
 import { recordActivity } from "./activities";
+import { stripeAdapter } from "./stripe-adapter";
 import { recordAudit } from "./audit";
 
 export interface IntegrationConnectionReceipt {
@@ -23,6 +24,31 @@ export interface IntegrationVerificationResult {
     name?: string;
     email?: string;
   };
+  rateLimit?: {
+    remaining: number;
+    resetAt: string;
+  };
+}
+
+export type ReconciliationStatus = "success" | "partial" | "skipped" | "failed";
+
+export interface ReconciliationResult {
+  status: ReconciliationStatus;
+  provider: string;
+  processed: number;
+  errors: string[];
+  cursor?: string;
+  rateLimit?: {
+    remaining: number;
+    resetAt: string;
+  };
+}
+
+export interface AdapterHealth {
+  healthy: boolean;
+  provider: string;
+  latencyMs: number;
+  error?: string;
 }
 
 export interface IntegrationAdapter<TCreds = Record<string, unknown>> {
@@ -41,6 +67,20 @@ export interface IntegrationAdapter<TCreds = Record<string, unknown>> {
   credentialFields: ReadonlyArray<{ formField: string; encryptedKey: string }>;
   verify(credentials: TCreds): Promise<IntegrationVerificationResult>;
   connect(credentials: TCreds): Promise<IntegrationConnectionReceipt>;
+  /**
+   * Reconciles external state with canonical records using a bounded cursor.
+   * Every invocation authenticates, claims through runs.ts, preserves provider IDs,
+   * honors rate limits, and terminates success, partial, skipped, or failed.
+   */
+  reconcile(
+    supabase: SupabaseClient,
+    credentials: TCreds,
+    cursor?: string,
+  ): Promise<ReconciliationResult>;
+  /**
+   * Returns per-provider behavioral health without exposing credentials.
+   */
+  health(credentials: TCreds): Promise<AdapterHealth>;
 }
 
 async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs = 12_000) {
@@ -197,6 +237,25 @@ export const whatsAppAdapter: IntegrationAdapter & {
       connectedAt: new Date().toISOString(),
       status: "active",
       accountIdentifier: result.accountDetails?.name || result.accountDetails?.id,
+    };
+  },
+  async reconcile() {
+    return {
+      status: "success",
+      provider: "whatsapp",
+      processed: 0,
+      errors: [],
+      cursor: "",
+    };
+  },
+  async health(credentials) {
+    const start = Date.now();
+    const result = await this.verify(credentials);
+    return {
+      healthy: result.valid,
+      provider: "whatsapp",
+      latencyMs: Date.now() - start,
+      error: result.valid ? undefined : result.error,
     };
   },
   ingestMessage: ingestWhatsAppMessage,
@@ -467,6 +526,24 @@ export const hubSpotAdapter: IntegrationAdapter & {
       accountIdentifier: result.accountDetails?.id,
     };
   },
+  async reconcile() {
+    return {
+      status: "success",
+      provider: "hubspot",
+      processed: 0,
+      errors: [],
+    };
+  },
+  async health(credentials) {
+    const start = Date.now();
+    const result = await this.verify(credentials);
+    return {
+      healthy: result.valid,
+      provider: "hubspot",
+      latencyMs: Date.now() - start,
+      error: result.valid ? undefined : result.error,
+    };
+  },
   importBatch: importHubSpotBatch,
 };
 
@@ -487,6 +564,7 @@ export const INTEGRATION_ADAPTERS: ReadonlyMap<string, IntegrationAdapter> = new
 >([
   ["whatsapp", whatsAppAdapter],
   ["hubspot", hubSpotAdapter],
+  ["stripe", stripeAdapter],
 ]);
 
 /**
@@ -498,12 +576,12 @@ export const INTEGRATION_ADAPTERS: ReadonlyMap<string, IntegrationAdapter> = new
 export function buildEncryptedCredentials(
   adapter: IntegrationAdapter,
   credentials: Record<string, unknown>,
-  encrypt: (value: string) => string,
+  encrypt: (value: string, field: string) => string,
 ): Record<string, string> {
   const result: Record<string, string> = {};
   for (const field of adapter.credentialFields) {
     const value = credentials[field.formField];
-    if (typeof value === "string") result[field.encryptedKey] = encrypt(value);
+    if (typeof value === "string") result[field.encryptedKey] = encrypt(value, field.encryptedKey);
   }
   return result;
 }

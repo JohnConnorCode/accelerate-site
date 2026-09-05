@@ -14,32 +14,32 @@ The core product thesis is:
 
 This means Accelerate is not primarily:
 
-* a CRM
-* a chatbot
-* a dashboard
-* an automation builder
-* a collection of AI features
-* a fixed SaaS application
+- a CRM
+- a chatbot
+- a dashboard
+- an automation builder
+- a collection of AI features
+- a fixed SaaS application
 
 Those can all exist on top of Accelerate.
 
 The durable value is the underlying runtime:
 
-* business entities and relationships
-* identity
-* activity history
-* communications
-* business state
-* integrations
-* permissions
-* knowledge
-* evidence
-* tasks
-* agent execution
-* approvals
-* audit history
-* workflows
-* plugin capabilities
+- business entities and relationships
+- identity
+- activity history
+- communications
+- business state
+- integrations
+- permissions
+- knowledge
+- evidence
+- tasks
+- agent execution
+- approvals
+- audit history
+- workflows
+- plugin capabilities
 
 The UI is one interface into that runtime.
 
@@ -57,33 +57,33 @@ Accelerate should be designed around the assumption that **software generation b
 
 AI coding will increasingly commoditize:
 
-* CRUD interfaces
-* dashboards
-* forms
-* internal applications
-* bespoke workflows
-* simple integrations
-* reporting views
-* frontend customization
+- CRUD interfaces
+- dashboards
+- forms
+- internal applications
+- bespoke workflows
+- simple integrations
+- reporting views
+- frontend customization
 
 Therefore Accelerate should not derive its defensibility from owning one fixed interface.
 
 Instead, Accelerate should provide the parts that generated software still needs:
 
-* authoritative business state
-* secure identity
-* tenant boundaries
-* persistent memory
-* integrations
-* permissions
-* transaction safety
-* reliable actions
-* provenance
-* auditability
-* agent governance
-* scheduling
-* event handling
-* business primitives
+- authoritative business state
+- secure identity
+- tenant boundaries
+- persistent memory
+- integrations
+- permissions
+- transaction safety
+- reliable actions
+- provenance
+- auditability
+- agent governance
+- scheduling
+- event handling
+- business primitives
 
 An AI coding system should eventually be able to receive:
 
@@ -105,23 +105,23 @@ Accelerate observes the business.
 
 Examples:
 
-* customers
-* contacts
-* companies
-* opportunities
-* inbound leads
-* Gmail
-* Outlook
-* calendar
-* Drive
-* website activity
-* payments
-* invoices
-* proposals
-* campaigns
-* support conversations
-* user notes
-* external integrations
+- customers
+- contacts
+- companies
+- opportunities
+- inbound leads
+- Gmail
+- Outlook
+- calendar
+- Drive
+- website activity
+- payments
+- invoices
+- proposals
+- campaigns
+- support conversations
+- user notes
+- external integrations
 
 The objective is to create a normalized model of business reality.
 
@@ -137,17 +137,17 @@ Accelerate maintains durable organizational memory.
 
 This includes:
 
-* canonical records
-* entity relationships
-* activity history
-* indexed knowledge
-* communication history
-* provenance
-* source references
-* human notes
-* business facts
-* AI-derived observations
-* evidence supporting those observations
+- canonical records
+- entity relationships
+- activity history
+- indexed knowledge
+- communication history
+- provenance
+- source references
+- human notes
+- business facts
+- AI-derived observations
+- evidence supporting those observations
 
 This layer answers:
 
@@ -161,16 +161,16 @@ Accelerate continuously evaluates business state and identifies what deserves at
 
 Examples:
 
-* a lead has not received a reply
-* an important proposal is stale
-* an invoice is overdue
-* close rate dropped sharply
-* a customer appears unhappy
-* a meeting is approaching
-* a campaign is underperforming
-* a promised follow-up was never completed
-* an opportunity has gone dormant
-* an integration stopped syncing
+- a lead has not received a reply
+- an important proposal is stale
+- an invoice is overdue
+- close rate dropped sharply
+- a customer appears unhappy
+- a meeting is approaching
+- a campaign is underperforming
+- a promised follow-up was never completed
+- an opportunity has gone dormant
+- an integration stopped syncing
 
 This layer answers:
 
@@ -184,18 +184,18 @@ Accelerate can perform or prepare real business work.
 
 Examples:
 
-* draft a reply
-* send an approved email
-* update a CRM record
-* prepare a proposal
-* create a follow-up
-* schedule a meeting
-* send an invoice reminder
-* prepare a report
-* generate a customer brief
-* update a campaign
-* trigger an external workflow
-* invoke another business system
+- draft a reply
+- send an approved email
+- update a CRM record
+- prepare a proposal
+- create a follow-up
+- schedule a meeting
+- send an invoice reminder
+- prepare a report
+- generate a customer brief
+- update a campaign
+- trigger an external workflow
+- invoke another business system
 
 This layer must always operate through explicit tools, permissions, policies, validation, receipts, and audit history.
 
@@ -213,13 +213,13 @@ This must not mean unconstrained model self-modification.
 
 It should instead observe explicit signals such as:
 
-* approvals
-* denials
-* draft edits
-* priority overrides
-* repeated workflow decisions
-* trusted evidence sources
-* repeated manual actions
+- approvals
+- denials
+- draft edits
+- priority overrides
+- repeated workflow decisions
+- trusted evidence sources
+- repeated manual actions
 
 Then it can propose explicit rules.
 
@@ -245,20 +245,20 @@ A Coworker is a configuration over the shared Accelerate runtime.
 
 A Coworker consists of:
 
-* identity
-* role
-* objectives
-* skills
-* available tools
-* connected capabilities
-* triggers
-* permissions
-* autonomy policies
-* memory scope
-* allowed entities
-* budgets
-* schedules
-* escalation rules
+- identity
+- role
+- objectives
+- skills
+- available tools
+- connected capabilities
+- triggers
+- permissions
+- autonomy policies
+- memory scope
+- allowed entities
+- budgets
+- schedules
+- escalation rules
 
 Examples:
 
@@ -266,42 +266,42 @@ Examples:
 
 Responsible for:
 
-* lead qualification
-* follow-up detection
-* opportunity research
-* proposal follow-up
-* meeting preparation
-* pipeline hygiene
+- lead qualification
+- follow-up detection
+- opportunity research
+- proposal follow-up
+- meeting preparation
+- pipeline hygiene
 
 ### Finance Coworker
 
 Responsible for:
 
-* overdue invoices
-* payment anomalies
-* cash visibility
-* recurring revenue changes
-* financial summaries
+- overdue invoices
+- payment anomalies
+- cash visibility
+- recurring revenue changes
+- financial summaries
 
 ### Operations Coworker
 
 Responsible for:
 
-* task monitoring
-* customer commitments
-* scheduling issues
-* operational exceptions
-* process bottlenecks
+- task monitoring
+- customer commitments
+- scheduling issues
+- operational exceptions
+- process bottlenecks
 
 ### Marketing Coworker
 
 Responsible for:
 
-* campaign analysis
-* lead-source performance
-* attribution anomalies
-* content opportunities
-* campaign preparation
+- campaign analysis
+- lead-source performance
+- attribution anomalies
+- content opportunities
+- campaign preparation
 
 The underlying runtime remains shared.
 
@@ -424,11 +424,11 @@ Generate weekly revenue report
 
 The item survives:
 
-* browser closure
-* deployment
-* process restart
-* model failure
-* agent failure
+- browser closure
+- deployment
+- process restart
+- model failure
+- agent failure
 
 ### Lease-based
 
@@ -527,10 +527,10 @@ AND status = 'unpaid'
 
 Then AI may answer:
 
-* which customers should be contacted first?
-* what tone should we use?
-* is there context suggesting we should wait?
-* should this be escalated?
+- which customers should be contacted first?
+- what tone should we use?
+- is there context suggesting we should wait?
+- should this be escalated?
 
 General principle:
 
@@ -581,13 +581,13 @@ Plugins should build on Accelerate capabilities rather than bypass them.
 
 A plugin can provide:
 
-* tools
-* skills
-* workflows
-* triggers
-* UI
-* connectors
-* coworker definitions
+- tools
+- skills
+- workflows
+- triggers
+- UI
+- connectors
+- coworker definitions
 
 Conceptual structure:
 
@@ -629,16 +629,16 @@ A connector gives Accelerate access to an external system.
 
 Examples:
 
-* Gmail
-* Outlook
-* Google Calendar
-* Drive
-* Stripe
-* QuickBooks
-* Twilio
-* Slack
-* HubSpot
-* GitHub
+- Gmail
+- Outlook
+- Google Calendar
+- Drive
+- Stripe
+- QuickBooks
+- Twilio
+- Slack
+- HubSpot
+- GitHub
 
 ## Plugin
 
@@ -650,21 +650,21 @@ Example:
 
 Uses:
 
-* Calendar connector
-* Gmail connector
-* CRM
-* Knowledge
-* AI runtime
+- Calendar connector
+- Gmail connector
+- CRM
+- Knowledge
+- AI runtime
 
 Provides:
 
-* pre-call brief
-* meeting context
-* post-call extraction
-* follow-up drafting
-* CRM updates
-* commitments
-* scheduled follow-up
+- pre-call brief
+- meeting context
+- post-call extraction
+- follow-up drafting
+- CRM updates
+- commitments
+- scheduled follow-up
 
 This distinction is important.
 
@@ -744,36 +744,36 @@ Example:
 
 Return:
 
-* contact ID
-* company ID
-* opportunity IDs
-* communication IDs
-* meeting IDs
-* proposal IDs
-* task IDs
+- contact ID
+- company ID
+- opportunity IDs
+- communication IDs
+- meeting IDs
+- proposal IDs
+- task IDs
 
 ### Company read
 
 Return:
 
-* company ID
-* contact IDs
-* opportunity IDs
-* communication history
-* meetings
-* proposals
+- company ID
+- contact IDs
+- opportunity IDs
+- communication history
+- meetings
+- proposals
 
 ### Opportunity read
 
 Return:
 
-* company
-* contacts
-* activity
-* stage history
-* proposal
-* tasks
-* last inbound response
+- company
+- contacts
+- activity
+- stage history
+- proposal
+- tasks
+- last inbound response
 
 IDs must always accompany entities.
 
@@ -877,12 +877,12 @@ Accelerate needs one coherent system governing agent actions.
 
 This should unify:
 
-* AI confirmations
-* automation permissions
-* standing approvals
-* coworker permissions
-* safety floors
-* audit provenance
+- AI confirmations
+- automation permissions
+- standing approvals
+- coworker permissions
+- safety floors
+- audit provenance
 
 Use an autonomy ladder.
 
@@ -952,13 +952,13 @@ Certain actions should never become automatically executable simply because user
 
 Examples may include:
 
-* destructive account deletion
-* credential changes
-* deleting financial history
-* exporting an entire customer database
-* high-value refunds
-* major financial transfers
-* dangerous system operations
+- destructive account deletion
+- credential changes
+- deleting financial history
+- exporting an entire customer database
+- high-value refunds
+- major financial transfers
+- dangerous system operations
 
 These floors must exist in code.
 
@@ -1034,11 +1034,11 @@ Do not expose raw model reasoning as a requirement.
 
 The important user-level explanation is:
 
-* what it looked at
-* what it concluded
-* why
-* what it did
-* what happens next
+- what it looked at
+- what it concluded
+- why
+- what it did
+- what happens next
 
 ---
 
@@ -1143,11 +1143,11 @@ External AI systems should be able to interact with the business through Acceler
 
 Examples:
 
-* ChatGPT
-* Claude
-* Codex
-* local agents
-* third-party assistants
+- ChatGPT
+- Claude
+- Codex
+- local agents
+- third-party assistants
 
 They should access:
 
@@ -1183,12 +1183,12 @@ Actual business records.
 
 Examples:
 
-* contact
-* company
-* opportunity
-* invoice
-* meeting
-* campaign
+- contact
+- company
+- opportunity
+- invoice
+- meeting
+- campaign
 
 ## Activity memory
 
@@ -1196,11 +1196,11 @@ What happened.
 
 Examples:
 
-* email
-* call
-* note
-* stage change
-* task completion
+- email
+- call
+- note
+- stage change
+- task completion
 
 ## Knowledge memory
 
@@ -1208,11 +1208,11 @@ Documents and indexed sources.
 
 Examples:
 
-* Drive
-* PDFs
-* policies
-* proposals
-* playbooks
+- Drive
+- PDFs
+- policies
+- proposals
+- playbooks
 
 ## Agent memory
 
@@ -1220,10 +1220,10 @@ Agent-specific context.
 
 Examples:
 
-* prior work
-* prior research
-* scheduled checks
-* unresolved questions
+- prior work
+- prior research
+- scheduled checks
+- unresolved questions
 
 ## Learned policy
 
@@ -1275,31 +1275,31 @@ The Sales Coworker should prove the architecture end-to-end.
 
 From:
 
-* website
-* Gmail
-* form
-* manual capture
+- website
+- Gmail
+- form
+- manual capture
 
 ### 2. Identity resolution
 
 Determine:
 
-* person
-* company
-* duplicates
-* existing relationship
+- person
+- company
+- duplicates
+- existing relationship
 
 ### 3. Context gathering
 
 Collect:
 
-* contact record
-* company
-* previous email
-* website context
-* existing opportunities
-* notes
-* relevant knowledge
+- contact record
+- company
+- previous email
+- website context
+- existing opportunities
+- notes
+- relevant knowledge
 
 ### 4. Research
 
@@ -1309,19 +1309,19 @@ Optional based on capabilities and policy.
 
 Determine:
 
-* likely relevance
-* urgency
-* opportunity type
-* required response
+- likely relevance
+- urgency
+- opportunity type
+- required response
 
 ### 6. Action preparation
 
 Create:
 
-* updated record
-* opportunity if appropriate
-* drafted response
-* recommended next action
+- updated record
+- opportunity if appropriate
+- drafted response
+- recommended next action
 
 ### 7. Approval
 
@@ -1346,30 +1346,30 @@ Reason: Awaiting response to proposal
 
 Before scheduled meeting:
 
-* summarize history
-* identify goals
-* surface relevant information
-* provide suggested questions
+- summarize history
+- identify goals
+- surface relevant information
+- provide suggested questions
 
 ### 10. Meeting processing
 
 After meeting:
 
-* extract commitments
-* update opportunity
-* create tasks
-* generate follow-up
-* schedule next work
+- extract commitments
+- update opportunity
+- create tasks
+- generate follow-up
+- schedule next work
 
 ### 11. Ongoing monitoring
 
 Watch for:
 
-* no reply
-* opportunity stagnation
-* buying signal
-* customer response
-* changed context
+- no reply
+- opportunity stagnation
+- buying signal
+- customer response
+- changed context
 
 This single loop should demonstrate nearly every major architectural primitive.
 
@@ -1449,17 +1449,17 @@ Once the substrate is stable, strong plugins include:
 
 Capabilities:
 
-* calendar
-* email
-* CRM
-* knowledge
+- calendar
+- email
+- CRM
+- knowledge
 
 Outputs:
 
-* pre-call brief
-* commitments
-* CRM updates
-* follow-up
+- pre-call brief
+- commitments
+- CRM updates
+- follow-up
 
 ---
 
@@ -1480,16 +1480,16 @@ What has already been handled?
 
 Uses:
 
-* QuickBooks
-* Stripe
-* CRM
+- QuickBooks
+- Stripe
+- CRM
 
 Produces:
 
-* overdue invoice actions
-* revenue changes
-* customer payment risk
-* financial anomalies
+- overdue invoice actions
+- revenue changes
+- customer payment risk
+- financial anomalies
 
 ---
 
@@ -1497,16 +1497,16 @@ Produces:
 
 Uses:
 
-* email
-* CRM
-* knowledge
+- email
+- CRM
+- knowledge
 
 Provides:
 
-* triage
-* draft responses
-* escalation
-* customer context
+- triage
+- draft responses
+- escalation
+- customer context
 
 ---
 
@@ -1514,17 +1514,17 @@ Provides:
 
 Uses:
 
-* site activity
-* leads
-* analytics
-* CRM
+- site activity
+- leads
+- analytics
+- CRM
 
 Provides:
 
-* conversion analysis
-* lead enrichment
-* content recommendations
-* customer journey context
+- conversion analysis
+- lead enrichment
+- content recommendations
+- customer journey context
 
 ---
 
@@ -1563,24 +1563,24 @@ User:
 
 Coding agent should not need to rebuild:
 
-* auth
-* tenants
-* CRM
-* memory
-* approvals
-* logging
-* scheduling
-* AI gateway
-* policy
-* secrets
+- auth
+- tenants
+- CRM
+- memory
+- approvals
+- logging
+- scheduling
+- AI gateway
+- policy
+- secrets
 
 It should only implement:
 
-* review connector/tool
-* matching logic
-* trigger
-* skill
-* UI if required
+- review connector/tool
+- matching logic
+- trigger
+- skill
+- UI if required
 
 This should be a primary architecture test.
 
@@ -1590,15 +1590,15 @@ This should be a primary architecture test.
 
 Do not prematurely build:
 
-* dozens of Coworkers
-* dozens of integrations
-* arbitrary no-code automation builders
-* a giant plugin marketplace
-* unrestricted autonomous agents
-* complex multi-agent social simulations
-* generalized desktop automation
-* AI-generated UI everywhere
-* a completely new CRM
+- dozens of Coworkers
+- dozens of integrations
+- arbitrary no-code automation builders
+- a giant plugin marketplace
+- unrestricted autonomous agents
+- complex multi-agent social simulations
+- generalized desktop automation
+- AI-generated UI everywhere
+- a completely new CRM
 
 First establish the runtime.
 
@@ -1614,21 +1614,21 @@ Do not abandon the foundational work already underway.
 
 Finish:
 
-* identity resolution
-* canonical records
-* operator inbox
-* tenancy
-* integration capabilities
-* Gmail
-* Calendar
-* Drive
-* bounded AI context
-* Tool Registry
-* command runtime
-* traces
-* confirmation system
-* inbound response
-* scheduling substrate
+- identity resolution
+- canonical records
+- operator inbox
+- tenancy
+- integration capabilities
+- Gmail
+- Calendar
+- Drive
+- bounded AI context
+- Tool Registry
+- command runtime
+- traces
+- confirmation system
+- inbound response
+- scheduling substrate
 
 This creates a complete:
 
@@ -1722,14 +1722,14 @@ Once the reference worker proves the primitives:
 
 Build:
 
-* plugin manifest
-* capability requirements
-* tool registration
-* trigger registration
-* skills
-* permission declarations
-* MCP client
-* MCP server
+- plugin manifest
+- capability requirements
+- tool registration
+- trigger registration
+- skills
+- permission declarations
+- MCP client
+- MCP server
 
 Then begin enabling third-party developers and coding agents.
 
@@ -1824,18 +1824,18 @@ Owner:
 
 Accelerate should translate that into:
 
-* explicit policy
-* trigger
-* WorkItems
-* entity queries
-* context retrieval
-* deterministic eligibility rules
-* AI judgment where necessary
-* email draft
-* authorization
-* action receipt
-* future scheduling
-* audit trail
+- explicit policy
+- trigger
+- WorkItems
+- entity queries
+- context retrieval
+- deterministic eligibility rules
+- AI judgment where necessary
+- email draft
+- authorization
+- action receipt
+- future scheduling
+- audit trail
 
 The owner should be able to inspect and revoke the behavior at any time.
 

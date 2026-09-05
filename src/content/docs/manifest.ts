@@ -391,7 +391,7 @@ export const docsManifest: DocsSection[] = [
     pages: [
       {
         slug: ["follow-up", "overview"],
-        title: "Never lose an inquiry",
+        title: "Follow through on every inquiry",
         description: "Response time, steady follow-up, and a clear next step on every page.",
       },
     ],

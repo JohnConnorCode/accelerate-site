@@ -100,6 +100,11 @@ async function main() {
     "/learn",
     `"blog" must reach the article library, got ${top("blog").join(", ")}`,
   );
+  assert.equal(
+    firstHref("roadmap"),
+    "/roadmap",
+    `"roadmap" must reach the public roadmap, got ${top("roadmap").join(", ")}`,
+  );
 
   // ---- Multi-word queries narrow rather than widen -----------------------
 

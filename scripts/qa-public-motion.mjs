@@ -25,6 +25,7 @@ const smokeRoutes = [
   "/about",
   "/blog",
   "/changelog",
+  "/roadmap",
   "/command-center",
   "/command-center/demo",
   "/contact",

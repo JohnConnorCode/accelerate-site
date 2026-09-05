@@ -100,7 +100,7 @@ For coding agents and humans: add a module, an integration adapter, a plugin, or
 ## Follow-up
 The discipline that decides most inquiries: respond first, follow through, and let nothing wait.
 
-- [Never lose an inquiry](https://www.acceleratewith.us/docs/follow-up/overview) (updated 2026-09-04): Response time, steady follow-up, and a clear next step on every page.
+- [Follow through on every inquiry](https://www.acceleratewith.us/docs/follow-up/overview) (updated 2026-09-04): Response time, steady follow-up, and a clear next step on every page.
 
 ## Self-hosting
 Run the Command Center yourself: what you need, how to start, and when to bring us in.

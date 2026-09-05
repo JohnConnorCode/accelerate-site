@@ -164,7 +164,9 @@ export async function runRevenueCommandAgent(
       ? `Work engine queue (${claimableWork.length} claimable): ${claimableWork.map((w) => `${w.kind}[${w.priority}](${w.objective.slice(0, 60)})`).join("; ")}. Use get_claimable_work for details.`
       : "Work engine queue is empty — no claimable work items.";
     // Bounded capability summary so the agent knows what the workspace can do.
-    const availableCapabilities = await listWorkspaceCapabilities(supabase, { availableOnly: true });
+    const availableCapabilities = await listWorkspaceCapabilities(supabase, {
+      availableOnly: true,
+    });
     const capabilitySummary = availableCapabilities.length
       ? `Workspace capabilities (${availableCapabilities.length} available): ${availableCapabilities.map((c) => `${c.capability_key}${c.policy === "approval_required" ? "[approval]" : ""}`).join(", ")}. Use get_workspace_capabilities for details.`
       : "No workspace capabilities registered yet.";
@@ -184,14 +186,17 @@ export async function runRevenueCommandAgent(
     // Memory summary: active learned policies + recent agent memory.
     const activePolicies = await listLearnedPolicies(supabase);
     const recentAgentMemory = await retrieveAgentMemory(supabase, { limit: 5 });
-    const memorySummary = [
-      activePolicies.length
-        ? `Learned policies (${activePolicies.length}): ${activePolicies.map((p) => `"${p.rule}" (${p.action_key})`).join("; ")}. Use get_learned_policies for details.`
-        : undefined,
-      recentAgentMemory.length
-        ? `Recent agent memory (${recentAgentMemory.length}): ${recentAgentMemory.map((m) => `${m.category}: ${m.subject}`).join("; ")}. Use get_agent_memory for details.`
-        : undefined,
-    ].filter(Boolean).join(" ") || undefined;
+    const memorySummary =
+      [
+        activePolicies.length
+          ? `Learned policies (${activePolicies.length}): ${activePolicies.map((p) => `"${p.rule}" (${p.action_key})`).join("; ")}. Use get_learned_policies for details.`
+          : undefined,
+        recentAgentMemory.length
+          ? `Recent agent memory (${recentAgentMemory.length}): ${recentAgentMemory.map((m) => `${m.category}: ${m.subject}`).join("; ")}. Use get_agent_memory for details.`
+          : undefined,
+      ]
+        .filter(Boolean)
+        .join(" ") || undefined;
     // Without this the model reasons about "today" and "follow up in 3 days"
     // from its training cutoff. Everything this agent does is time-sensitive.
     const now = new Date();

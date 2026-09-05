@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
-import { attachRevenueLinkage } from "@/lib/revenue-os/legacy-adapter";
+import { attachRevenueLinkageWithTelemetry } from "@/lib/revenue-os/legacy-adapter";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdminForModule("subscribers");
@@ -37,9 +37,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
 
-  const linked = await attachRevenueLinkage(supabase, data || [], {
-    sourceRecordType: "subscriber",
-  });
+  const linked = await attachRevenueLinkageWithTelemetry(
+    supabase,
+    data || [],
+    {
+      sourceRecordType: "subscriber",
+    },
+    { route: "admin-subscribers" },
+  );
 
   return NextResponse.json({
     subscribers: linked.records,

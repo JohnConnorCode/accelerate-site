@@ -4,45 +4,9 @@ The admin Setup Center at `/admin/setup` is the live source of truth. It checks 
 
 ## Required migration order
 
-1. `supabase/migration.sql`
-2. `supabase/migration-prompt2.sql`
-3. `supabase/migration-prompt2b.sql`
-4. `supabase/migration-prompt3.sql`
-5. `supabase/migration-prompt4.sql`
-6. `supabase/migration-prompt5.sql`
-7. `migrations/business-operating-system.sql`
-8. `migrations/utm-tracking.sql`
-9. `migrations/roofing-booking-machine.sql`
-10. `migrations/20260816-revenue-os.sql`
-11. `migrations/20260816-feature-board.sql`
-12. `migrations/20260816-first-party-analytics.sql`
-13. `migrations/20260816-money-first-outreach.sql`
-14. `migrations/20260816-email-studio.sql`
-15. `migrations/20260816-contact-importer.sql`
-16. `migrations/20260817-schema-verification.sql`
-17. `migrations/20260817-atomic-job-claims.sql`
-18. `migrations/20260817-atomic-campaign-member-claims.sql`
-19. `migrations/20260817-resend-webhooks.sql`
-20. `migrations/20260817-campaign-stop-claims.sql`
-21. `migrations/20260817-campaign-stop-claims-lock-order.sql`
-22. `migrations/20260819-campaign-send-attempts.sql`
-23. `migrations/20260819-stale-claim-recovery.sql`
-24. `migrations/20260820-agent-run-partial.sql`
-25. `migrations/20260820-notification-dedupe.sql`
-26. `migrations/20260820-responder-policy.sql`
-27. `migrations/20260823-command-center-scheduler.sql`
-28. `migrations/20260823-remove-legacy-job-claim-overload.sql`
-29. `migrations/20260824-ai-command-runtime.sql`
-30. `migrations/20260830-shared-database-tenancy.sql`
-31. `migrations/20260830-tenant-context-authorization.sql`
-32. `migrations/20260830-tenant-public-boundaries.sql`
-33. `migrations/20260830-tenant-uniqueness-cutover.sql`
-34. `migrations/20260830-revenue-recovery.sql`
-35. `migrations/20260831-tenant-lifecycle-rpcs.sql`
-36. `migrations/20260831-tenant-invitation-receipt-idempotency.sql`
-37. `migrations/20260831-tenant-suspension-guards.sql`
+Use `npm run db:migrate:all`. The ordered catalog and explicit historical exclusions live in [`scripts/lib/migration-manifest.mjs`](../../scripts/lib/migration-manifest.mjs). Run `npm run verify:migrations` to reject missing or unclassified SQL files. There is no separate manually maintained list.
 
-The Revenue OS migrations are idempotent. The core migration preserves legacy tables and creates the canonical operating model. The Feature Board migration creates the delivery roadmap. First-party analytics adds anonymous event storage. Money-first outreach adds campaign send idempotency and unguessable unsubscribe tokens. Email Studio adds protected draft and published template revisions. Contact Import adds review batches, row receipts, immutable events, and an atomic digest-bound execution claim.
+The migration ledger records each file and checksum atomically with its schema changes. Repeat runs verify completed files and resume pending files; they never replay seed updates. Changed recorded files and unknown database history fail closed. Existing installations without a ledger require reviewed baseline adoption before upgrading. See [Self-hosting](SELF-HOSTING.md) for first-owner ordering and hosted Supabase setup.
 
 The AI command runtime migration adds founder-owned conversation history, replay-safe client message IDs, and run linkage for provider, tool-pack, duration, and conversation observability. Apply it before enabling `/admin/ai`; until then the command UI fails closed with a setup message and no schema is created from a request path.
 
@@ -61,8 +25,7 @@ Production tenant release and activation use the staged, fail-closed checks in
 `docs/internal/TENANT-CUTOVER-RUNBOOK.md`; a green Setup Center or schema check alone is
 not activation evidence.
 
-Maintainers apply all migrations in order with `npm run db:migrate:all`, or one
-at a time with `npm run db:migrate -- <migration.sql>`, then
+Maintainers apply all migrations in order with `npm run db:migrate:all`, or through a selected manifest entry with `npm run db:migrate -- <migration.sql>`, then
 verify the resulting objects through the service role. `db:migrate:all` is
 safe to re-run against a fresh install or to resume after an early failure,
 but re-running it from scratch against a long-lived, already-migrated

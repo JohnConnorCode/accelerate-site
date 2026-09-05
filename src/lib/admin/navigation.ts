@@ -1,5 +1,6 @@
 import {
   Activity,
+  Palette,
   BarChart3,
   Bot,
   BriefcaseBusiness,
@@ -82,6 +83,14 @@ export const adminNavSections: AdminNavSection[] = [
         icon: Inbox,
         description: "New work requiring triage",
         mobilePrimary: true,
+      },
+      {
+        id: "identity-review",
+        label: "Identity review",
+        href: "/admin/identity-review",
+        icon: UserPlus,
+        description: "Ambiguous senders waiting for a decision",
+        keywords: "identity review ambiguous unknown link contact",
       },
     ],
   },
@@ -250,6 +259,14 @@ export const adminNavSections: AdminNavSection[] = [
         href: "/admin/features",
         icon: KanbanSquare,
         description: "Managed delivery backlog",
+        moreGroup: "System",
+      },
+      {
+        id: "branding",
+        label: "Branding",
+        href: "/admin/branding",
+        icon: Palette,
+        description: "Logo, colors, and customer document identity",
         moreGroup: "System",
       },
       {

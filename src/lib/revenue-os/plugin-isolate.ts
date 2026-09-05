@@ -28,12 +28,7 @@ import { getQuickJS, type QuickJSContext, type QuickJSHandle } from "quickjs-ems
  */
 
 export type PluginJsonValue =
-  | null
-  | boolean
-  | number
-  | string
-  | PluginJsonValue[]
-  | { [key: string]: PluginJsonValue };
+  null | boolean | number | string | PluginJsonValue[] | { [key: string]: PluginJsonValue };
 
 export interface PluginBinding {
   (...args: PluginJsonValue[]): PluginJsonValue;
@@ -84,15 +79,15 @@ function assertJson(value: unknown, what: string): asserts value is PluginJsonVa
         return;
       case "number":
         if (!Number.isFinite(node))
-          throw new Error(`${what} carries non-finite number at ${path} across the isolate boundary`);
+          throw new Error(
+            `${what} carries non-finite number at ${path} across the isolate boundary`,
+          );
         return;
       case "undefined":
       case "function":
       case "symbol":
       case "bigint":
-        throw new Error(
-          `${what} carries ${typeof node} at ${path} across the isolate boundary`,
-        );
+        throw new Error(`${what} carries ${typeof node} at ${path} across the isolate boundary`);
       case "object": {
         if (seen.has(node)) throw new Error(`${what} is circular at ${path}`);
         seen.add(node);
@@ -114,7 +109,7 @@ function assertNotFunctionHandle(ctx: QuickJSContext, handle: QuickJSHandle, wha
 }
 
 function toHandle(ctx: QuickJSContext, value: PluginJsonValue): QuickJSHandle {
-  if (value === null || value === undefined) return ctx.undefined;
+  if (value === null) return ctx.null.dup();
   switch (typeof value) {
     case "string":
       return ctx.newString(value);
@@ -187,16 +182,20 @@ export async function evaluateInIsolate(
   if (typeof code !== "string" || !code.trim()) fail("no code to evaluate");
   // The code string itself lives in host memory, outside the isolate heap
   // the memory limit guards — cap it so a giant payload cannot DoS the host.
-  if (code.length > MAX_CODE_BYTES)
+  if (Buffer.byteLength(code, "utf8") > MAX_CODE_BYTES)
     fail(`code exceeds the ${MAX_CODE_BYTES}-byte limit`);
-  const timeoutMs = Math.max(1, Math.min(MAX_TIMEOUT_MS, Math.floor(options.timeoutMs ?? DEFAULT_TIMEOUT_MS)));
+  const timeoutMs = Math.max(
+    1,
+    Math.min(MAX_TIMEOUT_MS, Math.floor(options.timeoutMs ?? DEFAULT_TIMEOUT_MS)),
+  );
   const memoryLimitBytes = Math.max(
     256 * 1024,
     Math.floor(options.memoryLimitBytes ?? DEFAULT_MEMORY_LIMIT_BYTES),
   );
   const bindings = options.bindings ?? {};
   for (const name of Object.keys(bindings)) {
-    if (typeof bindings[name] !== "function") fail(`binding ${JSON.stringify(name)} is not a function`);
+    if (typeof bindings[name] !== "function")
+      fail(`binding ${JSON.stringify(name)} is not a function`);
     // A binding installs onto the isolate global: names that shadow
     // prototype machinery would corrupt the isolate itself.
     if (!BINDING_NAME_PATTERN.test(name) || RESERVED_BINDING_NAMES.has(name))

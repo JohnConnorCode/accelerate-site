@@ -9,6 +9,8 @@ import { loadPipelineStages } from "./pipeline-stage-resolver";
 
 export const OPPORTUNITY_RECORD_CONTRACT = "revenue-os-opportunity-record.v1";
 
+type Row = Record<string, unknown>;
+
 export interface OpportunityRecord {
   contract: typeof OPPORTUNITY_RECORD_CONTRACT;
   activityContract: typeof ACTIVITY_LEDGER_CONTRACT;
@@ -23,6 +25,19 @@ export interface OpportunityRecord {
   meetings: Array<Record<string, unknown>>;
   proposals: Array<Record<string, unknown>>;
   activity: ActivityLedgerRecord[];
+  /**
+   * Delivery engagement linked by opportunity_id, with the next open
+   * milestone and overdue handoff commitments surfaced as blockers.
+   * Null when nothing has handed off yet — the sales record stands alone.
+   */
+  engagement: {
+    id: string;
+    business_name: string | null;
+    status: string | null;
+    next_milestone: { key: string; title: string | null } | null;
+    blockers: Array<{ title: string; due_date: string | null }>;
+    handed_off_at: string | null;
+  } | null;
 }
 
 function assertQuery(result: { error: { message: string } | null }, label: string) {
@@ -59,6 +74,7 @@ export async function loadOpportunityRecord(
     conversationsResult,
     meetingsResult,
     proposalsResult,
+    engagementResult,
     activity,
   ] = await Promise.all([
     opportunity.contact_id
@@ -109,6 +125,12 @@ export async function loadOpportunityRecord(
       .eq("opportunity_id", id)
       .order("created_at", { ascending: false })
       .limit(30),
+    supabase
+      .from("clients")
+      .select("id,business_name,status,onboarding_checklist,handoff_receipt,created_at")
+      .eq("opportunity_id", id)
+      .limit(1)
+      .maybeSingle(),
     loadActivityTimeline(supabase, { opportunityId: id, limit: 100 }),
   ]);
 
@@ -118,8 +140,44 @@ export async function loadOpportunityRecord(
   assertQuery(conversationsResult, "related conversations");
   assertQuery(meetingsResult, "related meetings");
   assertQuery(proposalsResult, "related proposals");
+  assertQuery(engagementResult, "the delivery engagement");
 
   const stages = await loadPipelineStages(supabase, opportunity.tenant_id);
+
+  const engagementRow = (engagementResult.data ?? null) as Row | null;
+  const checklist = Array.isArray(engagementRow?.onboarding_checklist)
+    ? (engagementRow.onboarding_checklist as Array<{ key: string; title?: string; status: string }>)
+    : [];
+  const today = new Date().toISOString().split("T")[0]!;
+  const handoffTasks = ((tasksResult.data ?? []) as Row[]).filter(
+    (task) => typeof task.dedupe_key === "string" && task.dedupe_key.startsWith("handoff:"),
+  );
+  const nextMilestoneEntry = checklist.find((entry) => entry.status !== "complete");
+  const engagement = engagementRow
+    ? {
+        id: String(engagementRow.id),
+        business_name: (engagementRow.business_name as string) ?? null,
+        status: (engagementRow.status as string) ?? null,
+        next_milestone: nextMilestoneEntry
+          ? {
+              key: nextMilestoneEntry.key,
+              title: nextMilestoneEntry.title ?? nextMilestoneEntry.key,
+            }
+          : null,
+        blockers: handoffTasks
+          .filter(
+            (task) =>
+              task.status !== "completed" &&
+              typeof task.due_date === "string" &&
+              task.due_date < today,
+          )
+          .map((task) => ({
+            title: String(task.title ?? "Untitled commitment"),
+            due_date: String(task.due_date),
+          })),
+        handed_off_at: (engagementRow.created_at as string) ?? null,
+      }
+    : null;
 
   return {
     contract: OPPORTUNITY_RECORD_CONTRACT,
@@ -132,5 +190,6 @@ export async function loadOpportunityRecord(
     meetings: meetingsResult.data ?? [],
     proposals: proposalsResult.data ?? [],
     activity,
+    engagement,
   };
 }

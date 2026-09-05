@@ -46,12 +46,10 @@ export function KanbanViewSwitcher({
 }) {
   return (
     <div className="inline-flex items-center gap-0.5 rounded-lg bg-black/[0.045] p-0.5 dark:bg-white/[0.06]">
-      {(
-        [
-          { view: "board" as const, label: "Board", Icon: Columns3 },
-          { view: "list" as const, label: "List", Icon: List },
-        ]
-      ).map(({ view, label, Icon }) => (
+      {[
+        { view: "board" as const, label: "Board", Icon: Columns3 },
+        { view: "list" as const, label: "List", Icon: List },
+      ].map(({ view, label, Icon }) => (
         <button
           key={view}
           type="button"

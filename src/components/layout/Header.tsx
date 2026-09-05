@@ -41,7 +41,15 @@ const INDUSTRY_LINKS: NavChild[] = FEATURED_INDUSTRY_SLUGS.map((slug) => {
 
 const navLinks: NavLink[] = [
   { label: "Services", href: "/services" },
-  { label: "Command Center", href: "/command-center" },
+  {
+    label: "Command Center",
+    href: "/command-center",
+    children: [
+      { label: "Overview", href: "/command-center" },
+      { label: "Roadmap", href: "/roadmap" },
+      { label: "Open Source", href: "/open-source" },
+    ],
+  },
   {
     label: "Industries",
     href: "#",
@@ -49,6 +57,7 @@ const navLinks: NavLink[] = [
   },
   { label: "Work", href: "/work" },
   { label: "Learn", href: "/learn" },
+  { label: "Team", href: "/team" },
   { label: "Docs", href: "/docs" },
   { label: "Open Source", href: "/open-source" },
   { label: "Roadmap", href: "/roadmap" },
@@ -74,6 +83,9 @@ export function Header() {
   // active when on the exact route or any child route (e.g. /work/[slug])
   const isActive = (href: string) =>
     href !== "#" && (pathname === href || pathname.startsWith(href + "/"));
+  // dropdown parents stay lit when on the parent page or any of their children
+  const isParentActive = (link: NavLink) =>
+    isActive(link.href) || (link.children?.some((child) => isActive(child.href)) ?? false);
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 8);
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -140,7 +152,7 @@ export function Header() {
                     className={cn(
                       "group/nav relative inline-flex items-center gap-1 text-sm transition-colors cursor-pointer rounded-sm",
                       focusRing,
-                      pathname.startsWith("/industries")
+                      isParentActive(link)
                         ? "text-[var(--text-nav-hover)]"
                         : "text-[var(--text-nav)] hover:text-[var(--text-nav-hover)]",
                     )}
@@ -158,7 +170,7 @@ export function Header() {
                     <span
                       className={cn(
                         navUnderline,
-                        pathname.startsWith("/industries")
+                        isParentActive(link)
                           ? "scale-x-100"
                           : "scale-x-0 group-hover/nav:scale-x-100",
                       )}
