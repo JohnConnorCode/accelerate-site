@@ -180,6 +180,12 @@ const PERSONAL_EMAIL_DOMAINS = new Set([
   "protonmail.com",
 ]);
 
+/** Consumer domains never seed a company, even on founder-confirmed create:
+ *  a personal address is not a business. Exported for the review workbench. */
+export function isPersonalEmailDomain(domain: string | null | undefined): boolean {
+  return !!domain && PERSONAL_EMAIL_DOMAINS.has(domain.trim().toLowerCase());
+}
+
 export interface ApprovedImportedContact {
   fullName: string;
   email: string | null;

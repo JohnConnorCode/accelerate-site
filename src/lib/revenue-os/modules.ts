@@ -141,8 +141,8 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     category: "revenue",
     isCore: true,
     defaultEnabled: true,
-    navLinkIds: ["contacts"],
-    routes: ["/admin/contacts", "/admin/contact-imports"],
+    navLinkIds: ["contacts", "identity-review"],
+    routes: ["/admin/contacts", "/admin/contact-imports", "/admin/identity-review"],
     aiToolNames: ["search_contacts"],
   },
   {
