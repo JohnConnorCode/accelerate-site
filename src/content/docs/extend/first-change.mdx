@@ -1,0 +1,70 @@
+---
+title: "Your first developer change"
+description: "Run the demo, find the important files, and make a small extension change."
+updated: "2026-09-05"
+---
+
+This guide is for a developer new to this repository. You will run the fictional demo, understand where code belongs, and change the existing example module. The first exercise does not add a database table or send anything externally.
+
+## Start the app
+
+You need Git, Node.js 22 or later, npm, a terminal, and an editor. A terminal is where you run the commands below; leave it open while the development server runs.
+
+```bash
+node --version
+npm --version
+git clone https://github.com/JohnConnorCode/accelerate-site.git
+cd accelerate-site
+npm ci
+npm run dev
+```
+
+Run these commands from the cloned repository, where `package.json` lives. `npm ci` installs the versions recorded in the lockfile. `npm run dev` starts the local development server; it does not publish the application.
+
+Open the URL printed by the terminal, then visit `/demo/command-center`. You should see a fictional business workspace. Follow [your first workflow](/docs/start/daily-path) to learn the behavior before changing code. Stop your own server with Control-C when finished.
+
+## Find the right files
+
+| You want to change…                    | Start here                                    |
+| -------------------------------------- | --------------------------------------------- |
+| A page or request entrypoint           | `src/app/`                                    |
+| Reusable interface pieces              | `src/components/`                             |
+| Business rules and reusable operations | `src/lib/revenue-os/`                         |
+| Module registration                    | `extensions/`                                 |
+| Public product guides                  | `src/content/docs/` and its `manifest.ts`     |
+| Database structure                     | Ordered migrations and the migration manifest |
+
+Read `AGENTS.md` and `docs/NORTHSTAR.md` before implementation. For coordinated repository work, follow the live Feature Board contract; a local experiment is not a claimed or completed board ticket.
+
+## Make one small change
+
+The repository includes an Inventory example. Its manifest registers a page and workspace toggle; it does not implement stock storage or automatic reordering.
+
+1. Open `src/app/admin/example-inventory/page.tsx` in your editor.
+2. Find the heading “This page is registered by a manifest” and change it to “My first workspace extension”. Save the file.
+3. Read `extensions/example-inventory.module.json`. Its `routes` field names the page you edited. It ships with `defaultEnabled: false`; leave that setting unchanged for this exercise.
+4. In another terminal in the repository, run the checks below. These confirm registration consistency; they do not prove database permissions or a rendered page.
+
+```bash
+npm run verify:extensions
+git diff --check
+git diff -- src/app/admin/example-inventory/page.tsx
+```
+
+The diff should contain only your intended text change. You do not need to regenerate module registration when only page text changes.
+
+## See the extension in a workspace
+
+The public demo demonstrates selected fictional workflows. To inspect this admin extension, use a [connected local installation](/docs/self-hosting/installation) with an administrator account.
+
+Open `/admin/integrations`, enable the Inventory example for your test workspace, and visit `/admin/example-inventory`. Confirm your heading appears. Disable the module and confirm the route refuses access. This is a workspace feature check; it does not require enabling the example for other workspaces.
+
+## Turn the example into a real feature
+
+[Add a module](/docs/extend/modules) covers a new manifest and route. A real feature also needs explicit business behavior, validation, authorization, storage if required, and meaningful tests. A manifest does not create those for you.
+
+Keep business writes in the shared domain services so the UI, AI tools, and integrations use the same rules. External effects need approval where required, idempotency, and a truthful result. Read the engineering and tenancy contracts linked from `AGENTS.md` before adding a write path.
+
+Run the affected checks and the repository's required verification before submitting application code. Use one heavy job at a time or CI; do not start parallel builds or copy dependency trees to work around resource limits.
+
+**Next:** [Add a module](/docs/extend/modules). If something failed, use [Troubleshooting](/docs/start/troubleshooting).

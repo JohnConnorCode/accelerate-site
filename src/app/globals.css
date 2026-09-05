@@ -3752,6 +3752,15 @@ summary:focus-visible {
   opacity: 0.6;
 }
 
+.prose-docs :is(h2, h3, h4, h5, h6) a {
+  color: inherit;
+  text-decoration: none;
+}
+.prose-docs :is(h2, h3, h4, h5, h6) a:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
 .prose-docs strong {
   color: var(--fg);
   font-weight: 600;
@@ -3764,6 +3773,63 @@ summary:focus-visible {
   font-size: 0.875em;
   font-family: var(--font-mono-face), ui-monospace, monospace;
   color: var(--fg);
+}
+
+.prose-docs :not(pre) > code {
+  overflow-wrap: anywhere;
+}
+
+.prose-docs pre {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+  margin: 1.25rem 0 1.5rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--rule);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--fg) 4%, transparent);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.prose-docs pre code {
+  background: transparent;
+  padding: 0;
+  font-size: inherit;
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.prose-docs table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  margin: 1.25rem 0 1.5rem;
+}
+
+.prose-docs th,
+.prose-docs td {
+  padding: 0.6rem 0.85rem 0.6rem 0;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+  vertical-align: top;
+}
+
+.prose-docs th {
+  color: var(--fg);
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 639px) {
+  .prose-docs table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* ========================================

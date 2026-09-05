@@ -1,0 +1,43 @@
+---
+title: "Today"
+description: "Work the founder queue: replies, commitments, meetings, proposals, and approvals."
+updated: "2026-09-04"
+---
+
+Today is the daily queue. Open `/admin/today` (or the matching demo route). It ranks work the operator should see now, with a reason, an urgency, a safe link, and a recommended next action.
+
+## What appears
+
+The queue is assembled from live workspace records. Item kinds currently include:
+
+- Unread replies that still need a response
+- Tasks and follow-ups, including overdue ones
+- Meetings inside the next 48 hours
+- Proposals waiting on a decision
+- Approvals for staged outbound or record changes
+- System exceptions, such as a health check that missed its cadence
+
+Ordering is urgency, then deadline, then kind, then the source timestamp, then a stable id. Two items with the same urgency do not shuffle.
+
+## What you can do from the row
+
+Each item links into the exact record or dialog it is about. Approval items open the review dialog rather than dropping you on an unfiltered list.
+
+From the row you can:
+
+- Approve a staged action, or approve and send when the action is outbound mail
+- Reject or edit before anything leaves
+- Complete a task, or snooze it until tomorrow
+- Refresh the queue after you act
+
+Successful mutations remove the item immediately, then reconcile against the shared queue so counters do not flash stale work.
+
+## When the read fails
+
+Today keeps the last good queue on screen, shows the last-success time, and distinguishes a background refresh from a first load. A degraded read is visible as degraded. A fatal read explains what failed and offers a recovery action. An empty queue is a real empty state.
+
+## Layout
+
+The Today layout is customizable per workspace. Regions you hide stay hidden until you put them back. The queue itself is still the same ranked list.
+
+Ask AI on this screen uses the same tools and approval rules as the rest of the workspace. It does not get a private write path.

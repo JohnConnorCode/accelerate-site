@@ -102,6 +102,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   // --- Core Modules (Always Enabled) ---
   {
     id: "core-command",
+    docsUrl: "/docs/command-center",
     name: "Command Center & Inbox",
     description: "Daily operator triage queue, activity audit trail, and inbound inbox.",
     category: "system",
@@ -121,6 +122,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   },
   {
     id: "core-pipeline",
+    docsUrl: "/docs/pipeline",
     name: "Opportunity Pipeline",
     description: "Revenue stage progression, opportunity records, and value forecasting.",
     category: "revenue",
@@ -132,6 +134,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   },
   {
     id: "core-conversations",
+    docsUrl: "/docs/conversations",
     name: "Omnichannel Conversations",
     description:
       "Unified communication inbox synchronizing Gmail, inbound forms, and direct messages.",
@@ -144,6 +147,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   },
   {
     id: "core-contacts",
+    docsUrl: "/docs/contacts",
     name: "Contact Intake & Identity",
     description:
       "Deterministic identity resolution, deduplicated contact ledger, and company linking.",
@@ -156,6 +160,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   },
   {
     id: "core-intelligence",
+    docsUrl: "/docs/intelligence",
     name: "AI Grounding & Knowledge",
     description: "Second Brain knowledge retrieval, bounded context model loops, and run traces.",
     category: "intelligence",
@@ -176,6 +181,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   },
   {
     id: "core-system",
+    docsUrl: "/docs/workspace",
     name: "System Settings & Tenancy",
     description: "Tenant workspace provisioning, setup verification, and operating preferences.",
     category: "system",
@@ -208,6 +214,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   // --- Optional / Pluggable Business Modules ---
   {
     id: "proposals",
+    docsUrl: "/docs/proposals",
     name: "Proposals & Estimates",
     description: "Proposal drafting, pricing validation, scope decisions, and status tracking.",
     category: "revenue",
@@ -218,6 +225,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   },
   {
     id: "campaigns",
+    docsUrl: "/docs/outreach",
     name: "Outbound Campaigns",
     description:
       "Controlled multi-step email campaigns, versioned copy, and sequence delivery runs.",
@@ -231,6 +239,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   },
   {
     id: "email-studio",
+    docsUrl: "/docs/outreach",
     name: "Email Studio",
     description:
       "Live transactional and marketing email template editor, previewer, and versioning.",
@@ -242,6 +251,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   },
   {
     id: "recovery",
+    docsUrl: "/docs/outreach",
     name: "Revenue Recovery",
     description: "Reactivation playbooks for stale opportunities, no-shows, and past quotes.",
     category: "revenue",
@@ -252,6 +262,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   },
   {
     id: "revenue",
+    docsUrl: "/docs/pipeline",
     name: "Revenue Analytics & Valuation",
     description: "Closed revenue tracking, recurring client value metrics, and attribution.",
     category: "revenue",
@@ -262,6 +273,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   },
   {
     id: "bookings",
+    docsUrl: "/docs/delivery",
     name: "Meeting Bookings & Scheduling",
     description: "Calendar integration, booking records, and meeting management.",
     category: "delivery",
@@ -273,6 +285,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   },
   {
     id: "clients",
+    docsUrl: "/docs/delivery",
     name: "Client Delivery & Retainers",
     description: "Active client account management, retainer scope, and delivery status.",
     category: "delivery",
@@ -283,6 +296,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   },
   {
     id: "content",
+    docsUrl: "/docs/delivery",
     name: "Content Operations",
     description: "Editorial brief generator, publishing status, and content marketing assets.",
     category: "delivery",
@@ -293,6 +307,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   },
   {
     id: "resources",
+    docsUrl: "/docs/delivery",
     name: "Resource Library",
     description: "Gated downloadable guides, templates, and lead-magnet asset management.",
     category: "delivery",
@@ -303,6 +318,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   },
   {
     id: "leads-capture",
+    docsUrl: "/docs/sources",
     name: "Direct Leads & Chat Intake",
     description: "Raw lead submissions, grader captures, and real-time chat inquiries.",
     category: "sources",
@@ -313,6 +329,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   },
   {
     id: "subscribers",
+    docsUrl: "/docs/sources",
     name: "Subscriber Audiences",
     description: "Newsletter and resource subscriber lists with attribution and status tracking.",
     category: "sources",
@@ -323,6 +340,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   },
   {
     id: "partners",
+    docsUrl: "/docs/sources",
     name: "Partner Management",
     description: "Referral partner tracking, partner applications, and commission ledger.",
     category: "sources",
@@ -333,6 +351,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   },
   {
     id: "website-grades",
+    docsUrl: "/docs/sources",
     name: "Website Grader",
     description: "Automated website audit intake and lead generation pipeline.",
     category: "sources",
@@ -343,6 +362,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   },
   {
     id: "analytics",
+    docsUrl: "/docs/intelligence",
     name: "Funnel & Traffic Analytics",
     description: "Source-to-revenue funnel analytics and privacy-respecting traffic metrics.",
     category: "intelligence",
@@ -353,6 +373,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
   },
   {
     id: "integrations",
+    docsUrl: "/docs/workspace",
     name: "Integrations Hub",
     description: "Third-party connector catalog, OAuth credentials, and sync health monitoring.",
     category: "system",

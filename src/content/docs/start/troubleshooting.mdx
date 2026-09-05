@@ -1,0 +1,55 @@
+---
+title: "Troubleshooting"
+description: "Recover from common setup, access, search, and action failures without guessing."
+updated: "2026-09-05"
+---
+
+Start with the symptom you can observe. Record the time, workspace, page, and exact error before changing configuration. Keep credentials and customer message content out of shared reports.
+
+## The local app will not start
+
+**No package.json or npm cannot find the project:** run commands in the cloned repository root, where `package.json` lives. A parent folder containing several repositories is not the application directory.
+
+**Unsupported Node version:** run `node --version`; the project requires Node.js 22 or later. Install a supported version using your development environment's normal setup, then run `npm ci` in the project.
+
+**EADDRINUSE or port already in use:** check whether your own development server is already running. Reuse it or stop it with Control-C in its terminal. To choose another port, use `npm run dev -- --port 3001`. For a connected installation, also update the app origin and authentication callback configuration. Do not force-quit unrelated processes.
+
+**Resource gate refuses a build:** retain the refusal, close only your own disposable jobs, and use CI if the machine lacks capacity. Do not raise limits or start another build in a different worktree.
+
+## Sign-in works but the workspace will not open
+
+Confirm you are using the intended installation and account. A user needs an active membership and a usable workspace. Ask the platform owner to inspect the membership and workspace status.
+
+For a fresh self-hosted installation, check that `ADMIN_EMAIL` and `BOOTSTRAP_FOUNDER_EMAIL` match and that the owner existed before migrations. Follow [the installation sequence](/docs/self-hosting/installation). Re-running an already recorded migration is not a membership repair.
+
+## A feature is missing
+
+Check your current business context, then the enabled modules in Integrations. A disabled module may remove navigation and refuse direct access. Provider-dependent features also need a configured, verified connection. Use [Setup Center](/docs/workspace/setup) and the [capability reference](/docs/command-center/capabilities).
+
+The fictional demo does not establish that every capability is configured in a connected workspace.
+
+## An invitation or message has an uncertain result
+
+Read the exact warning and inspect the activity or provider receipt. A draft is not sent; approval is not delivery; provider acceptance is not proof of inbox arrival.
+
+If the result is unknown, check the provider and local activity before retrying. Repeating an action with a new request can create a second external effect. For an explicit invitation delivery failure, use the directory's supported resend flow after correcting the connection. See [action results](/docs/start/receipts).
+
+## An import contains duplicates or the wrong people
+
+Pause further imports. Review the file's mapped columns and ambiguous matches using [Importing contacts](/docs/contacts/import). Keep a copy of the original file in your approved storage. Do not delete records in bulk to repair an unexplained mapping problem.
+
+## Search cannot find the guide
+
+Search for the task, such as “invitation”, “first developer change”, or “migration”. Exact AI tool names also work. Clear the search to browse sections. If search reports a loading error, use Retry; the section navigation remains available.
+
+## Give someone enough information to help
+
+For your technical owner or a sanitized repository issue, include:
+
+- What you wanted to do and the smallest repeatable steps.
+- The installed commit or version, affected route, browser, and time of failure.
+- Whether it happened in the fictional demo, a local test workspace, or a deployed workspace.
+- Expected behavior, actual behavior, and the error or receipt identifier.
+- Which verification failed and whether anything external may already have happened.
+
+Remove tokens, environment files, invitation links, customer data, and raw message bodies. Route production incidents to the agreed operator; the repository issue tracker is not a promised emergency support channel.

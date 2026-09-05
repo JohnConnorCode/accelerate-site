@@ -1,0 +1,23 @@
+---
+title: "Workspace"
+description: "How a tenant is provisioned, connected, and kept ready."
+updated: "2026-09-04"
+---
+
+Workspace is tenancy, setup, settings, integrations, and the Feature Board.
+
+- [Integrations](/docs/workspace/integrations). Providers, module switches, and the MCP key.
+- [Setup Center](/docs/workspace/setup). Connect, verify, and operate. Status reflects this deployment.
+- [Settings](/docs/workspace/settings). Notification preferences and operating configuration.
+
+## Tenants and setup
+
+`/admin/tenants` provisions workspaces and memberships. `/admin/setup` is the readiness list: schema, providers, mail, calendar, and AI. A check that is not ready is shown as not ready. Setup does not expose secrets.
+
+## Integrations and modules
+
+`/admin/integrations` is the connector catalog and the module switches. Provider facts are evidence. A planned connector does not appear installed. See [Modules](/docs/start/modules).
+
+## Settings and the Feature Board
+
+Operating preferences live in Settings. The Feature Board is the delivery backlog the public [roadmap](/roadmap) renders from the same manifest. This page does not restate that board.

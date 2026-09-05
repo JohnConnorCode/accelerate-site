@@ -1,0 +1,53 @@
+---
+title: "For agencies"
+description: "Onboard client workspaces, verify access, and agree an operational handoff."
+updated: "2026-09-05"
+---
+
+An agency needs repeatable client onboarding and clear ownership of data, access, providers, and support. Use this guide to plan one client pilot before adding more clients.
+
+A **deployment** is the running application and its database. A **workspace** is one business context inside it. The shared-database architecture supports multiple workspaces; workspace separation must be verified in the installation you operate.
+
+## Decide who operates what
+
+Agree these responsibilities with the client before importing data:
+
+| Responsibility           | Decision to record                                                                 |
+| ------------------------ | ---------------------------------------------------------------------------------- |
+| Platform operation       | Who owns hosting, database access, updates, backups, and incident response?        |
+| Workspace administration | Who should administer this client's workspace?                                     |
+| Provider accounts        | Who owns the sending domain, mailbox, AI account, and their bills?                 |
+| Business decisions       | Who reviews proposed actions and owns unresolved work?                             |
+| Handoff                  | What access, documentation, and data must be transferred when the engagement ends? |
+
+A workspace administrator is not automatically the platform owner. Creating workspaces, managing invitations, and changing workspace lifecycle status require platform administration. Do not share the founder login among clients.
+
+## Onboard a client workspace
+
+This path requires a connected installation and the platform owner's access. If you are administering only a client workspace, ask the platform owner to perform the provisioning steps.
+
+1. Open the workspace directory at `/admin/tenants`. Create a workspace with a recognizable business name and unique slug. Check the returned status and any warning before continuing.
+2. Invite the intended workspace administrator. Check the invitation result: recorded access, provider acceptance, and the person successfully signing in are separate facts. An uncertain provider outcome needs investigation before resending.
+3. Review workspace configuration before activation. Confirm the intended identity, branding, enabled modules, and provider connections. Use [Setup Center](/docs/workspace/setup) in that business context.
+4. Have the invited administrator sign in and confirm the correct workspace. An invitation alone is not evidence that access works.
+5. Complete one controlled workflow and inspect its [action result](/docs/start/receipts). Record the version, test, result, and any unresolved issue in the handoff.
+
+## Prove separation before real client data
+
+Use two fictional workspaces and separate test users. Your technical owner should verify that one client's user cannot open the other client's records through navigation, a copied URL, or a direct record request. Also test revoked membership, suspension, duplicate requests, and provider failure.
+
+These checks are part of the repository's self-hosting acceptance requirements. A separate sidebar or a workspace name in the header does not prove isolation. Keep real client records out until the checks pass for your installation.
+
+Do not copy another client's provider credentials as an onboarding shortcut. Verify which business owns the sending identity and destination before the first external action.
+
+## Hand over an operation the client can run
+
+Give the client the workspace URL, named administrator, enabled workflows, provider ownership list, review routine, escalation contact, and outstanding limitations. Walk through [the daily workflow](/docs/start/daily-path) together, then have the client perform the equivalent controlled workflow themselves.
+
+Record how updates will be tested and who can restore a backup. Do not promise a one-click workspace export, account transfer, or arbitrary custom roles without verifying that your installed version implements the required operation.
+
+## Pause or end an engagement
+
+Review pending actions and ownership first. Platform owners can suspend a workspace or revoke a membership through the directory. Archiving retains data; it is not a deletion or an export. Agree retention, transfer, and deletion requirements separately, then have the technical owner use a verified procedure for that deployment.
+
+**Next:** use the [business pilot checklist](/docs/start/business-owners) with your client and the [installation guide](/docs/self-hosting/installation) with your technical owner.

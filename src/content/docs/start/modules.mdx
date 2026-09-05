@@ -1,0 +1,24 @@
+---
+title: "Modules"
+description: "Optional capabilities a workspace turns on and off without forking the app."
+updated: "2026-09-04"
+---
+
+The product is a set of modules. Core modules (command, pipeline, conversations, contacts, intelligence, system) stay on. Optional modules (campaigns, proposals, bookings, and the rest) can be disabled per workspace.
+
+## What turning one off does
+
+- Its navigation entries disappear
+- Its admin routes show a disabled notice
+- Its API routes refuse the request
+- Its AI tools are marked unavailable to the assistant and to MCP
+
+The Integrations screen is the exception that can re-enable modules, so it never hides itself. Gating it would strand an operator with no path back.
+
+## Where to change it
+
+Open Integrations in the workspace. Each module card shows whether it is on, which tools it owns, and a documentation link the build verifies is live. See [Workspace](/docs/workspace).
+
+## Adding a module
+
+Third parties register a manifest under `extensions/` rather than editing core. The contract is in the repository's extending guide. A core or optional module that ships without a docs URL that resolves to a live guide fails CI.

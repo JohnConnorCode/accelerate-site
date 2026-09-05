@@ -2,35 +2,34 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen } from "lucide-react";
 import { docsManifest } from "@/content/docs/manifest";
 import { cn } from "@/lib/utils";
+import { DocsSectionIcon } from "./docs-section-icon";
 
-/** Persistent docs navigation: current page highlighted, ancestors expanded. */
+/** Persistent docs navigation: current page highlighted, that section expanded. */
 export function DocsSidebar() {
   const pathname = usePathname();
   const current = pathname.replace(/^\/docs\/?/, "");
 
   return (
-    <nav aria-label="Documentation sections" className="flex flex-col gap-6">
+    <nav aria-label="Documentation sections" className="flex flex-col gap-5">
       {docsManifest.map((section) => {
-        const expanded =
-          current === "" || current === section.id || current.startsWith(`${section.id}/`);
+        const expanded = current === section.id || current.startsWith(`${section.id}/`);
         return (
           <div key={section.id}>
             <Link
               href={`/docs/${section.id}`}
               className={cn(
-                "flex items-center gap-2 text-sm font-semibold transition-colors",
-                expanded ? "text-heading" : "text-white-muted hover:text-white-secondary",
+                "flex min-h-10 items-center gap-2 text-sm font-semibold transition-colors",
+                expanded ? "text-heading" : "text-white-secondary hover:text-heading",
               )}
-              aria-current={current === section.id ? "page" : undefined}
+              aria-current={undefined}
             >
-              <BookOpen className="h-4 w-4" aria-hidden="true" />
+              <DocsSectionIcon sectionId={section.id} className="h-4 w-4 shrink-0" />
               {section.title}
             </Link>
             {expanded && (
-              <ul className="ml-6 mt-2 flex flex-col gap-1 border-l border-[var(--rule)] pl-3">
+              <ul className="ml-6 mt-2 flex flex-col border-l border-[var(--rule)]">
                 {section.pages.map((page) => {
                   const href = `/docs/${page.slug.join("/")}`;
                   const active =
@@ -43,10 +42,10 @@ export function DocsSidebar() {
                         href={href}
                         aria-current={active ? "page" : undefined}
                         className={cn(
-                          "block py-1 text-sm transition-colors",
+                          "-ml-px flex min-h-10 items-center border-l py-2 pl-3 text-sm transition-colors",
                           active
-                            ? "font-medium text-heading"
-                            : "text-white-muted hover:text-white-secondary",
+                            ? "border-[var(--fg)] font-medium text-heading"
+                            : "border-transparent text-white-secondary hover:text-heading",
                         )}
                       >
                         {page.title}

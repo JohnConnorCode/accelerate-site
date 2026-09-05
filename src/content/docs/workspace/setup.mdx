@@ -1,0 +1,38 @@
+---
+title: "Set up a working workspace"
+description: "Verify access and the connections needed for your first real workflow."
+updated: "2026-09-05"
+---
+
+Setup Center shows whether the workspace is ready for the work you want to do. Start with one workflow, such as replying to customers, and verify its requirements before adding more integrations.
+
+## 1. Confirm your workspace
+
+Sign in and check that you are in the intended business. If you cannot access it, ask the workspace administrator to check your active membership. For a new installation, follow [Self-hosting](/docs/self-hosting) first.
+
+## 2. Open Setup Center
+
+Open `/admin/setup` in the workspace. Review the status and action attached to each check.
+
+| Status               | What to do                                         |
+| -------------------- | -------------------------------------------------- |
+| Ready                | Read what was verified and when                    |
+| Needs action         | Complete the named setup step                      |
+| Degraded             | Inspect the failure and recovery guidance          |
+| Optional or disabled | Decide whether your workflow needs this capability |
+
+## 3. Connect what you need
+
+Use [Integrations](/docs/workspace/integrations) for the relevant provider. AI work needs an available model configuration; real email needs a verified send path. You can explore the fictional demo without either.
+
+A stored API key is configuration, not proof of a working connection. Return to Setup Center and inspect the verification result after configuration.
+
+## 4. Prove a small workflow
+
+Use controlled test data. Review a proposed action, confirm its target, and inspect its outcome. For email, use a recipient you control and check the send and delivery results available from the provider.
+
+Do not treat a successful demo action as proof of live delivery. The demo never contacts a real provider.
+
+## If a check stays degraded
+
+Record the check name, its visible error, and the time of the last successful verification. Give those details to your administrator. Keep credentials out of screenshots and support messages. Today's system exceptions can point to the same underlying problem.

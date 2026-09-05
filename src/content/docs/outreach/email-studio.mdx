@@ -1,0 +1,19 @@
+---
+title: "Email Studio"
+description: "Edit live copy, inspect what was sent, and compose a direct follow-up."
+updated: "2026-09-04"
+---
+
+Open `/admin/emails`. Three views share the page: templates, send history, and a composer for a direct follow-up.
+
+## Templates
+
+Drafts are protected. Publishing a revision is explicit. Preview and test sends use the same rendering path as production, so a test that looks right is the template that will send.
+
+## History
+
+What left the building, with provider receipts. Open a row when a contact says they never got the mail. A missing provider id means the send failed or is still uncertain.
+
+## Composer
+
+A one-off follow-up from this screen still goes through the communication sender with an idempotency key. It still obeys [campaign](/docs/outreach/campaigns) stop rules for people who unsubscribed.

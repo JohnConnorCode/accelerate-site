@@ -1,0 +1,23 @@
+---
+title: "Plugins"
+description: "Register a plugin manifest with tools and triggers that still go through governance."
+updated: "2026-09-04"
+---
+
+A plugin is a tenant-scoped registration: tools, triggers, required capabilities, and optional MCP server URL. `registerPlugin` in `src/lib/revenue-os/plugins.ts` upserts the manifest, registers capabilities, and registers autonomy policies. Status starts at `pending_review` until a human approves it. Enabled and revoked are explicit later states.
+
+This is different from a [module](/docs/extend/modules). A module is compile-time JSON in `extensions/` that turns a cluster of pages on and off. A plugin is runtime data for extra tools a workspace has accepted.
+
+## Manifest shape
+
+Required: `pluginKey`, `name`, `description`. Optional: version, author, homepage, required capabilities, permissions, config schema, MCP server URL, tools, triggers.
+
+Each tool declares `toolName`, `label`, `description`, input schema, impact (`read`, `internal_write`, `external_action`), whether confirmation is required, and an autonomy level (`prohibited`, `always_ask`, `ask_until_trusted`, `standing_permission`, `autonomous`).
+
+## What still applies
+
+Plugin tools flow through the autonomy policy engine. Mutating tools still stage into `action_queue`. MCP tools discovered from an external server must be registered as `plugin_tools` before use; they do not bypass Accelerate governance. Isolate execution (QuickJS) is the host for untrusted plugin code, with measured bounds. A plugin does not get a raw database handle.
+
+## What not to do
+
+Do not treat a plugin as a way to skip approval. Do not document a plugin as autonomous if its policy is `always_ask`. Do not load plugin code from the `extensions/` JSON directory; that directory is data.

@@ -55,7 +55,7 @@ export function DocsPager({ slug }: { slug: string[] }) {
           </span>
         </Link>
       ) : (
-        <span />
+        <span className="hidden sm:block" />
       )}
       {next && (
         <Link

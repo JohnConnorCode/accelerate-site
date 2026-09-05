@@ -1,0 +1,26 @@
+---
+title: "Add an integration adapter"
+description: "Verify credentials, encrypt them, and turn inbound events into canonical records."
+updated: "2026-09-04"
+---
+
+An adapter is how a provider's credentials get verified and how its inbound data becomes canonical records. The contract is `IntegrationAdapter` in `src/lib/revenue-os/integration-adapters.ts`.
+
+WhatsApp and HubSpot are the adapters on that generic path today. OpenRouter and MCP stay outside it on purpose (tenant-scoped encryption and a server-issued key). Most new adapters will not need that exception.
+
+## Registration
+
+Implement `verify` (a real call against the provider) and `connect` (the receipt that gets stored). Declare `credentialFields` so each form field maps to the key stored in `integration_connections.encrypted_credentials`.
+
+Register the adapter in `INTEGRATION_ADAPTERS` in the same file. `configureAdapterProvider()` in the tenant providers route looks it up by id, calls `verify`, encrypts each declared field, and audits the write. That route does not change per adapter.
+
+## Rules that are not optional
+
+- Credentials are encrypted at rest through `encryptSecret` / `resolveTenantProviderSecrets`. Never store or return plaintext.
+- Writes are tenant-bound. Inside a webhook or system-context path, build the client with `createServiceRoleClient(provider.context)`, never the unbound platform client. The unbound client writes rows with no `tenant_id`.
+- Inbound webhook handlers live under `src/app/api/public/[tenantSlug]/webhooks/<provider>/`, verify the provider signature with `timingSafeEqual`, and reject replays outside a bounded window.
+- Do not add another analytics, email, AI, or scheduling vendor when the existing first-party path can do the work.
+
+## Inbound shape
+
+Normalize the provider event into the canonical inbound service (`identity.ts`, `inbound.ts`, `activities.ts`). Do not insert operational rows from the webhook handler itself. The handler authenticates, calls the service, and returns a truthful receipt.

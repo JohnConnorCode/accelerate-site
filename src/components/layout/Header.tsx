@@ -5,63 +5,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { trackConversion } from "@/lib/analytics";
 import { ChevronDown, Search } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "./MobileNav";
 import { Logo } from "@/components/ui/Logo";
-import { verticals } from "@/content/verticals";
-import { FEATURED_INDUSTRY_SLUGS } from "@/content/industry-visuals";
+import { navItems as navLinks } from "@/content/navigation";
+import type { NavItem as NavLink } from "@/lib/types";
 import { SearchDialog, useSearchShortcut } from "@/components/search/SearchDialog";
 import { headerEntrance, headerLogoReveal, headerNavItem, headerCtaReveal } from "@/lib/animations";
 import { isApplicationWorkspace } from "@/lib/navigation/public-chrome";
-
-interface NavChild {
-  label: string;
-  href: string;
-}
-
-interface NavLink {
-  label: string;
-  href: string;
-  children?: NavChild[];
-}
-
-// Derived from the vertical content, never hand-listed. The nonprofits page
-// shipped and stayed invisible for a day because this was a literal list of nine
-// that nobody remembered to extend, which is the same drift that had left
-// nonprofits out of the sitemap.
-const INDUSTRY_LINKS: NavChild[] = FEATURED_INDUSTRY_SLUGS.map((slug) => {
-  const vertical = verticals.find((item) => item.slug === slug);
-  return {
-    label: vertical?.name ?? slug,
-    href: `/industries/${slug}`,
-  };
-});
-
-const navLinks: NavLink[] = [
-  { label: "Services", href: "/services" },
-  {
-    label: "Command Center",
-    href: "/command-center",
-    children: [
-      { label: "Overview", href: "/command-center" },
-      { label: "Roadmap", href: "/roadmap" },
-      { label: "Open Source", href: "/open-source" },
-    ],
-  },
-  {
-    label: "Industries",
-    href: "#",
-    children: INDUSTRY_LINKS,
-  },
-  { label: "Work", href: "/work" },
-  { label: "Learn", href: "/learn" },
-  { label: "Team", href: "/team" },
-  { label: "Docs", href: "/docs" },
-  { label: "Open Source", href: "/open-source" },
-  { label: "Roadmap", href: "/roadmap" },
-];
 
 // Shared underline used by every nav item — grows from the left on hover and
 // stays full-width for the current route. The single source of the nav's
@@ -73,12 +26,14 @@ const focusRing =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--fg)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent";
 
 export function Header() {
+  const reducedMotion = useReducedMotion();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   useSearchShortcut(useCallback(() => setSearchOpen(true), []));
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const headerRef = useRef<HTMLElement>(null);
+  const mobileTriggerRef = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
   // active when on the exact route or any child route (e.g. /work/[slug])
   const isActive = (href: string) =>
@@ -106,6 +61,24 @@ export function Header() {
     };
   }, [mobileOpen]);
 
+  useEffect(() => {
+    const dismiss = (event: PointerEvent) => {
+      if (!headerRef.current?.contains(event.target as Node)) setOpenDropdown(null);
+    };
+    document.addEventListener("pointerdown", dismiss);
+    return () => document.removeEventListener("pointerdown", dismiss);
+  }, []);
+
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1280px)");
+    const closeOnResize = () => {
+      setOpenDropdown(null);
+      if (desktop.matches) setMobileOpen(false);
+    };
+    desktop.addEventListener("change", closeOnResize);
+    return () => desktop.removeEventListener("change", closeOnResize);
+  }, []);
+
   // the admin app has its own chrome; the marketing header doesn't belong there
   if (isApplicationWorkspace(pathname)) return null;
 
@@ -113,6 +86,9 @@ export function Header() {
     <>
       <motion.header
         ref={headerRef}
+        onClick={(event) => {
+          if ((event.target as Element).closest("a")) setOpenDropdown(null);
+        }}
         variants={headerEntrance}
         initial={false}
         animate="visible"
@@ -121,7 +97,12 @@ export function Header() {
           scrolled && "is-scrolled shadow-[0_12px_40px_rgba(11,11,11,0.08)]",
         )}
         style={{
-          backgroundColor: scrolled ? "var(--header-bg-scrolled)" : "transparent",
+          backgroundColor:
+            pathname === "/docs" || pathname.startsWith("/docs/")
+              ? "var(--bg)"
+              : scrolled
+                ? "var(--header-bg-scrolled)"
+                : "transparent",
           backdropFilter: scrolled ? "blur(24px) saturate(180%)" : "none",
           WebkitBackdropFilter: scrolled ? "blur(24px) saturate(180%)" : "none",
         }}
@@ -133,15 +114,19 @@ export function Header() {
           </motion.div>
 
           {/* Desktop Nav */}
-          <nav className="hidden lg:flex items-center gap-6">
+          <nav aria-label="Primary" className="hidden xl:flex items-center gap-5">
             {navLinks.map((link) =>
               link.children ? (
                 <motion.div
                   key={link.label}
                   variants={headerNavItem}
                   className="relative"
-                  onMouseEnter={() => setOpenDropdown(link.label)}
-                  onMouseLeave={() => setOpenDropdown(null)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Escape") {
+                      setOpenDropdown(null);
+                      event.currentTarget.querySelector("button")?.focus();
+                    }
+                  }}
                   onBlur={(e) => {
                     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
                       setOpenDropdown(null);
@@ -150,15 +135,16 @@ export function Header() {
                 >
                   <button
                     className={cn(
-                      "group/nav relative inline-flex items-center gap-1 text-sm transition-colors cursor-pointer rounded-sm",
+                      "group/nav relative inline-flex min-h-11 items-center gap-1 text-sm transition-colors cursor-pointer rounded-sm",
                       focusRing,
                       isParentActive(link)
                         ? "text-[var(--text-nav-hover)]"
                         : "text-[var(--text-nav)] hover:text-[var(--text-nav-hover)]",
                     )}
                     aria-expanded={openDropdown === link.label}
-                    aria-haspopup="true"
-                    onFocus={() => setOpenDropdown(link.label)}
+                    type="button"
+                    aria-controls={`primary-${link.label.toLowerCase().replaceAll(" ", "-")}`}
+                    onClick={() => setOpenDropdown(openDropdown === link.label ? null : link.label)}
                   >
                     {link.label}
                     <ChevronDown
@@ -179,27 +165,26 @@ export function Header() {
                   <AnimatePresence>
                     {openDropdown === link.label && (
                       <motion.div
-                        initial={{ opacity: 0, y: 8 }}
+                        initial={{ opacity: 0, y: reducedMotion ? 0 : 8 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 8 }}
-                        transition={{ duration: 0.2 }}
+                        exit={{ opacity: 0, y: reducedMotion ? 0 : 8 }}
+                        transition={{ duration: reducedMotion ? 0 : 0.2 }}
                         className="absolute top-full left-1/2 -translate-x-1/2 pt-2"
                       >
                         <div
-                          role="menu"
+                          id={`primary-${link.label.toLowerCase().replaceAll(" ", "-")}`}
+                          role="group"
                           aria-label={`${link.label} submenu`}
                           className="rounded-xl py-2 min-w-[220px] border border-[var(--border-light)]"
                           style={{
-                            backgroundColor: "var(--dropdown-bg)",
-                            backdropFilter: "blur(24px) saturate(180%)",
-                            WebkitBackdropFilter: "blur(24px) saturate(180%)",
+                            backgroundColor: "var(--bg)",
                           }}
                         >
                           {link.children.map((child) => (
                             <Link
                               key={child.href}
                               href={child.href}
-                              role="menuitem"
+                              aria-current={pathname === child.href ? "page" : undefined}
                               className="block px-4 py-2.5 text-sm text-[var(--text-nav)] hover:text-[var(--text-nav-hover)] hover:bg-[var(--bg-hover-subtle)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--fg)]"
                             >
                               {child.label}
@@ -214,9 +199,9 @@ export function Header() {
                 <motion.div key={link.href} variants={headerNavItem}>
                   <Link
                     href={link.href}
-                    aria-current={isActive(link.href) ? "page" : undefined}
+                    aria-current={pathname === link.href ? "page" : undefined}
                     className={cn(
-                      "group/nav relative inline-flex text-sm transition-colors rounded-sm",
+                      "group/nav relative inline-flex min-h-11 items-center text-sm transition-colors rounded-sm",
                       focusRing,
                       isActive(link.href)
                         ? "text-[var(--text-nav-hover)]"
@@ -239,14 +224,14 @@ export function Header() {
           </nav>
 
           {/* Desktop CTA + Theme Toggle — same flat mono .btn as the hero CTA */}
-          <motion.div variants={headerCtaReveal} className="hidden lg:flex items-center gap-3">
+          <motion.div variants={headerCtaReveal} className="hidden xl:flex items-center gap-3">
             <button
               type="button"
               onClick={() => setSearchOpen(true)}
               aria-label="Search the site"
               title="Search (press / or Cmd K)"
               className={cn(
-                "grid size-9 place-items-center rounded-lg text-[var(--text-nav)] transition-colors hover:text-[var(--text-nav-hover)] hover:bg-[var(--bg-hover-subtle)] cursor-pointer",
+                "grid size-11 place-items-center rounded-lg text-[var(--text-nav)] transition-colors hover:text-[var(--text-nav-hover)] hover:bg-[var(--bg-hover-subtle)] cursor-pointer",
                 focusRing,
               )}
             >
@@ -265,7 +250,7 @@ export function Header() {
             </Link>
           </motion.div>
 
-          <div className="flex items-center lg:hidden">
+          <div className="flex items-center xl:hidden">
             <motion.button
               variants={headerCtaReveal}
               type="button"
@@ -284,6 +269,9 @@ export function Header() {
                 "relative flex h-11 w-11 items-center justify-center cursor-pointer rounded-lg transition-transform duration-150 active:scale-[0.96]",
                 focusRing,
               )}
+              ref={mobileTriggerRef}
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-site-navigation"
               onClick={() => setMobileOpen(true)}
               aria-label="Open navigation menu"
             >
@@ -299,7 +287,14 @@ export function Header() {
       </motion.header>
 
       {/* Mobile Nav Overlay */}
-      <MobileNav isOpen={mobileOpen} onClose={() => setMobileOpen(false)} navLinks={navLinks} />
+      <MobileNav
+        isOpen={mobileOpen}
+        onClose={() => {
+          setMobileOpen(false);
+          mobileTriggerRef.current?.focus();
+        }}
+        navLinks={navLinks}
+      />
 
       <SearchDialog open={searchOpen} onOpenChangeAction={setSearchOpen} />
     </>

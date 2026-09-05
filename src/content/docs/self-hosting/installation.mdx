@@ -1,0 +1,80 @@
+---
+title: "Connect your installation"
+description: "Create the owner account, configure a fresh database, and verify a connected workspace."
+updated: "2026-09-05"
+---
+
+This walkthrough turns a local demo into a connected installation you control. You need a working checkout, a new empty Supabase project, access to its authentication settings, and a chosen owner email. Complete [the local quickstart](/docs/self-hosting) first.
+
+Use the installation instructions shipped with your checkout when upgrading an older version. This guide follows the repository's `docs/self-hosting/SELF-HOSTING.md` sequence. The database commands below change the project you configure.
+
+## 1. Configure your local environment
+
+In the repository root, copy the example file:
+
+```bash
+cp .env.example .env.local
+```
+
+Edit `.env.local` in your editor. Keep it private and out of commits. Fill in the actual values from the new project:
+
+| Configuration                                                                      | Purpose                                                           |
+| ---------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `NEXT_PUBLIC_SITE_URL`                                                             | The application origin, including the local port                  |
+| `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`                     | Public project connection used by the app                         |
+| `SUPABASE_SERVICE_ROLE_KEY`                                                        | Server-only database authority; never put it in a public variable |
+| `SUPABASE_PROJECT_REF`                                                             | The project you intend to migrate                                 |
+| `SUPABASE_DB_HOST`, `SUPABASE_DB_PORT`, `SUPABASE_DB_USER`, `SUPABASE_DB_PASSWORD` | That project's database connection                                |
+| `ADMIN_EMAIL`                                                                      | The platform owner email                                          |
+| `BOOTSTRAP_FOUNDER_EMAIL`                                                          | The same email as `ADMIN_EMAIL`                                   |
+
+Uncomment and set the relevant `BOOTSTRAP_*` identity fields in `.env.example` before the first migration. These include your business name, domain, site URL, founder identity, and email settings. Otherwise, seed defaults may retain the reference deployment's identity. Leave optional providers disabled until their workflow is needed.
+
+Check the project reference and database host against the project you created. Do not use a database holding real customer records for this installation exercise.
+
+## 2. Create the owner before migrations
+
+In your Supabase project's Authentication settings, enable email authentication. Create the owner user with the same email as `ADMIN_EMAIL` and give the account a password.
+
+Configure the application origin and its `/auth/callback` redirect URL. For a local origin of `http://localhost:3000`, the callback is `http://localhost:3000/auth/callback`. If the server uses a different port, update both the app origin and authentication configuration.
+
+The migration binds the existing owner user to an active workspace membership. Creating the account afterward does not retroactively create that membership. App password recovery also needs configured Resend delivery, so establish the initial password here.
+
+## 3. Apply and verify the database
+
+Run each command in order. Stop and investigate if one fails.
+
+```bash
+npm run verify:migrations
+npm run db:migrate:all
+npm run db:verify-schema
+npm run verify:bootstrap-identity
+```
+
+The first check validates migration classification. The runner applies pending files in the canonical order and records their checksums. The final checks verify the schema and bootstrap identity. Keep their results with your installation notes.
+
+A failed migration file rolls back. Fix the reported cause, then rerun the migration command to resume. Already recorded files are verified and skipped. Do not edit recorded migrations or remove the ledger to force replay.
+
+An existing database without a migration ledger needs reviewed baseline adoption. Stop rather than treating that refusal as a fresh installation failure.
+
+## 4. Sign in and check the workspace
+
+Restart your local development server after editing environment configuration. Sign in at `/admin` with the owner account. Confirm the intended business identity and workspace, then open [Setup Center](/docs/workspace/setup).
+
+If authentication succeeds but workspace access fails, inspect the owner email match, account creation order, membership, and workspace status. Do not weaken authentication or manually grant broad access to hide a setup error.
+
+Changing `BOOTSTRAP_*` later does not rewrite an existing workspace. Use Branding and the supported tenant configuration path for subsequent identity changes.
+
+## 5. Connect one workflow
+
+Add the provider required for your first workflow through the documented connection path. Email sending needs a verified sending setup; AI workloads need the configured AI connection. See [Integrations](/docs/workspace/integrations).
+
+Check Setup Center, then run a controlled workflow with fictional records and a destination you control. Inspect the resulting activity and provider outcome. Saved credentials alone are not a successful connection test.
+
+## 6. Establish readiness before real use
+
+Follow the verification sequence in your checkout's `docs/self-hosting/SELF-HOSTING.md`, including tenant isolation checks with fictional workspaces. Run heavy checks sequentially through the repository's resource gate or in CI.
+
+Before importing real data, establish backup and restore ownership, update procedures, and failure reporting. Hosting requires configuring secrets in your own hosting project and verifying authentication and the canonical domain after release. A working local demo does not establish production readiness.
+
+**Next:** [Run a business pilot](/docs/start/business-owners), or [onboard agency clients](/docs/start/agencies). For failures, see [Troubleshooting](/docs/start/troubleshooting).
