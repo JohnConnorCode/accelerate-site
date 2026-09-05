@@ -2,6 +2,7 @@ name: CI
 
 on:
   pull_request:
+  merge_group:
   push:
     branches: [main]
 
@@ -9,13 +10,12 @@ permissions:
   contents: read
 
 concurrency:
-  # Merge refs are reused across PR runs. Include the SHA so a newer merge
-  # request cannot cancel the build that is providing the required check.
-  group: ci-${{ github.workflow }}-${{ github.ref }}-${{ github.sha }}
-  cancel-in-progress: true
+  # Superseded PR runs can stop. Merge-queue/main receipts remain SHA-specific.
+  group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  verify:
+  checks:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -76,9 +76,6 @@ jobs:
       - name: Verify module settings never look like secrets
         run: npm run verify:module-settings
 
-      - name: Typecheck
-        run: npm run typecheck
-
       - name: Lint
         run: npm run lint -- --max-warnings=0
 
@@ -88,5 +85,42 @@ jobs:
       - name: Run core contract suite
         run: npm run test:core
 
-      - name: Build
+      - name: Verify commit workflow behavior
+        run: npm run test:verification-workflow
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Restore Next.js compiler cache
+        uses: actions/cache@v5
+        with:
+          path: .next/cache
+          key: ${{ runner.os }}-next-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-next-${{ hashFiles('package-lock.json') }}-
+      # next build includes TypeScript validation. Never ignore build errors.
+      - name: Build and typecheck
         run: npm run build
+
+  # Keep the existing required check name and fail if either job fails or skips.
+  verify:
+    if: ${{ always() }}
+    needs: [checks, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Require all verification jobs
+        env:
+          CHECKS_RESULT: ${{ needs.checks.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+        run: test "$CHECKS_RESULT" = success && test "$BUILD_RESULT" = success

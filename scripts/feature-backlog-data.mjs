@@ -430,6 +430,28 @@ function card({
 
 export const featureBacklog = [
   card({
+    key: "verification-workflow-efficiency",
+    owner: "codex-verification-workflow",
+    status: "shipped",
+    title: "Make commits fast while preserving reliable review and release verification",
+    workstream: "qa",
+    phase: 0,
+    priority: "high",
+    description: "Replace the untracked full-build/live-database commit hook with versioned, staged-content checks. Remove duplicate TypeScript work and parallelize CI without weakening its required result.",
+    acceptance: [
+      "Commit checks inspect staged blobs, reject unsafe environment files, known secret patterns, malformed JSON and whitespace/conflict errors without network or production builds",
+      "Hook installation is explicit and isolated to the current worktree; existing repository hooks and global templates are preserved",
+      "CI preserves every existing quality check, runs build and checks independently, and exposes a fail-closed aggregate verify result",
+      "Documentation distinguishes commit, local review, CI and release evidence; unchanged checks are not repeated mechanically",
+      "Temporary-repository tests prove staged/unstaged correctness, redacted failures, worktree isolation and real commit acceptance/refusal; measured hook timing is recorded",
+    ],
+    start: ".github/workflows/ci.yml; CONTRIBUTING.md; AGENTS.md; docs/contributing/AGENT-TICKET-RUNBOOK.md; scripts/verify-open-source-readiness.mjs; repository-local Git hook configuration",
+    guardrails: "No production deployment, remote branch-protection changes, global Git-template edits, application behavior changes, or cached-pass shortcuts. Preserve CI lint/format standards, Next.js type checking, founder release authority and tenant/provider regression coverage. Local installation applies only to this worktree.",
+    labels: ["testing", "release"],
+    verification: "npm run test:verification-workflow; staged hook timing and actual Git commits in temporary repositories; actionlint; scoped ESLint/Prettier; npm run verify:agent-contract; npm run test:feature-board-dependencies; git diff --check. Application build evidence is inherited from unchanged application source in work-completion-truth; CI retains its full build.",
+    evidence: "2026-09-05 verified: versioned offline staged-blob hook, shared redacted secret-pattern checks, explicit worktree-local installation preserving inherited hooks/custom overrides, documented commit/review/CI/release boundaries, parallel CI checks/build with unchanged strict lint/format and a fail-closed verify aggregate. CI no longer repeats standalone TypeScript before next build; compiler cache and PR-only cancellation added, merge_group supported. Fifteen temporary-repository tests pass, including real accepted/refused commits, staged-versus-unstaged correctness, linked-worktree isolation and sixteen CI result combinations. Actionlint v1.7.12, scoped ESLint/Prettier, OSS, agent contract, dependency graph, diff checks pass. Three runs over this 15-file staged change took 708ms/799ms/1002ms; former hook build alone took 52s compilation plus 94s TypeScript. App source/build configuration/dependencies unchanged from verified 1bbc1e9. Hook installed in this worktree only. Remote GitHub Actions and branch-protection changes were not performed; activation elsewhere requires merging and hooks:install.",
+  }),
+  card({
     key: "work-completion-truth",
     owner: "codex-work-completion-truth",
     status: "shipped",
@@ -2559,8 +2581,8 @@ export const featureBacklog = [
   }),
   card({
     key: "ai-bounded-context",
-    status: "planned",
-    owner: null,
+    status: "in_progress",
+    owner: "claude-code:johnconnor:85169",
     title: "Enforce bounded AI context and grounding rules",
     workstream: "ai",
     phase: 3,

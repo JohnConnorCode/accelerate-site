@@ -3,6 +3,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, extname, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
+import { textExtensions, secretPatterns } from "./lib/source-safety.mjs";
 
 const requiredFiles = [
   ".env.example",
@@ -51,34 +52,6 @@ if (packageJson.private !== true)
   failures.push("package.json must remain private to prevent accidental npm publication");
 if (packageJson.license !== "MIT") failures.push("package.json must declare the MIT license");
 if (!packageJson.repository?.url) failures.push("package.json must declare its repository URL");
-
-const textExtensions = new Set([
-  "",
-  ".css",
-  ".html",
-  ".js",
-  ".json",
-  ".jsx",
-  ".md",
-  ".mdx",
-  ".mjs",
-  ".sql",
-  ".svg",
-  ".ts",
-  ".tsx",
-  ".txt",
-  ".yml",
-  ".yaml",
-]);
-const secretPatterns = [
-  ["private key", /-----BEGIN [A-Z ]*PRIVATE KEY-----/],
-  ["Stripe secret key", /sk_(?:live|test)_[A-Za-z0-9]{16,}/],
-  ["OpenRouter secret key", /sk-or-v1-[a-f0-9]{32,}/i],
-  ["Anthropic secret key", /sk-ant-[A-Za-z0-9_-]{24,}/],
-  ["Resend secret key", /re_[A-Za-z0-9]{24,}/],
-  ["Google API key", /AIza[A-Za-z0-9_-]{24,}/],
-  ["JWT", /eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}/],
-];
 
 for (const file of tracked) {
   if (!textExtensions.has(extname(file))) continue;

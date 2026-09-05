@@ -162,11 +162,19 @@ Every capability follows this sequence:
 For every code ticket:
 
 1. `npm run verify:agent-contract`
-2. `npx tsc --noEmit`
+2. TypeScript validation: `npm run typecheck` or a successful production build
+   of the same relevant source tree (the build includes type checking).
 3. `npm run lint`
 4. The closest scoped unit, API, or Playwright journey named by the card
-5. `npm run build` before a shipped handoff
+5. `npm run build` before a shipped application-code handoff. Documentation or
+   tooling-only changes use their scoped checks when application/build inputs are unchanged.
 6. `git diff --check`
+
+Run expensive verification once for the final relevant source tree, not again
+merely to commit or update ticket prose. Rerun affected checks when inputs change,
+a failure is fixed, or new evidence warrants it. Commit hooks must be fast and
+offline; live Feature Board checks remain explicit operational commands. See
+[verification workflow](docs/contributing/VERIFICATION-WORKFLOW.md).
 
 Visual and interaction work additionally requires repository Playwright at the
 affected desktop and mobile widths, opened screenshots, console-error checks,

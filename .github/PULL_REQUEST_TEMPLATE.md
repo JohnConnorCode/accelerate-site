@@ -10,10 +10,10 @@
 
 - [ ] `npm run verify:oss`
 - [ ] `npm run verify:agent-contract`
-- [ ] `npm run typecheck`
+- [ ] TypeScript verified by `npm run typecheck` or the applicable production build
 - [ ] `npm run lint -- --max-warnings=0`
 - [ ] Relevant contract or browser journey
-- [ ] `npm run build`
+- [ ] `npm run build` for application/build-input changes; scoped checks for tooling/docs-only changes
 - [ ] No real customer data, credentials, or production mutation used
 
 ## Visual evidence

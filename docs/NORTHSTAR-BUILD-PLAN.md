@@ -17,18 +17,17 @@
 
 | Phase | Backlog | Planned | In progress | Blocked | Shipped | Total |
 |---|---|---|---|---|---|---|
-| A — A (Complete Loop One — See + Remember) | 0 | 0 | 0 | 1 | 18 | 19 |
-| B — B (Agent Runtime foundation — Notice + Act primitives) | 19 | 21 | 0 | 4 | 34 | 78 |
+| A — A (Complete Loop One — See + Remember) | 0 | 0 | 0 | 1 | 19 | 20 |
+| B — B (Agent Runtime foundation — Notice + Act primitives) | 19 | 20 | 1 | 4 | 34 | 78 |
 | C — C (Reference coworker — Sales end-to-end loop) | 20 | 4 | 1 | 1 | 10 | 36 |
 | D — D (Plugin SDK + MCP) | 5 | 3 | 0 | 1 | 13 | 22 |
 | E — E (Additional coworkers/plugins + documentation) | 40 | 5 | 0 | 0 | 10 | 55 |
 
-**Board total:** 84 backlog, 33 planned, 1 in progress, 7 blocked, 85 shipped (210 managed cards).
+**Board total:** 84 backlog, 32 planned, 2 in progress, 7 blocked, 86 shipped (211 managed cards).
 
 ## Dispatchable now (`npm run agent:next` picks from this set)
 
 - `drive-content-indexing` [medium] — Extract and index approved Drive documents
-- `ai-bounded-context` [high] — Enforce bounded AI context and grounding rules
 - `drive-provenance-retrieval` [medium] — Ground AI retrieval in Drive provenance and citations
 - `admin-shell-design-system` [high] — Complete the shared professional admin system
 - `admin-settings-consolidation` [medium] — Consolidate Settings and connection ownership
@@ -43,8 +42,8 @@
 - `won-to-delivery-handoff` [high] — Create the won-to-delivery handoff
 - `stage-history-analytics-reconciliation` [high] — Reconcile analytics with canonical stage history
 - `unified-action-executor` [high] — Route every write through one executor with reversibility and compensators
-- `operating-goals-scorecards` [high] — Add operating goals and scorecards
 - `plugin-isolate-host` [high] — Run plugin code in an isolate with no ambient authority
+- `operating-goals-scorecards` [high] — Add operating goals and scorecards
 - `governed-bulk-operator-actions` [medium] — Add governed bulk operator actions
 - `integration-adapter-contract` [high] — Define the provider integration adapter contract
 - `guided-first-run-setup` [medium] — Guide first-run setup inside the product, not the terminal
@@ -57,6 +56,7 @@
 
 ## In progress
 
+- `ai-bounded-context` — Enforce bounded AI context and grounding rules (claude-code:johnconnor:85169)
 - `ai-model-job-registry` — Route every AI job through an audited model registry (claude-code:johnconnor:68945)
 
 ## Blocked

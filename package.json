@@ -205,7 +205,11 @@
     "qa:founder-notes": "node --env-file=.env.local scripts/qa-founder-note.mjs",
     "test:work-completion": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-work-completion.ts",
     "test:work-completion:postgres": "node scripts/test-work-completion-postgres.mjs",
-    "qa:work-completion": "npm run test:work-completion -- --browser-fixtures && node scripts/qa-work-completion.mjs"
+    "qa:work-completion": "npm run test:work-completion -- --browser-fixtures && node scripts/qa-work-completion.mjs",
+    "hooks:install": "node scripts/install-git-hooks.mjs",
+    "verify:commit": "node scripts/verify-commit.mjs",
+    "verify:review": "npm run verify:agent-contract && npm run verify:guardrails && npm run lint && npm run test:core && npm run build",
+    "test:verification-workflow": "node scripts/test-verification-workflow.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

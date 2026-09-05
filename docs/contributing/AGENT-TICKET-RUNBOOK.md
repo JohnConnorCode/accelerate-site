@@ -85,16 +85,21 @@ Always run:
 
 ```bash
 npm run verify:agent-contract
-npx tsc --noEmit
+npm run typecheck # optional separately when the final build will check the same source
 npm run lint
 git diff --check
 ```
 
-Before a shipped handoff:
+Before a shipped application-code handoff:
 
 ```bash
 npm run build
 ```
+
+A successful build also satisfies TypeScript validation for the same relevant
+source tree. Do not repeat it just to commit or update ticket prose. Tooling/docs
+changes use their scoped verification when application and build inputs remain
+unchanged. Follow [verification workflow](VERIFICATION-WORKFLOW.md).
 
 Then run the scoped test named by the card. For admin work, use the repository
 Playwright scripts, not an in-app browser dependency. Open and inspect generated
