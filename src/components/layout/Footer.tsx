@@ -78,6 +78,7 @@ const footerColumns = [
     links: [
       { label: "Free Downloads", href: "/resources" },
       { label: "Learning Hub", href: "/learn" },
+      { label: "Documentation", href: "/docs" },
     ],
   },
   {

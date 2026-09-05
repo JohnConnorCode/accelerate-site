@@ -29,9 +29,8 @@ export const OPEN_SOURCE_PATHS: OpenSourcePath[] = [
       "37 ordered database migrations and full documentation for tenancy and security",
       "A public roadmap, with acceptance criteria written out for every planned change",
     ],
-    ctaText: "View the repository",
-    ctaHref: "https://github.com/JohnConnorCode/accelerate-site",
-    external: true,
+    ctaText: "Read the self-hosting quickstart",
+    ctaHref: "/docs/self-hosting",
   },
   {
     id: "managed",

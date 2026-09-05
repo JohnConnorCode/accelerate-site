@@ -25,7 +25,8 @@ const WEIGHTS = {
 
 /** Breaks ties so results never reorder unpredictably between keystrokes. */
 const GROUP_PRIORITY: Record<SearchGroup, number> = {
-  Pages: 6,
+  Pages: 7,
+  Docs: 6,
   Industries: 5,
   Services: 4,
   Work: 3,

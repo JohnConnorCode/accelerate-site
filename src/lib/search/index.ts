@@ -6,6 +6,8 @@ import { services } from "@/content/services";
 import { packages } from "@/content/packages";
 import { changelogEntries } from "@/content/changelog";
 import { publicWorkProjects } from "@/content/work";
+import { docsManifest } from "@/content/docs/manifest";
+import { marketingPositioning } from "@/content/marketing-positioning";
 
 /**
  * One index for site search.
@@ -16,7 +18,7 @@ import { publicWorkProjects } from "@/content/work";
  * written lists all had to be remembered. Nothing here is hand written.
  */
 export type SearchGroup =
-  "Articles" | "Industries" | "Services" | "Packages" | "Work" | "Pages" | "Changelog";
+  "Articles" | "Industries" | "Services" | "Packages" | "Work" | "Pages" | "Changelog" | "Docs";
 
 export interface SearchEntry {
   id: string;
@@ -233,6 +235,32 @@ export function buildSearchIndex(): SearchEntry[] {
       date: entry.publishedAt,
     });
   }
+
+  // Docs pages come from the manifest, not a hand list, so a new page is
+  // searchable the moment it lands in the tree. Section roots collapse to
+  // their overview, matching the route loader.
+  for (const section of docsManifest) {
+    for (const page of section.pages) {
+      const href = `/docs/${page.slug.join("/")}`;
+      entries.push({
+        id: `docs-${page.slug.join("-")}`,
+        title: page.title,
+        description: page.description,
+        href,
+        group: "Docs",
+        keywords: ["docs", "guide", "documentation", section.title, page.title],
+      });
+    }
+  }
+  // The landing itself is findable too.
+  entries.push({
+    id: "docs-landing",
+    title: "Documentation",
+    description: marketingPositioning.docsBlurb,
+    href: "/docs",
+    group: "Docs",
+    keywords: ["docs", "documentation", "guides", "help", "manual"],
+  });
 
   cached = entries;
   return entries;
