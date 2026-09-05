@@ -20,8 +20,8 @@ export default function DocsLandingPage() {
         Run your business on rails
       </h1>
       <p className="mt-5 max-w-2xl text-pretty text-lg leading-relaxed text-white-secondary">
-        Practical guides, not marketing. Start with your business, use the
-        Command Center where it earns its place, and follow up every inquiry.
+        Practical guides, not marketing. Start with your business, use the Command Center where it
+        earns its place, and follow up every inquiry.
       </p>
 
       <div className="mt-12 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -35,10 +35,15 @@ export default function DocsLandingPage() {
               <BookOpen className="h-4 w-4" aria-hidden="true" />
               {section.title}
             </span>
-            <span className="text-sm leading-relaxed text-white-secondary">{section.description}</span>
+            <span className="text-sm leading-relaxed text-white-secondary">
+              {section.description}
+            </span>
             <span className="mt-auto inline-flex items-center gap-1 pt-3 text-sm font-medium text-heading">
               Read the guide
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+              <ArrowRight
+                className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                aria-hidden="true"
+              />
             </span>
           </Link>
         ))}

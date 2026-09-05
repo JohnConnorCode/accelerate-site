@@ -6,7 +6,6 @@ export function gmailMessageIdHeader(externalId: string | null | undefined): str
   return id ? `<${id}>` : null;
 }
 
-
 export function buildGmailReplySubject(
   conversationSubject: string | null | undefined,
   latestSubject: string | null | undefined,

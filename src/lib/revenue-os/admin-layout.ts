@@ -93,7 +93,13 @@ export async function proposeLayoutChange(
 
 export async function applyLayoutChange(
   supabase: SupabaseClient,
-  input: { scope: string; doc: unknown; actorEmail: string; source?: "ai" | "admin"; tenantId: string },
+  input: {
+    scope: string;
+    doc: unknown;
+    actorEmail: string;
+    source?: "ai" | "admin";
+    tenantId: string;
+  },
 ) {
   const doc = validateLayoutDoc(input.scope, input.doc);
   if (!input.tenantId?.trim()) throw new Error("A tenant id is required to save layout docs");
@@ -102,7 +108,12 @@ export async function applyLayoutChange(
   const { error } = await supabase
     .from("admin_settings")
     .upsert(
-      { tenant_id: input.tenantId, key, value: JSON.stringify(doc), updated_at: new Date().toISOString() },
+      {
+        tenant_id: input.tenantId,
+        key,
+        value: JSON.stringify(doc),
+        updated_at: new Date().toISOString(),
+      },
       { onConflict: "tenant_id,key" },
     );
   if (error) throw new Error(error.message);
@@ -140,7 +151,12 @@ export async function revertLayoutChange(
   const { error } = await supabase
     .from("admin_settings")
     .upsert(
-      { tenant_id: input.tenantId, key, value: JSON.stringify(previous), updated_at: new Date().toISOString() },
+      {
+        tenant_id: input.tenantId,
+        key,
+        value: JSON.stringify(previous),
+        updated_at: new Date().toISOString(),
+      },
       { onConflict: "tenant_id,key" },
     );
   if (error) throw new Error(error.message);

@@ -45,7 +45,9 @@ function walk(dir: string, base: string[] = []): string[][] {
     if (!section.pages.length) failures.push(`Section "${section.id}" has no pages.`);
     const first = section.pages[0];
     if (first && first.slug[first.slug.length - 1] !== "overview") {
-      failures.push(`Section "${section.id}" must start with its overview page (directory collapse target).`);
+      failures.push(
+        `Section "${section.id}" must start with its overview page (directory collapse target).`,
+      );
     }
     for (const page of section.pages) {
       const key = page.slug.join("/");
@@ -88,7 +90,9 @@ for (const key of manifestKeys) {
   }
   for (const field of FORBIDDEN_FRONTMATTER) {
     if (data[field] !== undefined) {
-      failures.push(`"${key}" frontmatter must not carry "${field}" (derivable; manifest owns it).`);
+      failures.push(
+        `"${key}" frontmatter must not carry "${field}" (derivable; manifest owns it).`,
+      );
     }
   }
   if (typeof data.updated === "string" && !/^\d{4}-\d{2}-\d{2}$/.test(data.updated)) {
@@ -102,7 +106,9 @@ for (const key of manifestKeys) {
   for (const href of BOOKING_HREFS) {
     const linkPattern = new RegExp(`\\]\\(\\s*${href.replace("/", "\\/")}[^)]*\\)`);
     if (linkPattern.test(content)) {
-      failures.push(`"${key}" must not link to "${href}" (a docs page ending in a booking call reads as marketing).`);
+      failures.push(
+        `"${key}" must not link to "${href}" (a docs page ending in a booking call reads as marketing).`,
+      );
     }
   }
 }

@@ -100,7 +100,10 @@ class MockQueryBuilder implements PromiseLike<{
 
   then<TResult1 = { data: unknown; error: { message: string } | null }, TResult2 = never>(
     onfulfilled?:
-      | ((value: { data: unknown; error: { message: string } | null }) => TResult1 | PromiseLike<TResult1>)
+      | ((value: {
+          data: unknown;
+          error: { message: string } | null;
+        }) => TResult1 | PromiseLike<TResult1>)
       | null,
     onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
   ): Promise<TResult1 | TResult2> {
@@ -113,7 +116,9 @@ class MockQueryBuilder implements PromiseLike<{
     const rows = this.db.tables[this.table] ?? [];
 
     if (this.op === "insert") {
-      const items = Array.isArray(this.opPayload) ? (this.opPayload as Row[]) : [this.opPayload as Row];
+      const items = Array.isArray(this.opPayload)
+        ? (this.opPayload as Row[])
+        : [this.opPayload as Row];
       const inserted = items.map((item) => ({ ...item }));
       rows.push(...inserted);
       return Promise.resolve({ data: this.isSingle ? inserted[0] : inserted, error: null }).then(
@@ -132,10 +137,10 @@ class MockQueryBuilder implements PromiseLike<{
         }
       }
       void count;
-      return Promise.resolve({ data: rows.filter((r) => this.filters.every((f) => f(r))), error: null }).then(
-        onfulfilled,
-        onrejected,
-      );
+      return Promise.resolve({
+        data: rows.filter((r) => this.filters.every((f) => f(r))),
+        error: null,
+      }).then(onfulfilled, onrejected);
     }
 
     let matched = rows.filter((r) => this.filters.every((f) => f(r)));
@@ -156,7 +161,10 @@ class MockQueryBuilder implements PromiseLike<{
       }).then(onfulfilled, onrejected);
     }
     if (this.isMaybeSingle) {
-      return Promise.resolve({ data: matched[0] || null, error: null }).then(onfulfilled, onrejected);
+      return Promise.resolve({ data: matched[0] || null, error: null }).then(
+        onfulfilled,
+        onrejected,
+      );
     }
     return Promise.resolve({ data: matched, error: null }).then(onfulfilled, onrejected);
   }
@@ -169,7 +177,14 @@ async function runTelemetrySuite() {
   // Test 1: wrapper links rows and records first-use telemetry.
   {
     const db = new MockSupabase({
-      contacts: [{ id: "c-1", company_id: "co-1", primary_email: "sam@example.com", source_record_id: "s-1" }],
+      contacts: [
+        {
+          id: "c-1",
+          company_id: "co-1",
+          primary_email: "sam@example.com",
+          source_record_id: "s-1",
+        },
+      ],
       opportunities: [],
     });
     const result = await attachRevenueLinkageWithTelemetry(
@@ -192,7 +207,12 @@ async function runTelemetrySuite() {
   {
     const db = new MockSupabase({ contacts: [], opportunities: [] });
     const supabase = client(db);
-    await attachRevenueLinkageWithTelemetry(supabase, [{ id: "a" }], { sourceRecordType: "crm" }, { route: "admin-test" });
+    await attachRevenueLinkageWithTelemetry(
+      supabase,
+      [{ id: "a" }],
+      { sourceRecordType: "crm" },
+      { route: "admin-test" },
+    );
     await attachRevenueLinkageWithTelemetry(
       supabase,
       [{ id: "a" }, { id: "b" }],
@@ -224,7 +244,9 @@ async function runTelemetrySuite() {
   // Test 4: telemetry failure never breaks the read.
   {
     const db = new MockSupabase({
-      contacts: [{ id: "c-1", company_id: null, primary_email: "sam@example.com", source_record_id: null }],
+      contacts: [
+        { id: "c-1", company_id: null, primary_email: "sam@example.com", source_record_id: null },
+      ],
       opportunities: [],
     });
     db.failTables.add("legacy_adapter_usage");
@@ -234,7 +256,11 @@ async function runTelemetrySuite() {
       { sourceRecordType: "crm" },
       { route: "admin-test" },
     );
-    assert.equal(result.records[0]?.revenue_os.contact_id, "c-1", "Read succeeds without telemetry");
+    assert.equal(
+      result.records[0]?.revenue_os.contact_id,
+      "c-1",
+      "Read succeeds without telemetry",
+    );
     const report = await getLegacyAdapterUsage(client(db));
     assert.equal(report.telemetryReady, false);
     assert.equal(report.consumers.length, LEGACY_ADAPTER_CONSUMERS.length);
@@ -263,7 +289,14 @@ async function runTelemetrySuite() {
   {
     const db = new MockSupabase({
       legacy_adapter_usage: [
-        { route: "admin-leads", calls: 4, total_rows: 100, linked_rows: 70, first_used_at: "2026-09-01T00:00:00Z", last_used_at: "2026-09-03T00:00:00Z" },
+        {
+          route: "admin-leads",
+          calls: 4,
+          total_rows: 100,
+          linked_rows: 70,
+          first_used_at: "2026-09-01T00:00:00Z",
+          last_used_at: "2026-09-03T00:00:00Z",
+        },
       ],
     });
     const report = await getLegacyAdapterUsage(client(db));
@@ -281,7 +314,11 @@ async function runTelemetrySuite() {
   {
     const db = new MockSupabase();
     db.failTables.add("legacy_adapter_usage");
-    const ok = await recordLegacyAdapterUse(client(db), { route: "admin-test", rows: 5, linked: 1 });
+    const ok = await recordLegacyAdapterUse(client(db), {
+      route: "admin-test",
+      rows: 5,
+      linked: 1,
+    });
     assert.equal(ok, false);
   }
 

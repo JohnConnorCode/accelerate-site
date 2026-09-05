@@ -27,7 +27,9 @@ const readHeadings = (selector: string): TocItem[] => {
     }));
 };
 
-export function TableOfContents({ selector = "[data-article-content]" }: { selector?: string } = {}) {
+export function TableOfContents({
+  selector = "[data-article-content]",
+}: { selector?: string } = {}) {
   // Start empty so the server render and the client's first (hydration) render
   // match — both produce `null`. Headings are read from the DOM after mount,
   // then the TOC fades in. Reading during render would diverge (no `document`

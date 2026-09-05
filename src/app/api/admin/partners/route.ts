@@ -31,9 +31,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
 
-  const linked = await attachRevenueLinkageWithTelemetry(supabase, data || [], {
-    sourceRecordType: "partner_application",
-  }, { route: "admin-partners" });
+  const linked = await attachRevenueLinkageWithTelemetry(
+    supabase,
+    data || [],
+    {
+      sourceRecordType: "partner_application",
+    },
+    { route: "admin-partners" },
+  );
 
   return NextResponse.json({
     partners: linked.records,

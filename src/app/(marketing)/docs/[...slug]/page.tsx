@@ -81,7 +81,12 @@ export default async function DocsPage({ params }: { params: Promise<{ slug: str
       </p>
       <p className="mt-4 flex items-center gap-1.5 text-sm text-white-muted">
         <Calendar className="h-4 w-4" aria-hidden="true" />
-        Updated {formatDateOnly(page.frontmatter.updated, { month: "long", day: "numeric", year: "numeric" })}
+        Updated{" "}
+        {formatDateOnly(page.frontmatter.updated, {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        })}
         <span aria-hidden="true">·</span> {page.readingTime}
       </p>
 

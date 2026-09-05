@@ -69,7 +69,10 @@ for (const [label, viewport] of [
   if (openCount < 1) failures.push(`${label}: expanding a matching card did not open details`);
 
   await page.getByRole("button", { name: /^Ready to pick up/ }).click();
-  if ((await page.getByRole("button", { name: /^Ready to pick up/ }).getAttribute("aria-pressed")) !== "true") {
+  if (
+    (await page.getByRole("button", { name: /^Ready to pick up/ }).getAttribute("aria-pressed")) !==
+    "true"
+  ) {
     failures.push(`${label}: Ready to pick up did not stay pressed`);
   }
 

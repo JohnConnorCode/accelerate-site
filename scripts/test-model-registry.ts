@@ -65,10 +65,7 @@ async function main() {
   );
   const pubDefault = await resolveModelForJob(db, TENANT, "public-chat", null);
   assert.equal(pubDefault.requested, pubDefault.resolved);
-  await assert.rejects(
-    () => resolveModelForJob(db, TENANT, "no-such-job", null),
-    /Unknown AI job/,
-  );
+  await assert.rejects(() => resolveModelForJob(db, TENANT, "no-such-job", null), /Unknown AI job/);
   await assert.rejects(
     () => resolveModelForJob(db, TENANT, "copilot-answer", "unregistered/model"),
     /not registered/,

@@ -30,8 +30,7 @@ export async function GET(request: NextRequest) {
     followUp: params.get("followUp") === "1" || params.get("followUp") === "true",
     // "me" resolves server-side so the client never has to know (or spoof)
     // the operator's address; "unassigned" matches threads with no assignee.
-    assignee:
-      assigneeParam === "me" ? auth.user.email || undefined : assigneeParam,
+    assignee: assigneeParam === "me" ? auth.user.email || undefined : assigneeParam,
     search: params.get("search") || undefined,
   };
 
@@ -111,8 +110,7 @@ export async function PATCH(request: NextRequest) {
     if (body.assigneeEmail !== undefined) {
       // "me" resolves to the authenticated operator so the client never has
       // to know (or spoof) its own address on the write path either.
-      const assignee =
-        body.assigneeEmail === "me" ? (auth.user.email ?? null) : body.assigneeEmail;
+      const assignee = body.assigneeEmail === "me" ? (auth.user.email ?? null) : body.assigneeEmail;
       if (body.assigneeEmail === "me" && !assignee)
         return NextResponse.json({ error: "Could not identify the operator" }, { status: 400 });
       const updated = await assignConversation(supabase, {

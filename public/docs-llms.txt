@@ -7,9 +7,9 @@ How every engagement begins: your business first, then the smallest solution tha
 - [Start with your business](https://www.acceleratewith.us/docs/start/overview) (updated 2026-09-04): We find where AI and automation can free up time or increase revenue before anyone builds anything.
 
 ## Command Center
-One shared operating layer for the businesses that need it — and how to tell whether you do.
+One shared operating layer for businesses that need it, and how to decide whether it fits.
 
-- [The Command Center](https://www.acceleratewith.us/docs/command-center/overview) (updated 2026-09-04): What the Command Center is, what it is not, and when a smaller solution wins.
+- [The Command Center](https://www.acceleratewith.us/docs/command-center/overview) (updated 2026-09-04): How the Command Center fits your business and when a smaller solution makes sense.
 
 ## Follow-up
 The discipline that decides most inquiries: respond first, follow through, and let nothing wait.

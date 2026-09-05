@@ -16,11 +16,7 @@ import { recordActivity } from "./activities";
 import { recordAudit } from "./audit";
 import { associateConversationParticipants } from "./conversations";
 import { prepareGmailReply } from "./gmail-reply-mime";
-import {
-  parseAddressList,
-  parseRfcMessageId,
-  resolveGmailDirection,
-} from "./gmail-threading";
+import { parseAddressList, parseRfcMessageId, resolveGmailDirection } from "./gmail-threading";
 import { createPreCallBriefWork, createPostMeetingProcessWork } from "./meeting-intel-coworker";
 import { assertActiveTenantExecution } from "@/lib/tenancy/system";
 
@@ -309,7 +305,8 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
   let stored = 0;
   let failed = 0;
   const ownerEmails = await listGmailOwnerEmails(token, connection.account_email as string);
-  const isOutbound = (from: string | null) => resolveGmailDirection(from, ownerEmails) === "outbound";
+  const isOutbound = (from: string | null) =>
+    resolveGmailDirection(from, ownerEmails) === "outbound";
   for (const threadId of threadIds) {
     try {
       const thread = await googleFetch<{
@@ -343,7 +340,8 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
       if (existingError) throw new Error(existingError.message);
       const unread = messages.filter(
         (message) =>
-          message.labelIds?.includes("UNREAD") && !isOutbound(parseAddress(header(message, "From"))),
+          message.labelIds?.includes("UNREAD") &&
+          !isOutbound(parseAddress(header(message, "From"))),
       ).length;
       const lastAt = latest.internalDate
         ? new Date(Number(latest.internalDate)).toISOString()
@@ -402,12 +400,11 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
           sent_at: message.internalDate
             ? new Date(Number(message.internalDate)).toISOString()
             : null,
-          received_at:
-            outbound
-              ? null
-              : message.internalDate
-                ? new Date(Number(message.internalDate)).toISOString()
-                : null,
+          received_at: outbound
+            ? null
+            : message.internalDate
+              ? new Date(Number(message.internalDate)).toISOString()
+              : null,
           metadata: {
             labels: message.labelIds ?? [],
             gmail_thread_id: thread.id,
@@ -447,7 +444,10 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
       if (upsertRows.length) {
         const { error: messageError } = await supabase
           .from("messages")
-          .upsert(upsertRows, { onConflict: "conversation_id,external_id", ignoreDuplicates: false });
+          .upsert(upsertRows, {
+            onConflict: "conversation_id,external_id",
+            ignoreDuplicates: false,
+          });
         if (messageError) throw new Error(messageError.message);
       }
       const priorIds = new Set((priorRows ?? []).map((message) => message.external_id));

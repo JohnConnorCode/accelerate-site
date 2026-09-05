@@ -49,7 +49,10 @@ export default function IdentityReviewPage() {
   const items = useMemo(() => reviewQuery.data?.items ?? [], [reviewQuery.data]);
   const selected = items.find((item) => item.actionId === selectedId) ?? items[0] ?? null;
 
-  async function resolve(decision: "link" | "create" | "no_match" | "defer", extra: Record<string, unknown> = {}) {
+  async function resolve(
+    decision: "link" | "create" | "no_match" | "defer",
+    extra: Record<string, unknown> = {},
+  ) {
     if (!selected || resolving) return;
     if (decision === "link" && !candidateId) {
       toast.error("Choose the matching contact first.");
@@ -68,7 +71,7 @@ export default function IdentityReviewPage() {
           actionId: selected.actionId,
           decision,
           contactId: decision === "link" ? candidateId : undefined,
-          companyId: decision === "link" ? candidate?.company_id ?? undefined : undefined,
+          companyId: decision === "link" ? (candidate?.company_id ?? undefined) : undefined,
           fullName: decision === "create" ? fullName.trim() : undefined,
           ...extra,
         }),
@@ -94,7 +97,11 @@ export default function IdentityReviewPage() {
     <AdminReadBody
       loading={reviewQuery.isPending}
       hasData={Boolean(reviewQuery.data)}
-      error={reviewQuery.isError ? (reviewQuery.error?.message ?? "Could not load the review queue.") : undefined}
+      error={
+        reviewQuery.isError
+          ? (reviewQuery.error?.message ?? "Could not load the review queue.")
+          : undefined
+      }
       onRetry={() => void reviewQuery.refetch()}
       refreshing={reviewQuery.isFetching}
       loadingFallback={<LoadingSkeleton variant="detail" />}
@@ -125,7 +132,8 @@ export default function IdentityReviewPage() {
           <div>
             <p className="font-semibold">Queue clear</p>
             <p className="text-sm text-white-muted">
-              Every participant resolved to a canonical record. New ambiguities land here automatically.
+              Every participant resolved to a canonical record. New ambiguities land here
+              automatically.
             </p>
           </div>
         </AdminSurface>
@@ -173,7 +181,8 @@ export default function IdentityReviewPage() {
             <AdminSurface className="flex flex-col gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-white-muted">
-                  {selected.source} · {selected.threadId ? `thread ${selected.threadId.slice(0, 12)}` : "no thread"}
+                  {selected.source} ·{" "}
+                  {selected.threadId ? `thread ${selected.threadId.slice(0, 12)}` : "no thread"}
                 </p>
                 <h2 className="text-lg font-bold">{selected.participantEmail}</h2>
                 <p className="text-sm text-white-muted">
@@ -208,13 +217,19 @@ export default function IdentityReviewPage() {
                     No candidates. Link is unavailable; create the contact or record no match.
                   </p>
                 ) : (
-                  <ul className="flex flex-col gap-2" role="radiogroup" aria-label="Candidate contacts">
+                  <ul
+                    className="flex flex-col gap-2"
+                    role="radiogroup"
+                    aria-label="Candidate contacts"
+                  >
                     {selected.candidates.map((candidate) => (
                       <li key={candidate.id}>
                         <label
                           className={cn(
                             "flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2",
-                            candidateId === candidate.id ? "border-emerald-500/50" : "border-border-glass",
+                            candidateId === candidate.id
+                              ? "border-emerald-500/50"
+                              : "border-border-glass",
                           )}
                         >
                           <input
@@ -225,7 +240,9 @@ export default function IdentityReviewPage() {
                             className="size-4"
                           />
                           <span>
-                            <span className="block text-sm font-semibold">{candidate.full_name}</span>
+                            <span className="block text-sm font-semibold">
+                              {candidate.full_name}
+                            </span>
                             <span className="block text-xs text-white-muted">
                               {candidate.primary_email ?? "no email"}
                               {candidate.company_name ? ` · ${candidate.company_name}` : ""}
@@ -259,7 +276,11 @@ export default function IdentityReviewPage() {
                   onClick={() => resolve("link")}
                   className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                 >
-                  {resolving ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <CheckCircle2 className="size-4" aria-hidden />}
+                  {resolving ? (
+                    <Loader2 className="size-4 animate-spin" aria-hidden />
+                  ) : (
+                    <CheckCircle2 className="size-4" aria-hidden />
+                  )}
                   Link selected
                 </button>
                 <button

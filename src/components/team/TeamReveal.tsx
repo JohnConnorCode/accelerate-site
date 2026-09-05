@@ -22,11 +22,7 @@ export function Reveal({
 }) {
   const ref = useRevealLifecycle<HTMLDivElement>({});
   return (
-    <div
-      ref={ref}
-      className={cn("rv", className)}
-      style={{ "--d": `${delay}s` } as CSSProperties}
-    >
+    <div ref={ref} className={cn("rv", className)} style={{ "--d": `${delay}s` } as CSSProperties}>
       {children}
     </div>
   );

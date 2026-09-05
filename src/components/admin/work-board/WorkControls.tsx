@@ -215,7 +215,7 @@ export function WorkControls({
               <input className={field} value={commit} onChange={(e) => setCommit(e.target.value)} />
             </label>
             <label className="block text-xs">
-              Passing checks — one per line: check name | evidence
+              Passing checks, one per line: check name | evidence
               <textarea
                 className={field}
                 value={checks}
@@ -302,7 +302,7 @@ export function WorkControls({
           <p className="mb-3 text-sm">{String(feature.work_spec.businessValue)}</p>
         )}
         <label className="block text-xs">
-          Scope — one item per line
+          Scope, one item per line
           <textarea
             className={field}
             disabled={!planning}
@@ -311,7 +311,7 @@ export function WorkControls({
           />
         </label>
         <label className="mt-3 block text-xs">
-          Verification — command | expected result
+          Verification: command | expected result
           <textarea
             className={field}
             disabled={!planning}

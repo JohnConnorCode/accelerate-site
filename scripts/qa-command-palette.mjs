@@ -26,7 +26,8 @@ const { data: verified, error: verifyError } = await supabase.auth.verifyOtp({
   token_hash: linkData.properties.hashed_token,
   type: "magiclink",
 });
-if (verifyError || !verified.session) throw verifyError || new Error("Could not exchange a QA session");
+if (verifyError || !verified.session)
+  throw verifyError || new Error("Could not exchange a QA session");
 
 const projectRef = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname.split(".")[0];
 const cookieValue = `base64-${Buffer.from(JSON.stringify(verified.session)).toString("base64url")}`;
@@ -73,7 +74,8 @@ async function openAdmin(viewport, label, { reducedMotion = "reduce", dark = fal
   if (dark) await context.addInitScript(() => localStorage.setItem("theme", "dark"));
   const page = await context.newPage();
   page.on("console", (message) => {
-    if (message.type() === "error") failures.push(`${label}: console ${message.text().split("\n")[0]}`);
+    if (message.type() === "error")
+      failures.push(`${label}: console ${message.text().split("\n")[0]}`);
   });
   page.on("pageerror", (error) => failures.push(`${label}: page ${error.message.split("\n")[0]}`));
   page.on("response", (response) => {
@@ -87,7 +89,11 @@ async function openAdmin(viewport, label, { reducedMotion = "reduce", dark = fal
     }),
   );
   await page.route("**/api/admin/search?**", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(SEARCH_FIXTURE) }),
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(SEARCH_FIXTURE),
+    }),
   );
   await page.goto(`${base}/admin/today`, { waitUntil: "domcontentloaded", timeout: 60_000 });
   await page.locator("main.admin-main").waitFor({ timeout: 30_000 });
@@ -170,7 +176,9 @@ async function runJourney() {
 
   // 4. Desktop dark: AI-read command opens the gated workspace, executes nothing.
   {
-    const { context, page } = await openAdmin({ width: 1440, height: 900 }, "desktop-ai", { dark: true });
+    const { context, page } = await openAdmin({ width: 1440, height: 900 }, "desktop-ai", {
+      dark: true,
+    });
     const palette = page.getByRole("dialog", { name: "Admin command palette" });
     await openPalette(page, true);
     await paletteInput(page).fill("pipeline risk");
@@ -213,4 +221,6 @@ if (failures.length) {
   console.error(`COMMAND PALETTE QA FAILED:\n- ${failures.join("\n- ")}`);
   process.exit(1);
 }
-console.log("COMMAND PALETTE QA PASSED: setup, lead modal, canonical ordering, AI gate, mobile recovery");
+console.log(
+  "COMMAND PALETTE QA PASSED: setup, lead modal, canonical ordering, AI gate, mobile recovery",
+);

@@ -1,5 +1,6 @@
 import "server-only";
-import type { SupabaseClient } from "@supabase/supabase-js";import {
+import type { SupabaseClient } from "@supabase/supabase-js";
+import {
   ACTIVITY_LEDGER_CONTRACT,
   loadActivityTimeline,
   type ActivityLedgerRecord,
@@ -158,7 +159,10 @@ export async function loadOpportunityRecord(
         business_name: (engagementRow.business_name as string) ?? null,
         status: (engagementRow.status as string) ?? null,
         next_milestone: nextMilestoneEntry
-          ? { key: nextMilestoneEntry.key, title: nextMilestoneEntry.title ?? nextMilestoneEntry.key }
+          ? {
+              key: nextMilestoneEntry.key,
+              title: nextMilestoneEntry.title ?? nextMilestoneEntry.key,
+            }
           : null,
         blockers: handoffTasks
           .filter(

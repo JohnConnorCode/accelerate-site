@@ -132,16 +132,16 @@ async function main() {
     "admin search gate (injection-shaped query)",
     "/api/admin/search?q=a,b)(c%22d",
   );
-  await expectClosed(
-    "tasks create gate",
-    "/api/admin/tasks",
-    { method: "POST", headers: { "content-type": "application/json" }, body: "{}" },
-  );
-  await expectClosed(
-    "leads create gate",
-    "/api/admin/leads",
-    { method: "POST", headers: { "content-type": "application/json" }, body: "{}" },
-  );
+  await expectClosed("tasks create gate", "/api/admin/tasks", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: "{}",
+  });
+  await expectClosed("leads create gate", "/api/admin/leads", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: "{}",
+  });
 
   console.log(
     JSON.stringify(

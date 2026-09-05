@@ -47,7 +47,10 @@ class MockSupabase {
       },
       then<TResult1 = { data: unknown; error: { message: string } | null }, TResult2 = never>(
         onfulfilled?:
-          | ((value: { data: unknown; error: { message: string } | null }) => TResult1 | PromiseLike<TResult1>)
+          | ((value: {
+              data: unknown;
+              error: { message: string } | null;
+            }) => TResult1 | PromiseLike<TResult1>)
           | null,
         onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
       ): Promise<TResult1 | TResult2> {
@@ -742,11 +745,12 @@ async function runConversationsSuite() {
   });
   assert.equal(unknown.participants[0]?.outcome, "unknown");
   assert.equal(unknown.reviewActionIds.length, 1);
-  assert.equal(db.tables.companies!.length, companyCount, "Unknown senders must not invent companies");
   assert.equal(
-    db.tables.conversations!.find((c) => c.id === "conv-12")?.contact_id,
-    null,
+    db.tables.companies!.length,
+    companyCount,
+    "Unknown senders must not invent companies",
   );
+  assert.equal(db.tables.conversations!.find((c) => c.id === "conv-12")?.contact_id, null);
 
   // Test 14: replay is idempotent — no duplicate reviews or claims.
   const actionsBefore = db.tables.action_queue!.length;
@@ -757,7 +761,11 @@ async function runConversationsSuite() {
     threadExternalId: "thread-dup",
     actorEmail: "system",
   });
-  assert.equal(db.tables.action_queue!.length, actionsBefore, "Replay must not duplicate review actions");
+  assert.equal(
+    db.tables.action_queue!.length,
+    actionsBefore,
+    "Replay must not duplicate review actions",
+  );
   await associateConversationParticipants(supabase, {
     conversationId: "conv-10",
     participantEmails: ["sarah@techcorp.io"],
@@ -787,10 +795,7 @@ async function runConversationsSuite() {
     actorEmail: "system",
   });
   assert.equal(preserved.contactId, contactId, "Human link must win over new participants");
-  assert.equal(
-    db.tables.conversations!.find((c) => c.id === "conv-13")?.contact_id,
-    contactId,
-  );
+  assert.equal(db.tables.conversations!.find((c) => c.id === "conv-13")?.contact_id, contactId);
 
   // Test 16: manual links record human-entered evidence; invalid input fails loud.
   await linkConversationRecord(supabase, {
@@ -821,7 +826,6 @@ async function runConversationsSuite() {
   );
 
   console.log("All 16 Conversations tests passed successfully!");
-
 }
 
 runConversationsSuite().catch((err) => {

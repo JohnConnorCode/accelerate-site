@@ -209,7 +209,12 @@ export const LEGACY_ADAPTER_CONSUMERS: Array<{ route: string; sourceTables: stri
   { route: "admin-website-grades", sourceTables: ["website_grades"] },
   {
     route: "admin-inbox",
-    sourceTables: ["solution_requests", "contact_submissions", "chat_leads", "partner_applications"],
+    sourceTables: [
+      "solution_requests",
+      "contact_submissions",
+      "chat_leads",
+      "partner_applications",
+    ],
   },
 ];
 

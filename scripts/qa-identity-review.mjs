@@ -129,11 +129,15 @@ const { data: verified, error: verifyError } = await supabase.auth.verifyOtp({
   token_hash: linkData.properties.hashed_token,
   type: "magiclink",
 });
-if (verifyError || !verified.session) throw verifyError || new Error("Could not exchange a QA session");
+if (verifyError || !verified.session)
+  throw verifyError || new Error("Could not exchange a QA session");
 
 const projectRef = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname.split(".")[0];
 const authCookies = [
-  { name: `sb-${projectRef}-auth-token`, value: `base64-${Buffer.from(JSON.stringify(verified.session)).toString("base64url")}` },
+  {
+    name: `sb-${projectRef}-auth-token`,
+    value: `base64-${Buffer.from(JSON.stringify(verified.session)).toString("base64url")}`,
+  },
 ];
 
 const browser = await chromium.launch({ headless: true });
@@ -143,9 +147,12 @@ function watch(page, label) {
     if (message.type() !== "error") return;
     consoleErrors.push(`${label}: ${message.text().slice(0, 200)}`);
   });
-  page.on("pageerror", (error) => consoleErrors.push(`${label}: page ${String(error).slice(0, 200)}`));
+  page.on("pageerror", (error) =>
+    consoleErrors.push(`${label}: page ${String(error).slice(0, 200)}`),
+  );
   page.on("response", (response) => {
-    if (response.status() >= 500) consoleErrors.push(`${label}: ${response.status()} ${response.url()}`);
+    if (response.status() >= 500)
+      consoleErrors.push(`${label}: ${response.status()} ${response.url()}`);
   });
 }
 async function authedContext(viewport, reducedMotion) {
@@ -222,7 +229,9 @@ try {
   await mpage.goto("/admin/identity-review", { waitUntil: "domcontentloaded", timeout: 60000 });
   await mpage.getByText(participantEmail).first().waitFor({ timeout: 30000 });
   check("queue visible on mobile", true);
-  const overflow = await mpage.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  const overflow = await mpage.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
   check("no mobile horizontal overflow", overflow <= 0, overflow);
   await mpage.screenshot({ path: `${outDir}/queue-mobile.png` });
   await mobile.close();
@@ -253,7 +262,12 @@ const summary = {
   passed: passed.length,
   failed: failures.length,
   failures,
-  screenshots: ["queue-desktop.png", "detail-desktop.png", "deferred-desktop.png", "queue-mobile.png"],
+  screenshots: [
+    "queue-desktop.png",
+    "detail-desktop.png",
+    "deferred-desktop.png",
+    "queue-mobile.png",
+  ],
 };
 writeFileSync(`${outDir}/summary-${runId}.json`, JSON.stringify(summary, null, 2));
 console.log(JSON.stringify(summary, null, 2));

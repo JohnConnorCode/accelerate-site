@@ -95,7 +95,11 @@ const tenantId = tenant.id;
 
 const { data: company, error: companyError } = await supabase
   .from("companies")
-  .insert({ tenant_id: tenantId, name: `${NAME_PREFIX}Co ${runId}`, domain: `qa-inbox-${runId}.example.invalid` })
+  .insert({
+    tenant_id: tenantId,
+    name: `${NAME_PREFIX}Co ${runId}`,
+    domain: `qa-inbox-${runId}.example.invalid`,
+  })
   .select("id")
   .single();
 throwIf(companyError, "company");
@@ -145,7 +149,12 @@ throwIf(linkTargetError, "link target");
 
 const { data: campaign, error: campaignError } = await supabase
   .from("campaigns")
-  .insert({ tenant_id: tenantId, name: `${NAME_PREFIX}${runId} Campaign`, channel: "email", status: "draft" })
+  .insert({
+    tenant_id: tenantId,
+    name: `${NAME_PREFIX}${runId} Campaign`,
+    channel: "email",
+    status: "draft",
+  })
   .select("id")
   .single();
 throwIf(campaignError, "campaign");
@@ -279,7 +288,10 @@ function watch(page) {
     if (message.type() !== "error") return;
     const url = message.location()?.url || "";
     const text = message.text();
-    if (text.includes("requestStorageAccess") && (url.includes("calendly") || url.includes("recaptcha.net")))
+    if (
+      text.includes("requestStorageAccess") &&
+      (url.includes("calendly") || url.includes("recaptcha.net"))
+    )
       return;
     if (/400 \(Bad Request\)/.test(text)) return;
     consoleErrors.push(`${text} @${url.slice(0, 160)}`);
@@ -305,7 +317,10 @@ async function openInbox(page) {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ success: true, result: { simulated: true, id: `qa-reply-${runId}` } }),
+        body: JSON.stringify({
+          success: true,
+          result: { simulated: true, id: `qa-reply-${runId}` },
+        }),
       });
       return;
     }
@@ -316,7 +331,10 @@ async function openInbox(page) {
   await showList(page);
   const search = page.getByPlaceholder("Search inbox...");
   await search.fill(`QA Inbox ${runId}`);
-  await page.getByText(`${NAME_PREFIX}${runId} linked pricing`).first().waitFor({ timeout: 20_000 });
+  await page
+    .getByText(`${NAME_PREFIX}${runId} linked pricing`)
+    .first()
+    .waitFor({ timeout: 20_000 });
 }
 
 async function visibleSubjects(page) {
@@ -349,10 +367,17 @@ async function resetSearch(page) {
   const search = page.getByPlaceholder("Search inbox...");
   await search.fill(`QA Inbox ${runId}`);
   await page.getByRole("button", { name: "All conversations" }).click();
-  if (await page.getByRole("button", { name: "Show unread only" }).getAttribute("aria-pressed") === "true") {
+  if (
+    (await page.getByRole("button", { name: "Show unread only" }).getAttribute("aria-pressed")) ===
+    "true"
+  ) {
     await page.getByRole("button", { name: "Show unread only" }).click();
   }
-  if (await page.getByRole("button", { name: "Show follow-up only" }).getAttribute("aria-pressed") === "true") {
+  if (
+    (await page
+      .getByRole("button", { name: "Show follow-up only" })
+      .getAttribute("aria-pressed")) === "true"
+  ) {
     await page.getByRole("button", { name: "Show follow-up only" }).click();
   }
   await page.getByLabel("Filter by intent").selectOption("all");
@@ -360,7 +385,10 @@ async function resetSearch(page) {
   await page.getByLabel("Filter by record link").selectOption("all");
   await page.getByLabel("Filter by campaign link").selectOption("all");
   await page.getByRole("button", { name: "Open conversations" }).click();
-  await page.getByText(`${NAME_PREFIX}${runId} linked pricing`).first().waitFor({ timeout: 15_000 });
+  await page
+    .getByText(`${NAME_PREFIX}${runId} linked pricing`)
+    .first()
+    .waitFor({ timeout: 15_000 });
 }
 
 try {
@@ -399,19 +427,31 @@ try {
     await page.getByRole("button", { name: "Show unread only" }).click();
     const isLinked = (item) => item.includes("linked pricing");
     const unread = await waitForSubjects(page, (found) => found.length === 1 && isLinked(found[0]));
-    check(`${label}: unread filter keeps the linked thread`, unread.length === 1 && isLinked(unread[0]), unread);
+    check(
+      `${label}: unread filter keeps the linked thread`,
+      unread.length === 1 && isLinked(unread[0]),
+      unread,
+    );
     await page.getByRole("button", { name: "Show unread only" }).click();
     await waitForSubjects(page, (found) => found.length === 3);
 
     await page.getByLabel("Filter by intent").selectOption("pricing");
     const intent = await waitForSubjects(page, (found) => found.length === 1 && isLinked(found[0]));
-    check(`${label}: intent filter keeps pricing`, intent.length === 1 && isLinked(intent[0]), intent);
+    check(
+      `${label}: intent filter keeps pricing`,
+      intent.length === 1 && isLinked(intent[0]),
+      intent,
+    );
     await page.getByLabel("Filter by intent").selectOption("all");
     await waitForSubjects(page, (found) => found.length === 3);
 
     await page.getByLabel("Filter by assignee").selectOption("me");
     const mine = await waitForSubjects(page, (found) => found.length === 1 && isLinked(found[0]));
-    check(`${label}: assignment filter keeps assigned-to-me`, mine.length === 1 && isLinked(mine[0]), mine);
+    check(
+      `${label}: assignment filter keeps assigned-to-me`,
+      mine.length === 1 && isLinked(mine[0]),
+      mine,
+    );
     await page.getByLabel("Filter by assignee").selectOption("unassigned");
     const unassigned = await waitForSubjects(
       page,
@@ -427,7 +467,11 @@ try {
 
     await page.getByLabel("Filter by record link").selectOption("linked");
     const linked = await waitForSubjects(page, (found) => found.length === 1 && isLinked(found[0]));
-    check(`${label}: record filter keeps linked`, linked.length === 1 && isLinked(linked[0]), linked);
+    check(
+      `${label}: record filter keeps linked`,
+      linked.length === 1 && isLinked(linked[0]),
+      linked,
+    );
     await page.getByLabel("Filter by record link").selectOption("unlinked");
     const unlinked = await waitForSubjects(
       page,
@@ -442,7 +486,10 @@ try {
     await waitForSubjects(page, (found) => found.length === 3);
 
     await page.getByLabel("Filter by campaign link").selectOption("linked");
-    const campaignLinked = await waitForSubjects(page, (found) => found.length === 1 && isLinked(found[0]));
+    const campaignLinked = await waitForSubjects(
+      page,
+      (found) => found.length === 1 && isLinked(found[0]),
+    );
     check(
       `${label}: campaign filter keeps the campaign thread`,
       campaignLinked.length === 1 && isLinked(campaignLinked[0]),
@@ -452,22 +499,31 @@ try {
     await waitForSubjects(page, (found) => found.length === 3);
 
     await page.getByRole("button", { name: "Show follow-up only" }).click();
-    const followUp = await waitForSubjects(page, (found) => found.length === 1 && found[0].includes("follow"));
-    check(`${label}: follow-up filter keeps the open-task thread`, followUp.length === 1 && followUp[0].includes("follow"), followUp);
+    const followUp = await waitForSubjects(
+      page,
+      (found) => found.length === 1 && found[0].includes("follow"),
+    );
+    check(
+      `${label}: follow-up filter keeps the open-task thread`,
+      followUp.length === 1 && followUp[0].includes("follow"),
+      followUp,
+    );
     await page.getByRole("button", { name: "Show follow-up only" }).click();
     await waitForSubjects(page, (found) => found.length === 3);
 
     await resetSearch(page);
     await page.getByText(`${NAME_PREFIX}${runId} linked pricing`).first().click();
     if (label === "mobile") {
-      await page.getByRole("heading", { name: `${NAME_PREFIX}${runId} linked pricing` }).waitFor({ timeout: 15_000 });
+      await page
+        .getByRole("heading", { name: `${NAME_PREFIX}${runId} linked pricing` })
+        .waitFor({ timeout: 15_000 });
     }
     const inbound = page.getByText("What is the pricing for the enterprise package?");
     const outbound = page.getByText("Thanks, I will send a scoped quote.");
     await inbound.waitFor({ timeout: 15_000 });
     await outbound.waitFor({ timeout: 15_000 });
-    check(`${label}: ordered inbound message visible`, await inbound.count() > 0);
-    check(`${label}: ordered outbound message visible`, await outbound.count() > 0);
+    check(`${label}: ordered inbound message visible`, (await inbound.count()) > 0);
+    check(`${label}: ordered outbound message visible`, (await outbound.count()) > 0);
     check(
       `${label}: opportunity cockpit names the linked deal`,
       (await page.getByText(`${NAME_PREFIX}${runId} Deal`).count()) > 0,
@@ -478,7 +534,11 @@ try {
       await insertDraft.click();
       const composer = page.locator("textarea");
       const draft = await composer.inputValue();
-      check(`${label}: suggested draft inserted`, /pricing|packages|options/i.test(draft), draft.slice(0, 80));
+      check(
+        `${label}: suggested draft inserted`,
+        /pricing|packages|options/i.test(draft),
+        draft.slice(0, 80),
+      );
       await page.getByRole("button", { name: "Review & Send" }).click();
       await page.getByText("Confirm dispatch for this message?").waitFor({ timeout: 10_000 });
       await page.getByRole("button", { name: "Confirm send" }).click();
@@ -504,7 +564,9 @@ try {
       check(`${label}: link existing opportunity receipt`, true);
 
       await page.getByRole("button", { name: "Add Task" }).click();
-      await page.getByPlaceholder("e.g. Send proposal follow-up").fill(`${NAME_PREFIX}${runId} next action`);
+      await page
+        .getByPlaceholder("e.g. Send proposal follow-up")
+        .fill(`${NAME_PREFIX}${runId} next action`);
       await page.getByRole("button", { name: "Add Task" }).last().click();
       await page.getByText("Follow-up task created.").waitFor({ timeout: 15_000 });
       check(`${label}: next-action task receipt`, true);
@@ -519,14 +581,26 @@ try {
   }
 
   const db = freshClient();
-  const { data: archived } = await db.from("conversations").select("status").eq("id", unlinkedConv.id).single();
-  check("archive persisted locally without a Gmail mutation", archived?.status === "archived", archived);
+  const { data: archived } = await db
+    .from("conversations")
+    .select("status")
+    .eq("id", unlinkedConv.id)
+    .single();
+  check(
+    "archive persisted locally without a Gmail mutation",
+    archived?.status === "archived",
+    archived,
+  );
   const { data: linkedRow } = await db
     .from("conversations")
     .select("opportunity_id")
     .eq("id", unlinkedConv.id)
     .single();
-  check("link existing wrote the canonical opportunity id", linkedRow?.opportunity_id === linkTarget.id, linkedRow);
+  check(
+    "link existing wrote the canonical opportunity id",
+    linkedRow?.opportunity_id === linkTarget.id,
+    linkedRow,
+  );
   const { data: taskRows } = await db
     .from("tasks")
     .select("id,title")
