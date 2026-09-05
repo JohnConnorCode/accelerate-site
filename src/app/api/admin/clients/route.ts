@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
-import { attachRevenueLinkage } from "@/lib/revenue-os/legacy-adapter";
+import { attachRevenueLinkageWithTelemetry } from "@/lib/revenue-os/legacy-adapter";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdminForModule("clients");
@@ -20,10 +20,10 @@ export async function GET(request: NextRequest) {
       console.error("Database error:", error.message);
       return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
     }
-    const linked = await attachRevenueLinkage(supabase, data ? [data] : [], {
+    const linked = await attachRevenueLinkageWithTelemetry(supabase, data ? [data] : [], {
       sourceRecordType: "client",
       emailField: "contact_email",
-    });
+    }, { route: "admin-clients" });
     return NextResponse.json({
       client: linked.records[0] ?? data,
       canonicalSchemaReady: linked.schemaReady,
@@ -56,10 +56,10 @@ export async function GET(request: NextRequest) {
     0,
   );
 
-  const linked = await attachRevenueLinkage(supabase, data || [], {
+  const linked = await attachRevenueLinkageWithTelemetry(supabase, data || [], {
     sourceRecordType: "client",
     emailField: "contact_email",
-  });
+  }, { route: "admin-clients" });
 
   return NextResponse.json({
     clients: linked.records,
