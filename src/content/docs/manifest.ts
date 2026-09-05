@@ -50,7 +50,7 @@ export const docsManifest: DocsSection[] = [
       {
         slug: ["start", "workspace"],
         title: "Your workspace",
-        description: "Tenants, membership, and how operator access is resolved.",
+        description: "Check your business context, membership, and available features.",
       },
       {
         slug: ["start", "modules"],
@@ -107,7 +107,8 @@ export const docsManifest: DocsSection[] = [
       {
         slug: ["command-center", "ask"],
         title: "Ask AI",
-        description: "Ask with bounded context. Writes still wait in the same approval queue.",
+        description:
+          "Ask a specific question, inspect the evidence, and review any proposed action.",
       },
     ],
   },
@@ -272,7 +273,7 @@ export const docsManifest: DocsSection[] = [
       {
         slug: ["intelligence", "tools"],
         title: "AI tool reference",
-        description: "Every registered assistant tool, rendered from the tool registry.",
+        description: "Registered tools, connection requirements, and input schemas.",
       },
       {
         slug: ["intelligence", "workspace"],

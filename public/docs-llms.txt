@@ -7,7 +7,7 @@ Learn the essentials and try your first complete workflow.
 - [Start here](https://www.acceleratewith.us/docs/start/overview) (updated 2026-09-05): Understand Command Center, try a workflow, and choose your next guide.
 - [Your first workflow](https://www.acceleratewith.us/docs/start/daily-path) (updated 2026-09-05): Try the daily queue and review a proposed action using fictional data.
 - [Core concepts](https://www.acceleratewith.us/docs/start/core-concepts) (updated 2026-09-05): The people, records, work, and decisions you will see in the workspace.
-- [Your workspace](https://www.acceleratewith.us/docs/start/workspace) (updated 2026-09-04): Tenants, membership, and how operator access is resolved.
+- [Your workspace](https://www.acceleratewith.us/docs/start/workspace) (updated 2026-09-05): Check your business context, membership, and available features.
 - [Modules](https://www.acceleratewith.us/docs/start/modules) (updated 2026-09-04): Optional capabilities a workspace turns on and off without forking the app.
 - [Check an action result](https://www.acceleratewith.us/docs/start/receipts) (updated 2026-09-05): Tell a prepared draft, an approved request, and a completed action apart.
 
@@ -20,7 +20,7 @@ One shared operating layer for the businesses that need it, and how to run the d
 - [Inbox](https://www.acceleratewith.us/docs/command-center/inbox) (updated 2026-09-04): Triage leads, messages, tasks, and staged actions that still need a person.
 - [Review and approve actions](https://www.acceleratewith.us/docs/command-center/approvals) (updated 2026-09-05): Understand what waits for review, what approval does, and how to check the result.
 - [Activity](https://www.acceleratewith.us/docs/command-center/activity) (updated 2026-09-04): The audit ledger: who changed what, when, and from which origin.
-- [Ask AI](https://www.acceleratewith.us/docs/command-center/ask) (updated 2026-09-04): Ask with bounded context. Writes still wait in the same approval queue.
+- [Ask AI](https://www.acceleratewith.us/docs/command-center/ask) (updated 2026-09-05): Ask a specific question, inspect the evidence, and review any proposed action.
 
 ## Pipeline
 Opportunities, stages, value, and closed revenue in one operating view.
@@ -68,7 +68,7 @@ Clients, bookings, content, and resources after the sale.
 The assistant, run traces, knowledge, and source-to-revenue analytics.
 
 - [Intelligence](https://www.acceleratewith.us/docs/intelligence/overview) (updated 2026-09-04): Ask with bounded context, inspect what ran, and read funnel numbers from the same records.
-- [AI tool reference](https://www.acceleratewith.us/docs/intelligence/tools) (updated 2026-09-04): Every registered assistant tool, rendered from the tool registry.
+- [AI tool reference](https://www.acceleratewith.us/docs/intelligence/tools) (updated 2026-09-05): Registered tools, connection requirements, and input schemas.
 - [AI Workspace](https://www.acceleratewith.us/docs/intelligence/workspace) (updated 2026-09-04): Ask, inspect runs, and review evidence before anything executes.
 
 ## Sources

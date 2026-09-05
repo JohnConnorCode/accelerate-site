@@ -91,6 +91,12 @@ for (const key of manifestKeys) {
       failures.push(`"${key}" frontmatter needs a non-empty "${field}".`);
     }
   }
+  const entry = flattenDocsPages().find((page) => page.slug.join("/") === key);
+  if (entry && (entry.title !== data.title || entry.description !== data.description)) {
+    failures.push(
+      `"${key}" title/description must match the manifest so navigation and search agree with the page.`,
+    );
+  }
   for (const field of FORBIDDEN_FRONTMATTER) {
     if (data[field] !== undefined) {
       failures.push(

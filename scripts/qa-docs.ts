@@ -41,12 +41,20 @@ async function main() {
           await page.screenshot({
             path: `${output}/${viewport.width}-${route.replaceAll("/", "_")}.png`,
           });
+          if (route === "/docs/start/daily-path") {
+            await page.locator("figure img").scrollIntoViewIfNeeded();
+            await page.waitForFunction(() => {
+              const image = document.querySelector<HTMLImageElement>("figure img");
+              return image?.complete && image.naturalWidth > 0;
+            });
+            await page.screenshot({ path: `${output}/${viewport.width}-workflow-figure.png` });
+          }
           checks.push(`${viewport.width}: ${route} renders without horizontal overflow`);
         }
         await page.goto(`${base}/docs`, { waitUntil: "domcontentloaded" });
         const search = page.getByRole("searchbox", { name: "Search the docs" });
         await search.fill("RFC threading");
-        await page.getByRole("status").filter({ hasText: "matching guides" }).waitFor();
+        await page.getByRole("status").filter({ hasText: "matching guide" }).waitFor();
         await page
           .locator('section[aria-label="Search documentation"] a[href="/docs/conversations/reply"]')
           .click();
@@ -64,13 +72,31 @@ async function main() {
         checks.push(
           `${viewport.width}: body and generated-tool search, result navigation, empty state, Escape`,
         );
+        if (viewport.width >= 1024) {
+          await search.press("Tab");
+          assert.equal(await page.locator(":focus").getAttribute("aria-label"), "Clear search");
+          await page.keyboard.press("Tab");
+          assert.equal(
+            await page.locator(":focus").getAttribute("href"),
+            "/docs/intelligence/tools",
+          );
+          await page.keyboard.press("Enter");
+          await page.waitForURL("**/docs/intelligence/tools");
+          await page.goto(`${base}/docs`, { waitUntil: "domcontentloaded" });
+          await page.getByRole("button", { name: "Switch to dark mode" }).click();
+          await page.getByRole("button", { name: "Switch to light mode" }).waitFor();
+          await page.screenshot({ path: `${output}/1440-dark-docs.png` });
+          checks.push("Keyboard search navigation and dark-mode rendering");
+        }
         if (viewport.width < 1024) {
           await search.press("Escape");
           const mobile = page.locator("main details").first();
           await mobile.locator("summary").click();
           await mobile.locator('a[href="/docs/start"]').click();
           await page.waitForURL("**/docs/start");
-          assert.equal(await mobile.getAttribute("open"), null);
+          await page.waitForFunction(
+            () => !document.querySelector("main details")?.hasAttribute("open"),
+          );
           checks.push("Mobile navigation closes after selecting a guide");
         }
       } finally {
@@ -92,7 +118,7 @@ async function main() {
       await page.getByRole("status").filter({ hasText: "unavailable" }).waitFor();
       await recovery.unroute("**/api/search");
       await page.getByRole("button", { name: "Retry search" }).click();
-      await page.getByRole("status").filter({ hasText: "matching guides" }).waitFor();
+      await page.getByRole("status").filter({ hasText: "matching guide" }).waitFor();
       checks.push("Search failure remains navigable and retry recovers");
     } finally {
       await recovery.close();

@@ -164,8 +164,18 @@ export function searchEntries(entries: SearchEntry[], query: string, limit = 24)
   const terms = queryTerms(query);
   if (!terms.length) return [];
 
+  const identifier = /^[a-z][a-z0-9]*(?:_[a-z0-9]+)+$/i.test(query.trim())
+    ? query.trim().toLowerCase()
+    : null;
   const scored: ScoredEntry[] = [];
   for (const entry of entries) {
+    if (
+      identifier &&
+      ![entry.title, entry.description, entry.content ?? "", ...entry.keywords].some((field) =>
+        field.toLowerCase().includes(identifier),
+      )
+    )
+      continue;
     const score = scoreEntry(entry, terms);
     if (score > 0) scored.push({ entry, score });
   }

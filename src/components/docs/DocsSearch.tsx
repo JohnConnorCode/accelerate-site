@@ -49,8 +49,8 @@ export function DocsSearch() {
           onKeyDown={(event) => {
             if (event.key === "Escape") setQuery("");
           }}
-          placeholder="Try approvals, import contacts, or MCP…"
-          className="min-h-12 min-w-0 flex-1 bg-transparent text-base text-heading outline-none"
+          placeholder="Find a guide or tool…"
+          className="min-h-12 min-w-0 flex-1 bg-transparent text-base text-heading outline-none [&::-webkit-search-cancel-button]:appearance-none"
           autoComplete="off"
           aria-controls={`${id}-results`}
         />
@@ -73,7 +73,7 @@ export function DocsSearch() {
               : state === "error"
                 ? "Search is unavailable. You can still browse every guide below."
                 : results.length
-                  ? `${results.length} matching guides`
+                  ? `${results.length} matching ${results.length === 1 ? "guide" : "guides"}`
                   : "No matching guides. Try fewer words or browse a section below."}
           </p>
         )}

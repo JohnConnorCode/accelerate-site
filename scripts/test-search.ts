@@ -42,6 +42,12 @@ async function main() {
   );
   assert.equal(searchEntries(docs, "Your first workflow", 1)[0]?.href, "/docs/start/daily-path");
   assert.equal(searchEntries(docs, "zxq_nonexistent_reference", 5).length, 0);
+  assert.ok(
+    searchEntries(docs, "propose_send_email", 20).every((entry) =>
+      `${entry.content} ${entry.keywords.join(" ")}`.includes("propose_send_email"),
+    ),
+    "Identifier searches must not match unrelated prose",
+  );
 
   // ---- Every industry is findable by its own name ------------------------
 
