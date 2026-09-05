@@ -20,6 +20,7 @@ import {
   CheckSquare,
   Command,
   Download,
+  LifeBuoy,
   LogOut,
   Mail,
   MonitorPlay,
@@ -29,6 +30,7 @@ import {
   PanelLeftOpen,
   Plus,
   Search,
+  Settings,
   User,
   X,
 } from "lucide-react";
@@ -499,7 +501,10 @@ export default function AdminShell({
       keywords: "create add lead opportunity",
       icon: Plus,
       run: () => {
-        router.push("/admin/pipeline");
+        // Same shared create modal the Leads page button opens (?create=1),
+        // so validation and creation stay in AddLeadModal + POST
+        // /api/admin/leads. The palette adds no business logic.
+        router.push("/admin/leads?create=1");
       },
     },
     {
@@ -535,6 +540,44 @@ export default function AdminShell({
       keywords: "csv download backup",
       icon: Download,
       run: () => window.open("/api/admin/leads/export", "_blank", "noopener,noreferrer"),
+    },
+    {
+      label: "Open setup",
+      description: "Review integration health and connection status",
+      keywords: "setup configure health integrations status connections",
+      icon: Settings,
+      run: () => router.push("/admin/setup"),
+    },
+    {
+      label: "Open recovery",
+      description: "Inspect failed runs and reconcile receipts",
+      keywords: "recovery failed runs receipts reconcile errors retry",
+      icon: LifeBuoy,
+      run: () => router.push("/admin/recovery"),
+    },
+    {
+      label: "Show pipeline risk",
+      description: "Ask AI for a read-only pipeline risk summary",
+      keywords: "ai risk pipeline stale deals briefing report",
+      icon: Bot,
+      run: () =>
+        window.dispatchEvent(
+          new CustomEvent("admin:open-ai", {
+            detail: { prompt: "Summarize current pipeline risk: stale deals, bottlenecks, and what needs me first. Read-only summary, no changes." },
+          }),
+        ),
+    },
+    {
+      label: "What should I do next",
+      description: "Ask AI what needs the founder first",
+      keywords: "ai next priorities todo focus briefing",
+      icon: Bot,
+      run: () =>
+        window.dispatchEvent(
+          new CustomEvent("admin:open-ai", {
+            detail: { prompt: "What should I do next? Base it only on live records and receipts." },
+          }),
+        ),
     },
     {
       label: "View live site",
