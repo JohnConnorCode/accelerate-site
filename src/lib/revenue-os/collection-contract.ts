@@ -12,6 +12,7 @@ export const collectionCasePatchSchema = z
   .refine((value) => Object.keys(value).length > 0, "A case change is required");
 
 export type CollectionInvoiceView = {
+  observationId?: string;
   creationActionId: string;
   invoiceId: string;
   remaining: number;

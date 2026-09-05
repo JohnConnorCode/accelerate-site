@@ -15,9 +15,7 @@
       "moreGroup": "Revenue"
     }
   ],
-  "routes": [
-    "/admin/collections"
-  ],
+  "routes": ["/admin/collections"],
   "settings": [
     {
       "key": "cooldownHours",
@@ -28,5 +26,10 @@
       "min": 1,
       "max": 720
     }
+  ],
+  "aiToolNames": [
+    "get_collection_cases",
+    "preview_collection_reminder",
+    "propose_collection_reminder"
   ]
 }

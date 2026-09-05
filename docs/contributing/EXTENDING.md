@@ -477,3 +477,21 @@ for repeatable host, demo and browser verification. The authenticated host bridg
 in `src/lib/supabase/server.ts` permits only four named Collections RPCs after
 matching the request actor/database and rechecking active membership. It returns
 a receipt, never a service-role database handle; actor reads remain RLS-scoped.
+
+### Collections agent entrypoint reference
+
+`collection-agent-contract.ts` owns browser-safe tool descriptors/input schemas;
+`collection-agent.ts` projects bounded results from the existing Collections
+workspace and reminder services. `ai-tools.ts` registers those services once for
+internal AI and `mcp-server.ts` dispatches the same tools. The module manifest owns
+the three tool names. Internal model requests, MCP discovery and the capability
+surface use workspace configuration, while the domain services recheck current
+activation and tenant identity.
+
+Use `get_collection_cases` → `preview_collection_reminder` →
+`propose_collection_reminder` as a contributor reference for read/proposal
+separation. A returned proposal remains pending for human approval. The
+[Collections guide](../../plugins/receivables-collections/README.md#ai-and-mcp-workflow)
+documents inputs, exact digest handling, result bounds and remaining limitations.
+`test:collections-agent-tools` exercises the real registry and MCP adapter against
+the same controlled provider fixture as the underlying reminder service tests.

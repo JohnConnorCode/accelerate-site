@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   getRevenueAiTools,
+  listRevenueAiCapabilities,
   executeRegisteredRevenueTool,
   AI_TOOL_REGISTRY_VERSION,
   type RevenueToolPackId,
@@ -213,13 +214,21 @@ export async function handleMcpRequest(
       }
 
       case "tools/list": {
-        const tools = getRevenueAiTools(context.toolPack).map((tool) => ({
-          name: tool.name,
-          description: tool.description,
-          inputSchema: tool.inputSchema,
-          impact: tool.impact,
-          confirmationRequired: tool.confirmationRequired,
-        }));
+        const available = new Set(
+          listRevenueAiCapabilities(context)
+            .filter((tool) => tool.available)
+            .map((tool) => tool.name),
+        );
+        const tools = getRevenueAiTools(context.toolPack)
+          .filter((tool) => available.has(tool.name))
+          .map((tool) => ({
+            name: tool.name,
+            description: tool.description,
+            inputSchema: tool.inputSchema,
+            impact: tool.impact,
+            confirmationRequired: tool.confirmationRequired,
+            connectionRequirement: tool.connectionRequirement,
+          }));
         return {
           jsonrpc: "2.0",
           id,

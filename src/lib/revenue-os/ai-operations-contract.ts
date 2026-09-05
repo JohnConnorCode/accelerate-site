@@ -1,3 +1,4 @@
+import type { AiToolConnectionRequirement } from "./ai-tool-contract";
 export const AI_RUN_STATUSES = ["running", "completed", "partial", "failed", "cancelled"] as const;
 export type AiRunStatus = (typeof AI_RUN_STATUSES)[number];
 export type AiRunDisplayStatus = AiRunStatus | "unknown";
@@ -83,7 +84,7 @@ export interface AiCapability {
   confirmationRequired: boolean;
   packs: string[];
   serviceTarget: string;
-  connectionRequirement: "none";
+  connectionRequirement: AiToolConnectionRequirement;
   state: "available" | "unavailable";
   operationalReadiness: "ready" | "unavailable";
   availabilityReason: string;

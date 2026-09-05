@@ -95,6 +95,32 @@ try {
             fullPage: true,
           });
         }
+        const verifyCollectionCapabilities = async (enabled) => {
+          await page.goto(root + "/ai?view=capabilities");
+          await page.getByText("Registry revenue-os-tools.v6", { exact: true }).waitFor();
+          for (const [label, ready, connection] of [
+            ["Read collection cases", "Ready to read", "No provider connection required"],
+            ["preview collection reminder", "Ready to read", "Connection required"],
+            ["Stage collection reminder", "Approval gated", "Connection required"],
+          ]) {
+            const heading = page.getByRole("heading", { name: label, exact: true });
+            await heading.waitFor();
+            const card = heading.locator("..");
+            await card.getByText(enabled ? ready : "Unavailable", { exact: true }).waitFor();
+            assert.ok((await card.textContent()).includes(connection));
+          }
+          assert.ok(
+            await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+          );
+          const heading = page.getByRole("heading", { name: "Read collection cases", exact: true });
+          await heading.scrollIntoViewIfNeeded();
+          await heading
+            .locator("..")
+            .screenshot({
+              path: `${output}/capability-${width}-${enabled ? "enabled" : "disabled"}.png`,
+            });
+        };
+        await verifyCollectionCapabilities(true);
         await page.goto(root + "/plugins");
         await page
           .getByRole("button", { name: "Disable Collections Action Desk", exact: true })
@@ -102,9 +128,12 @@ try {
         await page
           .getByRole("button", { name: "Enable Collections Action Desk", exact: true })
           .waitFor();
+        await verifyCollectionCapabilities(false);
+        await page.goto(root + "/plugins");
         await page
           .getByRole("button", { name: "Enable Collections Action Desk", exact: true })
           .click();
+        await verifyCollectionCapabilities(true);
         await page.goto(root + "/collections");
         await cases.nth(1).waitFor();
         await cases.nth(1).click();

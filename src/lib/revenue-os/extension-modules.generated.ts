@@ -303,7 +303,11 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     isCore: false,
     defaultEnabled: false,
     navLinkIds: ["receivables-collections"],
-    aiToolNames: [],
+    aiToolNames: [
+      "get_collection_cases",
+      "preview_collection_reminder",
+      "propose_collection_reminder",
+    ],
     routes: ["/admin/collections"],
     setupChecks: [],
     settings: [

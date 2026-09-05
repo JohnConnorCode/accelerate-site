@@ -3,35 +3,60 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { requireCollections } from "./collections";
 import type { CollectionWorkspaceData } from "./collection-contract";
+const actionPreviewSchema = z.object({ preview: z.object({ to: z.string(), text: z.string() }) });
 /** Bounded canonical case/evidence/work read. Page reads never call providers. */
 export async function readCollectionWorkspace(
   db: SupabaseClient,
   contactId?: string,
+  window: {
+    caseId?: string;
+    status?: "open" | "settled";
+    maxCases?: number;
+    includeInvoiceOptions?: boolean;
+    includeActionPreviews?: boolean;
+  } = {},
 ): Promise<CollectionWorkspaceData> {
   if (contactId) z.uuid().parse(contactId);
+  const optionsInput = z
+    .object({
+      caseId: z.uuid().optional(),
+      status: z.enum(["open", "settled"]).optional(),
+      maxCases: z.number().int().min(1).max(100).default(100),
+      includeInvoiceOptions: z.boolean().default(true),
+      includeActionPreviews: z.boolean().default(true),
+    })
+    .strict()
+    .parse(window);
   const tenant = await requireCollections(db);
   let query = db
     .from("collection_cases")
     .select("*")
     .eq("tenant_id", tenant)
     .order("updated_at", { ascending: false })
-    .limit(101);
+    .limit(optionsInput.maxCases + 1);
   if (contactId) query = query.eq("contact_id", contactId);
+  if (optionsInput.caseId) query = query.eq("id", optionsInput.caseId);
+  if (optionsInput.status) query = query.eq("status", optionsInput.status);
   const result = await query;
   if (result.error) throw new Error("Collection cases unavailable");
-  const cases = (result.data ?? []).slice(0, 100),
+  const cases = (result.data ?? []).slice(0, optionsInput.maxCases),
     ids = cases.map((c) => c.id),
     contacts = [...new Set(cases.map((c) => c.contact_id))];
-  const options = await db
-    .from("action_queue")
-    .select("id,title")
-    .eq("tenant_id", tenant)
-    .eq("action_type", "create_stripe_invoice_draft")
-    .eq("status", "executed")
-    .order("created_at", { ascending: false })
-    .limit(50);
+  const options = optionsInput.includeInvoiceOptions
+    ? await db
+        .from("action_queue")
+        .select("id,title")
+        .eq("tenant_id", tenant)
+        .eq("action_type", "create_stripe_invoice_draft")
+        .eq("status", "executed")
+        .order("created_at", { ascending: false })
+        .limit(50)
+    : { data: [], error: null };
   if (options.error) throw new Error("Invoice operations unavailable");
   if (!ids.length) return { cases: [], invoiceOptions: options.data ?? [], truncated: false };
+  const actionQuery = optionsInput.includeActionPreviews
+    ? db.from("action_queue").select("id,entity_id,title,status,error,result,payload")
+    : db.from("action_queue").select("id,entity_id,title,status,error,result");
   const [people, work, events, actions, attempts] = await Promise.all([
     db
       .from("contacts")
@@ -53,9 +78,7 @@ export async function readCollectionWorkspace(
       .in("case_id", ids)
       .order("created_at", { ascending: false })
       .limit(500),
-    db
-      .from("action_queue")
-      .select("id,entity_id,title,status,error,result,payload")
+    actionQuery
       .eq("tenant_id", tenant)
       .eq("action_type", "send_collection_reminder")
       .in("entity_id", ids)
@@ -108,7 +131,7 @@ export async function readCollectionWorkspace(
   const byId = new Map(observations.map((o) => [o.id, o]));
   return {
     truncated:
-      (result.data?.length ?? 0) > 100 ||
+      (result.data?.length ?? 0) > optionsInput.maxCases ||
       (work.data?.length ?? 0) === 500 ||
       (events.data?.length ?? 0) === 500 ||
       (actions.data?.length ?? 0) === 500,
@@ -134,6 +157,7 @@ export async function readCollectionWorkspace(
           .map((r) => {
             const o = byId.get(r.observation_id)!;
             return {
+              observationId: r.observation_id,
               creationActionId: r.creation_action_id,
               invoiceId: o.invoice_id,
               remaining: Number(o.remaining),
@@ -162,8 +186,8 @@ export async function readCollectionWorkspace(
             status: a.status,
             error: a.error,
             result: attempts.data?.find((r) => r.action_id === a.id) ?? a.result,
-            preview: a.payload?.preview
-              ? { to: String(a.payload.preview.to), text: String(a.payload.preview.text) }
+            preview: optionsInput.includeActionPreviews
+              ? actionPreviewSchema.safeParse("payload" in a ? a.payload : undefined).data?.preview
               : undefined,
           })),
       };

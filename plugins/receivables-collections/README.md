@@ -181,3 +181,61 @@ current membership/lifecycle checks, only the four host-owned Collections RPCs
 may use tenant-scoped service authority. SQL remains host-only, so an authenticated
 browser cannot inject provider observations. Test invoices are labeled in both
 subject and content. Actual email dispatch still requires explicit human approval.
+
+## AI and MCP workflow
+
+Registry `revenue-os-tools.v6` exposes the same Collections domain services to
+internal AI and the tenant MCP endpoint. These tools belong to the core and
+outreach packs. Discovery respects workspace module configuration; the host
+rechecks current tenant/module state on execution even if a client cached discovery.
+The Collections module must be enabled. Preview/proposal additionally require
+Stripe invoicing and a usable tenant-owned Stripe connection.
+
+| Tool                          | Input                                                                                     | Result and authority                                                                                                                                                                                                    |
+| ----------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `get_collection_cases`        | Optional `caseId`, `contactId`, `status` (`open`/`settled`), `maxCases` (1–10; default 5) | Recorded case/contact/invoice/observation/WorkItem IDs, last-observed balances, policies, next work and bounded recent history. No provider call or mutation.                                                           |
+| `preview_collection_reminder` | `caseId`                                                                                  | Current host-verified recipient, amounts, invoice links, exact subject/text and digest. No proposal or email. HTML and connection internals stay on the host.                                                           |
+| `propose_collection_reminder` | `caseId`, exact preview `digest`                                                          | Pending `send_collection_reminder` action receipt. The existing operator approval surface retains the complete content; the agent receives IDs/status/expiry and the WorkItem link when one was supplied by the server. |
+
+Start with this MCP request:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "get_collection_cases",
+    "arguments": { "maxCases": 5 }
+  }
+}
+```
+
+Use a returned `caseId` to preview, then pass that preview's digest to propose.
+The proposal re-reads current facts. Payment, a new dispute/pause, suppression,
+recipient changes or a disabled module can invalidate the preview. Tool failures
+are MCP tool-error results, never fabricated success. Retrying the same valid
+proposal returns the existing pending action. No Collections tool approves an
+action, sends email, edits billing facts or accepts a caller-supplied tenant,
+recipient, balance, payment URL or approval flag.
+
+Case reads apply their case/contact/status/window filters before the database
+query. Each returned case includes up to 25 invoice details and three entries
+per history category; explicit truncation flags describe omitted details. Balance
+summaries use the complete stored invoice references for the returned cases, stay
+separate by currency and identify their observation scope. Missing evidence refuses
+instead of becoming zero debt. Reads are not a live Stripe refresh. A response
+above 48 KB is refused with guidance to narrow the request; stored action bodies
+and reminder HTML are never returned as general agent context.
+
+The demo capability surface shares these tool descriptors and the registry version,
+and respects the same module toggle in all five fictional workspaces. The demo
+assistant remains a simulation; these tests do not claim an actual external MCP
+connection to a demo or AI-written reminder language.
+
+Run `npm run test:collections-agent-tools` for the internal registry/MCP workflow,
+query bounds, tenant and module refusal, pending-action replay, WorkItem/actor
+provenance and all-five-demo capability checks. The shared controlled provider
+fixture is also used by `test:collections-reminders`. No Docker or real email is
+required. Scheduled case handlers and model-generated wording remain parent-card
+work; adding these tools does not silently activate an unattended cadence.

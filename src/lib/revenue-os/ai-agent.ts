@@ -222,7 +222,7 @@ export async function runRevenueCommandAgent(
           { role: "system" as const, content: `${SYSTEM_CONTRACT}\n\n${grounding}` },
           ...transcript,
         ],
-        tools: toOpenRouterTools(selectedPack),
+        tools: toOpenRouterTools(selectedPack, options.tenantConfig),
       };
       let bufferedAnswer = "";
       const response = options.onAssistantDelta

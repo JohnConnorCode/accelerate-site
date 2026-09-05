@@ -153,3 +153,10 @@ WorkItem, event and reminder receipt reads. `collection-contract.ts` and
 `collection-reminder-template.ts` are pure shared admin/demo contracts.
 `callCollectionHostRpc` in the Supabase server boundary bridges only named,
 verified Collections writes from a current authorized actor; SQL remains host-only.
+
+`collection-agent.ts` provides bounded AI/MCP result projections over the same
+Collections read/preview/proposal services. `collection-agent-contract.ts` shares
+the three typed tool descriptors with demo discovery. `ai-tool-contract.ts` owns
+the browser-safe registry version. Module activation is checked at discovery and
+again in the host; agent proposals preserve pending human approval and server-owned
+WorkItem provenance. These adapters never send or expose raw action payloads.

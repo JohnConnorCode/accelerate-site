@@ -1,4 +1,5 @@
 import "server-only";
+import type { AiToolConnectionRequirement } from "./ai-tool-contract";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { OpenRouterTool } from "@/lib/ai/openrouter";
 import { proposeAction, withProposalWorkContext } from "./actions";
@@ -10,6 +11,18 @@ import { FOUNDER_NOTE_MAX_LENGTH } from "./notes";
 import { retrieveKnowledge } from "./knowledge";
 import { proposeStripeInvoiceSend } from "./stripe-invoicing";
 import { previewInvoicePage, proposeInvoicePage } from "./invoice-pages";
+import {
+  COLLECTION_AGENT_TOOLS,
+  COLLECTION_AGENT_TOOL_NAMES,
+  collectionContextInputSchema,
+  collectionPreviewInputSchema,
+  collectionProposalInputSchema,
+} from "./collection-agent-contract";
+import {
+  readCollectionAgentContext,
+  previewCollectionAgentReminder,
+  proposeCollectionAgentReminder,
+} from "./collection-agent";
 import { invoiceDesignSchema } from "./invoice-page-contract";
 import { z } from "zod";
 import { prepareWorkflowPlugin, proposeWorkflowPlugin } from "./workflow-plugins";
@@ -33,7 +46,7 @@ import {
 } from "./memory";
 import { checkBudgets, listBudgetLimits, type BudgetKind, type BudgetLimit } from "./budgets";
 
-export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v5";
+export { AI_TOOL_REGISTRY_VERSION } from "./ai-tool-contract";
 export const REVENUE_TOOL_PACKS = ["core", "pipeline", "outreach"] as const;
 export type RevenueToolPackId = (typeof REVENUE_TOOL_PACKS)[number];
 
@@ -58,8 +71,8 @@ type AiToolRegistration = {
   outputSchema: Record<string, unknown>;
   /** The reviewed service boundary a tool is permitted to call. */
   serviceTarget: string;
-  /** Current tools stage through Revenue OS; none calls a provider directly. */
-  connectionRequirement: "none";
+  /** Provider requirements are enforced inside the canonical host, never by raw tool access. */
+  connectionRequirement: AiToolConnectionRequirement;
   impact: AiToolImpact;
   confirmationRequired: boolean;
   execute: (context: AiToolContext, input: Record<string, unknown>) => Promise<unknown>;
@@ -72,7 +85,7 @@ export interface RevenueAiCapabilityDescriptor {
   confirmationRequired: boolean;
   packs: RevenueToolPackId[];
   serviceTarget: string;
-  connectionRequirement: "none";
+  connectionRequirement: AiToolConnectionRequirement;
   available: boolean;
   availabilityReason: string;
 }
@@ -279,7 +292,9 @@ function availabilityFor(
   return {
     available: true,
     reason:
-      "Available through the bounded Revenue OS service; no provider connection is called directly.",
+      tool.connectionRequirement === "host_verified"
+        ? "Available through the canonical host; a verified provider connection and current billing facts are required when called."
+        : "Available through the bounded Revenue OS service; no provider connection is called directly.",
   };
 }
 
@@ -312,6 +327,44 @@ export function assertImpactHonoured(tool: AiToolRegistration, output: unknown):
 }
 
 const registry: AiToolRegistration[] = [
+  {
+    ...COLLECTION_AGENT_TOOLS.list,
+    inputSchema: z.toJSONSchema(collectionContextInputSchema),
+    outputSchema: {
+      type: "object",
+      required: ["contract", "cases", "summary", "truncated"],
+      properties: {
+        contract: { type: "string" },
+        cases: { type: "array" },
+        summary: { type: "object" },
+        truncated: { type: "boolean" },
+      },
+    },
+    execute: ({ supabase }, input) => readCollectionAgentContext(supabase, input),
+  },
+  {
+    ...COLLECTION_AGENT_TOOLS.preview,
+    inputSchema: z.toJSONSchema(collectionPreviewInputSchema),
+    outputSchema: {
+      type: "object",
+      required: ["caseId", "digest", "text", "invoices", "requiresHumanApproval"],
+      properties: {
+        caseId: { type: "string" },
+        digest: { type: "string" },
+        text: { type: "string" },
+        invoices: { type: "array" },
+        requiresHumanApproval: { type: "boolean" },
+      },
+    },
+    execute: ({ supabase }, input) => previewCollectionAgentReminder(supabase, input),
+  },
+  {
+    ...COLLECTION_AGENT_TOOLS.propose,
+    inputSchema: z.toJSONSchema(collectionProposalInputSchema),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    execute: ({ supabase, actorEmail }, input) =>
+      proposeCollectionAgentReminder(supabase, input, actorEmail),
+  },
   ...REVENUE_OS_MODULES.filter((module) => module.workflow).map((module): AiToolRegistration => ({
     name: `prepare_${module.id.replaceAll("-", "_")}`,
     description: `Prepare ${module.name}: ${module.description}. Returns a reviewable plan, never executes it.`,
@@ -1803,6 +1856,7 @@ const registry: AiToolRegistration[] = [
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    ...COLLECTION_AGENT_TOOL_NAMES,
     ...REVENUE_OS_MODULES.filter((moduleDef) => moduleDef.workflow).flatMap(
       (moduleDef) => moduleDef.aiToolNames || [],
     ),
@@ -1863,6 +1917,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "propose_stage_change",
   ],
   outreach: [
+    ...COLLECTION_AGENT_TOOL_NAMES,
     "get_today_snapshot",
     "search_pipeline",
     "search_contacts",
@@ -1905,7 +1960,7 @@ export function getRevenueAiTools(pack?: RevenueToolPackId): AiToolRegistration[
   return registry.filter((tool) => names.has(tool.name));
 }
 export function listRevenueAiCapabilities(
-  context?: Pick<AiToolContext, "toolPack">,
+  context?: Pick<AiToolContext, "toolPack" | "tenantConfig">,
 ): RevenueAiCapabilityDescriptor[] {
   return registry.map((tool) => {
     const availability = availabilityFor(tool, context);
@@ -1922,11 +1977,16 @@ export function listRevenueAiCapabilities(
     };
   });
 }
-export function toOpenRouterTools(pack?: RevenueToolPackId): OpenRouterTool[] {
-  return getRevenueAiTools(pack).map(({ name, description, inputSchema }) => ({
-    type: "function",
-    function: { name, description, parameters: inputSchema },
-  }));
+export function toOpenRouterTools(
+  pack?: RevenueToolPackId,
+  tenantConfig?: AiToolContext["tenantConfig"],
+): OpenRouterTool[] {
+  return getRevenueAiTools(pack)
+    .filter((tool) => availabilityFor(tool, { toolPack: pack, tenantConfig }).available)
+    .map(({ name, description, inputSchema }) => ({
+      type: "function",
+      function: { name, description, parameters: inputSchema },
+    }));
 }
 export async function executeRegisteredRevenueTool(
   context: AiToolContext,
