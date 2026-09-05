@@ -1,7 +1,7 @@
 import { seoMetadata } from "@/lib/og";
 import { generateBreadcrumbJsonLd } from "@/lib/seo";
 import { RoadmapPageContent } from "@/components/sections/RoadmapPage";
-import { getPublicRoadmapCards } from "@/lib/roadmap";
+import { getPublicRoadmapState } from "@/lib/roadmap";
 
 export const metadata = seoMetadata({
   title: "Roadmap",
@@ -21,14 +21,14 @@ const breadcrumbJsonLd = generateBreadcrumbJsonLd([
 export const revalidate = 300;
 
 export default async function RoadmapPage() {
-  const cards = await getPublicRoadmapCards();
+  const { cards, availability } = await getPublicRoadmapState();
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      <RoadmapPageContent cards={cards} />
+      <RoadmapPageContent cards={cards} availability={availability} />
     </>
   );
 }

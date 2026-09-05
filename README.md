@@ -95,15 +95,9 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000). The public site and fictional demo are the fastest way to explore the project; neither one touches an external service.
 
-To connect a real workspace instead:
+To connect a workspace, use your own hosted Supabase project and PostgreSQL client tools (`psql`). Follow [Self-hosting](docs/self-hosting/SELF-HOSTING.md) to configure credentials, create the first owner, and apply the verified migration catalog. External providers can be connected afterward in Setup Center.
 
-```bash
-cp .env.example .env.local
-# Add your own Supabase values, then apply the documented migrations.
-npm run dev
-```
-
-Never copy production credentials into a fork. [Self-hosting](docs/self-hosting/SELF-HOSTING.md) covers migration order, environment tiers, tenant bootstrap, and turning on providers.
+Never copy production credentials into a fork.
 
 ## Useful commands
 

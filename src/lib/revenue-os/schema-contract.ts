@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-05.1";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-06.1";
 
 export const TENANT_SCOPED_TABLES = [
   "invoice_pages",
@@ -421,7 +421,8 @@ export const REVENUE_SCHEMA_TABLES = [
 ];
 
 export const REVENUE_SCHEMA_CONSTRAINTS = [
-  { table: "opportunities", name: "opportunities_stage_check" },
+  // Pipeline stages are workspace-defined by the kanban migration; the old
+  // hard-coded CHECK is deliberately removed by 20260902-kanban-columns.sql.
   { table: "opportunities", name: "opportunities_probability_check" },
   { table: "proposals", name: "proposals_status_check" },
   { table: "schema_verification_runs", name: "schema_verification_runs_status_check" },

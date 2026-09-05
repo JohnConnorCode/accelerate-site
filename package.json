@@ -229,7 +229,10 @@
     "verify:review": "npm run verify:agent-contract && npm run verify:guardrails && npm run lint && npm run resources:run -- npm run test:core && npm run build",
     "test:verification-workflow": "node scripts/test-verification-workflow.mjs",
     "resources:run": "node scripts/resource-run.mjs",
-    "test:resources": "node --test scripts/test-resource-run.mjs"
+    "test:resources": "node --test scripts/test-resource-run.mjs",
+    "test:public-roadmap": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-public-roadmap-availability.ts",
+    "verify:migrations": "node scripts/run-all-migrations.mjs --check",
+    "test:migration-ledger": "node scripts/test-migration-ledger-postgres.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

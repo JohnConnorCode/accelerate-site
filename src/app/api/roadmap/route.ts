@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { isValidEmail } from "@/lib/validation";
 import { createPlatformServiceRoleClient } from "@/lib/supabase/server";
-import { getPublicRoadmapCards } from "@/lib/roadmap";
+import { getPublicRoadmapState, isPublicRoadmapConfigured } from "@/lib/roadmap";
 import { submitPublicWorkSuggestion } from "@/lib/revenue-os/work-board";
 
 export async function GET() {
   try {
-    const cards = await getPublicRoadmapCards();
-    return NextResponse.json({ cards });
+    const state = await getPublicRoadmapState();
+    return NextResponse.json(state);
   } catch (error) {
     console.error("Roadmap fetch error:", error);
     return NextResponse.json({ error: "Could not load the roadmap" }, { status: 500 });
@@ -26,6 +26,11 @@ export async function GET() {
  * the best-effort operator notification.
  */
 export async function POST(request: NextRequest) {
+  if (!isPublicRoadmapConfigured())
+    return NextResponse.json(
+      { error: "Feature suggestions are available after this workspace is connected." },
+      { status: 503 },
+    );
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
   const { success } = rateLimit(ip, 5, 60 * 60 * 1000);
   if (!success) {

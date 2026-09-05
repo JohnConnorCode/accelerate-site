@@ -13,36 +13,28 @@ npm run dev
 
 The public site and fictional Command Center demo can be explored without provider credentials.
 
-## 2. Create your environment
+## 2. Connect your own hosted Supabase project
+
+For a hosted installation, use a **new empty project** you control. Copy `.env.example` to `.env.local` and configure its Supabase URL, public anonymous key, server-only service-role key, database connection, `ADMIN_EMAIL`, and your `BOOTSTRAP_*` identity. Set `BOOTSTRAP_FOUNDER_EMAIL` to the same email as `ADMIN_EMAIL`. Set `BOOTSTRAP_SCHEDULER_URL` only when you intend to activate an external scheduler; it defaults to disabled.
+
+Before migrating, enable Supabase email authentication and create the owner user in your project's Authentication dashboard. Configure the app origin and `/auth/callback` redirect URL. The tenant migration binds that existing user's active admin membership. Creating the user after migrations does not retroactively create a membership. Create a password for the owner when creating the user. Password recovery through the app requires configured Resend delivery.
+
+## 3. Apply and verify the schema
 
 ```bash
-cp .env.example .env.local
-```
-
-Create a new Supabase project and set its URL, publishable/anonymous key, and service-role key. Public variables are safe for the browser by design; service-role and provider variables are server-only secrets.
-
-Do not reuse the placeholder identity, domain, sender, or project references. Replace the bootstrap organization in `src/config/tenant.ts` and replace the protected assets described in [`ASSETS.md`](../../ASSETS.md).
-
-## 3. Apply the database
-
-Install PostgreSQL client tools so `psql` is available. Set the database connection variables from `.env.example`.
-
-```bash
+npm run verify:migrations
 npm run db:migrate:all
 npm run db:verify-schema
+npm run verify:bootstrap-identity
 ```
 
-`db:migrate:all` applies all 37 migrations in order (`scripts/lib/migration-manifest.mjs` is the source of truth for that order, matching [REVENUE-OS-SETUP.md](REVENUE-OS-SETUP.md)'s numbered list) by calling the single-file runner once per file. Every migration is additive and idempotent, so re-running the whole command after fixing an error is safe — already-applied files no-op. To apply one migration at a time instead, use `npm run db:migrate -- <path>` with the exact file listed in REVENUE-OS-SETUP.md.
+[`scripts/lib/migration-manifest.mjs`](../../scripts/lib/migration-manifest.mjs) is the single source of migration order and explicit historical exclusions. The runner verifies that every SQL file is classified, rejects competing migration runners, and records each successful file and source checksum in `accelerate_schema_migrations` in the same transaction as its changes. A failed file rolls back; rerun to resume. Already-recorded files are verified and skipped, so rerunning does not reset saved settings. Never edit a recorded migration; add a new ordered file instead.
 
-Two migrations seed a bootstrap tenant's brand, founder, and booking identity into the database. The runner resolves any `BOOTSTRAP_*` variables you set in step 2 into that seed; run `npm run verify:bootstrap-identity` afterward to confirm the database does not still carry Accelerate's own identity.
+`npm run db:migrate -- <path>` applies all pending prerequisites through that manifest entry. It does not execute arbitrary files out of order. An existing database without this ledger is refused: historical replay can overwrite business configuration. Such installations need a reviewed baseline adoption before using this runner; do not delete tables or invent ledger receipts to bypass the check. Back up and test upgrades on a restored copy before using real data.
 
-Migration commands should target a new project you control. Inspect the resolved project and host printed by the command before confirming any production operation.
+Changing `BOOTSTRAP_*` after installation does not rewrite an existing workspace. Use Branding and the canonical tenant configuration service. Replace protected assets following [`ASSETS.md`](../../ASSETS.md).
 
-## 4. Configure authentication
-
-Enable Supabase email authentication, set `ADMIN_EMAIL`, create that user, and configure your local and deployed callback URLs. Tenant operators require active membership in the selected tenant; platform administration remains restricted to the configured founder identity.
-
-## 5. Add providers incrementally
+## 4. Add providers incrementally
 
 Start without external effects. Add and verify one capability at a time:
 
@@ -55,7 +47,7 @@ Start without external effects. Add and verify one capability at a time:
 
 Provider configuration alone is not readiness. Use Setup Center and the corresponding verification command to establish a successful receipt.
 
-## 6. Verify before real data
+## 5. Verify before real data
 
 ```bash
 npm run verify:oss
@@ -68,7 +60,7 @@ npm run build
 
 Then prove tenant isolation using controlled fictional tenants. Do not invite real users or import real contacts until URL, record-ID, membership, suspension, replay, and provider-failure tests pass.
 
-## 7. Deploy
+## 6. Deploy
 
 The application can run on Vercel or another platform that supports Next.js server routes. Vercel users can link their own project and use the commands in `DEPLOY.md`. Set production variables in the hosting provider's secret manager, never in the repository.
 
