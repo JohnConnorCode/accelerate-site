@@ -193,7 +193,8 @@ export function KanbanBoard<T>({
   const [activeColumnKey, setActiveColumnKey] = useState(columns[0]?.column_key ?? null);
   const columnCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    for (const column of columns) counts[column.column_key] = getColumnItems(column.column_key).length;
+    for (const column of columns)
+      counts[column.column_key] = getColumnItems(column.column_key).length;
     return counts;
   }, [columns, getColumnItems]);
 
@@ -263,56 +264,60 @@ export function KanbanBoard<T>({
         onDragEnd={(event) => void handleDragEnd(event)}
       >
         <div className="@container/kanban min-w-0">
-        <div
-          ref={scrollerRef}
-          className={cn(
-            "-mx-4 flex gap-3 overflow-x-auto px-4 pb-5",
-            "sm:-mx-6 sm:px-6",
-            "lg:-mx-8 lg:px-8",
-            "xl:-mx-10 xl:px-10",
-            "scroll-smooth snap-x snap-mandatory md:snap-none overscroll-x-contain",
-            "[scrollbar-width:thin] [scrollbar-color:var(--admin-border)_transparent]",
-            "[&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:bg-transparent",
-            "[&::-webkit-scrollbar-track]:bg-transparent",
-            "[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[var(--admin-border)]",
-            activeId ? "snap-none" : "",
-          )}
-          role="region"
-          aria-label="Kanban board"
-        >
-          {columns.map((column) => (
-            <KanbanColumn
-              key={column.column_key}
-              column={column}
-              otherColumns={columns.filter((other) => other.column_key !== column.column_key)}
-              items={getColumnItems(column.column_key)}
-              getItemId={getItemId}
-              renderCard={renderCard}
-              dragDisabled={dragDisabled}
-              emptyHint={emptyColumnHint}
-              onRename={
-                onRenameColumn ? (label) => onRenameColumn(column.column_key, label) : undefined
-              }
-              onDelete={
-                onDeleteColumn ? (options) => onDeleteColumn(column.column_key, options) : undefined
-              }
-              onUpdateMetadata={
-                onUpdateColumnMetadata
-                  ? (metadata) => onUpdateColumnMetadata(column.column_key, metadata)
-                  : undefined
-              }
-              onQuickAdd={onQuickAdd ? (title) => onQuickAdd(column.column_key, title) : undefined}
-              quickAddLabel={quickAddLabel}
-            />
-          ))}
-          {onAddColumn && (
-            <AddColumnInline
-              onAdd={(label) => onAddColumn({ label })}
-              extraFields={addColumnExtraFields}
-              tileLabel={addColumnTileLabel}
-            />
-          )}
-        </div>
+          <div
+            ref={scrollerRef}
+            className={cn(
+              "-mx-4 flex gap-3 overflow-x-auto px-4 pb-5",
+              "sm:-mx-6 sm:px-6",
+              "lg:-mx-8 lg:px-8",
+              "xl:-mx-10 xl:px-10",
+              "scroll-smooth snap-x snap-mandatory md:snap-none overscroll-x-contain",
+              "[scrollbar-width:thin] [scrollbar-color:var(--admin-border)_transparent]",
+              "[&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:bg-transparent",
+              "[&::-webkit-scrollbar-track]:bg-transparent",
+              "[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[var(--admin-border)]",
+              activeId ? "snap-none" : "",
+            )}
+            role="region"
+            aria-label="Kanban board"
+          >
+            {columns.map((column) => (
+              <KanbanColumn
+                key={column.column_key}
+                column={column}
+                otherColumns={columns.filter((other) => other.column_key !== column.column_key)}
+                items={getColumnItems(column.column_key)}
+                getItemId={getItemId}
+                renderCard={renderCard}
+                dragDisabled={dragDisabled}
+                emptyHint={emptyColumnHint}
+                onRename={
+                  onRenameColumn ? (label) => onRenameColumn(column.column_key, label) : undefined
+                }
+                onDelete={
+                  onDeleteColumn
+                    ? (options) => onDeleteColumn(column.column_key, options)
+                    : undefined
+                }
+                onUpdateMetadata={
+                  onUpdateColumnMetadata
+                    ? (metadata) => onUpdateColumnMetadata(column.column_key, metadata)
+                    : undefined
+                }
+                onQuickAdd={
+                  onQuickAdd ? (title) => onQuickAdd(column.column_key, title) : undefined
+                }
+                quickAddLabel={quickAddLabel}
+              />
+            ))}
+            {onAddColumn && (
+              <AddColumnInline
+                onAdd={(label) => onAddColumn({ label })}
+                extraFields={addColumnExtraFields}
+                tileLabel={addColumnTileLabel}
+              />
+            )}
+          </div>
         </div>
         <DragOverlay adjustScale={false} dropAnimation={null}>
           {activeItem

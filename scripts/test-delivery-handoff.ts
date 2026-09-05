@@ -29,11 +29,31 @@ function stageSeed(mem: MemorySupabase) {
 }
 
 function crmSeed(mem: MemorySupabase) {
-  mem.tables.contacts = [{ id: "c1", tenant_id: TENANT, full_name: "Ana Owner", primary_email: "ana@example.com" }];
+  mem.tables.contacts = [
+    { id: "c1", tenant_id: TENANT, full_name: "Ana Owner", primary_email: "ana@example.com" },
+  ];
   mem.tables.companies = [{ id: "co1", tenant_id: TENANT, name: "Acme Co" }];
   mem.tables.opportunities = [
-    { id: "o-won", tenant_id: TENANT, stage: "won", name: "Acme rollout", estimated_value: 12000, contact_id: "c1", company_id: "co1", email: "ana@example.com" },
-    { id: "o-open", tenant_id: TENANT, stage: "qualified", name: "Beta trial", estimated_value: 3000, contact_id: "c1", company_id: "co1", email: "ana@example.com" },
+    {
+      id: "o-won",
+      tenant_id: TENANT,
+      stage: "won",
+      name: "Acme rollout",
+      estimated_value: 12000,
+      contact_id: "c1",
+      company_id: "co1",
+      email: "ana@example.com",
+    },
+    {
+      id: "o-open",
+      tenant_id: TENANT,
+      stage: "qualified",
+      name: "Beta trial",
+      estimated_value: 3000,
+      contact_id: "c1",
+      company_id: "co1",
+      email: "ana@example.com",
+    },
   ];
 }
 
@@ -51,16 +71,31 @@ async function main() {
 
   // 1. Non-won opportunities refuse; missing ones fail closed.
   await assert.rejects(
-    () => createHandoffFromOpportunity(db, { tenantId: TENANT, opportunityId: "o-open", actorEmail: ACTOR }),
+    () =>
+      createHandoffFromOpportunity(db, {
+        tenantId: TENANT,
+        opportunityId: "o-open",
+        actorEmail: ACTOR,
+      }),
     /won/,
     "handoff requires a canonically won stage",
   );
   await assert.rejects(
-    () => createHandoffFromOpportunity(db, { tenantId: TENANT, opportunityId: "o-missing", actorEmail: ACTOR }),
+    () =>
+      createHandoffFromOpportunity(db, {
+        tenantId: TENANT,
+        opportunityId: "o-missing",
+        actorEmail: ACTOR,
+      }),
     /not found/,
   );
   await assert.rejects(
-    () => createHandoffFromOpportunity(db, { tenantId: FOREIGN, opportunityId: "o-won", actorEmail: ACTOR }),
+    () =>
+      createHandoffFromOpportunity(db, {
+        tenantId: FOREIGN,
+        opportunityId: "o-won",
+        actorEmail: ACTOR,
+      }),
     /not found/,
     "cross-tenant opportunities must not resolve",
   );

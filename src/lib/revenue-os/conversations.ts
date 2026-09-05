@@ -594,7 +594,8 @@ export async function assignConversation(
     .maybeSingle();
   if (readError) throw new Error(`Could not load conversation: ${readError.message}`);
   if (!current) throw new Error("Conversation not found");
-  const before = ((current.metadata as Record<string, unknown> | null)?.assigned_to as string) || null;
+  const before =
+    ((current.metadata as Record<string, unknown> | null)?.assigned_to as string) || null;
 
   const { data, error } = await supabase
     .from("conversations")
@@ -888,7 +889,8 @@ export async function associateConversationParticipants(
     try {
       contact = await findCanonicalContactByEmail(supabase, email);
     } catch (error) {
-      if (!(error instanceof Error) || !/^Ambiguous contact identity/.test(error.message)) throw error;
+      if (!(error instanceof Error) || !/^Ambiguous contact identity/.test(error.message))
+        throw error;
       const [primary, alternate] = await Promise.all([
         supabase
           .from("contacts")
@@ -903,7 +905,10 @@ export async function associateConversationParticipants(
       ]);
       if (primary.error) throw new Error(primary.error.message);
       if (alternate.error) throw new Error(alternate.error.message);
-      const deduped = new Map<string, { id: string; full_name: string; primary_email: string | null }>();
+      const deduped = new Map<
+        string,
+        { id: string; full_name: string; primary_email: string | null }
+      >();
       for (const row of [...(primary.data ?? []), ...(alternate.data ?? [])]) {
         if (row && typeof row.id === "string") {
           deduped.set(row.id, {
@@ -946,11 +951,13 @@ export async function associateConversationParticipants(
     if (oppError) throw new Error(oppError.message);
     opportunityId =
       (openOpps ?? []).find(
-        (opp) => (opp as Record<string, unknown>).stage !== "won" && (opp as Record<string, unknown>).stage !== "lost",
+        (opp) =>
+          (opp as Record<string, unknown>).stage !== "won" &&
+          (opp as Record<string, unknown>).stage !== "lost",
       )?.id ?? null;
   }
 
-  const contactId = primary?.contactId ?? ((conversation.contact_id as string) ?? null);
+  const contactId = primary?.contactId ?? (conversation.contact_id as string) ?? null;
 
   const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (!conversation.contact_id && contactId) patch.contact_id = contactId;
@@ -958,7 +965,11 @@ export async function associateConversationParticipants(
   if (!conversation.opportunity_id && opportunityId) patch.opportunity_id = opportunityId;
   const association = {
     contract: CONVERSATION_ASSOCIATION_CONTRACT,
-    status: contactId ? "linked" : participants.some((p) => p.outcome !== "linked") ? "needs_review" : "unlinked",
+    status: contactId
+      ? "linked"
+      : participants.some((p) => p.outcome !== "linked")
+        ? "needs_review"
+        : "unlinked",
     thread_id: threadId,
     participants: participants.map((p) => ({
       email: p.email,
@@ -1023,7 +1034,11 @@ export async function associateConversationParticipants(
       dedupeKey: `identity-review:${conversationId}:${participant.email}`,
       proposedBy: actorEmail,
     });
-    if (proposed && typeof proposed === "object" && typeof (proposed as Record<string, unknown>).id === "string") {
+    if (
+      proposed &&
+      typeof proposed === "object" &&
+      typeof (proposed as Record<string, unknown>).id === "string"
+    ) {
       reviewActionIds.push((proposed as Record<string, unknown>).id as string);
     }
   }

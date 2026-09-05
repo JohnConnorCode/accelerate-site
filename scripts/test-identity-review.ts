@@ -39,7 +39,10 @@ class MockSupabase {
       },
       then<TResult1 = { data: unknown; error: { message: string } | null }, TResult2 = never>(
         onfulfilled?:
-          | ((value: { data: unknown; error: { message: string } | null }) => TResult1 | PromiseLike<TResult1>)
+          | ((value: {
+              data: unknown;
+              error: { message: string } | null;
+            }) => TResult1 | PromiseLike<TResult1>)
           | null,
         onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
       ): Promise<TResult1 | TResult2> {
@@ -335,10 +338,7 @@ class MockQueryBuilder implements PromiseLike<{
   }
 }
 
-function seedReviewAction(
-  db: MockSupabase,
-  overrides: Partial<Row> = {},
-): Row {
+function seedReviewAction(db: MockSupabase, overrides: Partial<Row> = {}): Row {
   const row: Row = {
     id: `review-${db.tables.action_queue!.length + 1}`,
     action_type: "identity_review",

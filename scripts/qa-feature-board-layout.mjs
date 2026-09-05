@@ -16,15 +16,20 @@ for (const key of ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "ADM
   if (!process.env[key]) throw new Error(`${key} is required`);
 }
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: { autoRefreshToken: false, persistSession: false },
+  },
+);
 const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
   type: "magiclink",
   email: process.env.ADMIN_EMAIL,
   options: { redirectTo: `${base}/auth/callback?next=/admin/features` },
 });
-if (linkError || !linkData?.properties?.hashed_token) throw linkError || new Error("no sign-in token");
+if (linkError || !linkData?.properties?.hashed_token)
+  throw linkError || new Error("no sign-in token");
 const { data: verified, error: verifyError } = await supabase.auth.verifyOtp({
   token_hash: linkData.properties.hashed_token,
   type: "magiclink",
@@ -65,7 +70,9 @@ async function authedPage(viewport) {
 
 async function openBoard(page) {
   await page.goto("/admin/features", { waitUntil: "domcontentloaded", timeout: 60_000 });
-  await page.getByRole("heading", { name: "Feature Board", exact: true }).waitFor({ timeout: 30_000 });
+  await page
+    .getByRole("heading", { name: "Feature Board", exact: true })
+    .waitFor({ timeout: 30_000 });
   await page.getByLabel("Filter by milestone").waitFor({ timeout: 30_000 });
   await page.locator('[role="region"][aria-label="Kanban board"] article').first().waitFor({
     timeout: 30_000,
@@ -109,9 +116,9 @@ for (const [label, viewport] of [
   } else if (geom.colWidth < 240 || geom.colWidth > 420) {
     failures.push(`${label}: column width messy ${JSON.stringify(geom)}`);
   }
-  await page.locator('[role="region"][aria-label="Kanban board"]').evaluate((node) =>
-    node.scrollIntoView({ block: "start" }),
-  );
+  await page
+    .locator('[role="region"][aria-label="Kanban board"]')
+    .evaluate((node) => node.scrollIntoView({ block: "start" }));
   await page.screenshot({ path: `${outDir}/${label}.png` });
   await context.close();
 }

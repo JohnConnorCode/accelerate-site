@@ -54,16 +54,16 @@ filesystem, database, credentials, model or mutation bindings inside the isolate
 A snapshot names one expected tenant, a UTC `asOf`, a provider observation time,
 completeness, up to 100 unique invoices and explicit account/currency policies.
 Observations must be no more than 15 minutes old relative to that snapshot clock.
-The future live adapter must choose the server clock and establish complete,
-authorized provider/account facts. A truncated provider page must refuse planning;
+The live adapter chooses the server clock and establishes complete,
+authorized provider/account facts for the explicitly tracked invoice set. A truncated provider page must refuse planning;
 it must not set `complete: true` because 100 records were fetched successfully.
 
 Supported currencies match the initial Stripe workflow: USD, EUR, GBP, CAD and
 AUD. Remaining balances are authoritative provider minor units, never reconstructed
 from opportunity values or summed across currencies. Partial payment uses the
 verified remaining balance. Inputs are bounded to 100,000,000 minor units per
-invoice and 64 KiB per validated snapshot. The future host must preserve provider
-invoice identity and verify account linkage.
+invoice and 64 KiB per validated snapshot. The host preserves provider
+invoice identity and verifies account linkage.
 
 Rules, in precedence order:
 
@@ -82,14 +82,14 @@ future observation/receipt times, mixed tenants and incomplete/stale snapshots
 fail closed. Empty complete input returns an empty plan. Input order cannot change
 the plan. The engine does not resolve ambiguous customer identity or infer consent.
 
-## Host integration handoff
+## Host integration
 
-The next slice loads authorized live observations and persisted case policies from
+The host loads authorized live observations and persisted case policies from
 canonical services. It owns permission/activation checks, provider paging,
 completeness, immutable observation IDs and tenant-composite references. The
-reminder slice must re-read payment, hold, dispute, recipient, suppression and
+reminder service re-reads payment, hold, dispute, recipient, suppression and
 plugin state immediately before the effect. A decision here is never permission
-to send. Approved content and invoice facts need a digest, code version, action
+to send. Approved content and invoice facts bind a digest, code version, action
 identity and provider idempotency receipt through the existing action executor.
 
 No new database schema was needed for this first slice. The case migration depends
@@ -111,8 +111,8 @@ WorkItems. Disputes and indefinite pauses cancel active pursuit. Promises and
 timed pauses set the next check. Settlement requires every tracked case invoice
 to have a verified paid status and zero remaining balance. Closed cases remain
 history; disabling or upgrading never deletes them. No reminders are sent by
-this layer. The approved-reminder and workspace/demo cards connect the operator
-journey next. Run `npm run test:collections-lifecycle`; it needs native PostgreSQL
+this layer. The approved-reminder service and shared workspace connect the operator
+journey. Run `npm run test:collections-lifecycle`; it needs native PostgreSQL
 client/server binaries and uses a disposable cluster without Docker.
 
 ## Approved reminders

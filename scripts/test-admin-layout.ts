@@ -45,7 +45,11 @@ function stubSupabase(settingsRow: { value: string } | null = null) {
     self.upsert = (payload: Row) => {
       pending = payload;
       inserted.push({ table, payload });
-      if (table === "admin_settings" && typeof payload.key === "string" && typeof payload.value === "string")
+      if (
+        table === "admin_settings" &&
+        typeof payload.key === "string" &&
+        typeof payload.value === "string"
+      )
         shelf[payload.key] = payload.value;
       return self;
     };
@@ -269,11 +273,7 @@ async function main() {
     "page.today",
     "tenant-1",
   );
-  assert.deepEqual(
-    reread,
-    saved,
-    "a founder save must round-trip through storage, not just echo",
-  );
+  assert.deepEqual(reread, saved, "a founder save must round-trip through storage, not just echo");
   const auditWrite = founderDb.inserted.find((entry) => entry.table === "audit_log");
   assert.equal(
     (auditWrite?.payload as { source?: string } | undefined)?.source,

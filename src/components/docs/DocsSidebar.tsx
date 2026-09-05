@@ -34,7 +34,9 @@ export function DocsSidebar() {
                 {section.pages.map((page) => {
                   const href = `/docs/${page.slug.join("/")}`;
                   const active =
-                    pathname === href || (page.slug[page.slug.length - 1] === "overview" && pathname === `/docs/${section.id}`);
+                    pathname === href ||
+                    (page.slug[page.slug.length - 1] === "overview" &&
+                      pathname === `/docs/${section.id}`);
                   return (
                     <li key={page.slug.join("/")}>
                       <Link

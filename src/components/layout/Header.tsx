@@ -85,8 +85,7 @@ export function Header() {
     href !== "#" && (pathname === href || pathname.startsWith(href + "/"));
   // dropdown parents stay lit when on the parent page or any of their children
   const isParentActive = (link: NavLink) =>
-    isActive(link.href) ||
-    (link.children?.some((child) => isActive(child.href)) ?? false);
+    isActive(link.href) || (link.children?.some((child) => isActive(child.href)) ?? false);
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 8);
     window.addEventListener("scroll", handleScroll, { passive: true });

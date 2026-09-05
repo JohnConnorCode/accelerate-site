@@ -13,7 +13,10 @@ import {
 } from "./ai-tools";
 import { finishAgentRun, recordAgentRunEvent, startAgentRun } from "./agent-trace";
 import { AI_CONTEXT_VERSION, boundToolResult } from "./ai-context";
-import { linkWorkItemRun, type WorkItem } from "./work-items";
+import { linkWorkItemRun, transitionOwnedWorkItem, type WorkItem } from "./work-items";
+
+import { deferWork, type WorkResult, type WorkArtifact } from "./work-result";
+import { findWorkDraft } from "./work-drafts";
 
 // ---------------------------------------------------------------------------
 // Coworker agent: headless AI execution for coworker work items.
@@ -43,17 +46,18 @@ function coworkerSystemPrompt(coworkerRole: string, coworkerId: string, workspac
   ].join(" ");
 }
 
-export interface CoworkerAgentResult {
-  status: "completed" | "partial" | "failed" | "awaiting_approval";
-  nextCheckAt?: string;
-  outcome: string;
-  runId: string;
-}
+export type CoworkerAgentResult = WorkResult & { runId: string };
 
 export async function runCoworkerAgentTask(
   supabase: SupabaseClient,
   workItem: WorkItem,
+  options: { chat?: typeof openRouterChat } = {},
 ): Promise<CoworkerAgentResult> {
+  if (!process.env.OPENROUTER_AGENT_MODEL)
+    return { ...deferWork("AI model is not configured"), runId: "" };
+  const tenantId = tenantIdForDatabase(supabase);
+  if (!tenantId || tenantId !== workItem.tenant_id)
+    throw new Error("Coworker work item must belong to the bound tenant");
   // Resolve the coworker to get its role and tool pack.
   const coworkerId = workItem.coworker_id;
   if (!coworkerId) {
@@ -72,8 +76,6 @@ export async function runCoworkerAgentTask(
       runId: "",
     };
   }
-  const tenantId = tenantIdForDatabase(supabase);
-  if (!tenantId) throw new Error("Coworker execution requires a tenant-bound database");
   const { data: workspace, error: workspaceError } = await supabase
     .from("tenants")
     .select("name,config,status")
@@ -81,7 +83,10 @@ export async function runCoworkerAgentTask(
     .single();
   if (workspaceError || !workspace || workspace.status !== "active")
     throw new Error("Coworker workspace is unavailable");
-  const toolPack = (coworker.tool_pack ?? "core") as RevenueToolPackId;
+  const toolPack: RevenueToolPackId =
+    workItem.kind === "draft_followup"
+      ? "outreach"
+      : ((coworker.tool_pack ?? "core") as RevenueToolPackId);
   const role = coworker.role ?? coworkerId;
 
   const model = getOpenRouterModel(process.env.OPENROUTER_AGENT_MODEL);
@@ -99,6 +104,8 @@ export async function runCoworkerAgentTask(
 
   if (!run.id) throw new Error("Coworker execution requires a durable run receipt");
   const actionIds: string[] = [];
+  const artifacts: WorkArtifact[] = [];
+  let successfulTools = 0;
   await linkWorkItemRun(supabase, workItem, run.id, actionIds);
 
   const transcript: OpenRouterMessage[] = [
@@ -156,7 +163,7 @@ export async function runCoworkerAgentTask(
     for (let turn = 0; turn < MAX_COWORKER_TOOL_TURNS; turn++) {
       const grounding = [today, capabilitySummary, memorySummary].filter(Boolean).join("\n");
 
-      const response = await openRouterChat({
+      const response = await (options.chat ?? openRouterChat)({
         database: supabase,
         beforeAttempt: async (attempt) => {
           await claimResourceBudget(supabase, {
@@ -176,7 +183,12 @@ export async function runCoworkerAgentTask(
           },
           ...transcript,
         ],
-        tools: toOpenRouterTools(toolPack),
+        tools: toOpenRouterTools(toolPack).filter(
+          (tool) =>
+            workItem.kind !== "draft_followup" ||
+            !tool.function.name.startsWith("propose_") ||
+            ["propose_send_email", "propose_conversation_reply"].includes(tool.function.name),
+        ),
       });
 
       inputTokens += response.usage?.prompt_tokens ?? 0;
@@ -201,24 +213,37 @@ export async function runCoworkerAgentTask(
 
       const uses = assistant.tool_calls ?? [];
       if (!uses.length) {
-        // No tool calls — the agent has finished its reasoning.
-        const text = assistant.content?.trim() || "Completed without output";
-        await finishAgentRun(supabase, run, toolErrors ? "partial" : "completed", {
-          toolNames,
-          inputTokens,
-          outputTokens,
-          resultPreview: text,
-        });
-        return {
-          status: toolErrors ? "partial" : actionIds.length ? "awaiting_approval" : "completed",
-          outcome: actionIds.length
-            ? `Waiting for approval of ${actionIds.length} proposed action(s). ${text}`
-            : text,
-          ...(actionIds.length
-            ? { nextCheckAt: new Date(Date.now() + 5 * 60_000).toISOString() }
-            : {}),
-          runId: run.id,
+        const text = assistant.content?.trim() || "No result produced";
+        let result: WorkResult = {
+          status:
+            toolErrors || !successfulTools || !assistant.content?.trim() ? "partial" : "completed",
+          outcome: text,
+          artifacts,
         };
+        if (result.status === "completed" && workItem.kind === "draft_followup") {
+          const draft = await findWorkDraft(supabase, workItem);
+          result = draft
+            ? {
+                status: "completed",
+                outcome: "Follow-up draft prepared for approval",
+                artifacts: [draft],
+              }
+            : { status: "partial", outcome: "No valid follow-up proposal was created", artifacts };
+        } else if (result.status === "completed" && actionIds.length) {
+          result = {
+            status: "awaiting_approval",
+            outcome: `Waiting for approval of ${actionIds.length} proposed action(s). ${text}`,
+            nextCheckAt: new Date(Date.now() + 300_000).toISOString(),
+            artifacts,
+          };
+        }
+        await finishAgentRun(
+          supabase,
+          run,
+          result.status === "completed" ? "completed" : "partial",
+          { toolNames, inputTokens, outputTokens, resultPreview: result.outcome },
+        );
+        return { ...result, runId: run.id };
       }
 
       // Execute tool calls.
@@ -232,22 +257,32 @@ export async function runCoworkerAgentTask(
           toolInput = {};
         }
         try {
+          await transitionOwnedWorkItem(supabase, workItem, { agent_run_id: run.id });
+          if (
+            workItem.kind === "draft_followup" &&
+            name.startsWith("propose_") &&
+            !["propose_send_email", "propose_conversation_reply"].includes(name)
+          )
+            throw new Error("Draft work may only propose its email or conversation reply");
           const { output, tool } = await executeRegisteredRevenueTool(
             {
               supabase,
               actorEmail: `coworker:${coworkerId}`,
               toolPack,
               workItemId: workItem.id,
+              ...(workItem.kind === "draft_followup" ? { workItem } : {}),
               tenantConfig: workspace.config,
             },
             name,
             toolInput,
           );
+          successfulTools++;
           if (tool.impact !== "read") {
             const id = (output as { id?: unknown })?.id;
             if (typeof id !== "string")
               throw new Error("Mutating tool did not return a proposal receipt");
             actionIds.push(id);
+            artifacts.push({ type: "action", id });
             await linkWorkItemRun(supabase, workItem, run.id!, actionIds);
           }
           await recordAgentRunEvent(supabase, run, {
@@ -296,7 +331,8 @@ export async function runCoworkerAgentTask(
     });
 
     return {
-      status: actionIds.length ? "awaiting_approval" : "partial",
+      status: "partial",
+      artifacts,
       outcome: partial,
       ...(actionIds.length ? { nextCheckAt: new Date(Date.now() + 5 * 60_000).toISOString() } : {}),
       runId: run.id,
@@ -310,6 +346,7 @@ export async function runCoworkerAgentTask(
     });
     return {
       status: "failed",
+      artifacts,
       outcome: `AI execution failed: ${error instanceof Error ? error.message : "unknown error"}`,
       runId: run.id ?? "",
     };

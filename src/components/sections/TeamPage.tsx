@@ -34,8 +34,8 @@ export function TeamPageContent() {
             </HeroEntranceItem>
             <HeroEntranceItem step={3}>
               <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                Operators who build and run AI systems for real businesses, backed
-                by advisors who have done it at serious scale.
+                Operators who build and run AI systems for real businesses, backed by advisors who
+                have done it at serious scale.
               </p>
             </HeroEntranceItem>
           </div>
@@ -56,8 +56,7 @@ export function TeamPageContent() {
           </div>
           <div className="flex flex-col gap-7">
             <p className="text-lg leading-relaxed text-white-secondary">
-              Thirty minutes about how the business works and where AI or automation
-              may be useful.
+              Thirty minutes about how the business works and where AI or automation may be useful.
             </p>
             <BookCallButton location="team" />
             <CallTerms />

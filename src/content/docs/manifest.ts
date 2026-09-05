@@ -42,7 +42,7 @@ export const docsManifest: DocsSection[] = [
     id: "command-center",
     title: "Command Center",
     description:
-      "One shared operating layer for the businesses that need it — and how to tell whether you do.",
+      "One shared operating layer for businesses that need it, and how to decide whether it fits.",
     pages: [
       {
         slug: ["command-center", "overview"],

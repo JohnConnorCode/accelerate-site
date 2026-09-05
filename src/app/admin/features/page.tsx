@@ -707,7 +707,7 @@ function FeatureDialog({
                 type="button"
                 disabled={saving}
                 onClick={() => void onArchive(feature)}
-                className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-rose-700 transition-[background-color,transform] duration-150 hover:bg-rose-500/10 active:scale-[0.96] disabled:opacity-50 dark:text-rose-300"
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-[var(--admin-danger)] transition-[background-color,transform] duration-150 hover:bg-[var(--admin-danger-soft)] active:scale-[0.96] disabled:opacity-50"
               >
                 <Archive className="size-3.5" /> Archive
               </button>

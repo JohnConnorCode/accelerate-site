@@ -55,7 +55,7 @@ export function WorkViews({
             key={q.key}
             onClick={() => onChange({ ...filters, queue: q.key, milestone: "all" })}
             aria-pressed={filters.queue === q.key}
-            className={`min-h-10 rounded-xl border px-3 text-xs font-semibold focus-visible:ring-2 focus-visible:ring-blue-500 ${filters.queue === q.key ? "border-blue-500 bg-blue-500/10" : "border-[var(--admin-border)]"}`}
+            className={`min-h-10 rounded-xl border px-3 text-xs font-semibold focus-visible:ring-2 focus-visible:ring-[var(--admin-accent)] ${filters.queue === q.key ? "border-[var(--admin-accent)] bg-[var(--admin-accent-soft)]" : "border-[var(--admin-border)]"}`}
           >
             {q.label}
           </button>

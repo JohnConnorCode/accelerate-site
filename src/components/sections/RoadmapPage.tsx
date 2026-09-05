@@ -101,7 +101,7 @@ function SuggestForm() {
   if (state === "sent") {
     return (
       <p className="mt-4 rounded-xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_80%,transparent)] p-4 text-sm text-white-secondary">
-        Thanks — it&apos;s in front of the team now. Suggestions that get triaged show up here with
+        Thanks. It&apos;s in front of the team now. Suggestions that get triaged show up here with
         the rest of the roadmap.
       </p>
     );

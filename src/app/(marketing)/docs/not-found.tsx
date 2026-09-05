@@ -16,7 +16,10 @@ export default function DocsNotFound() {
       </p>
       <ul className="mt-8 flex max-w-xl flex-col gap-3">
         <li>
-          <Link href="/docs" className="inline-flex items-center gap-2 font-medium text-heading hover:underline">
+          <Link
+            href="/docs"
+            className="inline-flex items-center gap-2 font-medium text-heading hover:underline"
+          >
             <BookOpen className="h-4 w-4" aria-hidden="true" />
             Docs landing
           </Link>

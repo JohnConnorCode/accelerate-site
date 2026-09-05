@@ -245,7 +245,7 @@ export default function InvoicingPage() {
         {(error || providers.error || billing.error) && (
           <div
             role="alert"
-            className="rounded-xl border border-red-500/30 bg-red-500/5 p-4 text-sm"
+            className="rounded-xl border border-[var(--admin-danger)]/30 bg-[var(--admin-danger-soft)] p-4 text-sm"
           >
             {error || providers.error?.message || billing.error?.message}
             <button className={`${button} ml-2`} onClick={() => void refresh()} type="button">

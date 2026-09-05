@@ -2,17 +2,10 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { recordAudit } from "./audit";
 import { recordActivity } from "./activities";
-import {
-  claimApprovedAction,
-  failAction,
-  finishAction,
-} from "./actions";
+import { claimApprovedAction, failAction, finishAction } from "./actions";
 import { recordEvidence } from "./claims";
 import { linkConversationRecord } from "./conversations";
-import {
-  findCanonicalContactByEmail,
-  isPersonalEmailDomain,
-} from "./identity";
+import { findCanonicalContactByEmail, isPersonalEmailDomain } from "./identity";
 import { domainFromEmailOrWebsite, normalizeEmail } from "./db";
 
 export const IDENTITY_REVIEW_CONTRACT = "revenue-os-identity-review.v1";
@@ -83,7 +76,9 @@ export async function listIdentityReviewItems(
   const conversationIds = [
     ...new Set(
       ((actions ?? []) as Array<Record<string, unknown>>)
-        .map((a) => ((a.payload as Record<string, unknown> | null)?.conversation_id as string) ?? null)
+        .map(
+          (a) => ((a.payload as Record<string, unknown> | null)?.conversation_id as string) ?? null,
+        )
         .filter((id): id is string => typeof id === "string" && id.length > 0),
     ),
   ];
@@ -101,7 +96,10 @@ export async function listIdentityReviewItems(
   const candidateIds = [
     ...new Set(
       ((actions ?? []) as Array<Record<string, unknown>>).flatMap((a) => {
-        const raw = ((a.payload as Record<string, unknown> | null)?.candidates as Array<Record<string, unknown>>) ?? [];
+        const raw =
+          ((a.payload as Record<string, unknown> | null)?.candidates as Array<
+            Record<string, unknown>
+          >) ?? [];
         return raw.map((c) => c.id).filter((id): id is string => typeof id === "string");
       }),
     ),
@@ -149,9 +147,7 @@ export async function listIdentityReviewItems(
           full_name: String(fresh?.full_name ?? c.full_name ?? ""),
           primary_email: (fresh?.primary_email as string) ?? (c.primary_email as string) ?? null,
           company_id: freshCompanyId,
-          company_name: freshCompanyId
-            ? String(companyMap.get(freshCompanyId)?.name ?? "")
-            : "",
+          company_name: freshCompanyId ? String(companyMap.get(freshCompanyId)?.name ?? "") : "",
         };
       });
 
@@ -162,7 +158,9 @@ export async function listIdentityReviewItems(
         .select("id,best_evidence")
         .eq("entity_type", "conversation")
         .eq("entity_id", conversationId);
-      const claimIds = ((claims ?? []) as Array<Record<string, unknown>>).map((c) => c.id as string);
+      const claimIds = ((claims ?? []) as Array<Record<string, unknown>>).map(
+        (c) => c.id as string,
+      );
       if (claimIds.length) {
         const { data: rows } = await supabase
           .from("evidence")
@@ -255,7 +253,9 @@ export async function resolveIdentityReview(
     return {
       contract: IDENTITY_REVIEW_CONTRACT,
       actionId,
-      decision: ((row.result as Record<string, unknown> | null)?.decision as IdentityReviewDecision) ?? "no_match",
+      decision:
+        ((row.result as Record<string, unknown> | null)?.decision as IdentityReviewDecision) ??
+        "no_match",
       replayed: true,
       contactId: ((row.result as Record<string, unknown> | null)?.contact_id as string) ?? null,
       companyId: ((row.result as Record<string, unknown> | null)?.company_id as string) ?? null,
@@ -316,7 +316,12 @@ export async function resolveIdentityReview(
     }
 
     if (input.decision === "no_match") {
-      const result = { decision: "no_match", conversation_id: conversationId, contact_id: null, company_id: null };
+      const result = {
+        decision: "no_match",
+        conversation_id: conversationId,
+        contact_id: null,
+        company_id: null,
+      };
       await recordEvidence(supabase, {
         entityType: "conversation",
         entityId: conversationId,
@@ -370,7 +375,9 @@ export async function resolveIdentityReview(
         normalizeEmail(contact.primary_email) === participantEmail ||
         storedCandidates.includes(contact.id);
       if (!stillMatches)
-        throw new Error("Identity changed after review: the chosen contact no longer matches this item");
+        throw new Error(
+          "Identity changed after review: the chosen contact no longer matches this item",
+        );
       let companyId: string | null = null;
       if (input.companyId?.trim()) {
         const { data: company, error: companyError } = await supabase
@@ -392,14 +399,21 @@ export async function resolveIdentityReview(
       if (convError) throw new Error(convError.message);
       assertFound(conv, "Conversation");
       if (conv.contact_id && conv.contact_id !== contactId)
-        throw new Error("Conversation was linked elsewhere while under review; re-review before linking");
+        throw new Error(
+          "Conversation was linked elsewhere while under review; re-review before linking",
+        );
       await linkConversationRecord(supabase, {
         conversationId,
         contactId,
         companyId,
         actorEmail,
       });
-      const result = { decision: "link", conversation_id: conversationId, contact_id: contactId, company_id: companyId };
+      const result = {
+        decision: "link",
+        conversation_id: conversationId,
+        contact_id: contactId,
+        company_id: companyId,
+      };
       await recordAudit(supabase, {
         actorEmail,
         action: "identity_review.resolved",
@@ -435,7 +449,9 @@ export async function resolveIdentityReview(
     if (!fullName) throw new Error("Create requires the contact's full name");
     const existing = await findCanonicalContactByEmail(supabase, participantEmail);
     if (existing)
-      throw new Error("Identity changed after review: this email now belongs to an existing contact");
+      throw new Error(
+        "Identity changed after review: this email now belongs to an existing contact",
+      );
     let companyId: string | null = null;
     if (input.companyId?.trim()) {
       const { data: company, error: companyError } = await supabase
@@ -449,7 +465,9 @@ export async function resolveIdentityReview(
     } else if (input.companyName?.trim()) {
       const domain = domainFromEmailOrWebsite(participantEmail, null);
       if (isPersonalEmailDomain(domain))
-        throw new Error("A personal email address cannot seed a company; create the contact without one");
+        throw new Error(
+          "A personal email address cannot seed a company; create the contact without one",
+        );
       const { data: created, error: createError } = await supabase
         .from("companies")
         .insert({
@@ -509,7 +527,12 @@ export async function resolveIdentityReview(
       companyId,
       actorEmail,
     });
-    const result = { decision: "create", conversation_id: conversationId, contact_id: contactId, company_id: companyId };
+    const result = {
+      decision: "create",
+      conversation_id: conversationId,
+      contact_id: contactId,
+      company_id: companyId,
+    };
     await recordAudit(supabase, {
       actorEmail,
       action: "identity_review.resolved",
@@ -539,7 +562,11 @@ export async function resolveIdentityReview(
       companyId,
     };
   } catch (error) {
-    await failAction(supabase, actionId, error instanceof Error ? error.message : "Resolution failed");
+    await failAction(
+      supabase,
+      actionId,
+      error instanceof Error ? error.message : "Resolution failed",
+    );
     throw error;
   }
 }

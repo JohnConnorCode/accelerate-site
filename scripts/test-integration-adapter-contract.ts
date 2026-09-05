@@ -21,10 +21,7 @@ async function testReconciliation(adapter: IntegrationAdapter, label: string) {
     ["success", "partial", "skipped", "failed"].includes(result.status),
     `${label} reconcile must terminate success, partial, skipped, or failed`,
   );
-  assert.ok(
-    Array.isArray(result.errors),
-    `${label} reconcile must return errors array`,
-  );
+  assert.ok(Array.isArray(result.errors), `${label} reconcile must return errors array`);
   assert.ok(
     Number.isInteger(result.processed) && result.processed >= 0,
     `${label} reconcile must return non-negative processed count`,
@@ -33,10 +30,7 @@ async function testReconciliation(adapter: IntegrationAdapter, label: string) {
 
 async function testHealth(adapter: IntegrationAdapter, label: string) {
   const health: AdapterHealth = await adapter.health(fakeCredentials);
-  assert.ok(
-    typeof health.healthy === "boolean",
-    `${label} health must return healthy boolean`,
-  );
+  assert.ok(typeof health.healthy === "boolean", `${label} health must return healthy boolean`);
   assert.ok(
     Number.isInteger(health.latencyMs) && health.latencyMs >= 0,
     `${label} health must return non-negative latencyMs`,
@@ -58,14 +52,8 @@ async function testDuplicateReplay(adapter: IntegrationAdapter, label: string) {
     fakeCredentials,
     "cursor-123",
   );
-  assert.ok(
-    result1.status !== "failed",
-    `${label} first reconcile must not fail`,
-  );
-  assert.ok(
-    result2.status !== "failed",
-    `${label} duplicate reconcile must not fail`,
-  );
+  assert.ok(result1.status !== "failed", `${label} first reconcile must not fail`);
+  assert.ok(result2.status !== "failed", `${label} duplicate reconcile must not fail`);
 }
 
 async function testCursorExpiry(adapter: IntegrationAdapter, label: string) {
@@ -93,14 +81,10 @@ async function testThrottling(adapter: IntegrationAdapter, label: string) {
   const verifyResult = await adapter.verify(fakeCredentials);
   if (verifyResult.rateLimit) {
     assert.ok(
-      Number.isInteger(verifyResult.rateLimit.remaining) &&
-        verifyResult.rateLimit.remaining >= 0,
+      Number.isInteger(verifyResult.rateLimit.remaining) && verifyResult.rateLimit.remaining >= 0,
       `${label} rate limit remaining must be non-negative integer`,
     );
-    assert.ok(
-      verifyResult.rateLimit.resetAt,
-      `${label} rate limit resetAt must be present`,
-    );
+    assert.ok(verifyResult.rateLimit.resetAt, `${label} rate limit resetAt must be present`);
   }
 }
 
@@ -126,18 +110,12 @@ async function main() {
     typeof whatsAppAdapter.reconcile === "function",
     "whatsAppAdapter must implement reconcile",
   );
-  assert.ok(
-    typeof whatsAppAdapter.health === "function",
-    "whatsAppAdapter must implement health",
-  );
+  assert.ok(typeof whatsAppAdapter.health === "function", "whatsAppAdapter must implement health");
   assert.ok(
     typeof hubSpotAdapter.reconcile === "function",
     "hubSpotAdapter must implement reconcile",
   );
-  assert.ok(
-    typeof hubSpotAdapter.health === "function",
-    "hubSpotAdapter must implement health",
-  );
+  assert.ok(typeof hubSpotAdapter.health === "function", "hubSpotAdapter must implement health");
 
   const whatsappResult = await whatsAppAdapter.reconcile(
     null as unknown as Parameters<typeof whatsAppAdapter.reconcile>[0],
@@ -149,10 +127,7 @@ async function main() {
   );
 
   const hubspotHealth = await hubSpotAdapter.health(fakeHubSpotCreds);
-  assert.ok(
-    typeof hubspotHealth.healthy === "boolean",
-    "health must return healthy boolean",
-  );
+  assert.ok(typeof hubspotHealth.healthy === "boolean", "health must return healthy boolean");
 
   console.log("All integration adapter contract tests passed!");
 }

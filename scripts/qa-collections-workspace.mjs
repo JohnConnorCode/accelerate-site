@@ -42,7 +42,7 @@ try {
       assert.equal(await cases.count(), 6);
       assert.equal(await page.locator("h1").textContent(), "Collections Action Desk");
       await page.getByLabel("Owner email", { exact: true }).fill("finance@operator.example");
-      await page.getByRole("button", { name: "Save case policy", exact: true }).click();
+      await page.getByRole("button", { name: "Save case policy", exact: true }).press("Enter");
       await page.getByText("Case policy saved with a revision and history receipt.").waitFor();
       await page.reload();
       await page.getByRole("button", { name: "Preview reminder", exact: true }).waitFor();
@@ -52,7 +52,9 @@ try {
       );
       await page.getByRole("button", { name: "Preview reminder", exact: true }).click();
       await page.getByTitle("Branded reminder preview").waitFor();
-      await page.getByRole("button", { name: "Queue reviewed reminder", exact: true }).click();
+      await page
+        .getByRole("button", { name: "Queue reviewed reminder", exact: true })
+        .press("Enter");
       await page.getByRole("button", { name: "Approve and send", exact: true }).waitFor();
       await page
         .getByRole("button", { name: "Simulate payment before approval", exact: true })
@@ -60,12 +62,14 @@ try {
       await page
         .getByText("Simulated payment recorded. A pending reminder must now be skipped.")
         .waitFor();
-      await page.getByRole("button", { name: "Approve and send", exact: true }).click();
+      await page.getByRole("button", { name: "Approve and send", exact: true }).press("Enter");
       await page.getByRole("alert").filter({ hasText: "Reminder skipped" }).waitFor();
       await cases.nth(1).click();
       await page.getByRole("button", { name: "Preview reminder", exact: true }).click();
-      await page.getByRole("button", { name: "Queue reviewed reminder", exact: true }).click();
-      await page.getByRole("button", { name: "Approve and send", exact: true }).click();
+      await page
+        .getByRole("button", { name: "Queue reviewed reminder", exact: true })
+        .press("Enter");
+      await page.getByRole("button", { name: "Approve and send", exact: true }).press("Enter");
       await page.getByText(/Receipt: sent/).waitFor();
       assert.ok(
         await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),

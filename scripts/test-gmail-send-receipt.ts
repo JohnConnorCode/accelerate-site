@@ -31,7 +31,10 @@ async function main() {
         },
       ],
     });
-    const saved = await recordGmailSendReceipt(mem.client as never, { ...receipt, claimId: "claim-1" });
+    const saved = await recordGmailSendReceipt(mem.client as never, {
+      ...receipt,
+      claimId: "claim-1",
+    });
     assert.ok(saved.id);
     const rows = mem.rows("messages");
     assert.equal(rows.length, 1, "claim retires; one canonical row remains");
@@ -40,8 +43,8 @@ async function main() {
     assert.equal(rows[0]!.in_reply_to, "<mid-1@mail>");
   }
 
-// Case 2: a sync stored the sent message first. The receipt heals that row
-// instead of duplicating it, and the claim still retires.
+  // Case 2: a sync stored the sent message first. The receipt heals that row
+  // instead of duplicating it, and the claim still retires.
   {
     const mem = new MemorySupabase({
       messages: [
@@ -60,14 +63,17 @@ async function main() {
         },
       ],
     });
-    const saved = await recordGmailSendReceipt(mem.client as never, { ...receipt, claimId: "claim-1" });
+    const saved = await recordGmailSendReceipt(mem.client as never, {
+      ...receipt,
+      claimId: "claim-1",
+    });
     const rows = mem.rows("messages");
     assert.equal(rows.length, 1, "no duplicate across reply and sync paths");
     assert.equal(saved.id, "sync-row-1", "the raced row is healed in place");
     assert.equal(rows[0]!.status, "sent");
   }
 
-// Case 3: replay. Recording the same receipt twice stays one row.
+  // Case 3: replay. Recording the same receipt twice stays one row.
   {
     const mem = new MemorySupabase({ messages: [] });
     await recordGmailSendReceipt(mem.client as never, { ...receipt, claimId: "missing-claim" });
