@@ -319,6 +319,7 @@ export async function retryPluginAction(supabase: SupabaseClient, id: string, ac
     .eq("id", id)
     .eq("status", "failed")
     .in("action_type", [
+      "send_collection_reminder",
       "create_stripe_invoice_draft",
       "send_stripe_invoice",
       "create_task_batch",

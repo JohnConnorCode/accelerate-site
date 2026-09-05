@@ -5,9 +5,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-06.2";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-06.3";
 
 export const TENANT_SCOPED_TABLES = [
+  "collection_reminder_attempts",
   "collection_cases",
   "collection_observations",
   "collection_case_invoices",
@@ -364,6 +365,23 @@ const BASE_REVENUE_SCHEMA_TABLE_NAMES = new Set<string>(
 
 export const REVENUE_SCHEMA_TABLES = [
   {
+    table: "collection_reminder_attempts",
+    columns: [
+      "tenant_id",
+      "action_id",
+      "case_id",
+      "state",
+      "digest",
+      "case_revision",
+      "cooldown_hours",
+      "message_id",
+      "provider_id",
+      "sent_at",
+      "created_at",
+      "updated_at",
+    ],
+  },
+  {
     table: "collection_cases",
     columns: [
       "id",
@@ -522,6 +540,8 @@ export const REVENUE_SCHEMA_INDEXES = [
 ] as const;
 
 export const REVENUE_SCHEMA_FUNCTIONS = [
+  "public.reserve_collection_reminder(uuid)",
+  "public.reconcile_collection_reminder(uuid)",
   "public.sync_collection_observations(uuid,jsonb,text)",
   "public.update_collection_case(uuid,integer,uuid,jsonb,text)",
   "public.revenue_os_touch_updated_at()",

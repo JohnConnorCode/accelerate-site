@@ -4,8 +4,8 @@ import { createHash } from "node:crypto";
 import { evaluateInIsolate } from "../../src/lib/revenue-os/plugin-isolate";
 import { collectionsPlanSchema, validateCollectionsSnapshot } from "./contract";
 
-/** Development/conformance entrypoint, not a registered live plugin host.
- * The future live adapter must load authorized provider facts and case policy. */
+/** Shared live/conformance decision isolate. The Collections host supplies
+ * authorized provider facts and current case policy; the isolate has no effects. */
 export async function evaluateCollectionsSnapshot(expectedTenantId: string, raw: unknown) {
   const input = validateCollectionsSnapshot(raw);
   if (input.tenantId !== expectedTenantId)

@@ -1,5 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { executeCollectionReminder } from "./collection-reminders";
 import { executeInvoicePagePublication } from "./invoice-pages";
 import { executeWorkflowTaskBatch } from "./workflow-tasks";
 import { executeStripeInvoiceAction } from "./stripe-invoicing";
@@ -40,6 +41,7 @@ export const APPROVABLE_ACTIONS = [
   "bootstrap_coworker",
   "store_agent_memory",
   "record_learned_policy",
+  "send_collection_reminder",
   "send_email",
   "send_gmail_reply",
   "transition_opportunity",
@@ -143,6 +145,11 @@ export async function approveAndExecuteAction(
         if (mode !== "approved")
           throw new Error("Runtime configuration and memory changes require human approval");
         result = await executeRuntimeAction(supabase, action.action_type, payload, actorEmail);
+        break;
+      }
+      case "send_collection_reminder": {
+        if (mode !== "approved") throw new Error("Collection reminders require human approval");
+        result = await executeCollectionReminder(supabase, id, actorEmail);
         break;
       }
       case "send_email": {

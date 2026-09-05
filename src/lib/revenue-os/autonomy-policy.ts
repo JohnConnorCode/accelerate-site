@@ -50,6 +50,7 @@ export interface HardFloor {
 
 // Capability-wide restrictions apply alongside a narrow action policy.
 const ACTION_CAPABILITIES: Record<string, string> = {
+  send_collection_reminder: "email.send",
   send_email: "email.send",
   send_gmail_reply: "email.send",
   activate_campaign: "email.send",

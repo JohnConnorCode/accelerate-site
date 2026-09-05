@@ -306,6 +306,17 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     aiToolNames: [],
     routes: [],
     setupChecks: [],
+    settings: [
+      {
+        key: "cooldownHours",
+        label: "Reminder cooldown (hours)",
+        description: "Minimum time between confirmed reminder sends for an account and currency.",
+        type: "number",
+        default: 72,
+        min: 1,
+        max: 720,
+      },
+    ],
   },
   {
     id: "stripe-invoicing",

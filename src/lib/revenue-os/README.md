@@ -142,3 +142,8 @@ reader; request inputs contain canonical action IDs, never billing facts.
 state, immutable observation/command/event history, canonical activities/audit
 and WorkItems. The optional `receivables-collections` module and Stripe invoicing
 must be enabled. Disabling retains evidence and denies further writes.
+
+`collection-reminders.ts` owns branded previews, digest-bound proposals and
+approved dispatch through `action-executor.ts` and `communications.ts`. The
+reminder RPCs reserve one dispatch per case and reconcile only canonical message
+receipts. Uncertainty blocks additional sending; confirmed send time owns cooldown.

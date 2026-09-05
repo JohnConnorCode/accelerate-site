@@ -57,6 +57,12 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
       "A reviewed configuration change or superseding memory entry compensates for this action; no automatic inverse is promised.",
   })),
   {
+    actionType: "send_collection_reminder",
+    impact: "external_action",
+    reversibility: "irreversible",
+    rationale: "A customer reminder leaves the system and requires human approval.",
+  },
+  {
     actionType: "send_email",
     impact: "external_action",
     reversibility: "irreversible",

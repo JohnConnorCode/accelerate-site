@@ -1,10 +1,11 @@
 # Collections Action Desk — decision engine
 
-**Status: first implementation slice; not an installed or enabled business plugin.**
-The live Feature Board parent is `receivables-collections-plugin`. This slice is
-`receivables-decision-engine`; it proves the deterministic business decisions in
-the existing QuickJS isolate. It does not contact customers, load Stripe data,
-persist cases, create WorkItems or register a new UI/AI tool.
+**Status: default-off reference module with a durable case host and approved-reminder API.**
+The live Feature Board parent is `receivables-collections-plugin`. The decision
+engine runs in the existing QuickJS isolate; the host loads authorized Stripe
+facts, persists cases and schedules WorkItems. `receivables-workspace-demo` still
+owns the complete shared operator/demo journey; this module is not yet a finished
+self-service plugin installation experience.
 
 ## Business outcome
 
@@ -45,7 +46,7 @@ preview as an authorization or sending endpoint.
 ## Input and decision contract
 
 `contract.ts` owns the v1 closed input/output schemas. `plan.js` is the pure
-business program. `evaluate.ts` is a development/conformance adapter into the
+business program. `evaluate.ts` is the shared live/conformance adapter into the
 existing isolate, with 250 ms execution budget, 8 MiB heap and a source hash.
 The only binding is the already-validated snapshot. There are no network,
 filesystem, database, credentials, model or mutation bindings inside the isolate.
@@ -113,3 +114,42 @@ history; disabling or upgrading never deletes them. No reminders are sent by
 this layer. The approved-reminder and workspace/demo cards connect the operator
 journey next. Run `npm run test:collections-lifecycle`; it needs native PostgreSQL
 client/server binaries and uses a disposable cluster without Docker.
+
+## Approved reminders
+
+`POST /api/admin/collections/reminders` takes `{caseId}` to create a current,
+branded preview. Sending the same endpoint `{caseId,digest}` stages an expiring
+`send_collection_reminder` action. The existing human approval executor performs
+the effect; a preview or proposal never sends email.
+
+The host determines recipients, amounts, invoice sets and Stripe payment URLs.
+Approval binds the case revision, sender/reply identity, rendered content,
+branding revision, decision source hash and current invoice facts. A changed
+balance, dispute, pause, suppression, recipient or disabled module refuses the
+send and retains a skipped action checkpoint. Language is deterministic in this
+version; no additional AI provider is required or allowed to change billing facts.
+
+One transactional case reservation excludes concurrent reminders. Canonical
+`messages` records and `action:<id>` provider idempotency keys protect each send.
+Uncertain acceptance blocks all further reminders for that case. Re-reviewing
+the original failed action can reconcile a confirmed canonical provider receipt
+without a second send. A retry never clears uncertainty or invents success.
+Cooldown (default 72 hours, configurable 1–720) begins only at confirmed send time.
+
+An external payment and an email provider cannot share a database transaction.
+The host re-reads billing immediately before reservation; a payment occurring
+after that read cannot be atomically recalled from an already accepted email.
+This is not a promise of external transactional isolation.
+
+```sh
+npm run test:collections-reminders
+COLLECTIONS_POSTGRES_PROOF=1 COLLECTIONS_REMINDER_POSTGRES_PROOF=1 npm run test:migration-ledger
+```
+
+These checks use controlled provider fixtures and disposable native PostgreSQL.
+They do not send real customer mail or constitute hosted provider acceptance.
+
+`PATCH /api/admin/collections/reminders` with `{actionId}` reconciles a known
+dispatch receipt without sending, including after approval expiry or module
+disable. Normal tenant authorization still applies. A failed action can remain
+failed while this separate receipt correctly reports a late provider acceptance.
