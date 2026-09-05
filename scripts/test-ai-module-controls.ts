@@ -99,7 +99,7 @@ async function main() {
         { moduleId, settings: { cooldownHours: 48 } },
         f.email,
       );
-      const count = f.controls.saves;
+      const count: number = f.controls.saves;
       await assert.rejects(
         () => approveAndExecuteAction(f.db, stale.action.id, f.email),
         /changed/,
@@ -179,7 +179,7 @@ async function main() {
         "autonomous",
       ] as const) {
         const pending = await propose({ moduleId, enabled: true });
-        const count = f.controls.saves;
+        const count: number = f.controls.saves;
         if (scenario === "revoked") f.mem.rows("tenant_memberships")[0]!.status = "revoked";
         if (scenario === "suspended") f.mem.rows("tenants")[0]!.status = "suspended";
         if (scenario === "foreign")
