@@ -212,7 +212,7 @@ const dailyHealthCheckHandler: WorkKindHandler = async (supabase) => {
     relevanceHorizon: "daily",
   }).catch(() => {});
 
-  return { outcome };
+  return { status: "completed", outcome };
 };
 
 const integrationStatusAuditHandler: WorkKindHandler = async (supabase) => {
@@ -229,7 +229,7 @@ const integrationStatusAuditHandler: WorkKindHandler = async (supabase) => {
   const notConfigured = (recentSourceRuns ?? []).filter((r) => r.status === "not_configured");
 
   if (failed.length === 0 && notConfigured.length === 0) {
-    return { outcome: "All integrations healthy — no failed or unconfigured source runs in the last 24 hours" };
+    return { status: "completed", outcome: "All integrations healthy — no failed or unconfigured source runs in the last 24 hours" };
   }
 
   const parts: string[] = [];
@@ -258,7 +258,7 @@ const integrationStatusAuditHandler: WorkKindHandler = async (supabase) => {
     relevanceHorizon: "daily",
   }).catch(() => {});
 
-  return { outcome };
+  return { status: "completed", outcome };
 };
 
 const dataQualityScanHandler: WorkKindHandler = async (supabase) => {
@@ -287,7 +287,7 @@ const dataQualityScanHandler: WorkKindHandler = async (supabase) => {
   if ((noNextAction ?? 0) > 0) issues.push(`${noNextAction} active opportunities without next action`);
 
   if (issues.length === 0) {
-    return { outcome: "Data quality scan clean — no missing critical fields detected" };
+    return { status: "completed", outcome: "Data quality scan clean — no missing critical fields detected" };
   }
 
   await recordAudit(supabase, {
@@ -308,7 +308,7 @@ const dataQualityScanHandler: WorkKindHandler = async (supabase) => {
     relevanceHorizon: "daily",
   }).catch(() => {});
 
-  return { outcome };
+  return { status: "completed", outcome };
 };
 
 // ---------------------------------------------------------------------------

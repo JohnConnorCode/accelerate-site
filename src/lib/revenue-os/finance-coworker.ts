@@ -209,7 +209,7 @@ const weeklyReconciliationHandler: WorkKindHandler = async (supabase) => {
     relevanceHorizon: "weekly",
   }).catch(() => {});
 
-  return { outcome: summary };
+  return { status: "completed", outcome: summary };
 };
 
 const detectOverduePaymentsHandler: WorkKindHandler = async (supabase) => {
@@ -225,7 +225,7 @@ const detectOverduePaymentsHandler: WorkKindHandler = async (supabase) => {
 
   const count = staleWon?.length ?? 0;
   if (count === 0) {
-    return { outcome: "No overdue payments or stalled won deals detected" };
+    return { status: "completed", outcome: "No overdue payments or stalled won deals detected" };
   }
 
   const summary = (staleWon ?? [])
@@ -249,7 +249,7 @@ const detectOverduePaymentsHandler: WorkKindHandler = async (supabase) => {
     relevanceHorizon: "daily",
   }).catch(() => {});
 
-  return { outcome: `${count} potential overdue/stalled deals: ${summary}` };
+  return { status: "completed", outcome: `${count} potential overdue/stalled deals: ${summary}` };
 };
 
 const revenueStageAuditHandler: WorkKindHandler = async (supabase) => {
@@ -265,7 +265,7 @@ const revenueStageAuditHandler: WorkKindHandler = async (supabase) => {
 
   const count = atRisk?.length ?? 0;
   if (count === 0) {
-    return { outcome: "No high-stage opportunities at risk — all proposal/negotiation deals have recent activity" };
+    return { status: "completed", outcome: "No high-stage opportunities at risk — all proposal/negotiation deals have recent activity" };
   }
 
   const summary = (atRisk ?? [])
@@ -289,7 +289,7 @@ const revenueStageAuditHandler: WorkKindHandler = async (supabase) => {
     relevanceHorizon: "weekly",
   }).catch(() => {});
 
-  return { outcome: `${count} high-stage deals at risk: ${summary}` };
+  return { status: "completed", outcome: `${count} high-stage deals at risk: ${summary}` };
 };
 
 // ---------------------------------------------------------------------------

@@ -1,4 +1,5 @@
 import "server-only";
+import type { WorkResult } from "./work-result";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { registerCoworker, getCoworkerManifest, type Coworker } from "./coworkers";
 import { createWorkItem } from "./work-items";
@@ -10,22 +11,9 @@ import { storeAgentMemory } from "./memory";
 import { runCoworkerAgentTask } from "./coworker-agent";
 import type { WorkItem } from "./work-items";
 
-const aiModelConfigured = !!process.env.OPENROUTER_AGENT_MODEL;
-
-async function tryAiExecution(
-  supabase: SupabaseClient,
-  wi: WorkItem,
-): Promise<{ outcome: string } | null> {
-  if (!aiModelConfigured) return null;
-  try {
-    const result = await runCoworkerAgentTask(supabase, wi);
-    if (result.outcome && !result.outcome.startsWith("AI execution failed")) {
-      return { outcome: result.outcome };
-    }
-  } catch {
-    // Fall through to deterministic logic.
-  }
-  return null;
+async function tryAiExecution(supabase: SupabaseClient, wi: WorkItem): Promise<WorkResult | null> {
+  if (!process.env.OPENROUTER_AGENT_MODEL) return null;
+  return runCoworkerAgentTask(supabase, wi);
 }
 
 // ---------------------------------------------------------------------------
@@ -173,11 +161,12 @@ export async function createPostMeetingProcessWork(
 
 const preCallBriefHandler: WorkKindHandler = async (supabase, wi) => {
   const contactId = wi.entity_id;
-  if (!contactId) return { outcome: "No contact ID linked — cannot prepare brief" };
+  if (!contactId) return { status: "skipped", outcome: "No contact ID linked — cannot prepare brief" };
 
   // AI-first: let the model synthesize a rich pre-call brief from available data.
   const aiResult = await tryAiExecution(supabase, wi);
   if (aiResult) {
+    if (aiResult.status !== "completed") return aiResult;
     await storeAgentMemory(supabase, {
       coworkerId: MEETING_INTEL_COWORKER_ID,
       category: "prior_work",
@@ -197,7 +186,7 @@ const preCallBriefHandler: WorkKindHandler = async (supabase, wi) => {
     .select("id, email, first_name, last_name, company_id")
     .eq("id", contactId)
     .maybeSingle();
-  if (!contact) return { outcome: `Contact ${contactId} not found` };
+  if (!contact) return { status: "skipped", outcome: `Contact ${contactId} not found` };
 
   // Load open opportunity for this contact.
   const { data: opportunity } = await supabase
@@ -252,16 +241,17 @@ const preCallBriefHandler: WorkKindHandler = async (supabase, wi) => {
     relevanceHorizon: "daily",
   }).catch(() => {});
 
-  return { outcome: `Pre-call brief: ${brief}` };
+  return { status: "completed", outcome: `Pre-call brief: ${brief}` };
 };
 
 const postMeetingProcessHandler: WorkKindHandler = async (supabase, wi) => {
   const opportunityId = wi.entity_id;
-  if (!opportunityId) return { outcome: "No opportunity ID linked — cannot process meeting" };
+  if (!opportunityId) return { status: "skipped", outcome: "No opportunity ID linked — cannot process meeting" };
 
   // AI-first: let the model extract outcomes and propose CRM updates.
   const aiResult = await tryAiExecution(supabase, wi);
   if (aiResult) {
+    if (aiResult.status !== "completed") return aiResult;
     await storeAgentMemory(supabase, {
       coworkerId: MEETING_INTEL_COWORKER_ID,
       category: "prior_work",
@@ -280,7 +270,7 @@ const postMeetingProcessHandler: WorkKindHandler = async (supabase, wi) => {
     .select("id, stage, company_name, contact_id")
     .eq("id", opportunityId)
     .maybeSingle();
-  if (!opportunity) return { outcome: `Opportunity ${opportunityId} not found` };
+  if (!opportunity) return { status: "skipped", outcome: `Opportunity ${opportunityId} not found` };
 
   // Create a CRM update work item to capture meeting outcomes.
   await createWorkItem(supabase, {
@@ -317,19 +307,19 @@ const postMeetingProcessHandler: WorkKindHandler = async (supabase, wi) => {
     relevanceHorizon: "weekly",
   }).catch(() => {});
 
-  return { outcome };
+  return { status: "completed", outcome };
 };
 
 const updateCrmFromMeetingHandler: WorkKindHandler = async (supabase, wi) => {
   const opportunityId = wi.entity_id;
-  if (!opportunityId) return { outcome: "No opportunity ID linked" };
+  if (!opportunityId) return { status: "skipped", outcome: "No opportunity ID linked" };
 
   const { data: opportunity } = await supabase
     .from("opportunities")
     .select("id, stage, company_name, next_action")
     .eq("id", opportunityId)
     .maybeSingle();
-  if (!opportunity) return { outcome: `Opportunity ${opportunityId} not found` };
+  if (!opportunity) return { status: "skipped", outcome: `Opportunity ${opportunityId} not found` };
 
   // In a full implementation, this would parse meeting notes/transcript
   // and propose CRM updates. For the reference implementation, we audit
@@ -360,7 +350,7 @@ const updateCrmFromMeetingHandler: WorkKindHandler = async (supabase, wi) => {
     relevanceHorizon: "weekly",
   }).catch(() => {});
 
-  return { outcome };
+  return { status: "completed", outcome };
 };
 
 // ---------------------------------------------------------------------------

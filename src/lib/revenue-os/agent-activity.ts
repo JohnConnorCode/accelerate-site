@@ -221,7 +221,9 @@ function describeWorkItemStatus(wi: {
 }): string {
   switch (wi.status) {
     case "pending":
-      return `Queued: ${wi.objective}`;
+      return wi.error && wi.next_check_reason
+        ? `Retry scheduled: ${wi.next_check_reason}`
+        : `Queued: ${wi.objective}`;
     case "claimed":
       return `Claimed: ${wi.objective} — preparing to execute`;
     case "in_progress":
@@ -239,7 +241,7 @@ function describeWorkItemStatus(wi: {
         ? `Failed (attempt ${wi.attempt_count}): ${wi.error}`
         : `Failed: ${wi.objective}`;
     case "cancelled":
-      return `Cancelled: ${wi.objective}`;
+      return `Cancelled: ${wi.outcome || wi.objective}`;
     default:
       return `${wi.status}: ${wi.objective}`;
   }

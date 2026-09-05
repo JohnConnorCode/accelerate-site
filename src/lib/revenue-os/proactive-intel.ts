@@ -1,4 +1,5 @@
 import "server-only";
+import type { WorkResult } from "./work-result";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createWorkItem } from "./work-items";
 import { recordAudit } from "./audit";
@@ -8,22 +9,9 @@ import { runCoworkerAgentTask } from "./coworker-agent";
 import type { WorkItem } from "./work-items";
 import { retrieveKnowledge } from "./knowledge";
 
-const aiModelConfigured = !!process.env.OPENROUTER_AGENT_MODEL;
-
-async function tryAiExecution(
-  supabase: SupabaseClient,
-  wi: WorkItem,
-): Promise<{ outcome: string } | null> {
-  if (!aiModelConfigured) return null;
-  try {
-    const result = await runCoworkerAgentTask(supabase, wi);
-    if (result.outcome && !result.outcome.startsWith("AI execution failed")) {
-      return { outcome: result.outcome };
-    }
-  } catch {
-    // Fall through to deterministic logic.
-  }
-  return null;
+async function tryAiExecution(supabase: SupabaseClient, wi: WorkItem): Promise<WorkResult | null> {
+  if (!process.env.OPENROUTER_AGENT_MODEL) return null;
+  return runCoworkerAgentTask(supabase, wi);
 }
 
 // ---------------------------------------------------------------------------
@@ -315,6 +303,7 @@ const proactiveIntelBriefHandler: WorkKindHandler = async (supabase, wi) => {
   // AI-first: let the model synthesize a richer brief from available data.
   const aiResult = await tryAiExecution(supabase, wi);
   if (aiResult) {
+    if (aiResult.status !== "completed") return aiResult;
     await storeAgentMemory(supabase, {
       category: "prior_work",
       subject: "proactive_intel_brief: AI synthesis",
@@ -350,7 +339,7 @@ const proactiveIntelBriefHandler: WorkKindHandler = async (supabase, wi) => {
     relevanceHorizon: "daily",
   }).catch(() => {});
 
-  return { outcome: brief };
+  return { status: "completed", outcome: brief };
 };
 
 export function registerProactiveIntelHandlers(): void {

@@ -18,12 +18,12 @@
 | Phase | Backlog | Planned | In progress | Blocked | Shipped | Total |
 |---|---|---|---|---|---|---|
 | A — A (Complete Loop One — See + Remember) | 0 | 0 | 0 | 1 | 18 | 19 |
-| B — B (Agent Runtime foundation — Notice + Act primitives) | 19 | 17 | 4 | 4 | 33 | 77 |
-| C — C (Reference coworker — Sales end-to-end loop) | 20 | 3 | 2 | 1 | 10 | 36 |
+| B — B (Agent Runtime foundation — Notice + Act primitives) | 19 | 21 | 0 | 4 | 34 | 78 |
+| C — C (Reference coworker — Sales end-to-end loop) | 20 | 4 | 1 | 1 | 10 | 36 |
 | D — D (Plugin SDK + MCP) | 5 | 3 | 0 | 1 | 13 | 22 |
 | E — E (Additional coworkers/plugins + documentation) | 40 | 5 | 0 | 0 | 10 | 55 |
 
-**Board total:** 84 backlog, 28 planned, 6 in progress, 7 blocked, 84 shipped (209 managed cards).
+**Board total:** 84 backlog, 33 planned, 1 in progress, 7 blocked, 85 shipped (210 managed cards).
 
 ## Dispatchable now (`npm run agent:next` picks from this set)
 
@@ -35,11 +35,16 @@
 - `feature-board-interaction-rebuild` [high] — Rebuild Feature Board drag, details, and mobile interaction
 - `additional-tools-canonical-parity` [high] — Modernize and canonically integrate every additional admin tool
 - `gmail-reply-actions` [high] — Finish reply, local archive, and follow-up actions in Conversations
+- `de-vertical-inbound` [high] — Turn the roofing ingestion path into a configurable playbook
+- `proposal-lifecycle-service` [high] — Complete the proposal lifecycle and version rules
 - `api-contract-tests` [high] — Add authenticated API contract and failure tests
-- `unified-action-executor` [high] — Route every write through one executor with reversibility and compensators
-- `plugin-isolate-host` [high] — Run plugin code in an isolate with no ambient authority
+- `system-health-report` [high] — Build the system-health report and freshness thresholds
+- `booking-mode-contract-reconciliation` [high] — Reconcile booking activation and health truth
+- `won-to-delivery-handoff` [high] — Create the won-to-delivery handoff
 - `stage-history-analytics-reconciliation` [high] — Reconcile analytics with canonical stage history
+- `unified-action-executor` [high] — Route every write through one executor with reversibility and compensators
 - `operating-goals-scorecards` [high] — Add operating goals and scorecards
+- `plugin-isolate-host` [high] — Run plugin code in an isolate with no ambient authority
 - `governed-bulk-operator-actions` [medium] — Add governed bulk operator actions
 - `integration-adapter-contract` [high] — Define the provider integration adapter contract
 - `guided-first-run-setup` [medium] — Guide first-run setup inside the product, not the terminal
@@ -52,12 +57,7 @@
 
 ## In progress
 
-- `de-vertical-inbound` — Turn the roofing ingestion path into a configurable playbook (claude-code:johnconnor:9960)
-- `proposal-lifecycle-service` — Complete the proposal lifecycle and version rules (claude-code:johnconnor:9960)
-- `ai-model-job-registry` — Route every AI job through an audited model registry (claude-code:johnconnor:57291)
-- `system-health-report` — Build the system-health report and freshness thresholds (claude-code:johnconnor:9960)
-- `booking-mode-contract-reconciliation` — Reconcile booking activation and health truth (claude-code:johnconnor:9960)
-- `won-to-delivery-handoff` — Create the won-to-delivery handoff (claude-code:johnconnor:62700)
+- `ai-model-job-registry` — Route every AI job through an audited model registry (claude-code:johnconnor:68945)
 
 ## Blocked
 

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { runWithTenantRequestContext } from "@/lib/tenancy/context";
 import { listTenantSystemContexts } from "@/lib/tenancy/system";
-import { executeClaimableWork } from "@/lib/revenue-os/work-executor";
+import { executeClaimableWork, workExecutionStatus } from "@/lib/revenue-os/work-executor";
 import { scheduleRecurringWork } from "@/lib/revenue-os/work-scheduler";
 import { registerSalesWorkHandlers } from "@/lib/revenue-os/sales-coworker";
 import { registerBusinessPulseWorkHandlers } from "@/lib/revenue-os/business-pulse-coworker";
@@ -49,14 +49,14 @@ export async function GET(request: NextRequest) {
             return {
               value: summary,
               summary: summary as unknown as Record<string, unknown>,
-              status: summary.failed > 0 ? ("partial" as const) : ("success" as const),
+              status: workExecutionStatus(summary),
             };
           });
         });
 
         tenants.push({
           tenant: context.tenantSlug,
-          status: result.claimed ? "completed" : "skipped",
+          status: result.claimed && result.value ? workExecutionStatus(result.value) : "skipped",
           runId: result.runId,
           summary: result.value,
         });

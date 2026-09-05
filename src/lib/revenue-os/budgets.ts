@@ -87,17 +87,20 @@ export async function checkBudgets(
   // Fetch limits: coworker-specific first, then tenant-global. "*" is the
   // sentinel for tenant-global (see migrations/20260903-agent-memory-and-budgets.sql
   // for why coworker_id is NOT NULL rather than nullable).
-  const { data: coworkerLimits } = await supabase
+  const { data: coworkerLimits, error: coworkerLimitsError } = await supabase
     .from("budget_limits")
     .select()
     .eq("coworker_id", input.coworkerId)
     .in("budget_kind", kinds);
 
-  const { data: globalLimits } = await supabase
+  const { data: globalLimits, error: globalLimitsError } = await supabase
     .from("budget_limits")
     .select()
     .eq("coworker_id", "*")
     .in("budget_kind", kinds);
+
+  if (coworkerLimitsError) throw new Error(coworkerLimitsError.message);
+  if (globalLimitsError) throw new Error(globalLimitsError.message);
 
   // Build a map: coworker-specific overrides global.
   const limitMap = new Map<string, BudgetLimit>();
@@ -121,12 +124,14 @@ export async function checkBudgets(
   }
 
   // Fetch usage for today.
-  const { data: usageRows } = await supabase
+  const { data: usageRows, error: usageRowsError } = await supabase
     .from("budget_usage")
     .select()
     .eq("coworker_id", input.coworkerId)
     .eq("period_key", today)
     .in("budget_kind", kinds);
+
+  if (usageRowsError) throw new Error(usageRowsError.message);
 
   const usageByKind = new Map<string, number>();
   for (const row of usageRows ?? []) {

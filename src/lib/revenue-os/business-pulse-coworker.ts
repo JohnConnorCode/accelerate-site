@@ -1,4 +1,5 @@
 import "server-only";
+import type { WorkResult } from "./work-result";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { registerCoworker, getCoworkerManifest, type Coworker } from "./coworkers";
 import { createWorkItem } from "./work-items";
@@ -10,22 +11,9 @@ import { storeAgentMemory } from "./memory";
 import { runCoworkerAgentTask } from "./coworker-agent";
 import type { WorkItem } from "./work-items";
 
-const aiModelConfigured = !!process.env.OPENROUTER_AGENT_MODEL;
-
-async function tryAiExecution(
-  supabase: SupabaseClient,
-  wi: WorkItem,
-): Promise<{ outcome: string } | null> {
-  if (!aiModelConfigured) return null;
-  try {
-    const result = await runCoworkerAgentTask(supabase, wi);
-    if (result.outcome && !result.outcome.startsWith("AI execution failed")) {
-      return { outcome: result.outcome };
-    }
-  } catch {
-    // Fall through to deterministic logic.
-  }
-  return null;
+async function tryAiExecution(supabase: SupabaseClient, wi: WorkItem): Promise<WorkResult | null> {
+  if (!process.env.OPENROUTER_AGENT_MODEL) return null;
+  return runCoworkerAgentTask(supabase, wi);
 }
 
 // ---------------------------------------------------------------------------
@@ -191,6 +179,7 @@ const dailyDigestHandler: WorkKindHandler = async (supabase, wi) => {
   // AI-first: let the model produce an interpreted pipeline summary.
   const aiResult = await tryAiExecution(supabase, wi);
   if (aiResult) {
+    if (aiResult.status !== "completed") return aiResult;
     await storeAgentMemory(supabase, {
       coworkerId: BUSINESS_PULSE_COWORKER_ID,
       category: "prior_work",
@@ -260,7 +249,7 @@ const dailyDigestHandler: WorkKindHandler = async (supabase, wi) => {
     relevanceHorizon: "daily",
   }).catch(() => {});
 
-  return { outcome: digest };
+  return { status: "completed", outcome: digest };
 };
 
 const detectStaleDealsHandler: WorkKindHandler = async (supabase) => {
@@ -275,7 +264,7 @@ const detectStaleDealsHandler: WorkKindHandler = async (supabase) => {
 
   const count = stale?.length ?? 0;
   if (count === 0) {
-    return { outcome: "No stale deals detected" };
+    return { status: "completed", outcome: "No stale deals detected" };
   }
 
   const summary = (stale ?? [])
@@ -299,7 +288,7 @@ const detectStaleDealsHandler: WorkKindHandler = async (supabase) => {
     relevanceHorizon: "daily",
   }).catch(() => {});
 
-  return { outcome: `${count} stale deals: ${summary}` };
+  return { status: "completed", outcome: `${count} stale deals: ${summary}` };
 };
 
 const detectStageBottleneckHandler: WorkKindHandler = async (supabase) => {
@@ -320,7 +309,7 @@ const detectStageBottleneckHandler: WorkKindHandler = async (supabase) => {
     .map(([stage, count]) => `${stage} (${count}/${total} = ${((count / total) * 100).toFixed(0)}%)`);
 
   if (bottlenecks.length === 0) {
-    return { outcome: `No stage bottlenecks detected. Distribution: ${Object.entries(byStage).map(([s, c]) => `${s}=${c}`).join(", ")}` };
+    return { status: "completed", outcome: `No stage bottlenecks detected. Distribution: ${Object.entries(byStage).map(([s, c]) => `${s}=${c}`).join(", ")}` };
   }
 
   await recordAudit(supabase, {
@@ -340,7 +329,7 @@ const detectStageBottleneckHandler: WorkKindHandler = async (supabase) => {
     relevanceHorizon: "weekly",
   }).catch(() => {});
 
-  return { outcome: `Bottleneck detected: ${bottlenecks.join(", ")}` };
+  return { status: "completed", outcome: `Bottleneck detected: ${bottlenecks.join(", ")}` };
 };
 
 const detectVelocityChangeHandler: WorkKindHandler = async (supabase) => {
@@ -382,7 +371,7 @@ const detectVelocityChangeHandler: WorkKindHandler = async (supabase) => {
       body: outcome,
       relevanceHorizon: "weekly",
     }).catch(() => {});
-    return { outcome };
+    return { status: "completed", outcome };
   }
 
   const outcome = `Velocity stable: ${tw} new this week vs ${lw} last week (${change > 0 ? "+" : ""}${change.toFixed(0)}%)`;
@@ -393,7 +382,7 @@ const detectVelocityChangeHandler: WorkKindHandler = async (supabase) => {
     body: outcome,
     relevanceHorizon: "daily",
   }).catch(() => {});
-  return { outcome };
+  return { status: "completed", outcome };
 };
 
 // ---------------------------------------------------------------------------

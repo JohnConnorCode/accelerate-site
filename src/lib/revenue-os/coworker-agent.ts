@@ -15,7 +15,10 @@ import {
 } from "./ai-tools";
 import { finishAgentRun, recordAgentRunEvent, startAgentRun } from "./agent-trace";
 import { AI_CONTEXT_VERSION, boundToolResult } from "./ai-context";
-import type { WorkItem } from "./work-items";
+import { transitionOwnedWorkItem, type WorkItem } from "./work-items";
+import { deferWork, type WorkResult, type WorkArtifact } from "./work-result";
+import { findWorkDraft } from "./work-drafts";
+import { safeErrorMessage } from "./db";
 
 // ---------------------------------------------------------------------------
 // Coworker agent: headless AI execution for coworker work items.
@@ -45,26 +48,25 @@ function coworkerSystemPrompt(coworkerRole: string, coworkerId: string): string 
   ].join(" ");
 }
 
-export interface CoworkerAgentResult {
-  outcome: string;
-  runId: string;
-}
+export type CoworkerAgentResult = WorkResult & { runId: string };
 
 export async function runCoworkerAgentTask(
   supabase: SupabaseClient,
   workItem: WorkItem,
+  options: { chat?: typeof openRouterChat } = {},
 ): Promise<CoworkerAgentResult> {
+  if (!process.env.OPENROUTER_AGENT_MODEL) return { ...deferWork("AI model is not configured"), runId: "" };
   // Resolve the coworker to get its role and tool pack.
   const coworkerId = workItem.coworker_id;
   if (!coworkerId) {
-    return { outcome: "No coworker_id on work item — cannot run coworker agent", runId: "" };
+    return { status: "failed", outcome: "No coworker_id on work item", runId: "" };
   }
 
   const coworker = await getCoworker(supabase, coworkerId);
   if (!coworker) {
-    return { outcome: `Coworker ${coworkerId} not found — cannot run coworker agent`, runId: "" };
+    return { ...deferWork(`Coworker ${coworkerId} not found`), runId: "" };
   }
-  const toolPack = (coworker.tool_pack ?? "core") as RevenueToolPackId;
+  const toolPack: RevenueToolPackId = workItem.kind === "draft_followup" ? "outreach" : (coworker.tool_pack ?? "core") as RevenueToolPackId;
   const role = coworker.role ?? coworkerId;
 
   const model = getOpenRouterModel(process.env.OPENROUTER_AGENT_MODEL);
@@ -94,10 +96,15 @@ export async function runCoworkerAgentTask(
   ];
 
   const toolNames: string[] = [];
+  const artifacts: WorkArtifact[] = [];
+  let successfulTools = 0;
+  let toolFailed = false;
   let inputTokens = 0;
   let outputTokens = 0;
 
   try {
+    if (!run.id) throw new Error("Cannot execute coworker work without a durable run trace");
+    await transitionOwnedWorkItem(supabase, workItem, { agent_run_id: run.id });
     // Load bounded context for the coworker.
     const availableCapabilities = await listWorkspaceCapabilities(supabase, { availableOnly: true });
     const capabilitySummary = availableCapabilities.length
@@ -125,7 +132,7 @@ export async function runCoworkerAgentTask(
         memorySummary,
       ].filter(Boolean).join("\n");
 
-      const response = await openRouterChat({
+      const response = await (options.chat ?? openRouterChat)({
         database: supabase,
         model,
         maxTokens: 800,
@@ -133,7 +140,7 @@ export async function runCoworkerAgentTask(
           { role: "system", content: `${coworkerSystemPrompt(role, coworkerId)}\n\n${grounding}` },
           ...transcript,
         ],
-        tools: toOpenRouterTools(toolPack),
+        tools: toOpenRouterTools(toolPack).filter((tool) => workItem.kind !== "draft_followup" || !tool.function.name.startsWith("propose_") || ["propose_send_email", "propose_conversation_reply"].includes(tool.function.name)),
       });
 
       inputTokens += response.usage?.prompt_tokens ?? 0;
@@ -158,22 +165,21 @@ export async function runCoworkerAgentTask(
 
       const uses = assistant.tool_calls ?? [];
       if (!uses.length) {
-        // No tool calls — the agent has finished its reasoning.
-        const text = assistant.content?.trim() || "Completed without output";
-        await finishAgentRun(supabase, run, "completed", {
-          toolNames,
-          inputTokens,
-          outputTokens,
-          resultPreview: text,
-        });
-        // Link the run to the work item.
-        if (workItem.id) {
-          await supabase
-            .from("work_items")
-            .update({ agent_run_id: run.id })
-            .eq("id", workItem.id);
+        const text = assistant.content?.trim() || "No result produced";
+        let result: WorkResult = {
+          status: successfulTools && assistant.content?.trim() && !toolFailed ? "completed" : "partial",
+          outcome: text, artifacts,
+        };
+        if (workItem.kind === "draft_followup" && result.status === "completed") {
+          const draft = await findWorkDraft(supabase, workItem);
+          result = draft
+            ? { status: "completed", outcome: "Follow-up draft prepared for approval", artifacts: [draft] }
+            : { status: "partial", outcome: "No valid follow-up proposal was created", artifacts };
         }
-        return { outcome: text, runId: run.id ?? "" };
+        await finishAgentRun(supabase, run, result.status === "completed" ? "completed" : "partial", {
+          toolNames, inputTokens, outputTokens, resultPreview: result.outcome,
+        });
+        return { ...result, runId: run.id ?? "" };
       }
 
       // Execute tool calls.
@@ -187,11 +193,21 @@ export async function runCoworkerAgentTask(
           toolInput = {};
         }
         try {
+          // Fence before every tool call as well as at finalization.
+          await transitionOwnedWorkItem(supabase, workItem, { agent_run_id: run.id });
+          if (workItem.kind === "draft_followup" && name.startsWith("propose_") && !["propose_send_email", "propose_conversation_reply"].includes(name)) {
+            throw new Error("Draft work may only propose its email or conversation reply");
+          }
           const { output } = await executeRegisteredRevenueTool(
-            { supabase, actorEmail: `coworker:${coworkerId}`, toolPack },
+            { supabase, actorEmail: `coworker:${coworkerId}`, toolPack,
+              ...(workItem.kind === "draft_followup" ? { workItem } : {}) },
             name,
             toolInput,
           );
+          successfulTools++;
+          if (name.startsWith("propose_") && output && typeof output === "object" && "id" in output && typeof output.id === "string") {
+            artifacts.push({ type: "action", id: output.id });
+          }
           await recordAgentRunEvent(supabase, run, {
             eventType: "tool_result",
             toolName: name,
@@ -204,7 +220,8 @@ export async function runCoworkerAgentTask(
             content: boundToolResult(name, output),
           });
         } catch (error) {
-          const message = error instanceof Error ? error.message : "Tool failed";
+          toolFailed = true;
+          const message = safeErrorMessage(error);
           await recordAgentRunEvent(supabase, run, {
             eventType: "tool_error",
             toolName: name,
@@ -235,14 +252,7 @@ export async function runCoworkerAgentTask(
       error: `Stopped after ${MAX_COWORKER_TOOL_TURNS} tool turns`,
     });
 
-    if (workItem.id) {
-      await supabase
-        .from("work_items")
-        .update({ agent_run_id: run.id })
-        .eq("id", workItem.id);
-    }
-
-    return { outcome: partial, runId: run.id ?? "" };
+    return { status: "partial", outcome: partial, artifacts, runId: run.id ?? "" };
   } catch (error) {
     await finishAgentRun(supabase, run, "failed", {
       toolNames,
@@ -251,7 +261,8 @@ export async function runCoworkerAgentTask(
       error: error instanceof Error ? error.message : "Coworker agent run failed",
     });
     return {
-      outcome: `AI execution failed: ${error instanceof Error ? error.message : "unknown error"}`,
+      status: "failed", artifacts,
+      outcome: `AI execution failed: ${safeErrorMessage(error)}`,
       runId: run.id ?? "",
     };
   }

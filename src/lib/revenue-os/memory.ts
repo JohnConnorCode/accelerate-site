@@ -271,23 +271,26 @@ export async function getPoliciesForAction(
   },
 ): Promise<LearnedPolicyEntry[]> {
   // Global policies for this action.
-  const { data: globalPolicies } = await supabase
+  const { data: globalPolicies, error: globalError } = await supabase
     .from("learned_policies")
     .select()
     .eq("action_key", input.actionKey)
     .is("scope_entity_type", null)
     .is("superseded_at", null);
 
+  if (globalError) throw new Error(globalError.message);
+
   // Entity-scoped policies (if entity provided).
   let scopedPolicies: LearnedPolicyEntry[] = [];
   if (input.entityType && input.entityId) {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("learned_policies")
       .select()
       .eq("action_key", input.actionKey)
       .eq("scope_entity_type", input.entityType)
       .eq("scope_entity_id", input.entityId)
       .is("superseded_at", null);
+    if (error) throw new Error(error.message);
     scopedPolicies = (data ?? []) as LearnedPolicyEntry[];
   }
 

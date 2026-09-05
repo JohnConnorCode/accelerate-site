@@ -429,6 +429,30 @@ function card({
 }
 
 export const featureBacklog = [
+  card({
+    key: "work-completion-truth",
+    owner: "codex-work-completion-truth",
+    status: "shipped",
+    title: "Require truthful coworker completion and durable Sales drafts",
+    workstream: "runtime",
+    phase: 3,
+    priority: "high",
+    description: "Replace outcome-string-only execution with explicit dispositions so skipped, deferred, partial, and failed work cannot be marked completed. Verify Sales drafts against durable approval proposals and preserve retryable handoffs.",
+    acceptance: [
+      "Only verified completed results produce completed WorkItems and completion activity; deferred, partial, skipped, and failed outcomes retain truthful state and cron receipts",
+      "Gate deferrals preserve work without consuming execution attempts, and stale claims cannot finalize another worker's item",
+      "AI turn exhaustion and failures propagate across all coworker callers rather than becoming successful summaries",
+      "Sales draft completion requires a valid same-tenant same-record approval proposal; retries reuse WorkItem-scoped proposals and never send email",
+      "Required child-work creation failures remain recoverable and never report queued work without a receipt",
+      "Behavioral regressions, core checks, and controlled database claim tests pass; Google readiness is checked read-only with production gaps reported accurately",
+    ],
+    dependencies: ["Generalise tasks and scheduling into a durable Work Engine", "Introduce Coworkers as first-class runtime identities with manifests"],
+    start: "src/lib/revenue-os/work-items.ts; src/lib/revenue-os/work-executor.ts; src/lib/revenue-os/coworker-agent.ts; src/lib/revenue-os/sales-coworker.ts",
+    guardrails: "Reuse existing work states, approval queue, tenant boundaries, and bounded retries. No provider sends, configuration changes, production release, historical completion rewrite, or schema migration. Shared result-type updates include all existing coworkers. Build prerequisite: extract existing unsupported route helper exports from ai-content-brief and unsubscribe into shared modules; preserve runtime behavior and update their callers/tests.",
+    labels: ["work-engine", "coworkers"],
+    verification: "npm run test:work-completion; controlled Postgres claim-transition tests; npm run test:google-readiness; npm run verify:google-readiness; read-only production readiness; npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:core; npm run build; git diff --check; desktop/mobile operator-status verification.",
+    evidence: "2026-09-05 implementation verified: explicit completed/deferred/skipped/partial/failed results, exact-claim conditional transitions, bounded retries, gate deferrals without consumed attempts, truthful cron/audit/memory receipts, due-time scheduling, server-scoped Sales proposal validation and replay reuse, and required child-work error propagation. All coworker callers preserve AI dispositions. 36 behavioral cases and 8 isolated PostgreSQL cases pass, including one winner under concurrent settlement. Full core, agent contract, TypeScript, lint (six existing integration-adapter warnings), and webpack production build pass. Actual Activity route verified at 1440px and 390px using settlement-generated fictional receipts; screenshots inspected, filters/keyboard/reduced-motion/overflow/console/demo isolation pass. Google source/readiness tests pass; production database has active bootstrap but no Google connection, envelopes, scopes, Gmail/Calendar receipts or Drive settings; Vercel settings unavailable, so variable presence remains unverified. Unsupported pre-existing content-brief/unsubscribe route exports extracted without behavior changes to unblock build. No schema migration, provider send/sync, configuration change, or deployment.",
+  }),
   // Phase 0, truth, schema, and operating contract
   card({
     key: "revenue-os-production-migration",
@@ -1420,7 +1444,7 @@ export const featureBacklog = [
     title: "Turn the roofing ingestion path into a configurable playbook",
     workstream: "foundation",
     phase: 2,
-    status: "in_progress",
+    status: "planned",
     priority: "high",
     description:
       "Replace the vertical-specific inbound capture function with one generic qualification path that takes an industry playbook as data, so roofing becomes one configuration entry instead of an exported code path that every future installation inherits.",
@@ -1523,7 +1547,7 @@ export const featureBacklog = [
       "A database row alone is never connected. Do not enable Calendly or broad Drive access.",
     labels: ["oauth", "founder-action"],
     evidence:
-      "Blocked 2026-08-31 only on founder-owned Google Cloud credentials, deployment of those variables, and consent. `google-oauth-readiness.v1` now turns the handoff into one deterministic gate: five source checks pass for the exact minimum scopes, HMAC-authenticated expiring tenant-bound state, explicit tenant-composite connection/Calendar/Drive upserts, stable browser-safe failures, and the ten-folder Drive boundary. Setup reads provider and run evidence through the bootstrap tenant client while retaining platform-global checks on the platform client, so another tenant cannot make founder health ambiguous; its connected state now requires valid access and refresh envelopes and visibly renders the exact granted scopes, envelope health, token expiry, and source receipt timestamps without returning token values. Integrations now explains successful, cancelled, expired, unconfigured, reconnect, inactive-tenant, and generic failed OAuth returns without reflecting provider/database text. The read-only Production stage reports 6 passed / 7 blocked: bootstrap tenant active; no Google variable names, connection, token-envelope evidence, granted scopes, or Gmail/Calendar receipts; Drive settings unavailable because no connection exists. It lists only Vercel variable names and non-secret database booleans/statuses. No signed-in browser surface was available, so no OAuth consent, credential creation, deployment, provider read, or external mutation was attempted. Founder next action: create the Google OAuth web client with callback `https://www.acceleratewith.us/api/admin/google/callback`, add `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_TOKEN_ENCRYPTION_KEY` to Production, explicitly release that configuration, then authorize from the bootstrap Integrations workspace. Codex can run the connection test and first Gmail/Calendar sync immediately afterward; Drive remains not configured until explicit folder IDs are selected.",
+      "Read-only recheck 2026-09-05 for work-completion-truth: the intended production Supabase project has an active bootstrap tenant, but no Google connection, credential envelopes, granted scopes, Gmail/Calendar source receipts, or Drive configuration (database checks: 1 passed / 6 blocked). The Vercel CLI could not retrieve project settings, so current Production variable presence is unverified; this recheck does not confirm the earlier absent-variable observation. No consent, sends, syncs, provider configuration, or release performed. Blocked 2026-08-31 only on founder-owned Google Cloud credentials, deployment of those variables, and consent. `google-oauth-readiness.v1` now turns the handoff into one deterministic gate: five source checks pass for the exact minimum scopes, HMAC-authenticated expiring tenant-bound state, explicit tenant-composite connection/Calendar/Drive upserts, stable browser-safe failures, and the ten-folder Drive boundary. Setup reads provider and run evidence through the bootstrap tenant client while retaining platform-global checks on the platform client, so another tenant cannot make founder health ambiguous; its connected state now requires valid access and refresh envelopes and visibly renders the exact granted scopes, envelope health, token expiry, and source receipt timestamps without returning token values. Integrations now explains successful, cancelled, expired, unconfigured, reconnect, inactive-tenant, and generic failed OAuth returns without reflecting provider/database text. The read-only Production stage reports 6 passed / 7 blocked: bootstrap tenant active; no Google variable names, connection, token-envelope evidence, granted scopes, or Gmail/Calendar receipts; Drive settings unavailable because no connection exists. It lists only Vercel variable names and non-secret database booleans/statuses. No signed-in browser surface was available, so no OAuth consent, credential creation, deployment, provider read, or external mutation was attempted. Founder next action: create the Google OAuth web client with callback `https://www.acceleratewith.us/api/admin/google/callback`, add `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_TOKEN_ENCRYPTION_KEY` to Production, explicitly release that configuration, then authorize from the bootstrap Integrations workspace. Codex can run the connection test and first Gmail/Calendar sync immediately afterward; Drive remains not configured until explicit folder IDs are selected.",
     verification:
       "npm run test:google-oauth; npm run test:google-readiness; npm run verify:google-readiness; npm run verify:google-readiness -- --stage=production (expected blocked until founder credential/consent step); npm run test:gmail-sync-plan; npm run test:gmail-reply-mime; npm run test:secret-storage; npm run verify:tenant-providers; npm run verify:agent-contract; npm run seed:features -- --verify; npx tsc --noEmit; npm run lint; npm run build; git diff --check.",
   }),
@@ -2076,7 +2100,7 @@ export const featureBacklog = [
     title: "Complete the proposal lifecycle and version rules",
     workstream: "proposals",
     phase: 3,
-    status: "in_progress",
+    status: "planned",
     priority: "high",
     description:
       "Control draft, sent, viewed, accepted, declined, expired, and superseded states with linked contact, company, and opportunity.",
@@ -2672,7 +2696,7 @@ export const featureBacklog = [
   }),
   card({
     key: "ai-model-job-registry",
-    owner: "claude-code:johnconnor:57291",
+    owner: "claude-code:johnconnor:68945",
     title: "Route every AI job through an audited model registry",
     workstream: "ai",
     phase: 4,
@@ -3081,7 +3105,7 @@ export const featureBacklog = [
   card({
     key: "system-health-report",
     owner: "claude-code:johnconnor:9960",
-    status: "in_progress",
+    status: "planned",
     title: "Build the system-health report and freshness thresholds",
     workstream: "operations",
     phase: 4,
@@ -3691,7 +3715,7 @@ export const featureBacklog = [
   card({
     key: "booking-mode-contract-reconciliation",
     owner: "claude-code:johnconnor:9960",
-    status: "in_progress",
+    status: "planned",
     title: "Reconcile booking activation and health truth",
     workstream: "integrations",
     phase: 2,
@@ -3906,7 +3930,7 @@ export const featureBacklog = [
   card({
     key: "won-to-delivery-handoff",
     owner: "claude-code:johnconnor:62700",
-    status: "in_progress",
+    status: "planned",
     title: "Create the won-to-delivery handoff",
     workstream: "operations",
     phase: 3,

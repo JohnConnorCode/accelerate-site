@@ -236,7 +236,7 @@ export async function executeTrustPromotion(
 
 const reviewTrustPromotionHandler: WorkKindHandler = async (supabase, wi) => {
   const actionKey = wi.entity_id;
-  if (!actionKey) return { outcome: "No action key linked — cannot review promotion" };
+  if (!actionKey) return { status: "skipped", outcome: "No action key linked — cannot review promotion" };
 
   // Re-check current eligibility at execution time (not creation time).
   const candidates = await scanTrustGraduationCandidates(supabase);
@@ -245,7 +245,7 @@ const reviewTrustPromotionHandler: WorkKindHandler = async (supabase, wi) => {
   );
 
   if (!candidate) {
-    return { outcome: `No eligible trust graduation candidate found for ${actionKey}` };
+    return { status: "completed", outcome: `No eligible trust graduation candidate found for ${actionKey}` };
   }
 
   if (!candidate.eligible) {
@@ -257,7 +257,7 @@ const reviewTrustPromotionHandler: WorkKindHandler = async (supabase, wi) => {
       body: outcome,
       relevanceHorizon: "weekly",
     }).catch(() => {});
-    return { outcome };
+    return { status: "completed", outcome };
   }
 
   // The work item surfaces in the operator inbox with the evidence.
@@ -296,7 +296,7 @@ const reviewTrustPromotionHandler: WorkKindHandler = async (supabase, wi) => {
     relevanceHorizon: "weekly",
   }).catch(() => {});
 
-  return { outcome: summary };
+  return { status: "completed", outcome: summary };
 };
 
 export function registerTrustGraduationHandlers(): void {

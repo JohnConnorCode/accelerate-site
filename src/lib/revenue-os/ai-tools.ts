@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { OpenRouterTool } from "@/lib/ai/openrouter";
 import { proposeAction } from "./actions";
+import { assertWorkDraftTarget, findWorkDraft, workDraftKey } from "./work-drafts";
 import { loadOperatorQueue } from "./queue";
 import { loadActivityTimeline } from "./activities";
 import { ADMIN_LAYOUT_SCOPES, proposeLayoutChange } from "./admin-layout";
@@ -36,6 +37,8 @@ type AiToolContext = {
   supabase: SupabaseClient;
   actorEmail: string;
   toolPack?: RevenueToolPackId;
+  /** Server-owned context; never accepted from model arguments. */
+  workItem?: WorkItem;
   tenantConfig?: { modules?: Partial<Record<string, boolean>> } | null;
 };
 type AiToolRegistration = {
@@ -502,19 +505,29 @@ const registry: AiToolRegistration[] = [
     connectionRequirement: "none",
     impact: "external_action",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }, input) => {
+    execute: async ({ supabase, actorEmail, workItem }, input) => {
       requireEmail(value(input, "to"));
+      if (workItem) {
+        await assertWorkDraftTarget(supabase, workItem, "send_email", input);
+        const existing = await findWorkDraft(supabase, workItem);
+        if (existing) {
+          const { data: proposal, error } = await supabase.from("action_queue").select("*")
+            .eq("tenant_id", workItem.tenant_id).eq("id", existing.id).single();
+          if (error || !proposal) throw new Error(error?.message ?? "Draft proposal disappeared");
+          return proposal;
+        }
+      }
       return proposeAction(supabase, {
         actionType: "send_email",
         title: `Send email: ${value(input, "subject") || "Untitled"}`,
         description: previewOf(String(input.body || "")),
         urgency: "normal",
-        payload: input,
+        payload: workItem ? { ...input, workItemId: workItem.id } : input,
         reasoning: value(input, "reasoning") || "",
-        sourceContext: "admin_ai",
+        sourceContext: workItem ? `coworker:${workItem.coworker_id}` : "admin_ai",
         entityType: "opportunity",
         entityId: value(input, "opportunityId"),
-        dedupeKey: `ai-email:${value(input, "to")}:${value(input, "subject")}`.slice(0, 220),
+        dedupeKey: workItem ? workDraftKey(workItem) : `ai-email:${value(input, "to")}:${value(input, "subject")}`.slice(0, 220),
         proposedBy: actorEmail,
         expiresAt: new Date(Date.now() + 86400000).toISOString(),
       });
@@ -1624,7 +1637,7 @@ const registry: AiToolRegistration[] = [
     connectionRequirement: "none",
     impact: "external_action",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }, input) => {
+    execute: async ({ supabase, actorEmail, workItem }, input) => {
       const conversationId = value(input, "conversationId")!;
       const body = value(input, "body")!;
       const reasoning = value(input, "reasoning") || "";
@@ -1634,17 +1647,27 @@ const registry: AiToolRegistration[] = [
         .eq("id", conversationId)
         .maybeSingle();
 
+      if (workItem) {
+        await assertWorkDraftTarget(supabase, workItem, "send_gmail_reply", input);
+        const existing = await findWorkDraft(supabase, workItem);
+        if (existing) {
+          const { data: proposal, error } = await supabase.from("action_queue").select("*")
+            .eq("tenant_id", workItem.tenant_id).eq("id", existing.id).single();
+          if (error || !proposal) throw new Error(error?.message ?? "Draft proposal disappeared");
+          return proposal;
+        }
+      }
       return proposeAction(supabase, {
         actionType: "send_gmail_reply",
         title: `Reply to: ${conv?.subject || "Conversation"}`,
         description: previewOf(body),
         urgency: "normal",
-        payload: { conversationId, body, reasoning },
+        payload: { conversationId, body, reasoning, ...(workItem ? { workItemId: workItem.id } : {}) },
         reasoning,
-        sourceContext: "admin_ai",
+        sourceContext: workItem ? `coworker:${workItem.coworker_id}` : "admin_ai",
         entityType: "conversation",
         entityId: conversationId,
-        dedupeKey: `ai-reply:${conversationId}:${body.slice(0, 80)}`,
+        dedupeKey: workItem ? workDraftKey(workItem) : `ai-reply:${conversationId}:${body.slice(0, 80)}`,
         proposedBy: actorEmail,
         expiresAt: new Date(Date.now() + 86400000).toISOString(),
       });
