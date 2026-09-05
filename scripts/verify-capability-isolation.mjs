@@ -35,7 +35,7 @@ const SERVER_MODULE_IMPORT =
   /import\s+(?!type\b)\{([^}]*)\}\s*from\s*["']@\/lib\/supabase\/(server|client)["']/;
 // The single permitted runtime import: the tenant-binding enforcement
 // itself. Everything else from the server/client modules is a handle path.
-const ALLOWED_SERVER_IMPORTS = new Set(["bindTenantDatabase"]);
+const ALLOWED_SERVER_IMPORTS = new Set(["bindTenantDatabase", "tenantIdForDatabase"]);
 
 const failures = [];
 const boundarySource = readFileSync(join(repoRoot, BOUNDARY_FILE), "utf8");
@@ -51,11 +51,14 @@ if (RUNTIME_SUPABASE_IMPORT.test(boundarySource)) {
   );
 }
 for (const match of boundarySource.matchAll(new RegExp(SERVER_MODULE_IMPORT.source, "g"))) {
-  const names = match[1].split(",").map((n) => n.trim().split(" as ")[0].trim()).filter(Boolean);
+  const names = match[1]
+    .split(",")
+    .map((n) => n.trim().split(" as ")[0].trim())
+    .filter(Boolean);
   for (const name of names) {
     if (!ALLOWED_SERVER_IMPORTS.has(name)) {
       failures.push(
-        `${BOUNDARY_FILE} imports "${name}" from a Supabase server module. Only bindTenantDatabase (the tenant-binding enforcement) is allowed; anything else is a handle path.`,
+        `${BOUNDARY_FILE} imports "${name}" from a Supabase server module. Only tenant binding and tenant scope inspection are allowed; anything else is a handle path.`,
       );
     }
   }
@@ -109,5 +112,9 @@ if (failures.length) {
 }
 
 console.log(
-  JSON.stringify({ result: "passed", exports: [...ALLOWED_VALUE_EXPORTS], extensionsScanned: true }),
+  JSON.stringify({
+    result: "passed",
+    exports: [...ALLOWED_VALUE_EXPORTS],
+    extensionsScanned: true,
+  }),
 );

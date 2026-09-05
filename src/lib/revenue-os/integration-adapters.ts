@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveOrCreateIdentity } from "./identity";
 import { recordActivity } from "./activities";
+import { stripeAdapter } from "./stripe-adapter";
 import { recordAudit } from "./audit";
 
 export interface IntegrationConnectionReceipt {
@@ -563,6 +564,7 @@ export const INTEGRATION_ADAPTERS: ReadonlyMap<string, IntegrationAdapter> = new
 >([
   ["whatsapp", whatsAppAdapter],
   ["hubspot", hubSpotAdapter],
+  ["stripe", stripeAdapter],
 ]);
 
 /**
@@ -574,12 +576,12 @@ export const INTEGRATION_ADAPTERS: ReadonlyMap<string, IntegrationAdapter> = new
 export function buildEncryptedCredentials(
   adapter: IntegrationAdapter,
   credentials: Record<string, unknown>,
-  encrypt: (value: string) => string,
+  encrypt: (value: string, field: string) => string,
 ): Record<string, string> {
   const result: Record<string, string> = {};
   for (const field of adapter.credentialFields) {
     const value = credentials[field.formField];
-    if (typeof value === "string") result[field.encryptedKey] = encrypt(value);
+    if (typeof value === "string") result[field.encryptedKey] = encrypt(value, field.encryptedKey);
   }
   return result;
 }

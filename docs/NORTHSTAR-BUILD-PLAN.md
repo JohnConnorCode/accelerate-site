@@ -15,13 +15,13 @@
 
 ## Status by phase
 
-| Phase | Backlog | Planned | In progress | Blocked | Shipped | Total |
-|---|---|---|---|---|---|---|
-| A — A (Complete Loop One — See + Remember) | 0 | 0 | 0 | 1 | 18 | 19 |
-| B — B (Agent Runtime foundation — Notice + Act primitives) | 21 | 21 | 0 | 4 | 35 | 81 |
-| C — C (Reference coworker — Sales end-to-end loop) | 21 | 5 | 0 | 1 | 10 | 37 |
-| D — D (Plugin SDK + MCP) | 6 | 4 | 0 | 1 | 13 | 25 |
-| E — E (Additional coworkers/plugins + documentation) | 59 | 5 | 0 | 0 | 13 | 77 |
+| Phase                                                      | Backlog | Planned | In progress | Blocked | Shipped | Total |
+| ---------------------------------------------------------- | ------- | ------- | ----------- | ------- | ------- | ----- |
+| A — A (Complete Loop One — See + Remember)                 | 0       | 0       | 0           | 1       | 18      | 19    |
+| B — B (Agent Runtime foundation — Notice + Act primitives) | 21      | 21      | 0           | 4       | 35      | 81    |
+| C — C (Reference coworker — Sales end-to-end loop)         | 21      | 5       | 0           | 1       | 10      | 37    |
+| D — D (Plugin SDK + MCP)                                   | 6       | 4       | 0           | 1       | 13      | 25    |
+| E — E (Additional coworkers/plugins + documentation)       | 59      | 5       | 0           | 0       | 13      | 77    |
 
 **Board total:** 107 backlog, 35 planned, 0 in progress, 7 blocked, 89 shipped (239 managed cards).
 

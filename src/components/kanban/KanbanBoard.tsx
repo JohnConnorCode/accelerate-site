@@ -92,18 +92,26 @@ export function KanbanBoard<T>({
   className,
   footer,
 }: KanbanBoardProps<T>) {
-  const { getColumnItems, sensors, activeId, activeItem, handleDragStart, handleDragOver, handleDragEnd, cancelDrag } =
-    useKanbanDnd<T>({
-      items,
-      columns,
-      getItemId,
-      getItemColumnKey,
-      getItemSortOrder,
-      setItemPosition,
-      onReorder,
-      onCrossColumnMove,
-      disabled: dragDisabled,
-    });
+  const {
+    getColumnItems,
+    sensors,
+    activeId,
+    activeItem,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+    cancelDrag,
+  } = useKanbanDnd<T>({
+    items,
+    columns,
+    getItemId,
+    getItemColumnKey,
+    getItemSortOrder,
+    setItemPosition,
+    onReorder,
+    onCrossColumnMove,
+    disabled: dragDisabled,
+  });
 
   // closestCorners alone misresolves a drag into an EMPTY column that sits
   // next to a populated one: it compares corner-to-corner distance against
@@ -160,7 +168,8 @@ export function KanbanBoard<T>({
         return `${labelOf(active.id)} is over ${label}.`;
       },
       onDragEnd({ active, over }) {
-        if (!over) return `${labelOf(active.id)} was dropped outside the board. No changes were made.`;
+        if (!over)
+          return `${labelOf(active.id)} was dropped outside the board. No changes were made.`;
         const overId = String(over.id);
         if (overId.startsWith("column:")) {
           const label = columnLabelByKey.get(overId.slice("column:".length)) ?? "the column";
@@ -281,7 +290,9 @@ export function KanbanBoard<T>({
               renderCard={renderCard}
               dragDisabled={dragDisabled}
               emptyHint={emptyColumnHint}
-              onRename={onRenameColumn ? (label) => onRenameColumn(column.column_key, label) : undefined}
+              onRename={
+                onRenameColumn ? (label) => onRenameColumn(column.column_key, label) : undefined
+              }
               onDelete={
                 onDeleteColumn ? (options) => onDeleteColumn(column.column_key, options) : undefined
               }
@@ -305,14 +316,14 @@ export function KanbanBoard<T>({
         </div>
         <DragOverlay adjustScale={false} dropAnimation={null}>
           {activeItem
-            ? (renderCardOverlay
-                ? renderCardOverlay(activeItem)
-                : renderCard(activeItem, {
-                    isDragging: true,
-                    isOverlay: true,
-                    disabled: true,
-                    dragHandleProps: {},
-                  }))
+            ? renderCardOverlay
+              ? renderCardOverlay(activeItem)
+              : renderCard(activeItem, {
+                  isDragging: true,
+                  isOverlay: true,
+                  disabled: true,
+                  dragHandleProps: {},
+                })
             : null}
         </DragOverlay>
       </DndContext>

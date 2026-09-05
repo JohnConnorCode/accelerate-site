@@ -16,6 +16,9 @@ import { readFileSync, readdirSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import prettier from "prettier";
+import { createHash } from "node:crypto";
+import Ajv from "ajv";
+import { validateBoundedWorkflowSchema } from "./lib/bounded-workflow-schema.mjs";
 
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const extensionsDir = join(repoRoot, "extensions");
@@ -149,6 +152,122 @@ function validateManifest(file, manifest, seenIds, seenNavIds, coreIds) {
   }
 }
 
+const reports = {};
+const workflows = {};
+const ajv = new Ajv({ strict: true, allErrors: false });
+function validateWorkflow(file, manifest) {
+  const workflow = manifest.workflow;
+  if (!workflow) return;
+  if (
+    manifest.report ||
+    workflow.version !== 1 ||
+    !Array.isArray(workflow.actions) ||
+    !workflow.actions.length ||
+    workflow.actions.length > 3 ||
+    workflow.actions.some(
+      (action) => !["create_stripe_invoice_draft", "create_task_batch"].includes(action),
+    ) ||
+    !Array.isArray(workflow.sources) ||
+    workflow.sources.length > 3 ||
+    !workflow.inputSchema ||
+    Object.keys(workflow).some(
+      (key) => !["version", "actions", "sources", "inputSchema"].includes(key),
+    )
+  ) {
+    fail(file, "Invalid workflow v1 declaration");
+    return;
+  }
+  const expectedTools = [
+    `prepare_${manifest.id.replaceAll("-", "_")}`,
+    `propose_${manifest.id.replaceAll("-", "_")}`,
+    ...(manifest.id === "stripe-invoicing"
+      ? ["propose_stripe_invoice_send", "preview_invoice_page", "propose_invoice_page"]
+      : []),
+  ];
+  if (JSON.stringify(manifest.aiToolNames) !== JSON.stringify(expectedTools))
+    fail(file, "Workflow must declare its generated tools and reviewed adapter tools");
+  const names = new Set();
+  for (const source of workflow.sources) {
+    if (
+      !source ||
+      !/^[a-z][a-z0-9_]{0,31}$/.test(source.name) ||
+      names.has(source.name) ||
+      !/^[a-z][a-z0-9_]{0,63}$/.test(source.type) ||
+      !/^[a-zA-Z][a-zA-Z0-9]{0,63}$/.test(source.inputKey) ||
+      !Array.isArray(source.columns) ||
+      !source.columns.includes("id") ||
+      source.columns.length > 16 ||
+      source.columns.some((column) => !/^[a-z_][a-z0-9_]{0,62}$/.test(column))
+    )
+      fail(file, "Invalid workflow source");
+    names.add(source.name);
+  }
+  try {
+    if (
+      Buffer.byteLength(JSON.stringify(workflow.inputSchema)) > 16384 ||
+      workflow.inputSchema.type !== "object" ||
+      workflow.inputSchema.additionalProperties !== false
+    )
+      throw new Error("Bounded object schema required");
+    validateBoundedWorkflowSchema(workflow.inputSchema);
+    ajv.compile(workflow.inputSchema);
+    if (!/^[a-z][a-z0-9-]{2,48}$/.test(manifest.id)) throw new Error("Unsafe id");
+    const code = readFileSync(join(repoRoot, "plugins", manifest.id, "workflow.js"), "utf8");
+    if (!code.trim() || Buffer.byteLength(code) > 32768)
+      throw new Error("Workflow code outside bounds");
+    workflows[manifest.id] = { code, sha256: createHash("sha256").update(code).digest("hex") };
+  } catch {
+    fail(file, "Workflow requires a valid bounded input schema and plugins/<id>/workflow.js");
+  }
+}
+
+function validateReport(file, manifest) {
+  if (!manifest.report) return;
+  const report = manifest.report;
+  if (
+    JSON.stringify(manifest.aiToolNames) !==
+    JSON.stringify([`run_${manifest.id.replaceAll("-", "_")}`])
+  )
+    fail(file, "report must declare its generated run_<module_id> AI tool");
+  if (
+    report.version !== 1 ||
+    !Array.isArray(report.sources) ||
+    report.sources.length < 1 ||
+    report.sources.length > 3 ||
+    Object.keys(report).some((key) => !["version", "sources"].includes(key))
+  ) {
+    fail(file, "invalid report v1 declaration");
+    return;
+  }
+  const names = new Set();
+  for (const source of report.sources) {
+    if (
+      !source ||
+      !/^[a-z][a-z0-9_]{0,31}$/.test(source.name) ||
+      names.has(source.name) ||
+      !/^[a-z][a-z0-9_]{0,63}$/.test(source.type) ||
+      !Array.isArray(source.columns) ||
+      !source.columns.includes("id") ||
+      source.columns.length > 16 ||
+      source.columns.some((column) => !/^[a-z_][a-z0-9_]{0,62}$/.test(column)) ||
+      new Set(source.columns).size !== source.columns.length ||
+      Object.keys(source).some((key) => !["name", "type", "columns"].includes(key))
+    ) {
+      fail(file, "invalid or duplicate report source");
+      continue;
+    }
+    names.add(source.name);
+  }
+  if (!/^[a-z][a-z0-9-]{2,48}$/.test(manifest.id)) return;
+  try {
+    const code = readFileSync(join(repoRoot, "plugins", manifest.id, "report.js"), "utf8");
+    if (!code.trim() || Buffer.byteLength(code, "utf8") > 32768)
+      throw new Error("code must be 1–32768 UTF-8 bytes");
+    reports[manifest.id] = { code, sha256: createHash("sha256").update(code).digest("hex") };
+  } catch {
+    fail(file, "report requires plugins/<module-id>/report.js within the 32 KiB bound");
+  }
+}
 const manifests = [];
 if (existsSync(extensionsDir)) {
   const coreIds = coreModuleIds();
@@ -166,6 +285,8 @@ if (existsSync(extensionsDir)) {
       continue;
     }
     validateManifest(name, manifest, seenIds, seenNavIds, coreIds);
+    validateReport(name, manifest);
+    validateWorkflow(name, manifest);
     manifests.push(manifest);
   }
 }
@@ -188,6 +309,8 @@ const modules = manifests.map((manifest) => ({
   setupChecks: manifest.setupChecks ?? [],
   ...(manifest.docsUrl ? { docsUrl: manifest.docsUrl } : {}),
   ...(manifest.settings?.length ? { settings: manifest.settings } : {}),
+  ...(manifest.report ? { report: manifest.report } : {}),
+  ...(manifest.workflow ? { workflow: manifest.workflow } : {}),
 }));
 
 const navLinks = manifests.flatMap((manifest) =>
@@ -260,3 +383,29 @@ if (checkOnly) {
     ),
   );
 }
+
+const reportPath = join(repoRoot, "src/lib/revenue-os/extension-reports.generated.ts");
+const reportOutput = await prettier.format(
+  `// Generated by build-extension-modules.mjs. Never import plugin code in the host.
+import "server-only";
+export const EXTENSION_REPORTS: Record<string, {code: string; sha256: string}> = ${JSON.stringify(reports)};
+`,
+  { ...prettierOptions, filepath: reportPath },
+);
+if (checkOnly) {
+  if (!existsSync(reportPath) || readFileSync(reportPath, "utf8") !== reportOutput)
+    throw new Error("Report sources drifted; run npm run build:extensions");
+} else writeFileSync(reportPath, reportOutput);
+
+const workflowPath = join(repoRoot, "src/lib/revenue-os/extension-workflows.generated.ts");
+const workflowOutput = await prettier.format(
+  `// Generated by build-extension-modules.mjs. Business code executes only in QuickJS.
+import "server-only";
+export const EXTENSION_WORKFLOWS: Record<string,{code:string;sha256:string}> = ${JSON.stringify(workflows)};
+`,
+  { ...prettierOptions, filepath: workflowPath },
+);
+if (checkOnly) {
+  if (!existsSync(workflowPath) || readFileSync(workflowPath, "utf8") !== workflowOutput)
+    throw new Error("Workflow source drift; run npm run build:extensions");
+} else writeFileSync(workflowPath, workflowOutput);

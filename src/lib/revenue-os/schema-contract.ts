@@ -8,6 +8,24 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-05.1";
 
 export const TENANT_SCOPED_TABLES = [
+  "invoice_pages",
+  "work_items",
+  "workspace_capabilities",
+  "coworkers",
+  "claims",
+  "evidence",
+  "autonomy_policies",
+  "autonomy_hard_floors",
+  "agent_memory",
+  "learned_policies",
+  "budget_limits",
+  "budget_usage",
+  "budget_receipts",
+  "plugins",
+  "plugin_tools",
+  "plugin_triggers",
+  "kanban_columns",
+
   "action_queue",
   "activities",
   "admin_notifications",
@@ -69,6 +87,18 @@ const TENANT_SCOPED_TABLE_SET = new Set<string>(TENANT_SCOPED_TABLES);
 
 const BASE_REVENUE_SCHEMA_TABLES = [
   {
+    table: "work_items",
+    columns: [
+      "id",
+      "status",
+      "lease_owner",
+      "lease_expires_at",
+      "attempt_count",
+      "action_ids",
+      "agent_run_id",
+    ],
+  },
+  {
     table: "contacts",
     columns: [
       "id",
@@ -106,7 +136,16 @@ const BASE_REVENUE_SCHEMA_TABLES = [
   },
   {
     table: "tasks",
-    columns: ["id", "contact_id", "company_id", "opportunity_id", "source", "dedupe_key", "status"],
+    columns: [
+      "id",
+      "contact_id",
+      "company_id",
+      "opportunity_id",
+      "source",
+      "dedupe_key",
+      "status",
+      "assigned_to",
+    ],
   },
   {
     table: "conversations",
@@ -114,13 +153,7 @@ const BASE_REVENUE_SCHEMA_TABLES = [
   },
   {
     table: "onboarding_templates",
-    columns: [
-      "id",
-      "template_key",
-      "version",
-      "active",
-      "milestones",
-    ],
+    columns: ["id", "template_key", "version", "active", "milestones"],
   },
   {
     table: "messages",
@@ -187,7 +220,10 @@ const BASE_REVENUE_SCHEMA_TABLES = [
     columns: ["id", "opportunity_id", "contact_id", "company_id", "status", "version"],
   },
   { table: "proposal_events", columns: ["id", "proposal_id", "event_type", "source"] },
-  { table: "action_queue", columns: ["id", "action_type", "status", "dedupe_key", "expires_at"] },
+  {
+    table: "action_queue",
+    columns: ["id", "action_type", "status", "dedupe_key", "expires_at", "work_item_id"],
+  },
   {
     table: "job_runs",
     columns: [

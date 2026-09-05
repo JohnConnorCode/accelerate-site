@@ -753,9 +753,9 @@ export default function PipelinePage() {
             </label>
           </div>
           <p className="admin-copy mt-3 text-xs">
-            Won/lost stages close the opportunity and stop counting it as open pipeline. A won
-            stage always records the deal value; a lost stage always requires a reason when an
-            opportunity moves into it.
+            Won/lost stages close the opportunity and stop counting it as open pipeline. A won stage
+            always records the deal value; a lost stage always requires a reason when an opportunity
+            moves into it.
           </p>
           <div className="mt-6 flex justify-end gap-2">
             <button
@@ -1112,7 +1112,13 @@ function PipelineKanbanCard({
         </button>
       )}
       <div className="min-w-0 flex-1">
-        <Card item={item} state={state} columns={columns} saving={saving} updateStage={updateStage} />
+        <Card
+          item={item}
+          state={state}
+          columns={columns}
+          saving={saving}
+          updateStage={updateStage}
+        />
       </div>
     </div>
   );
@@ -1136,13 +1142,21 @@ function ListView({
         <table className="w-full min-w-[820px] text-left text-sm">
           <thead className="bg-black/[0.018] font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--admin-muted)]">
             <tr>
-              <th scope="col" className="px-5 py-3.5">Opportunity</th>
+              <th scope="col" className="px-5 py-3.5">
+                Opportunity
+              </th>
               {has(state, "contact") && <th scope="col">Contact</th>}
               {has(state, "source") && <th scope="col">Source</th>}
-              {has(state, "value") && <th scope="col" className="text-right">Value</th>}
+              {has(state, "value") && (
+                <th scope="col" className="text-right">
+                  Value
+                </th>
+              )}
               {has(state, "next_action") && <th scope="col">Next action</th>}
               {has(state, "owner") && <th scope="col">Owner</th>}
-              <th scope="col" className="px-5">Stage</th>
+              <th scope="col" className="px-5">
+                Stage
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--admin-border)]">
@@ -1185,7 +1199,12 @@ function ListView({
                   </td>
                 )}
                 <td className="px-5">
-                  <StageSelect item={item} columns={columns} saving={saving} updateStage={updateStage} />
+                  <StageSelect
+                    item={item}
+                    columns={columns}
+                    saving={saving}
+                    updateStage={updateStage}
+                  />
                 </td>
               </tr>
             ))}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { approveAndExecuteAction } from "@/lib/revenue-os/action-executor";
-import { rejectAction, sweepExpiredActions } from "@/lib/revenue-os/actions";
+import { rejectAction, sweepExpiredActions, retryPluginAction } from "@/lib/revenue-os/actions";
 import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
 
 export async function GET() {
@@ -30,13 +30,18 @@ export async function PATCH(request: NextRequest) {
   if (auth instanceof NextResponse) return auth;
   const body = (await request.json()) as {
     id?: string;
-    decision?: "approve" | "reject";
+    decision?: "approve" | "reject" | "retry";
     reason?: string;
   };
-  if (!body.id || !["approve", "reject"].includes(body.decision || ""))
+  if (!body.id || !["approve", "reject", "retry"].includes(body.decision || ""))
     return NextResponse.json({ error: "Action id and decision are required" }, { status: 400 });
   const supabase = auth.database;
   try {
+    if (body.decision === "retry")
+      return NextResponse.json({
+        success: true,
+        result: await retryPluginAction(supabase, body.id, auth.user.email || "founder"),
+      });
     if (body.decision === "reject") {
       await rejectAction(supabase, body.id, auth.user.email || "founder", body.reason);
       return NextResponse.json({ success: true });

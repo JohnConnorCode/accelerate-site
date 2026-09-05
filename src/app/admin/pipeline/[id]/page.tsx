@@ -217,8 +217,7 @@ export default function OpportunityRecordPage() {
   const { columns: pipelineColumns } = useKanbanColumns("pipeline");
   const opportunity = record?.opportunity;
   const stage = opportunity?.canonical_stage ?? "new";
-  const stageLabel =
-    pipelineColumns.find((column) => column.column_key === stage)?.label ?? stage;
+  const stageLabel = pipelineColumns.find((column) => column.column_key === stage)?.label ?? stage;
   return (
     <div className="space-y-5 pb-12">
       <Link

@@ -1,6 +1,13 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { executeInvoicePagePublication } from "./invoice-pages";
+import { executeWorkflowTaskBatch } from "./workflow-tasks";
+import { executeStripeInvoiceAction } from "./stripe-invoicing";
+import { assertPluginActionAllowed } from "./workflow-plugins";
 import { claimApprovedAction, failAction, finishAction } from "./actions";
+import { executeRuntimeAction } from "./runtime-actions";
+import { checkAutonomy } from "./autonomy-policy";
+import { recordAudit } from "./audit";
 import { reversibilityOf } from "./action-reversibility";
 import { sendRecordedEmail } from "./communications";
 import { transitionOpportunity } from "./pipeline";
@@ -26,6 +33,13 @@ function stringValue(
 }
 
 export const APPROVABLE_ACTIONS = [
+  "create_stripe_invoice_draft",
+  "send_stripe_invoice",
+  "create_task_batch",
+  "publish_invoice_page",
+  "bootstrap_coworker",
+  "store_agent_memory",
+  "record_learned_policy",
   "send_email",
   "send_gmail_reply",
   "transition_opportunity",
@@ -45,11 +59,15 @@ export async function approveAndExecuteAction(
   options?: { mode?: "approved" | "autonomous" },
 ) {
   const mode = options?.mode ?? "approved";
-  const action = await claimApprovedAction(supabase, id, actorEmail);
+  const action = await claimApprovedAction(supabase, id, actorEmail, mode);
   // Unknown types fail closed with the executor's own error before any
   // other gate, preserving the long-standing message contract.
   if (!(APPROVABLE_ACTIONS as readonly string[]).includes(String(action.action_type))) {
-    await failAction(supabase, id, `Action type ${action.action_type} is not registered for execution`);
+    await failAction(
+      supabase,
+      id,
+      `Action type ${action.action_type} is not registered for execution`,
+    );
     throw new Error(`Action type ${action.action_type} is not registered for execution`);
   }
   const reversibility = reversibilityOf(String(action.action_type)).reversibility;
@@ -73,8 +91,60 @@ export async function approveAndExecuteAction(
   // code runs against a real database (release flow runs migrations first).
   const compensation: Record<string, unknown> = {};
   try {
+    if (action.source_context === "plugin" || payload.pluginOrigin)
+      await assertPluginActionAllowed(supabase, String(action.action_type), payload);
+    const coworkerId =
+      typeof action.proposed_by === "string" && action.proposed_by.startsWith("coworker:")
+        ? action.proposed_by.slice("coworker:".length)
+        : null;
+    const policy = await checkAutonomy(supabase, String(action.action_type), coworkerId);
+    if (
+      policy.hardFloor ||
+      policy.level === "prohibited" ||
+      (mode === "autonomous" && (!policy.allowed || policy.level !== "standing_permission"))
+    )
+      throw new Error(`Action denied: ${policy.reason}`);
+    await recordAudit(supabase, {
+      actorEmail,
+      action: "action.authorized",
+      entityType: "action_queue",
+      entityId: id,
+      source: mode === "approved" ? "admin" : "automation",
+      metadata: {
+        policy_id: policy.policyId,
+        action_key: policy.actionKey,
+        level: policy.level,
+        mode,
+        coworker_id: coworkerId,
+      },
+    });
     let result: unknown;
     switch (action.action_type) {
+      case "publish_invoice_page": {
+        if (mode !== "approved")
+          throw new Error("Invoice page publication requires human approval");
+        result = await executeInvoicePagePublication(supabase, id, actorEmail);
+        break;
+      }
+      case "create_task_batch": {
+        if (mode !== "approved") throw new Error("Task workflows require human approval");
+        result = await executeWorkflowTaskBatch(supabase, id, actorEmail);
+        break;
+      }
+      case "create_stripe_invoice_draft":
+      case "send_stripe_invoice": {
+        if (mode !== "approved") throw new Error("Invoice actions require human approval");
+        result = await executeStripeInvoiceAction(supabase, id, actorEmail);
+        break;
+      }
+      case "bootstrap_coworker":
+      case "store_agent_memory":
+      case "record_learned_policy": {
+        if (mode !== "approved")
+          throw new Error("Runtime configuration and memory changes require human approval");
+        result = await executeRuntimeAction(supabase, action.action_type, payload, actorEmail);
+        break;
+      }
       case "send_email": {
         const contactId = stringValue(payload, "contactId", false);
         if (contactId) {
@@ -96,6 +166,7 @@ export async function approveAndExecuteAction(
           opportunityId: stringValue(payload, "opportunityId", false),
           actorEmail,
           source: "ai",
+          idempotencyKey: `action:${id}`,
         });
         break;
       }
@@ -158,7 +229,7 @@ export async function approveAndExecuteAction(
             : "medium",
           opportunityId: stringValue(payload, "opportunityId", false),
           source: "ai",
-          dedupeKey: stringValue(payload, "dedupeKey", false),
+          dedupeKey: stringValue(payload, "dedupeKey", false) ?? `action:${id}`,
           actorEmail,
         });
         compensation.createdTaskId = (result as { task?: { id?: unknown } })?.task?.id ?? null;
@@ -293,7 +364,6 @@ export async function approveAndExecuteAction(
       default:
         throw new Error(`Action type ${action.action_type} is not registered for execution`);
     }
-    await finishAction(supabase, id, result);
     // Stamp the reversibility class and captured inverse. Tolerates only the
     // missing-column error on trees whose migration has not applied yet; the
     // compensator then refuses for missing data instead of guessing.
@@ -301,7 +371,9 @@ export async function approveAndExecuteAction(
       .from("action_queue")
       .update({ reversibility, compensation })
       .eq("id", id);
-    if (stampError && (stampError as { code?: string }).code !== "42703") throw new Error(stampError.message);
+    if (stampError && (stampError as { code?: string }).code !== "42703")
+      throw new Error(stampError.message);
+    await finishAction(supabase, id, result);
     return result;
   } catch (error) {
     await failAction(supabase, id, error instanceof Error ? error.message : "Action failed");

@@ -84,6 +84,15 @@ export interface RevenueOSModule {
   docsUrl?: string;
   /** Configurable values rendered by ModuleSettingsForm. Never secrets. */
   settings?: ModuleSettingField[];
+  /** Isolated workflow prepares host-validated actions for approval. */
+  workflow?: {
+    version: 1;
+    inputSchema: Record<string, unknown>;
+    actions: string[];
+    sources: { name: string; type: string; columns: string[]; inputKey: string }[];
+  };
+  /** Bounded, read-only isolate report. Code is compiled server-only. */
+  report?: { version: 1; sources: { name: string; type: string; columns: string[] }[] };
 }
 
 /**
@@ -154,7 +163,16 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["ai"],
     routes: ["/admin/ai"],
-    aiToolNames: ["search_knowledge_base"],
+    aiToolNames: [
+      "search_knowledge_base",
+      "query_memory",
+      "store_agent_memory",
+      "get_agent_memory",
+      "get_learned_policies",
+      "record_learned_policy",
+      "get_claims_for_entity",
+      "get_agent_activity_for_entity",
+    ],
   },
   {
     id: "core-system",
@@ -163,8 +181,28 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     category: "system",
     isCore: true,
     defaultEnabled: true,
-    navLinkIds: ["tenants", "setup", "features", "settings"],
-    routes: ["/admin/tenants", "/admin/setup", "/admin/features", "/admin/settings"],
+    navLinkIds: ["tenants", "setup", "features", "settings", "branding"],
+    routes: [
+      "/admin/tenants",
+      "/admin/setup",
+      "/admin/features",
+      "/admin/settings",
+      "/admin/branding",
+    ],
+    aiToolNames: [
+      "get_claimable_work",
+      "get_workspace_capabilities",
+      "get_autonomy_policies",
+      "get_coworkers",
+      "get_plugins",
+      "bootstrap_sales_coworker",
+      "bootstrap_business_pulse_coworker",
+      "bootstrap_meeting_intel_coworker",
+      "bootstrap_finance_coworker",
+      "bootstrap_operations_coworker",
+      "check_budgets",
+      "get_budget_limits",
+    ],
   },
 
   // --- Optional / Pluggable Business Modules ---
@@ -321,7 +359,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     isCore: false,
     defaultEnabled: true,
     navLinkIds: ["integrations"],
-    routes: ["/admin/integrations"],
+    routes: ["/admin/integrations", "/admin/plugins"],
   },
 ] as const;
 
@@ -452,7 +490,7 @@ export function validateModuleSettingsInput(
         return { valid: false, error: `"${key}" must be true or false.` };
       value[key] = raw;
     } else if (field.type === "number") {
-      if (typeof raw !== "number" || Number.isNaN(raw))
+      if (typeof raw !== "number" || !Number.isFinite(raw))
         return { valid: false, error: `"${key}" must be a number.` };
       if (field.min !== undefined && raw < field.min)
         return { valid: false, error: `"${key}" must be at least ${field.min}.` };

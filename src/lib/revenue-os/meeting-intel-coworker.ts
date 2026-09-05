@@ -7,26 +7,7 @@ import { registerCapability } from "./capabilities";
 import { recordAudit } from "./audit";
 import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";
 import { storeAgentMemory } from "./memory";
-import { runCoworkerAgentTask } from "./coworker-agent";
-import type { WorkItem } from "./work-items";
-
-const aiModelConfigured = !!process.env.OPENROUTER_AGENT_MODEL;
-
-async function tryAiExecution(
-  supabase: SupabaseClient,
-  wi: WorkItem,
-): Promise<{ outcome: string } | null> {
-  if (!aiModelConfigured) return null;
-  try {
-    const result = await runCoworkerAgentTask(supabase, wi);
-    if (result.outcome && !result.outcome.startsWith("AI execution failed")) {
-      return { outcome: result.outcome };
-    }
-  } catch {
-    // Fall through to deterministic logic.
-  }
-  return null;
-}
+import { tryCoworkerAgentTask as tryAiExecution } from "./coworker-agent";
 
 // ---------------------------------------------------------------------------
 // Meeting Intelligence Coworker (northstar Phase E, priority 2)
@@ -54,11 +35,23 @@ export const MEETING_INTEL_REQUIRED_CAPABILITIES = [
 
 export const MEETING_INTEL_AUTONOMY_POLICIES = [
   { actionKey: "crm.read", label: "Read CRM records", level: "autonomous" as const },
-  { actionKey: "crm.write", label: "Update CRM from meetings", level: "ask_until_trusted" as const },
+  {
+    actionKey: "crm.write",
+    label: "Update CRM from meetings",
+    level: "ask_until_trusted" as const,
+  },
   { actionKey: "calendar.read", label: "Read calendar events", level: "autonomous" as const },
   { actionKey: "gmail.read", label: "Read email history", level: "autonomous" as const },
-  { actionKey: "meeting.brief", label: "Generate pre-call briefs", level: "standing_permission" as const },
-  { actionKey: "meeting.process", label: "Process post-meeting notes", level: "ask_until_trusted" as const },
+  {
+    actionKey: "meeting.brief",
+    label: "Generate pre-call briefs",
+    level: "standing_permission" as const,
+  },
+  {
+    actionKey: "meeting.process",
+    label: "Process post-meeting notes",
+    level: "ask_until_trusted" as const,
+  },
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -72,10 +65,13 @@ export async function bootstrapMeetingIntelCoworker(
   for (const capKey of MEETING_INTEL_REQUIRED_CAPABILITIES) {
     await registerCapability(supabase, {
       capabilityKey: capKey,
-      label: capKey.split(".").map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(" "),
+      label: capKey
+        .split(".")
+        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+        .join(" "),
       category: "integration",
       source: "coworker_bootstrap",
-    }).catch(() => {});
+    });
   }
 
   for (const policy of MEETING_INTEL_AUTONOMY_POLICIES) {
@@ -86,14 +82,15 @@ export async function bootstrapMeetingIntelCoworker(
       coworkerId: MEETING_INTEL_COWORKER_ID,
       source: "coworker_bootstrap",
       actorEmail,
-    }).catch(() => {});
+    });
   }
 
   const coworker = await registerCoworker(supabase, {
     id: MEETING_INTEL_COWORKER_ID,
     name: "Meeting Intelligence",
     role: "Generates pre-call briefs, processes post-meeting outcomes, and updates CRM from meetings",
-    description: "Watches for upcoming calendar events and prepares pre-call briefs with company context, recent activity, and open items. After meetings, processes notes into CRM updates, follow-up tasks, and next-step work items.",
+    description:
+      "Watches for upcoming calendar events and prepares pre-call briefs with company context, recent activity, and open items. After meetings, processes notes into CRM updates, follow-up tasks, and next-step work items.",
     toolPack: "pipeline",
     requiredCapabilities: [...MEETING_INTEL_REQUIRED_CAPABILITIES],
     workKinds: [...MEETING_INTEL_WORK_KINDS],
@@ -225,7 +222,9 @@ const preCallBriefHandler: WorkKindHandler = async (supabase, wi) => {
 
   const briefParts = [
     `Contact: ${contact.first_name ?? ""} ${contact.last_name ?? ""} (${contact.email})`,
-    opportunity ? `Opportunity: ${opportunity.company_name} — stage: ${opportunity.stage}, probability: ${opportunity.probability}%` : "No active opportunity",
+    opportunity
+      ? `Opportunity: ${opportunity.company_name} — stage: ${opportunity.stage}, probability: ${opportunity.probability}%`
+      : "No active opportunity",
     opportunity?.next_action ? `Next action: ${opportunity.next_action}` : "No next action set",
     `Recent activity (14d): ${recentActivity ?? 0} events`,
     `Pending actions: ${pendingActions ?? 0}`,

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { runWithTenantRequestContext } from "@/lib/tenancy/context";
 import { listTenantSystemContexts } from "@/lib/tenancy/system";
-import { executeClaimableWork } from "@/lib/revenue-os/work-executor";
+import { executeClaimableWork, workExecutionJobStatus } from "@/lib/revenue-os/work-executor";
 import { scheduleRecurringWork } from "@/lib/revenue-os/work-scheduler";
 import { registerSalesWorkHandlers } from "@/lib/revenue-os/sales-coworker";
 import { registerBusinessPulseWorkHandlers } from "@/lib/revenue-os/business-pulse-coworker";
@@ -44,19 +44,25 @@ export async function GET(request: NextRequest) {
           const supabase = createServiceRoleClient(context);
           return withJobRun(supabase, "work-engine", async () => {
             // Schedule recurring work (daily + weekly on Mondays) before execution.
-            await scheduleRecurringWork(supabase);
+            const scheduling = await scheduleRecurringWork(supabase);
             const summary = await executeClaimableWork(supabase, { maxItems: 10 });
+            summary.errors.push(...scheduling.errors.map((error) => `scheduler:${error}`));
             return {
               value: summary,
               summary: summary as unknown as Record<string, unknown>,
-              status: summary.failed > 0 ? ("partial" as const) : ("success" as const),
+              status: workExecutionJobStatus(summary),
             };
           });
         });
 
         tenants.push({
           tenant: context.tenantSlug,
-          status: result.claimed ? "completed" : "skipped",
+          status:
+            !result.claimed || !result.value
+              ? "skipped"
+              : workExecutionJobStatus(result.value) === "success"
+                ? "completed"
+                : workExecutionJobStatus(result.value),
           runId: result.runId,
           summary: result.value,
         });
@@ -72,6 +78,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       tenants,
       failed: tenants.filter((t) => t.status === "failed").length,
+      partial: tenants.filter((t) => t.status === "partial").length,
     });
   } catch (error) {
     return NextResponse.json(

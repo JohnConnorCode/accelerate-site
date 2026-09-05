@@ -25,6 +25,7 @@ const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const read = (relativePath) => readFileSync(join(repoRoot, relativePath), "utf8");
 
 const MODULE_API_DIRECTORIES = {
+  "stripe-invoicing": ["src/app/api/admin/invoicing"],
   proposals: ["src/app/api/admin/proposals"],
   campaigns: ["src/app/api/admin/revenue-os/campaigns"],
   "email-studio": ["src/app/api/admin/emails"],
@@ -45,9 +46,10 @@ const failures = [];
 
 // The map above must name real, non-core modules, so a typo or a renamed
 // module id fails loudly instead of silently guarding nothing.
-const modulesSource = read("src/lib/revenue-os/modules.ts");
+const modulesSource =
+  read("src/lib/revenue-os/modules.ts") + read("src/lib/revenue-os/extension-modules.generated.ts");
 for (const moduleId of Object.keys(MODULE_API_DIRECTORIES)) {
-  const declared = new RegExp(`id:\\s*"${moduleId}"`).test(modulesSource);
+  const declared = new RegExp(`"?id"?:\\s*"${moduleId}"`).test(modulesSource);
   if (!declared) {
     failures.push(
       `MODULE_API_DIRECTORIES names "${moduleId}", which is not a module id in modules.ts.`,
@@ -98,6 +100,21 @@ if (checkedFiles < 15) {
   );
 }
 
+// Generic bundled report adapter has a request-selected module, then the host
+// independently rechecks current enablement before execution and publication.
+const reportRoute = read("src/app/api/admin/plugins/run/route.ts");
+if (
+  !reportRoute.includes("requireAdminForModule(input.data.pluginId)") ||
+  !/runReportPlugin\(\s*authorization\.database/.test(reportRoute)
+)
+  failures.push("Report adapter must authenticate its declared module and use the shared host");
+const workflowRoute = read("src/app/api/admin/plugins/workflow/route.ts");
+if (
+  !workflowRoute.includes("requireAdminForModule(parsed.data.pluginId)") ||
+  !/prepareWorkflowPlugin\(\s*auth\.database/.test(workflowRoute) ||
+  !/proposeWorkflowPlugin\(\s*auth\.database/.test(workflowRoute)
+)
+  failures.push("Workflow route must use the authenticated shared plugin host");
 if (failures.length) {
   console.error(`Module route guard check failed:\n- ${failures.join("\n- ")}`);
   process.exit(1);

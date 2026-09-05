@@ -114,7 +114,8 @@ export const MCP_REVENUE_OS_RESOURCES = [
   {
     uri: "revenue-os://memory/overview",
     name: "Memory Architecture Overview",
-    description: "Active learned policies and recent agent memory across all five memory categories.",
+    description:
+      "Active learned policies and recent agent memory across all five memory categories.",
     mimeType: "application/json",
   },
 ] as const;
@@ -385,7 +386,11 @@ export async function handleMcpRequest(
                 {
                   uri,
                   mimeType: "application/json",
-                  text: JSON.stringify({ claimableWork: queue, timestamp: new Date().toISOString() }, null, 2),
+                  text: JSON.stringify(
+                    { claimableWork: queue, timestamp: new Date().toISOString() },
+                    null,
+                    2,
+                  ),
                 },
               ],
             },
@@ -402,7 +407,11 @@ export async function handleMcpRequest(
                 {
                   uri,
                   mimeType: "application/json",
-                  text: JSON.stringify({ capabilities, timestamp: new Date().toISOString() }, null, 2),
+                  text: JSON.stringify(
+                    { capabilities, timestamp: new Date().toISOString() },
+                    null,
+                    2,
+                  ),
                 },
               ],
             },

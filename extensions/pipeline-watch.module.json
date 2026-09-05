@@ -1,0 +1,21 @@
+{
+  "$schema": "./module-manifest.schema.json",
+  "id": "pipeline-watch",
+  "name": "Pipeline follow-up",
+  "description": "Find open opportunities with an overdue next action or no update in seven days.",
+  "category": "intelligence",
+  "defaultEnabled": false,
+  "navLinks": [],
+  "routes": [],
+  "aiToolNames": ["run_pipeline_watch"],
+  "report": {
+    "version": 1,
+    "sources": [
+      {
+        "name": "records",
+        "type": "report_opportunities",
+        "columns": ["id", "name", "stage", "updated_at", "next_action_at"]
+      }
+    ]
+  }
+}

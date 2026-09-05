@@ -151,7 +151,7 @@ for (const warning of boardIntegrity.warnings) console.warn(`warning: ${warning}
 // history shipped and called done. See scripts/verify-wiring.mjs.
 failures.push(...collectWiringFailures());
 
-if (!buildPlanIsInSync())
+if (!(await buildPlanIsInSync()))
   failures.push(
     "docs/NORTHSTAR-BUILD-PLAN.md is out of date. Run `npm run report:build-plan` and commit the result.",
   );

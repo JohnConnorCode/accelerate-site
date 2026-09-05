@@ -43,7 +43,9 @@ export function renameColumn(
 export class KanbanColumnHasCardsError extends Error {
   cardCount: number;
   constructor(cardCount: number) {
-    super(`This column has ${cardCount} card${cardCount === 1 ? "" : "s"}. Reassign them before deleting.`);
+    super(
+      `This column has ${cardCount} card${cardCount === 1 ? "" : "s"}. Reassign them before deleting.`,
+    );
     this.name = "KanbanColumnHasCardsError";
     this.cardCount = cardCount;
   }

@@ -106,7 +106,17 @@ export default function ConversationsPage() {
     if (followUpOnly) params.set("followUp", "1");
     if (search.trim()) params.set("search", search.trim());
     return params.toString();
-  }, [selectedId, statusFilter, channelFilter, recordFilter, campaignFilter, intentFilter, unreadOnly, followUpOnly, search]);
+  }, [
+    selectedId,
+    statusFilter,
+    channelFilter,
+    recordFilter,
+    campaignFilter,
+    intentFilter,
+    unreadOnly,
+    followUpOnly,
+    search,
+  ]);
 
   const conversationQuery = useAdminQuery<{
     schemaReady: boolean;

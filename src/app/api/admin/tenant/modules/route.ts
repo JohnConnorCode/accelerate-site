@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createPlatformServiceRoleClient } from "@/lib/supabase/server";
-import { recordAudit } from "@/lib/revenue-os/audit";
-import {
-  MODULE_MAP,
-  getActiveModules,
-  validateModuleSettingsInput,
-  type ModuleSettingsConfig,
-} from "@/lib/revenue-os/modules";
+import { createPlatformServiceRoleClient, bindTenantDatabase } from "@/lib/supabase/server";
+import { updateModuleConfiguration } from "@/lib/revenue-os/module-configuration";
+import { MODULE_MAP, getActiveModules, type ModuleSettingsConfig } from "@/lib/revenue-os/modules";
 
 /**
  * Toggles an optional module on or off, and reads/writes its per-module
@@ -62,102 +57,23 @@ export async function PATCH(request: NextRequest) {
   const moduleDef = MODULE_MAP.get(parsed.data.moduleId);
   if (!moduleDef) return NextResponse.json({ error: "Unknown module" }, { status: 404 });
 
-  const platform = createPlatformServiceRoleClient("tenant-module-toggle");
-  const { data: tenantRow, error: readError } = await platform
-    .from("tenants")
-    .select("config")
-    .eq("id", authorization.tenant.id)
-    .single();
-  if (readError || !tenantRow) {
-    return NextResponse.json({ error: "Workspace could not be read" }, { status: 500 });
-  }
-
-  const existingConfig =
-    tenantRow.config && typeof tenantRow.config === "object"
-      ? (tenantRow.config as Record<string, unknown>)
-      : {};
-  const existingModules =
-    existingConfig.modules && typeof existingConfig.modules === "object"
-      ? (existingConfig.modules as Record<string, boolean>)
-      : {};
-  const existingModuleSettings =
-    existingConfig.moduleSettings && typeof existingConfig.moduleSettings === "object"
-      ? (existingConfig.moduleSettings as ModuleSettingsConfig)
-      : {};
-
-  if ("enabled" in parsed.data) {
-    if (moduleDef.isCore) {
-      return NextResponse.json({ error: "Core modules cannot be disabled" }, { status: 400 });
-    }
-    const nextModules = { ...existingModules, [parsed.data.moduleId]: parsed.data.enabled };
-    const nextConfig = { ...existingConfig, modules: nextModules };
-
-    const { error: writeError } = await platform
-      .from("tenants")
-      .update({ config: nextConfig, updated_at: new Date().toISOString() })
-      .eq("id", authorization.tenant.id);
-    if (writeError) {
-      return NextResponse.json(
-        { error: "The module could not be updated. Try again." },
-        { status: 500 },
-      );
-    }
-
-    await recordAudit(authorization.database, {
-      actorEmail: authorization.user.email,
-      action: parsed.data.enabled ? "module.enabled" : "module.disabled",
-      entityType: "tenant_module",
-      entityId: parsed.data.moduleId,
-      before: { enabled: existingModules[parsed.data.moduleId] ?? moduleDef.defaultEnabled },
-      after: { enabled: parsed.data.enabled },
-    });
-
-    return NextResponse.json({
-      moduleId: parsed.data.moduleId,
-      enabled: parsed.data.enabled,
-      modules: getActiveModules({ modules: nextModules }).map((module) => module.id),
-    });
-  }
-
-  // Settings write. The client is never the authority on shape or range:
-  // every field is re-validated against what the module actually declared.
-  if (!moduleDef.settings?.length) {
+  try {
+    const database = bindTenantDatabase(
+      createPlatformServiceRoleClient("tenant-module-toggle"),
+      authorization.tenant.id,
+      true,
+    );
     return NextResponse.json(
-      { error: `${moduleDef.name} does not declare any settings.` },
-      { status: 400 },
+      await updateModuleConfiguration(
+        database,
+        parsed.data,
+        authorization.user.email || "workspace-member",
+      ),
+    );
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Module configuration could not be saved" },
+      { status: 409 },
     );
   }
-  const validated = validateModuleSettingsInput(parsed.data.moduleId, parsed.data.settings);
-  if (!validated.valid) {
-    return NextResponse.json({ error: validated.error }, { status: 400 });
-  }
-
-  const before = existingModuleSettings[parsed.data.moduleId] ?? {};
-  const nextModuleSettings = {
-    ...existingModuleSettings,
-    [parsed.data.moduleId]: { ...before, ...validated.value },
-  };
-  const nextConfig = { ...existingConfig, moduleSettings: nextModuleSettings };
-
-  const { error: writeError } = await platform
-    .from("tenants")
-    .update({ config: nextConfig, updated_at: new Date().toISOString() })
-    .eq("id", authorization.tenant.id);
-  if (writeError) {
-    return NextResponse.json({ error: "Settings could not be saved. Try again." }, { status: 500 });
-  }
-
-  await recordAudit(authorization.database, {
-    actorEmail: authorization.user.email,
-    action: "module.settings_updated",
-    entityType: "tenant_module",
-    entityId: parsed.data.moduleId,
-    before,
-    after: nextModuleSettings[parsed.data.moduleId],
-  });
-
-  return NextResponse.json({
-    moduleId: parsed.data.moduleId,
-    settings: nextModuleSettings[parsed.data.moduleId],
-  });
 }

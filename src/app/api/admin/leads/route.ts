@@ -220,8 +220,7 @@ export async function PATCH(request: NextRequest) {
             actorEmail: auth.user.email || "founder",
             source: "admin_leads",
             reason: "Updated from Leads compatibility workspace",
-            lossReason:
-              target === "lost" ? "Closed from Leads compatibility workspace" : undefined,
+            lossReason: target === "lost" ? "Closed from Leads compatibility workspace" : undefined,
           });
         } catch (transitionError) {
           return NextResponse.json(

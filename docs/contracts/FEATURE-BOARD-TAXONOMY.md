@@ -3,25 +3,25 @@
 The Feature Board is an execution queue, not a tag cloud. Managed cards use four
 label dimensions only:
 
-| Dimension      | Purpose                            | Values                                                                                                                       |
-| -------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `milestone:*`  | When the work belongs              | `now`, `next`, `later`, `done`                                                                                               |
+| Dimension      | Purpose                            | Values                                                                                                                                  |
+| -------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `milestone:*`  | When the work belongs              | `now`, `next`, `later`, `done`                                                                                                          |
 | `category:*`   | Which durable product area owns it | `platform`, `operator`, `integrations`, `engagement`, `intelligence`, `governance`, `quality`, `productization`, `marketing`, `runtime` |
-| `phase:*`      | Architecture maturity sequence     | `0` through `6`                                                                                                              |
-| `capability:*` | Reusable domain filter             | Controlled in `scripts/feature-backlog-data.mjs`; at most two per card                                                       |
+| `phase:*`      | Architecture maturity sequence     | `0` through `6`                                                                                                                         |
+| `capability:*` | Reusable domain filter             | Controlled in `scripts/feature-backlog-data.mjs`; at most two per card                                                                  |
 
 ## Northstar alignment
 
 The platform vision (`docs/NORTHSTAR.md`) defines five product layers and five
 implementation phases. Existing board phases map to northstar phases:
 
-| Board phase | Northstar phase | Description                                      |
-| ----------- | --------------- | ------------------------------------------------ |
-| 0–1         | A               | Complete Loop One — See + Remember foundations   |
+| Board phase | Northstar phase | Description                                        |
+| ----------- | --------------- | -------------------------------------------------- |
+| 0–1         | A               | Complete Loop One — See + Remember foundations     |
 | 2–3         | B               | Agent Runtime foundation — Notice + Act primitives |
-| 4           | C               | Reference coworker — Sales end-to-end loop       |
-| 5           | D               | Plugin SDK + MCP                                 |
-| 6           | E               | Additional coworkers/plugins + documentation     |
+| 4           | C               | Reference coworker — Sales end-to-end loop         |
+| 5           | D               | Plugin SDK + MCP                                   |
+| 6           | E               | Additional coworkers/plugins + documentation       |
 
 The five product layers (See → Remember → Notice → Act → Learn) cut across
 implementation phases. Every card's notes include its northstar phase reference.

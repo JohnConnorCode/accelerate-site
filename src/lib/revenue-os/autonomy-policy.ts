@@ -7,11 +7,7 @@ import { recordAudit } from "./audit";
 // ---------------------------------------------------------------------------
 
 export type AutonomyLevel =
-  | "prohibited"
-  | "always_ask"
-  | "ask_until_trusted"
-  | "standing_permission"
-  | "autonomous";
+  "prohibited" | "always_ask" | "ask_until_trusted" | "standing_permission" | "autonomous";
 
 export interface AutonomyPolicy {
   id: string;
@@ -52,7 +48,53 @@ export interface HardFloor {
 // Check autonomy: is an action allowed, and does it need approval?
 // ---------------------------------------------------------------------------
 
+// Capability-wide restrictions apply alongside a narrow action policy.
+const ACTION_CAPABILITIES: Record<string, string> = {
+  send_email: "email.send",
+  send_gmail_reply: "email.send",
+  activate_campaign: "email.send",
+  transition_opportunity: "crm.write",
+  update_next_action: "crm.write",
+  create_task: "tasks.create",
+  update_task: "tasks.write",
+  create_founder_note: "crm.write",
+};
+const HARD_FLOOR_KEYS = new Set([
+  "account.delete",
+  "credential.change",
+  "financial_history.delete",
+  "customer_database.export",
+  "refund.high_value",
+  "financial_transfer.major",
+]);
+
 export async function checkAutonomy(
+  supabase: SupabaseClient,
+  actionKey: string,
+  coworkerId?: string | null,
+): Promise<AutonomyCheckResult> {
+  if (HARD_FLOOR_KEYS.has(actionKey))
+    return {
+      actionKey,
+      allowed: false,
+      level: "prohibited",
+      requiresApproval: true,
+      policyId: null,
+      hardFloor: true,
+      reason: "Action is a hard safety floor",
+    };
+  const keys = [...new Set([actionKey, ACTION_CAPABILITIES[actionKey]].filter(Boolean))];
+  const results = await Promise.all(keys.map((key) => resolveAutonomy(supabase, key!, coworkerId)));
+  const configured = results.filter((result) => result.policyId || result.hardFloor);
+  const selected =
+    configured.find((result) => result.hardFloor || result.level === "prohibited") ??
+    configured.find((result) => result.requiresApproval) ??
+    configured[0] ??
+    results[0]!;
+  return { ...selected, actionKey };
+}
+
+async function resolveAutonomy(
   supabase: SupabaseClient,
   actionKey: string,
   coworkerId?: string | null,
@@ -119,9 +161,7 @@ export async function listAutonomyPolicies(
 // List hard floors
 // ---------------------------------------------------------------------------
 
-export async function listHardFloors(
-  supabase: SupabaseClient,
-): Promise<HardFloor[]> {
+export async function listHardFloors(supabase: SupabaseClient): Promise<HardFloor[]> {
   const { data, error } = await supabase
     .from("autonomy_hard_floors")
     .select("*")

@@ -127,7 +127,9 @@ assert.deepEqual(live.failures, [], live.failures.join("\n"));
 // defect — surfaced, never asserted empty, since a concurrent agent can put
 // this board into that state at any moment for reasons this test can't see.
 if (live.warnings.length) {
-  console.warn(`warning: ${live.warnings.length} active-dependency violation(s) on the live board:`);
+  console.warn(
+    `warning: ${live.warnings.length} active-dependency violation(s) on the live board:`,
+  );
   for (const warning of live.warnings) console.warn(`  - ${warning}`);
 }
 assert.ok(NOW_KEYS.every((key: string) => LOOP_ONE.includes(key)));
