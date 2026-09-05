@@ -23,6 +23,7 @@ import {
   Target,
   UserPlus,
   UserRound,
+  Wallet,
   UsersRound,
   type LucideIcon,
 } from "lucide-react";
@@ -61,6 +62,7 @@ export const EXTENSION_NAV_ICONS: Record<string, LucideIcon> = {
   Target,
   UserPlus,
   UserRound,
+  Wallet,
   UsersRound,
 };
 

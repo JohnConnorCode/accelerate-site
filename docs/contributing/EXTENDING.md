@@ -449,3 +449,31 @@ revocation. Run `npm run qa:demo-business-workflows` against a local app (overri
 `PLAYWRIGHT_BASE_URL` when needed) for the actual shared UI, desktop/mobile
 journeys, scenario persistence/reset and appearances. The browser harness refuses
 and reports any protected API or external request that escapes the demo transport.
+
+## Collections: a complete native workspace reference
+
+`extensions/receivables-collections.module.json` declares a default-off business
+workspace. The Plugins page lists manifest extensions with workspaces as well
+as isolated workflows/reports, and uses the same module toggle service. It does
+not claim that native server modules can be downloaded and installed as isolated
+third-party code; the generalized plugin SDK and installer remain backlog work.
+
+Enable Stripe invoicing and Collections, configure the workspace's Stripe and
+Resend connections, then open `/admin/collections`. Track an executed platform
+invoice to load verified balances. Assign an owner, record a promise/dispute/pause,
+preview a branded reminder, queue it and approve through the shared action queue.
+The host rechecks current facts before sending. Test invoices are visibly labeled
+in the reminder subject/content. Receipt-only reconciliation never sends again.
+
+The same `CollectionsWorkspace` component runs in all five full admin demos.
+`collections-runtime.ts` is an adapter within the shared fictional demo engine,
+not a copied page or a provider connection. Case policy validation, summary
+calculations and the email renderer are shared with the live host. Source invoices,
+actions, receipts and case WorkItems remain linked in the same scenario state.
+
+Read `plugins/receivables-collections/README.md` for operational limits and
+`scripts/test-receivables-workspace-demo.ts` / `scripts/qa-collections-workspace.mjs`
+for repeatable host, demo and browser verification. The authenticated host bridge
+in `src/lib/supabase/server.ts` permits only four named Collections RPCs after
+matching the request actor/database and rechecking active membership. It returns
+a receipt, never a service-role database handle; actor reads remain RLS-scoped.

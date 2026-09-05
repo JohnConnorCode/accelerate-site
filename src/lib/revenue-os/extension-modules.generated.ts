@@ -302,9 +302,9 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     category: "revenue",
     isCore: false,
     defaultEnabled: false,
-    navLinkIds: [],
+    navLinkIds: ["receivables-collections"],
     aiToolNames: [],
-    routes: [],
+    routes: ["/admin/collections"],
     setupChecks: [],
     settings: [
       {
@@ -436,6 +436,15 @@ export const EXTENSION_NAV_LINKS: readonly ExtensionNavLink[] = [
     description:
       "Turn reviewed meeting commitments into assigned follow-ups linked to the meeting.",
     moreGroup: "Delivery",
+  },
+  {
+    moduleId: "receivables-collections",
+    id: "receivables-collections",
+    label: "Collections",
+    href: "/admin/collections",
+    icon: "Wallet",
+    description: "Resolve overdue balances and review reminders",
+    moreGroup: "Revenue",
   },
   {
     moduleId: "stripe-invoicing",

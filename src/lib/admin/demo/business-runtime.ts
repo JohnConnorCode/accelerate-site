@@ -1,3 +1,5 @@
+import { handleDemoCollections } from "./collections-runtime";
+import type { CollectionCaseView } from "@/lib/revenue-os/collection-contract";
 import { workflowTaskSchema as taskSchema } from "@/lib/revenue-os/workflow-task-contract";
 import { z } from "zod";
 import type { DemoScenarioPack } from "./scenarios";
@@ -13,9 +15,10 @@ import {
 } from "@/lib/revenue-os/stripe-contract";
 import { invoiceDesignSchema, defaultInvoiceDesign } from "@/lib/revenue-os/invoice-page-contract";
 import type { InvoiceDocumentData, InvoiceDesign } from "@/components/business/InvoiceDocument";
-import { REVENUE_OS_MODULES } from "@/lib/revenue-os/modules";
+import { REVENUE_OS_MODULES, type ModuleSettingsConfig } from "@/lib/revenue-os/modules";
 
 export const DEMO_BUSINESS_MODULES = {
+  "receivables-collections": true,
   "stripe-invoicing": true,
   "client-onboarding": true,
   "meeting-commitments": true,
@@ -55,6 +58,7 @@ type Page = {
   design: InvoiceDesign;
 };
 export type DemoBusinessState = {
+  collections?: CollectionCaseView[];
   version: 1;
   brand: WorkspaceBrand;
   brandRevision: number;
@@ -214,7 +218,19 @@ export async function handleDemoBusinessRequest(
   method: string,
   body: Record<string, unknown>,
   save: () => void,
+  moduleSettings: ModuleSettingsConfig = {},
 ): Promise<Response | null> {
+  const collectionResponse = await handleDemoCollections(
+    pack,
+    state,
+    modules,
+    url,
+    method,
+    body,
+    save,
+    moduleSettings,
+  );
+  if (collectionResponse) return collectionResponse;
   const path = url.pathname;
   const enabled = (id: string) => modules[id] ?? false;
   const requireEnabled = (id: string) => {

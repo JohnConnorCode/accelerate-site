@@ -156,6 +156,8 @@ async function main() {
     assert.equal(preview.amountRemaining, balance);
     assert.equal(preview.to, "billing@example.test");
     assert.match(preview.html, /Example &amp; Sons/);
+    assert.match(preview.subject, /^\[Test\]/);
+    assert.equal(preview.testMode, true);
     writeFileSync("/tmp/collections-reminder-preview.html", preview.html);
     const action = await proposeCollectionReminder(
       db,

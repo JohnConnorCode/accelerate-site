@@ -55,6 +55,7 @@ const ALLOWED_ICONS = [
   "Target",
   "UserPlus",
   "UserRound",
+  "Wallet",
   "UsersRound",
 ];
 

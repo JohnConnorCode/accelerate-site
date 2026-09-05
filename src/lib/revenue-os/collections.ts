@@ -2,21 +2,12 @@ import "server-only";
 import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { tenantIdForDatabase } from "@/lib/supabase/server";
+import { callCollectionHostRpc, tenantIdForDatabase } from "@/lib/supabase/server";
 import { isModuleEnabled } from "./modules";
 import { readStripeInvoiceForAction } from "./stripe-invoicing";
 
-export const collectionCasePatchSchema = z
-  .object({
-    disputed: z.boolean().optional(),
-    paused: z.boolean().optional(),
-    pauseUntil: z.iso.date().nullable().optional(),
-    promiseDate: z.iso.date().nullable().optional(),
-    ownerEmail: z.email().max(254).nullable().optional(),
-    nextAction: z.string().trim().min(1).max(500).optional(),
-  })
-  .strict()
-  .refine((value) => Object.keys(value).length > 0, "A case change is required");
+import { collectionCasePatchSchema } from "./collection-contract";
+export { collectionCasePatchSchema } from "./collection-contract";
 const observationSchema = z
   .object({
     creationActionId: z.uuid(),
@@ -39,7 +30,7 @@ const observationSchema = z
     "Paid invoice has an inconsistent balance",
   );
 export type CollectionObservation = z.infer<typeof observationSchema>;
-async function requireCollections(db: SupabaseClient) {
+export async function requireCollections(db: SupabaseClient) {
   const tenantId = tenantIdForDatabase(db);
   if (!tenantId) throw new Error("Collections requires a tenant-bound host");
   const { data, error } = await db
@@ -129,7 +120,7 @@ export async function syncCollectionCases(
     ),
   );
   await requireCollections(db);
-  const { data, error } = await db.rpc("sync_collection_observations", {
+  const { data, error } = await callCollectionHostRpc(db, "sync_collection_observations", {
     p_request: requestId,
     p_observations: observations,
     p_actor: actorEmail,
@@ -154,7 +145,7 @@ export async function updateCollectionCase(
   z.email().parse(actorEmail);
   const patch = collectionCasePatchSchema.parse(rawPatch);
   await requireCollections(db);
-  const { data, error } = await db.rpc("update_collection_case", {
+  const { data, error } = await callCollectionHostRpc(db, "update_collection_case", {
     p_case: caseId,
     p_revision: revision,
     p_request: requestId,

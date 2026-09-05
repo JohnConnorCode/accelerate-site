@@ -2,22 +2,18 @@ import "server-only";
 import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { tenantIdForDatabase } from "@/lib/supabase/server";
+import { callCollectionHostRpc, tenantIdForDatabase } from "@/lib/supabase/server";
 import { getTenantFromEmail, getTenantReplyToEmail } from "@/lib/email/resend";
 import { evaluateCollectionsSnapshot } from "../../../plugins/receivables-collections/evaluate";
 import { projectCollectionObservation } from "./collections";
 import { readStripeInvoiceForAction } from "./stripe-invoicing";
+import { renderCollectionReminder } from "./collection-reminder-template";
 import { readWorkspaceBrand } from "./branding";
 import { getModuleSettings, isModuleEnabled } from "./modules";
 import { proposeAction, checkpointActionResult } from "./actions";
 import { sendRecordedEmail } from "./communications";
 
 const hash = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
-const escape = (value: string) =>
-  value.replace(
-    /[&<>"']/g,
-    (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]!,
-  );
 const digestSchema = z.string().regex(/^[a-f0-9]{64}$/);
 const payloadSchema = z
   .object({
@@ -162,14 +158,13 @@ export async function previewCollectionReminder(db: SupabaseClient, caseId: stri
     .sort((a, b) => a.invoiceId.localeCompare(b.invoiceId));
   const { brand, revision: brandRevision } = await readWorkspaceBrand(db);
   const [from, replyTo] = await Promise.all([getTenantFromEmail(db), getTenantReplyToEmail(db)]);
-  const money = (minor: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: item.currency }).format(
-      minor / 100,
-    );
-  const subject = `Payment reminder from ${brand.name}`;
-  const intro = `Our records show ${money(group.amountRemaining)} outstanding across ${invoices.length} overdue invoice${invoices.length === 1 ? "" : "s"}. Please review the invoices below. If you have a question or need to discuss payment, reply to this email.`;
-  const text = `${brand.name}\n\n${intro}\n\n${invoices.map((i) => `${i.invoiceId} · Due ${i.dueDate} · ${money(i.remaining)}\n${i.url}`).join("\n\n")}\n\nThank you,\n${brand.legalName || brand.name}\n${brand.businessAddress}`;
-  const html = `<html><body style="margin:0;padding:32px 16px;background:${brand.backgroundColor};color:${brand.inkColor};font-family:${brand.font === "serif" ? "Georgia,serif" : "Arial,sans-serif"}"><main style="max-width:600px;margin:auto;padding:32px;background:#fff;border-top:4px solid ${brand.accentColor}">${brand.logoUrl ? `<img src="${escape(brand.logoUrl)}" alt="${escape(brand.name)}" width="120" style="max-height:64px;object-fit:contain"/>` : `<strong>${escape(brand.name)}</strong>`}<h1 style="font-size:26px">Payment reminder</h1><p style="line-height:1.6">${escape(intro)}</p><table style="width:100%;border-collapse:collapse"><caption style="text-align:left;padding:12px 0;font-weight:bold">Outstanding invoices (${escape(item.currency.toUpperCase())})</caption><thead><tr><th scope="col" align="left">Invoice / due date</th><th scope="col" align="right">Remaining</th></tr></thead><tbody>${invoices.map((i) => `<tr><td style="padding:16px 0;border-top:1px solid #ddd"><a href="${escape(i.url)}" style="color:${brand.inkColor}">${escape(i.invoiceId)}</a><br/><small>Due ${i.dueDate}</small></td><td align="right" style="border-top:1px solid #ddd">${escape(money(i.remaining))}</td></tr>`).join("")}</tbody></table><p style="font-size:22px"><strong>Total ${escape(money(group.amountRemaining))}</strong></p><p style="line-height:1.6">Thank you,<br/>${escape(brand.legalName || brand.name)}<br/>${escape(brand.businessAddress)}</p></main></body></html>`;
+  const testMode = verified[0]!.receipt.testMode;
+  const { subject, text, html } = renderCollectionReminder(
+    brand,
+    item.currency,
+    invoices,
+    testMode,
+  );
   const preview = {
     tenantId,
     caseId,
@@ -186,6 +181,7 @@ export async function previewCollectionReminder(db: SupabaseClient, caseId: stri
     amountRemaining: group.amountRemaining,
     cooldownHours,
     brandRevision,
+    testMode,
     decisionSourceHash: decision.receipt.sourceHash,
   };
   return { ...preview, digest: hash(preview) };
@@ -254,7 +250,9 @@ export async function executeCollectionReminder(
     .maybeSingle();
   if (priorError) throw new Error("Reminder dispatch history is unavailable");
   if (prior) {
-    const receipt = await db.rpc("reconcile_collection_reminder", { p_action: actionId });
+    const receipt = await callCollectionHostRpc(db, "reconcile_collection_reminder", {
+      p_action: actionId,
+    });
     if (receipt.error || receipt.data?.state !== "sent")
       throw new Error(
         "Reminder acceptance is uncertain; reconcile the existing message before any further send",
@@ -274,7 +272,9 @@ export async function executeCollectionReminder(
     });
     throw new Error("Reminder skipped. Refresh the case and review a new preview.");
   }
-  const reservation = await db.rpc("reserve_collection_reminder", { p_action: actionId });
+  const reservation = await callCollectionHostRpc(db, "reserve_collection_reminder", {
+    p_action: actionId,
+  });
   if (
     reservation.error ||
     reservation.data?.state !== "dispatching" ||
@@ -306,7 +306,9 @@ export async function executeCollectionReminder(
     // Reconciliation can recover provider acceptance even if a later audit write failed.
     console.warn("[collections] Reminder dispatch requires receipt reconciliation");
   }
-  const receipt = await db.rpc("reconcile_collection_reminder", { p_action: actionId });
+  const receipt = await callCollectionHostRpc(db, "reconcile_collection_reminder", {
+    p_action: actionId,
+  });
   if (receipt.error || receipt.data?.state !== "sent") {
     await checkpointActionResult(db, actionId, {
       status: "uncertain",
@@ -333,7 +335,9 @@ export async function reconcileCollectionReminder(db: SupabaseClient, actionId: 
     .maybeSingle();
   if (error || action?.action_type !== "send_collection_reminder")
     throw new Error("Reminder action is unavailable");
-  const receipt = await db.rpc("reconcile_collection_reminder", { p_action: actionId });
+  const receipt = await callCollectionHostRpc(db, "reconcile_collection_reminder", {
+    p_action: actionId,
+  });
   if (receipt.error) throw new Error("Reminder receipt could not be reconciled");
   return receipt.data;
 }

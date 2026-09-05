@@ -147,3 +147,9 @@ must be enabled. Disabling retains evidence and denies further writes.
 approved dispatch through `action-executor.ts` and `communications.ts`. The
 reminder RPCs reserve one dispatch per case and reconcile only canonical message
 receipts. Uncertainty blocks additional sending; confirmed send time owns cooldown.
+
+`collection-workspace.ts` joins bounded case, current-observation, contact,
+WorkItem, event and reminder receipt reads. `collection-contract.ts` and
+`collection-reminder-template.ts` are pure shared admin/demo contracts.
+`callCollectionHostRpc` in the Supabase server boundary bridges only named,
+verified Collections writes from a current authorized actor; SQL remains host-only.

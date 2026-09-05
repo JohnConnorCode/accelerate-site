@@ -645,7 +645,14 @@ function conversations(pack: DemoScenarioPack, state: DemoState, url: URL) {
     pack.conversations.find((item) => item.id === selected) || pack.conversations[0];
   const activeRow = activePack ? rows.find((row) => row.id === activePack.id) || null : null;
   if (!activePack || !activeRow) {
-    return { schemaReady: true, conversations: filtered, stats, intents: [], detail: null, messages: [] };
+    return {
+      schemaReady: true,
+      conversations: filtered,
+      stats,
+      intents: [],
+      detail: null,
+      messages: [],
+    };
   }
   const contact = person(pack, activePack.personId);
   const messages = [
@@ -2075,6 +2082,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         saveState(scenarioId, state);
         window.dispatchEvent(new Event("admin:demo-state"));
       },
+      state.moduleSettings,
     );
     if (businessResponse) return businessResponse;
     const emailTemplateIds = [
@@ -2824,9 +2832,8 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
                   ? String(body.assigneeEmail)
                   : null;
           }
-          if (body.opportunityId !== undefined) current.opportunityId = body.opportunityId
-            ? String(body.opportunityId)
-            : null;
+          if (body.opportunityId !== undefined)
+            current.opportunityId = body.opportunityId ? String(body.opportunityId) : null;
           state.conversationOverrides[id] = current;
         }
       }

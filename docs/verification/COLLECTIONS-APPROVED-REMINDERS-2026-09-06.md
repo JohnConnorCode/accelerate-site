@@ -30,7 +30,7 @@ plugin or shared workspace/demo card.
   acquire exactly one case reservation. Duplicate operation replay cannot send.
   Provider timeout retains an uncertain dispatch and blocks further reminders.
   Re-review recovers only an existing canonical confirmed message receipt, without
-  a second provider request. Receipt-only PATCH can reconcile after expiry or
+  a second provider request. The core action API’s receipt-only reconciliation can run after expiry or
   disable; it does not turn a failed action into a fictional successful execution.
   Cooldown uses confirmed send time, never preview/proposal time.
 - AC06: host fixtures execute normal accepted send, duplicate approval refusal,

@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { requireAdmin } from "@/lib/admin/auth";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { readBoundedJson } from "@/lib/http/bounded-json";
 import {
-  reconcileCollectionReminder,
   previewCollectionReminder,
   proposeCollectionReminder,
 } from "@/lib/revenue-os/collection-reminders";
@@ -41,26 +39,6 @@ export async function POST(request: Request) {
         error:
           "Reminder unavailable or changed. Refresh the case; check holds, payment, recipient and integration settings.",
       },
-      409,
-    );
-  }
-}
-
-// A disabled plugin may still have an email accepted by the provider. Record
-// that fact through tenant authorization without granting any send authority.
-export async function PATCH(request: Request) {
-  const auth = await requireAdmin();
-  if (auth instanceof NextResponse) return auth;
-  try {
-    const input = z
-      .object({ actionId: z.uuid() })
-      .strict()
-      .parse(await readBoundedJson(request));
-    return response({ receipt: await reconcileCollectionReminder(auth.database, input.actionId) });
-  } catch {
-    console.warn("[collections] Reminder receipt reconciliation unavailable");
-    return response(
-      { error: "Receipt unavailable. No email was sent by this recovery request." },
       409,
     );
   }

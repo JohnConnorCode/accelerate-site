@@ -1,11 +1,11 @@
-# Collections Action Desk — decision engine
+# Collections Action Desk
 
-**Status: default-off reference module with a durable case host and approved-reminder API.**
+**Status: default-off native business workspace with durable cases, approved reminders and five shared demos.**
 The live Feature Board parent is `receivables-collections-plugin`. The decision
 engine runs in the existing QuickJS isolate; the host loads authorized Stripe
-facts, persists cases and schedules WorkItems. `receivables-workspace-demo` still
-owns the complete shared operator/demo journey; this module is not yet a finished
-self-service plugin installation experience.
+facts, persists cases and schedules WorkItems. The operator workspace and demo
+use the same admin route and components. Generalized SDK installation and
+third-party conformance remain separate backlog work.
 
 ## Business outcome
 
@@ -149,7 +149,35 @@ COLLECTIONS_POSTGRES_PROOF=1 COLLECTIONS_REMINDER_POSTGRES_PROOF=1 npm run test:
 These checks use controlled provider fixtures and disposable native PostgreSQL.
 They do not send real customer mail or constitute hosted provider acceptance.
 
-`PATCH /api/admin/collections/reminders` with `{actionId}` reconciles a known
+`PATCH /api/admin/revenue-os/actions` with `{id, decision: "reconcile"}` reconciles a known
 dispatch receipt without sending, including after approval expiry or module
 disable. Normal tenant authorization still applies. A failed action can remain
 failed while this separate receipt correctly reports a late provider acceptance.
+
+## Operator workspace and shared demo
+
+Open `/admin/collections` after enabling Collections and Stripe invoicing. The
+workspace shows last-observed balances per currency, invoice provenance and
+freshness, ownership, promises/holds, reviewed content and execution receipts.
+Today and customer records link to the same case WorkItems. Financial facts are
+refreshed explicitly; opening a page does not contact a provider. Verified paid
+invoice counts do not claim that the reminder caused the payment.
+
+All five full admin demo packs use this exact workspace with session-owned
+fictional cases and the shared reminder renderer. A controlled payment-before-
+approval simulation proves that a stale queued reminder is skipped. Reset restores
+the original scenario. Disabling preserves history; re-enabling restores access.
+Native workspace extensions are discoverable and toggleable from Plugins.
+
+```sh
+npm run test:collections-workspace
+npm run dev -- --port 3036
+# Separate terminal, against that local server:
+npm run qa:collections-workspace
+```
+
+The integration added a narrowly scoped authenticated-host RPC bridge: after
+current membership/lifecycle checks, only the four host-owned Collections RPCs
+may use tenant-scoped service authority. SQL remains host-only, so an authenticated
+browser cannot inject provider observations. Test invoices are labeled in both
+subject and content. Actual email dispatch still requires explicit human approval.

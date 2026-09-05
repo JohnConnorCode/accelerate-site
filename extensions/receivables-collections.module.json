@@ -5,8 +5,19 @@
   "description": "Track verified overdue invoices, disputes, payment promises and collection follow-up for CRM billing contacts.",
   "category": "revenue",
   "defaultEnabled": false,
-  "navLinks": [],
-  "routes": [],
+  "navLinks": [
+    {
+      "id": "receivables-collections",
+      "label": "Collections",
+      "href": "/admin/collections",
+      "icon": "Wallet",
+      "description": "Resolve overdue balances and review reminders",
+      "moreGroup": "Revenue"
+    }
+  ],
+  "routes": [
+    "/admin/collections"
+  ],
   "settings": [
     {
       "key": "cooldownHours",
