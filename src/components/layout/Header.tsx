@@ -86,6 +86,9 @@ export function Header() {
     <>
       <motion.header
         ref={headerRef}
+        onClick={(event) => {
+          if ((event.target as Element).closest("a")) setOpenDropdown(null);
+        }}
         variants={headerEntrance}
         initial={false}
         animate="visible"
@@ -111,13 +114,7 @@ export function Header() {
           </motion.div>
 
           {/* Desktop Nav */}
-          <nav
-            aria-label="Primary"
-            className="hidden xl:flex items-center gap-5"
-            onClick={(event) => {
-              if ((event.target as Element).closest("a")) setOpenDropdown(null);
-            }}
-          >
+          <nav aria-label="Primary" className="hidden xl:flex items-center gap-5">
             {navLinks.map((link) =>
               link.children ? (
                 <motion.div

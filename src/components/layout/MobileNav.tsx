@@ -113,7 +113,10 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                     className={`group flex w-full items-center justify-between py-3.5 cursor-pointer ${focusRing}`}
                   >
                     <span className="flex items-baseline gap-4">
-                      <span className="font-mono text-[10px] tabular-nums tracking-[0.14em] text-[var(--soft)]">
+                      <span
+                        aria-hidden="true"
+                        className="font-mono text-[10px] tabular-nums tracking-[0.14em] text-[var(--soft)]"
+                      >
                         {String(currentIndex + 1).padStart(2, "0")}
                       </span>
                       <span className="font-display text-[1.7rem] font-medium leading-none tracking-[-0.03em] text-[var(--fg)]">
@@ -164,7 +167,10 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
                     onClick={onClose}
                     className={`group flex items-baseline gap-4 py-3.5 ${focusRing}`}
                   >
-                    <span className="font-mono text-[10px] tabular-nums tracking-[0.14em] text-[var(--soft)]">
+                    <span
+                      aria-hidden="true"
+                      className="font-mono text-[10px] tabular-nums tracking-[0.14em] text-[var(--soft)]"
+                    >
                       {String(currentIndex + 1).padStart(2, "0")}
                     </span>
                     <span className="font-display text-[1.7rem] font-medium leading-none tracking-[-0.03em] text-[var(--fg)]">
