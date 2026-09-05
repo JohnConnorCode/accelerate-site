@@ -239,7 +239,7 @@ export const whatsAppAdapter: IntegrationAdapter & {
       accountIdentifier: result.accountDetails?.name || result.accountDetails?.id,
     };
   },
-  async reconcile(_supabase, _credentials, _cursor) {
+  async reconcile() {
     return {
       status: "success",
       provider: "whatsapp",
@@ -526,7 +526,7 @@ export const hubSpotAdapter: IntegrationAdapter & {
       accountIdentifier: result.accountDetails?.id,
     };
   },
-  async reconcile(_supabase, _credentials, _cursor) {
+  async reconcile() {
     return {
       status: "success",
       provider: "hubspot",

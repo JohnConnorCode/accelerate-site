@@ -220,7 +220,10 @@
     "test:work-board": "npx tsx --env-file=.env.local scripts/test-work-board.ts",
     "agent:progress": "npx tsx scripts/agent-dispatch.ts progress",
     "agent:block": "npx tsx scripts/agent-dispatch.ts block",
-    "test:public-work-intake": "npx tsx scripts/test-public-work-intake.ts"
+    "test:public-work-intake": "npx tsx scripts/test-public-work-intake.ts",
+    "test:public-roadmap": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-public-roadmap-availability.ts",
+    "verify:migrations": "node scripts/run-all-migrations.mjs --check",
+    "test:migration-ledger": "node scripts/test-migration-ledger-postgres.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

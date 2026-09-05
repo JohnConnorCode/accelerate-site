@@ -96,5 +96,11 @@ jobs:
           echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
           PATH="$(pg_config --bindir):$PATH" npm run test:runtime-postgres
 
+      - name: Verify installation migrations
+        run: |
+          npm run verify:migrations
+          npm run test:public-roadmap
+          PATH="$(pg_config --bindir):$PATH" npm run test:migration-ledger
+
       - name: Build
         run: npm run build
