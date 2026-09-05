@@ -177,9 +177,7 @@ export function Header() {
                           aria-label={`${link.label} submenu`}
                           className="rounded-xl py-2 min-w-[220px] border border-[var(--border-light)]"
                           style={{
-                            backgroundColor: "var(--dropdown-bg)",
-                            backdropFilter: "blur(24px) saturate(180%)",
-                            WebkitBackdropFilter: "blur(24px) saturate(180%)",
+                            backgroundColor: "var(--bg)",
                           }}
                         >
                           {link.children.map((child) => (

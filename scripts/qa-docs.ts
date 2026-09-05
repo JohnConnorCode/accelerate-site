@@ -156,6 +156,11 @@ async function main() {
           assert.equal(await product.evaluate((el) => el === document.activeElement), true);
           await product.click();
           await submenu.waitFor({ state: "visible" });
+          await page.waitForFunction(
+            (element) =>
+              element?.parentElement && getComputedStyle(element.parentElement).opacity === "1",
+            await submenu.elementHandle(),
+          );
           await page.screenshot({ path: `${output}/${width}-public-submenu.png` });
           await page.locator("main h1").click();
           assert.equal(await product.getAttribute("aria-expanded"), "false");
@@ -174,6 +179,16 @@ async function main() {
           const product = mobile.getByRole("button", { name: "Command Center", exact: true });
           await product.click();
           await mobile.getByRole("link", { name: "Try the demo", exact: true }).waitFor();
+          await page.waitForFunction(() => {
+            const overlay = document.querySelector(".mobile-nav-overlay");
+            const children = document.querySelector("#mobile-command-center");
+            return (
+              overlay &&
+              children &&
+              getComputedStyle(overlay).opacity === "1" &&
+              getComputedStyle(children).opacity === "1"
+            );
+          });
           await page.screenshot({ path: `${output}/${width}-public-submenu.png` });
           await product.click();
           assert.equal(await page.locator("#mobile-command-center").getAttribute("inert"), "");
