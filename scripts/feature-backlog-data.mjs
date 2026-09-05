@@ -2238,7 +2238,7 @@ export const featureBacklog = [
   card({
     key: "universal-work-board",
     owner: "codex-work-board",
-    status: "in_progress",
+    status: "in_review",
     title: "Make the Feature Board an authoritative human and agent work system",
     workstream: "platform",
     phase: 5,
