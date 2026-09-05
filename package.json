@@ -201,7 +201,8 @@
     "test:report-plugins-browser": "node --env-file=.env.local scripts/qa-report-plugins.mjs",
     "test:stripe-workflow": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-stripe-workflow.ts",
     "test:business-workflows": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-workflow-business-outcomes.ts",
-    "test:plugin-workflow-postgres": "node scripts/test-plugin-workflow-postgres.mjs"
+    "test:plugin-workflow-postgres": "node scripts/test-plugin-workflow-postgres.mjs",
+    "test:stripe-sandbox": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-stripe-sandbox.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

@@ -397,9 +397,29 @@ refuses external fetches and serves only the declared Stripe read fixture. Run
 `node scripts/qa-business-workflows.mjs` for desktop/mobile journeys. Never load
 these test adapters in a production process.
 
-These are controlled transport and database proofs, not real Stripe sandbox
-acceptance. Before connecting a real account, run the same draft/send/payment
-journey using restricted test credentials and verify the actual account receipt.
+These fixture tests are complemented by the opt-in real-provider check:
+
+```sh
+STRIPE_SANDBOX_ACCOUNT=acct_your_test_account npm run test:stripe-sandbox
+```
+
+Authenticate the Stripe CLI first, or supply `STRIPE_TEST_API_KEY` through your
+local secret manager. Never paste keys into source or command history. The check
+requires the exact expected account ID and refuses live keys. It runs real
+QuickJS and the shared domain/approval executor with isolated in-memory application
+records and real Stripe transport; it never connects to the application database.
+It creates a fictional customer and a USD 5.00 test invoice, deliberately loses a
+successful line-write response, verifies an idempotent retry leaves one invoice
+and one line, checks disabled/duplicate approvals, finalizes and requests a
+test-mode send, and verifies branded publication/revocation using actual Stripe
+facts. It voids its open test invoice and retains provider audit history; a failed
+draft is reported for inspection. A successful run writes provider request IDs to
+`accelerate-stripe-sandbox-evidence.json` in the OS temporary directory.
+
+Real Stripe verification passed on 2026-09-05. This proves provider integration,
+not deployed application database behavior or a completed payment. Database and
+browser checks above remain separate required coverage; production activation
+and payment-method acceptance remain release-specific verification.
 Stripe's authoritative semantics: [invoice creation](https://docs.stripe.com/api/invoices/create),
 [sending](https://docs.stripe.com/api/invoices/send), and
 [idempotent requests](https://docs.stripe.com/api/idempotent_requests).

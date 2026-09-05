@@ -19,11 +19,11 @@
 | ---------------------------------------------------------- | ------- | ------- | ----------- | ------- | ------- | ----- |
 | A — A (Complete Loop One — See + Remember)                 | 0       | 0       | 0           | 1       | 18      | 19    |
 | B — B (Agent Runtime foundation — Notice + Act primitives) | 20      | 17      | 4           | 4       | 34      | 79    |
-| C — C (Reference coworker — Sales end-to-end loop)         | 20      | 4       | 1           | 1       | 10      | 36    |
+| C — C (Reference coworker — Sales end-to-end loop)         | 20      | 3       | 2           | 1       | 10      | 36    |
 | D — D (Plugin SDK + MCP)                                   | 5       | 3       | 0           | 1       | 13      | 22    |
 | E — E (Additional coworkers/plugins + documentation)       | 40      | 5       | 0           | 0       | 12      | 57    |
 
-**Board total:** 85 backlog, 29 planned, 5 in progress, 7 blocked, 87 shipped (213 managed cards).
+**Board total:** 85 backlog, 28 planned, 6 in progress, 7 blocked, 87 shipped (213 managed cards).
 
 ## Dispatchable now (`npm run agent:next` picks from this set)
 
@@ -35,7 +35,6 @@
 - `feature-board-interaction-rebuild` [high] — Rebuild Feature Board drag, details, and mobile interaction
 - `additional-tools-canonical-parity` [high] — Modernize and canonically integrate every additional admin tool
 - `gmail-reply-actions` [high] — Finish reply, local archive, and follow-up actions in Conversations
-- `ai-model-job-registry` [medium] — Route every AI job through an audited model registry
 - `api-contract-tests` [high] — Add authenticated API contract and failure tests
 - `unified-action-executor` [high] — Route every write through one executor with reversibility and compensators
 - `plugin-isolate-host` [high] — Run plugin code in an isolate with no ambient authority
@@ -57,6 +56,7 @@
 - `de-vertical-inbound` — Turn the roofing ingestion path into a configurable playbook (claude-code:johnconnor:9960)
 - `command-palette-tools` — Connect the command palette to real Revenue OS actions (claude-code:johnconnor:41088)
 - `proposal-lifecycle-service` — Complete the proposal lifecycle and version rules (claude-code:johnconnor:9960)
+- `ai-model-job-registry` — Route every AI job through an audited model registry (claude-code:johnconnor:57291)
 - `system-health-report` — Build the system-health report and freshness thresholds (claude-code:johnconnor:9960)
 - `booking-mode-contract-reconciliation` — Reconcile booking activation and health truth (claude-code:johnconnor:9960)
 
