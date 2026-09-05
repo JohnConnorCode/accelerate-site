@@ -1,6 +1,10 @@
 import { Fragment } from "react";
 import Link from "next/link";
 import { BookCallButton, Container, Eyebrow } from "@/components/v2/studio/primitives";
+import {
+  HeroEntranceItem,
+  PublicHeroEntrance,
+} from "@/components/motion/PublicHeroEntrance";
 import type { WorkProject, WorkServiceId, WorkVisualBlock } from "@/content/work";
 import { getWorkBySlug } from "@/content/work";
 import { services } from "@/content/services";
@@ -101,13 +105,13 @@ export function CaseStudy({ project }: { project: WorkProject }) {
       data-case-accent={project.accent}
       data-work-visibility={project.visibility}
     >
-      <section className="relative overflow-hidden border-b border-[var(--rule)] pb-[clamp(3rem,8vw,7rem)] pt-[clamp(3rem,7vw,6rem)]">
+      <PublicHeroEntrance className="relative overflow-hidden border-b border-[var(--rule)] pb-[clamp(3rem,8vw,7rem)] pt-[clamp(3rem,7vw,6rem)]">
         <div
           className="pointer-events-none absolute inset-y-0 right-0 hidden w-[34vw] opacity-[0.055] lg:block [background-image:linear-gradient(var(--case-accent)_1px,transparent_1px),linear-gradient(90deg,var(--case-accent)_1px,transparent_1px)] [background-size:var(--case-grid)_var(--case-grid)]"
           aria-hidden="true"
         />
         <Container>
-          <div className="work-hero-enter work-hero-d1">
+          <HeroEntranceItem step={1}>
             <nav
               aria-label="Breadcrumb"
               className="mb-10 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--mid)]"
@@ -136,9 +140,9 @@ export function CaseStudy({ project }: { project: WorkProject }) {
                 </li>
               </ol>
             </nav>
-          </div>
+          </HeroEntranceItem>
           {project.visibility === "archived" ? (
-            <div className="work-hero-enter work-hero-d2">
+            <HeroEntranceItem step={2}>
               <aside
                 className="mb-10 grid gap-3 border-y border-[var(--rule)] py-5 md:grid-cols-[10rem_minmax(0,1fr)]"
                 aria-label="Portfolio archive note"
@@ -149,26 +153,29 @@ export function CaseStudy({ project }: { project: WorkProject }) {
                   Accelerate&apos;s current selected-work lineup.
                 </p>
               </aside>
-            </div>
+            </HeroEntranceItem>
           ) : null}
           <div className="relative grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,.58fr)] lg:items-end">
             <div>
-              <div className="work-hero-enter work-hero-d2">
+              <HeroEntranceItem step={2}>
                 <Eyebrow className="mb-7">{project.category}</Eyebrow>
-              </div>
-              <RevealHeading
-                lead={project.cardHeadline}
-                as="h1"
-                delay={0.14}
-                stagger={0.05}
-                className="max-w-[13ch] text-balance font-display text-[clamp(3rem,7vw,7rem)] font-medium leading-[0.88] tracking-[-0.065em] text-[var(--fg)]"
-              />
-              <p className="work-hero-enter work-hero-d5 mt-8 max-w-[58ch] text-pretty text-[1.05rem] leading-8 text-[var(--mid)]">
-                {project.cardDescription}
-              </p>
+              </HeroEntranceItem>
+              <HeroEntranceItem step={3}>
+                <RevealHeading
+                  lead={project.cardHeadline}
+                  as="h1"
+                  entrance="parent"
+                  className="max-w-[13ch] text-balance font-display text-[clamp(3rem,7vw,7rem)] font-medium leading-[0.88] tracking-[-0.065em] text-[var(--fg)]"
+                />
+              </HeroEntranceItem>
+              <HeroEntranceItem step={4}>
+                <p className="mt-8 max-w-[58ch] text-pretty text-[1.05rem] leading-8 text-[var(--mid)]">
+                  {project.cardDescription}
+                </p>
+              </HeroEntranceItem>
             </div>
-            <div>
-              <dl className="work-hero-meta grid border-t-2 border-[var(--case-accent)] font-mono text-[10px] uppercase tracking-[0.11em] sm:grid-cols-2 lg:grid-cols-1">
+            <HeroEntranceItem step={5}>
+              <dl className="grid border-t-2 border-[var(--case-accent)] font-mono text-[10px] uppercase tracking-[0.11em] sm:grid-cols-2 lg:grid-cols-1">
                 <div className="border-b border-[var(--rule)] py-4">
                   <dt className="text-[var(--mid)]">Industry</dt>
                   <dd className="mt-2 text-[var(--fg)]">{project.industry}</dd>
@@ -194,10 +201,10 @@ export function CaseStudy({ project }: { project: WorkProject }) {
                   </div>
                 ) : null}
               </dl>
-            </div>
+            </HeroEntranceItem>
           </div>
         </Container>
-      </section>
+      </PublicHeroEntrance>
 
       <Container className="py-[clamp(2rem,5vw,5rem)]">
         <div

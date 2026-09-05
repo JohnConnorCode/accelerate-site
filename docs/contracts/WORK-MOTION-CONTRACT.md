@@ -7,6 +7,13 @@ and own one Work visual recipe in `globals.css`.
 
 ## Ownership
 
+- `PublicHeroEntrance` (src/components/motion/PublicHeroEntrance.tsx) owns
+  every public-page hero entrance: one observer on the hero root, children
+  sequenced through `HeroEntranceItem step={1..5}`. This is the only hero
+  path. Page-local hero systems are retired: no `work-hero-enter` delay
+  classes, no per-hero framer-motion wrappers, no second observer. The
+  homepage hero keeps its own `.hero.loaded` timing as the single
+  documented exception.
 - `WorkReveal` owns editorial groups, cards, proof, and CTA entrances.
 - `WorkMediaReveal` owns standalone case-study media entrances.
 - `RevealHeading` owns only the hero word-mask entrance.

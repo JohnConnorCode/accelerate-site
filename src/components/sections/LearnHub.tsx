@@ -18,7 +18,7 @@ import { isValidEmail } from "@/lib/validation";
 import { getUTMParams, clearUTMParams } from "@/lib/utm";
 import { trackConversion } from "@/lib/analytics";
 import { EASE } from "@/lib/animations";
-import { AnimateOnScroll, EntranceGroup, EntranceItem } from "@/components/ui/AnimateOnScroll";
+import { HeroEntranceItem, PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
 import { ArticleCard } from "@/components/mdx/ArticleCard";
 import { Section, Container, Eyebrow, Heading } from "@/components/v2/studio/primitives";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
@@ -130,7 +130,7 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
 
   return (
     <>
-      <section className="page-offset-roomy relative overflow-hidden pb-24">
+      <PublicHeroEntrance className="page-offset-roomy relative overflow-hidden pb-24">
         <div className="pointer-events-none absolute inset-0" aria-hidden="true">
           <div className="absolute left-[8%] top-28 h-px w-24 bg-[var(--rule)]" />
           <div className="absolute right-[8%] top-28 font-mono text-[0.62rem] uppercase tracking-[0.2em] text-white-muted">
@@ -141,35 +141,34 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
         <Container width="wide">
           <div className="grid items-end gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-20">
             <div className="min-w-0">
-              <EntranceGroup>
-                <EntranceItem>
-                  <Eyebrow className="mb-7">the learning hub</Eyebrow>
-                </EntranceItem>
-              </EntranceGroup>
-              <RevealHeading
-                as="h1"
-                className={`${HERO_HEADING} text-balance`}
-                lead="Practical AI for operators."
-              />
-              <EntranceGroup delay={0.18}>
-                <EntranceItem>
-                  <p className="mt-7 max-w-xl text-pretty text-lg leading-relaxed text-white-secondary">
-                    Clear field notes for putting AI into a business that already has customers,
-                    deadlines, and a reputation to protect.
-                  </p>
-                </EntranceItem>
-                <EntranceItem>
-                  <div className="mt-8 flex items-center gap-4 font-mono text-[0.66rem] uppercase tracking-[0.15em] text-white-muted">
-                    <span>{articles.length + (featuredArticle ? 1 : 0)} guides</span>
-                    <span className="h-px w-8 bg-[var(--rule)]" />
-                    <span>Built to use this week</span>
-                  </div>
-                </EntranceItem>
-              </EntranceGroup>
+              <HeroEntranceItem step={1}>
+                <Eyebrow className="mb-7">the learning hub</Eyebrow>
+              </HeroEntranceItem>
+              <HeroEntranceItem step={2}>
+                <RevealHeading
+                  as="h1"
+                  className={`${HERO_HEADING} text-balance`}
+                  lead="Practical AI for operators."
+                  entrance="parent"
+                />
+              </HeroEntranceItem>
+              <HeroEntranceItem step={3}>
+                <p className="mt-7 max-w-xl text-pretty text-lg leading-relaxed text-white-secondary">
+                  Clear field notes for putting AI into a business that already has customers,
+                  deadlines, and a reputation to protect.
+                </p>
+              </HeroEntranceItem>
+              <HeroEntranceItem step={4}>
+                <div className="mt-8 flex items-center gap-4 font-mono text-[0.66rem] uppercase tracking-[0.15em] text-white-muted">
+                  <span>{articles.length + (featuredArticle ? 1 : 0)} guides</span>
+                  <span className="h-px w-8 bg-[var(--rule)]" />
+                  <span>Built to use this week</span>
+                </div>
+              </HeroEntranceItem>
             </div>
 
             {featuredArticle && (
-              <AnimateOnScroll as="article" delay={0.14}>
+              <HeroEntranceItem step={5}>
                 <Link
                   href={`/learn/${featuredArticle.slug}`}
                   data-cursor="link"
@@ -204,11 +203,11 @@ export function LearnHub({ articles, featuredArticle }: LearnHubProps) {
                     </span>
                   </div>
                 </Link>
-              </AnimateOnScroll>
+              </HeroEntranceItem>
             )}
           </div>
         </Container>
-      </section>
+      </PublicHeroEntrance>
 
       <Section width="wide" divide>
         <Eyebrow className="mb-6">browse the library</Eyebrow>

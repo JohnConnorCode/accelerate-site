@@ -13,7 +13,8 @@ import { getAllArticles, getArticleBySlug, getRelatedArticles, CATEGORY_LABELS }
 import { generateArticleJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 import { formatDateOnly } from "@/lib/date-format";
 import { SectionDivider } from "@/components/ui/SectionDivider";
-import { AnimateOnScroll, EntranceGroup, EntranceItem } from "@/components/ui/AnimateOnScroll";
+import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
+import { HeroEntranceItem, PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
 import {
   Section,
   Eyebrow,
@@ -193,15 +194,15 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       {/* ------------------------------------------------------------------ */}
       {/* Article Hero Header                                                 */}
       {/* ------------------------------------------------------------------ */}
-      <section className="page-offset-roomy relative overflow-hidden pb-16 sm:pb-20">
+      <PublicHeroEntrance className="page-offset-roomy relative overflow-hidden pb-16 sm:pb-20">
         <div
           className="pointer-events-none absolute inset-x-0 top-28 h-px bg-[var(--rule)]"
           aria-hidden="true"
         />
 
         <div className="relative z-10 mx-auto max-w-[80rem] px-6 lg:px-10">
-          <EntranceGroup className="max-w-4xl" delay={0.04}>
-            <EntranceItem>
+          <div className="max-w-4xl">
+            <HeroEntranceItem step={1}>
               <nav className="mb-10 flex min-h-10 items-center gap-1.5 overflow-hidden font-mono text-[0.64rem] uppercase tracking-[0.12em] text-white-muted">
                 <Link href="/learn" className="hover:text-white-secondary transition-colors">
                   Learn
@@ -218,27 +219,27 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                   {frontmatter.title}
                 </span>
               </nav>
-            </EntranceItem>
+            </HeroEntranceItem>
 
-            <EntranceItem>
+            <HeroEntranceItem step={2}>
               <p className="mb-6 font-mono text-[0.66rem] uppercase tracking-[0.2em] text-white-muted">
                 {CATEGORY_LABELS[frontmatter.category]}
               </p>
-            </EntranceItem>
+            </HeroEntranceItem>
 
-            <EntranceItem>
+            <HeroEntranceItem step={3}>
               <h1 className="max-w-[19ch] text-balance font-display text-[clamp(2.65rem,6vw,5.75rem)] font-medium leading-[0.98] tracking-[-0.045em] text-heading">
                 {frontmatter.title}
               </h1>
-            </EntranceItem>
+            </HeroEntranceItem>
 
-            <EntranceItem>
+            <HeroEntranceItem step={4}>
               <p className="mt-7 max-w-2xl text-pretty text-lg leading-relaxed text-white-secondary sm:text-xl">
                 {frontmatter.excerpt}
               </p>
-            </EntranceItem>
+            </HeroEntranceItem>
 
-            <EntranceItem>
+            <HeroEntranceItem step={5}>
               <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-4 border-t border-[var(--rule)] pt-6 text-sm text-white-muted">
                 <div className="flex items-center gap-2.5">
                   <div className="flex h-10 w-10 items-center justify-center bg-[var(--fg)] text-[var(--bg)]">
@@ -269,9 +270,9 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                   {readingTime}
                 </span>
               </div>
-            </EntranceItem>
+            </HeroEntranceItem>
 
-            <EntranceItem>
+            <HeroEntranceItem step={5}>
               <div className="mt-5 flex flex-wrap gap-2">
                 {frontmatter.tags.map((tag) => (
                   <Link
@@ -283,10 +284,10 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                   </Link>
                 ))}
               </div>
-            </EntranceItem>
-          </EntranceGroup>
+            </HeroEntranceItem>
+          </div>
         </div>
-      </section>
+      </PublicHeroEntrance>
 
       {/* ------------------------------------------------------------------ */}
       {/* Article Content + Sidebar                                           */}

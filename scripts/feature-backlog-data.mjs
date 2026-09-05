@@ -1420,7 +1420,7 @@ export const featureBacklog = [
     title: "Turn the roofing ingestion path into a configurable playbook",
     workstream: "foundation",
     phase: 2,
-    status: "in_progress",
+    status: "planned",
     priority: "high",
     description:
       "Replace the vertical-specific inbound capture function with one generic qualification path that takes an industry playbook as data, so roofing becomes one configuration entry instead of an exported code path that every future installation inherits.",
@@ -2076,7 +2076,7 @@ export const featureBacklog = [
     title: "Complete the proposal lifecycle and version rules",
     workstream: "proposals",
     phase: 3,
-    status: "in_progress",
+    status: "planned",
     priority: "high",
     description:
       "Control draft, sent, viewed, accepted, declined, expired, and superseded states with linked contact, company, and opportunity.",
@@ -2676,7 +2676,7 @@ export const featureBacklog = [
     title: "Route every AI job through an audited model registry",
     workstream: "ai",
     phase: 4,
-    status: "in_progress",
+    status: "planned",
     priority: "medium",
     description:
       "Choose OpenRouter models by typed workload requirements instead of scattered IDs, with current capability and cost metadata, explicit activation, eval gates, and rollback.",
@@ -3081,7 +3081,7 @@ export const featureBacklog = [
   card({
     key: "system-health-report",
     owner: "claude-code:johnconnor:9960",
-    status: "in_progress",
+    status: "planned",
     title: "Build the system-health report and freshness thresholds",
     workstream: "operations",
     phase: 4,
@@ -3691,7 +3691,7 @@ export const featureBacklog = [
   card({
     key: "booking-mode-contract-reconciliation",
     owner: "claude-code:johnconnor:9960",
-    status: "in_progress",
+    status: "planned",
     title: "Reconcile booking activation and health truth",
     workstream: "integrations",
     phase: 2,
@@ -3906,7 +3906,7 @@ export const featureBacklog = [
   card({
     key: "won-to-delivery-handoff",
     owner: "claude-code:johnconnor:62700",
-    status: "in_progress",
+    status: "planned",
     title: "Create the won-to-delivery handoff",
     workstream: "operations",
     phase: 3,

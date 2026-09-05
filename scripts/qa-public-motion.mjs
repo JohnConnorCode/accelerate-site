@@ -331,16 +331,21 @@ for (const config of [
       .evaluate((node) => getComputedStyle(node).animationName);
     if (!headingAnimation.includes("word-mask-entry"))
       failures.push(`${config.label}: heading entrance animation is not active`);
-    const indexHeroSequence = await page.locator(".work-hero-enter").evaluateAll((nodes) =>
-      nodes.map((node) => ({
-        name: getComputedStyle(node).animationName,
-        delay: getComputedStyle(node).animationDelay,
-      })),
-    );
+    const indexHeroSequence = await page
+      .locator('[data-motion-role="public-hero"] [data-hero-step]')
+      .evaluateAll((nodes) =>
+        nodes.map((node) => ({
+          step: node.getAttribute("data-hero-step"),
+          name: getComputedStyle(node).animationName,
+          delay: getComputedStyle(node).animationDelay,
+        })),
+      );
     if (
       indexHeroSequence.length < 4 ||
       new Set(indexHeroSequence.map((item) => item.delay)).size !== indexHeroSequence.length ||
-      indexHeroSequence.some((item) => !item.name.includes("work-hero-in"))
+      indexHeroSequence.some((item) => !item.name.includes("section-item-in")) ||
+      indexHeroSequence.map((item) => item.step).join(",") !==
+        [...indexHeroSequence.map((item) => item.step)].sort().join(",")
     )
       failures.push(`${config.label}: Work hero items are not individually staggered`);
     const cardEntry = await captureRevealEntry(page, '[data-motion-role="card"]');
@@ -451,18 +456,19 @@ for (const config of [
   }
   if (config.reducedMotion === "no-preference") {
     const heroSequence = await page
-      .locator(".work-hero-enter, .work-hero-meta > *")
+      .locator('[data-motion-role="public-hero"] [data-hero-step]')
       .evaluateAll((nodes) =>
         nodes.map((node) => ({
+          step: node.getAttribute("data-hero-step"),
           name: getComputedStyle(node).animationName,
           delay: Number.parseFloat(getComputedStyle(node).animationDelay),
         })),
       );
     const orderedDelays = [...heroSequence].map((item) => item.delay).sort((a, b) => a - b);
     if (
-      heroSequence.length < 8 ||
-      heroSequence.some((item) => !item.name.includes("work-hero-in")) ||
-      new Set(orderedDelays).size < 5
+      heroSequence.length < 5 ||
+      heroSequence.some((item) => !item.name.includes("section-item-in")) ||
+      new Set(orderedDelays).size < 4
     )
       failures.push(`${config.label}: case hero is not split into a coherent stagger sequence`);
     const mediaEntry = await captureRevealEntry(page, '[data-motion-role="media"]');
