@@ -80,13 +80,21 @@ async function main() {
         (b) => !b.toolNames.includes("propose_founder_note"),
       ),
     );
-    const mcp = await handleMcpRequest(restricted, {
-      jsonrpc: "2.0",
-      id: 1,
-      method: "tools/call",
-      params: { name: "activate_tool_bundle", arguments: { bundleId: "core-command:1" } },
-    });
-    assert.ok(!JSON.stringify(mcp).includes("propose_founder_note"));
+    const mcp = await handleMcpRequest(
+      {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "tools/call",
+        params: { name: "activate_tool_bundle", arguments: { bundleId: "core-command:1" } },
+      },
+      restricted,
+    );
+    const result = mcp!.result as { isError: boolean; content: { text: string }[] };
+    assert.equal(result.isError, false);
+    const activated = JSON.parse(result.content[0]!.text);
+    assert.equal(activated.activeBundleId, "core-command:1");
+    assert.ok(activated.toolNames.includes("propose_task"));
+    assert.ok(!activated.toolNames.includes("propose_founder_note"));
     await assert.rejects(
       executeRegisteredRevenueTool(restricted, "propose_founder_note", {
         body: "Cannot bypass pack",
