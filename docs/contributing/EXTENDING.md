@@ -495,3 +495,12 @@ separation. A returned proposal remains pending for human approval. The
 documents inputs, exact digest handling, result bounds and remaining limitations.
 `test:collections-agent-tools` exercises the real registry and MCP adapter against
 the same controlled provider fixture as the underlying reminder service tests.
+
+## Every admin control has a conversational equivalent
+
+Follow the [universal AI/admin parity contract](../contracts/ADMIN-AI-PARITY.md).
+Plugins and native features expose the same narrowly typed operations to the
+admin, AI and authorized MCP clients. Writes use exact proposals and human
+approval through the shared executor. Document missing coverage on the live board
+and refresh the route inventory after semantic review; a passing inventory check
+is not evidence that an operation has AI support.

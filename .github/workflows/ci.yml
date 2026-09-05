@@ -40,6 +40,12 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run verify:agent-contract
 
+      - name: Verify admin AI operation inventory
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: |
+          node --test scripts/test-admin-ai-inventory.mjs
+          node scripts/admin-ai-inventory.mjs --check
+
       - name: Verify copy guardrails
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run verify:guardrails

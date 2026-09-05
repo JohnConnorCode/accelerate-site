@@ -1,0 +1,1428 @@
+{
+  "contract": "admin-ai-route-inventory.v1",
+  "scope": "Exported HTTP handlers under src/app/api/admin. Source inventory, not verified AI operation coverage.",
+  "limitations": [
+    "HTTP methods do not identify business operations: POST may read, authenticate or approve; one handler may dispatch multiple commands.",
+    "Imports are navigation references, not proof of service use, authorization, approval or tool parity.",
+    "Server actions, other API roots, direct client mutations and third-party plugin entrypoints require separate semantic review.",
+    "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
+  ],
+  "routeCount": 86,
+  "mutationHandlerCount": 76,
+  "routes": [
+    {
+      "source": "src/app/api/admin/activity/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/audit",
+        "next/server"
+      ],
+      "sourceSha256": "ee9f15fedfb7aa0151bcaeb01414ed6407658cf22e224b7ca4fdef02376a38f8"
+    },
+    {
+      "source": "src/app/api/admin/ai-content-brief/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/ai/content-brief",
+        "@/lib/ai/openrouter",
+        "@/lib/ai/openrouter-credentials",
+        "next/server"
+      ],
+      "sourceSha256": "9d7f57a5602446d4e69d59449df8637522217e23999c60276f615ec825b37505"
+    },
+    {
+      "source": "src/app/api/admin/analytics/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "next/server"
+      ],
+      "sourceSha256": "1d0932bf66f0658ff7560075ddc3f3ff8d734bd1daf79df0b1b0404c1704c145"
+    },
+    {
+      "source": "src/app/api/admin/bookings/route.ts",
+      "handlers": [
+        "GET",
+        "PATCH"
+      ],
+      "mutationHandlers": [
+        "PATCH"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/email/booking",
+        "@/lib/revenue-os/pipeline",
+        "next/server"
+      ],
+      "sourceSha256": "06da3591f09cbdd8b09d0bf6d82c2c292e6df9da81d471cd3efef899df9b2a7b"
+    },
+    {
+      "source": "src/app/api/admin/chat-leads/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/revenue-os/legacy-adapter",
+        "next/server"
+      ],
+      "sourceSha256": "8712c08abc9a1e130bdbf50d3a19cc19956246056bf9eeac186cd06a0a4eaa70"
+    },
+    {
+      "source": "src/app/api/admin/clients/route.ts",
+      "handlers": [
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "PATCH",
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/revenue-os/legacy-adapter",
+        "next/server"
+      ],
+      "sourceSha256": "e0b0db321d70eb56f11965e0f71b3235c5832a407f522123d536c8bfb3326e1c"
+    },
+    {
+      "source": "src/app/api/admin/collections/reminders/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/collection-reminders",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "04216824ae8bab39007829cd39dc033a7c55407b16040e739cfbc68aae5d302d"
+    },
+    {
+      "source": "src/app/api/admin/collections/route.ts",
+      "handlers": [
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "PATCH",
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/collections",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "11969cd591fe4f421e4a59b2359fc643309db8fb0ee043a54dc418f2ac1d7d66"
+    },
+    {
+      "source": "src/app/api/admin/collections/workspace/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/revenue-os/collection-workspace",
+        "next/server"
+      ],
+      "sourceSha256": "6570443cb6cc77d53e128dd6fd435afede6d6ad6e75731bb753f1d9eba124780"
+    },
+    {
+      "source": "src/app/api/admin/contacts/export/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/admin/csv",
+        "next/server"
+      ],
+      "sourceSha256": "8a25082eec41bafa5cdf74c482b9fe0bedde5d4f3190693394b695ca54df6c21"
+    },
+    {
+      "source": "src/app/api/admin/contacts/route.ts",
+      "handlers": [
+        "DELETE",
+        "GET",
+        "PATCH"
+      ],
+      "mutationHandlers": [
+        "DELETE",
+        "PATCH"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/legacy-adapter",
+        "next/server"
+      ],
+      "sourceSha256": "d4f0c45b7e4bc1641492f4864d46ad20fb1342c70d5f58f9760ebcaba73f1994"
+    },
+    {
+      "source": "src/app/api/admin/contacts/timeline/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/activities",
+        "next/server"
+      ],
+      "sourceSha256": "d71e9a37e35f84210888b2cb36bd0fcfc184425450f4557131eb57131624d69a"
+    },
+    {
+      "source": "src/app/api/admin/content/route.ts",
+      "handlers": [
+        "DELETE",
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "DELETE",
+        "PATCH",
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "next/server"
+      ],
+      "sourceSha256": "b06d515300ab33b481fece9744c0c30fbe598aab42167ce04035778ead5dc7d4"
+    },
+    {
+      "source": "src/app/api/admin/email-sequences/route.ts",
+      "handlers": [
+        "GET",
+        "PATCH"
+      ],
+      "mutationHandlers": [
+        "PATCH"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "next/server"
+      ],
+      "sourceSha256": "9f3ccd0bff8a241ab65bb0a5cf08c750e7d6f558254ba1cb0b01af26ce6240b1"
+    },
+    {
+      "source": "src/app/api/admin/emails/history/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "next/server"
+      ],
+      "sourceSha256": "7e0d48ee096aaa52047b23e748570e89da1a7b46c0729e37fb9e1e0ee5c7a02c"
+    },
+    {
+      "source": "src/app/api/admin/emails/preview/route.ts",
+      "handlers": [
+        "DELETE",
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "DELETE",
+        "PATCH",
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/email/blocks",
+        "@/lib/email/registry",
+        "@/lib/email/resend",
+        "@/lib/revenue-os/audit",
+        "@/lib/revenue-os/communications",
+        "@/lib/tenancy/system",
+        "@supabase/supabase-js",
+        "next/server"
+      ],
+      "sourceSha256": "74e83fb3d54ac25280e13ef4282e852f2e597f639b820c834ec69a42c20dbd65"
+    },
+    {
+      "source": "src/app/api/admin/features/agents/route.ts",
+      "handlers": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "DELETE",
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/work-board",
+        "@/lib/revenue-os/work-board-http",
+        "@/lib/supabase/server",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "5e3f84e0ebb5ef161da251d2662334ded0dfaf7a63c8d3e0c26784ea09ce0656"
+    },
+    {
+      "source": "src/app/api/admin/features/route.ts",
+      "handlers": [
+        "DELETE",
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "DELETE",
+        "PATCH",
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/work-board",
+        "@/lib/revenue-os/work-board-http",
+        "@/lib/supabase/server",
+        "next/server"
+      ],
+      "sourceSha256": "0e864c3544c47c54146f56d1900e3248e11e9be2c63563bd6715f22bb949d88a"
+    },
+    {
+      "source": "src/app/api/admin/features/views/route.ts",
+      "handlers": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "DELETE",
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/work-board",
+        "@/lib/revenue-os/work-board-http",
+        "@/lib/supabase/server",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "0f61e13ec15b8df5d1b543366b102ba62bb87d93f1076d9b394b08fddc02a395"
+    },
+    {
+      "source": "src/app/api/admin/google/authorize/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/google",
+        "@/lib/revenue-os/google-oauth",
+        "next/server",
+        "node:crypto"
+      ],
+      "sourceSha256": "6f9b5703da82e90257968defe2b7b693cbabbc5018fd01ec54e7684e296b1b00"
+    },
+    {
+      "source": "src/app/api/admin/google/callback/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/audit",
+        "@/lib/revenue-os/google",
+        "@/lib/revenue-os/google-oauth",
+        "next/headers",
+        "next/server"
+      ],
+      "sourceSha256": "3ced10dac77a784c55dece2c8e98e3e4425fbcd9e5a90260cdd13ff5514a0ba8"
+    },
+    {
+      "source": "src/app/api/admin/google/status/route.ts",
+      "handlers": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "DELETE",
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/db",
+        "@/lib/revenue-os/encryption",
+        "@/lib/revenue-os/google",
+        "@/lib/revenue-os/google-oauth",
+        "next/server"
+      ],
+      "sourceSha256": "514e8bcc3dfd23bd585ff2e3c8e72b16baf578ef5e897137609397f69cf253db"
+    },
+    {
+      "source": "src/app/api/admin/google/sync/route.ts",
+      "handlers": [
+        "PATCH",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "PATCH",
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/drive-sync-plan",
+        "@/lib/revenue-os/google",
+        "@/lib/revenue-os/google-oauth",
+        "@/lib/revenue-os/runs",
+        "next/server"
+      ],
+      "sourceSha256": "2a3dcc7eb967145319ec89f31edfba2875628e5cde6eb8c77da63f5aa986a303"
+    },
+    {
+      "source": "src/app/api/admin/inbox/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/admin/inbox",
+        "@/lib/admin/lead-scoring",
+        "@/lib/revenue-os/legacy-adapter",
+        "next/server"
+      ],
+      "sourceSha256": "cccb2726c649b723803094a08b45459d2f95c01299c7170a92ffa52e7a2667cf"
+    },
+    {
+      "source": "src/app/api/admin/integrations/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/integrations",
+        "next/server"
+      ],
+      "sourceSha256": "a774774dfc90ba9f3f6e02e5b2f7cf4300cd923817fd90937ced7086e9e1bccb"
+    },
+    {
+      "source": "src/app/api/admin/invoicing/pages/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/http/bounded-json",
+        "@/lib/rate-limit",
+        "@/lib/revenue-os/invoice-page-contract",
+        "@/lib/revenue-os/invoice-pages",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "61dc263ccce886dafba788a7576e91981a72259bb39b5a1fb7ae669ed4323683"
+    },
+    {
+      "source": "src/app/api/admin/invoicing/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/stripe-invoicing",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "5f4c2479a6239162bd1591fad503818c7276e09e2dc3ffa167910391a8ebe54c"
+    },
+    {
+      "source": "src/app/api/admin/kanban/columns/[columnKey]/route.ts",
+      "handlers": [
+        "DELETE",
+        "PATCH"
+      ],
+      "mutationHandlers": [
+        "DELETE",
+        "PATCH"
+      ],
+      "imports": [
+        "@/lib/kanban/auth",
+        "@/lib/kanban/types",
+        "next/server"
+      ],
+      "sourceSha256": "49af85f91455c810990f391fbb5ebcf82dbd8a6f689766c5be467062a924dc25"
+    },
+    {
+      "source": "src/app/api/admin/kanban/columns/reorder/route.ts",
+      "handlers": [
+        "PATCH"
+      ],
+      "mutationHandlers": [
+        "PATCH"
+      ],
+      "imports": [
+        "@/lib/kanban/auth",
+        "@/lib/kanban/types",
+        "next/server"
+      ],
+      "sourceSha256": "d043f13960f9d976afa79eb8e009f53e7183dd3280cf88431f5d7c28602fffec"
+    },
+    {
+      "source": "src/app/api/admin/kanban/columns/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/kanban/auth",
+        "@/lib/kanban/defaults",
+        "@/lib/kanban/types",
+        "next/server"
+      ],
+      "sourceSha256": "483702ce468be491b626c7cc06a7b2552d866f59100292f469590bff8d3edaeb"
+    },
+    {
+      "source": "src/app/api/admin/leads/export/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/csv",
+        "@/lib/admin/module-guard",
+        "next/server"
+      ],
+      "sourceSha256": "2a682259f8c29a24e16fea64499ce7317b4b47db59bd743bd0c05d5a540f785f"
+    },
+    {
+      "source": "src/app/api/admin/leads/route.ts",
+      "handlers": [
+        "DELETE",
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "DELETE",
+        "PATCH",
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/admin/pipeline-stages",
+        "@/lib/revenue-os/inbound",
+        "@/lib/revenue-os/legacy-adapter",
+        "@/lib/revenue-os/pipeline",
+        "@/lib/revenue-os/pipeline-stage-resolver",
+        "next/server"
+      ],
+      "sourceSha256": "fa21cb9caaa32e8e670cc379ca07dd7712186af88706f1a9137cdf9d93212437"
+    },
+    {
+      "source": "src/app/api/admin/login/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/access",
+        "@/lib/rate-limit",
+        "@supabase/ssr",
+        "next/server"
+      ],
+      "sourceSha256": "5a52c3e65c60164b8af12a8b36a5eb6b3ca8eba6004247c56fe5891f4f6e0d2b"
+    },
+    {
+      "source": "src/app/api/admin/metrics/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/admin/lead-scoring",
+        "next/server"
+      ],
+      "sourceSha256": "3812aa1a592faba2ee68a877309208638fcdaa1f796f72037c516f3b76a56fa2"
+    },
+    {
+      "source": "src/app/api/admin/notifications/route.ts",
+      "handlers": [
+        "GET",
+        "PATCH"
+      ],
+      "mutationHandlers": [
+        "PATCH"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/queue",
+        "next/server"
+      ],
+      "sourceSha256": "d29f8480f1a703ed4a2adacb33e0b6b597ef8decbe7e0779291c33067b518d4e"
+    },
+    {
+      "source": "src/app/api/admin/partners/route.ts",
+      "handlers": [
+        "GET",
+        "PATCH"
+      ],
+      "mutationHandlers": [
+        "PATCH"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/revenue-os/legacy-adapter",
+        "next/server"
+      ],
+      "sourceSha256": "81e12fd33147bff54eb137ff67a25cad875937bb3dd042bc63a92d310e88d734"
+    },
+    {
+      "source": "src/app/api/admin/password-reset/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/config/tenant",
+        "@/lib/admin/access",
+        "@/lib/email/resend",
+        "@/lib/email/templates",
+        "@/lib/rate-limit",
+        "@/lib/supabase/server",
+        "next/server"
+      ],
+      "sourceSha256": "4bc2cfed97fff1179b09fffc935ffc82b828393cea4514562472cd561adcf892"
+    },
+    {
+      "source": "src/app/api/admin/plausible/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/config/tenant",
+        "@/lib/admin/auth",
+        "next/server"
+      ],
+      "sourceSha256": "8b28e5f08d849b67112eb78126c7e20a7dadbe53c3a1d1d63a257934b7d05c9a"
+    },
+    {
+      "source": "src/app/api/admin/plugins/run/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/revenue-os/modules",
+        "@/lib/revenue-os/report-plugins",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "63116ab1a496af78539b3801fb57da3ec9bebbb47efbf52a6de6fd34bf892084"
+    },
+    {
+      "source": "src/app/api/admin/plugins/tasks/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "next/server"
+      ],
+      "sourceSha256": "b99c65e9d43524894b64968e3e06d86593324435699e106d2bc4fab81f1013b0"
+    },
+    {
+      "source": "src/app/api/admin/plugins/workflow/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/workflow-plugins",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "9b2c2929f67e0980c347aa00ae475dd79c9dc111d2ffedf617e24e7c7c702dd6"
+    },
+    {
+      "source": "src/app/api/admin/proposals/generate/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/config/tenant",
+        "@/lib/admin/module-guard",
+        "@/lib/ai/approved-pricing",
+        "@/lib/ai/openrouter",
+        "@/lib/ai/openrouter-credentials",
+        "@/lib/rate-limit",
+        "next/server"
+      ],
+      "sourceSha256": "71e8c5971e94d4630d408ed8e6a3320ff7e4620f4ab15dbb5cec48733230f0c2"
+    },
+    {
+      "source": "src/app/api/admin/proposals/route.ts",
+      "handlers": [
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "PATCH",
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/revenue-os/audit",
+        "next/server"
+      ],
+      "sourceSha256": "6f7bceeaba387dcb09b084c68499c4d7c86bc304a7832e368aceb0aafce758bb"
+    },
+    {
+      "source": "src/app/api/admin/resources/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/revenue-os/legacy-adapter",
+        "next/server"
+      ],
+      "sourceSha256": "d78eadde6bce745c27b8853065f36b42d8947b467fd52952c4c6a0e7277102aa"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/actions/route.ts",
+      "handlers": [
+        "GET",
+        "PATCH"
+      ],
+      "mutationHandlers": [
+        "PATCH"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/action-executor",
+        "@/lib/revenue-os/actions",
+        "@/lib/revenue-os/collection-reminders",
+        "@/lib/revenue-os/db",
+        "next/server"
+      ],
+      "sourceSha256": "16331c1772012ba9d3d56f961781f536532cc514af98db5148b861a5aa0e4f56"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/activity/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/activities",
+        "next/server"
+      ],
+      "sourceSha256": "419ba901c5103b2b5971ac91775300bf0ed1ceb56590e4d93b2935cbc5d6a46e"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/ai/capabilities/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/ai-operations-contract",
+        "@/lib/revenue-os/ai-tools",
+        "next/server"
+      ],
+      "sourceSha256": "60fda6c693b3d8564bb12d20b207b890aacb54230b74a3e0ffb5ab9a5de5c7f9"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/ai/conversations/[id]/route.ts",
+      "handlers": [
+        "DELETE",
+        "GET"
+      ],
+      "mutationHandlers": [
+        "DELETE"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/ai-conversations",
+        "next/server"
+      ],
+      "sourceSha256": "d4f346d8e2454a5306244ab76b2d79e167c0e7146d422161daf27257770198fd"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/ai/conversations/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/ai-conversations",
+        "next/server"
+      ],
+      "sourceSha256": "f0f9c5e3eaeec896d10c7c19ab3c2264e8d947a498f2e4492eaf08ba93ebd5ed"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/ai/feedback/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/agent-learning",
+        "next/server"
+      ],
+      "sourceSha256": "3577fe8fb268c642639e83c4f5e8711c7b91fe54244957db42cee0f69fac1f82"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/ai/runs/[id]/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/ai-operations",
+        "next/server"
+      ],
+      "sourceSha256": "c88f9daf9b655445bf240ce856ff5b1fb364afc9dba642513470dbe8fd5e3383"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/ai/runs/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/ai-operations",
+        "next/server"
+      ],
+      "sourceSha256": "1611a2f123a5751e7bb2c37955dd1c0b4209d003028aa0a8660e47f1bae80189"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/ai/stream/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/rate-limit",
+        "@/lib/revenue-os/ai-agent",
+        "@/lib/revenue-os/ai-conversations",
+        "@/lib/revenue-os/ai-stream-contract",
+        "next/server"
+      ],
+      "sourceSha256": "0742738061c3d609d8ee4e7ef6321316b89032e734aecad224a29401293961f7"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/analytics/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/revenue-os/analytics",
+        "@/lib/revenue-os/db",
+        "next/server"
+      ],
+      "sourceSha256": "962c2a65c89ea76b6445bf99c94f8f555d4759bd4410f0d961b2028fd0818d1e"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/campaigns/members/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/revenue-os/db",
+        "@/lib/revenue-os/identity",
+        "next/server"
+      ],
+      "sourceSha256": "4c00ab2b57f3a36bbe60928833c37f79018538f1cd9d13437a78dd289f73e86b"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/campaigns/preview/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/revenue-os/campaigns",
+        "next/server"
+      ],
+      "sourceSha256": "63eab34f9292f3f161061a89e7a528725d2dbf896236825716e6acdb3c5af3f9"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/campaigns/route.ts",
+      "handlers": [
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "PATCH",
+        "POST"
+      ],
+      "imports": [
+        "@/config/tenant",
+        "@/lib/admin/module-guard",
+        "@/lib/revenue-os/audit",
+        "@/lib/revenue-os/campaigns",
+        "@/lib/revenue-os/db",
+        "next/server"
+      ],
+      "sourceSha256": "2dabf6a6b2ec93f2ca9210444f799f7b329f82efdda3334574e850caf168950d"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/contact-imports/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/rate-limit",
+        "@/lib/revenue-os/contact-imports",
+        "next/server"
+      ],
+      "sourceSha256": "b9b099c4ac780caba3cfaf0d0360210760ae00dedcd5488af8775ad6f072c5d3"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/conversations/action/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/conversations",
+        "next/server"
+      ],
+      "sourceSha256": "337ebd5f168a4c83d8eb6a0d227e8892bad03bce4136d5227f73611388dde351"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/conversations/reply/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/actions",
+        "@/lib/revenue-os/google",
+        "next/server"
+      ],
+      "sourceSha256": "e71ad8ae4e543356b264f0cac9729f08d1ddbc9826d92bd5e4a7c37ef81f6e10"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/conversations/route.ts",
+      "handlers": [
+        "GET",
+        "PATCH"
+      ],
+      "mutationHandlers": [
+        "PATCH"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/conversations",
+        "next/server"
+      ],
+      "sourceSha256": "1b637573f2ddd5024d10ffcf0ff3626aa2c70139003630e5742f05f3bb7f3abb"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/identity-review/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/identity-review",
+        "next/server"
+      ],
+      "sourceSha256": "2236f24ce31d1a8ccedc1ef29e7101ede67e992af4d860ef5a67f4df3a9b3952"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/layout/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/admin-layout",
+        "@/lib/revenue-os/audit",
+        "next/server"
+      ],
+      "sourceSha256": "5bf242d5b14c5dcbcaf9fbaa22c3f503862fc91f0210394a1021d74dd882c5e4"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/notes/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/db",
+        "@/lib/revenue-os/notes",
+        "next/server"
+      ],
+      "sourceSha256": "cd7193530502975be0f2b5bcf1efdce44c30431dba7a545cb4ebda490837ab3b"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/overview/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/db",
+        "@/lib/revenue-os/health",
+        "@/lib/revenue-os/pipeline-stage-resolver",
+        "@/lib/revenue-os/queue",
+        "next/server"
+      ],
+      "sourceSha256": "7e83a399e4bae58775bb1923c2104ed68f97bb05d941b5d562251cf34995ba45"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/pipeline/route.ts",
+      "handlers": [
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "PATCH",
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/db",
+        "@/lib/revenue-os/pipeline",
+        "@/lib/revenue-os/pipeline-stage-resolver",
+        "next/server"
+      ],
+      "sourceSha256": "6dda6ba64af9a42010d6a0efaacb89565a12500bd6ad34e37ce30e6c7f0e4c30"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/priority/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/queue",
+        "next/server"
+      ],
+      "sourceSha256": "3d75c59864b04e91b447ab9e54a2c176d55c2db78bcd4fa1a4cd026c62d498c7"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/records/opportunity/[id]/route.ts",
+      "handlers": [
+        "GET",
+        "PATCH"
+      ],
+      "mutationHandlers": [
+        "PATCH"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/db",
+        "@/lib/revenue-os/pipeline",
+        "@/lib/revenue-os/records",
+        "next/server"
+      ],
+      "sourceSha256": "30c2a10b3b52bb46c688b87ce591329dc89dfa3a60939cdc2ac54a12ff0c9e16"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/recovery/route.ts",
+      "handlers": [
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "PATCH",
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/revenue-os/campaigns",
+        "@/lib/revenue-os/db",
+        "@/lib/revenue-os/recovery",
+        "next/server"
+      ],
+      "sourceSha256": "618f42369e72b357efd35a846c19cfa21b1e32f06d405a20ccf7cf650fc8f288"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/tasks/route.ts",
+      "handlers": [
+        "PATCH"
+      ],
+      "mutationHandlers": [
+        "PATCH"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/tasks",
+        "next/server"
+      ],
+      "sourceSha256": "342c2e36c31e200393d53bb1e7e3ef3da65356162889a14196c09241169bb88a"
+    },
+    {
+      "source": "src/app/api/admin/revenue/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "next/server"
+      ],
+      "sourceSha256": "8319d9ab6e26f5f63330b651e20c8a8f4de037136d521365f1f3244b02382967"
+    },
+    {
+      "source": "src/app/api/admin/search/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "next/server"
+      ],
+      "sourceSha256": "24e2a8ca883dc636b2650d2019bfc5845a51723cd49727e6a52737d090540f6d"
+    },
+    {
+      "source": "src/app/api/admin/send-email/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/rate-limit",
+        "@/lib/revenue-os/communications",
+        "next/server"
+      ],
+      "sourceSha256": "26c0e3bdeb629bd5b6f15b1b03d6a4c7560251482665364191c91a39ef86c8b6"
+    },
+    {
+      "source": "src/app/api/admin/settings/route.ts",
+      "handlers": [
+        "GET",
+        "PUT"
+      ],
+      "mutationHandlers": [
+        "PUT"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/admin/settings",
+        "@/lib/revenue-os/audit",
+        "next/server"
+      ],
+      "sourceSha256": "7f2356ae469f754ec265ab3f64e759533f39d7b86c462c08b05f6f7794caa62e"
+    },
+    {
+      "source": "src/app/api/admin/settings/test/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/admin/settings",
+        "@/lib/ai/openrouter",
+        "@/lib/rate-limit",
+        "next/server"
+      ],
+      "sourceSha256": "6af19b49a18255b47341cc89fc17544196b8e13687cc4787caab1b7d0a434f0b"
+    },
+    {
+      "source": "src/app/api/admin/setup/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/config/tenant",
+        "@/lib/admin/auth",
+        "@/lib/ai/openrouter-credentials",
+        "@/lib/booking",
+        "@/lib/revenue-os/ai-tools",
+        "@/lib/revenue-os/encryption",
+        "@/lib/revenue-os/google",
+        "@/lib/revenue-os/health",
+        "@/lib/revenue-os/mcp-server",
+        "@/lib/revenue-os/schema-contract",
+        "@/lib/revenue-os/setup-status",
+        "@/lib/revenue-os/types",
+        "@/lib/supabase/server",
+        "next/server"
+      ],
+      "sourceSha256": "0275110e753b02e76653f4344ee7e4ea31f29b838c6e1978d9c34682db3fe9cd"
+    },
+    {
+      "source": "src/app/api/admin/subscribers/export/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/csv",
+        "@/lib/admin/module-guard",
+        "next/server"
+      ],
+      "sourceSha256": "cfa8b9c13595ad6fb26374bc855a34f581a6eee0bc467152ed86f0bc1a04ed63"
+    },
+    {
+      "source": "src/app/api/admin/subscribers/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/revenue-os/legacy-adapter",
+        "next/server"
+      ],
+      "sourceSha256": "dadb0fc001e5ecc9e1340a1d363e0c24771f492e7e88650aa8e78f2d5a6a18e0"
+    },
+    {
+      "source": "src/app/api/admin/tasks/route.ts",
+      "handlers": [
+        "DELETE",
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "DELETE",
+        "PATCH",
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/tasks",
+        "next/server"
+      ],
+      "sourceSha256": "3aaa4b46286dc7c4d29688c8ae66163d8019f7d418ae24dd360fdb90ce731a78"
+    },
+    {
+      "source": "src/app/api/admin/tenant/branding/route.ts",
+      "handlers": [
+        "GET",
+        "PUT"
+      ],
+      "mutationHandlers": [
+        "PUT"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/branding",
+        "@/lib/revenue-os/branding-contract",
+        "@/lib/supabase/server",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "2e0f15781118af93c3948be44d3f69fa6d779a3070f6da63d2777d4cc3e0f1c1"
+    },
+    {
+      "source": "src/app/api/admin/tenant/ingest-keys/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/audit",
+        "next/server",
+        "node:crypto",
+        "zod"
+      ],
+      "sourceSha256": "32ad5ff35afaa01d3080e92d143196c4fa156ebf79a2017d6b51aa35f75eb0d0"
+    },
+    {
+      "source": "src/app/api/admin/tenant/modules/route.ts",
+      "handlers": [
+        "GET",
+        "PATCH"
+      ],
+      "mutationHandlers": [
+        "PATCH"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/module-configuration",
+        "@/lib/revenue-os/modules",
+        "@/lib/supabase/server",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "dc1583bcc102b864647b398dcacc964ebe09850b07b332a15625002a44961754"
+    },
+    {
+      "source": "src/app/api/admin/tenant/providers/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/ai/openrouter-credentials",
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/audit",
+        "@/lib/revenue-os/encryption",
+        "@/lib/revenue-os/integration-adapters",
+        "next/server",
+        "node:crypto",
+        "zod"
+      ],
+      "sourceSha256": "98503390c35407133985a8d8353e5dd782a689a4bd4ab6dd55bacdf557975e48"
+    },
+    {
+      "source": "src/app/api/admin/tenants/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/supabase/server",
+        "@/lib/tenancy/lifecycle",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "6012e4113dce8b981fc72d7f59fe96c86c3380924dffebd75d9e9987821c0b4c"
+    },
+    {
+      "source": "src/app/api/admin/website-grades/export/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/csv",
+        "@/lib/admin/module-guard",
+        "next/server"
+      ],
+      "sourceSha256": "010d8a442b984a7223fb7003e78a0ae3bafd5d98c090f996f1ed370587a60772"
+    },
+    {
+      "source": "src/app/api/admin/website-grades/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/revenue-os/legacy-adapter",
+        "next/server"
+      ],
+      "sourceSha256": "7421016a0d3d5cb10d2b9998fdb7606650ecedb975c8fe38d78682b14b649659"
+    }
+  ]
+}
