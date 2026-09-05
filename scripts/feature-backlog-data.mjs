@@ -1031,9 +1031,9 @@ export const featureBacklog = [
     title: "Finish Conversations as the unified communication inbox",
     workstream: "admin",
     phase: 2,
-    status: "planned",
+    status: "shipped",
     priority: "high",
-    owner: "claude-code:johnconnor:90538",
+    owner: "grok-4.6:johnconnor",
     description:
       "Combine synchronized Gmail, inbound forms/messages, Resend activity, and manual communication into one founder inbox with record context and reply tools.",
     acceptance: [
@@ -1416,10 +1416,11 @@ export const featureBacklog = [
   }),
   card({
     key: "de-vertical-inbound",
+    owner: "claude-code:johnconnor:9960",
     title: "Turn the roofing ingestion path into a configurable playbook",
     workstream: "foundation",
     phase: 2,
-    status: "planned",
+    status: "in_progress",
     priority: "high",
     description:
       "Replace the vertical-specific inbound capture function with one generic qualification path that takes an industry playbook as data, so roofing becomes one configuration entry instead of an exported code path that every future installation inherits.",
@@ -1473,10 +1474,11 @@ export const featureBacklog = [
   }),
   card({
     key: "command-palette-tools",
+    owner: "claude-code:johnconnor:41088",
     title: "Connect the command palette to real Revenue OS actions",
     workstream: "admin",
     phase: 3,
-    status: "planned",
+    status: "shipped",
     priority: "medium",
     description:
       "Make search and commands navigate records, create tasks/opportunities, compose messages, open setup actions, and invoke safe AI reads.",
@@ -2070,10 +2072,11 @@ export const featureBacklog = [
 
   card({
     key: "proposal-lifecycle-service",
+    owner: "claude-code:johnconnor:9960",
     title: "Complete the proposal lifecycle and version rules",
     workstream: "proposals",
     phase: 3,
-    status: "planned",
+    status: "in_progress",
     priority: "high",
     description:
       "Control draft, sent, viewed, accepted, declined, expired, and superseded states with linked contact, company, and opportunity.",
@@ -2533,7 +2536,7 @@ export const featureBacklog = [
   card({
     key: "ai-bounded-context",
     status: "planned",
-    owner: "claude-code:johnconnor:36762",
+    owner: null,
     title: "Enforce bounded AI context and grounding rules",
     workstream: "ai",
     phase: 3,
@@ -2669,10 +2672,11 @@ export const featureBacklog = [
   }),
   card({
     key: "ai-model-job-registry",
+    owner: "claude-code:johnconnor:57291",
     title: "Route every AI job through an audited model registry",
     workstream: "ai",
     phase: 4,
-    status: "planned",
+    status: "in_progress",
     priority: "medium",
     description:
       "Choose OpenRouter models by typed workload requirements instead of scattered IDs, with current capability and cost metadata, explicit activation, eval gates, and rollback.",
@@ -3074,8 +3078,8 @@ export const featureBacklog = [
   }),
   card({
     key: "system-health-report",
-    owner: "claude-code:johnconnor:26718",
-    status: "planned",
+    owner: "claude-code:johnconnor:9960",
+    status: "in_progress",
     title: "Build the system-health report and freshness thresholds",
     workstream: "operations",
     phase: 4,
@@ -3684,6 +3688,8 @@ export const featureBacklog = [
   }),
   card({
     key: "booking-mode-contract-reconciliation",
+    owner: "claude-code:johnconnor:9960",
+    status: "in_progress",
     title: "Reconcile booking activation and health truth",
     workstream: "integrations",
     phase: 2,
@@ -3897,6 +3903,8 @@ export const featureBacklog = [
   }),
   card({
     key: "won-to-delivery-handoff",
+    owner: "claude-code:johnconnor:62700",
+    status: "in_progress",
     title: "Create the won-to-delivery handoff",
     workstream: "operations",
     phase: 3,
@@ -4809,7 +4817,7 @@ export const featureBacklog = [
     title: "Run plugin code in an isolate with no ambient authority",
     workstream: "platform",
     phase: 6,
-    status: "in_progress",
+    status: "planned",
     priority: "high",
     description:
       "Plugin Platform phase 2 of 6. There is no sandbox of any kind in the tree today: no isolated-vm, no worker, no node:vm. The current seam avoids the problem by executing nothing from extensions, which is a correct invariant for a manifest but caps the platform at declarative capabilities forever. An isolate moves the boundary: plugin code runs with no database handle, no filesystem, no environment, and a default-deny egress allowlist, receiving only host bindings pre-scoped to what its manifest declared. Cold start under 50ms is a requirement rather than a goal, because event handlers fire constantly and a slow cold start makes the whole product feel dead.",

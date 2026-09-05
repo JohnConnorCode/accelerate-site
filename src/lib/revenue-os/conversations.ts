@@ -5,6 +5,9 @@ import { recordActivity } from "./activities";
 import { createRevenueTask } from "./tasks";
 import { createOpportunity } from "./pipeline";
 import { isMissingRevenueSchema } from "./db";
+import { findCanonicalContactByEmail, exactIlike } from "./identity";
+import { recordEvidence } from "./claims";
+import { proposeAction } from "./actions";
 
 export const CONVERSATIONS_CONTRACT = "revenue-os-conversations.v1";
 
@@ -571,6 +574,29 @@ export async function linkConversationRecord(
 
   if (error) throw new Error(`Could not link conversation record: ${error.message}`);
 
+  // A manual link is human truth: it outranks any later automated inference,
+  // so it is recorded on the evidence ledger as well as audit/activity.
+  const manualLinks: Array<{ field: string; value: string }> = [];
+  if (typeof input.contactId === "string" && input.contactId.trim())
+    manualLinks.push({ field: "contact_id", value: input.contactId.trim() });
+  if (typeof input.companyId === "string" && input.companyId.trim())
+    manualLinks.push({ field: "company_id", value: input.companyId.trim() });
+  if (typeof input.opportunityId === "string" && input.opportunityId.trim())
+    manualLinks.push({ field: "opportunity_id", value: input.opportunityId.trim() });
+  for (const link of manualLinks) {
+    await recordEvidence(supabase, {
+      entityType: "conversation",
+      entityId: id,
+      field: link.field,
+      proposedValue: link.value,
+      sourceType: "operator_link",
+      observation: `Founder linked conversation to ${link.field} ${link.value}`,
+      strength: "human_entered",
+      provenance: { conversation_id: id },
+      actorEmail: input.actorEmail,
+    });
+  }
+
   await Promise.all([
     recordAudit(supabase, {
       actorEmail: input.actorEmail,
@@ -693,4 +719,270 @@ export async function createTaskFromConversation(
   });
 
   return { task: res.task };
+}
+
+export const CONVERSATION_ASSOCIATION_CONTRACT = "revenue-os-conversation-association.v1";
+
+export type ParticipantOutcome = "linked" | "ambiguous" | "unknown";
+
+export interface ParticipantAssociation {
+  email: string;
+  outcome: ParticipantOutcome;
+  contactId: string | null;
+  candidates: Array<{ id: string; full_name: string; primary_email: string | null }>;
+}
+
+export interface AssociateConversationResult {
+  contract: typeof CONVERSATION_ASSOCIATION_CONTRACT;
+  conversationId: string;
+  contactId: string | null;
+  companyId: string | null;
+  opportunityId: string | null;
+  participants: ParticipantAssociation[];
+  reviewActionIds: string[];
+}
+
+/**
+ * Deterministically associate thread participants with canonical records.
+ *
+ * Exactly one exact email match links automatically with recorded evidence.
+ * Ambiguous or unknown participants never merge and never throw: each one
+ * enters a deduplicated founder review action. Existing conversation links
+ * are human or previously verified truth and are only ever filled when
+ * blank, never overwritten. No company is created here: a participant links
+ * to the canonical company already on their contact record, and a missing
+ * company stays missing rather than being invented from an email domain.
+ */
+export async function associateConversationParticipants(
+  supabase: SupabaseClient,
+  input: {
+    conversationId: string;
+    participantEmails: string[];
+    threadExternalId?: string | null;
+    actorEmail?: string;
+  },
+): Promise<AssociateConversationResult> {
+  const conversationId = input.conversationId.trim();
+  if (!conversationId) throw new Error("Conversation id is required");
+  const actorEmail = input.actorEmail?.trim() || "system";
+  const threadId = input.threadExternalId?.trim() || null;
+
+  const { data: conversation, error: convError } = await supabase
+    .from("conversations")
+    .select("id,contact_id,company_id,opportunity_id,metadata")
+    .eq("id", conversationId)
+    .maybeSingle();
+  if (convError) throw new Error(convError.message);
+  if (!conversation) throw new Error("Conversation not found");
+
+  const seen = new Set<string>();
+  const emails: string[] = [];
+  for (const raw of input.participantEmails) {
+    const email = raw.trim().toLowerCase();
+    if (!email || seen.has(email)) continue;
+    seen.add(email);
+    emails.push(email);
+  }
+
+  const participants: ParticipantAssociation[] = [];
+  for (const email of emails) {
+    let contact: { id: string; full_name: string; primary_email: string | null } | null = null;
+    let ambiguous: Array<{ id: string; full_name: string; primary_email: string | null }> = [];
+    try {
+      contact = await findCanonicalContactByEmail(supabase, email);
+    } catch (error) {
+      if (!(error instanceof Error) || !/^Ambiguous contact identity/.test(error.message)) throw error;
+      const [primary, alternate] = await Promise.all([
+        supabase
+          .from("contacts")
+          .select("id,full_name,primary_email")
+          .ilike("primary_email", exactIlike(email))
+          .limit(5),
+        supabase
+          .from("contacts")
+          .select("id,full_name,primary_email")
+          .contains("alternate_emails", [email])
+          .limit(5),
+      ]);
+      if (primary.error) throw new Error(primary.error.message);
+      if (alternate.error) throw new Error(alternate.error.message);
+      const deduped = new Map<string, { id: string; full_name: string; primary_email: string | null }>();
+      for (const row of [...(primary.data ?? []), ...(alternate.data ?? [])]) {
+        if (row && typeof row.id === "string") {
+          deduped.set(row.id, {
+            id: row.id,
+            full_name: String(row.full_name ?? ""),
+            primary_email: (row.primary_email as string) ?? null,
+          });
+        }
+      }
+      ambiguous = [...deduped.values()];
+    }
+    participants.push({
+      email,
+      outcome: contact ? "linked" : ambiguous.length ? "ambiguous" : "unknown",
+      contactId: contact?.id ?? null,
+      candidates: ambiguous,
+    });
+  }
+
+  const primary = participants.find((p) => p.contactId) ?? null;
+  let companyId: string | null = (conversation.company_id as string) ?? null;
+  if (!companyId && primary?.contactId) {
+    const { data: contactRow, error: contactError } = await supabase
+      .from("contacts")
+      .select("id,company_id")
+      .eq("id", primary.contactId)
+      .maybeSingle();
+    if (contactError) throw new Error(contactError.message);
+    companyId = (contactRow?.company_id as string) ?? null;
+  }
+
+  let opportunityId: string | null = (conversation.opportunity_id as string) ?? null;
+  if (!opportunityId && primary?.contactId) {
+    const { data: openOpps, error: oppError } = await supabase
+      .from("opportunities")
+      .select("id,stage,created_at")
+      .eq("contact_id", primary.contactId)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (oppError) throw new Error(oppError.message);
+    opportunityId =
+      (openOpps ?? []).find(
+        (opp) => (opp as Record<string, unknown>).stage !== "won" && (opp as Record<string, unknown>).stage !== "lost",
+      )?.id ?? null;
+  }
+
+  const contactId = primary?.contactId ?? ((conversation.contact_id as string) ?? null);
+
+  const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (!conversation.contact_id && contactId) patch.contact_id = contactId;
+  if (!conversation.company_id && companyId) patch.company_id = companyId;
+  if (!conversation.opportunity_id && opportunityId) patch.opportunity_id = opportunityId;
+  const association = {
+    contract: CONVERSATION_ASSOCIATION_CONTRACT,
+    status: contactId ? "linked" : participants.some((p) => p.outcome !== "linked") ? "needs_review" : "unlinked",
+    thread_id: threadId,
+    participants: participants.map((p) => ({
+      email: p.email,
+      outcome: p.outcome,
+      contact_id: p.contactId,
+    })),
+    associated_at: new Date().toISOString(),
+  };
+  patch.metadata = { ...((conversation.metadata as Record<string, unknown>) ?? {}), association };
+  const { error: patchError } = await supabase
+    .from("conversations")
+    .update(patch)
+    .eq("id", conversationId);
+  if (patchError) throw new Error(patchError.message);
+
+  for (const participant of participants) {
+    if (!participant.contactId) continue;
+    await recordEvidence(supabase, {
+      entityType: "conversation",
+      entityId: conversationId,
+      field: "contact_id",
+      proposedValue: participant.contactId,
+      sourceType: "gmail_thread",
+      sourceId: threadId,
+      observation: `Exact email match for ${participant.email}${threadId ? ` in Gmail thread ${threadId}` : ""}`,
+      strength: "verified_external",
+      provenance: {
+        participant_email: participant.email,
+        thread_id: threadId,
+        contract: CONVERSATION_ASSOCIATION_CONTRACT,
+      },
+      actorEmail,
+    });
+  }
+
+  const reviewActionIds: string[] = [];
+  for (const participant of participants) {
+    if (participant.outcome === "linked") continue;
+    const reason =
+      participant.outcome === "ambiguous"
+        ? `More than one contact matches ${participant.email}; merging would be a guess`
+        : `No canonical contact matches ${participant.email}`;
+    const proposed = await proposeAction(supabase, {
+      actionType: "identity_review",
+      title:
+        participant.outcome === "ambiguous"
+          ? `Review ambiguous participant ${participant.email}`
+          : `Review unknown participant ${participant.email}`,
+      description: `${reason}. Open the conversation, confirm the right contact or create one, then link it.`,
+      urgency: "normal",
+      payload: {
+        conversation_id: conversationId,
+        participant_email: participant.email,
+        reason: participant.outcome,
+        candidates: participant.candidates,
+        thread_id: threadId,
+      },
+      reasoning: reason,
+      sourceContext: "gmail_record_association",
+      entityType: "conversation",
+      entityId: conversationId,
+      dedupeKey: `identity-review:${conversationId}:${participant.email}`,
+      proposedBy: actorEmail,
+    });
+    if (proposed && typeof proposed === "object" && typeof (proposed as Record<string, unknown>).id === "string") {
+      reviewActionIds.push((proposed as Record<string, unknown>).id as string);
+    }
+  }
+
+  if (contactId) {
+    await recordActivity(supabase, {
+      activityType: "conversation_associated",
+      title: "Conversation linked to canonical records",
+      summary: `Deterministic Gmail association linked ${participants.filter((p) => p.contactId).length} participant(s); ${reviewActionIds.length} review action(s) proposed.`,
+      contactId,
+      companyId,
+      opportunityId,
+      conversationId,
+      actorEmail,
+      source: "gmail_sync",
+      externalId: `gmail_assoc:${conversationId}:${primary?.email ?? threadId ?? "thread"}`,
+      metadata: { thread_id: threadId, contract: CONVERSATION_ASSOCIATION_CONTRACT },
+    });
+  }
+  if (reviewActionIds.length) {
+    await recordActivity(supabase, {
+      activityType: "conversation_association_needs_review",
+      title: "Conversation participants need identity review",
+      summary: `${reviewActionIds.length} participant(s) could not be linked deterministically and entered founder review.`,
+      contactId,
+      companyId,
+      opportunityId,
+      conversationId,
+      actorEmail,
+      source: "gmail_sync",
+      externalId: `gmail_assoc_review:${conversationId}`,
+      metadata: { thread_id: threadId, contract: CONVERSATION_ASSOCIATION_CONTRACT },
+    });
+  }
+  await recordAudit(supabase, {
+    actorEmail,
+    action: "conversation.associated",
+    entityType: "conversation",
+    entityId: conversationId,
+    source: "automation",
+    after: {
+      contact_id: contactId,
+      company_id: companyId,
+      opportunity_id: opportunityId,
+      participants: association.participants,
+      review_actions: reviewActionIds,
+    },
+  });
+
+  return {
+    contract: CONVERSATION_ASSOCIATION_CONTRACT,
+    conversationId,
+    contactId,
+    companyId,
+    opportunityId,
+    participants,
+    reviewActionIds,
+  };
 }
