@@ -74,6 +74,19 @@ export default function AdminLeadsPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [showAddLead, setShowAddLead] = useState(false);
+
+  // Deep-link from the command palette ("New lead" command): open the same
+  // shared create modal the page button opens, then drop the param so a
+  // refresh does not reopen it. Validation and creation stay in the modal
+  // and POST /api/admin/leads — the palette adds no business logic.
+  // Client-only read (no useSearchParams) so static prerender never needs
+  // a Suspense boundary for it.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("create") === "1") {
+      setShowAddLead(true);
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }, []);
   const [savedViews, setSavedViews] = useState<SavedLeadsView[]>([]);
   const [showSaveView, setShowSaveView] = useState(false);
   const [viewName, setViewName] = useState("");
