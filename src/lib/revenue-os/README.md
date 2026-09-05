@@ -1,5 +1,11 @@
 # Revenue OS module map
 
+Platform implementation work uses `work-board.ts` (versioned definitions, UUID
+dependencies, fenced claims, review, scoped credentials and views),
+`work-board-mcp.ts` (MCP adapter), and `work-board-http.ts` (request/error boundary).
+It is separate from tenant business WorkItems. See
+`docs/contracts/UNIVERSAL-WORK-BOARD.md`.
+
 The full architecture and invariants live in
 `docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md`. The platform vision and
 product layers live in `docs/NORTHSTAR.md`. This directory is the authoritative

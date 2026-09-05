@@ -1,6 +1,13 @@
 import { buildDependencyGraph } from "./lib/feature-board-graph.mjs";
 
-const allowedStatuses = new Set(["backlog", "planned", "in_progress", "blocked", "shipped"]);
+const allowedStatuses = new Set([
+  "backlog",
+  "planned",
+  "in_progress",
+  "in_review",
+  "blocked",
+  "shipped",
+]);
 const allowedPriorities = new Set(["urgent", "high", "medium", "low"]);
 
 // Controlled Feature Board taxonomy. Labels are for filtering, not prose. Every
@@ -375,6 +382,8 @@ function card({
   labels = [],
   evidence = null,
   verification = null,
+  initiative = "",
+  workSpec = null,
 }) {
   const effectiveStatus = status;
   const isLoopOne = LOOP_ONE_SET.has(key);
@@ -384,6 +393,7 @@ function card({
   if (isLoopOne && effectiveStatus === "backlog")
     throw new Error(`Loop One card ${key} must be planned or further along`);
   return {
+    ...(workSpec ? { work_spec: workSpec, initiative, work_kind: "feature" } : {}),
     seed_key: key,
     title,
     description,
@@ -400,7 +410,7 @@ function card({
       `Starting points: ${start}`,
       `Guardrails / non-goals: ${guardrails}`,
       isLoopOne
-        ? `Delivery circuit: step ${LOOP_ONE.indexOf(key) + 1} of ${LOOP_ONE.length}. Board milestone: ${effectiveStatus === "shipped" ? "Done" : NOW_SET.has(key) ? "Now" : "Next"}. The circuit turns a real inquiry into an inspectable record, operator work, a receipted reply, attributed revenue, and bounded memory. Claim this card by setting Owner and in_progress; keep no more than two cards in progress at once.`
+        ? `Delivery circuit: step ${LOOP_ONE.indexOf(key) + 1} of ${LOOP_ONE.length}. Board milestone: ${effectiveStatus === "shipped" ? "Done" : NOW_SET.has(key) ? "Now" : "Next"}. The circuit turns a real inquiry into an inspectable record, operator work, a receipted reply, attributed revenue, and bounded memory. Claim this card through the scoped work protocol; the server enforces readiness and the six-card WIP limit.`
         : shelved
           ? "Board milestone: Later. This card keeps its full specification but is outside the current delivery circuit. Do not start it before Now and dependency-ready Next work unless a current card explicitly depends on it."
           : "Board milestone: Done. This card is shipped; reopen it only with new evidence that an acceptance item no longer holds.",
@@ -420,7 +430,7 @@ function card({
             `Current implementation evidence: ${[LATEST_IMPLEMENTATION_EVIDENCE[key], CURRENT_IMPLEMENTATION_EVIDENCE[key], evidence].filter(Boolean).join(" ")}`,
           ]
         : []),
-      "Agent handoff: claim the card by setting Owner, read linked services and migrations before editing, preserve unrelated worktree changes, attach test evidence in Internal notes, and move to Shipped only after every acceptance item is verified.",
+      "Agent handoff: claim through the scoped work API or CLI, read linked services and migrations before editing, preserve unrelated worktrees, and submit structured evidence for review after every acceptance item is verified.",
     ]
       .filter(Boolean)
       .join("\n\n"),
@@ -430,6 +440,1826 @@ function card({
 }
 
 export const featureBacklog = [
+  card({
+    key: "receivables-collections-plugin",
+    title: "Receivables and dispute resolution plugin",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Turn overdue invoices into a controlled collection workflow with a clear next action, fewer duplicate reminders, and a defensible record of promises and disputes. Finance observations become work tied to actual invoice balances, not guesses based on won opportunities.",
+    acceptance: [
+      "Payment arriving between approval and execution prevents the send and produces a skipped receipt.",
+      "Two invoices for one account produce one consolidated reminder with correct per-invoice balances and no currency conversion.",
+      "Dispute or pause blocks further cadence steps without deleting the invoice or previous communications.",
+      "A replayed webhook/reminder does not create a second allocation, case, WorkItem or send.",
+      "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+      "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+      "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+      "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+      "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+      "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+      "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+      "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Expose reusable typed grid and board views to business plugins",
+    ],
+    start:
+      "docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md; plugins/stripe-invoicing/workflow.js at c7da31b; src/lib/revenue-os/workflow-plugins.ts at c7da31b; src/lib/revenue-os/invoice-pages.ts at c7da31b; src/lib/revenue-os/plugins.ts; src/lib/revenue-os/plugin-isolate.ts; src/lib/revenue-os/capabilities.ts; src/lib/revenue-os/work-items.ts",
+    guardrails:
+      "No debt-sale, automatic write-offs, bank reconciliation, new payment provider, fabricated payment status or jurisdiction-specific legal collection advice. Business owner: Owner or accounts-receivable operator.\n\nTrigger: An authoritative invoice becomes overdue, a payment arrives, a promise date passes, or an operator opens a dispute.\n\nWorkflow:\n1. Read tenant-scoped invoice, payment allocation and customer communication facts; calculate outstanding minor units and aging as of a stated date.\n2. Group related invoices into one collection case per account/currency, excluding void, paid, disputed and explicitly paused obligations.\n3. AI drafts a grounded reminder with invoice links and the approved brand; the operator reviews recipients, balance, tone and cadence before any send.\n4. Re-read payment, dispute, suppression and communication state immediately before dispatch. Cancel a stale reminder if payment has settled.\n5. Record a promise-to-pay date, dispute reason, assigned owner and next action; missed promises create WorkItems instead of silently escalating tone.\n6. Close with provider-confirmed settlement or a reviewed write-off decision; retain invoice facts, receipts and case history.\n\nData and lifecycle: CollectionCase, CollectionCaseInvoice and PaymentPromise keyed by tenant plus canonical account/invoice IDs. Provider invoice/payment state remains immutable. Cases have monitoring, awaiting_approval, awaiting_payment, promised, disputed, resolved and paused states.\n\nCapability/tool contract: list_receivables (read), open_collection_case (internal_write), record_payment_promise (internal_write), propose_collection_reminder (internal_write), send_approved_collection_reminder (external_action). A reminder idempotency key includes tenant, case, cadence step and approved balance snapshot.\n\nOperator and client surfaces: A collections workspace with aging buckets, dispute/hold reasons and the next operator action; an account timeline and invoice detail extension; Today cards for overdue promises and failed reminders. AI-generated reminder content uses the canonical branded invoice page URL.\n\nFailure and recovery matrix: Partial payments, overpayments, credit notes, asynchronous settlement, mixed currencies, duplicate webhooks, timezone cutoffs, disputed invoices, stale approval, bounced mail and disabled plugins must be explicit states.\n\nDemo packet: Three fictional accounts: a partially paid invoice, an overdue promise, and a disputed balance. Exercise draft, approve, late-payment cancellation, pause, resume and settlement without Stripe or email calls.\n\nValue measurement: Time from overdue invoice to next action; collected versus open balance by currency; duplicate/stale reminder count; promise-kept rate. Report sample size and observation window.\n\nImplementation sequence: 1) Read northstar and dependency receipts; pin approved baseline commit. 2) Write schema/state/capability contract and additive migration. 3) Implement canonical services and transaction/idempotency tests. 4) Register tools, triggers, permissions and enable/disable guards. 5) Build admin/public/AI adapters on those services. 6) Add all five scenario fixtures and inspect browser evidence. 7) Exercise failure/retry/tenant isolation and submit exact commit, checks and artifacts for review.\n\nPickup gate: This is Later work. Do not start until every UUID dependency is accepted and the operator records the reconciled repository base branch/commit. References tagged c7da31b are committed donor implementations awaiting the baseline card, not files assumed to exist on every checkout.\n\nCommon non-negotiable contract: docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md. Read it in full; its cross-entrypoint, provenance, demo, migration, safety and release gates are part of this card.",
+    labels: ["finance", "plugin"],
+    verification:
+      "Run the complete verification matrix in docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md and attach evidence for every AC ID. Include local/provider proof distinctions.",
+    initiative: "Business operations plugins",
+    workSpec: {
+      businessValue:
+        "Turn overdue invoices into a controlled collection workflow with a clear next action, fewer duplicate reminders, and a defensible record of promises and disputes. Finance observations become work tied to actual invoice balances, not guesses based on won opportunities.",
+      scope: [
+        "Read tenant-scoped invoice, payment allocation and customer communication facts; calculate outstanding minor units and aging as of a stated date.",
+        "Group related invoices into one collection case per account/currency, excluding void, paid, disputed and explicitly paused obligations.",
+        "AI drafts a grounded reminder with invoice links and the approved brand; the operator reviews recipients, balance, tone and cadence before any send.",
+        "Re-read payment, dispute, suppression and communication state immediately before dispatch. Cancel a stale reminder if payment has settled.",
+        "Record a promise-to-pay date, dispute reason, assigned owner and next action; missed promises create WorkItems instead of silently escalating tone.",
+        "Close with provider-confirmed settlement or a reviewed write-off decision; retain invoice facts, receipts and case history.",
+      ],
+      exclusions: [
+        "No debt-sale, automatic write-offs, bank reconciliation, new payment provider, fabricated payment status or jurisdiction-specific legal collection advice.",
+      ],
+      references: [
+        {
+          path: "plugins/stripe-invoicing/workflow.js",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "src/lib/revenue-os/workflow-plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "src/lib/revenue-os/invoice-pages.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "src/lib/revenue-os/plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugin-isolate.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/capabilities.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+      ],
+      verification: [
+        {
+          command: "npm run verify:agent-contract",
+          expected: "Architecture, card graph and handoff contracts pass.",
+        },
+        {
+          command: "npx tsc --noEmit && npm run lint",
+          expected: "No type or lint errors introduced.",
+        },
+        {
+          command:
+            "Scoped plugin service, PostgreSQL, API and Playwright suites added by this card",
+          expected:
+            "Every acceptance ID covered; race/replay/failure/isolation and all five scenarios pass.",
+        },
+        {
+          command: "npm run build && git diff --check",
+          expected: "Exact review tree builds and diff is clean.",
+        },
+      ],
+      requiredCapabilities: ["typescript", "postgres", "playwright"],
+      workflow: [
+        "Read tenant-scoped invoice, payment allocation and customer communication facts; calculate outstanding minor units and aging as of a stated date.",
+        "Group related invoices into one collection case per account/currency, excluding void, paid, disputed and explicitly paused obligations.",
+        "AI drafts a grounded reminder with invoice links and the approved brand; the operator reviews recipients, balance, tone and cadence before any send.",
+        "Re-read payment, dispute, suppression and communication state immediately before dispatch. Cancel a stale reminder if payment has settled.",
+        "Record a promise-to-pay date, dispute reason, assigned owner and next action; missed promises create WorkItems instead of silently escalating tone.",
+        "Close with provider-confirmed settlement or a reviewed write-off decision; retain invoice facts, receipts and case history.",
+      ],
+      acceptance: [
+        {
+          id: "AC-1",
+          criterion:
+            "Payment arriving between approval and execution prevents the send and produces a skipped receipt.",
+        },
+        {
+          id: "AC-2",
+          criterion:
+            "Two invoices for one account produce one consolidated reminder with correct per-invoice balances and no currency conversion.",
+        },
+        {
+          id: "AC-3",
+          criterion:
+            "Dispute or pause blocks further cadence steps without deleting the invoice or previous communications.",
+        },
+        {
+          id: "AC-4",
+          criterion:
+            "A replayed webhook/reminder does not create a second allocation, case, WorkItem or send.",
+        },
+        {
+          id: "AC-5",
+          criterion:
+            "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+        },
+        {
+          id: "AC-6",
+          criterion:
+            "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+        },
+        {
+          id: "AC-7",
+          criterion:
+            "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+        },
+        {
+          id: "AC-8",
+          criterion:
+            "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+        },
+        {
+          id: "AC-9",
+          criterion:
+            "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+        },
+        {
+          id: "AC-10",
+          criterion:
+            "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+        },
+        {
+          id: "AC-11",
+          criterion:
+            "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+        },
+        {
+          id: "AC-12",
+          criterion:
+            "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+        },
+      ],
+    },
+  }),
+  card({
+    key: "retainer-renewals-plugin",
+    title: "Retainer entitlements and client renewals plugin",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Protect recurring revenue and service commitments by linking agreement terms, actual delivery usage, renewal decisions and invoices. Give the owner time to resolve overages or renewal risk before the next billing period.",
+    acceptance: [
+      "Replaying a period rollover creates exactly one entitlement period and at most one invoice draft.",
+      "A cancellation invalidates queued renewal communication and future invoice preparation.",
+      "Changing a current agreement does not recompute closed periods silently.",
+      "Usage corrections preserve history and produce correct allowance and overage explanations.",
+      "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+      "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+      "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+      "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+      "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+      "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+      "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+      "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Project time, billable usage and margin control plugin",
+    ],
+    start:
+      "docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md; src/lib/revenue-os/workflow-plugins.ts at c7da31b; plugins/stripe-invoicing/workflow.js at c7da31b; src/lib/revenue-os/delivery-handoff.ts; src/lib/revenue-os/plugins.ts; src/lib/revenue-os/plugin-isolate.ts; src/lib/revenue-os/capabilities.ts; src/lib/revenue-os/work-items.ts",
+    guardrails:
+      "No automatic subscription charges, subscription-ledger replacement, legal agreement drafting without review, or inferred signed consent. Business owner: Account owner and operations lead.\n\nTrigger: A signed/confirmed retainer begins, a period rolls over, usage reaches a threshold, or a renewal notice window opens.\n\nWorkflow:\n1. Record an operator-confirmed agreement version with customer, service period, timezone, currency, included units, rollover rules and notice deadline.\n2. Create deterministic period entitlements and link approved delivery/time usage without copying accounting or CRM truth.\n3. Notice remaining allowance, overage candidates and missing usage; explain calculations with source links.\n4. Draft a renewal brief and branded proposal/invoice handoff using verified terms; ask the owner to approve changed price or scope.\n5. Queue any customer reminder or invoice draft through existing governed actions; re-read agreement version and cancellation state at execution.\n6. Renew, amend, expire or cancel with an effective date while preserving prior period entitlements and commitments.\n\nData and lifecycle: ServiceAgreement, AgreementVersion, EntitlementPeriod and UsageAllocation. Versioned agreement terms are distinct from invoices and WorkItems. State: draft, confirmed, active, renewal_due, renewed, cancelled, expired.\n\nCapability/tool contract: get_retainer_position, create_agreement_draft, allocate_confirmed_usage, propose_renewal, apply_approved_amendment, prepare_period_invoice. Period identity is tenant + agreement + period-start + version; approved amendments never overwrite historical usage.\n\nOperator and client surfaces: Agreement page with period allowance, source-linked usage and notice calendar; Today renewal/overage decisions; account and invoice extensions with the exact agreement version.\n\nFailure and recovery matrix: Leap days, daylight saving, month-end anchors, cancellation during a queued run, zero usage, late corrections, rollover caps, multiple currencies and overlapping amendments require deterministic handling.\n\nDemo packet: A healthy monthly retainer, a near-limit account and a renewal requiring a scope amendment. Show period rollover, renewal approval, cancellation and missing usage in all scenarios.\n\nValue measurement: Renewals decided before notice deadline; recurring value at risk by currency; unbilled approved overage; unexplained entitlement adjustments.\n\nImplementation sequence: 1) Read northstar and dependency receipts; pin approved baseline commit. 2) Write schema/state/capability contract and additive migration. 3) Implement canonical services and transaction/idempotency tests. 4) Register tools, triggers, permissions and enable/disable guards. 5) Build admin/public/AI adapters on those services. 6) Add all five scenario fixtures and inspect browser evidence. 7) Exercise failure/retry/tenant isolation and submit exact commit, checks and artifacts for review.\n\nPickup gate: This is Later work. Do not start until every UUID dependency is accepted and the operator records the reconciled repository base branch/commit. References tagged c7da31b are committed donor implementations awaiting the baseline card, not files assumed to exist on every checkout.\n\nCommon non-negotiable contract: docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md. Read it in full; its cross-entrypoint, provenance, demo, migration, safety and release gates are part of this card.",
+    labels: ["finance", "plugin"],
+    verification:
+      "Run the complete verification matrix in docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md and attach evidence for every AC ID. Include local/provider proof distinctions.",
+    initiative: "Business operations plugins",
+    workSpec: {
+      businessValue:
+        "Protect recurring revenue and service commitments by linking agreement terms, actual delivery usage, renewal decisions and invoices. Give the owner time to resolve overages or renewal risk before the next billing period.",
+      scope: [
+        "Record an operator-confirmed agreement version with customer, service period, timezone, currency, included units, rollover rules and notice deadline.",
+        "Create deterministic period entitlements and link approved delivery/time usage without copying accounting or CRM truth.",
+        "Notice remaining allowance, overage candidates and missing usage; explain calculations with source links.",
+        "Draft a renewal brief and branded proposal/invoice handoff using verified terms; ask the owner to approve changed price or scope.",
+        "Queue any customer reminder or invoice draft through existing governed actions; re-read agreement version and cancellation state at execution.",
+        "Renew, amend, expire or cancel with an effective date while preserving prior period entitlements and commitments.",
+      ],
+      exclusions: [
+        "No automatic subscription charges, subscription-ledger replacement, legal agreement drafting without review, or inferred signed consent.",
+      ],
+      references: [
+        {
+          path: "src/lib/revenue-os/workflow-plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "plugins/stripe-invoicing/workflow.js",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "src/lib/revenue-os/delivery-handoff.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugin-isolate.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/capabilities.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+      ],
+      verification: [
+        {
+          command: "npm run verify:agent-contract",
+          expected: "Architecture, card graph and handoff contracts pass.",
+        },
+        {
+          command: "npx tsc --noEmit && npm run lint",
+          expected: "No type or lint errors introduced.",
+        },
+        {
+          command:
+            "Scoped plugin service, PostgreSQL, API and Playwright suites added by this card",
+          expected:
+            "Every acceptance ID covered; race/replay/failure/isolation and all five scenarios pass.",
+        },
+        {
+          command: "npm run build && git diff --check",
+          expected: "Exact review tree builds and diff is clean.",
+        },
+      ],
+      requiredCapabilities: ["typescript", "postgres", "playwright"],
+      workflow: [
+        "Record an operator-confirmed agreement version with customer, service period, timezone, currency, included units, rollover rules and notice deadline.",
+        "Create deterministic period entitlements and link approved delivery/time usage without copying accounting or CRM truth.",
+        "Notice remaining allowance, overage candidates and missing usage; explain calculations with source links.",
+        "Draft a renewal brief and branded proposal/invoice handoff using verified terms; ask the owner to approve changed price or scope.",
+        "Queue any customer reminder or invoice draft through existing governed actions; re-read agreement version and cancellation state at execution.",
+        "Renew, amend, expire or cancel with an effective date while preserving prior period entitlements and commitments.",
+      ],
+      acceptance: [
+        {
+          id: "AC-1",
+          criterion:
+            "Replaying a period rollover creates exactly one entitlement period and at most one invoice draft.",
+        },
+        {
+          id: "AC-2",
+          criterion:
+            "A cancellation invalidates queued renewal communication and future invoice preparation.",
+        },
+        {
+          id: "AC-3",
+          criterion: "Changing a current agreement does not recompute closed periods silently.",
+        },
+        {
+          id: "AC-4",
+          criterion:
+            "Usage corrections preserve history and produce correct allowance and overage explanations.",
+        },
+        {
+          id: "AC-5",
+          criterion:
+            "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+        },
+        {
+          id: "AC-6",
+          criterion:
+            "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+        },
+        {
+          id: "AC-7",
+          criterion:
+            "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+        },
+        {
+          id: "AC-8",
+          criterion:
+            "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+        },
+        {
+          id: "AC-9",
+          criterion:
+            "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+        },
+        {
+          id: "AC-10",
+          criterion:
+            "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+        },
+        {
+          id: "AC-11",
+          criterion:
+            "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+        },
+        {
+          id: "AC-12",
+          criterion:
+            "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+        },
+      ],
+    },
+  }),
+  card({
+    key: "scope-change-control-plugin",
+    title: "Scope change and commercial approval plugin",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Prevent unpriced work and lost margin by making a client request traceable to a reviewed impact, approved commercial change and delivery update. Keep teams from treating an informal chat message as permission to expand scope.",
+    acceptance: [
+      "A client decision for an older document cannot approve the newer revision.",
+      "An AI estimate or informal affirmative message never authorizes billing or delivery expansion.",
+      "Applying approval twice creates one delivery change and one invoice-draft linkage.",
+      "A declined or expired change preserves the original project commitments.",
+      "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+      "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+      "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+      "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+      "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+      "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+      "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+      "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Client deliverable review and approval room plugin",
+      "Project time, billable usage and margin control plugin",
+    ],
+    start:
+      "docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md; src/lib/revenue-os/delivery-handoff.ts; src/app/api/admin/proposals/route.ts; src/lib/revenue-os/invoice-pages.ts at c7da31b; src/lib/revenue-os/plugins.ts; src/lib/revenue-os/plugin-isolate.ts; src/lib/revenue-os/capabilities.ts; src/lib/revenue-os/work-items.ts",
+    guardrails:
+      "No replacing proposal lifecycle, automatic contract acceptance, silent scope mutation or automatic customer sending. Business owner: Project lead, account owner and client decision-maker.\n\nTrigger: A new request or delivery exception may exceed an approved proposal, estimate or agreement version.\n\nWorkflow:\n1. Capture the request from a canonical conversation/task and link the current approved scope version, customer and project.\n2. AI compares the request to source-backed scope and drafts an impact assessment with assumptions, missing facts, effort range and risks.\n3. The owner edits price, schedule and acceptance; approval freezes a change-order version and its presented document.\n4. The client reviews the scoped page and explicitly approves or declines that exact version.\n5. Only confirmed approval updates delivery commitments and prepares an invoice/proposal amendment through existing services.\n6. Record implementation and verification against the approved change, including superseded versions and rejected alternatives.\n\nData and lifecycle: ChangeRequest, ChangeAssessment, ChangeOrderVersion and ChangeDecision; tenant-composite references to project, opportunity, proposal, document version and resulting delivery work. State: captured, assessing, internal_review, client_review, approved, declined, superseded, implemented.\n\nCapability/tool contract: capture_scope_change, draft_change_assessment, submit_change_for_internal_review, publish_approved_change, record_client_change_decision, apply_approved_change. Application key is tenant + approved change version; decisions are immutable facts.\n\nOperator and client surfaces: Project scope ledger, compare-before/after review, client-branded change page and Today approval/blocked-delivery tasks. Surface assumptions separately from fixed price and dates.\n\nFailure and recovery matrix: Concurrent client decisions, changed source scope, partial approval, approval after expiry, duplicate inbound requests, withdrawn orders and provider failures must not mutate delivery.\n\nDemo packet: An extra deliverable, an urgent timeline request and a withdrawn request; include conflicting source scope, internal revision and client rejection.\n\nValue measurement: Approved changes billed; unapproved scope work started; change decision cycle time; estimated versus delivered effort with stated sample size.\n\nImplementation sequence: 1) Read northstar and dependency receipts; pin approved baseline commit. 2) Write schema/state/capability contract and additive migration. 3) Implement canonical services and transaction/idempotency tests. 4) Register tools, triggers, permissions and enable/disable guards. 5) Build admin/public/AI adapters on those services. 6) Add all five scenario fixtures and inspect browser evidence. 7) Exercise failure/retry/tenant isolation and submit exact commit, checks and artifacts for review.\n\nPickup gate: This is Later work. Do not start until every UUID dependency is accepted and the operator records the reconciled repository base branch/commit. References tagged c7da31b are committed donor implementations awaiting the baseline card, not files assumed to exist on every checkout.\n\nCommon non-negotiable contract: docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md. Read it in full; its cross-entrypoint, provenance, demo, migration, safety and release gates are part of this card.",
+    labels: ["operations", "plugin"],
+    verification:
+      "Run the complete verification matrix in docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md and attach evidence for every AC ID. Include local/provider proof distinctions.",
+    initiative: "Business operations plugins",
+    workSpec: {
+      businessValue:
+        "Prevent unpriced work and lost margin by making a client request traceable to a reviewed impact, approved commercial change and delivery update. Keep teams from treating an informal chat message as permission to expand scope.",
+      scope: [
+        "Capture the request from a canonical conversation/task and link the current approved scope version, customer and project.",
+        "AI compares the request to source-backed scope and drafts an impact assessment with assumptions, missing facts, effort range and risks.",
+        "The owner edits price, schedule and acceptance; approval freezes a change-order version and its presented document.",
+        "The client reviews the scoped page and explicitly approves or declines that exact version.",
+        "Only confirmed approval updates delivery commitments and prepares an invoice/proposal amendment through existing services.",
+        "Record implementation and verification against the approved change, including superseded versions and rejected alternatives.",
+      ],
+      exclusions: [
+        "No replacing proposal lifecycle, automatic contract acceptance, silent scope mutation or automatic customer sending.",
+      ],
+      references: [
+        {
+          path: "src/lib/revenue-os/delivery-handoff.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/app/api/admin/proposals/route.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/invoice-pages.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "src/lib/revenue-os/plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugin-isolate.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/capabilities.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+      ],
+      verification: [
+        {
+          command: "npm run verify:agent-contract",
+          expected: "Architecture, card graph and handoff contracts pass.",
+        },
+        {
+          command: "npx tsc --noEmit && npm run lint",
+          expected: "No type or lint errors introduced.",
+        },
+        {
+          command:
+            "Scoped plugin service, PostgreSQL, API and Playwright suites added by this card",
+          expected:
+            "Every acceptance ID covered; race/replay/failure/isolation and all five scenarios pass.",
+        },
+        {
+          command: "npm run build && git diff --check",
+          expected: "Exact review tree builds and diff is clean.",
+        },
+      ],
+      requiredCapabilities: ["typescript", "postgres", "playwright"],
+      workflow: [
+        "Capture the request from a canonical conversation/task and link the current approved scope version, customer and project.",
+        "AI compares the request to source-backed scope and drafts an impact assessment with assumptions, missing facts, effort range and risks.",
+        "The owner edits price, schedule and acceptance; approval freezes a change-order version and its presented document.",
+        "The client reviews the scoped page and explicitly approves or declines that exact version.",
+        "Only confirmed approval updates delivery commitments and prepares an invoice/proposal amendment through existing services.",
+        "Record implementation and verification against the approved change, including superseded versions and rejected alternatives.",
+      ],
+      acceptance: [
+        {
+          id: "AC-1",
+          criterion: "A client decision for an older document cannot approve the newer revision.",
+        },
+        {
+          id: "AC-2",
+          criterion:
+            "An AI estimate or informal affirmative message never authorizes billing or delivery expansion.",
+        },
+        {
+          id: "AC-3",
+          criterion:
+            "Applying approval twice creates one delivery change and one invoice-draft linkage.",
+        },
+        {
+          id: "AC-4",
+          criterion: "A declined or expired change preserves the original project commitments.",
+        },
+        {
+          id: "AC-5",
+          criterion:
+            "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+        },
+        {
+          id: "AC-6",
+          criterion:
+            "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+        },
+        {
+          id: "AC-7",
+          criterion:
+            "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+        },
+        {
+          id: "AC-8",
+          criterion:
+            "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+        },
+        {
+          id: "AC-9",
+          criterion:
+            "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+        },
+        {
+          id: "AC-10",
+          criterion:
+            "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+        },
+        {
+          id: "AC-11",
+          criterion:
+            "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+        },
+        {
+          id: "AC-12",
+          criterion:
+            "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+        },
+      ],
+    },
+  }),
+  card({
+    key: "client-approval-room-plugin",
+    title: "Client deliverable review and approval room plugin",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Replace scattered approval threads with a single customer-facing review workflow that identifies exactly which deliverable version was approved and what the team must change next.",
+    acceptance: [
+      "A forwarded or cross-tenant link cannot read another room or impersonate an authorized reviewer.",
+      "Approval binds to the presented version and cannot carry over automatically to a replacement.",
+      "All-required-reviewer policy blocks completion until every required decision is present.",
+      "Provider failure leaves an unsent invite receipt and safe retry; no false delivered badge.",
+      "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+      "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+      "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+      "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+      "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+      "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+      "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+      "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Expose reusable typed grid and board views to business plugins",
+    ],
+    start:
+      "docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md; src/lib/revenue-os/invoice-pages.ts at c7da31b; src/lib/revenue-os/invoice-page-contract.ts at c7da31b; src/lib/revenue-os/branding.ts at c7da31b; src/lib/revenue-os/plugins.ts; src/lib/revenue-os/plugin-isolate.ts; src/lib/revenue-os/capabilities.ts; src/lib/revenue-os/work-items.ts",
+    guardrails:
+      "No general file-sharing service, public unrestricted documents, e-signature claims, new design system or automatic legal acceptance. Business owner: Delivery owner and explicitly invited customer reviewers.\n\nTrigger: A deliverable version is ready for external review or a review deadline is approaching.\n\nWorkflow:\n1. Register a deliverable version using canonical project and document/asset IDs; copy no raw private files into an unaudited store.\n2. Choose exact reviewers and approval policy: named approver or all required reviewers; freeze the presented version and expiry.\n3. Publish a branded, accessible review room through the shared record-view contract and approved invitation action.\n4. Capture comments, requested changes and explicit decisions against that version; show who can decide and what is still pending.\n5. Close only when the policy is satisfied; create delivery rework WorkItems for changes and clear related approval blockers.\n6. Revisions invalidate old pending approvals and preserve previous decisions and artifacts for audit.\n\nData and lifecycle: Deliverable, DeliverableVersion, ReviewRound, ReviewAssignment and ReviewDecision. Invite identity is tenant + reviewer + room + scope; token hash/expiry/revocation follows the existing public document access contract.\n\nCapability/tool contract: prepare_review_round, invite_approved_reviewers, record_review_comment, decide_deliverable_version, close_review_round. Public writes verify token scope, reviewer authority, document version, expiry and request idempotency.\n\nOperator and client surfaces: Branded review room with document preview, accessible change summary, comment thread and clear approve/request-changes actions; admin approval inbox and account/project activity extensions.\n\nFailure and recovery matrix: Forwarded links, revoked reviewers, expired invitations, reassigned approvers, conflicting decisions, replaced assets, unavailable previews and unsent invites must be visible and safe.\n\nDemo packet: One approved room, one with requested revisions, and one waiting for a second reviewer; include revoked/expired access and unavailable preview fixtures.\n\nValue measurement: Review cycle time; overdue review rounds; rework loops; approval policy exceptions; source-linked approval completeness.\n\nImplementation sequence: 1) Read northstar and dependency receipts; pin approved baseline commit. 2) Write schema/state/capability contract and additive migration. 3) Implement canonical services and transaction/idempotency tests. 4) Register tools, triggers, permissions and enable/disable guards. 5) Build admin/public/AI adapters on those services. 6) Add all five scenario fixtures and inspect browser evidence. 7) Exercise failure/retry/tenant isolation and submit exact commit, checks and artifacts for review.\n\nPickup gate: This is Later work. Do not start until every UUID dependency is accepted and the operator records the reconciled repository base branch/commit. References tagged c7da31b are committed donor implementations awaiting the baseline card, not files assumed to exist on every checkout.\n\nCommon non-negotiable contract: docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md. Read it in full; its cross-entrypoint, provenance, demo, migration, safety and release gates are part of this card.",
+    labels: ["operations", "plugin"],
+    verification:
+      "Run the complete verification matrix in docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md and attach evidence for every AC ID. Include local/provider proof distinctions.",
+    initiative: "Business operations plugins",
+    workSpec: {
+      businessValue:
+        "Replace scattered approval threads with a single customer-facing review workflow that identifies exactly which deliverable version was approved and what the team must change next.",
+      scope: [
+        "Register a deliverable version using canonical project and document/asset IDs; copy no raw private files into an unaudited store.",
+        "Choose exact reviewers and approval policy: named approver or all required reviewers; freeze the presented version and expiry.",
+        "Publish a branded, accessible review room through the shared record-view contract and approved invitation action.",
+        "Capture comments, requested changes and explicit decisions against that version; show who can decide and what is still pending.",
+        "Close only when the policy is satisfied; create delivery rework WorkItems for changes and clear related approval blockers.",
+        "Revisions invalidate old pending approvals and preserve previous decisions and artifacts for audit.",
+      ],
+      exclusions: [
+        "No general file-sharing service, public unrestricted documents, e-signature claims, new design system or automatic legal acceptance.",
+      ],
+      references: [
+        {
+          path: "src/lib/revenue-os/invoice-pages.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "src/lib/revenue-os/invoice-page-contract.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "src/lib/revenue-os/branding.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "src/lib/revenue-os/plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugin-isolate.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/capabilities.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+      ],
+      verification: [
+        {
+          command: "npm run verify:agent-contract",
+          expected: "Architecture, card graph and handoff contracts pass.",
+        },
+        {
+          command: "npx tsc --noEmit && npm run lint",
+          expected: "No type or lint errors introduced.",
+        },
+        {
+          command:
+            "Scoped plugin service, PostgreSQL, API and Playwright suites added by this card",
+          expected:
+            "Every acceptance ID covered; race/replay/failure/isolation and all five scenarios pass.",
+        },
+        {
+          command: "npm run build && git diff --check",
+          expected: "Exact review tree builds and diff is clean.",
+        },
+      ],
+      requiredCapabilities: ["typescript", "postgres", "playwright"],
+      workflow: [
+        "Register a deliverable version using canonical project and document/asset IDs; copy no raw private files into an unaudited store.",
+        "Choose exact reviewers and approval policy: named approver or all required reviewers; freeze the presented version and expiry.",
+        "Publish a branded, accessible review room through the shared record-view contract and approved invitation action.",
+        "Capture comments, requested changes and explicit decisions against that version; show who can decide and what is still pending.",
+        "Close only when the policy is satisfied; create delivery rework WorkItems for changes and clear related approval blockers.",
+        "Revisions invalidate old pending approvals and preserve previous decisions and artifacts for audit.",
+      ],
+      acceptance: [
+        {
+          id: "AC-1",
+          criterion:
+            "A forwarded or cross-tenant link cannot read another room or impersonate an authorized reviewer.",
+        },
+        {
+          id: "AC-2",
+          criterion:
+            "Approval binds to the presented version and cannot carry over automatically to a replacement.",
+        },
+        {
+          id: "AC-3",
+          criterion:
+            "All-required-reviewer policy blocks completion until every required decision is present.",
+        },
+        {
+          id: "AC-4",
+          criterion:
+            "Provider failure leaves an unsent invite receipt and safe retry; no false delivered badge.",
+        },
+        {
+          id: "AC-5",
+          criterion:
+            "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+        },
+        {
+          id: "AC-6",
+          criterion:
+            "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+        },
+        {
+          id: "AC-7",
+          criterion:
+            "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+        },
+        {
+          id: "AC-8",
+          criterion:
+            "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+        },
+        {
+          id: "AC-9",
+          criterion:
+            "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+        },
+        {
+          id: "AC-10",
+          criterion:
+            "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+        },
+        {
+          id: "AC-11",
+          criterion:
+            "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+        },
+        {
+          id: "AC-12",
+          criterion:
+            "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+        },
+      ],
+    },
+  }),
+  card({
+    key: "delivery-capacity-plugin",
+    title: "Delivery capacity and assignment planning plugin",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Give the business a realistic delivery promise by connecting committed work, availability and skills. Turn overload or missed coverage into explicit scheduling decisions before a customer deadline is missed.",
+    acceptance: [
+      "Two planners cannot both consume the same remaining capacity without a visible conflict or reviewed override.",
+      "Unknown effort appears as unknown, never zero.",
+      "Disabled membership cannot receive a new assignment; historical allocations remain inspectable.",
+      "AI suggestions do not alter assignments until the same reviewed service accepts them.",
+      "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+      "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+      "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+      "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+      "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+      "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+      "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+      "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Create the won-to-delivery handoff",
+    ],
+    start:
+      "docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md; src/lib/revenue-os/delivery-handoff.ts; src/lib/revenue-os/work-items.ts; src/lib/revenue-os/capabilities.ts; src/lib/revenue-os/plugins.ts; src/lib/revenue-os/plugin-isolate.ts; src/lib/revenue-os/capabilities.ts; src/lib/revenue-os/work-items.ts",
+    guardrails:
+      "No payroll, employee surveillance, autonomous staff evaluation, calendar-provider replacement or automatic client deadline changes. Business owner: Operations lead and delivery managers.\n\nTrigger: A project is won, scope changes, a person becomes unavailable, or capacity falls below a required delivery commitment.\n\nWorkflow:\n1. Define tenant members/resources, working calendars, availability exceptions and operator-confirmed skills; link existing delivery WorkItems and target dates.\n2. Compute capacity from planned effort and approved allocations with stated timezone and horizon; distinguish unknown estimates from free capacity.\n3. AI proposes explainable assignments or rescheduling options using bounded resource and project context.\n4. The manager reviews impact on dates, conflicting commitments, workload and required skills before committing a versioned allocation plan.\n5. Re-read availability and allocation revisions atomically; reject overbooking unless an authorized, reasoned override is recorded.\n6. Create operator exceptions for drift; feed delivery dates and committed allocations to projects and Today without sending customer promises automatically.\n\nData and lifecycle: ResourceCalendar, AvailabilityException, AllocationPlan, WorkAllocation and CapacityOverride referencing tenant membership and canonical delivery work. Planning states are draft, reviewed, committed, superseded; allocations retain source estimates and units.\n\nCapability/tool contract: read_delivery_capacity, propose_assignment_plan, commit_reviewed_allocation, record_availability_exception, release_allocation. Commit compares every affected allocation/calendar revision in one transaction.\n\nOperator and client surfaces: Accessible week/list planner, unassigned work queue, overload explanation and project capacity extension. Provide keyboard alternatives to dragging and mobile decision views.\n\nFailure and recovery matrix: Part-time calendars, leave, DST, cross-timezone teams, fractional estimates, unknown effort, deleted membership, simultaneous planners and cancelled delivery work require tests.\n\nDemo packet: One overloaded specialist, an available generalist and an unestimated project; demonstrate leave, conflicting plans, reassignment and cancellation.\n\nValue measurement: Committed load versus known capacity; unassigned deadline-bearing work; overload overrides; schedule variance. Avoid using utilization alone as a people performance score.\n\nImplementation sequence: 1) Read northstar and dependency receipts; pin approved baseline commit. 2) Write schema/state/capability contract and additive migration. 3) Implement canonical services and transaction/idempotency tests. 4) Register tools, triggers, permissions and enable/disable guards. 5) Build admin/public/AI adapters on those services. 6) Add all five scenario fixtures and inspect browser evidence. 7) Exercise failure/retry/tenant isolation and submit exact commit, checks and artifacts for review.\n\nPickup gate: This is Later work. Do not start until every UUID dependency is accepted and the operator records the reconciled repository base branch/commit. References tagged c7da31b are committed donor implementations awaiting the baseline card, not files assumed to exist on every checkout.\n\nCommon non-negotiable contract: docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md. Read it in full; its cross-entrypoint, provenance, demo, migration, safety and release gates are part of this card.",
+    labels: ["operations", "plugin"],
+    verification:
+      "Run the complete verification matrix in docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md and attach evidence for every AC ID. Include local/provider proof distinctions.",
+    initiative: "Business operations plugins",
+    workSpec: {
+      businessValue:
+        "Give the business a realistic delivery promise by connecting committed work, availability and skills. Turn overload or missed coverage into explicit scheduling decisions before a customer deadline is missed.",
+      scope: [
+        "Define tenant members/resources, working calendars, availability exceptions and operator-confirmed skills; link existing delivery WorkItems and target dates.",
+        "Compute capacity from planned effort and approved allocations with stated timezone and horizon; distinguish unknown estimates from free capacity.",
+        "AI proposes explainable assignments or rescheduling options using bounded resource and project context.",
+        "The manager reviews impact on dates, conflicting commitments, workload and required skills before committing a versioned allocation plan.",
+        "Re-read availability and allocation revisions atomically; reject overbooking unless an authorized, reasoned override is recorded.",
+        "Create operator exceptions for drift; feed delivery dates and committed allocations to projects and Today without sending customer promises automatically.",
+      ],
+      exclusions: [
+        "No payroll, employee surveillance, autonomous staff evaluation, calendar-provider replacement or automatic client deadline changes.",
+      ],
+      references: [
+        {
+          path: "src/lib/revenue-os/delivery-handoff.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/capabilities.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugin-isolate.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/capabilities.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+      ],
+      verification: [
+        {
+          command: "npm run verify:agent-contract",
+          expected: "Architecture, card graph and handoff contracts pass.",
+        },
+        {
+          command: "npx tsc --noEmit && npm run lint",
+          expected: "No type or lint errors introduced.",
+        },
+        {
+          command:
+            "Scoped plugin service, PostgreSQL, API and Playwright suites added by this card",
+          expected:
+            "Every acceptance ID covered; race/replay/failure/isolation and all five scenarios pass.",
+        },
+        {
+          command: "npm run build && git diff --check",
+          expected: "Exact review tree builds and diff is clean.",
+        },
+      ],
+      requiredCapabilities: ["typescript", "postgres", "playwright"],
+      workflow: [
+        "Define tenant members/resources, working calendars, availability exceptions and operator-confirmed skills; link existing delivery WorkItems and target dates.",
+        "Compute capacity from planned effort and approved allocations with stated timezone and horizon; distinguish unknown estimates from free capacity.",
+        "AI proposes explainable assignments or rescheduling options using bounded resource and project context.",
+        "The manager reviews impact on dates, conflicting commitments, workload and required skills before committing a versioned allocation plan.",
+        "Re-read availability and allocation revisions atomically; reject overbooking unless an authorized, reasoned override is recorded.",
+        "Create operator exceptions for drift; feed delivery dates and committed allocations to projects and Today without sending customer promises automatically.",
+      ],
+      acceptance: [
+        {
+          id: "AC-1",
+          criterion:
+            "Two planners cannot both consume the same remaining capacity without a visible conflict or reviewed override.",
+        },
+        {
+          id: "AC-2",
+          criterion: "Unknown effort appears as unknown, never zero.",
+        },
+        {
+          id: "AC-3",
+          criterion:
+            "Disabled membership cannot receive a new assignment; historical allocations remain inspectable.",
+        },
+        {
+          id: "AC-4",
+          criterion:
+            "AI suggestions do not alter assignments until the same reviewed service accepts them.",
+        },
+        {
+          id: "AC-5",
+          criterion:
+            "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+        },
+        {
+          id: "AC-6",
+          criterion:
+            "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+        },
+        {
+          id: "AC-7",
+          criterion:
+            "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+        },
+        {
+          id: "AC-8",
+          criterion:
+            "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+        },
+        {
+          id: "AC-9",
+          criterion:
+            "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+        },
+        {
+          id: "AC-10",
+          criterion:
+            "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+        },
+        {
+          id: "AC-11",
+          criterion:
+            "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+        },
+        {
+          id: "AC-12",
+          criterion:
+            "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+        },
+      ],
+    },
+  }),
+  card({
+    key: "project-time-margin-plugin",
+    title: "Project time, billable usage and margin control plugin",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Make project economics actionable by turning approved time and costs into billable usage, invoice preparation and margin exceptions. Distinguish estimates, earned/billable value, invoiced value and received cash.",
+    acceptance: [
+      "Approved usage can be attached to billing once; concurrent invoice preparation cannot double bill.",
+      "A rate change does not alter already approved or billed usage.",
+      "Unknown cost or revenue cannot be shown as zero or a trustworthy margin percentage.",
+      "A user without cost permission cannot read cost rates through UI, tools, exports or record extensions.",
+      "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+      "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+      "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+      "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+      "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+      "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+      "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+      "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Create the won-to-delivery handoff",
+    ],
+    start:
+      "docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md; src/lib/revenue-os/workflow-plugins.ts at c7da31b; plugins/stripe-invoicing/workflow.js at c7da31b; src/lib/revenue-os/delivery-handoff.ts; src/lib/revenue-os/plugins.ts; src/lib/revenue-os/plugin-isolate.ts; src/lib/revenue-os/capabilities.ts; src/lib/revenue-os/work-items.ts",
+    guardrails:
+      "No payroll processing, tax advice, inferred employee productivity ranking, currency conversion without a verified policy or edits to provider invoice facts. Business owner: Delivery contributor, project approver and business owner.\n\nTrigger: Work is performed, an approval period closes, or estimated/actual project cost crosses an approved threshold.\n\nWorkflow:\n1. Capture time against canonical project/task IDs with service date, duration, billable classification and a versioned rate/cost reference.\n2. Submit a period for review; the approver can request corrections or approve exact entries, with conflict and overlap checks.\n3. Aggregate approved usage in integer minutes and money minor units using explicit rounding and currency rules.\n4. Prepare invoice line candidates or retainer usage allocations through the shared invoicing/agreement service; require commercial approval before issue.\n5. Show explainable margin-at-completion ranges using confirmed revenue and known costs, keeping missing cost rates visible.\n6. Correct approved entries with a compensating adjustment and reconciliation work rather than rewriting a sent invoice.\n\nData and lifecycle: TimeEntry, TimeSubmission, TimeDecision, RateVersion, BillableUsage and UsageBillingLink. Costs and rates are restricted to authorized roles; usage links canonical task/project and invoice line IDs.\n\nCapability/tool contract: record_project_time, submit_time_period, decide_time_submission, prepare_billable_usage, propose_usage_invoice, reconcile_usage_adjustment. Billing dedupe is tenant + approved usage ID; approval snapshots rate version and rounding policy.\n\nOperator and client surfaces: Fast time entry, review inbox, project economics detail and invoice usage trace. Contributors see their entries while restricted cost/margin data stays out of unauthorized UI and AI context.\n\nFailure and recovery matrix: Overlapping entries, overnight work, zero/negative duration, retroactive rates, partially billed usage, write-offs, multiple currencies, missing costs and duplicate submissions require deterministic outcomes.\n\nDemo packet: A fixed-fee project with margin pressure, a time-and-materials engagement awaiting approval, and a retainer usage correction. Include missing rates and an already billed entry.\n\nValue measurement: Approved unbilled usage; approval delay; known-cost coverage; project margin variance by currency with assumptions exposed.\n\nImplementation sequence: 1) Read northstar and dependency receipts; pin approved baseline commit. 2) Write schema/state/capability contract and additive migration. 3) Implement canonical services and transaction/idempotency tests. 4) Register tools, triggers, permissions and enable/disable guards. 5) Build admin/public/AI adapters on those services. 6) Add all five scenario fixtures and inspect browser evidence. 7) Exercise failure/retry/tenant isolation and submit exact commit, checks and artifacts for review.\n\nPickup gate: This is Later work. Do not start until every UUID dependency is accepted and the operator records the reconciled repository base branch/commit. References tagged c7da31b are committed donor implementations awaiting the baseline card, not files assumed to exist on every checkout.\n\nCommon non-negotiable contract: docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md. Read it in full; its cross-entrypoint, provenance, demo, migration, safety and release gates are part of this card.",
+    labels: ["finance", "plugin"],
+    verification:
+      "Run the complete verification matrix in docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md and attach evidence for every AC ID. Include local/provider proof distinctions.",
+    initiative: "Business operations plugins",
+    workSpec: {
+      businessValue:
+        "Make project economics actionable by turning approved time and costs into billable usage, invoice preparation and margin exceptions. Distinguish estimates, earned/billable value, invoiced value and received cash.",
+      scope: [
+        "Capture time against canonical project/task IDs with service date, duration, billable classification and a versioned rate/cost reference.",
+        "Submit a period for review; the approver can request corrections or approve exact entries, with conflict and overlap checks.",
+        "Aggregate approved usage in integer minutes and money minor units using explicit rounding and currency rules.",
+        "Prepare invoice line candidates or retainer usage allocations through the shared invoicing/agreement service; require commercial approval before issue.",
+        "Show explainable margin-at-completion ranges using confirmed revenue and known costs, keeping missing cost rates visible.",
+        "Correct approved entries with a compensating adjustment and reconciliation work rather than rewriting a sent invoice.",
+      ],
+      exclusions: [
+        "No payroll processing, tax advice, inferred employee productivity ranking, currency conversion without a verified policy or edits to provider invoice facts.",
+      ],
+      references: [
+        {
+          path: "src/lib/revenue-os/workflow-plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "plugins/stripe-invoicing/workflow.js",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "src/lib/revenue-os/delivery-handoff.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugin-isolate.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/capabilities.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+      ],
+      verification: [
+        {
+          command: "npm run verify:agent-contract",
+          expected: "Architecture, card graph and handoff contracts pass.",
+        },
+        {
+          command: "npx tsc --noEmit && npm run lint",
+          expected: "No type or lint errors introduced.",
+        },
+        {
+          command:
+            "Scoped plugin service, PostgreSQL, API and Playwright suites added by this card",
+          expected:
+            "Every acceptance ID covered; race/replay/failure/isolation and all five scenarios pass.",
+        },
+        {
+          command: "npm run build && git diff --check",
+          expected: "Exact review tree builds and diff is clean.",
+        },
+      ],
+      requiredCapabilities: ["typescript", "postgres", "playwright"],
+      workflow: [
+        "Capture time against canonical project/task IDs with service date, duration, billable classification and a versioned rate/cost reference.",
+        "Submit a period for review; the approver can request corrections or approve exact entries, with conflict and overlap checks.",
+        "Aggregate approved usage in integer minutes and money minor units using explicit rounding and currency rules.",
+        "Prepare invoice line candidates or retainer usage allocations through the shared invoicing/agreement service; require commercial approval before issue.",
+        "Show explainable margin-at-completion ranges using confirmed revenue and known costs, keeping missing cost rates visible.",
+        "Correct approved entries with a compensating adjustment and reconciliation work rather than rewriting a sent invoice.",
+      ],
+      acceptance: [
+        {
+          id: "AC-1",
+          criterion:
+            "Approved usage can be attached to billing once; concurrent invoice preparation cannot double bill.",
+        },
+        {
+          id: "AC-2",
+          criterion: "A rate change does not alter already approved or billed usage.",
+        },
+        {
+          id: "AC-3",
+          criterion:
+            "Unknown cost or revenue cannot be shown as zero or a trustworthy margin percentage.",
+        },
+        {
+          id: "AC-4",
+          criterion:
+            "A user without cost permission cannot read cost rates through UI, tools, exports or record extensions.",
+        },
+        {
+          id: "AC-5",
+          criterion:
+            "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+        },
+        {
+          id: "AC-6",
+          criterion:
+            "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+        },
+        {
+          id: "AC-7",
+          criterion:
+            "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+        },
+        {
+          id: "AC-8",
+          criterion:
+            "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+        },
+        {
+          id: "AC-9",
+          criterion:
+            "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+        },
+        {
+          id: "AC-10",
+          criterion:
+            "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+        },
+        {
+          id: "AC-11",
+          criterion:
+            "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+        },
+        {
+          id: "AC-12",
+          criterion:
+            "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+        },
+      ],
+    },
+  }),
+  card({
+    key: "client-document-intake-plugin",
+    title: "Client document and access readiness plugin",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Unblock onboarding and delivery by tracking exactly which client documents, information and access grants are missing, who owns the request and whether the submitted material is actually usable.",
+    acceptance: [
+      "A model completeness suggestion cannot mark a requirement accepted.",
+      "One client cannot list, attach or download another client’s evidence.",
+      "Revoked/expired evidence blocks only dependent work and preserves the previous reviewed state.",
+      "Password/API-key instructions are excluded; access uses existing connection/authorization flows.",
+      "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+      "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+      "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+      "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+      "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+      "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+      "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+      "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Client deliverable review and approval room plugin",
+    ],
+    start:
+      "docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md; plugins/client-onboarding/workflow.js at c7da31b; src/lib/revenue-os/workflow-plugins.ts at c7da31b; src/lib/revenue-os/knowledge.ts; src/lib/revenue-os/plugins.ts; src/lib/revenue-os/plugin-isolate.ts; src/lib/revenue-os/capabilities.ts; src/lib/revenue-os/work-items.ts",
+    guardrails:
+      "No new object-storage provider, plaintext secret collection, automatic document acceptance or blanket public client portal access. Business owner: Onboarding coordinator, delivery lead and client contact.\n\nTrigger: An approved onboarding/delivery recipe requires client-supplied documents or access, or previously accepted material expires.\n\nWorkflow:\n1. Instantiate a versioned requirement checklist for the canonical customer/project with explicit purpose, owner, allowed evidence type and expiry.\n2. Present a branded client checklist through the shared room contract; invite only approved contacts using the governed send path.\n3. Receive a scoped document reference or access-confirmation evidence through existing storage/Drive boundaries; never collect passwords or API keys in free text.\n4. AI classifies completeness with cited document/page evidence and missing information; a responsible operator accepts or requests correction.\n5. Update delivery readiness and unblock only the affected tasks when the reviewed requirement version is satisfied.\n6. Track expiry, revocation and superseded submissions, creating a new review task without deleting prior evidence.\n\nData and lifecycle: IntakeRequirementSet, IntakeRequirement, IntakeSubmission and IntakeDecision. Canonical document IDs, scoped storage references and human acceptance are separate from model completeness suggestions.\n\nCapability/tool contract: create_intake_request, publish_approved_intake_request, attach_intake_submission, assess_intake_completeness, decide_intake_submission, expire_intake_evidence. Duplicate submission keys do not duplicate storage or downstream work.\n\nOperator and client surfaces: Client readiness checklist, secure upload/reference flow, admin triage with evidence and delivery blockers. Reuse onboarding workflow and record views rather than creating another onboarding engine.\n\nFailure and recovery matrix: Wrong document, unreadable file, malware/quarantine status supplied by storage, missing access rights, expired consent, revoked Drive access, cross-client attachment and repeated requests must have explicit outcomes.\n\nDemo packet: A completed intake, a missing asset request and an unreadable submission; include a revoked document reference and a rejected access confirmation.\n\nValue measurement: Time to delivery-ready; missing/expired requirement count; clarification loops; time blocked on client inputs.\n\nImplementation sequence: 1) Read northstar and dependency receipts; pin approved baseline commit. 2) Write schema/state/capability contract and additive migration. 3) Implement canonical services and transaction/idempotency tests. 4) Register tools, triggers, permissions and enable/disable guards. 5) Build admin/public/AI adapters on those services. 6) Add all five scenario fixtures and inspect browser evidence. 7) Exercise failure/retry/tenant isolation and submit exact commit, checks and artifacts for review.\n\nPickup gate: This is Later work. Do not start until every UUID dependency is accepted and the operator records the reconciled repository base branch/commit. References tagged c7da31b are committed donor implementations awaiting the baseline card, not files assumed to exist on every checkout.\n\nCommon non-negotiable contract: docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md. Read it in full; its cross-entrypoint, provenance, demo, migration, safety and release gates are part of this card.",
+    labels: ["operations", "plugin"],
+    verification:
+      "Run the complete verification matrix in docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md and attach evidence for every AC ID. Include local/provider proof distinctions.",
+    initiative: "Business operations plugins",
+    workSpec: {
+      businessValue:
+        "Unblock onboarding and delivery by tracking exactly which client documents, information and access grants are missing, who owns the request and whether the submitted material is actually usable.",
+      scope: [
+        "Instantiate a versioned requirement checklist for the canonical customer/project with explicit purpose, owner, allowed evidence type and expiry.",
+        "Present a branded client checklist through the shared room contract; invite only approved contacts using the governed send path.",
+        "Receive a scoped document reference or access-confirmation evidence through existing storage/Drive boundaries; never collect passwords or API keys in free text.",
+        "AI classifies completeness with cited document/page evidence and missing information; a responsible operator accepts or requests correction.",
+        "Update delivery readiness and unblock only the affected tasks when the reviewed requirement version is satisfied.",
+        "Track expiry, revocation and superseded submissions, creating a new review task without deleting prior evidence.",
+      ],
+      exclusions: [
+        "No new object-storage provider, plaintext secret collection, automatic document acceptance or blanket public client portal access.",
+      ],
+      references: [
+        {
+          path: "plugins/client-onboarding/workflow.js",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "src/lib/revenue-os/workflow-plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "src/lib/revenue-os/knowledge.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugin-isolate.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/capabilities.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+      ],
+      verification: [
+        {
+          command: "npm run verify:agent-contract",
+          expected: "Architecture, card graph and handoff contracts pass.",
+        },
+        {
+          command: "npx tsc --noEmit && npm run lint",
+          expected: "No type or lint errors introduced.",
+        },
+        {
+          command:
+            "Scoped plugin service, PostgreSQL, API and Playwright suites added by this card",
+          expected:
+            "Every acceptance ID covered; race/replay/failure/isolation and all five scenarios pass.",
+        },
+        {
+          command: "npm run build && git diff --check",
+          expected: "Exact review tree builds and diff is clean.",
+        },
+      ],
+      requiredCapabilities: ["typescript", "postgres", "playwright"],
+      workflow: [
+        "Instantiate a versioned requirement checklist for the canonical customer/project with explicit purpose, owner, allowed evidence type and expiry.",
+        "Present a branded client checklist through the shared room contract; invite only approved contacts using the governed send path.",
+        "Receive a scoped document reference or access-confirmation evidence through existing storage/Drive boundaries; never collect passwords or API keys in free text.",
+        "AI classifies completeness with cited document/page evidence and missing information; a responsible operator accepts or requests correction.",
+        "Update delivery readiness and unblock only the affected tasks when the reviewed requirement version is satisfied.",
+        "Track expiry, revocation and superseded submissions, creating a new review task without deleting prior evidence.",
+      ],
+      acceptance: [
+        {
+          id: "AC-1",
+          criterion: "A model completeness suggestion cannot mark a requirement accepted.",
+        },
+        {
+          id: "AC-2",
+          criterion: "One client cannot list, attach or download another client’s evidence.",
+        },
+        {
+          id: "AC-3",
+          criterion:
+            "Revoked/expired evidence blocks only dependent work and preserves the previous reviewed state.",
+        },
+        {
+          id: "AC-4",
+          criterion:
+            "Password/API-key instructions are excluded; access uses existing connection/authorization flows.",
+        },
+        {
+          id: "AC-5",
+          criterion:
+            "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+        },
+        {
+          id: "AC-6",
+          criterion:
+            "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+        },
+        {
+          id: "AC-7",
+          criterion:
+            "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+        },
+        {
+          id: "AC-8",
+          criterion:
+            "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+        },
+        {
+          id: "AC-9",
+          criterion:
+            "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+        },
+        {
+          id: "AC-10",
+          criterion:
+            "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+        },
+        {
+          id: "AC-11",
+          criterion:
+            "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+        },
+        {
+          id: "AC-12",
+          criterion:
+            "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+        },
+      ],
+    },
+  }),
+  card({
+    key: "vendor-obligations-plugin",
+    title: "Vendor subscriptions and obligation management plugin",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Prevent forgotten renewals, unused service spend and missed vendor commitments by turning confirmed vendor terms into accountable review and cancellation work.",
+    acceptance: [
+      "A drafted or sent cancellation request does not mark a vendor subscription cancelled.",
+      "Changing renewal terms preserves the prior notice calculation and decision history.",
+      "The plugin does not duplicate stock purchasing/receiving records.",
+      "Uncertain or missing terms produce review work rather than fabricated deadlines or savings.",
+      "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+      "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+      "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+      "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+      "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+      "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+      "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+      "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Add supplier purchasing with approved orders and partial receiving",
+    ],
+    start:
+      "docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md; src/lib/revenue-os/knowledge.ts; src/lib/revenue-os/actions.ts; src/lib/revenue-os/work-items.ts; src/lib/revenue-os/plugins.ts; src/lib/revenue-os/plugin-isolate.ts; src/lib/revenue-os/capabilities.ts; src/lib/revenue-os/work-items.ts",
+    guardrails:
+      "No automatic contract termination, procurement provider replacement, inferred legal notice periods or presenting proposed savings as realized cash. Business owner: Business owner, operations lead and purchasing approver.\n\nTrigger: A vendor obligation is confirmed, a notice date approaches, a recurring service changes, or evidence of service ownership becomes stale.\n\nWorkflow:\n1. Register vendor identity and an operator-confirmed obligation version with currency, amount basis, owner, service dates, notice deadline and source document.\n2. Link purchase/receipt records where available without replacing inventory purchasing or accounting facts.\n3. Detect upcoming notice windows, orphaned ownership and missing usage evidence; explain the source and uncertainty.\n4. AI prepares a renewal/cancellation decision brief with known spend, usage evidence, alternatives already recorded and unanswered questions.\n5. The approver records renew, renegotiate, cancel or investigate; customer-facing/vendor communication still requires the existing reviewed send action.\n6. Track provider-confirmed or human-confirmed cancellation separately from intent; create follow-up work until fulfillment is evidenced.\n\nData and lifecycle: VendorObligation, ObligationVersion, RenewalDecision and FulfillmentEvidence referencing canonical vendor/contact/document/purchase identities. State distinguishes intent, requested, confirmed, disputed and expired.\n\nCapability/tool contract: register_vendor_obligation, list_notice_windows, propose_vendor_decision, record_vendor_decision, request_approved_vendor_change, confirm_vendor_fulfillment. Idempotency scopes to obligation version and notice cycle.\n\nOperator and client surfaces: Upcoming obligations calendar/list, ownerless spend queue, source document detail and Today decision cards; display intent versus confirmed cancellation clearly.\n\nFailure and recovery matrix: Auto-renew dates, notice-period ambiguity, multi-year terms, duplicate bills, owner departure, mixed currencies, failed sends and vendor rejection must not produce false cancellation/savings.\n\nDemo packet: A software renewal needing an owner, a service being renegotiated and a cancellation awaiting confirmation; include ambiguous notice language.\n\nValue measurement: Obligations reviewed before notice deadline; confirmed avoided spend versus proposed savings; ownerless commitments; unresolved cancellation requests.\n\nImplementation sequence: 1) Read northstar and dependency receipts; pin approved baseline commit. 2) Write schema/state/capability contract and additive migration. 3) Implement canonical services and transaction/idempotency tests. 4) Register tools, triggers, permissions and enable/disable guards. 5) Build admin/public/AI adapters on those services. 6) Add all five scenario fixtures and inspect browser evidence. 7) Exercise failure/retry/tenant isolation and submit exact commit, checks and artifacts for review.\n\nPickup gate: This is Later work. Do not start until every UUID dependency is accepted and the operator records the reconciled repository base branch/commit. References tagged c7da31b are committed donor implementations awaiting the baseline card, not files assumed to exist on every checkout.\n\nCommon non-negotiable contract: docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md. Read it in full; its cross-entrypoint, provenance, demo, migration, safety and release gates are part of this card.",
+    labels: ["operations", "plugin"],
+    verification:
+      "Run the complete verification matrix in docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md and attach evidence for every AC ID. Include local/provider proof distinctions.",
+    initiative: "Business operations plugins",
+    workSpec: {
+      businessValue:
+        "Prevent forgotten renewals, unused service spend and missed vendor commitments by turning confirmed vendor terms into accountable review and cancellation work.",
+      scope: [
+        "Register vendor identity and an operator-confirmed obligation version with currency, amount basis, owner, service dates, notice deadline and source document.",
+        "Link purchase/receipt records where available without replacing inventory purchasing or accounting facts.",
+        "Detect upcoming notice windows, orphaned ownership and missing usage evidence; explain the source and uncertainty.",
+        "AI prepares a renewal/cancellation decision brief with known spend, usage evidence, alternatives already recorded and unanswered questions.",
+        "The approver records renew, renegotiate, cancel or investigate; customer-facing/vendor communication still requires the existing reviewed send action.",
+        "Track provider-confirmed or human-confirmed cancellation separately from intent; create follow-up work until fulfillment is evidenced.",
+      ],
+      exclusions: [
+        "No automatic contract termination, procurement provider replacement, inferred legal notice periods or presenting proposed savings as realized cash.",
+      ],
+      references: [
+        {
+          path: "src/lib/revenue-os/knowledge.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/actions.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugin-isolate.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/capabilities.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+      ],
+      verification: [
+        {
+          command: "npm run verify:agent-contract",
+          expected: "Architecture, card graph and handoff contracts pass.",
+        },
+        {
+          command: "npx tsc --noEmit && npm run lint",
+          expected: "No type or lint errors introduced.",
+        },
+        {
+          command:
+            "Scoped plugin service, PostgreSQL, API and Playwright suites added by this card",
+          expected:
+            "Every acceptance ID covered; race/replay/failure/isolation and all five scenarios pass.",
+        },
+        {
+          command: "npm run build && git diff --check",
+          expected: "Exact review tree builds and diff is clean.",
+        },
+      ],
+      requiredCapabilities: ["typescript", "postgres", "playwright"],
+      workflow: [
+        "Register vendor identity and an operator-confirmed obligation version with currency, amount basis, owner, service dates, notice deadline and source document.",
+        "Link purchase/receipt records where available without replacing inventory purchasing or accounting facts.",
+        "Detect upcoming notice windows, orphaned ownership and missing usage evidence; explain the source and uncertainty.",
+        "AI prepares a renewal/cancellation decision brief with known spend, usage evidence, alternatives already recorded and unanswered questions.",
+        "The approver records renew, renegotiate, cancel or investigate; customer-facing/vendor communication still requires the existing reviewed send action.",
+        "Track provider-confirmed or human-confirmed cancellation separately from intent; create follow-up work until fulfillment is evidenced.",
+      ],
+      acceptance: [
+        {
+          id: "AC-1",
+          criterion:
+            "A drafted or sent cancellation request does not mark a vendor subscription cancelled.",
+        },
+        {
+          id: "AC-2",
+          criterion:
+            "Changing renewal terms preserves the prior notice calculation and decision history.",
+        },
+        {
+          id: "AC-3",
+          criterion: "The plugin does not duplicate stock purchasing/receiving records.",
+        },
+        {
+          id: "AC-4",
+          criterion:
+            "Uncertain or missing terms produce review work rather than fabricated deadlines or savings.",
+        },
+        {
+          id: "AC-5",
+          criterion:
+            "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+        },
+        {
+          id: "AC-6",
+          criterion:
+            "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+        },
+        {
+          id: "AC-7",
+          criterion:
+            "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+        },
+        {
+          id: "AC-8",
+          criterion:
+            "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+        },
+        {
+          id: "AC-9",
+          criterion:
+            "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+        },
+        {
+          id: "AC-10",
+          criterion:
+            "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+        },
+        {
+          id: "AC-11",
+          criterion:
+            "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+        },
+        {
+          id: "AC-12",
+          criterion:
+            "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+        },
+      ],
+    },
+  }),
+  card({
+    key: "expense-approval-plugin",
+    title: "Expense intake, approval and reimbursement tracking plugin",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Give small teams a complete expense workflow from evidence to approval and reimbursement status, with project attribution and duplicate prevention. Make cash commitments visible without pretending to be the accounting system.",
+    acceptance: [
+      "Extraction never silently commits uncertain amounts or currency.",
+      "The same approved expense cannot be exported as two new obligations on retry.",
+      "Approval cannot be reused after a material edit; the old decision stays visible.",
+      "A CSV export or clicked paid button without evidence cannot be presented as provider-confirmed settlement.",
+      "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+      "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+      "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+      "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+      "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+      "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+      "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+      "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Project time, billable usage and margin control plugin",
+    ],
+    start:
+      "docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md; src/lib/revenue-os/actions.ts; src/lib/revenue-os/work-items.ts; src/lib/revenue-os/knowledge.ts; src/lib/revenue-os/plugins.ts; src/lib/revenue-os/plugin-isolate.ts; src/lib/revenue-os/capabilities.ts; src/lib/revenue-os/work-items.ts",
+    guardrails:
+      "No tax deductibility advice, payroll/bank payouts, automatic receipt acceptance, accounting-ledger replacement or unsafe attachment parsing. Business owner: Team member, expense approver and finance operator.\n\nTrigger: A contributor submits an expense or a reviewed reimbursement obligation becomes overdue.\n\nWorkflow:\n1. Capture receipt/document reference, merchant, service date, amount in minor units, currency, category and canonical project/customer association.\n2. AI extracts candidate fields with provenance and confidence; the submitter confirms uncertain values and business purpose.\n3. Detect duplicates and policy exceptions using tenant-scoped evidence fingerprints and reviewed rules; route ambiguous cases for review.\n4. Approve or reject the frozen submission with reason and approver identity; material edits invalidate approval.\n5. Export approved obligations through a versioned accounting-neutral adapter or record externally verified reimbursement evidence; no bank integration is required.\n6. Reconcile rejection, adjustment, duplicate reimbursement evidence or failed export with receipts and follow-up WorkItems.\n\nData and lifecycle: ExpenseSubmission, ExpenseVersion, ExpenseDecision, ReimbursementObligation and ReimbursementEvidence. Expense approval, exported bookkeeping data and paid facts remain separate; attachments use canonical scoped documents.\n\nCapability/tool contract: submit_expense, extract_expense_candidates, review_expense_exception, decide_expense, export_approved_expenses, record_reimbursement_evidence. Duplicate key includes tenant and evidence fingerprint plus reviewed merchant/date/amount matching; ambiguous matches never auto-delete.\n\nOperator and client surfaces: Mobile receipt/reference intake, approval inbox, reimbursement queue and project cost extension. Clearly separate submitted, approved, exported and externally confirmed paid states.\n\nFailure and recovery matrix: Multiple currencies, split expenses, unreadable receipts, duplicate uploads, refunds, partial reimbursement, changed amount after approval and failed export require tests.\n\nDemo packet: One approved project expense, one possible duplicate and one receipt requiring clarification; include partial reimbursement, rejection and export retry.\n\nValue measurement: Submission-to-decision time; approved unpaid balance by currency; duplicate cases resolved; expense evidence coverage and project attribution completeness.\n\nImplementation sequence: 1) Read northstar and dependency receipts; pin approved baseline commit. 2) Write schema/state/capability contract and additive migration. 3) Implement canonical services and transaction/idempotency tests. 4) Register tools, triggers, permissions and enable/disable guards. 5) Build admin/public/AI adapters on those services. 6) Add all five scenario fixtures and inspect browser evidence. 7) Exercise failure/retry/tenant isolation and submit exact commit, checks and artifacts for review.\n\nPickup gate: This is Later work. Do not start until every UUID dependency is accepted and the operator records the reconciled repository base branch/commit. References tagged c7da31b are committed donor implementations awaiting the baseline card, not files assumed to exist on every checkout.\n\nCommon non-negotiable contract: docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md. Read it in full; its cross-entrypoint, provenance, demo, migration, safety and release gates are part of this card.",
+    labels: ["finance", "plugin"],
+    verification:
+      "Run the complete verification matrix in docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md and attach evidence for every AC ID. Include local/provider proof distinctions.",
+    initiative: "Business operations plugins",
+    workSpec: {
+      businessValue:
+        "Give small teams a complete expense workflow from evidence to approval and reimbursement status, with project attribution and duplicate prevention. Make cash commitments visible without pretending to be the accounting system.",
+      scope: [
+        "Capture receipt/document reference, merchant, service date, amount in minor units, currency, category and canonical project/customer association.",
+        "AI extracts candidate fields with provenance and confidence; the submitter confirms uncertain values and business purpose.",
+        "Detect duplicates and policy exceptions using tenant-scoped evidence fingerprints and reviewed rules; route ambiguous cases for review.",
+        "Approve or reject the frozen submission with reason and approver identity; material edits invalidate approval.",
+        "Export approved obligations through a versioned accounting-neutral adapter or record externally verified reimbursement evidence; no bank integration is required.",
+        "Reconcile rejection, adjustment, duplicate reimbursement evidence or failed export with receipts and follow-up WorkItems.",
+      ],
+      exclusions: [
+        "No tax deductibility advice, payroll/bank payouts, automatic receipt acceptance, accounting-ledger replacement or unsafe attachment parsing.",
+      ],
+      references: [
+        {
+          path: "src/lib/revenue-os/actions.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/knowledge.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugin-isolate.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/capabilities.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+      ],
+      verification: [
+        {
+          command: "npm run verify:agent-contract",
+          expected: "Architecture, card graph and handoff contracts pass.",
+        },
+        {
+          command: "npx tsc --noEmit && npm run lint",
+          expected: "No type or lint errors introduced.",
+        },
+        {
+          command:
+            "Scoped plugin service, PostgreSQL, API and Playwright suites added by this card",
+          expected:
+            "Every acceptance ID covered; race/replay/failure/isolation and all five scenarios pass.",
+        },
+        {
+          command: "npm run build && git diff --check",
+          expected: "Exact review tree builds and diff is clean.",
+        },
+      ],
+      requiredCapabilities: ["typescript", "postgres", "playwright"],
+      workflow: [
+        "Capture receipt/document reference, merchant, service date, amount in minor units, currency, category and canonical project/customer association.",
+        "AI extracts candidate fields with provenance and confidence; the submitter confirms uncertain values and business purpose.",
+        "Detect duplicates and policy exceptions using tenant-scoped evidence fingerprints and reviewed rules; route ambiguous cases for review.",
+        "Approve or reject the frozen submission with reason and approver identity; material edits invalidate approval.",
+        "Export approved obligations through a versioned accounting-neutral adapter or record externally verified reimbursement evidence; no bank integration is required.",
+        "Reconcile rejection, adjustment, duplicate reimbursement evidence or failed export with receipts and follow-up WorkItems.",
+      ],
+      acceptance: [
+        {
+          id: "AC-1",
+          criterion: "Extraction never silently commits uncertain amounts or currency.",
+        },
+        {
+          id: "AC-2",
+          criterion:
+            "The same approved expense cannot be exported as two new obligations on retry.",
+        },
+        {
+          id: "AC-3",
+          criterion:
+            "Approval cannot be reused after a material edit; the old decision stays visible.",
+        },
+        {
+          id: "AC-4",
+          criterion:
+            "A CSV export or clicked paid button without evidence cannot be presented as provider-confirmed settlement.",
+        },
+        {
+          id: "AC-5",
+          criterion:
+            "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+        },
+        {
+          id: "AC-6",
+          criterion:
+            "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+        },
+        {
+          id: "AC-7",
+          criterion:
+            "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+        },
+        {
+          id: "AC-8",
+          criterion:
+            "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+        },
+        {
+          id: "AC-9",
+          criterion:
+            "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+        },
+        {
+          id: "AC-10",
+          criterion:
+            "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+        },
+        {
+          id: "AC-11",
+          criterion:
+            "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+        },
+        {
+          id: "AC-12",
+          criterion:
+            "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+        },
+      ],
+    },
+  }),
+  card({
+    key: "hiring-workflow-plugin",
+    title: "Hiring pipeline and interview coordination plugin",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Help a growing service business fill real delivery gaps through an accountable hiring workflow, reusing identity, conversations, calendar, work and approvals without mixing candidates into sales opportunities.",
+    acceptance: [
+      "Candidate state never changes an opportunity stage or exposes restricted scorecards to normal CRM readers.",
+      "AI cannot autonomously advance/reject a candidate or infer protected characteristics.",
+      "Repeated interview scheduling cannot create duplicate calendar events or invitations.",
+      "A withdrawn application cancels pending outreach and remains subject to the configured retention policy.",
+      "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+      "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+      "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+      "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+      "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+      "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+      "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+      "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Delivery capacity and assignment planning plugin",
+    ],
+    start:
+      "docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md; src/lib/revenue-os/identity.ts; src/lib/revenue-os/work-items.ts; src/lib/revenue-os/actions.ts; src/lib/revenue-os/plugins.ts; src/lib/revenue-os/plugin-isolate.ts; src/lib/revenue-os/capabilities.ts; src/lib/revenue-os/work-items.ts",
+    guardrails:
+      "No automated employment decisions, protected-trait inference, background checks, payroll, new scheduling provider or jurisdiction-specific hiring compliance claims. Business owner: Hiring manager, recruiter and interview panel.\n\nTrigger: An approved role opens, a candidate applies/is added with a valid source, an interview concludes, or a decision is overdue.\n\nWorkflow:\n1. Create an approved role version with duties, job-related criteria, interview stages and decision owners; link capacity need where appropriate.\n2. Attach a canonical person identity to a separate candidate application entity, with source, consent/retention policy and communication preferences.\n3. Coordinate interview tasks and calendar proposals through existing availability and approved-send paths; distinguish suggested time from confirmed event.\n4. Collect structured human scorecards tied to job-related criteria and evidence; AI can summarize supplied notes with provenance but does not rank people or infer sensitive traits.\n5. Require the authorized manager to record stage advancement, rejection or offer recommendation; freeze the reviewed decision basis.\n6. Close the application with retained decision evidence and policy-governed data handling; a hire hands off to an operator-approved onboarding/resource workflow.\n\nData and lifecycle: HiringRole, RoleVersion, CandidateApplication, InterviewRound, InterviewScorecard and HiringDecision. Applications reference canonical contacts but have their own lifecycle and restricted access, independent of sales pipeline stages.\n\nCapability/tool contract: create_hiring_role, register_candidate_application, propose_interview, record_interview_scorecard, summarize_interview_evidence, record_hiring_decision. Sensitive personnel fields are excluded from broad CRM/AI retrieval; every transition checks application revision and actor role.\n\nOperator and client surfaces: Recruiting board with role filters, interview schedule and missing-scorecard queue; a restricted candidate detail page and Today manager decisions. Candidate communications show exact approved recipient and content.\n\nFailure and recovery matrix: Duplicate applicants, one person applying to multiple roles, withdrawn consent, interviewer access changes, scheduling conflicts, missing scorecards and failed notifications require explicit behavior.\n\nDemo packet: One new applicant, one scheduled interview and one decision waiting on a scorecard; include duplicate application, candidate withdrawal and calendar failure.\n\nValue measurement: Role time-to-decision; stage aging; interview coordination time; missing scorecards and failed communication recovery. No automated demographic or personality scoring.\n\nImplementation sequence: 1) Read northstar and dependency receipts; pin approved baseline commit. 2) Write schema/state/capability contract and additive migration. 3) Implement canonical services and transaction/idempotency tests. 4) Register tools, triggers, permissions and enable/disable guards. 5) Build admin/public/AI adapters on those services. 6) Add all five scenario fixtures and inspect browser evidence. 7) Exercise failure/retry/tenant isolation and submit exact commit, checks and artifacts for review.\n\nPickup gate: This is Later work. Do not start until every UUID dependency is accepted and the operator records the reconciled repository base branch/commit. References tagged c7da31b are committed donor implementations awaiting the baseline card, not files assumed to exist on every checkout.\n\nCommon non-negotiable contract: docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md. Read it in full; its cross-entrypoint, provenance, demo, migration, safety and release gates are part of this card.",
+    labels: ["operations", "plugin"],
+    verification:
+      "Run the complete verification matrix in docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md and attach evidence for every AC ID. Include local/provider proof distinctions.",
+    initiative: "Business operations plugins",
+    workSpec: {
+      businessValue:
+        "Help a growing service business fill real delivery gaps through an accountable hiring workflow, reusing identity, conversations, calendar, work and approvals without mixing candidates into sales opportunities.",
+      scope: [
+        "Create an approved role version with duties, job-related criteria, interview stages and decision owners; link capacity need where appropriate.",
+        "Attach a canonical person identity to a separate candidate application entity, with source, consent/retention policy and communication preferences.",
+        "Coordinate interview tasks and calendar proposals through existing availability and approved-send paths; distinguish suggested time from confirmed event.",
+        "Collect structured human scorecards tied to job-related criteria and evidence; AI can summarize supplied notes with provenance but does not rank people or infer sensitive traits.",
+        "Require the authorized manager to record stage advancement, rejection or offer recommendation; freeze the reviewed decision basis.",
+        "Close the application with retained decision evidence and policy-governed data handling; a hire hands off to an operator-approved onboarding/resource workflow.",
+      ],
+      exclusions: [
+        "No automated employment decisions, protected-trait inference, background checks, payroll, new scheduling provider or jurisdiction-specific hiring compliance claims.",
+      ],
+      references: [
+        {
+          path: "src/lib/revenue-os/identity.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/actions.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugin-isolate.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/capabilities.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+      ],
+      verification: [
+        {
+          command: "npm run verify:agent-contract",
+          expected: "Architecture, card graph and handoff contracts pass.",
+        },
+        {
+          command: "npx tsc --noEmit && npm run lint",
+          expected: "No type or lint errors introduced.",
+        },
+        {
+          command:
+            "Scoped plugin service, PostgreSQL, API and Playwright suites added by this card",
+          expected:
+            "Every acceptance ID covered; race/replay/failure/isolation and all five scenarios pass.",
+        },
+        {
+          command: "npm run build && git diff --check",
+          expected: "Exact review tree builds and diff is clean.",
+        },
+      ],
+      requiredCapabilities: ["typescript", "postgres", "playwright"],
+      workflow: [
+        "Create an approved role version with duties, job-related criteria, interview stages and decision owners; link capacity need where appropriate.",
+        "Attach a canonical person identity to a separate candidate application entity, with source, consent/retention policy and communication preferences.",
+        "Coordinate interview tasks and calendar proposals through existing availability and approved-send paths; distinguish suggested time from confirmed event.",
+        "Collect structured human scorecards tied to job-related criteria and evidence; AI can summarize supplied notes with provenance but does not rank people or infer sensitive traits.",
+        "Require the authorized manager to record stage advancement, rejection or offer recommendation; freeze the reviewed decision basis.",
+        "Close the application with retained decision evidence and policy-governed data handling; a hire hands off to an operator-approved onboarding/resource workflow.",
+      ],
+      acceptance: [
+        {
+          id: "AC-1",
+          criterion:
+            "Candidate state never changes an opportunity stage or exposes restricted scorecards to normal CRM readers.",
+        },
+        {
+          id: "AC-2",
+          criterion:
+            "AI cannot autonomously advance/reject a candidate or infer protected characteristics.",
+        },
+        {
+          id: "AC-3",
+          criterion:
+            "Repeated interview scheduling cannot create duplicate calendar events or invitations.",
+        },
+        {
+          id: "AC-4",
+          criterion:
+            "A withdrawn application cancels pending outreach and remains subject to the configured retention policy.",
+        },
+        {
+          id: "AC-5",
+          criterion:
+            "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+        },
+        {
+          id: "AC-6",
+          criterion:
+            "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+        },
+        {
+          id: "AC-7",
+          criterion:
+            "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+        },
+        {
+          id: "AC-8",
+          criterion:
+            "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+        },
+        {
+          id: "AC-9",
+          criterion:
+            "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+        },
+        {
+          id: "AC-10",
+          criterion:
+            "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+        },
+        {
+          id: "AC-11",
+          criterion:
+            "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+        },
+        {
+          id: "AC-12",
+          criterion:
+            "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+        },
+      ],
+    },
+  }),
+  card({
+    key: "universal-work-board",
+    owner: "codex-work-board",
+    status: "in_progress",
+    title: "Make the Feature Board an authoritative human and agent work system",
+    workstream: "platform",
+    phase: 5,
+    priority: "high",
+    description:
+      "Founder-directed implementation: make live work definitions authoritative; unify transitions, structured dependencies, fenced claims, review evidence, scoped agent API/MCP/CLI, and operator organization. After implementation, add ten distinct business-value plugin specifications.",
+    acceptance: [
+      "Live work is authoritative; imports are explicit, revision-safe and never archive absent cards; long notes survive edits",
+      "Structured work, dependencies, immutable events and revision checks govern UI, API and agent callers",
+      "Readiness, atomic claims, session fencing, progress, blockers, review and verified completion use one domain contract",
+      "Scoped, revocable agent credentials support equivalent HTTP, MCP and CLI operations without exposing database secrets",
+      "Board and detail views expose readiness, blockers, ownership, review, delivery evidence and shared saved views with live refresh",
+      "Migrations and regression tests prove concurrency, replay, authorization, data preservation and compatibility; desktop/mobile UI is inspected",
+      "Ten additional nonduplicate business plugin cards contain outcomes, workflows, integration boundaries, dependencies, standards and verification",
+    ],
+    start:
+      "docs/NORTHSTAR.md; src/app/admin/features/page.tsx; src/app/api/admin/features/route.ts; src/lib/revenue-os/feature-board-claims.ts; scripts/agent-dispatch.ts; scripts/seed-feature-backlog.mjs; docs/contracts/FEATURE-BOARD-TAXONOMY.md",
+    guardrails:
+      "Preserve all existing cards, long notes, other agents' worktrees, platform-versus-tenant isolation and immutable provider facts. Never force-delete worktrees. No feature deployment or customer sends. One shared domain service for humans and agents.",
+    labels: ["work-engine", "reliability"],
+  }),
   // Workshelter reuse: campaigns first, then Support; vertical/channel work stays Later.
   card({
     key: "workshelter-reuse-baseline",
@@ -1928,7 +3758,7 @@ export const featureBacklog = [
     title: "Turn the roofing ingestion path into a configurable playbook",
     workstream: "foundation",
     phase: 2,
-    status: "in_progress",
+    status: "planned",
     priority: "high",
     description:
       "Replace the vertical-specific inbound capture function with one generic qualification path that takes an industry playbook as data, so roofing becomes one configuration entry instead of an exported code path that every future installation inherits.",
@@ -2592,7 +4422,7 @@ export const featureBacklog = [
     title: "Complete the proposal lifecycle and version rules",
     workstream: "proposals",
     phase: 3,
-    status: "in_progress",
+    status: "planned",
     priority: "high",
     description:
       "Control draft, sent, viewed, accepted, declined, expired, and superseded states with linked contact, company, and opportunity.",
@@ -3192,7 +5022,7 @@ export const featureBacklog = [
     title: "Route every AI job through an audited model registry",
     workstream: "ai",
     phase: 4,
-    status: "in_progress",
+    status: "planned",
     priority: "medium",
     description:
       "Choose OpenRouter models by typed workload requirements instead of scattered IDs, with current capability and cost metadata, explicit activation, eval gates, and rollback.",
@@ -3598,7 +5428,7 @@ export const featureBacklog = [
   card({
     key: "system-health-report",
     owner: "claude-code:johnconnor:9960",
-    status: "in_progress",
+    status: "planned",
     title: "Build the system-health report and freshness thresholds",
     workstream: "operations",
     phase: 4,
@@ -4211,7 +6041,7 @@ export const featureBacklog = [
   card({
     key: "booking-mode-contract-reconciliation",
     owner: "claude-code:johnconnor:9960",
-    status: "in_progress",
+    status: "planned",
     title: "Reconcile booking activation and health truth",
     workstream: "integrations",
     phase: 2,
@@ -4426,7 +6256,7 @@ export const featureBacklog = [
   card({
     key: "won-to-delivery-handoff",
     owner: "claude-code:johnconnor:62700",
-    status: "in_progress",
+    status: "planned",
     title: "Create the won-to-delivery handoff",
     workstream: "operations",
     phase: 3,

@@ -15,30 +15,20 @@ and a founder account. Follow
 npm run agent:next
 ```
 
-Run this from `accelerate-site/` with a `.env.local` present (already the
-case in any working checkout of this repo — nothing to configure). It
-atomically claims one dependency-ready Feature Board card (advisory lock +
-lease, `migrations/20260903-feature-request-claims.sql` — two concurrent
-claims on the same card, exactly one wins), creates an isolated git
-worktree + branch at `../.agent-worktrees/<seed-key>` so you don't collide
-with other agents working this same repo right now, and prints the card's
-full context in one call: description, acceptance criteria, and the notes
-block carrying dependencies/starting points/guardrails/verification — no
-need to hand-read `scripts/feature-backlog-data.mjs`. This needs no browser
-session or founder login because the Feature Board is platform-global, not
-tied to a tenant account.
+Read [the work protocol](docs/contracts/UNIVERSAL-WORK-BOARD.md) first. Configure
+`WORK_BOARD_URL` and a project-scoped `WORK_BOARD_TOKEN` issued by the founder.
+The CLI uses HTTP and needs no database credentials. `agent:next` atomically
+claims ready work and prints the full live contract. A worktree requires the
+card's approved repository base branch and exact commit. Never guess a base or
+fall back into another agent's checkout.
 
-`npm run agent:status` lists what's actually claimable right now.
-`npm run agent:heartbeat -- --card <id>` renews your lease if a ticket runs
-long. `npm run agent:complete -- --card <id> --evidence "<what you
-verified>"` ships it and removes the worktree. `npm run agent:release --
---card <id>` abandons it back to backlog without shipping, leaving the
-worktree in place for inspection. Pass `--card <seedKeyOrId>` to any of
-these to name a specific card instead of auto-picking.
-
-To claim a specific card you already know by title, find its `seed_key` in
-`scripts/feature-backlog-data.mjs` or `/admin/features` first, then
-`npm run agent:next -- --card <seed_key>`.
+Use `agent:status`, `agent:heartbeat -- --card <key>`, and
+`agent:release -- --card <key>`. `agent:complete -- --card <key>
+--evidence-file <path.json>` submits named passing checks and the exact commit
+for review. It preserves the worktree. Completion, review, merge, cleanup and
+production deployment are separate facts/actions. Keep claim session files
+private and renew within the 30-minute lease; expired work requires explicit
+operator recovery. There is no force bypass.
 
 ## Read in this order
 
@@ -60,7 +50,7 @@ To claim a specific card you already know by title, find its `seed_key` in
 9. `docs/contracts/MARKETING-POSITIONING-CONTRACT.md` before changing any public marketing
    copy, metadata, search description, public assistant positioning, or CTA.
 10. `docs/contracts/NAVIGATION-RUNTIME-CONTRACT.md` before changing links, history,
-   scroll restoration, route focus, loading states, or page transitions.
+    scroll restoration, route focus, loading states, or page transitions.
 11. `docs/contracts/ADMIN-DEMO-CONTRACT.md` before changing either demo, the admin runtime,
     admin navigation, demo fixtures, or demo QA.
 12. `docs/contracts/WORK-MOTION-CONTRACT.md` before changing Work pages, public reveal
@@ -89,25 +79,23 @@ Every capability follows this sequence:
 - Provider facts and audit history are immutable. Human notes and configuration
   are editable through explicit services.
 
-## Ticket state is source-controlled
+## The live board owns work truth
 
-- `scripts/feature-backlog-data.mjs` is the durable definition of every managed
-  card. `/admin/features` is its operational projection.
-- Claim work with `npm run agent:next` (see "Pick up work" above), never by
-  hand-editing `owner`/`status` in the manifest — those became live-managed
-  columns once the atomic claim RPC landed, and `npm run seed:features --
-  apply` deliberately no longer reconciles them, so a manifest edit to those
-  two fields is silently ignored. Everything else about a card (title,
-  description, acceptance, labels, dependencies) is still manifest-owned:
-  edit it there and reconcile with `npm run seed:features -- --apply`.
-- Do not create a second roadmap. Newly discovered work becomes a detailed card
-  with a stable key, dependencies, starting points, guardrails, acceptance, and
-  verification evidence.
-- Keep managed labels inside `docs/contracts/FEATURE-BOARD-TAXONOMY.md`: one milestone,
+- `/admin/features` and the shared work service own card definitions, UUID
+  dependencies, revisions, claims, decisions and immutable execution events.
+- Git contains schemas, card templates and explicit dated exports. Edit a live
+  card through the UI, scoped HTTP/MCP API, or a reviewed import plan. Never use
+  an old checkout to overwrite newer specifications or archive unlisted cards.
+- `npm run seed:features -- --plan /tmp/work-plan.json --cards key1,key2` creates
+  a proposal. Review its full diff before `--apply --plan /tmp/work-plan.json`.
+  Revision conflicts require refresh and review; retry identical requests with
+  the same request key. See the work protocol for exports and reconciliation.
+- Newly discovered work becomes a detailed card with a stable key, explicit
+  prerequisites, scope, references, acceptance and verification. No second roadmap.
+- Keep labels inside `docs/contracts/FEATURE-BOARD-TAXONOMY.md`: one milestone,
   category, phase, and one or two reusable capabilities. Never add one-off labels.
-- Do not mark a card `shipped` until every acceptance item has attached evidence.
-  Local success cannot satisfy an acceptance item that explicitly requires
-  production proof.
+- Submit implementation evidence for review only after every acceptance item is
+  verified. Local success cannot satisfy an item that requires production proof.
 - Never delete source tables or compatibility routes until the reconciliation
   card proves field and row-count parity in production.
 

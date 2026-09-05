@@ -1,6 +1,11 @@
 import "server-only";
 import { createPlatformServiceRoleClient } from "@/lib/supabase/server";
-import { isFeatureStatus, isFeaturePriority, type FeatureStatus, type FeaturePriority } from "@/lib/feature-board";
+import {
+  isFeatureStatus,
+  isFeaturePriority,
+  type FeatureStatus,
+  type FeaturePriority,
+} from "@/lib/feature-board";
 
 export interface PublicRoadmapCard {
   seed_key: string;
@@ -14,7 +19,7 @@ export interface PublicRoadmapCard {
 
 /**
  * The public roadmap is a filtered read of the live `feature_requests`
- * board (the same table src/lib/revenue-os/feature-board-claims.ts and
+ * board (the same table src/lib/revenue-os/work-board.ts and
  * /admin/features operate on), not a static export — the self-hosting pitch
  * on /open-source explicitly sells "acceptance criteria written out for
  * every planned change" as a live feature, so this must reflect the real

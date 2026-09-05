@@ -1,3 +1,6 @@
+import { KANBAN_DEFAULT_COLUMNS } from "@/lib/kanban/defaults";
+import { isKanbanBoardKey } from "@/lib/kanban/types";
+import type { FeatureRequest } from "@/lib/feature-board";
 import { DEMO_SCENARIOS, type DemoScenarioId, type DemoScenarioPack } from "./scenarios";
 import { clearDemoAppearance } from "./appearance-state";
 import {
@@ -67,15 +70,11 @@ type DemoState = {
   emailDrafts: Record<string, DemoEmailDraft>;
   featureOverrides: Record<
     string,
-    {
-      status?: string;
-      sort_order?: number;
-      subtasks?: Array<{ id: string; title: string; done: boolean }>;
-      title?: string;
-      owner?: string | null;
-      created?: boolean;
-    }
+    Partial<FeatureRequest> & { created?: boolean; demoClaimToken?: string }
   >;
+  workViews?: Array<Record<string, unknown>>;
+  workEvents?: Array<Record<string, unknown>>;
+  workReceipts?: Record<string, { fingerprint: string; card: unknown }>;
   moduleOverrides: Partial<Record<string, boolean>>;
   moduleSettings: Record<string, Record<string, unknown>>;
 };
@@ -1559,7 +1558,7 @@ function contentItems(pack: DemoScenarioPack) {
 function featureBoard(pack: DemoScenarioPack, state: DemoState) {
   const titles = pack.content.roadmapTitles;
   const seeded = titles.map((title, index) => {
-    const id = `feature-${index}`;
+    const id = `00000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`;
     const defaultStatus = ["backlog", "planned", "in_progress", "blocked", "shipped"][index % 5]!;
     const defaultSortOrder = (index + 1) * 1000;
     // Dragging a card on the demo board writes here (see the PATCH handler
@@ -1585,7 +1584,7 @@ function featureBoard(pack: DemoScenarioPack, state: DemoState) {
       ],
       owner:
         override && "owner" in override
-          ? override.owner ?? null
+          ? (override.owner ?? null)
           : index % 2
             ? pack.tenant.founder.fullName
             : "Implementation partner",
@@ -1620,7 +1619,36 @@ function featureBoard(pack: DemoScenarioPack, state: DemoState) {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }));
-  return [...seeded, ...created];
+  return [...seeded, ...created]
+    .map((card) => {
+      const result = {
+        ...card,
+        revision: 1,
+        project_key: "accelerate",
+        work_kind: "research",
+        work_spec: {},
+        dependencies: [],
+        ...state.featureOverrides[card.id],
+      };
+      const deps = result.dependencies ?? [];
+      const readiness = [
+        ...(!["backlog", "planned"].includes(result.status) ? [`status:${result.status}`] : []),
+        ...(!result.description ? ["missing_outcome"] : []),
+        ...(!result.acceptance_criteria ? ["missing_acceptance"] : []),
+        ...(result.work_blocker ? ["blocker"] : []),
+        ...(deps.some(
+          (id) =>
+            (state.featureOverrides[id]?.status ?? seeded.find((c) => c.id === id)?.status) !==
+            "shipped",
+        )
+          ? ["dependencies_incomplete"]
+          : []),
+      ];
+      const { demoClaimToken: _token, ...safe } = result;
+      void _token;
+      return { ...safe, readiness };
+    })
+    .filter((card) => !card.archived_at);
 }
 
 function settings(pack: DemoScenarioPack) {
@@ -2078,25 +2106,229 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       return jsonResponse(clients(pack, state, url.searchParams.get("id")));
     if (method === "GET" && path === "/api/admin/content")
       return jsonResponse({ items: contentItems(pack) });
-    if (method === "GET" && path === "/api/admin/features")
-      return jsonResponse({ schemaReady: true, features: featureBoard(pack, state) });
+    if (method === "GET" && path === "/api/admin/kanban/columns") {
+      const board = url.searchParams.get("board_key");
+      if (!isKanbanBoardKey(board)) return jsonResponse({ error: "Invalid board" }, 400);
+      return jsonResponse({
+        columns: KANBAN_DEFAULT_COLUMNS[board].map((column, index) => ({
+          ...column,
+          id: `demo-column-${board}-${index}`,
+          board_key: board,
+          tenant_id: null,
+          created_at: ago(1),
+          updated_at: ago(1),
+        })),
+      });
+    }
+    if (path === "/api/admin/features/views") {
+      if (method === "GET") return jsonResponse({ views: state.workViews ?? [] });
+      const input = body as Record<string, unknown>;
+      if (method === "POST") {
+        const view = { ...input, id: crypto.randomUUID() };
+        state.workViews = [...(state.workViews ?? []), view];
+        saveState(scenarioId, state);
+        return jsonResponse(view);
+      }
+      if (method === "DELETE") {
+        state.workViews = (state.workViews ?? []).filter((v) => v.id !== input.id);
+        saveState(scenarioId, state);
+        return jsonResponse({ deleted: true });
+      }
+    }
+    if (method === "GET" && path === "/api/admin/features") {
+      if (url.searchParams.get("history"))
+        return jsonResponse({
+          events: (state.workEvents ?? []).filter(
+            (e) => e.card_id === url.searchParams.get("history"),
+          ),
+        });
+      return jsonResponse({
+        schemaReady: true,
+        features: featureBoard(pack, state),
+        nextOffset: null,
+      });
+    }
     if (method === "POST" && path === "/api/admin/features") {
-      const title = String((body as { title?: string }).title || "").trim().slice(0, 180);
-      if (!title) return jsonResponse({ error: "Title is required" }, 400);
-      const id = `feature-new-${Date.now()}`;
-      const status = String((body as { status?: string }).status || "backlog");
-      state.featureOverrides[id] = {
-        created: true,
-        title,
-        status,
-        sort_order: (Object.keys(state.featureOverrides).length + 1) * 1000,
-        subtasks: Array.isArray((body as { subtasks?: unknown }).subtasks)
-          ? (body as { subtasks: Array<{ id: string; title: string; done: boolean }> }).subtasks
-          : [],
+      const input = body as {
+        operation: string;
+        id?: string;
+        revision?: number;
+        requestKey: string;
+        payload: Record<string, unknown>;
       };
+      if (!input.requestKey || !input.operation || !input.payload)
+        return jsonResponse({ error: "Versioned work request required" }, 400);
+      const fingerprint = JSON.stringify(input);
+      const prior = state.workReceipts?.[input.requestKey];
+      if (prior)
+        return prior.fingerprint === fingerprint
+          ? jsonResponse({ card: prior.card, replayed: true })
+          : jsonResponse({ error: "Idempotency key conflict" }, 409);
+      const p = input.payload;
+      if (input.operation === "reorder") {
+        const updates = p.updates as Array<{
+          id: string;
+          revision: number;
+          status: string;
+          sort_order: number;
+        }>;
+        const all = featureBoard(pack, state);
+        if (
+          !Array.isArray(updates) ||
+          updates.some((u) => {
+            const c = all.find((c) => c.id === u.id);
+            return (
+              !c ||
+              c.revision !== u.revision ||
+              (c.status !== u.status &&
+                (!["backlog", "planned", "blocked"].includes(u.status) ||
+                  ["in_progress", "in_review", "shipped"].includes(c.status)))
+            );
+          })
+        )
+          return jsonResponse({ error: "Revision conflict or invalid work transition" }, 409);
+        for (const u of updates)
+          state.featureOverrides[u.id] = {
+            ...state.featureOverrides[u.id],
+            status: u.status,
+            sort_order: u.sort_order,
+            revision: u.revision + 1,
+          };
+        saveState(scenarioId, state);
+        return jsonResponse({ affected: updates.length });
+      }
+      const current = featureBoard(pack, state).find((c) => c.id === input.id);
+      const operation = input.operation;
+      if (operation !== "create" && !current) return jsonResponse({ error: "Card not found" }, 404);
+      if (
+        ["edit", "dependencies", "review", "recover", "reopen", "archive", "transition"].includes(
+          operation,
+        ) &&
+        input.revision !== current?.revision
+      )
+        return jsonResponse({ error: "Revision conflict; refresh before editing" }, 409);
+      const id = current?.id ?? crypto.randomUUID();
+      const patch: Partial<FeatureRequest> & { created?: boolean; demoClaimToken?: string } = {
+        ...state.featureOverrides[id],
+      };
+      if (
+        ["heartbeat", "progress", "block", "release", "submit"].includes(operation) &&
+        (patch.demoClaimToken !== p.claimToken ||
+          current?.status !== "in_progress" ||
+          !current.lease_expires_at ||
+          new Date(current.lease_expires_at) <= new Date())
+      )
+        return jsonResponse({ error: "Claim expired or session does not own this work" }, 403);
+      if (operation === "create") {
+        if (typeof p.title !== "string" || !p.title.trim())
+          return jsonResponse({ error: "Title required" }, 400);
+        Object.assign(patch, p, { created: true, status: "backlog", revision: 1 });
+      } else if (operation === "edit") {
+        if (
+          ["in_progress", "in_review", "shipped"].includes(current!.status) &&
+          ["description", "acceptance_criteria", "work_spec"].some((k) => k in p)
+        )
+          return jsonResponse(
+            { error: "Release or reopen before changing the execution specification" },
+            409,
+          );
+        Object.assign(patch, p);
+      } else if (operation === "dependencies") {
+        if (!["backlog", "planned", "blocked"].includes(current!.status))
+          return jsonResponse({ error: "Release work before changing dependencies" }, 409);
+        const deps = p.dependencies as string[];
+        const reaches = (target: string, seen = new Set<string>()): boolean => {
+          if (target === id) return true;
+          if (seen.has(target)) return false;
+          seen.add(target);
+          return (state.featureOverrides[target]?.dependencies ?? []).some((next) =>
+            reaches(next, seen),
+          );
+        };
+        if (
+          !Array.isArray(deps) ||
+          deps.some((dep) => reaches(dep) || !featureBoard(pack, state).some((c) => c.id === dep))
+        )
+          return jsonResponse({ error: "Invalid dependency or cycle" }, 400);
+        patch.dependencies = deps;
+      } else if (operation === "claim") {
+        if (current!.readiness.length)
+          return jsonResponse({ error: `Not ready: ${current!.readiness.join(", ")}` }, 409);
+        if (featureBoard(pack, state).filter((c) => c.status === "in_progress").length >= 6)
+          return jsonResponse({ error: "WIP limit reached" }, 409);
+        Object.assign(patch, {
+          status: "in_progress",
+          demoClaimToken: p.claimToken,
+          owner: "Demo operator",
+          lease_owner: "Demo operator",
+          lease_expires_at: new Date(Date.now() + 1800000).toISOString(),
+        });
+      } else if (operation === "heartbeat")
+        patch.lease_expires_at = new Date(Date.now() + 1800000).toISOString();
+      else if (operation === "progress") {
+        /* Event only. */
+      } else if (operation === "submit") {
+        const evidence = p.evidence as { checks?: { status: string; evidence: string }[] };
+        if (
+          !evidence?.checks?.length ||
+          evidence.checks.some((c) => c.status !== "passed" || !c.evidence)
+        )
+          return jsonResponse({ error: "Passing evidence required" }, 400);
+        patch.status = "in_review";
+        patch.work_delivery = p.evidence as Record<string, unknown>;
+      } else if (operation === "review") {
+        if (current!.status !== "in_review")
+          return jsonResponse({ error: "Submitted work required" }, 409);
+        patch.status = p.accept ? "shipped" : "planned";
+      } else if (operation === "recover") {
+        if (
+          current!.status !== "in_progress" ||
+          (current!.lease_expires_at && new Date(current!.lease_expires_at) > new Date())
+        )
+          return jsonResponse({ error: "Only expired claims can be recovered" }, 409);
+        patch.status = "blocked";
+        patch.work_blocker = String(p.message);
+      } else if (operation === "reopen") {
+        patch.status = "planned";
+        patch.work_blocker = null;
+      } else if (operation === "block") {
+        patch.status = "blocked";
+        patch.work_blocker = String(p.message);
+      } else if (operation === "release") patch.status = "planned";
+      else if (operation === "transition") {
+        if (
+          !["backlog", "planned", "blocked"].includes(String(p.status)) ||
+          ["in_progress", "in_review", "shipped"].includes(current!.status)
+        )
+          return jsonResponse({ error: "Use claim, submit, review or reopen" }, 409);
+        patch.status = String(p.status);
+      } else if (operation === "archive") {
+        if (["in_progress", "in_review"].includes(current!.status))
+          return jsonResponse({ error: "Release active work before archiving" }, 409);
+        patch.archived_at = new Date().toISOString();
+      } else return jsonResponse({ error: "Unknown operation" }, 400);
+      if (["release", "block", "submit", "recover"].includes(operation)) {
+        patch.lease_owner = null;
+        patch.lease_expires_at = null;
+        delete patch.demoClaimToken;
+      }
+      patch.revision = (current?.revision ?? 0) + 1;
+      state.featureOverrides[id] = patch;
+      const card = featureBoard(pack, state).find((c) => c.id === id) ?? { id, ...patch };
+      state.workEvents = [
+        {
+          id: crypto.randomUUID(),
+          card_id: id,
+          actor: "Demo operator",
+          operation,
+          created_at: new Date().toISOString(),
+          payload: { message: p.message },
+        },
+        ...(state.workEvents ?? []),
+      ];
+      state.workReceipts = { ...state.workReceipts, [input.requestKey]: { fingerprint, card } };
       saveState(scenarioId, state);
-      const created = featureBoard(pack, state).find((item) => item.id === id);
-      return jsonResponse(created ?? { id, title, status }, 201);
+      return jsonResponse({ card, replayed: false });
     }
     if (method === "PATCH" && path === "/api/admin/features") {
       // Mirrors the real route's bulk-reorder contract: { reorder: [{ id,
@@ -2104,7 +2336,17 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       // here fell through to the generic 403 below and every optimistic
       // drag on the demo board reverted the instant its PATCH landed.
       const reorder = Array.isArray((body as { reorder?: unknown })?.reorder)
-        ? (body as { reorder: Array<{ id: string; column_key?: string; status?: string; sort_order?: number; sortOrder?: number }> }).reorder
+        ? (
+            body as {
+              reorder: Array<{
+                id: string;
+                column_key?: string;
+                status?: string;
+                sort_order?: number;
+                sortOrder?: number;
+              }>;
+            }
+          ).reorder
         : [];
       if (reorder.length) {
         for (const item of reorder) {
@@ -2121,7 +2363,8 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       const featureId = String((body as { id?: string }).id || "");
       if (featureId) {
         const current = state.featureOverrides[featureId] || {};
-        if ((body as { status?: string }).status) current.status = String((body as { status: string }).status);
+        if ((body as { status?: string }).status)
+          current.status = String((body as { status: string }).status);
         if (typeof (body as { title?: string }).title === "string") {
           current.title = String((body as { title: string }).title);
         }
@@ -2130,7 +2373,9 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
           current.owner = typeof owner === "string" && owner.trim() ? owner.trim() : null;
         }
         if (Array.isArray((body as { subtasks?: unknown }).subtasks)) {
-          current.subtasks = (body as { subtasks: Array<{ id: string; title: string; done: boolean }> }).subtasks;
+          current.subtasks = (
+            body as { subtasks: Array<{ id: string; title: string; done: boolean }> }
+          ).subtasks;
         }
         state.featureOverrides[featureId] = current;
         saveState(scenarioId, state);

@@ -37,9 +37,13 @@ const manifestPath = resolve(repoRoot, "scripts", "feature-backlog-data.mjs");
 for (const key of ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]) {
   if (!process.env[key]) throw new Error(`Missing required env var ${key}`);
 }
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
-  auth: { persistSession: false },
-});
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: { persistSession: false },
+  },
+);
 
 function findCardBlock(source, seedKey) {
   const keyPattern = new RegExp(`key:\\s*"${seedKey}"`);
@@ -118,7 +122,13 @@ async function main() {
 
     const statusOrOwnerDrifted = manifestStatus !== row.status || manifestOwner !== row.owner;
     if (statusOrOwnerDrifted) {
-      drift.push({ seed_key: row.seed_key, manifestStatus, dbStatus: row.status, manifestOwner, dbOwner: row.owner });
+      drift.push({
+        seed_key: row.seed_key,
+        manifestStatus,
+        dbStatus: row.status,
+        manifestOwner,
+        dbOwner: row.owner,
+      });
     }
 
     let patched = block.body;
@@ -140,24 +150,35 @@ async function main() {
   }
 
   if (!drift.length && !evidenceBackfilled.length) {
-    console.log("Manifest already matches live Feature Board status/owner/evidence for every seeded card.");
+    console.log(
+      "Manifest already matches live Feature Board status/owner/evidence for every seeded card.",
+    );
     return;
   }
 
   if (drift.length) {
     console.log(`${drift.length} card(s) out of sync with the live board:`);
     for (const d of drift) {
-      console.log(`  ${d.seed_key}: status ${d.manifestStatus} -> ${d.dbStatus}` + (d.manifestOwner !== d.dbOwner ? `, owner ${d.manifestOwner ?? "null"} -> ${d.dbOwner ?? "null"}` : ""));
+      console.log(
+        `  ${d.seed_key}: status ${d.manifestStatus} -> ${d.dbStatus}` +
+          (d.manifestOwner !== d.dbOwner
+            ? `, owner ${d.manifestOwner ?? "null"} -> ${d.dbOwner ?? "null"}`
+            : ""),
+      );
     }
   }
   if (evidenceBackfilled.length) {
-    console.log(`${evidenceBackfilled.length} shipped card(s) missing manifest evidence, backfilled from the DB's Completed note:`);
+    console.log(
+      `${evidenceBackfilled.length} shipped card(s) missing manifest evidence, backfilled from the DB's Completed note:`,
+    );
     for (const key of evidenceBackfilled) console.log(`  ${key}`);
   }
 
   if (checkOnly) {
-    console.log("\n--check: manifest not written. Run `npm run reconcile:feature-status` to fix.");
-    process.exitCode = 1;
+    console.log(
+      "\n--check: Git snapshot differs from authoritative live work; no data was written. Run reconcile:feature-status for an explicit refreshed snapshot.",
+    );
+    process.exitCode = process.argv.includes("--strict") ? 1 : 0;
     return;
   }
 

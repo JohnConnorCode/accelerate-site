@@ -5,6 +5,7 @@ export const FEATURE_STATUSES = [
   "backlog",
   "planned",
   "in_progress",
+  "in_review",
   "blocked",
   "shipped",
 ] as const;
@@ -20,6 +21,16 @@ export interface FeatureSubtask {
 }
 
 export interface FeatureRequest {
+  revision?: number;
+  project_key?: string;
+  initiative?: string;
+  parent_id?: string | null;
+  work_kind?: string;
+  work_spec?: Record<string, unknown>;
+  work_delivery?: Record<string, unknown>;
+  work_blocker?: string | null;
+  readiness?: string[];
+  dependencies?: string[];
   id: string;
   seed_key: string | null;
   title: string;
@@ -74,7 +85,9 @@ export function cleanSubtasks(value: unknown): FeatureSubtask[] {
   return cleaned;
 }
 
-export function hydrateSubtasks(feature: Pick<FeatureRequest, "id" | "subtasks" | "acceptance_criteria">): FeatureSubtask[] {
+export function hydrateSubtasks(
+  feature: Pick<FeatureRequest, "id" | "subtasks" | "acceptance_criteria">,
+): FeatureSubtask[] {
   const stored = cleanSubtasks(feature.subtasks);
   if (stored.length) return stored;
   return parseAcceptanceLines(feature.acceptance_criteria).map((title, index) => ({
@@ -92,13 +105,21 @@ export function toggleSubtask(items: FeatureSubtask[], id: string): FeatureSubta
   return items.map((item) => (item.id === id ? { ...item, done: !item.done } : item));
 }
 
-export function renameSubtask(items: FeatureSubtask[], id: string, title: string): FeatureSubtask[] {
+export function renameSubtask(
+  items: FeatureSubtask[],
+  id: string,
+  title: string,
+): FeatureSubtask[] {
   const next = title.trim().slice(0, MAX_SUBTASK_TITLE);
   if (!next) return items.filter((item) => item.id !== id);
   return items.map((item) => (item.id === id ? { ...item, title: next } : item));
 }
 
-export function moveSubtask(items: FeatureSubtask[], id: string, direction: -1 | 1): FeatureSubtask[] {
+export function moveSubtask(
+  items: FeatureSubtask[],
+  id: string,
+  direction: -1 | 1,
+): FeatureSubtask[] {
   const index = items.findIndex((item) => item.id === id);
   const nextIndex = index + direction;
   if (index < 0 || nextIndex < 0 || nextIndex >= items.length) return items;
@@ -123,14 +144,27 @@ export const FEATURE_STATUS_META: Record<
   { label: string; description: string; accent: string }
 > = {
   backlog: { label: "Backlog", description: "Captured, not yet committed", accent: "bg-slate-400" },
-  planned: { label: "Planned", description: "Committed and ready", accent: "bg-blue-500" },
+  planned: {
+    label: "Planned",
+    description: "Committed; readiness checked at claim",
+    accent: "bg-blue-500",
+  },
   in_progress: {
     label: "In progress",
     description: "Actively being built",
     accent: "bg-amber-500",
   },
+  in_review: {
+    label: "In review",
+    description: "Verification submitted for review",
+    accent: "bg-violet-500",
+  },
   blocked: { label: "Blocked", description: "Waiting on a dependency", accent: "bg-rose-500" },
-  shipped: { label: "Shipped", description: "Delivered and verified", accent: "bg-emerald-500" },
+  shipped: {
+    label: "Verified",
+    description: "Verification accepted; merge and deployment tracked separately",
+    accent: "bg-emerald-500",
+  },
 };
 
 export function isFeatureStatus(value: unknown): value is FeatureStatus {

@@ -18,12 +18,12 @@
 | Phase | Backlog | Planned | In progress | Blocked | Shipped | Total |
 |---|---|---|---|---|---|---|
 | A — A (Complete Loop One — See + Remember) | 0 | 0 | 0 | 1 | 18 | 19 |
-| B — B (Agent Runtime foundation — Notice + Act primitives) | 21 | 17 | 4 | 4 | 35 | 81 |
-| C — C (Reference coworker — Sales end-to-end loop) | 21 | 3 | 2 | 1 | 10 | 37 |
-| D — D (Plugin SDK + MCP) | 6 | 4 | 0 | 1 | 13 | 24 |
-| E — E (Additional coworkers/plugins + documentation) | 49 | 5 | 0 | 0 | 13 | 67 |
+| B — B (Agent Runtime foundation — Notice + Act primitives) | 21 | 21 | 0 | 4 | 35 | 81 |
+| C — C (Reference coworker — Sales end-to-end loop) | 21 | 5 | 0 | 1 | 10 | 37 |
+| D — D (Plugin SDK + MCP) | 6 | 4 | 1 | 1 | 13 | 25 |
+| E — E (Additional coworkers/plugins + documentation) | 59 | 5 | 0 | 0 | 13 | 77 |
 
-**Board total:** 97 backlog, 29 planned, 6 in progress, 7 blocked, 89 shipped (228 managed cards).
+**Board total:** 107 backlog, 35 planned, 1 in progress, 7 blocked, 89 shipped (239 managed cards).
 
 ## Dispatchable now (`npm run agent:next` picks from this set)
 
@@ -34,8 +34,14 @@
 - `admin-shell-design-system` [high] — Complete the shared professional admin system
 - `feature-board-interaction-rebuild` [high] — Rebuild Feature Board drag, details, and mobile interaction
 - `additional-tools-canonical-parity` [high] — Modernize and canonically integrate every additional admin tool
+- `de-vertical-inbound` [high] — Turn the roofing ingestion path into a configurable playbook
+- `proposal-lifecycle-service` [high] — Complete the proposal lifecycle and version rules
 - `admin-settings-consolidation` [medium] — Consolidate Settings and connection ownership
+- `ai-model-job-registry` [medium] — Route every AI job through an audited model registry
+- `system-health-report` [high] — Build the system-health report and freshness thresholds
 - `gmail-reply-actions` [high] — Finish reply, local archive, and follow-up actions in Conversations
+- `booking-mode-contract-reconciliation` [high] — Reconcile booking activation and health truth
+- `won-to-delivery-handoff` [high] — Create the won-to-delivery handoff
 - `unified-action-executor` [high] — Route every write through one executor with reversibility and compensators
 - `plugin-isolate-host` [high] — Run plugin code in an isolate with no ambient authority
 - `api-contract-tests` [high] — Add authenticated API contract and failure tests
@@ -53,12 +59,7 @@
 
 ## In progress
 
-- `de-vertical-inbound` — Turn the roofing ingestion path into a configurable playbook (claude-code:johnconnor:9960)
-- `proposal-lifecycle-service` — Complete the proposal lifecycle and version rules (claude-code:johnconnor:9960)
-- `ai-model-job-registry` — Route every AI job through an audited model registry (claude-code:johnconnor:57291)
-- `system-health-report` — Build the system-health report and freshness thresholds (claude-code:johnconnor:9960)
-- `booking-mode-contract-reconciliation` — Reconcile booking activation and health truth (claude-code:johnconnor:9960)
-- `won-to-delivery-handoff` — Create the won-to-delivery handoff (claude-code:johnconnor:62700)
+- `universal-work-board` — Make the Feature Board an authoritative human and agent work system (codex-work-board)
 
 ## Blocked
 

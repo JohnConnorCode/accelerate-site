@@ -149,11 +149,11 @@
     "verify:build-plan": "node scripts/generate-northstar-build-plan.mjs --check",
     "reconcile:feature-status": "node --env-file=.env.local scripts/reconcile-feature-manifest.mjs",
     "verify:feature-status": "node --env-file=.env.local scripts/reconcile-feature-manifest.mjs --check",
-    "agent:next": "NODE_OPTIONS=--conditions=react-server npx tsx --env-file=.env.local scripts/agent-dispatch.ts next",
-    "agent:status": "NODE_OPTIONS=--conditions=react-server npx tsx --env-file=.env.local scripts/agent-dispatch.ts status",
-    "agent:heartbeat": "NODE_OPTIONS=--conditions=react-server npx tsx --env-file=.env.local scripts/agent-dispatch.ts heartbeat",
-    "agent:release": "NODE_OPTIONS=--conditions=react-server npx tsx --env-file=.env.local scripts/agent-dispatch.ts release",
-    "agent:complete": "NODE_OPTIONS=--conditions=react-server npx tsx --env-file=.env.local scripts/agent-dispatch.ts complete",
+    "agent:next": "npx tsx scripts/agent-dispatch.ts next",
+    "agent:status": "npx tsx scripts/agent-dispatch.ts status",
+    "agent:heartbeat": "npx tsx scripts/agent-dispatch.ts heartbeat",
+    "agent:release": "npx tsx scripts/agent-dispatch.ts release",
+    "agent:complete": "npx tsx scripts/agent-dispatch.ts complete",
     "mirror:feature-board-issues": "node scripts/mirror-feature-board-issues.mjs",
     "test:feature-board-dependencies": "npx tsx scripts/test-feature-board-dependencies.ts",
     "db:migrate": "node scripts/run-migration.mjs",
@@ -202,7 +202,10 @@
     "test:founder-notes": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-founder-notes.ts",
     "test:recovery": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-recovery.ts",
     "test:health-expectation": "npx tsx scripts/test-health-expectation.ts",
-    "qa:founder-notes": "node --env-file=.env.local scripts/qa-founder-note.mjs"
+    "qa:founder-notes": "node --env-file=.env.local scripts/qa-founder-note.mjs",
+    "test:work-board": "npx tsx --env-file=.env.local scripts/test-work-board.ts",
+    "agent:progress": "npx tsx scripts/agent-dispatch.ts progress",
+    "agent:block": "npx tsx scripts/agent-dispatch.ts block"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

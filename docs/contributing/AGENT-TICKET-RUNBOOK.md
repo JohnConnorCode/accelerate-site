@@ -13,6 +13,7 @@ maps to a northstar phase; every card's notes include that mapping. When
 implementation choices arise, the northstar principles resolve them.
 
 Key concepts you will encounter on the board:
+
 - **WorkItems** (Phase B): durable, lease-based, explainable units of work — not cron→prompt→hope
 - **Coworkers** (Phase C): first-class identities configured over the shared runtime — not separate LLMs
 - **Capability Graph** (Phase B): one canonical source of workspace capabilities and policies
@@ -30,24 +31,19 @@ git status --short
 npm run agent:next
 ```
 
-`agent:next` atomically claims one dependency-ready card (advisory lock +
-lease — two agents racing the same card, exactly one wins, the other gets a
-different card or `wip_limit_reached`), creates an isolated worktree +
-branch so this claim can't collide with another agent's uncommitted changes
-in a shared tree, and prints the full context in one call: description,
-dependencies, starting points, guardrails, acceptance criteria, and current
-evidence. That replaces hand-reading `scripts/feature-backlog-data.mjs` for
-this step. Still read every directly linked service/migration named in the
-"Starting points" line before editing.
+Configure `WORK_BOARD_URL` and a scoped `WORK_BOARD_TOKEN` from the founder's
+Agent access panel. The canonical protocol is
+[UNIVERSAL-WORK-BOARD.md](../contracts/UNIVERSAL-WORK-BOARD.md).
+`agent:next` atomically claims ready work through that HTTP service and returns
+the live contract. Read all referenced services/migrations before editing.
+The repository base branch and exact commit must be present before worktree
+creation. An expired claim needs operator review; no automatic reassignment or
+force cleanup is allowed. Renew the lease at least every 30 minutes.
 
-Do not start when a dependency is genuinely unmet — release it
-(`npm run agent:release -- --card <id>`) and claim something else instead.
-`owner`/`status`/the lease are live-managed columns now: never hand-edit
-them in the manifest, and `npm run seed:features -- --apply` deliberately
-ignores those two fields on an existing row, so a manifest edit to either
-is silently a no-op. Everything else about a card (title, description,
-acceptance, dependencies, labels) is still manifest-owned; edit it there
-and reconcile with `npm run seed:features -- --apply` then `--verify`.
+The live board owns definitions and status. Git templates are reviewed input;
+`seed:features -- --plan /tmp/plan.json --cards <keys>` creates a proposal, and
+`--apply --plan /tmp/plan.json` applies only those versioned changes. Unlisted
+cards and live execution state survive imports.
 
 ## 2. Write the implementation contract
 
@@ -78,6 +74,14 @@ raise an architecture decision instead of inventing an exception.
 
 When a required primitive is missing, add it as a separately testable service or
 dependency card. Do not bury a framework replacement inside a feature route.
+
+## Completion protocol
+
+Submit with `agent:complete -- --card <key> --evidence-file <path.json>`.
+Evidence includes a summary, exact commitSha, and named passing checks with
+artifact/evidence references; structured acceptance IDs must each be covered.
+This enters in_review. A founder reviews evidence and records acceptance or
+changes requested. Keep worktrees intact; merge/deployment facts are separate.
 
 ## 4. Verify the failure matrix
 
@@ -124,17 +128,12 @@ Update the card’s `evidence` with:
 - known limitations and exact remaining work;
 - discovered follow-up card keys.
 
-Set `shipped` only when every acceptance item is evidenced:
-`npm run agent:complete -- --card <id> --evidence "<the evidence above>"`
-appends it to the card's notes, marks it shipped, and removes your
-worktree. Otherwise keep `in_progress` and state what remains — running
-long is fine, renew with `npm run agent:heartbeat -- --card <id>` before
-the lease expires; abandoning entirely is
-`npm run agent:release -- --card <id>`, which returns it to backlog for
-someone else to pick up and leaves the worktree in place to inspect. Any
-manifest field besides the live-managed `owner`/`status`/lease (title,
-description, acceptance, dependencies, labels) still needs its own
-`npm run seed:features -- --apply` / `--verify` if you changed it.
+Submit with `npm run agent:complete -- --card <id> --evidence-file <path.json>`.
+The shared service enters in_review; a founder records acceptance or requests
+changes. Worktrees remain intact. Renew active claims within 30 minutes;
+release abandons the claim to planning with history preserved. Live definitions
+are changed through versioned mutations or a reviewed import plan, never an
+implicit full-board manifest reconciliation.
 
 ### Release gate
 

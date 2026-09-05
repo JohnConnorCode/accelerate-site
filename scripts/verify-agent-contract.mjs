@@ -74,17 +74,11 @@ for (const section of requiredProgramWaveSections) {
   if (!programWaves.includes(section)) failures.push(`Program waves doc is missing ${section}`);
 }
 if (
-  !/not a second roadmap/i.test(programWaves) ||
-  !/durable roadmap is `scripts\/feature-backlog-data\.mjs`/i.test(programWaves) ||
-  !/operational\s+projection is `\/admin\/features`/i.test(programWaves)
+  !programWaves.includes("The live Feature Board is the authoritative work record") ||
+  !programWaves.includes("never archives unlisted work")
 ) {
   failures.push(
-    "Program waves doc must preserve the Feature Board as the only roadmap and status authority",
-  );
-}
-if (!/seed:features -- --apply` reconciles manifest-owned fields/i.test(programWaves)) {
-  failures.push(
-    "Program waves doc must describe seed:features -- --apply as manifest-field-only, never a live claim/status reconciler",
+    "Program waves must preserve live work authority and non-destructive reviewed imports",
   );
 }
 if (!/Production release is founder-authorized per named release/i.test(programWaves)) {
@@ -165,9 +159,9 @@ if (!buildPlanIsInSync())
 // The program waves doc sequences stable card keys but never owns their
 // mutable status. Resolve every `card:<key>` reference against the manifest so
 // a rename or missing card fails before a lower-context agent is dispatched.
-const referencedWaveKeys = [
-  ...programWaves.matchAll(/`card:([a-z0-9]+(?:-[a-z0-9]+)*)`/g),
-].map((match) => match[1]);
+const referencedWaveKeys = [...programWaves.matchAll(/`card:([a-z0-9]+(?:-[a-z0-9]+)*)`/g)].map(
+  (match) => match[1],
+);
 if (!referencedWaveKeys.length)
   failures.push("Program waves doc must reference Feature Board work by stable card:key tokens");
 for (const key of new Set(referencedWaveKeys)) {

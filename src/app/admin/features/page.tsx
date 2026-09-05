@@ -1,5 +1,8 @@
 "use client";
 
+import { WorkAgents } from "@/components/admin/work-board/WorkAgents";
+import { WorkViews, type WorkFilters } from "@/components/admin/work-board/WorkViews";
+import { WorkControls, sendWork } from "@/components/admin/work-board/WorkControls";
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Archive,
@@ -30,11 +33,14 @@ import { KanbanBoard, type KanbanCardRenderOpts } from "@/components/kanban/Kanb
 import { KanbanChecklist } from "@/components/kanban/KanbanChecklist";
 import { KanbanListView } from "@/components/kanban/KanbanListView";
 import { KanbanViewSwitcher, useKanbanView } from "@/components/kanban/KanbanViewSwitcher";
-import { fetchJson } from "@/lib/admin/fetchJson";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { toast } from "@/lib/admin/useToast";
 import { useKanbanColumns } from "@/lib/kanban/useKanbanColumns";
-import { parseWipLimit, type KanbanColumnMetadata, type KanbanColumnRecord } from "@/lib/kanban/types";
+import {
+  parseWipLimit,
+  type KanbanColumnMetadata,
+  type KanbanColumnRecord,
+} from "@/lib/kanban/types";
 import {
   FEATURE_BOARD_WIP_LIMIT,
   FEATURE_PRIORITIES,
@@ -54,6 +60,7 @@ import { cn } from "@/lib/utils";
 import { tenant } from "@/config/tenant";
 
 interface BoardResponse {
+  nextOffset?: number | null;
   schemaReady: boolean;
   features: FeatureRequest[];
 }
@@ -122,6 +129,9 @@ const emptyForm = {
   target_date: "",
   acceptance_criteria: "",
   notes: "",
+  initiative: "",
+  work_kind: "feature",
+  parent_id: "",
   subtasks: [] as FeatureSubtask[],
 };
 
@@ -137,6 +147,9 @@ function featureForm(feature?: FeatureRequest | null) {
     target_date: feature.target_date ?? "",
     acceptance_criteria: feature.acceptance_criteria ?? "",
     notes: feature.notes ?? "",
+    initiative: feature.initiative ?? "",
+    work_kind: feature.work_kind ?? "feature",
+    parent_id: feature.parent_id ?? "",
     subtasks: hydrateSubtasks(feature),
   };
 }
@@ -170,7 +183,9 @@ function readStoredFilters() {
 }
 
 function assigneeOptions(owners: string[], current: string | null) {
-  const unique = [...new Set([tenant.founder.name, tenant.founder.fullName, ...owners, current].filter(Boolean))] as string[];
+  const unique = [
+    ...new Set([tenant.founder.name, tenant.founder.fullName, ...owners, current].filter(Boolean)),
+  ] as string[];
   return unique;
 }
 
@@ -197,7 +212,8 @@ function FeatureCard({
   const subtasks = hydrateSubtasks(feature);
   const progress = subtaskProgress(subtasks);
   const overdue = isFeatureOverdue(feature);
-  const claimedBy = feature.lease_owner || (feature.status === "in_progress" ? feature.owner : null);
+  const claimedBy =
+    feature.lease_owner || (feature.status === "in_progress" ? feature.owner : null);
   const people = assigneeOptions(assignees ?? [], feature.owner);
   return (
     <article
@@ -215,7 +231,9 @@ function FeatureCard({
         <button
           type="button"
           aria-label={
-            disabled ? "Reordering is unavailable while filters are active" : `Drag ${feature.title}`
+            disabled
+              ? "Reordering is unavailable while filters are active"
+              : `Drag ${feature.title}`
           }
           disabled={disabled || isOverlay}
           className="hidden size-10 shrink-0 touch-none cursor-grab place-items-center rounded-xl text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:cursor-grabbing active:scale-[0.96] disabled:cursor-default disabled:opacity-30 dark:hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/40 sm:grid"
@@ -382,9 +400,13 @@ function FeatureDialog({
   onSave,
   onArchive,
   onPersistSubtasks,
+  cards,
+  onWorkChanged,
 }: {
   open: boolean;
   feature: FeatureRequest | null;
+  cards: FeatureRequest[];
+  onWorkChanged: (feature: FeatureRequest) => void;
   defaultStatus: string;
   columns: KanbanColumnRecord[];
   saving: boolean;
@@ -398,6 +420,7 @@ function FeatureDialog({
     status: feature?.status ?? defaultStatus,
   });
   const [form, setForm] = useState(buildInitialForm);
+  const [editRevision] = useState(feature?.revision);
   // Unsaved-change guard: the dialog is keyed per feature, so the mount-time
   // form serialized once is the pristine baseline (a ref read during render
   // trips react-hooks/refs, hence the lazy state snapshot). Closing via X,
@@ -416,14 +439,25 @@ function FeatureDialog({
     "mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal text-[var(--admin-ink)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[var(--admin-muted)]/65 focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10";
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    await onSave({
-      ...form,
-      id: feature?.id,
-      labels: form.labels
+    const initial = snapshot;
+    const changes: Record<string, unknown> = Object.fromEntries(
+      Object.entries(form).filter(
+        ([key, value]) =>
+          key !== "status" &&
+          (!feature ||
+            JSON.stringify(value) !== JSON.stringify(initial[key as keyof typeof initial])),
+      ),
+    );
+    if ("labels" in changes)
+      changes.labels = form.labels
         .split(",")
         .map((label) => label.trim())
-        .filter(Boolean),
-      subtasks: form.subtasks,
+        .filter(Boolean);
+    if ("parent_id" in changes && !changes.parent_id) changes.parent_id = null;
+    if ("target_date" in changes && !changes.target_date) changes.target_date = null;
+    await onSave({
+      ...changes,
+      ...(feature ? { id: feature.id, revision: editRevision } : { project_key: "accelerate" }),
     });
   };
   const commitSubtasks = (next: FeatureSubtask[]) => {
@@ -472,30 +506,11 @@ function FeatureDialog({
             <X className="size-4" />
           </button>
         </div>
-        {feature?.seed_key && (
-          <div className="mx-5 mt-5 flex items-start gap-2.5 rounded-xl border border-amber-500/25 bg-amber-500/[0.07] px-3.5 py-3 sm:mx-6">
-            <TriangleAlert className="mt-px size-4 shrink-0 text-amber-600 dark:text-amber-400" />
-            <p className="admin-copy text-[11px] leading-5">
-              <span className="font-semibold text-[var(--admin-ink)]">
-                Managed card ({feature.seed_key}).
-              </span>{" "}
-              Edits saved here are overwritten the next time the backlog is reconciled. Change it in{" "}
-              <span className="font-mono">scripts/feature-backlog-data.mjs</span>, then run{" "}
-              <span className="font-mono">npm run seed:features -- --apply</span>. Status and Owner
-              are the exception only while a card is actively claimed.
-            </p>
-          </div>
-        )}
-        {!feature && (
-          <div className="mx-5 mt-5 flex items-start gap-2.5 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 py-3 sm:mx-6">
-            <TriangleAlert className="mt-px size-4 shrink-0 text-[var(--admin-muted)]" />
-            <p className="admin-copy text-[11px] leading-5">
-              Cards added here are not in the managed manifest and are archived the next time the
-              backlog is reconciled. For work that should persist, add it to{" "}
-              <span className="font-mono">scripts/feature-backlog-data.mjs</span> with a stable key.
-            </p>
-          </div>
-        )}
+        {feature && <WorkControls feature={feature} cards={cards} onChanged={onWorkChanged} />}
+        <p className="mx-6 mt-4 text-xs text-[var(--admin-muted)]">
+          The live board is authoritative. Edits are versioned and preserved. Execution uses claims
+          and review.
+        </p>
         <div className="grid gap-5 px-5 py-5 pb-32 sm:grid-cols-2 sm:px-6 sm:py-6 sm:pb-32">
           <label className="text-xs font-semibold text-[var(--admin-ink)] sm:col-span-2">
             Title
@@ -522,15 +537,17 @@ function FeatureDialog({
           <div className="sm:col-span-2">
             <div className="flex items-center justify-between gap-2">
               <h3 className="text-xs font-semibold text-[var(--admin-ink)]">Subtasks</h3>
-              {feature && !form.subtasks.length && parseAcceptanceLines(form.acceptance_criteria).length > 0 && (
-                <button
-                  type="button"
-                  onClick={importAcceptance}
-                  className="text-[11px] font-semibold text-[var(--admin-ink)] underline-offset-2 hover:underline"
-                >
-                  Import from definition of done
-                </button>
-              )}
+              {feature &&
+                !form.subtasks.length &&
+                parseAcceptanceLines(form.acceptance_criteria).length > 0 && (
+                  <button
+                    type="button"
+                    onClick={importAcceptance}
+                    className="text-[11px] font-semibold text-[var(--admin-ink)] underline-offset-2 hover:underline"
+                  >
+                    Import from definition of done
+                  </button>
+                )}
             </div>
             <div className="mt-2">
               <KanbanChecklist
@@ -539,7 +556,9 @@ function FeatureDialog({
                 onToggle={(id) => commitSubtasks(toggleSubtask(form.subtasks, id))}
                 onRename={(id, title) => commitSubtasks(renameSubtask(form.subtasks, id, title))}
                 onRemove={(id) => commitSubtasks(form.subtasks.filter((item) => item.id !== id))}
-                onMove={(id, direction) => commitSubtasks(moveSubtask(form.subtasks, id, direction))}
+                onMove={(id, direction) =>
+                  commitSubtasks(moveSubtask(form.subtasks, id, direction))
+                }
                 onAdd={(title) =>
                   commitSubtasks([
                     ...form.subtasks,
@@ -552,6 +571,7 @@ function FeatureDialog({
           <label className="text-xs font-semibold text-[var(--admin-ink)]">
             Status
             <select
+              disabled
               value={form.status}
               onChange={(event) => setForm({ ...form, status: event.target.value })}
               className={inputClass}
@@ -598,6 +618,56 @@ function FeatureDialog({
             />
           </label>
           <label className="text-xs font-semibold text-[var(--admin-ink)] sm:col-span-2">
+            Initiative
+            <input
+              value={form.initiative}
+              onChange={(event) => setForm({ ...form, initiative: event.target.value })}
+              className={inputClass}
+              placeholder="Business outcome or program"
+            />
+          </label>
+          <label className="text-xs font-semibold text-[var(--admin-ink)]">
+            Parent initiative or work item
+            <select
+              value={form.parent_id}
+              onChange={(event) => setForm({ ...form, parent_id: event.target.value })}
+              className={inputClass}
+              disabled={Boolean(
+                feature && ["in_progress", "in_review", "shipped"].includes(feature.status),
+              )}
+            >
+              <option value="">No parent</option>
+              {cards
+                .filter(
+                  (card) =>
+                    card.id !== feature?.id &&
+                    card.project_key === (feature?.project_key ?? "accelerate"),
+                )
+                .map((card) => (
+                  <option key={card.id} value={card.id}>
+                    {card.title}
+                  </option>
+                ))}
+            </select>
+          </label>
+          <label className="text-xs font-semibold text-[var(--admin-ink)]">
+            Kind
+            <select
+              value={form.work_kind}
+              onChange={(event) => setForm({ ...form, work_kind: event.target.value })}
+              className={inputClass}
+              disabled={Boolean(
+                feature && ["in_progress", "in_review", "shipped"].includes(feature.status),
+              )}
+            >
+              {["initiative", "feature", "bug", "research", "operations"].map((kind) => (
+                <option key={kind} value={kind}>
+                  {kind}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs font-semibold text-[var(--admin-ink)] sm:col-span-2">
             Labels
             <input
               value={form.labels}
@@ -606,8 +676,7 @@ function FeatureDialog({
               placeholder="category:operator, milestone:later, phase:2, capability:admin-ux"
             />
             <span className="admin-copy mt-1.5 block text-[10px]">
-              Use the controlled category, milestone, phase, and capability dimensions. Managed-card
-              labels come from the manifest.
+              Use the controlled category, milestone, phase, and capability dimensions.
             </span>
           </label>
           <label className="text-xs font-semibold text-[var(--admin-ink)] sm:col-span-2">
@@ -623,7 +692,7 @@ function FeatureDialog({
           <label className="text-xs font-semibold text-[var(--admin-ink)] sm:col-span-2">
             Internal notes
             <textarea
-              rows={3}
+              rows={12}
               value={form.notes}
               onChange={(event) => setForm({ ...form, notes: event.target.value })}
               className={cn(inputClass, "min-h-24 py-3 leading-6")}
@@ -670,28 +739,37 @@ function FeatureDialog({
 const FEATURES_QUERY_KEY = ["admin", "features"] as const;
 
 export default function FeaturesPage() {
+  const [pageOffset, setPageOffset] = useState(0);
   const queryClient = useQueryClient();
-  const featuresQuery = useAdminQuery<BoardResponse>(FEATURES_QUERY_KEY, "/api/admin/features");
+  const featuresQuery = useAdminQuery<BoardResponse>(
+    [...FEATURES_QUERY_KEY, pageOffset],
+    `/api/admin/features?offset=${pageOffset}`,
+    { refetchInterval: 15000 },
+  );
   const data = featuresQuery.data ?? null;
   const setData = (
     updater: BoardResponse | null | ((current: BoardResponse | null) => BoardResponse | null),
   ) => {
-    queryClient.setQueryData(FEATURES_QUERY_KEY, (current: BoardResponse | undefined) => {
-      const next = typeof updater === "function" ? updater(current ?? null) : updater;
-      return next ?? undefined;
-    });
+    queryClient.setQueryData(
+      [...FEATURES_QUERY_KEY, pageOffset],
+      (current: BoardResponse | undefined) => {
+        const next = typeof updater === "function" ? updater(current ?? null) : updater;
+        return next ?? undefined;
+      },
+    );
   };
-  const { columns: liveColumns, createColumn, renameColumn, deleteColumn } = useKanbanColumns("features");
+  const { columns: liveColumns, renameColumn } = useKanbanColumns("features");
   const columns = useMemo(
     () =>
       liveColumns.map((column) => {
-        if (column.column_key !== "in_progress" || parseWipLimit(column.metadata) != null) return column;
+        if (column.column_key !== "in_progress") return column;
         return { ...column, metadata: { ...column.metadata, wipLimit: FEATURE_BOARD_WIP_LIMIT } };
       }),
     [liveColumns],
   );
   const [view, setView] = useKanbanView("features");
   const [saving, setSaving] = useState(false);
+  const [queue, setQueue] = useState("all");
   const [search, setSearch] = useState("");
   const [priority, setPriority] = useState<"all" | FeaturePriority>(() => {
     const stored = readStoredFilters()?.priority;
@@ -703,6 +781,27 @@ export default function FeaturesPage() {
   const [category, setCategory] = useState(() => readStoredFilters()?.category ?? "all");
   const [capability, setCapability] = useState(() => readStoredFilters()?.capability ?? "all");
   const [ownerFilter, setOwnerFilter] = useState(() => readStoredFilters()?.ownerFilter ?? "all");
+  const applyFilters = useCallback((filters: WorkFilters) => {
+    setSearch(filters.search ?? "");
+    setMilestone(filters.milestone ?? "all");
+    setCategory(filters.category ?? "all");
+    setCapability(filters.capability ?? "all");
+    setOwnerFilter(filters.ownerFilter ?? "all");
+    setPriority(
+      FEATURE_PRIORITIES.includes(filters.priority as FeaturePriority)
+        ? (filters.priority as FeaturePriority)
+        : "all",
+    );
+    setQueue(filters.queue ?? "all");
+  }, []);
+  useEffect(() => {
+    try {
+      const value = new URL(location.href).searchParams.get("filters");
+      if (value) applyFilters(JSON.parse(value));
+    } catch {
+      /* Ignore malformed shared links. */
+    }
+  }, [applyFilters]);
   const [openFeature, setOpenFeature] = useState<FeatureRequest | null>(null);
   const [featureDialogOpen, setFeatureDialogOpen] = useState(false);
   const [newStatus, setNewStatus] = useState<string>("backlog");
@@ -729,7 +828,13 @@ export default function FeaturesPage() {
   );
   const owners = useMemo(
     () =>
-      [...new Set(features.map((feature) => feature.owner).filter((value): value is string => Boolean(value)))].sort(),
+      [
+        ...new Set(
+          features
+            .map((feature) => feature.owner)
+            .filter((value): value is string => Boolean(value)),
+        ),
+      ].sort(),
     [features],
   );
   useEffect(() => {
@@ -783,6 +888,21 @@ export default function FeaturesPage() {
   const filtered = useMemo(
     () =>
       features.filter((feature) => {
+        if (queue === "ready" && (!feature.readiness || feature.readiness.length > 0)) return false;
+        if (queue === "blocked" && feature.status !== "blocked" && !feature.work_blocker)
+          return false;
+        if (queue === "review" && feature.status !== "in_review") return false;
+        if (
+          queue === "stale" &&
+          (feature.status !== "in_progress" ||
+            (feature.lease_expires_at && new Date(feature.lease_expires_at) > new Date()))
+        )
+          return false;
+        if (
+          queue === "unmerged" &&
+          (feature.status !== "shipped" || feature.work_delivery?.mergedAt)
+        )
+          return false;
         if (priority !== "all" && feature.priority !== priority) return false;
         if (!matchesMilestone(feature.labels, milestone)) return false;
         if (category !== "all" && !feature.labels.includes(category)) return false;
@@ -790,12 +910,14 @@ export default function FeaturesPage() {
         if (ownerFilter === "unassigned") {
           if (feature.owner) return false;
         } else if (ownerFilter === "mine") {
-          const mine = [tenant.founder.name, tenant.founder.fullName, tenant.founder.email].map((value) =>
-            value.toLowerCase(),
+          const mine = [tenant.founder.name, tenant.founder.fullName, tenant.founder.email].map(
+            (value) => value.toLowerCase(),
           );
           const owner = (feature.owner || "").toLowerCase();
           const lease = (feature.lease_owner || "").toLowerCase();
-          if (!mine.some((value) => owner === value || owner.includes(value) || lease.includes(value)))
+          if (
+            !mine.some((value) => owner === value || owner.includes(value) || lease.includes(value))
+          )
             return false;
         } else if (ownerFilter !== "all" && feature.owner !== ownerFilter) {
           return false;
@@ -818,9 +940,10 @@ export default function FeaturesPage() {
             .includes(term)
         );
       }),
-    [capability, category, features, milestone, ownerFilter, priority, search],
+    [capability, category, features, milestone, ownerFilter, priority, search, queue],
   );
   const filtersActive = Boolean(
+    queue !== "all" ||
     search.trim() ||
     priority !== "all" ||
     category !== "all" ||
@@ -850,11 +973,12 @@ export default function FeaturesPage() {
     const close = options?.close !== false;
     setSaving(true);
     try {
-      const updated = await fetchJson<FeatureRequest>("/api/admin/features", {
-        method: payload.id ? "PATCH" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const { id, revision, ...changes } = payload;
+      const { card: updated } = await sendWork(
+        id ? "edit" : "create",
+        id ? ({ id, revision } as FeatureRequest) : null,
+        changes,
+      );
       applyFeatureUpdate(updated, !payload.id);
       if (close) {
         setFeatureDialogOpen(false);
@@ -881,20 +1005,14 @@ export default function FeaturesPage() {
         : current,
     );
     try {
-      const updated = await fetchJson<FeatureRequest>("/api/admin/features", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: feature.id, subtasks }),
-      });
+      const { card: updated } = await sendWork("edit", feature, { subtasks });
       applyFeatureUpdate(updated, false);
     } catch (error) {
       setData((current) =>
         current
           ? {
               ...current,
-              features: current.features.map((item) =>
-                item.id === feature.id ? feature : item,
-              ),
+              features: current.features.map((item) => (item.id === feature.id ? feature : item)),
             }
           : current,
       );
@@ -914,20 +1032,14 @@ export default function FeaturesPage() {
         : current,
     );
     try {
-      const updated = await fetchJson<FeatureRequest>("/api/admin/features", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: feature.id, owner }),
-      });
+      const { card: updated } = await sendWork("edit", feature, { owner });
       applyFeatureUpdate(updated, false);
     } catch (error) {
       setData((current) =>
         current
           ? {
               ...current,
-              features: current.features.map((item) =>
-                item.id === feature.id ? feature : item,
-              ),
+              features: current.features.map((item) => (item.id === feature.id ? feature : item)),
             }
           : current,
       );
@@ -948,6 +1060,7 @@ export default function FeaturesPage() {
   };
 
   const clearFilters = () => {
+    setQueue("all");
     setSearch("");
     setPriority("all");
     setMilestone(DEFAULT_MILESTONE_FILTER);
@@ -965,8 +1078,8 @@ export default function FeaturesPage() {
       return;
     setSaving(true);
     try {
-      await fetchJson(`/api/admin/features?id=${encodeURIComponent(feature.id)}`, {
-        method: "DELETE",
+      await sendWork("archive", feature, {
+        message: "Archived by the board operator after review.",
       });
       setData((current) =>
         current
@@ -986,16 +1099,21 @@ export default function FeaturesPage() {
 
   const commitReorder = useCallback(
     async (updates: { id: string; column_key: string; sort_order: number }[]) => {
-      await fetchJson("/api/admin/features", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reorder: updates }),
+      await sendWork("reorder", null, {
+        updates: updates.map((update) => {
+          const feature = features.find((card) => card.id === update.id);
+          if (!feature) throw new Error("Card not found; refresh the board.");
+          return {
+            id: feature.id,
+            revision: feature.revision,
+            status: update.column_key,
+            sort_order: update.sort_order,
+          };
+        }),
       });
-      // The board already reflects the new order optimistically; refetch to
-      // reconcile the shared query cache with the truthful server state.
       await featuresQuery.refetch();
     },
-    [featuresQuery],
+    [features, featuresQuery],
   );
 
   return (
@@ -1028,6 +1146,7 @@ export default function FeaturesPage() {
           </button>
         }
       />
+      <WorkAgents />
       <AdminReadBody
         loading={loading}
         hasData={Boolean(data)}
@@ -1046,6 +1165,30 @@ export default function FeaturesPage() {
         ) : (
           data && (
             <>
+              {(pageOffset > 0 || data.nextOffset != null) && (
+                <nav aria-label="Board pages" className="flex items-center gap-3 text-xs">
+                  <button
+                    type="button"
+                    disabled={pageOffset === 0}
+                    className="min-h-11 rounded-xl border px-4 disabled:opacity-40"
+                    onClick={() => setPageOffset(Math.max(0, pageOffset - 500))}
+                  >
+                    Previous 500
+                  </button>
+                  <span>
+                    Cards {pageOffset + 1}–{pageOffset + features.length}; filters apply to this
+                    page
+                  </span>
+                  <button
+                    type="button"
+                    disabled={data.nextOffset == null}
+                    className="min-h-11 rounded-xl border px-4 disabled:opacity-40"
+                    onClick={() => setPageOffset(data.nextOffset!)}
+                  >
+                    Next 500
+                  </button>
+                </nav>
+              )}
               <section className="grid grid-cols-3 gap-2 sm:gap-3">
                 {[
                   {
@@ -1063,9 +1206,9 @@ export default function FeaturesPage() {
                     icon: TriangleAlert,
                   },
                   {
-                    label: "Shipped",
+                    label: "Verified",
                     value: features.filter((feature) => feature.status === "shipped").length,
-                    note: "Delivered and verified",
+                    note: "Verification accepted",
                     icon: CheckCircle2,
                   },
                 ].map(({ label: metricLabel, value, note, icon: Icon }) => (
@@ -1086,7 +1229,19 @@ export default function FeaturesPage() {
                 ))}
               </section>
               <AdminSurface padding="sm">
-                <div className="flex flex-col gap-3">
+                <WorkViews
+                  filters={{
+                    search,
+                    milestone,
+                    category,
+                    capability,
+                    ownerFilter,
+                    priority,
+                    queue,
+                  }}
+                  onChange={applyFilters}
+                />
+                <div className="mt-4 flex flex-col gap-3">
                   <div className="relative min-w-0 w-full">
                     <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-[var(--admin-muted)]" />
                     <input
@@ -1228,7 +1383,12 @@ export default function FeaturesPage() {
                     renderCardOverlay={(feature) => (
                       <FeatureCard
                         feature={feature}
-                        opts={{ isDragging: true, isOverlay: true, disabled: true, dragHandleProps: {} }}
+                        opts={{
+                          isDragging: true,
+                          isOverlay: true,
+                          disabled: true,
+                          dragHandleProps: {},
+                        }}
                       />
                     )}
                     onReorder={commitReorder}
@@ -1245,9 +1405,7 @@ export default function FeaturesPage() {
                       return true;
                     }}
                     dragDisabled={filtersActive}
-                    onAddColumn={(input) => createColumn(input)}
                     onRenameColumn={(columnKey, label) => renameColumn(columnKey, { label })}
-                    onDeleteColumn={(columnKey, options) => deleteColumn(columnKey, options)}
                     onUpdateColumnMetadata={(columnKey, metadata: KanbanColumnMetadata) =>
                       renameColumn(columnKey, { metadata })
                     }
@@ -1284,7 +1442,12 @@ export default function FeaturesPage() {
                         sortValue: (feature) => FEATURE_PRIORITIES.indexOf(feature.priority),
                         render: (feature) => (
                           <span className="inline-flex items-center gap-1.5 text-xs font-medium">
-                            <span className={cn("size-1.5 rounded-full", priorityMeta[feature.priority].dot)} />
+                            <span
+                              className={cn(
+                                "size-1.5 rounded-full",
+                                priorityMeta[feature.priority].dot,
+                              )}
+                            />
                             {priorityMeta[feature.priority].label}
                           </span>
                         ),
@@ -1356,6 +1519,11 @@ export default function FeaturesPage() {
         )}
       </AdminReadBody>
       <FeatureDialog
+        cards={features}
+        onWorkChanged={(card) => {
+          applyFeatureUpdate(card, false);
+          void load();
+        }}
         key={openFeature?.id ?? `new-${newStatus}`}
         open={featureDialogOpen}
         feature={openFeature}
@@ -1365,7 +1533,6 @@ export default function FeaturesPage() {
         onClose={() => setFeatureDialogOpen(false)}
         onSave={(payload) => saveFeature(payload)}
         onArchive={archiveFeature}
-        onPersistSubtasks={openFeature ? persistSubtasks : undefined}
       />
     </div>
   );
