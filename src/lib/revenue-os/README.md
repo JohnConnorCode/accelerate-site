@@ -132,3 +132,13 @@ source of truth for those gaps. Do not describe planned coverage as passing.
 - `invoice-pages.ts` owns AI design traces, reviewed publication, immutable branding snapshots, encrypted/hash-indexed share tokens and revocation. `InvoiceDocument` is the shared renderer for the brand preview, editor and customer page.
 
 See [Extending Accelerate](../../../docs/contributing/EXTENDING.md#actionable-business-workflow-exemplars) for contracts, limits, setup and controlled verification. Provider integration tests are fixtures, not real Stripe sandbox receipts.
+
+### Collections Action Desk
+
+`collections.ts` owns bounded refresh of platform-created Stripe invoices and
+revision-checked case policy edits. It uses the existing tenant-bound Stripe
+reader; request inputs contain canonical action IDs, never billing facts.
+`sync_collection_observations` and `update_collection_case` atomically write case
+state, immutable observation/command/event history, canonical activities/audit
+and WorkItems. The optional `receivables-collections` module and Stripe invoicing
+must be enabled. Disabling retains evidence and denies further writes.

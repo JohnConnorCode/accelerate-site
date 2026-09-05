@@ -94,3 +94,22 @@ identity and provider idempotency receipt through the existing action executor.
 No new database schema was needed for this first slice. The case migration depends
 on the installation/migration-ledger repair, so the entire plugin can be reproduced
 from an empty owned database rather than only the existing development environment.
+
+## Durable case host
+
+`src/lib/revenue-os/collections.ts` now refreshes up to 25 explicitly tracked,
+platform-created invoices through the canonical Stripe reader. Cases group a
+canonical CRM billing contact and currency. This scope does not claim to scan
+every invoice in a Stripe account. A provider failure writes no partial batch;
+absence never implies payment. Source metadata, connection version, mode,
+customer and currency must match the original invoice action.
+
+The case RPCs serialize ingestion and edits, reject stale revisions and older
+observations, retain immutable events, and write canonical activities, audit and
+WorkItems. Disputes and indefinite pauses cancel active pursuit. Promises and
+timed pauses set the next check. Settlement requires every tracked case invoice
+to have a verified paid status and zero remaining balance. Closed cases remain
+history; disabling or upgrading never deletes them. No reminders are sent by
+this layer. The approved-reminder and workspace/demo cards connect the operator
+journey next. Run `npm run test:collections-lifecycle`; it needs native PostgreSQL
+client/server binaries and uses a disposable cluster without Docker.

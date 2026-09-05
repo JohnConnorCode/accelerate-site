@@ -225,7 +225,8 @@
     "verify:migrations": "node scripts/run-all-migrations.mjs --check",
     "test:migration-ledger": "node scripts/test-migration-ledger-postgres.mjs",
     "test:collections": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-collections-decision-engine.ts",
-    "preview:collections": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/preview-collections.ts"
+    "preview:collections": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/preview-collections.ts",
+    "test:collections-lifecycle": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-receivables-case-lifecycle.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

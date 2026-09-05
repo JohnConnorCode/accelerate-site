@@ -72,6 +72,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260905-feature-board-subtasks.sql",
   "migrations/20260906-universal-work-board.sql",
   "migrations/20260906-bootstrap-workspace-name.sql",
+  "migrations/20260906-collections-cases.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

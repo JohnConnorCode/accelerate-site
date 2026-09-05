@@ -100,7 +100,7 @@ jobs:
         run: |
           npm run verify:migrations
           npm run test:public-roadmap
-          PATH="$(pg_config --bindir):$PATH" npm run test:migration-ledger
+          PATH="$(pg_config --bindir):$PATH" npm run test:collections-lifecycle
 
       - name: Build
         run: npm run build

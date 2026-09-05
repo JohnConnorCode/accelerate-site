@@ -295,6 +295,19 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     },
   },
   {
+    id: "receivables-collections",
+    name: "Collections Action Desk",
+    description:
+      "Track verified overdue invoices, disputes, payment promises and collection follow-up for CRM billing contacts.",
+    category: "revenue",
+    isCore: false,
+    defaultEnabled: false,
+    navLinkIds: [],
+    aiToolNames: [],
+    routes: [],
+    setupChecks: [],
+  },
+  {
     id: "stripe-invoicing",
     name: "Stripe invoicing",
     description:

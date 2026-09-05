@@ -56,3 +56,5 @@ for (const table of ["entity_types", "entity_links", "plugins", "work_items", "f
 console.log(
   "PASS: actual business migration upgrade and replay preserve two tenants, duplicate contact emails, canonical record IDs, owner membership and edited configuration.",
 );
+
+if (process.env.COLLECTIONS_POSTGRES_PROOF === "1") await import("./test-collections-postgres.mjs");

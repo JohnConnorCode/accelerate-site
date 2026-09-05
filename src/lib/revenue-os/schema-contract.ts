@@ -5,9 +5,15 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-06.1";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-06.2";
 
 export const TENANT_SCOPED_TABLES = [
+  "collection_cases",
+  "collection_observations",
+  "collection_case_invoices",
+  "collection_events",
+  "collection_commands",
+
   "invoice_pages",
   "work_items",
   "workspace_capabilities",
@@ -358,6 +364,65 @@ const BASE_REVENUE_SCHEMA_TABLE_NAMES = new Set<string>(
 
 export const REVENUE_SCHEMA_TABLES = [
   {
+    table: "collection_cases",
+    columns: [
+      "id",
+      "tenant_id",
+      "contact_id",
+      "currency",
+      "status",
+      "revision",
+      "disputed",
+      "paused",
+      "pause_until",
+      "promise_date",
+      "owner_email",
+      "next_action",
+      "settled_at",
+    ],
+  },
+  {
+    table: "collection_observations",
+    columns: [
+      "id",
+      "tenant_id",
+      "request_id",
+      "creation_action_id",
+      "contact_id",
+      "provider_account",
+      "credential_version",
+      "invoice_id",
+      "test_mode",
+      "currency",
+      "status",
+      "remaining",
+      "due_date",
+      "observed_at",
+      "provider_request_id",
+    ],
+  },
+  {
+    table: "collection_case_invoices",
+    columns: ["tenant_id", "case_id", "creation_action_id", "observation_id"],
+  },
+  {
+    table: "collection_events",
+    columns: [
+      "id",
+      "tenant_id",
+      "case_id",
+      "request_id",
+      "kind",
+      "actor_email",
+      "before_state",
+      "after_state",
+    ],
+  },
+  {
+    table: "collection_commands",
+    columns: ["tenant_id", "request_id", "command_hash", "result", "created_at"],
+  },
+  {
     table: "tenants",
     columns: [
       "id",
@@ -457,6 +522,8 @@ export const REVENUE_SCHEMA_INDEXES = [
 ] as const;
 
 export const REVENUE_SCHEMA_FUNCTIONS = [
+  "public.sync_collection_observations(uuid,jsonb,text)",
+  "public.update_collection_case(uuid,integer,uuid,jsonb,text)",
   "public.revenue_os_touch_updated_at()",
   "public.publish_email_template(text,text)",
   "public.claim_contact_import_batch(uuid,text)",
