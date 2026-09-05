@@ -28,7 +28,7 @@
     "format:check": "prettier --check .",
     "verify:oss": "node scripts/verify-open-source-readiness.mjs",
     "test:open-source-stats": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-open-source-stats.ts",
-    "test:core": "npm run test:admin-demo-contract && npm run test:admin-breadcrumbs && npm run test:tenant-config && npm run test:tenant-isolation && npm run test:secret-storage && npm run test:admin-layout && npm run test:plugin-modules && npm run test:plugin-isolate && npm run test:model-registry && npm run test:route-gating && npm run test:integration-adapter-registry && npm run test:entity-registry && npm run test:capability-data-api && npm run test:action-execution && npm run test:action-reversibility && npm run test:delivery-handoff && npm run test:mcp-server && npm run test:demo-business-workflows && npm run test:runtime-consolidation && npm run test:ai-tool-gates && npm run test:report-plugins && npm run test:stripe-workflow && npm run test:business-workflows",
+    "test:core": "npm run test:admin-demo-contract && npm run test:admin-breadcrumbs && npm run test:tenant-config && npm run test:tenant-isolation && npm run test:secret-storage && npm run test:admin-layout && npm run test:plugin-modules && npm run test:plugin-isolate && npm run test:model-registry && npm run test:route-gating && npm run test:integration-adapter-registry && npm run test:entity-registry && npm run test:capability-data-api && npm run test:action-execution && npm run test:action-reversibility && npm run test:delivery-handoff && npm run test:mcp-server && npm run test:demo-business-workflows && npm run test:runtime-consolidation && npm run test:ai-tool-gates && npm run test:report-plugins && npm run test:stripe-workflow && npm run test:business-workflows && npm run test:public-work-intake",
     "verify:articles": "npx tsx scripts/verify-articles.ts",
     "verify:docs": "npx tsx scripts/verify-docs.ts",
     "docs:llms": "npx tsx scripts/generate-docs-llms.ts",
@@ -219,7 +219,8 @@
     "qa:roadmap": "node scripts/qa-roadmap.mjs",
     "test:work-board": "npx tsx --env-file=.env.local scripts/test-work-board.ts",
     "agent:progress": "npx tsx scripts/agent-dispatch.ts progress",
-    "agent:block": "npx tsx scripts/agent-dispatch.ts block"
+    "agent:block": "npx tsx scripts/agent-dispatch.ts block",
+    "test:public-work-intake": "npx tsx scripts/test-public-work-intake.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

@@ -1,5 +1,5 @@
 /** Canonical platform work service. Never import into tenant-scoped tool catalogues. */
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
@@ -471,4 +471,51 @@ export async function deleteWorkView(db: SupabaseClient, owner: string, id: stri
     .maybeSingle();
   if (error) throw new WorkBoardError(error.message, 500);
   if (!data) throw new WorkBoardError("Saved view not found or owned by another operator", 404);
+}
+
+/** Public intake has create-only authority and never accepts work metadata. */
+export async function submitPublicWorkSuggestion(db: SupabaseClient, raw: unknown) {
+  const input = z
+    .object({
+      title: z.string().trim().min(1).max(120),
+      description: z.string().trim().min(1).max(2000),
+      email: z.string().max(254).email().optional(),
+    })
+    .strict()
+    .parse(raw);
+  const requestKey = randomUUID();
+  const result = await mutateWorkBoard(
+    db,
+    {
+      id: "public-roadmap-submission",
+      projects: ["accelerate"],
+      scopes: ["create"],
+      reviewer: false,
+    },
+    {
+      operation: "create",
+      requestKey,
+      payload: {
+        project_key: "accelerate",
+        seed_key: `community-${requestKey}`,
+        title: input.title,
+        description: input.description,
+        priority: "low",
+        labels: [],
+        notes: `Submitted ${new Date().toISOString()} via the public roadmap suggestion form.${input.email ? ` Contact: ${input.email}` : " No contact provided."}`,
+      },
+    },
+  );
+  try {
+    const { error } = await db.from("admin_notifications").insert({
+      type: "roadmap_suggestion",
+      title: `New roadmap suggestion: ${input.title}`,
+      description: input.description.slice(0, 200),
+      link: "/admin/features",
+    });
+    if (error) console.error("Roadmap suggestion saved; operator notification failed");
+  } catch {
+    console.error("Roadmap suggestion saved; operator notification failed");
+  }
+  return result;
 }

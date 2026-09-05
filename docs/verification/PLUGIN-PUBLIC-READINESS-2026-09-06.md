@@ -6,6 +6,17 @@ Working, bounded business exemplars exist on a completed local branch. Accelerat
 is **not yet a publicly reproducible plugin-platform release**. Do not describe
 all plugin work as available to someone cloning the published default branch.
 
+## Local reconciliation update
+
+The founder subsequently requested all necessary merges. The completed plugin,
+runtime, work-board, conversation, Drive, webhook, docs and release-readiness
+branches are now reconciled in `agent/merge-integration`, for a verified fast-forward
+to local `main`. See [merge evidence](REPOSITORY-MERGES-2026-09-06.md).
+The table below records the **pre-merge audit snapshot**, not the final local tree.
+No remote push or production deployment occurred; the public-release and
+clean-room contributor verification gaps remain. Uncommitted documentation and
+other active agent work remain in their original worktrees.
+
 ## Evidence by surface
 
 | Surface                                             | Verified state                                                                                                  |
